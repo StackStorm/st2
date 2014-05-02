@@ -1,0 +1,28 @@
+#!/usr/bin/env python2.7
+
+#
+#   kandra adapter_container
+#
+
+import os
+import sys
+
+DEVEL = True
+
+if DEVEL:
+    '''
+        Explicitly add the module path to the module search path to support development
+        environment without needing to go through an install procedure.
+    '''
+    python_lib_dir = os.path.abspath(os.path.dirname(sys.argv[0]) + '/..')
+    sys.path.append(python_lib_dir)
+    print sys.path
+
+from st2reactor.adapter import container
+from st2reactor.adapter.adapters import FixedRunAdapter
+
+if __name__ == '__main__':
+    container = container.AdapterContainer([FixedRunAdapter, FixedRunAdapter])
+    sys.exit(container.main(sys.argv))
+
+
