@@ -4,8 +4,10 @@ VIRTUALENV_DIR := virtualenv
 
 BINARIES := bin
 
-# Components are all directories that start with "st2"
-COMPONENTS := $(wildcard st2*)
+# All components are prefixed by st2
+#COMPONENTS := st2common st2actioncontroller st2reactor
+COMPONENTS := $(widcard st2*)
+
 EXTERNAL_DIR := external
 
 # nasty hack to get a space into a variable
