@@ -18,10 +18,12 @@ class StactionDB(Base):
     """The system entity that represents a Stack Action/Automation in
        the system.
     Attribute:
-        url: url of the source
-        auth_token: token used by an adapter to authenticate with the
-        adapter_file_uri: uri of the adapter which will translate an event
-        specific to the source to a corresponding trigger.
+        enabled: flag indicating whether this staction is enabled in the system.
+        repo_path: relative path to the staction artifact. Relative to the root
+                   of the repo.
+        run_type: string identifying which stactionrunner is used to execute the staction.
+        parameter_names: flat list of strings required as key names when running
+                   the staction.
     """
     enabled = me.BooleanField()
     repo_path = me.StringField(required=True)
