@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" ng-app="main" ng-controller="MainCtrl">
+<head>
+  <meta charset="utf-8">
+  <title ng-bind="state.current.title"></title>
+
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+  <!-- buils:styles -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- endbuild -->
+
+  <!-- TODO: get components directly from bower.json using gulp -->
+  <!-- build:components -->
+  <script src="components/angular/angular.js"></script>
+  <script src="components/angular-ui-router/release/angular-ui-router.js"></script>
+  <script src="components/angular-resource/angular-resource.js"></script>
+  <script src="components/lodash/dist/lodash.js"></script>
+  <script src="components/moment/moment.js"></script>
+  <script src="components/angular-moment/angular-moment.js"></script>
+  <!-- endbuild -->
+  <!-- build:scripts -->
+  <script src="main.js"></script>
+
+  <script src="apps/sk0-react/controller.js"></script>
+
+  <script src="directives/sk0-menu/directive.js"></script>
+  <script src="apps/sk0-react/directives/sk0-rule/directive.js"></script>
+  <!-- endbuild -->
+</head>
+
+<body>
+  <div class="sk0-menu"></div>
+
+  <div class="main" ui-view></div>
+</body>
+</html>

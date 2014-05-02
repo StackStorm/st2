@@ -1,0 +1,8 @@
+<ul class="sk0-menu__nav">
+  <li ng-repeat="route in state.get()" class="sk0-menu__nav-item" ng-switch="route.abstract">
+    <a href="#" ng-switch-when="true">
+      <img class="sk0-menu__logo" src="img/logo.svg" alt="StackStorm Kandra">
+    </a>
+    <a href="#{{ route.url }}" ng-switch-default>{{ route.title }}</a>
+  </li>
+</ul>
