@@ -6,7 +6,7 @@ BINARIES := bin
 
 # All components are prefixed by st2
 #COMPONENTS := st2common st2actioncontroller st2reactor
-COMPONENTS := $(widcard st2*)
+COMPONENTS := $(wildcard st2*)
 
 EXTERNAL_DIR := external
 
@@ -22,6 +22,7 @@ REQUIREMENTS := requirements.txt test-requirements.txt
 all: virtualenv
 
 distclean:
+	@echo $(COMPONENTS)
 	rm -rf $(VIRTUALENV_DIR)
 
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
