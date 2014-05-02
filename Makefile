@@ -3,7 +3,9 @@ TOX_DIR := .tox
 VIRTUALENV_DIR := virtualenv
 
 BINARIES := bin
-COMPONENTS := st2common st2actioncontroller st2reactor
+
+# Components are all directories that start with "st2"
+COMPONENTS := $(wildcard st2*)
 EXTERNAL_DIR := external
 
 # nasty hack to get a space into a variable
@@ -21,7 +23,7 @@ distclean:
 	rm -rf $(VIRTUALENV_DIR)
 
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
-$(VIRTUALENV_DIR)/bin/activate: tox.ini requirements.txt test-requirements.txt
+$(VIRTUALENV_DIR)/bin/activate: requirements.txt test-requirements.txt
 	@echo ""
 	@echo "Creating python virtual environment"
 	@echo
