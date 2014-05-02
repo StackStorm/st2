@@ -33,3 +33,4 @@ nosetests.xml
 # Mr Developer
 .idea
 .DS_Store
+._*

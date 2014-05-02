@@ -14,11 +14,12 @@ if DEVEL:
         Explicitly add the module path to the module search path to support development
         environment without needing to go through an install procedure.
     '''
-    python_lib_dir = os.path.abspath(os.path.dirname(sys.argv[0]) + '/../..')
+    python_lib_dir = os.path.abspath(os.path.dirname(sys.argv[0]) + '/..')
     sys.path.append(python_lib_dir)
+    print sys.path
 
-from reactor.stackstorm.adapter import container
-from reactor.stackstorm.adapter.adapters import FixedRunAdapter
+from st2reactor.adapter import container
+from st2reactor.adapter.adapters import FixedRunAdapter
 
 if __name__ == '__main__':
     container = container.AdapterContainer([FixedRunAdapter, FixedRunAdapter])

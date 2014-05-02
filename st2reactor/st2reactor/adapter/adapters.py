@@ -2,7 +2,7 @@ import eventlet
 import random
 import thread
 
-import AdapterBase
+from st2reactor.adapter import AdapterBase
 
 
 class FixedRunAdapter(AdapterBase):
