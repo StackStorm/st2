@@ -6,7 +6,7 @@ BINARIES := bin
 
 # All components are prefixed by st2
 #COMPONENTS := st2common st2actioncontroller st2reactor
-COMPONENTS := $(widcard st2*)
+COMPONENTS := $(wildcard st2*)
 
 EXTERNAL_DIR := external
 
@@ -19,7 +19,7 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
-all: virtualenv
+all: virtualenv test
 
 distclean:
 	rm -rf $(VIRTUALENV_DIR)
@@ -39,3 +39,5 @@ $(VIRTUALENV_DIR)/bin/activate: requirements.txt test-requirements.txt
 	. $(VIRTUALENV_DIR)/bin/activate ; pip install -U $(foreach req,$(REQUIREMENTS),-r $(req))
 	touch $(VIRTUALENV_DIR)/bin/activate
 
+test:
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $(COMPONENTS)
