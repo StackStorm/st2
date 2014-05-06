@@ -19,14 +19,20 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
-all: virtualenv test
+all: requirements test
 
+.PHONY: distclean
 distclean:
 	@echo $(COMPONENTS)
 	rm -rf $(VIRTUALENV_DIR)
 
+.PHONY: all
+requirements: virtualenv requirements.txt test-requirements.txt
+	. $(VIRTUALENV_DIR)/bin/activate ; pip install -U $(foreach req,$(REQUIREMENTS),-r $(req))
+
+.PHONY: virtualenv
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
-$(VIRTUALENV_DIR)/bin/activate: requirements.txt test-requirements.txt
+$(VIRTUALENV_DIR)/bin/activate:
 	@echo ""
 	@echo "Creating python virtual environment"
 	@echo
@@ -37,8 +43,8 @@ $(VIRTUALENV_DIR)/bin/activate: requirements.txt test-requirements.txt
 	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
 	echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH):$(EXTERNAL_DIR)' >> $(VIRTUALENV_DIR)/bin/activate
 	echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
-	. $(VIRTUALENV_DIR)/bin/activate ; pip install -U $(foreach req,$(REQUIREMENTS),-r $(req))
 	touch $(VIRTUALENV_DIR)/bin/activate
 
+.PHONY: test
 test:
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $(COMPONENTS)
