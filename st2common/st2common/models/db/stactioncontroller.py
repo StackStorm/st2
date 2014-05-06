@@ -1,5 +1,6 @@
 import mongoengine as me
 
+from st2common.models.db.stormbase import BaseDB
 
 class BaseDB(me.Document):
     """Minimal representation a model entity.
@@ -14,7 +15,7 @@ class BaseDB(me.Document):
     id = me.ObjectIdField(primary_key=True, unique=True, required=True)
 
 
-class StactionDB(Base):
+class StactionDB(BaseDB):
     """The system entity that represents a Stack Action/Automation in
        the system.
     Attribute:
@@ -28,4 +29,4 @@ class StactionDB(Base):
     enabled = me.BooleanField()
     repo_path = me.StringField(required=True)
     run_type = me.StringField()
-    parameter_names = ListField()
+    parameter_names = me.ListField()
