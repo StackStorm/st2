@@ -1,1 +1,3 @@
 ipython
+unittest2
+nose

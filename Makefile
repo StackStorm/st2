@@ -19,7 +19,7 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
-all: virtualenv
+all: virtualenv test
 
 distclean:
 	@echo $(COMPONENTS)
@@ -40,3 +40,5 @@ $(VIRTUALENV_DIR)/bin/activate: requirements.txt test-requirements.txt
 	. $(VIRTUALENV_DIR)/bin/activate ; pip install -U $(foreach req,$(REQUIREMENTS),-r $(req))
 	touch $(VIRTUALENV_DIR)/bin/activate
 
+test:
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $(COMPONENTS)
