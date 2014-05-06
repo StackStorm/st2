@@ -9,6 +9,7 @@ from wsgiref import simple_server
 from oslo.config import cfg
 
 from st2common import log as logging
+from st2common import exitcodes as exitcodes
 
 from st2actioncontroller.api import app
 from st2actioncontroller import config
@@ -39,7 +40,7 @@ def main():
         server.serve_forever()
     except RuntimeError, e:
         sys.stderr.write("ERROR: %s\n" % e)
-        sys.exit(1)
+        sys.exit(exitcodes.FATAL_EXIT_CODE)
 
 
 if __name__ == '__main__':
