@@ -9,3 +9,9 @@ make test
 
 ### To drop virtualenv
 make distclean
+
+To install updated requirements
+make requirements
+
+To just create virtualenv:
+make virtualenv
