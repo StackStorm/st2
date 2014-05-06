@@ -1,11 +1,11 @@
 kandra
 ======
 
-To create virtualenv & run tests
+### To create virtualenv & run tests
 make all
 
-To run all tests
+### To run all tests
 make test
 
-To drop virtualenv
+### To drop virtualenv
 make distclean
