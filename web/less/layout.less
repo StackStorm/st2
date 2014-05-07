@@ -1,6 +1,8 @@
+@column-width: 640px;
+
 #sk0-layout {
   #center-column {
-    width: 640px;
+    width: @column-width;
     margin: 0 auto;
   }
 
@@ -8,5 +10,23 @@
     list-style: none;
     padding: 0;
     margin: 0;
+  }
+
+  #center-box {
+    display: -webkit-box;
+    -webkit-box-align: center;
+    -webkit-box-pack: center;
+
+    display: -moz-box;
+    -moz-box-align: center;
+    -moz-box-pack: center;
+
+    display: -ms-flexbox;
+    -ms-flex-align: center;
+    -ms-flex-pack: center;
+
+    display: box;
+    box-align: center;
+    box-pack: center;
   }
 }

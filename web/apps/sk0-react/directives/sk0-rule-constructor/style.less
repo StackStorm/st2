@@ -1,0 +1,41 @@
+@import "colors";
+
+.sk0-rule-constructor {
+  display: inline-block;
+  width: 100%;
+  position: relative;
+
+  &__call-for-action, &__constructor {
+    font-size: 28px;
+    line-height: 90px;
+    height: 90px;
+    text-align: center;
+    display: block;
+  }
+
+  &__call-for-action {
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    background-color: @body-bg-color;
+  }
+
+  // &__constructor {
+  //   display: none;
+  // }
+  //
+  // &:hover &__constructor {
+  //   display: block;
+  // }
+  
+  &:hover &__call-for-action {
+    display: none;
+  }
+
+  &__this, &__that {
+    text-decoration: underline;
+    font-weight: bold;
+    cursor: pointer;
+  }
+}

@@ -1,0 +1,10 @@
+<div class="sk0-rule-constructor__call-for-action" ng-hide="rule.trigger || rule.action">
+  Create new rule
+</div>
+<div class="sk0-rule-constructor__constructor">
+  When
+  <span class="sk0-rule-constructor__this" ui-sref='.triggers'>{{ rule.trigger.service || 'this' }}</span>
+  triggers, fire
+  <span class="sk0-rule-constructor__that" ui-sref='.actions'>{{ rule.action.service || 'that' }}</span>
+  staction
+</div>

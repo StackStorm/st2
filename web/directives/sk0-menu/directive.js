@@ -7,7 +7,11 @@ angular.module('main')
       restrict: 'C',
       scope: true,
       templateUrl: 'directives/sk0-menu/template.html',
-      link: function postLink() {}
+      link: function postLink(scope) {
+        scope.isMain = function (e) {
+          return !!e.title;
+        };
+      }
     };
 
   });

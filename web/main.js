@@ -5,27 +5,56 @@ angular.module('main', ['ui.router', 'ngResource', 'angularMoment'])
     $urlRouterProvider.otherwise('/react');
 
     $stateProvider
-    .state('act', {
-      url: '/act',
-      controller: 'Sk0ActCtrl',
-      templateUrl: 'apps/sk0-act/template.html',
-      name: 'sk0-act',
-      title: 'Act'
-    })
-    .state('react', {
-      url: '/react',
-      controller: 'Sk0ReactCtrl',
-      templateUrl: 'apps/sk0-react/template.html',
-      name: 'sk0-react',
-      title: 'React'
-    })
-    .state('audit', {
-      url: '/audit',
-      controller: 'Sk0AuditCtrl',
-      templateUrl: 'apps/sk0-audit/template.html',
-      name: 'sk0-audit',
-      title: 'Audit'
-    });
+      .state('act', {
+        url: '/act',
+        controller: 'sk0ActCtrl',
+        templateUrl: 'apps/sk0-act/template.html',
+        title: 'Act'
+      })
+
+      .state('react', {
+        url: '/react',
+        templateUrl: 'apps/sk0-react/template.html',
+        controller: 'sk0ReactCtrl',
+        title: 'React',
+        abstract: true
+      })
+      .state('react.list', {
+        url: '',
+        controller: 'sk0ReactListCtrl',
+        templateUrl: 'apps/sk0-react/list.partial.html'
+      })
+      .state('react.triggers', {
+        controller: 'sk0ReactPickerCtrl',
+        templateUrl: 'apps/sk0-react/pick.partial.html',
+        data: {
+          type: 'trigger'
+        }
+      })
+      .state('react.triggers.setup', {
+        controller: 'sk0ReactSetupCtrl',
+        templateUrl: 'apps/sk0-react/setup.partial.html',
+        params: ['type']
+      })
+      .state('react.actions', {
+        controller: 'sk0ReactPickerCtrl',
+        templateUrl: 'apps/sk0-react/pick.partial.html',
+        data: {
+          type: 'action'
+        }
+      })
+      .state('react.actions.setup', {
+        controller: 'sk0ReactSetupCtrl',
+        templateUrl: 'apps/sk0-react/setup.partial.html',
+        params: ['type']
+      })
+
+      .state('audit', {
+        url: '/audit',
+        controller: 'sk0AuditCtrl',
+        templateUrl: 'apps/sk0-audit/template.html',
+        title: 'Audit'
+      });
   });
 
 angular.module('main')
@@ -36,4 +65,13 @@ angular.module('main')
     // $scope.$on('$stateChangeStart', function (event, toState) {
     //   window.name = toState.name;
     // });
+  });
+
+angular.module('main')
+  .filter('has', function () {
+    return function (input, name) {
+      return _.filter(input, function (e) {
+        return !!e[name];
+      });
+    };
   });
