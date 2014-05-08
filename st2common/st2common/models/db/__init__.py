@@ -1,5 +1,5 @@
 import logging
-from mongoengine import connect, disconnect
+from mongoengine.connection import connect, disconnect
 from oslo.config import cfg
 
 LOG = logging.getLogger('st2common.models.db')
