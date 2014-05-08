@@ -31,17 +31,6 @@ class StactionsController(RestController):
         return {"dummy": "get_all"}
 
     @expose('json')
-    def delete(self, id):
-        """
-            Delete a staction.
-
-            Handles requests:
-                POST /stactions/1?_method=delete
-                DELETE /stactions/1
-        """
-        return {"dummy": "delete staction"}
-
-    @expose('json')
     def post(self, **kwargs):
         """
             Create a new staction.
@@ -58,8 +47,18 @@ class StactionsController(RestController):
             Update a staction.
 
             Handles requests:
+                POST /stactions/1?_method=put
+                PUT /stactions/1
+        """
+        return {"dummy": "put"}
+
+    @expose('json')
+    def delete(self, id):
+        """
+            Delete a staction.
+
+            Handles requests:
                 POST /stactions/1?_method=delete
                 DELETE /stactions/1
         """
-        return {"dummy": "put"}
-    
+        return {"dummy": "delete staction"}

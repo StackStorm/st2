@@ -29,18 +29,6 @@ class StactionExecutionsController(RestController):
         return {"dummy": "get_all"}
 
     @expose('json')
-    def delete(self, id):
-        """ 
-            Delete a stactionexecution.
-
-            Handles requests:
-                POST /stactionexecutions/1?_method=delete
-                DELETE /stactionexecutions/1
-        """
-        # TODO: Delete should migrate the execution data to a history collection.
-        return {"dummy": "delete stactionexecution"}
-
-    @expose('json')
     def post(self, **kwargs):
         """ 
             Create a new stactionexecution.
@@ -58,8 +46,19 @@ class StactionExecutionsController(RestController):
             Update a stactionexecution.
 
             Handles requests:
-                POST /stactionexecutions/1?_method=delete
-                DELETE /stactionexecutions/1
+                POST /stactionexecutions/1?_method=put
+                PUT /stactionexecutions/1
         """
         return {"dummy": "put"}
 
+    @expose('json')
+    def delete(self, id):
+        """ 
+            Delete a stactionexecution.
+
+            Handles requests:
+                POST /stactionexecutions/1?_method=delete
+                DELETE /stactionexecutions/1
+        """
+        # TODO: Delete should migrate the execution data to a history collection.
+        return {"dummy": "delete stactionexecution"}
