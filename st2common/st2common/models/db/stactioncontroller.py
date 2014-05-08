@@ -1,6 +1,8 @@
 import mongoengine as me
 
-class StactionDB(me.Document):
+from st2common.models.db.stormbase import BaseDB
+
+class StactionDB(BaseDB):
     """The system entity that represents a Stack Action/Automation in
        the system.
     Attribute:
@@ -15,9 +17,6 @@ class StactionDB(me.Document):
         parameter_names: flat list of strings required as key names when running
                    the staction.
     """
-    name = me.StringField(required=True)
-    description = me.StringField()
-    id = me.ObjectIdField(primary_key=True, unique=True, required=True)
     enabled = me.BooleanField()
     repo_path = me.StringField(required=True)
     run_type = me.StringField()
