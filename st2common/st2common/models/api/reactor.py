@@ -15,19 +15,23 @@ class Access(object):
 
     @classmethod
     def get_by_name(cls, value):
-        cls._get_impl().get_by_name(value)
+        return cls._get_impl().get_by_name(value)
 
     @classmethod
     def get_by_id(cls, value):
-        cls._get_impl().get_by_id(value)
+        return cls._get_impl().get_by_id(value)
 
     @classmethod
     def get_all(cls):
-        cls._get_impl().get_all()
+        return cls._get_impl().get_all()
 
     @classmethod
     def add_or_update(cls, model_object):
-        cls.add_or_update(model_object)
+        return cls._get_impl().add_or_update(model_object)
+
+    @classmethod
+    def delete(cls, model_object):
+        return cls._get_impl().delete(model_object)
 
 
 class TriggerSource(Access):
