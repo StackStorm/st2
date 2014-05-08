@@ -1,0 +1,391 @@
+FORMAT: 1A
+HOST: http://kandra.stackstorm.com
+
+# Kandra
+This is a system that provides a way to describe the action (or sequence of actions) to be performed when a monitoring system(Nagios, Zabbix, Ganglia, Cacti etc.) or an external system sends out an event. This system can be thought of a giant dictionary which maintains a mapping between triggers received from a monitoring system and the action to be performed. The core functionality of this system is to invoke actions on emergence of such triggers.
+
+# Group Rules
+Rules related resources of the **Kandra API**
+
+## Rules Collection [/rules{?expand}]
+
++ Parameters
+    + expand = `true` (optional, boolean) ... Expand action and trigger type definitions. In original, shrinked state they should be represented as strings like "git:posthook" (`service name`:`trigger\action name`)
+
+### List all Rules [GET]
++ Response 200 (application/json)
+
+        [{
+            "id": 1,
+            "enable": true,
+            "trigger": {
+                "type": {
+                    "name": "posthook",
+                    "service": "git",
+                    "title": "Git: Post-receive hook"
+                },
+                "options": {
+                    "repo": "stackstorm/kandra"
+                }
+            },
+            "action": {
+                "type": {
+                    "name": "say",
+                    "service": "hubot",
+                    "title": "Chat: Say in channel"
+                },
+                "options": {
+                    "channel": "stackstorm",
+                    "message": "New commit has been pushed in {{ repo }} by {{ author }}"
+                }
+            },
+            "created": "2014-05-05T03:31:21.683Z",
+            "edited": "2014-05-05T03:42:28.168Z",
+            "triggered": "2014-05-05T03:52:59.346Z",
+            "checked": "2014-05-05T05:05:54.747Z",
+            "count": 16
+        }, {
+            "id": 2,
+            "enable": true,
+            "trigger": {
+                "type": {
+                    "name": "message",
+                    "service": "email",
+                    "title": "Email: Receive a message"
+                },
+                "options": {
+                    "to": "support@stackstorm.com"
+                }
+            },
+            "action": {
+                "type": {
+                    "name": "newTicket",
+                    "service": "jira",
+                    "title": "Jira: New ticket"
+                },
+                "options": {
+                    "project": "stackstorm",
+                    "type": "story",
+                    "summary": "Email: {{ subject }}",
+                    "description": "{{ from }} wrote: \n{{ body }}",
+                    "reporter": "{{ from }}"
+                }
+            },
+            "created": "2014-05-05T04:03:53.751Z",
+            "edited": "2014-05-05T04:03:53.751Z",
+            "triggered": "2014-05-05T04:04:38.570Z",
+            "checked": "2014-05-05T05:05:54.747Z",
+            "count": 1
+        }, { 
+            "id": 3,
+            "enable": false,
+            "trigger": {
+                "type": {
+                    "name": "message",
+                    "service": "email",
+                    "title": "Email: Receive a message"
+                },
+                "options": {
+                    "to": "support@stackstorm.com"
+                }
+            },
+            "action": {
+                "type": {
+                    "name": "say",
+                    "service": "hubot",
+                    "title": "Chat: Say in channel"
+                },
+                "options": {
+                    "channel": "stackstorm",
+                    "message": "New user story has been received"
+                }
+            },
+            "created": "2014-05-05T04:09:47.427Z",
+            "edited": "2014-05-05T04:09:47.427Z",
+            "triggered": "2014-05-05T04:09:47.427Z",
+            "checked": "2014-05-05T05:05:54.747Z",
+            "count": 0
+        }]
+
+### Create a Note [POST]
++ Request (application/json)
+
+        { 
+            "trigger": {
+                "type": "email:message",
+                "options": {
+                    "to": "support@stackstorm.com"
+                }
+            },
+            "action": {
+                "type": "hubot:say",
+                "options": {
+                    "channel": "stackstorm",
+                    "message": "New user story has been received"
+                }
+            }
+        }
+
++ Response 201 (application/json)
+
+        { 
+            "id": 3,
+            "enable": false,
+            "trigger": {
+                "type": {
+                    "name": "message",
+                    "service": "email",
+                    "title": "Email: Receive a message"
+                },
+                "options": {
+                    "to": "support@stackstorm.com"
+                }
+            },
+            "action": {
+                "type": {
+                    "name": "say",
+                    "service": "hubot",
+                    "title": "Chat: Say in channel"
+                },
+                "options": {
+                    "channel": "stackstorm",
+                    "message": "New user story has been received"
+                }
+            },
+            "created": "2014-05-05T04:09:47.427Z",
+            "edited": "2014-05-05T04:09:47.427Z",
+            "triggered": "2014-05-05T04:09:47.427Z",
+            "checked": "2014-05-05T05:05:54.747Z",
+            "count": 0
+        }
+
+## Rule [/rules/{id}{?expand}]
+A single Rule object with all its details
+
++ Parameters
+    + id (required, number, `2`) ... Numeric `id` of the Rule to perform action with.
+    + expand = `true` (optional, boolean) ... Expand action and trigger type definitions. In original, shrinked state they should be represented as strings like "git:posthook" (`service name`:`trigger\action name`)
+
+### Retrieve a Note [GET]
++ Response 200 (application/json)
+
+        {
+            "id": 2,
+            "enable": false,
+            "trigger": {
+                "type": {
+                    "name": "message",
+                    "service": "email",
+                    "title": "Email: Receive a message"
+                },
+                "options": {
+                    "to": "support@stackstorm.com"
+                }
+            },
+            "action": {
+                "type": {
+                    "name": "newTicket",
+                    "service": "jira",
+                    "title": "Jira: New ticket"
+                },
+                "options": {
+                    "project": "stackstorm",
+                    "type": "story",
+                    "summary": "Email: {{ subject }}",
+                    "description": "{{ from }} wrote: \n{{ body }}",
+                    "reporter": "{{ from }}"
+                }
+            },
+            "created": "2014-05-05T04:03:53.751Z",
+            "edited": "2014-05-05T04:03:53.751Z",
+            "triggered": "2014-05-05T04:04:38.570Z",
+            "checked": "2014-05-05T05:05:54.747Z",
+            "count": 1
+        }
+
+### Remove a Note [DELETE]
++ Response 204
+
+# Group Services
+A combination of triggers and stactions provided by particular service (git, nagios, etc.)
+
+## Service collection [/services]
+### List all Services [GET]
++ Response 200 (application/json)
+
+        {
+            "git": {
+                "name": "git",
+                "title": "Git", 
+                "triggers": {
+                    "prehook": {
+                        "name": "prehook",
+                        "service": "git",
+                        "title": "Pre-receive hook"
+                    },
+                    "posthook": {
+                        "name": "posthook",
+                        "service": "git",
+                        "title": "Post-receive hook"
+                    }
+                }
+            },
+            "hubot": {
+                "name": "hubot",
+                "title": "Chat",
+                "triggers": {
+                    "command": {
+                        "name": "command",
+                        "service": "hubot",
+                        "title": "Receive a command"
+                    }
+                },
+                "actions": {
+                    "say": {
+                        "name": "say",
+                        "service": "hubot",
+                        "title": "Say in channel"
+                    }
+                }
+            },
+            "empty": {
+                "name": "empty",
+                "title": "Empty"
+            },
+            "email": {
+                "name": "email",
+                "title": "Email",
+                "triggers": {
+                    "message": {
+                        "name": "message",
+                        "service": "email",
+                        "title": "Receive a message"
+                    }
+                },
+                "actions": {
+                    "message": {
+                        "name": "message",
+                        "service": "email",
+                        "title": "Send a message"
+                    }
+                }
+            },
+            "jira": {
+                "name": "jira",
+                "title": "Jira",
+                "triggers": {
+                    "newTicket": {
+                        "name": "newTicket",
+                        "service": "jira",
+                        "title": "New ticket"
+                    }
+                },
+                "actions": {
+                    "createTicket": {
+                        "name": "createTicket",
+                        "service": "jira",
+                        "title": "Create new ticket"
+                    }
+                }
+            }
+        }
+
+## Service [/services/{name}]
+
++ Parameters
+    + name (required, string, `git`) ... `Name` of the Service to get
+    
+### Retrieve a Service [GET]
++ Response 200 (application/json)
+    
+        {
+            "name": "git",
+            "title": "Git", 
+            "triggers": {
+                "prehook": {
+                    "name": "prehook",
+                    "service": "git",
+                    "title": "Pre-receive hook"
+                },
+                "posthook": {
+                    "name": "posthook",
+                    "service": "git",
+                    "title": "Post-receive hook"
+                }
+            },
+            "actions": {
+                "createTag": {
+                    "name": "createTag",
+                    "service": "git",
+                    "title": "Create new tag"
+                }
+            }
+        }
+
+## Triggers collection [/services/{name}/triggers]
+
++ Parameters
+    + name (required, string, `git`) ... `Name` of the Service
+    
+### List all Triggers of the Service [GET]
++ Response 200 (application/json)
+    
+        {
+            "prehook": {
+                "name": "prehook",
+                "service": "git",
+                "title": "Pre-receive hook"
+            },
+            "posthook": {
+                "name": "posthook",
+                "service": "git",
+                "title": "Post-receive hook"
+            }
+        }
+
+## Trigger [/services/{name}/triggers/{trigger}]
+
++ Parameters
+    + name (required, string, `git`) ... Name of the Service
+    + trigger (required, string, `posthook`) ... Name of the Trigger
+    
+### Retrieve a Service [GET]
++ Response 200 (application/json)
+    
+        {
+            "name": "posthook",
+            "service": "git",
+            "title": "Post-receive hook"
+        }
+
+## Actions collection [/services/{name}/actions]
+
++ Parameters
+    + name (required, string, `git`) ... `Name` of the Service
+    
+### List all Triggers of the Service [GET]
++ Response 200 (application/json)
+    
+        {
+            "createTag": {
+                "name": "createTag",
+                "service": "git",
+                "title": "Create new tag"
+            }
+        }
+
+## Action [/services/{name}/actions/{action}]
+
++ Parameters
+    + name (required, string, `git`) ... Name of the Service
+    + action (required, string, `createTag`) ... Name of the Action
+    
+### Retrieve a Service [GET]
++ Response 200 (application/json)
+    
+        {
+            "name": "createTag",
+            "service": "git",
+            "title": "Create new tag"
+        }
+

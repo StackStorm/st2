@@ -1,20 +1,8 @@
 import mongoengine as me
+from st2common.models.db.stormbase import BaseDB
 
 
-class Base(me.Document):
-    """Minimal representation a model entity.
-    Attribute:
-        name : name of the entity.
-        description : description of the entity.
-        id : unique identifier for the entity. If none is provided it
-        will be auto generate by the system.
-    """
-    name = me.StringField()
-    description = me.StringField()
-    id = me.ObjectIdField()
-
-
-class TriggerSource(Base):
+class TriggerSourceDB(BaseDB):
     """Source of a trigger. Typically an external system or service that
     generates events which must be adapted to a trigger using the provided
     adapter.
@@ -29,7 +17,7 @@ class TriggerSource(Base):
     adapter_file_uri = me.StringField()
 
 
-class Trigger(Base):
+class TriggerDB(BaseDB):
     """Description of a specific kind/type of a trigger. The name is expected
        uniquely identify a trigger in the namespace of all triggers provided
        by a specific trigger_source.
@@ -41,7 +29,7 @@ class Trigger(Base):
     payload_info = me.ListField()
 
 
-class TriggerInstance(Base):
+class TriggerInstanceDB(BaseDB):
     """An instance or occurrence of a type of Trigger.
     Attribute:
         trigger: Reference to the trigger type.
@@ -53,7 +41,7 @@ class TriggerInstance(Base):
     occurrence_time = me.DateTimeField()
 
 
-class Rule(Base):
+class RuleDB(BaseDB):
     """Specifies the action to invoke on the occurrence of a Trigger. It
     also includes the transformation to perform to match the impedance
     between the payload of a TriggerInstance and input of a staction.
@@ -71,7 +59,7 @@ class Rule(Base):
     status = me.StringField()
 
 
-class RuleEnforcement(Base):
+class RuleEnforcementDB(BaseDB):
     """A record of when an enabled rule was enforced.
     Attribute:
         rule (Reference): Rule that was enforced.
@@ -83,3 +71,38 @@ class RuleEnforcement(Base):
     rule = me.ReferenceField()
     trigger_instance = me.ReferenceField()
     staction_execution = me.ReferenceField()
+
+
+class MongoDBAccess(object):
+    """
+    Db Object Access class. Provides general implementation which should be
+    specialized for a model type.
+    """
+    def __init__(self, model_kls):
+        self._model_kls = model_kls
+
+    def get_by_name(self, value):
+        for model_object in self._model_kls.objects(name=value):
+            return model_object
+        raise ValueError('{} with name "{}" does not exist.'.format(
+            self._model_kls.__name__, value))
+
+    def get_by_id(self, value):
+        for model_object in self._model_kls.objects(id=value):
+            return model_object
+        raise ValueError('{} with id "{}" does not exist.'.format(
+            self._model_kls.__name__, value))
+
+    def get_all(self):
+        return self._model_kls.objects()
+
+    @staticmethod
+    def add_or_update(model_object):
+        model_object.save()
+
+# specialized access objects
+triggersource_access = MongoDBAccess(TriggerSourceDB)
+trigger_access = MongoDBAccess(TriggerDB)
+triggerinstance_access = MongoDBAccess(TriggerInstanceDB)
+rule_access = MongoDBAccess(RuleDB)
+ruleenforcement_access = MongoDBAccess(RuleEnforcementDB)
