@@ -9,6 +9,7 @@ class RootController(object):
     stactions = StactionsController()
     stactionexecutions = StactionExecutionsController()
 
+# TODO: Remove index handler
     @expose(generic=True, template='index.html')
     def index(self):
         return dict()

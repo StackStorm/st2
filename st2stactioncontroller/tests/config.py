@@ -1,6 +1,7 @@
 # Server Specific Configurations
+#TODO: externalize port number to a value stored in st2common
 server = {
-    'port': '8080',
+    'port': '9101',
     'host': '0.0.0.0'
 }
 

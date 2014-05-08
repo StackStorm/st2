@@ -1,4 +1,5 @@
 # Server Specific Configurations
+# TODO: externalize port number to a file in st2common
 server = {
     'port': '9101',
     'host': '0.0.0.0'
@@ -8,6 +9,7 @@ server = {
 app = {
     'root': 'st2stactioncontroller.controllers.root.RootController',
     'modules': ['st2stactioncontroller'],
+    'default_renderer' : 'json',
     'static_root': '%(confdir)s/public',
     'template_path': '%(confdir)s/st2stactioncontroller/templates',
     'debug': True,
