@@ -25,6 +25,40 @@ angular.module('main')
   .controller('sk0ReactSetupCtrl', function ($scope, $state, $stateParams) {
     $scope.type = $stateParams.type;
 
+    $scope.formFields = [
+      {
+        key: 'username',
+        default: 'uberuser',
+        type: 'text',
+        label: 'Username',
+        placeholder: 'johndoe',
+        disabled: true,
+        description: 'Simple single line description'
+      },
+      {
+        key: 'password',
+        type: 'password',
+        label: 'Password',
+        required: true,
+        description: 'Simple multiline description that unfolds when the field it related to is in focus'
+      },
+      {
+        key: 'not-a-password',
+        type: 'password',
+        label: 'Not a password',
+        default: 'thing',
+        description:
+          ['Complex multiline string',
+           '========================',
+           'Markdown-formatted. Not ready yet.'
+          ].join('\n')
+      }
+    ];
+
+    $scope.results = {
+      password: 'some'
+    };
+
     $scope.submit = function () {
       $state.go('^', { rule: JSON.stringify($scope.rule) });
     };

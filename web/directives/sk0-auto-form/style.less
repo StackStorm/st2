@@ -1,0 +1,46 @@
+@import "colors";
+
+.sk0-auto-form {
+  position: relative;
+
+  &__line {
+    display: block;
+    margin: 5px 0;
+  }
+
+  &__label {
+    width: 100px;
+    text-align: right;
+    display: inline-block;
+    margin-right: 20px;
+  }
+
+  input {
+    width: 170px;
+    box-sizing: border-box;
+  }
+
+  &__description {
+    width: 290px;
+    margin: 0 20px;
+    display: inline-block;
+    vertical-align: top;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 26px;
+    line-height: 26px;
+    white-space: nowrap;
+  }
+
+  &__field:focus ~ &__description {
+    position: absolute;
+    height: 100%;
+    white-space: normal;
+    background-color: @box-bg-color;
+    z-index: 1;
+  }
+
+  &__line:last-of-type &__field:focus ~ &__description {
+    bottom: 0;
+  }
+}
