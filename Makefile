@@ -7,6 +7,7 @@ BINARIES := bin
 # All components are prefixed by st2
 #COMPONENTS := st2common st2actioncontroller st2reactor
 COMPONENTS := $(wildcard st2*)
+COMPONENTS_TEST := $(wildcard st2*/tests)
 
 EXTERNAL_DIR := external
 
@@ -19,7 +20,7 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
-all: requirements test
+all: requirements tests
 
 .PHONY: distclean
 distclean:
@@ -45,6 +46,6 @@ $(VIRTUALENV_DIR)/bin/activate:
 	echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
 	touch $(VIRTUALENV_DIR)/bin/activate
 
-.PHONY: test
-test:
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $(COMPONENTS)
+.PHONY: tests
+tests:
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $(COMPONENTS_TEST)

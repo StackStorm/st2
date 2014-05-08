@@ -71,3 +71,38 @@ class RuleEnforcementDB(BaseDB):
     rule = me.ReferenceField()
     trigger_instance = me.ReferenceField()
     staction_execution = me.ReferenceField()
+
+
+class MongoDBAccess(object):
+    """
+    Db Object Access class. Provides general implementation which should be
+    specialized for a model type.
+    """
+    def __init__(self, model_kls):
+        self._model_kls = model_kls
+
+    def get_by_name(self, value):
+        for model_object in self._model_kls.objects(name=value):
+            return model_object
+        raise ValueError('{} with name "{}" does not exist.'.format(
+            self._model_kls.__name__, value))
+
+    def get_by_id(self, value):
+        for model_object in self._model_kls.objects(id=value):
+            return model_object
+        raise ValueError('{} with id "{}" does not exist.'.format(
+            self._model_kls.__name__, value))
+
+    def get_all(self):
+        return self._model_kls.objects()
+
+    @staticmethod
+    def add_or_update(model_object):
+        model_object.save()
+
+# specialized access objects
+triggersource_access = MongoDBAccess(TriggerSourceDB)
+trigger_access = MongoDBAccess(TriggerDB)
+triggerinstance_access = MongoDBAccess(TriggerInstanceDB)
+rule_access = MongoDBAccess(RuleDB)
+ruleenforcement_access = MongoDBAccess(RuleEnforcementDB)
