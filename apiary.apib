@@ -214,7 +214,7 @@ A combination of triggers and stactions provided by particular service (git, nag
 + Response 200 (application/json)
 
         {
-            "git": {
+            {
                 "name": "git",
                 "title": "Git", 
                 "triggers": {
@@ -227,6 +227,13 @@ A combination of triggers and stactions provided by particular service (git, nag
                         "name": "posthook",
                         "service": "git",
                         "title": "Post-receive hook"
+                    }
+                },
+                "actions": {
+                    "createTag": {
+                        "name": "createTag",
+                        "service": "git",
+                        "title": "Create new tag"
                     }
                 }
             },
@@ -247,10 +254,6 @@ A combination of triggers and stactions provided by particular service (git, nag
                         "title": "Say in channel"
                     }
                 }
-            },
-            "empty": {
-                "name": "empty",
-                "title": "Empty"
             },
             "email": {
                 "name": "email",
