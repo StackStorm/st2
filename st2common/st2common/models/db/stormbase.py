@@ -14,6 +14,8 @@ class BaseDB(me.Document):
     # ObjectIdField should be not have any constraints like required,
     # unique etc for it to be auto-generated.
     id = me.ObjectIdField()
-    # see http://docs.mongoengine.org/guide/defining-documents
-    # .html#document-inheritance
-    meta = {'allow_inheritance': True}
+    # see http://docs.mongoengine.org/guide/defining-documents.html#
+    # abstract-classes
+    meta = {
+        'abstract': True
+    }
