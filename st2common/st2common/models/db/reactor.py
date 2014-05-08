@@ -1,5 +1,6 @@
 import mongoengine as me
 from st2common.models.db.stormbase import BaseDB
+from st2common.models.db.stactioncontroller import StactionDB
 
 
 class TriggerSourceDB(BaseDB):
@@ -25,7 +26,7 @@ class TriggerDB(BaseDB):
         trigger_source: Source that owns this trigger type.
         payload_info: Meta information of the expected payload.
     """
-    trigger_source = me.ReferenceField()
+    trigger_source = me.ReferenceField(TriggerSourceDB.__name__)
     payload_info = me.ListField()
 
 
@@ -36,7 +37,7 @@ class TriggerInstanceDB(BaseDB):
         payload (dict): payload specific to the occurrence.
         occurrence_time (datetime): time of occurrence of the trigger.
     """
-    trigger = me.ReferenceField()
+    trigger = me.ReferenceField(TriggerDB.__name__)
     payload = me.DictField()
     occurrence_time = me.DateTimeField()
 
@@ -53,8 +54,8 @@ class RuleDB(BaseDB):
         status: enabled or disabled. If disabled occurence of the trigger
         does not lead to execution of a staction and vice-versa.
     """
-    trigger = me.ReferenceField()
-    staction = me.ReferenceField()
+    trigger = me.ReferenceField(TriggerDB.__name__)
+    staction = me.ReferenceField(StactionDB.__name__)
     data_mapping = me.DictField()
     status = me.StringField()
 
@@ -68,9 +69,9 @@ class RuleEnforcementDB(BaseDB):
         staction_execution (Reference): The StactionExecution that was
         created to record execution of a staction as part of this enforcement.
     """
-    rule = me.ReferenceField()
-    trigger_instance = me.ReferenceField()
-    staction_execution = me.ReferenceField()
+    rule = me.ReferenceField(RuleDB.__name__)
+    trigger_instance = me.ReferenceField(TriggerInstanceDB.__name__)
+    staction_execution = me.ReferenceField(StactionDB.__name__)
 
 
 class MongoDBAccess(object):
@@ -98,7 +99,11 @@ class MongoDBAccess(object):
 
     @staticmethod
     def add_or_update(model_object):
-        model_object.save()
+        return model_object.save()
+
+    @staticmethod
+    def delete(model_object):
+        model_object.delete()
 
 # specialized access objects
 triggersource_access = MongoDBAccess(TriggerSourceDB)
