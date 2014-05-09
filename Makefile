@@ -5,9 +5,10 @@ VIRTUALENV_DIR := virtualenv
 BINARIES := bin
 
 # All components are prefixed by st2
-#COMPONENTS := st2common st2actioncontroller st2reactor
 COMPONENTS := $(wildcard st2*)
-COMPONENTS_TEST := $(wildcard st2*/tests)
+# Components that implement a component-controlled test-runner. These components provide an
+# in-component Makefile. (Temporary fix until I can generalize the pecan unittest setup. -mar)
+COMPONENT_SPECIFIC_TESTS := st2stactioncontroller
 
 EXTERNAL_DIR := external
 
@@ -15,12 +16,18 @@ EXTERNAL_DIR := external
 space_char :=
 space_char +=
 COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS)))
+COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS)),$(component)/tests)
 
 PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
 all: requirements tests
+
+# Target for debugging Makefile variable assembly
+.PHONY: play
+play:
+	echo $(COMPONENTS_TEST)
 
 .PHONY: distclean
 distclean:
