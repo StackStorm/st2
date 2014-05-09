@@ -1,6 +1,6 @@
 import mongoengine as me
 from st2common.models.db.stormbase import BaseDB
-from st2common.models.db.stactioncontroller import StactionDB
+from st2common.models.db.staction import StactionDB
 
 
 class TriggerSourceDB(BaseDB):
