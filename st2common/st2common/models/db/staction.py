@@ -39,7 +39,7 @@ class StactionExecutionDB(BaseDB):
     # Initially deny any delete request that will leave a staction_execution in
     # the DB without an assocaited staction. The constraint might be relaxed to
     # "NULLIFY" if we implement the right handling in stactioncontroller.
-    staction = me.fields.ReferenceField(StactionDB, reverse_delete_rule=DENY,
+    staction = me.fields.ReferenceField(StactionDB, reverse_delete_rule='DENY',
                 help_text=u'The staction executed by this instance.')
     target = me.fields.StringField(required=True, default=None,
                 help_text=u'The target selection string.')
