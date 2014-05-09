@@ -9,7 +9,7 @@ angular.module('main')
 
     $scope.rules = Rules.query();
   })
-  .controller('sk0ReactPickerCtrl', function ($scope, $resource, $state) {
+  .controller('sk0ReactPickCtrl', function ($scope, $resource, $state) {
     var Services = $resource('http://kandra.apiary-mock.com/services');
 
     $scope.services = Services.get();
@@ -24,42 +24,20 @@ angular.module('main')
   })
   .controller('sk0ReactSetupCtrl', function ($scope, $state, $stateParams) {
     $scope.type = $stateParams.type;
+    $scope.formResults = _.clone($scope.rule[$scope.type].options) || {};
 
     $scope.formFields = [
       {
-        key: 'username',
-        default: 'uberuser',
+        key: 'text',
         type: 'text',
-        label: 'Username',
-        placeholder: 'johndoe',
-        disabled: true,
-        description: 'Simple single line description'
-      },
-      {
-        key: 'password',
-        type: 'password',
-        label: 'Password',
-        required: true,
-        description: 'Simple multiline description that unfolds when the field it related to is in focus'
-      },
-      {
-        key: 'not-a-password',
-        type: 'password',
-        label: 'Not a password',
-        default: 'thing',
-        description:
-          ['Complex multiline string',
-           '========================',
-           'Markdown-formatted. Not ready yet.'
-          ].join('\n')
+        label: 'Text',
+        placeholder: 'some text',
+        description: 'Text to show on the constructor'
       }
     ];
 
-    $scope.results = {
-      password: 'some'
-    };
-
     $scope.submit = function () {
-      $state.go('^', { rule: JSON.stringify($scope.rule) });
+      $scope.rule[$scope.type].options = $scope.formResults;
+      $state.go($scope.rule.trigger && $scope.rule.action ? 'react.test' : 'react.list');
     };
   });

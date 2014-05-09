@@ -25,7 +25,7 @@ angular.module('main', ['ui.router', 'ngResource', 'angularMoment'])
         templateUrl: 'apps/sk0-react/list.partial.html'
       })
       .state('react.triggers', {
-        controller: 'sk0ReactPickerCtrl',
+        controller: 'sk0ReactPickCtrl',
         templateUrl: 'apps/sk0-react/pick.partial.html',
         data: {
           type: 'trigger'
@@ -37,7 +37,7 @@ angular.module('main', ['ui.router', 'ngResource', 'angularMoment'])
         params: ['type']
       })
       .state('react.actions', {
-        controller: 'sk0ReactPickerCtrl',
+        controller: 'sk0ReactPickCtrl',
         templateUrl: 'apps/sk0-react/pick.partial.html',
         data: {
           type: 'action'
@@ -47,6 +47,9 @@ angular.module('main', ['ui.router', 'ngResource', 'angularMoment'])
         controller: 'sk0ReactSetupCtrl',
         templateUrl: 'apps/sk0-react/setup.partial.html',
         params: ['type']
+      })
+      .state('react.test', {
+        templateUrl: 'apps/sk0-react/test.partial.html'
       })
 
       .state('audit', {
