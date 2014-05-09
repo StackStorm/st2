@@ -219,21 +219,24 @@ A combination of triggers and stactions provided by particular service (git, nag
                 "title": "Git", 
                 "triggers": {
                     "prehook": {
-                        "name": "prehook",
-                        "service": "git",
-                        "title": "Pre-receive hook"
+                        "name": "git:prehook",
+                        "service": "Git",
+                        "title": "Pre-receive hook",
+                        "slug": "commit is scheduled for merge"
                     },
                     "posthook": {
-                        "name": "posthook",
-                        "service": "git",
-                        "title": "Post-receive hook"
+                        "name": "git:posthook",
+                        "service": "Git",
+                        "title": "Post-receive hook",
+                        "slug": "commit is merged"
                     }
                 },
                 "actions": {
                     "createTag": {
-                        "name": "createTag",
-                        "service": "git",
-                        "title": "Create new tag"
+                        "name": "git:createTag",
+                        "service": "Git",
+                        "title": "Create new tag",
+                        "slug": "create new tag"
                     }
                 }
             },
@@ -242,16 +245,18 @@ A combination of triggers and stactions provided by particular service (git, nag
                 "title": "Chat",
                 "triggers": {
                     "command": {
-                        "name": "command",
-                        "service": "hubot",
-                        "title": "Receive a command"
+                        "name": "hubot:command",
+                        "service": "Hubot",
+                        "title": "Receive a command",
+                        "slug": "recived a command"
                     }
                 },
                 "actions": {
                     "say": {
-                        "name": "say",
-                        "service": "hubot",
-                        "title": "Say in channel"
+                        "name": "hubot:say",
+                        "service": "Hubot",
+                        "title": "Say in channel",
+                        "slug": "say"
                     }
                 }
             },
@@ -260,16 +265,18 @@ A combination of triggers and stactions provided by particular service (git, nag
                 "title": "Email",
                 "triggers": {
                     "message": {
-                        "name": "message",
-                        "service": "email",
-                        "title": "Receive a message"
+                        "name": "email:message",
+                        "service": "Email",
+                        "title": "Receive a message",
+                        "slug": "received a message"
                     }
                 },
                 "actions": {
                     "message": {
-                        "name": "message",
-                        "service": "email",
-                        "title": "Send a message"
+                        "name": "email:message",
+                        "service": "Email",
+                        "title": "Send a message",
+                        "slug": "send a message"
                     }
                 }
             },
@@ -278,16 +285,18 @@ A combination of triggers and stactions provided by particular service (git, nag
                 "title": "Jira",
                 "triggers": {
                     "newTicket": {
-                        "name": "newTicket",
-                        "service": "jira",
-                        "title": "New ticket"
+                        "name": "jira:newTicket",
+                        "service": "Jira",
+                        "title": "New ticket",
+                        "slug": "ticket has been created"
                     }
                 },
                 "actions": {
                     "createTicket": {
-                        "name": "createTicket",
-                        "service": "jira",
-                        "title": "Create new ticket"
+                        "name": "jira:createTicket",
+                        "service": "Jira",
+                        "title": "Create new ticket",
+                        "slug": "create a ticket"
                     }
                 }
             }
@@ -306,21 +315,24 @@ A combination of triggers and stactions provided by particular service (git, nag
             "title": "Git", 
             "triggers": {
                 "prehook": {
-                    "name": "prehook",
-                    "service": "git",
-                    "title": "Pre-receive hook"
+                    "name": "git:prehook",
+                    "service": "Git",
+                    "title": "Pre-receive hook",
+                    "slug": "commit is scheduled for merge"
                 },
                 "posthook": {
-                    "name": "posthook",
-                    "service": "git",
-                    "title": "Post-receive hook"
+                    "name": "git:posthook",
+                    "service": "Git",
+                    "title": "Post-receive hook",
+                    "slug": "commit is merged"
                 }
             },
             "actions": {
                 "createTag": {
-                    "name": "createTag",
-                    "service": "git",
-                    "title": "Create new tag"
+                    "name": "git:createTag",
+                    "service": "Git",
+                    "title": "Create new tag",
+                    "slug": "create new tag"
                 }
             }
         }
@@ -335,14 +347,16 @@ A combination of triggers and stactions provided by particular service (git, nag
     
         {
             "prehook": {
-                "name": "prehook",
-                "service": "git",
-                "title": "Pre-receive hook"
+                "name": "git:prehook",
+                "service": "Git",
+                "title": "Pre-receive hook",
+                "slug": "commit is scheduled for merge"
             },
             "posthook": {
-                "name": "posthook",
-                "service": "git",
-                "title": "Post-receive hook"
+                "name": "git:posthook",
+                "service": "Git",
+                "title": "Post-receive hook",
+                "slug": "commit is merged"
             }
         }
 
@@ -356,9 +370,10 @@ A combination of triggers and stactions provided by particular service (git, nag
 + Response 200 (application/json)
     
         {
-            "name": "posthook",
-            "service": "git",
-            "title": "Post-receive hook"
+            "name": "git:posthook",
+            "service": "Git",
+            "title": "Post-receive hook",
+            "slug": "commit is merged"
         }
 
 ## Actions collection [/services/{name}/actions]
@@ -371,9 +386,10 @@ A combination of triggers and stactions provided by particular service (git, nag
     
         {
             "createTag": {
-                "name": "createTag",
-                "service": "git",
-                "title": "Create new tag"
+                "name": "git:createTag",
+                "service": "Git",
+                "title": "Create new tag",
+                "slug": "create new tag"
             }
         }
 
@@ -387,8 +403,9 @@ A combination of triggers and stactions provided by particular service (git, nag
 + Response 200 (application/json)
     
         {
-            "name": "createTag",
-            "service": "git",
-            "title": "Create new tag"
+            "name": "git:createTag",
+            "service": "Git",
+            "title": "Create new tag",
+            "slug": "create new tag"
         }
 
