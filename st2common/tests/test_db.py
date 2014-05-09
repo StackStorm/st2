@@ -29,7 +29,7 @@ class DbConnectionTest(unittest2.TestCase):
 
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
     TriggerSourceDB, RuleEnforcementDB, RuleDB
-from st2common.models.api.reactor import Trigger, TriggerInstance, \
+from st2common.persistence.reactor import Trigger, TriggerInstance, \
     TriggerSource, RuleEnforcement, Rule
 
 

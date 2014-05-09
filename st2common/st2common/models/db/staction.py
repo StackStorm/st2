@@ -1,5 +1,6 @@
 import mongoengine as me
 
+from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import BaseDB
 
 __all__ = ['StactionDB',
@@ -54,3 +55,7 @@ class StactionExecutionResultDB(me.EmbeddedDocument):
     exit_code = me.fields.IntField()
     std_out = me.fields.StringField()
     std_err = me.fields.StringField()
+
+
+# specialized access objects
+staction_access = MongoDBAccess(StactionDB)

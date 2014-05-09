@@ -1,37 +1,7 @@
-import abc
-import six
-
+from st2common.persistence import Access
 from st2common.models.db.reactor import triggersource_access, \
     trigger_access, triggerinstance_access, rule_access, \
     ruleenforcement_access
-
-@six.add_metaclass(abc.ABCMeta)
-class Access(object):
-
-    @classmethod
-    @abc.abstractmethod
-    def _get_impl(cls):
-        """ """
-
-    @classmethod
-    def get_by_name(cls, value):
-        return cls._get_impl().get_by_name(value)
-
-    @classmethod
-    def get_by_id(cls, value):
-        return cls._get_impl().get_by_id(value)
-
-    @classmethod
-    def get_all(cls):
-        return cls._get_impl().get_all()
-
-    @classmethod
-    def add_or_update(cls, model_object):
-        return cls._get_impl().add_or_update(model_object)
-
-    @classmethod
-    def delete(cls, model_object):
-        return cls._get_impl().delete(model_object)
 
 
 class TriggerSource(Access):
