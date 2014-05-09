@@ -1,7 +1,10 @@
 from pecan import expose
 from pecan.rest import RestController
 
-from st2common.models.db import staction as stactionDB
+#from st2common.models.db import staction as stactionDB
+
+#from st2common.models.db import staction as stactionDB
+#from st2common.models.api import staction as stactionAPI
 
 
 class StactionsController(RestController):

@@ -1,6 +1,6 @@
 from pecan import conf
 
-#from st2common.models.api import stactioncontroller as stacktioncontrollerAPI
+#from st2common.models.api import staction as stacktionAPI
 
 
 def init_model():
