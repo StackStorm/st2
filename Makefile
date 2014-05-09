@@ -47,5 +47,5 @@ $(VIRTUALENV_DIR)/bin/activate:
 	touch $(VIRTUALENV_DIR)/bin/activate
 
 .PHONY: tests
-tests:
+tests: requirements
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $(COMPONENTS_TEST)
