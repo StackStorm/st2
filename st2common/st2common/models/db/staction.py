@@ -8,6 +8,7 @@ __all__ = ['StactionDB',
            'StactionExecutionDB',
            ]
 
+
 class StactionDB(BaseDB):
     """The system entity that represents a Stack Action/Automation in
        the system.
@@ -19,10 +20,11 @@ class StactionDB(BaseDB):
         parameter_names: flat list of strings required as key names when running
                    the staction.
     """
-    enabled = me.BooleanField(required=True, default=True, help_text=u'Flag indicating whether the staction is enabled.')
-    repo_path = me.StringField(required=True, help_text=u'Path to staction content relative to repository base.')
-    run_type = me.StringField(required=True, help_text=u'Execution environment to use when invoking the staction.')
-    parameter_names = me.ListField(required=True, help_text=u'List of required parameter names.')
+    enabled = me.fields.BooleanField(required=True, default=True, help_text=u'Flag indicating whether the staction is enabled.')
+    repo_path = me.fields.StringField(required=True, help_text=u'Path to staction content relative to repository base.')
+    run_type = me.fields.StringField(required=True, help_text=u'Execution environment to use when invoking the staction.')
+    parameter_names = me.fields.ListField(required=True, help_text=u'List of required parameter names.')
+
 
 class StactionExecutionDB(BaseDB):
     """
@@ -48,6 +50,7 @@ class StactionExecutionDB(BaseDB):
 #    TODO: Determine whether I need to store the execution result values.
 #    result = me.fields.EmbeddedDocumentField(ExecutionResultDB, **kwargs)
 
+
 class StactionExecutionResultDB(me.EmbeddedDocument):
     """
     TODO: fill-in
@@ -56,7 +59,6 @@ class StactionExecutionResultDB(me.EmbeddedDocument):
     exit_code = me.fields.IntField()
     std_out = me.fields.StringField()
     std_err = me.fields.StringField()
-
 
 
 # specialized access objects

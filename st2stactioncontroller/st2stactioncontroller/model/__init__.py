@@ -2,6 +2,7 @@ from pecan import conf
 
 #from st2common.models.api import staction as stacktionAPI
 
+
 def init_model():
     """
     This is a stub method which is called at application startup time.
