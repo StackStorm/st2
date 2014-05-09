@@ -1,11 +1,13 @@
 import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
+
 from st2common.models.db.stormbase import BaseDB
 
 __all__ = ['StactionDB',
-           'StactionExecution',
+           'StactionExecutionDB',
            ]
+
 
 class StactionDB(BaseDB):
     """The system entity that represents a Stack Action/Automation in
@@ -22,6 +24,7 @@ class StactionDB(BaseDB):
     repo_path = me.fields.StringField(required=True, help_text=u'Path to staction content relative to repository base.')
     run_type = me.fields.StringField(required=True, help_text=u'Execution environment to use when invoking the staction.')
     parameter_names = me.fields.ListField(required=True, help_text=u'List of required parameter names.')
+
 
 class StactionExecutionDB(BaseDB):
     """
@@ -46,6 +49,7 @@ class StactionExecutionDB(BaseDB):
                 help_text=u'The key-value pairs passed as parameters to the execution.')
 #    TODO: Determine whether I need to store the execution result values.
 #    result = me.fields.EmbeddedDocumentField(ExecutionResultDB, **kwargs)
+
 
 class StactionExecutionResultDB(me.EmbeddedDocument):
     """
