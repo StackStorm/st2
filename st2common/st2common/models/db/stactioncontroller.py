@@ -18,7 +18,7 @@ class StactionDB(BaseDB):
                    the staction.
     """
     enabled = me.BooleanField(required=True, default=True, description=u'Flag indicating whether the staction is enabled.')
-    repo_path = me.StringField(required=True), description=u'Path to staction content relative to repository base.')
+    repo_path = me.StringField(required=True, description=u'Path to staction content relative to repository base.')
     run_type = me.StringField(required=True, description=u'Execution environment to use when invoking the staction.')
     parameter_names = me.ListField(required=True, description=u'List of required parameter names.')
 
@@ -39,7 +39,7 @@ class StactionExecutionDB(BaseDB):
     # "NULLIFY" if we implement the right handling in stactioncontroller.
     staction = me.fields.ReferenceField(StactionDB, reverse_delete_rule=DENY,
                 description=u'The staction executed by this instance.')
-    target = me.fields.StringField(required=True, default=NULL
+    target = me.fields.StringField(required=True, default=NULL,
                 description=u'The target selection string.')
     parameters = me.fields.DictField(required=True, default={},
                 description=u'The key-value pairs passed as parameters to the execution.')
