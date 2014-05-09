@@ -1,5 +1,6 @@
 import mongoengine as me
 
+from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import BaseDB
 
 class StactionDB(BaseDB):
@@ -21,3 +22,7 @@ class StactionDB(BaseDB):
     repo_path = me.StringField(required=True)
     run_type = me.StringField()
     parameter_names = me.ListField()
+
+
+# specialized access objects
+staction_access = MongoDBAccess(StactionDB)
