@@ -39,6 +39,9 @@ class MongoDBAccess(object):
     def get_all(self):
         return self._model_kls.objects()
 
+    def query(self, **query_args):
+        return self._model_kls.objects(**query_args)
+
     @staticmethod
     def add_or_update(model_object):
         return model_object.save()
