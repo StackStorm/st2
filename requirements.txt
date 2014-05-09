@@ -4,3 +4,4 @@ mongoengine
 oslo.config
 six
 eventlet>=0.13.0
+pecan
