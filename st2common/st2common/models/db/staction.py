@@ -5,7 +5,7 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import BaseDB
 
 __all__ = ['StactionDB',
-           'StactionExecution',
+           'StactionExecutionDB',
            ]
 
 class StactionDB(BaseDB):
@@ -19,10 +19,10 @@ class StactionDB(BaseDB):
         parameter_names: flat list of strings required as key names when running
                    the staction.
     """
-    enabled = me.BooleanField(required=True, default=True, description=u'Flag indicating whether the staction is enabled.')
-    repo_path = me.StringField(required=True), description=u'Path to staction content relative to repository base.')
-    run_type = me.StringField(required=True, description=u'Execution environment to use when invoking the staction.')
-    parameter_names = me.ListField(required=True, description=u'List of required parameter names.')
+    enabled = me.BooleanField(required=True, default=True, help_text=u'Flag indicating whether the staction is enabled.')
+    repo_path = me.StringField(required=True, help_text=u'Path to staction content relative to repository base.')
+    run_type = me.StringField(required=True, help_text=u'Execution environment to use when invoking the staction.')
+    parameter_names = me.ListField(required=True, help_text=u'List of required parameter names.')
 
 class StactionExecutionDB(BaseDB):
     """
@@ -40,11 +40,11 @@ class StactionExecutionDB(BaseDB):
     # the DB without an assocaited staction. The constraint might be relaxed to
     # "NULLIFY" if we implement the right handling in stactioncontroller.
     staction = me.fields.ReferenceField(StactionDB, reverse_delete_rule=DENY,
-                description=u'The staction executed by this instance.')
-    target = me.fields.StringField(required=True, default=NULL
-                description=u'The target selection string.')
+                help_text=u'The staction executed by this instance.')
+    target = me.fields.StringField(required=True, default=None,
+                help_text=u'The target selection string.')
     parameters = me.fields.DictField(required=True, default={},
-                description=u'The key-value pairs passed as parameters to the execution.')
+                help_text=u'The key-value pairs passed as parameters to the execution.')
 #    TODO: Determine whether I need to store the execution result values.
 #    result = me.fields.EmbeddedDocumentField(ExecutionResultDB, **kwargs)
 
