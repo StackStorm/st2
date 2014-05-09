@@ -1,8 +1,6 @@
 import abc
 import six
 
-import st2common.models.db.stactioncontroller as stactioncontrollerDB
-
 @six.add_metaclass(abc.ABCMeta)
 class Access(object):
 
@@ -30,11 +28,3 @@ class Access(object):
     @classmethod
     def delete(cls, model_object):
         return cls._get_impl().delete(model_object)
-
-
-class Staction(Access):
-    IMPL = staction_access
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.IMPL
