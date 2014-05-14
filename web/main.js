@@ -49,6 +49,7 @@ angular.module('main', ['ui.router', 'ngResource', 'angularMoment'])
         params: ['type']
       })
       .state('react.test', {
+        controller: 'sk0ReactTestCtrl',
         templateUrl: 'apps/sk0-react/test.partial.html'
       })
 
