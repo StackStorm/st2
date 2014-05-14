@@ -269,18 +269,24 @@ Promote dry-run rule to permanent one
             "count": 1
         }
 
-## Auditing the rule [/rules/{id}/log]
+## Auditing the rule [/rules/{id}/log{?expand}]
 Rule log
 
 + Parameters
     + id (required, number, `3`) ... Numeric `id` of the Rule
+    + expand = `true` (optional, boolean) ... Expand action and trigger type definitions. In original, shrinked state they should be represented as strings like "git:posthook" (`service name`:`trigger\action name`)
 
 ### List all entries [GET]
 + Response 200 (application/json)
 
         [{
             "trigger": {
-                "type": "email:message",
+                "type": {
+                    "name": "email:message",
+                    "service": "Email",
+                    "title": "Receive a message",
+                    "slug": "received a message"
+                },
                 "options": {
                     "to": "support@stackstorm.com"
                 },
@@ -295,7 +301,12 @@ Rule log
                 "timestamp": "2014-09-11T16:41:12.014Z"
             },
             "action": {
-                "type": "hubot:say",
+                "type": {
+                    "name": "hubot:say",
+                    "service": "Hubot",
+                    "title": "Say in channel",
+                    "slug": "say"
+                },
                 "options": {
                     "channel": "stackstorm",
                     "message": "New user story has been received from {{ from }}"
