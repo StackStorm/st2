@@ -206,11 +206,11 @@ A single Rule object with all its details
 ### Remove a Note [DELETE]
 + Response 204
 
-# Group Services
+# Group Categories
 A combination of triggers and stactions provided by particular service (git, nagios, etc.)
 
-## Service collection [/services]
-### List all Services [GET]
+## Categories collection [/categories]
+### List all Categories [GET]
 + Response 200 (application/json)
 
         {
@@ -302,12 +302,12 @@ A combination of triggers and stactions provided by particular service (git, nag
             }
         }
 
-## Service [/services/{name}]
+## Category [/categories/{name}]
 
 + Parameters
-    + name (required, string, `git`) ... `Name` of the Service to get
+    + name (required, string, `git`) ... `Name` of the Category to get
     
-### Retrieve a Service [GET]
+### Retrieve a Category [GET]
 + Response 200 (application/json)
     
         {
@@ -337,10 +337,10 @@ A combination of triggers and stactions provided by particular service (git, nag
             }
         }
 
-## Triggers collection [/services/{name}/triggers]
+## Triggers collection [/categories/{name}/triggers]
 
 + Parameters
-    + name (required, string, `git`) ... `Name` of the Service
+    + name (required, string, `git`) ... `Name` of the Category
     
 ### List all Triggers of the Service [GET]
 + Response 200 (application/json)
@@ -360,10 +360,10 @@ A combination of triggers and stactions provided by particular service (git, nag
             }
         }
 
-## Trigger [/services/{name}/triggers/{trigger}]
+## Trigger [/categories/{name}/triggers/{trigger}]
 
 + Parameters
-    + name (required, string, `git`) ... Name of the Service
+    + name (required, string, `git`) ... Name of the Category
     + trigger (required, string, `posthook`) ... Name of the Trigger
     
 ### Retrieve a Service [GET]
@@ -376,10 +376,10 @@ A combination of triggers and stactions provided by particular service (git, nag
             "slug": "commit is merged"
         }
 
-## Actions collection [/services/{name}/actions]
+## Actions collection [/categories/{name}/actions]
 
 + Parameters
-    + name (required, string, `git`) ... `Name` of the Service
+    + name (required, string, `git`) ... `Name` of the Category
     
 ### List all Triggers of the Service [GET]
 + Response 200 (application/json)
@@ -393,10 +393,10 @@ A combination of triggers and stactions provided by particular service (git, nag
             }
         }
 
-## Action [/services/{name}/actions/{action}]
+## Action [/categories/{name}/actions/{action}]
 
 + Parameters
-    + name (required, string, `git`) ... Name of the Service
+    + name (required, string, `git`) ... Name of the Category
     + action (required, string, `createTag`) ... Name of the Action
     
 ### Retrieve a Service [GET]
