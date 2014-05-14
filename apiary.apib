@@ -97,7 +97,7 @@ Rules related resources of the **Kandra API**
                 },
                 "options": {
                     "channel": "stackstorm",
-                    "message": "New user story has been received"
+                    "message": "New user story has been received from {{ from }}"
                 }
             },
             "created": "2014-05-05T04:09:47.427Z",
@@ -107,7 +107,7 @@ Rules related resources of the **Kandra API**
             "count": 0
         }]
 
-### Create a Note [POST]
+### Create a Rule [POST]
 + Request (application/json)
 
         { 
@@ -121,7 +121,7 @@ Rules related resources of the **Kandra API**
                 "type": "hubot:say",
                 "options": {
                     "channel": "stackstorm",
-                    "message": "New user story has been received"
+                    "message": "New user story has been received from {{ from }}"
                 }
             }
         }
@@ -130,7 +130,8 @@ Rules related resources of the **Kandra API**
 
         { 
             "id": 3,
-            "enable": false,
+            "dry": true,
+            "enable": true,
             "trigger": {
                 "type": {
                     "name": "message",
@@ -149,7 +150,7 @@ Rules related resources of the **Kandra API**
                 },
                 "options": {
                     "channel": "stackstorm",
-                    "message": "New user story has been received"
+                    "message": "New user story has been received from {{ from }}"
                 }
             },
             "created": "2014-05-05T04:09:47.427Z",
@@ -166,7 +167,7 @@ A single Rule object with all its details
     + id (required, number, `2`) ... Numeric `id` of the Rule to perform action with.
     + expand = `true` (optional, boolean) ... Expand action and trigger type definitions. In original, shrinked state they should be represented as strings like "git:posthook" (`service name`:`trigger\action name`)
 
-### Retrieve a Note [GET]
+### Retrieve a Rule [GET]
 + Response 200 (application/json)
 
         {
@@ -205,6 +206,109 @@ A single Rule object with all its details
 
 ### Remove a Note [DELETE]
 + Response 204
+
+## Enable [/rules/{id}/enable]
+Enable the rule
+
++ Parameters
+    + id (required, number, `2`) ... Numeric `id` of the Rule
+
+### Enable the rule [PUT]
++ Response 204
+
+## Disable [/rules/{id}/disable]
+Enable the rule
+
++ Parameters
+    + id (required, number, `2`) ... Numeric `id` of the Rule
+
+### Disable the rule [PUT]
++ Response 204
+
+## Confirm [/rules/{id}/confirm{?expand}]
+Promote dry-run rule to permanent one
+
++ Parameters
+    + id (required, number, `2`) ... Numeric `id` of the Rule
+    + expand = `true` (optional, boolean) ... Expand action and trigger type definitions. In original, shrinked state they should be represented as strings like "git:posthook" (`service name`:`trigger\action name`)
+
+### Confirm the rule [GET]
++ Response 200 (application/json)
+
+        {
+            "id": 2,
+            "enable": false,
+            "trigger": {
+                "type": {
+                    "name": "message",
+                    "service": "email",
+                    "title": "Email: Receive a message"
+                },
+                "options": {
+                    "to": "support@stackstorm.com"
+                }
+            },
+            "action": {
+                "type": {
+                    "name": "newTicket",
+                    "service": "jira",
+                    "title": "Jira: New ticket"
+                },
+                "options": {
+                    "project": "stackstorm",
+                    "type": "story",
+                    "summary": "Email: {{ subject }}",
+                    "description": "{{ from }} wrote: \n{{ body }}",
+                    "reporter": "{{ from }}"
+                }
+            },
+            "created": "2014-05-05T04:03:53.751Z",
+            "edited": "2014-05-05T04:03:53.751Z",
+            "triggered": "2014-05-05T04:04:38.570Z",
+            "checked": "2014-05-05T05:05:54.747Z",
+            "count": 1
+        }
+
+## Auditing the rule [/rules/{id}/log]
+Rule log
+
++ Parameters
+    + id (required, number, `3`) ... Numeric `id` of the Rule
+
+### List all entries [GET]
++ Response 200 (application/json)
+
+        [{
+            "trigger": {
+                "type": "email:message",
+                "options": {
+                    "to": "support@stackstorm.com"
+                },
+                "response": {
+                    "err": null,
+                    "from": "stan@stackstorm.com",
+                    "to": "support@stackstorm.com",
+                    "subj": "Test",
+                    "message": "Dry-run message. Disregard.",
+                    "timestamp": "2014-09-11T16:41:11.922Z"
+                },
+                "timestamp": "2014-09-11T16:41:12.014Z"
+            },
+            "action": {
+                "type": "hubot:say",
+                "options": {
+                    "channel": "stackstorm",
+                    "message": "New user story has been received from {{ from }}"
+                },
+                "response": {
+                    "err": null,
+                    "channel": "stackstorm",
+                    "message": "New user story has been received from stan@stackstorm.com",
+                    "timestamp": "2014-09-11T16:41:12.470Z",
+                    "userList": ["dzimine", "mar", "evan", "manas"]
+                }
+            }
+        }]
 
 # Group Categories
 A combination of triggers and stactions provided by particular service (git, nagios, etc.)
