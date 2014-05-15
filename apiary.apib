@@ -20,9 +20,10 @@ Rules related resources of the **Kandra API**
             "enable": true,
             "trigger": {
                 "type": {
-                    "name": "posthook",
-                    "service": "git",
-                    "title": "Git: Post-receive hook"
+                    "name": "git:posthook",
+                    "service": "Git",
+                    "title": "Post-receive hook",
+                    "slug": "commit is merged"
                 },
                 "options": {
                     "repo": "stackstorm/kandra"
@@ -30,9 +31,10 @@ Rules related resources of the **Kandra API**
             },
             "action": {
                 "type": {
-                    "name": "say",
-                    "service": "hubot",
-                    "title": "Chat: Say in channel"
+                    "name": "hubot:say",
+                    "service": "Hubot",
+                    "title": "Say in channel",
+                    "slug": "say"
                 },
                 "options": {
                     "channel": "stackstorm",
@@ -49,9 +51,10 @@ Rules related resources of the **Kandra API**
             "enable": true,
             "trigger": {
                 "type": {
-                    "name": "message",
-                    "service": "email",
-                    "title": "Email: Receive a message"
+                    "name": "email:message",
+                    "service": "Email",
+                    "title": "Receive a message",
+                    "slug": "received a message"
                 },
                 "options": {
                     "to": "support@stackstorm.com"
@@ -59,9 +62,10 @@ Rules related resources of the **Kandra API**
             },
             "action": {
                 "type": {
-                    "name": "newTicket",
-                    "service": "jira",
-                    "title": "Jira: New ticket"
+                    "name": "jira:newTicket",
+                    "service": "Jira",
+                    "title": "New ticket",
+                    "slug": "ticket has been created"
                 },
                 "options": {
                     "project": "stackstorm",
@@ -81,9 +85,10 @@ Rules related resources of the **Kandra API**
             "enable": false,
             "trigger": {
                 "type": {
-                    "name": "message",
-                    "service": "email",
-                    "title": "Email: Receive a message"
+                    "name": "email:message",
+                    "service": "Email",
+                    "title": "Receive a message",
+                    "slug": "received a message"
                 },
                 "options": {
                     "to": "support@stackstorm.com"
@@ -91,9 +96,10 @@ Rules related resources of the **Kandra API**
             },
             "action": {
                 "type": {
-                    "name": "say",
-                    "service": "hubot",
-                    "title": "Chat: Say in channel"
+                    "name": "hubot:say",
+                    "service": "Hubot",
+                    "title": "Say in channel",
+                    "slug": "say"
                 },
                 "options": {
                     "channel": "stackstorm",
@@ -134,9 +140,10 @@ Rules related resources of the **Kandra API**
             "enable": true,
             "trigger": {
                 "type": {
-                    "name": "message",
-                    "service": "email",
-                    "title": "Email: Receive a message"
+                    "name": "email:message",
+                    "service": "Email",
+                    "title": "Receive a message",
+                    "slug": "received a message"
                 },
                 "options": {
                     "to": "support@stackstorm.com"
@@ -144,9 +151,10 @@ Rules related resources of the **Kandra API**
             },
             "action": {
                 "type": {
-                    "name": "say",
-                    "service": "hubot",
-                    "title": "Chat: Say in channel"
+                    "name": "hubot:say",
+                    "service": "Hubot",
+                    "title": "Say in channel",
+                    "slug": "say"
                 },
                 "options": {
                     "channel": "stackstorm",
@@ -175,9 +183,10 @@ A single Rule object with all its details
             "enable": false,
             "trigger": {
                 "type": {
-                    "name": "message",
-                    "service": "email",
-                    "title": "Email: Receive a message"
+                    "name": "email:message",
+                    "service": "Email",
+                    "title": "Receive a message",
+                    "slug": "received a message"
                 },
                 "options": {
                     "to": "support@stackstorm.com"
@@ -185,9 +194,10 @@ A single Rule object with all its details
             },
             "action": {
                 "type": {
-                    "name": "newTicket",
-                    "service": "jira",
-                    "title": "Jira: New ticket"
+                    "name": "jira:newTicket",
+                    "service": "Jira",
+                    "title": "New ticket",
+                    "slug": "ticket has been created"
                 },
                 "options": {
                     "project": "stackstorm",
@@ -240,9 +250,10 @@ Promote dry-run rule to permanent one
             "enable": false,
             "trigger": {
                 "type": {
-                    "name": "message",
-                    "service": "email",
-                    "title": "Email: Receive a message"
+                    "name": "email:message",
+                    "service": "Email",
+                    "title": "Receive a message",
+                    "slug": "received a message"
                 },
                 "options": {
                     "to": "support@stackstorm.com"
@@ -250,9 +261,10 @@ Promote dry-run rule to permanent one
             },
             "action": {
                 "type": {
-                    "name": "newTicket",
-                    "service": "jira",
-                    "title": "Jira: New ticket"
+                    "name": "jira:newTicket",
+                    "service": "Jira",
+                    "title": "New ticket",
+                    "slug": "ticket has been created"
                 },
                 "options": {
                     "project": "stackstorm",
