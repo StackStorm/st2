@@ -22,35 +22,35 @@ angular.module('main', ['ui.router', 'ngResource', 'angularMoment'])
       .state('react.list', {
         url: '',
         controller: 'sk0ReactListCtrl',
-        templateUrl: 'apps/sk0-react/list.partial.html'
+        templateUrl: 'apps/sk0-react/partials/list.html'
       })
       .state('react.triggers', {
         controller: 'sk0ReactPickCtrl',
-        templateUrl: 'apps/sk0-react/pick.partial.html',
+        templateUrl: 'apps/sk0-react/partials/pick.html',
         data: {
           type: 'trigger'
         }
       })
       .state('react.triggers.setup', {
         controller: 'sk0ReactSetupCtrl',
-        templateUrl: 'apps/sk0-react/setup.partial.html',
+        templateUrl: 'apps/sk0-react/partials/setup.html',
         params: ['type']
       })
       .state('react.actions', {
         controller: 'sk0ReactPickCtrl',
-        templateUrl: 'apps/sk0-react/pick.partial.html',
+        templateUrl: 'apps/sk0-react/partials/pick.html',
         data: {
           type: 'action'
         }
       })
       .state('react.actions.setup', {
         controller: 'sk0ReactSetupCtrl',
-        templateUrl: 'apps/sk0-react/setup.partial.html',
+        templateUrl: 'apps/sk0-react/partials/setup.html',
         params: ['type']
       })
       .state('react.test', {
         controller: 'sk0ReactTestCtrl',
-        templateUrl: 'apps/sk0-react/test.partial.html'
+        templateUrl: 'apps/sk0-react/partials/test.html'
       })
 
       .state('audit', {

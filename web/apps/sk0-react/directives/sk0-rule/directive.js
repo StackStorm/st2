@@ -8,17 +8,12 @@ angular.module('main')
       scope: {
         rule: '='
       },
+      replace: true,
       templateUrl: 'apps/sk0-react/directives/sk0-rule/template.html',
-      link: function (scope, element) {
-        var expanded = false;
-
-        scope.toggleExpand = function () {
-          expanded = !expanded;
-          element.toggleClass('sk0-rule--expanded', expanded);
-        };
-
-        scope.isExpanded = function () {
-          return expanded;
+      controller: function ($scope, $state) {
+        $scope.edit = function (rule) {
+          $scope.$parent.setRule(rule);
+          $state.go('^.test');
         };
       }
     };

@@ -4,19 +4,19 @@
 <div class="sk0-rule-constructor__constructor">
   When
   <span class="sk0-rule-constructor__this" ui-sref='.triggers'><!--
- -->{{ rule.trigger.service || 'this' }}<!--
+ -->{{ rule.trigger.type.service || 'this' }}<!--
  --><span class="sk0-rule-constructor__link" ng-show="rule.trigger.options"></span><!--
 --></span>
   triggers, fire
   <span class="sk0-rule-constructor__that" ui-sref='.actions'><!--
- -->{{ rule.action.service || 'that' }}<!--
+ -->{{ rule.action.type.service || 'that' }}<!--
  --><span class="sk0-rule-constructor__link" ng-show="rule.action.options"></span><!--
 --></span>
   staction
 </div>
 <div class="sk0-rule-constructor__spec-trigger">
-  {{ rule.trigger.options && rule.trigger.slug }}
+  {{ rule.trigger.options && rule.trigger.type.slug }}
 </div>
 <div class="sk0-rule-constructor__spec-action">
-  {{ rule.action.options && rule.action.slug }}
+  {{ rule.action.options && rule.action.type.slug }}
 </div>

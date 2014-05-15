@@ -1,8 +1,0 @@
-<div ng-repeat="service in services | has:'triggers'">
-  <h3 class="sk0-react__type">{{ service.title }}</h3>
-  <div class="sk0-react__node" ng-repeat="trigger in service.triggers" ng-click="pick('trigger', trigger)">
-    {{ trigger.title }}
-  </div>
-</div>
-
-<div ui-view></div>

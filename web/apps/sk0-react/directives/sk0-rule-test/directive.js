@@ -11,6 +11,7 @@ angular.module('main')
         status: '='
       },
       templateUrl: 'apps/sk0-react/directives/sk0-rule-test/template.html',
+      replace: true,
       link: function (scope) {
         scope.isPassed = function (type) {
           return scope.status && scope.status[type].response && (scope.status[type].response.err ? false : true);

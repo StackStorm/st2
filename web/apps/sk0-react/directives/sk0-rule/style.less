@@ -23,6 +23,11 @@
   &__info {
     #sk0-layout > #ul-clean;
     margin: 10px 0;
+    display: none;
+  }
+
+  &--expanded &__info {
+    display: block;
   }
 
   &__info-item {
@@ -32,6 +37,11 @@
 
   &__buttons {
     text-align: right;
+    display: none;
+  }
+
+  &--expanded &__buttons {
+    display: block;
   }
 
   &__button {
