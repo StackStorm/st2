@@ -23,7 +23,33 @@ Rules related resources of the **Kandra API**
                     "name": "git:posthook",
                     "service": "Git",
                     "title": "Post-receive hook",
-                    "slug": "commit is merged"
+                    "slug": "commit is merged",
+                    "form": [{
+                        "key": "author",
+                        "type": "text",
+                        "label": "Author",
+                        "desc": "Name or email of the commit author"
+                    }, {
+                        "key": "repo",
+                        "type": "text",
+                        "label": "Repository",
+                        "desc": "Name of the repository"
+                    }, {
+                        "key": "branch",
+                        "type": "text",
+                        "label": "Branch",
+                        "desc": "Name of the branch commits would land into"
+                    }, {
+                        "key": "title",
+                        "type": "text",
+                        "label": "Title",
+                        "desc": "First line of commit message"
+                    }, {
+                        "key": "desc",
+                        "type": "textarea",
+                        "label": "Description",
+                        "desc": "Commit message starting with second line"
+                    }]
                 },
                 "options": {
                     "repo": "stackstorm/kandra"
@@ -34,7 +60,17 @@ Rules related resources of the **Kandra API**
                     "name": "hubot:say",
                     "service": "Hubot",
                     "title": "Say in channel",
-                    "slug": "say"
+                    "slug": "say",
+                    "form": [{
+                        "key": "channel",
+                        "type": "text",
+                        "label": "Channel",
+                        "desc": "Name of the channel to say to"
+                    }, {
+                        "key": "message",
+                        "type": "textarea",
+                        "label": "Message"
+                    }]
                 },
                 "options": {
                     "channel": "stackstorm",
@@ -54,7 +90,27 @@ Rules related resources of the **Kandra API**
                     "name": "email:message",
                     "service": "Email",
                     "title": "Receive a message",
-                    "slug": "received a message"
+                    "slug": "received a message",
+                    "form": [{
+                        "key": "from",
+                        "type": "text",
+                        "label": "From",
+                        "desc": "Senders email address"
+                    }, {
+                        "key": "to",
+                        "type": "text",
+                        "label": "To",
+                        "desc": "Recipient email address"
+                    }, {
+                        "key": "subj",
+                        "type": "text",
+                        "label": "Subject",
+                        "desc": "Subject line of the mail"
+                    }, {
+                        "key": "message",
+                        "type": "textarea",
+                        "label": "Message"
+                    }]
                 },
                 "options": {
                     "to": "support@stackstorm.com"
@@ -62,10 +118,31 @@ Rules related resources of the **Kandra API**
             },
             "action": {
                 "type": {
-                    "name": "jira:newTicket",
+                    "name": "jira:createTicket",
                     "service": "Jira",
-                    "title": "New ticket",
-                    "slug": "ticket has been created"
+                    "title": "Create new ticket",
+                    "slug": "create a ticket",
+                    "form": [{
+                        "key": "project",
+                        "type": "text",
+                        "label": "Project",
+                        "desc": "Name or id of the project"
+                    }, {
+                        "key": "summary",
+                        "type": "text",
+                        "label": "Summary",
+                        "desc": "Short description of the ticket"
+                    }, {
+                        "key": "desc",
+                        "type": "textarea",
+                        "label": "Description",
+                        "desc": "Full description of the ticket"
+                    }, {
+                        "key": "type",
+                        "type": "select",
+                        "label": "Type",
+                        "options": ["bug", "story", "feature"]
+                    }]
                 },
                 "options": {
                     "project": "stackstorm",
@@ -88,7 +165,27 @@ Rules related resources of the **Kandra API**
                     "name": "email:message",
                     "service": "Email",
                     "title": "Receive a message",
-                    "slug": "received a message"
+                    "slug": "received a message",
+                    "form": [{
+                        "key": "from",
+                        "type": "text",
+                        "label": "From",
+                        "desc": "Senders email address"
+                    }, {
+                        "key": "to",
+                        "type": "text",
+                        "label": "To",
+                        "desc": "Recipient email address"
+                    }, {
+                        "key": "subj",
+                        "type": "text",
+                        "label": "Subject",
+                        "desc": "Subject line of the mail"
+                    }, {
+                        "key": "message",
+                        "type": "textarea",
+                        "label": "Message"
+                    }]
                 },
                 "options": {
                     "to": "support@stackstorm.com"
@@ -99,7 +196,17 @@ Rules related resources of the **Kandra API**
                     "name": "hubot:say",
                     "service": "Hubot",
                     "title": "Say in channel",
-                    "slug": "say"
+                    "slug": "say",
+                    "form": [{
+                        "key": "channel",
+                        "type": "text",
+                        "label": "Channel",
+                        "desc": "Name of the channel to say to"
+                    }, {
+                        "key": "message",
+                        "type": "textarea",
+                        "label": "Message"
+                    }]
                 },
                 "options": {
                     "channel": "stackstorm",
@@ -143,7 +250,27 @@ Rules related resources of the **Kandra API**
                     "name": "email:message",
                     "service": "Email",
                     "title": "Receive a message",
-                    "slug": "received a message"
+                    "slug": "received a message",
+                    "form": [{
+                        "key": "from",
+                        "type": "text",
+                        "label": "From",
+                        "desc": "Senders email address"
+                    }, {
+                        "key": "to",
+                        "type": "text",
+                        "label": "To",
+                        "desc": "Recipient email address"
+                    }, {
+                        "key": "subj",
+                        "type": "text",
+                        "label": "Subject",
+                        "desc": "Subject line of the mail"
+                    }, {
+                        "key": "message",
+                        "type": "textarea",
+                        "label": "Message"
+                    }]
                 },
                 "options": {
                     "to": "support@stackstorm.com"
@@ -154,7 +281,17 @@ Rules related resources of the **Kandra API**
                     "name": "hubot:say",
                     "service": "Hubot",
                     "title": "Say in channel",
-                    "slug": "say"
+                    "slug": "say",
+                    "form": [{
+                        "key": "channel",
+                        "type": "text",
+                        "label": "Channel",
+                        "desc": "Name of the channel to say to"
+                    }, {
+                        "key": "message",
+                        "type": "textarea",
+                        "label": "Message"
+                    }]
                 },
                 "options": {
                     "channel": "stackstorm",
@@ -186,7 +323,27 @@ A single Rule object with all its details
                     "name": "email:message",
                     "service": "Email",
                     "title": "Receive a message",
-                    "slug": "received a message"
+                    "slug": "received a message",
+                    "form": [{
+                        "key": "from",
+                        "type": "text",
+                        "label": "From",
+                        "desc": "Senders email address"
+                    }, {
+                        "key": "to",
+                        "type": "text",
+                        "label": "To",
+                        "desc": "Recipient email address"
+                    }, {
+                        "key": "subj",
+                        "type": "text",
+                        "label": "Subject",
+                        "desc": "Subject line of the mail"
+                    }, {
+                        "key": "message",
+                        "type": "textarea",
+                        "label": "Message"
+                    }]
                 },
                 "options": {
                     "to": "support@stackstorm.com"
@@ -194,10 +351,31 @@ A single Rule object with all its details
             },
             "action": {
                 "type": {
-                    "name": "jira:newTicket",
+                    "name": "jira:createTicket",
                     "service": "Jira",
-                    "title": "New ticket",
-                    "slug": "ticket has been created"
+                    "title": "Create new ticket",
+                    "slug": "create a ticket",
+                    "form": [{
+                        "key": "project",
+                        "type": "text",
+                        "label": "Project",
+                        "desc": "Name or id of the project"
+                    }, {
+                        "key": "summary",
+                        "type": "text",
+                        "label": "Summary",
+                        "desc": "Short description of the ticket"
+                    }, {
+                        "key": "desc",
+                        "type": "textarea",
+                        "label": "Description",
+                        "desc": "Full description of the ticket"
+                    }, {
+                        "key": "type",
+                        "type": "select",
+                        "label": "Type",
+                        "options": ["bug", "story", "feature"]
+                    }]
                 },
                 "options": {
                     "project": "stackstorm",
@@ -253,7 +431,27 @@ Promote dry-run rule to permanent one
                     "name": "email:message",
                     "service": "Email",
                     "title": "Receive a message",
-                    "slug": "received a message"
+                    "slug": "received a message",
+                    "form": [{
+                        "key": "from",
+                        "type": "text",
+                        "label": "From",
+                        "desc": "Senders email address"
+                    }, {
+                        "key": "to",
+                        "type": "text",
+                        "label": "To",
+                        "desc": "Recipient email address"
+                    }, {
+                        "key": "subj",
+                        "type": "text",
+                        "label": "Subject",
+                        "desc": "Subject line of the mail"
+                    }, {
+                        "key": "message",
+                        "type": "textarea",
+                        "label": "Message"
+                    }]
                 },
                 "options": {
                     "to": "support@stackstorm.com"
@@ -261,10 +459,31 @@ Promote dry-run rule to permanent one
             },
             "action": {
                 "type": {
-                    "name": "jira:newTicket",
+                    "name": "jira:createTicket",
                     "service": "Jira",
-                    "title": "New ticket",
-                    "slug": "ticket has been created"
+                    "title": "Create new ticket",
+                    "slug": "create a ticket",
+                    "form": [{
+                        "key": "project",
+                        "type": "text",
+                        "label": "Project",
+                        "desc": "Name or id of the project"
+                    }, {
+                        "key": "summary",
+                        "type": "text",
+                        "label": "Summary",
+                        "desc": "Short description of the ticket"
+                    }, {
+                        "key": "desc",
+                        "type": "textarea",
+                        "label": "Description",
+                        "desc": "Full description of the ticket"
+                    }, {
+                        "key": "type",
+                        "type": "select",
+                        "label": "Type",
+                        "options": ["bug", "story", "feature"]
+                    }]
                 },
                 "options": {
                     "project": "stackstorm",
@@ -297,7 +516,27 @@ Rule log
                     "name": "email:message",
                     "service": "Email",
                     "title": "Receive a message",
-                    "slug": "received a message"
+                    "slug": "received a message",
+                    "form": [{
+                        "key": "from",
+                        "type": "text",
+                        "label": "From",
+                        "desc": "Senders email address"
+                    }, {
+                        "key": "to",
+                        "type": "text",
+                        "label": "To",
+                        "desc": "Recipient email address"
+                    }, {
+                        "key": "subj",
+                        "type": "text",
+                        "label": "Subject",
+                        "desc": "Subject line of the mail"
+                    }, {
+                        "key": "message",
+                        "type": "textarea",
+                        "label": "Message"
+                    }]
                 },
                 "options": {
                     "to": "support@stackstorm.com"
@@ -317,7 +556,17 @@ Rule log
                     "name": "hubot:say",
                     "service": "Hubot",
                     "title": "Say in channel",
-                    "slug": "say"
+                    "slug": "say",
+                    "form": [{
+                        "key": "channel",
+                        "type": "text",
+                        "label": "Channel",
+                        "desc": "Name of the channel to say to"
+                    }, {
+                        "key": "message",
+                        "type": "textarea",
+                        "label": "Message"
+                    }]
                 },
                 "options": {
                     "channel": "stackstorm",
@@ -349,13 +598,65 @@ A combination of triggers and stactions provided by particular service (git, nag
                         "name": "git:prehook",
                         "service": "Git",
                         "title": "Pre-receive hook",
-                        "slug": "commit is scheduled for merge"
+                        "slug": "commit is scheduled for merge",
+                        "form": [{
+                            "key": "author",
+                            "type": "text",
+                            "label": "Author",
+                            "desc": "Name or email of the commit author"
+                        }, {
+                            "key": "repo",
+                            "type": "text",
+                            "label": "Repository",
+                            "desc": "Name of the repository"
+                        }, {
+                            "key": "branch",
+                            "type": "text",
+                            "label": "Branch",
+                            "desc": "Name of the branch commits would land into"
+                        }, {
+                            "key": "title",
+                            "type": "text",
+                            "label": "Title",
+                            "desc": "First line of commit message"
+                        }, {
+                            "key": "desc",
+                            "type": "textarea",
+                            "label": "Description",
+                            "desc": "Commit message starting with second line"
+                        }]
                     },
                     "posthook": {
                         "name": "git:posthook",
                         "service": "Git",
                         "title": "Post-receive hook",
-                        "slug": "commit is merged"
+                        "slug": "commit is merged",
+                        "form": [{
+                            "key": "author",
+                            "type": "text",
+                            "label": "Author",
+                            "desc": "Name or email of the commit author"
+                        }, {
+                            "key": "repo",
+                            "type": "text",
+                            "label": "Repository",
+                            "desc": "Name of the repository"
+                        }, {
+                            "key": "branch",
+                            "type": "text",
+                            "label": "Branch",
+                            "desc": "Name of the branch commits would land into"
+                        }, {
+                            "key": "title",
+                            "type": "text",
+                            "label": "Title",
+                            "desc": "First line of commit message"
+                        }, {
+                            "key": "desc",
+                            "type": "textarea",
+                            "label": "Description",
+                            "desc": "Commit message starting with second line"
+                        }]
                     }
                 },
                 "actions": {
@@ -363,7 +664,37 @@ A combination of triggers and stactions provided by particular service (git, nag
                         "name": "git:createTag",
                         "service": "Git",
                         "title": "Create new tag",
-                        "slug": "create new tag"
+                        "slug": "create new tag",
+                        "form": [{
+                            "key": "tag",
+                            "type": "text",
+                            "label": "Tag name",
+                            "desc": "Name of the tag"
+                        }, {
+                            "key": "message",
+                            "type": "textarea",
+                            "label": "Message"
+                        }, {
+                            "key": "object",
+                            "type": "text",
+                            "label": "SHA object",
+                            "desc": "Identificator of the object to create tag to (ex. commit SHA)"
+                        }, {
+                            "key": "type",
+                            "type": "select",
+                            "label": "Type",
+                            "desc": "Type of the object",
+                            "options": [{
+                                "key": "commit",
+                                "value": "Commit"
+                            }, {
+                                "key": "tree",
+                                "value": "Tree"
+                            }, {
+                                "key": "blob",
+                                "value": "Blob"
+                            }]
+                        }]
                     }
                 }
             },
@@ -375,7 +706,28 @@ A combination of triggers and stactions provided by particular service (git, nag
                         "name": "hubot:command",
                         "service": "Hubot",
                         "title": "Receive a command",
-                        "slug": "recived a command"
+                        "slug": "recived a command",
+                        "form": [{
+                            "key": "user",
+                            "type": "text",
+                            "label": "User",
+                            "desc": "Name of the user"
+                        }, {
+                            "key": "channel",
+                            "type": "text",
+                            "label": "Channel",
+                            "desc": "Name of the channel to listen for command"
+                        }, {
+                            "key": "command",
+                            "type": "text",
+                            "label": "Command",
+                            "desc": "The command to trigger to. Exclamation mark is not necessary."
+                        }, {
+                            "key": "args",
+                            "type": "text",
+                            "label": "Argument string",
+                            "desc": "the rest of the message after the command"
+                        }]
                     }
                 },
                 "actions": {
@@ -383,7 +735,17 @@ A combination of triggers and stactions provided by particular service (git, nag
                         "name": "hubot:say",
                         "service": "Hubot",
                         "title": "Say in channel",
-                        "slug": "say"
+                        "slug": "say",
+                        "form": [{
+                            "key": "channel",
+                            "type": "text",
+                            "label": "Channel",
+                            "desc": "Name of the channel to say to"
+                        }, {
+                            "key": "message",
+                            "type": "textarea",
+                            "label": "Message"
+                        }]
                     }
                 }
             },
@@ -395,7 +757,27 @@ A combination of triggers and stactions provided by particular service (git, nag
                         "name": "email:message",
                         "service": "Email",
                         "title": "Receive a message",
-                        "slug": "received a message"
+                        "slug": "received a message",
+                        "form": [{
+                            "key": "from",
+                            "type": "text",
+                            "label": "From",
+                            "desc": "Senders email address"
+                        }, {
+                            "key": "to",
+                            "type": "text",
+                            "label": "To",
+                            "desc": "Recipient email address"
+                        }, {
+                            "key": "subj",
+                            "type": "text",
+                            "label": "Subject",
+                            "desc": "Subject line of the mail"
+                        }, {
+                            "key": "message",
+                            "type": "textarea",
+                            "label": "Message"
+                        }]
                     }
                 },
                 "actions": {
@@ -403,7 +785,36 @@ A combination of triggers and stactions provided by particular service (git, nag
                         "name": "email:message",
                         "service": "Email",
                         "title": "Send a message",
-                        "slug": "send a message"
+                        "slug": "send a message",
+                        "form": [{
+                            "key": "from",
+                            "type": "select",
+                            "label": "From",
+                            "desc": "Address to send from",
+                            "options": [
+                                "support@stackstorm.com",
+                                "info@stackstorm.com",
+                                "finance@stackstorm.com",
+                                {
+                                    "key": "Same it was received to",
+                                    "value": "{{ to }}"
+                                }
+                            ]
+                        }, {
+                            "key": "to",
+                            "type": "text",
+                            "label": "To",
+                            "desc": "Recipient email address"
+                        }, {
+                            "key": "subj",
+                            "type": "text",
+                            "label": "Subject",
+                            "desc": "Subject line of the mail"
+                        }, {
+                            "key": "message",
+                            "type": "textarea",
+                            "label": "Message"
+                        }]
                     }
                 }
             },
@@ -415,7 +826,28 @@ A combination of triggers and stactions provided by particular service (git, nag
                         "name": "jira:newTicket",
                         "service": "Jira",
                         "title": "New ticket",
-                        "slug": "ticket has been created"
+                        "slug": "ticket has been created",
+                        "form": [{
+                            "key": "project",
+                            "type": "text",
+                            "label": "Project",
+                            "desc": "Name or id of the project"
+                        }, {
+                            "key": "summary",
+                            "type": "text",
+                            "label": "Summary",
+                            "desc": "Short description of the ticket"
+                        }, {
+                            "key": "desc",
+                            "type": "textarea",
+                            "label": "Description",
+                            "desc": "Full description of the ticket"
+                        }, {
+                            "key": "type",
+                            "type": "select",
+                            "label": "Type",
+                            "options": ["bug", "story", "feature"]
+                        }]
                     }
                 },
                 "actions": {
@@ -423,7 +855,28 @@ A combination of triggers and stactions provided by particular service (git, nag
                         "name": "jira:createTicket",
                         "service": "Jira",
                         "title": "Create new ticket",
-                        "slug": "create a ticket"
+                        "slug": "create a ticket",
+                        "form": [{
+                            "key": "project",
+                            "type": "text",
+                            "label": "Project",
+                            "desc": "Name or id of the project"
+                        }, {
+                            "key": "summary",
+                            "type": "text",
+                            "label": "Summary",
+                            "desc": "Short description of the ticket"
+                        }, {
+                            "key": "desc",
+                            "type": "textarea",
+                            "label": "Description",
+                            "desc": "Full description of the ticket"
+                        }, {
+                            "key": "type",
+                            "type": "select",
+                            "label": "Type",
+                            "options": ["bug", "story", "feature"]
+                        }]
                     }
                 }
             }
@@ -445,13 +898,65 @@ A combination of triggers and stactions provided by particular service (git, nag
                     "name": "git:prehook",
                     "service": "Git",
                     "title": "Pre-receive hook",
-                    "slug": "commit is scheduled for merge"
+                    "slug": "commit is scheduled for merge",
+                    "form": [{
+                        "key": "author",
+                        "type": "text",
+                        "label": "Author",
+                        "desc": "Name or email of the commit author"
+                    }, {
+                        "key": "repo",
+                        "type": "text",
+                        "label": "Repository",
+                        "desc": "Name of the repository"
+                    }, {
+                        "key": "branch",
+                        "type": "text",
+                        "label": "Branch",
+                        "desc": "Name of the branch commits would land into"
+                    }, {
+                        "key": "title",
+                        "type": "text",
+                        "label": "Title",
+                        "desc": "First line of commit message"
+                    }, {
+                        "key": "desc",
+                        "type": "textarea",
+                        "label": "Description",
+                        "desc": "Commit message starting with second line"
+                    }]
                 },
                 "posthook": {
                     "name": "git:posthook",
                     "service": "Git",
                     "title": "Post-receive hook",
-                    "slug": "commit is merged"
+                    "slug": "commit is merged",
+                    "form": [{
+                        "key": "author",
+                        "type": "text",
+                        "label": "Author",
+                        "desc": "Name or email of the commit author"
+                    }, {
+                        "key": "repo",
+                        "type": "text",
+                        "label": "Repository",
+                        "desc": "Name of the repository"
+                    }, {
+                        "key": "branch",
+                        "type": "text",
+                        "label": "Branch",
+                        "desc": "Name of the branch commits would land into"
+                    }, {
+                        "key": "title",
+                        "type": "text",
+                        "label": "Title",
+                        "desc": "First line of commit message"
+                    }, {
+                        "key": "desc",
+                        "type": "textarea",
+                        "label": "Description",
+                        "desc": "Commit message starting with second line"
+                    }]
                 }
             },
             "actions": {
@@ -459,10 +964,39 @@ A combination of triggers and stactions provided by particular service (git, nag
                     "name": "git:createTag",
                     "service": "Git",
                     "title": "Create new tag",
-                    "slug": "create new tag"
+                    "slug": "create new tag",
+                    "form": [{
+                        "key": "tag",
+                        "type": "text",
+                        "label": "Tag name",
+                        "desc": "Name of the tag"
+                    }, {
+                        "key": "message",
+                        "type": "textarea",
+                        "label": "Message"
+                    }, {
+                        "key": "object",
+                        "type": "text",
+                        "label": "SHA object",
+                        "desc": "Identificator of the object to create tag to (ex. commit SHA)"
+                    }, {
+                        "key": "type",
+                        "type": "select",
+                        "label": "Type",
+                        "desc": "Type of the object",
+                        "options": [{
+                            "key": "commit",
+                            "value": "Commit"
+                        }, {
+                            "key": "tree",
+                            "value": "Tree"
+                        }, {
+                            "key": "blob",
+                            "value": "Blob"
+                        }]
+                    }]
                 }
             }
-        }
 
 ## Triggers collection [/categories/{name}/triggers]
 
@@ -477,13 +1011,65 @@ A combination of triggers and stactions provided by particular service (git, nag
                 "name": "git:prehook",
                 "service": "Git",
                 "title": "Pre-receive hook",
-                "slug": "commit is scheduled for merge"
+                "slug": "commit is scheduled for merge",
+                "form": [{
+                    "key": "author",
+                    "type": "text",
+                    "label": "Author",
+                    "desc": "Name or email of the commit author"
+                }, {
+                    "key": "repo",
+                    "type": "text",
+                    "label": "Repository",
+                    "desc": "Name of the repository"
+                }, {
+                    "key": "branch",
+                    "type": "text",
+                    "label": "Branch",
+                    "desc": "Name of the branch commits would land into"
+                }, {
+                    "key": "title",
+                    "type": "text",
+                    "label": "Title",
+                    "desc": "First line of commit message"
+                }, {
+                    "key": "desc",
+                    "type": "textarea",
+                    "label": "Description",
+                    "desc": "Commit message starting with second line"
+                }]
             },
             "posthook": {
                 "name": "git:posthook",
                 "service": "Git",
                 "title": "Post-receive hook",
-                "slug": "commit is merged"
+                "slug": "commit is merged",
+                "form": [{
+                    "key": "author",
+                    "type": "text",
+                    "label": "Author",
+                    "desc": "Name or email of the commit author"
+                }, {
+                    "key": "repo",
+                    "type": "text",
+                    "label": "Repository",
+                    "desc": "Name of the repository"
+                }, {
+                    "key": "branch",
+                    "type": "text",
+                    "label": "Branch",
+                    "desc": "Name of the branch commits would land into"
+                }, {
+                    "key": "title",
+                    "type": "text",
+                    "label": "Title",
+                    "desc": "First line of commit message"
+                }, {
+                    "key": "desc",
+                    "type": "textarea",
+                    "label": "Description",
+                    "desc": "Commit message starting with second line"
+                }]
             }
         }
 
@@ -500,7 +1086,33 @@ A combination of triggers and stactions provided by particular service (git, nag
             "name": "git:posthook",
             "service": "Git",
             "title": "Post-receive hook",
-            "slug": "commit is merged"
+            "slug": "commit is merged",
+            "form": [{
+                "key": "author",
+                "type": "text",
+                "label": "Author",
+                "desc": "Name or email of the commit author"
+            }, {
+                "key": "repo",
+                "type": "text",
+                "label": "Repository",
+                "desc": "Name of the repository"
+            }, {
+                "key": "branch",
+                "type": "text",
+                "label": "Branch",
+                "desc": "Name of the branch commits would land into"
+            }, {
+                "key": "title",
+                "type": "text",
+                "label": "Title",
+                "desc": "First line of commit message"
+            }, {
+                "key": "desc",
+                "type": "textarea",
+                "label": "Description",
+                "desc": "Commit message starting with second line"
+            }]
         }
 
 ## Actions collection [/categories/{name}/actions]
@@ -516,7 +1128,37 @@ A combination of triggers and stactions provided by particular service (git, nag
                 "name": "git:createTag",
                 "service": "Git",
                 "title": "Create new tag",
-                "slug": "create new tag"
+                "slug": "create new tag",
+                "form": [{
+                    "key": "tag",
+                    "type": "text",
+                    "label": "Tag name",
+                    "desc": "Name of the tag"
+                }, {
+                    "key": "message",
+                    "type": "textarea",
+                    "label": "Message"
+                }, {
+                    "key": "object",
+                    "type": "text",
+                    "label": "SHA object",
+                    "desc": "Identificator of the object to create tag to (ex. commit SHA)"
+                }, {
+                    "key": "type",
+                    "type": "select",
+                    "label": "Type",
+                    "desc": "Type of the object",
+                    "options": [{
+                        "key": "commit",
+                        "value": "Commit"
+                    }, {
+                        "key": "tree",
+                        "value": "Tree"
+                    }, {
+                        "key": "blob",
+                        "value": "Blob"
+                    }]
+                }]
             }
         }
 
@@ -533,6 +1175,36 @@ A combination of triggers and stactions provided by particular service (git, nag
             "name": "git:createTag",
             "service": "Git",
             "title": "Create new tag",
-            "slug": "create new tag"
+            "slug": "create new tag",
+            "form": [{
+                "key": "tag",
+                "type": "text",
+                "label": "Tag name",
+                "desc": "Name of the tag"
+            }, {
+                "key": "message",
+                "type": "textarea",
+                "label": "Message"
+            }, {
+                "key": "object",
+                "type": "text",
+                "label": "SHA object",
+                "desc": "Identificator of the object to create tag to (ex. commit SHA)"
+            }, {
+                "key": "type",
+                "type": "select",
+                "label": "Type",
+                "desc": "Type of the object",
+                "options": [{
+                    "key": "commit",
+                    "value": "Commit"
+                }, {
+                    "key": "tree",
+                    "value": "Tree"
+                }, {
+                    "key": "blob",
+                    "value": "Blob"
+                }]
+            }]
         }
 
