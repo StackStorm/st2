@@ -30,16 +30,6 @@ angular.module('main')
     $scope.type = $stateParams.type;
     $scope.formResults = _.clone($scope.rule[$scope.type].options) || {};
 
-    $scope.formFields = [
-      {
-        key: 'text',
-        type: 'text',
-        label: 'Text',
-        placeholder: 'some text',
-        description: 'Text to show on the constructor'
-      }
-    ];
-
     $scope.submit = function () {
       $scope.rule[$scope.type].options = $scope.formResults;
       $state.go($scope.rule.trigger && $scope.rule.action ? 'react.test' : 'react.list');

@@ -6,7 +6,9 @@ angular.module('main')
     var fieldTypes = {
       'text': 'directives/sk0-auto-form/fields/input.partial.html',
       'password': 'directives/sk0-auto-form/fields/input.partial.html',
-      'checkbox': 'directives/sk0-auto-form/fields/checkbox.partial.html'
+      'checkbox': 'directives/sk0-auto-form/fields/checkbox.partial.html',
+      'textarea': 'directives/sk0-auto-form/fields/textarea.partial.html',
+      'select': 'directives/sk0-auto-form/fields/select.partial.html'
     };
 
     return {
@@ -19,6 +21,15 @@ angular.module('main')
       link: function postLink(scope) {
         scope.getFieldTemplate = function (type) {
           return fieldTypes[type];
+        };
+
+        scope.toMap = function (o) {
+          return _.map(o, function (i) {
+            return _.isObject(i) ? i : {
+              key: i,
+              value: i.charAt(0).toUpperCase() + i.slice(1)
+            };
+          });
         };
 
         _.each(scope.spec, function (e, index) {
