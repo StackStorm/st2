@@ -1,0 +1,52 @@
+@import "colors";
+
+.sk0-react {
+  &__type {
+    margin: 10px 0;
+  }
+
+  &__node {
+    margin: 4px 0 4px 10px;
+    padding: 3px 10px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #f2f2f2;
+      border-radius: 5px;
+    }
+  }
+
+  &__modal {
+    &-header {
+      margin: 0;
+      margin-bottom: 10px;
+      padding: 15px 20px 10px;
+      border-bottom: 1px solid @box-border-color;
+    }
+
+    &-content {
+      margin-left: 20px;
+    }
+
+    &-footer {
+      margin: 0;
+      margin-top: 10px;
+      padding: 15px 20px;
+      border-top: 1px solid @box-border-color;
+    }
+  }
+
+  &__buttons {
+    margin: 10px 0;
+  }
+
+  &__button {
+    &--left {
+      float: left;
+    }
+
+    &--right {
+      float: right;
+    }
+  }
+}

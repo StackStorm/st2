@@ -1,0 +1,22 @@
+@import "layout.less";
+
+.sk0-rule-test {
+  margin: 4px 0 4px 10px;
+  padding: 3px 10px;
+
+  &--expanded {
+    background-color: #f2f2f2;
+    border-radius: 5px;
+  }
+
+  &__title {
+    line-height: 20px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+  }
+
+  &--expanded &__title {
+    color: #000;
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "kandra-ui",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "lodash": "^2.4.1",
+    "less": "^1.7.0",
+    "gulp": "^3.6.2",
+    "mocha": "^1.18.2",
+    "chai": "^1.9.1",
+    "gulp-jshint": "^1.5.5",
+    "gulp-less": "^1.2.3",
+    "event-stream": "^3.1.5",
+    "gulp-concat": "^2.2.0",
+    "gulp-serve": "^0.2.0"
+  }
+}
