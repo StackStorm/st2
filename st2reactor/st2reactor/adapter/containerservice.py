@@ -16,17 +16,16 @@ def __create_trigger_instance(trigger_id, payload,
     trigger_instance.trigger = trigger
     trigger_instance.payload = payload
     trigger_instance.occurrence_time = occurrence_time
-    TriggerInstance.add_or_update(trigger_instance)
-    return trigger_instance
+    return TriggerInstance.add_or_update(trigger_instance)
 
 
 def dispatch_triggers(triggers):
     """
     """
-    trigger_instances = [__create_trigger_instance(trigger.trigger_id,
-                                                   trigger.payload,
-                                                   trigger.occurrence_time)
-                         for trigger in triggers]
+    trigger_instances = [__create_trigger_instance(
+        trigger['id'], trigger['payload'],
+        datetime.datetime.now() if trigger['occurrence_time'] is None
+        else trigger['occurrence_time']) for trigger in triggers]
     DISPATCH_HANDLER(trigger_instances)
 
 
