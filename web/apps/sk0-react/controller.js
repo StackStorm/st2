@@ -13,12 +13,32 @@ angular.module('main')
 
     $scope.rules = Rules.query();
   })
-  .controller('sk0ReactPickCtrl', function ($scope, $resource, $state) {
-    var Services = $resource('http://kandra.apiary-mock.com/categories');
-
-    $scope.services = Services.get();
-
+  .controller('sk0ReactPickCtrl', function ($scope, sk0EntityInventory, $state) {
     $scope.type = $state.current.data.type;
+
+    (sk0EntityInventory[$scope.type + 's']).$promise.then(function (list) {
+      return _(list)
+        .map(function (e) {
+          return _.map(e.tags, function (tag) {
+            return {
+              tag: tag,
+              entity: e
+            };
+          });
+        })
+        .flatten()
+        .reduce(function (result, e) {
+          var current = result[e.tag] = result[e.tag] || {};
+
+          current.title = e.tag;
+          current.entities = (current.entities || []).concat([e.entity]);
+
+          return result;
+        }, {});
+    }).then(function (services) {
+      $scope.services = services;
+    });
+
     $scope.rule[$scope.type] = $scope.rule[$scope.type] || {};
 
     $scope.pick = function (entity) {
@@ -39,7 +59,7 @@ angular.module('main')
     var Rules = $resource('http://:baseURL/rules?expand=true', {
       baseURL: 'kandra.apiary-mock.com'
     }, {
-      confirm: { url: 'http://:baseURL/rules/:id/confirm' },
+      confirm: { url: 'http://:baseURL/rules/:id/activate', method: 'PUT' },
       log: { url: 'http://:baseURL/rules/:id/log', isArray: true }
     });
 
