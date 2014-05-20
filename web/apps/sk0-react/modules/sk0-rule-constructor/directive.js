@@ -8,7 +8,7 @@ angular.module('main')
       scope: {
         rule: '='
       },
-      templateUrl: 'apps/sk0-react/directives/sk0-rule-constructor/template.html',
+      templateUrl: 'apps/sk0-react/modules/sk0-rule-constructor/template.html',
       link: function () {}
     };
 

@@ -4,11 +4,11 @@ angular.module('main')
     // TODO: figure out what other fields do we need.
     // TODO: create an interface to extend the list of fields.
     var fieldTypes = {
-      'text': 'directives/sk0-auto-form/fields/input.partial.html',
-      'password': 'directives/sk0-auto-form/fields/input.partial.html',
-      'checkbox': 'directives/sk0-auto-form/fields/checkbox.partial.html',
-      'textarea': 'directives/sk0-auto-form/fields/textarea.partial.html',
-      'select': 'directives/sk0-auto-form/fields/select.partial.html'
+      'text': 'modules/sk0-auto-form/fields/input.partial.html',
+      'password': 'modules/sk0-auto-form/fields/input.partial.html',
+      'checkbox': 'modules/sk0-auto-form/fields/checkbox.partial.html',
+      'textarea': 'modules/sk0-auto-form/fields/textarea.partial.html',
+      'select': 'modules/sk0-auto-form/fields/select.partial.html'
     };
 
     return {
@@ -17,7 +17,7 @@ angular.module('main')
         'spec': '=',
         'result': '='
       },
-      templateUrl: 'directives/sk0-auto-form/template.html',
+      templateUrl: 'modules/sk0-auto-form/template.html',
       link: function postLink(scope) {
         scope.getFieldTemplate = function (type) {
           return fieldTypes[type];

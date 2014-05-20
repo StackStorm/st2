@@ -12,9 +12,9 @@ var gulp = require('gulp')
 
 var settings = {
   dev: '.',
-  js: ['apps/**/*.js', 'directives/**/*.js', 'main.js'],
+  js: ['apps/**/*.js', 'modules/**/*.js', 'main.js'],
   styles: {
-    src: ['less/style.less', 'apps/**/*.less', 'directives/**/*.less'],
+    src: ['less/style.less', 'apps/**/*.less', 'modules/**/*.less'],
     includes: 'less/',
     dest: 'css'
   },

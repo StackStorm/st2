@@ -10,7 +10,7 @@ angular.module('main')
         type: '@',
         status: '='
       },
-      templateUrl: 'apps/sk0-react/directives/sk0-rule-test/template.html',
+      templateUrl: 'apps/sk0-react/modules/sk0-rule-test/template.html',
       replace: true,
       link: function (scope) {
         scope.isPassed = function (type) {

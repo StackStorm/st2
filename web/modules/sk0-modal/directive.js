@@ -6,7 +6,7 @@ angular.module('main')
     return {
       restrict: 'C',
       transclude: true,
-      templateUrl: 'directives/sk0-modal/template.html'
+      templateUrl: 'modules/sk0-modal/template.html'
     };
 
   });

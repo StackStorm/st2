@@ -6,7 +6,7 @@ angular.module('main')
     return {
       restrict: 'C',
       scope: true,
-      templateUrl: 'directives/sk0-menu/template.html',
+      templateUrl: 'modules/sk0-menu/template.html',
       link: function postLink(scope) {
         scope.isMain = function (e) {
           return !!e.title;
