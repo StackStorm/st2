@@ -649,7 +649,7 @@ Rule log
             }
         }]
 
-# Group Triggers
+# Group Services
 
 ## Triggers collection [/triggers]
 ### List all Triggers [GET]
@@ -778,6 +778,126 @@ Rule log
             "title": "New ticket",
             "tags": ["jira"],
             "slug": "ticket has been created",
+            "parameters": [{
+                "key": "project",
+                "type": "text",
+                "label": "Project",
+                "desc": "Name or id of the project"
+            }, {
+                "key": "summary",
+                "type": "text",
+                "label": "Summary",
+                "desc": "Short description of the ticket"
+            }, {
+                "key": "desc",
+                "type": "textarea",
+                "label": "Description",
+                "desc": "Full description of the ticket"
+            }, {
+                "key": "type",
+                "type": "select",
+                "label": "Type",
+                "options": ["bug", "story", "feature"]
+            }]
+        }]
+
+## Actions collection [/triggers]
+### List all Actions [GET]
++ Response 200 (application/json)
+
+        [{
+            "name": "git:createTag",
+            "service": "Git",
+            "title": "Create new tag",
+            "tags": ["git"],
+            "slug": "create new tag",
+            "parameters": [{
+                "key": "tag",
+                "type": "text",
+                "label": "Tag name",
+                "desc": "Name of the tag"
+            }, {
+                "key": "message",
+                "type": "textarea",
+                "label": "Message"
+            }, {
+                "key": "object",
+                "type": "text",
+                "label": "SHA object",
+                "desc": "Identificator of the object to create tag to (ex. commit SHA)"
+            }, {
+                "key": "type",
+                "type": "select",
+                "label": "Type",
+                "desc": "Type of the object",
+                "options": [{
+                    "key": "commit",
+                    "value": "Commit"
+                }, {
+                    "key": "tree",
+                    "value": "Tree"
+                }, {
+                    "key": "blob",
+                    "value": "Blob"
+                }]
+            }]
+        }, {
+            "name": "hubot:say",
+            "service": "Hubot",
+            "title": "Say in channel",
+            "tags": ["hubot", "chat"],
+            "slug": "say",
+            "parameters": [{
+                "key": "channel",
+                "type": "text",
+                "label": "Channel",
+                "desc": "Name of the channel to say to"
+            }, {
+                "key": "message",
+                "type": "textarea",
+                "label": "Message"
+            }]
+        }, {
+            "name": "email:message",
+            "service": "Email",
+            "title": "Send a message",
+            "tags": ["email"],
+            "slug": "send a message",
+            "parameters": [{
+                "key": "from",
+                "type": "select",
+                "label": "From",
+                "desc": "Address to send from",
+                "options": [
+                    "support@stackstorm.com",
+                    "info@stackstorm.com",
+                    "finance@stackstorm.com",
+                    {
+                        "key": "Same it was received to",
+                        "value": "{{ to }}"
+                    }
+                ]
+            }, {
+                "key": "to",
+                "type": "text",
+                "label": "To",
+                "desc": "Recipient email address"
+            }, {
+                "key": "subj",
+                "type": "text",
+                "label": "Subject",
+                "desc": "Subject line of the mail"
+            }, {
+                "key": "message",
+                "type": "textarea",
+                "label": "Message"
+            }]
+        }, {
+            "name": "jira:createTicket",
+            "service": "Jira",
+            "title": "Create new ticket",
+            "tags": ["jira"],
+            "slug": "create a ticket",
             "parameters": [{
                 "key": "project",
                 "type": "text",
