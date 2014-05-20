@@ -22,7 +22,7 @@ class RuleEnforcer(object):
             rule_enforcement.trigger_instance = self.trigger_instance
             rule_enforcement.rule = rule
             data = self.data_transformer(rule.data_mapping)
-            staction = self.__invoke_staction(rule.staction, data)
+            staction = RuleEnforcer.__invoke_staction(rule.staction, data)
             rule_enforcement.staction_execution = staction
             RuleEnforcement.add_or_update(rule_enforcement)
 

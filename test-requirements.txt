@@ -1,3 +1,4 @@
 ipython
 unittest2
 nose
+mock>=1.0
