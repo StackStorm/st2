@@ -1,3 +1,4 @@
+import datetime
 import tests
 import unittest2
 import mongoengine.connection
@@ -112,6 +113,16 @@ class ReactorModelTest(unittest2.TestCase):
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
+    def test_rule_lookup(self):
+        triggersource = ReactorModelTest._create_save_triggersource()
+        trigger = ReactorModelTest._create_save_trigger(triggersource)
+        saved = ReactorModelTest._create_save_rule(trigger)
+        retrievedrules = Rule.query(trigger=trigger)
+        self.assertEqual(1, len(retrievedrules), 'No rules found.')
+        for retrievedrule in retrievedrules:
+            self.assertEqual(saved.id, retrievedrule.id,
+                             'Incorrect rule returned.')
+
     @staticmethod
     def _create_save_triggersource():
         created = TriggerSourceDB()
@@ -135,6 +146,7 @@ class ReactorModelTest(unittest2.TestCase):
         created.description = ''
         created.trigger = trigger
         created.payload = {}
+        created.occurrence_time = datetime.datetime.now()
         return TriggerInstance.add_or_update(created)
 
     @staticmethod
