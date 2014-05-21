@@ -5,9 +5,9 @@
       'sk0-icon__off': isPassed(type) == true,
       'sk0-icon__cancel': isPassed(type) == false
     }"></i>
-    {{ rule[type].type.title }}
+    {{ (rule[type].type | toEntity:type+'s').title }}
   </div>
   <div>
-    
+
   </div>
 </div>

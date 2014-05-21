@@ -10,7 +10,8 @@ angular.module('main')
       },
       replace: true,
       templateUrl: 'apps/sk0-react/modules/sk0-rule/template.html',
-      controller: function ($scope, $state) {
+      controller: function ($scope, $state, sk0EntityInventory) {
+        $scope.services = sk0EntityInventory;
         $scope.edit = function (rule) {
           $scope.$parent.setRule(rule);
           $state.go('^.test');
