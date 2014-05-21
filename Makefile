@@ -9,7 +9,7 @@ COMPONENTS := $(wildcard st2*)
 
 # Components that implement a component-controlled test-runner. These components provide an
 # in-component Makefile. (Temporary fix until I can generalize the pecan unittest setup. -mar)
-COMPONENT_SPECIFIC_TESTS := st2stactioncontroller
+COMPONENT_SPECIFIC_TESTS := st2stactioncontroller st2reactorcontroller
 
 EXTERNAL_DIR := external
 
