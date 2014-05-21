@@ -7,10 +7,7 @@ This is a system that provides a way to describe the action (or sequence of acti
 # Group Rules
 Rules related resources of the **Kandra API**
 
-## Rules Collection [/rules{?expand}]
-
-+ Parameters
-    + expand = `true` (optional, boolean) ... Expand action and trigger type definitions. In original, shrinked state they should be represented as strings like "git:posthook" (`service name`:`trigger\action name`)
+## Rules Collection [/rules]
 
 ### List all Rules [GET]
 + Response 200 (application/json)
@@ -19,59 +16,13 @@ Rules related resources of the **Kandra API**
             "id": 1,
             "enable": true,
             "trigger": {
-                "type": {
-                    "name": "git:posthook",
-                    "service": "Git",
-                    "title": "Post-receive hook",
-                    "slug": "commit is merged",
-                    "parameters": [{
-                        "key": "author",
-                        "type": "text",
-                        "label": "Author",
-                        "desc": "Name or email of the commit author"
-                    }, {
-                        "key": "repo",
-                        "type": "text",
-                        "label": "Repository",
-                        "desc": "Name of the repository"
-                    }, {
-                        "key": "branch",
-                        "type": "text",
-                        "label": "Branch",
-                        "desc": "Name of the branch commits would land into"
-                    }, {
-                        "key": "title",
-                        "type": "text",
-                        "label": "Title",
-                        "desc": "First line of commit message"
-                    }, {
-                        "key": "desc",
-                        "type": "textarea",
-                        "label": "Description",
-                        "desc": "Commit message starting with second line"
-                    }]
-                },
+                "type": "git:posthook",
                 "options": {
                     "repo": "stackstorm/kandra"
                 }
             },
             "action": {
-                "type": {
-                    "name": "hubot:say",
-                    "service": "Hubot",
-                    "title": "Say in channel",
-                    "slug": "say",
-                    "parameters": [{
-                        "key": "channel",
-                        "type": "text",
-                        "label": "Channel",
-                        "desc": "Name of the channel to say to"
-                    }, {
-                        "key": "message",
-                        "type": "textarea",
-                        "label": "Message"
-                    }]
-                },
+                "type": "hubot:say",
                 "options": {
                     "channel": "stackstorm",
                     "message": "New commit has been pushed in {{ repo }} by {{ author }}"
@@ -86,64 +37,13 @@ Rules related resources of the **Kandra API**
             "id": 2,
             "enable": true,
             "trigger": {
-                "type": {
-                    "name": "email:message",
-                    "service": "Email",
-                    "title": "Receive a message",
-                    "slug": "received a message",
-                    "parameters": [{
-                        "key": "from",
-                        "type": "text",
-                        "label": "From",
-                        "desc": "Senders email address"
-                    }, {
-                        "key": "to",
-                        "type": "text",
-                        "label": "To",
-                        "desc": "Recipient email address"
-                    }, {
-                        "key": "subj",
-                        "type": "text",
-                        "label": "Subject",
-                        "desc": "Subject line of the mail"
-                    }, {
-                        "key": "message",
-                        "type": "textarea",
-                        "label": "Message"
-                    }]
-                },
+                "type": "email:message",
                 "options": {
                     "to": "support@stackstorm.com"
                 }
             },
             "action": {
-                "type": {
-                    "name": "jira:createTicket",
-                    "service": "Jira",
-                    "title": "Create new ticket",
-                    "slug": "create a ticket",
-                    "parameters": [{
-                        "key": "project",
-                        "type": "text",
-                        "label": "Project",
-                        "desc": "Name or id of the project"
-                    }, {
-                        "key": "summary",
-                        "type": "text",
-                        "label": "Summary",
-                        "desc": "Short description of the ticket"
-                    }, {
-                        "key": "desc",
-                        "type": "textarea",
-                        "label": "Description",
-                        "desc": "Full description of the ticket"
-                    }, {
-                        "key": "type",
-                        "type": "select",
-                        "label": "Type",
-                        "options": ["bug", "story", "feature"]
-                    }]
-                },
+                "type": "jira:createTicket",
                 "options": {
                     "project": "stackstorm",
                     "type": "story",
@@ -161,53 +61,13 @@ Rules related resources of the **Kandra API**
             "id": 3,
             "enable": false,
             "trigger": {
-                "type": {
-                    "name": "email:message",
-                    "service": "Email",
-                    "title": "Receive a message",
-                    "slug": "received a message",
-                    "parameters": [{
-                        "key": "from",
-                        "type": "text",
-                        "label": "From",
-                        "desc": "Senders email address"
-                    }, {
-                        "key": "to",
-                        "type": "text",
-                        "label": "To",
-                        "desc": "Recipient email address"
-                    }, {
-                        "key": "subj",
-                        "type": "text",
-                        "label": "Subject",
-                        "desc": "Subject line of the mail"
-                    }, {
-                        "key": "message",
-                        "type": "textarea",
-                        "label": "Message"
-                    }]
-                },
+                "type": "email:message",
                 "options": {
                     "to": "support@stackstorm.com"
                 }
             },
             "action": {
-                "type": {
-                    "name": "hubot:say",
-                    "service": "Hubot",
-                    "title": "Say in channel",
-                    "slug": "say",
-                    "parameters": [{
-                        "key": "channel",
-                        "type": "text",
-                        "label": "Channel",
-                        "desc": "Name of the channel to say to"
-                    }, {
-                        "key": "message",
-                        "type": "textarea",
-                        "label": "Message"
-                    }]
-                },
+                "type": "hubot:say",
                 "options": {
                     "channel": "stackstorm",
                     "message": "New user story has been received from {{ from }}"
@@ -246,53 +106,13 @@ Rules related resources of the **Kandra API**
             "dry": true,
             "enable": true,
             "trigger": {
-                "type": {
-                    "name": "email:message",
-                    "service": "Email",
-                    "title": "Receive a message",
-                    "slug": "received a message",
-                    "parameters": [{
-                        "key": "from",
-                        "type": "text",
-                        "label": "From",
-                        "desc": "Senders email address"
-                    }, {
-                        "key": "to",
-                        "type": "text",
-                        "label": "To",
-                        "desc": "Recipient email address"
-                    }, {
-                        "key": "subj",
-                        "type": "text",
-                        "label": "Subject",
-                        "desc": "Subject line of the mail"
-                    }, {
-                        "key": "message",
-                        "type": "textarea",
-                        "label": "Message"
-                    }]
-                },
+                "type": "email:message",
                 "options": {
                     "to": "support@stackstorm.com"
                 }
             },
             "action": {
-                "type": {
-                    "name": "hubot:say",
-                    "service": "Hubot",
-                    "title": "Say in channel",
-                    "slug": "say",
-                    "parameters": [{
-                        "key": "channel",
-                        "type": "text",
-                        "label": "Channel",
-                        "desc": "Name of the channel to say to"
-                    }, {
-                        "key": "message",
-                        "type": "textarea",
-                        "label": "Message"
-                    }]
-                },
+                "type": "hubot:say",
                 "options": {
                     "channel": "stackstorm",
                     "message": "New user story has been received from {{ from }}"
@@ -305,12 +125,11 @@ Rules related resources of the **Kandra API**
             "count": 0
         }
 
-## Rule [/rules/{id}{?expand}]
+## Rule [/rules/{id}]
 A single Rule object with all its details
 
 + Parameters
     + id (required, number, `2`) ... Numeric `id` of the Rule to perform action with.
-    + expand = `true` (optional, boolean) ... Expand action and trigger type definitions. In original, shrinked state they should be represented as strings like "git:posthook" (`service name`:`trigger\action name`)
 
 ### Retrieve a Rule [GET]
 + Response 200 (application/json)
@@ -319,64 +138,13 @@ A single Rule object with all its details
             "id": 2,
             "enable": false,
             "trigger": {
-                "type": {
-                    "name": "email:message",
-                    "service": "Email",
-                    "title": "Receive a message",
-                    "slug": "received a message",
-                    "parameters": [{
-                        "key": "from",
-                        "type": "text",
-                        "label": "From",
-                        "desc": "Senders email address"
-                    }, {
-                        "key": "to",
-                        "type": "text",
-                        "label": "To",
-                        "desc": "Recipient email address"
-                    }, {
-                        "key": "subj",
-                        "type": "text",
-                        "label": "Subject",
-                        "desc": "Subject line of the mail"
-                    }, {
-                        "key": "message",
-                        "type": "textarea",
-                        "label": "Message"
-                    }]
-                },
+                "type": "email:message",
                 "options": {
                     "to": "support@stackstorm.com"
                 }
             },
             "action": {
-                "type": {
-                    "name": "jira:createTicket",
-                    "service": "Jira",
-                    "title": "Create new ticket",
-                    "slug": "create a ticket",
-                    "parameters": [{
-                        "key": "project",
-                        "type": "text",
-                        "label": "Project",
-                        "desc": "Name or id of the project"
-                    }, {
-                        "key": "summary",
-                        "type": "text",
-                        "label": "Summary",
-                        "desc": "Short description of the ticket"
-                    }, {
-                        "key": "desc",
-                        "type": "textarea",
-                        "label": "Description",
-                        "desc": "Full description of the ticket"
-                    }, {
-                        "key": "type",
-                        "type": "select",
-                        "label": "Type",
-                        "options": ["bug", "story", "feature"]
-                    }]
-                },
+                "type": "jira:createTicket",
                 "options": {
                     "project": "stackstorm",
                     "type": "story",
@@ -480,12 +248,11 @@ Enable the rule
 ### Disable the rule [DELETE]
 + Response 204
 
-## Activate [/rules/{id}/activate{?expand}]
+## Activate [/rules/{id}/activate]
 Promote dry-run rule to permanent one
 
 + Parameters
     + id (required, number, `2`) ... Numeric `id` of the Rule
-    + expand = `true` (optional, boolean) ... Expand action and trigger type definitions. In original, shrinked state they should be represented as strings like "git:posthook" (`service name`:`trigger\action name`)
 
 ### Confirm the rule [PUT]
 + Response 200 (application/json)
@@ -494,64 +261,13 @@ Promote dry-run rule to permanent one
             "id": 2,
             "enable": false,
             "trigger": {
-                "type": {
-                    "name": "email:message",
-                    "service": "Email",
-                    "title": "Receive a message",
-                    "slug": "received a message",
-                    "parameters": [{
-                        "key": "from",
-                        "type": "text",
-                        "label": "From",
-                        "desc": "Senders email address"
-                    }, {
-                        "key": "to",
-                        "type": "text",
-                        "label": "To",
-                        "desc": "Recipient email address"
-                    }, {
-                        "key": "subj",
-                        "type": "text",
-                        "label": "Subject",
-                        "desc": "Subject line of the mail"
-                    }, {
-                        "key": "message",
-                        "type": "textarea",
-                        "label": "Message"
-                    }]
-                },
+                "type": "email:message",
                 "options": {
                     "to": "support@stackstorm.com"
                 }
             },
             "action": {
-                "type": {
-                    "name": "jira:createTicket",
-                    "service": "Jira",
-                    "title": "Create new ticket",
-                    "slug": "create a ticket",
-                    "parameters": [{
-                        "key": "project",
-                        "type": "text",
-                        "label": "Project",
-                        "desc": "Name or id of the project"
-                    }, {
-                        "key": "summary",
-                        "type": "text",
-                        "label": "Summary",
-                        "desc": "Short description of the ticket"
-                    }, {
-                        "key": "desc",
-                        "type": "textarea",
-                        "label": "Description",
-                        "desc": "Full description of the ticket"
-                    }, {
-                        "key": "type",
-                        "type": "select",
-                        "label": "Type",
-                        "options": ["bug", "story", "feature"]
-                    }]
-                },
+                "type": "jira:createTicket",
                 "options": {
                     "project": "stackstorm",
                     "type": "story",
@@ -567,44 +283,18 @@ Promote dry-run rule to permanent one
             "count": 1
         }
 
-## Auditing the rule [/rules/{id}/log{?expand}]
+## Auditing the rule [/rules/{id}/log]
 Rule log
 
 + Parameters
     + id (required, number, `3`) ... Numeric `id` of the Rule
-    + expand = `true` (optional, boolean) ... Expand action and trigger type definitions. In original, shrinked state they should be represented as strings like "git:posthook" (`service name`:`trigger\action name`)
 
 ### List all entries [GET]
 + Response 200 (application/json)
 
         [{
             "trigger": {
-                "type": {
-                    "name": "email:message",
-                    "service": "Email",
-                    "title": "Receive a message",
-                    "slug": "received a message",
-                    "parameters": [{
-                        "key": "from",
-                        "type": "text",
-                        "label": "From",
-                        "desc": "Senders email address"
-                    }, {
-                        "key": "to",
-                        "type": "text",
-                        "label": "To",
-                        "desc": "Recipient email address"
-                    }, {
-                        "key": "subj",
-                        "type": "text",
-                        "label": "Subject",
-                        "desc": "Subject line of the mail"
-                    }, {
-                        "key": "message",
-                        "type": "textarea",
-                        "label": "Message"
-                    }]
-                },
+                "type": "email:message",
                 "options": {
                     "to": "support@stackstorm.com"
                 },
@@ -619,22 +309,7 @@ Rule log
                 "timestamp": "2014-09-11T16:41:12.014Z"
             },
             "action": {
-                "type": {
-                    "name": "hubot:say",
-                    "service": "Hubot",
-                    "title": "Say in channel",
-                    "slug": "say",
-                    "parameters": [{
-                        "key": "channel",
-                        "type": "text",
-                        "label": "Channel",
-                        "desc": "Name of the channel to say to"
-                    }, {
-                        "key": "message",
-                        "type": "textarea",
-                        "label": "Message"
-                    }]
-                },
+                "type": "hubot:say",
                 "options": {
                     "channel": "stackstorm",
                     "message": "New user story has been received from {{ from }}"
