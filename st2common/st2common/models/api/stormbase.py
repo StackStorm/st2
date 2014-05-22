@@ -1,6 +1,6 @@
 from wsme import types as wtypes
 
-from mirantas.resource import Resource
+from mirantis.resource import Resource
 
 class BaseAPI(Resource):
     # TODO: Does URI need a custom type?
