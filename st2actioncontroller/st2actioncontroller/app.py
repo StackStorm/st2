@@ -1,5 +1,5 @@
 from pecan import make_app
-from st2stactioncontroller import model
+from st2actioncontroller import model
 
 
 def setup_app(config):

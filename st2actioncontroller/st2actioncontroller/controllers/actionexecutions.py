@@ -5,36 +5,36 @@ from pecan.rest import RestController
 class StactionExecutionsController(RestController):
     """
         Implements the RESTful web endpoint that handles
-        the lifecycle of StactionExecutions in the system.
+        the lifecycle of ActionExecutions in the system.
     """
 
     @expose('json')
     def get_one(self, id):
         """
-            List stactionexecution by id.
+            List actionexecution by id.
 
             Handle:
-                GET /stactionexecutions/1
+                GET /actionexecutions/1
         """
         return {"dummy": "execution_value"}
 
     @expose('json')
     def get_all(self):
         """ 
-            List all stactionexecutions.
+            List all actionexecutions.
 
             Handles requests:
-                GET /stactionexecutions/
+                GET /actionexecutions/
         """
         return {"dummy": "get_all"}
 
     @expose('json')
     def post(self, **kwargs):
         """ 
-            Create a new stactionexecution.
+            Create a new actionexecution.
 
             Handles requests:
-                POST /stactionexecutions/
+                POST /actionexecutions/
         """
         print kwargs
         return {"dummy": "post"}
@@ -43,22 +43,22 @@ class StactionExecutionsController(RestController):
     def put(self, id, **kwargs):
         # TODO: Update probably does not make any sense on an execution.
         """
-            Update a stactionexecution.
+            Update a actionexecution.
 
             Handles requests:
-                POST /stactionexecutions/1?_method=put
-                PUT /stactionexecutions/1
+                POST /actionexecutions/1?_method=put
+                PUT /actionexecutions/1
         """
         return {"dummy": "put"}
 
     @expose('json')
     def delete(self, id):
         """ 
-            Delete a stactionexecution.
+            Delete a actionexecution.
 
             Handles requests:
-                POST /stactionexecutions/1?_method=delete
-                DELETE /stactionexecutions/1
+                POST /actionexecutions/1?_method=delete
+                DELETE /actionexecutions/1
         """
         # TODO: Delete should migrate the execution data to a history collection.
-        return {"dummy": "delete stactionexecution"}
+        return {"dummy": "delete actionexecution"}

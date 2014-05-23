@@ -7,8 +7,8 @@ server = {
 
 # Pecan Application Configurations
 app = {
-    'root': 'st2stactioncontroller.controllers.root.RootController',
-    'modules': ['st2stactioncontroller'],
+    'root': 'st2actioncontroller.controllers.root.RootController',
+    'modules': ['st2actioncontroller'],
     'static_root': '%(confdir)s/../../public',
     'template_path': '%(confdir)s/../templates',
     'debug': True,

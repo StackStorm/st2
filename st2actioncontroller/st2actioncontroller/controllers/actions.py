@@ -1,16 +1,16 @@
 from pecan import expose
 from pecan.rest import RestController
 
-#from st2common.models.db import staction as stactionDB
+#from st2common.models.db import action as stactionDB
 
-#from st2common.models.db import staction as stactionDB
-#from st2common.models.api import staction as stactionAPI
+#from st2common.models.db import action as stactionDB
+#from st2common.models.api import action as stactionAPI
 
 
 class StactionsController(RestController):
     """
         Implements the RESTful web endpoint that handles
-        the lifecycle of Stactions in the system.
+        the lifecycle of Actions in the system.
     """
 
     # TODO: Investigate mako rendering
@@ -18,30 +18,30 @@ class StactionsController(RestController):
     @expose('json')
     def get_one(self, id):
         """
-            List staction by id.
+            List action by id.
 
             Handle:
-                GET /stactions/1
+                GET /actions/1
         """
         return {"dummy": "value"}
 
     @expose('json')
     def get_all(self):
         """
-            List all stactions.
+            List all actions.
 
             Handles requests:
-                GET /stactions/
+                GET /actions/
         """
         return {"dummy": "get_all"}
 
     @expose('json')
     def post(self, **kwargs):
         """
-            Create a new staction.
+            Create a new action.
 
             Handles requests:
-                POST /stactions/
+                POST /actions/
         """
         print kwargs
         return {"dummy": "post"}
@@ -49,21 +49,21 @@ class StactionsController(RestController):
     @expose('json')
     def put(self, id, **kwargs):
         """
-            Update a staction.
+            Update a action.
 
             Handles requests:
-                POST /stactions/1?_method=put
-                PUT /stactions/1
+                POST /actions/1?_method=put
+                PUT /actions/1
         """
         return {"dummy": "put"}
 
     @expose('json')
     def delete(self, id):
         """
-            Delete a staction.
+            Delete a action.
 
             Handles requests:
-                POST /stactions/1?_method=delete
-                DELETE /stactions/1
+                POST /actions/1?_method=delete
+                DELETE /actions/1
         """
-        return {"dummy": "delete staction"}
+        return {"dummy": "delete action"}

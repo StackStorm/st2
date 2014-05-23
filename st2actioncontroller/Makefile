@@ -4,6 +4,7 @@ VIRTUALENV_DIR=virtualenv
 .PHONY: clean
 clean:
 	rm -rf *.egg-info
+	rm -rf build
 	find . -name \*.pyc -type f -delete
 	find . -name \*.pyo -type f -delete
 
