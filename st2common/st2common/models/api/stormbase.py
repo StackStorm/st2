@@ -1,11 +1,11 @@
-from wsme import types as wtypes
+from wsme import types as wstypes
 
 from mirantis.resource import Resource
 
 class BaseAPI(Resource):
     # TODO: Does URI need a custom type?
-    uri = wtypes.text
-    name = wtypes.text
-    description = wtypes.text
-    id = wtypes.text
+    uri = wstypes.text
+    name = wstypes.text
+    description = wstypes.text
+    id = wstypes.text
 

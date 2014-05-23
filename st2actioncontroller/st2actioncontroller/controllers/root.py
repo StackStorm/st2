@@ -1,6 +1,8 @@
 from pecan import expose, redirect
 from webob.exc import status_map
 
+from wsmeext.pecan import wsexpose
+
 from st2actioncontroller.controllers.actions import StactionsController
 from st2actioncontroller.controllers.actionexecutions import StactionExecutionsController
 

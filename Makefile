@@ -16,7 +16,7 @@ EXTERNAL_DIR := external
 # nasty hack to get a space into a variable
 space_char :=
 space_char +=
-COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS)))
+COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS) $(EXTERNAL_DIR)))
 COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS)),$(component)/tests)
 
 PYTHON_TARGET := 2.7
@@ -32,7 +32,6 @@ play:
 
 .PHONY: distclean
 distclean:
-	@echo $(COMPONENTS)
 	rm -rf $(VIRTUALENV_DIR)
 
 .PHONY: requirements
@@ -50,7 +49,7 @@ $(VIRTUALENV_DIR)/bin/activate:
 	# Setup PYTHONPATH in bash activate script...
 	echo '' >> $(VIRTUALENV_DIR)/bin/activate
 	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
-	echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH):$(EXTERNAL_DIR)' >> $(VIRTUALENV_DIR)/bin/activate
+	echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
 	echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
 	touch $(VIRTUALENV_DIR)/bin/activate
 

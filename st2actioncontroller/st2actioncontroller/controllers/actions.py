@@ -1,10 +1,11 @@
 from pecan import expose
 from pecan.rest import RestController
+from wsmeext.pecan import wsexpose
 
-#from st2common.models.db import action as stactionDB
+#from st2common.models.db import action as actionDB
 
-#from st2common.models.db import action as stactionDB
-#from st2common.models.api import action as stactionAPI
+#from st2common.models.db import action as actionDB
+from st2common.models.api import action as actionAPImodel
 
 
 class StactionsController(RestController):
@@ -15,7 +16,8 @@ class StactionsController(RestController):
 
     # TODO: Investigate mako rendering
     #@expose('text_template.mako', content_type='text/plain')
-    @expose('json')
+#    @expose('json')
+    @wsexpose(actionAPImodel.ActionAPI, body=actionAPImodel.ActionAPI)
     def get_one(self, id):
         """
             List action by id.
@@ -23,7 +25,7 @@ class StactionsController(RestController):
             Handle:
                 GET /actions/1
         """
-        return {"dummy": "value"}
+        return {"dummy": "value", "id": id}
 
     @expose('json')
     def get_all(self):
@@ -35,7 +37,8 @@ class StactionsController(RestController):
         """
         return {"dummy": "get_all"}
 
-    @expose('json')
+    #@expose('json')
+    @wsexpose(actionAPImodel.ActionAPI, body=actionAPImodel.ActionAPI)
     def post(self, **kwargs):
         """
             Create a new action.
@@ -44,7 +47,7 @@ class StactionsController(RestController):
                 POST /actions/
         """
         print kwargs
-        return {"dummy": "post"}
+        return {"dummy": "post", "id": id}
     
     @expose('json')
     def put(self, id, **kwargs):

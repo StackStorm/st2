@@ -1,4 +1,4 @@
-from wsme import types as wtypes
+from wsme import types as wstypes
 
 from st2common.models.api.stormbase import BaseAPI
 
@@ -7,7 +7,7 @@ __all__ = ['StactionAPI',
            ]
 
 
-class StactionAPI(BaseAPI):
+class ActionAPI(BaseAPI):
     """The system entity that represents a Stack Action/Automation in
        the system.
     Attribute:
@@ -18,7 +18,8 @@ class StactionAPI(BaseAPI):
         parameter_names: flat list of strings required as key names when running
                    the staction.
     """
-    enabled = wtypes.bool
-    repo_path = wtypes.text
-    run_type = wtypes.text
-    parameter_names = wtypes.ArrayType(wtypes.text)
+    # TODO: debug wsme+pecan problem with "bool"
+    #enabled = wstypes.bool
+    repo_path = wstypes.text
+    run_type = wstypes.text
+    parameter_names = wstypes.ArrayType(wstypes.text)
