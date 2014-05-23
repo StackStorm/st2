@@ -23,3 +23,8 @@ class ActionAPI(BaseAPI):
     repo_path = wstypes.text
     run_type = wstypes.text
     parameter_names = wstypes.ArrayType(wstypes.text)
+
+    @classmethod
+    def from_model(cls, model):
+        action = cls()
+        action.id = str(model.id)

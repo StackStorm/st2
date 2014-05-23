@@ -38,7 +38,7 @@ class StactionsController(RestController):
         return {"dummy": "get_all"}
 
     #@expose('json')
-    @wsexpose(actionAPImodel.ActionAPI, body=actionAPImodel.ActionAPI)
+    @wsexpose(actionAPImodel.ActionAPI, id=str, name=str, uri=None, body=actionAPImodel.ActionAPI)
     def post(self, **kwargs):
         """
             Create a new action.
