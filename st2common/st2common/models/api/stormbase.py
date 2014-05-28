@@ -16,6 +16,6 @@ class BaseAPI(Resource):
         instance.uri = model.uri
         instance.name = model.name
         instance.description = model.description
-        instance.id = model.id
+        instance.id = str(model.id)
         return instance
 
