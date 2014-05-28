@@ -17,7 +17,7 @@ class StactionsController(RestController):
     # TODO: Investigate mako rendering
     #@expose('text_template.mako', content_type='text/plain')
 #    @expose('json')
-    @wsexpose(actionAPImodel.ActionAPI, wstypes.text)
+    @wsexpose(ActionAPI, wstypes.text)
     def get_one(self, id):
         """
             List action by id.
@@ -39,8 +39,7 @@ class StactionsController(RestController):
         """
         return {"dummy": "get_all"}
 
-    #@expose('json')
-    @wsexpose(actionAPImodel.ActionAPI, id=str, name=str, uri=None, body=actionAPImodel.ActionAPI)
+    @expose('json')
     def post(self, **kwargs):
         """
             Create a new action.
