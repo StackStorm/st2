@@ -9,9 +9,9 @@ class RootController(object):
     triggers = st2reactorcontroller.controllers.triggers.TriggerController()
     triggerinstances = \
         st2reactorcontroller.controllers.triggers.TriggerInstanceController()
-    rules = st2reactorcontroller.controllers.rules.RuleController
+    rules = st2reactorcontroller.controllers.rules.RuleController()
     ruleenforcements = \
-        st2reactorcontroller.controllers.rules.RuleEnforcementController
+        st2reactorcontroller.controllers.rules.RuleEnforcementController()
 
     @expose(generic=True, template='index.html')
     def index(self):
@@ -25,4 +25,3 @@ class RootController(object):
             status = 500
         message = getattr(status_map.get(status), 'explanation', '')
         return dict(status=status, message=message)
-

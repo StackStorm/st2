@@ -1,91 +1,98 @@
-from pecan import expose
+import wsmeext.pecan as wsme_pecan
+from mirantis.resource import Resource
 from pecan.rest import RestController
+from st2common.models.api.reactor import RuleAPI, RuleEnforcementAPI
+from st2common.persistence.reactor import Rule, RuleEnforcement
+from wsme import types as wstypes
+
+
+class RulesAPI(Resource):
+    rules = [RuleAPI]
 
 
 class RuleController(RestController):
     """
         Implements the RESTful web endpoint that handles
-        the lifecycle of StactionExecutions in the system.
+        the lifecycle of Rules in the system.
     """
-
-    @expose('json')
+    @wsme_pecan.wsexpose(RuleAPI, wstypes.text)
     def get_one(self, id):
         """
-            List stactionexecution by id.
+            List rule by id.
 
             Handle:
-                GET /stactionexecutions/1
+                GET /rules/1
         """
-        return {"dummy": "execution_value"}
+        rule_db = Rule.get_by_id(id)
+        return RuleAPI.from_model(rule_db)
 
-    @expose('json')
+    @wsme_pecan.wsexpose(RulesAPI, wstypes.text)
     def get_all(self):
         """
-            List all stactionexecutions.
+            List all rules.
 
             Handles requests:
-                GET /stactionexecutions/
+                GET /rules/
         """
-        return {"dummy": "get_all"}
+        rules = RulesAPI()
+        rules.rules = [RuleAPI.from_model(rule_db)
+                       for rule_db in Rule.get_all()]
+        return rules
 
-    @expose('json')
-    def post(self, **kwargs):
+    @wsme_pecan.wsexpose(RuleAPI, body=RuleAPI, status_code=201)
+    def post(self, rule):
         """
-            Create a new stactionexecution.
-
-            Handles requests:
-                POST /stactionexecutions/
-        """
-        print kwargs
-        return {"dummy": "post"}
-
-    @expose('json')
-    def put(self, id, **kwargs):
-        # TODO: Update probably does not make any sense on an execution.
-        """
-            Update a stactionexecution.
+            Create a new rule.
 
             Handles requests:
-                POST /stactionexecutions/1?_method=put
-                PUT /stactionexecutions/1
+                POST /rules/
         """
-        return {"dummy": "put"}
+        rule_db = RuleAPI.to_model(rule)
+        rule_db = Rule.add_or_update(rule_db)
+        return RuleAPI.from_model(rule_db)
 
-    @expose('json')
+    @wsme_pecan.wsexpose(None, wstypes.text, status_code=204)
     def delete(self, id):
         """
-            Delete a stactionexecution.
+            Delete a rule.
 
             Handles requests:
-                POST /stactionexecutions/1?_method=delete
-                DELETE /stactionexecutions/1
+                DELETE /rules/1
         """
-        # TODO: Delete should migrate the execution data to a history collection.
-        return {"dummy": "delete stactionexecution"}
+        Rule.delete(Rule.get_by_id(id))
+
+
+class RuleEnforcementsAPI(Resource):
+    ruleenforcements = [RuleEnforcementAPI]
 
 
 class RuleEnforcementController(RestController):
     """
         Implements the RESTful web endpoint that handles
-        the lifecycle of StactionExecutions in the system.
+        the lifecycle of RuleEnforcements in the system.
     """
 
-    @expose('json')
+    @wsme_pecan.wsexpose(RuleEnforcementAPI, wstypes.text)
     def get_one(self, id):
         """
-            List stactionexecution by id.
+            List ruleenforcement by id.
 
             Handle:
-                GET /stactionexecutions/1
+                GET /ruleenforcements/1
         """
-        return {"dummy": "execution_value"}
+        ruleenforcement_db = RuleEnforcement.get_by_id(id)
+        return RuleEnforcementAPI.from_model(ruleenforcement_db)
 
-    @expose('json')
+    @wsme_pecan.wsexpose(RuleEnforcementsAPI, wstypes.text)
     def get_all(self):
         """
-            List all stactionexecutions.
+            List all ruleenforcements.
 
             Handles requests:
-                GET /stactionexecutions/
+                GET /ruleenforcements/
         """
-        return {"dummy": "get_all"}
+        ruleenforcements = RuleEnforcementsAPI()
+        ruleenforcements.ruleenforcements = \
+            [RuleEnforcementAPI.from_model(ruleenforcement_db)
+             for ruleenforcement_db in RuleEnforcement.get_all()]
+        return ruleenforcements

@@ -1,7 +1,7 @@
 import mongoengine as me
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import BaseDB
-from st2common.models.db.action import ActionDB
+from st2common.models.db.action import ActionDB, ActionExecutionDB
 
 
 class TriggerSourceDB(BaseDB):
@@ -72,7 +72,7 @@ class RuleEnforcementDB(BaseDB):
     """
     rule = me.ReferenceField(RuleDB.__name__)
     trigger_instance = me.ReferenceField(TriggerInstanceDB.__name__)
-    action_execution = me.ReferenceField(ActionDB.__name__)
+    action_execution = me.ReferenceField(ActionExecutionDB.__name__)
 
 
 # specialized access objects

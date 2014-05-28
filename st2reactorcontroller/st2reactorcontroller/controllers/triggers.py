@@ -1,6 +1,5 @@
 import wsmeext.pecan as wsme_pecan
 from mirantis.resource import Resource
-from pecan import expose
 from pecan.rest import RestController
 from st2common.models.api.reactor import TriggerAPI, TriggerInstanceAPI
 from st2common.persistence.reactor import Trigger, TriggerInstance
@@ -16,9 +15,9 @@ class TriggerController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of Triggers in the system.
     """
-
     @wsme_pecan.wsexpose(TriggerAPI, wstypes.text)
     def get_one(self, id):
+
         """
             List triggers by id.
 

@@ -11,11 +11,17 @@ class BaseAPI(Resource):
     id = wstypes.text
 
     @staticmethod
-    def from_model(cls, model):
-        instance = cls()
-        instance.uri = model.uri
-        instance.name = model.name
-        instance.description = model.description
-        instance.id = str(model.id)
-        return instance
+    def from_model(kls, model):
+        api_instance = kls()
+        api_instance.uri = model.uri
+        api_instance.name = model.name
+        api_instance.description = model.description
+        api_instance.id = str(model.id)
+        return api_instance
 
+    @staticmethod
+    def to_model(kls, api_instance):
+        model = kls()
+        model.name = api_instance.name
+        model.description = api_instance.description
+        return model
