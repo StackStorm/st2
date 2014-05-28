@@ -1,25 +1,26 @@
+# setup config before anything else.
+from st2reactor import config
+config.parse_args()
+
 import os
 import logging
 import logging.config
+
 from oslo.config import cfg
-from st2reactor import config
-from st2reactor.adapter import container
-from st2reactor.adapter.adapters import FixedRunAdapter
 from st2common.models.db import setup as db_setup
 from st2common.models.db import teardown as db_teardown
-
+from st2reactor.adapter import container
+from st2reactor.adapter.adapters import FixedRunAdapter
 
 LOG = logging.getLogger('st2reactor.bin.adapter_container')
 
 
 def __setup():
-    # 1. parse config.
-    config.parse_args()
-    # 2. setup logging.
+    # 1. setup logging.
     logging.config.fileConfig(cfg.CONF.reactor_logging.config_file,
                               defaults=None,
                               disable_existing_loggers=False)
-    # 3. all other setup which requires config to be parsed and logging to
+    # 2. all other setup which requires config to be parsed and logging to
     # be correctly setup.
     db_setup()
 

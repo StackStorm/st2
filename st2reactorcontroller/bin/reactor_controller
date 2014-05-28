@@ -1,47 +1,7 @@
 #!/usr/bin/env python2.7
 
-import eventlet
-import os
-import logging
 import sys
-from oslo.config import cfg
-from st2reactorcontroller import app, config
-from wsgiref import simple_server
-
-
-eventlet.monkey_patch(
-    os=True,
-    select=True,
-    socket=True,
-    thread=False if '--use-debugger' in sys.argv else True,
-    time=True)
-
-LOG = logging.getLogger(__name__)
-
-
-def main():
-    try:
-        # 1. parse config.
-        config.parse_args()
-        # 2. setup logging.
-        logging.config.fileConfig(cfg.CONF.reactor_controller_logging
-                                  .config_file,
-                                  defaults=None,
-                                  disable_existing_loggers=False)
-
-        host = cfg.CONF.reactor_controller_api.host
-        port = cfg.CONF.reactor_controller_api.port
-
-        server = simple_server.make_server(host, port, app.setup_app())
-
-        LOG.info("reactor API is serving on http://%s:%s (PID=%s)",
-                 host, port, os.getpid())
-
-        server.serve_forever()
-    except RuntimeError, e:
-        LOG.error("ERROR: %s\n", e)
-        sys.exit(1)
-
+from st2reactorcontroller import main
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
