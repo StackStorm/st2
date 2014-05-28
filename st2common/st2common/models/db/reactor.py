@@ -1,7 +1,7 @@
 import mongoengine as me
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import BaseDB
-from st2common.models.db.action import StactionDB
+from st2common.models.db.action import ActionDB
 
 
 class TriggerSourceDB(BaseDB):
@@ -46,17 +46,17 @@ class TriggerInstanceDB(BaseDB):
 class RuleDB(BaseDB):
     """Specifies the action to invoke on the occurrence of a Trigger. It
     also includes the transformation to perform to match the impedance
-    between the payload of a TriggerInstance and input of a staction.
+    between the payload of a TriggerInstance and input of a action.
     Attribute:
         trigger: Trigger that trips this rule.
-        staction: Staction to execute when the rule is tripped.
+        action: Action to execute when the rule is tripped.
         data_mapping: Data mappings that describe the input of a
-        staction.
+        action.
         status: enabled or disabled. If disabled occurence of the trigger
-        does not lead to execution of a staction and vice-versa.
+        does not lead to execution of a action and vice-versa.
     """
     trigger = me.ReferenceField(TriggerDB.__name__)
-    staction = me.ReferenceField(StactionDB.__name__)
+    action = me.ReferenceField(ActionDB.__name__)
     data_mapping = me.DictField()
     status = me.StringField()
 
@@ -67,12 +67,12 @@ class RuleEnforcementDB(BaseDB):
         rule (Reference): Rule that was enforced.
         trigger_instance (Reference): TriggerInstance leading to tripping of
         the rule.
-        staction_execution (Reference): The StactionExecution that was
-        created to record execution of a staction as part of this enforcement.
+        action_execution (Reference): The ActionExecution that was
+        created to record execution of a action as part of this enforcement.
     """
     rule = me.ReferenceField(RuleDB.__name__)
     trigger_instance = me.ReferenceField(TriggerInstanceDB.__name__)
-    staction_execution = me.ReferenceField(StactionDB.__name__)
+    action_execution = me.ReferenceField(ActionDB.__name__)
 
 
 # specialized access objects

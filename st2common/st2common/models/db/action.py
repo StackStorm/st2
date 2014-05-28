@@ -4,29 +4,29 @@ from st2common.models.db import MongoDBAccess
 
 from st2common.models.db.stormbase import BaseDB
 
-__all__ = ['StactionDB',
-           'StactionExecutionDB',
+__all__ = ['ActionDB',
+           'ActionExecutionDB',
            ]
 
 
-class StactionDB(BaseDB):
+class ActionDB(BaseDB):
     """The system entity that represents a Stack Action/Automation in
        the system.
     Attribute:
-        enabled: flag indicating whether this staction is enabled in the system.
-        repo_path: relative path to the staction artifact. Relative to the root
+        enabled: flag indicating whether this action is enabled in the system.
+        repo_path: relative path to the action artifact. Relative to the root
                    of the repo.
-        run_type: string identifying which stactionrunner is used to execute the staction.
+        run_type: string identifying which actionrunner is used to execute the action.
         parameter_names: flat list of strings required as key names when running
-                   the staction.
+                   the action.
     """
-    enabled = me.fields.BooleanField(required=True, default=True, help_text=u'Flag indicating whether the staction is enabled.')
-    repo_path = me.fields.StringField(required=True, help_text=u'Path to staction content relative to repository base.')
-    run_type = me.fields.StringField(required=True, help_text=u'Execution environment to use when invoking the staction.')
+    enabled = me.fields.BooleanField(required=True, default=True, help_text=u'Flag indicating whether the action is enabled.')
+    repo_path = me.fields.StringField(required=True, help_text=u'Path to action content relative to repository base.')
+    run_type = me.fields.StringField(required=True, help_text=u'Execution environment to use when invoking the action.')
     parameter_names = me.fields.ListField(required=True, help_text=u'List of required parameter names.')
 
 
-class StactionExecutionDB(BaseDB):
+class ActionExecutionDB(BaseDB):
     """
         The databse entity that represents a Stack Action/Automation in
         the system.
@@ -38,11 +38,11 @@ class StactionExecutionDB(BaseDB):
                     output and exit status code from the stack action.
     """
     status = me.fields.StringField(required=True)
-    # Initially deny any delete request that will leave a staction_execution in
-    # the DB without an assocaited staction. The constraint might be relaxed to
-    # "NULLIFY" if we implement the right handling in stactioncontroller.
-    staction = me.fields.ReferenceField(StactionDB, reverse_delete_rule='DENY',
-                help_text=u'The staction executed by this instance.')
+    # Initially deny any delete request that will leave a action_execution in
+    # the DB without an assocaited action. The constraint might be relaxed to
+    # "NULLIFY" if we implement the right handling in actioncontroller.
+    action = me.fields.ReferenceField(ActionDB, reverse_delete_rule='DENY',
+                help_text=u'The action executed by this instance.')
     target = me.fields.StringField(required=True, default=None,
                 help_text=u'The target selection string.')
     parameters = me.fields.DictField(required=True, default={},
@@ -51,7 +51,7 @@ class StactionExecutionDB(BaseDB):
 #    result = me.fields.EmbeddedDocumentField(ExecutionResultDB, **kwargs)
 
 
-class StactionExecutionResultDB(me.EmbeddedDocument):
+class ActionExecutionResultDB(me.EmbeddedDocument):
     """
     TODO: fill-in
     Not sure if I will need this to be persisted.
@@ -62,4 +62,4 @@ class StactionExecutionResultDB(me.EmbeddedDocument):
 
 
 # specialized access objects
-staction_access = MongoDBAccess(StactionDB)
+action_access = MongoDBAccess(ActionDB)
