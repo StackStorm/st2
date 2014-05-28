@@ -150,24 +150,24 @@ class ReactorModelTest(unittest2.TestCase):
         return TriggerInstance.add_or_update(created)
 
     @staticmethod
-    def _create_save_rule(trigger, staction=None):
+    def _create_save_rule(trigger, action=None):
         created = RuleDB()
         created.name = 'rule-1'
         created.description = ''
         created.trigger = trigger
-        created.staction = staction
+        created.action = action
         created.data_mapping = {}
         return Rule.add_or_update(created)
 
     @staticmethod
     def _create_save_ruleenforcement(triggerinstance, rule,
-                                     stactionexecution=None):
+                                     actionexecution=None):
         created = RuleEnforcementDB()
         created.name = 'ruleenforcement-1'
         created.description = ''
         created.rule = rule
         created.trigger_instance = triggerinstance
-        created.staction_execution = stactionexecution
+        created.action_execution = actionexecution
         return RuleEnforcement.add_or_update(created)
 
     @staticmethod
