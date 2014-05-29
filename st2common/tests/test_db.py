@@ -5,16 +5,18 @@ import mongoengine.connection
 from oslo.config import cfg
 from st2common.models.db import setup, teardown
 
-
 SKIP_DELETE = False
 
 
 class DbConnectionTest(unittest2.TestCase):
-    def setUp(self):
+
+    @classmethod
+    def setUpClass(cls):
         tests.parse_args()
         setup()
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         teardown()
 
     def test_check_connect(self):
@@ -35,11 +37,14 @@ from st2common.persistence.reactor import Trigger, TriggerInstance, \
 
 
 class ReactorModelTest(unittest2.TestCase):
-    def setUp(self):
+
+    @classmethod
+    def setUpClass(cls):
         tests.parse_args()
         setup()
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         teardown()
 
     def test_triggersource_crud(self):
@@ -83,12 +88,13 @@ class ReactorModelTest(unittest2.TestCase):
 
     def test_rule_crud(self):
         triggersource = ReactorModelTest._create_save_triggersource()
+        action = ActionModelTest._create_save_action()
         trigger = ReactorModelTest._create_save_trigger(triggersource)
-        saved = ReactorModelTest._create_save_rule(trigger)
+        saved = ReactorModelTest._create_save_rule(trigger, action)
         retrieved = Rule.get_by_id(saved.id)
         self.assertEqual(saved.name, retrieved.name,
                          'Same rule was not returned.')
-        ReactorModelTest._delete([retrieved, trigger, triggersource])
+        ReactorModelTest._delete([retrieved, trigger, action, triggersource])
         try:
             retrieved = Rule.get_by_id(saved.id)
         except ValueError:
@@ -98,30 +104,33 @@ class ReactorModelTest(unittest2.TestCase):
     def test_ruleenforcement_crud(self):
         triggersource = ReactorModelTest._create_save_triggersource()
         trigger = ReactorModelTest._create_save_trigger(triggersource)
+        action = ActionModelTest._create_save_action()
         triggerinstance = ReactorModelTest._create_save_triggerinstance(trigger)
-        rule = ReactorModelTest._create_save_rule(trigger)
+        rule = ReactorModelTest._create_save_rule(trigger, action)
         saved = ReactorModelTest._create_save_ruleenforcement(triggerinstance,
                                                               rule)
         retrieved = RuleEnforcement.get_by_id(saved.id)
         self.assertEqual(saved.name, retrieved.name,
                          'Same rule was not returned.')
-        ReactorModelTest._delete([retrieved,rule, triggerinstance, trigger,
+        ReactorModelTest._delete([retrieved, rule, triggerinstance, trigger,
                                   triggersource])
         try:
-            retrieved = Rule.get_by_id(saved.id)
+            retrieved = RuleEnforcement.get_by_id(saved.id)
         except ValueError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
     def test_rule_lookup(self):
         triggersource = ReactorModelTest._create_save_triggersource()
+        action = ActionModelTest._create_save_action()
         trigger = ReactorModelTest._create_save_trigger(triggersource)
-        saved = ReactorModelTest._create_save_rule(trigger)
+        saved = ReactorModelTest._create_save_rule(trigger, action)
         retrievedrules = Rule.query(trigger=trigger)
         self.assertEqual(1, len(retrievedrules), 'No rules found.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id,
                              'Incorrect rule returned.')
+        ReactorModelTest._delete([saved, trigger, action, triggersource])
 
     @staticmethod
     def _create_save_triggersource():
@@ -169,6 +178,53 @@ class ReactorModelTest(unittest2.TestCase):
         created.trigger_instance = triggerinstance
         created.action_execution = actionexecution
         return RuleEnforcement.add_or_update(created)
+
+    @staticmethod
+    def _delete(model_objects):
+        global SKIP_DELETE
+        if SKIP_DELETE:
+            return
+        for model_object in model_objects:
+            model_object.delete()
+
+
+from st2common.models.db.action import ActionDB
+from st2common.persistence.action import Action
+
+
+class ActionModelTest(unittest2.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        tests.parse_args()
+        setup()
+
+    @classmethod
+    def tearDownClass(cls):
+        teardown()
+
+    def test_action_crud(self):
+        saved = ActionModelTest._create_save_action()
+        retrieved = Action.get_by_id(saved.id)
+        self.assertEqual(saved.name, retrieved.name,
+                         'Same TriggerSource was not returned.')
+        ActionModelTest._delete([retrieved])
+        try:
+            retrieved = Action.get_by_id(saved.id)
+        except ValueError:
+            retrieved = None
+        self.assertIsNone(retrieved, 'managed to retrieve after failure.')
+
+    @staticmethod
+    def _create_save_action():
+        created = ActionDB()
+        created.name = 'action-1'
+        created.description = ''
+        created.enabled = True
+        created.repo_path = '/tmp/action.py'
+        created.run_type = 'python'
+        created.parameter_names = ['p1', 'p2', 'p3']
+        return Action.add_or_update(created)
 
     @staticmethod
     def _delete(model_objects):
