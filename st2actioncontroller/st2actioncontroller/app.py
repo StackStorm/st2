@@ -3,6 +3,7 @@ from oslo.config import cfg
 import pecan
 
 from st2actioncontroller import model
+from st2actioncontroller.version import version_string
 
 
 LOG = logging.getLogger(__name__)
@@ -27,6 +28,7 @@ def __get_pecan_config():
 
 
 def setup_app(config=None):
+    LOG.info(version_string)
 
     LOG.info('Creating %s as Pecan app.' % __name__)
     if not config:
