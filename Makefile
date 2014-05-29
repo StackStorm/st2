@@ -53,6 +53,21 @@ $(VIRTUALENV_DIR)/bin/activate:
 	echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
 	touch $(VIRTUALENV_DIR)/bin/activate
 
+	# Setup PYTHONPATH in fish activate script...
+	echo '' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	echo 'set -gx _OLD_PYTHONPATH $$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	echo 'set -gx PYTHONPATH $$_OLD_PYTHONPATH $(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	echo 'functions -c deactivate old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	echo 'function deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	echo '  if test -n $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	echo '    set -gx PYTHONPATH $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	echo '    set -e _OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	echo '  end' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	echo '  old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	touch $(VIRTUALENV_DIR)/bin/activate.fish
+
 .PHONY: tests
 tests: requirements
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $(COMPONENTS_TEST)
