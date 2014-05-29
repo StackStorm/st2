@@ -26,18 +26,23 @@ class StactionsController(RestController):
                 GET /actions/1
         """
 
-        action_db = Action.get_by_id(id)
-        return ActionAPI.from_model(action_db)
+        #action_db = Action.get_by_id(id)
+        #return ActionAPI.from_model(action_db)
+
+        #return {"dummy": "get_one", "kwargs": str(kwargs)}
+
+        return {"dummy": "get_one", "id": str(id)}
 
     @expose('json')
-    def get_all(self):
+    def get_all(self, **kwargs):
         """
             List all actions.
 
             Handles requests:
                 GET /actions/
         """
-        return {"dummy": "get_all"}
+        return {"dummy": "get_all", "kwargs": str(kwargs)}
+#        return {"dummy": "get_all"}
 
     @expose('json')
     def post(self, **kwargs):
