@@ -1,4 +1,6 @@
+flake8
 ipython
-unittest2
-nose
 mock>=1.0
+nose
+pep8
+unittest2
