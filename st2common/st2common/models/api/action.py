@@ -19,7 +19,7 @@ class ActionAPI(BaseAPI):
                    the action.
     """
     # TODO: debug wsme+pecan problem with "bool"
-    #enabled = wstypes.bool
+    # enabled = wstypes.bool
     repo_path = wstypes.text
     run_type = wstypes.text
     parameter_names = wstypes.ArrayType(wstypes.text)
@@ -28,3 +28,17 @@ class ActionAPI(BaseAPI):
     def from_model(cls, model):
         action = cls()
         action.id = str(model.id)
+
+
+class ActionExecutionAPI(BaseAPI):
+    """The system entity that represents the execution of a Stack Action/Automation in
+       the system.
+    Attribute:
+       ...
+    """
+    pass
+
+    @classmethod
+    def from_model(cls, model):
+        actionexec = cls()
+        actionexec.id = str(model.id)

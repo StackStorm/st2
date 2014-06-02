@@ -39,14 +39,14 @@ def setup_app(config=None):
     model.init_model()
 
     app = pecan.make_app(app_conf.pop('root'),
-                   logging=getattr(config, 'logging', {}),
-                   **app_conf
-                  ) 
+                         logging=getattr(config, 'logging', {}),
+                         **app_conf
+                         )
 
     LOG.info('%s app created.' % __name__)
 
     return app
-                   
+
 # Original pecan make_app call below. Check on semantics of fields omitted in code above.
 """
     return make_app(

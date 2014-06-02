@@ -9,7 +9,7 @@ server = {
 app = {
     'root': 'st2actioncontroller.controllers.root.RootController',
     'modules': ['st2actioncontroller'],
-    'default_renderer' : 'json',
+    'default_renderer': 'json',
     'static_root': '%(confdir)s/public',
     'template_path': '%(confdir)s/st2actioncontroller/templates',
     'debug': True,
@@ -45,4 +45,3 @@ logging = {
 #
 # All configurations are accessible at::
 # pecan.conf
-

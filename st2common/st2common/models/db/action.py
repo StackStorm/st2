@@ -20,10 +20,14 @@ class ActionDB(BaseDB):
         parameter_names: flat list of strings required as key names when running
                    the action.
     """
-    enabled = me.fields.BooleanField(required=True, default=True, help_text=u'Flag indicating whether the action is enabled.')
-    repo_path = me.fields.StringField(required=True, help_text=u'Path to action content relative to repository base.')
-    run_type = me.fields.StringField(required=True, help_text=u'Execution environment to use when invoking the action.')
-    parameter_names = me.fields.ListField(required=True, help_text=u'List of required parameter names.')
+    enabled = me.fields.BooleanField(required=True, default=True,
+                          help_text=u'Flag indicating whether the action is enabled.')
+    repo_path = me.fields.StringField(required=True,
+                          help_text=u'Path to action content relative to repository base.')
+    run_type = me.fields.StringField(required=True,
+                          help_text=u'Execution environment to use when invoking the action.')
+    parameter_names = me.fields.ListField(required=True,
+                          help_text=u'List of required parameter names.')
 
 
 class ActionExecutionDB(BaseDB):
@@ -34,7 +38,7 @@ class ActionExecutionDB(BaseDB):
         Attributes:
             status: the most recently observed status of the execution.
                     One of "starting", "running", "completed", "error".
-            result: an embedded document structure that holds the 
+            result: an embedded document structure that holds the
                     output and exit status code from the stack action.
     """
     status = me.fields.StringField(required=True)

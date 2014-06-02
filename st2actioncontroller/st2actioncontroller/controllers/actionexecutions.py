@@ -23,16 +23,15 @@ class StactionExecutionsController(RestController):
             Handle:
                 GET /actionexecutions/1
         """
-    
+
         actionexec_db = ActionExecution.get_by_id(id)
 
         # TODO: test/handle object not found.
-        return ActionExectuionAPI.from_model(actionexec_db)
-
+        return ActionExecutionAPI.from_model(actionexec_db)
 
     @expose('json')
     def get_all(self):
-        """ 
+        """
             List all actionexecutions.
 
             Handles requests:
@@ -45,7 +44,7 @@ class StactionExecutionsController(RestController):
 
     @wsexpose(ActionExecutionAPI, body=ActionExecutionAPI)
     def post(self, actionexec):
-        """ 
+        """
             Create a new actionexecution.
 
             Handles requests:
@@ -71,14 +70,14 @@ class StactionExecutionsController(RestController):
 
     @wsexpose(None, wstypes.txt)
     def delete(self, id):
-        """ 
+        """
             Delete a actionexecution.
 
             Handles requests:
                 POST /actionexecutions/1?_method=delete
                 DELETE /actionexecutions/1
         """
-        
+
         # TODO: Support delete by name
         # TODO: Delete should migrate the execution data to a history collection.
 

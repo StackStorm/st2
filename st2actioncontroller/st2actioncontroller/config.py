@@ -49,22 +49,21 @@ logging = {
 """
 
 
-
 """
 Configuration options registration and useful routines.
 """
 
-from oslo.config import cfg 
+from oslo.config import cfg
 
 CONF = cfg.CONF
 
-api_opts = [ 
+api_opts = [
     cfg.StrOpt('host', default='0.0.0.0', help='StackStorm Robotinator API server host'),
     cfg.IntOpt('port', default=9101, help='StackStorm Robotinator API server port')
 ]
 CONF.register_opts(api_opts, group='action_controller_api')
 
-pecan_opts = [ 
+pecan_opts = [
     cfg.StrOpt('root',
                default='st2actioncontroller.controllers.root.RootController',
                help='Action root controller'),
@@ -78,13 +77,13 @@ pecan_opts = [
 ]
 CONF.register_opts(pecan_opts, group='action_pecan')
 
-logging_opts = [ 
+logging_opts = [
     cfg.StrOpt('config_file', default='conf/logging.conf',
                help='location of the logging.conf file')
 ]
 CONF.register_opts(logging_opts, group='action_controller_logging')
 
-db_opts = [ 
+db_opts = [
     cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
     cfg.IntOpt('port', default=27017, help='port of db server'),
     cfg.StrOpt('db_name', default='kandra', help='name of database')
@@ -102,4 +101,3 @@ CONF.register_cli_opt(use_debugger)
 
 def parse_args(args=None):
     CONF(args=args)
-
