@@ -35,7 +35,7 @@ distclean:
 	rm -rf $(VIRTUALENV_DIR)
 
 .PHONY: requirements
-requirements: virtualenv requirements.txt test-requirements.txt
+requirements: virtualenv
 	. $(VIRTUALENV_DIR)/bin/activate ; pip install -U $(foreach req,$(REQUIREMENTS),-r $(req))
 
 .PHONY: virtualenv
