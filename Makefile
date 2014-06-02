@@ -20,6 +20,7 @@ COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS) $(EXTERN
 COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS)),$(component)/tests)
 
 PYTHON_TARGET := 2.7
+
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
@@ -30,13 +31,24 @@ all: requirements tests
 play:
 	echo $(COMPONENTS_TEST)
 
+.PHONY: check
+check: flake8 pep8
+
+.PHONY: pep8
+pep8: requirements
+	. $(VIRTUALENV_DIR)/bin/activate && pep8 --config ./.pep8 $(COMPONENTS)
+
+.PHONY: flake8
+flake8: requirements
+	. $(VIRTUALENV_DIR)/bin/activate && flake8 --config ./.flake8 $(COMPONENTS)
+
 .PHONY: distclean
 distclean:
 	rm -rf $(VIRTUALENV_DIR)
 
 .PHONY: requirements
-requirements: virtualenv requirements.txt test-requirements.txt
-	. $(VIRTUALENV_DIR)/bin/activate ; pip install -U $(foreach req,$(REQUIREMENTS),-r $(req))
+requirements: virtualenv $(REQUIREMENTS)
+	. $(VIRTUALENV_DIR)/bin/activate && pip install -U $(foreach req,$(REQUIREMENTS),-r $(req))
 
 .PHONY: virtualenv
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
@@ -68,6 +80,6 @@ $(VIRTUALENV_DIR)/bin/activate:
 	echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	touch $(VIRTUALENV_DIR)/bin/activate.fish
 
-.PHONY: tests
-tests: requirements
+.PHONY: test
+test: requirements
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $(COMPONENTS_TEST)
