@@ -1,0 +1,13 @@
+<div class="sk0-rule-picker__container">
+  When
+  <span class="sk0-rule-picker__this" ng-click="$parent.popup = 'trigger'"><!--
+ -->{{ (inventory | unwrap).triggers.index[rule.trigger.type].service || 'this' }}<!--
+ --><div class="sk0-rule-picker__marker" ng-show="$parent.popup == 'trigger'"></div><!--
+--></span>
+  triggers, fire
+  <span class="sk0-rule-picker__that"  ng-click="$parent.popup = 'action'"><!--
+ -->{{ (inventory | unwrap).actions.index[rule.action.type].service || 'that' }}<!--
+ --><div class="sk0-rule-picker__marker" ng-show="$parent.popup == 'action'"></div><!--
+--></span>
+  staction
+</div>

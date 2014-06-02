@@ -1,16 +1,17 @@
 'use strict';
 
 angular.module('main')
-  .service('sk0EntityInventory', function($resource) {
+  .service('sk0EntityInventory', function($resource, $rootScope) {
+    var scope = $rootScope.$new();
+
     function fetch(type) {
-      var Resource = $resource('http://kandra.apiary-mock.com/' + type);
+      var Resource = $resource('http://kandra.apiary-mock.com/' + type)
+        , r = scope.$new();
 
-      return Resource.query().$promise.then(function (data) {
-        var r = {
-          index: {},
-          tree: {},
-        };
+      r.index = {};
+      r.tree = {};
 
+      Resource.query().$promise.then(function (data) {
         _.each(data, function (e) {
           r.index[e.name] = e;
           _.each(e.tags, function (tag) {
@@ -20,14 +21,16 @@ angular.module('main')
           });
         });
 
-        return r;
+        r.$$phase || r.$apply();
       });
+
+      return r;
     }
 
-    return {
-      triggers: fetch('triggers'),
-      actions: fetch('actions')
-    };
+    scope.triggers = fetch('triggers');
+    scope.actions = fetch('actions');
+
+    return scope;
   }).filter('unwrap', function () {
     return function (v) {
       if (v && v.then) {

@@ -1,0 +1,58 @@
+@import "colors";
+
+.sk0-rule-picker {
+  display: inline-block;
+  width: 100%;
+  position: relative;
+
+  &__container {
+    font-size: 28px;
+    line-height: 90px;
+    height: 90px;
+    text-align: center;
+    display: block;
+    z-index: 1;
+  }
+
+  &__this, &__that {
+    text-decoration: underline;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+    height: 100%;
+  }
+
+  &__marker {
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    margin: 0 auto;
+    z-index: 2;
+    width: 100%;
+
+    &:before, &:after {
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-bottom: 14px solid #ccc;
+      content: '';
+      display: inline-block;
+      vertical-align: bottom;
+    }
+
+    &:before {
+      position: absolute;
+      bottom: 0;
+      z-index: -1;
+    }
+
+    &:after {
+      margin: 1px 0 0 1px;
+      border-left-width: 13px;
+      border-right-width: 13px;
+      border-bottom: 13px solid #fff;
+    }
+  }
+}

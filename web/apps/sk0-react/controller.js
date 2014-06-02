@@ -14,15 +14,17 @@ angular.module('main')
     $scope.rules = Rules.query();
   })
   .controller('sk0ReactPickCtrl', function ($scope, sk0EntityInventory, $state) {
-    $scope.type = $state.current.data.type;
+    $scope.type = $state.params.type;
 
     $scope.services = sk0EntityInventory[$scope.type + 's'];
 
-    $scope.rule[$scope.type] = $scope.rule[$scope.type] || {};
-
     $scope.pick = function (entity) {
-      $scope.rule[$scope.type].type = entity;
-      $state.go('.setup', { type: $scope.type });
+      $scope.rule[$scope.type] = { type: entity };
+      if ($scope.rule.trigger && $scope.rule.action) {
+        $state.go('^.setup', { type: 'trigger' });
+      } else {
+        $state.go('.', { type: $scope.type === 'trigger' ? 'action' : 'trigger' });
+      }
     };
   })
   .controller('sk0ReactSetupCtrl', function ($scope, $state, $stateParams) {
@@ -31,7 +33,11 @@ angular.module('main')
 
     $scope.submit = function () {
       $scope.rule[$scope.type].options = $scope.formResults;
-      $state.go($scope.rule.trigger && $scope.rule.action ? 'react.test' : 'react.list');
+      if ($scope.rule.trigger.options && $scope.rule.action.options) {
+        $state.go('^.validate');
+      } else {
+        $state.go('.', { type: $scope.type === 'trigger' ? 'action' : 'trigger' });
+      }
     };
   })
   .controller('sk0ReactTestCtrl', function ($scope, $resource, $state) {
