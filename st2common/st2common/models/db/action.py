@@ -63,3 +63,4 @@ class ActionExecutionResultDB(me.EmbeddedDocument):
 
 # specialized access objects
 action_access = MongoDBAccess(ActionDB)
+actionexec_access = MongoDBAccess(ActionExecutionDB)
