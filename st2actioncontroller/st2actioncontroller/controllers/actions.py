@@ -16,7 +16,7 @@ class StactionsController(RestController):
     """
 
     # TODO: Investigate mako rendering
-    #@expose('text_template.mako', content_type='text/plain')
+    # @expose('text_template.mako', content_type='text/plain')
     @wsexpose(ActionAPI, wstypes.text)
     def get_one(self, id):
         """

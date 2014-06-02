@@ -11,4 +11,3 @@ class SamplePlugin(object):
 
 def get_plugin():
     return SamplePlugin()
-

@@ -36,11 +36,15 @@ check: flake8 pep8
 
 .PHONY: pep8
 pep8: requirements
-	. $(VIRTUALENV_DIR)/bin/activate && pep8 --config ./.pep8 $(COMPONENTS)
+	. $(VIRTUALENV_DIR)/bin/activate
+	@echo "==========================================================="
+	pep8 --config ./.pep8 $(COMPONENTS)
 
 .PHONY: flake8
 flake8: requirements
-	. $(VIRTUALENV_DIR)/bin/activate && flake8 --config ./.flake8 $(COMPONENTS)
+	. $(VIRTUALENV_DIR)/bin/activate 
+	@echo "==========================================================="
+	flake8 --config ./.flake8 $(COMPONENTS)
 
 .PHONY: distclean
 distclean:
