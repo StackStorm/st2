@@ -22,17 +22,47 @@
     white-space: nowrap;
   }
 
-  &__description {
-    width: 290px;
-    margin: 0 20px;
+  &__field-description {
+    position: absolute;
+    max-width: 310px;
+
+    margin: 0 0 0 20px;
+    padding: 0 10px;
     display: inline-block;
-    height: 30px;
-    line-height: 30px;
+    height: 26px;
+    line-height: 26px;
     vertical-align: top;
 
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    visibility: hidden;
+    opacity: 0;
+
+    &-text {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &:before {
+      content: '';
+      position: absolute;
+      background: transparent;
+      border: 6px solid transparent;
+      border-right-color: rgba(0,0,0,0.6);
+      z-index: 11;
+      margin-left: -12px;
+      margin-bottom: -6px;
+      left: 0;
+      bottom: 50%;
+    }
+  }
+
+  &__field:focus ~ &__field-description {
+    visibility: visible;
+    opacity: 1;
+    color: white;
+    background-color: rgba(0,0,0,0.6);
+    z-index: 1;
   }
 
   &__field {
@@ -41,15 +71,11 @@
     box-sizing: border-box;
   }
 
-  &__field:focus ~ &__description {
+  &__description {
     position: absolute;
+    width: 320px;
     height: 100%;
-    white-space: normal;
-    background-color: @box-bg-color;
-    z-index: 1;
-  }
-
-  &__line:last-of-type &__field:focus ~ &__description {
-    bottom: 0;
+    right: 0;
+    overflow: hidden;
   }
 }
