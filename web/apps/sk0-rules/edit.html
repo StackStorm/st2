@@ -1,9 +1,6 @@
-<div class="sk0-rule-picker" rule="rule"></div>
+<div class="sk0-rule-picker" rule="rule" hide-popup="hidePopup"></div>
 
-<div class="sk0-rule-popup" type="trigger" ng-show="popup == 'trigger'"></div>
-<div class="sk0-rule-popup" type="action" ng-show="popup == 'action'"></div>
+<div class="sk0-rule-setup" type="trigger" ng-if="rule['trigger']" rule="rule"></div>
+<div class="sk0-rule-setup" type="action" ng-if="rule['trigger'].options && rule['action']" rule="rule"></div>
 
-<div class="sk0-rule-setup" type="trigger" ng-show="rule['trigger']"></div>
-<div class="sk0-rule-setup" type="action" ng-show="rule['trigger'].options && rule['action']"></div>
-
-<div class="sk0-rule-activate" ng-show="rule['trigger'].options && rule['action'].options"></div>
+<div class="sk0-rule-activate" ng-if="rule['trigger'].options && rule['action'].options" rule="rule"></div>

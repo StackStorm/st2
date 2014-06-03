@@ -21,7 +21,7 @@ angular.module('main', ['ui.router', 'ngResource', 'angularMoment'])
       .state('ruleConstructor', {
         url: '/rules/create',
         templateUrl: 'apps/sk0-rules/edit.html',
-        controller: 'sk0RulesCreateCtrl'
+        controller: 'sk0RuleCreateCtrl'
       })
       .state('ruleEdit', {
         url: '/rules/:id',

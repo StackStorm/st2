@@ -1,13 +1,23 @@
 <div class="sk0-rule-picker__container">
   When
-  <span class="sk0-rule-picker__this" ng-click="$parent.popup = 'trigger'"><!--
+  <span class="sk0-rule-picker__this" ng-click="popup = 'trigger'"><!--
  -->{{ (inventory | unwrap).triggers.index[rule.trigger.type].service || 'this' }}<!--
- --><div class="sk0-rule-picker__marker" ng-show="$parent.popup == 'trigger'"></div><!--
+ --><div class="sk0-rule-picker__marker" ng-show="popup == 'trigger'"></div><!--
 --></span>
   triggers, fire
-  <span class="sk0-rule-picker__that"  ng-click="$parent.popup = 'action'"><!--
+  <span class="sk0-rule-picker__that"  ng-click="popup = 'action'"><!--
  -->{{ (inventory | unwrap).actions.index[rule.action.type].service || 'that' }}<!--
- --><div class="sk0-rule-picker__marker" ng-show="$parent.popup == 'action'"></div><!--
+ --><div class="sk0-rule-picker__marker" ng-show="popup == 'action'"></div><!--
 --></span>
   staction
+</div>
+
+<div class="sk0-rule-popup" type="trigger" ng-show="popup == 'trigger'" rule="rule"></div>
+<div class="sk0-rule-popup" type="action" ng-show="popup == 'action'" rule="rule"></div>
+
+<div class="sk0-buttons" ng-show="rule.trigger && rule.action">
+  <button class="sk0-buttons__internal sk0-buttons__secondary"
+    ng-click="submit()">Change</button>
+  <button class="sk0-buttons__global sk0-buttons__primary"
+    ng-click="submit()">Next</button>
 </div>

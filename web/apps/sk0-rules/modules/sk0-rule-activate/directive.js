@@ -5,7 +5,9 @@ angular.module('main')
 
     return {
       restrict: 'C',
-      scope: true,
+      scope: {
+        rule: '='
+      },
       templateUrl: 'apps/sk0-rules/modules/sk0-rule-activate/template.html',
       controller: function ($scope) {
         $scope.formSpec = [{
@@ -21,8 +23,8 @@ angular.module('main')
         $scope.formResults = {};
 
         $scope.submit = function () {
-          $scope.rule.name = $scope.formResults.name;
-          $scope.rule.description = $scope.formResults.desc;
+          $scope.rule.name = _.clone($scope.formResults.name);
+          $scope.rule.description = _.clone($scope.formResults.desc);
           console.log($scope.rule);
         };
       }

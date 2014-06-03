@@ -11,8 +11,6 @@ angular.module('main')
   // Create new rule
   .controller('sk0RuleCreateCtrl', function ($scope) {
     $scope.rule = {};
-
-    $scope.popup = 'trigger';
   })
 
   // Edit existing rule
@@ -20,6 +18,7 @@ angular.module('main')
     var Rule = $resource('http://kandra.apiary-mock.com/rules/:id');
 
     $scope.rule = $filter('unwrap')(Rule.get($state.params));
+    $scope.hidePopup = true;
 
     $scope.button = {};
   });

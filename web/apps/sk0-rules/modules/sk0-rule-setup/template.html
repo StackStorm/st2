@@ -1,8 +1,17 @@
-<h3>Setup trigger: <span class="sk0-rule-setup__type">{{ inventoryIndex[rule[type].type].title }}</span></h3>
+<h3>Setup {{ type }}: <span class="sk0-rule-setup__type">{{ inventoryIndex[rule[type].type].title }}</span></h3>
 <form ng-submit="submit()">
   <div class="sk0-auto-form"
     spec="inventoryIndex[rule[type].type].parameters"
     result="formResults">
   </div>
-  <input type="submit" value="Submit">
+  <div class="sk0-buttons">
+    <input
+      class="sk0-buttons__internal sk0-buttons__secondary"
+      type="submit"
+      value="Change">
+    <input
+      class="sk0-buttons__global sk0-buttons__primary"
+      type="submit"
+      value="Next">
+    </div>
 </form>
