@@ -68,7 +68,7 @@ class StactionExecutionsController(RestController):
         """
         return {"dummy": "put"}
 
-    @wsexpose(None, wstypes.txt)
+    @wsexpose(None, wstypes.text)
     def delete(self, id):
         """
             Delete a actionexecution.
