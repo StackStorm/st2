@@ -9,7 +9,7 @@ angular.module('main')
         rule: '='
       },
       replace: true,
-      templateUrl: 'apps/sk0-react/modules/sk0-rule/template.html',
+      templateUrl: 'apps/sk0-rules/modules/sk0-rule/template.html',
       controller: function ($scope, $state, sk0EntityInventory) {
         $scope.services = sk0EntityInventory;
         $scope.edit = function (rule) {

@@ -1,8 +1,0 @@
-<div ng-repeat="service in (services | unwrap).tree">
-  <h3 class="sk0-react__type">{{ service.title }}</h3>
-  <div class="sk0-react__node" ng-repeat="entity in service.entities" ng-click="pick(entity)">
-    {{ entity.title }}
-  </div>
-</div>
-
-<div ui-view></div>
