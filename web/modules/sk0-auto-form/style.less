@@ -1,4 +1,5 @@
 @import "colors";
+@import "bs.forms.less";
 
 .sk0-auto-form {
   position: relative;
@@ -6,6 +7,7 @@
   &__line {
     display: block;
     margin: 5px 0;
+    font-weight: normal;
   }
 
   &__label {
@@ -13,8 +15,7 @@
     text-align: right;
     display: inline-block;
     margin-right: 20px;
-    height: 30px;
-    line-height: 30px;
+    line-height: 34px;
     vertical-align: top;
 
     overflow: hidden;
@@ -63,11 +64,25 @@
     color: white;
     background-color: rgba(0,0,0,0.6);
     z-index: 1;
+    font-size: 13px;
   }
 
   &__field {
+    .form-control;
+
     display: inline-block;
     width: 170px;
+    box-sizing: border-box;
+  }
+
+  textarea&__field {
+    resize: vertical;
+    min-height: 34px;
+  }
+
+  input[type=checkbox] {
+    height: 28px;
+    line-height: 28px;
     box-sizing: border-box;
   }
 

@@ -1,10 +1,9 @@
-    <span class="sk0-auto-form__label"></span><!--
- --><label class="sk0-auto-form__field">
+    <span class="sk0-auto-form__label">{{ field.label }}</span><!--
+ --><label>
       <input type="checkbox"
         ng-required="field.required"
         ng-disabled="field.disabled"
-        ng-model="result[field.key || $index]">
-      {{ field.label }}
+        ng-model="result[field.key || $index]"> True
     </label><!--
     TODO: fix description expansion on focus
  --><div class="sk0-auto-form__field-description" ng-if="field.desc">

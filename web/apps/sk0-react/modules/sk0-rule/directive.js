@@ -13,8 +13,7 @@ angular.module('main')
       controller: function ($scope, $state, sk0EntityInventory) {
         $scope.services = sk0EntityInventory;
         $scope.edit = function (rule) {
-          $scope.$parent.setRule(rule);
-          $state.go('^.test');
+          $state.go('ruleEdit', rule);
         };
       }
     };
