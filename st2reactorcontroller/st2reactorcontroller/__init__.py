@@ -8,8 +8,8 @@ import os
 import sys
 
 from oslo.config import cfg
-from st2common.models.db import setup as db_setup
-from st2common.models.db import teardown as db_teardown
+from st2common.models.db import db_setup
+from st2common.models.db import db_teardown
 from st2reactorcontroller import app
 from wsgiref import simple_server
 
@@ -32,7 +32,8 @@ def __setup():
 
     # 2. all other setup which requires config to be parsed and logging to
     # be correctly setup.
-    db_setup()
+    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
+             cfg.CONF.database.port)
 
 
 def __run_server():

@@ -3,7 +3,7 @@ import tests
 import unittest2
 import mongoengine.connection
 from oslo.config import cfg
-from st2common.models.db import setup, teardown
+from st2common.models.db import db_setup, db_teardown
 
 SKIP_DELETE = False
 
@@ -13,11 +13,12 @@ class DbConnectionTest(unittest2.TestCase):
     @classmethod
     def setUpClass(cls):
         tests.parse_args()
-        setup()
+        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
+                 cfg.CONF.database.port)
 
     @classmethod
     def tearDownClass(cls):
-        teardown()
+        db_teardown()
 
     def test_check_connect(self):
         """
@@ -41,11 +42,12 @@ class ReactorModelTest(unittest2.TestCase):
     @classmethod
     def setUpClass(cls):
         tests.parse_args()
-        setup()
+        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
+                 cfg.CONF.database.port)
 
     @classmethod
     def tearDownClass(cls):
-        teardown()
+        db_teardown()
 
     def test_triggersource_crud(self):
         saved = ReactorModelTest._create_save_triggersource()
@@ -197,11 +199,12 @@ class ActionModelTest(unittest2.TestCase):
     @classmethod
     def setUpClass(cls):
         tests.parse_args()
-        setup()
+        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
+                 cfg.CONF.database.port)
 
     @classmethod
     def tearDownClass(cls):
-        teardown()
+        db_teardown()
 
     def test_action_crud(self):
         saved = ActionModelTest._create_save_action()
