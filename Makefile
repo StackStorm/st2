@@ -84,6 +84,6 @@ $(VIRTUALENV_DIR)/bin/activate:
 	echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	touch $(VIRTUALENV_DIR)/bin/activate.fish
 
-.PHONY: test
-test: requirements
+.PHONY: tests
+tests: requirements
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $(COMPONENTS_TEST)
