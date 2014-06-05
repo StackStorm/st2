@@ -4,6 +4,7 @@ import tests
 import unittest2
 from st2common.persistence.reactor import Rule, RuleEnforcement
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, RuleDB
+from st2common.models.db.action import ActionDB
 from st2reactor.ruleenforcement.enforce import RuleEnforcer
 
 MOCK_TRIGGER = TriggerDB()
@@ -15,15 +16,19 @@ MOCK_TRIGGER_INSTANCE.trigger = MOCK_TRIGGER
 MOCK_TRIGGER_INSTANCE.payload = {}
 MOCK_TRIGGER_INSTANCE.occurrence_time = datetime.datetime.now()
 
+MOCK_ACTION = ActionDB()
+MOCK_ACTION.id = 'action-test-1.id'
+MOCK_ACTION.name = 'action-test-1.name'
+
 MOCK_RULE_1 = RuleDB()
 MOCK_RULE_1.id = 'rule-test-1'
 MOCK_RULE_1.trigger = MOCK_TRIGGER
-MOCK_RULE_1.staction = None
+MOCK_RULE_1.action = MOCK_ACTION
 
 MOCK_RULE_2 = RuleDB()
 MOCK_RULE_2.id = 'rule-test-2'
 MOCK_RULE_2.trigger = MOCK_TRIGGER
-MOCK_RULE_2.staction = None
+MOCK_RULE_2.action = MOCK_ACTION
 
 
 class EnforceTest(unittest2.TestCase):
@@ -52,8 +57,8 @@ class EnforceTest(unittest2.TestCase):
     @mock.patch.object(Rule, 'query', mock.MagicMock(
         return_value=[MOCK_RULE_1, MOCK_RULE_2]))
     @mock.patch.object(RuleEnforcement, 'add_or_update', mock.MagicMock())
-    @mock.patch.object(RuleEnforcer, '_RuleEnforcer__invoke_staction')
-    def test_staction_execution(self, mock_ruleenforcer_invokestaction):
+    @mock.patch.object(RuleEnforcer, '_RuleEnforcer__invoke_action')
+    def test_action_execution(self, mock_ruleenforcer_invokestaction):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE)
         enforcer.enforce()
         self.assertEqual(mock_ruleenforcer_invokestaction.call_count, 2,
