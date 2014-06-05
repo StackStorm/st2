@@ -1,0 +1,20 @@
+<h3>Validate:
+  <span class="sk0-rule-validate__type">
+    {{ rule['trigger'].type.title }} → {{ rule['action'].type.title }}
+  </span>
+</h3>
+<form ng-submit="submit()">
+  <div class="sk0-auto-form"
+    spec="rule['trigger'].type.parameters"
+    result="formResults">
+  </div>
+  <div class="sk0-rule-validate__results">
+    <ul>
+      <li class="sk0-rule-validate__results-line" ng-repeat="field in rule['action'].type.parameters">
+        <span class="sk0-rule-validate__results-label">{{ field.label }}</span><!--
+     --><span class="sk0-rule-validate__results-value">...</span>
+      </li>
+    </ul>
+  </div>
+  <input type="submit" value="Submit">
+</form>

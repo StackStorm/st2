@@ -1,0 +1,21 @@
+@import "layout";
+@import "colors";
+
+.sk0-modal {
+  position: absolute;
+  display: block;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: @overlay-bg-color;
+
+  #sk0-layout > #center-box;
+
+  &__box {
+    border: 1px solid #ccc;
+    width: @column-width;
+    background-color: @box-bg-color;
+    box-shadow: 0 5px 20px @box-shadow-color;
+  }
+}

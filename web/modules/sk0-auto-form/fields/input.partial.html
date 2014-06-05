@@ -1,0 +1,10 @@
+    <span class="sk0-auto-form__label">{{ field.label }}</span><!--
+ --><input type="{{ field.type }}"
+      class="sk0-auto-form__field"
+      placeholder="{{ field.placeholder }}"
+      ng-required="field.required"
+      ng-disabled="field.disabled"
+      ng-model="result[field.key || $index]"/><!--
+ --><div class="sk0-auto-form__field-description" ng-if="field.desc">
+     <span class="sk0-auto-form__field-description-text">{{ field.desc }}</span>
+    </div>

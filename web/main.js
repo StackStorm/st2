@@ -2,7 +2,7 @@
 
 angular.module('main', ['ui.router', 'ngResource', 'angularMoment'])
   .config(function ($stateProvider, $urlRouterProvider) {
-    $urlRouterProvider.otherwise('/react');
+    $urlRouterProvider.otherwise('/rules');
 
     $stateProvider
       .state('act', {
@@ -12,45 +12,21 @@ angular.module('main', ['ui.router', 'ngResource', 'angularMoment'])
         title: 'Act'
       })
 
-      .state('react', {
-        url: '/react',
-        templateUrl: 'apps/sk0-react/template.html',
-        controller: 'sk0ReactCtrl',
-        title: 'React',
-        abstract: true
+      .state('rules', {
+        url: '/rules',
+        templateUrl: 'apps/sk0-rules/template.html',
+        controller: 'sk0RulesCtrl',
+        title: 'Rules'
       })
-      .state('react.list', {
-        url: '',
-        controller: 'sk0ReactListCtrl',
-        templateUrl: 'apps/sk0-react/partials/list.html'
+      .state('ruleConstructor', {
+        url: '/rules/create',
+        templateUrl: 'apps/sk0-rules/edit.html',
+        controller: 'sk0RuleCreateCtrl'
       })
-      .state('react.triggers', {
-        controller: 'sk0ReactPickCtrl',
-        templateUrl: 'apps/sk0-react/partials/pick.html',
-        data: {
-          type: 'trigger'
-        }
-      })
-      .state('react.triggers.setup', {
-        controller: 'sk0ReactSetupCtrl',
-        templateUrl: 'apps/sk0-react/partials/setup.html',
-        params: ['type']
-      })
-      .state('react.actions', {
-        controller: 'sk0ReactPickCtrl',
-        templateUrl: 'apps/sk0-react/partials/pick.html',
-        data: {
-          type: 'action'
-        }
-      })
-      .state('react.actions.setup', {
-        controller: 'sk0ReactSetupCtrl',
-        templateUrl: 'apps/sk0-react/partials/setup.html',
-        params: ['type']
-      })
-      .state('react.test', {
-        controller: 'sk0ReactTestCtrl',
-        templateUrl: 'apps/sk0-react/partials/test.html'
+      .state('ruleEdit', {
+        url: '/rules/:id',
+        templateUrl: 'apps/sk0-rules/edit.html',
+        controller: 'sk0RuleEditCtrl'
       })
 
       .state('audit', {

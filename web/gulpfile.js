@@ -8,13 +8,14 @@ var gulp = require('gulp')
   , less = require('gulp-less')
   , concat = require('gulp-concat')
   , serve = require('gulp-serve')
+  , prefix = require('gulp-autoprefixer')
   ;
 
 var settings = {
   dev: '.',
-  js: ['apps/**/*.js', 'directives/**/*.js', 'main.js'],
+  js: ['apps/**/*.js', 'modules/**/*.js', 'main.js'],
   styles: {
-    src: ['less/style.less', 'apps/**/*.less', 'directives/**/*.less'],
+    src: ['less/style.less', 'apps/**/*.less', 'modules/**/*.less'],
     includes: 'less/',
     dest: 'css'
   },
@@ -58,6 +59,7 @@ gulp.task('styles', function () {
       console.warn(err.message);
     })
     .pipe(concat('style.css'))
+    .pipe(prefix())
     .pipe(gulp.dest(path.join(settings.dev, settings.styles.dest)))
     ;
 });
