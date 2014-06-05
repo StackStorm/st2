@@ -134,6 +134,17 @@ class ReactorModelTest(unittest2.TestCase):
                              'Incorrect rule returned.')
         ReactorModelTest._delete([saved, trigger, action, triggersource])
 
+    def test_trigger_lookup(self):
+        triggersource = ReactorModelTest._create_save_triggersource()
+        saved = ReactorModelTest._create_save_trigger(triggersource)
+        retrievedtriggers = Trigger.query(name=saved.name)
+        print len(retrievedtriggers)
+        self.assertEqual(1, len(retrievedtriggers), 'No triggers found.')
+        for retrievedtrigger in retrievedtriggers:
+            self.assertEqual(saved.id, retrievedtrigger.id,
+                             'Incorrect trigger returned.')
+        ReactorModelTest._delete([saved, triggersource])
+
     @staticmethod
     def _create_save_triggersource():
         created = TriggerSourceDB()
