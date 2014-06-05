@@ -5,7 +5,7 @@ angular.module('main')
     var scope = $rootScope.$new();
 
     function fetch(type) {
-      var Resource = $resource('http://kandra.apiary-mock.com/' + type)
+      var Resource = $resource('http://localhost:3300/' + type)
         , r = scope.$new();
 
       r.index = {};

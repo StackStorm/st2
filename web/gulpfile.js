@@ -2,6 +2,7 @@
 'use strict';
 
 var gulp = require('gulp')
+  , gutil = require('gulp-util')
   , jshint = require('gulp-jshint')
   , path = require('path')
   , es = require('event-stream')
@@ -9,6 +10,7 @@ var gulp = require('gulp')
   , concat = require('gulp-concat')
   , serve = require('gulp-serve')
   , prefix = require('gulp-autoprefixer')
+  , ApiMock = require('api-mock')
   ;
 
 var settings = {
@@ -72,6 +74,22 @@ gulp.task('watch', function () {
   gulp.watch(settings.styles.src.concat(settings.styles.includes), ['styles']);
 });
 
+gulp.task('mockapi', function () {
+  var configuration = {
+    blueprintPath: '../apiary.apib',
+    options: {
+      port: 3300
+    }
+  };
 
-gulp.task('default', ['gulphint', 'scripts', 'styles', 'watch', 'serve']);
+  try {
+    new ApiMock(configuration).run();
+    gutil.log('API mock is listening on port ' + configuration.options.port);
+  } catch(e) {
+    throw new gutil.PluginError('mockapi', e, { showStack: true });
+  }
+});
+
+
+gulp.task('default', ['gulphint', 'scripts', 'styles', 'watch', 'mockapi', 'serve']);
 gulp.task('build', ['gulphint', 'scripts', 'styles']);
