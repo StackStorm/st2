@@ -72,3 +72,4 @@ gulp.task('watch', function () {
 
 
 gulp.task('default', ['gulphint', 'scripts', 'styles', 'watch', 'serve']);
+gulp.task('build', ['gulphint', 'scripts', 'styles']);

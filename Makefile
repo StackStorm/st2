@@ -1,6 +1,7 @@
 TOX_DIR := .tox
 #VIRTUALENV_DIR := $(TOX_DIR)/py27
 VIRTUALENV_DIR := virtualenv
+WEB_DIR := web/
 
 BINARIES := bin
 
@@ -24,7 +25,7 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
-all: requirements tests
+all: requirements web tests
 
 # Target for debugging Makefile variable assembly
 .PHONY: play
@@ -42,7 +43,7 @@ pep8: requirements
 
 .PHONY: flake8
 flake8: requirements
-	. $(VIRTUALENV_DIR)/bin/activate 
+	. $(VIRTUALENV_DIR)/bin/activate
 	@echo "==========================================================="
 	flake8 --config ./.flake8 $(COMPONENTS)
 
@@ -83,6 +84,12 @@ $(VIRTUALENV_DIR)/bin/activate:
 	echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	touch $(VIRTUALENV_DIR)/bin/activate.fish
+
+.PHONY: web
+web:
+	npm install --prefix $(WEB_DIR)
+	bower install --config.cwd=$(WEB_DIR) --config.directory=components
+	gulp --cwd $(WEB_DIR) build
 
 .PHONY: tests
 tests: requirements
