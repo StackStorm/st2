@@ -138,7 +138,6 @@ class ReactorModelTest(unittest2.TestCase):
         triggersource = ReactorModelTest._create_save_triggersource()
         saved = ReactorModelTest._create_save_trigger(triggersource)
         retrievedtriggers = Trigger.query(name=saved.name)
-        print len(retrievedtriggers)
         self.assertEqual(1, len(retrievedtriggers), 'No triggers found.')
         for retrievedtrigger in retrievedtriggers:
             self.assertEqual(saved.id, retrievedtrigger.id,
