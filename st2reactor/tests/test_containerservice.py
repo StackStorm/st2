@@ -32,7 +32,6 @@ class ContainerServiceTest(unittest2.TestCase):
             MOCK_TRIGGER_INSTANCE)
         mock_dispatch_handler.assert_called_once_with([MOCK_TRIGGER_INSTANCE])
 
-
     @mock.patch.object(Trigger, 'query', mock.MagicMock(
         return_value=[MOCK_TRIGGER]))
     @mock.patch.object(Trigger, 'add_or_update')

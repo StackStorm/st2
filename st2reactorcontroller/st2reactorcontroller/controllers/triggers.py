@@ -29,7 +29,7 @@ class TriggerController(RestController):
 
     @wsme_pecan.wsexpose(TriggersAPI, wstypes.text)
     def get_all(self):
-        """ 
+        """
             List all triggers.
 
             Handles requests:
