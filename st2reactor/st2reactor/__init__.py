@@ -7,8 +7,8 @@ import logging.config
 from oslo.config import cfg
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-from st2reactor.sensor import container
-from st2reactor.sensor.sensors import FixedRunSensor, \
+from st2reactor import container
+from st2reactor.sensor.samples.demo import FixedRunSensor, \
     DummyTriggerGeneratorSensor
 
 LOG = logging.getLogger('st2reactor.bin.sensor_container')

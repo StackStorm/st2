@@ -1,6 +1,6 @@
 import unittest2
-from st2reactor.sensor.container import SensorContainer
-from st2reactor.sensor import Sensor
+from st2reactor.container.base import SensorContainer
+from st2reactor.sensor.base import Sensor
 
 
 class ContainerTest(unittest2.TestCase):

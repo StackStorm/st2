@@ -3,7 +3,7 @@ import logging
 import random
 import thread
 
-from st2reactor.sensor import Sensor
+from st2reactor.sensor.base import Sensor
 
 LOG = logging.getLogger('st2reactor.sensor.sensors')
 
@@ -23,7 +23,7 @@ class FixedRunSensor(Sensor):
         pass
 
 
-from st2reactor.sensor.containerservice import add_trigger_types, \
+from st2reactor.container.containerservice import add_trigger_types, \
     dispatch_triggers
 
 
