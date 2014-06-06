@@ -3,12 +3,12 @@ import logging
 import random
 import thread
 
-from st2reactor.adapter import AdapterBase
+from st2reactor.sensor import Sensor
 
-LOG = logging.getLogger('st2reactor.adapter.adapters')
+LOG = logging.getLogger('st2reactor.sensor.sensors')
 
 
-class FixedRunAdapter(AdapterBase):
+class FixedRunSensor(Sensor):
     def __init__(self, iterations=10):
         self.__iterations = iterations
 
@@ -23,16 +23,16 @@ class FixedRunAdapter(AdapterBase):
         pass
 
 
-from st2reactor.adapter.containerservice import add_trigger_types, \
+from st2reactor.sensor.containerservice import add_trigger_types, \
     dispatch_triggers
 
 
-class DummyTriggerGeneratorAdapter(AdapterBase):
+class DummyTriggerGeneratorSensor(Sensor):
     def __init__(self, iterations=10):
         self.__iterations = iterations
 
     def start(self):
-        DummyTriggerGeneratorAdapter.__add_triggers()
+        DummyTriggerGeneratorSensor.__add_triggers()
         self.__dispatch_trigger_instances()
 
     def stop(self):
@@ -42,7 +42,7 @@ class DummyTriggerGeneratorAdapter(AdapterBase):
         count = 0
         while self.__iterations > count:
             count += 1
-            LOG.info("[{0}] of adapter {1} iter: {2}".format(
+            LOG.info("[{0}] of sensor {1} iter: {2}".format(
                 thread.get_ident(), self.__class__.__name__, count))
             dispatch_triggers([
                 {'name': 'st2.dummy.t1', 'payload': {'t1_p': 't1_p_v'}},

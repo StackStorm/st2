@@ -7,11 +7,11 @@ import logging.config
 from oslo.config import cfg
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-from st2reactor.adapter import container
-from st2reactor.adapter.adapters import FixedRunAdapter, \
-    DummyTriggerGeneratorAdapter
+from st2reactor.sensor import container
+from st2reactor.sensor.sensors import FixedRunSensor, \
+    DummyTriggerGeneratorSensor
 
-LOG = logging.getLogger('st2reactor.bin.adapter_container')
+LOG = logging.getLogger('st2reactor.bin.sensor_container')
 
 
 def __setup():
@@ -34,11 +34,11 @@ def __teardown():
 def main():
     __setup()
 
-    LOG.info('AdapterContainer process[{}] started.'.format(os.getpid()))
-    adapter_container = container.AdapterContainer(
-        [FixedRunAdapter, DummyTriggerGeneratorAdapter])
-    exit_code = adapter_container.main()
-    LOG.info('AdapterContainer process[{}] exit with code {}.'.format(
+    LOG.info('SensorContainer process[{}] started.'.format(os.getpid()))
+    sensor_container = container.SensorContainer(
+        [FixedRunSensor, DummyTriggerGeneratorSensor])
+    exit_code = sensor_container.main()
+    LOG.info('SensorContainer process[{}] exit with code {}.'.format(
         os.getpid(), exit_code))
     __teardown()
     return exit_code
