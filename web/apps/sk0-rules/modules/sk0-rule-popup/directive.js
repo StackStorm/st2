@@ -10,8 +10,8 @@ angular.module('main')
         rule: '='
       },
       templateUrl: 'apps/sk0-rules/modules/sk0-rule-popup/template.html',
-      controller: function ($scope, sk0EntityInventory) {
-        $scope.inventory = sk0EntityInventory;
+      controller: function ($scope, sk0Api) {
+        $scope.inventory = sk0Api;
 
         $scope.pick = function (entity) {
           $scope.rule[$scope.type] = { type: entity.name };

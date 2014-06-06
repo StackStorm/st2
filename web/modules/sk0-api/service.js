@@ -1,10 +1,12 @@
 'use strict';
 
 angular.module('main')
-  .service('sk0EntityInventory', function($resource, $rootScope) {
+  .service('sk0Api', function($resource, $rootScope) {
+    var HOST = '//localhost:3300';
+
     var scope = $rootScope.$new();
 
-    function fetch(type) {
+    function fetchInventory(type) {
       var Resource = $resource('http://localhost:3300/' + type)
         , r = scope.$new();
 
@@ -27,8 +29,38 @@ angular.module('main')
       return r;
     }
 
-    scope.triggers = fetch('triggers');
-    scope.actions = fetch('actions');
+    scope.rules = $resource(HOST + '/rules', {}, {
+      list: {
+        method: 'GET',
+        isArray: true
+      },
+      create: {
+        method: 'POST'
+      },
+      get: {
+        method: 'GET',
+        url: HOST + '/rules/:id'
+      },
+      update: {
+        method: 'PUT',
+        url: HOST + '/rules/:id'
+      },
+      remove: {
+        method: 'DELETE',
+        url: HOST + '/rules/:id'
+      },
+      activate: {
+        method: 'PUT',
+        url: HOST + '/rules/:id/enable'
+      },
+      deactivate: {
+        method: 'DELETE',
+        url: HOST + '/rules/:id/enable'
+      }
+    });
+
+    scope.triggers = fetchInventory('triggers');
+    scope.actions = fetchInventory('actions');
 
     return scope;
   }).filter('unwrap', function () {
@@ -43,9 +75,9 @@ angular.module('main')
       }
       return v;
     };
-  }).filter('toEntity', function (sk0EntityInventory, $filter) {
+  }).filter('toEntity', function (sk0Api, $filter) {
     return function (input, type) {
-      var entity = $filter('unwrap')(sk0EntityInventory[type]);
+      var entity = $filter('unwrap')(sk0Api[type]);
       return entity && entity.index[input] || input;
     };
   });

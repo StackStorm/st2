@@ -10,8 +10,8 @@ angular.module('main')
         rule: '='
       },
       templateUrl: 'apps/sk0-rules/modules/sk0-rule-setup/template.html',
-      controller: function ($scope, sk0EntityInventory, $filter) {
-        $scope.inventoryIndex = $filter('unwrap')(sk0EntityInventory[$scope.type+'s']).index;
+      controller: function ($scope, sk0Api, $filter) {
+        $scope.inventoryIndex = $filter('unwrap')(sk0Api[$scope.type+'s']).index;
 
         $scope.formResults = {};
 

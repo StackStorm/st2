@@ -10,8 +10,8 @@ angular.module('main')
         hidePopup: '='
       },
       templateUrl: 'apps/sk0-rules/modules/sk0-rule-picker/template.html',
-      controller: function ($scope, sk0EntityInventory) {
-        $scope.inventory = sk0EntityInventory;
+      controller: function ($scope, sk0Api) {
+        $scope.inventory = sk0Api;
 
         $scope.popup = $scope.hidePopup ? null : 'trigger';
 

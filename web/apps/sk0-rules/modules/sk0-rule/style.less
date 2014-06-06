@@ -13,8 +13,14 @@
   &__title {
     line-height: 20px;
     cursor: pointer;
-    -webkit-user-select: none;
-    -moz-user-select: none;
+    user-select: none;
+    text-align: right;
+    height: 20px;
+    overflow: hidden;
+
+    &-name {
+      float: left;
+    }
   }
 
   &--expanded &__title {
