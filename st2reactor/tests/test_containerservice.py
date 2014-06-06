@@ -27,7 +27,7 @@ class ContainerServiceTest(unittest2.TestCase):
         return_value=[MOCK_TRIGGER]))
     @mock.patch.object(TriggerInstance, 'add_or_update', mock.MagicMock(
         return_value=MOCK_TRIGGER_INSTANCE))
-    @mock.patch('st2reactor.sensor.containerservice.DISPATCH_HANDLER')
+    @mock.patch('st2reactor.container.containerservice.DISPATCH_HANDLER')
     def test_validate_dispatch(self, mock_dispatch_handler):
         containerservice.dispatch_trigger(MOCK_TRIGGER_INSTANCE)
         mock_dispatch_handler.assert_called_once_with([MOCK_TRIGGER_INSTANCE])
