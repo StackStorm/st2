@@ -23,7 +23,7 @@ class FixedRunSensor(Sensor):
         pass
 
 
-from st2reactor.container.containerservice import add_trigger_types, \
+from st2reactor.container.utils import add_trigger_types, \
     dispatch_triggers
 
 
