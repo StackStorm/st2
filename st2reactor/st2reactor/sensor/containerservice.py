@@ -5,7 +5,7 @@ import st2reactor.ruleenforcement.enforce
 from st2common.persistence.reactor import Trigger, TriggerInstance
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB
 
-LOG = logging.getLogger('st2reactor.adapter.dispatcher')
+LOG = logging.getLogger('st2reactor.sensor.dispatcher')
 DISPATCH_HANDLER = st2reactor.ruleenforcement.enforce.handle_trigger_instances
 
 

@@ -1,19 +1,19 @@
 import unittest2
-from st2reactor.adapter.container import AdapterContainer
-from st2reactor.adapter import AdapterBase
+from st2reactor.sensor.container import SensorContainer
+from st2reactor.sensor import Sensor
 
 
 class ContainerTest(unittest2.TestCase):
 
     def test_load(self):
         """
-        Verify the correct no of adapters are created.
+        Verify the correct no of sensors are created.
         """
-        class LoadTestAdapter(AdapterBase):
+        class LoadTestSensor(Sensor):
             init_count = 0
 
             def __init__(self):
-                LoadTestAdapter.init_count += 1
+                LoadTestSensor.init_count += 1
 
             def start(self):
                 pass
@@ -21,47 +21,47 @@ class ContainerTest(unittest2.TestCase):
             def stop(self):
                 pass
 
-        adapter_modules = [LoadTestAdapter, LoadTestAdapter]
-        container = AdapterContainer(adapter_modules)
+        sensor_modules = [LoadTestSensor, LoadTestSensor]
+        container = SensorContainer(sensor_modules)
         container.load()
-        self.assertEqual(LoadTestAdapter.init_count, len(adapter_modules),
-                         'Insufficient adapters instantiated.')
+        self.assertEqual(LoadTestSensor.init_count, len(sensor_modules),
+                         'Insufficient sensors instantiated.')
 
-    def test_adapter_start(self):
+    def test_sensor_start(self):
         """
-        Verify start of adapters is called.
+        Verify start of sensors is called.
         """
-        class RunTestAdapter(AdapterBase):
+        class RunTestSensor(Sensor):
             start_call_count = 0
 
             def start(self):
-                RunTestAdapter.start_call_count += 1
+                RunTestSensor.start_call_count += 1
 
             def stop(self):
                 pass
 
-        adapter_modules = [RunTestAdapter, RunTestAdapter]
-        container = AdapterContainer(adapter_modules)
+        sensor_modules = [RunTestSensor, RunTestSensor]
+        container = SensorContainer(sensor_modules)
         container.load()
         container.run()
-        self.assertEqual(RunTestAdapter.start_call_count, len(adapter_modules),
-                         'Not all AdapterBase.start called.')
+        self.assertEqual(RunTestSensor.start_call_count, len(sensor_modules),
+                         'Not all Sensor.start called.')
 
-    def test_adapter_start_no_load(self):
+    def test_sensor_start_no_load(self):
         """
-        Verify start of adapters is not called without load.
+        Verify start of sensors is not called without load.
         """
-        class RunTestAdapter(AdapterBase):
+        class RunTestSensor(Sensor):
             start_call_count = 0
 
             def start(self):
-                RunTestAdapter.start_call_count += 1
+                RunTestSensor.start_call_count += 1
 
             def stop(self):
                 pass
 
-        adapter_modules = [RunTestAdapter, RunTestAdapter]
-        container = AdapterContainer(adapter_modules)
+        sensor_modules = [RunTestSensor, RunTestSensor]
+        container = SensorContainer(sensor_modules)
         container.run()
-        self.assertEqual(RunTestAdapter.start_call_count, 0,
-                         'AdapterBase.start should not be called.')
+        self.assertEqual(RunTestSensor.start_call_count, 0,
+                         'Sensor.start should not be called.')

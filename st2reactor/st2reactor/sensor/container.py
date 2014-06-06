@@ -13,22 +13,22 @@ eventlet.monkey_patch(
     time=True
 )
 
-LOG = logging.getLogger('st2reactor.adapter.container')
+LOG = logging.getLogger('st2reactor.sensor.container')
 
 
-class AdapterContainer(object):
+class SensorContainer(object):
 
-    def __init__(self, adapter_modules=[]):
-        self.__adapter_modules = adapter_modules
-        self.__adapters = []
+    def __init__(self, sensor_modules=[]):
+        self.__sensor_modules = sensor_modules
+        self.__sensors = []
 
     def load(self):
-        self.__adapters = [m() for m in self.__adapter_modules]
-        LOG.info("Created {} adapters.".format(len(self.__adapters)))
+        self.__sensors = [m() for m in self.__sensor_modules]
+        LOG.info("Created {} sensors.".format(len(self.__sensors)))
 
     def run(self):
         worker_threads = []
-        for m in self.__adapters:
+        for m in self.__sensors:
             t = Thread(group=None, target=m.start)
             worker_threads.append((m.__class__.__name__, t))
             t.start()

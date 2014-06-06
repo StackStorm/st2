@@ -3,7 +3,7 @@ import six
 
 
 @six.add_metaclass(abc.ABCMeta)
-class AdapterBase(object):
+class Sensor(object):
     """
     """
 
