@@ -1,8 +1,9 @@
-from pecan import expose, redirect
+from pecan import expose
 from webob.exc import status_map
 
 import st2reactorcontroller.controllers.triggers
 import st2reactorcontroller.controllers.rules
+
 
 class RootController(object):
 

@@ -17,12 +17,12 @@ class FixedRunAdapter(AdapterBase):
         while self.__iterations > count:
             count += 1
             LOG.info("[{0}] iter: {1}".format(thread.get_ident(), count))
-            eventlet.sleep(random.randint(1, 100)*0.01)
+            eventlet.sleep(random.randint(1, 100) * 0.01)
 
     def stop(self):
         pass
 
-import eventlet
+
 from st2reactor.adapter.containerservice import add_trigger_types, \
     dispatch_triggers
 
