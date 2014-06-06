@@ -2,7 +2,7 @@ import datetime
 import mock
 import tests
 import unittest2
-import st2reactor.sensor.containerservice
+import st2reactor.container.containerservice
 from st2common.persistence.reactor import Trigger, TriggerInstance
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB
 
