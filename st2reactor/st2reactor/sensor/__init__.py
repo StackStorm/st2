@@ -1,20 +1,4 @@
-import abc
-import six
+"""
+Module that defines the type of sensors supported
+"""
 
-
-@six.add_metaclass(abc.ABCMeta)
-class Sensor(object):
-    """
-    """
-
-    @abc.abstractmethod
-    def start(self):
-        """
-        """
-        pass
-
-    @abc.abstractmethod
-    def stop(self):
-        """
-        """
-        pass
