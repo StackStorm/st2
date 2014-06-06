@@ -43,22 +43,33 @@ class TriggerInstanceDB(BaseDB):
     occurrence_time = me.DateTimeField()
 
 
+class ActionExecutionSpecDB(me.EmbeddedDocument):
+    action = me.ReferenceField(ActionDB.__name__)
+    data_mapping = me.DictField()
+
+
 class RuleDB(BaseDB):
     """Specifies the action to invoke on the occurrence of a Trigger. It
     also includes the transformation to perform to match the impedance
     between the payload of a TriggerInstance and input of a action.
     Attribute:
         trigger: Trigger that trips this rule.
+        criteria:
+        rule_data:
         action: Action to execute when the rule is tripped.
-        data_mapping: Data mappings that describe the input of a
-        action.
-        status: enabled or disabled. If disabled occurence of the trigger
+        status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
-    trigger = me.ReferenceField(TriggerDB.__name__)
-    action = me.ReferenceField(ActionDB.__name__)
-    data_mapping = me.DictField()
+    trigger_type = me.ReferenceField(TriggerDB.__name__)
+    criteria = me.DictField()
+    rule_data = me.DictField()
+    action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
     status = me.StringField()
+
+
+class CriterionSpecDB(me.EmbeddedDocument):
+    pattern = me.StringField()
+    operator = me.StringField()
 
 
 class RuleEnforcementDB(BaseDB):

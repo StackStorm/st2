@@ -32,7 +32,7 @@ class DbConnectionTest(unittest2.TestCase):
                          'Not connected to desired port.')
 
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
-    TriggerSourceDB, RuleEnforcementDB, RuleDB
+    TriggerSourceDB, RuleEnforcementDB, RuleDB, ActionExecutionSpecDB
 from st2common.persistence.reactor import Trigger, TriggerInstance, \
     TriggerSource, RuleEnforcement, Rule
 
@@ -127,7 +127,7 @@ class ReactorModelTest(unittest2.TestCase):
         action = ActionModelTest._create_save_action()
         trigger = ReactorModelTest._create_save_trigger(triggersource)
         saved = ReactorModelTest._create_save_rule(trigger, action)
-        retrievedrules = Rule.query(trigger=trigger)
+        retrievedrules = Rule.query(trigger_type=trigger)
         self.assertEqual(1, len(retrievedrules), 'No rules found.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id,
@@ -175,9 +175,11 @@ class ReactorModelTest(unittest2.TestCase):
         created = RuleDB()
         created.name = 'rule-1'
         created.description = ''
-        created.trigger = trigger
-        created.action = action
-        created.data_mapping = {}
+        created.trigger_type = trigger
+        created.criteria = {}
+        created.action = ActionExecutionSpecDB()
+        created.action.action = action
+        created.action.data_mapping = {}
         return Rule.add_or_update(created)
 
     @staticmethod

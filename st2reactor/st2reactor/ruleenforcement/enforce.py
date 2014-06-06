@@ -27,9 +27,9 @@ class RuleEnforcer(object):
             rule_enforcement.name = 'auto-generated'
             rule_enforcement.trigger_instance = self.trigger_instance
             rule_enforcement.rule = rule
-            data = self.data_transformer(rule.data_mapping)
+            data = self.data_transformer(rule.action.data_mapping)
             LOG.info('Invoking action %s for trigger_instance %s.',
-                     rule.action.id, self.trigger_instance.id)
+                     rule.action.action.id, self.trigger_instance.id)
             action_execution = RuleEnforcer.__invoke_action(rule.action, data)
             rule_enforcement.action_execution = action_execution
             RuleEnforcement.add_or_update(rule_enforcement)
