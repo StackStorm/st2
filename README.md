@@ -5,7 +5,7 @@ kandra
 make all
 
 ### To run all tests
-make test
+make tests
 
 ### To drop virtualenv
 make distclean
