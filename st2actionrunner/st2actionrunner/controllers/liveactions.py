@@ -1,4 +1,5 @@
 import httplib
+import logging
 from pecan import (abort, expose, )
 from pecan.rest import RestController
 
@@ -7,6 +8,9 @@ from wsmeext.pecan import wsexpose
 
 from st2common.persistence.actionrunner import LiveAction
 from st2common.models.api.actionrunner import LiveActionAPI
+
+
+LOG = logging.getLogger('st2actionrunner')
 
 
 class LiveActionsController(RestController):
@@ -37,13 +41,15 @@ class LiveActionsController(RestController):
                 GET /liveactions/
         """
 
-        if not kwargs:
-            pass
-            # TODO: Implement
-            abort(httplib.NOT_IMPLEMENTED)
-        else:
-            # TODO: implement id=foo and name=foo lookup to support query semantics.
-            return {"dummy": "get_all", "kwargs": str(kwargs)}
+        LOG.debug('kwargs from get_all call: %s', kwargs)
+
+#        if not kwargs:
+#            pass
+#            # TODO: Implement
+#            abort(httplib.NOT_IMPLEMENTED)
+#        else:
+#            # TODO: implement id=foo and name=foo lookup to support query semantics.
+        return {"dummy": "get_all", "kwargs": str(kwargs)}
 
     @wsexpose(LiveActionAPI, body=LiveActionAPI, status_code=httplib.CREATED)
     def post(self, live_action):
@@ -58,7 +64,7 @@ class LiveActionsController(RestController):
 
     @expose('json')
     def put(self, id, **kwargs):
-        """ 
+        """
             Update not supported for LiveActions.
 
             Handles requests:
