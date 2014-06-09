@@ -6,7 +6,6 @@ import shutil
 import sys
 import unittest2
 
-
 import st2common.util.loader as plugin_loader
 
 
