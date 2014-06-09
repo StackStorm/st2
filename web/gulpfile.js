@@ -11,6 +11,7 @@ var gulp = require('gulp')
   , serve = require('gulp-serve')
   , prefix = require('gulp-autoprefixer')
   , ApiMock = require('api-mock')
+  , fontelloUpdate = require('fontello-update')
   ;
 
 var settings = {
@@ -91,6 +92,14 @@ gulp.task('mockapi', function () {
   }
 });
 
+gulp.task('font', function () {
+  fontelloUpdate({
+    config: 'fontello.json',
+    fonts: 'font',
+    css: 'font'
+  });
+});
 
-gulp.task('default', ['gulphint', 'scripts', 'styles', 'watch', 'mockapi', 'serve']);
-gulp.task('build', ['gulphint', 'scripts', 'styles']);
+
+gulp.task('build', ['gulphint', 'scripts', 'font', 'styles']);
+gulp.task('default', ['build', 'watch', 'mockapi', 'serve']);
