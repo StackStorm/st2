@@ -36,8 +36,8 @@ def __get_plugin_classes(module_name):
     return __get_classes_in_module(module_name)
 
 
-def __register_plugin(plugin_base_class, plugin_instance):
-    plugin_base_class.register(plugin_instance)
+def __register_plugin(plugin_base_class, plugin_impl):
+    plugin_base_class.register(plugin_impl)
 
 
 def register_plugin(plugin_base_class, plugin_abs_file_path):
