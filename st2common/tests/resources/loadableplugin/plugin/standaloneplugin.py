@@ -6,5 +6,10 @@ class SamplePlugin(object):
         return self.__count
 
 
-def get_plugin():
-    return SamplePlugin()
+class FooPlugin(object):
+    """
+    Some class that doesn't implement the specified plugin interface.
+    """
+
+    def foo():
+        pass

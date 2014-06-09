@@ -8,6 +8,3 @@ class SamplePlugin(object):
     def do_work(self):
         return plugin.util.randomutil.get_random_numbers(self.__count)
 
-
-def get_plugin():
-    return SamplePlugin()
