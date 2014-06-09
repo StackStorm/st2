@@ -1,17 +1,30 @@
 kandra
 ======
 
-### To create virtualenv & run tests
-make all
+### Prerequisites 
+The dev environment with all the prerequisites installed via Vagrant: https://github.com/StackStorm/devenv. 
+The list of prerequisites: 
+* nodejs and npm - http://nodejs.org/
+* MongoDB -http://docs.mongodb.org/manual/installation
+* Python, pip, virtualenv, tox
 
-### To run all tests
-make tests
+### Using make for typical tasks
+* To create virtualenv, install dependencies, and run tests
+ 
+        make all
 
-### To drop virtualenv
-make distclean
+* To run all tests
+ 
+        make tests
 
-To install updated requirements
-make requirements
+* To drop virtualenv
 
-To just create virtualenv:
-make virtualenv
+        make distclean
+
+* To install updated requirements
+ 
+        make requirements
+
+* To just create virtualenv:
+
+        make virtualenv
