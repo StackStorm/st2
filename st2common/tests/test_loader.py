@@ -54,10 +54,7 @@ class LoaderTest(unittest2.TestCase):
             LoaderTest.DummyPlugin, plugin_path)
         # Even though there are two classes in that file, only one
         # matches the specs of DummyPlugin class.
-        # XXX: ABC does not validate that a class that is being
-        # registered has the methods defined in base class. Fix
-        # this when manual validation is added.
-        self.assertEquals(2, len(plugin_instances))
+        self.assertEquals(1, len(plugin_instances))
         # Validate sys.path now contains the plugin directory.
         self.assertTrue('{}/{}'.format(DST_ROOT, 'plugin') in sys.path)
         # Validate the individual plugins
@@ -66,8 +63,6 @@ class LoaderTest(unittest2.TestCase):
                 ret_val = plugin_instance.do_work()
                 self.assertIsNotNone(ret_val, 'Should be non-null.')
             except:
-                # XXX: Classes that don't implement do_work()
-                # will throw exceptions
                 pass
 
     def test_module_load_from_file_fail(self):
