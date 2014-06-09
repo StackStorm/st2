@@ -1,74 +1,65 @@
+import importlib
+import inspect
+import logging
 import os
 import sys
-import importlib
 
-FACTORY_IDENTIFIER = 'get_plugin'
-PYTHON_EXTENSIONS = ('.py', '.pyc')
-
-
-def __update_python_path(module_path):
-    if not module_path or module_path in sys.path:
-        return
-    # generate absolute module path prior to addition
-    abs_module_path = os.path.abspath(module_path)
-    sys.path.append(abs_module_path)
+LOG = logging.getLogger(__name__)
+PYTHON_EXTENSIONS = ('.py')
 
 
-def __get_plugin_factory(plugin_module):
-    module = importlib.import_module(plugin_module)
-    factory = getattr(module, FACTORY_IDENTIFIER)
-    return factory
+def __register_plugin_path(plugin_dir_abs_path):
+    if not os.path.isdir(plugin_dir_abs_path):
+        raise Exception('Directory containing plugins must be provided.')
+    for x in sys.path:
+        if plugin_dir_abs_path in (x, x + os.sep):
+            return
+    sys.path.append(plugin_dir_abs_path)
 
 
-def get_plugin_factory_m(plugin_module, module_path=None):
-    """
-    Returns the factory that can used to construct a plugin found in the
-    supplied module. The contract between the callable factory and consumer
-    is opaque to this implementation.
-
-    System layout example.
-        package layout ->
-            package-root/
-                plugin/
-                    impl/
-                        plugin_module.py
-                    util/
-                        utility.py
-
-        content of plugin_module.py ->
-            from plugin.util import utility
-            ...
-
-    Consumption e.g. ->
-        factory = get_plugin_factory_m('plugin.impl.plugin_module',
-                                       'package-root')
-        # construct_spec is essentially the opaque contract.
-        construct_spec = {'arg1':'v1', 'arg2':'v2'}
-        plugin_instance = factory(**construct_spec)
-
-    :param plugin_module: name of the plugin module. The module name should
-    be qualified with a package name accessible from the python path.
-    :param module_path: path to import from the file system to satisfy
-    module dependencies. If none is provided the assumption is the module
-    already exist on the python path.
-    :return: callable factory to instantiate the plugin.
-    """
-    __update_python_path(module_path)
-    return __get_plugin_factory(plugin_module)
-
-
-def get_plugin_factory_f(plugin_module_file):
-    """
-    Returns the factory that can used to construct a plugin found in the
-    module represented by the supplied file.
-    The contract between the callable factory and consumer is opaque to this
-    implementation.
-    :param plugin_module_file: path to the file. Typical rules of fully
-    qualified paths and relative paths apply.
-    :return: callable factory to instantiate the plugin.
-    """
-    plugin_module = os.path.basename(plugin_module_file)
+def __get_plugin_module(plugin_file_path):
+    plugin_module = os.path.basename(plugin_file_path)
     if plugin_module.endswith(PYTHON_EXTENSIONS):
         plugin_module = plugin_module[:plugin_module.rfind('.py')]
-    return get_plugin_factory_m(plugin_module,
-                                os.path.dirname(plugin_module_file))
+    return plugin_module
+
+
+def __get_classes_in_module(module):
+    classes = []
+    for name, cls in inspect.getmembers(module):
+        if inspect.isclass(cls):
+            classes.append(cls)
+    return classes
+
+
+def __get_plugin_classes(module_name):
+    return __get_classes_in_module(module_name)
+
+
+def __register_plugin(plugin_base_class, plugin_impl):
+    plugin_base_class.register(plugin_impl)
+
+
+def register_plugin(plugin_base_class, plugin_abs_file_path):
+    instances = []
+    plugin_dir = os.path.dirname(os.path.realpath(plugin_abs_file_path))
+    __register_plugin_path(plugin_dir)
+    module_name = __get_plugin_module(plugin_abs_file_path)
+    module = importlib.import_module(module_name)
+    klasses = __get_plugin_classes(module)
+
+    # Try registering classes in plugin file. Some may fail.
+    for klass in klasses:
+        try:
+            __register_plugin(plugin_base_class, klass)
+            instances.append(klass())
+        except:
+            LOG.debug('Skipping class %s as it doesn\'t match specs.', klass)
+            continue
+
+    if len(instances) == 0:
+        raise Exception('Found no classes in plugin file' +
+                        ' matching requirements.')
+
+    return instances
+
