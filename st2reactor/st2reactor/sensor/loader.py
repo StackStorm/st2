@@ -49,17 +49,15 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
     klasses = __get_plugin_classes(module)
 
     # Try registering classes in plugin file. Some may fail.
-    atleast_one_registered = False
     for klass in klasses:
         try:
             __register_plugin(plugin_base_class, klass)
             instances.append(klass())
-            atleast_one_registered = True
         except:
             LOG.debug('Skipping class %s as it doesn\'t match specs.', klass)
             continue
 
-    if not atleast_one_registered:
+    if len(instances) == 0:
         raise Exception('Found no classes in plugin file' +
                         ' matching requirements.')
 
