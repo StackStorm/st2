@@ -36,7 +36,30 @@ def __get_plugin_classes(module_name):
     return __get_classes_in_module(module_name)
 
 
+def __get_plugin_methods(plugin_klass):
+    plugin_methods = []
+    for name, method in inspect.getmembers(plugin_klass):
+        if inspect.ismethod(method):
+            plugin_methods.append(name)
+    return plugin_methods
+
+
+def __validate_methods(plugin_base_class, plugin_klass):
+    '''
+    XXX: This is hacky but we'd like to validate the methods
+    in plugin_impl at least has all the *abstract* methods in
+    plugin_base_class.
+    '''
+    expected_methods = plugin_base_class.__abstractmethods__
+    plugin_methods = __get_plugin_methods(plugin_klass)
+    for method in expected_methods:
+        if method not in plugin_methods:
+            raise Exception('Class %s does not implement method %s in base class.'
+                            % (plugin_klass, method))
+
+
 def __register_plugin(plugin_base_class, plugin_impl):
+    __validate_methods(plugin_base_class, plugin_impl)
     plugin_base_class.register(plugin_impl)
 
 
@@ -53,7 +76,8 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
         try:
             __register_plugin(plugin_base_class, klass)
             instances.append(klass())
-        except:
+        except Exception, e:
+            LOG.exception(e)
             LOG.debug('Skipping class %s as it doesn\'t match specs.', klass)
             continue
 
