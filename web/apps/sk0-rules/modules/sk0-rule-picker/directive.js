@@ -25,6 +25,8 @@ angular.module('main')
 
         $scope.submit = function () {
           $scope.originalRule = _.clone($scope.rule);
+          $scope.originalRule.criteria = undefined;
+          $scope.originalRule.action.mapping = undefined;
         };
       }
     };

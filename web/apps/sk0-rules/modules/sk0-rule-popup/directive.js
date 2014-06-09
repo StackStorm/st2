@@ -14,9 +14,13 @@ angular.module('main')
         $scope.inventory = sk0Api;
 
         $scope.pick = function (entity) {
-          $scope.rule[$scope.type] = { type: entity.name };
+          if ($scope.type === 'trigger') {
+            $scope.rule['trigger_type'] = { name: entity.name };
+          } else {
+            $scope.rule[$scope.type] = { type: entity.name };
+          }
 
-          if ($scope.rule['trigger'] && $scope.rule['action']) {
+          if ($scope.rule['trigger_type'] && $scope.rule.action) {
             $scope.$parent.popup = null;
           } else {
             $scope.$parent.popup = $scope.type === 'trigger' ? 'action' : 'trigger';

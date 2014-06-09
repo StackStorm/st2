@@ -21,7 +21,8 @@ var settings = {
     includes: 'less/',
     dest: 'css'
   },
-  html: 'index.html'
+  html: 'index.html',
+  apiBlueprint: '../apiary.apib'
 };
 
 
@@ -76,7 +77,7 @@ gulp.task('watch', function () {
 
 gulp.task('mockapi', function () {
   var configuration = {
-    blueprintPath: '../apiary.apib',
+    blueprintPath: settings.apiBlueprint,
     options: {
       port: 3300
     }
