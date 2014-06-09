@@ -1,8 +1,10 @@
 import importlib
 import inspect
+import logging
 import os
 import sys
 
+LOG = logging.getLogger(__name__)
 PYTHON_EXTENSIONS = ('.py')
 
 
@@ -54,6 +56,7 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
             instances.append(klass())
             atleast_one_registered = True
         except:
+            LOG.debug('Skipping class %s as it doesn\'t match specs.', klass)
             continue
 
     if not atleast_one_registered:
