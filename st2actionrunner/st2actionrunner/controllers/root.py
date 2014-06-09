@@ -1,14 +1,19 @@
+import httplib
+import logging
 from pecan import expose, redirect
 from webob.exc import status_map
 
 from wsmeext.pecan import wsexpose
 
-#from st2actionrunner.controllers.liveactions import LiveActionsController
+# from st2actionrunner.controllers.liveactions import LiveActionsController
 from st2actionrunner.controllers.liveactions import LiveActionsController
 
 
+LOG = logging.getLogger('st2actionrunner')
+
+
 class RootController(object):
-    #actionrunners = ActionRunnersController()
+    # actionrunners = ActionRunnersController()
     liveactions = LiveActionsController()
 
 # TODO: Remove index handler
@@ -25,6 +30,6 @@ class RootController(object):
         try:
             status = int(status)
         except ValueError:  # pragma: no cover
-            status = 500
+            status = httplib.INTERNAL_SERVER_ERROR
         message = getattr(status_map.get(status), 'explanation', '')
         return dict(status=status, message=message)

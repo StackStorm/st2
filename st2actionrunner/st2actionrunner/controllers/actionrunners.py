@@ -1,4 +1,5 @@
 import httplib
+import logging
 from pecan import (abort, expose, )
 from pecan.rest import RestController
 
@@ -6,7 +7,10 @@ from wsme import types as wstypes
 from wsmeext.pecan import wsexpose
 
 from st2common.persistence.action import LiveAction
-from st2common.models.api.action import ActionRunnersAPI
+from st2common.models.api.actionrunner import ActionRunnerAPI
+
+
+LOG = logging.getLogger('st2actionrunner')
 
 
 class ActionRunnersController(RestController):
