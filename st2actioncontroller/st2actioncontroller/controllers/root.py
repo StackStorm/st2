@@ -1,3 +1,5 @@
+import httplib
+import logging
 from pecan import expose, redirect
 from webob.exc import status_map
 
@@ -5,6 +7,9 @@ from wsmeext.pecan import wsexpose
 
 from st2actioncontroller.controllers.actions import StactionsController
 from st2actioncontroller.controllers.actionexecutions import StactionExecutionsController
+
+
+LOG = logging.getLogger('st2actioncontroller')
 
 
 class RootController(object):
@@ -25,6 +30,6 @@ class RootController(object):
         try:
             status = int(status)
         except ValueError:  # pragma: no cover
-            status = 500
+            status = httplib.INTERNAL_SERVER_ERROR
         message = getattr(status_map.get(status), 'explanation', '')
         return dict(status=status, message=message)

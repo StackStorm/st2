@@ -1,4 +1,5 @@
 import httplib
+import logging
 from pecan import expose
 from pecan.rest import RestController
 
@@ -7,6 +8,9 @@ from wsmeext.pecan import wsexpose
 
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
+
+
+LOG = logging.getLogger('st2actioncontroller')
 
 
 class StactionsController(RestController):
