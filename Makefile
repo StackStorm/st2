@@ -1,7 +1,7 @@
 TOX_DIR := .tox
 #VIRTUALENV_DIR := $(TOX_DIR)/py27
 VIRTUALENV_DIR := virtualenv
-WEB_DIR := web/
+WEB_DIR := web
 
 BINARIES := bin
 
@@ -50,6 +50,7 @@ flake8: requirements
 .PHONY: distclean
 distclean:
 	rm -rf $(VIRTUALENV_DIR)
+	rm -rf $(WEB_DIR)/css/ $(WEB_DIR)/components/ $(WEB_DIR)/node_modules/ $(WEB_DIR)/font/
 
 .PHONY: requirements
 requirements: virtualenv $(REQUIREMENTS)
@@ -88,6 +89,8 @@ $(VIRTUALENV_DIR)/bin/activate:
 .PHONY: web
 web:
 	npm install --prefix $(WEB_DIR)
+	# Temporary fix for STORM-38. Should be removed when api-mock will update their npm package.
+	npm install --prefix $(WEB_DIR)/node_modules/api-mock/
 	bower install --config.cwd=$(WEB_DIR) --config.directory=components
 	gulp --cwd $(WEB_DIR) build
 

@@ -56,9 +56,9 @@ gulp.task('scripts', function () {
     ;
 });
 
-gulp.task('styles', function () {
+gulp.task('styles', ['font'], function () {
   return gulp.src(settings.styles.src, { cwd: settings.dev })
-    .pipe(less({ paths: path.join(settings.dev, settings.styles.includes) }))
+    .pipe(less({ paths: [path.join(settings.dev, settings.styles.includes)] }))
     .on('error', function(err) {
       console.warn(err.message);
     })
@@ -93,7 +93,7 @@ gulp.task('mockapi', function () {
 });
 
 gulp.task('font', function () {
-  fontelloUpdate({
+  return fontelloUpdate({
     config: 'fontello.json',
     fonts: 'font',
     css: 'font'
