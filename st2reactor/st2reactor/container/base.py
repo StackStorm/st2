@@ -17,14 +17,10 @@ LOG = logging.getLogger('st2reactor.sensor.container')
 
 
 class SensorContainer(object):
+    __sensors = None
 
-    def __init__(self, sensor_modules=[]):
-        self.__sensor_modules = sensor_modules
-        self.__sensors = []
-
-    def load(self):
-        self.__sensors = [m() for m in self.__sensor_modules]
-        LOG.info("Created {} sensors.".format(len(self.__sensors)))
+    def __init__(self, sensor_instances=[]):
+        self.__sensors = sensor_instances
 
     def run(self):
         worker_threads = []
@@ -41,6 +37,5 @@ class SensorContainer(object):
                 thread.ident, module_name))
 
     def main(self):
-        self.load()
         self.run()
         return SUCCESS_EXIT_CODE
