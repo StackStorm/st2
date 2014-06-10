@@ -49,7 +49,7 @@ class DummyTriggerGeneratorSensor(object):
     @staticmethod
     def __add_triggers():
         add_trigger_types([
-            {'name': 'st2.dummy.t1'},
-            {'name': 'st2.dummy.t2'},
-            {'name': 'st2.dummy.t3'}
+            {'name': 'st2.dummy.t1', 'description': 'some desc 1', 'payload_info': ['a', 'b']},
+            {'name': 'st2.dummy.t2', 'description': 'some desc 2', 'payload_info': ['c', 'd']},
+            {'name': 'st2.dummy.t3', 'description': 'some desc 3', 'payload_info': ['e', 'f']}
         ])
