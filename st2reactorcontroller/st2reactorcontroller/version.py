@@ -16,5 +16,5 @@
 
 from pbr import version
 
-version_info = version.VersionInfo('Kandra Reactor Controller')
+version_info = version.VersionInfo('Stanley Reactor Controller')
 version_string = version_info.version_string

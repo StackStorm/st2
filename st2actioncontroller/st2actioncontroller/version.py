@@ -1,4 +1,4 @@
-version_name = 'Kandra Action Controller'
+version_name = 'Stanley Action Controller'
 
 version_number = 'v0.1.0'
 
