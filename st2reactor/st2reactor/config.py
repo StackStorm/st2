@@ -23,6 +23,15 @@ use_debugger = cfg.BoolOpt(
 )
 CONF.register_cli_opt(use_debugger)
 
+sensors_opts = [
+    cfg.StrOpt('modules_path', default='/var/lib/stanley/sensors/modules/',
+        help='path to load sensor modules from'),
+    cfg.StrOpt('scripts_path', default='/var/lib/stanley/sensors/scripts',
+        help='path to load sensor scripts from')
+]
+CONF.register_opts(sensors_opts, group='sensors')
+
 
 def parse_args(args=None):
     CONF(args=args)
+
