@@ -2,10 +2,8 @@
 angular.module('main')
 
   // List rules
-  .controller('sk0RulesCtrl', function ($scope, $resource) {
-    var Rules = $resource('http://kandra.apiary-mock.com/rules');
-
-    $scope.rules = Rules.query();
+  .controller('sk0RulesCtrl', function ($scope, sk0Api) {
+    $scope.rules = sk0Api.rules.list();
   })
 
   // Create new rule
@@ -14,10 +12,8 @@ angular.module('main')
   })
 
   // Edit existing rule
-  .controller('sk0RuleEditCtrl', function ($scope, $state, $resource, $filter) {
-    var Rule = $resource('http://kandra.apiary-mock.com/rules/:id');
-
-    $scope.rule = $filter('unwrap')(Rule.get($state.params));
+  .controller('sk0RuleEditCtrl', function ($scope, $state, sk0Api, $filter) {
+    $scope.rule = $filter('unwrap')(sk0Api.rules.get($state.params));
     $scope.hidePopup = true;
 
     $scope.button = {};

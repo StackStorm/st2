@@ -1,12 +1,14 @@
 <h3 class="sk0-rule-activate__title">Activate</h3>
 
-<form ng-submit="submit()">
+<form name="form">
   <div class="sk0-auto-form"
     spec="formSpec"
     result="formResults">
   </div>
-  <div class="sk0-buttons">
-    <input class="sk0-buttons__secondary" type="submit" value="Save inactive">
-    <input class="sk0-buttons__primary" type="submit" value="Activate rule">
+  <div class="sk0-buttons" ng-switch="!!rule.id">
+    <button class="sk0-buttons__primary" ng-click="submit()" ng-switch-when="true">Save</button>
+
+    <button class="sk0-buttons__secondary" ng-click="submit(false)" ng-switch-default>Save inactive</button>
+    <button class="sk0-buttons__primary" ng-click="submit(true)" ng-switch-default>Activate rule</button>
   </div>
 </form>

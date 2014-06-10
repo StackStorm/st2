@@ -1,10 +1,10 @@
 <h3 class="sk0-rule-setup__title">Setup {{ type }}:
-  <span class="sk0-rule-setup__type">{{ inventoryIndex[rule[type].type].title }}</span>
+  <span class="sk0-rule-setup__type">{{ inventoryIndex[name].title }}</span>
 </h3>
 
 <form ng-submit="submit()">
   <div class="sk0-auto-form"
-    spec="inventoryIndex[rule[type].type].parameters"
+    spec="inventoryIndex[name].parameters"
     result="formResults">
   </div>
   <div class="sk0-buttons">

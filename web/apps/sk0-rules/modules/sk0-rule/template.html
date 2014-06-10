@@ -1,22 +1,13 @@
 <div ng-class="{'sk0-rule--expanded': open}">
   <div class="sk0-rule__title" ng-click="open = !open">
-    <span class="sk0-rule__trigger">{{ (rule.trigger.type | toEntity:'triggers').title }}</span> →
+    <span class="sk0-rule__title-name">{{ rule.name }}</span>
+    <span class="sk0-rule__trigger">{{ (rule.trigger_type.name | toEntity:'triggers').title }}</span> →
     <span class="sk0-rule__action">{{ (rule.action.type | toEntity:'actions').title }}</span>
   </div>
-  <ul class="sk0-rule__info">
-    <li class="sk0-rule__info-item">
-      Last check: <span am-time-ago="rule.checked"></span>
-    </li>
-    <li class="sk0-rule__info-item">
-      Last time triggered: <span am-time-ago="rule.triggered"></span>
-    </li>
-    <li class="sk0-rule__info-item">
-      Trigger count: {{ rule.count }}
-    </li>
-  </ul>
+  <p class="sk0-rule__info">{{ rule.description }}</p>
   <div class="sk0-rule__buttons">
-    <span class="sk0-rule__button--disabled sk0-icon__cancel"></span>
+    <span class="sk0-rule__button sk0-icon__cancel" ng-click="remove(rule)"></span>
     <span class="sk0-rule__button sk0-icon__cog" ng-click="edit(rule)"></span>
-    <span class="sk0-rule__button sk0-icon__off"></span>
+    <span class="sk0-rule__button sk0-icon__off" ng-click="toggle(rule)"></span>
   </div>
 </div>
