@@ -15,7 +15,7 @@ SRC_ROOT = '{}/{}'.format(os.path.abspath(os.path.dirname(__file__)),
 
 
 class LoaderTest(unittest2.TestCase):
-    sys_path = 0
+    sys_path = None
 
     @six.add_metaclass(abc.ABCMeta)
     class DummyPlugin(object):
