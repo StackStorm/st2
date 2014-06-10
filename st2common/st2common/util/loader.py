@@ -21,6 +21,8 @@ def __get_plugin_module(plugin_file_path):
     plugin_module = os.path.basename(plugin_file_path)
     if plugin_module.endswith(PYTHON_EXTENSIONS):
         plugin_module = plugin_module[:plugin_module.rfind('.py')]
+    else:
+        plugin_module = None
     return plugin_module
 
 
@@ -68,6 +70,8 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
     plugin_dir = os.path.dirname(os.path.realpath(plugin_abs_file_path))
     __register_plugin_path(plugin_dir)
     module_name = __get_plugin_module(plugin_abs_file_path)
+    if module_name is None:
+        return instances
     module = importlib.import_module(module_name)
     klasses = __get_plugin_classes(module)
 
@@ -82,8 +86,8 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
             continue
 
     if len(instances) == 0:
-        raise Exception('Found no classes in plugin file' +
-                        ' matching requirements.')
+        raise Exception('Found no classes in plugin file ' + plugin_abs_file_path
+                        + ' matching requirements.')
 
     return instances
 
