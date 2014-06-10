@@ -3,14 +3,11 @@ import logging
 import random
 import thread
 
-from st2reactor.sensor.base import Sensor
-
 LOG = logging.getLogger('st2reactor.sensor.sensors')
 
 
-class FixedRunSensor(Sensor):
-    def __init__(self, iterations=10):
-        self.__iterations = iterations
+class FixedRunSensor(object):
+    __iterations = 10
 
     def start(self):
         count = 0
@@ -27,9 +24,8 @@ from st2reactor.container.utils import add_trigger_types, \
     dispatch_triggers
 
 
-class DummyTriggerGeneratorSensor(Sensor):
-    def __init__(self, iterations=10):
-        self.__iterations = iterations
+class DummyTriggerGeneratorSensor(object):
+    __iterations = 10
 
     def start(self):
         DummyTriggerGeneratorSensor.__add_triggers()
