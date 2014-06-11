@@ -21,7 +21,7 @@ LOG = logging.getLogger('st2reactor.bin.sensor_container')
 def __load_sensor_modules():
     path = os.path.realpath(cfg.CONF.sensors.modules_path)
     '''
-    XXX: For now, let's put hardcode the includes pattern
+    XXX: For now, let's just hardcode the includes pattern
     here. We should eventually move these to config if that makes sense
     at all.
     '''
@@ -53,10 +53,6 @@ def __load_sensor_modules():
             LOG.exception(e)
             LOG.warn('Exception registering plugin %s.' % file_path)
     return plugin_instances
-
-
-def __load_sensor_scripts():
-    pass  # XXX: No implementation yet.
 
 
 def __setup():
