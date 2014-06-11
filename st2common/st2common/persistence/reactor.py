@@ -8,37 +8,37 @@ class TriggerSource(Access):
     IMPL = triggersource_access
 
     @classmethod
-    def _get_impl(cls):
-        return cls.IMPL
+    def _get_impl(kls):
+        return kls.IMPL
 
 
 class Trigger(Access):
     IMPL = trigger_access
 
     @classmethod
-    def _get_impl(cls):
-        return cls.IMPL
+    def _get_impl(kls):
+        return kls.IMPL
 
 
 class TriggerInstance(Access):
     IMPL = triggerinstance_access
 
     @classmethod
-    def _get_impl(cls):
-        return cls.IMPL
+    def _get_impl(kls):
+        return kls.IMPL
 
 
 class Rule(Access):
     IMPL = rule_access
 
     @classmethod
-    def _get_impl(cls):
-        return cls.IMPL
+    def _get_impl(kls):
+        return kls.IMPL
 
 
 class RuleEnforcement(Access):
     IMPL = ruleenforcement_access
 
     @classmethod
-    def _get_impl(cls):
-        return cls.IMPL
+    def _get_impl(kls):
+        return kls.IMPL

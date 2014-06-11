@@ -1,7 +1,7 @@
 import datetime
 from wsme import types as wstypes
 
-from st2common.models.api.stormbase import BaseAPI
+from st2common.models.api.stormbase import StormBaseAPI
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB
 from st2common.persistence.reactor import Trigger
 from st2common.persistence.action import Action
@@ -31,31 +31,31 @@ def get_model_from_ref(db_api, ref):
     return None
 
 
-class TriggerAPI(BaseAPI):
+class TriggerAPI(StormBaseAPI):
     payload_info = wstypes.ArrayType(str)
 
     @classmethod
-    def from_model(cls, model):
-        trigger = BaseAPI.from_model(cls, model)
+    def from_model(kls, model):
+        trigger = StormBaseAPI.from_model(kls, model)
         trigger.payload_info = model.payload_info
         return trigger
 
 
-class TriggerInstanceAPI(BaseAPI):
+class TriggerInstanceAPI(StormBaseAPI):
     trigger = wstypes.text
     payload = wstypes.DictType(str, str)
     occurrence_time = datetime.datetime
 
     @classmethod
-    def from_model(cls, model):
-        trigger_instance = BaseAPI.from_model(cls, model)
+    def from_model(kls, model):
+        trigger_instance = StormBaseAPI.from_model(kls, model)
         trigger_instance.trigger = get_id(model.trigger)
         trigger_instance.payload = dict(model.payload)
         trigger_instance.occurrence_time = model.occurrence_time
         return trigger_instance
 
 
-class RuleAPI(BaseAPI):
+class RuleAPI(StormBaseAPI):
     """
     Attribute:
         trigger_type: Trigger that trips this rule. Of the form {'id':'1234', 'name':'trigger-1'}.
@@ -89,8 +89,8 @@ class RuleAPI(BaseAPI):
     status = wstypes.Enum(str, 'enabled', 'disabled')
 
     @classmethod
-    def from_model(cls, model):
-        rule = BaseAPI.from_model(cls, model)
+    def from_model(kls, model):
+        rule = StormBaseAPI.from_model(kls, model)
         rule.trigger_type = get_ref(model.trigger_type)
         rule.criteria = dict(model.criteria)
         rule.action = {'type': get_ref(model.action.action),
@@ -100,8 +100,8 @@ class RuleAPI(BaseAPI):
         return rule
 
     @classmethod
-    def to_model(cls, rule):
-        model = BaseAPI.to_model(RuleDB, rule)
+    def to_model(kls, rule):
+        model = StormBaseAPI.to_model(RuleDB, rule)
         model.trigger_type = get_model_from_ref(Trigger, rule.trigger_type)
         model.criteria = dict(rule.criteria)
         model.action = ActionExecutionSpecDB()
@@ -114,14 +114,14 @@ class RuleAPI(BaseAPI):
         return model
 
 
-class RuleEnforcementAPI(BaseAPI):
+class RuleEnforcementAPI(StormBaseAPI):
     rule = wstypes.text
     trigger_instance = wstypes.text
     action_execution = wstypes.text
 
     @classmethod
-    def from_model(cls, model):
-        rule_enforcement = BaseAPI.from_model(cls, model)
+    def from_model(kls, model):
+        rule_enforcement = StormBaseAPI.from_model(kls, model)
         rule_enforcement.rule = get_id(model.rule)
         rule_enforcement.trigger_instance = get_id(model.trigger_instance)
         rule_enforcement.action_execution = get_id(model.action_execution)
