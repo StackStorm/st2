@@ -5,16 +5,18 @@ from webob.exc import status_map
 
 from wsmeext.pecan import wsexpose
 
-from st2actioncontroller.controllers.actions import StactionsController
-from st2actioncontroller.controllers.actionexecutions import StactionExecutionsController
+from st2actioncontroller.controllers.actions import ActionsController
+from st2actioncontroller.controllers.actionexecutions import ActionExecutionsController
 
 
 LOG = logging.getLogger('st2actioncontroller')
 
 
 class RootController(object):
-    actions = StactionsController()
-    actionexecutions = StactionExecutionsController()
+    # Handler for /actions/
+    actions = ActionsController()
+    # Handler for /actionexecutions/
+    actionexecutions = ActionExecutionsController()
 
 # TODO: Remove index handler
     @expose(generic=True, template='index.html')

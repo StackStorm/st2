@@ -1,10 +1,15 @@
 import httplib
 import logging
-from pecan import expose
+from pecan import (abort, expose, response)
 from pecan.rest import RestController
 
+# TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
+#       that bubble up to this layer should be core Python exceptions or
+#       StackStorm defined exceptions.
+from mongoengine import ValidationError
+
 from wsme import types as wstypes
-from wsmeext.pecan import wsexpose
+import wsmeext.pecan as wsme_pecan
 
 from st2common.persistence.action import ActionExecution
 from st2common.models.api.action import ActionExecutionAPI
@@ -13,13 +18,13 @@ from st2common.models.api.action import ActionExecutionAPI
 LOG = logging.getLogger('st2actioncontroller')
 
 
-class StactionExecutionsController(RestController):
+class ActionExecutionsController(RestController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of ActionExecutions in the system.
     """
 
-    @wsexpose(ActionExecutionAPI, wstypes.text)
+    @wsme_pecan.wsexpose(ActionExecutionAPI, wstypes.text)
     def get_one(self, id):
         """
             List actionexecution by id.
@@ -28,6 +33,7 @@ class StactionExecutionsController(RestController):
                 GET /actionexecutions/1
         """
 
+        LOG.info('GET /actionexecutions/ with id="%s"', id)
         actionexec_db = ActionExecution.get_by_id(id)
 
         # TODO: test/handle object not found.
@@ -46,7 +52,7 @@ class StactionExecutionsController(RestController):
         # TODO: Implement if=foo and name=bar based lookup to support query semantics.
         return {"dummy": "get_all"}
 
-    @wsexpose(ActionExecutionAPI, body=ActionExecutionAPI)
+    @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI)
     def post(self, actionexec):
         """
             Create a new actionexecution.
@@ -72,7 +78,7 @@ class StactionExecutionsController(RestController):
         """
         return {"dummy": "put"}
 
-    @wsexpose(None, wstypes.text)
+    @wsme_pecan.wsexpose(None, wstypes.text)
     def delete(self, id):
         """
             Delete a actionexecution.
