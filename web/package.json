@@ -9,6 +9,7 @@
     "api-mock": "git://github.com/enykeev/api-mock.git#bug/contexts",
     "chai": "^1.9.1",
     "event-stream": "^3.1.5",
+    "fontello-update": "^0.6.0",
     "gulp": "^3.6.2",
     "gulp-autoprefixer": "0.0.7",
     "gulp-concat": "^2.2.0",

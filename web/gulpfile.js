@@ -11,6 +11,7 @@ var gulp = require('gulp')
   , serve = require('gulp-serve')
   , prefix = require('gulp-autoprefixer')
   , ApiMock = require('api-mock')
+  , fontelloUpdate = require('fontello-update')
   ;
 
 var settings = {
@@ -55,9 +56,9 @@ gulp.task('scripts', function () {
     ;
 });
 
-gulp.task('styles', function () {
+gulp.task('styles', ['font'], function () {
   return gulp.src(settings.styles.src, { cwd: settings.dev })
-    .pipe(less({ paths: path.join(settings.dev, settings.styles.includes) }))
+    .pipe(less({ paths: [path.join(settings.dev, settings.styles.includes)] }))
     .on('error', function(err) {
       console.warn(err.message);
     })
@@ -91,6 +92,14 @@ gulp.task('mockapi', function () {
   }
 });
 
+gulp.task('font', function () {
+  return fontelloUpdate({
+    config: 'fontello.json',
+    fonts: 'font',
+    css: 'font'
+  });
+});
 
-gulp.task('default', ['gulphint', 'scripts', 'styles', 'watch', 'mockapi', 'serve']);
-gulp.task('build', ['gulphint', 'scripts', 'styles']);
+
+gulp.task('build', ['gulphint', 'scripts', 'font', 'styles']);
+gulp.task('default', ['build', 'watch', 'mockapi', 'serve']);
