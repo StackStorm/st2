@@ -18,11 +18,24 @@ from st2common.models.api.action import ActionAPI
 LOG = logging.getLogger('st2actioncontroller')
 
 
-class StactionsController(RestController):
+class ActionsController(RestController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Actions in the system.
     """
+
+    def get_by_id(self, id):
+        """
+            Get Action by id and abort http operation on errors.
+        """
+        try:
+            action = Action.get_by_id(id)
+        except (ValueError, ValidationError) as e:
+            LOG.error('Database lookup for id="%s" resulted in exception: %s', id, e)
+            abort(httplib.NOT_FOUND)
+
+        return action
+    
 
     # TODO: Investigate mako rendering
     @wsme_pecan.wsexpose(ActionAPI, wstypes.text)
@@ -35,7 +48,7 @@ class StactionsController(RestController):
         """
 
         LOG.info('GET /actions/ with id=%s', id)
-        action_db = Action.get_by_id(id)
+        action_db = self.get_by_id(id)
 
         # TODO: test/handle object not found.
         return ActionAPI.from_model(action_db)
@@ -102,11 +115,7 @@ class StactionsController(RestController):
         # TODO: Support delete by name
         LOG.info('DELETE /actions/ with id=%s', id)
 
-        try:
-            action = Action.get_by_id(id)
-        except ValidationError, e:
-            LOG.error('Database lookup for id="%s" resulted in exception: %s', id, e)
-            abort(httplib.NOT_FOUND)
+        action = self.get_by_id(id)
 
         try:
             Action.delete(action)
