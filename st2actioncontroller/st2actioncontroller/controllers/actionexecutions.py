@@ -24,6 +24,18 @@ class ActionExecutionsController(RestController):
         the lifecycle of ActionExecutions in the system.
     """
 
+    def get_by_id(self, id):
+        """
+            Get ActionExecution by id and abort http operation on errors.
+        """
+        try:
+            actionexec = ActionExecution.get_by_id(id)
+        except (ValidationError, ValueError) as e:
+            LOG.error('Database lookup for id="%s" resulted in exception: %s', id, e)
+            abort(httplib.NOT_FOUND)
+        
+        return actionexec
+
     @wsme_pecan.wsexpose(ActionExecutionAPI, wstypes.text)
     def get_one(self, id):
         """
@@ -34,12 +46,15 @@ class ActionExecutionsController(RestController):
         """
 
         LOG.info('GET /actionexecutions/ with id="%s"', id)
-        actionexec_db = ActionExecution.get_by_id(id)
 
-        # TODO: test/handle object not found.
-        return ActionExecutionAPI.from_model(actionexec_db)
+        actionexec_db = self.get_by_id(id)
+        actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
 
-    @expose('json')
+        LOG.debug('GET /actionexecutions/ with id=%s, client_result=%s', id, actionexec_api)
+        return actionexec_api
+
+    # TODO: Support kwargs
+    @wsme_pecan.wsexpose([ActionExecutionAPI])
     def get_all(self):
         """
             List all actionexecutions.
@@ -48,40 +63,55 @@ class ActionExecutionsController(RestController):
                 GET /actionexecutions/
         """
 
-        # TODO: Implement function
-        # TODO: Implement if=foo and name=bar based lookup to support query semantics.
-        return {"dummy": "get_all"}
+        LOG.info('GET all /actionexecutions/')
+        actionexec_apis = [ActionExecutionAPI.from_model(actionexec_db)
+                                for actionexec_db in ActionExecution.get_all()]
 
-    @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI)
-    def post(self, actionexec):
+        # TODO: unpack list in log message
+        LOG.debug('GET all /actionexecutions/ result=%s', actionexec_apis)
+        return actionexec_apis
+
+    @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI,
+                            status_code=httplib.CREATED)
+    def post(self, data):
         """
             Create a new actionexecution.
 
             Handles requests:
                 POST /actionexecutions/
         """
-        actionexec_db = ActionExecutionAPI.to_model(actionexec)
-        # TODO: POST operations should only add to DB.
-        # TODO: Handle error generation if there is an object conflict.
-        actionexec_db = ActionExecution.add_or_update(actionexec_db)
-        return ActionExecutionAPI.from_model(actionexec_db)
 
-    @expose('json')
-    def put(self, id, **kwargs):
-        # TODO: Update probably does not make any sense on an execution.
+        LOG.info('POST /actionexecutions/ with actionexec data=%s', data)
+
+        actionexec_api = ActionExecutionAPI.to_model(data)
+        LOG.debug('/actionexecutions/ POST verified ActionExecutionAPI object=%s',
+                    actionexec_api)
+        # TODO: POST operations should only add to DB.
+        #       If an existing object conflicts then raise an error.
+
+        actionexec_db = ActionExecution.add_or_update(actionexec_api)
+        LOG.debug('/actionexecutions/ POST saved ActionExecutionDB object=%s', actionexec_db)
+        actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
+        
+        LOG.debug('POST /actionexecutions/ client_result=%s', actionexec_api)
+        return actionexec_api
+
+    @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI,
+                            status_code=httplib.FORBIDDEN)
+    def put(self, data):
         """
-            Update a actionexecution.
+            Update an actionexecution does not make any sense.
 
             Handles requests:
                 POST /actionexecutions/1?_method=put
                 PUT /actionexecutions/1
         """
-        return {"dummy": "put"}
+        return None
 
-    @wsme_pecan.wsexpose(None, wstypes.text)
+    @wsme_pecan.wsexpose(None, wstypes.text, status_code=httplib.NO_CONTENT)
     def delete(self, id):
         """
-            Delete a actionexecution.
+            Delete an actionexecution.
 
             Handles requests:
                 POST /actionexecutions/1?_method=delete
@@ -89,7 +119,18 @@ class ActionExecutionsController(RestController):
         """
 
         # TODO: Support delete by name
+        LOG.info('DELETE /actionexecutions/ with id=%s', id)
+
+        actionexec_db = self.get_by_id(id)
+        LOG.debug('DELETE /actionexecutions/ lookup with id=%s found object: %s', 
+                    id, actionexec_db)
+
         # TODO: Delete should migrate the execution data to a history collection.
 
-        actionexec = ActionExecution.get_by_id(id)
-        ActionExecution.delete(actionexec)
+        try:
+            ActionExecution.delete(actionexec_db)
+        except Exception, e:
+            LOG.error('Database delete encountered exception during delete of id="%s". Exception was %s', id, e)
+
+        LOG.info('DELETE /actionexecutions/ with id="%s" completed', id)
+        return None

@@ -46,12 +46,12 @@ class ActionExecutionDB(StormBaseDB):
     # Initially deny any delete request that will leave a action_execution in
     # the DB without an assocaited action. The constraint might be relaxed to
     # "NULLIFY" if we implement the right handling in actioncontroller.
-    action = me.fields.ReferenceField(ActionDB, reverse_delete_rule='DENY',
-                help_text=u'The action executed by this instance.')
+#    action = me.fields.ReferenceField(ActionDB, reverse_delete_rule='DENY',
+#               help_text=u'The action executed by this instance.')
     target = me.fields.StringField(required=True, default=None,
                 help_text=u'The target selection string.')
-    parameters = me.fields.DictField(required=True, default={},
-                help_text=u'The key-value pairs passed as parameters to the execution.')
+#    parameters = me.fields.DictField(required=True, default={},
+#                help_text=u'The key-value pairs passed as parameters to the execution.')
 #    TODO: Determine whether I need to store the execution result values.
 #    result = me.fields.EmbeddedDocumentField(ExecutionResultDB, **kwargs)
 
