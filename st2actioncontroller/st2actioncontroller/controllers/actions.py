@@ -1,10 +1,15 @@
 import httplib
 import logging
-from pecan import expose
+from pecan import (abort, response)
 from pecan.rest import RestController
 
+# TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
+#       that bubble up to this layer should be core Python exceptions or
+#       StackStorm defined exceptions.
+from mongoengine import ValidationError
+
 from wsme import types as wstypes
-from wsmeext.pecan import wsexpose
+import wsmeext.pecan as wsme_pecan
 
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
@@ -20,8 +25,7 @@ class StactionsController(RestController):
     """
 
     # TODO: Investigate mako rendering
-    # @expose('text_template.mako', content_type='text/plain')
-    @wsexpose(ActionAPI, wstypes.text)
+    @wsme_pecan.wsexpose(ActionAPI, wstypes.text)
     def get_one(self, id):
         """
             List action by id.
@@ -30,14 +34,16 @@ class StactionsController(RestController):
                 GET /actions/1
         """
 
+        LOG.info('GET /actions/ with id=%s', id)
         action_db = Action.get_by_id(id)
 
         # TODO: test/handle object not found.
         return ActionAPI.from_model(action_db)
 
-    # TODO: Update to wsexpose
-    @expose('json')
-    def get_all(self, **kwargs):
+    @wsme_pecan.wsexpose([ActionAPI])
+    # TODO: support kwargs
+    #def get_all(self, **kwargs):
+    def get_all(self):
         """
             List all actions.
 
@@ -45,16 +51,14 @@ class StactionsController(RestController):
                 GET /actions/
         """
 
-        if not kwargs:
-            actions = ActionAPI()
-            actions.actions = [ActionAPI.from_model(action_db)
-                               for action_db in Action.get_all()]
-            return actions
-        else:
-            # TODO: implement id=foo and name=foo lookup to support query semantics.
-            return {"dummy": "get_all", "kwargs": str(kwargs)}
+        LOG.info('GET all /actions/')
+        action_apis = [ActionAPI.from_model(action_db)
+                                 for action_db in Action.get_all()]
+        # TODO: unpack list in log message
+        LOG.debug('GET all /actions/ result:=%s', action_apis)
+        return action_apis
 
-    @wsexpose(ActionAPI, body=ActionAPI, status_code=httplib.CREATED)
+    @wsme_pecan.wsexpose(ActionAPI, body=ActionAPI, status_code=httplib.CREATED)
     def post(self, action):
         """
             Create a new action.
@@ -63,14 +67,18 @@ class StactionsController(RestController):
                 POST /actions/
         """
 
-        action_db = ActionAPI.to_model(action)
+        LOG.info('POST /actions/ with action data=%s', action)
+        action_api = ActionAPI.to_model(action)
         # TODO: POST operations should only add to DB.
         #       If an existing object conflicts then raise error.
-        action_db = Action.add_or_update(action_db)
+
+        LOG.debug('/actions/ POST verified ActionAPI object=%s', action_api)
+        action_db = Action.add_or_update(action_api)
+        LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
         return ActionAPI.from_model(action_db)
 
-    @expose('json')
-    def put(self, id, **kwargs):
+    @wsme_pecan.wsexpose(ActionAPI, body=ActionAPI, status_code=httplib.NOT_IMPLEMENTED)
+    def put(self, action):
         """
             Update an action.
 
@@ -81,7 +89,7 @@ class StactionsController(RestController):
         # TODO: Implement
         return {"dummy": "put"}
 
-    @wsexpose(None, wstypes.text)
+    @wsme_pecan.wsexpose(None, wstypes.text, status_code=httplib.NO_CONTENT)
     def delete(self, id):
         """
             Delete an action.
@@ -92,7 +100,18 @@ class StactionsController(RestController):
         """
 
         # TODO: Support delete by name
-        action = Action.get_by_id(id)
-        # TODO: Implement no-such object error handling
+        LOG.info('DELETE /actions/ with id=%s', id)
 
-        Action.delete(action)
+        try:
+            action = Action.get_by_id(id)
+        except ValidationError, e:
+            LOG.error('Database lookup for id="%s" resulted in exception: %s', id, e)
+            abort(httplib.NOT_FOUND)
+
+        try:
+            Action.delete(action)
+        except Exception, e:
+            LOG.error('Database delete encountered exception during delete of id="%s". Exception was %s', id, e)
+
+        LOG.info('DELETE /actions/ with id="%s" completed', id)
+        return None

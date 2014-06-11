@@ -6,13 +6,13 @@ class LiveAction(Access):
     IMPL = liveaction_access
 
     @classmethod
-    def _get_impl(cls):
-        return cls.IMPL
+    def _get_impl(kls):
+        return kls.IMPL
 
 
 class ActionRunner(Access):
     IMPL = actionrunner_access
 
     @classmethod
-    def _get_impl(cls):
-        return cls.IMPL
+    def _get_impl(kls):
+        return kls.IMPL

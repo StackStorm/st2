@@ -28,9 +28,9 @@ def __get_plugin_module(plugin_file_path):
 
 def __get_classes_in_module(module):
     classes = []
-    for name, cls in inspect.getmembers(module):
-        if inspect.isclass(cls):
-            classes.append(cls)
+    for name, kls in inspect.getmembers(module):
+        if inspect.isclass(kls):
+            classes.append(kls)
     return classes
 
 

@@ -2,14 +2,14 @@ import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
 
-from st2common.models.db.stormbase import BaseDB
+from st2common.models.db.stormbase import StormBaseDB
 
 __all__ = ['ActionDB',
            'ActionExecutionDB',
            ]
 
 
-class ActionDB(BaseDB):
+class ActionDB(StormBaseDB):
     """The system entity that represents a Stack Action/Automation in
        the system.
     Attribute:
@@ -20,17 +20,18 @@ class ActionDB(BaseDB):
         parameter_names: flat list of strings required as key names when running
                    the action.
     """
-    enabled = me.fields.BooleanField(required=True, default=True,
-                          help_text=u'Flag indicating whether the action is enabled.')
-    repo_path = me.fields.StringField(required=True,
-                          help_text=u'Path to action content relative to repository base.')
-    run_type = me.fields.StringField(required=True,
-                          help_text=u'Execution environment to use when invoking the action.')
-    parameter_names = me.fields.ListField(required=True,
-                          help_text=u'List of required parameter names.')
+#    enabled = me.fields.BooleanField(required=True, default=True,
+#                          help_text=u'Flag indicating whether the action is enabled.')
+#    repo_path = me.fields.StringField(required=True,
+#                          help_text=u'Path to action content relative to repository base.')
+#    run_type = me.fields.StringField(required=True,
+#                          help_text=u'Execution environment to use when invoking the action.')
+#    parameter_names = me.fields.ListField(required=True,
+#                          help_text=u'List of required parameter names.')
+    pass
 
 
-class ActionExecutionDB(BaseDB):
+class ActionExecutionDB(StormBaseDB):
     """
         The databse entity that represents a Stack Action/Automation in
         the system.

@@ -1,13 +1,14 @@
 from wsme import types as wstypes
 
-from st2common.models.api.stormbase import BaseAPI
+from st2common.models.api.stormbase import StormBaseAPI
+from st2common.models.db.action import ActionDB
 
 __all__ = ['ActionAPI',
            'ActionExecutionAPI',
            ]
 
 
-class ActionAPI(BaseAPI):
+class ActionAPI(StormBaseAPI):
     """The system entity that represents a Stack Action/Automation in
        the system.
     Attribute:
@@ -20,17 +21,21 @@ class ActionAPI(BaseAPI):
     """
     # TODO: debug wsme+pecan problem with "bool"
     # enabled = wstypes.bool
-    repo_path = wstypes.text
-    run_type = wstypes.text
-    parameter_names = wstypes.ArrayType(wstypes.text)
+#    repo_path = wstypes.text
+#    run_type = wstypes.text
+#    parameter_names = wstypes.ArrayType(wstypes.text)
 
     @classmethod
-    def from_model(cls, model):
-        action = cls()
-        action.id = str(model.id)
+    def from_model(kls, model):
+        action = StormBaseAPI.from_model(kls, model)
+        return action
 
+    @classmethod
+    def to_model(kls, model):
+        action = StormBaseAPI.to_model(ActionDB, model)
+        return action
 
-class ActionExecutionAPI(BaseAPI):
+class ActionExecutionAPI(StormBaseAPI):
     """The system entity that represents the execution of a Stack Action/Automation in
        the system.
     Attribute:
@@ -39,6 +44,6 @@ class ActionExecutionAPI(BaseAPI):
     pass
 
     @classmethod
-    def from_model(cls, model):
-        actionexec = cls()
+    def from_model(kls, model):
+        actionexec = kls()
         actionexec.id = str(model.id)

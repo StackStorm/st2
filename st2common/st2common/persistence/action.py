@@ -6,13 +6,13 @@ class Action(Access):
     IMPL = action_access
 
     @classmethod
-    def _get_impl(cls):
-        return cls.IMPL
+    def _get_impl(kls):
+        return kls.IMPL
 
 
 class ActionExecution(Access):
     IMPL = actionexec_access
 
     @classmethod
-    def _get_impl(cls):
-        return cls.IMPL
+    def _get_impl(kls):
+        return kls.IMPL
