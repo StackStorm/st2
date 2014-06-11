@@ -25,7 +25,7 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
-all: requirements web tests
+all: requirements tests
 
 # Target for debugging Makefile variable assembly
 .PHONY: play
