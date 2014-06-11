@@ -9,9 +9,8 @@ import st2common.util.loader as plugin_loader
 
 
 PLUGIN_FOLDER = 'loadableplugin'
-SRC_RELATIVE = 'resources/{}'.format(PLUGIN_FOLDER)
-SRC_ROOT = '{}/{}'.format(os.path.abspath(os.path.dirname(__file__)),
-                          SRC_RELATIVE)
+SRC_RELATIVE = os.path.join('resources', PLUGIN_FOLDER)
+SRC_ROOT = os.path.join(os.path.abspath(os.path.dirname(__file__)), SRC_RELATIVE)
 
 
 class LoaderTest(unittest2.TestCase):
@@ -36,14 +35,14 @@ class LoaderTest(unittest2.TestCase):
         sys.path = LoaderTest.sys_path
 
     def test_module_load_from_file(self):
-        plugin_path = '{}/{}'.format(SRC_ROOT, 'plugin/standaloneplugin.py')
+        plugin_path = os.path.join(SRC_ROOT, 'plugin/standaloneplugin.py')
         plugin_instances = plugin_loader.register_plugin(
             LoaderTest.DummyPlugin, plugin_path)
         # Even though there are two classes in that file, only one
         # matches the specs of DummyPlugin class.
         self.assertEquals(1, len(plugin_instances))
         # Validate sys.path now contains the plugin directory.
-        self.assertTrue('{}/{}'.format(SRC_ROOT, 'plugin') in sys.path)
+        self.assertTrue(os.path.join(SRC_ROOT, 'plugin') in sys.path)
         # Validate the individual plugins
         for plugin_instance in plugin_instances:
             try:
@@ -54,14 +53,14 @@ class LoaderTest(unittest2.TestCase):
 
     def test_module_load_from_file_fail(self):
         try:
-            plugin_path = '{}/{}'.format(SRC_ROOT, 'plugin/sampleplugin.py')
+            plugin_path = os.path.join(SRC_ROOT, 'plugin/sampleplugin.py')
             plugin_loader.register_plugin(LoaderTest.DummyPlugin, plugin_path)
             self.assertTrue(False, 'Import error is expected.')
         except ImportError:
             self.assertTrue(True)
 
     def test_syspath_unchanged_load_multiple_plugins(self):
-        plugin_1_path = '{}/{}'.format(SRC_ROOT, 'plugin/sampleplugin.py')
+        plugin_1_path = os.path.join(SRC_ROOT, 'plugin/sampleplugin.py')
         try:
             plugin_loader.register_plugin(
                 LoaderTest.DummyPlugin, plugin_1_path)
@@ -69,7 +68,7 @@ class LoaderTest(unittest2.TestCase):
             pass
         old_sys_path = copy.copy(sys.path)
 
-        plugin_2_path = '{}/{}'.format(SRC_ROOT, 'plugin/sampleplugin2.py')
+        plugin_2_path = os.path.join(SRC_ROOT, 'plugin/sampleplugin2.py')
         try:
             plugin_loader.register_plugin(
                 LoaderTest.DummyPlugin, plugin_2_path)
