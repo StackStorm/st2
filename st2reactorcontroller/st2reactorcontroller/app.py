@@ -1,6 +1,7 @@
-import logging
 import pecan
 from oslo.config import cfg
+from st2common import log as logging
+
 
 LOG = logging.getLogger(__name__)
 

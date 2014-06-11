@@ -1,5 +1,6 @@
-import logging
+from st2common import log as logging
 from mongoengine.connection import connect, disconnect
+
 
 LOG = logging.getLogger('st2common.models.db')
 

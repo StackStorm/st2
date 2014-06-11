@@ -1,5 +1,7 @@
-import logging
 import re
+
+from st2common import log as logging
+
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.filter')
 

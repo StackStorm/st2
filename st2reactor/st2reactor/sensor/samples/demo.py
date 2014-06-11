@@ -1,7 +1,9 @@
 import eventlet
-import logging
 import random
 import thread
+
+from st2common import log as logging
+
 
 LOG = logging.getLogger('st2reactor.sensor.sensors')
 

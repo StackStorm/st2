@@ -1,9 +1,11 @@
 import json
-import logging
+
+from st2common import log as logging
 from st2reactor.ruleenforcement.datatransform import get_transformer
 from st2reactor.ruleenforcement.filter import get_filter
 from st2common.models.db.reactor import RuleEnforcementDB
 from st2common.persistence.reactor import RuleEnforcement, Rule
+
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.enforce')
 

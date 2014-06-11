@@ -1,5 +1,4 @@
 import httplib
-import logging
 from pecan import (abort, response)
 from pecan.rest import RestController
 
@@ -11,6 +10,7 @@ from mongoengine import ValidationError
 from wsme import types as wstypes
 import wsmeext.pecan as wsme_pecan
 
+from st2common import log as logging
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 

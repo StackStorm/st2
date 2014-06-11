@@ -1,7 +1,7 @@
-import logging
 from oslo.config import cfg
 import pecan
 
+from st2common import log as logging
 from st2actionrunner import model
 from st2actionrunner.version import version_string
 

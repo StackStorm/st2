@@ -1,7 +1,9 @@
 import eventlet
-import logging
 import sys
 from threading import Thread
+
+from st2common import log as logging
+
 
 # Constants
 SUCCESS_EXIT_CODE = 0
