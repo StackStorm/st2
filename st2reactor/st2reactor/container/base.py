@@ -1,5 +1,6 @@
 import eventlet
 import logging
+import sys
 from threading import Thread
 
 # Constants
@@ -9,7 +10,7 @@ eventlet.monkey_patch(
     os=True,
     select=True,
     socket=True,
-    thread=True,
+    thread=False if '--use-debugger' in sys.argv else True,
     time=True
 )
 
