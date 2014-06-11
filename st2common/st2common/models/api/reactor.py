@@ -32,7 +32,7 @@ def get_model_from_ref(db_api, ref):
 
 
 class TriggerAPI(BaseAPI):
-    payload_info = wstypes.ArrayType(wstypes.DictType(str, str))
+    payload_info = wstypes.ArrayType(str)
 
     @classmethod
     def from_model(cls, model):
