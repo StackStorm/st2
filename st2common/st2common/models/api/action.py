@@ -1,7 +1,7 @@
 from wsme import types as wstypes
 
 from st2common.models.api.stormbase import StormBaseAPI
-from st2common.models.db.action import ActionDB
+from st2common.models.db.action import (ActionDB, ActionExecutionDB)
 
 __all__ = ['ActionAPI',
            'ActionExecutionAPI',
@@ -35,15 +35,38 @@ class ActionAPI(StormBaseAPI):
         action = StormBaseAPI.to_model(ActionDB, model)
         return action
 
+
+ACTIONEXEC_STATUS_INIT = 'initializing'
+ACTIONEXEC_STATUS_RUNNING = 'running'
+ACTIONEXEC_STATUS_COMPLETE = 'complete'
+ACTIONEXEC_STATUS_ERROR = 'error'
+
+ACTIONEXEC_STATUSES = [ ACTIONEXEC_STATUS_INIT, ACTIONEXEC_STATUS_RUNNING,
+                        ACTIONEXEC_STATUS_COMPLETE, ACTIONEXEC_STATUS_ERROR,
+                       ]
+
 class ActionExecutionAPI(StormBaseAPI):
     """The system entity that represents the execution of a Stack Action/Automation in
        the system.
     Attribute:
        ...
     """
-    pass
+    status = wstypes.Enum(wstypes.text, *ACTIONEXEC_STATUSES,
+                            default=ACTIONEXEC_STATUS_INIT)
+    target = wstypes.text
+#    parameters = wstypes.DictType(wstypes.text, wstypes.text)
 
     @classmethod
     def from_model(kls, model):
-        actionexec = kls()
-        actionexec.id = str(model.id)
+        actionexec = StormBaseAPI.from_model(kls, model)
+        actionexec.status = str(ACTIONEXEC_STATUS_INIT)
+        actionexec.target = str(model.target)
+#        actionexec.parameters = dict(model.parameters)
+        return actionexec
+
+    @classmethod
+    def to_model(kls, actionexec):
+        model = StormBaseAPI.to_model(ActionExecutionDB, actionexec)
+        model.status = str(actionexec.status)
+        model.target = actionexec.target
+        return model
