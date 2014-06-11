@@ -8,7 +8,7 @@ CONF = cfg.CONF
 
 api_opts = [
     cfg.StrOpt('host', default='0.0.0.0', help='stackaton API server host'),
-    cfg.IntOpt('port', default=9111, help='stackaton API server port')
+    cfg.IntOpt('port', default=9102, help='stackaton API server port')
 ]
 CONF.register_opts(api_opts, group='reactor_controller_api')
 
