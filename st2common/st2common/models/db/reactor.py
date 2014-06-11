@@ -1,10 +1,10 @@
 import mongoengine as me
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.stormbase import BaseDB
+from st2common.models.db.stormbase import StormBaseDB
 from st2common.models.db.action import ActionDB, ActionExecutionDB
 
 
-class TriggerSourceDB(BaseDB):
+class TriggerSourceDB(StormBaseDB):
     """Source of a trigger. Typically an external system or service that
     generates events which must be adapted to a trigger using the provided
     adapter.
@@ -19,7 +19,7 @@ class TriggerSourceDB(BaseDB):
     adapter_file_uri = me.StringField()
 
 
-class TriggerDB(BaseDB):
+class TriggerDB(StormBaseDB):
     """Description of a specific kind/type of a trigger. The name is expected
        uniquely identify a trigger in the namespace of all triggers provided
        by a specific trigger_source.
@@ -31,7 +31,7 @@ class TriggerDB(BaseDB):
     payload_info = me.ListField()
 
 
-class TriggerInstanceDB(BaseDB):
+class TriggerInstanceDB(StormBaseDB):
     """An instance or occurrence of a type of Trigger.
     Attribute:
         trigger: Reference to the trigger type.
@@ -48,7 +48,7 @@ class ActionExecutionSpecDB(me.EmbeddedDocument):
     data_mapping = me.DictField()
 
 
-class RuleDB(BaseDB):
+class RuleDB(StormBaseDB):
     """Specifies the action to invoke on the occurrence of a Trigger. It
     also includes the transformation to perform to match the impedance
     between the payload of a TriggerInstance and input of a action.
@@ -72,7 +72,7 @@ class CriterionSpecDB(me.EmbeddedDocument):
     operator = me.StringField()
 
 
-class RuleEnforcementDB(BaseDB):
+class RuleEnforcementDB(StormBaseDB):
     """A record of when an enabled rule was enforced.
     Attribute:
         rule (Reference): Rule that was enforced.

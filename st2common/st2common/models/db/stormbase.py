@@ -19,7 +19,7 @@ class StormFoundationDB(me.Document):
     meta = {
         'abstract': True
     }
-    
+
 
 class StormBaseDB(StormFoundationDB):
     """Minimal representation of a model entity where the entity is created by users.

@@ -9,7 +9,7 @@ __all__ = ['LiveActionDB',
            ]
 
 
-class LiveActionDB(BaseDB):
+class LiveActionDB(StormBaseDB):
     """The system entity that represents an Action process running in an
        ActionRunner execution environment.
     Attribute:
@@ -19,7 +19,7 @@ class LiveActionDB(BaseDB):
                           help_text=u'The PID for the action process.')
 
 
-class ActionRunnerDB(BaseDB):
+class ActionRunnerDB(StormBaseDB):
     """
         The system entity that represents an ActionRunner environment in the system.
         This entity is used internally to manage and scale-out the StackStorm services.
