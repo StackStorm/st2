@@ -1,3 +1,4 @@
+import json
 import logging
 from st2reactor.ruleenforcement.datatransform import get_transformer
 from st2reactor.ruleenforcement.filter import get_filter
@@ -30,9 +31,10 @@ class RuleEnforcer(object):
             rule_enforcement.name = 'auto-generated'
             rule_enforcement.trigger_instance = self.trigger_instance
             rule_enforcement.rule = rule
-            data = self.data_transformer(rule.action.data_mapping)
-            LOG.info('Invoking action %s for trigger_instance %s.',
-                     RuleEnforcer.__get_action_id(rule.action), self.trigger_instance.id)
+            data = self.data_transformer(rule.action.data_mapping, rule.rule_data)
+            LOG.info('Invoking action %s for trigger_instance %s with data %s.',
+                     RuleEnforcer.__get_action_name(rule.action), self.trigger_instance.id,
+                     json.dumps(data))
             action_execution = RuleEnforcer.__invoke_action(rule.action, data)
             rule_enforcement.action_execution = action_execution
             RuleEnforcement.add_or_update(rule_enforcement)
@@ -43,10 +45,10 @@ class RuleEnforcer(object):
                       Rule.query(trigger_type=trigger_instance.trigger))
 
     @staticmethod
-    def __get_action_id(action_exec_spec):
+    def __get_action_name(action_exec_spec):
         if action_exec_spec is None or action_exec_spec.action is None:
             return ''
-        return action_exec_spec.action.id
+        return action_exec_spec.action.name
 
     @staticmethod
     def __invoke_action(action, action_args):
