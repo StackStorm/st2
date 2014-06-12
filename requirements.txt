@@ -6,3 +6,4 @@ six
 eventlet>=0.13.0
 pecan
 WSME
+jinja2
