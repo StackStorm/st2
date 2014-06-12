@@ -17,10 +17,10 @@ class ContainerTest(unittest2.TestCase):
             def stop(self):
                 pass
 
-            def get_trigger_type(self):
-                return {
-                    'name': 'st2.dummy.t1', 'description': 'some desc 1', 'payload_info': ['a', 'b']
-                }
+            def get_trigger_types(self):
+                return [
+                    {'name': 'st2.dummy.t1', 'description': 'some desc', 'payload_info': ['a', 'b']}
+                ]
 
         sensor_modules = [RunTestSensor(), RunTestSensor()]
         container = SensorContainer(sensor_modules)

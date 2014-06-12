@@ -19,10 +19,10 @@ class FixedRunSensor(object):
     def stop(self):
         pass
 
-    def get_trigger_type(self):
-        return {
-            'name': 'st2.dummy.t1', 'description': 'some desc 1', 'payload_info': ['a', 'b']
-        }
+    def get_trigger_types(self):
+        return [
+            {'name': 'st2.dummy.t1', 'description': 'some desc 1', 'payload_info': ['a', 'b']}
+        ]
 
 from st2reactor.container.utils import dispatch_triggers
 
@@ -36,10 +36,11 @@ class DummyTriggerGeneratorSensor(object):
     def stop(self):
         self.__iterations = -1
 
-    def get_trigger_type(self):
-        return {
-            'name': 'st2.dummy.t2', 'description': 'some desc 2', 'payload_info': ['c', 'd']
-        }
+    def get_trigger_types(self):
+        return [
+            {'name': 'st2.dummy.t2', 'description': 'some desc 2', 'payload_info': ['c', 'd']},
+            {'name': 'st2.dummy.t3', 'description': 'some desc 3', 'payload_info': ['e', 'f']}
+        ]
 
     def __dispatch_trigger_instances(self):
         count = 0

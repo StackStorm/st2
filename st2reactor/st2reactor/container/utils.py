@@ -67,9 +67,14 @@ def __validate_trigger_type(trigger_type):
             raise Exception('Invaid trigger type. Missing field %s' % field)
 
 
-def add_trigger_type(trigger_type):
-    __validate_trigger_type(trigger_type)
+def __add_trigger_type(trigger_type):
     __create_trigger_type(
         trigger_type['name'],
         trigger_type['description'] if 'description' in trigger_type else '',
         trigger_type['payload_info'] if 'payload_info' in trigger_type else [])
+
+
+def add_trigger_types(trigger_types):
+    [__validate_trigger_type(trigger_type) for trigger_type in trigger_types]
+    [__add_trigger_type(trigger_type) for trigger_type in trigger_types]
+

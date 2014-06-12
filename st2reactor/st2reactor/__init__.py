@@ -80,7 +80,7 @@ def main():
     for filename, sensors in sensor_instances_dict.iteritems():
         for sensor in sensors:
             try:
-                container_utils.add_trigger_type(sensor.get_trigger_type())
+                container_utils.add_trigger_types(sensor.get_trigger_types())
                 sensors_to_run.append(sensor)
             except Exception, e:
                 LOG.exception(e)
