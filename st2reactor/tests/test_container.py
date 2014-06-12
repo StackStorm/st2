@@ -1,6 +1,5 @@
 import unittest2
 from st2reactor.container.base import SensorContainer
-from st2reactor.sensor.base import Sensor
 
 
 class ContainerTest(unittest2.TestCase):
@@ -9,7 +8,7 @@ class ContainerTest(unittest2.TestCase):
         """
         Verify start of sensors is called.
         """
-        class RunTestSensor(Sensor):
+        class RunTestSensor(object):
             start_call_count = 0
 
             def start(self):
@@ -17,6 +16,11 @@ class ContainerTest(unittest2.TestCase):
 
             def stop(self):
                 pass
+
+            def get_trigger_type(self):
+                return {
+                    'name': 'st2.dummy.t1', 'description': 'some desc 1', 'payload_info': ['a', 'b']
+                }
 
         sensor_modules = [RunTestSensor(), RunTestSensor()]
         container = SensorContainer(sensor_modules)
