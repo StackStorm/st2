@@ -58,7 +58,7 @@ def __create_trigger_type(name, description=None, payload_info=None):
 
 def __validate_trigger_type(trigger_type):
     """
-    XXX: We need validator objects that defines the required and optional fields.
+    XXX: We need validator objects that define the required and optional fields.
     For now, manually check them.
     """
     required_fields = ['name']
