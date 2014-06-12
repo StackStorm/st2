@@ -1,13 +1,16 @@
 import json
-
 from st2common import log as logging
+import requests
+from oslo.config import cfg
 from st2reactor.ruleenforcement.datatransform import get_transformer
 from st2reactor.ruleenforcement.filter import get_filter
 from st2common.models.db.reactor import RuleEnforcementDB
 from st2common.persistence.reactor import RuleEnforcement, Rule
+from st2common.persistence.action import ActionExecution
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.enforce')
+HTTP_AE_POST_HEADER = {'content-type': 'application/json'}
 
 
 def handle_trigger_instances(trigger_instances):
@@ -37,9 +40,11 @@ class RuleEnforcer(object):
             LOG.info('Invoking action %s for trigger_instance %s with data %s.',
                      RuleEnforcer.__get_action_name(rule.action), self.trigger_instance.id,
                      json.dumps(data))
-            action_execution = RuleEnforcer.__invoke_action(rule.action, data)
+            action_execution = RuleEnforcer.__invoke_action(rule.action.action, data)
             rule_enforcement.action_execution = action_execution
-            RuleEnforcement.add_or_update(rule_enforcement)
+            rule_enforcement = RuleEnforcement.add_or_update(rule_enforcement)
+            LOG.audit('[re=%s] ActionExecution %s for TriggerInstance %s due to Rule %s.',
+                     rule_enforcement.id, action_execution.id, rule.id, self.trigger_instance.id)
 
     @staticmethod
     def __get_rules(filter_func, trigger_instance):
@@ -54,4 +59,11 @@ class RuleEnforcer(object):
 
     @staticmethod
     def __invoke_action(action, action_args):
-        return None
+        payload = json.dumps({'target': action.name, 'name': '', 'description': ''})
+        r = requests.post(cfg.CONF.reactor.actionexecution_base_url,
+                          data=payload,
+                          headers=HTTP_AE_POST_HEADER)
+        if r.status_code != 201:
+            return None
+        action_execution_id = r.json()['id']
+        return ActionExecution.get_by_id(action_execution_id)

@@ -31,6 +31,11 @@ sensors_opts = [
 ]
 CONF.register_opts(sensors_opts, group='sensors')
 
+reactor_opts = [
+    cfg.StrOpt('actionexecution_base_url', default='http://0.0.0.0:9101/actionexecutions',
+               help='URL of POSTing to the actionexecution endpoint.')
+]
+CONF.register_opts(reactor_opts, group='reactor')
 
 def parse_args(args=None):
     CONF(args=args)
