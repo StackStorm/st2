@@ -37,6 +37,6 @@ reactor_opts = [
 ]
 CONF.register_opts(reactor_opts, group='reactor')
 
+
 def parse_args(args=None):
     CONF(args=args)
-
