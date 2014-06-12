@@ -52,7 +52,7 @@ def __load_sensor_modules():
             plugin_instances_dict[plugin].extend(sensors_loader.register_plugin(Sensor, file_path))
         except Exception, e:
             LOG.exception(e)
-            LOG.warn('Exception registering plugin %s.' % file_path)
+            LOG.warning('Exception registering plugin %s.' % file_path)
     return plugin_instances_dict
 
 
@@ -82,8 +82,8 @@ def main():
                 sensors_to_run.append(sensor)
             except Exception, e:
                 LOG.exception(e)
-                LOG.warn('Unable to register trigger type for sensor %s in file %s' %
-                         (sensor.__class__.__name__, filename))
+                LOG.warning('Unable to register trigger type for sensor %s in file %s' %
+                            (sensor.__class__.__name__, filename))
 
     LOG.info('SensorContainer process[{}] started.'.format(os.getpid()))
     sensor_container = SensorContainer(sensors_to_run)
@@ -92,4 +92,3 @@ def main():
         os.getpid(), exit_code))
     __teardown()
     return exit_code
-
