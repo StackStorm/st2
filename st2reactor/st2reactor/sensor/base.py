@@ -19,3 +19,9 @@ class Sensor(object):
         """
         pass
 
+    @abc.abstractmethod
+    def get_trigger_types(self):
+        """
+        """
+        pass
+

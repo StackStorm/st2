@@ -36,5 +36,30 @@ class ContainerServiceTest(unittest2.TestCase):
     @mock.patch.object(Trigger, 'add_or_update')
     def test_add_trigger(self, mock_add_handler):
         mock_add_handler.return_value = MOCK_TRIGGER
-        utils.add_trigger_type(MOCK_TRIGGER)
+        utils.add_trigger_types([MOCK_TRIGGER])
         self.assertTrue(mock_add_handler.called, 'trigger not added.')
+
+    def test_add_trigger_type(self):
+        """
+        This sensor has misconfigured trigger type. We shouldn't explode.
+        """
+        class FailTestSensor(object):
+            started = False
+
+            def start(self):
+                FailTestSensor.started = True
+
+            def stop(self):
+                pass
+
+            def get_trigger_types(self):
+                return [
+                    {'description': 'Ain\'t got no name'}
+                ]
+
+        try:
+            st2reactor.container.utils.add_trigger_types(FailTestSensor().get_trigger_types())
+            self.assertTrue(False, 'Trigger type doesn\'t have \'name\' field. Should have thrown.')
+        except Exception, e:
+            self.assertTrue(True)
+

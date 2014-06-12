@@ -56,14 +56,26 @@ def __create_trigger_type(name, description=None, payload_info=None):
     return Trigger.add_or_update(trigger_type)
 
 
-def add_trigger_types(trigger_types):
-    triggers = [__create_trigger_type(
+def __validate_trigger_type(trigger_type):
+    """
+    XXX: We need validator objects that define the required and optional fields.
+    For now, manually check them.
+    """
+    required_fields = ['name']
+    for field in required_fields:
+        if field not in trigger_type:
+            raise Exception('Invaid trigger type. Missing field %s' % field)
+
+
+def __add_trigger_type(trigger_type):
+    __create_trigger_type(
         trigger_type['name'],
         trigger_type['description'] if 'description' in trigger_type else '',
         trigger_type['payload_info'] if 'payload_info' in trigger_type else [])
-        for trigger_type in trigger_types]
-    return triggers
 
 
-def add_trigger_type(trigger_type):
-    return add_trigger_types([trigger_type])
+def add_trigger_types(trigger_types):
+    [r for r in (__validate_trigger_type(trigger_type)
+     for trigger_type in trigger_types) if r is not None]
+    return [r for r in (__add_trigger_type(trigger_type)
+            for trigger_type in trigger_types) if r is not None]
