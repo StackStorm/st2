@@ -1,8 +1,10 @@
 import importlib
 import inspect
-import logging
 import os
 import sys
+
+from st2common import log as logging
+
 
 LOG = logging.getLogger(__name__)
 PYTHON_EXTENSIONS = ('.py')

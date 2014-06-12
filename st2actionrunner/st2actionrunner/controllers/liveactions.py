@@ -1,11 +1,11 @@
 import httplib
-import logging
 from pecan import (abort, expose, )
 from pecan.rest import RestController
 
 from wsme import types as wstypes
 from wsmeext.pecan import wsexpose
 
+from st2common import log as logging
 from st2common.persistence.actionrunner import LiveAction
 from st2common.models.api.actionrunner import LiveActionAPI
 

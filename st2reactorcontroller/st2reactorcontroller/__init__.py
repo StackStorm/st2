@@ -3,11 +3,11 @@ from st2reactorcontroller import config
 config.parse_args()
 
 import eventlet
-import logging
 import os
 import sys
 
 from oslo.config import cfg
+from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2reactorcontroller import app
@@ -26,9 +26,7 @@ LOG = logging.getLogger(__name__)
 
 def __setup():
     # 1. setup logging.
-    logging.config.fileConfig(cfg.CONF.reactor_controller_logging.config_file,
-                              defaults=None,
-                              disable_existing_loggers=False)
+    logging.setup(cfg.CONF.reactor_controller_logging.config_file)
 
     # 2. all other setup which requires config to be parsed and logging to
     # be correctly setup.

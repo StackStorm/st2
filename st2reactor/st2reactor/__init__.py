@@ -3,11 +3,10 @@ from st2reactor import config
 from collections import defaultdict
 import fnmatch
 import os
-import logging
-import logging.config
 import re
 
 from oslo.config import cfg
+from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 import st2common.util.loader as sensors_loader
@@ -15,6 +14,7 @@ from st2reactor.container.base import SensorContainer
 import st2reactor.container.utils as container_utils
 from st2reactor.container.base import SensorContainer
 from st2reactor.sensor.base import Sensor
+
 
 LOG = logging.getLogger('st2reactor.bin.sensor_container')
 
@@ -60,9 +60,7 @@ def __setup():
     # setup config before anything else.
     config.parse_args()
     # 1. setup logging.
-    logging.config.fileConfig(cfg.CONF.reactor_logging.config_file,
-                              defaults=None,
-                              disable_existing_loggers=False)
+    logging.setup(cfg.CONF.reactor_logging.config_file)
     # 2. all other setup which requires config to be parsed and logging to
     # be correctly setup.
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
