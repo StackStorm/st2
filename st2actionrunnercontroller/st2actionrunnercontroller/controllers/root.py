@@ -5,8 +5,7 @@ from webob.exc import status_map
 from wsmeext.pecan import wsexpose
 
 from st2common import log as logging
-# from st2actionrunner.controllers.liveactions import LiveActionsController
-from st2actionrunner.controllers.liveactions import LiveActionsController
+from st2actionrunnercontroller.controllers.liveactions import LiveActionsController
 
 
 LOG = logging.getLogger(__name__)

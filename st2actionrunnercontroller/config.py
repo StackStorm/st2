@@ -7,11 +7,11 @@ server = {
 
 # Pecan Application Configurations
 app = {
-    'root': 'st2actionrunner.controllers.root.RootController',
-    'modules': ['st2actionrunner'],
+    'root': 'st2actionrunnercontroller.controllers.root.RootController',
+    'modules': ['st2actionrunnercontroller'],
     'default_renderer': 'json',
     'static_root': '%(confdir)s/public',
-    'template_path': '%(confdir)s/st2actionrunner/templates',
+    'template_path': '%(confdir)s/st2actionrunnercontroller/templates',
     'debug': True,
     'errors': {
         404: '/error/404',
@@ -22,7 +22,7 @@ app = {
 logging = {
     'loggers': {
         'root': {'level': 'INFO', 'handlers': ['console']},
-        'st2actionrunner': {'level': 'DEBUG', 'handlers': ['console']}
+        'st2actionrunnercontroller': {'level': 'DEBUG', 'handlers': ['console']}
     },
     'handlers': {
         'console': {

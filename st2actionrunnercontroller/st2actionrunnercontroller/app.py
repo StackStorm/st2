@@ -2,8 +2,8 @@ from oslo.config import cfg
 import pecan
 
 from st2common import log as logging
-from st2actionrunner import model
-from st2actionrunner.version import version_string
+from st2actionrunnercontroller import model
+from st2actionrunnercontroller.version import version_string
 
 
 LOG = logging.getLogger(__name__)
