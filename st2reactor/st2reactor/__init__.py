@@ -11,6 +11,7 @@ from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 import st2common.util.loader as sensors_loader
 from st2reactor.container.base import SensorContainer
+from st2reactor.container.triggerdispatcher import TriggerDispatcher
 import st2reactor.container.utils as container_utils
 from st2reactor.container.base import SensorContainer
 from st2reactor.sensor.base import Sensor
@@ -45,15 +46,15 @@ def __load_sensor_modules():
         break
     LOG.info('Found %d sensor modules in path.' % len(plugins))
 
-    plugin_instances_dict = defaultdict(list)
+    plugins_dict = defaultdict(list)
     for plugin in plugins:
         file_path = os.path.join(path, plugin)
         try:
-            plugin_instances_dict[plugin].extend(sensors_loader.register_plugin(Sensor, file_path))
+            plugins_dict[plugin].extend(sensors_loader.register_plugin(Sensor, file_path))
         except Exception, e:
             LOG.exception(e)
             LOG.warning('Exception registering plugin %s.' % file_path)
-    return plugin_instances_dict
+    return plugins_dict
 
 
 def __setup():
@@ -73,17 +74,28 @@ def __teardown():
 
 def main():
     __setup()
-    sensor_instances_dict = __load_sensor_modules()
+    sensors_dict = __load_sensor_modules()
+    dispatcher = TriggerDispatcher()
     sensors_to_run = []
-    for filename, sensors in sensor_instances_dict.iteritems():
-        for sensor in sensors:
+    for filename, sensors in sensors_dict.iteritems():
+        for sensor_class in sensors:
             try:
-                container_utils.add_trigger_types(sensor.get_trigger_types())
-                sensors_to_run.append(sensor)
+                sensor = sensor_class(dispatcher)
             except Exception, e:
                 LOG.exception(e)
-                LOG.warning('Unable to register trigger type for sensor %s in file %s' %
-                            (sensor.__class__.__name__, filename))
+                LOG.warning('Unable to create instance for sensor %s in file %s' %
+                            (sensor_class, filename))
+                continue
+            else:
+                try:
+                    container_utils.add_trigger_types(sensor.get_trigger_types())
+                except Exception, e:
+                    LOG.exception(e)
+                    LOG.warning('Unable to register trigger type for sensor %s in file %s' %
+                                (sensor_class, filename))
+                    continue
+                else:
+                    sensors_to_run.append(sensor)
 
     LOG.info('SensorContainer process[{}] started.'.format(os.getpid()))
     sensor_container = SensorContainer(sensor_instances=sensors_to_run)
