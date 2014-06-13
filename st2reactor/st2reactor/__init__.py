@@ -86,7 +86,7 @@ def main():
                             (sensor.__class__.__name__, filename))
 
     LOG.info('SensorContainer process[{}] started.'.format(os.getpid()))
-    sensor_container = SensorContainer(sensors_to_run)
+    sensor_container = SensorContainer(sensor_instances=sensors_to_run)
     exit_code = sensor_container.main()
     LOG.info('SensorContainer process[{}] exit with code {}.'.format(
         os.getpid(), exit_code))

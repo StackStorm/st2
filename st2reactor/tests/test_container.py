@@ -23,7 +23,7 @@ class ContainerTest(unittest2.TestCase):
                 ]
 
         sensor_modules = [RunTestSensor(), RunTestSensor()]
-        container = SensorContainer(sensor_modules)
+        container = SensorContainer(sensor_instances=sensor_modules)
         container.run()
         self.assertEqual(RunTestSensor.start_call_count, len(sensor_modules),
                          'Not all Sensor.start called.')
