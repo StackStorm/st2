@@ -8,6 +8,12 @@ class Sensor(object):
     """
 
     @abc.abstractmethod
+    def setup(self):
+        """
+        """
+        pass
+
+    @abc.abstractmethod
     def start(self):
         """
         """
