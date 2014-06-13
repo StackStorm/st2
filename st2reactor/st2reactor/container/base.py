@@ -30,15 +30,13 @@ class SensorContainer(object):
         self.__sensors = sensor_instances
 
     def _run_sensor(self, sensor):
-        """
-        XXX: sensor.init() needs to be called here.
-        """
+        sensor.setup()
         sensor.start()
 
     def _sensor_cleanup(self, sensor):
         sensor.stop()
 
-    def shutdown():
+    def shutdown(self):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
         for sensor, gt in self.__threads.iteritems():
             gt.kill()
