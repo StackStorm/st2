@@ -1,9 +1,10 @@
 from datetime import timedelta
 import eventlet
-import logging
 import sys
 from threading import Thread
 import time
+
+from st2common import log as logging
 
 # Constants
 SUCCESS_EXIT_CODE = 0
