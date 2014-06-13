@@ -1,11 +1,9 @@
 from datetime import timedelta
 import eventlet
+import logging
 import sys
 from threading import Thread
 import time
-
-from st2common import log as logging
-
 
 # Constants
 SUCCESS_EXIT_CODE = 0
@@ -24,13 +22,11 @@ LOG = logging.getLogger('st2reactor.sensor.container')
 class SensorContainer(object):
     __pool = None
     __sensors = None
-    __interval = None
     __threads = {}
 
-    def __init__(self, thread_pool_size=100, interval=timedelta(seconds=30), sensor_instances=[]):
+    def __init__(self, thread_pool_size=100, sensor_instances=[]):
         self.__pool = eventlet.GreenPool(thread_pool_size)
         self.__sensors = sensor_instances
-        self.__interval = interval
 
     def _run_sensor(self, sensor):
         """
