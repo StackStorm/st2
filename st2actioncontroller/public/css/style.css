@@ -1,6 +1,6 @@
 body {
-  background: #311F00;
-  color: white;
+  background: #FFFFFF;
+  color: black;
   font-family: 'Helvetica Neue', 'Helvetica', 'Verdana', sans-serif;
   padding: 1em 2em;
 }
@@ -30,11 +30,13 @@ fieldset {
 }
 
 input.error {
-  background: #FAFF78;
+  background: #FFFFFF;
 }
 
 header {
   text-align: center;
+  background: white url('/images/StackStormLogoSquare-28x28.png') left no-repeat;
+  background-size: 28px 28px;
 }
 
 h1, h2, h3, h4, h5, h6 {
