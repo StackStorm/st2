@@ -36,16 +36,17 @@ class LoaderTest(unittest2.TestCase):
 
     def test_module_load_from_file(self):
         plugin_path = os.path.join(SRC_ROOT, 'plugin/standaloneplugin.py')
-        plugin_instances = plugin_loader.register_plugin(
+        plugin_classes = plugin_loader.register_plugin(
             LoaderTest.DummyPlugin, plugin_path)
         # Even though there are two classes in that file, only one
         # matches the specs of DummyPlugin class.
-        self.assertEquals(1, len(plugin_instances))
+        self.assertEquals(1, len(plugin_classes))
         # Validate sys.path now contains the plugin directory.
         self.assertTrue(os.path.join(SRC_ROOT, 'plugin') in sys.path)
         # Validate the individual plugins
-        for plugin_instance in plugin_instances:
+        for plugin_class in plugin_classes:
             try:
+                plugin_instance = plugin_class()
                 ret_val = plugin_instance.do_work()
                 self.assertIsNotNone(ret_val, 'Should be non-null.')
             except:
