@@ -1,13 +1,13 @@
 from wsme import types as wstypes
 
-from st2common.models.api.stormbase import BaseAPI
+from st2common.models.api.stormbase import StormBaseAPI
 
 __all__ = ['LiveActionAPI',
            'ActionRunnerAPI',
            ]
 
 
-class LiveActionAPI(BaseAPI):
+class LiveActionAPI(StormBaseAPI):
     """The system entity that represents an Action process running in
        an ActionRunner execution environment.
     Attribute:
@@ -21,7 +21,7 @@ class LiveActionAPI(BaseAPI):
         action_runner.id = str(model.id)
 
 
-class ActionRunnerAPI(BaseAPI):
+class ActionRunnerAPI(StormBaseAPI):
     """The system entity that represents an ActionRunner environment in the system.
        This entity is used internally to manage and scale-out the StackStorm services.
     Attribute:
