@@ -68,7 +68,7 @@ def __register_plugin(plugin_base_class, plugin_impl):
 
 
 def register_plugin(plugin_base_class, plugin_abs_file_path):
-    instances = []
+    registered_plugins = []
     plugin_dir = os.path.dirname(os.path.realpath(plugin_abs_file_path))
     __register_plugin_path(plugin_dir)
     module_name = __get_plugin_module(plugin_abs_file_path)
@@ -81,15 +81,15 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
     for klass in klasses:
         try:
             __register_plugin(plugin_base_class, klass)
-            instances.append(klass())
+            registered_plugins.append(klass)
         except Exception, e:
             LOG.exception(e)
             LOG.debug('Skipping class %s as it doesn\'t match specs.', klass)
             continue
 
-    if len(instances) == 0:
+    if len(registered_plugins) == 0:
         raise Exception('Found no classes in plugin file ' + plugin_abs_file_path
                         + ' matching requirements.')
 
-    return instances
+    return registered_plugins
 
