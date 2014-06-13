@@ -76,7 +76,7 @@ class ActionsController(RestController):
         return action_apis
 
     @wsme_pecan.wsexpose(ActionAPI, body=ActionAPI, status_code=httplib.CREATED)
-    def post(self, data):
+    def post(self, action):
         """
             Create a new action.
 
@@ -84,7 +84,7 @@ class ActionsController(RestController):
                 POST /actions/
         """
 
-        LOG.info('POST /actions/ with action data=%s', data)
+        LOG.info('POST /actions/ with action data=%s', action)
 
         action_api = ActionAPI.to_model(action)
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action_api)
