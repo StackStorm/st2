@@ -25,9 +25,10 @@ class SensorContainer(object):
     __sensors = None
     __threads = {}
 
-    def __init__(self, thread_pool_size=100, sensor_instances=[]):
-        self.__pool = eventlet.GreenPool(thread_pool_size)
+    def __init__(self, sensor_instances=[]):
+        self.__pool = eventlet.GreenPool(len(sensor_instances))
         self.__sensors = sensor_instances
+        LOG.info('Container setup to run %d sensors.' % len(sensor_instances))
 
     def _run_sensor(self, sensor):
         sensor.setup()
