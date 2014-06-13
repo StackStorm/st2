@@ -1,17 +1,14 @@
 import datetime
 
-import st2reactor.ruleenforcement.enforce
 from st2common import log as logging
 from st2common.persistence.reactor import Trigger, TriggerInstance
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB
 
-
-LOG = logging.getLogger('st2reactor.sensor.dispatcher')
-DISPATCH_HANDLER = st2reactor.ruleenforcement.enforce.handle_trigger_instances
+LOG = logging.getLogger('st2reactor.sensor.container_utils')
 
 
-def __create_trigger_instance(trigger_name, payload,
-                              occurrence_time=datetime.datetime.now()):
+def create_trigger_instance(trigger_name, payload,
+                            occurrence_time=datetime.datetime.now()):
     triggers = Trigger.query(name=trigger_name)
     trigger = None if len(triggers) == 0 else triggers[0]
     if trigger is None:
@@ -23,25 +20,6 @@ def __create_trigger_instance(trigger_name, payload,
     trigger_instance.payload = payload
     trigger_instance.occurrence_time = occurrence_time
     return TriggerInstance.add_or_update(trigger_instance)
-
-
-def dispatch_triggers(triggers):
-    """
-    """
-    trigger_instances = [__create_trigger_instance(
-        trigger['name'],
-        trigger['payload'] if 'payload' in trigger else {},
-        trigger['occurrence_time'] if 'occurrence_time' in trigger else
-        datetime.datetime.now())
-        for trigger in triggers]
-    DISPATCH_HANDLER(trigger_instances)
-
-
-def dispatch_trigger(trigger):
-    """
-    Trigger must have named properties name, payload, occurrence_time.
-    """
-    dispatch_triggers([trigger])
 
 
 def __create_trigger_type(name, description=None, payload_info=None):
