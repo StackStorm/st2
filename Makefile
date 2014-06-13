@@ -97,3 +97,14 @@ web:
 .PHONY: tests
 tests: requirements
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $(COMPONENTS_TEST)
+
+.PHONY: install
+install:
+	pip install -r requirements.txt
+	cp -R st2*/st2* /usr/lib/python2.7/site-packages/
+	cp -R external/* /usr/lib/python2.7/site-packages/
+	mkdir /etc/stanley && cp conf/stanley.conf /etc/stanley/
+	$(foreach COM,$(filter-out st2common,$(COMPONENTS)),mkdir /etc/$(COM) && cp $(COM)/conf/* /etc/$(COM)/ && cp $(COM)/bin/* /usr/bin/;)
+	mkdir -p /etc/st2reactor/sensor/samples
+	cp st2reactor/st2reactor/sensor/samples/* /etc/st2reactor/sensor/samples/
+
