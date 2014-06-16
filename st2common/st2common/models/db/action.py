@@ -20,6 +20,8 @@ class ActionDB(StormBaseDB):
         parameter_names: flat list of strings required as key names when running
                    the action.
     """
+
+    """
     enabled = me.fields.BooleanField(required=True, default=True,
                           help_text=u'Flag indicating whether the action is enabled.')
     repo_path = me.fields.StringField(required=True,
@@ -30,6 +32,8 @@ class ActionDB(StormBaseDB):
                           help_text=u'Execution environment to use when invoking the action.')
     parameter_names = me.fields.ListField(required=True,
                           help_text=u'List of required parameter names.')
+    """
+    pass
 
 
 class ActionExecutionDB(StormBaseDB):
@@ -43,6 +47,8 @@ class ActionExecutionDB(StormBaseDB):
             result: an embedded document structure that holds the
                     output and exit status code from the stack action.
     """
+
+    """
     # TODO: Can status be an enum at the Mongo layer?
     status = me.fields.StringField(required=True)
     action = me.fields.StringField(ActionDB, default=None,
@@ -55,6 +61,8 @@ class ActionExecutionDB(StormBaseDB):
                 help_text=u'The key-value pairs passed as parameters to the execution.')
 #    TODO: Determine whether I need to store the execution result values.
 #    result_data = me.fields.EmbeddedDocumentField(ExecutionResultDB, **kwargs)
+    """
+    pass
 
 
 class ActionExecutionResultDB(me.EmbeddedDocument):
