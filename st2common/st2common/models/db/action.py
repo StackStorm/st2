@@ -42,7 +42,7 @@ class ActionExecutionDB(StormBaseDB):
             result: an embedded document structure that holds the
                     output and exit status code from the stack action.
     """
-    status = me.fields.StringField(required=True)
+#    status = me.fields.StringField(required=True)
     # Initially deny any delete request that will leave a action_execution in
     # the DB without an assocaited action. The constraint might be relaxed to
     # "NULLIFY" if we implement the right handling in actioncontroller.
