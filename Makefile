@@ -25,7 +25,7 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
-all: requirements tests
+all: requirements web tests
 
 # Target for debugging Makefile variable assembly
 .PHONY: play
@@ -89,8 +89,6 @@ $(VIRTUALENV_DIR)/bin/activate:
 .PHONY: web
 web:
 	npm install --prefix $(WEB_DIR)
-	# Temporary fix for STORM-38. Should be removed when api-mock will update their npm package.
-	npm install --prefix $(WEB_DIR)/node_modules/api-mock/
 	bower install --config.cwd=$(WEB_DIR) --config.directory=components
 	gulp --cwd $(WEB_DIR) build
 
