@@ -51,15 +51,15 @@ class ActionExecutionAPI(StormBaseAPI):
     Attribute:
        ...
     """
-    status = wstypes.Enum(wstypes.text, *ACTIONEXEC_STATUSES,
-                            default=ACTIONEXEC_STATUS_INIT)
+#    status = wstypes.Enum(wstypes.text, *ACTIONEXEC_STATUSES,
+#                            default=ACTIONEXEC_STATUS_INIT)
     target = wstypes.text
 #    parameters = wstypes.DictType(wstypes.text, wstypes.text)
 
     @classmethod
     def from_model(kls, model):
         actionexec = StormBaseAPI.from_model(kls, model)
-        actionexec.status = str(ACTIONEXEC_STATUS_INIT)
+#        actionexec.status = str(ACTIONEXEC_STATUS_INIT)
         actionexec.target = str(model.target)
 #        actionexec.parameters = dict(model.parameters)
         return actionexec
@@ -67,6 +67,6 @@ class ActionExecutionAPI(StormBaseAPI):
     @classmethod
     def to_model(kls, actionexec):
         model = StormBaseAPI.to_model(ActionExecutionDB, actionexec)
-        model.status = str(actionexec.status)
+#        model.status = str(actionexec.status)
         model.target = actionexec.target
         return model
