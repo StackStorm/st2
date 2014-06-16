@@ -20,15 +20,16 @@ class ActionDB(StormBaseDB):
         parameter_names: flat list of strings required as key names when running
                    the action.
     """
-#    enabled = me.fields.BooleanField(required=True, default=True,
-#                          help_text=u'Flag indicating whether the action is enabled.')
-#    repo_path = me.fields.StringField(required=True,
-#                          help_text=u'Path to action content relative to repository base.')
-#    run_type = me.fields.StringField(required=True,
-#                          help_text=u'Execution environment to use when invoking the action.')
-#    parameter_names = me.fields.ListField(required=True,
-#                          help_text=u'List of required parameter names.')
-    pass
+    enabled = me.fields.BooleanField(required=True, default=True,
+                          help_text=u'Flag indicating whether the action is enabled.')
+    repo_path = me.fields.StringField(required=True,
+                          help_text=u'Path to action content relative to repository base.')
+    entry_point = me.fields.StringField(required=True,
+                          help_text=u'Action entrypoint.')
+    runner_type = me.fields.StringField(required=True,
+                          help_text=u'Execution environment to use when invoking the action.')
+    parameter_names = me.fields.ListField(required=True,
+                          help_text=u'List of required parameter names.')
 
 
 class ActionExecutionDB(StormBaseDB):
@@ -42,18 +43,18 @@ class ActionExecutionDB(StormBaseDB):
             result: an embedded document structure that holds the
                     output and exit status code from the stack action.
     """
-#    status = me.fields.StringField(required=True)
-    # Initially deny any delete request that will leave a action_execution in
-    # the DB without an assocaited action. The constraint might be relaxed to
-    # "NULLIFY" if we implement the right handling in actioncontroller.
-#    action = me.fields.ReferenceField(ActionDB, reverse_delete_rule='DENY',
-#               help_text=u'The action executed by this instance.')
+    # TODO: Can status be an enum at the Mongo layer?
+    status = me.fields.StringField(required=True)
+    action = me.fields.StringField(ActionDB, default=None,
+               help_text=u'The action executed by this instance.')
     target = me.fields.StringField(required=True, default=None,
                 help_text=u'The target selection string.')
-#    parameters = me.fields.DictField(required=True, default={},
-#                help_text=u'The key-value pairs passed as parameters to the execution.')
+    runner_parameters = me.fields.DictField(required=True, default={},
+                help_text=u'The key-value pairs passed as parameters to the action runner.')
+    action_parameters = me.fields.DictField(required=True, default={},
+                help_text=u'The key-value pairs passed as parameters to the execution.')
 #    TODO: Determine whether I need to store the execution result values.
-#    result = me.fields.EmbeddedDocumentField(ExecutionResultDB, **kwargs)
+#    result_data = me.fields.EmbeddedDocumentField(ExecutionResultDB, **kwargs)
 
 
 class ActionExecutionResultDB(me.EmbeddedDocument):

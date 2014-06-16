@@ -19,15 +19,19 @@ class ActionAPI(StormBaseAPI):
         parameter_names: flat list of strings required as key names when running
                    the action.
     """
-    # TODO: debug wsme+pecan problem with "bool"
-    # enabled = wstypes.bool
-#    repo_path = wstypes.text
-#    run_type = wstypes.text
-#    parameter_names = wstypes.ArrayType(wstypes.text)
+    enabled = wstypes.bool
+    repo_path = wstypes.text
+    entry_point = wstypes.text
+    runner_type = wstypes.text
+    parameter_names = wstypes.ArrayType(wstypes.text)
 
     @classmethod
     def from_model(kls, model):
         action = StormBaseAPI.from_model(kls, model)
+        action.enabled = bool(model.enabled)
+        action.repo_path = model.repo_path
+        action.entry_point = model.entry_point
+        action.parameter_names = [str(n) for n in model.parameter_names]
         return action
 
     @classmethod
@@ -51,10 +55,12 @@ class ActionExecutionAPI(StormBaseAPI):
     Attribute:
        ...
     """
-#    status = wstypes.Enum(wstypes.text, *ACTIONEXEC_STATUSES,
-#                            default=ACTIONEXEC_STATUS_INIT)
+    status = wstypes.Enum(wstypes.text, *ACTIONEXEC_STATUSES,
+                            default=ACTIONEXEC_STATUS_INIT)
+    action = wstypes.text
     target = wstypes.text
-#    parameters = wstypes.DictType(wstypes.text, wstypes.text)
+    runner_parameters = wstypes.DictType(wstypes.text, wstypes.text)
+    action_parameters = wstypes.DictType(wstypes.text, wstypes.text)
 
     @classmethod
     def from_model(kls, model):
