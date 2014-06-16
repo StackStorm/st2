@@ -1,6 +1,6 @@
 from unittest import TestCase
 from webtest import TestApp
-from tests.st2actionrunner import FunctionalTest
+from tests.st2actionrunnercontroller import FunctionalTest
 
 
 class TestRootController(FunctionalTest):

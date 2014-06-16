@@ -65,7 +65,7 @@ CONF.register_opts(api_opts, group='actionrunner_controller_api')
 
 pecan_opts = [
     cfg.StrOpt('root',
-               default='st2actionrunner.controllers.root.RootController',
+               default='st2actionrunnercontroller.controllers.root.RootController',
                help='LiveAction root controller'),
     cfg.StrOpt('static_root', default='%(confdir)s/public'),
     cfg.StrOpt('template_path',
