@@ -1,13 +1,8 @@
 import wsmeext.pecan as wsme_pecan
-from mirantis.resource import Resource
 from pecan.rest import RestController
 from st2common.models.api.reactor import TriggerAPI, TriggerInstanceAPI
 from st2common.persistence.reactor import Trigger, TriggerInstance
 from wsme import types as wstypes
-
-
-class TriggersAPI(Resource):
-    triggers = [TriggerAPI]
 
 
 class TriggerController(RestController):
@@ -27,7 +22,7 @@ class TriggerController(RestController):
         trigger_db = Trigger.get_by_id(id)
         return TriggerAPI.from_model(trigger_db)
 
-    @wsme_pecan.wsexpose(TriggersAPI, wstypes.text)
+    @wsme_pecan.wsexpose([TriggerAPI], wstypes.text)
     def get_all(self):
         """
             List all triggers.
@@ -35,14 +30,8 @@ class TriggerController(RestController):
             Handles requests:
                 GET /triggers/
         """
-        triggers = TriggersAPI()
-        triggers.triggers = [TriggerAPI.from_model(trigger_db) for
-                             trigger_db in Trigger.get_all()]
-        return triggers
-
-
-class TriggerInstancesAPI(Resource):
-    trigger_instances = [TriggerInstanceAPI]
+        return [TriggerAPI.from_model(trigger_db) for
+                trigger_db in Trigger.get_all()]
 
 
 class TriggerInstanceController(RestController):
@@ -62,7 +51,7 @@ class TriggerInstanceController(RestController):
         trigger_instance_db = TriggerInstance.get_by_id(id)
         return TriggerInstanceAPI.from_model(trigger_instance_db)
 
-    @wsme_pecan.wsexpose(TriggerInstancesAPI, wstypes.text)
+    @wsme_pecan.wsexpose([TriggerInstanceAPI], wstypes.text)
     def get_all(self):
         """
             List all triggerinstances.
@@ -70,8 +59,5 @@ class TriggerInstanceController(RestController):
             Handles requests:
                 GET /triggerinstances/
         """
-        trigger_instances = TriggerInstancesAPI()
-        trigger_instances.trigger_instances = [
-            TriggerInstanceAPI.from_model(trigger_instance_db)
-            for trigger_instance_db in TriggerInstance.get_all()]
-        return trigger_instances
+        return [TriggerInstanceAPI.from_model(trigger_instance_db)
+                for trigger_instance_db in TriggerInstance.get_all()]

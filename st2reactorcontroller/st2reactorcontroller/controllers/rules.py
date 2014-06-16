@@ -1,13 +1,8 @@
 import wsmeext.pecan as wsme_pecan
-from mirantis.resource import Resource
 from pecan.rest import RestController
 from st2common.models.api.reactor import RuleAPI, RuleEnforcementAPI
 from st2common.persistence.reactor import Rule, RuleEnforcement
 from wsme import types as wstypes
-
-
-class RulesAPI(Resource):
-    rules = [RuleAPI]
 
 
 class RuleController(RestController):
@@ -26,7 +21,7 @@ class RuleController(RestController):
         rule_db = Rule.get_by_id(id)
         return RuleAPI.from_model(rule_db)
 
-    @wsme_pecan.wsexpose(RulesAPI, wstypes.text)
+    @wsme_pecan.wsexpose([RuleAPI], wstypes.text)
     def get_all(self):
         """
             List all rules.
@@ -34,10 +29,7 @@ class RuleController(RestController):
             Handles requests:
                 GET /rules/
         """
-        rules = RulesAPI()
-        rules.rules = [RuleAPI.from_model(rule_db)
-                       for rule_db in Rule.get_all()]
-        return rules
+        return [RuleAPI.from_model(rule_db) for rule_db in Rule.get_all()]
 
     @wsme_pecan.wsexpose(RuleAPI, body=RuleAPI, status_code=201)
     def post(self, rule):
@@ -62,10 +54,6 @@ class RuleController(RestController):
         Rule.delete(Rule.get_by_id(id))
 
 
-class RuleEnforcementsAPI(Resource):
-    ruleenforcements = [RuleEnforcementAPI]
-
-
 class RuleEnforcementController(RestController):
     """
         Implements the RESTful web endpoint that handles
@@ -83,7 +71,7 @@ class RuleEnforcementController(RestController):
         ruleenforcement_db = RuleEnforcement.get_by_id(id)
         return RuleEnforcementAPI.from_model(ruleenforcement_db)
 
-    @wsme_pecan.wsexpose(RuleEnforcementsAPI, wstypes.text)
+    @wsme_pecan.wsexpose([RuleEnforcementAPI], wstypes.text)
     def get_all(self):
         """
             List all ruleenforcements.
@@ -91,8 +79,5 @@ class RuleEnforcementController(RestController):
             Handles requests:
                 GET /ruleenforcements/
         """
-        ruleenforcements = RuleEnforcementsAPI()
-        ruleenforcements.ruleenforcements = \
-            [RuleEnforcementAPI.from_model(ruleenforcement_db)
-             for ruleenforcement_db in RuleEnforcement.get_all()]
-        return ruleenforcements
+        return [RuleEnforcementAPI.from_model(ruleenforcement_db)
+                for ruleenforcement_db in RuleEnforcement.get_all()]
