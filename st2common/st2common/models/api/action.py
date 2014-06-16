@@ -19,19 +19,24 @@ class ActionAPI(StormBaseAPI):
         parameter_names: flat list of strings required as key names when running
                    the action.
     """
+
+    """
     enabled = wstypes.bool
     repo_path = wstypes.text
     entry_point = wstypes.text
     runner_type = wstypes.text
     parameter_names = wstypes.ArrayType(wstypes.text)
+    """
 
     @classmethod
     def from_model(kls, model):
         action = StormBaseAPI.from_model(kls, model)
+        """
         action.enabled = bool(model.enabled)
         action.repo_path = model.repo_path
         action.entry_point = model.entry_point
         action.parameter_names = [str(n) for n in model.parameter_names]
+        """
         return action
 
     @classmethod
@@ -55,18 +60,22 @@ class ActionExecutionAPI(StormBaseAPI):
     Attribute:
        ...
     """
+
+    """
     status = wstypes.Enum(wstypes.text, *ACTIONEXEC_STATUSES,
                             default=ACTIONEXEC_STATUS_INIT)
     action = wstypes.text
     target = wstypes.text
     runner_parameters = wstypes.DictType(wstypes.text, wstypes.text)
     action_parameters = wstypes.DictType(wstypes.text, wstypes.text)
+    """
+    pass
 
     @classmethod
     def from_model(kls, model):
         actionexec = StormBaseAPI.from_model(kls, model)
 #        actionexec.status = str(ACTIONEXEC_STATUS_INIT)
-        actionexec.target = str(model.target)
+#        actionexec.target = str(model.target)
 #        actionexec.parameters = dict(model.parameters)
         return actionexec
 
@@ -74,5 +83,5 @@ class ActionExecutionAPI(StormBaseAPI):
     def to_model(kls, actionexec):
         model = StormBaseAPI.to_model(ActionExecutionDB, actionexec)
 #        model.status = str(actionexec.status)
-        model.target = actionexec.target
+#        model.target = actionexec.target
         return model
