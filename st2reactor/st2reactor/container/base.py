@@ -31,11 +31,18 @@ class SensorContainer(object):
         LOG.info('Container setup to run %d sensors.' % len(sensor_instances))
 
     def _run_sensor(self, sensor):
-        sensor.setup()
-        sensor.start()
+        try:
+            sensor.setup()
+        except Exception, e:
+            LOG.error('Error calling setup on sensor: %s. Exception: %s', sensor.__class__, str(e))
+        else:
+            sensor.start()
 
     def _sensor_cleanup(self, sensor):
-        sensor.stop()
+        try:
+            sensor.stop()
+        except Exception, e:
+            LOG.error('Error cleaning up sensor: %s. Exception: %s', sensor.__class__, str(e))
 
     def shutdown(self):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
