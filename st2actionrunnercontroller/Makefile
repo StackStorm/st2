@@ -1,7 +1,7 @@
 REPO_ROOT := ..
 VIRTUALENV_DIR=virtualenv
 
-COMPONENTS := st2actionrunner
+COMPONENTS := st2actionrunnercontroller
 
 PEP8_CONFIG := $(REPO_ROOT)/.pep8
 FLAKE8_CONFIG := $(REPO_ROOT)/.flake8

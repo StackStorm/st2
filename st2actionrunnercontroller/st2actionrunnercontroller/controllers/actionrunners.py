@@ -10,7 +10,7 @@ from st2common.persistence.action import LiveAction
 from st2common.models.api.actionrunner import ActionRunnerAPI
 
 
-LOG = logging.getLogger('st2actionrunner')
+LOG = logging.getLogger(__name__)
 
 
 class ActionRunnersController(RestController):

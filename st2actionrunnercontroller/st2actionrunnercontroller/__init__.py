@@ -1,5 +1,5 @@
 # setup config before anything else.
-from st2actionrunner import config
+from st2actionrunnercontroller import config
 config.parse_args()
 
 import eventlet
@@ -10,7 +10,7 @@ from oslo.config import cfg
 from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-from st2actionrunner import app
+from st2actionrunnercontroller import app
 from wsgiref import simple_server
 
 
