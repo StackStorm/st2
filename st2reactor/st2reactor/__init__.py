@@ -13,7 +13,6 @@ import st2common.util.loader as sensors_loader
 from st2reactor.container.base import SensorContainer
 from st2reactor.container.triggerdispatcher import TriggerDispatcher
 import st2reactor.container.utils as container_utils
-from st2reactor.container.base import SensorContainer
 from st2reactor.sensor.base import Sensor
 
 

@@ -1,8 +1,5 @@
-from datetime import timedelta
 import eventlet
 import sys
-from threading import Thread
-import time
 
 from st2common import log as logging
 
