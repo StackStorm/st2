@@ -73,7 +73,7 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
     __register_plugin_path(plugin_dir)
     module_name = __get_plugin_module(plugin_abs_file_path)
     if module_name is None:
-        return instances
+        return None
     module = importlib.import_module(module_name)
     klasses = __get_plugin_classes(module)
 
