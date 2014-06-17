@@ -1,9 +1,10 @@
 import httplib
-from pecan import (abort, expose, )
+from pecan import (abort, expose, request, response)
 from pecan.rest import RestController
+import uuid
 
 from wsme import types as wstypes
-from wsmeext.pecan import wsexpose
+import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
 from st2common.persistence.actionrunner import LiveAction
@@ -19,7 +20,9 @@ class LiveActionsController(RestController):
         the lifecycle of ActionRunners in the system.
     """
 
-    @wsexpose(LiveActionAPI, wstypes.text)
+    _liveaction_apis = {}
+
+    @wsme_pecan.wsexpose(LiveActionAPI, wstypes.text)
     def get_one(self, id):
         """
             List LiveAction by id.
@@ -31,9 +34,8 @@ class LiveActionsController(RestController):
         # TODO: test/handle object not found.
         return {'liveaction': id}
 
-    # TODO: Update to wsexpose
-    @expose('json')
-    def get_all(self, **kwargs):
+    @wsme_pecan.wsexpose([LiveActionAPI])
+    def get_all(self):
         """
             List all liveactions.
 
@@ -41,24 +43,39 @@ class LiveActionsController(RestController):
                 GET /liveactions/
         """
 
-        LOG.debug('kwargs from get_all call: %s', kwargs)
+        LOG.info('GET all /liveactions/')
 
-#        if not kwargs:
-#            pass
-#            # TODO: Implement
-#            abort(httplib.NOT_IMPLEMENTED)
-#        else:
-#            # TODO: implement id=foo and name=foo lookup to support query semantics.
-        return {"dummy": "get_all", "kwargs": str(kwargs)}
+#        liveaction_apis = self._liveaction_apis
 
-    @wsexpose(LiveActionAPI, body=LiveActionAPI, status_code=httplib.CREATED)
-    def post(self, live_action):
+#        liveaction_api = LiveActionAPI()
+#        liveaction_api.id = str(uuid.uuid4())
+#        liveaction_api.action_name = u'test/echo'
+
+        self._liveaction_apis.append(self.create_liveaction('test/echo', {}, {}))
+        
+        LOG.debug('GET all /liveactions/ client_result=%s', self._liveaction_apis)
+        return self._liveaction_apis
+
+    def create_liveaction(self, action_name, runner_parameters={}, action_parameters={}):
+        liveaction_api = LiveActionAPI()
+        liveaction_api.id = str(uuid.uuid4())
+        liveaction_api.action_name = str.encode(action_name)
+        liveaction_api.runner_parameters = runner_parameters
+        liveaction_api.action_parameters = action_parameters
+
+        return liveaction_api
+        
+
+    @wsme_pecan.wsexpose(LiveActionAPI, body=LiveActionAPI, status_code=httplib.CREATED)
+    def post(self, liveaction_api):
         """
             Create a new LiveAction.
 
             Handles requests:
                 POST /liveactions/
         """
+        LOG.info('POST /liveactions/ with liveaction data=%s', liveaction_api)
+
 
         abort(httplib.NOT_IMPLEMENTED)
 
@@ -73,7 +90,7 @@ class LiveActionsController(RestController):
         """
         abort(httplib.METHOD_NOT_ALLOWED)
 
-    @wsexpose(None, wstypes.text)
+    @wsme_pecan.wsexpose(None, wstypes.text)
     def delete(self, id):
         """
             Delete a LiveAction.

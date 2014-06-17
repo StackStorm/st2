@@ -2,24 +2,24 @@ import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
 
-from st2common.models.db.stormbase import StormBaseDB
+from st2common.models.db.stormbase import StormFoundationDB
 
 __all__ = ['LiveActionDB',
            'ActionRunnerDB',
            ]
 
 
-class LiveActionDB(StormBaseDB):
+class LiveActionDB(StormFoundationDB):
     """The system entity that represents an Action process running in an
        ActionRunner execution environment.
     Attribute:
         pid: the OS process id for the LiveAction process.
     """
-    pid = me.fields.StringField(required=True,
-                          help_text=u'The PID for the action process.')
+    action_name = me.fields.StringField(required=True,
+                          help_text=u'The name of the action.')
 
 
-class ActionRunnerDB(StormBaseDB):
+class ActionRunnerDB(StormFoundationDB):
     """
         The system entity that represents an ActionRunner environment in the system.
         This entity is used internally to manage and scale-out the StackStorm services.
