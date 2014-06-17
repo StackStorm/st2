@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 
 import sys
-from st2reactorcontroller import main
+from st2reactorcontroller import cmd
 
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(cmd.reactorcontroller.main())
