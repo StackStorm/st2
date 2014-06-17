@@ -15,8 +15,8 @@ class LiveActionDB(StormFoundationDB):
     Attribute:
         pid: the OS process id for the LiveAction process.
     """
-    action_name = me.fields.StringField(required=True,
-                          help_text=u'The name of the action.')
+    action_execution_id = me.fields.StringField(required=True,
+                                                help_text=u'The id of of the action_execution.')
 
 
 class ActionRunnerDB(StormFoundationDB):
