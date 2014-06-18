@@ -45,10 +45,11 @@ def __load_sensor_modules(path):
     at all.
     '''
     includes = ['*.py']
-    excludes = ['*/__init__.py', "*/_\.*"]
+    excludes = ['*/__init__.py']
 
     # transform glob patterns to regular expressions
     includes = r'|'.join([fnmatch.translate(x) for x in includes])
+    excludes = r'|'.join([fnmatch.translate(x) for x in excludes])
 
     if not os.path.isdir(path):
         raise Exception('Directory containing sensors must be provided.')
