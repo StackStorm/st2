@@ -2,7 +2,7 @@ import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
 
-from st2common.models.db.stormbase import StormBaseDB
+from st2common.models.db.stormbase import (StormFoundationDB, StormBaseDB)
 
 __all__ = ['ActionDB',
            'ActionExecutionDB',
@@ -48,17 +48,16 @@ class ActionExecutionDB(StormBaseDB):
                     output and exit status code from the stack action.
     """
 
-    """
     # TODO: Can status be an enum at the Mongo layer?
     status = me.fields.StringField(required=True)
-    action = me.fields.StringField(ActionDB, default=None,
-               help_text=u'The action executed by this instance.')
-    target = me.fields.StringField(required=True, default=None,
-                help_text=u'The target selection string.')
-    runner_parameters = me.fields.DictField(required=True, default={},
+    action_name = me.fields.StringField(
+                help_text=u'The action executed by this instance.')
+    runner_parameters = me.fields.DictField(default={},
                 help_text=u'The key-value pairs passed as parameters to the action runner.')
-    action_parameters = me.fields.DictField(required=True, default={},
+    action_parameters = me.fields.DictField(default={},
                 help_text=u'The key-value pairs passed as parameters to the execution.')
+
+    """
 #    TODO: Determine whether I need to store the execution result values.
 #    result_data = me.fields.EmbeddedDocumentField(ExecutionResultDB, **kwargs)
     """

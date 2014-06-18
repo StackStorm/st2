@@ -42,8 +42,8 @@ class StormFoundationAPI(Resource):
     @staticmethod
     def to_model(kls, api_instance):
         model = kls()
-        model.uri = str(api_instance.uri)
         model.id = str(api_instance.id)
+        model.uri = api_instance.uri
         return model
 
 class StormBaseAPI(StormFoundationAPI):

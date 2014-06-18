@@ -68,7 +68,7 @@ class ActionExecutionsController(RestController):
                                 for actionexec_db in ActionExecution.get_all()]
 
         # TODO: unpack list in log message
-        LOG.debug('GET all /actionexecutions/ result=%s', actionexec_apis)
+        LOG.debug('GET all /actionexecutions/ client_result=%s', actionexec_apis)
         return actionexec_apis
 
     @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI,
