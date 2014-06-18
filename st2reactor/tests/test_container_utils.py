@@ -1,11 +1,10 @@
-import datetime
 import mock
 import tests
 import unittest2
 
 from st2common.persistence.reactor import Trigger
 from st2common.models.db.reactor import TriggerDB
-from st2reactor.container import utils
+import st2reactor.container.utils as container_utils
 
 MOCK_TRIGGER = TriggerDB()
 MOCK_TRIGGER.id = 'trigger-test.id'
@@ -21,7 +20,7 @@ class ContainerServiceTest(unittest2.TestCase):
     @mock.patch.object(Trigger, 'add_or_update')
     def test_add_trigger(self, mock_add_handler):
         mock_add_handler.return_value = MOCK_TRIGGER
-        utils.add_trigger_types([MOCK_TRIGGER])
+        container_utils.add_trigger_types([MOCK_TRIGGER])
         self.assertTrue(mock_add_handler.called, 'trigger not added.')
 
     def test_add_trigger_type(self):
@@ -46,8 +45,8 @@ class ContainerServiceTest(unittest2.TestCase):
                 ]
 
         try:
-            st2reactor.container.utils.add_trigger_types(FailTestSensor().get_trigger_types())
+            container_utils.add_trigger_types(FailTestSensor().get_trigger_types())
             self.assertTrue(False, 'Trigger type doesn\'t have \'name\' field. Should have thrown.')
-        except Exception, e:
+        except Exception:
             self.assertTrue(True)
 
