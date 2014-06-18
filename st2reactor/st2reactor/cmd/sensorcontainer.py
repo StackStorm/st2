@@ -40,11 +40,12 @@ def __load_sensor(sensor_file_path):
 
 def __load_sensor_modules(path):
     '''
-    XXX: For now, let's just hardcode the includes pattern
+    XXX: For now, let's just hardcode the includes & excludes pattern
     here. We should eventually move these to config if that makes sense
     at all.
     '''
     includes = ['*.py']
+    excludes = ['*/__init__.py', "*/_\.*"]
 
     # transform glob patterns to regular expressions
     includes = r'|'.join([fnmatch.translate(x) for x in includes])
@@ -59,6 +60,7 @@ def __load_sensor_modules(path):
         # exclude/include files
         files = [os.path.join(dirpath, f) for f in filenames]
         files = [f for f in files if re.match(includes, f)]
+        files = [f for f in files if not re.match(excludes, f)]
         plugins.extend(files)
         break
     LOG.info('Found %d sensor modules in path.' % len(plugins))
