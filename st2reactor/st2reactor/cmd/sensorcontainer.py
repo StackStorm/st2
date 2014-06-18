@@ -11,9 +11,8 @@ from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 import st2common.util.loader as sensors_loader
 from st2reactor.container.base import SensorContainer
-from st2reactor.container.triggerdispatcher import TriggerDispatcher
+from st2reactor.container.containerservice import ContainerService
 import st2reactor.container.utils as container_utils
-from st2reactor.container.base import SensorContainer
 from st2reactor.sensor.base import Sensor
 
 
@@ -75,12 +74,12 @@ def __teardown():
 def main():
     __setup()
     sensors_dict = __load_sensor_modules()
-    dispatcher = TriggerDispatcher()
+    container_service = ContainerService()
     sensors_to_run = []
     for filename, sensors in sensors_dict.iteritems():
         for sensor_class in sensors:
             try:
-                sensor = sensor_class(dispatcher)
+                sensor = sensor_class(container_service)
             except Exception, e:
                 LOG.exception(e)
                 LOG.warning('Unable to create instance for sensor %s in file %s' %
