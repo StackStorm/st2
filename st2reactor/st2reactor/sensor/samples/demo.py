@@ -9,11 +9,11 @@ LOG = logging.getLogger('st2reactor.sensor.sensors')
 
 
 class FixedRunSensor(object):
-    __dispatcher = None
+    __container_service = None
     __iterations = 10
 
-    def __init__(self, dispatcher):
-        self.__dispatcher = dispatcher
+    def __init__(self, container_service):
+        self.__container_service = container_service
 
     def setup(self):
         pass
@@ -35,11 +35,11 @@ class FixedRunSensor(object):
 
 
 class DummyTriggerGeneratorSensor(object):
-    __dispatcher = None
+    __container_service = None
     __iterations = 10
 
-    def __init__(self, dispatcher):
-        self.__dispatcher = dispatcher
+    def __init__(self, container_service):
+        self.__container_service = container_service
 
     def setup(self):
         pass
@@ -62,7 +62,7 @@ class DummyTriggerGeneratorSensor(object):
             count += 1
             LOG.info("[{0}] of sensor {1} iter: {2}".format(
                 thread.get_ident(), self.__class__.__name__, count))
-            self.__dispatcher.dispatch([
+            self.__container_service.dispatch([
                 {'name': 'st2.dummy.t1', 'payload': {'t1_p': 't1_p_v'}},
                 {'name': 'st2.dummy.t2', 'payload': {'t2_p': 't2_p_v'}}])
             eventlet.sleep(1)
