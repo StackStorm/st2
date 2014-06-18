@@ -29,11 +29,7 @@ def __get_plugin_module(plugin_file_path):
 
 
 def __get_classes_in_module(module):
-    classes = []
-    for name, kls in inspect.getmembers(module):
-        if inspect.isclass(kls):
-            classes.append(kls)
-    return classes
+    return [kls for name, kls in inspect.getmembers(module, inspect.isclass)]
 
 
 def __get_plugin_classes(module_name):
@@ -41,11 +37,7 @@ def __get_plugin_classes(module_name):
 
 
 def __get_plugin_methods(plugin_klass):
-    plugin_methods = []
-    for name, method in inspect.getmembers(plugin_klass):
-        if inspect.ismethod(method):
-            plugin_methods.append(name)
-    return plugin_methods
+    return [name for name, method in inspect.getmembers(plugin_klass, inspect.ismethod)]
 
 
 def __validate_methods(plugin_base_class, plugin_klass):
@@ -92,4 +84,3 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
                         + ' matching requirements.')
 
     return registered_plugins
-
