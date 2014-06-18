@@ -80,7 +80,7 @@ def __load_sensor_modules(path):
     return plugins_dict
 
 
-def __is_sensor_testing():
+def __is_single_sensor_mode():
     if cfg.CONF.sensor_path is not None:
         LOG.info('Running in sensor testing mode.')
         sensor_to_test = cfg.CONF.sensor_path
@@ -138,7 +138,7 @@ def _run_sensors(sensors_dict):
 def main():
     __setup()
     sensors_dict = None
-    if __is_sensor_testing():
+    if __is_single_sensor_mode():
         return _run_sensor(cfg.CONF.sensor_path)
     else:
         sensors_dict = __load_sensor_modules(os.path.realpath(cfg.CONF.sensors.modules_path))
