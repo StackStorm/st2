@@ -30,4 +30,3 @@ class Sensor(object):
         """
         """
         pass
-

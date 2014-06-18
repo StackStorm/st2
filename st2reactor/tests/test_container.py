@@ -39,4 +39,3 @@ class ContainerTest(unittest2.TestCase):
         container.shutdown()
         self.assertEqual(RunTestSensor.stop_call_count, len(sensor_modules),
                          'Not all Sensor.stop called.')
-

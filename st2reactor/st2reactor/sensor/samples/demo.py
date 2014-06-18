@@ -66,4 +66,3 @@ class DummyTriggerGeneratorSensor(object):
                 {'name': 'st2.dummy.t1', 'payload': {'t1_p': 't1_p_v'}},
                 {'name': 'st2.dummy.t2', 'payload': {'t2_p': 't2_p_v'}}])
             eventlet.sleep(1)
-
