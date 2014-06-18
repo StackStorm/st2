@@ -78,14 +78,6 @@ class LiveActionsController(RestController):
 
         LOG.info('GET all /liveactions/')
 
-#        liveaction_apis = self._liveaction_apis
-
-#        liveaction_api = LiveActionAPI()
-#        liveaction_api.id = str(uuid.uuid4())
-#        liveaction_api.action_name = u'test/echo'
-
-#        self._liveaction_apis.append(self.create_liveaction('test/echo', {}, {}))
-
         # TODO: Implement list comprehension to transform the in-memory objects into API objects
 #        liveaction_apis = [liveaction_api for (id, liveaction_api) in self._liveaction_apis.items()]
         liveaction_apis = self._liveaction_apis.values()
@@ -97,9 +89,9 @@ class LiveActionsController(RestController):
         return self._liveaction_apis
 
 """
+    # Note: action name, action runner parameters and action parameters are all
+    # fields in the ActionExecutionDB object.
     def create_liveaction(self, action_name, runner_parameters={}, action_parameters={}):
-        # Note: action name, action runner parameters and action parameters are all
-        # fields in the ActionExecutionDB object.
         liveaction_api = LiveActionAPI()
         liveaction_api.id = str(uuid.uuid4())
         liveaction_api.action_name = str.encode(action_name)
@@ -113,6 +105,8 @@ class LiveActionsController(RestController):
     #@wsme_pecan.wsexpose(LiveActionAPI, body=LiveActionAPI, status_code=httplib.CREATED)
     @expose('json')
     def post(self, **kwargs):
+#    @wsme_pecan.wsexpose(LiveActionAPI, body=LiveActionAPI, status_code=httplib.CREATED)
+#    def post(self, liveaction_api):
         """
             Create a new LiveAction.
 
