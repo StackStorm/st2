@@ -29,7 +29,8 @@ def __get_plugin_module(plugin_file_path):
 
 
 def __get_classes_in_module(module):
-    return [kls for name, kls in inspect.getmembers(module, inspect.isclass)]
+    return [kls for name, kls in inspect.getmembers(module,
+        lambda member: inspect.isclass(member) and member.__module__ == module.__name__)]
 
 
 def __get_plugin_classes(module_name):
