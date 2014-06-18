@@ -98,6 +98,7 @@ def _run_sensor(sensor_file_path):
     except Exception, e:
         LOG.exception(e)
         LOG.warning('Exception registering plugin %s.' % sensor_file_path)
+        return -1
     exit_code = _run_sensors(sensors_dict)
     LOG.info('SensorContainer process[{}] exit with code {}.'.format(
         os.getpid(), exit_code))
