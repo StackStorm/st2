@@ -1,15 +1,15 @@
-from st2reactor import config
-
 from collections import defaultdict
 import fnmatch
 import os
 import re
+import sys
 
 from oslo.config import cfg
 from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 import st2common.util.loader as sensors_loader
+from st2reactor import config
 from st2reactor.container.base import SensorContainer
 from st2reactor.container.containerservice import ContainerService
 import st2reactor.container.utils as container_utils
@@ -19,8 +19,26 @@ from st2reactor.sensor.base import Sensor
 LOG = logging.getLogger('st2reactor.bin.sensor_container')
 
 
-def __load_sensor_modules():
-    path = os.path.realpath(cfg.CONF.sensors.modules_path)
+def __setup():
+    # setup config before anything else.
+    config.parse_args()
+    # 1. setup logging.
+    logging.setup(cfg.CONF.reactor_logging.config_file)
+    # 2. all other setup which requires config to be parsed and logging to
+    # be correctly setup.
+    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
+             cfg.CONF.database.port)
+
+
+def __teardown():
+    db_teardown()
+
+
+def __load_sensor(sensor_file_path):
+    return sensors_loader.register_plugin(Sensor, sensor_file_path)
+
+
+def __load_sensor_modules(path):
     '''
     XXX: For now, let's just hardcode the includes pattern
     here. We should eventually move these to config if that makes sense
@@ -49,31 +67,46 @@ def __load_sensor_modules():
     for plugin in plugins:
         file_path = os.path.join(path, plugin)
         try:
-            plugins_dict[plugin].extend(sensors_loader.register_plugin(Sensor, file_path))
+            LOG.info('Loading sensors from file %s.', file_path)
+            klasses = __load_sensor(file_path)
+            if klasses is not None:
+                plugins_dict[plugin].extend(klasses)
+            else:
+                LOG.info('No sensors in file %s.', file_path)
+
         except Exception, e:
             LOG.exception(e)
             LOG.warning('Exception registering plugin %s.' % file_path)
     return plugins_dict
 
 
-def __setup():
-    # setup config before anything else.
-    config.parse_args()
-    # 1. setup logging.
-    logging.setup(cfg.CONF.reactor_logging.config_file)
-    # 2. all other setup which requires config to be parsed and logging to
-    # be correctly setup.
-    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
-             cfg.CONF.database.port)
+def __is_sensor_testing():
+    if cfg.CONF.sensor_path is not None:
+        LOG.info('Running in sensor testing mode.')
+        sensor_to_test = cfg.CONF.sensor_path
+        if not os.path.exists(sensor_to_test):
+            LOG.error('Unable to find sensor file %s', sensor_to_test)
+            sys.exit(-1)
+        else:
+            return True
 
 
-def __teardown():
-    db_teardown()
+def _run_sensor(sensor_file_path):
+    sensors_dict = defaultdict(list)
+    try:
+        sensors_dict[sensor_file_path].extend(__load_sensor(sensor_file_path))
+    except Exception, e:
+        LOG.exception(e)
+        LOG.warning('Exception registering plugin %s.' % sensor_file_path)
+    exit_code = _run_sensors(sensors_dict)
+    LOG.info('SensorContainer process[{}] exit with code {}.'.format(
+        os.getpid(), exit_code))
+    __teardown()
+    return exit_code
 
 
-def main():
-    __setup()
-    sensors_dict = __load_sensor_modules()
+def _run_sensors(sensors_dict):
+    LOG.info('Setting up container to run %d sensors.', len(sensors_dict))
     container_service = ContainerService()
     sensors_to_run = []
     for filename, sensors in sensors_dict.iteritems():
@@ -98,8 +131,19 @@ def main():
 
     LOG.info('SensorContainer process[{}] started.'.format(os.getpid()))
     sensor_container = SensorContainer(sensor_instances=sensors_to_run)
-    exit_code = sensor_container.main()
-    LOG.info('SensorContainer process[{}] exit with code {}.'.format(
-        os.getpid(), exit_code))
-    __teardown()
-    return exit_code
+    return sensor_container.main()
+
+
+def main():
+    __setup()
+    sensors_dict = None
+    if __is_sensor_testing():
+        return _run_sensor(cfg.CONF.sensor_path)
+    else:
+        sensors_dict = __load_sensor_modules(os.path.realpath(cfg.CONF.sensors.modules_path))
+        LOG.info('Found %d sensors.', len(sensors_dict))
+        exit_code = _run_sensors(sensors_dict)
+        __teardown()
+        LOG.info('SensorContainer process[{}] exit with code {}.'.format(
+            os.getpid(), exit_code))
+        return exit_code

@@ -31,6 +31,9 @@ sensors_opts = [
 ]
 CONF.register_opts(sensors_opts, group='sensors')
 
+sensor_test_opt = cfg.StrOpt('sensor-path', help='Path to the sensor to test.')
+CONF.register_cli_opt(sensor_test_opt)
+
 reactor_opts = [
     cfg.StrOpt('actionexecution_base_url', default='http://0.0.0.0:9101/actionexecutions',
                help='URL of POSTing to the actionexecution endpoint.')
