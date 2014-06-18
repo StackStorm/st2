@@ -134,7 +134,6 @@ class LiveActionsController(RestController):
 
         LOG.debug('Got ActionExecution.... now launch action command.')
 
-
         abort(httplib.NOT_IMPLEMENTED)
 
     @expose('json')
