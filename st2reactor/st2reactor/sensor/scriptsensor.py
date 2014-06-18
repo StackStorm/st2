@@ -15,4 +15,3 @@ class ScriptSensor(object):
         XXX: Haven't thought through what should go in here.
         """
         pass
-

@@ -49,4 +49,3 @@ class ContainerServiceTest(unittest2.TestCase):
             self.assertTrue(False, 'Trigger type doesn\'t have \'name\' field. Should have thrown.')
         except Exception:
             self.assertTrue(True)
-

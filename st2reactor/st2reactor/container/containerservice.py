@@ -15,4 +15,3 @@ class ContainerService(object):
         Pass through implementation.
         '''
         self.__dispatcher.dispatch(triggers)
-

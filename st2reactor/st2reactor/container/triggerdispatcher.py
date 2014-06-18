@@ -22,4 +22,3 @@ class TriggerDispatcher(object):
             datetime.datetime.now())
             for trigger in triggers]
         rules_engine.handle_trigger_instances(trigger_instances)
-

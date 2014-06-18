@@ -5,7 +5,6 @@ import unittest2
 
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB
 from st2common.persistence.reactor import Trigger, TriggerInstance
-import st2reactor.container.utils as container_utils
 from st2reactor.container.triggerdispatcher import TriggerDispatcher
 
 MOCK_TRIGGER = TriggerDB()
@@ -39,4 +38,3 @@ class TriggerDispatcherTest(unittest2.TestCase):
         dispatcher.dispatch([MOCK_TRIGGER_INSTANCE])
         self.assertEquals(TriggerDispatcherTest.TestDispatcher.called_dispatch, True,
                           "dispatch() method should have been called")
-
