@@ -1,10 +1,14 @@
 from wsme import types as wstypes
 
+from st2common import log as logging
 from st2common.models.api.stormbase import (StormFoundationAPI, StormBaseAPI)
 
 __all__ = ['LiveActionAPI',
            'ActionRunnerAPI',
            ]
+
+
+LOG = logging.getLogger(__name__)
 
 
 class LiveActionAPI(StormFoundationAPI):

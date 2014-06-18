@@ -12,10 +12,10 @@ import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
 from st2common.persistence.action import ActionExecution
-from st2common.models.api.action import ActionExecutionAPI
+from st2common.models.api.action import (ActionExecutionAPI, ACTIONEXEC_STATUS_INIT)
 
 
-LOG = logging.getLogger('st2actioncontroller')
+LOG = logging.getLogger(__name__)
 
 
 class ActionExecutionsController(RestController):
@@ -73,7 +73,7 @@ class ActionExecutionsController(RestController):
 
     @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI,
                             status_code=httplib.CREATED)
-    def post(self, data):
+    def post(self, actionexecution):
         """
             Create a new actionexecution.
 
@@ -81,15 +81,22 @@ class ActionExecutionsController(RestController):
                 POST /actionexecutions/
         """
 
-        LOG.info('POST /actionexecutions/ with actionexec data=%s', data)
+        LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
 
-        actionexec_api = ActionExecutionAPI.to_model(data)
+        LOG.debug('Setting actionexecution status to "%s"', ACTIONEXEC_STATUS_INIT)
+        actionexecution.status = str(ACTIONEXEC_STATUS_INIT)
+        LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
+
+        actionexec_api = ActionExecutionAPI.to_model(actionexecution)
         LOG.debug('/actionexecutions/ POST verified ActionExecutionAPI object=%s',
                     actionexec_api)
         # TODO: POST operations should only add to DB.
         #       If an existing object conflicts then raise an error.
 
+        LOG.debug('here1')
+
         actionexec_db = ActionExecution.add_or_update(actionexec_api)
+        LOG.debug('here2')
         LOG.debug('/actionexecutions/ POST saved ActionExecutionDB object=%s', actionexec_db)
         actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
         
