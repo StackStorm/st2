@@ -12,10 +12,10 @@ class StormFoundationDB(me.Document):
     # unique etc for it to be auto-generated.
     # TODO: Work out how we can mark this as a unique primary key.
     id = me.ObjectIdField()
+    uri = me.URLField()
+
     # see http://docs.mongoengine.org/guide/defining-documents.html#
     # abstract-classes
-
-    uri = me.fields.URLField()
     meta = {
         'abstract': True
     }
@@ -32,6 +32,7 @@ class StormBaseDB(StormFoundationDB):
     """
     name = me.StringField(required=True)
     description = me.StringField()
+
     # see http://docs.mongoengine.org/guide/defining-documents.html#
     # abstract-classes
     meta = {

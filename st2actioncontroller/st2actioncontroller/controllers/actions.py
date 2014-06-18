@@ -15,7 +15,7 @@ from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 
 
-LOG = logging.getLogger('st2actioncontroller')
+LOG = logging.getLogger(__name__)
 
 
 class ActionsController(RestController):
