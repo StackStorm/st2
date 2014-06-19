@@ -2,6 +2,7 @@ from wsme import types as wstypes
 
 from st2common import log as logging
 from st2common.models.api.stormbase import (StormFoundationAPI, StormBaseAPI)
+from st2common.models.db.actionrunner import LiveActionDB
 
 __all__ = ['LiveActionAPI',
            'ActionRunnerAPI',
@@ -17,18 +18,18 @@ class LiveActionAPI(StormFoundationAPI):
     Attribute:
        pid: the OS process id for the LiveAction process. 
     """
-    action_execution_id = wstypes.text
+    actionexecution_id = wstypes.text
 
     @classmethod
     def from_model(kls, model):
         live_action = StormFoundationAPI.from_model(kls, model)
-        live_action.action_execution_id = model.action_execution_id
+        live_action.actionexecution_id = model.actionexecution_id
         return live_action
 
     @classmethod
     def to_model(kls, liveaction):
         model = StormFoundationAPI.to_model(LiveActionDB, liveaction)
-        model.action_execution_id = liveaction.action_execution_id
+        model.actionexecution_id = liveaction.actionexecution_id
         return model
 
 

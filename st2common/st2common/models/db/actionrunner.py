@@ -19,8 +19,8 @@ class LiveActionDB(StormFoundationDB):
     Attribute:
         pid: the OS process id for the LiveAction process.
     """
-    action_execution_id = me.fields.StringField(required=True,
-                                                help_text=u'The id of of the action_execution.')
+    actionexecution_id = me.StringField(required=True,
+                                          help_text=u'The id of of the action_execution.')
 
 
 class ActionRunnerDB(StormFoundationDB):
@@ -39,9 +39,9 @@ class ActionExecutionResultDB(me.EmbeddedDocument):
     TODO: fill-in
     Not sure if I will need this to be persisted.
     """
-    exit_code = me.fields.IntField()
-    std_out = me.fields.StringField()
-    std_err = me.fields.StringField()
+    exit_code = me.IntField()
+    std_out = me.StringField()
+    std_err = me.StringField()
 
 
 # specialized access objects

@@ -3,6 +3,8 @@ from pecan import (abort, expose, request, response)
 from pecan.rest import RestController
 import uuid
 
+from mongoengine import ValidationError
+
 from wsme import types as wstypes
 import wsmeext.pecan as wsme_pecan
 
@@ -47,11 +49,12 @@ class LiveActionsController(RestController):
         """
         # TODO: Maybe lookup should be done via HTTP interface. Handle via direct DB call
         #       for now.
+        LOG.debug('Lookup for ActionExecution with id=%s', id)
         try:
             actionexecution = ActionExecution.get_by_id(id)
         except (ValueError, ValidationError) as e:
             LOG.error('Database lookup for actionexecution with id="%s" resulted in exception: %s', id, e)
-            raise StackStormDBObjectNotFoundError('Unable to find actionexecution with id="%s"', id)
+            raise StackStormDBObjectNotFoundError('Unable to find actionexecution with id="%s"' % id)
 
         return actionexecution
 
@@ -99,32 +102,35 @@ class LiveActionsController(RestController):
         liveaction_api.action_parameters = action_parameters
 
         return liveaction_api
-    """
-        
 
-    #@wsme_pecan.wsexpose(LiveActionAPI, body=LiveActionAPI, status_code=httplib.CREATED)
-    @expose('json')
-    def post(self, **kwargs):
-    #@wsme_pecan.wsexpose(LiveActionAPI, body=LiveActionAPI, status_code=httplib.CREATED)
-    #def post(self, liveaction_api):
+    #@expose('json')
+    #def post(self, **kwargs):
+    @wsme_pecan.wsexpose(LiveActionAPI, body=LiveActionAPI, status_code=httplib.CREATED)
+    def post(self, liveaction):
         """
             Create a new LiveAction.
 
             Handles requests:
                 POST /liveactions/
         """
-        LOG.info('POST /liveactions/ with liveaction data=%s', kwargs)
+        LOG.info('POST /liveactions/ with liveaction data=%s', liveaction)
 
-        actionexecution_id = str(kwargs['action_execution_id'])
+        # Validate incoming API object
+        liveaction_api = LiveActionAPI.to_model(liveaction)
+        LOG.debug('/liveactions/ POST verified LiveActionAPI object=%s',
+                    liveaction_api)
+
+        actionexecution_id = str(liveaction.actionexecution_id)
         actionexecution_db = None
 
         LOG.info('POST /liveactions/ received action_execution_id: %s', actionexecution_id)
+        LOG.info('here')
         LOG.info('POST /liveactions/ attempting to obtain action_execution from database.')
         try:
             actionexecution_db = self.get_actionexecution_by_id(actionexecution_id)
 
         except StackStormDBObjectNotFoundError, e:
-            LOG.error(e.msg)
+            LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
 
