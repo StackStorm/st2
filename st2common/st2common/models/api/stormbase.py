@@ -1,6 +1,5 @@
 from wsme import types as wstypes
 
-
 from mirantis.resource import Resource
 
 
@@ -27,6 +26,7 @@ def get_model_from_ref(db_api, ref):
         return model
     return None
 
+
 class StormFoundationAPI(Resource):
     # TODO: Does URI need a custom type?
     uri = wstypes.text
@@ -43,6 +43,7 @@ class StormFoundationAPI(Resource):
     def to_model(kls, api_instance):
         model = kls()
         return model
+
 
 class StormBaseAPI(StormFoundationAPI):
     name = wstypes.text

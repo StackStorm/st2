@@ -1,5 +1,5 @@
 import httplib
-from pecan import (abort, response)
+from pecan import abort
 from pecan.rest import RestController
 
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
@@ -35,7 +35,6 @@ class ActionsController(RestController):
             abort(httplib.NOT_FOUND)
 
         return action
-    
 
     # TODO: Investigate mako rendering
     @wsme_pecan.wsexpose(ActionAPI, wstypes.text)
@@ -57,7 +56,7 @@ class ActionsController(RestController):
 
     @wsme_pecan.wsexpose([ActionAPI])
     # TODO: support kwargs
-    #def get_all(self, **kwargs):
+    # def get_all(self, **kwargs):
     def get_all(self):
         """
             List all actions.
@@ -69,7 +68,7 @@ class ActionsController(RestController):
         LOG.info('GET all /actions/')
 
         action_apis = [ActionAPI.from_model(action_db)
-                                 for action_db in Action.get_all()]
+                       for action_db in Action.get_all()]
 
         # TODO: unpack list in log message
         LOG.debug('GET all /actions/ client_result=%s', action_apis)
@@ -88,7 +87,8 @@ class ActionsController(RestController):
 
         if action.enabled is wstypes.Unset:
             # Default enabled flag to True
-            LOG.debug('POST /actions/ incoming action data has enabled field unset. Defaulting enabled to True.')
+            LOG.debug('POST /actions/ incoming action data has enabled field unset. '
+                      'Defaulting enabled to True.')
             action.enabled = True
         else:
             action.enabled = bool(action.enabled)
@@ -136,7 +136,8 @@ class ActionsController(RestController):
         try:
             Action.delete(action_db)
         except Exception, e:
-            LOG.error('Database delete encountered exception during delete of id="%s". Exception was %s', id, e)
+            LOG.error('Database delete encountered exception during delete of id="%s". '
+                      'Exception was %s', id, e)
 
         LOG.info('DELETE /actions/ with id="%s" completed', id)
         return None
