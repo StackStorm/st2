@@ -24,10 +24,10 @@ class ActionAPI(StormBaseAPI):
                    the action.
     """
 
-    """
-    enabled = wstypes.bool
-    repo_path = wstypes.text
+    enabled = bool
+    artifact_path = wstypes.text
     entry_point = wstypes.text
+    """
     runner_type = wstypes.text
     parameter_names = wstypes.ArrayType(wstypes.text)
     """
@@ -35,18 +35,22 @@ class ActionAPI(StormBaseAPI):
     @classmethod
     def from_model(kls, model):
         action = StormBaseAPI.from_model(kls, model)
-        """
         action.enabled = bool(model.enabled)
-        action.repo_path = model.repo_path
+        action.artifact_path = model.artifact_path
         action.entry_point = model.entry_point
+        """
         action.parameter_names = [str(n) for n in model.parameter_names]
         """
         return action
 
     @classmethod
-    def to_model(kls, model):
-        action = StormBaseAPI.to_model(ActionDB, model)
-        return action
+    def to_model(kls, action):
+        model = StormBaseAPI.to_model(ActionDB, action)
+        model.enabled = bool(action.enabled)
+        model.artifact_path = str(action.artifact_path)
+        model.entry_point = str(action.entry_point)
+        
+        return model
 
 
 ACTIONEXEC_STATUS_INIT = 'initializing'
@@ -67,7 +71,6 @@ class ActionExecutionAPI(StormFoundationAPI):
 
     # Correct parameters...
     status = wstypes.Enum(str, *ACTIONEXEC_STATUSES)
-#    status = wstypes.Enum(str, ACTIONEXEC_STATUS_INIT, ACTIONEXEC_STATUS_RUNNING)
     action_name = wstypes.text
     runner_parameters = wstypes.DictType(str, str)
     action_parameters = wstypes.DictType(str, str)

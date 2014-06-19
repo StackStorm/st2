@@ -86,6 +86,13 @@ class ActionsController(RestController):
 
         LOG.info('POST /actions/ with action data=%s', action)
 
+        if action.enabled is wstypes.Unset:
+            # Default enabled flag to True
+            LOG.debug('POST /actions/ incoming action data has enabled field unset. Defaulting enabled to True.')
+            action.enabled = True
+        else:
+            action.enabled = bool(action.enabled)
+
         action_api = ActionAPI.to_model(action)
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action_api)
         # TODO: POST operations should only add to DB.
