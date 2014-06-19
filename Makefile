@@ -106,3 +106,6 @@ install:
 	mkdir -p /etc/st2reactor/sensor/samples
 	cp st2reactor/st2reactor/sensor/samples/* /etc/st2reactor/sensor/samples/
 
+.PHONY: rpms
+rpms:
+	$(foreach COM,$(COMPONENTS), pushd $(COM); make rpm; popd;)
