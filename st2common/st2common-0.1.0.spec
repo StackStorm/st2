@@ -20,6 +20,8 @@ An automation plaform that needs a much better description than this.
 %setup
 
 %build
+sed -i -r "s~(st2.*)/conf~/etc/\1~g" conf/stanley.conf
+sed -i -r "s~(st2reactor/sensor/samples)~/etc/\1~g" conf/stanley.conf
 
 %install
 
@@ -30,6 +32,7 @@ mkdir -p %{buildroot}/etc/stanley
 cp -R external/mirantis %{buildroot}%{python2_sitelib}/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 install conf/stanley.conf %{buildroot}/etc/stanley/stanley.conf
+
 
 %files
 %{python2_sitelib}/st2common*
