@@ -24,9 +24,12 @@ An automation plaform that needs a much better description than this.
 %install
 
 mkdir -p %{buildroot}/etc/st2actionrunnercontroller
-cp -R st2actionrunnercontroller/st2actionrunnercontroller %{buildroot}/%{python2_sitelib}/
-cp -R st2actionrunnercontroller/conf/* %{buildroot}/etc/st2actionrunnercontroller
-install -m755 st2actionrunnercontroller/bin/actionrunner_controller %{buildroot}/usr/bin/actionrunner_controller
+mkdir -p %{buildroot}%{python2_sitelib}
+mkdir -p %{buildroot}/usr/bin/
+cp -R st2actionrunnercontroller %{buildroot}%{python2_sitelib}/
+cp -R st2actionrunner %{buildroot}%{python2_sitelib}/
+cp -R conf/* %{buildroot}/etc/st2actionrunnercontroller
+install -m755 bin/actionrunner_controller %{buildroot}/usr/bin/actionrunner_controller
 
 %files
 
