@@ -12,7 +12,9 @@ import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
 from st2common.persistence.action import ActionExecution
-from st2common.models.api.action import (ActionExecutionAPI, ACTIONEXEC_STATUS_INIT)
+from st2common.models.api.action import (ActionExecutionAPI, ACTIONEXEC_STATUS_INIT,
+                                         ACTION_NAME, ACTION_ID
+                                         )
 
 
 LOG = logging.getLogger(__name__)
@@ -83,6 +85,11 @@ class ActionExecutionsController(RestController):
 
         LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
 
+        if ACTION_ID not in actionexecution.action:
+            LOG.error('Action can only be accessed by ID in the current implementation.'
+                      'Aborting POST.')
+            abort(httplib.NOT_IMPLEMENTED)
+
         LOG.debug('Setting actionexecution status to "%s"', ACTIONEXEC_STATUS_INIT)
         actionexecution.status = str(ACTIONEXEC_STATUS_INIT)
         LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
@@ -93,10 +100,7 @@ class ActionExecutionsController(RestController):
         # TODO: POST operations should only add to DB.
         #       If an existing object conflicts then raise an error.
 
-        LOG.debug('here1')
-
         actionexec_db = ActionExecution.add_or_update(actionexec_api)
-        LOG.debug('here2')
         LOG.debug('/actionexecutions/ POST saved ActionExecutionDB object=%s', actionexec_db)
         actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
         

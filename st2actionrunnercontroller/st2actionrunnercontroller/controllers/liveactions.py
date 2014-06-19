@@ -42,21 +42,21 @@ class LiveActionsController(RestController):
         api.action_execution_id = 'some other id'
         self._liveaction_apis['78901'] = api
 
-    def get_actionexecution_by_id(self, id):
+    def get_actionexecution_by_id(self, actionexecution_id):
         """
             Get ActionExecution by id.
             On error, raise ST2ObjectNotFoundError.
         """
         # TODO: Maybe lookup should be done via HTTP interface. Handle via direct DB call
         #       for now.
-        LOG.debug('Lookup for ActionExecution with id=%s', id)
+        LOG.debug('Lookup for ActionExecution with id=%s', actionexecution_id)
         try:
-            actionexecution = ActionExecution.get_by_id(id)
+            actionexecution_db = ActionExecution.get_by_id(actionexecution_id)
         except (ValueError, ValidationError) as e:
-            LOG.error('Database lookup for actionexecution with id="%s" resulted in exception: %s', id, e)
-            raise StackStormDBObjectNotFoundError('Unable to find actionexecution with id="%s"' % id)
+            LOG.error('Database lookup for actionexecution with id="%s" resulted in exception: %s', actionexecution_id, e)
+            raise StackStormDBObjectNotFoundError('Unable to find actionexecution with id="%s"' % actionexecution_id)
 
-        return actionexecution
+        return actionexecution_db
 
     @wsme_pecan.wsexpose(LiveActionAPI, wstypes.text)
     def get_one(self, id):
