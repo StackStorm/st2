@@ -49,7 +49,7 @@ class ActionAPI(StormBaseAPI):
         model.enabled = bool(action.enabled)
         model.artifact_path = str(action.artifact_path)
         model.entry_point = str(action.entry_point)
-        
+
         return model
 
 
@@ -58,12 +58,13 @@ ACTIONEXEC_STATUS_RUNNING = 'running'
 ACTIONEXEC_STATUS_COMPLETE = 'complete'
 ACTIONEXEC_STATUS_ERROR = 'error'
 
-ACTIONEXEC_STATUSES = [ ACTIONEXEC_STATUS_INIT, ACTIONEXEC_STATUS_RUNNING,
-                        ACTIONEXEC_STATUS_COMPLETE, ACTIONEXEC_STATUS_ERROR,
+ACTIONEXEC_STATUSES = [ACTIONEXEC_STATUS_INIT, ACTIONEXEC_STATUS_RUNNING,
+                       ACTIONEXEC_STATUS_COMPLETE, ACTIONEXEC_STATUS_ERROR,
                        ]
 
 ACTION_NAME = 'name'
 ACTION_ID = 'id'
+
 
 class ActionExecutionAPI(StormFoundationAPI):
     """The system entity that represents the execution of a Stack Action/Automation in

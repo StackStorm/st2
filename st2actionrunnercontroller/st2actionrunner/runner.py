@@ -2,6 +2,7 @@ from abc import abstractmethod
 
 from st2actionrunner import RunnerBase
 
+
 class StackRunner(stackstorm.stackrunner.StackRunnerBase):
     """
         Defines the interface that must be implemented by each
@@ -9,7 +10,8 @@ class StackRunner(stackstorm.stackrunner.StackRunnerBase):
     """
 
     def __init__(self, action_id, action_name, runner_parameters, action_parameters):
-        st2actionrunnerRunnerBase.__init__(self, action_id, action_name, runner_parameters, action_parameters)
+        st2actionrunnerRunnerBase.__init__(self, action_id, action_name,
+                                           runner_parameters, action_parameters)
 
     @abstractmethod
     def get_help_message(self):
@@ -32,5 +34,6 @@ class StackRunner(stackstorm.stackrunner.StackRunnerBase):
     def post_run(self, target=None, params=None):
         pass
 
-def get_runner(staction, target, args):
+
+def get_runner(action, target, args):
     raise NotImplementedError()

@@ -1,7 +1,5 @@
 from pecan import conf
 
-from st2common.models.api import action as actionAPImodel
-
 
 def init_model():
     """

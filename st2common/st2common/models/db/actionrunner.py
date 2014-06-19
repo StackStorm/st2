@@ -20,7 +20,7 @@ class LiveActionDB(StormFoundationDB):
         pid: the OS process id for the LiveAction process.
     """
     actionexecution_id = me.StringField(required=True,
-                                          help_text=u'The id of of the action_execution.')
+                                        help_text=u'The id of of the action_execution.')
 
 
 class ActionTypeDB(StormBaseDB):
@@ -42,13 +42,13 @@ class ActionTypeDB(StormBaseDB):
     """
 
     enabled = me.BooleanField(required=True, default=True,
-                                  help_text=(u'Flag indicating whether the action runner ' +
-                                             u'represented by this actiontype is enabled.'))
+                              help_text=(u'Flag indicating whether the action runner ' +
+                                         u'represented by this actiontype is enabled.'))
     runner_parameter_names = me.ListField(required=True, default=[],
-                                             help_text=(u'A list of the parameter names ' +
-                                                        u'required by the action runner.'))
+                                          help_text=(u'A list of the parameter names ' +
+                                                     u'required by the action runner.'))
     runner_module = me.StringField(required=True,
-                                      help_text=u'Implementation of the action runner.')
+                                   help_text=u'Implementation of the action runner.')
 
     # TODO: Write generic str function for API and DB model base classes
     def __str__(self):

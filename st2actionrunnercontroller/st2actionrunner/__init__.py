@@ -1,5 +1,4 @@
 import abc
-import traceback
 
 
 ACTION_NOT_SET_MSG = 'self._action not set.'
@@ -13,6 +12,7 @@ EXIT_CODE = 'exit_code'
 ACTION_ID = 0
 ACTION_NAME = 1
 ACTION_DB = 2
+
 
 class RunnerBase():
     __metaclass__ = abc.ABCMeta
@@ -64,7 +64,7 @@ class RunnerBase():
     def get_run_type(self):
         if not self._action:
             raise ValueError(ACTION_NOT_SET_MSG)
-        
+
     def report_stdout(self, message):
         self._action_result['stdout'].append(message)
 
@@ -96,10 +96,9 @@ class RunnerBase():
         # take first line
         # SHA is at
         # line.split(' ')[1]
-        
 
     def _create_action_execution(self, action, args, target=None):
-        action_execution = StactionExecution()
+        action_execution = ActionExecution()
         action_execution.action = action
         action_execution.params = args
         action_execution.status = STEXEC_STARTING
@@ -107,14 +106,14 @@ class RunnerBase():
         action_execution = action_execution.save()
 
         if self._action_result[EXECUTION_ID]:
-            raise ValueError('Staction execution ID already set')
+            raise ValueError('Action execution ID already set')
         self._action_result[EXECUTION_ID] = str(action_execution.id)
 
         return action_execution
 
     def _update_action_execution(self, action_execution, status):
         if not action_execution:
-            raise ValueError('Staction execution object invalid')
+            raise ValueError('Action execution object invalid')
 
         action_execution.status = status
         action_execution = action_execution.save()
@@ -130,23 +129,24 @@ class RunnerBase():
     """
 
     def do_run(self, action, target, args):
-        #return self.generate_dummy_data()
+        # return self.generate_dummy_data()
 
         params = self._parse_args(args)
 
-
         # create execution action
         action_execution = self._create_action_execution(action, args)
-        log.audit('Staction "%s" triggered for target "%s" with arguments "%s". Staction execution id "%s" ', action.name, target, params, action_execution.id)
+        log.audit('Action "%s" triggered for target "%s" with arguments "%s". '
+                  'Action execution id "%s" ',
+                  action.name, target, params, action_execution.id)
 
         self._update_action_execution(action_execution, STEXEC_RUNNING)
 
         # report action start
-#        self.report_action_control('Starting action name="%s",id="%s"' % (self._action_execution.action.name, self._action_execution.action.id))
+        # self.report_action_control('Starting action name="%s",id="%s"' % (self._action_execution.action.name, self._action_execution.action.id))
 
         # report action repo ID
         self._set_repo_id(action)
-        
+
         self.pre_run()
         self.run(target, params)
         self.post_run()
@@ -162,6 +162,7 @@ class RunnerBase():
         print 'debug action result: %s' % self._action_result
         # TODO: destroy exec action (move exec station to historical table)
 
-        log.audit('Staction execution id "%s" completed with result "%s"', action_execution.id, self._action_result)
+        log.audit('Action execution id "%s" completed with result "%s"',
+                  action_execution.id, self._action_result)
 
         return self._action_result

@@ -16,18 +16,18 @@ from st2common.persistence.actionrunner import ActionType
 LOG = logging.getLogger(__name__)
 
 
-ACTION_TYPES = { 'shellaction': {'name': 'shellaction',
-                                 'description': 'A shell action type',
-                                 'enabled': True,
-                                 'runner_parameter_names': ['command'],
-                                 'runner_module': 'test.runner',
-                                 },
-                 'sshaction': {'name': 'sshaction',
-                                 'description': 'An ssh action type',
-                                 'enabled': True,
-                                 'runner_parameter_names': ['host', 'user', 'password', 'command'],
-                                 'runner_module': 'test.sshrunner',
-                               },
+ACTION_TYPES = {'shellaction': {'name': 'shellaction',
+                                'description': 'A shell action type',
+                                'enabled': True,
+                                'runner_parameter_names': ['command'],
+                                'runner_module': 'test.runner',
+                                },
+                'sshaction': {'name': 'sshaction',
+                              'description': 'An ssh action type',
+                              'enabled': True,
+                              'runner_parameter_names': ['host', 'user', 'password', 'command'],
+                              'runner_module': 'test.sshrunner',
+                              },
                 }
 
 
@@ -43,7 +43,7 @@ class ActionTypesController(RestController):
             actiontype_db = None
             try:
                 actiontype_db = self._get_actiontype_by_name(name)
-            except StackStormDBObjectNotFoundError, e:
+            except StackStormDBObjectNotFoundError:
                 LOG.debug('ActionType "%s" does not exist in DB', name)
             else:
                 continue
@@ -73,15 +73,19 @@ class ActionTypesController(RestController):
         except (ValueError, ValidationError) as e:
             LOG.error('Database lookup for name="%s" resulted in exception: %s',
                       actiontype_name, e)
-            raise StackStormDBObjectNotFoundError('Unable to find actiontype with name="%s"' % actiontype_name)
+            raise StackStormDBObjectNotFoundError('Unable to find actiontype with name="%s"'
+                                                  % actiontype_name)
 
         if not actiontypes:
-            LOG.error('Database lookup for ActionType with name="%s" produced no results', actiontype_name)
-            raise StackStormDBObjectNotFoundError('Unable to find actiontype with name="%s"' % actiontype_name)
+            LOG.error('Database lookup for ActionType with name="%s" produced no results',
+                      actiontype_name)
+            raise StackStormDBObjectNotFoundError('Unable to find actiontype with name="%s"'
+                                                  % actiontype_name)
 
         if len(actiontypes) > 1:
-            LOG.warning('More than one ActionType returned from DB lookup by name. Result list is: %s', actiontypes)
-        
+            LOG.warning('More than one ActionType returned from DB lookup by name. '
+                        'Result list is: %s', actiontypes)
+
         return actiontypes[0]
 
     def _get_by_id(self, id):
@@ -128,7 +132,7 @@ class ActionTypesController(RestController):
         LOG.info('GET all /actiontypes/')
 
         actiontype_apis = [ActionTypeAPI.from_model(actiontype_db)
-                                for actiontype_db in ActionType.get_all()]
+                           for actiontype_db in ActionType.get_all()]
 
         # TODO: Unpack list in log message
         LOG.debug('GET all /actiontypes/ client_result=%s', actiontype_apis)

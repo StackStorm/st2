@@ -1,5 +1,5 @@
 import httplib
-from pecan import (abort, expose, response)
+from pecan import abort
 from pecan.rest import RestController
 
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
@@ -13,7 +13,7 @@ import wsmeext.pecan as wsme_pecan
 from st2common import log as logging
 from st2common.persistence.action import ActionExecution
 from st2common.models.api.action import (ActionExecutionAPI, ACTIONEXEC_STATUS_INIT,
-                                         ACTION_NAME, ACTION_ID
+                                         ACTION_ID
                                          )
 
 
@@ -35,7 +35,7 @@ class ActionExecutionsController(RestController):
         except (ValidationError, ValueError) as e:
             LOG.error('Database lookup for id="%s" resulted in exception: %s', id, e)
             abort(httplib.NOT_FOUND)
-        
+
         return actionexec
 
     @wsme_pecan.wsexpose(ActionExecutionAPI, wstypes.text)
@@ -67,14 +67,14 @@ class ActionExecutionsController(RestController):
 
         LOG.info('GET all /actionexecutions/')
         actionexec_apis = [ActionExecutionAPI.from_model(actionexec_db)
-                                for actionexec_db in ActionExecution.get_all()]
+                           for actionexec_db in ActionExecution.get_all()]
 
         # TODO: unpack list in log message
         LOG.debug('GET all /actionexecutions/ client_result=%s', actionexec_apis)
         return actionexec_apis
 
     @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI,
-                            status_code=httplib.CREATED)
+                         status_code=httplib.CREATED)
     def post(self, actionexecution):
         """
             Create a new actionexecution.
@@ -96,19 +96,19 @@ class ActionExecutionsController(RestController):
 
         actionexec_api = ActionExecutionAPI.to_model(actionexecution)
         LOG.debug('/actionexecutions/ POST verified ActionExecutionAPI object=%s',
-                    actionexec_api)
+                  actionexec_api)
         # TODO: POST operations should only add to DB.
         #       If an existing object conflicts then raise an error.
 
         actionexec_db = ActionExecution.add_or_update(actionexec_api)
         LOG.debug('/actionexecutions/ POST saved ActionExecutionDB object=%s', actionexec_db)
         actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
-        
+
         LOG.debug('POST /actionexecutions/ client_result=%s', actionexec_api)
         return actionexec_api
 
     @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI,
-                            status_code=httplib.FORBIDDEN)
+                         status_code=httplib.FORBIDDEN)
     def put(self, data):
         """
             Update an actionexecution does not make any sense.
@@ -133,15 +133,16 @@ class ActionExecutionsController(RestController):
         LOG.info('DELETE /actionexecutions/ with id=%s', id)
 
         actionexec_db = self.get_by_id(id)
-        LOG.debug('DELETE /actionexecutions/ lookup with id=%s found object: %s', 
-                    id, actionexec_db)
+        LOG.debug('DELETE /actionexecutions/ lookup with id=%s found object: %s',
+                  id, actionexec_db)
 
         # TODO: Delete should migrate the execution data to a history collection.
 
         try:
             ActionExecution.delete(actionexec_db)
         except Exception, e:
-            LOG.error('Database delete encountered exception during delete of id="%s". Exception was %s', id, e)
+            LOG.error('Database delete encountered exception during delete of id="%s". '
+                      'Exception was %s', id, e)
 
         LOG.info('DELETE /actionexecutions/ with id="%s" completed', id)
         return None

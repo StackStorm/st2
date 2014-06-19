@@ -1,7 +1,6 @@
 import httplib
-from pecan import (abort, expose, request, response)
+from pecan import (abort, expose)
 from pecan.rest import RestController
-import uuid
 
 from mongoengine import ValidationError
 
@@ -13,7 +12,6 @@ from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.actionrunner import LiveActionAPI
 from st2common.persistence.action import ActionExecution
-from st2common.persistence.actionrunner import LiveAction
 
 
 LOG = logging.getLogger(__name__)
@@ -28,7 +26,6 @@ class LiveActionsController(RestController):
     _liveaction_apis = {}
 
     def __init__(self):
-        
         api = LiveActionAPI()
         api.id = '12345'
         api.name = 'test/echo'
@@ -53,8 +50,10 @@ class LiveActionsController(RestController):
         try:
             actionexecution_db = ActionExecution.get_by_id(actionexecution_id)
         except (ValueError, ValidationError) as e:
-            LOG.error('Database lookup for actionexecution with id="%s" resulted in exception: %s', actionexecution_id, e)
-            raise StackStormDBObjectNotFoundError('Unable to find actionexecution with id="%s"' % actionexecution_id)
+            LOG.error('Database lookup for actionexecution with id="%s" resulted in '
+                      'exception: %s', actionexecution_id, e)
+            raise StackStormDBObjectNotFoundError('Unable to find actionexecution with '
+                                                  'id="%s"' % actionexecution_id)
 
         return actionexecution_db
 
@@ -82,12 +81,12 @@ class LiveActionsController(RestController):
         LOG.info('GET all /liveactions/')
 
         # TODO: Implement list comprehension to transform the in-memory objects into API objects
-#        liveaction_apis = [liveaction_api for (id, liveaction_api) in self._liveaction_apis.items()]
+        # liveaction_apis = [liveaction_api for (id, liveaction_api) in self._liveaction_apis.items()]
         liveaction_apis = self._liveaction_apis.values()
 
         for api in liveaction_apis:
             LOG.debug('    %s', str(api))
-        
+
         LOG.debug('GET all /liveactions/ client_result=%s', self._liveaction_apis)
         return self._liveaction_apis
 
@@ -104,8 +103,8 @@ class LiveActionsController(RestController):
         return liveaction_api
     """
 
-    #@expose('json')
-    #def post(self, **kwargs):
+    # @expose('json')
+    # def post(self, **kwargs):
     @wsme_pecan.wsexpose(LiveActionAPI, body=LiveActionAPI, status_code=httplib.CREATED)
     def post(self, liveaction):
         """
@@ -119,7 +118,7 @@ class LiveActionsController(RestController):
         # Validate incoming API object
         liveaction_api = LiveActionAPI.to_model(liveaction)
         LOG.debug('/liveactions/ POST verified LiveActionAPI object=%s',
-                    liveaction_api)
+                  liveaction_api)
 
         actionexecution_id = str(liveaction.actionexecution_id)
         actionexecution_db = None
@@ -135,7 +134,8 @@ class LiveActionsController(RestController):
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
 
-        LOG.info('POST /liveactions/ obtained action execution object from database. Object is %s', actionexecution_db)
+        LOG.info('POST /liveactions/ obtained action execution object from database. '
+                 'Object is %s', actionexecution_db)
 
         LOG.info('ae name %s', actionexecution_db.name)
 

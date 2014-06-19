@@ -54,7 +54,7 @@ class ActionExecutionDB(StormFoundationDB):
     # TODO: Can status be an enum at the Mongo layer?
     status = me.StringField(required=True,
                 help_text=u'The current status of the ActionExecution.')
-    action_name = me.StringField(
+    action = me.DictField(required=True,
                 help_text=u'The action executed by this instance.')
     runner_parameters = me.DictField(default={},
                 help_text=u'The key-value pairs passed as parameters to the action runner.')

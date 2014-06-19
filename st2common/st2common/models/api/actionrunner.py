@@ -78,7 +78,7 @@ class ActionTypeAPI(StormBaseAPI):
         model.enabled = bool(actiontype.enabled)
         model.runner_parameter_names = [str(v) for v in actiontype.runner_parameter_names]
         model.runner_module = str(actiontype.runner_module)
-        
+
         LOG.debug('exiting ActionTypeAPI.to_model() Result object: %s', model)
         return model
 
@@ -94,7 +94,6 @@ class ActionTypeAPI(StormBaseAPI):
         result += 'runner_module=%s, ' % str(self.runner_module)
         result += ')'
         return result
-
 
 
 class ActionRunnerAPI(StormBaseAPI):
