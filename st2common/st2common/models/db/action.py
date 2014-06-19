@@ -24,13 +24,13 @@ class ActionDB(StormBaseDB):
                    the action.
     """
 
-    """
-    enabled = me.fields.BooleanField(required=True, default=True,
+    enabled = me.BooleanField(required=True, default=True,
                           help_text=u'Flag indicating whether the action is enabled.')
-    repo_path = me.fields.StringField(required=True,
+    artifact_path = me.StringField(required=True,
                           help_text=u'Path to action content relative to repository base.')
-    entry_point = me.fields.StringField(required=True,
+    entry_point = me.StringField(required=True,
                           help_text=u'Action entrypoint.')
+    """
     runner_type = me.fields.StringField(required=True,
                           help_text=u'Execution environment to use when invoking the action.')
     parameter_names = me.fields.ListField(required=True,
@@ -52,7 +52,7 @@ class ActionExecutionDB(StormFoundationDB):
     """
 
     # TODO: Can status be an enum at the Mongo layer?
-    status = me.StringField(
+    status = me.StringField(required=True,
                 help_text=u'The current status of the ActionExecution.')
     action_name = me.StringField(
                 help_text=u'The action executed by this instance.')
