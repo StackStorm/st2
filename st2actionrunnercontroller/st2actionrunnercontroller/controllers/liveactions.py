@@ -102,6 +102,7 @@ class LiveActionsController(RestController):
         liveaction_api.action_parameters = action_parameters
 
         return liveaction_api
+    """
 
     #@expose('json')
     #def post(self, **kwargs):
