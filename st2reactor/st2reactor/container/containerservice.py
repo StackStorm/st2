@@ -4,7 +4,7 @@ from triggerdispatcher import TriggerDispatcher
 
 class ContainerService(object):
     __dispatcher = None
-    __base_logger_name = 'st2reactor.sensorcontainer.sensor.'
+    __base_logger_name = 'st2reactor.sensorcontainer.sensors.'
 
     def __init__(self):
         self.__dispatcher = TriggerDispatcher()
