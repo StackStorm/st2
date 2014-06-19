@@ -1,28 +1,30 @@
 import eventlet
+import logging
 import random
 import thread
-
-from st2common import log as logging
-
-
-LOG = logging.getLogger('st2reactor.sensor.sensors')
 
 
 class FixedRunSensor(object):
     __container_service = None
     __iterations = 10
+    __log = None
 
     def __init__(self, container_service):
         self.__container_service = container_service
 
     def setup(self):
+        self.__log = self.__container_service.get_logger(self.__class__.__name__)
+        hdlr = logging.FileHandler('/tmp/demosensor.log')
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        hdlr.setFormatter(formatter)
+        self.__log.addHandler(hdlr)
         pass
 
     def start(self):
         count = 0
         while self.__iterations > count:
             count += 1
-            LOG.info("[{0}] iter: {1}".format(thread.get_ident(), count))
+            self.__log.info("[{0}] iter: {1}".format(thread.get_ident(), count))
             eventlet.sleep(random.randint(1, 100) * 0.01)
 
     def stop(self):
@@ -37,11 +39,13 @@ class FixedRunSensor(object):
 class DummyTriggerGeneratorSensor(object):
     __container_service = None
     __iterations = 10
+    __log = None
 
     def __init__(self, container_service):
         self.__container_service = container_service
 
     def setup(self):
+        self.__log = self.__container_service.get_logger(self.__class__.__name__)
         pass
 
     def start(self):
@@ -60,7 +64,7 @@ class DummyTriggerGeneratorSensor(object):
         count = 0
         while self.__iterations > count:
             count += 1
-            LOG.info("[{0}] of sensor {1} iter: {2}".format(
+            self.__log.info("[{0}] of sensor {1} iter: {2}".format(
                 thread.get_ident(), self.__class__.__name__, count))
             self.__container_service.dispatch([
                 {'name': 'st2.dummy.t1', 'payload': {'t1_p': 't1_p_v'}},
