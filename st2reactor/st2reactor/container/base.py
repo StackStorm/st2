@@ -14,7 +14,7 @@ eventlet.monkey_patch(
     time=True
 )
 
-LOG = logging.getLogger('st2reactor.sensor.container')
+LOG = logging.getLogger('st2reactor.sensorcontainer')
 
 
 class SensorContainer(object):
