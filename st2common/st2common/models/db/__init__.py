@@ -8,7 +8,7 @@ LOG = logging.getLogger('st2common.models.db')
 def db_setup(db_name, db_host, db_port):
     LOG.info('Database details - dbname:{}, host:{}, port:{}'.format(
         db_name, db_host, db_port))
-    connect(db_name, host=db_host, port=db_port)
+    return connect(db_name, host=db_host, port=db_port)
 
 
 def db_teardown():

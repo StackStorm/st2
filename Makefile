@@ -94,7 +94,12 @@ web:
 
 .PHONY: tests
 tests: requirements
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $(COMPONENTS_TEST)
+	@for component in $(COMPONENTS_TEST); do\
+		echo "==========================================================="; \
+		echo "Running tests in" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $$component; \
+	done
 
 .PHONY: install
 install:
@@ -105,4 +110,3 @@ install:
 	$(foreach COM,$(filter-out st2common,$(COMPONENTS)),mkdir -p /etc/$(COM) && cp $(COM)/conf/* /etc/$(COM)/ && cp $(COM)/bin/* /usr/bin/;)
 	mkdir -p /etc/st2reactor/sensor/samples
 	cp st2reactor/st2reactor/sensor/samples/* /etc/st2reactor/sensor/samples/
-
