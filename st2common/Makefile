@@ -1,21 +1,9 @@
-REPO_ROOT := ..
-VIRTUALENV_DIR=virtualenv
 RPM_ROOT=~/rpmbuild
 RPM_SOURCES_DIR := $(RPM_ROOT)/SOURCES/
 RPM_SPECS_DIR := $(RPM_ROOT)/SPECS/
 VER=0.1.0
 
-COMPONENTS := st2reactorcontroller
-
-.PHONY: clean
-clean:
-	rm -rf *.egg-info
-	find . -name \*.pyc -type f -delete
-	find . -name \*.pyo -type f -delete
-
-.PHONY: test
-test:
-	. ../$(VIRTUALENV_DIR)/bin/activate; PECAN_CONFIG=tests/config.py python setup.py test -q
+COMPONENTS := st2common
 
 .PHONY: rpm
 rpm: 
@@ -24,4 +12,3 @@ rpm:
 	cp $(COMPONENTS)-$(VER).spec $(RPM_SPECS_DIR)/
 	cd $(RPM_SPECS_DIR)
 	rpmbuild -ba $(COMPONENTS)-$(VER).spec
-
