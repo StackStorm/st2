@@ -5,6 +5,7 @@ import re
 import sys
 
 from oslo.config import cfg
+from st2common.exceptions.plugins import IncompatiblePluginException
 from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
@@ -77,7 +78,7 @@ def __load_sensor_modules(path):
             else:
                 LOG.info('No sensors in file %s.', file_path)
 
-        except Exception, e:
+        except IncompatiblePluginException, e:
             LOG.exception(e)
             LOG.warning('Exception registering plugin %s.' % file_path)
     return plugins_dict
@@ -98,7 +99,7 @@ def _run_sensor(sensor_file_path):
     sensors_dict = defaultdict(list)
     try:
         sensors_dict[sensor_file_path].extend(__load_sensor(sensor_file_path))
-    except Exception, e:
+    except IncompatiblePluginException, e:
         LOG.exception(e)
         LOG.warning('Exception registering plugin %s.' % sensor_file_path)
         return -1
@@ -125,7 +126,7 @@ def _run_sensors(sensors_dict):
             else:
                 try:
                     container_utils.add_trigger_types(sensor.get_trigger_types())
-                except Exception, e:
+                except TriggerTypeRegistrationException, e:
                     LOG.exception(e)
                     LOG.warning('Unable to register trigger type for sensor %s in file %s' %
                                 (sensor_class, filename))

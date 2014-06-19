@@ -3,6 +3,7 @@ import inspect
 import os
 import sys
 
+from st2common.exceptions.plugins import IncompatiblePluginException
 from st2common import log as logging
 
 
@@ -51,7 +52,7 @@ def __validate_methods(plugin_base_class, plugin_klass):
     plugin_methods = __get_plugin_methods(plugin_klass)
     for method in expected_methods:
         if method not in plugin_methods:
-            raise Exception('Class %s does not implement method %s in base class.'
+            raise IncompatiblePluginException('Class %s does not implement method %s in base class.'
                             % (plugin_klass, method))
 
 

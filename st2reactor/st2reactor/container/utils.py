@@ -1,6 +1,7 @@
 import datetime
 
 from st2common import log as logging
+from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import Trigger, TriggerInstance
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB
 
@@ -43,7 +44,7 @@ def __validate_trigger_type(trigger_type):
     required_fields = ['name']
     for field in required_fields:
         if field not in trigger_type:
-            raise Exception('Invaid trigger type. Missing field %s' % field)
+            raise TriggerTypeRegistrationException('Invaid trigger type. Missing field %s' % field)
 
 
 def __add_trigger_type(trigger_type):
