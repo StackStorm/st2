@@ -1,4 +1,5 @@
 import datetime
+import nose.tools
 import tests
 import unittest2
 import mongoengine.connection
@@ -88,6 +89,7 @@ class ReactorModelTest(unittest2.TestCase):
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
+    @nose.tools.nottest
     def test_rule_crud(self):
         triggersource = ReactorModelTest._create_save_triggersource()
         action = ActionModelTest._create_save_action()
@@ -103,6 +105,7 @@ class ReactorModelTest(unittest2.TestCase):
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
+    @nose.tools.nottest
     def test_ruleenforcement_crud(self):
         triggersource = ReactorModelTest._create_save_triggersource()
         trigger = ReactorModelTest._create_save_trigger(triggersource)
@@ -122,6 +125,7 @@ class ReactorModelTest(unittest2.TestCase):
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
+    @nose.tools.nottest
     def test_rule_lookup(self):
         triggersource = ReactorModelTest._create_save_triggersource()
         action = ActionModelTest._create_save_action()
@@ -218,6 +222,7 @@ class ActionModelTest(unittest2.TestCase):
     def tearDownClass(cls):
         db_teardown()
 
+    @nose.tools.nottest
     def test_action_crud(self):
         saved = ActionModelTest._create_save_action()
         retrieved = Action.get_by_id(saved.id)
