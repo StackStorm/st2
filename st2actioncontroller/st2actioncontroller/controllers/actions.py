@@ -11,8 +11,10 @@ from wsme import types as wstypes
 import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
+from st2common.util.action_db import get_action_by_id
 
 
 LOG = logging.getLogger(__name__)
@@ -23,18 +25,6 @@ class ActionsController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of Actions in the system.
     """
-
-    def _get_by_id(self, id):
-        """
-            Get Action by id and abort http operation on errors.
-        """
-        try:
-            action = Action.get_by_id(id)
-        except (ValueError, ValidationError) as e:
-            LOG.error('Database lookup for id="%s" resulted in exception: %s', id, e)
-            abort(httplib.NOT_FOUND)
-
-        return action
 
     # TODO: Investigate mako rendering
     @wsme_pecan.wsexpose(ActionAPI, wstypes.text)
@@ -48,7 +38,12 @@ class ActionsController(RestController):
 
         LOG.info('GET /actions/ with id=%s', id)
 
-        action_db = self._get_by_id(id)
+        try:
+            action_db = get_action_by_id(id)
+        except StackStormDBObjectNotFoundError, e:
+            LOG.error('GET /actions/ with id="%s": %s', id, e.message)
+            abort(httplib.NOT_FOUND)
+
         action_api = ActionAPI.from_model(action_db)
 
         LOG.debug('GET /actions/ with id=%s, client_result=%s', id, action_api)
@@ -130,7 +125,12 @@ class ActionsController(RestController):
         # TODO: Support delete by name
         LOG.info('DELETE /actions/ with id=%s', id)
 
-        action_db = self._get_by_id(id)
+        try:
+            action_db = get_action_by_id(id)
+        except StackStormDBObjectNotFoundError, e:
+            LOG.error('DELETE /actions/ with id="%s": %s', id, e.message)
+            abort(httplib.NOT_FOUND)
+
         LOG.debug('DELETE /actions/ lookup with id=%s found object: %s', id, action_db)
 
         try:
