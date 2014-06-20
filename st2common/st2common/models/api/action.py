@@ -81,7 +81,7 @@ class ActionExecutionAPI(StormFoundationAPI):
 
     @classmethod
     def from_model(kls, model):
-        LOG.debug('entering ActionExecutionAPI.from_model()')
+        LOG.debug('entering ActionExecutionAPI.from_model() Input object: %s', model)
         actionexec = StormFoundationAPI.from_model(kls, model)
         actionexec.action = dict(model.action)
         actionexec.status = str(model.status)
@@ -92,7 +92,7 @@ class ActionExecutionAPI(StormFoundationAPI):
 
     @classmethod
     def to_model(kls, actionexec):
-        LOG.debug('entering ActionExecutionAPI.to_model()')
+        LOG.debug('entering ActionExecutionAPI.to_model() Input object: %s', actionexec)
         model = StormFoundationAPI.to_model(ActionExecutionDB, actionexec)
         model.status = str(actionexec.status)
         model.action = actionexec.action
