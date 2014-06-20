@@ -2,16 +2,12 @@ Summary: Stanley Action Controller
 Name: st2actioncontroller
 Version: 0.1.0
 Release: 1
-License: derp
+License: license
 Group: Applications/Engineering
 Source: /opt/git/stanley/st2actioncontroller-0.1.0.tar.gz
 URL: https://github.com/StackStorm/stanley
 Vendor: StackStorm
 Packager: Stormin Stanley <stanley@stackstorm.com>
-BuildRequires:	python-devel
-BuildRequires:  python-pip
-Requires:       mongodb
-Requires:       mongodb-server
 Requires:       st2common
 
 %description

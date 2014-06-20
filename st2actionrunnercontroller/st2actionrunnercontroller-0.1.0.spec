@@ -2,16 +2,13 @@ Summary: Stanley Action Runner Controller
 Name: st2actionrunnercontroller
 Version: 0.1.0
 Release: 1
-License: derp
+License: license
 Group: Applications/Engineering
 Source: /opt/git/stanley/st2actionrunnercontroller-0.1.0.tar.gz
 URL: https://github.com/StackStorm/stanley
 Vendor: StackStorm
 Packager: Stormin Stanley <stanley@stackstorm.com>
-BuildRequires:	python-devel
-Requires:   	python-pip
-Requires:     mongodb
-Requires:     mongodb-server
+Requires:     st2common
 
 %description
 An automation plaform that needs a much better description than this.

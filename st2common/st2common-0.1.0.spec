@@ -8,7 +8,7 @@ Source: /opt/git/stanley/st2common-0.1.0.tar.gz
 URL: https://github.com/StackStorm/stanley
 Vendor: StackStorm
 Packager: Stormin Stanley <stanley@stackstorm.com>
-BuildRequires:	python-devel
+Requires:	python-devel
 Requires:   	python-pip
 Requires:     mongodb
 Requires:     mongodb-server

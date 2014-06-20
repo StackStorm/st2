@@ -2,16 +2,12 @@ Summary: Stanley reactor
 Name: st2reactor
 Version: 0.1.0
 Release: 1
-License: derp
+License: license
 Group: Applications/Engineering
 Source: /opt/git/stanley/st2reactor-0.1.0.tar.gz
 URL: https://github.com/StackStorm/stanley
 Vendor: StackStorm
 Packager: Stormin Stanley <stanley@stackstorm.com>
-BuildRequires:	python-devel
-Requires:   	python-pip
-Requires:     mongodb
-Requires:     mongodb-server
 Requires:     st2common
 
 %description
