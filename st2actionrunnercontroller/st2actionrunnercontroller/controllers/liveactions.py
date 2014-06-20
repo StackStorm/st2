@@ -12,6 +12,7 @@ from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.actionrunner import LiveActionAPI
 from st2common.persistence.action import ActionExecution
+from st2common.persistence.actionrunner import LiveAction
 
 
 LOG = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ class LiveActionsController(RestController):
 
     _liveaction_apis = {}
 
+    """
     def __init__(self):
         api = LiveActionAPI()
         api.id = '12345'
@@ -38,6 +40,21 @@ class LiveActionsController(RestController):
         api.description = 'A test/hello action'
         api.action_execution_id = 'some other id'
         self._liveaction_apis['78901'] = api
+    """
+
+    def _get_by_id(self, id):
+        """
+            Get LiveAction by id.
+
+            On error, raise ST2ObjectNotFoundError.
+        """
+        try:
+            liveaction = LiveAction.get_by_id(id)
+        except (ValueError, ValidationError) as e:
+            LOG.error('Database lookup for id="%s" resulted in exception: %s', id, e)
+            abort(httplib.NOT_FOUND)
+
+        return liveaction
 
     def get_actionexecution_by_id(self, actionexecution_id):
         """
@@ -66,8 +83,14 @@ class LiveActionsController(RestController):
                 GET /liveactions/1
         """
 
-        # TODO: test/handle object not found.
-        return {'liveaction': id}
+        LOG.info('GET /liveactions/ with id=%s', id)
+
+        liveaction_db = self._get_by_id(id)
+        liveaction_api = LiveActionAPI.from_model(liveaction_db)
+
+        LOG.debug('GET /liveactions/ with id=%s, client_result=%s', id, liveaction_api)
+        return action_api
+        
 
     @wsme_pecan.wsexpose([LiveActionAPI])
     def get_all(self):
@@ -80,28 +103,12 @@ class LiveActionsController(RestController):
 
         LOG.info('GET all /liveactions/')
 
-        # TODO: Implement list comprehension to transform the in-memory objects into API objects
-        # liveaction_apis = [liveaction_api for (id, liveaction_api) in self._liveaction_apis.items()]
-        liveaction_apis = self._liveaction_apis.values()
+        liveaction_apis = [LiveActionAPI.from_model(liveaction_db)
+                           for liveaction_db in LiveAction.get_all()]
 
-        for api in liveaction_apis:
-            LOG.debug('    %s', str(api))
-
-        LOG.debug('GET all /liveactions/ client_result=%s', self._liveaction_apis)
-        return self._liveaction_apis
-
-    """
-    # Note: action name, action runner parameters and action parameters are all
-    # fields in the ActionExecutionDB object.
-    def create_liveaction(self, action_name, runner_parameters={}, action_parameters={}):
-        liveaction_api = LiveActionAPI()
-        liveaction_api.id = str(uuid.uuid4())
-        liveaction_api.action_name = str.encode(action_name)
-        liveaction_api.runner_parameters = runner_parameters
-        liveaction_api.action_parameters = action_parameters
-
-        return liveaction_api
-    """
+        # TODO: unpack list in log message
+        LOG.debug('GET all /liveactions/ client_result=%s', liveaction_apis)
+        return liveaction_apis
 
     # @expose('json')
     # def post(self, **kwargs):
@@ -137,7 +144,13 @@ class LiveActionsController(RestController):
         LOG.info('POST /liveactions/ obtained action execution object from database. '
                  'Object is %s', actionexecution_db)
 
-        LOG.info('ae name %s', actionexecution_db.name)
+        try:
+        except:
+            StackStormDBObjectNotFoundError, e:
+            LOG.error(e.message)
+            # TODO: Is there a more appropriate status code?
+            abort(httplib.BAD_REQUEST)
+            
 
         LOG.debug('Got ActionExecution.... now launch action command.')
 
