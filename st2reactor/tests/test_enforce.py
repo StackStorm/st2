@@ -1,6 +1,5 @@
 import datetime
 import mock
-import tests
 import unittest2
 from st2common.persistence.reactor import Rule, RuleEnforcement
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
@@ -42,8 +41,6 @@ MOCK_RULE_2.action.action = MOCK_ACTION
 
 
 class EnforceTest(unittest2.TestCase):
-    def setUp(self):
-        tests.parse_args()
 
     @mock.patch.object(Rule, 'query', mock.MagicMock(
         return_value=[MOCK_RULE_1]))

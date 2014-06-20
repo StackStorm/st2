@@ -1,24 +1,12 @@
 import datetime
 import tests
-import unittest2
 import mongoengine.connection
 from oslo.config import cfg
-from st2common.models.db import db_setup, db_teardown
 
 SKIP_DELETE = False
 
 
-class DbConnectionTest(unittest2.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        tests.parse_args()
-        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
-                 cfg.CONF.database.port)
-
-    @classmethod
-    def tearDownClass(cls):
-        db_teardown()
+class DbConnectionTest(tests.DbTestCase):
 
     def test_check_connect(self):
         """
@@ -37,17 +25,7 @@ from st2common.persistence.reactor import Trigger, TriggerInstance, \
     TriggerSource, RuleEnforcement, Rule
 
 
-class ReactorModelTest(unittest2.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        tests.parse_args()
-        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
-                 cfg.CONF.database.port)
-
-    @classmethod
-    def tearDownClass(cls):
-        db_teardown()
+class ReactorModelTest(tests.DbTestCase):
 
     def test_triggersource_crud(self):
         saved = ReactorModelTest._create_save_triggersource()
@@ -206,17 +184,7 @@ from st2common.models.db.action import ActionDB
 from st2common.persistence.action import Action
 
 
-class ActionModelTest(unittest2.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        tests.parse_args()
-        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
-                 cfg.CONF.database.port)
-
-    @classmethod
-    def tearDownClass(cls):
-        db_teardown()
+class ActionModelTest(tests.DbTestCase):
 
     def test_action_crud(self):
         saved = ActionModelTest._create_save_action()

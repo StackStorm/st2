@@ -1,6 +1,5 @@
 import datetime
 import mock
-import tests
 import unittest2
 
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB
@@ -25,9 +24,6 @@ class TriggerDispatcherTest(unittest2.TestCase):
 
         def dispatch(self, triggers):
             TriggerDispatcherTest.TestDispatcher.called_dispatch = True
-
-    def setUp(self):
-        tests.parse_args()
 
     @mock.patch.object(Trigger, 'query', mock.MagicMock(
         return_value=[MOCK_TRIGGER]))

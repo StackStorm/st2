@@ -1,5 +1,4 @@
 import datetime
-import tests
 import unittest2
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
     RuleDB, ActionExecutionSpecDB
@@ -36,8 +35,6 @@ MOCK_RULE_2.action.action = MOCK_ACTION
 
 
 class FilterTest(unittest2.TestCase):
-    def setUp(self):
-        tests.parse_args()
 
     def test_matchregex_operator_pass_criteria(self):
         f = filter.get_filter(MOCK_TRIGGER_INSTANCE)

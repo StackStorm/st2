@@ -1,5 +1,4 @@
 import mock
-import tests
 import unittest2
 
 from st2common.persistence.reactor import Trigger
@@ -12,9 +11,6 @@ MOCK_TRIGGER.name = 'trigger-test.name'
 
 
 class ContainerServiceTest(unittest2.TestCase):
-    def setUp(self):
-        tests.parse_args()
-
     @mock.patch.object(Trigger, 'query', mock.MagicMock(
         return_value=[MOCK_TRIGGER]))
     @mock.patch.object(Trigger, 'add_or_update')

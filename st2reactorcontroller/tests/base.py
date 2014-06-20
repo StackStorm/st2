@@ -1,5 +1,3 @@
-import pecan
-
 import tests.config
 from pecan.testing import load_test_app
 from unittest import TestCase
@@ -9,11 +7,13 @@ from st2common.models.db import db_setup, db_teardown
 
 class FunctionalTest(TestCase):
 
+    db_connection = None
+
     @classmethod
     def setUpClass(cls):
         tests.config.parse_args()
-        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
-                 cfg.CONF.database.port)
+        FunctionalTest.db_connection = db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
+                                                cfg.CONF.database.port)
 
         opts = cfg.CONF.reactor_pecan
         cfg_dict = {
@@ -30,5 +30,9 @@ class FunctionalTest(TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        FunctionalTest.__do_db_teardown()
+
+    @staticmethod
+    def __do_db_teardown():
+        FunctionalTest.db_connection.drop_database(cfg.CONF.database.db_name)
         db_teardown()
-        pecan.set_config({}, overwrite=True)
