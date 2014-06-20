@@ -49,10 +49,8 @@ class ActionsController(RestController):
         LOG.debug('GET /actions/ with id=%s, client_result=%s', id, action_api)
         return action_api
 
-    @wsme_pecan.wsexpose([ActionAPI])
-    # TODO: support kwargs
-    # def get_all(self, **kwargs):
-    def get_all(self):
+    @wsme_pecan.wsexpose([ActionAPI], wstypes.text)
+    def get_all(self, name=None):
         """
             List all actions.
 
@@ -60,10 +58,9 @@ class ActionsController(RestController):
                 GET /actions/
         """
 
-        LOG.info('GET all /actions/')
-
-        action_apis = [ActionAPI.from_model(action_db)
-                       for action_db in Action.get_all()]
+        LOG.info('GET all /actions/ and name=%s', name)
+        action_dbs = Action.get_all() if name is None else ActionsController.__get_by_name(name)
+        action_apis = [ActionAPI.from_model(action_db) for action_db in action_dbs]
 
         # TODO: unpack list in log message
         LOG.debug('GET all /actions/ client_result=%s', action_apis)
@@ -141,3 +138,11 @@ class ActionsController(RestController):
 
         LOG.info('DELETE /actions/ with id="%s" completed', id)
         return None
+
+    @staticmethod
+    def __get_by_name(action_name):
+        try:
+            return [Action.get_by_name(action_name)]
+        except ValueError as e:
+            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', action_name, e)
+            return []
