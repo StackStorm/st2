@@ -24,7 +24,7 @@ class ActionsController(RestController):
         the lifecycle of Actions in the system.
     """
 
-    def get_by_id(self, id):
+    def _get_by_id(self, id):
         """
             Get Action by id and abort http operation on errors.
         """
@@ -48,7 +48,7 @@ class ActionsController(RestController):
 
         LOG.info('GET /actions/ with id=%s', id)
 
-        action_db = self.get_by_id(id)
+        action_db = self._get_by_id(id)
         action_api = ActionAPI.from_model(action_db)
 
         LOG.debug('GET /actions/ with id=%s, client_result=%s', id, action_api)
@@ -130,7 +130,7 @@ class ActionsController(RestController):
         # TODO: Support delete by name
         LOG.info('DELETE /actions/ with id=%s', id)
 
-        action_db = self.get_by_id(id)
+        action_db = self._get_by_id(id)
         LOG.debug('DELETE /actions/ lookup with id=%s found object: %s', id, action_db)
 
         try:

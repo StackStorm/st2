@@ -22,5 +22,4 @@ class StackStormPluginException(StackStormBaseException):
         API should inherit from the StackStormPluginException
         class.
     """
-    def __init__(self, msg=''):
-        self.message = msg
+    pass
