@@ -71,7 +71,7 @@ class ActionExecutionDB(StormFoundationDB):
         result = 'ActionExecutionDB@' + str(id(self)) + '('
         result += 'id=%s, ' % self.id
         result += 'uri=%s, ' % self.uri
-        result += 'action_name=%s, ' % self.action_name
+        result += 'action=%s, ' % str(self.action)
         result += 'status=%s, ' % self.status
         result += 'runner_parameters=%s, ' % str(self.runner_parameters)
         result += 'action_parameters=%s, ' % str(self.action_parameters)

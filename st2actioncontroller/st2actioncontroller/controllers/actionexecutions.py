@@ -11,9 +11,10 @@ from wsme import types as wstypes
 import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
-from st2common.persistence.action import ActionExecution
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.persistence.action import (Action, ActionExecution)
 from st2common.models.api.action import (ActionExecutionAPI, ACTIONEXEC_STATUS_INIT,
-                                         ACTION_ID
+                                         ACTION_ID, ACTION_NAME
                                          )
 
 
@@ -26,7 +27,7 @@ class ActionExecutionsController(RestController):
         the lifecycle of ActionExecutions in the system.
     """
 
-    def get_by_id(self, id):
+    def _get_actionexec_by_id(self, id):
         """
             Get ActionExecution by id and abort http operation on errors.
         """
@@ -49,7 +50,7 @@ class ActionExecutionsController(RestController):
 
         LOG.info('GET /actionexecutions/ with id="%s"', id)
 
-        actionexec_db = self.get_by_id(id)
+        actionexec_db = self._get_actionexec_by_id(id)
         actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
 
         LOG.debug('GET /actionexecutions/ with id=%s, client_result=%s', id, actionexec_api)
@@ -73,6 +74,68 @@ class ActionExecutionsController(RestController):
         LOG.debug('GET all /actionexecutions/ client_result=%s', actionexec_apis)
         return actionexec_apis
 
+    def _get_action_by_id(self, action_id):
+        """
+            Get Action by id.
+            
+            On error, raise StackStormDBObjectNotFoundError
+        """
+        action = None
+
+        try:
+            action = Action.get_by_id(action_id)
+        except (ValueError, ValidationError) as e:
+            LOG.warning('Database lookup for action with id="%s" resulted in '
+                        'exception: %s', action_id, e)
+            raise StackStormDBObjectNotFoundError('Unable to find action with '
+                                                  'id="%s"' % action_id)
+
+        return action
+
+    def _get_action_by_name(self, action_name):
+        """
+            Get Action by name.
+            
+            On error, raise StackStormDBObjectNotFoundError
+        """
+        action = None
+
+        try:
+            action = Action.get_by_name(action_name)
+        except (ValueError, ValidationError) as e:
+            LOG.warning('Database lookup for action with name="%s" resulted in '
+                        'exception: %s', action_name, e)
+            raise StackStormDBObjectNotFoundError('Unable to find action with '
+                                                  'name="%s"' % action_name)
+
+        return action
+
+    def _get_action_for_dict(self, action_dict):
+        action = None
+
+        if ACTION_ID in action_dict:
+            action_id = action_dict[ACTION_ID]
+            try:
+                action = self._get_action_by_id(action_id)
+            except StackStormDBObjectNotFoundError:
+                LOG.info('Action not found by id, falling back to lookup by name and '
+                         'removing action id from Action Execution.')
+                del action_dict[ACTION_ID]
+            else:
+                return (action, action_dict)
+
+        if ACTION_NAME in action_dict:
+            action_name = action_dict[ACTION_NAME]
+            try:
+                action = self._get_action_by_name(action_name)
+            except StackStormDBObjectNotFoundError:
+                LOG.info('Action not found by name.')
+            else:
+                return (action, action_dict)
+            
+        # No action found by identifiers in action_dict.
+        return (None,{})
+
     @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI,
                          status_code=httplib.CREATED)
     def post(self, actionexecution):
@@ -90,6 +153,16 @@ class ActionExecutionsController(RestController):
                       'Aborting POST.')
             abort(httplib.NOT_IMPLEMENTED)
 
+        (action_db,action_dict) = self._get_action_for_dict(actionexecution.action)
+        if not action_db:
+            LOG.error('POST /actionexecutions/ Action for "%s" cannot be found.', actionexecution.action)
+            abort(httplib.INTERNAL_SERVER_ERROR)
+        else:
+            if action_dict != dict(actionexecution.action):
+                LOG.info('POST /actionexecutions/ Action identity dict updated to remove '
+                         'lookup failure.')
+                actionexecution.action = action_dict
+
         LOG.debug('Setting actionexecution status to "%s"', ACTIONEXEC_STATUS_INIT)
         actionexecution.status = str(ACTIONEXEC_STATUS_INIT)
         LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
@@ -97,6 +170,7 @@ class ActionExecutionsController(RestController):
         actionexec_api = ActionExecutionAPI.to_model(actionexecution)
         LOG.debug('/actionexecutions/ POST verified ActionExecutionAPI object=%s',
                   actionexec_api)
+
         # TODO: POST operations should only add to DB.
         #       If an existing object conflicts then raise an error.
 
@@ -132,7 +206,7 @@ class ActionExecutionsController(RestController):
         # TODO: Support delete by name
         LOG.info('DELETE /actionexecutions/ with id=%s', id)
 
-        actionexec_db = self.get_by_id(id)
+        actionexec_db = self.get_actionexec_by_id(id)
         LOG.debug('DELETE /actionexecutions/ lookup with id=%s found object: %s',
                   id, actionexec_db)
 
