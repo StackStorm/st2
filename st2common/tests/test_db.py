@@ -106,7 +106,7 @@ class ReactorModelTest(tests.DbTestCase):
         trigger = ReactorModelTest._create_save_trigger(triggersource)
         saved = ReactorModelTest._create_save_rule(trigger, action)
         retrievedrules = Rule.query(trigger_type=trigger)
-        self.assertEqual(1, len(retrievedrules), 'No rules found.')
+        self.assertEqual(2, len(retrievedrules), 'No rules found.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id,
                              'Incorrect rule returned.')
