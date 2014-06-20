@@ -38,18 +38,26 @@ class TriggerController(RestController):
         return trigger_api
 
     @wsme_pecan.wsexpose([TriggerAPI], wstypes.text)
-    def get_all(self):
+    def get_all(self, name=None):
         """
             List all triggers.
 
             Handles requests:
                 GET /triggers/
         """
-        LOG.info('GET all /triggers/')
-        trigger_apis = [TriggerAPI.from_model(trigger_db) for
-                        trigger_db in Trigger.get_all()]
+        LOG.info('GET all /triggers/ and name=%s', name)
+        trigger_dbs = Trigger.get_all() if name is None else TriggerController.__get_by_name(name)
+        trigger_apis = [TriggerAPI.from_model(trigger_db) for trigger_db in trigger_dbs]
         LOG.debug('GET all /triggers/ client_result=%s', trigger_apis)
         return trigger_apis
+
+    @staticmethod
+    def __get_by_name(trigger_name):
+        try:
+            return [Trigger.get_by_name(trigger_name)]
+        except ValueError as e:
+            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', trigger_name, e)
+            return []
 
 
 class TriggerInstanceController(RestController):

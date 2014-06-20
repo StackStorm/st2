@@ -106,7 +106,7 @@ class RuleAPI(StormBaseAPI):
         model.criteria = dict(rule.criteria)
         model.action = ActionExecutionSpecDB()
         if 'type' in rule.action:
-            model.action.type = get_model_from_ref(Action, rule.action['type'])
+            model.action.action = get_model_from_ref(Action, rule.action['type'])
         if 'mapping' in rule.action:
             model.action.data_mapping = rule.action['mapping']
         model.rule_data = rule.rule_data

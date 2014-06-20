@@ -25,21 +25,22 @@ class RuleController(RestController):
                 GET /rules/1
         """
         LOG.info('GET /rules/ with id=%s', id)
-        rule_db = RuleController._get_by_id(id)
+        rule_db = RuleController.__get_by_id(id)
         rule_api = RuleAPI.from_model(rule_db)
         LOG.debug('GET /rules/ with id=%s, client_result=%s', id, rule_api)
         return rule_api
 
     @wsme_pecan.wsexpose([RuleAPI], wstypes.text)
-    def get_all(self):
+    def get_all(self, name=None):
         """
             List all rules.
 
             Handles requests:
                 GET /rules/
         """
-        LOG.info('GET all /rules/')
-        rule_apis = [RuleAPI.from_model(rule_db) for rule_db in Rule.get_all()]
+        LOG.info('GET all /rules/ and name=%s', str(name))
+        rule_dbs = Rule.get_all() if name is None else RuleController.__get_by_name(name)
+        rule_apis = [RuleAPI.from_model(rule_db) for rule_db in rule_dbs]
         LOG.debug('GET all /rules/ client_result=%s', rule_apis)
         return rule_apis
 
@@ -77,7 +78,7 @@ class RuleController(RestController):
                 DELETE /rules/1
         """
         LOG.info('DELETE /rules/ with id=%s', id)
-        rule_db = RuleController._get_by_id(id)
+        rule_db = RuleController.__get_by_id(id)
         LOG.debug('DELETE /rules/ lookup with id=%s found object: %s', id, rule_db)
         try:
             Rule.delete(rule_db)
@@ -85,12 +86,20 @@ class RuleController(RestController):
             LOG.exception('Database delete encountered exception during delete of id="%s". ', id)
 
     @staticmethod
-    def _get_by_id(rule_id):
+    def __get_by_id(rule_id):
         try:
             return Rule.get_by_id(rule_id)
         except (ValueError, ValidationError):
             LOG.exception('Database lookup for id="%s" resulted in exception.', rule_id)
             abort(httplib.NOT_FOUND)
+
+    @staticmethod
+    def __get_by_name(rule_name):
+        try:
+            return [Rule.get_by_name(rule_name)]
+        except ValueError as e:
+            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', rule_name, e)
+            return []
 
 
 class RuleEnforcementController(RestController):
