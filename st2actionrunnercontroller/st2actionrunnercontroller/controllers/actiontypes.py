@@ -11,6 +11,7 @@ from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.actionrunner import ActionTypeAPI
 from st2common.persistence.actionrunner import ActionType
+from st2common.util.actionrunner_db import (get_actiontype_by_id, get_actiontype_by_name)
 
 
 LOG = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ class ActionTypesController(RestController):
         for name in ACTION_TYPES:
             actiontype_db = None
             try:
-                actiontype_db = self._get_actiontype_by_name(name)
+                actiontype_db = get_actiontype_by_name(name)
             except StackStormDBObjectNotFoundError:
                 LOG.debug('ActionType "%s" does not exist in DB', name)
             else:
@@ -62,43 +63,31 @@ class ActionTypesController(RestController):
 
         LOG.debug('Registering actiontypes complete')
 
-    def _get_actiontype_by_name(self, actiontype_name):
-        """
-            Get an ActionType by name.
-            On error, raise ST2ObjectNotFoundError.
-        """
-        LOG.debug('Lookup for ActionType with name="%s"', actiontype_name)
-        try:
-            actiontypes = ActionType.query(name=actiontype_name)
-        except (ValueError, ValidationError) as e:
-            LOG.error('Database lookup for name="%s" resulted in exception: %s',
-                      actiontype_name, e)
-            raise StackStormDBObjectNotFoundError('Unable to find actiontype with name="%s"'
-                                                  % actiontype_name)
-
-        if not actiontypes:
-            LOG.error('Database lookup for ActionType with name="%s" produced no results',
-                      actiontype_name)
-            raise StackStormDBObjectNotFoundError('Unable to find actiontype with name="%s"'
-                                                  % actiontype_name)
-
-        if len(actiontypes) > 1:
-            LOG.warning('More than one ActionType returned from DB lookup by name. '
-                        'Result list is: %s', actiontypes)
-
-        return actiontypes[0]
-
-    def _get_by_id(self, id):
-        """
-            Get ActionType by id and abort http operation on errors.
-        """
-        try:
-            actiontype = ActionType.get_by_id(id)
-        except (ValueError, ValidationError) as e:
-            LOG.error('Database lookup for id="%s" resulted in exception: %s', id, e)
-            abort(httplib.NOT_FOUND)
-
-        return actiontype
+#    def _get_actiontype_by_name(self, actiontype_name):
+#        """
+#            Get an ActionType by name.
+#            On error, raise ST2ObjectNotFoundError.
+#        """
+#        LOG.debug('Lookup for ActionType with name="%s"', actiontype_name)
+#        try:
+#            actiontypes = ActionType.query(name=actiontype_name)
+#        except (ValueError, ValidationError) as e:
+#            LOG.error('Database lookup for name="%s" resulted in exception: %s',
+#                      actiontype_name, e)
+#            raise StackStormDBObjectNotFoundError('Unable to find actiontype with name="%s"'
+#                                                  % actiontype_name)
+#
+#        if not actiontypes:
+#            LOG.error('Database lookup for ActionType with name="%s" produced no results',
+#                      actiontype_name)
+#            raise StackStormDBObjectNotFoundError('Unable to find actiontype with name="%s"'
+#                                                  % actiontype_name)
+#
+#        if len(actiontypes) > 1:
+#            LOG.warning('More than one ActionType returned from DB lookup by name. '
+#                        'Result list is: %s', actiontypes)
+#
+#        return actiontypes[0]
 
     def __init__(self):
         self._register_internal_actiontypes()
@@ -114,7 +103,11 @@ class ActionTypesController(RestController):
 
         LOG.info('GET /actiontypes/ with id=%s', id)
 
-        actiontype_db = self._get_by_id(id)
+        try:
+            actiontype_db = get_actiontype_by_id(id)
+        except StackStormDBObjectNotFoundError, e:
+            LOG.error('GET /actiontypes/ with id="%s": %s', id, e.message)
+            abort(httplib.NOT_FOUND)
         actiontype_api = ActionTypeAPI.from_model(actiontype_db)
 
         LOG.debug('GET /actiontypes/ with id=%s, client_result=%s', id, actiontype_api)

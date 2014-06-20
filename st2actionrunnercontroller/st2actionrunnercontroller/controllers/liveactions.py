@@ -13,6 +13,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.actionrunner import LiveActionAPI
 from st2common.persistence.action import ActionExecution
 from st2common.persistence.actionrunner import LiveAction
+from st2common.util.actionrunner_db import get_liveaction_by_id
 
 
 LOG = logging.getLogger(__name__)
@@ -42,19 +43,19 @@ class LiveActionsController(RestController):
         self._liveaction_apis['78901'] = api
     """
 
-    def _get_by_id(self, id):
-        """
-            Get LiveAction by id.
-
-            On error, raise ST2ObjectNotFoundError.
-        """
-        try:
-            liveaction = LiveAction.get_by_id(id)
-        except (ValueError, ValidationError) as e:
-            LOG.error('Database lookup for id="%s" resulted in exception: %s', id, e)
-            abort(httplib.NOT_FOUND)
-
-        return liveaction
+#    def _get_by_id(self, id):
+#        """
+#            Get LiveAction by id.
+#
+#            On error, raise ST2ObjectNotFoundError.
+#        """
+#        try:
+#            liveaction = LiveAction.get_by_id(id)
+#        except (ValueError, ValidationError) as e:
+#            LOG.error('Database lookup for id="%s" resulted in exception: %s', id, e)
+#            abort(httplib.NOT_FOUND)
+#
+#        return liveaction
 
     def get_actionexecution_by_id(self, actionexecution_id):
         """
@@ -145,8 +146,8 @@ class LiveActionsController(RestController):
                  'Object is %s', actionexecution_db)
 
         try:
-        except:
-            StackStormDBObjectNotFoundError, e:
+            pass
+        except StackStormDBObjectNotFoundError, e:
             LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)

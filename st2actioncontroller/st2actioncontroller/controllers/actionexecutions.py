@@ -140,7 +140,7 @@ class ActionExecutionsController(RestController):
         try:
             actionexec_db = get_actionexec_by_id(id)
         except StackStormDBObjectNotFoundError, e:
-            LOG.error('GET /actionexecutions/ with id="%s": %s', id, e.message)
+            LOG.error('DELETE /actionexecutions/ with id="%s": %s', id, e.message)
             abort(httplib.NOT_FOUND)
 
         LOG.debug('DELETE /actionexecutions/ lookup with id=%s found object: %s',
