@@ -206,7 +206,7 @@ class ActionExecutionsController(RestController):
         # TODO: Support delete by name
         LOG.info('DELETE /actionexecutions/ with id=%s', id)
 
-        actionexec_db = self.get_actionexec_by_id(id)
+        actionexec_db = self._get_actionexec_by_id(id)
         LOG.debug('DELETE /actionexecutions/ lookup with id=%s found object: %s',
                   id, actionexec_db)
 
