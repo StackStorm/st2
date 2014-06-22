@@ -110,3 +110,7 @@ install:
 	$(foreach COM,$(filter-out st2common,$(COMPONENTS)),mkdir -p /etc/$(COM) && cp $(COM)/conf/* /etc/$(COM)/ && cp $(COM)/bin/* /usr/bin/;)
 	mkdir -p /etc/st2reactor/sensor/samples
 	cp st2reactor/st2reactor/sensor/samples/* /etc/st2reactor/sensor/samples/
+
+.PHONY: rpms
+rpms:
+	$(foreach COM,$(COMPONENTS), pushd $(COM); make rpm; popd;)
