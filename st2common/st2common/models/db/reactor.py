@@ -64,7 +64,8 @@ class RuleDB(StormBaseDB):
     criteria = me.DictField()
     rule_data = me.DictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
-    status = me.StringField()
+    enabled = me.BooleanField(required=True, default=True,
+                              help_text=u'Flag indicating whether the rule is enabled.')
 
 
 class CriterionSpecDB(me.EmbeddedDocument):

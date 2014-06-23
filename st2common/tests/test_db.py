@@ -112,6 +112,30 @@ class ReactorModelTest(tests.DbTestCase):
                              'Incorrect rule returned.')
         ReactorModelTest._delete([saved, trigger, action, triggersource])
 
+    def test_rule_lookup_enabled(self):
+        triggersource = ReactorModelTest._create_save_triggersource()
+        action = ActionModelTest._create_save_action()
+        trigger = ReactorModelTest._create_save_trigger(triggersource)
+        saved = ReactorModelTest._create_save_rule(trigger, action)
+        retrievedrules = Rule.query(trigger_type=trigger, enabled=True)
+        self.assertEqual(1, len(retrievedrules), 'Error looking up enabled rules.')
+        for retrievedrule in retrievedrules:
+            self.assertEqual(saved.id, retrievedrule.id,
+                             'Incorrect rule returned.')
+        ReactorModelTest._delete([saved, trigger, action, triggersource])
+
+    def test_rule_lookup_disabled(self):
+        triggersource = ReactorModelTest._create_save_triggersource()
+        action = ActionModelTest._create_save_action()
+        trigger = ReactorModelTest._create_save_trigger(triggersource)
+        saved = ReactorModelTest._create_save_rule(trigger, action, False)
+        retrievedrules = Rule.query(trigger_type=trigger, enabled=False)
+        self.assertEqual(1, len(retrievedrules), 'Error looking up enabled rules.')
+        for retrievedrule in retrievedrules:
+            self.assertEqual(saved.id, retrievedrule.id,
+                             'Incorrect rule returned.')
+        ReactorModelTest._delete([saved, trigger, action, triggersource])
+
     def test_trigger_lookup(self):
         triggersource = ReactorModelTest._create_save_triggersource()
         saved = ReactorModelTest._create_save_trigger(triggersource)
@@ -149,10 +173,11 @@ class ReactorModelTest(tests.DbTestCase):
         return TriggerInstance.add_or_update(created)
 
     @staticmethod
-    def _create_save_rule(trigger, action=None):
+    def _create_save_rule(trigger, action=None, enabled=True):
         created = RuleDB()
         created.name = 'rule-1'
         created.description = ''
+        created.enabled = enabled
         created.trigger_type = trigger
         created.criteria = {}
         created.action = ActionExecutionSpecDB()

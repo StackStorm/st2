@@ -31,6 +31,7 @@ MOCK_RULE_1.trigger_type = MOCK_TRIGGER
 MOCK_RULE_1.criteria = {}
 MOCK_RULE_1.action = ActionExecutionSpecDB()
 MOCK_RULE_1.action.action = MOCK_ACTION
+MOCK_RULE_1.enabled = True
 
 MOCK_RULE_2 = RuleDB()
 MOCK_RULE_2.id = 'rule-test-2'
@@ -38,6 +39,7 @@ MOCK_RULE_2.trigger_type = MOCK_TRIGGER
 MOCK_RULE_2.criteria = {}
 MOCK_RULE_2.action = ActionExecutionSpecDB()
 MOCK_RULE_2.action.action = MOCK_ACTION
+MOCK_RULE_2.enabled = True
 
 
 class EnforceTest(unittest2.TestCase):

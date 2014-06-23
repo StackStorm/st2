@@ -19,7 +19,7 @@ TRIGGER.payload_info = ['tp1', 'tp2', 'tp3']
 TRIGGER.trigger_source = None
 
 RULE_1 = {
-    'status': None,
+    'enabled': True,
     'name': 'st2.test.rule1',
     'trigger_type': {
         'name': 'st2.test.trigger1'
