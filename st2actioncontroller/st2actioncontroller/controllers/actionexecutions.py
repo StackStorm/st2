@@ -112,8 +112,8 @@ class ActionExecutionsController(RestController):
         actionexec_db = ActionExecution.add_or_update(actionexec_api)
         LOG.debug('/actionexecutions/ POST saved ActionExecution object=%s', actionexec_db)
 
-        LOG.audit('Received request for ActionExecution. '
-                  'ActionExecution created in database. '
+        LOG.audit('Received a request  to execute an Action. '
+                  'ActionExecution created in the database. '
                   'ActionExecution is: %s', actionexec_db)
         actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
 
@@ -162,8 +162,8 @@ class ActionExecutionsController(RestController):
             LOG.error('Database delete encountered exception during delete of id="%s". '
                       'Exception was %s', id, e)
 
-        LOG.audit('ActionExecution deleted from database. '
-                  'ActionExecution was: "%s', actionexec_db)
+        LOG.audit('ActionExecution was deleted from database. '
+                  'The ActionExecution was: "%s', actionexec_db)
 
         LOG.info('DELETE /actionexecutions/ with id="%s" completed', id)
         return None
