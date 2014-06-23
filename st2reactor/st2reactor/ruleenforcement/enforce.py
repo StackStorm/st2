@@ -59,7 +59,9 @@ class RuleEnforcer(object):
 
     @staticmethod
     def __invoke_action(action, action_args):
-        payload = json.dumps({'target': action.name, 'name': '', 'description': ''})
+        payload = json.dumps({'action': {'name': action.name},
+                              'runner_parameters': {},
+                              'action_parameters': action_args})
         r = requests.post(cfg.CONF.reactor.actionexecution_base_url,
                           data=payload,
                           headers=HTTP_AE_POST_HEADER)

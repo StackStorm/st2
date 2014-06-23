@@ -79,11 +79,6 @@ class ActionExecutionsController(RestController):
 
         LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
 
-        if ACTION_ID not in actionexecution.action:
-            LOG.error('Action can only be accessed by ID in the current implementation.'
-                      'Aborting POST.')
-            abort(httplib.NOT_IMPLEMENTED)
-
         (action_db,action_dict) = get_action_for_dict(actionexecution.action)
         if not action_db:
             LOG.error('POST /actionexecutions/ Action for "%s" cannot be found.', actionexecution.action)
