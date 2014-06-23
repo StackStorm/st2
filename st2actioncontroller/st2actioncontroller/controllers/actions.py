@@ -90,8 +90,11 @@ class ActionsController(RestController):
         # TODO: POST operations should only add to DB.
         #       If an existing object conflicts then raise error.
 
+        LOG.audit('Action about to be created in database. Action is: %s', action_api)
         action_db = Action.add_or_update(action_api)
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
+
+        LOG.audit('Action created in database. Action is: %s', action_db)
         action_api = ActionAPI.from_model(action_db)
 
         LOG.debug('POST /actions/ client_result=%s', action_api)
@@ -136,6 +139,7 @@ class ActionsController(RestController):
             LOG.error('Database delete encountered exception during delete of id="%s". '
                       'Exception was %s', id, e)
 
+        LOG.audit('Action deleted from database. Action was: %s', action_db)
         LOG.info('DELETE /actions/ with id="%s" completed', id)
         return None
 

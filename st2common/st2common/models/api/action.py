@@ -52,6 +52,23 @@ class ActionAPI(StormBaseAPI):
 
         return model
 
+    def __str__(self):
+        # Note: List append followed by list comprehension is fastest way to build a string.
+        result = []
+        result.append('ActionAPI@')
+        result.append(str(id(self)))
+        result.append('(')
+        result.append('id="%s", ' % self.id)
+        result.append('name="%s", ' % self.name)
+        result.append('description="%s", ' % self.description)
+        result.append('enabled="%s",' % self.enabled)
+        result.append('artifact_path="%s",' % self.artifact_path)
+        result.append('entry_point="%s",' % self.entry_point)
+        #result.append('runner_parameter_names="%s",' % str(self.runner_parameter_names))
+        #result.append('runner_module="%s", ' % self.runner_module)
+        result.append('uri="%s")' % self.uri)
+        return ''.join(result)
+
 
 ACTIONEXEC_STATUS_INIT = 'initializing'
 ACTIONEXEC_STATUS_RUNNING = 'running'
@@ -100,3 +117,16 @@ class ActionExecutionAPI(StormFoundationAPI):
         model.action_parameters = dict(actionexec.action_parameters)
         LOG.debug('exiting ActionExecutionAPI.to_model() Result object: %s', model)
         return model
+
+    def __str__(self):
+        result = []
+        result.append('ActionExecutionAPI@')
+        result.append(str(id(self)))
+        result.append('(')
+        result.append('id="%s", ' % self.id)
+        result.append('status="%s", ' % self.status)
+        result.append('action="%s", ' % self.action)
+        result.append('runner_parameters="%s", ' % self.runner_parameters)
+        result.append('action_parameters="%s", ' % self.action_parameters)
+        result.append('uri="%s")' % self.uri)
+        return ''.join(result)

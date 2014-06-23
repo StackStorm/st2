@@ -36,6 +36,17 @@ class LiveActionAPI(StormFoundationAPI):
         model.actionexecution_id = liveaction.actionexecution_id
         return model
 
+    def __str__(self):
+        result = []
+        result.append('LiveActionAPI@')
+        result.append(str(id(self)))
+        result.append('(')
+        result.append('id="%s", ' % self.id)
+        result.append('actionexecution_id="%s", ' % self.actionexecution_id)
+        result.append('uri="%s")' % self.uri)
+        return ''.join(result)
+
+
 
 class ActionTypeAPI(StormBaseAPI):
     """
@@ -84,16 +95,18 @@ class ActionTypeAPI(StormBaseAPI):
 
     # TODO: Write generic str function for API and DB model base classes
     def __str__(self):
-        result = 'ActionTypeAPI@' + str(id(self)) + '('
-        result += 'id=%s, ' % self.id
-        result += 'uri=%s, ' % self.uri
-        result += 'name=%s, ' % self.name
-        result += 'description=%s, ' % self.description
-        result += 'enabled=%s, ' % self.enabled
-        result += 'runner_parameter_names=%s, ' % str(self.runner_parameter_names)
-        result += 'runner_module=%s, ' % str(self.runner_module)
-        result += ')'
-        return result
+        result = []
+        result.append('ActionTypeAPI@')
+        result.append(str(id(self)))
+        result.append('(')
+        result.append('id="%s", ' % self.id)
+        result.append('name="%s", ' % self.name)
+        result.append('description="%s", ' % self.description)
+        result.append('enabled="%s", ' % self.enabled)
+        result.append('runner_parameter_names="%s", ' % str(self.runner_parameter_names))
+        result.append('runner_module="%s", ' % str(self.runner_module)
+        result.append('uri="%s")' % self.uri)
+        return ''.join(result)
 
 
 class ActionRunnerAPI(StormBaseAPI):
