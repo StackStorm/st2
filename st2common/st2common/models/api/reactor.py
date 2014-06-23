@@ -86,7 +86,7 @@ class RuleAPI(StormBaseAPI):
     criteria = wstypes.DictType(str, wstypes.DictType(str, str))
     rule_data = wstypes.DictType(str, str)
     action = wstypes.DictType(str, wstypes.DictType(str, str))
-    enabled = bool
+    enabled = wstypes.wsattr(bool, default=True)
 
     @classmethod
     def from_model(kls, model):
