@@ -47,7 +47,7 @@ class StormFoundationAPI(Resource):
 
 class StormBaseAPI(StormFoundationAPI):
     name = wstypes.text
-    description = wstypes.text
+    description = wstypes.wsattr(wstypes.text, default='')
 
     # TODO: delegate uri and id handling to StormFoundationAPI
 
