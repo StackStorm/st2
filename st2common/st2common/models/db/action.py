@@ -36,7 +36,18 @@ class ActionDB(StormBaseDB):
     parameter_names = me.fields.ListField(required=True,
                           help_text=u'List of required parameter names.')
     """
-    pass
+
+    def __str__(self):
+        result = []
+        result.append('ActionDB@')
+        result.append(str(id(self)))
+        result.append('(')
+        result.append('id="%s", ' % self.id)
+        result.append('enabled="%s", ' % self.enabled)
+        result.append('artifact_path="%s", ' % self.artifact_path)
+        result.append('entry_point="%s", ' % self.entry_point)
+        result.append('uri="%s")' % self.uri)
+        return ''.join(result)
 
 
 class ActionExecutionDB(StormFoundationDB):
@@ -68,15 +79,17 @@ class ActionExecutionDB(StormFoundationDB):
 
     # TODO: Write generic str function for API and DB model base classes
     def __str__(self):
-        result = 'ActionExecutionDB@' + str(id(self)) + '('
-        result += 'id=%s, ' % self.id
-        result += 'uri=%s, ' % self.uri
-        result += 'action=%s, ' % str(self.action)
-        result += 'status=%s, ' % self.status
-        result += 'runner_parameters=%s, ' % str(self.runner_parameters)
-        result += 'action_parameters=%s, ' % str(self.action_parameters)
-        result += ')'
-        return result
+        result = []
+        result.append('ActionExecutionDB@')
+        result.append(str(id(self)))
+        result.append('(')
+        result.append('id="%s", ' % self.id)
+        result.append('action=%s, ' % str(self.action))
+        result.append('status=%s, ' % str(self.status))
+        result.append('runner_parameters=%s, ' % str(self.runner_parameters))
+        result.append('action_parameters=%s, ' % str(self.action_parameters))
+        result.append('uri="%s")' % self.uri)
+        return ''.join(result)
 
 
 class ActionExecutionResultDB(me.EmbeddedDocument):
