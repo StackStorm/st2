@@ -49,7 +49,7 @@ class RuleEnforcer(object):
     @staticmethod
     def __get_rules(filter_func, trigger_instance):
         return filter(filter_func,
-                      Rule.query(trigger_type=trigger_instance.trigger))
+                      Rule.query(trigger_type=trigger_instance.trigger, enabled=True))
 
     @staticmethod
     def __get_action_name(action_exec_spec):

@@ -86,7 +86,7 @@ class RuleAPI(StormBaseAPI):
     criteria = wstypes.DictType(str, wstypes.DictType(str, str))
     rule_data = wstypes.DictType(str, str)
     action = wstypes.DictType(str, wstypes.DictType(str, str))
-    status = wstypes.Enum(str, 'enabled', 'disabled')
+    enabled = bool
 
     @classmethod
     def from_model(kls, model):
@@ -96,7 +96,7 @@ class RuleAPI(StormBaseAPI):
         rule.action = {'type': get_ref(model.action.action),
                        'mapping': dict(model.action.data_mapping)}
         rule.rule_data = dict(model.rule_data)
-        rule.status = model.status
+        rule.enabled = model.enabled
         return rule
 
     @classmethod
@@ -110,7 +110,7 @@ class RuleAPI(StormBaseAPI):
         if 'mapping' in rule.action:
             model.action.data_mapping = rule.action['mapping']
         model.rule_data = rule.rule_data
-        model.status = rule.status
+        model.enabled = rule.enabled
         return model
 
 
