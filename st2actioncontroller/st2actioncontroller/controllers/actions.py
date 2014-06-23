@@ -139,7 +139,7 @@ class ActionsController(RestController):
             LOG.error('Database delete encountered exception during delete of id="%s". '
                       'Exception was %s', id, e)
 
-        LOG.audit('Action deleted from database. Action was: %s', action_db)
+        LOG.audit('An Action was deleted from database. The Action was: %s', action_db)
         LOG.info('DELETE /actions/ with id="%s" completed', id)
         return None
 
