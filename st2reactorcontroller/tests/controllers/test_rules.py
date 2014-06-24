@@ -9,7 +9,7 @@ ACTION.description = ''
 ACTION.enabled = True
 ACTION.artifact_path = '/tmp/action.py'
 ACTION.entry_point = ''
-ACTION.run_type = 'python'
+ACTION.runner_type = 'python'
 ACTION.parameter_names = ['p1', 'p2', 'p3']
 
 TRIGGER = reactor.TriggerDB()
