@@ -14,8 +14,8 @@ LOG = logging.getLogger(__name__)
 
 class ResourceBranch(commands.Branch):
 
-    def __init__(self, resource, manager, description,
-                 subparsers, parent_parser=None, read_only=False):
+    def __init__(self, resource, manager, description, subparsers,
+                 parent_parser=None, read_only=False, override_help=None):
         self.resource = resource
         self.manager = manager
         super(ResourceBranch, self).__init__(
@@ -26,7 +26,10 @@ class ResourceBranch(commands.Branch):
         self.subparsers = self.parser.add_subparsers(
             help=('List of commands for managing %s.' %
                   self.resource._plural.lower()))
-        help.HelpCommand(self.subparsers, self.commands)
+        if not override_help:
+            help.HelpCommand(self.subparsers, self.commands)
+        else:
+            override_help(self.subparsers, self.commands)
         self.commands['list'] = ResourceListCommand(
             self.resource, self.manager, self.subparsers)
         self.commands['get'] = ResourceGetCommand(
