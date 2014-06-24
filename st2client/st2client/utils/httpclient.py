@@ -23,7 +23,12 @@ class HTTPClient(object):
                              headers=headers)
 
     def put(self, url, data, **kwargs):
-        return requests.put(self.root + url, data, **kwargs)
+        headers = kwargs.get('headers', {})
+        content_type = headers.get('content-type', 'application/json')
+        headers['content-type'] = content_type
+        return requests.put(self.root + url,
+                            json.dumps(data),
+                            headers=headers)
 
     def patch(self, url, data, **kwargs):
         return requests.patch(self.root + url, data, **kwargs)
