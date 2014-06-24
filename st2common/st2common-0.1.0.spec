@@ -21,7 +21,7 @@ An automation plaform that needs a much better description than this.
 
 %build
 sed -i -r "s~(st2.*)/conf~/etc/\1~g" conf/stanley.conf
-sed -i -r "s~(st2reactor/sensor/samples)~/etc/\1~g" conf/stanley.conf
+sed -i -r "s~st2reactor/(st2reactor/sensor/samples)~/etc/\1~g" conf/stanley.conf
 
 %install
 
