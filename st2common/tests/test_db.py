@@ -4,6 +4,7 @@ import mongoengine.connection
 from oslo.config import cfg
 
 SKIP_DELETE = False
+DUMMY_DESCRIPTION = 'Sample Description.'
 
 
 class DbConnectionTest(tests.DbTestCase):
@@ -45,6 +46,13 @@ class ReactorModelTest(tests.DbTestCase):
         retrieved = Trigger.get_by_id(saved.id)
         self.assertEqual(saved.name, retrieved.name,
                          'Same trigger was not returned.')
+        # test update
+        self.assertEqual(retrieved.description, '')
+        retrieved.description = DUMMY_DESCRIPTION
+        saved = Trigger.add_or_update(retrieved)
+        retrieved = Trigger.get_by_id(saved.id)
+        self.assertEqual(retrieved.description, DUMMY_DESCRIPTION, 'Update to trigger failed.')
+        # cleanup
         ReactorModelTest._delete([retrieved, triggersource])
         try:
             retrieved = Trigger.get_by_id(saved.id)
@@ -71,8 +79,14 @@ class ReactorModelTest(tests.DbTestCase):
         trigger = ReactorModelTest._create_save_trigger(triggersource)
         saved = ReactorModelTest._create_save_rule(trigger, action)
         retrieved = Rule.get_by_id(saved.id)
-        self.assertEqual(saved.name, retrieved.name,
-                         'Same rule was not returned.')
+        self.assertEqual(saved.name, retrieved.name, 'Same rule was not returned.')
+        # test update
+        self.assertEqual(retrieved.enabled, True)
+        retrieved.enabled = False
+        saved = Rule.add_or_update(retrieved)
+        retrieved = Rule.get_by_id(saved.id)
+        self.assertEqual(retrieved.enabled, False, 'Update to rule failed.')
+        # cleanup
         ReactorModelTest._delete([retrieved, trigger, action, triggersource])
         try:
             retrieved = Rule.get_by_id(saved.id)
@@ -210,6 +224,13 @@ class ActionModelTest(tests.DbTestCase):
         retrieved = Action.get_by_id(saved.id)
         self.assertEqual(saved.name, retrieved.name,
                          'Same TriggerSource was not returned.')
+        # test update
+        self.assertEqual(retrieved.description, '')
+        retrieved.description = DUMMY_DESCRIPTION
+        saved = Action.add_or_update(retrieved)
+        retrieved = Action.get_by_id(saved.id)
+        self.assertEqual(retrieved.description, DUMMY_DESCRIPTION, 'Update to action failed.')
+        # cleanup
         ActionModelTest._delete([retrieved])
         try:
             retrieved = Action.get_by_id(saved.id)

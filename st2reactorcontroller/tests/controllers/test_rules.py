@@ -80,6 +80,22 @@ class TestRuleController(FunctionalTest):
         self.assertEquals(post_resp.status_int, 201)
         self.__do_delete(self.__get_rule_id(post_resp))
 
+    def test_put(self):
+        post_resp = self.__do_post(RULE_1)
+        update_input = post_resp.json
+        update_input['enabled'] = not update_input['enabled']
+        put_resp = self.__do_put(self.__get_rule_id(post_resp), update_input)
+        self.assertEquals(put_resp.status_int, 200)
+        self.__do_delete(self.__get_rule_id(put_resp))
+
+    def test_put_fail(self):
+        post_resp = self.__do_post(RULE_1)
+        update_input = post_resp.json
+        # If the id in the URL is incorrect the update will fail since id in the body is ignored.
+        put_resp = self.__do_put(1, update_input)
+        self.assertEquals(put_resp.status_int, 404)
+        self.__do_delete(self.__get_rule_id(post_resp))
+
     def test_delete(self):
         post_resp = self.__do_post(RULE_1)
         del_resp = self.__do_delete(self.__get_rule_id(post_resp))
@@ -94,6 +110,9 @@ class TestRuleController(FunctionalTest):
 
     def __do_post(self, rule):
         return self.app.post_json('/rules', rule)
+
+    def __do_put(self, rule_id, rule):
+        return self.app.put_json('/rules/%s' % rule_id, rule, expect_errors=True)
 
     def __do_delete(self, rule_id):
         return self.app.delete('/rules/%s' % rule_id)
