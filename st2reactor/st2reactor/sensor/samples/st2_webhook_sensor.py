@@ -56,6 +56,7 @@ class St2WebhookSensor(object):
         app.run(port=self.__port)
 
     def stop(self):
+        # If Flask is using the default Werkzeug server, then call shutdown on it.
         func = request.environ.get('werkzeug.server.shutdown')
         if func is None:
             raise RuntimeError('Not running with the Werkzeug Server')
