@@ -7,10 +7,10 @@ from oslo.config import cfg
 CONF = cfg.CONF
 
 api_opts = [
-    cfg.StrOpt('host', default='0.0.0.0', help='stackaton API server host'),
-    cfg.IntOpt('port', default=9102, help='stackaton API server port')
+    cfg.StrOpt('host', default='0.0.0.0', help='reactor controller API server host'),
+    cfg.IntOpt('port', default=9102, help='reactor controller API server port')
 ]
-CONF.register_opts(api_opts, group='reactor_controller_api')
+CONF.register_opts(api_opts, group='api')
 
 pecan_opts = [
     cfg.StrOpt('root',
@@ -24,13 +24,13 @@ pecan_opts = [
     cfg.BoolOpt('auth_enable', default=True),
     cfg.DictOpt('errors', default={404: '/error/404', '__force_dict__': True})
 ]
-CONF.register_opts(pecan_opts, group='reactor_pecan')
+CONF.register_opts(pecan_opts, group='pecan')
 
 logging_opts = [
-    cfg.StrOpt('config_file', default='conf/logging.conf',
-               help='location of the logging.conf file')
+    cfg.StrOpt('config_file', default='conf/reactor_controller_logging.conf',
+               help='location of the logging configuration file.')
 ]
-CONF.register_opts(logging_opts, group='reactor_controller_logging')
+CONF.register_opts(logging_opts, group='logging')
 
 db_opts = [
     cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
