@@ -246,8 +246,8 @@ class ActionModelTest(tests.DbTestCase):
         created.enabled = True
         created.artifact_path = '/tmp/action.py'
         created.entry_point = ''
-        # created.run_type = 'python'
-        # created.parameter_names = ['p1', 'p2', 'p3']
+        created.runner_type = 'python'
+        created.parameter_names = ['p1', 'p2', 'p3']
         return Action.add_or_update(created)
 
     @staticmethod
