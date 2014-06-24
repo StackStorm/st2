@@ -30,12 +30,10 @@ class ActionDB(StormBaseDB):
                           help_text=u'Path to action content relative to repository base.')
     entry_point = me.StringField(required=True,
                           help_text=u'Action entrypoint.')
-    """
-    runner_type = me.fields.StringField(required=True,
+    runner_type = me.StringField(required=True,
                           help_text=u'Execution environment to use when invoking the action.')
-    parameter_names = me.fields.ListField(required=True,
+    parameter_names = me.ListField(
                           help_text=u'List of required parameter names.')
-    """
 
     def __str__(self):
         result = []
@@ -46,6 +44,8 @@ class ActionDB(StormBaseDB):
         result.append('enabled="%s", ' % self.enabled)
         result.append('artifact_path="%s", ' % self.artifact_path)
         result.append('entry_point="%s", ' % self.entry_point)
+        result.append('runner_type="%s", ' % self.runner_type)
+        result.append('parameter_names=%s, ' % str(self.parameter_names))
         result.append('uri="%s")' % self.uri)
         return ''.join(result)
 

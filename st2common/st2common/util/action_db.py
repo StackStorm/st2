@@ -67,7 +67,7 @@ def get_actionexec_by_id(actionexec_id):
 
     return actionexec
 
-def get_action_for_dict(action_dict):
+def get_action_by_dict(action_dict):
     """
         Get Action object from DB based on action_dict values.
 

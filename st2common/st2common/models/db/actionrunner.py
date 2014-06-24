@@ -71,7 +71,7 @@ class ActionTypeDB(StormBaseDB):
         result.append('description="%s", ' % self.description)
         result.append('enabled="%s", ' % self.enabled)
         result.append('runner_parameter_names="%s", ' % str(self.runner_parameter_names))
-        result.append('runner_module="%s", ' % str(self.runner_module)
+        result.append('runner_module="%s", ' % str(self.runner_module))
         result.append('uri="%s")' % self.uri)
         return ''.join(result)
 
