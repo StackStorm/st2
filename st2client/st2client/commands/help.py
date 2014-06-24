@@ -10,7 +10,7 @@ class HelpCommand(Command):
 
     def __init__(self, subparsers, commands, parent_parser=None):
         super(HelpCommand, self).__init__(
-            'help', 'Print usage information for the given command.',
+            'help', 'Print usage for the given command.',
             subparsers, parent_parser=parent_parser)
 
         # If parent parser is the top level parser, set the command argument to
