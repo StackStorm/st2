@@ -27,29 +27,34 @@ class ActionAPI(StormBaseAPI):
     enabled = bool
     artifact_path = wstypes.text
     entry_point = wstypes.text
-    """
     runner_type = wstypes.text
-    parameter_names = wstypes.ArrayType(wstypes.text)
-    """
+    parameter_names = wstypes.ArrayType(str)
 
     @classmethod
     def from_model(kls, model):
+        LOG.debug('entering ActionAPI.from_model() Input object: %s', model)
+
         action = StormBaseAPI.from_model(kls, model)
         action.enabled = bool(model.enabled)
-        action.artifact_path = model.artifact_path
-        action.entry_point = model.entry_point
-        """
-        action.parameter_names = [str(n) for n in model.parameter_names]
-        """
+        action.artifact_path = str(model.artifact_path)
+        action.entry_point = str(model.entry_point)
+        action.runner_type = str(model.runner_type)
+        action.parameter_names = [str(v) for v in model.parameter_names]
+        LOG.debug('exiting ActionAPI.from_model() Result object: %s', action)
         return action
 
     @classmethod
     def to_model(kls, action):
+        LOG.debug('entering ActionAPI.to_model() Input object: %s', action)
+
         model = StormBaseAPI.to_model(ActionDB, action)
         model.enabled = bool(action.enabled)
         model.artifact_path = str(action.artifact_path)
         model.entry_point = str(action.entry_point)
+        model.runner_type = str(action.runner_type)
+        model.parameter_names = [str(v) for v in action.parameter_names]
 
+        LOG.debug('exiting ActionAPI.to_model() Result object: %s', model)
         return model
 
     def __str__(self):
@@ -64,8 +69,8 @@ class ActionAPI(StormBaseAPI):
         result.append('enabled="%s",' % self.enabled)
         result.append('artifact_path="%s",' % self.artifact_path)
         result.append('entry_point="%s",' % self.entry_point)
-        #result.append('runner_parameter_names="%s",' % str(self.runner_parameter_names))
-        #result.append('runner_module="%s", ' % self.runner_module)
+        result.append('runner_type="%s",' % self.runner_type)
+        result.append('parameter_names="%s",' % str(self.parameter_names))
         result.append('uri="%s")' % self.uri)
         return ''.join(result)
 

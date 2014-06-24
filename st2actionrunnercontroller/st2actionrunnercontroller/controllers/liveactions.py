@@ -10,10 +10,12 @@ import wsmeext.pecan as wsme_pecan
 from st2common import log as logging
 
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.api.actionrunner import LiveActionAPI
+from st2common.models.api.action import (ActionAPI, ActionExecutionAPI)
+from st2common.models.api.actionrunner import (ActionTypeAPI, LiveActionAPI)
 from st2common.persistence.action import ActionExecution
 from st2common.persistence.actionrunner import LiveAction
-from st2common.util.actionrunner_db import get_liveaction_by_id
+from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict)
+from st2common.util.actionrunner_db import (get_actiontype_by_name, get_liveaction_by_id)
 
 
 LOG = logging.getLogger(__name__)
@@ -25,55 +27,23 @@ class LiveActionsController(RestController):
         the lifecycle of ActionRunners in the system.
     """
 
-    _liveaction_apis = {}
-
-    """
-    def __init__(self):
-        api = LiveActionAPI()
-        api.id = '12345'
-        api.name = 'test/echo'
-        api.description = 'A test/echo action'
-        api.action_execution_id = 'some id'
-        self._liveaction_apis['12345'] = api
-        api = LiveActionAPI()
-        api.id = '78901'
-        api.name = 'test/hello'
-        api.description = 'A test/hello action'
-        api.action_execution_id = 'some other id'
-        self._liveaction_apis['78901'] = api
-    """
-
-#    def _get_by_id(self, id):
+#    def get_actionexecution_by_id(self, actionexecution_id):
 #        """
-#            Get LiveAction by id.
-#
+#            Get ActionExecution by id.
 #            On error, raise ST2ObjectNotFoundError.
 #        """
+#        # TODO: Maybe lookup should be done via HTTP interface. Handle via direct DB call
+#        #       for now.
+#        LOG.debug('Lookup for ActionExecution with id=%s', actionexecution_id)
 #        try:
-#            liveaction = LiveAction.get_by_id(id)
+#            actionexecution_db = ActionExecution.get_by_id(actionexecution_id)
 #        except (ValueError, ValidationError) as e:
-#            LOG.error('Database lookup for id="%s" resulted in exception: %s', id, e)
-#            abort(httplib.NOT_FOUND)
+#            LOG.error('Database lookup for actionexecution with id="%s" resulted in '
+#                      'exception: %s', actionexecution_id, e)
+#            raise StackStormDBObjectNotFoundError('Unable to find actionexecution with '
+#                                                  'id="%s"' % actionexecution_id)
 #
-#        return liveaction
-
-    def get_actionexecution_by_id(self, actionexecution_id):
-        """
-            Get ActionExecution by id.
-            On error, raise ST2ObjectNotFoundError.
-        """
-        # TODO: Maybe lookup should be done via HTTP interface. Handle via direct DB call
-        #       for now.
-        LOG.debug('Lookup for ActionExecution with id=%s', actionexecution_id)
-        try:
-            actionexecution_db = ActionExecution.get_by_id(actionexecution_id)
-        except (ValueError, ValidationError) as e:
-            LOG.error('Database lookup for actionexecution with id="%s" resulted in '
-                      'exception: %s', actionexecution_id, e)
-            raise StackStormDBObjectNotFoundError('Unable to find actionexecution with '
-                                                  'id="%s"' % actionexecution_id)
-
-        return actionexecution_db
+#        return actionexecution_db
 
     @wsme_pecan.wsexpose(LiveActionAPI, wstypes.text)
     def get_one(self, id):
@@ -129,31 +99,66 @@ class LiveActionsController(RestController):
                   liveaction_api)
 
         actionexecution_id = str(liveaction.actionexecution_id)
-        actionexecution_db = None
 
-        LOG.info('POST /liveactions/ received action_execution_id: %s', actionexecution_id)
-        LOG.info('here')
-        LOG.info('POST /liveactions/ attempting to obtain action_execution from database.')
+        ## To launch a LiveAction we need:
+        #     1. ActionExecution object
+        #     2. Action object
+        #     3. ActionType object
+        LOG.info('POST /liveactions/ received actionexecution_id: %s. '
+                 'Attempting to obtain ActionExecution object from database.', actionexecution_id)
         try:
-            actionexecution_db = self.get_actionexecution_by_id(actionexecution_id)
-
+            db = get_actionexec_by_id(actionexecution_id)
+            actionexecution_api = ActionExecutionAPI.from_model(db)
+            db = None
         except StackStormDBObjectNotFoundError, e:
             LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
 
-        LOG.info('POST /liveactions/ obtained action execution object from database. '
-                 'Object is %s', actionexecution_db)
+        ## Got ActionExecution object (1)
+        LOG.info('POST /liveactions/ obtained ActionExecution object from database. '
+                 'Object is %s', actionexecution_api)
 
         try:
-            pass
+            LOG.debug('actionexecution.action value: %s', actionexecution_api.action)
+            db,d = get_action_by_dict(actionexecution_api.action)
+            LOG.debug('got DB object: %s', db)
+            action_api = ActionAPI.from_model(db)
+            db = None
         except StackStormDBObjectNotFoundError, e:
             LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
+
+        ## Got Action object (2)
+        LOG.info('POST /liveactions/ obtained Action object from database. '
+                 'Object is %s', action_api)
+
+        try:
+            db = get_actiontype_by_name(action_api.runner_type)
+            actiontype_api = ActionTypeAPI.from_model(db)
+            db = None
+        except StackStormDBObjectNotFoundError, e:
+            LOG.error(e.message)
+            # TODO: Is there a more appropriate status code?
+            abort(httplib.BAD_REQUEST)
+
+        ## Got ActionType object (3)
+        LOG.info('POST /liveactions/ obtained ActionType object from database. '
+                 'Object is %s', actiontype_api)
+
+
+        # Save LiveAction to DB
+        liveaction_api.actionexecution_id = actionexecution_api.id
+        liveaction_db = LiveAction.add_or_update(liveaction_api)
+        LOG.info('POST /liveactions/ LiveAction object saved to DB. '
+                 'Object is: %s', liveaction_db)
             
+        # Launch action
+        LOG.debug('Launching LiveAction command: ')
+        print "Fe, Fi, Fo, Fum"
 
-        LOG.debug('Got ActionExecution.... now launch action command.')
+    ##################### Got to here.
 
         abort(httplib.NOT_IMPLEMENTED)
 
