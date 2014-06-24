@@ -37,6 +37,8 @@ class ResourceBranch(commands.Branch):
         if not read_only:
             self.commands['create'] = ResourceCreateCommand(
                 self.resource, self.manager, self.subparsers)
+            self.commands['update'] = ResourceUpdateCommand(
+                self.resource, self.manager, self.subparsers)
             self.commands['delete'] = ResourceDeleteCommand(
                 self.resource, self.manager, self.subparsers)
 
@@ -117,7 +119,41 @@ class ResourceCreateCommand(ResourceCommand):
         with open(args.file, 'r') as f:
             data = json.loads(f.read())
             instance = self.resource.deserialize(data)
-            instance = self.manager.post(instance)
+            instance = self.manager.create(instance)
+            self.print_output(instance, table.PropertyValueTable,
+                              attributes=['all'], json=args.json)
+
+
+class ResourceUpdateCommand(ResourceCommand):
+
+    def __init__(self, resource, manager, subparsers):
+        super(ResourceUpdateCommand, self).__init__(
+            'update', 'Updating an existing %s.' % resource.__name__.lower(),
+            resource, manager, subparsers)
+        self.parser.add_argument('id',
+                                 help=('ID of the %s to be updated.' %
+                                       resource.__name__.lower()))
+        self.parser.add_argument('file',
+                                 help='JSON file containing the '
+                                      'rule(s) to create.')
+        self.parser.add_argument('-j', '--json',
+                                 action='store_true', dest='json',
+                                 help='Prints output in JSON format.')
+
+    def run(self, args):
+        if not os.path.isfile(args.file):
+            raise Exception('File "%s" does not exist.' % args.file)
+        with open(args.file, 'r') as f:
+            data = json.loads(f.read())
+            instance = self.resource.deserialize(data)
+            if not getattr(instance, 'id', None):
+                instance.id = args.id
+            else:
+                if instance.id != args.id:
+                    raise Exception('ID of the %s in the JSON file does not '
+                                    'match the ID provided in the argument.' %
+                                    self.resource.__name__.lower())
+            instance = self.manager.update(instance)
             self.print_output(instance, table.PropertyValueTable,
                               attributes=['all'], json=args.json)
 

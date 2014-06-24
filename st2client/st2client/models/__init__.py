@@ -63,10 +63,19 @@ class ResourceManager(object):
                     if len(items) == 1 else None)
         return instance
 
-    def post(self, instance):
+    def create(self, instance):
         url = '/%s' % self.resource._plural.lower()
         LOG.info('POST %s/%s' % (self.endpoint, url))
         response = self.client.post(url, instance.serialize())
+        if response.status_code != 200:
+            response.raise_for_status()
+        instance = self.resource.deserialize(response.json())
+        return instance
+
+    def update(self, instance):
+        url = '/%s/%s' % (self.resource._plural.lower(), instance.id)
+        LOG.info('PUT %s/%s' % (self.endpoint, url))
+        response = self.client.put(url, instance.serialize())
         if response.status_code != 200:
             response.raise_for_status()
         instance = self.resource.deserialize(response.json())
