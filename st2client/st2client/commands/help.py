@@ -1,17 +1,3 @@
-# -*- coding: utf-8 -*-
-#
-#    Licensed under the Apache License, Version 2.0 (the "License");
-#    you may not use this file except in compliance with the License.
-#    You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS,
-#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#    See the License for the specific language governing permissions and
-#    limitations under the License.
-
 import logging
 
 from st2client.commands import Command
@@ -31,10 +17,11 @@ class HelpCommand(Command):
         # optional so that running "prog help" will return the program's help
         # message instead of throwing the "too few arguments" error.
         nargs = '?' if self.parent_parser and self.parent_parser.prog else None
-        self.parser.add_argument('command', help='Name of the command.', nargs=nargs)
+        self.parser.add_argument('command', nargs=nargs,
+                                 help='Name of the command.')
 
-        # Registers this help command in the command list so "prog help help" will
-        # return the help message for this help command.
+        # Registers this help command in the command list so "prog help help"
+        # will return the help message for this help command.
         self.commands = commands
         self.commands['help'] = self
 
