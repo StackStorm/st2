@@ -1,17 +1,3 @@
-# -*- coding: utf-8 -*-
-#
-#    Licensed under the Apache License, Version 2.0 (the "License");
-#    you may not use this file except in compliance with the License.
-#    You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS,
-#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#    See the License for the specific language governing permissions and
-#    limitations under the License.
-
 import os
 import abc
 import six
@@ -74,7 +60,8 @@ class ResourceListCommand(ResourceCommand):
         self.parser.add_argument('-w', '--width', nargs='+', type=int,
                                  default=[25, 25, 50],
                                  help=('Set the width of columns in output.'))
-        self.parser.add_argument('-j', '--json', action='store_true', dest='json',
+        self.parser.add_argument('-j', '--json',
+                                 action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
     def run(self, args):
@@ -98,7 +85,8 @@ class ResourceGetCommand(ResourceCommand):
                                  help=('List of attributes to include in the '
                                        'output. "all" or unspecified will '
                                        'return all attributes.'))
-        self.parser.add_argument('-j', '--json', action='store_true', dest='json',
+        self.parser.add_argument('-j', '--json',
+                                 action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
     def run(self, args):
@@ -116,7 +104,8 @@ class ResourceCreateCommand(ResourceCommand):
         self.parser.add_argument('file',
                                  help='JSON file containing the '
                                       'rule(s) to create.')
-        self.parser.add_argument('-j', '--json', action='store_true', dest='json',
+        self.parser.add_argument('-j', '--json',
+                                 action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
     def run(self, args):
