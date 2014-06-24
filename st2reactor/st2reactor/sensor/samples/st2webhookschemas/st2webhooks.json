@@ -6,6 +6,6 @@
       "event_id": {},
       "payload": {}
     },
-    "required": ["name"]
+    "required": ["name", "payload"]
   }
 }
