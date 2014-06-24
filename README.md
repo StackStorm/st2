@@ -28,3 +28,22 @@ The list of prerequisites:
 * To just create virtualenv:
 
         make virtualenv
+
+### Using nosetests to execute specific tests
+Activate the virtual environment.
+* To run tests in a specific project
+
+        nosetests -v {project_name}/tests
+
+* To run tests in a specific test file
+
+        nosetests -v {project_name}/tests/{path_to_test_file}/{test_file}.py
+
+* To run tests in a specific class
+
+        nosetests -v {project_name}/tests/{path_to_test_file}/{test_file}.py:{Classname} 
+
+* To run a specific test method
+
+        nosetests -v {project_name}/tests/{path_to_test_file}/{test_file}.py:{Classname}.{method_name} 
+
