@@ -15,10 +15,15 @@ class TriggerDispatcher(object):
     def dispatch(self, triggers):
         """
         """
-        trigger_instances = [container_utils.create_trigger_instance(
-            trigger['name'],
-            trigger['payload'] if 'payload' in trigger else {},
-            trigger['occurrence_time'] if 'occurrence_time' in trigger else
-            datetime.datetime.now())
-            for trigger in triggers]
-        rules_engine.handle_trigger_instances(trigger_instances)
+        trigger_instances = []
+        for trigger in triggers:
+            ti = container_utils.create_trigger_instance(
+                trigger['name'],
+                trigger['payload'] if 'payload' in trigger else {},
+                trigger['occurrence_time'] if 'occurrence_time' in trigger else
+                datetime.datetime.now())
+            if ti is not None:
+                trigger_instances.append(ti)
+
+        if trigger_instances:
+            rules_engine.handle_trigger_instances(trigger_instances)

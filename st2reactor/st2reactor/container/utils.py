@@ -13,7 +13,7 @@ def create_trigger_instance(trigger_name, payload,
     triggers = Trigger.query(name=trigger_name)
     trigger = None if len(triggers) == 0 else triggers[0]
     if trigger is None:
-        LOG.info('No trigger with name {} found.', trigger_name)
+        LOG.info('No trigger with name %s found.', trigger_name)
         return None
     trigger_instance = TriggerInstanceDB()
     trigger_instance.trigger = trigger
