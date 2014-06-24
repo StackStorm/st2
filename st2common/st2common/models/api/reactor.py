@@ -1,7 +1,7 @@
 import datetime
 from wsme import types as wstypes
 
-from st2common.models.api.stormbase import StormBaseAPI
+from st2common.models.api.stormbase import StormBaseAPI, StormFoundationAPI
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB
 from st2common.persistence.reactor import Trigger
 from st2common.persistence.action import Action
@@ -41,14 +41,14 @@ class TriggerAPI(StormBaseAPI):
         return trigger
 
 
-class TriggerInstanceAPI(StormBaseAPI):
+class TriggerInstanceAPI(StormFoundationAPI):
     trigger = wstypes.text
     payload = wstypes.DictType(str, str)
     occurrence_time = datetime.datetime
 
     @classmethod
     def from_model(kls, model):
-        trigger_instance = StormBaseAPI.from_model(kls, model)
+        trigger_instance = StormFoundationAPI.from_model(kls, model)
         trigger_instance.trigger = get_id(model.trigger)
         trigger_instance.payload = dict(model.payload)
         trigger_instance.occurrence_time = model.occurrence_time
@@ -114,14 +114,14 @@ class RuleAPI(StormBaseAPI):
         return model
 
 
-class RuleEnforcementAPI(StormBaseAPI):
+class RuleEnforcementAPI(StormFoundationAPI):
     rule = wstypes.text
     trigger_instance = wstypes.text
     action_execution = wstypes.text
 
     @classmethod
     def from_model(kls, model):
-        rule_enforcement = StormBaseAPI.from_model(kls, model)
+        rule_enforcement = StormFoundationAPI.from_model(kls, model)
         rule_enforcement.rule = get_id(model.rule)
         rule_enforcement.trigger_instance = get_id(model.trigger_instance)
         rule_enforcement.action_execution = get_id(model.action_execution)

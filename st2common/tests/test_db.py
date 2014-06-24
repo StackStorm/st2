@@ -57,8 +57,7 @@ class ReactorModelTest(tests.DbTestCase):
         trigger = ReactorModelTest._create_save_trigger(triggersource)
         saved = ReactorModelTest._create_save_triggerinstance(trigger)
         retrieved = TriggerInstance.get_by_id(saved.id)
-        self.assertEqual(saved.name, retrieved.name,
-                         'Same triggerinstance was not returned.')
+        self.assertIsNotNone(retrieved, 'No triggerinstance created.')
         ReactorModelTest._delete([retrieved, trigger, triggersource])
         try:
             retrieved = TriggerInstance.get_by_id(saved.id)
@@ -90,8 +89,7 @@ class ReactorModelTest(tests.DbTestCase):
         saved = ReactorModelTest._create_save_ruleenforcement(triggerinstance,
                                                               rule)
         retrieved = RuleEnforcement.get_by_id(saved.id)
-        self.assertEqual(saved.name, retrieved.name,
-                         'Same rule was not returned.')
+        self.assertIsNotNone(retrieved, 'No ruleenforcement created.')
         ReactorModelTest._delete([retrieved, rule, triggerinstance, trigger,
                                   triggersource])
         try:
@@ -165,8 +163,6 @@ class ReactorModelTest(tests.DbTestCase):
     @staticmethod
     def _create_save_triggerinstance(trigger):
         created = TriggerInstanceDB()
-        created.name = 'triggerinstance-1'
-        created.description = ''
         created.trigger = trigger
         created.payload = {}
         created.occurrence_time = datetime.datetime.now()
@@ -189,8 +185,6 @@ class ReactorModelTest(tests.DbTestCase):
     def _create_save_ruleenforcement(triggerinstance, rule,
                                      actionexecution=None):
         created = RuleEnforcementDB()
-        created.name = 'ruleenforcement-1'
-        created.description = ''
         created.rule = rule
         created.trigger_instance = triggerinstance
         created.action_execution = actionexecution

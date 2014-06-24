@@ -1,6 +1,6 @@
 import mongoengine as me
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.stormbase import StormBaseDB
+from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
 from st2common.models.db.action import ActionDB, ActionExecutionDB
 
 
@@ -31,7 +31,7 @@ class TriggerDB(StormBaseDB):
     payload_info = me.ListField()
 
 
-class TriggerInstanceDB(StormBaseDB):
+class TriggerInstanceDB(StormFoundationDB):
     """An instance or occurrence of a type of Trigger.
     Attribute:
         trigger: Reference to the trigger type.
@@ -73,7 +73,7 @@ class CriterionSpecDB(me.EmbeddedDocument):
     operator = me.StringField()
 
 
-class RuleEnforcementDB(StormBaseDB):
+class RuleEnforcementDB(StormFoundationDB):
     """A record of when an enabled rule was enforced.
     Attribute:
         rule (Reference): Rule that was enforced.
