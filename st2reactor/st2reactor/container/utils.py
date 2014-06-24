@@ -16,7 +16,6 @@ def create_trigger_instance(trigger_name, payload,
         LOG.info('No trigger with name {} found.', trigger_name)
         return None
     trigger_instance = TriggerInstanceDB()
-    trigger_instance.name = 'auto-generated'
     trigger_instance.trigger = trigger
     trigger_instance.payload = payload
     trigger_instance.occurrence_time = occurrence_time

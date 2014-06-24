@@ -49,20 +49,16 @@ class StormBaseAPI(StormFoundationAPI):
     name = wstypes.text
     description = wstypes.wsattr(wstypes.text, default='')
 
-    # TODO: delegate uri and id handling to StormFoundationAPI
-
     @staticmethod
     def from_model(kls, model):
-        api_instance = kls()
-        api_instance.id = str(model.id)
-        api_instance.uri = model.uri
+        api_instance = StormFoundationAPI.from_model(kls, model)
         api_instance.name = model.name
         api_instance.description = model.description
         return api_instance
 
     @staticmethod
     def to_model(kls, api_instance):
-        model = kls()
+        model = StormFoundationAPI.to_model(kls, api_instance)
         model.name = api_instance.name
         model.description = api_instance.description
         return model

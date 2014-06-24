@@ -33,7 +33,6 @@ class RuleEnforcer(object):
                  self.trigger_instance.trigger.name)
         for rule in rules:
             rule_enforcement = RuleEnforcementDB()
-            rule_enforcement.name = 'auto-generated'
             rule_enforcement.trigger_instance = self.trigger_instance
             rule_enforcement.rule = rule
             data = self.data_transformer(rule.action.data_mapping, rule.rule_data)
