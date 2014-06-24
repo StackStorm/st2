@@ -44,7 +44,7 @@ class RuleController(RestController):
         LOG.debug('GET all /rules/ client_result=%s', rule_apis)
         return rule_apis
 
-    @wsme_pecan.wsexpose(RuleAPI, body=RuleAPI, status_code=201)
+    @wsme_pecan.wsexpose(RuleAPI, body=RuleAPI, status_code=httplib.CREATED)
     def post(self, rule):
         """
             Create a new rule.
@@ -69,21 +69,44 @@ class RuleController(RestController):
 
         return rule_api
 
+    @wsme_pecan.wsexpose(RuleAPI, wstypes.text, body=RuleAPI, status_code=httplib.OK)
+    def put(self, rule_id, rule):
+        LOG.info('PUT /rules/ with rule id=%s and data=%s', rule_id, rule)
+        rule_db = RuleController.__get_by_id(rule_id)
+        LOG.debug('PUT /rules/ lookup with id=%s found object: %s', rule_id, rule_db)
+
+        try:
+            if rule.id is not None and rule.id is not '' and rule.id != rule_id:
+                LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
+                            rule.id, rule_id)
+            rule_db = RuleAPI.to_model(rule)
+            rule_db.id = rule_id
+            rule_db = Rule.add_or_update(rule_db)
+            LOG.debug('/rules/ PUT updated RuleDB object=%s', rule_db)
+        except (ValidationError, ValueError) as e:
+            LOG.exception('Validation failed for rule data=%s', rule)
+            abort(httplib.BAD_REQUEST, str(e))
+
+        rule_api = RuleAPI.from_model(rule_db)
+        LOG.debug('PUT /rules/ client_result=%s', rule_api)
+
+        return rule_api
+
     @wsme_pecan.wsexpose(None, wstypes.text, status_code=httplib.NO_CONTENT)
-    def delete(self, id):
+    def delete(self, rule_id):
         """
             Delete a rule.
 
             Handles requests:
                 DELETE /rules/1
         """
-        LOG.info('DELETE /rules/ with id=%s', id)
-        rule_db = RuleController.__get_by_id(id)
-        LOG.debug('DELETE /rules/ lookup with id=%s found object: %s', id, rule_db)
+        LOG.info('DELETE /rules/ with id=%s', rule_id)
+        rule_db = RuleController.__get_by_id(rule_id)
+        LOG.debug('DELETE /rules/ lookup with id=%s found object: %s', rule_id, rule_db)
         try:
             Rule.delete(rule_db)
         except Exception:
-            LOG.exception('Database delete encountered exception during delete of id="%s". ', id)
+            LOG.exception('Database delete encountered exception during delete of id="%s". ', rule_id)
 
     @staticmethod
     def __get_by_id(rule_id):
