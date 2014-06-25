@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 
 
 def __get_pecan_config():
-    opts = cfg.CONF.action_pecan
+    opts = cfg.CONF.pecan
 
     cfg_dict = {
         'app': {

@@ -61,7 +61,7 @@ class RuleEnforcer(object):
         payload = json.dumps({'action': {'name': action.name},
                               'runner_parameters': {},
                               'action_parameters': action_args})
-        r = requests.post(cfg.CONF.reactor.actionexecution_base_url,
+        r = requests.post(cfg.CONF.action_integration.actionexecution_base_url,
                           data=payload,
                           headers=HTTP_AE_POST_HEADER)
         if r.status_code != 201:

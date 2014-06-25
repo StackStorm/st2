@@ -25,7 +25,7 @@ def __setup():
     # 1. parse config args
     config.parse_args()
     # 2. setup logging.
-    logging.setup(cfg.CONF.reactor_controller_logging.config_file)
+    logging.setup(cfg.CONF.logging.config_file)
 
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
@@ -35,8 +35,8 @@ def __setup():
 
 def __run_server():
 
-    host = cfg.CONF.reactor_controller_api.host
-    port = cfg.CONF.reactor_controller_api.port
+    host = cfg.CONF.api.host
+    port = cfg.CONF.api.port
 
     server = simple_server.make_server(host, port, app.setup_app())
 

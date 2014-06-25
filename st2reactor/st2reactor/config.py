@@ -3,10 +3,10 @@ from oslo.config import cfg
 CONF = cfg.CONF
 
 logging_opts = [
-    cfg.StrOpt('config_file', default='etc/logging.conf',
+    cfg.StrOpt('config_file', default='conf/reactor_logging.conf',
                help='location of the logging.conf file')
 ]
-CONF.register_opts(logging_opts, group='reactor_logging')
+CONF.register_opts(logging_opts, group='logging')
 
 db_opts = [
     cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
@@ -38,7 +38,7 @@ reactor_opts = [
     cfg.StrOpt('actionexecution_base_url', default='http://0.0.0.0:9101/actionexecutions',
                help='URL of POSTing to the actionexecution endpoint.')
 ]
-CONF.register_opts(reactor_opts, group='reactor')
+CONF.register_opts(reactor_opts, group='action_integration')
 
 
 def parse_args(args=None):
