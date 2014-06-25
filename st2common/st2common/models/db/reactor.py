@@ -68,11 +68,6 @@ class RuleDB(StormBaseDB):
                               help_text=u'Flag indicating whether the rule is enabled.')
 
 
-class CriterionSpecDB(me.EmbeddedDocument):
-    pattern = me.StringField()
-    operator = me.StringField()
-
-
 class RuleEnforcementDB(StormFoundationDB):
     """A record of when an enabled rule was enforced.
     Attribute:
