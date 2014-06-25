@@ -42,7 +42,7 @@ class ContainerService(object):
                 eventlet.greenthread.sleep(5)
             while self.__dispatcher_pool.free() <= 0:
                 eventlet.greenthread.sleep(1)
-            if not self.__triggers_buffer.empty():
+            while not self.__triggers_buffer.empty() and self.__dispatcher_pool.free() > 0:
                 triggers = self.__triggers_buffer.get_nowait()
                 self.dispatch(triggers)
 
