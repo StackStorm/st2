@@ -17,6 +17,10 @@ from st2common.persistence.actionrunner import LiveAction
 from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict)
 from st2common.util.actionrunner_db import (get_actiontype_by_name, get_liveaction_by_id)
 
+from st2actionrunnercontroller.controllers import runner_container
+from st2actionrunner.container import (get_runner_container, RunnerContainer)
+
+
 
 LOG = logging.getLogger(__name__)
 
@@ -155,12 +159,12 @@ class LiveActionsController(RestController):
                  'Object is: %s', liveaction_db)
             
         # Launch action
-        LOG.debug('Launching LiveAction command: ')
-        print "Fe, Fi, Fo, Fum"
-
-    ##################### Got to here.
-
-        abort(httplib.NOT_IMPLEMENTED)
+        LOG.debug('Launching LiveAction command.')
+        global runner_container
+        runner_container.dispatch(actiontype_api.name,
+                                  actionexecution_api.runner_parameters,
+                                  actionexecution_api.action_parameters,
+                                  None)
 
     @expose('json')
     def put(self, id, **kwargs):

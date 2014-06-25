@@ -50,6 +50,27 @@ class ActionDB(StormBaseDB):
         return ''.join(result)
 
 
+class ActionExecutionResultDB(me.EmbeddedDocument):
+    """
+        Result data for a single Action execution (on a single host).
+    """
+    exit_code = me.IntField(help_text=u'Exit code for action.')
+    std_out = me.ListField(default=[],
+                           help_text=u'List of stdout output strings in output order.')
+    std_err = me.ListField(default=[],
+                           help_text=u'List of stdout output strings in output order.')
+
+    def __str__(self):
+        result = []
+        result.append('ActionExecutionResultDB@')
+        result.append(str(id(self)))
+        result.append('(')
+        result.append('exit_code=%s' % int(self.exit_code))
+        result.append('std_out=%s' % str(self.std_out))
+        result.append('std_err=%s)' % str(self.std_err))
+        return ''.join(result)
+
+
 class ActionExecutionDB(StormFoundationDB):
     """
         The databse entity that represents a Stack Action/Automation in
@@ -72,10 +93,8 @@ class ActionExecutionDB(StormFoundationDB):
     action_parameters = me.DictField(default={},
                 help_text=u'The key-value pairs passed as parameters to the execution.')
 
-    """
-#    TODO: Determine whether I need to store the execution result values.
-#    result_data = me.fields.EmbeddedDocumentField(ExecutionResultDB, **kwargs)
-    """
+    result_data = me.ListField( me.EmbeddedDocumentField(ActionExecutionResultDB), 
+                               help_text=u'Output from action. Key values are hostnames.')
 
     # TODO: Write generic str function for API and DB model base classes
     def __str__(self):
@@ -92,14 +111,6 @@ class ActionExecutionDB(StormFoundationDB):
         return ''.join(result)
 
 
-class ActionExecutionResultDB(me.EmbeddedDocument):
-    """
-    TODO: fill-in
-    Not sure if I will need this to be persisted.
-    """
-    exit_code = me.IntField()
-    std_out = me.StringField()
-    std_err = me.StringField()
 
 
 # specialized access objects
