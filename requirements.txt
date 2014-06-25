@@ -10,4 +10,5 @@ jinja2
 requests
 flask
 flask-jsonschema
+prettytable
 
