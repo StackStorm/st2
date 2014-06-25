@@ -13,11 +13,20 @@ from st2common.models.api.actionrunner import ActionTypeAPI
 from st2common.persistence.actionrunner import ActionType
 from st2common.util.actionrunner_db import (get_actiontype_by_id, get_actiontype_by_name)
 
+from st2actionrunner.container import (get_runner_container, RunnerContainer)
+from st2actionrunnercontroller.controllers import runner_container
+
 
 LOG = logging.getLogger(__name__)
 
 
-ACTION_TYPES = {'shellaction': {'name': 'shellaction',
+ACTION_TYPES = {'internaldummy': {'name': 'internaldummy',
+                                  'description': 'An internal action type for development only.',
+                                  'enabled': True,
+                                  'runner_parameter_names': ['command'],
+                                  'runner_module': 'no.such.module',
+                                 },
+                'shellaction': {'name': 'shellaction',
                                 'description': 'A shell action type',
                                 'enabled': True,
                                 'runner_parameter_names': ['command'],
@@ -63,34 +72,11 @@ class ActionTypesController(RestController):
 
         LOG.debug('Registering actiontypes complete')
 
-#    def _get_actiontype_by_name(self, actiontype_name):
-#        """
-#            Get an ActionType by name.
-#            On error, raise ST2ObjectNotFoundError.
-#        """
-#        LOG.debug('Lookup for ActionType with name="%s"', actiontype_name)
-#        try:
-#            actiontypes = ActionType.query(name=actiontype_name)
-#        except (ValueError, ValidationError) as e:
-#            LOG.error('Database lookup for name="%s" resulted in exception: %s',
-#                      actiontype_name, e)
-#            raise StackStormDBObjectNotFoundError('Unable to find actiontype with name="%s"'
-#                                                  % actiontype_name)
-#
-#        if not actiontypes:
-#            LOG.error('Database lookup for ActionType with name="%s" produced no results',
-#                      actiontype_name)
-#            raise StackStormDBObjectNotFoundError('Unable to find actiontype with name="%s"'
-#                                                  % actiontype_name)
-#
-#        if len(actiontypes) > 1:
-#            LOG.warning('More than one ActionType returned from DB lookup by name. '
-#                        'Result list is: %s', actiontypes)
-#
-#        return actiontypes[0]
-
     def __init__(self):
         self._register_internal_actiontypes()
+        global runner_container
+        runner_container = get_runner_container()
+        
 
     @wsme_pecan.wsexpose(ActionTypeAPI, wstypes.text)
     def get_one(self, id):
