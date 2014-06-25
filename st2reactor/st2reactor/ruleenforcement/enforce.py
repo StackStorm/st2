@@ -6,7 +6,7 @@ from st2reactor.ruleenforcement.datatransform import get_transformer
 from st2reactor.ruleenforcement.filter import get_filter
 from st2common.models.db.reactor import RuleEnforcementDB
 from st2common.persistence.reactor import RuleEnforcement, Rule
-from st2common.persistence.action import ActionExecution
+from st2common.util import reference
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.enforce')
@@ -30,11 +30,11 @@ class RuleEnforcer(object):
         rules = RuleEnforcer.__get_rules(self.filter.apply_filter,
                                          self.trigger_instance)
         LOG.info('%d rule(s) found to enforce for %s.', len(rules),
-                 self.trigger_instance.trigger.name)
+                 self.trigger_instance.trigger['name'])
         for rule in rules:
             rule_enforcement = RuleEnforcementDB()
-            rule_enforcement.trigger_instance = self.trigger_instance
-            rule_enforcement.rule = rule
+            rule_enforcement.trigger_instance = reference.get_ref_from_model(self.trigger_instance)
+            rule_enforcement.rule = reference.get_ref_from_model(rule)
             data = self.data_transformer(rule.action.data_mapping, rule.rule_data)
             LOG.info('Invoking action %s for trigger_instance %s with data %s.',
                      RuleEnforcer.__get_action_name(rule.action), self.trigger_instance.id,
@@ -43,7 +43,8 @@ class RuleEnforcer(object):
             rule_enforcement.action_execution = action_execution
             rule_enforcement = RuleEnforcement.add_or_update(rule_enforcement)
             LOG.audit('[re=%s] ActionExecution %s for TriggerInstance %s due to Rule %s.',
-                     rule_enforcement.id, action_execution.id, rule.id, self.trigger_instance.id)
+                     rule_enforcement.id, action_execution.get('id', None), rule.id,
+                     self.trigger_instance.id)
 
     @staticmethod
     def __get_rules(filter_func, trigger_instance):
@@ -54,11 +55,11 @@ class RuleEnforcer(object):
     def __get_action_name(action_exec_spec):
         if action_exec_spec is None or action_exec_spec.action is None:
             return ''
-        return action_exec_spec.action.name
+        return action_exec_spec.action['name']
 
     @staticmethod
     def __invoke_action(action, action_args):
-        payload = json.dumps({'action': {'name': action.name},
+        payload = json.dumps({'action': action,
                               'runner_parameters': action_args,
                               'action_parameters': {}})
         r = requests.post(cfg.CONF.reactor.actionexecution_base_url,
@@ -67,4 +68,4 @@ class RuleEnforcer(object):
         if r.status_code != 201:
             return None
         action_execution_id = r.json()['id']
-        return ActionExecution.get_by_id(action_execution_id)
+        return {'id': action_execution_id}

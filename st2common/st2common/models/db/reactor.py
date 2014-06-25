@@ -38,13 +38,13 @@ class TriggerInstanceDB(StormFoundationDB):
         payload (dict): payload specific to the occurrence.
         occurrence_time (datetime): time of occurrence of the trigger.
     """
-    trigger = me.ReferenceField(TriggerDB.__name__)
+    trigger = me.DictField()
     payload = me.DictField()
     occurrence_time = me.DateTimeField()
 
 
 class ActionExecutionSpecDB(me.EmbeddedDocument):
-    action = me.ReferenceField(ActionDB.__name__)
+    action = me.DictField()
     data_mapping = me.DictField()
 
 
@@ -60,7 +60,7 @@ class RuleDB(StormBaseDB):
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
-    trigger_type = me.ReferenceField(TriggerDB.__name__)
+    trigger_type = me.DictField()
     criteria = me.DictField()
     rule_data = me.DictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
@@ -77,9 +77,9 @@ class RuleEnforcementDB(StormFoundationDB):
         action_execution (Reference): The ActionExecution that was
         created to record execution of a action as part of this enforcement.
     """
-    rule = me.ReferenceField(RuleDB.__name__)
-    trigger_instance = me.ReferenceField(TriggerInstanceDB.__name__)
-    action_execution = me.ReferenceField(ActionExecutionDB.__name__)
+    rule = me.DictField()
+    trigger_instance = me.DictField()
+    action_execution = me.DictField()
 
 
 # specialized access objects
