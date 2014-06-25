@@ -1,3 +1,4 @@
+from nose.tools import nottest
 from tests import FunctionalTest
 
 ACTION_1 = {
@@ -21,6 +22,7 @@ ACTION_EXECUTION_2 = {
 }
 
 
+@nottest
 class TestActionExecutionsController(FunctionalTest):
 
     @classmethod
