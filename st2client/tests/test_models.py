@@ -75,6 +75,15 @@ class TestResourceManager(unittest.TestCase):
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=\
+            FakeResponse('', 404, 'NOT FOUND')))
+    def test_get_by_id_404(self):
+        mgr = models.ResourceManager(FakeResource, 'http://localhost:9999')
+        resource = mgr.get_by_id('abc123')
+        self.assertIsNone(resource)
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
             FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
     def test_get_by_id_failed(self):
         mgr = models.ResourceManager(FakeResource, 'http://localhost:9999')
@@ -90,6 +99,15 @@ class TestResourceManager(unittest.TestCase):
         actual = resource.serialize()
         expected = json.loads(json.dumps(RESOURCES[0]))
         self.assertEqual(actual, expected)
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
+            FakeResponse('', 404, 'NOT FOUND')))
+    def test_get_by_name_404(self):
+        mgr = models.ResourceManager(FakeResource, 'http://localhost:9999')
+        resource = mgr.get_by_name('one')
+        self.assertIsNone(resource)
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
@@ -147,17 +165,36 @@ class TestResourceManager(unittest.TestCase):
         self.assertRaises(Exception, mgr.update, instance)
 
     @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
+            FakeResponse(json.dumps([RESOURCES[0]]), 200, 'OK')))
+    @mock.patch.object(
         httpclient.HTTPClient, 'delete',
         mock.MagicMock(return_value=\
             FakeResponse('', 204, 'NO CONTENT')))
     def test_delete(self):
         mgr = models.ResourceManager(FakeResource, 'http://localhost:9999')
-        mgr.delete('abc123')
+        instance = mgr.get_by_name('one')
+        mgr.delete(instance)
 
+    @mock.patch.object(
+        httpclient.HTTPClient, 'delete',
+        mock.MagicMock(return_value=\
+            FakeResponse('', 404, 'NOT FOUND')))
+    def test_delete_404(self):
+        mgr = models.ResourceManager(FakeResource, 'http://localhost:9999')
+        instance = FakeResource.deserialize(RESOURCES[0])
+        mgr.delete(instance)
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
+            FakeResponse(json.dumps(RESOURCES), 200, 'OK')))
     @mock.patch.object(
         httpclient.HTTPClient, 'delete',
         mock.MagicMock(return_value=\
             FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
     def test_delete_failed(self):
         mgr = models.ResourceManager(FakeResource, 'http://localhost:9999')
-        self.assertRaises(Exception, mgr.delete, 'abc123')
+        instance = mgr.get_by_name('one')
+        self.assertRaises(Exception, mgr.delete, instance)

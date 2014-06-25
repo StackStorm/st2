@@ -48,6 +48,8 @@ class ResourceManager(object):
         url = '/%s/%s' % (self.resource._plural.lower(), id)
         LOG.info('GET %s/%s' % (self.endpoint, url))
         response = self.client.get(url)
+        if response.status_code == 404:
+            return None
         if response.status_code != 200:
             response.raise_for_status()
         return self.resource.deserialize(response.json())
@@ -56,6 +58,8 @@ class ResourceManager(object):
         url = '/%s/?name=%s' % (self.resource._plural.lower(), name)
         LOG.info('GET %s/%s' % (self.endpoint, url))
         response = self.client.get(url)
+        if response.status_code == 404:
+            return None
         if response.status_code != 200:
             response.raise_for_status()
         items = response.json()
@@ -81,9 +85,9 @@ class ResourceManager(object):
         instance = self.resource.deserialize(response.json())
         return instance
 
-    def delete(self, id):
-        url = '/%s/%s' % (self.resource._plural.lower(), id)
+    def delete(self, instance):
+        url = '/%s/%s' % (self.resource._plural.lower(), instance.id)
         LOG.info('DELETE %s/%s' % (self.endpoint, url))
         response = self.client.delete(url)
-        if response.status_code != 204:
+        if response.status_code not in (204, 404):
             response.raise_for_status()

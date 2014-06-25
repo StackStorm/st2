@@ -50,6 +50,9 @@ class ResourceCommand(commands.Command):
         self.resource = resource
         self.manager = manager
 
+    def print_not_found(self, name):
+        print '%s named "%s" is not found.' % (self.resource.__name__, name)
+
 
 class ResourceListCommand(ResourceCommand):
 
@@ -96,8 +99,11 @@ class ResourceGetCommand(ResourceCommand):
 
     def run(self, args):
         instance = self.manager.get_by_name(args.name)
-        self.print_output(instance, table.PropertyValueTable,
-                          attributes=args.attr, json=args.json)
+        if not instance:
+            self.print_not_found(args.name)
+        else:
+            self.print_output(instance, table.PropertyValueTable,
+                              attributes=args.attr, json=args.json)
 
 
 class ResourceCreateCommand(ResourceCommand):
@@ -170,4 +176,7 @@ class ResourceDeleteCommand(ResourceCommand):
 
     def run(self, args):
         instance = self.manager.get_by_name(args.name)
-        self.manager.delete(instance.id)
+        if not instance:
+            self.print_not_found(args.name)
+        else:
+            self.manager.delete(instance)
