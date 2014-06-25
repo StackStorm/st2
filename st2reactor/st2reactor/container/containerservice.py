@@ -38,9 +38,12 @@ class ContainerService(object):
 
     def _flush_triggers(self):
         while True:
-            if Queue.empty():
+            while self.__triggers_buffer.empty():
                 eventlet.greenthread.sleep(5)
-            triggers = self.__triggers_buffer.get_nowait()
-            self._dispatch(triggers)
+            while self.__dispatcher_pool.free() <= 0:
+                eventlet.greenthread.sleep(1)
+            if not self.__triggers_buffer.empty():
+                triggers = self.__triggers_buffer.get_nowait()
+                self.dispatch(triggers)
 
 
