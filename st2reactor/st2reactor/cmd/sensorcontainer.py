@@ -125,7 +125,12 @@ def _run_sensors(sensors_dict):
                 continue
             else:
                 try:
-                    container_utils.add_trigger_types(sensor.get_trigger_types())
+                    trigger_type = sensor.get_trigger_types()
+                    if not trigger_type:
+                        LOG.warning('No trigger type registered by sensor %s in file %s',
+                                    sensor_class, filename)
+                    else:
+                        container_utils.add_trigger_types(sensor.get_trigger_types())
                 except TriggerTypeRegistrationException, e:
                     LOG.exception(e)
                     LOG.warning('Unable to register trigger type for sensor %s in file %s' %

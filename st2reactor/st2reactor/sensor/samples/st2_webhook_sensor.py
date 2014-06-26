@@ -63,13 +63,7 @@ class St2WebhookSensor(object):
         func()
 
     def get_trigger_types(self):
-        return [
-            {
-                'name': 'webhooks.st2',
-                'description': 'Stackstorm default webhooks sensor.',
-                'payload_info': ['name', 'payload']
-            }
-        ]
+        return []
 
     '''
     Flask app specific stuff.
