@@ -84,17 +84,23 @@ class St2WebhookSensor(object):
             status = httplib.ACCEPTED
             triggers = []
             trigger = {}
-            trigger['name'] = webhook_body[u'name']
-            trigger['payload'] = webhook_body[u'payload']
-            event_id = webhook_body[u'event_id']
+            trigger['name'] = webhook_body.get(u'name', '')
+
+            if not trigger['name']:
+                status = httplib.BAD_REQUEST
+                data = {'error': '"name" field has to be non-empty.'}
+                return jsonify(data), status
+
+            trigger['payload'] = webhook_body.get(u'payload', {})
+            event_id = webhook_body.get(u'event_id')
             if event_id is not None:
                 trigger['event_id'] = event_id
             triggers.append(trigger)
             # Generate trigger instances and send them.
             try:
                 self.__container_service.dispatch(triggers)
-            except Exception, e:
-                self.__log.error('Exception %s handling webhook %s', e, trigger['name'])
+            except Exception as e:
+                self.__log.exception('Exception %s handling webhook %s', e, trigger['name'])
                 status = httplib.INTERNAL_SERVER_ERROR
                 data = {'error': str(e)}
 
