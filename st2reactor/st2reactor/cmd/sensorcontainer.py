@@ -80,8 +80,7 @@ def _load_sensor_modules(path):
                 LOG.info('No sensors in file %s.', file_path)
 
         except IncompatiblePluginException as e:
-            LOG.exception(e)
-            LOG.warning('Exception registering plugin %s.' % file_path)
+            LOG.warning('Exception registering plugin %s: %s', file_path, e, exc_info=True)
     return plugins_dict
 
 
@@ -101,8 +100,8 @@ def _run_sensor(sensor_file_path):
     try:
         sensors_dict[sensor_file_path].extend(_load_sensor(sensor_file_path))
     except IncompatiblePluginException as e:
-        LOG.exception(e)
-        LOG.warning('Exception registering plugin %s.' % sensor_file_path)
+        LOG.warning('Exception registering plugin %s. Exception: %s', sensor_file_path, e,
+                    exc_info=True)
         return -1
     exit_code = _run_sensors(sensors_dict)
     LOG.info('SensorContainer process[{}] exit with code {}.'.format(
@@ -120,9 +119,8 @@ def _run_sensors(sensors_dict):
             try:
                 sensor = sensor_class(container_service)
             except Exception as e:
-                LOG.exception(e)
-                LOG.warning('Unable to create instance for sensor %s in file %s' %
-                            (sensor_class, filename))
+                LOG.warning('Unable to create instance for sensor %s in file %s. Exception: %s',
+                            sensor_class, filename, e, exc_info=True)
                 continue
             else:
                 try:
@@ -133,9 +131,8 @@ def _run_sensors(sensors_dict):
                     else:
                         container_utils.add_trigger_types(sensor.get_trigger_types())
                 except TriggerTypeRegistrationException as e:
-                    LOG.exception(e)
-                    LOG.warning('Unable to register trigger type for sensor %s in file %s',
-                                sensor_class, filename)
+                    LOG.warning('Unable to register trigger type for sensor %s in file %s.'
+                                + ' Exception: %s', sensor_class, filename, e, exc_info=True)
                     continue
                 else:
                     sensors_to_run.append(sensor)
