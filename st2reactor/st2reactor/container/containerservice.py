@@ -27,10 +27,8 @@ class ContainerService(object):
         return self._dispatcher
 
     def dispatch(self, triggers):
-        if self._dispatcher_pool.free() <= 0:
-            self._triggers_buffer.put(triggers, block=True, timeout=1)
-            return
-        self._dispatcher_pool.spawn(self._dispatch, triggers)
+        self._triggers_buffer.put(triggers, block=True, timeout=1)
+        self._flush_triggers_now()
 
     def get_logger(self, name):
         logger = logging.getLogger(self._base_logger_name + name)
@@ -40,12 +38,18 @@ class ContainerService(object):
     def _dispatch(self, triggers):
         self._dispatcher.dispatch(triggers)
 
+    def _flush_triggers_now(self):
+        if self._dispatcher_pool.free() <= 0:
+            return
+        while not self._triggers_buffer.empty() and self._dispatcher_pool.free() > 0:
+            triggers = self._triggers_buffer.get_nowait()
+            self._dispatcher_pool.spawn(self._dispatch, triggers)
+
     def _flush_triggers(self):
         while True:
             while self._triggers_buffer.empty():
                 eventlet.greenthread.sleep(self._monitor_thread_sleep_time)
             while self._dispatcher_pool.free() <= 0:
                 eventlet.greenthread.sleep(1)
-            while not self._triggers_buffer.empty() and self._dispatcher_pool.free() > 0:
-                triggers = self._triggers_buffer.get_nowait()
-                self._dispatcher_pool.spawn(self._dispatch, triggers)
+            self._flush_triggers_now()
+
