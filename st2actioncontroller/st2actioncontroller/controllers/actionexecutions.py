@@ -128,10 +128,14 @@ class ActionExecutionsController(RestController):
                          'lookup failure.')
                 actionexecution.action = action_dict
 
+        # ActionExecution doesn't hold the runner_type data. Disable this field update.
+        #LOG.debug('Setting actionexecution runner_type to "%s"', action_db.runner_type)
+        #actionexecution.runner_type = str(action_db.runner_type)
+
         LOG.debug('Setting actionexecution status to "%s"', ACTIONEXEC_STATUS_INIT)
         actionexecution.status = str(ACTIONEXEC_STATUS_INIT)
-        LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
 
+        LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
         actionexec_api = ActionExecutionAPI.to_model(actionexecution)
         LOG.debug('/actionexecutions/ POST verified ActionExecutionAPI object=%s',
                   actionexec_api)

@@ -6,6 +6,7 @@ from st2common.models.db.actionrunner import (ActionTypeDB, LiveActionDB)
 
 __all__ = ['LiveActionAPI',
            'ActionRunnerAPI',
+           'ActionTypeAPI',
            ]
 
 
