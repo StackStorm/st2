@@ -36,13 +36,26 @@ class ActionExecutionsController(RestController):
         the lifecycle of ActionExecutions in the system.
     """
 
+    @staticmethod
+    def _get_action_executions(action_id, action_name):
+        if action_id is not None:
+            LOG.debug('Using action_id=%s to get action executions', action_id)
+            # action__id <- this queries action.id
+            return ActionExecution.query(action__id=action_id)
+        elif action_name is not None:
+            LOG.debug('Using action_name=%s to get action executions', action_name)
+            # action__name <- this queries against action.name
+            return ActionExecution.query(action__name=action_name)
+        LOG.debug('Retrieving all action executions')
+        return ActionExecution.get_all()
+
     def _update_actionexecution_status(self, actionexec_db, new_status):
-        LOG.debug('Updating ActionExection: "%s" with status="%s"', 
+        LOG.debug('Updating ActionExection: "%s" with status="%s"',
                   actionexec_db, new_status)
         actionexec_db.status = new_status
         actionexec_db = ActionExecution.add_or_update(actionexec_db)
         LOG.debug('Updated ActionExecution object: %s', actionexec_db)
-        
+
 
     def _create_custom_headers(self):
         return {'content-type': 'application/json'}
@@ -73,8 +86,8 @@ class ActionExecutionsController(RestController):
         return actionexec_api
 
     # TODO: Support kwargs
-    @wsme_pecan.wsexpose([ActionExecutionAPI])
-    def get_all(self):
+    @wsme_pecan.wsexpose([ActionExecutionAPI], wstypes.text, wstypes.text)
+    def get_all(self, action_id=None, action_name=None):
         """
             List all actionexecutions.
 
@@ -82,14 +95,17 @@ class ActionExecutionsController(RestController):
                 GET /actionexecutions/
         """
 
-        LOG.info('GET all /actionexecutions/')
+        LOG.info('GET all /actionexecutions/ with action_name=%s and action_id=%s',
+                 action_name, action_id)
+
+        actionexec_dbs = ActionExecutionsController._get_action_executions(action_id, action_name)
         actionexec_apis = [ActionExecutionAPI.from_model(actionexec_db)
-                           for actionexec_db in ActionExecution.get_all()]
+                           for actionexec_db in actionexec_dbs]
 
         # TODO: unpack list in log message
         LOG.debug('GET all /actionexecutions/ client_result=%s', actionexec_apis)
         return actionexec_apis
-    
+
     @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI,
                          status_code=httplib.CREATED)
     def post(self, actionexecution):
@@ -138,7 +154,7 @@ class ActionExecutionsController(RestController):
 
         custom_headers = self._create_custom_headers()
         payload = self._create_liveaction_data(actionexec_db.id)
-        LOG.info('Payload for /liveactions/ POST: data="%s" custom_headers="%s"', 
+        LOG.info('Payload for /liveactions/ POST: data="%s" custom_headers="%s"',
                  payload, custom_headers)
         LOG.info('Issuing /liveactions/ POST for actionexecution: %s', actionexec_db)
         request_error = False
@@ -149,7 +165,7 @@ class ActionExecutionsController(RestController):
             LOG.error('Caught encoundered connection error while performing /liveactions/ POST.'
                       'Error was: %s', e)
             request_error = True
-         
+
         LOG.debug('/liveactions/ POST request result: %s', result)
 
         if not request_error and (result.status_code == httplib.CREATED):
