@@ -100,7 +100,7 @@ class St2WebhookSensor(object):
             try:
                 self.__container_service.dispatch(triggers)
             except Exception as e:
-                self.__log.error('Exception %s handling webhook %s', e, trigger['name'])
+                self.__log.exception('Exception %s handling webhook %s', e, trigger['name'])
                 status = httplib.INTERNAL_SERVER_ERROR
                 data = {'error': str(e)}
 
