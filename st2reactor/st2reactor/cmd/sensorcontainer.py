@@ -5,8 +5,9 @@ import re
 import sys
 
 from oslo.config import cfg
-from st2common.exceptions.plugins import IncompatiblePluginException
 from st2common import log as logging
+from st2common.exceptions.plugins import IncompatiblePluginException
+from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 import st2common.util.loader as sensors_loader
@@ -20,7 +21,7 @@ from st2reactor.sensor.base import Sensor
 LOG = logging.getLogger('st2reactor.bin.sensor_container')
 
 
-def __setup():
+def _setup():
     # setup config before anything else.
     config.parse_args()
     # 1. setup logging.
@@ -31,15 +32,15 @@ def __setup():
              cfg.CONF.database.port)
 
 
-def __teardown():
+def _teardown():
     db_teardown()
 
 
-def __load_sensor(sensor_file_path):
+def _load_sensor(sensor_file_path):
     return sensors_loader.register_plugin(Sensor, sensor_file_path)
 
 
-def __load_sensor_modules(path):
+def _load_sensor_modules(path):
     '''
     XXX: For now, let's just hardcode the includes & excludes pattern
     here. We should eventually move these to config if that makes sense
@@ -72,19 +73,19 @@ def __load_sensor_modules(path):
         file_path = os.path.join(path, plugin)
         try:
             LOG.info('Loading sensors from file %s.', file_path)
-            klasses = __load_sensor(file_path)
+            klasses = _load_sensor(file_path)
             if klasses is not None:
                 plugins_dict[plugin].extend(klasses)
             else:
                 LOG.info('No sensors in file %s.', file_path)
 
-        except IncompatiblePluginException, e:
+        except IncompatiblePluginException as e:
             LOG.exception(e)
             LOG.warning('Exception registering plugin %s.' % file_path)
     return plugins_dict
 
 
-def __is_single_sensor_mode():
+def _is_single_sensor_mode():
     if cfg.CONF.sensor_path is not None:
         LOG.info('Running in sensor testing mode.')
         sensor_to_test = cfg.CONF.sensor_path
@@ -98,15 +99,15 @@ def __is_single_sensor_mode():
 def _run_sensor(sensor_file_path):
     sensors_dict = defaultdict(list)
     try:
-        sensors_dict[sensor_file_path].extend(__load_sensor(sensor_file_path))
-    except IncompatiblePluginException, e:
+        sensors_dict[sensor_file_path].extend(_load_sensor(sensor_file_path))
+    except IncompatiblePluginException as e:
         LOG.exception(e)
         LOG.warning('Exception registering plugin %s.' % sensor_file_path)
         return -1
     exit_code = _run_sensors(sensors_dict)
     LOG.info('SensorContainer process[{}] exit with code {}.'.format(
         os.getpid(), exit_code))
-    __teardown()
+    _teardown()
     return exit_code
 
 
@@ -118,7 +119,7 @@ def _run_sensors(sensors_dict):
         for sensor_class in sensors:
             try:
                 sensor = sensor_class(container_service)
-            except Exception, e:
+            except Exception as e:
                 LOG.exception(e)
                 LOG.warning('Unable to create instance for sensor %s in file %s' %
                             (sensor_class, filename))
@@ -131,10 +132,10 @@ def _run_sensors(sensors_dict):
                                     sensor_class, filename)
                     else:
                         container_utils.add_trigger_types(sensor.get_trigger_types())
-                except TriggerTypeRegistrationException, e:
+                except TriggerTypeRegistrationException as e:
                     LOG.exception(e)
-                    LOG.warning('Unable to register trigger type for sensor %s in file %s' %
-                                (sensor_class, filename))
+                    LOG.warning('Unable to register trigger type for sensor %s in file %s',
+                                sensor_class, filename)
                     continue
                 else:
                     sensors_to_run.append(sensor)
@@ -145,15 +146,15 @@ def _run_sensors(sensors_dict):
 
 
 def main():
-    __setup()
+    _setup()
     sensors_dict = None
-    if __is_single_sensor_mode():
+    if _is_single_sensor_mode():
         return _run_sensor(cfg.CONF.sensor_path)
     else:
-        sensors_dict = __load_sensor_modules(os.path.realpath(cfg.CONF.sensors.modules_path))
+        sensors_dict = _load_sensor_modules(os.path.realpath(cfg.CONF.sensors.modules_path))
         LOG.info('Found %d sensors.', len(sensors_dict))
         exit_code = _run_sensors(sensors_dict)
-        __teardown()
+        _teardown()
         LOG.info('SensorContainer process[{}] exit with code {}.'.format(
             os.getpid(), exit_code))
         return exit_code
