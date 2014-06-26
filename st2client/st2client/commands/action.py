@@ -15,11 +15,8 @@ class ActionBranch(resource.ResourceBranch):
                  subparsers, parent_parser=None):
         super(ActionBranch, self).__init__(
             action.Action, manager, description, subparsers,
-            parent_parser=parent_parser, override_help=ActionHelpCommand)
-
-        # Assigns resource and manager to the help command after init.
-        self.commands['help'].resource = self.resource
-        self.commands['help'].manager = self.manager
+            parent_parser=parent_parser,
+            commands={'help': ActionHelpCommand})
 
         # Registers extended commands
         self.commands['execute'] = ActionExecuteCommand(
@@ -28,16 +25,10 @@ class ActionBranch(resource.ResourceBranch):
 
 class ActionHelpCommand(resource.ResourceCommand):
 
-    def __init__(self, subparsers, commands):
-        # The __init__ method of ActionHelpCommand follows the same signature
-        # as the basic HelpCommand. This is required so the command Branch
-        # can generically and consistently assign any override help command.
-        # Therefore, NoneType is passed to resource and manager in the call
-        # to the parent's __init__ below. The ActionBranch above will assign
-        # the resource and manager after the ActionHelpCommand has been setup.
+    def __init__(self, resource, manager, subparsers, commands):
         super(ActionHelpCommand, self).__init__(
             'help', 'Print usage for the given command or action.',
-            None, None, subparsers)
+            resource, manager, subparsers)
         self.parser.add_argument('command', metavar='command/action',
                                  help='Name of the command or action.')
         self.commands = commands
@@ -105,11 +96,48 @@ class ActionExecutionBranch(resource.ResourceBranch):
             action.ActionExecution, manager, description, subparsers,
             parent_parser=parent_parser, id_by_name=False,
             list_attr=['id', 'action.name', 'status'],
-            read_only=True)
+            read_only=True, commands={'list': ActionExecutionListCommand})
 
         # Registers extended commands
         self.commands['cancel'] = ActionExecutionCancelCommand(
             self.resource, self.manager, self.subparsers)
+
+
+class ActionExecutionListCommand(resource.ResourceCommand):
+
+    def __init__(self, resource, manager, subparsers, attributes=['all']):
+        super(ActionExecutionListCommand, self).__init__(
+            'list',
+            'Get the list of %s.' % resource.get_plural_display_name().lower(),
+            resource, manager, subparsers)
+        self.group = self.parser.add_mutually_exclusive_group()
+        self.group.add_argument('--action-name',
+                                 help='Action name to filter the list.') 
+        self.group.add_argument('--action-id',
+                                 help='Action id to filter the list.')
+        self.parser.add_argument('-a', '--attr', nargs='+',
+                                 default=attributes,
+                                 help=('List of attributes to include in the '
+                                       'output. "all" will return all '
+                                       'attributes.'))
+        self.parser.add_argument('-w', '--width', nargs='+', type=int,
+                                 default=[25],
+                                 help=('Set the width of columns in output.'))
+        self.parser.add_argument('-j', '--json',
+                                 action='store_true', dest='json',
+                                 help='Prints output in JSON format.')
+
+    def run(self, args):
+        filters = dict()
+        if args.action_name:
+            filters['action_name'] = args.action_name
+        elif args.action_id:
+            filters['action_id'] = args.action_id
+        instances = (self.manager.query(**filters)
+                     if filters else self.manager.get_all())
+        self.print_output(instances, table.MultiColumnTable,
+                          attributes=args.attr, widths=args.width,
+                          json=args.json)
 
 
 class ActionExecutionCancelCommand(resource.ResourceCommand):

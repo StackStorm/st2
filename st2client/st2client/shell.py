@@ -7,7 +7,6 @@ import argparse
 import logging
 
 from st2client.client import Client
-from st2client.commands import help
 from st2client.commands import resource
 from st2client.commands import action
 from st2client.models import reactor
@@ -33,7 +32,8 @@ def main(argv=sys.argv[1:]):
     # set up commands
     subparsers = parser.add_subparsers()
     commands = dict()
-    help.HelpCommand(subparsers, commands, parent_parser=parser)
+    commands['help'] = resource.ResourceHelpCommand(
+        None, None, subparsers, commands, parent_parser=parser)
     commands['action'] = action.ActionBranch(
         client.actions,
         'TODO: Put description of action here.',

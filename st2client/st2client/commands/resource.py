@@ -5,7 +5,6 @@ import json
 import logging
 
 from st2client import commands
-from st2client.commands import help
 from st2client.formatters import table
 
 
@@ -17,40 +16,56 @@ class ResourceBranch(commands.Branch):
     def __init__(self, resource, manager, description, subparsers,
                  parent_parser=None, id_by_name=True,
                  list_attr=['id', 'name', 'description'],
-                 read_only=False, override_help=None):
+                 read_only=False, commands={}):
         self.resource = resource
         self.manager = manager
         super(ResourceBranch, self).__init__(
             self.resource.get_alias().lower(), description,
             subparsers, parent_parser=parent_parser)
 
-        # Registers subcommands for managing the resource type
+        # Registers subcommands for managing the resource type.
         self.subparsers = self.parser.add_subparsers(
             help=('List of commands for managing %s.' %
                   self.resource.get_plural_display_name().lower()))
-        if not override_help:
-            help.HelpCommand(self.subparsers, self.commands)
-        else:
-            override_help(self.subparsers, self.commands)
-        self.commands['list'] = ResourceListCommand(
+
+        # Resolves if commands need to be overridden.
+        if 'help' not in commands:
+            commands['help'] = ResourceHelpCommand
+        if 'list' not in commands:
+            commands['list'] = ResourceListCommand
+        if 'get' not in commands:
+            commands['get'] = ResourceGetCommand
+        if 'create' not in commands:
+            commands['create'] = ResourceCreateCommand
+        if 'update' not in commands:
+            commands['update'] = ResourceUpdateCommand
+        if 'delete' not in commands:
+            commands['delete'] = ResourceDeleteCommand
+
+        # Instantiate commands.
+        self.commands['help'] = commands['help'](
+            self.resource, self.manager, self.subparsers, self.commands)
+        self.commands['list'] = commands['list'](
             self.resource, self.manager, self.subparsers,
             attributes=list_attr)
-        self.commands['get'] = ResourceGetCommand(
+        self.commands['get'] = commands['get'](
             self.resource, self.manager, self.subparsers,
             id_by_name=id_by_name)
         if not read_only:
-            self.commands['create'] = ResourceCreateCommand(
+            self.commands['create'] = commands['create'](
                 self.resource, self.manager, self.subparsers)
-            self.commands['update'] = ResourceUpdateCommand(
+            self.commands['update'] = commands['update'](
                 self.resource, self.manager, self.subparsers)
-            self.commands['delete'] = ResourceDeleteCommand(
+            self.commands['delete'] = commands['delete'](
                 self.resource, self.manager, self.subparsers)
 
 
 class ResourceCommand(commands.Command):
 
-    def __init__(self, command, description, resource, manager, subparsers):
-        super(ResourceCommand, self).__init__(command, description, subparsers)
+    def __init__(self, command, description, resource, manager, subparsers,
+                 parent_parser=None):
+        super(ResourceCommand, self).__init__(
+            command, description, subparsers, parent_parser=parent_parser)
         self.resource = resource
         self.manager = manager
 
@@ -62,6 +77,38 @@ class ResourceCommand(commands.Command):
     def print_not_found(self, name):
         print ('%s "%s" cannot be found.' %
                (self.resource.get_display_name(), name))
+
+
+class ResourceHelpCommand(ResourceCommand):
+
+    def __init__(self, resource, manager, subparsers, commands,
+                 parent_parser=None):
+        super(ResourceHelpCommand, self).__init__(
+            'help', 'Print usage for the given command.',
+            resource, manager, subparsers, parent_parser=parent_parser)
+
+        # If parent parser is the top level parser, set the command argument to
+        # optional so that running "prog help" will return the program's help
+        # message instead of throwing the "too few arguments" error.
+        nargs = '?' if self.parent_parser and self.parent_parser.prog else None
+        self.parser.add_argument('command', nargs=nargs,
+                                 help='Name of the command.')
+
+        # Registers this help command in the command list so "prog help help"
+        # will return the help message for this help command.
+        self.commands = commands
+        self.commands['help'] = self
+
+    def run(self, args):
+        if args.command:
+            command = self.commands[args.command]
+            command.parser.print_help()
+        else:
+            if self.parent_parser and self.parent_parser.prog:
+                self.parent_parser.print_help()
+            else:
+                self.parser.print_help()
+        print
 
 
 class ResourceListCommand(ResourceCommand):
