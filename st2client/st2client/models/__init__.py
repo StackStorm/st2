@@ -89,7 +89,7 @@ class ResourceManager(object):
 
     def query(self, *args, **kwargs):
         if not kwargs:
-            raise Exception('Search parameter is not provided.')
+            raise Exception('Query parameter is not provided.')
         url = '/%s/?' % self.resource.get_plural_name().lower()
         for k, v in kwargs.iteritems():
             url += '%s%s=%s' % (('&' if url[-1] != '?' else ''), k, v)
