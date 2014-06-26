@@ -10,7 +10,7 @@ MOCK_TRIGGER.id = 'trigger-test.id'
 MOCK_TRIGGER.name = 'trigger-test.name'
 
 
-class ContainerServiceTest(unittest2.TestCase):
+class ContainerUtilsTest(unittest2.TestCase):
     @mock.patch.object(Trigger, 'query', mock.MagicMock(
         return_value=[MOCK_TRIGGER]))
     @mock.patch.object(Trigger, 'add_or_update')
