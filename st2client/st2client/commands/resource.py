@@ -15,7 +15,9 @@ LOG = logging.getLogger(__name__)
 class ResourceBranch(commands.Branch):
 
     def __init__(self, resource, manager, description, subparsers,
-                 parent_parser=None, read_only=False, override_help=None):
+                 parent_parser=None, id_by_name=True,
+                 list_attr=['id', 'name', 'description'],
+                 read_only=False, override_help=None):
         self.resource = resource
         self.manager = manager
         super(ResourceBranch, self).__init__(
@@ -31,9 +33,11 @@ class ResourceBranch(commands.Branch):
         else:
             override_help(self.subparsers, self.commands)
         self.commands['list'] = ResourceListCommand(
-            self.resource, self.manager, self.subparsers)
+            self.resource, self.manager, self.subparsers,
+            attributes=list_attr)
         self.commands['get'] = ResourceGetCommand(
-            self.resource, self.manager, self.subparsers)
+            self.resource, self.manager, self.subparsers,
+            id_by_name=id_by_name)
         if not read_only:
             self.commands['create'] = ResourceCreateCommand(
                 self.resource, self.manager, self.subparsers)
@@ -51,22 +55,22 @@ class ResourceCommand(commands.Command):
         self.manager = manager
 
     def print_not_found(self, name):
-        print '%s named "%s" is not found.' % (self.resource.__name__, name)
+        print '%s "%s" cannot be found.' % (self.resource.__name__, name)
 
 
 class ResourceListCommand(ResourceCommand):
 
-    def __init__(self, resource, manager, subparsers):
+    def __init__(self, resource, manager, subparsers, attributes=['all']):
         super(ResourceListCommand, self).__init__(
             'list', 'Get the list of %s.' % resource._plural.lower(),
             resource, manager, subparsers)
         self.parser.add_argument('-a', '--attr', nargs='+',
-                                 default=['id', 'name', 'description'],
+                                 default=attributes,
                                  help=('List of attributes to include in the '
                                        'output. "all" will return all '
                                        'attributes.'))
         self.parser.add_argument('-w', '--width', nargs='+', type=int,
-                                 default=[25, 25, 50],
+                                 default=[25],
                                  help=('Set the width of columns in output.'))
         self.parser.add_argument('-j', '--json',
                                  action='store_true', dest='json',
@@ -81,13 +85,19 @@ class ResourceListCommand(ResourceCommand):
 
 class ResourceGetCommand(ResourceCommand):
 
-    def __init__(self, resource, manager, subparsers):
+    def __init__(self, resource, manager, subparsers, id_by_name=True):
         super(ResourceGetCommand, self).__init__(
             'get', 'Get individual %s.' % resource.__name__.lower(),
             resource, manager, subparsers)
-        self.parser.add_argument('name',
-                                 help=('Name of the %s.' %
-                                       resource.__name__.lower()))
+        self.id_by_name = id_by_name
+        if self.id_by_name:
+            self.parser.add_argument('name',
+                                     help=('Name of the %s.' %
+                                           resource.__name__.lower()))
+        else:
+            self.parser.add_argument('id',
+                                     help=('ID of the %s.' %
+                                           resource.__name__.lower()))
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=[],
                                  help=('List of attributes to include in the '
@@ -98,9 +108,10 @@ class ResourceGetCommand(ResourceCommand):
                                  help='Prints output in JSON format.')
 
     def run(self, args):
-        instance = self.manager.get_by_name(args.name)
+        instance = (self.manager.get_by_name(args.name)
+                    if self.id_by_name else self.manager.get_by_id(args.id))
         if not instance:
-            self.print_not_found(args.name)
+            self.print_not_found(args.name if self.id_by_name else args.id)
         else:
             self.print_output(instance, table.PropertyValueTable,
                               attributes=args.attr, json=args.json)
