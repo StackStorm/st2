@@ -80,28 +80,36 @@ class St2WebhookSensor(object):
         @jsonschema.validate('st2webhooks', 'create')
         def handle_webhook():
             webhook_body = request.get_json()
-            data = {}
-            status = httplib.ACCEPTED
-            triggers = []
-            trigger = {}
-            trigger['name'] = webhook_body.get(u'name', '')
-
-            if not trigger['name']:
-                status = httplib.BAD_REQUEST
-                data = {'error': '"name" field has to be non-empty.'}
-                return jsonify(data), status
-
-            trigger['payload'] = webhook_body.get(u'payload', {})
-            event_id = webhook_body.get(u'event_id')
-            if event_id is not None:
-                trigger['event_id'] = event_id
-            triggers.append(trigger)
             # Generate trigger instances and send them.
+            triggers, errors = self._to_triggers(webhook_body)
+            if errors:
+                return jsonify({'invalid': errors}), httplib.BAD_REQUEST
+
             try:
                 self.__container_service.dispatch(triggers)
             except Exception as e:
-                self.__log.exception('Exception %s handling webhook %s', e, trigger['name'])
+                self.__log.exception('Exception %s handling webhook', e)
                 status = httplib.INTERNAL_SERVER_ERROR
-                data = {'error': str(e)}
+                return jsonify({'error': str(e)}), status
 
-            return jsonify(data), status
+            return jsonify({}), httplib.ACCEPTED
+
+    def _to_triggers(self, webhook_body):
+        triggers = []
+        errors = []
+        for obj in webhook_body:
+            trigger = {}
+            trigger['name'] = obj.get(u'name', '')
+
+            if not trigger['name']:
+                errors.append(obj)
+                continue
+
+            trigger['payload'] = obj.get(u'payload', {})
+            event_id = obj.get(u'event_id')
+            if event_id is not None:
+                trigger['event_id'] = event_id
+            triggers.append(trigger)
+
+        return triggers, errors
+

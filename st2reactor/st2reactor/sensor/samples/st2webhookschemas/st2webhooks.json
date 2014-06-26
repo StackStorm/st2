@@ -1,11 +1,16 @@
 {
   "create": {
-    "type": "object",
-    "properties": {
-      "name": {},
-      "event_id": {},
-      "payload": {}
-    },
-    "required": ["name", "payload"]
+    "type": "array",
+    "items": [
+        {
+            "type": "object",
+            "properties": {
+                "name": {},
+                "event_id": {},
+                "payload": {}
+            },
+            "required": ["name", "payload"]
+        }
+    ]
   }
 }
