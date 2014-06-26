@@ -7,6 +7,8 @@ from st2common.models.db.stormbase import (StormFoundationDB, StormBaseDB)
 
 __all__ = ['LiveActionDB',
            'ActionRunnerDB',
+           'ActionTypeDB',
+           'ActionExecutionResultDB',
            ]
 
 
