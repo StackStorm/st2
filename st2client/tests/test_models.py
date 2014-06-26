@@ -93,6 +93,34 @@ class TestResourceManager(unittest2.TestCase):
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=\
             FakeResponse(json.dumps([RESOURCES[0]]), 200, 'OK')))
+    def test_query(self):
+        mgr = models.ResourceManager(FakeResource, 'http://localhost:9999')
+        resources = mgr.query(name='one')
+        actual = [resource.serialize() for resource in resources]
+        expected = json.loads(json.dumps([RESOURCES[0]]))
+        self.assertEqual(actual, expected)
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
+            FakeResponse('', 404, 'NOT FOUND')))
+    def test_query_404(self):
+        mgr = models.ResourceManager(FakeResource, 'http://localhost:9999')
+        resources = mgr.query(name='one')
+        self.assertListEqual(resources, [])
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
+            FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
+    def test_query_failed(self):
+        mgr = models.ResourceManager(FakeResource, 'http://localhost:9999')
+        self.assertRaises(Exception, mgr.query, name='one')
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
+            FakeResponse(json.dumps([RESOURCES[0]]), 200, 'OK')))
     def test_get_by_name(self):
         mgr = models.ResourceManager(FakeResource, 'http://localhost:9999')
         resource = mgr.get_by_name('one')
@@ -115,8 +143,7 @@ class TestResourceManager(unittest2.TestCase):
             FakeResponse(json.dumps(RESOURCES), 200, 'OK')))
     def test_get_by_name_ambiguous(self):
         mgr = models.ResourceManager(FakeResource, 'http://localhost:9999')
-        resource = mgr.get_by_name('one')
-        self.assertIsNone(resource)
+        self.assertRaises(Exception, mgr.get_by_name, 'one')
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
@@ -189,7 +216,7 @@ class TestResourceManager(unittest2.TestCase):
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=\
-            FakeResponse(json.dumps(RESOURCES), 200, 'OK')))
+            FakeResponse(json.dumps([RESOURCES[0]]), 200, 'OK')))
     @mock.patch.object(
         httpclient.HTTPClient, 'delete',
         mock.MagicMock(return_value=\
