@@ -38,8 +38,20 @@ class MultiColumnTable(formatters.Formatter):
         table.padding_width = 1
         table.align = 'l'
         for entry in entries:
-            table.add_row([getattr(entry, field_name, '')
-                           for field_name in table.field_names])
+            # TODO: Improve getting values of nested dict.
+            values = []
+            for field_name in table.field_names:
+                if '.' in field_name:
+                    field_names = field_name.split('.')
+                    value = getattr(entry, field_names.pop(0), {})
+                    for name in field_names:
+                        value = value[name] if name in value else ''
+                        if type(value) is str:
+                            break
+                    values.append(value)
+                else:
+                    values.append(getattr(entry, field_name, '')) 
+            table.add_row(values)
         return table
 
 

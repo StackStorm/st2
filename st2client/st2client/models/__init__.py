@@ -16,7 +16,7 @@ class Resource(object):
             setattr(self, k, v)
 
     def serialize(self):
-        return dict((unicode(k), v)
+        return dict((k, v)
                     for k, v in self.__dict__.iteritems()
                     if not k.startswith('_'))
 

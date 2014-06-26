@@ -1,7 +1,9 @@
 import logging
 
-from st2client.commands import resource
+from st2client import models
 from st2client.models import action
+from st2client.commands import resource
+from st2client.formatters import table
 
 
 LOG = logging.getLogger(__name__)
@@ -62,6 +64,62 @@ class ActionExecuteCommand(resource.ResourceCommand):
             resource, manager, subparsers)
         self.parser.add_argument('name',
                                  help='Name of the action.')
+        self.parser.add_argument('-p', '--params', nargs='+',
+                                 help='List of parameters (i.e. k1=v1 k2=v2) '
+                                      'to pass into the action.')
+        self.parser.add_argument('-r', '--runner-params', nargs='+',
+                                 help='List of parameters (i.e. k3=v3 k4=v4) '
+                                      'to pass into the action runner.')
+        self.parser.add_argument('-j', '--json',
+                                 action='store_true', dest='json',
+                                 help='Prints output in JSON format.')
+
+    def run(self, args):
+        # TODO: Figure out how to pass multiple resource managers.
+        action_exec_mgr = models.ResourceManager(
+            action.ActionExecution, self.manager.endpoint) 
+        if not self.manager.get_by_name(args.name):
+            raise Exception('Action "%s" cannot be found.' % args.name)
+        instance = action.ActionExecution()
+        instance.action = { "name": args.name }
+        instance.action_parameters = {}
+        if args.params:
+            for kvp in args.params:
+                k, v = kvp.split('=')
+                instance.action_parameters[k] = v
+        instance.runner_parameters = {}
+        if args.runner_params:
+            for kvp in args.runner_params:
+                k, v = kvp.split('=')
+                instance.runner_parameters[k] = v
+        instance = action_exec_mgr.create(instance)
+        self.print_output(instance, table.PropertyValueTable,
+                          attributes=['all'], json=args.json)
+
+
+class ActionExecutionBranch(resource.ResourceBranch):
+
+    def __init__(self, manager, description,
+                 subparsers, parent_parser=None):
+        super(ActionExecutionBranch, self).__init__(
+            action.ActionExecution, manager, description, subparsers,
+            parent_parser=parent_parser, id_by_name=False,
+            list_attr=['id', 'action.name', 'status'],
+            read_only=True)
+
+        # Registers extended commands
+        self.commands['cancel'] = ActionExecutionCancelCommand(
+            self.resource, self.manager, self.subparsers)
+
+
+class ActionExecutionCancelCommand(resource.ResourceCommand):
+
+    def __init__(self, resource, manager, subparsers):
+        super(ActionExecutionCancelCommand, self).__init__(
+            'cancel', 'Cancels an %s.' % resource.__name__.lower(),
+            resource, manager, subparsers)
+        self.parser.add_argument('execution-id',
+                                 help='ID of the action execution.')
         self.parser.add_argument('-j', '--json',
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')

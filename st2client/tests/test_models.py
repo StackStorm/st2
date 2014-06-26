@@ -1,7 +1,7 @@
 import mock
 import json
 import logging
-import unittest
+import unittest2
 
 from st2client import models
 from st2client.utils import httpclient
@@ -40,7 +40,7 @@ class FakeResponse(object):
         raise Exception(self.reason)
 
 
-class TestResourceManager(unittest.TestCase):
+class TestResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
