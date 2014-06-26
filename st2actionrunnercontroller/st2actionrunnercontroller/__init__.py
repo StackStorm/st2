@@ -42,7 +42,7 @@ def __run_server():
 
     server = simple_server.make_server(host, port, app.setup_app())
 
-    LOG.info("action API is serving on http://%s:%s (PID=%s)",
+    LOG.info("actionrunner API is serving on http://%s:%s (PID=%s)",
              host, port, os.getpid())
 
     server.serve_forever()
