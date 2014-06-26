@@ -116,7 +116,7 @@ class ActionExecutionCancelCommand(resource.ResourceCommand):
 
     def __init__(self, resource, manager, subparsers):
         super(ActionExecutionCancelCommand, self).__init__(
-            'cancel', 'Cancels an %s.' % resource.__name__.lower(),
+            'cancel', 'Cancels an %s.' % resource.get_display_name().lower(),
             resource, manager, subparsers)
         self.parser.add_argument('execution-id',
                                  help='ID of the action execution.')

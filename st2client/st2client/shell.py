@@ -38,7 +38,7 @@ def main(argv=sys.argv[1:]):
         client.actions,
         'TODO: Put description of action here.',
         subparsers)
-    commands['actionexecution'] = action.ActionExecutionBranch(
+    commands['execution'] = action.ActionExecutionBranch(
         client.executions,
         'TODO: Put description of action execution here.',
         subparsers)
