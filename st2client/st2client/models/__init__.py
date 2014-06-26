@@ -54,18 +54,31 @@ class ResourceManager(object):
             response.raise_for_status()
         return self.resource.deserialize(response.json())
 
-    def get_by_name(self, name):
-        url = '/%s/?name=%s' % (self.resource._plural.lower(), name)
+    def query(self, *args, **kwargs):
+        if not kwargs:
+            raise Exception('Search parameter is not provided.')
+        url = '/%s/?' % self.resource._plural.lower()
+        for k, v in kwargs.iteritems():
+            url += '%s%s=%s' % (('&' if url[-1] != '?' else ''), k, v)
         LOG.info('GET %s/%s' % (self.endpoint, url))
         response = self.client.get(url)
         if response.status_code == 404:
-            return None
+            return []
         if response.status_code != 200:
             response.raise_for_status()
         items = response.json()
-        instance = (self.resource.deserialize(response.json()[0])
-                    if len(items) == 1 else None)
-        return instance
+        instances = [self.resource.deserialize(item) for item in items]
+        return instances
+
+    def get_by_name(self, name):
+        instances = self.query(name=name)
+        if not instances:
+            return None
+        else:
+            if len(instances) > 1:
+                raise Exception('More than one %s named "%s" are found.' %
+                                (self.resource.__name__.lower(), name))
+            return instances[0]
 
     def create(self, instance):
         url = '/%s' % self.resource._plural.lower()
