@@ -50,6 +50,7 @@ class ContainerServiceTest(unittest2.TestCase):
                           'dispatch() should have been called only once')
         self.assertEquals(dispatcher.triggers_queue.qsize(), 1,
                           'Only one batch should have been dispatched.')
+        container_service.shutdown()
 
     def test_dispatch_pool_full(self):
         dispatcher = ContainerServiceTest.TestDispatcher()
@@ -66,3 +67,4 @@ class ContainerServiceTest(unittest2.TestCase):
                           'dispatch() called fewer than 5 times')
         self.assertEquals(dispatcher.triggers_queue.qsize(), 5,
                           'output queue size is not 5.')
+        container_service.shutdown()
