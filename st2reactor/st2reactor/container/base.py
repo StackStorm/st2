@@ -18,13 +18,10 @@ LOG = logging.getLogger('st2reactor.sensorcontainer')
 
 
 class SensorContainer(object):
-    __pool = None
-    __sensors = None
-    __threads = {}
-
     def __init__(self, sensor_instances=[]):
         self.__pool = eventlet.GreenPool(len(sensor_instances))
         self.__sensors = sensor_instances
+        self.__threads = {}
         LOG.info('Container setup to run %d sensors.' % len(sensor_instances))
 
     def _run_sensor(self, sensor):
