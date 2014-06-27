@@ -8,20 +8,19 @@
 _ = require 'lodash'
 
 CONN_ERRORS =
-  'ECONNREFUSED': (err) -> "Connection has been refused. Check if other components are running as well."
-  'default': (err) -> "Something gone terribly wrong. #{err}"
-
-errorHandler = (robot) ->
-  (err, res) ->
-    if err
-      robot.logger.error (CONN_ERRORS[err.code] || CONN_ERRORS['default']) err
+  'ECONNREFUSED': (err) ->
+    "Connection has been refused. Check if other components are running as well. [#{err.code}]"
+  'ECONNRESET': (err) ->
+    "Remote server abruptly closed its end of the connection. Check if other components " +
+      "throw an error too. [#{err.code}]"
+  'default': (err) -> "Something gone terribly wrong. [#{err.code}]"
 
 parseArgs = (scheme=[], argstr="") ->
-  # split string by space while preserving quoted literals
-  args = argstr.match(/('.*?'|".*?"|\S+)/g) or []
+  # split string by space while preserving quoted literals and escaped quotes
+  args = argstr.match(/(["'])(?:(?!\1)[^\\]|\\.)*\1|(\S)+/g) or []
 
-  # trim quotes
-  (args[i] = arg[1...-1]) for arg, i in args when arg[0] in ['\'', '\"']
+  # trim quotes and unescape strip slashes
+  (args[i] = arg[1...-1].replace(/\\(.)/mg, "$1")) for arg, i in args when arg[0] in ['\'', '\"']
 
   # build an object
   _.zipObject scheme, args
@@ -32,6 +31,10 @@ module.exports = (robot) ->
   robot.error (err, msg) ->
     robot.logger.error 'Uncaught exception:', err
 
+  errorHandler = (err, res) ->
+    if err
+      robot.logger.error (CONN_ERRORS[err.code] || CONN_ERRORS['default']) err
+
   # define basic clients
   httpclients =
     actiontypes: robot.http('http://localhost:9501').path('/actiontypes')
@@ -40,12 +43,12 @@ module.exports = (robot) ->
 
   # init for actions
   httpclients.actions
-  .get(errorHandler robot) (err, res, body) ->
+  .get(errorHandler) (err, res, body) ->
     actions = JSON.parse body
     robot.brain.set 'actions', _.zipObject _.map(actions, 'name'), actions
 
   httpclients.actiontypes
-    .get(errorHandler robot) (err, res, body) ->
+    .get(errorHandler) (err, res, body) ->
       actiontypes = JSON.parse body
       robot.brain.set 'actiontypes', _.zipObject _.map(actiontypes, 'name'), actiontypes
 
@@ -69,8 +72,11 @@ module.exports = (robot) ->
 
     httpclients.actionexecutions
       .header('Content-Type', 'application/json')
-      .post(JSON.stringify(payload), errorHandler robot) (err, res, body) ->
+      .post(JSON.stringify(payload), errorHandler) (err, res, body) ->
         staction_execution = JSON.parse(body)
+
+        unless res.statusCode is 201
+          msg.send "Action has failed to run"
 
         unless staction_execution.status is 'complete'
           msg.send "Action has failed to execute"
