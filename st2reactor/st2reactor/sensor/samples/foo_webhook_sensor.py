@@ -5,7 +5,7 @@ import os
 from flask import (jsonify, request, Flask)
 from flask_jsonschema import (JsonSchema, ValidationError)
 
-import st2webhooks.utils as webhook_utils
+import foowebhooks.utils as webhook_utils
 
 app = Flask(__name__)
 app.config['JSONSCHEMA_DIR'] = os.path.join(app.root_path, 'st2webhookschemas')
@@ -45,7 +45,7 @@ class St2WebhookSensor(object):
     '''
     Flask specific stuff.
     '''
-    __port = 6000
+    __port = 6001
 
     def __init__(self, container_service):
         self.__container_service = container_service
@@ -72,7 +72,7 @@ class St2WebhookSensor(object):
     Flask app specific stuff.
     '''
     def _setup_flask_app(self):
-        @app.route('/webhooks/st2', methods=['POST'])
+        @app.route('/foowebhooks/st2', methods=['POST'])
         @validate_json
         @jsonschema.validate('st2webhooks', 'create')
         def handle_webhook():
