@@ -92,9 +92,9 @@ class ActionExecutionBranch(resource.ResourceBranch):
                  app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
             action.ActionExecution, description, app, subparsers,
-            parent_parser=parent_parser, id_by_name=False,
-            list_attr=['id', 'action.name', 'status'],
-            read_only=True, commands={'list': ActionExecutionListCommand})
+            parent_parser=parent_parser, read_only=True,
+            commands={'list': ActionExecutionListCommand,
+                      'get': resource.ResourceGetByIdCommand})
 
         # Registers extended commands
         self.commands['cancel'] = ActionExecutionCancelCommand(
@@ -102,6 +102,8 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
 
 class ActionExecutionListCommand(resource.ResourceCommand):
+
+    display_attributes = ['id', 'action.name', 'status']
 
     def __init__(self, resource, app, subparsers, attributes=['all']):
         super(ActionExecutionListCommand, self).__init__(
@@ -114,7 +116,7 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         self.group.add_argument('--action-id',
                                  help='Action id to filter the list.')
         self.parser.add_argument('-a', '--attr', nargs='+',
-                                 default=attributes,
+                                 default=self.display_attributes,
                                  help=('List of attributes to include in the '
                                        'output. "all" will return all '
                                        'attributes.'))
