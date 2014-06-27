@@ -16,11 +16,10 @@ class ResourceBranch(commands.Branch):
     def __init__(self, resource, description, app, subparsers,
                  parent_parser=None, read_only=False, commands={}):
 
-        self.app = app
         self.resource = resource
         super(ResourceBranch, self).__init__(
             self.resource.get_alias().lower(), description,
-            subparsers, parent_parser=parent_parser)
+            app, subparsers, parent_parser=parent_parser)
 
         # Registers subcommands for managing the resource type.
         self.subparsers = self.parser.add_subparsers(
@@ -42,28 +41,20 @@ class ResourceBranch(commands.Branch):
             commands['delete'] = ResourceDeleteCommand
 
         # Instantiate commands.
-        self.commands['help'] = commands['help'](
-            self.resource, self.app, self.subparsers, self.commands)
-        self.commands['list'] = commands['list'](
-            self.resource, self.app, self.subparsers)
-        self.commands['get'] = commands['get'](
-            self.resource, self.app, self.subparsers)
+        args = [self.resource, self.app, self.subparsers]
+        self.commands['help'] = commands['help'](self.commands, *args)
+        self.commands['list'] = commands['list'](*args)
+        self.commands['get'] = commands['get'](*args)
         if not read_only:
-            self.commands['create'] = commands['create'](
-                self.resource, self.app, self.subparsers)
-            self.commands['update'] = commands['update'](
-                self.resource, self.app, self.subparsers)
-            self.commands['delete'] = commands['delete'](
-                self.resource, self.app, self.subparsers)
+            self.commands['create'] = commands['create'](*args)
+            self.commands['update'] = commands['update'](*args)
+            self.commands['delete'] = commands['delete'](*args)
 
 
 class ResourceCommand(commands.Command):
 
-    def __init__(self, name, description, resource, app, subparsers,
-                 parent_parser=None):
-        super(ResourceCommand, self).__init__(
-            name, description, subparsers, parent_parser=parent_parser)
-        self.app = app
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceCommand, self).__init__(*args, **kwargs)
         self.resource = resource
 
     @property
@@ -82,10 +73,10 @@ class ResourceCommand(commands.Command):
 
 class ResourceHelpCommand(ResourceCommand):
 
-    def __init__(self, resource, app, subparsers, commands, parent_parser=None):
-        super(ResourceHelpCommand, self).__init__(
-            'help', 'Print usage for the given command.',
-            resource, app, subparsers, parent_parser=parent_parser)
+    def __init__(self, commands, resource, *args, **kwargs):
+        super(ResourceHelpCommand, self).__init__(resource, 'help',
+            'Print usage for the given command.',
+            *args, **kwargs)
 
         # If parent parser is the top level parser, set the command argument to
         # optional so that running "prog help" will return the program's help
@@ -115,11 +106,11 @@ class ResourceListCommand(ResourceCommand):
 
     display_attributes = ['id', 'name', 'description']
 
-    def __init__(self, resource, app, subparsers):
-        super(ResourceListCommand, self).__init__(
-            'list',
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceListCommand, self).__init__(resource, 'list',
             'Get the list of %s.' % resource.get_plural_display_name().lower(),
-            resource, app, subparsers)
+            *args, **kwargs)
+
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=self.display_attributes,
                                  help=('List of attributes to include in the '
@@ -141,11 +132,10 @@ class ResourceListCommand(ResourceCommand):
 
 class ResourceGetByNameCommand(ResourceCommand):
 
-    def __init__(self, resource, app, subparsers):
-        super(ResourceGetByNameCommand, self).__init__(
-            'get',
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceGetByNameCommand, self).__init__(resource, 'get',
             'Get individual %s.' % resource.get_display_name().lower(),
-            resource, app, subparsers)
+            *args, **kwargs)
 
         self.parser.add_argument('name',
                                  help=('Name of the %s.' %
@@ -170,11 +160,10 @@ class ResourceGetByNameCommand(ResourceCommand):
 
 class ResourceGetByIdCommand(ResourceCommand):
 
-    def __init__(self, resource, app, subparsers):
-        super(ResourceGetByIdCommand, self).__init__(
-            'get',
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceGetByIdCommand, self).__init__(resource, 'get',
             'Get individual %s.' % resource.get_display_name().lower(),
-            resource, app, subparsers)
+            *args, **kwargs)
 
         self.parser.add_argument(self.arg_name_for_resource_id,
                                  help=('Identifier for the %s.' %
@@ -200,11 +189,11 @@ class ResourceGetByIdCommand(ResourceCommand):
 
 class ResourceCreateCommand(ResourceCommand):
 
-    def __init__(self, resource, app, subparsers):
-        super(ResourceCreateCommand, self).__init__(
-            'create',
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceCreateCommand, self).__init__(resource, 'create',
             'Create a new %s.' % resource.get_display_name().lower(),
-            resource, app, subparsers)
+            *args, **kwargs)
+
         self.parser.add_argument('file',
                                  help=('JSON file containing the %s to create.'
                                        % resource.get_display_name().lower()))
@@ -225,11 +214,11 @@ class ResourceCreateCommand(ResourceCommand):
 
 class ResourceUpdateCommand(ResourceCommand):
 
-    def __init__(self, resource, app, subparsers):
-        super(ResourceUpdateCommand, self).__init__(
-            'update',
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceUpdateCommand, self).__init__(resource, 'update',
             'Updating an existing %s.' % resource.get_display_name().lower(),
-            resource, app, subparsers)
+            *args, **kwargs)
+
         self.parser.add_argument(self.arg_name_for_resource_id,
                                  help=('Identifier for the %s to be updated.' %
                                        resource.get_display_name().lower()))
@@ -263,11 +252,11 @@ class ResourceUpdateCommand(ResourceCommand):
 
 class ResourceDeleteCommand(ResourceCommand):
 
-    def __init__(self, resource, app, subparsers):
-        super(ResourceDeleteCommand, self).__init__(
-            'delete',
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceDeleteCommand, self).__init__(resource, 'delete',
             'Delete an existing %s.' % resource.get_display_name().lower(),
-            resource, app, subparsers)
+            *args, **kwargs)
+
         self.parser.add_argument('name',
                                  help=('Name of the %s.' %
                                        resource.get_display_name().lower()))

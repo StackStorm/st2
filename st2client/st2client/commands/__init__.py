@@ -12,9 +12,10 @@ LOG = logging.getLogger(__name__)
 class Branch(object):
     """Represents a branch of related commands in the command tree."""
 
-    def __init__(self, name, description, subparsers, parent_parser=None):
+    def __init__(self, name, description, app, subparsers, parent_parser=None):
         self.name = name
         self.description = description
+        self.app = app
         self.parent_parser = parent_parser
         self.parser = subparsers.add_parser(self.name,
                                             description=self.description,
@@ -27,9 +28,10 @@ class Branch(object):
 class Command(object):
     """Represents a commandlet in the command tree."""
 
-    def __init__(self, name, description, subparsers, parent_parser=None):
+    def __init__(self, name, description, app, subparsers, parent_parser=None):
         self.name = name
         self.description = description
+        self.app = app
         self.parent_parser = parent_parser
         self.parser = subparsers.add_parser(self.name,
                                             description=self.description,
