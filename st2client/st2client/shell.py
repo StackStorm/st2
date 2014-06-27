@@ -59,7 +59,7 @@ class Shell(object):
         self.subparsers = self.parser.add_subparsers()
         self.commands = dict()
         self.commands['help'] = resource.ResourceHelpCommand(
-            None, self, self.subparsers, self.commands,
+            self.commands, None, self, self.subparsers,
             parent_parser=self.parser)
         self.commands['action'] = action.ActionBranch(
             'TODO: Put description of action here.',

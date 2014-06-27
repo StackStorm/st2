@@ -11,8 +11,7 @@ LOG = logging.getLogger(__name__)
 
 class ActionBranch(resource.ResourceBranch):
 
-    def __init__(self, description,
-                 app, subparsers, parent_parser=None):
+    def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionBranch, self).__init__(
             action.Action, description, app, subparsers,
             parent_parser=parent_parser,
@@ -25,12 +24,14 @@ class ActionBranch(resource.ResourceBranch):
 
 class ActionHelpCommand(resource.ResourceCommand):
 
-    def __init__(self, resource, app, subparsers, commands):
-        super(ActionHelpCommand, self).__init__(
-            'help', 'Print usage for the given command or action.',
-            resource, app, subparsers)
+    def __init__(self, commands, resource, *args, **kwargs):
+        super(ActionHelpCommand, self).__init__(resource, 'help',
+            'Print usage for the given command or action.',
+            *args, **kwargs)
+
         self.parser.add_argument('command', metavar='command/action',
                                  help='Name of the command or action.')
+
         self.commands = commands
         self.commands['help'] = self
 
@@ -49,10 +50,11 @@ class ActionHelpCommand(resource.ResourceCommand):
 
 class ActionExecuteCommand(resource.ResourceCommand):
 
-    def __init__(self, resource, app, subparsers):
-        super(ActionExecuteCommand, self).__init__(
-            'execute', 'Execute an action manually.',
-            resource, app, subparsers)
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionExecuteCommand, self).__init__(resource, 'execute',
+            'Execute an action manually.',
+            *args, **kwargs)
+
         self.parser.add_argument('name',
                                  help='Name of the action.')
         self.parser.add_argument('-p', '--params', nargs='+',
@@ -88,8 +90,7 @@ class ActionExecuteCommand(resource.ResourceCommand):
 
 class ActionExecutionBranch(resource.ResourceBranch):
 
-    def __init__(self, description,
-                 app, subparsers, parent_parser=None):
+    def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
             action.ActionExecution, description, app, subparsers,
             parent_parser=parent_parser, read_only=True,
@@ -105,11 +106,11 @@ class ActionExecutionListCommand(resource.ResourceCommand):
 
     display_attributes = ['id', 'action.name', 'status']
 
-    def __init__(self, resource, app, subparsers, attributes=['all']):
-        super(ActionExecutionListCommand, self).__init__(
-            'list',
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionExecutionListCommand, self).__init__(resource, 'list',
             'Get the list of %s.' % resource.get_plural_display_name().lower(),
-            resource, app, subparsers)
+            *args, **kwargs)
+
         self.group = self.parser.add_mutually_exclusive_group()
         self.group.add_argument('--action-name',
                                  help='Action name to filter the list.') 
@@ -142,10 +143,11 @@ class ActionExecutionListCommand(resource.ResourceCommand):
 
 class ActionExecutionCancelCommand(resource.ResourceCommand):
 
-    def __init__(self, resource, app, subparsers):
-        super(ActionExecutionCancelCommand, self).__init__(
-            'cancel', 'Cancels an %s.' % resource.get_display_name().lower(),
-            resource, app, subparsers)
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionExecutionCancelCommand, self).__init__(resource, 'cancel',
+            'Cancels an %s.' % resource.get_display_name().lower(),
+            *args, **kwargs)
+
         self.parser.add_argument('execution-id',
                                  help='ID of the action execution.')
         self.parser.add_argument('-j', '--json',
