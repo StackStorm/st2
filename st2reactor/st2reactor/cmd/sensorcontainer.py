@@ -80,7 +80,10 @@ def _load_sensor_modules(path):
                 LOG.info('No sensors in file %s.', file_path)
 
         except IncompatiblePluginException as e:
-            LOG.warning('Exception registering plugin %s: %s', file_path, e, exc_info=True)
+            LOG.warning('Incompatible sensor: %s. Exception: %s', file_path, e, exc_info=True)
+        except Exception as e:
+            LOG.warning('Exception loading sensor from file: %s. Exception: %s', file_path, e,
+                        exc_info=True)
     return plugins_dict
 
 
