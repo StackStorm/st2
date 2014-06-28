@@ -11,6 +11,14 @@ from st2client.formatters import table
 LOG = logging.getLogger(__name__)
 
 
+class ResourceCommandError(Exception):
+    pass
+
+
+class ResourceNotFoundError(Exception):
+    pass
+
+
 class ResourceBranch(commands.Branch):
 
     def __init__(self, resource, description, app, subparsers,
@@ -91,6 +99,9 @@ class ResourceHelpCommand(ResourceCommand):
         self.commands['help'] = self
 
     def run(self, args):
+        pass
+
+    def run_and_print(self, args):
         if args.command:
             command = self.commands[args.command]
             command.parser.print_help()
@@ -124,7 +135,10 @@ class ResourceListCommand(ResourceCommand):
                                  help='Prints output in JSON format.')
 
     def run(self, args):
-        instances = self.manager.get_all()
+        return self.manager.get_all()
+
+    def run_and_print(self, args):
+        instances = self.run(args)
         self.print_output(instances, table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json)
@@ -152,10 +166,16 @@ class ResourceGetByNameCommand(ResourceCommand):
     def run(self, args):
         instance = self.manager.get_by_name(args.name)
         if not instance:
-            self.print_not_found(args.name)
-        else:
+            raise ResourceNotFoundError()
+        return instance
+
+    def run_and_print(self, args):
+        try:
+            instance = self.run(args)
             self.print_output(instance, table.PropertyValueTable,
                               attributes=args.attr, json=args.json)
+        except ResourceNotFoundError as e:
+            self.print_not_found(args.name)
 
 
 class ResourceGetByIdCommand(ResourceCommand):
@@ -181,10 +201,16 @@ class ResourceGetByIdCommand(ResourceCommand):
         args_id = getattr(args, self.arg_name_for_resource_id, None)
         instance = self.manager.get_by_id(args_id)
         if not instance:
-            self.print_not_found(args_id)
-        else:
+            raise ResourceNotFoundError()
+        return instance
+
+    def run_and_print(self, args):
+        try:
+            instance = self.run(args)
             self.print_output(instance, table.PropertyValueTable,
                               attributes=args.attr, json=args.json)
+        except ResourceNotFoundError as e:
+            self.print_not_found(args_id)
 
 
 class ResourceCreateCommand(ResourceCommand):
@@ -207,9 +233,12 @@ class ResourceCreateCommand(ResourceCommand):
         with open(args.file, 'r') as f:
             data = json.loads(f.read())
             instance = self.resource.deserialize(data)
-            instance = self.manager.create(instance)
-            self.print_output(instance, table.PropertyValueTable,
-                              attributes=['all'], json=args.json)
+            return self.manager.create(instance)
+
+    def run_and_print(self, args):
+        instance = self.run(args)
+        self.print_output(instance, table.PropertyValueTable,
+                          attributes=['all'], json=args.json)
 
 
 class ResourceUpdateCommand(ResourceCommand):
@@ -245,9 +274,12 @@ class ResourceUpdateCommand(ResourceCommand):
                                     'command line arguments.' %
                                     (self.resource.get_display_name().lower(),
                                      self.arg_name_for_resource_id))
-            instance = self.manager.update(instance)
-            self.print_output(instance, table.PropertyValueTable,
-                              attributes=['all'], json=args.json)
+            return self.manager.update(instance)
+
+    def run_and_print(self, args):
+        instance = self.run(args)
+        self.print_output(instance, table.PropertyValueTable,
+                          attributes=['all'], json=args.json)
 
 
 class ResourceDeleteCommand(ResourceCommand):
@@ -264,6 +296,11 @@ class ResourceDeleteCommand(ResourceCommand):
     def run(self, args):
         instance = self.manager.get_by_name(args.name)
         if not instance:
+            raise ResourceNotFoundError()
+        self.manager.delete(instance)
+
+    def run_and_print(self, args):
+        try:
+            instance = self.run(args)
+        except ResourceNotFoundError as e:
             self.print_not_found(args.name)
-        else:
-            self.manager.delete(instance)

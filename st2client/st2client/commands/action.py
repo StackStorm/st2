@@ -36,6 +36,9 @@ class ActionHelpCommand(resource.ResourceCommand):
         self.commands['help'] = self
 
     def run(self, args):
+        pass
+
+    def run_and_print(self, args):
         if args.command in self.commands:
             command = self.commands[args.command]
             command.parser.print_help()
@@ -83,7 +86,10 @@ class ActionExecuteCommand(resource.ResourceCommand):
             for kvp in args.runner_params:
                 k, v = kvp.split('=')
                 instance.runner_parameters[k] = v
-        instance = action_exec_mgr.create(instance)
+        return action_exec_mgr.create(instance)
+
+    def run_and_print(self, args):
+        instance = self.run(args)
         self.print_output(instance, table.PropertyValueTable,
                           attributes=['all'], json=args.json)
 
@@ -134,8 +140,11 @@ class ActionExecutionListCommand(resource.ResourceCommand):
             filters['action_name'] = args.action_name
         elif args.action_id:
             filters['action_id'] = args.action_id
-        instances = (self.manager.query(**filters)
-                     if filters else self.manager.get_all())
+        return (self.manager.query(**filters)
+                if filters else self.manager.get_all())
+
+    def run_and_print(self, args):
+        instances = self.run(args)
         self.print_output(instances, table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json)
@@ -155,4 +164,7 @@ class ActionExecutionCancelCommand(resource.ResourceCommand):
                                  help='Prints output in JSON format.')
 
     def run(self, args):
+        raise NotImplementedError
+
+    def run_and_print(self, args):
         raise NotImplementedError
