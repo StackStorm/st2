@@ -40,6 +40,18 @@ class FakeResponse(object):
         raise Exception(self.reason)
 
 
+class TestSerialization(unittest2.TestCase):
+
+    def test_serialize(self):
+        instance = FakeResource(id='abc123', name='one')
+        self.assertDictEqual(instance.serialize(), RESOURCES[0])
+
+    def test_deserialize(self):
+        instance = FakeResource.deserialize(RESOURCES[0])
+        self.assertEqual(instance.id, 'abc123')
+        self.assertEqual(instance.name, 'one')
+
+
 class TestResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
