@@ -37,10 +37,18 @@ class Command(object):
                                             description=self.description,
                                             help=self.description,
                                             add_help=False)
-        self.parser.set_defaults(func=self.run)
+        self.parser.set_defaults(func=self.run_and_print)
 
     @abc.abstractmethod
     def run(self, args):
+        """
+        This method should be invoked from run_and_print. The separation of run
+        is to let the core logic be testable.
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def run_and_print(self, args):
         """
         This method is invoked when the corresponding command is executed
         from the command line.
