@@ -11,12 +11,12 @@ ACTION_1 = {
     'parameter_names': ['a', 'b']
 }
 ACTION_EXECUTION_1 = {
-    'action': {'name': 'st2.dummy.action1', 'id':'1234'},
+    'action': {'name': 'st2.dummy.action1', 'id': '1234'},
     'runner_parameters': {},
     'action_parameters': {}
 }
 ACTION_EXECUTION_2 = {
-    'action': {'name': 'st2.dummy.action2', 'id':'5678'},
+    'action': {'name': 'st2.dummy.action2', 'id': '5678'},
     'runner_parameters': {},
     'action_parameters': {}
 }

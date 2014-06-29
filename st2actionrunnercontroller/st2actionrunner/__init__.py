@@ -97,6 +97,7 @@ class RunnerBase():
         # SHA is at
         # line.split(' ')[1]
 
+    """
     def _create_action_execution(self, action, args, target=None):
         action_execution = ActionExecution()
         action_execution.action = action
@@ -110,6 +111,7 @@ class RunnerBase():
         self._action_result[EXECUTION_ID] = str(action_execution.id)
 
         return action_execution
+    """
 
     def _update_action_execution(self, action_execution, status):
         if not action_execution:
