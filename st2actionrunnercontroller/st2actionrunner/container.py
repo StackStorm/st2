@@ -30,9 +30,12 @@ class RunnerContainer():
         LOG.debug('result_data: %s', result_data)
 
         if runner_type == 'internaldummy':
-            self._handle_internaldummy_runner(runner_parameters, action_parameters, result_data)
+            return self._handle_internaldummy_runner(runner_parameters, action_parameters, result_data)
         else:
             raise NotImplementedError('RunnerType "%s" not currently supported.' % runner_type)
+
+
+        return (exit_code, std_out, std_err)
 
 
     def _handle_internaldummy_runner(self, runner_parameters, action_parameters, result_data):
@@ -60,6 +63,8 @@ class RunnerContainer():
         LOG.debug('    [Internal Dummy Runner] command_stderr: %s', command_stderr)
         LOG.debug('    [Internal Dummy Runner] command_exit: %s', command_exitcode)
         LOG.debug('    [Internal Dummy Runner] TODO: Save output to DB')
+
+        return (command_exitcode, command_stdout, command_stderr)
         
 def get_runner_container():
     return RunnerContainer()

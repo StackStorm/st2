@@ -16,12 +16,14 @@ import wsmeext.pecan as wsme_pecan
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import (Action, ActionExecution)
-from st2common.models.api.action import (ActionExecutionAPI, ACTIONEXEC_STATUS_INIT,
+from st2common.models.api.action import (ActionExecutionAPI,
+                                         ACTIONEXEC_STATUS_INIT,
                                          ACTIONEXEC_STATUS_RUNNING,
                                          ACTIONEXEC_STATUS_COMPLETE,
                                          ACTIONEXEC_STATUS_ERROR,
                                          ACTION_ID)
-from st2common.util.action_db import (get_action_by_dict, get_actionexec_by_id)
+from st2common.util.action_db import (get_action_by_dict, get_actionexec_by_id,
+                                      update_actionexecution_status)
 
 
 LOG = logging.getLogger(__name__)
@@ -36,6 +38,32 @@ class ActionExecutionsController(RestController):
         the lifecycle of ActionExecutions in the system.
     """
 
+    def _issue_liveaction_post(self, actionexec_id):
+        """
+            Launch the ActionExecution specified by actionexec_id by performing
+            a POST against the /liveactions/ http endpoint.
+        """
+
+
+        custom_headers = self._create_custom_headers()
+        payload = self._create_liveaction_data(actionexec_id)
+        LOG.info('Payload for /liveactions/ POST: data="%s" custom_headers="%s"',
+                 payload, custom_headers)
+        LOG.info('Issuing /liveactions/ POST for ActionExecution with id ="%s"', actionexec_id)
+
+        request_error = False
+        result = None
+        try:
+            result = requests.post(LIVEACTION_ENDPOINT, data=json.dumps(payload), headers=custom_headers)
+        except requests.exceptions.ConnectionError, e:
+            LOG.error('Caught encoundered connection error while performing /liveactions/ POST.'
+                      'Error was: %s', e)
+            request_error = True
+
+        LOG.debug('/liveactions/ POST request result: %s', result)
+        
+        return(result, request_error)
+
     @staticmethod
     def _get_action_executions(action_id, action_name):
         if action_id is not None:
@@ -48,14 +76,6 @@ class ActionExecutionsController(RestController):
             return ActionExecution.query(action__name=action_name)
         LOG.debug('Retrieving all action executions')
         return ActionExecution.get_all()
-
-    def _update_actionexecution_status(self, actionexec_db, new_status):
-        LOG.debug('Updating ActionExection: "%s" with status="%s"',
-                  actionexec_db, new_status)
-        actionexec_db.status = new_status
-        actionexec_db = ActionExecution.add_or_update(actionexec_db)
-        LOG.debug('Updated ActionExecution object: %s', actionexec_db)
-
 
     def _create_custom_headers(self):
         return {'content-type': 'application/json'}
@@ -128,12 +148,22 @@ class ActionExecutionsController(RestController):
                          'lookup failure.')
                 actionexecution.action = action_dict
 
+        # Initialize empty results data
+        """
+        actionexecution.exit_code = None
+        actionexecution.std_out = None
+        actionexecution.std_err = None
+        """
+
         # ActionExecution doesn't hold the runner_type data. Disable this field update.
         #LOG.debug('Setting actionexecution runner_type to "%s"', action_db.runner_type)
         #actionexecution.runner_type = str(action_db.runner_type)
 
+        # Set initial value for ActionExecution status.
+        # Not using update_actionexecution_status to allow other initialization to
+        # be done before saving to DB.
         LOG.debug('Setting actionexecution status to "%s"', ACTIONEXEC_STATUS_INIT)
-        actionexecution.status = str(ACTIONEXEC_STATUS_INIT)
+        actionexecution.status = ACTIONEXEC_STATUS_INIT
 
         LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
         actionexec_api = ActionExecutionAPI.to_model(actionexecution)
@@ -153,30 +183,29 @@ class ActionExecutionsController(RestController):
                   'ActionExecution created in the database. '
                   'ActionExecution is: %s', actionexec_db)
 
-        self._update_actionexecution_status(actionexec_db, ACTIONEXEC_STATUS_RUNNING)
-        LOG.debug('/actionexecutions/ POST set status to %s', actionexec_db.status)
 
-        custom_headers = self._create_custom_headers()
-        payload = self._create_liveaction_data(actionexec_db.id)
-        LOG.info('Payload for /liveactions/ POST: data="%s" custom_headers="%s"',
-                 payload, custom_headers)
-        LOG.info('Issuing /liveactions/ POST for actionexecution: %s', actionexec_db)
-        request_error = False
-        result = None
-        try:
-            result = requests.post(LIVEACTION_ENDPOINT, data=json.dumps(payload), headers=custom_headers)
-        except requests.exceptions.ConnectionError, e:
-            LOG.error('Caught encoundered connection error while performing /liveactions/ POST.'
-                      'Error was: %s', e)
-            request_error = True
+        actionexec_id = actionexec_db.id
+        (result, request_error) = self._issue_liveaction_post(actionexec_id)
 
-        LOG.debug('/liveactions/ POST request result: %s', result)
+        # Update actionexec_db status.
+        # With side-effect of re-loading ActionExecution from DB 
+        LOG.info('/actionexecutions/ POST load ActionExecution from DB after '
+                 'LiveAction POST: %s', actionexec_db)
+        actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_COMPLETE,
+                                                      actionexec_id=actionexec_id)
+
+        LOG.error('Validate actionexec_id == actionexec_db.id: %s', (actionexec_id == actionexec_db.id))
 
         if not request_error and (result.status_code == httplib.CREATED):
             LOG.info('/liveactions/ POST request reported successful creation of LiveAction')
-            self._update_actionexecution_status(actionexec_db, ACTIONEXEC_STATUS_COMPLETE)
+            actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_COMPLETE,
+                                                          actionexec_db=actionexec_db)
+            LOG.info('/actionexecution/ POST set ActionExecution status to "%s"',
+                     actionexec_db.status)
         else:
-            self._update_actionexecution_status(actionexec_db, ACTIONEXEC_STATUS_ERROR)
+            LOG.info('/liveactions/ POST request reported error')
+            actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_ERROR,
+                                                          actionexec_db=actionexec_db)
             LOG.info('/actionexecution/ POST set ActionExecution status to "%s"',
                      actionexec_db.status)
             LOG.error('Unable to launch LiveAction.')

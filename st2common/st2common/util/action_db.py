@@ -4,7 +4,7 @@ from mongoengine import ValidationError
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import (Action, ActionExecution)
-from st2common.models.api.action import (ActionExecutionAPI, ACTIONEXEC_STATUS_INIT,
+from st2common.models.api.action import (ActionExecutionAPI, ACTIONEXEC_STATUSES,
                                          ACTION_ID, ACTION_NAME
                                          )
 
@@ -103,3 +103,30 @@ def get_action_by_dict(action_dict):
         
     # No action found by identifiers in action_dict.
     return (None,{})
+
+def update_actionexecution_status(new_status, actionexec_id=None, actionexec_db=None):
+        """
+            Update the status of the specified ActionExecution to the value provided in
+            new_status.
+
+            The ActionExecution may be specified using either actionexec_id, or as an
+            actionexec_db instance.
+            
+        """
+
+        if (actionexec_id is None) and (actionexec_db is None):
+            raise ValueError('Must specify an actionexec_id or an actionexec_db when calling update_actionexecution_status')
+
+        if actionexec_db is None:
+            actionexec_db = get_actionexec_by_id(actionexec_id)
+
+        if new_status not in ACTIONEXEC_STATUSES:
+            raise ValueError('Attempting to set status for ActionExecution "%s" '
+                             'to unknown status string. Unknown status is "%s"', actionexec_db, new_status)
+        
+        LOG.debug('Updating ActionExection: "%s" with status="%s"',
+                  actionexec_db, new_status)
+        actionexec_db.status = new_status
+        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+        LOG.debug('Updated status for ActionExecution object: %s', actionexec_db)
+        return actionexec_db

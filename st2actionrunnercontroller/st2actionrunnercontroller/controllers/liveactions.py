@@ -1,4 +1,5 @@
 import httplib
+import json
 from pecan import (abort, expose)
 from pecan.rest import RestController
 
@@ -10,11 +11,13 @@ import wsmeext.pecan as wsme_pecan
 from st2common import log as logging
 
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.api.action import (ActionAPI, ActionExecutionAPI)
+from st2common.models.api.action import (ActionAPI, ActionExecutionAPI,
+                                         ACTIONEXEC_STATUS_RUNNING)
 from st2common.models.api.actionrunner import (ActionTypeAPI, LiveActionAPI)
 from st2common.persistence.action import ActionExecution
 from st2common.persistence.actionrunner import LiveAction
-from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict)
+from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict,
+                                      update_actionexecution_status)
 from st2common.util.actionrunner_db import (get_actiontype_by_name, get_liveaction_by_id)
 
 from st2actionrunnercontroller.controllers import runner_container
@@ -30,24 +33,6 @@ class LiveActionsController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of ActionRunners in the system.
     """
-
-#    def get_actionexecution_by_id(self, actionexecution_id):
-#        """
-#            Get ActionExecution by id.
-#            On error, raise ST2ObjectNotFoundError.
-#        """
-#        # TODO: Maybe lookup should be done via HTTP interface. Handle via direct DB call
-#        #       for now.
-#        LOG.debug('Lookup for ActionExecution with id=%s', actionexecution_id)
-#        try:
-#            actionexecution_db = ActionExecution.get_by_id(actionexecution_id)
-#        except (ValueError, ValidationError) as e:
-#            LOG.error('Database lookup for actionexecution with id="%s" resulted in '
-#                      'exception: %s', actionexecution_id, e)
-#            raise StackStormDBObjectNotFoundError('Unable to find actionexecution with '
-#                                                  'id="%s"' % actionexecution_id)
-#
-#        return actionexecution_db
 
     @wsme_pecan.wsexpose(LiveActionAPI, wstypes.text)
     def get_one(self, id):
@@ -102,18 +87,17 @@ class LiveActionsController(RestController):
         LOG.debug('/liveactions/ POST verified LiveActionAPI object=%s',
                   liveaction_api)
 
-        actionexecution_id = str(liveaction.actionexecution_id)
+#        actionexec_id = str(liveaction.actionexec_id)
 
         ## To launch a LiveAction we need:
         #     1. ActionExecution object
         #     2. Action object
         #     3. ActionType object
         LOG.info('POST /liveactions/ received actionexecution_id: %s. '
-                 'Attempting to obtain ActionExecution object from database.', actionexecution_id)
+                 'Attempting to obtain ActionExecution object from database.',
+                 str(liveaction.actionexecution_id))
         try:
-            db = get_actionexec_by_id(actionexecution_id)
-            actionexecution_api = ActionExecutionAPI.from_model(db)
-            db = None
+            actionexec_db = get_actionexec_by_id(liveaction.actionexecution_id)
         except StackStormDBObjectNotFoundError, e:
             LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
@@ -121,14 +105,11 @@ class LiveActionsController(RestController):
 
         ## Got ActionExecution object (1)
         LOG.info('POST /liveactions/ obtained ActionExecution object from database. '
-                 'Object is %s', actionexecution_api)
+                 'Object is %s', actionexec_db)
 
         try:
-            LOG.debug('actionexecution.action value: %s', actionexecution_api.action)
-            db,d = get_action_by_dict(actionexecution_api.action)
-            LOG.debug('got DB object: %s', db)
-            action_api = ActionAPI.from_model(db)
-            db = None
+            LOG.debug('actionexecution.action value: %s', actionexec_db.action)
+            action_db,d = get_action_by_dict(actionexec_db.action)
         except StackStormDBObjectNotFoundError, e:
             LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
@@ -136,12 +117,10 @@ class LiveActionsController(RestController):
 
         ## Got Action object (2)
         LOG.info('POST /liveactions/ obtained Action object from database. '
-                 'Object is %s', action_api)
+                 'Object is %s', action_db)
 
         try:
-            db = get_actiontype_by_name(action_api.runner_type)
-            actiontype_api = ActionTypeAPI.from_model(db)
-            db = None
+            actiontype_db = get_actiontype_by_name(action_db.runner_type)
         except StackStormDBObjectNotFoundError, e:
             LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
@@ -149,22 +128,36 @@ class LiveActionsController(RestController):
 
         ## Got ActionType object (3)
         LOG.info('POST /liveactions/ obtained ActionType object from database. '
-                 'Object is %s', actiontype_api)
-
+                 'Object is %s', actiontype_db)
 
         # Save LiveAction to DB
-        liveaction_api.actionexecution_id = actionexecution_api.id
         liveaction_db = LiveAction.add_or_update(liveaction_api)
         LOG.info('POST /liveactions/ LiveAction object saved to DB. '
                  'Object is: %s', liveaction_db)
             
+        # Update ActionExecution status to "running"
+        actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_RUNNING,
+                                                      actionexec_db.id)
+
         # Launch action
         LOG.debug('Launching LiveAction command.')
         global runner_container
-        runner_container.dispatch(actiontype_api.name,
-                                  actionexecution_api.runner_parameters,
-                                  actionexecution_api.action_parameters,
+        (exit_code, std_out, std_err) = runner_container.dispatch(actiontype_db.name,
+                                  actionexec_db.runner_parameters,
+                                  actionexec_db.action_parameters,
                                   None)
+
+        LOG.info('Update ActionExecution object with Action result data')
+        actionexec_db.exit_code = str(exit_code)
+        actionexec_db.std_out = str(json.dumps(std_out))
+        actionexec_db.std_err = str(json.dumps(std_err))
+        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+        LOG.info('ActionExecution object after exit_code update: %s', actionexec_db)
+
+        liveaction_api = LiveActionAPI.from_model(liveaction_db)
+
+        LOG.debug('POST /liveactions/ client_result=%s', liveaction_api)
+        return liveaction_api
 
     @expose('json')
     def put(self, id, **kwargs):
