@@ -2,8 +2,6 @@ import httplib
 from pecan import abort
 from pecan.rest import RestController
 
-from mongoengine import ValidationError
-
 from wsme import types as wstypes
 import wsmeext.pecan as wsme_pecan
 
@@ -13,8 +11,7 @@ from st2common.models.api.actionrunner import ActionTypeAPI
 from st2common.persistence.actionrunner import ActionType
 from st2common.util.actionrunner_db import (get_actiontype_by_id, get_actiontype_by_name)
 
-from st2actionrunner.container import (get_runner_container, RunnerContainer)
-from st2actionrunnercontroller.controllers import runner_container
+from st2actionrunner.container import get_runner_container
 
 
 LOG = logging.getLogger(__name__)
@@ -25,7 +22,7 @@ ACTION_TYPES = {'internaldummy': {'name': 'internaldummy',
                                   'enabled': True,
                                   'runner_parameter_names': ['command'],
                                   'runner_module': 'no.such.module',
-                                 },
+                                  },
                 'shellaction': {'name': 'shellaction',
                                 'description': 'A shell action type',
                                 'enabled': True,
@@ -76,7 +73,6 @@ class ActionTypesController(RestController):
         self._register_internal_actiontypes()
         global runner_container
         runner_container = get_runner_container()
-        
 
     @wsme_pecan.wsexpose(ActionTypeAPI, wstypes.text)
     def get_one(self, id):

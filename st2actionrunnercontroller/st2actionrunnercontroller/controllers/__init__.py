@@ -1,6 +1,6 @@
 from st2common import log as logging
 
-from st2actionrunner.container import (get_runner_container, RunnerContainer)
+from st2actionrunner.container import get_runner_container
 
 
 LOG = logging.getLogger(__name__)

@@ -60,10 +60,13 @@ def get_liveaction_by_id(liveaction_id):
 
         On error, raise ST2ObjectNotFoundError.
     """
+    liveaction = None
     try:
-        liveaction = LiveAction.get_by_id(id)
+        liveaction = LiveAction.get_by_id(liveaction_id)
     except (ValueError, ValidationError) as e:
-        LOG.error('Database lookup for id="%s" resulted in exception: %s', id, e)
-        abort(httplib.NOT_FOUND)
+        LOG.error('Database lookup for id="%s" resulted in '
+                  'exception: %s', liveaction_id, e)
+        raise StackStormDBObjectNotFoundError('Unable to find liveaction with '
+                                              'id="%s"' % liveaction_id)
 
     return liveaction

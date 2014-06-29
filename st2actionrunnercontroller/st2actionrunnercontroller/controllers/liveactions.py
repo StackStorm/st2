@@ -3,17 +3,14 @@ import json
 from pecan import (abort, expose)
 from pecan.rest import RestController
 
-from mongoengine import ValidationError
-
 from wsme import types as wstypes
 import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
 
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.api.action import (ActionAPI, ActionExecutionAPI,
-                                         ACTIONEXEC_STATUS_RUNNING)
-from st2common.models.api.actionrunner import (ActionTypeAPI, LiveActionAPI)
+from st2common.models.api.action import ACTIONEXEC_STATUS_RUNNING
+from st2common.models.api.actionrunner import LiveActionAPI
 from st2common.persistence.action import ActionExecution
 from st2common.persistence.actionrunner import LiveAction
 from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict,
@@ -21,8 +18,6 @@ from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict,
 from st2common.util.actionrunner_db import (get_actiontype_by_name, get_liveaction_by_id)
 
 from st2actionrunnercontroller.controllers import runner_container
-from st2actionrunner.container import (get_runner_container, RunnerContainer)
-
 
 
 LOG = logging.getLogger(__name__)
@@ -45,12 +40,16 @@ class LiveActionsController(RestController):
 
         LOG.info('GET /liveactions/ with id=%s', id)
 
-        liveaction_db = self._get_by_id(id)
+        try:
+            liveaction_db = get_liveaction_by_id(id)
+        except StackStormDBObjectNotFoundError, e:
+            LOG.error('GET /liveactions/ with id="%s": %s', id, e.message)
+            abort(httplib.NOT_FOUND)
+
         liveaction_api = LiveActionAPI.from_model(liveaction_db)
 
         LOG.debug('GET /liveactions/ with id=%s, client_result=%s', id, liveaction_api)
-        return action_api
-        
+        return liveaction_api
 
     @wsme_pecan.wsexpose([LiveActionAPI])
     def get_all(self):
@@ -87,9 +86,7 @@ class LiveActionsController(RestController):
         LOG.debug('/liveactions/ POST verified LiveActionAPI object=%s',
                   liveaction_api)
 
-#        actionexec_id = str(liveaction.actionexec_id)
-
-        ## To launch a LiveAction we need:
+        # To launch a LiveAction we need:
         #     1. ActionExecution object
         #     2. Action object
         #     3. ActionType object
@@ -103,19 +100,19 @@ class LiveActionsController(RestController):
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
 
-        ## Got ActionExecution object (1)
+        #  Got ActionExecution object (1)
         LOG.info('POST /liveactions/ obtained ActionExecution object from database. '
                  'Object is %s', actionexec_db)
 
         try:
             LOG.debug('actionexecution.action value: %s', actionexec_db.action)
-            action_db,d = get_action_by_dict(actionexec_db.action)
+            (action_db, d) = get_action_by_dict(actionexec_db.action)
         except StackStormDBObjectNotFoundError, e:
             LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
 
-        ## Got Action object (2)
+        #  Got Action object (2)
         LOG.info('POST /liveactions/ obtained Action object from database. '
                  'Object is %s', action_db)
 
@@ -126,7 +123,7 @@ class LiveActionsController(RestController):
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
 
-        ## Got ActionType object (3)
+        #  Got ActionType object (3)
         LOG.info('POST /liveactions/ obtained ActionType object from database. '
                  'Object is %s', actiontype_db)
 
@@ -134,7 +131,7 @@ class LiveActionsController(RestController):
         liveaction_db = LiveAction.add_or_update(liveaction_api)
         LOG.info('POST /liveactions/ LiveAction object saved to DB. '
                  'Object is: %s', liveaction_db)
-            
+
         # Update ActionExecution status to "running"
         actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_RUNNING,
                                                       actionexec_db.id)

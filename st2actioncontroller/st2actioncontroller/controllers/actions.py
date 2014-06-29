@@ -5,7 +5,6 @@ from pecan.rest import RestController
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
 #       that bubble up to this layer should be core Python exceptions or
 #       StackStorm defined exceptions.
-from mongoengine import ValidationError
 
 from wsme import types as wstypes
 import wsmeext.pecan as wsme_pecan
