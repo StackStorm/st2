@@ -6,6 +6,7 @@
 
 
 _ = require 'lodash'
+rvsp = require 'rsvp'
 
 CONN_ERRORS =
   'ECONNREFUSED': (err) ->
@@ -25,6 +26,12 @@ parseArgs = (scheme=[], argstr="") ->
   # build an object
   _.zipObject scheme, args
 
+formatCommand = (name, command, type) ->
+  line = "#{name.toLowerCase()} execute #{command.name} "
+  for arg in type.runner_parameter_names
+    line += "[#{arg}] "
+  line += "- #{command.description}"
+
 module.exports = (robot) ->
 
   # handle uncaught exceptions
@@ -42,44 +49,63 @@ module.exports = (robot) ->
     actionexecutions: robot.http('http://localhost:9101').path('/actionexecutions')
 
   # init for actions
-  httpclients.actions
-  .get(errorHandler) (err, res, body) ->
-    actions = JSON.parse body
-    robot.brain.set 'actions', _.zipObject _.map(actions, 'name'), actions
+  actionsPromise = new rvsp.Promise (resolve, reject) ->
+    httpclients.actions
+      .get(errorHandler) (err, res, body) ->
+        return reject err if err
+        actions = JSON.parse body
+        obj = _.zipObject _.map(actions, 'name'), actions
+        robot.brain.set 'actions', obj
+        resolve obj
 
-  httpclients.actiontypes
-    .get(errorHandler) (err, res, body) ->
-      actiontypes = JSON.parse body
-      robot.brain.set 'actiontypes', _.zipObject _.map(actiontypes, 'name'), actiontypes
+  actiontypesPromise = new rvsp.Promise (resolve, reject) ->
+    httpclients.actiontypes
+      .get(errorHandler) (err, res, body) ->
+        return reject err if err
+        actiontypes = JSON.parse body
+        obj = _.zipObject _.map(actiontypes, 'name'), actiontypes
+        robot.brain.set 'actiontypes', obj
+        resolve obj
+
+  # Populate robot's command list for `help`
+  rvsp.hash
+    actions: actionsPromise,
+    actiontypes: actiontypesPromise
+  .then (d) ->
+    for _name, command of d.actions
+      robot.commands.push formatCommand robot.name, command, d.actiontypes[command.runner_type]
 
   # responder to run a staction
   robot.respond /execute (\w+)\s*(.*)?/i, (msg) ->
     [command, command_args] = msg.match[1..]
 
-    actions = robot.brain.get 'actions'
-    actiontypes = robot.brain.get 'actiontypes'
+    rvsp.hash
+      actions: actionsPromise,
+      actiontypes: actiontypesPromise
+    .then (d) ->
+      {actions, actiontypes} = d
 
-    unless action = actions[command]
-      msg.send "No such action: '#{command}'"
-      return
+      unless action = actions[command]
+        msg.send "No such action: '#{command}'"
+        return
 
-    expectedParams = actiontypes[action.runner_type].runner_parameter_names
+      expectedParams = actiontypes[action.runner_type].runner_parameter_names
 
-    payload =
-      action: action,
-      runner_parameters: parseArgs(expectedParams, command_args)
-      action_parameters: {}
+      payload =
+        action: action,
+        runner_parameters: parseArgs(expectedParams, command_args)
+        action_parameters: {}
 
-    httpclients.actionexecutions
-      .header('Content-Type', 'application/json')
-      .post(JSON.stringify(payload), errorHandler) (err, res, body) ->
-        staction_execution = JSON.parse(body)
+      httpclients.actionexecutions
+        .header('Content-Type', 'application/json')
+        .post(JSON.stringify(payload), errorHandler) (err, res, body) ->
+          action_execution = JSON.parse(body)
 
-        unless res.statusCode is 201
-          msg.send "Action has failed to run"
+          unless res.statusCode is 201
+            msg.send "Action has failed to run"
 
-        unless staction_execution.status is 'complete'
-          msg.send "Action has failed to execute"
-          return
+          unless action_execution.status is 'complete'
+            msg.send "Action has failed to execute"
+            return
 
-        msg.send "Action has been completed sucessfully"
+          msg.send "Action has been completed sucessfully"
