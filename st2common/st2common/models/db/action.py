@@ -1,3 +1,4 @@
+import datetime
 import mongoengine as me
 
 from st2common import log as logging
@@ -87,6 +88,8 @@ class ActionExecutionDB(StormFoundationDB):
     # TODO: Can status be an enum at the Mongo layer?
     status = me.StringField(required=True,
                 help_text=u'The current status of the ActionExecution.')
+    start_timestamp = me.DateTimeField(default=datetime.datetime.now(),
+                help_text=u'The timestamp when the ActionExecution was created.')
     action = me.DictField(required=True,
                 help_text=u'The action executed by this instance.')
     runner_parameters = me.DictField(default={},
@@ -119,6 +122,7 @@ class ActionExecutionDB(StormFoundationDB):
         result.append('id="%s", ' % self.id)
         result.append('action=%s, ' % str(self.action))
         result.append('status=%s, ' % str(self.status))
+        result.append('start_timestamp=%s, ' % str(self.start_timestamp))
         result.append('runner_parameters=%s, ' % str(self.runner_parameters))
         result.append('action_parameters=%s, ' % str(self.action_parameters))
         result.append('exit_code=%s, ' % str(self.exit_code))
