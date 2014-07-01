@@ -118,6 +118,12 @@ class LiveActionsController(RestController):
         LOG.info('POST /liveactions/ obtained Action object from database. '
                  'Object is %s', action_db)
 
+        # If the Action is disabled, abort the POST call.
+        if not action_db.enabled:
+            LOG.error('POST /actionexecutions/ Unable to create Live Action for a disabled '
+                      'Action. Action is: %s', action_db)
+            abort(httplib.FORBIDDEN)
+
         try:
             actiontype_db = get_actiontype_by_name(action_db.runner_type)
         except StackStormDBObjectNotFoundError, e:

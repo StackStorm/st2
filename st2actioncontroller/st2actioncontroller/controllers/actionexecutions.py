@@ -170,6 +170,12 @@ class ActionExecutionsController(RestController):
                          'lookup failure.')
                 actionexecution.action = action_dict
 
+        # If the Action is disabled, abort the POST call.
+        if not action_db.enabled:
+            LOG.error('POST /actionexecutions/ Unable to create Action Execution for a disabled '
+                      'Action. Action is: %s', action_db)
+            abort(httplib.FORBIDDEN)
+
         # Initialize empty results data
         """
         actionexecution.exit_code = None
