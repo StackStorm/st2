@@ -1,24 +1,11 @@
 import datetime
 import Queue
-import sys
 import threading
 import time
 
-import eventlet
-import unittest2
-
 from st2reactor.container.containerservice import ContainerService
 from st2reactor.container.triggerdispatcher import TriggerDispatcher
-
-# This block is needed for running this test with nosetests directly. Otherwise,
-# green threads in container_service dispatcher would not being spun up.
-eventlet.monkey_patch(
-    os=True,
-    select=True,
-    socket=True,
-    thread=False if '--use-debugger' in sys.argv else True,
-    time=True
-)
+from st2tests import EventletTestCase
 
 
 def _generate_mock_trigger_instances(count=5):
@@ -37,7 +24,7 @@ def _make_trigger_instance(id):
     return mock_trigger_instance
 
 
-class ContainerServiceTest(unittest2.TestCase):
+class ContainerServiceTest(EventletTestCase):
     class TestDispatcher(TriggerDispatcher):
         def __init__(self):
             super(ContainerServiceTest.TestDispatcher, self).__init__()
