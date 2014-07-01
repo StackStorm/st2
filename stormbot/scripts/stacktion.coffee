@@ -26,8 +26,8 @@ parseArgs = (scheme=[], argstr="") ->
   # build an object
   _.zipObject scheme, args
 
-formatCommand = (name, command, type) ->
-  line = "#{name.toLowerCase()} execute #{command.name} "
+formatCommand = (command, type) ->
+  line = "hubot execute #{command.name} "
   for arg in type.runner_parameter_names
     line += "[#{arg}] "
   line += "- #{command.description}"
@@ -73,7 +73,7 @@ module.exports = (robot) ->
     actiontypes: actiontypesPromise
   .then (d) ->
     for _name, command of d.actions
-      robot.commands.push formatCommand robot.name, command, d.actiontypes[command.runner_type]
+      robot.commands.push formatCommand command, d.actiontypes[command.runner_type]
 
   # responder to run a staction
   robot.respond /execute (\w+)\s*(.*)?/i, (msg) ->

@@ -21,10 +21,11 @@
     "url": "https://github.com/github/hubot.git"
   },
   "dependencies": {
-    "hubot": ">= 2.6.0 < 3.0.0",
+    "hubot": "git://github.com/enykeev/hubot.git#feature/cwd",
     "hubot-scripts": ">= 2.5.0 < 3.0.0",
     "lodash": "~2.4.1",
-    "rsvp": "^3.0.9"
+    "rsvp": "^3.0.9",
+    "hubot-hipchat": "~2.7.5"
   },
   "engines": {
     "node": ">= 0.8.x",
