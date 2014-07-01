@@ -2,6 +2,8 @@ import httplib
 from pecan import abort
 from pecan.rest import RestController
 
+from mongoengine import NotUniqueError
+
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
 #       that bubble up to this layer should be core Python exceptions or
 #       StackStorm defined exceptions.
@@ -90,7 +92,13 @@ class ActionsController(RestController):
         #       If an existing object conflicts then raise error.
 
         LOG.audit('Action about to be created in database. Action is: %s', action_api)
-        action_db = Action.add_or_update(action_api)
+        try:
+            action_db = Action.add_or_update(action_api)
+        except (NotUniqueError) as e:
+            LOG.error('/actions/ POST unable to save ActionDB object "%s" due to uniqueness '
+                      'conflict. Exception was: %s', action_api, e)
+            abort(httplib.CONFLICT)
+
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
 
         LOG.audit('Action created in database. Action is: %s', action_db)
