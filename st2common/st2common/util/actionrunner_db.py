@@ -53,6 +53,23 @@ def get_actiontype_by_name(actiontype_name):
         return actiontypes[0]
 
 
+def get_liveactions_by_actionexec_id(actionexec_id):
+    """
+        Get LiveAction by the actionexecution_id field.
+
+        On error, raise ST2ObjectNotFoundError.
+    """
+    liveactions = None
+    try:
+        liveactions = LiveAction.query(actionexecution_id=actionexec_id)
+    except (ValueError, ValidationError) as e:
+        LOG.error('Database lookup for Live Actions with actionexecution_id="%s" resulted in '
+                  'exception: %s', actionexec_id, e)
+        raise StackStormDBObjectNotFoundError('Unable to find Live Actions with '
+                                              'actionexecution_id="%s"' % actionexec_id)
+
+    return liveactions
+
 
 def get_liveaction_by_id(liveaction_id):
     """
