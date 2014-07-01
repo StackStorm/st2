@@ -44,7 +44,7 @@ class ActionExecutionsController(RestController):
         request_error = False
         result = None
         try:
-            result = requests.delete(LIVEACTION_ENDPOINT + '/' + str(actionexec_id))
+            result = requests.delete(LIVEACTION_ENDPOINT + '/?actionexecution_id=' + str(actionexec_id))
         except requests.exceptions.ConnectionError, e:
             LOG.error('Caught encoundered connection error while performing /liveactions/ '
                       'DELETE for actionexec_id="%s".'
@@ -268,7 +268,9 @@ class ActionExecutionsController(RestController):
                   id, actionexec_db)
 
         # TODO: Delete should migrate the execution data to a history collection.
-
+        # TODO: Validate that liveactions for actionexec are all deleted.
+        """
+        # No need to validate existence of live actions.
         liveactions_db = None
         try:
             liveactions_db = get_liveactions_by_actionexec_id(actionexec_db.id)
@@ -276,7 +278,6 @@ class ActionExecutionsController(RestController):
             LOG.warning('DELETE /actionexecutions/ no Live Actions found for '
                         'actionexecution_id="%s"', actionexec_db.id, e.message)
 
-        """
         # Handle delete of LiveActions
         if liveactions_db:
             (result, request_error) = self._issue_liveaction_delete(actionexec_db.id)   
@@ -285,6 +286,13 @@ class ActionExecutionsController(RestController):
                 LOG.warning('DELETE of Live Actions for actionexecution_id="%s" encountered '
                             'an error. HTTP result is: %s', actionexec_db.id, result)
         """
+
+        (result, request_error) = self._issue_liveaction_delete(actionexec_db.id)   
+        # TODO: Validate that liveactions for actionexec are all deleted.
+        if request_error:
+            LOG.warning('DELETE of Live Actions for actionexecution_id="%s" encountered '
+                        'an error. HTTP result is: %s', actionexec_db.id, result)
+        
 
         try:
             ActionExecution.delete(actionexec_db)
