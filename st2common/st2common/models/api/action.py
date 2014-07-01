@@ -1,3 +1,4 @@
+import datetime
 from wsme import types as wstypes
 
 from st2common import log as logging
@@ -97,6 +98,7 @@ class ActionExecutionAPI(StormFoundationAPI):
 
     # Correct parameters...
     status = wstypes.Enum(str, *ACTIONEXEC_STATUSES)
+    start_timestamp = datetime.datetime
     action = wstypes.DictType(str, str)
     runner_parameters = wstypes.DictType(str, str)
     action_parameters = wstypes.DictType(str, str)
@@ -111,6 +113,7 @@ class ActionExecutionAPI(StormFoundationAPI):
         actionexec = StormFoundationAPI.from_model(kls, model)
         actionexec.action = dict(model.action)
         actionexec.status = str(model.status)
+        actionexec.start_timestamp = model.start_timestamp
         actionexec.runner_parameters = dict(model.runner_parameters)
         actionexec.action_parameters = dict(model.action_parameters)
         # actionexec.result_data = dict(model.result_data)
@@ -125,6 +128,7 @@ class ActionExecutionAPI(StormFoundationAPI):
         LOG.debug('entering ActionExecutionAPI.to_model() Input object: %s', actionexec)
         model = StormFoundationAPI.to_model(ActionExecutionDB, actionexec)
         model.status = str(actionexec.status)
+        model.start_timestamp = actionexec.start_timestamp
         model.action = actionexec.action
         model.runner_parameters = dict(actionexec.runner_parameters)
         model.action_parameters = dict(actionexec.action_parameters)

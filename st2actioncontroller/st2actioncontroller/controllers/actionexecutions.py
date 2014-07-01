@@ -1,3 +1,4 @@
+import datetime
 import httplib
 import json
 from pecan import abort
@@ -155,6 +156,8 @@ class ActionExecutionsController(RestController):
         """
 
         LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
+
+        actionexecution.start_timestamp = datetime.datetime.now()
 
         (action_db, action_dict) = get_action_by_dict(actionexecution.action)
         if not action_db:
