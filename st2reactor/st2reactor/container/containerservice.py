@@ -8,14 +8,16 @@ from triggerdispatcher import TriggerDispatcher
 class ContainerService(object):
     _base_logger_name = 'st2reactor.sensorcontainer.sensors.'
 
-    def __init__(self, dispatcher=None, dispatch_pool_size=50, monitor_thread_sleep_time=5):
+    def __init__(self, dispatcher=None, dispatch_pool_size=50, monitor_thread_empty_q_sleep_time=5,
+                 monitor_thread_no_workers_sleep_time=1):
         if dispatcher is None:
             dispatcher = TriggerDispatcher()
         self._dispatcher = dispatcher
         self._pool_limit = dispatch_pool_size
         self._dispatcher_pool = eventlet.GreenPool(dispatch_pool_size)
         self._dispatch_monitor_thread = eventlet.greenthread.spawn(self._flush_triggers)
-        self._monitor_thread_sleep_time = monitor_thread_sleep_time
+        self._monitor_thread_empty_q_sleep_time = monitor_thread_empty_q_sleep_time
+        self._monitor_thread_no_workers_sleep_time = monitor_thread_no_workers_sleep_time
         self._triggers_buffer = Queue.Queue()
 
     def get_dispatcher(self):
@@ -43,9 +45,9 @@ class ContainerService(object):
     def _flush_triggers(self):
         while True:
             while self._triggers_buffer.empty():
-                eventlet.greenthread.sleep(self._monitor_thread_sleep_time)
+                eventlet.greenthread.sleep(self._monitor_thread_empty_q_sleep_time)
             while self._dispatcher_pool.free() <= 0:
-                eventlet.greenthread.sleep(1)
+                eventlet.greenthread.sleep(self._monitor_thread_no_workers_sleep_time)
             self._flush_triggers_now()
 
     def shutdown(self):

@@ -1,12 +1,24 @@
 import datetime
 import Queue
+import sys
 import threading
 import time
 
+import eventlet
 import unittest2
 
 from st2reactor.container.containerservice import ContainerService
 from st2reactor.container.triggerdispatcher import TriggerDispatcher
+
+# This block is needed for running this test with nosetests directly. Otherwise,
+# green threads in container_service dispatcher would not being spun up.
+eventlet.monkey_patch(
+    os=True,
+    select=True,
+    socket=True,
+    thread=False if '--use-debugger' in sys.argv else True,
+    time=True
+)
 
 
 def _generate_mock_trigger_instances(count=5):
@@ -45,7 +57,7 @@ class ContainerServiceTest(unittest2.TestCase):
                                              dispatcher=dispatcher)
         instances = _generate_mock_trigger_instances(5)
         container_service.dispatch(instances)
-        time.sleep(3)  # give time for eventlet threads to dispatch.
+        time.sleep(0.1)  # give time for eventlet threads to dispatch.
         self.assertEquals(dispatcher.called_dispatch, 1,
                           'dispatch() should have been called only once')
         self.assertEquals(dispatcher.triggers_queue.qsize(), 1,
@@ -56,13 +68,14 @@ class ContainerServiceTest(unittest2.TestCase):
         dispatcher = ContainerServiceTest.TestDispatcher()
         container_service = ContainerService(dispatch_pool_size=2,
                                              dispatcher=dispatcher,
-                                             monitor_thread_sleep_time=1)
+                                             monitor_thread_empty_q_sleep_time=0.2,
+                                             monitor_thread_no_workers_sleep_time=0.1)
         instances = []
         for i in xrange(5):
             instances.append(_generate_mock_trigger_instances(5))
         for i in xrange(5):
             container_service.dispatch(instances)
-        time.sleep(4)  # give time for eventlet threads to dispatch.
+        time.sleep(0.3)  # give time for eventlet threads to dispatch.
         self.assertEquals(dispatcher.called_dispatch, 5,
                           'dispatch() called fewer than 5 times')
         self.assertEquals(dispatcher.triggers_queue.qsize(), 5,
