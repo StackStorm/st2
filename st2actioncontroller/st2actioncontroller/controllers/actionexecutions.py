@@ -35,6 +35,27 @@ class ActionExecutionsController(RestController):
         the lifecycle of ActionExecutions in the system.
     """
 
+    def _issue_liveaction_delete(self, actionexec_id):
+        """
+            Destroy the LiveActions specified by actionexec_id by performing
+            a DELETE against the /liveactions/ http endpoint.
+        """
+        LOG.info('Issuing /liveactions/ DELETE for ActionExecution with id="%s"', actionexec_id)
+        request_error = False
+        result = None
+        try:
+            result = requests.delete(LIVEACTION_ENDPOINT + '/?actionexecution_id=' + str(actionexec_id))
+        except requests.exceptions.ConnectionError, e:
+            LOG.error('Caught encoundered connection error while performing /liveactions/ '
+                      'DELETE for actionexec_id="%s".'
+                      'Error was: %s', actionexec_id, e)
+            request_error = True
+
+        LOG.debug('/liveactions/ DELETE request result: %s', result)
+
+        return(result, request_error)
+
+
     def _issue_liveaction_post(self, actionexec_id):
         """
             Launch the ActionExecution specified by actionexec_id by performing
@@ -246,9 +267,32 @@ class ActionExecutionsController(RestController):
         LOG.debug('DELETE /actionexecutions/ lookup with id=%s found object: %s',
                   id, actionexec_db)
 
-        ######### DELETE associated LIVE ACTION
-
         # TODO: Delete should migrate the execution data to a history collection.
+        # TODO: Validate that liveactions for actionexec are all deleted.
+        """
+        # No need to validate existence of live actions.
+        liveactions_db = None
+        try:
+            liveactions_db = get_liveactions_by_actionexec_id(actionexec_db.id)
+        except StackStormDBObjectNotFoundError, e:
+            LOG.warning('DELETE /actionexecutions/ no Live Actions found for '
+                        'actionexecution_id="%s"', actionexec_db.id, e.message)
+
+        # Handle delete of LiveActions
+        if liveactions_db:
+            (result, request_error) = self._issue_liveaction_delete(actionexec_db.id)   
+            # TODO: Validate that liveactions for actionexec are all deleted.
+            if request_error:
+                LOG.warning('DELETE of Live Actions for actionexecution_id="%s" encountered '
+                            'an error. HTTP result is: %s', actionexec_db.id, result)
+        """
+
+        (result, request_error) = self._issue_liveaction_delete(actionexec_db.id)   
+        # TODO: Validate that liveactions for actionexec are all deleted.
+        if request_error:
+            LOG.warning('DELETE of Live Actions for actionexecution_id="%s" encountered '
+                        'an error. HTTP result is: %s', actionexec_db.id, result)
+        
 
         try:
             ActionExecution.delete(actionexec_db)

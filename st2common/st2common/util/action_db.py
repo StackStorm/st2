@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 def get_action_by_id(action_id):
     """
         Get Action by id.
-        
+
         On error, raise StackStormDBObjectNotFoundError
     """
     action = None
@@ -33,7 +33,7 @@ def get_action_by_id(action_id):
 def get_action_by_name(action_name):
     """
         Get Action by name.
-        
+
         On error, raise StackStormDBObjectNotFoundError
     """
     action = None
@@ -52,7 +52,7 @@ def get_action_by_name(action_name):
 def get_actionexec_by_id(actionexec_id):
     """
         Get ActionExecution by id.
-        
+
         On error, raise ST2DBObjectNotFoundError.
     """
     actionexec = None
@@ -66,6 +66,7 @@ def get_actionexec_by_id(actionexec_id):
                                               'id="%s"' % actionexec_id)
 
     return actionexec
+
 
 def get_action_by_dict(action_dict):
     """
@@ -91,7 +92,7 @@ def get_action_by_dict(action_dict):
             del action_dict[ACTION_ID]
         else:
             return (action, action_dict)
-    
+
     if ACTION_NAME in action_dict:
         action_name = action_dict[ACTION_NAME]
         try:
@@ -99,10 +100,11 @@ def get_action_by_dict(action_dict):
         except StackStormDBObjectNotFoundError:
             LOG.info('Action not found by name.')
         else:
-            return (action, action_dict) 
-        
+            return (action, action_dict)
+
     # No action found by identifiers in action_dict.
-    return (None,{})
+    return (None, {})
+
 
 def update_actionexecution_status(new_status, actionexec_id=None, actionexec_db=None):
         """
@@ -111,19 +113,20 @@ def update_actionexecution_status(new_status, actionexec_id=None, actionexec_db=
 
             The ActionExecution may be specified using either actionexec_id, or as an
             actionexec_db instance.
-            
         """
 
         if (actionexec_id is None) and (actionexec_db is None):
-            raise ValueError('Must specify an actionexec_id or an actionexec_db when calling update_actionexecution_status')
+            raise ValueError('Must specify an actionexec_id or an actionexec_db when '
+                             'calling update_actionexecution_status')
 
         if actionexec_db is None:
             actionexec_db = get_actionexec_by_id(actionexec_id)
 
         if new_status not in ACTIONEXEC_STATUSES:
             raise ValueError('Attempting to set status for ActionExecution "%s" '
-                             'to unknown status string. Unknown status is "%s"', actionexec_db, new_status)
-        
+                             'to unknown status string. Unknown status is "%s"',
+                             actionexec_db, new_status)
+
         LOG.debug('Updating ActionExection: "%s" with status="%s"',
                   actionexec_db, new_status)
         actionexec_db.status = new_status

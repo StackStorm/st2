@@ -15,7 +15,9 @@ from st2common.persistence.action import ActionExecution
 from st2common.persistence.actionrunner import LiveAction
 from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict,
                                       update_actionexecution_status)
-from st2common.util.actionrunner_db import (get_actiontype_by_name, get_liveaction_by_id)
+from st2common.util.actionrunner_db import (get_actiontype_by_name,
+                                            get_liveaction_by_id,
+                                            get_liveactions_by_actionexec_id)
 
 from st2actionrunnercontroller.controllers import runner_container
 
@@ -135,7 +137,6 @@ class LiveActionsController(RestController):
         # Update ActionExecution status to "running"
         actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_RUNNING,
                                                       actionexec_db.id)
-
         # Launch action
         LOG.debug('Launching LiveAction command.')
         global runner_container
@@ -167,14 +168,65 @@ class LiveActionsController(RestController):
         """
         abort(httplib.METHOD_NOT_ALLOWED)
 
-    @wsme_pecan.wsexpose(None, wstypes.text)
-    def delete(self, id):
+    @wsme_pecan.wsexpose(None, wstypes.text, wstypes.text)
+    def delete(self, id, actionexecution_id=None):
         """
-            Delete a LiveAction.
+            Delete Live Actions.
 
             Handles requests:
                 POST /liveactions/1?_method=delete
                 DELETE /liveactions/1
+                DELETE /liveactions/?actionexecution_id=2
+
+            Note: Delete by actionexecution_id may delete multiple Live Action objects.
         """
 
-        abort(httplib.NOT_IMPLEMENTED)
+        # TODO: Handle delete to ensure object is not re-created by action runner.
+
+        actionexec_id = actionexecution_id
+        LOG.info('DELETE /liveactions/ with id="%s" and actionexecution_id="%s"',
+                 id, actionexec_id)
+
+        if (id) and (actionexec_id):
+            LOG.error('DELETE /liveactions/ request is invalid. Can only specify liveaction id, '
+                      ' or actionexecution_id.')
+            abort(httplib.BAD_REQUEST)
+
+        liveactions_db = []
+
+        if id:
+            try:
+                db = get_liveaction_by_id(id)
+            except StackStormDBObjectNotFoundError, e:
+                LOG.error('DELETE /liveactions/ with id="%s": %s', id, e.message)
+                abort(httplib.NOT_FOUND)
+
+            liveactions_db.append(db)
+        elif actionexec_id:
+            try:
+                dbs = get_liveactions_by_actionexec_id(actionexec_id)
+            except StackStormDBObjectNotFoundError, e:
+                LOG.error('DELETE /liveactions/ with actionexecution_id="%s": %s',
+                          actionexec_id, e.message)
+                abort(httplib.NOT_FOUND)
+            liveactions_db.extend(dbs)
+        else:
+            LOG.error('DELETE /liveactions/ unknown identifier provided')
+            abort(httplib.BAD_REQUEST)
+
+        LOG.debug('DELETE /liveactions/ lookup found objects: %s', liveactions_db)
+
+        if not liveactions_db:
+            LOG.error('DELETE /liveactions/ found no objects to delete.')
+            abort(httplib.NOT_FOUND)
+
+        for liveaction_db in liveactions_db:
+            try:
+                LiveAction.delete(liveaction_db)
+            except Exception, e:
+                LOG.error('Database delete encountered exception during delete of LiveAction: '
+                          '"%s". Exception was %s', liveaction_db, e)
+                httplib.INTERNAL_SERVER_ERROR
+
+        LOG.info('DELETE /liveactions/ compeleted.')
+        return None

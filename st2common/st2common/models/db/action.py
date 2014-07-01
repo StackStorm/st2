@@ -96,17 +96,17 @@ class ActionExecutionDB(StormFoundationDB):
 
     # TODO: Move result data to dict of embedded documents.... to support multiple action
     #       targets.
-    #result_data = me.ListField( me.EmbeddedDocumentField(ActionExecutionResultDB), 
+    # result_data = me.ListField( me.EmbeddedDocumentField(ActionExecutionResultDB),
     #                           help_text=u'Output from action. Key values are hostnames.')
-    #result_data = me.EmbeddedDocumentField(ActionExecutionResultDB, default=ActionExecutionResultDB(),
+    # result_data = me.EmbeddedDocumentField(ActionExecutionResultDB, default=ActionExecutionResultDB(),
     #             help_text=u'Output from action. Key values are hostnames.')
 
     exit_code = me.StringField(default='',
                            help_text=u'Exit code for action.')
-    #std_out = me.ListField(default=[],
+    # std_out = me.ListField(default=[],
     std_out = me.StringField(default='',
                            help_text=u'List of stdout output strings in output order.')
-    #std_err = me.ListField(default=[],
+    # std_err = me.ListField(default=[],
     std_err = me.StringField(default='',
                            help_text=u'List of stdout output strings in output order.')
 
