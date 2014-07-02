@@ -98,7 +98,8 @@ tests: requirements
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -v $$component || exit 1; \
+		#. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component || exit 1; \
 	done
 
 .PHONY: install
