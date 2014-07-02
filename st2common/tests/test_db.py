@@ -257,3 +257,47 @@ class ActionModelTest(tests.DbTestCase):
             return
         for model_object in model_objects:
             model_object.delete()
+
+
+from st2common.models.db.datastore import KeyValuePairDB
+from st2common.persistence.datastore import KeyValuePair
+
+
+class KeyValuePairModelTest(tests.DbTestCase):
+
+    def test_kvp_crud(self):
+        saved = KeyValuePairModelTest._create_save_kvp()
+        retrieved = KeyValuePair.get_by_name(saved.name)
+        self.assertEqual(saved.id, retrieved.id,
+                         'Same KeyValuePair was not returned.')
+
+        # test update
+        self.assertEqual(retrieved.value, '0123456789ABCDEF')
+        retrieved.value = 'ABCDEF0123456789'
+        saved = KeyValuePair.add_or_update(retrieved)
+        retrieved = KeyValuePair.get_by_name(saved.name)
+        self.assertEqual(retrieved.value, 'ABCDEF0123456789',
+                         'Update of key value failed')
+
+        # cleanup
+        KeyValuePairModelTest._delete([retrieved])
+        try:
+            retrieved = KeyValuePair.get_by_name(saved.name)
+        except ValueError:
+            retrieved = None
+        self.assertIsNone(retrieved, 'managed to retrieve after failure.')
+
+    @staticmethod
+    def _create_save_kvp():
+        created = KeyValuePairDB()
+        created.name = 'token'
+        created.value = '0123456789ABCDEF'
+        return KeyValuePair.add_or_update(created)
+
+    @staticmethod
+    def _delete(model_objects):
+        global SKIP_DELETE
+        if SKIP_DELETE:
+            return
+        for model_object in model_objects:
+            model_object.delete()
