@@ -1,39 +1,29 @@
 import subprocess
 
+from st2actionrunner.runners import ActionRunner
+
 from st2common import log as logging
+from st2actionrunner.container.service import (STDOUT, STDERR)
 
 
+# Replace with container call to get logger.
 LOG = logging.getLogger(__name__)
 
 
-class RunnerContainer():
+class InternalDummyRunner(ActionRunner):
 
     def __init__(self):
-        LOG.info('Action RunnerContainer instantiated.')
-        """
-        _actiontypes = {}
-        LOG.info('Populating Action RunnerContainer with ActionTypes.')
-        actiontype_apis = [ActionTypeAPI.from_model(actiontype_db)
-                           for actiontype_db in ActionType.get_all()]
+        pass
 
-        for at_api in actiontype_apis:
-            if at_api.enabled:
-                self._actiontypes[at_api.name] = at_api
-        """
+    def pre_run(self):
+        # TODO: Replace with container call to get logger.
+        # LOG = logging.getLogger(__name__)
 
-    def dispatch(self, runner_type, runner_parameters, action_parameters, result_data):
-        LOG.debug('runner_type: %s', runner_type)
-        LOG.debug('runner_parameters: %s', runner_parameters)
-        LOG.debug('action_parameters: %s', action_parameters)
-        LOG.debug('result_data: %s', result_data)
+        LOG.info('In InternalDummyRunner.pre_run()')
+        self._command = self.parameters['command']
+        LOG.debug('    [Internal Dummy Runner] command list is: %s', self._command)
 
-        if runner_type == 'internaldummy':
-            return self._handle_internaldummy_runner(runner_parameters,
-                                                     action_parameters, result_data)
-        else:
-            raise NotImplementedError('RunnerType "%s" not currently supported.' % runner_type)
-
-    def _handle_internaldummy_runner(self, runner_parameters, action_parameters, result_data):
+    def run(self, action_parameters):
         """
             ActionRunner for "internaldummy" ActionType.
 
@@ -42,9 +32,10 @@ class RunnerContainer():
             !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         """
+        LOG.info('In InternalDummyRunner.run()')
         LOG.info('Entering Internal Dummy Runner')
 
-        command_list = runner_parameters['command']
+        command_list = self._command
         LOG.debug('    [Internal Dummy Runner] command list is: %s', command_list)
 
         LOG.debug('    [Internal Dummy Runner] Launching command as blocking operation.')
@@ -59,8 +50,15 @@ class RunnerContainer():
         LOG.debug('    [Internal Dummy Runner] command_exit: %s', command_exitcode)
         LOG.debug('    [Internal Dummy Runner] TODO: Save output to DB')
 
+        self.container_service.report_exit_code(command_exitcode)
+        self.container_service.report_output(STDOUT, command_stdout)
+        self.container_service.report_output(STDERR, command_stderr)
+
         return (command_exitcode, command_stdout, command_stderr)
 
+    def post_run(self):
+        LOG.info('In InternalDummyRunner.post_run()')
 
-def get_runner_container():
-    return RunnerContainer()
+
+def get_runner():
+    return InternalDummyRunner()

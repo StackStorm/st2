@@ -102,7 +102,7 @@ class ActionExecutionAPI(StormFoundationAPI):
     action = wstypes.DictType(str, str)
     runner_parameters = wstypes.DictType(str, str)
     action_parameters = wstypes.DictType(str, str)
-    #result_data = wstypes.DictType(str, wstypes.DictType(str, str))
+    # result_data = wstypes.DictType(str, wstypes.DictType(str, str))
     exit_code = wstypes.text
     std_out = wstypes.text
     std_err = wstypes.text
@@ -117,6 +117,8 @@ class ActionExecutionAPI(StormFoundationAPI):
         actionexec.runner_parameters = dict(model.runner_parameters)
         actionexec.action_parameters = dict(model.action_parameters)
         # actionexec.result_data = dict(model.result_data)
+        # if actionexec.exit_code not in [None, Unset]:
+        #    actionexec.exit_code = int(model.exit_code)
         actionexec.exit_code = str(model.exit_code)
         actionexec.std_out = str(model.std_out)
         actionexec.std_err = str(model.std_err)

@@ -48,7 +48,6 @@ class LiveActionAPI(StormFoundationAPI):
         return ''.join(result)
 
 
-
 class ActionTypeAPI(StormBaseAPI):
     """
         The representation of an ActionType in the system. An ActionType
