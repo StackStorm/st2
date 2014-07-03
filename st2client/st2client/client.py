@@ -3,6 +3,7 @@ import logging
 from st2client import models
 from st2client.models import reactor
 from st2client.models import action
+from st2client.models import datastore
 
 
 LOG = logging.getLogger(__name__)
@@ -20,6 +21,8 @@ class Client(object):
             reactor.Rule, endpoints['reactor'])
         self.managers['Trigger'] = models.ResourceManager(
             reactor.Trigger, endpoints['reactor'], read_only=True)
+        self.managers['KeyValuePair'] = models.ResourceManager(
+            datastore.KeyValuePair, endpoints['datastore'])
 
     @property
     def actions(self):
@@ -36,3 +39,7 @@ class Client(object):
     @property
     def triggers(self):
         return self.managers['Trigger']
+
+    @property
+    def keys(self):
+        return self.managers['KeyValuePair']
