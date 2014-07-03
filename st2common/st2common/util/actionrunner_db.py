@@ -3,8 +3,7 @@ from mongoengine import ValidationError
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.actionrunner import (ActionType, LiveAction)
-from st2common.models.api.actionrunner import (LiveActionAPI, ActionTypeAPI,
-                                               )
+
 
 LOG = logging.getLogger(__name__)
 

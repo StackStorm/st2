@@ -144,7 +144,8 @@ class RunnerBase():
         self._update_action_execution(action_execution, STEXEC_RUNNING)
 
         # report action start
-        # self.report_action_control('Starting action name="%s",id="%s"' % (self._action_execution.action.name, self._action_execution.action.id))
+        # self.report_action_control('Starting action name="%s",id="%s"' %
+        #            (self._action_execution.action.name, self._action_execution.action.id))
 
         # report action repo ID
         self._set_repo_id(action)

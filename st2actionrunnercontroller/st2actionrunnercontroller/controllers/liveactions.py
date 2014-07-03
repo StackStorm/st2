@@ -1,5 +1,4 @@
 import httplib
-import json
 from pecan import (abort, expose)
 from pecan.rest import RestController
 
@@ -11,7 +10,6 @@ from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import ACTIONEXEC_STATUS_RUNNING
 from st2common.models.api.actionrunner import LiveActionAPI
-from st2common.persistence.action import ActionExecution
 from st2common.persistence.actionrunner import LiveAction
 from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict,
                                       update_actionexecution_status)
@@ -146,17 +144,21 @@ class LiveActionsController(RestController):
         # Launch action
         LOG.debug('Launching LiveAction command.')
         global runner_container
-        (exit_code, std_out, std_err) = runner_container.dispatch(actiontype_db.name,
-                                  actionexec_db.runner_parameters,
-                                  actionexec_db.action_parameters,
-                                  None)
+        result = runner_container.dispatch(liveaction_db, actiontype_db, actionexec_db)
+        LOG.debug('Runner dispatch produced result: %s', result)
 
+        if not result:
+            # Return different code for live action execution failure
+            abort(httplib.INTERNAL_SERVER_ERROR)
+
+        """
         LOG.info('Update ActionExecution object with Action result data')
         actionexec_db.exit_code = str(exit_code)
         actionexec_db.std_out = str(json.dumps(std_out))
         actionexec_db.std_err = str(json.dumps(std_err))
         actionexec_db = ActionExecution.add_or_update(actionexec_db)
         LOG.info('ActionExecution object after exit_code update: %s', actionexec_db)
+        """
 
         liveaction_api = LiveActionAPI.from_model(liveaction_db)
 

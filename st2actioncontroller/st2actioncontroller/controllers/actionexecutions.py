@@ -15,6 +15,7 @@ import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.util.http import HTTP_SUCCESS
 from st2common.persistence.action import ActionExecution
 from st2common.models.api.action import (ActionExecutionAPI,
                                          ACTIONEXEC_STATUS_INIT,
@@ -45,7 +46,8 @@ class ActionExecutionsController(RestController):
         request_error = False
         result = None
         try:
-            result = requests.delete(LIVEACTION_ENDPOINT + '/?actionexecution_id=' + str(actionexec_id))
+            result = requests.delete(LIVEACTION_ENDPOINT +
+                                     '/?actionexecution_id=' + str(actionexec_id))
         except requests.exceptions.ConnectionError, e:
             LOG.error('Caught encoundered connection error while performing /liveactions/ '
                       'DELETE for actionexec_id="%s".'
@@ -55,7 +57,6 @@ class ActionExecutionsController(RestController):
         LOG.debug('/liveactions/ DELETE request result: %s', result)
 
         return(result, request_error)
-
 
     def _issue_liveaction_post(self, actionexec_id):
         """
@@ -214,28 +215,47 @@ class ActionExecutionsController(RestController):
         actionexec_id = actionexec_db.id
         (result, request_error) = self._issue_liveaction_post(actionexec_id)
 
-        # Update actionexec_db status.
-        # With side-effect of re-loading ActionExecution from DB
-        LOG.info('/actionexecutions/ POST load ActionExecution from DB after '
-                 'LiveAction POST: %s', actionexec_db)
-        actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_COMPLETE,
-                                                      actionexec_id=actionexec_id)
-
-        if not request_error and (result.status_code == httplib.CREATED):
+        if (not request_error) and (result.status_code in HTTP_SUCCESS):
             LOG.info('/liveactions/ POST request reported successful creation of LiveAction')
-            actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_COMPLETE,
-                                                          actionexec_db=actionexec_db)
-            LOG.info('/actionexecution/ POST set ActionExecution status to "%s"',
-                     actionexec_db.status)
+            # TODO: This should be "running status, or "scheduled" status when execution is async
+            # actionexec_status = ACTIONEXEC_STATUS_COMPLETE
+
+            # Update actionexec_db status.
+            # With side-effect of re-loading ActionExecution from DB.
+            # LOG.info('/actionexecutions/ POST update ActionExecution in DB after '
+            #         'LiveAction POST: %s', actionexec_db)
+            # actionexec_db = update_actionexecution_status(actionexec_status,
+            #                                              actionexec_id=actionexec_id)
+
+            actionexec_db = get_actionexec_by_id(actionexec_db.id)
         else:
-            LOG.info('/liveactions/ POST request reported error')
-            actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_ERROR,
-                                                          actionexec_db=actionexec_db)
-            LOG.info('/actionexecution/ POST set ActionExecution status to "%s"',
-                     actionexec_db.status)
+            LOG.info('/liveactions/ POST request reported error: %s', result.status_code)
+            actionexec_status = ACTIONEXEC_STATUS_ERROR
+
+            # Update actionexec_db status.
+            LOG.info('/actionexecutions/ POST update ActionExecution in DB after '
+                     'LiveAction POST: %s', actionexec_db)
+            actionexec_db = update_actionexecution_status(actionexec_status,
+                                                          actionexec_id=actionexec_id)
             LOG.error('Unable to launch LiveAction.')
             LOG.info('Aborting /actionexecutions/ POST operation.')
             abort(httplib.INTERNAL_SERVER_ERROR)
+
+#        if not request_error and (result.status_code == httplib.CREATED):
+#            LOG.info('/liveactions/ POST request reported successful creation of LiveAction')
+#            actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_COMPLETE,
+#                                                          actionexec_db=actionexec_db)
+#            LOG.info('/actionexecution/ POST set ActionExecution status to "%s"',
+#                     actionexec_db.status)
+#        else:
+#            LOG.info('/liveactions/ POST request reported error')
+#            actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_ERROR,
+#                                                          actionexec_db=actionexec_db)
+#            LOG.info('/actionexecution/ POST set ActionExecution status to "%s"',
+#                     actionexec_db.status)
+#            LOG.error('Unable to launch LiveAction.')
+#            LOG.info('Aborting /actionexecutions/ POST operation.')
+#            abort(httplib.INTERNAL_SERVER_ERROR)
 
         actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
 
@@ -289,19 +309,18 @@ class ActionExecutionsController(RestController):
 
         # Handle delete of LiveActions
         if liveactions_db:
-            (result, request_error) = self._issue_liveaction_delete(actionexec_db.id)   
+            (result, request_error) = self._issue_liveaction_delete(actionexec_db.id)
             # TODO: Validate that liveactions for actionexec are all deleted.
             if request_error:
                 LOG.warning('DELETE of Live Actions for actionexecution_id="%s" encountered '
                             'an error. HTTP result is: %s', actionexec_db.id, result)
         """
 
-        (result, request_error) = self._issue_liveaction_delete(actionexec_db.id)   
+        (result, request_error) = self._issue_liveaction_delete(actionexec_db.id)
         # TODO: Validate that liveactions for actionexec are all deleted.
         if request_error:
             LOG.warning('DELETE of Live Actions for actionexecution_id="%s" encountered '
                         'an error. HTTP result is: %s', actionexec_db.id, result)
-        
 
         try:
             ActionExecution.delete(actionexec_db)
