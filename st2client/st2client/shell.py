@@ -10,6 +10,7 @@ from st2client import utils
 from st2client.client import Client
 from st2client.commands import resource
 from st2client.commands import action
+from st2client.commands import datastore
 from st2client.models import reactor
 
 
@@ -55,6 +56,14 @@ class Shell(object):
             help='URL for the Reactor API server.'
         )
 
+        self.parser.add_argument(
+            '--datastore-url',
+            action='store',
+            dest='datastore_url',
+            default=utils.env('ST2_DATASTORE_URL', default=None),
+            help='URL for the Datastore API server.'
+        )
+
         # Set up list of commands and subcommands.
         self.subparsers = self.parser.add_subparsers()
         self.commands = dict()
@@ -63,6 +72,9 @@ class Shell(object):
             parent_parser=self.parser)
         self.commands['action'] = action.ActionBranch(
             'TODO: Put description of action here.',
+            self, self.subparsers)
+        self.commands['key'] = datastore.KeyValuePairBranch(
+            'TODO: Put description of key value pair here.',
             self, self.subparsers)
         self.commands['execution'] = action.ActionExecutionBranch(
             'TODO: Put description of action execution here.',
@@ -85,6 +97,8 @@ class Shell(object):
             args.action_url if args.action_url else '%s:9101' % args.url)
         self.endpoints['reactor'] = (
             args.reactor_url if args.reactor_url else '%s:9102' % args.url)
+        self.endpoints['datastore'] = (
+            args.datastore_url if args.datastore_url else '%s:9103' % args.url)
         self.client = Client(self.endpoints)
 
         # Execute command.
