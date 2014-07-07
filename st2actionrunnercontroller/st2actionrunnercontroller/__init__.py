@@ -35,6 +35,9 @@ def __setup():
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
              cfg.CONF.database.port)
 
+    # LOG.info('Reporting config: %s', config)
+    # LOG.info('Reporting config: %s', cfg.CONF.action_runner.artifact_repo_path)
+
 
 def __run_server():
     host = cfg.CONF.actionrunner_controller_api.host

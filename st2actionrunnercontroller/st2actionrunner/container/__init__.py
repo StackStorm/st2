@@ -54,7 +54,7 @@ class RunnerContainer():
         LOG.debug('Instance of runner: %s', runner)
         return runner
 
-    def dispatch(self, liveaction_db, actiontype_db, actionexec_db):
+    def dispatch(self, liveaction_db, actiontype_db, action_db,  actionexec_db):
 
         runner_type = actiontype_db.name
 
@@ -88,7 +88,7 @@ class RunnerContainer():
 
         # Invoke pre_run, run, post_run cycle.
         result = self._do_run(liveaction_db.id, runner,
-                              actionexec_db)
+                              actiontype_db, action_db, actionexec_db)
 
         LOG.debug('runner do_run result: %s', result)
 
@@ -104,13 +104,21 @@ class RunnerContainer():
 
         return result
 
-    def _do_run(self, liveaction_id, runner, actionexec_db):
+    def _do_run(self, liveaction_id, runner, actiontype_db, action_db, actionexec_db):
+        # Runner parameters should use the defaults from the ActionType object.
+        # The runner parameter defaults may be overridden by values provided in 
+        # the Action Execution.
+        runner_parameters = actiontype_db.runner_parameters
+        runner_parameters.update(actionexec_db.runner_parameters)
 
-        runner_parameters = actionexec_db.runner_parameters
+        # TODO: Support default parameter values
         action_parameters = actionexec_db.action_parameters
 
         runner.set_liveaction_id(liveaction_id)
         runner.set_container_service(RunnerContainerService(self))
+
+        runner.set_artifact_paths(action_db.artifact_paths)
+        runner.set_entry_point(action_db.entry_point)
         runner.set_parameters(runner_parameters)
 
         LOG.debug('Performing pre-run for runner: %s', runner)

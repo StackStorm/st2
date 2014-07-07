@@ -1,3 +1,7 @@
+from oslo.config import cfg
+
+from st2actionrunnercontroller import config
+
 STDOUT = 'stdout'
 STDERR = 'stderr'
 
@@ -27,6 +31,12 @@ class RunnerContainerService():
     def get_logger(self, name):
         from st2common import log as logging
         logging.getLogger(__name__ + '.' + name)
+
+    def get_artifact_working_dir(self):
+        return cfg.CONF.action_runner.artifact_working_dir
+
+    def get_artifact_repo_path(self):
+        return cfg.CONF.action_runner.artifact_repo_path
 
     def __str__(self):
         result = []

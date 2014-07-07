@@ -26,9 +26,10 @@ class ActionAPI(StormBaseAPI):
     """
 
     enabled = bool
-    artifact_path = wstypes.text
+    artifact_paths = wstypes.ArrayType(str)
     entry_point = wstypes.text
     runner_type = wstypes.text
+    # TODO: Support default parameter values
     parameter_names = wstypes.ArrayType(str)
 
     @classmethod
@@ -37,7 +38,7 @@ class ActionAPI(StormBaseAPI):
 
         action = StormBaseAPI.from_model(kls, model)
         action.enabled = bool(model.enabled)
-        action.artifact_path = str(model.artifact_path)
+        action.artifact_paths = [str(v) for v in model.artifact_paths]
         action.entry_point = str(model.entry_point)
         action.runner_type = str(model.runner_type)
         action.parameter_names = [str(v) for v in model.parameter_names]
@@ -50,7 +51,7 @@ class ActionAPI(StormBaseAPI):
 
         model = StormBaseAPI.to_model(ActionDB, action)
         model.enabled = bool(action.enabled)
-        model.artifact_path = str(action.artifact_path)
+        model.artifact_paths = [str(v) for v in action.artifact_paths]
         model.entry_point = str(action.entry_point)
         model.runner_type = str(action.runner_type)
         model.parameter_names = [str(v) for v in action.parameter_names]
@@ -68,7 +69,7 @@ class ActionAPI(StormBaseAPI):
         result.append('name="%s", ' % self.name)
         result.append('description="%s", ' % self.description)
         result.append('enabled="%s",' % self.enabled)
-        result.append('artifact_path="%s",' % self.artifact_path)
+        result.append('artifact_paths="%s",' % str(self.artifact_paths))
         result.append('entry_point="%s",' % self.entry_point)
         result.append('runner_type="%s",' % self.runner_type)
         result.append('parameter_names="%s",' % str(self.parameter_names))

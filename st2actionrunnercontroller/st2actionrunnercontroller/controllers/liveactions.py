@@ -144,7 +144,7 @@ class LiveActionsController(RestController):
         # Launch action
         LOG.debug('Launching LiveAction command.')
         global runner_container
-        result = runner_container.dispatch(liveaction_db, actiontype_db, actionexec_db)
+        result = runner_container.dispatch(liveaction_db, actiontype_db, action_db, actionexec_db)
         LOG.debug('Runner dispatch produced result: %s', result)
 
         if not result:
