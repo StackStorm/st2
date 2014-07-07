@@ -60,13 +60,14 @@ class ActionTypeAPI(StormBaseAPI):
 
             enabled: Boolean value indicating whether the runner for this type
                      is enabled.
-            runner_parameter_names: The names required by the action runner to
-                                    function.
             runner_module: The python module that implements the action runner
                            for this type.
+            runner_parameters: The names for the parameter that are required by the
+                               action runner. Any values in this dictionary are
+                               default values for the parameters.
     """
     enabled = bool
-    runner_parameter_names = wstypes.ArrayType(str)
+    runner_parameters = wstypes.DictType(str, str)
     runner_module = wstypes.text
 
     @classmethod
@@ -75,8 +76,8 @@ class ActionTypeAPI(StormBaseAPI):
 
         actiontype = StormBaseAPI.from_model(kls, model)
         actiontype.enabled = bool(model.enabled)
-        actiontype.runner_parameter_names = [str(v) for v in model.runner_parameter_names]
         actiontype.runner_module = str(model.runner_module)
+        actiontype.runner_parameters = dict(model.runner_parameters)
 
         LOG.debug('exiting ActionTypeAPI.from_model() Result object: %s', actiontype)
         return actiontype
@@ -87,8 +88,8 @@ class ActionTypeAPI(StormBaseAPI):
 
         model = StormBaseAPI.to_model(ActionTypeDB, actiontype)
         model.enabled = bool(actiontype.enabled)
-        model.runner_parameter_names = [str(v) for v in actiontype.runner_parameter_names]
         model.runner_module = str(actiontype.runner_module)
+        model.runner_parameters = dict(actiontype.runner_parameters)
 
         LOG.debug('exiting ActionTypeAPI.to_model() Result object: %s', model)
         return model
@@ -103,8 +104,8 @@ class ActionTypeAPI(StormBaseAPI):
         result.append('name="%s", ' % self.name)
         result.append('description="%s", ' % self.description)
         result.append('enabled="%s", ' % self.enabled)
-        result.append('runner_parameter_names="%s", ' % str(self.runner_parameter_names))
         result.append('runner_module="%s", ' % str(self.runner_module))
+        result.append('runner_parameters="%s", ' % str(self.runner_parameters))
         result.append('uri="%s")' % self.uri)
         return ''.join(result)
 

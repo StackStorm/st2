@@ -25,7 +25,8 @@ class RunnerContainerService():
         self._payload[name] = value
 
     def get_logger(self, name):
-        pass
+        from st2common import log as logging
+        logging.getLogger(__name__ + '.' + name)
 
     def __str__(self):
         result = []

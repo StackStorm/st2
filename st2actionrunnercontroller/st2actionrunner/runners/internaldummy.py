@@ -13,12 +13,14 @@ LOG = logging.getLogger(__name__)
 class InternalDummyRunner(ActionRunner):
 
     def __init__(self):
+        ActionRunner.__init__(self)
+        # TODO: runner LOG might be better held in container_service.
+        # LOG = self.container_service.get_logger('internaldummy')
+        # TODO: Replace with container call to get logger.
+        # LOG.info('Internal Dummy Runner logging to logger name: %s', LOG.name)
         pass
 
     def pre_run(self):
-        # TODO: Replace with container call to get logger.
-        # LOG = logging.getLogger(__name__)
-
         LOG.info('In InternalDummyRunner.pre_run()')
         self._command = self.parameters['command']
         LOG.debug('    [Internal Dummy Runner] command list is: %s', self._command)
