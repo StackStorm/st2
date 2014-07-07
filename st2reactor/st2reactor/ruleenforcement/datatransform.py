@@ -1,8 +1,15 @@
+import re
+import json
 import copy
 import jinja2
 
+from st2common.persistence.datastore import KeyValuePair
+from st2common.models.db.datastore import KeyValuePairDB
+
+
 PAYLOAD_PREFIX = 'trigger'
 RULE_DATA_PREFIX = 'rule'
+SYSTEM_PREFIX = 'system'
 
 
 class Jinja2BasedTransformer(object):
@@ -11,6 +18,9 @@ class Jinja2BasedTransformer(object):
 
     def __call__(self, mapping, rule_data):
         context = self._construct_context(rule_data)
+        context = self._construct_system_context(mapping, context)
+        context = self._construct_system_context(context, context)
+        context = self._render_context(context)
         resolved_mapping = {}
         for mapping_k, mapping_v in mapping.iteritems():
             template = jinja2.Template(mapping_v)
@@ -23,6 +33,29 @@ class Jinja2BasedTransformer(object):
             return context
         context[RULE_DATA_PREFIX] = rule_data
         return context
+
+    def _construct_system_context(self, data, context):
+        """Identify the system context in the data."""
+        # The following regex will look for all occurrences of "{{system.*}}",
+        # "{{ system.* }}", "{{ system.*}}", and "{{system.* }}" in the data.
+        regex = '{{\s*' + SYSTEM_PREFIX + '.(.*?)\s*}}'
+        keys = re.findall(regex, json.dumps(data))
+        if not keys:
+            return context
+        kvps = {}
+        for key in keys:
+            kvp = KeyValuePair.get_by_name(key)
+            kvps[key] = kvp.value
+        if kvps and SYSTEM_PREFIX not in context:
+            context[SYSTEM_PREFIX] = {}
+        context[SYSTEM_PREFIX].update(kvps)
+        return context
+
+    def _render_context(self, context):
+        """Self-render the context."""
+        template = jinja2.Template(json.dumps(context))
+        resolved_context = json.loads(template.render(context))
+        return resolved_context
 
     @staticmethod
     def _construct_payload_context(payload):
