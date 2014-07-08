@@ -19,9 +19,20 @@ LOG = logging.getLogger(__name__)
 
 UNABLE_TO_CONTINUE_MSG = 'Unable to continue execution of Live Action id=%s'
 
+CONSUMED_ACTION_PARAMETERS = ['args']
+
 # TODO: Update all messages to report liveaction_id
 
 class ShellRunner(ActionRunner):
+    """
+        ShellRunner is an action runner for shell commands.
+
+        The expected runner parameters are:
+            shell:  Currently ignored. Planned to specify the shell to execute.
+            args:   The argument string for the command executed.
+
+        All action arguments are made available in the shell environment for the action.
+    """
 
     def __init__(self):
         ActionRunner.__init__(self)
@@ -60,7 +71,15 @@ class ShellRunner(ActionRunner):
         LOG.info('In ShellRunner.pre_run()')
 
         self._shell = self.parameters['shell']
-        self._args = self.parameters['args']
+        if 'args' in self.parameters:
+            self._args = self.parameters['args']
+        else:
+            self._args = self.action_parameters['args']
+
+        if self._args is None:
+            LOG.warning('No value for args provided to Shell Runner for liveaction_id="%s".', self.liveaction_id)
+            self._args = ''
+
         self._working_dir_root = self.container_service.get_artifact_working_dir()
 
         LOG.debug('    [Shell Runner] runner argument "shell" is: "%s"', self._shell)
@@ -76,7 +95,6 @@ class ShellRunner(ActionRunner):
 
         repo_base = self.container_service.get_artifact_repo_path()
         # Copy artifacts to temp folder
-        LOG.debug('here: %s', self)
         for path in self.artifact_paths:
             self._copy_artifact(path, self._workingdir)
 
@@ -92,14 +110,19 @@ class ShellRunner(ActionRunner):
         os.chdir(self._workingdir)
         command_list = shlex.split(str(self.entry_point) + ' ' + str(self._args))
 
+        command_env = dict(action_parameters)
+        for name in CONSUMED_ACTION_PARAMETERS:
+            if name in command_env:
+                del command_env[name]
         LOG.debug('    [Shell Runner] command is: "%s"', command_list)
+        LOG.debug('    [Shell Runner] command env is: %s', command_env)
 
         # TODO: run shell command until it exits. periodically collect output
         # TODO: support other shells
         LOG.debug('    [Shell Runner] Launching shell "%s" as blocking operation for command '
                   '"%s".', '/usr/bin/bash', command_list)
-        process = subprocess.Popen(command_list, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
+        process = subprocess.Popen(command_list, env=command_env,
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         command_stdout, command_stderr = process.communicate()
         command_exitcode = process.returncode
