@@ -98,14 +98,16 @@ use_debugger = cfg.BoolOpt(
 )
 CONF.register_cli_opt(use_debugger)
 
-"""
-action_opts = [
-               cfg.StrOpt('action.artifact_repo_path',
-                          default='/vagrant/code/stanley/content/devel/actions',
+action_runner_opts = [
+               cfg.StrOpt('artifact_repo_path',
+                          default='/opt/stackstorm/repo',
                           help='Path to root of artifact repository'),
+               cfg.StrOpt('artifact_working_dir',
+                          default='/tmp',
+                          help='Path to the root of the working directory for live action execution.'),
               ]
-CONF.register_opts(action_opts, group='action')
-"""
+CONF.register_opts(action_runner_opts, group='action_runner')
+
 
 
 def parse_args(args=None):

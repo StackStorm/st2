@@ -18,7 +18,6 @@ class InternalDummyRunner(ActionRunner):
         # LOG = self.container_service.get_logger('internaldummy')
         # TODO: Replace with container call to get logger.
         # LOG.info('Internal Dummy Runner logging to logger name: %s', LOG.name)
-        pass
 
     def pre_run(self):
         LOG.info('In InternalDummyRunner.pre_run()')

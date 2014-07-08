@@ -11,3 +11,7 @@ class ActionRunnerCreateError(ActionRunnerException):
 
 class ActionRunnerDispatchError(ActionRunnerException):
     pass
+
+
+class ActionRunnerPreRunError(ActionRunnerException):
+    pass

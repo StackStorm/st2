@@ -5,7 +5,7 @@ ACTION_1 = {
     'name': 'st2.dummy.action1',
     'description': 'test description',
     'enabled': True,
-    'artifact_path': '/tmp/test',
+    'artifact_paths': ['/tmp/test'],
     'entry_point': 'action1.sh',
     'runner_type': 'shell',
     'parameter_names': ['a', 'b']
@@ -15,7 +15,7 @@ ACTION_2 = {
     'name': 'st2.dummy.action2',
     'description': 'test description',
     'enabled': True,
-    'artifact_path': '/tmp/test',
+    'artifact_paths': ['/tmp/test'],
     'entry_point': 'action2.py',
     'runner_type': 'python',
     'parameter_names': ['c', 'd']
@@ -24,7 +24,7 @@ ACTION_2 = {
 ACTION_3 = {
     'name': 'st2.dummy.action3',
     'description': 'test description',
-    'artifact_path': '/tmp/test',
+    'artifact_paths': ['/tmp/test'],
     'entry_point': 'action1.sh',
     'runner_type': 'shell',
     'parameter_names': ['a', 'b']
@@ -34,7 +34,7 @@ ACTION_4 = {
     'name': 'st2.dummy.action4',
     'description': 'test description',
     'enabled': False,
-    'artifact_path': '/tmp/test',
+    'artifact_paths': ['/tmp/test'],
     'entry_point': 'action1.sh',
     'runner_type': 'shell',
     'parameter_names': ['a', 'b']
@@ -44,7 +44,7 @@ ACTION_5 = {
     'name': 'st2.dummy.action5',
     'description': 'test description',
     'enabled': False,
-    'artifact_path': '/tmp/test',
+    'artifact_paths': ['/tmp/test'],
     'entry_point': 'action1.sh',
     'runner_type': 'xyzxyz',
     'parameter_names': ['a', 'b']
@@ -53,7 +53,7 @@ ACTION_5 = {
 ACTION_6 = {
     'name': 'st2.dummy.action6',
     'enabled': False,
-    'artifact_path': '/tmp/test',
+    'artifact_paths': ['/tmp/test'],
     'entry_point': 'action1.sh',
     'runner_type': 'shell',
     'parameter_names': ['a', 'b']
@@ -64,7 +64,7 @@ ACTION_7 = {
     'name': 'st2.dummy.action7',
     'description': 'test description',
     'enabled': False,
-    'artifact_path': '/tmp/test',
+    'artifact_paths': ['/tmp/test'],
     'entry_point': 'action1.sh',
     'runner_type': 'shell',
     'parameter_names': ['a', 'b']
