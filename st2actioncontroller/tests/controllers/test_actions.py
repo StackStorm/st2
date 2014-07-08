@@ -163,7 +163,7 @@ class TestActionController(FunctionalTest):
         post_resp = self.__do_post(ACTION_1)
         del_resp = self.__do_delete_name(self.__get_action_name(post_resp))
         self.assertEquals(del_resp.status_int, 204)
-        
+
     @staticmethod
     def __get_action_id(resp):
         return resp.json['id']
