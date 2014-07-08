@@ -142,7 +142,7 @@ def _run_sensors(sensors_dict):
 
     LOG.info('SensorContainer process[{}] started.'.format(os.getpid()))
     sensor_container = SensorContainer(sensor_instances=sensors_to_run)
-    return sensor_container.main()
+    return sensor_container.run()
 
 
 def main():

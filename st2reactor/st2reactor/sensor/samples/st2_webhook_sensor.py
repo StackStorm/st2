@@ -106,4 +106,3 @@ class St2WebhookSensor(object):
             triggers.append(trigger)
 
         return triggers, errors
-
