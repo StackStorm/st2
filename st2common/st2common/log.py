@@ -35,3 +35,9 @@ class AuditLoggerAdapter(logging.LoggerAdapter):
 
     def audit(self, msg, *args, **kwargs):
         self.log(logging.AUDIT, msg, *args, **kwargs)
+
+    def setLevel(self, lvl):
+        self.logger.setLevel(lvl)
+
+    def getEffectiveLevel(self):
+        return self.logger.getEffectiveLevel()

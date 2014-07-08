@@ -3,6 +3,7 @@ import unittest
 import os
 import uuid
 import tempfile
+import logging as logbase
 
 from st2common import log as logging
 
@@ -37,6 +38,21 @@ class TestLogger(unittest.TestCase):
         config_file = '/tmp/abc123'
         self.assertFalse(os.path.exists(config_file))
         self.assertRaises(Exception, logging.setup, config_file)
+
+    def test_logger_set_level(self):
+        logging.setup(self.cfg_path)
+        log = logging.getLogger(__name__)
+        self.assertEqual(log.getEffectiveLevel(), logbase.DEBUG)
+        log.setLevel(logbase.INFO)
+        self.assertEqual(log.getEffectiveLevel(), logbase.INFO)
+        log.setLevel(logbase.WARN)
+        self.assertEqual(log.getEffectiveLevel(), logbase.WARN)
+        log.setLevel(logbase.ERROR)
+        self.assertEqual(log.getEffectiveLevel(), logbase.ERROR)
+        log.setLevel(logbase.CRITICAL)
+        self.assertEqual(log.getEffectiveLevel(), logbase.CRITICAL)
+        log.setLevel(logbase.AUDIT)
+        self.assertEqual(log.getEffectiveLevel(), logbase.AUDIT)
 
     def test_log_info(self):
         """Test that INFO log entry does not go to the audit log."""
