@@ -135,12 +135,19 @@ class TestActionController(FunctionalTest):
         self.__do_delete(self.__get_action_id(post_resp))
 
     def test_post_name_duplicate(self):
+        action_ids = []
+
         post_resp = self.__do_post(ACTION_1)
         self.assertEquals(post_resp.status_int, 201)
+
+        action_ids.append(self.__get_action_id(post_resp))
 
         post_resp = self.__do_post(ACTION_1)
         # Verify name conflict
         self.assertEquals(post_resp.status_int, 409)
+
+        for i in action_ids:
+            self.__do_delete(i)
 
 #    def test_post_invalid_runner_type(self):
 #        post_resp = self.__do_post(ACTION_5)
@@ -152,9 +159,18 @@ class TestActionController(FunctionalTest):
         del_resp = self.__do_delete(self.__get_action_id(post_resp))
         self.assertEquals(del_resp.status_int, 204)
 
+    def test_delete_name(self):
+        post_resp = self.__do_post(ACTION_1)
+        del_resp = self.__do_delete_name(self.__get_action_name(post_resp))
+        self.assertEquals(del_resp.status_int, 204)
+        
     @staticmethod
     def __get_action_id(resp):
         return resp.json['id']
+
+    @staticmethod
+    def __get_action_name(resp):
+        return resp.json['name']
 
     def __do_get_one(self, action_id):
         return self.app.get('/actions/%s' % action_id, expect_errors=True)
@@ -164,3 +180,6 @@ class TestActionController(FunctionalTest):
 
     def __do_delete(self, action_id):
         return self.app.delete('/actions/%s' % action_id, expect_errors=True)
+
+    def __do_delete_name(self, action_name):
+        return self.app.delete('/actions/?name=%s' % action_name, expect_errors=True)

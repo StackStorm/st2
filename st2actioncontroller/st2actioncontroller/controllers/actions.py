@@ -15,7 +15,7 @@ from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
-from st2common.util.action_db import get_action_by_id
+from st2common.util.action_db import (get_action_by_id, get_action_by_name)
 
 
 LOG = logging.getLogger(__name__)
@@ -119,24 +119,35 @@ class ActionsController(RestController):
         # TODO: Implement
         return {"dummy": "put"}
 
-    @wsme_pecan.wsexpose(None, wstypes.text, status_code=httplib.NO_CONTENT)
-    def delete(self, id):
+    @wsme_pecan.wsexpose(None, wstypes.text, wstypes.text, status_code=httplib.NO_CONTENT)
+    def delete(self, id, name=None):
         """
             Delete an action.
 
             Handles requests:
                 POST /actions/1?_method=delete
                 DELETE /actions/1
+                DELETE /actions/?name=myaction
         """
 
         # TODO: Support delete by name
-        LOG.info('DELETE /actions/ with id=%s', id)
+        LOG.info('DELETE /actions/ with id="%s" and name="%s"', id, name)
 
-        try:
-            action_db = get_action_by_id(id)
-        except StackStormDBObjectNotFoundError, e:
-            LOG.error('DELETE /actions/ with id="%s": %s', id, e.message)
-            abort(httplib.NOT_FOUND)
+        if id:
+            try:
+                action_db = get_action_by_id(id)
+            except StackStormDBObjectNotFoundError, e:
+                LOG.error('DELETE /actions/ with id="%s": %s', id, e.message)
+                abort(httplib.NOT_FOUND)
+        elif name:
+            try:
+                action_db = get_action_by_name(name)
+            except StackStormDBObjectNotFoundError, e:
+                LOG.error('DELETE /actions/ with name="%s": %s', name, e.message)
+                abort(httplib.NOT_FOUND)
+        else:
+            LOG.error('DELETE /actions/ unknown identifier provided')
+            abort(httplib.BAD_REQUEST)
 
         LOG.debug('DELETE /actions/ lookup with id=%s found object: %s', id, action_db)
 
