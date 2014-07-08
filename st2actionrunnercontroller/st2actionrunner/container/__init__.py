@@ -101,6 +101,9 @@ class RunnerContainer():
         actionexec_db = update_actionexecution_status(actionexec_status,
                                                       actionexec_id=actionexec_db.id)
 
+        LOG.audit('Live Action execution for liveaction_id="%s" resulted in '
+                  'actionexecution_db="%s"', liveaction_db.id, actionexec_db)
+
         return result
 
     def _do_run(self, liveaction_id, runner, actiontype_db, action_db, actionexec_db):
