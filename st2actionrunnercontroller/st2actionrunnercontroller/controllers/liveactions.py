@@ -142,23 +142,16 @@ class LiveActionsController(RestController):
         actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_RUNNING,
                                                       actionexec_db.id)
         # Launch action
-        LOG.debug('Launching LiveAction command.')
+        LOG.audit('Launching LiveAction command with liveaction_db="%s", actiontype_db="%s", '
+                  'action_db="%s", actionexec_db="%s"', liveaction_db, actiontype_db,
+                  action_db, actionexec_db)
         global runner_container
         result = runner_container.dispatch(liveaction_db, actiontype_db, action_db, actionexec_db)
-        LOG.debug('Runner dispatch produced result: %s', result)
+        LOG.info('Runner dispatch produced result: %s', result)
 
         if not result:
             # Return different code for live action execution failure
             abort(httplib.INTERNAL_SERVER_ERROR)
-
-        """
-        LOG.info('Update ActionExecution object with Action result data')
-        actionexec_db.exit_code = str(exit_code)
-        actionexec_db.std_out = str(json.dumps(std_out))
-        actionexec_db.std_err = str(json.dumps(std_err))
-        actionexec_db = ActionExecution.add_or_update(actionexec_db)
-        LOG.info('ActionExecution object after exit_code update: %s', actionexec_db)
-        """
 
         liveaction_api = LiveActionAPI.from_model(liveaction_db)
 
