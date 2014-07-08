@@ -10,7 +10,22 @@ from st2actionrunner.container.service import (STDOUT, STDERR)
 LOG = logging.getLogger(__name__)
 
 
+COMMAND_PARAM = 'command'
+CONSUMED_ACTION_PARAMETERS = [COMMAND_PARAM]
+
+
 class InternalDummyRunner(ActionRunner):
+    """
+        InternalActionRunner is an action runner for shell commands.
+
+        The expected runner parameters are:
+            command:  The shell command to be executed.
+
+        Note: command will be consumed from the action_parameters if
+              it is not found in the runner_parameters.
+
+        All action arguments are made available in the shell environment for the action.
+    """
 
     def __init__(self):
         ActionRunner.__init__(self)
@@ -21,12 +36,13 @@ class InternalDummyRunner(ActionRunner):
 
     def pre_run(self):
         LOG.info('In InternalDummyRunner.pre_run()')
-        self._command = self.parameters['command']
-        LOG.debug('    [Internal Dummy Runner] command list is: %s', self._command)
+        self._command = self.parameters[COMMAND_PARAM]
+        LOG.debug('    [Internal Dummy Runner] "%s" argument is: %s', COMMAND_PARAM, self._command)
 
     def run(self, action_parameters):
         """
             ActionRunner for "internaldummy" ActionType.
+            Implemented as an ActionRunner plugin.
 
             !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             !!!!!!!    This is for internal scaffolding use only.    !!!!!!!
@@ -39,9 +55,14 @@ class InternalDummyRunner(ActionRunner):
         command_list = self._command
         LOG.debug('    [Internal Dummy Runner] command list is: %s', command_list)
 
+        command_env = dict(action_parameters)
+        for name in CONSUMED_ACTION_PARAMETERS:
+            if name in command_env:
+                del command_env[name]
+
         LOG.debug('    [Internal Dummy Runner] Launching command as blocking operation.')
         process = subprocess.Popen(command_list, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, shell=True)
+                                   stderr=subprocess.PIPE, env=command_env, shell=True)
 
         command_stdout, command_stderr = process.communicate()
         command_exitcode = process.returncode

@@ -91,8 +91,8 @@ class RunnerBase():
             raise ValueError('Staction repo id aleady set.')
 
         # TODO: Lookup from current repo path
-#        self._action_result[REPO_ID] = "git:41977d22860bb73391695326d9c7477995c27e09"
-        command = ['git', 'log', '-1', 'master', action.repo_path]
+        # self._action_result[REPO_ID] = "git:41977d22860bb73391695326d9c7477995c27e09"
+        # command = ['git', 'log', '-1', 'master', action.repo_path]
         # take first line
         # SHA is at
         # line.split(' ')[1]

@@ -17,8 +17,7 @@ from st2actionrunner.container import get_runner_container
 LOG = logging.getLogger(__name__)
 
 
-ACTION_TYPES = {
-                'internaldummy': {'name': 'internaldummy',
+ACTION_TYPES = {'internaldummy': {'name': 'internaldummy',
                                   'description': ('An internal action type for '
                                                   'development only.'),
                                   'enabled': True,
@@ -26,12 +25,12 @@ ACTION_TYPES = {
                                   'runner_module': 'no.such.module',
                                   },
                 'internaldummy-plugin': {'name': 'internaldummy-plugin',
-                                     'description': ('An internal action type for '
-                                              'development only. Implemented '
-                                              'using a plugin.'),
-                                     'enabled': True,
-                                     'runner_parameters': {'command': None},
-                                     'runner_module': 'st2actionrunner.runners.internaldummy',
+                                         'description': ('An internal action type for '
+                                                         'development only. Implemented '
+                                                         'using a plugin.'),
+                                         'enabled': True,
+                                         'runner_parameters': {'command': None},
+                                         'runner_module': 'st2actionrunner.runners.internaldummy',
                                          },
                 'shell': {'name': 'shell',
                           'description': 'A bash shell action type.',
@@ -40,13 +39,7 @@ ACTION_TYPES = {
                                                 'args': None,
                                                 },
                           'runner_module': 'st2actionrunner.runners.shellrunner',
-                                },
-                #'sshaction': {'name': 'sshaction',
-                #              'description': 'An ssh action type',
-                #              'enabled': True,
-                #              'runner_parameter_names': ['host', 'user', 'pwd', 'command'],
-                #              'runner_module': 'test.sshrunner',
-                #              },
+                          },
                 }
 
 

@@ -1,11 +1,6 @@
 import os
 import shlex
-import shutil
 import subprocess
-import tempfile
-
-# TODO: fix st2common.log so that it supports all of the python logging API
-import logging as pylogging
 
 from st2actionrunner.runners import ActionRunner
 
@@ -17,11 +12,15 @@ from st2actionrunner.container.service import (STDOUT, STDERR)
 # Replace with container call to get logger.
 LOG = logging.getLogger(__name__)
 
+
 UNABLE_TO_CONTINUE_MSG = 'Unable to continue execution of Live Action id=%s'
 
-CONSUMED_ACTION_PARAMETERS = ['args']
 
-# TODO: Update all messages to report liveaction_id
+ARGS_PARAM = 'args'
+SHELL_PARAM = 'shell'
+
+CONSUMED_ACTION_PARAMETERS = [ARGS_PARAM, SHELL_PARAM]
+
 
 class ShellRunner(ActionRunner):
     """
@@ -31,80 +30,53 @@ class ShellRunner(ActionRunner):
             shell:  Currently ignored. Planned to specify the shell to execute.
             args:   The argument string for the command executed.
 
+        Note: args will be consumed from the action_parameters if
+              it is not found in the runner_parameters.
+
         All action arguments are made available in the shell environment for the action.
     """
 
     def __init__(self):
         ActionRunner.__init__(self)
 
-    def _copy_artifact(self, src, dest):
-            """
-                Copy the artifact from src to dest.
-
-                The artifact may be a file or a folder.
-            """
-
-            # TODO: Handle error conditions
-
-            LOG.debug('    [Shell Runner] copying artifact: "%s" to working dir: "%s"', src, dest)
-            
-            old_dir = os.getcwd()
-            os.chdir(self.container_service.get_artifact_repo_path())
-            for (dirpath, dirs, filenames) in os.walk(src):
-                LOG.debug('        Creating parent folders: "%s" in "%s"', dirpath, self._workingdir)
-                os.makedirs(os.path.join(self._workingdir, dirpath))
-
-                for directory in dirs:
-                    dest_path = os.path.join(self._workingdir, dirpath, directory)
-                    LOG.debug('        Creating directory: %', dest_path)
-                    os.mkdir(dest_path)
-
-                for filename in filenames:
-                    src_path = os.path.join(dirpath, filename)
-                    dest_path = os.path.join(self._workingdir, dirpath, filename)
-                    LOG.debug('        Copying file: "%s" to "%s"', src_path, dest_path)
-                    shutil.copy2(src_path, dest_path)
-
-            os.chdir(old_dir)
-
     def pre_run(self):
-        LOG.info('In ShellRunner.pre_run()')
+        LOG.debug('Entering ShellRunner.pre_run() for liveaction_id="%s"', self.liveaction_id)
 
-        self._shell = self.parameters['shell']
-        if 'args' in self.parameters:
-            self._args = self.parameters['args']
+        self._shell = self.parameters[SHELL_PARAM]
+        if ARGS_PARAM in self.parameters:
+            self._args = self.parameters[ARGS_PARAM]
         else:
-            self._args = self.action_parameters['args']
+            # Use the 'args' param from the action_parameters if it
+            # was not provided in runner parameters.
+            self._args = self.action_parameters[ARGS_PARAM]
 
         if self._args is None:
-            LOG.warning('No value for args provided to Shell Runner for liveaction_id="%s".', self.liveaction_id)
+            LOG.warning('No value for "%s" provided to Shell Runner for liveaction_id="%s".',
+                        ARGS_PARAM, self.liveaction_id)
             self._args = ''
 
-        self._working_dir_root = self.container_service.get_artifact_working_dir()
-
-        LOG.debug('    [Shell Runner] runner argument "shell" is: "%s"', self._shell)
-        LOG.debug('    [Shell Runner] runner argument "args" is: "%s"', self._args)
-        LOG.debug('    [Shell Runner] working dir root: "%s"', self._working_dir_root)
-
-        # TODO: have container service maintain a "/tmp/stackstorm" folder
-        # TODO: have container service create and clean up the temp folders
-        # TODO: Move artifact handling to container service.
+        LOG.debug('    [ShellRunner,liveaction_id="%s"] Runner argument "%s" is: "%s"',
+                  self.liveaction_id, SHELL_PARAM, self._shell)
+        LOG.debug('    [ShellRunner,liveaction_id="%s"] Runner argument "%s" is: "%s"',
+                  self.liveaction_id, SHELL_PARAM, self._shell)
 
         # Create a temporary working directory for action
-        self._workingdir = tempfile.mkdtemp(prefix='shellrunner-', dir=self._working_dir_root)
+        self._workingdir = self.container_service.create_runner_folder()
 
-        repo_base = self.container_service.get_artifact_repo_path()
-        # Copy artifacts to temp folder
-        for path in self.artifact_paths:
-            self._copy_artifact(path, self._workingdir)
+        if not self.container_service.populate_runner_folder(self.artifact_paths):
+            error_msg = ('Encountered error while populating Action Runner folder ' +
+                         '"%s" for liveaction_id="%s"') % (self._workingdir, self.liveaction_id)
+            LOG.error(error_msg)
+            raise ActionRunnerPreRunError(error_msg)
 
-        LOG.info('    [Shell Runner] Finished populating temporary artifact folder "%s"', self._workingdir)
+        LOG.info('    [ShellRunner,liveaction_id="%s"] Finished pre_run populating temporary '
+                 'artifact folder "%s"', self.liveaction_id, self._workingdir)
 
     def run(self, action_parameters):
         """
             ActionRunner for "shell" ActionType.
         """
-        LOG.info('Entering Shell Runner')
+        LOG.debug('Entering ShellRunner.run() for liveaction_id="%s"', self.liveaction_id)
 
         old_dir = os.getcwd()
         os.chdir(self._workingdir)
@@ -116,23 +88,27 @@ class ShellRunner(ActionRunner):
         for name in CONSUMED_ACTION_PARAMETERS:
             if name in command_env:
                 del command_env[name]
-        LOG.debug('    [Shell Runner] command is: "%s"', command_list)
-        LOG.debug('    [Shell Runner] command env is: %s', command_env)
+        LOG.debug('    [ShellRunner,liveaction_id="%s"] command is: "%s"',
+                  self.liveaction_id, command_list)
+        LOG.debug('    [ShellRunner,liveaction_id="%s"] command env is: %s',
+                  self.liveaction_id, command_env)
 
         # TODO: run shell command until it exits. periodically collect output
         # TODO: support other shells
-        LOG.debug('    [Shell Runner] Launching shell "%s" as blocking operation for command '
-                  '"%s".', '/usr/bin/bash', command_list)
-        # TODO: Try to avoid use of shell=True
+        LOG.debug('    [ShellRunner,liveaction_id="%s"] Launching shell "%s" as blocking '
+                  'operation for command "%s".', self.liveaction_id, '/usr/bin/bash', command_list)
         process = subprocess.Popen(command_list, env=command_env,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         command_stdout, command_stderr = process.communicate()
         command_exitcode = process.returncode
 
-        LOG.debug('    [Shell Runner] command_stdout: %s', command_stdout)
-        LOG.debug('    [Shell Runner] command_stderr: %s', command_stderr)
-        LOG.debug('    [Shell Runner] command_exit: %s', command_exitcode)
+        LOG.debug('    [ShellRunner,liveaction_id="%s"] command_stdout: %s',
+                  self.liveaction_id, command_stdout)
+        LOG.debug('    [ShellRunner,liveaction_id="%s"] command_stderr: %s',
+                  self.liveaction_id, command_stderr)
+        LOG.debug('    [ShellRunner,liveaction_id="%s"] command_exit: %s',
+                  self.liveaction_id, command_exitcode)
 
         self.container_service.report_exit_code(command_exitcode)
         self.container_service.report_output(STDOUT, command_stdout)
@@ -143,16 +119,9 @@ class ShellRunner(ActionRunner):
         return (command_exitcode, command_stdout, command_stderr)
 
     def post_run(self):
-        LOG.info('In ShellRunner.post_run()')
-        if not LOG.isEnabledFor(pylogging.DEBUG):
-            pass
-        else:
-            LOG.info('    [Shell Runner] Cleaning up working directory "%s" '
-                     'for Live Action id="%s"', self._workingdir, self.liveaction_id)
-            # Clean up temp artifact folder if logging level lower than DEBUG
-            # TODO: Work out better way to handle errors
-            shutil.rmtree(self._workingdir, ignore_errors=True)
-            
+        LOG.debug('Entering ShellRunner.post_run() for liveaction_id="%s"', self.liveaction_id)
+        self.container_service.destroy_runner_folder()
+
 
 def get_runner():
     return ShellRunner()
