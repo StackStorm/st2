@@ -110,7 +110,9 @@ class ShellRunner(ActionRunner):
         os.chdir(self._workingdir)
         command_list = shlex.split(str(self.entry_point) + ' ' + str(self._args))
 
-        command_env = dict(action_parameters)
+        # Convert env dictionary to strings rather than unicode strings.
+        # Trying to get shell variables working.
+        command_env = dict([(str(k), str(v)) for (k,v) in action_parameters.items()])
         for name in CONSUMED_ACTION_PARAMETERS:
             if name in command_env:
                 del command_env[name]
@@ -121,6 +123,7 @@ class ShellRunner(ActionRunner):
         # TODO: support other shells
         LOG.debug('    [Shell Runner] Launching shell "%s" as blocking operation for command '
                   '"%s".', '/usr/bin/bash', command_list)
+        # TODO: Try to avoid use of shell=True
         process = subprocess.Popen(command_list, env=command_env,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
