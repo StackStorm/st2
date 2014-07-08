@@ -10,7 +10,6 @@ from st2common.models.api.action import (ACTIONEXEC_STATUS_COMPLETE,
 
 from st2common.persistence.action import ActionExecution
 from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
-from st2common.util.actionrunner_db import get_actiontype_by_name
 
 from st2actionrunner.container.service import (RunnerContainerService, STDOUT, STDERR)
 
@@ -54,7 +53,7 @@ class RunnerContainer():
         LOG.debug('Instance of runner: %s', runner)
         return runner
 
-    def dispatch(self, liveaction_db, actiontype_db, action_db,  actionexec_db):
+    def dispatch(self, liveaction_db, actiontype_db, action_db, actionexec_db):
 
         runner_type = actiontype_db.name
 
@@ -106,7 +105,7 @@ class RunnerContainer():
 
     def _do_run(self, liveaction_id, runner, actiontype_db, action_db, actionexec_db):
         # Runner parameters should use the defaults from the ActionType object.
-        # The runner parameter defaults may be overridden by values provided in 
+        # The runner parameter defaults may be overridden by values provided in
         # the Action Execution.
         runner_parameters = actiontype_db.runner_parameters
         runner_parameters.update(actionexec_db.runner_parameters)

@@ -99,15 +99,14 @@ use_debugger = cfg.BoolOpt(
 CONF.register_cli_opt(use_debugger)
 
 action_runner_opts = [
-               cfg.StrOpt('artifact_repo_path',
-                          default='/opt/stackstorm/repo',
-                          help='Path to root of artifact repository'),
-               cfg.StrOpt('artifact_working_dir',
-                          default='/tmp',
-                          help='Path to the root of the working directory for live action execution.'),
-              ]
+    cfg.StrOpt('artifact_repo_path',
+               default='/opt/stackstorm/repo',
+               help='Path to root of artifact repository'),
+    cfg.StrOpt('artifact_working_dir_path',
+               default='/tmp/actionrunner',
+               help='Path to the root of the working directory for live action execution.'),
+]
 CONF.register_opts(action_runner_opts, group='action_runner')
-
 
 
 def parse_args(args=None):
