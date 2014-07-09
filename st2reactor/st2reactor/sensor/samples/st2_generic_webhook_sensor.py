@@ -1,7 +1,9 @@
 from functools import wraps
 import httplib
+import os
 
 from flask import (jsonify, request, Flask)
+import yaml
 
 '''
 Dectorators for request validations.
@@ -26,10 +28,16 @@ class St2GenericWebhooksSensor(object):
         self._log = self._container_service.get_logger(self.__class__.__name__)
         self._port = 6001
         self._app = Flask(__name__)
+        dirname, filename = os.path.split(os.path.abspath(__file__))
+        self._config_file = os.path.join(dirname, __name__ + '.yaml')
+        if not os.path.exists(self._config_file):
+            raise Exception('Config file %s not found.' % self._config_file)
+        self._config = None
 
     def setup(self):
-        # XXX: The list of URLs need to be picked from config file.
-        self._setup_flask_app(urls=['/webhooks/generic/st2webhooks'])
+        with open(self._config_file) as f:
+            self._config = yaml.safe_load(f)
+            self._setup_flask_app(urls=self._config.get('urls', []))
 
     def start(self):
         self._app.run(port=self._port)

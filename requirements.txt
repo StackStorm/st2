@@ -11,4 +11,4 @@ requests
 flask
 flask-jsonschema
 prettytable
-
+pyyaml
