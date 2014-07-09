@@ -1,0 +1,13 @@
+st2.timer.1s:
+    type: interval
+    time:
+        delta: 1
+        unit: seconds
+st2.timer.yearly:
+    type: cron
+    time:
+        year: 1
+        day: 1
+        hour: 0
+        minute: 0
+        second: 0
