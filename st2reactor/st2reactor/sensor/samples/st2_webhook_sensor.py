@@ -5,10 +5,6 @@ import os
 from flask import (jsonify, request, Flask)
 from flask_jsonschema import (JsonSchema, ValidationError)
 
-app = Flask(__name__)
-app.config['JSONSCHEMA_DIR'] = os.path.join(app.root_path, 'st2webhookschemas')
-jsonschema = JsonSchema(app)
-
 '''
 Dectorators for request validations.
 '''
@@ -26,34 +22,34 @@ def validate_json(f):
     return wrapper
 
 
-@app.errorhandler(ValidationError)
-def on_validation_error(e):
-    data = {'error': e.message}
-    js = jsonify(data)
-    return js, httplib.BAD_REQUEST
-
-
 class St2WebhookSensor(object):
     '''
     A webhook sensor using a micro-framework Flask.
     '''
-    __container_service = None
-    __log = None
 
     '''
     Flask specific stuff.
     '''
-    __port = 6000
+    _app = Flask('st2_webhook_sensor')
+    _app.config['JSONSCHEMA_DIR'] = os.path.join(_app.root_path, 'st2webhookschemas')
+    _jsonschema = JsonSchema(_app)
+
+    @_app.errorhandler(ValidationError)
+    def on_validation_error(e):
+        data = {'error': e.message}
+        js = jsonify(data)
+        return js, httplib.BAD_REQUEST
 
     def __init__(self, container_service):
-        self.__container_service = container_service
-        self.__log = self.__container_service.get_logger(self.__class__.__name__)
+        self._container_service = container_service
+        self._log = self._container_service.get_logger(self.__class__.__name__)
+        self._port = 6000
 
     def setup(self):
         self._setup_flask_app()
 
     def start(self):
-        app.run(port=self.__port)
+        St2WebhookSensor._app.run(port=self._port)
 
     def stop(self):
         # If Flask is using the default Werkzeug server, then call shutdown on it.
@@ -65,28 +61,30 @@ class St2WebhookSensor(object):
     def get_trigger_types(self):
         return []
 
+    @validate_json
+    @_jsonschema.validate('st2webhooks', 'create')
+    def _handle_webhook(self):
+        webhook_body = request.get_json()
+        # Generate trigger instances and send them.
+        triggers, errors = self._to_triggers(webhook_body)
+        if errors:
+            return jsonify({'invalid': errors}), httplib.BAD_REQUEST
+
+        try:
+            self._container_service.dispatch(triggers)
+        except Exception as e:
+            self._log.exception('Exception %s handling webhook', e)
+            status = httplib.INTERNAL_SERVER_ERROR
+            return jsonify({'error': str(e)}), status
+
+        return jsonify({}), httplib.ACCEPTED
+
     '''
     Flask app specific stuff.
     '''
     def _setup_flask_app(self):
-        @app.route('/webhooks/st2', methods=['POST'])
-        @validate_json
-        @jsonschema.validate('st2webhooks', 'create')
-        def handle_webhook():
-            webhook_body = request.get_json()
-            # Generate trigger instances and send them.
-            triggers, errors = self._to_triggers(webhook_body)
-            if errors:
-                return jsonify({'invalid': errors}), httplib.BAD_REQUEST
-
-            try:
-                self.__container_service.dispatch(triggers)
-            except Exception as e:
-                self.__log.exception('Exception %s handling webhook', e)
-                status = httplib.INTERNAL_SERVER_ERROR
-                return jsonify({'error': str(e)}), status
-
-            return jsonify({}), httplib.ACCEPTED
+        St2WebhookSensor._app.add_url_rule('/webhooks/st2', 'st2webhooks', self._handle_webhook,
+                                           methods=['POST'])
 
     def _to_triggers(self, webhook_body):
         triggers = []
