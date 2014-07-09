@@ -1,10 +1,17 @@
 import os, time, json
 import boto.ec2
 from st2reactor.container.containerservice import ContainerService
+from st2client.client import Client
 
 import logging
 
 interval = 20
+
+st2_endpoints = {
+    'action': 'http://localhost:9101',
+    'reactor': 'http://localhost:9102',
+    'datastore': 'http://localhost:9103'
+}
 
 class EC2InstanceStatusSensor(object):
     __container_service = None
@@ -14,7 +21,7 @@ class EC2InstanceStatusSensor(object):
     def __init__(self, container_service):
         self.__container_service = container_service
         self.__log = self.__container_service.get_logger(self.__class__.__name__)
-        self.ec2 = EC2Sensor('config.json')
+        self.ec2 = EC2Sensor()
 
     def setup(self):
         self.ec2.connect('us-west-2')
@@ -53,7 +60,7 @@ class EC2VolumeStatusSensor(object):
     def __init__(self, container_service):
         self.__container_service = container_service
         self.__log = self.__container_service.get_logger(self.__class__.__name__)
-        self.ec2 = EC2Sensor('config.json')
+        self.ec2 = EC2Sensor()
 
     def setup(self):
         self.ec2.connect('us-west-2')
@@ -92,16 +99,19 @@ class EC2Sensor(object):
     __secret_Access_key = None
     __conn = None
 
-    def __init__(self,config):
+    def __init__(self):
         try:
-          config_json=open(config)
-          config=json.load(config_json)
-          config_json.close() 
-
-          self.__access_key_id=config['aws']['access_key_id']
-          self.__secret_access_key=config['aws']['secret_access_key']
+          client = Client(st2_endpoints)
+          aws_key_id = client.key.get_by_name('aws_access_key_id')
+          if not aws_key_id:
+            raise Exception('Key error with aws_access_key_id.')
+          aws_secret_key = client.key.get_by_name('aws_secret_access_key')
+          if not aws_secret_key:
+            raise Exception('Key error with aws_secret_access_key.')
+          self.__access_key_id = aws_key_id.value
+          self.__secret_access_key = aws_secret_key.value
         except Exception, e:
-          print "Config error with %s: %s" % (config, e)
+          print e
 
     def connect(self,region):
         try:
