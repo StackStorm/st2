@@ -48,7 +48,7 @@ class St2GenericWebhooksSensor(object):
     def _handle_webhook(self, name):
         webhook_body = request.get_json()
         # Generate trigger instances and send them.
-        triggers = self._to_triggers(webhook_body)
+        triggers = self._to_triggers(name, webhook_body)
 
         try:
             self._container_service.dispatch(triggers)
@@ -68,11 +68,14 @@ class St2GenericWebhooksSensor(object):
                                    'generic-webhook-' + url,
                                    self._handle_webhook, methods=['POST'])
 
-    def _to_triggers(self, webhook_body):
+    def _to_triggers(self, name, webhook_body):
         triggers = []
 
         # XXX: if there is schema mismatch among entries, we ignore.
         for item in webhook_body:
-            triggers.append(item)
+            trigger = {}
+            trigger['name'] = name
+            trigger['payload'] = item
+            triggers.append(trigger)
 
         return triggers
