@@ -3,6 +3,9 @@ TOX_DIR := .tox
 VIRTUALENV_DIR := virtualenv
 WEB_DIR := web
 
+DOXYGEN_CONFIG := Doxyfile
+DOC_DIR := docs
+
 BINARIES := bin
 
 # All components are prefixed by st2
@@ -35,6 +38,12 @@ play:
 .PHONY: check
 check: flake8 pep8
 
+.PHONY: docs
+docs:
+	@echo ""
+	@echo "Creating docs"
+	doxygen $(DOXYGEN_CONFIG)
+
 .PHONY: pep8
 pep8: requirements
 	. $(VIRTUALENV_DIR)/bin/activate
@@ -47,8 +56,12 @@ flake8: requirements
 	@echo "==========================================================="
 	flake8 --config ./.flake8 $(COMPONENTS)
 
+.PHONY: clean
+clean:
+	rm -rf $(DOC_DIR)/html $(DOC_DIR)/latex $(DOC_DIR)/rtf
+
 .PHONY: distclean
-distclean:
+distclean: clean
 	rm -rf $(VIRTUALENV_DIR)
 	rm -rf $(WEB_DIR)/css/ $(WEB_DIR)/components/ $(WEB_DIR)/node_modules/ $(WEB_DIR)/font/
 
