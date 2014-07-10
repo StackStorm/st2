@@ -1,7 +1,7 @@
 import sys
 import copy
 
-from tests.base import DbTestCase
+from st2tests import DbTestCase
 from st2common.models.db.datastore import KeyValuePairDB
 from st2common.persistence.datastore import KeyValuePair
 from st2reactor.ruleenforcement import datatransform
