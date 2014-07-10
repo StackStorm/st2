@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 
 from apscheduler.schedulers.background import BlockingScheduler
+from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 # from apscheduler.executors.pool import ThreadPoolExecutor
@@ -25,6 +26,8 @@ class St2TimerSensor(object):
             self._config = yaml.safe_load(f)
         self._valid_time_types = set(['interval', 'cron', 'date'])
         self._valid_interval_units = set(['seconds', 'minutes', 'hours', 'days', 'weeks'])
+        self._valid_cron_types = set(['year', 'month', 'day', 'week', 'day_of_week', 'hour',
+                                      'minute', 'second'])
         self._jobs = {}
 
     def setup(self):
@@ -60,8 +63,6 @@ class St2TimerSensor(object):
             if time_type == 'interval':
                 self._add_interval_job(name, time_spec)
             elif time_type == 'cron':
-                # Skip for now.
-                continue
                 self._add_cron_job(name, time_spec)
             elif time_type == 'date':
                 self._add_date_job(name, time_spec)
@@ -132,4 +133,12 @@ class St2TimerSensor(object):
         return DateTrigger(dat)  # Raises an exception if date string isn't a valid one.
 
     def _validate_cron_spec(self, name, time_spec):
-        pass
+        cron_parts = time_spec
+        cron = {}
+        for key, value in cron_parts.iteritems():
+            if key not in self._valid_cron_types:
+                raise Exception('Invalid cron entry: %s for timer: %s' % (key, name))
+
+            cron[key] = value
+
+        return CronTrigger(**cron)

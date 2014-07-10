@@ -1,21 +1,21 @@
 # XXX: Time zones are ignored for now. Everything uses PDT for testing.
 st2.timer.1s:
     type: interval
+    timezone: utc
     time:
         delta: 1
         unit: seconds
-        zone: utc
 st2.timer.yearly:
     type: cron
+    timezone: utc
     time:
         year: 1
         day: 1
         hour: 0
         minute: 0
         second: 0
-        zone: utc
 st2.timer.dately:
     type: date
+    timezone: utc
     time:
         date: '2014-07-09 22:30:51.472691'
-        zone: utc

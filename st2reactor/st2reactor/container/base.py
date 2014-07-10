@@ -30,7 +30,7 @@ class SensorContainer(object):
             sensor.setup()
         except Exception, e:
             LOG.error('Error calling setup on sensor: %s. Exception: %s',
-                      sensor.__class__.__name__, e)
+                      sensor.__class__.__name__, e, exc_info=True)
         else:
             sensor.start()
 
