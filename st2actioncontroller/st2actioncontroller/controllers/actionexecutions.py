@@ -47,7 +47,7 @@ class ActionExecutionsController(RestController):
         try:
             result = requests.delete(LIVEACTION_ENDPOINT +
                                      '/?actionexecution_id=' + str(actionexec_id))
-        except requests.exceptions.ConnectionError, e:
+        except requests.exceptions.ConnectionError as e:
             LOG.error('Caught encoundered connection error while performing /liveactions/ '
                       'DELETE for actionexec_id="%s".'
                       'Error was: %s', actionexec_id, e)
@@ -74,7 +74,7 @@ class ActionExecutionsController(RestController):
         try:
             result = requests.post(LIVEACTION_ENDPOINT,
                                    data=json.dumps(payload), headers=custom_headers)
-        except requests.exceptions.ConnectionError, e:
+        except requests.exceptions.ConnectionError as e:
             LOG.error('Caught encoundered connection error while performing /liveactions/ POST.'
                       'Error was: %s', e)
             request_error = True
@@ -115,7 +115,7 @@ class ActionExecutionsController(RestController):
 
         try:
             actionexec_db = get_actionexec_by_id(id)
-        except StackStormDBObjectNotFoundError, e:
+        except StackStormDBObjectNotFoundError as e:
             LOG.error('GET /actionexecutions/ with id="%s": %s', id, e.message)
             abort(httplib.NOT_FOUND)
 
@@ -124,7 +124,6 @@ class ActionExecutionsController(RestController):
         LOG.debug('GET /actionexecutions/ with id=%s, client_result=%s', id, actionexec_api)
         return actionexec_api
 
-    # TODO: Support kwargs
     @wsme_pecan.wsexpose([ActionExecutionAPI], wstypes.text, wstypes.text)
     def get_all(self, action_id=None, action_name=None):
         """
@@ -175,13 +174,6 @@ class ActionExecutionsController(RestController):
             LOG.error('POST /actionexecutions/ Unable to create Action Execution for a disabled '
                       'Action. Action is: %s', action_db)
             abort(httplib.FORBIDDEN)
-
-        # Initialize empty results data
-        """
-        actionexecution.exit_code = None
-        actionexecution.std_out = None
-        actionexecution.std_err = None
-        """
 
         # ActionExecution doesn't hold the runner_type data. Disable this field update.
         # LOG.debug('Setting actionexecution runner_type to "%s"', action_db.runner_type)
@@ -240,22 +232,6 @@ class ActionExecutionsController(RestController):
             LOG.info('Aborting /actionexecutions/ POST operation.')
             abort(httplib.INTERNAL_SERVER_ERROR)
 
-#        if not request_error and (result.status_code == httplib.CREATED):
-#            LOG.info('/liveactions/ POST request reported successful creation of LiveAction')
-#            actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_COMPLETE,
-#                                                          actionexec_db=actionexec_db)
-#            LOG.info('/actionexecution/ POST set ActionExecution status to "%s"',
-#                     actionexec_db.status)
-#        else:
-#            LOG.info('/liveactions/ POST request reported error')
-#            actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_ERROR,
-#                                                          actionexec_db=actionexec_db)
-#            LOG.info('/actionexecution/ POST set ActionExecution status to "%s"',
-#                     actionexec_db.status)
-#            LOG.error('Unable to launch LiveAction.')
-#            LOG.info('Aborting /actionexecutions/ POST operation.')
-#            abort(httplib.INTERNAL_SERVER_ERROR)
-
         actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
 
         LOG.debug('POST /actionexecutions/ client_result=%s', actionexec_api)
@@ -283,12 +259,11 @@ class ActionExecutionsController(RestController):
                 DELETE /actionexecutions/1
         """
 
-        # TODO: Support delete by name
         LOG.info('DELETE /actionexecutions/ with id=%s', id)
 
         try:
             actionexec_db = get_actionexec_by_id(id)
-        except StackStormDBObjectNotFoundError, e:
+        except StackStormDBObjectNotFoundError as e:
             LOG.error('DELETE /actionexecutions/ with id="%s": %s', id, e.message)
             abort(httplib.NOT_FOUND)
 
@@ -296,24 +271,6 @@ class ActionExecutionsController(RestController):
                   id, actionexec_db)
 
         # TODO: Delete should migrate the execution data to a history collection.
-        # TODO: Validate that liveactions for actionexec are all deleted.
-        """
-        # No need to validate existence of live actions.
-        liveactions_db = None
-        try:
-            liveactions_db = get_liveactions_by_actionexec_id(actionexec_db.id)
-        except StackStormDBObjectNotFoundError, e:
-            LOG.warning('DELETE /actionexecutions/ no Live Actions found for '
-                        'actionexecution_id="%s"', actionexec_db.id, e.message)
-
-        # Handle delete of LiveActions
-        if liveactions_db:
-            (result, request_error) = self._issue_liveaction_delete(actionexec_db.id)
-            # TODO: Validate that liveactions for actionexec are all deleted.
-            if request_error:
-                LOG.warning('DELETE of Live Actions for actionexecution_id="%s" encountered '
-                            'an error. HTTP result is: %s', actionexec_db.id, result)
-        """
 
         (result, request_error) = self._issue_liveaction_delete(actionexec_db.id)
         # TODO: Validate that liveactions for actionexec are all deleted.
@@ -323,7 +280,7 @@ class ActionExecutionsController(RestController):
 
         try:
             ActionExecution.delete(actionexec_db)
-        except Exception, e:
+        except Exception as e:
             LOG.error('Database delete encountered exception during delete of id="%s". '
                       'Exception was %s', id, e)
 

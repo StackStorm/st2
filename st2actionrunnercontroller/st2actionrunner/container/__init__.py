@@ -20,16 +20,6 @@ class RunnerContainer():
 
     def __init__(self):
         LOG.info('Action RunnerContainer instantiated.')
-        """
-        _actiontypes = {}
-        LOG.info('Populating Action RunnerContainer with ActionTypes.')
-        actiontype_apis = [ActionTypeAPI.from_model(actiontype_db)
-                           for actiontype_db in ActionType.get_all()]
-
-        for at_api in actiontype_apis:
-            if at_api.enabled:
-                self._actiontypes[at_api.name] = at_api
-        """
 
         self._pending = []
         # self._pool = eventlet.GreenPool
@@ -44,7 +34,7 @@ class RunnerContainer():
         LOG.debug('Runner loading python module: %s', module_name)
         try:
             module = importlib.import_module(module_name, package=None)
-        except Exception, e:
+        except Exception as e:
             raise ActionRunnerCreateError(e)
 
         LOG.debug('Instance of runner module: %s', module)
@@ -71,6 +61,7 @@ class RunnerContainer():
             actionexec_db.exit_code = str(exit_code)
             actionexec_db.std_out = str(json.dumps(std_out))
             actionexec_db.std_err = str(json.dumps(std_err))
+            actionexec_db.status = str(ACTIONEXEC_STATUS_COMPLETE)
             actionexec_db = ActionExecution.add_or_update(actionexec_db)
             LOG.info('ActionExecution object after exit_code update: %s', actionexec_db)
 
@@ -80,7 +71,7 @@ class RunnerContainer():
         runner = None
         try:
             runner = self._get_runner_for_actiontype(actiontype_db)
-        except ActionRunnerCreateError, e:
+        except ActionRunnerCreateError as e:
             raise ActionRunnerDispatchError(e.message)
 
         LOG.debug('Runner instance for ActionType "%s" is: %s', actiontype_db.name, runner)
@@ -158,11 +149,6 @@ class RunnerContainer():
             # Therefore, the liveaction produced an error.
             result = False
             actionexec_status = ACTIONEXEC_STATUS_ERROR
-        # elif container_service._exit_code == 0:
-        #    # Live Action produced exit code == 0
-        #    result = True
-        #    actionexec_db.exit_code = str(container_service._exit_code)
-        #    actionexec_status = ACTIONEXEC_STATUS_COMPLETE
         else:
             # So long as the runner produced an exit code, we can assume that the
             # Live Action ran to completion.

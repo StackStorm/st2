@@ -27,7 +27,6 @@ class ActionsController(RestController):
         the lifecycle of Actions in the system.
     """
 
-    # TODO: Investigate mako rendering
     @wsme_pecan.wsexpose(ActionAPI, wstypes.text)
     def get_one(self, id):
         """
@@ -88,13 +87,12 @@ class ActionsController(RestController):
 
         action_api = ActionAPI.to_model(action)
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action_api)
-        # TODO: POST operations should only add to DB.
-        #       If an existing object conflicts then raise error.
 
         LOG.audit('Action about to be created in database. Action is: %s', action_api)
         try:
             action_db = Action.add_or_update(action_api)
         except (NotUniqueError) as e:
+            # If an existing DB object conflicts with new object then raise error.
             LOG.error('/actions/ POST unable to save ActionDB object "%s" due to uniqueness '
                       'conflict. Exception was: %s', action_api, e)
             abort(httplib.CONFLICT)
@@ -117,7 +115,7 @@ class ActionsController(RestController):
                 PUT /actions/1
         """
         # TODO: Implement
-        return {"dummy": "put"}
+        return None
 
     @wsme_pecan.wsexpose(None, wstypes.text, wstypes.text, status_code=httplib.NO_CONTENT)
     def delete(self, id, name=None):
@@ -130,19 +128,20 @@ class ActionsController(RestController):
                 DELETE /actions/?name=myaction
         """
 
-        # TODO: Support delete by name
         LOG.info('DELETE /actions/ with id="%s" and name="%s"', id, name)
 
+
+        # Lookup object by ID or name
         if id:
             try:
                 action_db = get_action_by_id(id)
-            except StackStormDBObjectNotFoundError, e:
+            except StackStormDBObjectNotFoundError as e:
                 LOG.error('DELETE /actions/ with id="%s": %s', id, e.message)
                 abort(httplib.NOT_FOUND)
         elif name:
             try:
                 action_db = get_action_by_name(name)
-            except StackStormDBObjectNotFoundError, e:
+            except StackStormDBObjectNotFoundError as e:
                 LOG.error('DELETE /actions/ with name="%s": %s', name, e.message)
                 abort(httplib.NOT_FOUND)
         else:
@@ -153,7 +152,7 @@ class ActionsController(RestController):
 
         try:
             Action.delete(action_db)
-        except Exception, e:
+        except Exception as e:
             LOG.error('Database delete encountered exception during delete of id="%s". '
                       'Exception was %s', id, e)
 
