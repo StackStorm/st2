@@ -1,13 +1,13 @@
 import datetime
-import tests
 import mongoengine.connection
 from oslo.config import cfg
+from st2tests import DbTestCase
 
 SKIP_DELETE = False
 DUMMY_DESCRIPTION = 'Sample Description.'
 
 
-class DbConnectionTest(tests.DbTestCase):
+class DbConnectionTest(DbTestCase):
 
     def test_check_connect(self):
         """
@@ -26,7 +26,7 @@ from st2common.persistence.reactor import Trigger, TriggerInstance, \
     TriggerSource, RuleEnforcement, Rule
 
 
-class ReactorModelTest(tests.DbTestCase):
+class ReactorModelTest(DbTestCase):
 
     def test_triggersource_crud(self):
         saved = ReactorModelTest._create_save_triggersource()
@@ -217,7 +217,7 @@ from st2common.models.db.action import ActionDB
 from st2common.persistence.action import Action
 
 
-class ActionModelTest(tests.DbTestCase):
+class ActionModelTest(DbTestCase):
 
     def test_action_crud(self):
         saved = ActionModelTest._create_save_action()
@@ -263,7 +263,7 @@ from st2common.models.db.datastore import KeyValuePairDB
 from st2common.persistence.datastore import KeyValuePair
 
 
-class KeyValuePairModelTest(tests.DbTestCase):
+class KeyValuePairModelTest(DbTestCase):
 
     def test_kvp_crud(self):
         saved = KeyValuePairModelTest._create_save_kvp()

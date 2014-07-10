@@ -1,3 +1,3 @@
-from st2tests.base import EventletTestCase
+from st2tests.base import EventletTestCase, DbTestCase
 
-__all__ = ['EventletTestCase']
+__all__ = ['EventletTestCase', 'DbTestCase']

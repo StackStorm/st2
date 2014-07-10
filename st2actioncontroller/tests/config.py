@@ -13,13 +13,6 @@ def __register_opts(opts, group=None):
 
 
 def __setup_config_opts():
-    db_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
-        cfg.IntOpt('port', default=27017, help='port of db server'),
-        cfg.StrOpt('db_name', default='st2-test', help='name of database')
-    ]
-    __register_opts(db_opts, group='database')
-
     api_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='action API server host'),
         cfg.IntOpt('port', default=9101, help='action API server port')
