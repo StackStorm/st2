@@ -102,10 +102,10 @@ class EC2Sensor(object):
     def __init__(self):
         try:
           client = Client(st2_endpoints)
-          aws_key_id = client.key.get_by_name('aws_access_key_id')
+          aws_key_id = client.keys.get_by_name('aws_access_key_id')
           if not aws_key_id:
             raise Exception('Key error with aws_access_key_id.')
-          aws_secret_key = client.key.get_by_name('aws_secret_access_key')
+          aws_secret_key = client.keys.get_by_name('aws_secret_access_key')
           if not aws_secret_key:
             raise Exception('Key error with aws_secret_access_key.')
           self.__access_key_id = aws_key_id.value
