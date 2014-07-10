@@ -5,7 +5,10 @@ from apscheduler.schedulers.background import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
+import apscheduler.util as aps_utils
 # from apscheduler.executors.pool import ThreadPoolExecutor
+import dateutil.parser as date_parser
+from dateutil.tz import tzutc
 from pytz import utc
 import yaml
 
@@ -15,9 +18,10 @@ class St2TimerSensor(object):
     A timer sensor that uses APScheduler 3.0.
     '''
     def __init__(self, container_service):
+        self._timezone = 'America/Los_Angeles'  # Whatever TZ local box runs in.
         self._container_service = container_service
         self._log = self._container_service.get_logger(self.__class__.__name__)
-        self._scheduler = BlockingScheduler()
+        self._scheduler = BlockingScheduler(timezone=self._timezone)
         dirname, filename = os.path.split(os.path.abspath(__file__))
         self._config_file = os.path.join(dirname, __name__ + '.yaml')
         if not os.path.exists(self._config_file):
@@ -54,29 +58,33 @@ class St2TimerSensor(object):
             try:
                 self._validate_job_spec(name, value)
             except Exception as e:
-                self._log.error('Exception scheduling timer: %s', e)
+                self._log.error('Exception scheduling timer: %s, %s', name, e, exc_info=True)
                 continue
 
             time_type = value.get('type')
             time_spec = value.get('time')
+            time_zone = aps_utils.astimezone(value.get('timezone'))
 
             if time_type == 'interval':
-                self._add_interval_job(name, time_spec)
+                self._add_interval_job(name, time_spec, time_zone)
             elif time_type == 'cron':
-                self._add_cron_job(name, time_spec)
+                self._add_cron_job(name, time_spec, time_zone)
             elif time_type == 'date':
-                self._add_date_job(name, time_spec)
+                self._add_date_job(name, time_spec, time_zone)
 
-    def _add_interval_job(self, name, time_spec):
-        interval_trigger = self._validate_interval_spec(name, time_spec)
+    def _add_interval_job(self, name, time_spec, time_zone=utc):
+        interval_trigger = self._validate_interval_spec(name, time_spec, time_zone)
         self._add_job(name, time_spec, interval_trigger)
 
-    def _add_date_job(self, name, time_spec):
-        date_trigger = self._validate_date_spec(name, time_spec)
-        self._add_job(name, time_spec, date_trigger)
+    def _add_date_job(self, name, time_spec, time_zone=utc):
+        date_trigger = self._validate_date_spec(name, time_spec, time_zone)
+        if datetime.now(tzutc()) < date_trigger.run_date:
+            self._add_job(name, time_spec, date_trigger, time_zone)
+        else:
+            self._log.warning('Not scheduling expired timer: %s : %s', name, date_trigger.run_date)
 
-    def _add_cron_job(self, name, time_spec):
-        cron_trigger = self._validate_cron_spec(name, time_spec)
+    def _add_cron_job(self, name, time_spec, time_zone=utc):
+        cron_trigger = self._validate_cron_spec(name, time_spec, time_zone)
         self._add_job(name, time_spec, cron_trigger)
 
     def _add_job(self, name, time_spec, trigger, replace=True):
@@ -88,7 +96,7 @@ class St2TimerSensor(object):
             self._log.info('Job %s scheduled.', job.id)
             self._jobs[name] = job.id
         except Exception, e:
-            self._log.error('Exception scheduling timer: %s, %s', name, e)
+            self._log.error('Exception scheduling timer: %s, %s', name, e, exc_info=True)
 
     def _emit_trigger_instance(self, name, time_spec):
         self._log.info('Timer: %s fired at: %s. Time spec: %s', name,
@@ -111,9 +119,12 @@ class St2TimerSensor(object):
 
         time_spec = value.get('time', None)
         if not time_spec:
-            self._log.error('No time specified for timer: %s', name)
+            raise Exception('No time specified for timer: %s' % name)
 
-    def _validate_interval_spec(self, name, time_spec):
+        time_zone = value.get('timezone', None)
+        aps_utils.astimezone(time_zone)  # Raises an exception if time zone isn't a known one.
+
+    def _validate_interval_spec(self, name, time_spec, time_zone=utc):
         unit = time_spec.get('unit', None)
         if not unit:
             raise Exception('Timer: %s, Error: No unit specified for time.' % name)
@@ -123,16 +134,19 @@ class St2TimerSensor(object):
         value = time_spec.get('delta', None)
         if not value:
             raise Exception('Timer: %s, Error: No interval specified.' % name)
-        kw = {unit: value, 'timezone': utc}
+        kw = {unit: value, 'timezone': time_zone}
         return IntervalTrigger(**kw)
 
-    def _validate_date_spec(self, name, time_spec):
+    def _validate_date_spec(self, name, time_spec, time_zone=utc):
         dat = time_spec.get('date', None)
         if not dat:
             raise Exception('Timer: %s, Error: No date specified.')
-        return DateTrigger(dat)  # Raises an exception if date string isn't a valid one.
+        dat = date_parser.parse(dat)  # Raises an exception if date string isn't a valid one.
+        date_trigger = DateTrigger(dat, timezone=time_zone)
+        self._log.info('Date = %s', date_trigger)
+        return date_trigger
 
-    def _validate_cron_spec(self, name, time_spec):
+    def _validate_cron_spec(self, name, time_spec, time_zone=utc):
         cron_parts = time_spec
         cron = {}
         for key, value in cron_parts.iteritems():
@@ -140,5 +154,6 @@ class St2TimerSensor(object):
                 raise Exception('Invalid cron entry: %s for timer: %s' % (key, name))
 
             cron[key] = value
-
-        return CronTrigger(**cron)
+        cron['timezone'] = time_zone
+        cron_trigger = CronTrigger(**cron)
+        return cron_trigger
