@@ -42,7 +42,7 @@ class LiveActionsController(RestController):
 
         try:
             liveaction_db = get_liveaction_by_id(id)
-        except StackStormDBObjectNotFoundError, e:
+        except StackStormDBObjectNotFoundError as e:
             LOG.error('GET /liveactions/ with id="%s": %s', id, e.message)
             abort(httplib.NOT_FOUND)
 
@@ -95,7 +95,7 @@ class LiveActionsController(RestController):
                  str(liveaction.actionexecution_id))
         try:
             actionexec_db = get_actionexec_by_id(liveaction.actionexecution_id)
-        except StackStormDBObjectNotFoundError, e:
+        except StackStormDBObjectNotFoundError as e:
             LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
@@ -107,7 +107,7 @@ class LiveActionsController(RestController):
         try:
             LOG.debug('actionexecution.action value: %s', actionexec_db.action)
             (action_db, d) = get_action_by_dict(actionexec_db.action)
-        except StackStormDBObjectNotFoundError, e:
+        except StackStormDBObjectNotFoundError as e:
             LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
@@ -124,7 +124,7 @@ class LiveActionsController(RestController):
 
         try:
             actiontype_db = get_actiontype_by_name(action_db.runner_type)
-        except StackStormDBObjectNotFoundError, e:
+        except StackStormDBObjectNotFoundError as e:
             LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
@@ -198,7 +198,7 @@ class LiveActionsController(RestController):
         if id:
             try:
                 db = get_liveaction_by_id(id)
-            except StackStormDBObjectNotFoundError, e:
+            except StackStormDBObjectNotFoundError as e:
                 LOG.error('DELETE /liveactions/ with id="%s": %s', id, e.message)
                 abort(httplib.NOT_FOUND)
 
@@ -206,7 +206,7 @@ class LiveActionsController(RestController):
         elif actionexec_id:
             try:
                 dbs = get_liveactions_by_actionexec_id(actionexec_id)
-            except StackStormDBObjectNotFoundError, e:
+            except StackStormDBObjectNotFoundError as e:
                 LOG.error('DELETE /liveactions/ with actionexecution_id="%s": %s',
                           actionexec_id, e.message)
                 abort(httplib.NOT_FOUND)
@@ -224,7 +224,7 @@ class LiveActionsController(RestController):
         for liveaction_db in liveactions_db:
             try:
                 LiveAction.delete(liveaction_db)
-            except Exception, e:
+            except Exception as e:
                 LOG.error('Database delete encountered exception during delete of LiveAction: '
                           '"%s". Exception was %s', liveaction_db, e)
                 httplib.INTERNAL_SERVER_ERROR

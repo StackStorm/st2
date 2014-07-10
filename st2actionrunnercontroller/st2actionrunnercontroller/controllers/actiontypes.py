@@ -92,7 +92,7 @@ class ActionTypesController(RestController):
 
         try:
             actiontype_db = get_actiontype_by_id(id)
-        except StackStormDBObjectNotFoundError, e:
+        except StackStormDBObjectNotFoundError as e:
             LOG.error('GET /actiontypes/ with id="%s": %s', id, e.message)
             abort(httplib.NOT_FOUND)
         actiontype_api = ActionTypeAPI.from_model(actiontype_db)
