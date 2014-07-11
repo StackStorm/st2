@@ -13,7 +13,7 @@ curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "dummypluginact
 curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "echo-script", "runner_type": "shell", "description": "A echo action.", "enabled": true, "uri": null, "entry_point": "actions/bash_echo/bash_echo.sh", "artifact_paths": ["actions/bash_echo"], "parameter_names": []}' ${ACTION_URL}/actions
 
 # Ping action
-curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "ping", "runner_type": "shell", "description": "A ping host action.", "enabled": true, "artifact_paths": ["actions/bash_ping"], "uri": null, "entry_point": "actions/bash_ping/bash_ping.sh", "parameter_names": []}' ${ACTION_URL}/actions
+curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "ping", "runner_type": "shell", "description": "A ping host action.", "enabled": true, "artifact_paths": ["actions/bash_ping"], "uri": null, "entry_point": "actions/bash_ping/bash_ping.sh", "parameter_names": ["count"]}' ${ACTION_URL}/actions
 
 # Random exit action
 curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "random-exit", "runner_type": "shell", "description": "A random exit code action.", "enabled": true, "artifact_paths": ["actions/bash_exit_code"], "uri": null, "entry_point": "bash_exit_code/bash_exit_code.sh", "parameter_names": []}' ${ACTION_URL}/actions
