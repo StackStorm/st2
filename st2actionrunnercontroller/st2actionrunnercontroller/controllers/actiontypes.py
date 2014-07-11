@@ -17,14 +17,14 @@ from st2actionrunner.container import get_runner_container
 LOG = logging.getLogger(__name__)
 
 
-ACTION_TYPES = {'internaldummy': {'name': 'internaldummy',
-                                  'description': ('An internal action type for '
+ACTION_TYPES = {'internaldummy-builtin': {'name': 'internaldummy-builtin',
+                                  'description': ('An built-in, internal action type for '
                                                   'development only.'),
                                   'enabled': True,
                                   'runner_parameters': {'command': None},
                                   'runner_module': 'no.such.module',
                                   },
-                'internaldummy-plugin': {'name': 'internaldummy-plugin',
+                'internaldummy': {'name': 'internaldummy',
                                          'description': ('An internal action type for '
                                                          'development only. Implemented '
                                                          'using a plugin.'),
