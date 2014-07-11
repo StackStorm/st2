@@ -49,7 +49,7 @@ class TriggerInstanceAPI(StormFoundationAPI):
     @classmethod
     def from_model(kls, model):
         trigger_instance = StormFoundationAPI.from_model(kls, model)
-        trigger_instance.trigger = get_id(model.trigger)
+        trigger_instance.trigger = model.trigger
         trigger_instance.payload = dict(model.payload)
         trigger_instance.occurrence_time = model.occurrence_time
         return trigger_instance
@@ -91,9 +91,9 @@ class RuleAPI(StormBaseAPI):
     @classmethod
     def from_model(kls, model):
         rule = StormBaseAPI.from_model(kls, model)
-        rule.trigger_type = get_ref(model.trigger_type)
+        rule.trigger_type = model.trigger_type
         rule.criteria = dict(model.criteria)
-        rule.action = {'type': get_ref(model.action.action),
+        rule.action = {'type': model.action.action,
                        'mapping': dict(model.action.data_mapping)}
         rule.rule_data = dict(model.rule_data)
         rule.enabled = model.enabled
@@ -102,11 +102,11 @@ class RuleAPI(StormBaseAPI):
     @classmethod
     def to_model(kls, rule):
         model = StormBaseAPI.to_model(RuleDB, rule)
-        model.trigger_type = get_model_from_ref(Trigger, rule.trigger_type)
+        model.trigger_type = rule.trigger_type
         model.criteria = dict(rule.criteria)
         model.action = ActionExecutionSpecDB()
         if 'type' in rule.action:
-            model.action.action = get_model_from_ref(Action, rule.action['type'])
+            model.action.action = rule.action['type']
         if 'mapping' in rule.action:
             model.action.data_mapping = rule.action['mapping']
         model.rule_data = rule.rule_data
@@ -122,7 +122,7 @@ class RuleEnforcementAPI(StormFoundationAPI):
     @classmethod
     def from_model(kls, model):
         rule_enforcement = StormFoundationAPI.from_model(kls, model)
-        rule_enforcement.rule = get_id(model.rule)
-        rule_enforcement.trigger_instance = get_id(model.trigger_instance)
-        rule_enforcement.action_execution = get_id(model.action_execution)
+        rule_enforcement.rule = model.rule
+        rule_enforcement.trigger_instance = model.trigger_instance
+        rule_enforcement.action_execution = model.action_execution
         return rule_enforcement

@@ -14,7 +14,7 @@ class Filter(object):
         self._trigger_instance = trigger_instance
 
     def apply_filter(self, rule):
-        LOG.info('Validating rule %s for %s.', rule.id, self._trigger_instance.trigger.name)
+        LOG.info('Validating rule %s for %s.', rule.id, self._trigger_instance.trigger['name'])
         criteria = Filter._get_criteria(rule)
         is_rule_applicable = True
         for criterion_k in criteria.keys():
