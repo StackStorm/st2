@@ -1,6 +1,7 @@
 import datetime
 import mongoengine.connection
 from oslo.config import cfg
+from st2common.util import reference
 from st2tests import DbTestCase
 
 SKIP_DELETE = False
@@ -20,10 +21,6 @@ class DbConnectionTest(DbTestCase):
         self.assertEqual(client.port, cfg.CONF.database.port,
                          'Not connected to desired port.')
 
-
-def _to_ref(model):
-    return {'id': str(getattr(model, 'id', None)),
-            'name': getattr(model, 'name', '')}
 
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
     TriggerSourceDB, RuleEnforcementDB, RuleDB, ActionExecutionSpecDB
@@ -122,7 +119,7 @@ class ReactorModelTest(DbTestCase):
         action = ActionModelTest._create_save_action()
         trigger = ReactorModelTest._create_save_trigger(triggersource)
         saved = ReactorModelTest._create_save_rule(trigger, action)
-        retrievedrules = Rule.query(trigger_type=_to_ref(trigger))
+        retrievedrules = Rule.query(trigger_type=reference.get_ref_from_model(trigger))
         self.assertEqual(1, len(retrievedrules), 'No rules found.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id,
@@ -134,7 +131,8 @@ class ReactorModelTest(DbTestCase):
         action = ActionModelTest._create_save_action()
         trigger = ReactorModelTest._create_save_trigger(triggersource)
         saved = ReactorModelTest._create_save_rule(trigger, action)
-        retrievedrules = Rule.query(trigger_type=_to_ref(trigger), enabled=True)
+        retrievedrules = Rule.query(trigger_type=reference.get_ref_from_model(trigger),
+                                    enabled=True)
         self.assertEqual(1, len(retrievedrules), 'Error looking up enabled rules.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id,
@@ -146,7 +144,8 @@ class ReactorModelTest(DbTestCase):
         action = ActionModelTest._create_save_action()
         trigger = ReactorModelTest._create_save_trigger(triggersource)
         saved = ReactorModelTest._create_save_rule(trigger, action, False)
-        retrievedrules = Rule.query(trigger_type=_to_ref(trigger), enabled=False)
+        retrievedrules = Rule.query(trigger_type=reference.get_ref_from_model(trigger),
+                                    enabled=False)
         self.assertEqual(1, len(retrievedrules), 'Error looking up enabled rules.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id,
@@ -182,7 +181,7 @@ class ReactorModelTest(DbTestCase):
     @staticmethod
     def _create_save_triggerinstance(trigger):
         created = TriggerInstanceDB()
-        created.trigger = _to_ref(trigger)
+        created.trigger = reference.get_ref_from_model(trigger)
         created.payload = {}
         created.occurrence_time = datetime.datetime.now()
         return TriggerInstance.add_or_update(created)
@@ -193,10 +192,10 @@ class ReactorModelTest(DbTestCase):
         created.name = 'rule-1'
         created.description = ''
         created.enabled = enabled
-        created.trigger_type = _to_ref(trigger)
+        created.trigger_type = reference.get_ref_from_model(trigger)
         created.criteria = {}
         created.action = ActionExecutionSpecDB()
-        created.action.action = _to_ref(action)
+        created.action.action = reference.get_ref_from_model(action)
         created.action.data_mapping = {}
         return Rule.add_or_update(created)
 
@@ -204,9 +203,10 @@ class ReactorModelTest(DbTestCase):
     def _create_save_ruleenforcement(triggerinstance, rule,
                                      actionexecution=None):
         created = RuleEnforcementDB()
-        created.rule = _to_ref(rule)
-        created.trigger_instance = _to_ref(triggerinstance)
-        created.action_execution = _to_ref(actionexecution)
+        created.rule = reference.get_ref_from_model(rule)
+        created.trigger_instance = reference.get_ref_from_model(triggerinstance)
+        created.action_execution = reference.get_ref_from_model(actionexecution) \
+                                   if actionexecution else None
         return RuleEnforcement.add_or_update(created)
 
     @staticmethod
