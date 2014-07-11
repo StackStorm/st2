@@ -4,10 +4,10 @@ ACTION_URL=http://localhost:9101
 ACTIONRUNNER_URL=http://localhost:9501
 
 # Internal dummy
-curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "dummyaction", "runner_type": "internaldummy-builtin", "description": "Action that executes an arbitrary Linux command.", "enabled": true, "artifact_paths": [], "uri": null, "entry_point": "", "parameters": {}}' ${ACTION_URL}/actions
+curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "dummyaction-builtin", "runner_type": "internaldummy-builtin", "description": "Action that executes an arbitrary Linux command.", "enabled": true, "artifact_paths": [], "uri": null, "entry_point": "", "parameters": {}}' ${ACTION_URL}/actions
 
 # Internal dummy plugin
-curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "dummypluginaction", "runner_type": "internaldummy", "description": "Action that executes an arbitrary Linux command.", "enabled": true, "artifact_paths": [], "uri": null, "entry_point": "", "parameters": {}}' ${ACTION_URL}/actions
+curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "dummyaction", "runner_type": "internaldummy", "description": "Action that executes an arbitrary Linux command.", "enabled": true, "artifact_paths": [], "uri": null, "entry_point": "", "parameters": {}}' ${ACTION_URL}/actions
 
 # Echo action
 curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "echo-script", "runner_type": "shell", "description": "An echo action.", "enabled": true, "uri": null, "entry_point": "actions/bash_echo/bash_echo.sh", "artifact_paths": ["actions/bash_echo"], "parameters": {}}' ${ACTION_URL}/actions
