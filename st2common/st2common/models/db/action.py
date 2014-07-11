@@ -26,15 +26,15 @@ class ActionDB(StormBaseDB):
     """
 
     enabled = me.BooleanField(required=True, default=True,
-                          help_text=u'Flag indicating whether the action is enabled.')
+                          help_text='Flag indicating whether the action is enabled.')
     artifact_paths = me.ListField(
-                          help_text=u'Paths to action content relative to repository base.')
+                          help_text='Paths to action content relative to repository base.')
     entry_point = me.StringField(required=True,
-                          help_text=u'Action entrypoint.')
+                          help_text='Action entrypoint.')
     runner_type = me.StringField(required=True,
-                          help_text=u'Execution environment to use when invoking the action.')
-    parameter_names = me.ListField(
-                          help_text=u'List of required parameter names.')
+                          help_text='Execution environment to use when invoking the action.')
+    parameters = me.DictField(default={},
+                          help_text='Action parameters with optional default values.')
 
     def __str__(self):
         result = []
@@ -46,7 +46,7 @@ class ActionDB(StormBaseDB):
         result.append('artifact_paths="%s", ' % str(self.artifact_paths))
         result.append('entry_point="%s", ' % self.entry_point)
         result.append('runner_type="%s", ' % self.runner_type)
-        result.append('parameter_names=%s, ' % str(self.parameter_names))
+        result.append('parameters=%s, ' % str(self.parameters))
         result.append('uri="%s")' % self.uri)
         return ''.join(result)
 
@@ -56,11 +56,11 @@ class ActionExecutionResultDB(me.EmbeddedDocument):
         Result data for a single Action execution (on a single host).
     """
     exit_code = me.StringField(default=None,
-                           help_text=u'Exit code for action.')
+                           help_text='Exit code for action.')
     std_out = me.ListField(default=[],
-                           help_text=u'List of stdout output strings in output order.')
+                           help_text='List of stdout output strings in output order.')
     std_err = me.ListField(default=[],
-                           help_text=u'List of stdout output strings in output order.')
+                           help_text='List of stdout output strings in output order.')
 
     def __str__(self):
         result = []
@@ -87,31 +87,31 @@ class ActionExecutionDB(StormFoundationDB):
 
     # TODO: Can status be an enum at the Mongo layer?
     status = me.StringField(required=True,
-                help_text=u'The current status of the ActionExecution.')
+                help_text='The current status of the ActionExecution.')
     start_timestamp = me.DateTimeField(default=datetime.datetime.now(),
-                help_text=u'The timestamp when the ActionExecution was created.')
+                help_text='The timestamp when the ActionExecution was created.')
     action = me.DictField(required=True,
-                help_text=u'The action executed by this instance.')
+                help_text='The action executed by this instance.')
     runner_parameters = me.DictField(default={},
-                help_text=u'The key-value pairs passed as parameters to the action runner.')
+                help_text='The key-value pairs passed as parameters to the action runner.')
     action_parameters = me.DictField(default={},
-                help_text=u'The key-value pairs passed as parameters to the execution.')
+                help_text='The key-value pairs passed as parameters to the execution.')
 
     # TODO: Move result data to dict of embedded documents.... to support multiple action
     #       targets.
     # result_data = me.ListField( me.EmbeddedDocumentField(ActionExecutionResultDB),
-    #                           help_text=u'Output from action. Key values are hostnames.')
+    #                           help_text='Output from action. Key values are hostnames.')
     # result_data = me.EmbeddedDocumentField(ActionExecutionResultDB, default=ActionExecutionResultDB(),
-    #             help_text=u'Output from action. Key values are hostnames.')
+    #             help_text='Output from action. Key values are hostnames.')
 
     exit_code = me.StringField(default='',
-                           help_text=u'Exit code for action.')
+                           help_text='Exit code for action.')
     # std_out = me.ListField(default=[],
     std_out = me.StringField(default='',
-                           help_text=u'List of stdout output strings in output order.')
+                           help_text='List of stdout output strings in output order.')
     # std_err = me.ListField(default=[],
     std_err = me.StringField(default='',
-                           help_text=u'List of stdout output strings in output order.')
+                           help_text='List of stdout output strings in output order.')
 
     # TODO: Write generic str function for API and DB model base classes
     def __str__(self):

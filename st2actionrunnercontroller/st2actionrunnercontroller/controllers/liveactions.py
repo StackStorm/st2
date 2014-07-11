@@ -51,23 +51,40 @@ class LiveActionsController(RestController):
         LOG.debug('GET /liveactions/ with id=%s, client_result=%s', id, liveaction_api)
         return liveaction_api
 
-    @wsme_pecan.wsexpose([LiveActionAPI])
-    def get_all(self):
+    @wsme_pecan.wsexpose([LiveActionAPI], wstypes.text)
+    def get_all(self, actionexecution_id=None):
         """
             List all liveactions.
 
             Handles requests:
                 GET /liveactions/
+                GET /liveactions/?actionexecution_id=2
         """
 
-        LOG.info('GET all /liveactions/')
+        # "actionexecution_id" is exposed to client. actionexec_id is more convenient to use in the code.
+        actionexec_id = actionexecution_id
+        LOG.info('GET all /liveactions/ with actionexecution_id="%s"', actionexec_id)
 
-        liveaction_apis = [LiveActionAPI.from_model(liveaction_db)
-                           for liveaction_db in LiveAction.get_all()]
+        liveactions_db = []
+
+        if actionexec_id:
+            try:
+                dbs = get_liveactions_by_actionexec_id(actionexec_id)
+            except StackStormDBObjectNotFoundError as e:
+                LOG.error('GET /liveactions/ with actionexecution_id="%s": %s',
+                          actionexec_id, e.message)
+                abort(httplib.NOT_FOUND)
+            liveactions_db.extend(dbs)
+        else:
+            # Get all
+            liveactions_db.extend(LiveAction.get_all())
+
+        # Convert to API objects before returning to client
+        liveactions_api = [LiveActionAPI.from_model(db) for db in liveactions_db]
 
         # TODO: unpack list in log message
-        LOG.debug('GET all /liveactions/ client_result=%s', liveaction_apis)
-        return liveaction_apis
+        LOG.debug('GET all /liveactions/ client_result=%s', liveactions_api)
+        return liveactions_api
 
     # @expose('json')
     # def post(self, **kwargs):

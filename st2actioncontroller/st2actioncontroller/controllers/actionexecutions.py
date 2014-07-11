@@ -11,6 +11,7 @@ from pecan.rest import RestController
 import requests
 
 from wsme import types as wstypes
+from wsme import Unset
 import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
@@ -157,6 +158,18 @@ class ActionExecutionsController(RestController):
         LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
 
         actionexecution.start_timestamp = datetime.datetime.now()
+
+        # Fill-in runner_parameters and action_parameter fields if they are not
+        # provided in the request.
+        if actionexecution.runner_parameters is Unset:
+            LOG.warning('POST /actionexecutions/ request did not '
+                        'provide runner_parameters field.')
+            actionexecution.runner_parameters = {}
+            
+        if actionexecution.action_parameters is Unset:
+            LOG.warning('POST /actionexecutions/ request did not '
+                        'provide action_parameters field.')
+            actionexecution.action_parameters = {}
 
         (action_db, action_dict) = get_action_by_dict(actionexecution.action)
         if not action_db:

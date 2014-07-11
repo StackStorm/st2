@@ -8,7 +8,7 @@ ACTION_1 = {
     'artifact_paths': ['/tmp/test'],
     'entry_point': 'action1.sh',
     'runner_type': 'shell',
-    'parameter_names': ['a', 'b']
+    'parameters': {'a': 'A1', 'b': 'B1'}
 }
 # ACTION_2: Good action definition.
 ACTION_2 = {
@@ -18,7 +18,7 @@ ACTION_2 = {
     'artifact_paths': ['/tmp/test'],
     'entry_point': 'action2.py',
     'runner_type': 'python',
-    'parameter_names': ['c', 'd']
+    'parameters': {'c': 'C1', 'D': 'D1'}
 }
 # ACTION_3: No enabled field
 ACTION_3 = {
@@ -27,7 +27,7 @@ ACTION_3 = {
     'artifact_paths': ['/tmp/test'],
     'entry_point': 'action1.sh',
     'runner_type': 'shell',
-    'parameter_names': ['a', 'b']
+    'parameters': {'a': 'A1', 'b': 'B1'}
 }
 # ACTION_4: Enabled field is False
 ACTION_4 = {
@@ -37,7 +37,7 @@ ACTION_4 = {
     'artifact_paths': ['/tmp/test'],
     'entry_point': 'action1.sh',
     'runner_type': 'shell',
-    'parameter_names': ['a', 'b']
+    'parameters': {'a': 'A1', 'b': 'B1'}
 }
 # ACTION_5: Invalid runner_type
 ACTION_5 = {
@@ -47,7 +47,7 @@ ACTION_5 = {
     'artifact_paths': ['/tmp/test'],
     'entry_point': 'action1.sh',
     'runner_type': 'xyzxyz',
-    'parameter_names': ['a', 'b']
+    'parameters': {'a': 'A1', 'b': 'B1'}
 }
 # ACTION_6: No description field.
 ACTION_6 = {
@@ -56,7 +56,7 @@ ACTION_6 = {
     'artifact_paths': ['/tmp/test'],
     'entry_point': 'action1.sh',
     'runner_type': 'shell',
-    'parameter_names': ['a', 'b']
+    'parameters': {'a': 'A1', 'b': 'B1'}
 }
 # ACTION_7: id field provided
 ACTION_7 = {
@@ -67,7 +67,7 @@ ACTION_7 = {
     'artifact_paths': ['/tmp/test'],
     'entry_point': 'action1.sh',
     'runner_type': 'shell',
-    'parameter_names': ['a', 'b']
+    'parameters': {'a': 'A1', 'b': 'B1'}
 }
 
 

@@ -38,22 +38,17 @@ class ShellRunner(ActionRunner):
 
     def __init__(self):
         ActionRunner.__init__(self)
+        self._shell = None
+        self._args = None
 
     def pre_run(self):
         LOG.debug('Entering ShellRunner.pre_run() for liveaction_id="%s"', self.liveaction_id)
 
-        self._shell = self.parameters[SHELL_PARAM]
-        if ARGS_PARAM in self.parameters:
-            self._args = self.parameters[ARGS_PARAM]
-        else:
-            # Use the 'args' param from the action_parameters if it
-            # was not provided in runner parameters.
-            self._args = self.action_parameters[ARGS_PARAM]
+        self._shell = self.runner_parameters[SHELL_PARAM]
+        if ARGS_PARAM in self.runner_parameters:
+            self._args = self.runner_parameters[ARGS_PARAM]
 
-        if self._args is None:
-            LOG.warning('No value for "%s" provided to Shell Runner for liveaction_id="%s".',
-                        ARGS_PARAM, self.liveaction_id)
-            self._args = ''
+        # See handling of 'args' from action_parameters in run() method.
 
         LOG.debug('    [ShellRunner,liveaction_id="%s"] Runner argument "%s" is: "%s"',
                   self.liveaction_id, SHELL_PARAM, self._shell)
@@ -78,16 +73,27 @@ class ShellRunner(ActionRunner):
         """
         LOG.debug('Entering ShellRunner.run() for liveaction_id="%s"', self.liveaction_id)
 
+        if ARGS_PARAM in action_parameters:
+            # Use the 'args' param from the action_parameters if it
+            # was not provided in runner parameters.
+            self._args = action_parameters[ARGS_PARAM]
+
+        if self._args is None:
+            LOG.warning('No value for "%s" provided to Shell Runner for liveaction_id="%s".',
+                        ARGS_PARAM, self.liveaction_id)
+            self._args = ''
+
         old_dir = os.getcwd()
         os.chdir(self._workingdir)
         command_list = shlex.split(str(self.entry_point) + ' ' + str(self._args))
 
-        # Convert env dictionary to strings rather than unicode strings.
-        # Trying to get shell variables working.
-        command_env = dict([(str(k), str(v)) for (k,v) in action_parameters.items()])
+        # Convert shell environment dictionary to strings and omit any args that have not been set by
+        # the user. (Value is None.)
+        command_env = dict([(str(k), str(v)) for (k,v) in action_parameters.items() if v is not None])
         for name in CONSUMED_ACTION_PARAMETERS:
             if name in command_env:
                 del command_env[name]
+
         LOG.debug('    [ShellRunner,liveaction_id="%s"] command is: "%s"',
                   self.liveaction_id, command_list)
         LOG.debug('    [ShellRunner,liveaction_id="%s"] command env is: %s',

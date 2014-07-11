@@ -33,7 +33,7 @@ all: requirements web tests
 # Target for debugging Makefile variable assembly
 .PHONY: play
 play:
-	echo $(COMPONENTS_TEST)
+	echo $(COMPONENTS)
 
 .PHONY: check
 check: flake8 pep8
@@ -58,6 +58,9 @@ flake8: requirements
 
 .PHONY: clean
 clean:
+	@echo "Removing all .pyc files"
+	find $(COMPONENTS)  -name \*.pyc -type f -print0 | xargs -0 -I {} rm {}
+	@echo "Removing generated documentation"
 	rm -rf $(DOC_DIR)/html $(DOC_DIR)/latex $(DOC_DIR)/rtf
 
 .PHONY: distclean

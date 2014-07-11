@@ -104,15 +104,20 @@ class RunnerContainer():
         runner_parameters = actiontype_db.runner_parameters
         runner_parameters.update(actionexec_db.runner_parameters)
 
-        # TODO: Support default parameter values
-        action_parameters = actionexec_db.action_parameters
+        # Create action parameters by merging default values with dynamic values
+        action_parameters = {}
+        action_action_parameters = dict(action_db.parameters)
+        action_parameters.update(action_action_parameters)
+
+        actionexec_action_parameters = dict(actionexec_db.action_parameters)
+        action_parameters.update(actionexec_action_parameters)
 
         runner.set_liveaction_id(liveaction_id)
         runner.set_container_service(RunnerContainerService(self))
 
         runner.set_artifact_paths(action_db.artifact_paths)
         runner.set_entry_point(action_db.entry_point)
-        runner.set_parameters(runner_parameters)
+        runner.set_runner_parameters(runner_parameters)
 
         LOG.debug('Performing pre-run for runner: %s', runner)
         runner.pre_run()
