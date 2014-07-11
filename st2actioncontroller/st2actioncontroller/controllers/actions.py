@@ -130,7 +130,6 @@ class ActionsController(RestController):
 
         LOG.info('DELETE /actions/ with id="%s" and name="%s"', id, name)
 
-
         # Lookup object by ID or name
         if id:
             try:

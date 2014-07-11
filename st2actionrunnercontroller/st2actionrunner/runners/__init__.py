@@ -10,7 +10,7 @@ class ActionRunner():
     def __init__(self):
         self.container_service = None
         self.liveaction_id = None
-        self.parameters = None
+        self.runner_parameters = None
         self.entry_point = None
         self.artifact_paths = None
 
@@ -20,10 +20,10 @@ class ActionRunner():
     def set_liveaction_id(self, liveaction_id):
         self.liveaction_id = liveaction_id
 
-    # Consider making set_parameters abstract rather than
-    # forcing a dict-model of parameters on ActionRunner developers.
-    def set_parameters(self, parameters):
-        self.parameters = parameters
+    # Consider making set_runner_parameters abstract rather than
+    # forcing a dict-model of runner_parameters on ActionRunner developers.
+    def set_runner_parameters(self, parameters):
+        self.runner_parameters = parameters
 
     def set_artifact_paths(self, paths):
         self.artifact_paths = paths
@@ -52,7 +52,7 @@ class ActionRunner():
         result.append('(')
         result.append('liveaction_id="%s", ' % self.liveaction_id)
         result.append('container_service="%s", ' % self.container_service)
-        result.append('runner_parameters="%s", ' % self.parameters)
+        result.append('runner_parameters="%s", ' % self.runner_parameters)
         result.append('artifact_paths="%s", ' % self.artifact_paths)
         result.append('entry_point="%s"' % self.entry_point)
         result.append(')')

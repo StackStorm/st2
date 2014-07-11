@@ -30,7 +30,7 @@ class ActionAPI(StormBaseAPI):
     entry_point = wstypes.text
     runner_type = wstypes.text
     # TODO: Support default parameter values
-    parameter_names = wstypes.ArrayType(str)
+    parameters = wstypes.DictType(str, str)
 
     @classmethod
     def from_model(kls, model):
@@ -41,7 +41,7 @@ class ActionAPI(StormBaseAPI):
         action.artifact_paths = [str(v) for v in model.artifact_paths]
         action.entry_point = str(model.entry_point)
         action.runner_type = str(model.runner_type)
-        action.parameter_names = [str(v) for v in model.parameter_names]
+        action.parameters = dict(model.parameters)
         LOG.debug('exiting ActionAPI.from_model() Result object: %s', action)
         return action
 
@@ -54,7 +54,7 @@ class ActionAPI(StormBaseAPI):
         model.artifact_paths = [str(v) for v in action.artifact_paths]
         model.entry_point = str(action.entry_point)
         model.runner_type = str(action.runner_type)
-        model.parameter_names = [str(v) for v in action.parameter_names]
+        model.parameters = dict(action.parameters)
 
         LOG.debug('exiting ActionAPI.to_model() Result object: %s', model)
         return model
@@ -72,7 +72,7 @@ class ActionAPI(StormBaseAPI):
         result.append('artifact_paths="%s",' % str(self.artifact_paths))
         result.append('entry_point="%s",' % self.entry_point)
         result.append('runner_type="%s",' % self.runner_type)
-        result.append('parameter_names="%s",' % str(self.parameter_names))
+        result.append('parameters="%s",' % str(self.parameters))
         result.append('uri="%s")' % self.uri)
         return ''.join(result)
 
