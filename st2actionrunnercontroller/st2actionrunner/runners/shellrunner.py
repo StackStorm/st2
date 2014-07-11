@@ -87,9 +87,10 @@ class ShellRunner(ActionRunner):
         os.chdir(self._workingdir)
         command_list = shlex.split(str(self.entry_point) + ' ' + str(self._args))
 
-        # Convert shell environment dictionary to strings and omit any args that have not been set by
-        # the user. (Value is None.)
-        command_env = dict([(str(k), str(v)) for (k,v) in action_parameters.items() if v is not None])
+        # Convert shell environment dictionary to strings and omit any args that
+        # have not been set by the user. (Value is None.)
+        command_env = dict([(str(k), str(v))
+                            for (k, v) in action_parameters.items() if v is not None])
         for name in CONSUMED_ACTION_PARAMETERS:
             if name in command_env:
                 del command_env[name]

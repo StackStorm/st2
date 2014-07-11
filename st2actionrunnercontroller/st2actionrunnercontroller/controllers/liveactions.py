@@ -61,7 +61,8 @@ class LiveActionsController(RestController):
                 GET /liveactions/?actionexecution_id=2
         """
 
-        # "actionexecution_id" is exposed to client. actionexec_id is more convenient to use in the code.
+        # "actionexecution_id" is exposed to client, but
+        # "actionexec_id" is more convenient to use in the code.
         actionexec_id = actionexecution_id
         LOG.info('GET all /liveactions/ with actionexecution_id="%s"', actionexec_id)
 

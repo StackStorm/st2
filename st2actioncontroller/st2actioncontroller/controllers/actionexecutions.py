@@ -165,7 +165,7 @@ class ActionExecutionsController(RestController):
             LOG.warning('POST /actionexecutions/ request did not '
                         'provide runner_parameters field.')
             actionexecution.runner_parameters = {}
-            
+
         if actionexecution.action_parameters is Unset:
             LOG.warning('POST /actionexecutions/ request did not '
                         'provide action_parameters field.')
