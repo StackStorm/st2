@@ -36,10 +36,10 @@ if [[ ${1} == "start" ]]; then
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate
 
-    # Run the reactor API server
-    echo 'Starting screen session st2-reactor...'
-    screen -d -m -S st2-reactor ./virtualenv/bin/python \
-        ./st2reactorcontroller/bin/reactor_controller \
+    # Run the datastore API server
+    echo 'Starting screen session st2-datastore...'
+    screen -d -m -S st2-datastore ./virtualenv/bin/python \
+        ./st2datastore/bin/datastore_controller \
         --config-file ./conf/stanley.conf
 
     # Run the action runner API server
@@ -52,32 +52,41 @@ if [[ ${1} == "start" ]]; then
     echo 'Starting screen session st2-action...'
     screen -d -m -S st2-action ./virtualenv/bin/python \
         ./st2actioncontroller/bin/action_controller \
-        --config-file ./conf/stanley.conf 
+        --config-file ./conf/stanley.conf
 
-    # Run the datastore API server
-    echo 'Starting screen session st2-datastore...'
-    screen -d -m -S st2-datastore ./virtualenv/bin/python \
-        ./st2datastore/bin/datastore_controller \
+    # Run the reactor server
+    echo 'Starting screen session st2-reactor...'
+    screen -d -m -S st2-reactor ./virtualenv/bin/python \
+        ./st2reactor/bin/sensor_container \
+        --config-file ./conf/stanley.conf
+
+    # Run the reactor API server
+    echo 'Starting screen session st2-reactorcontroller...'
+    screen -d -m -S st2-reactorcontroller ./virtualenv/bin/python \
+        ./st2reactorcontroller/bin/reactor_controller \
         --config-file ./conf/stanley.conf
 
 elif [[ ${1} == "stop" ]]; then
 
     echo "Stopping all Stanley servers..."
 
-    # Stop the datastore API server
-    echo "Terminating the screen session for st2-datastore..."
-    screen -X -S st2-datastore quit
+    # Stop the reactor API server
+    echo "Terminating the screen session for st2-reactorcontroller..."
+    screen -X -S st2-reactorcontroller quit
+
+    # Stop the reactor server
+    echo "Terminating the screen session for st2-reactor..."
+    screen -X -S st2-reactor quit
 
     # Stop the action API server
     echo "Terminating the screen session for st2-action..."
     screen -X -S st2-action quit
 
-    # Stop the reactor API server
-    echo "Terminating the screen session for st2-reactor..."
-    screen -X -S st2-reactor quit
-
     # Stop the action runner API server
     echo "Terminating the screen session for st2-actionrunner..."
     screen -X -S st2-actionrunner quit
 
+    # Stop the datastore API server
+    echo "Terminating the screen session for st2-datastore..."
+    screen -X -S st2-datastore quit
 fi
