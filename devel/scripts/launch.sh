@@ -33,6 +33,9 @@ if [[ ${1} == "start" ]]; then
     echo "Changing working directory to ${ST2_REPO}..."
     cd ${ST2_REPO}
 
+    # activate virtualenv to set PYTHONPATH
+    source ./virtualenv/bin/activate
+
     # Run the reactor API server
     echo 'Starting screen session st2-reactor...'
     screen -d -m -S st2-reactor ./virtualenv/bin/python \
