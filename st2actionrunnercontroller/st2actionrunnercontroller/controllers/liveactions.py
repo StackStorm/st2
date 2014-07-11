@@ -23,6 +23,13 @@ from st2actionrunnercontroller.controllers import runner_container
 LOG = logging.getLogger(__name__)
 
 
+# Asynchronous execution results in the LiveAction controller returning
+# a "success" indication to clients when a POST operation is performed.
+# In this case, the client must not assume that the execution completed
+# before the POST operation returns.
+ASYNCHRONOUS_EXECUTION = False
+
+
 class LiveActionsController(RestController):
     """
         Implements the RESTful web endpoint that handles
@@ -163,9 +170,13 @@ class LiveActionsController(RestController):
         LOG.audit('Launching LiveAction command with liveaction_db="%s", actiontype_db="%s", '
                   'action_db="%s", actionexec_db="%s"', liveaction_db, actiontype_db,
                   action_db, actionexec_db)
-        global runner_container
-        result = runner_container.dispatch(liveaction_db, actiontype_db, action_db, actionexec_db)
-        LOG.info('Runner dispatch produced result: %s', result)
+
+        if ASYNCHRONOUS_EXECUTION:
+            raise NotImplementedError('Error: Asynchronous execution of Live Action not yet implemented')
+        else:
+            global runner_container
+            result = runner_container.dispatch(liveaction_db, actiontype_db, action_db, actionexec_db)
+            LOG.info('Runner dispatch produced result: %s', result)
 
         if not result:
             # Return different code for live action execution failure
