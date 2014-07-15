@@ -28,7 +28,9 @@ sed -i -r "s~st2reactor/(st2reactor/sensor/samples)~/etc/\1~g" conf/stanley.conf
 mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/etc/stanley
+mkdir -p %{buildroot}/opt/stackstorm/repo
 #/bin/pip install --install-option="--prefix=%{buildroot}" -r requirements.txt
+cp -R content/default/sensors/aws/ec2sensor.py %{buildroot}/opt/stackstorm/
 cp -R external/mirantis %{buildroot}%{python2_sitelib}/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 install conf/stanley.conf %{buildroot}/etc/stanley/stanley.conf
@@ -38,4 +40,4 @@ install conf/stanley.conf %{buildroot}/etc/stanley/stanley.conf
 %{python2_sitelib}/st2common*
 %{python2_sitelib}/mirantis*
 /etc/stanley/*
-
+/opt/stackstorm/*
