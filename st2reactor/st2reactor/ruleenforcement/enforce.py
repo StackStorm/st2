@@ -48,8 +48,11 @@ class RuleEnforcer(object):
 
     @staticmethod
     def __get_rules(filter_func, trigger_instance):
-        return filter(filter_func,
-                      Rule.query(trigger_type=trigger_instance.trigger, enabled=True))
+        trigger_type = {'name': trigger_instance.trigger['name']}
+        rules = Rule.query(trigger_type=trigger_type, enabled=True)
+        LOG.info('Found %d rules defined for trigger %s.' % (len(rules),
+                 trigger_instance.trigger))
+        return filter(filter_func, rules)
 
     @staticmethod
     def __get_action_name(action_exec_spec):
