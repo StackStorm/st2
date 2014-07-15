@@ -17,6 +17,7 @@ An automation plaform that needs a much better description than this.
 %setup
 
 %build
+sed -i -r "s~logs~/var/log/stanley~g" conf/logging.conf
 
 %install
 
