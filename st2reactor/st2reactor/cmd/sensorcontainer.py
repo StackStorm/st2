@@ -56,7 +56,7 @@ def _load_sensor_modules(path):
     if not os.path.isdir(path):
         raise Exception('Directory containing sensors must be provided.')
 
-    LOG.info('Loading sensor modules from path: %s' % path)
+    LOG.info('Loading sensor modules from path: %s', path)
 
     plugins = []
     for (dirpath, dirnames, filenames) in os.walk(path):
@@ -66,7 +66,7 @@ def _load_sensor_modules(path):
         files = [f for f in files if not re.match(excludes, f)]
         plugins.extend(files)
         break
-    LOG.info('Found %d sensor modules in path.' % len(plugins))
+    LOG.info('Found %d sensor modules in path.', len(plugins))
 
     plugins_dict = defaultdict(list)
     for plugin in plugins:
@@ -151,7 +151,9 @@ def main():
     if _is_single_sensor_mode():
         return _run_sensor(cfg.CONF.sensor_path)
     else:
-        sensors_dict = _load_sensor_modules(os.path.realpath(cfg.CONF.sensors.modules_path))
+        sensors_dict = _load_sensor_modules(os.path.realpath(cfg.CONF.sensors.system_path))
+        user_sensor_dict = _load_sensor_modules(os.path.realpath(cfg.CONF.sensors.modules_path))
+        sensors_dict.update(user_sensor_dict)
         LOG.info('Found %d sensors.', len(sensors_dict))
         exit_code = _run_sensors(sensors_dict)
         _teardown()

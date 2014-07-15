@@ -27,6 +27,8 @@ sensors_opts = [
     cfg.StrOpt('modules_path', default='/var/lib/stanley/sensors/modules/',
         help='path to load sensor modules from'),
     cfg.StrOpt('scripts_path', default='/var/lib/stanley/sensors/scripts',
+        help='path to load sensor scripts from'),
+    cfg.StrOpt('system_path', default='st2reactor/st2reactor/sensor/samples',
         help='path to load sensor scripts from')
 ]
 CONF.register_opts(sensors_opts, group='sensors')
