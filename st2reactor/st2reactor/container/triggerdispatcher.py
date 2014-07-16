@@ -2,7 +2,7 @@ import datetime
 
 from st2common import log as logging
 import st2reactor.container.utils as container_utils
-import st2reactor.ruleenforcement.enforce as rules_engine
+from st2reactor.rules.engine import RulesEngine
 
 LOG = logging.getLogger('st2reactor.sensor.dispatcher')
 
@@ -10,7 +10,7 @@ LOG = logging.getLogger('st2reactor.sensor.dispatcher')
 class TriggerDispatcher(object):
 
     def __init__(self):
-        pass
+        self.rules_engine = RulesEngine()
 
     def dispatch(self, triggers):
         """
@@ -26,4 +26,4 @@ class TriggerDispatcher(object):
                 trigger_instances.append(ti)
 
         if trigger_instances:
-            rules_engine.handle_trigger_instances(trigger_instances)
+            self.rules_engine.handle_trigger_instances(trigger_instances)
