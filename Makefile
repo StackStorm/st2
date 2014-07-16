@@ -130,5 +130,6 @@ install:
 
 .PHONY: rpms
 rpms:
+	rm -Rf ~/rpmbuild
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make rpm; popd;)
 	pushd st2client && make rpm && popd
