@@ -2,7 +2,7 @@
 # Prototype stackstorm hubot integration
 #
 # Commands:
-#   hubot execute <command> [<argument>, ...] - calls out to run the shell staction.
+#   hubot run <command> [<argument>, ...] - calls out to run the shell staction.
 
 
 _ = require 'lodash'
@@ -76,7 +76,7 @@ module.exports = (robot) ->
       robot.commands.push formatCommand command, d.actiontypes[command.runner_type]
 
   # responder to run a staction
-  robot.respond /execute (\w+)\s*(.*)?/i, (msg) ->
+  robot.respond /run\s+(\S+)\s*(.*)?/i, (msg) ->
     [command, command_args] = msg.match[1..]
 
     rvsp.hash
@@ -108,4 +108,7 @@ module.exports = (robot) ->
             msg.send "Action has failed to execute"
             return
 
-          msg.send "Action has been completed sucessfully"
+          msg.send "STATUS: #{action_execution.status}"
+          msg.send "STDOUT: #{action_execution.std_out}"
+          msg.send "STDERR: #{action_execution.std_err}"
+          msg.send "EXIT_CODE: #{action_execution.exit_code}"
