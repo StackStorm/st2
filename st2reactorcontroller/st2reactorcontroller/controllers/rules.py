@@ -1,6 +1,6 @@
 import httplib
 import wsmeext.pecan as wsme_pecan
-from mongoengine import ValidationError
+from mongoengine import ValidationError, NotUniqueError
 from pecan import abort
 from pecan.rest import RestController
 from st2common import log as logging
@@ -57,13 +57,15 @@ class RuleController(RestController):
         try:
             rule_db = RuleAPI.to_model(rule)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
+            rule_db = Rule.add_or_update(rule_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
             abort(httplib.BAD_REQUEST, str(e))
+        except NotUniqueError as e:
+            LOG.exception('Rule creation of %s failed with uniqueness conflict.', rule)
+            abort(httplib.CONFLICT, str(e))
 
-        rule_db = Rule.add_or_update(rule_db)
         LOG.debug('/rules/ POST saved RuleDB object=%s', rule_db)
-
         rule_api = RuleAPI.from_model(rule_db)
         LOG.debug('POST /rules/ client_result=%s', rule_api)
 
