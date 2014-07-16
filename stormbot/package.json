@@ -1,0 +1,34 @@
+{
+  "name": "hosted-hubot",
+  "version": "2.7.1",
+  "private": true,
+  "author": "GitHub Inc.",
+  "keywords": [
+    "github",
+    "hubot",
+    "campfire",
+    "bot"
+  ],
+  "description": "A simple helpful robot for your Company",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/github/hubot/raw/master/LICENSE"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/github/hubot.git"
+  },
+  "dependencies": {
+    "hubot": "git://github.com/enykeev/hubot.git#feature/cwd",
+    "hubot-scripts": ">= 2.5.0 < 3.0.0",
+    "lodash": "~2.4.1",
+    "rsvp": "^3.0.9",
+    "hubot-hipchat": "~2.7.5"
+  },
+  "engines": {
+    "node": ">= 0.8.x",
+    "npm": ">= 1.1.x"
+  }
+}

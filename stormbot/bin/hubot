@@ -1,0 +1,10 @@
+#!/bin/sh
+
+BASEDIR=$(dirname $0)
+
+npm install --prefix $BASEDIR/..
+
+export PATH="$BASEDIR/../node_modules/.bin:$BASEDIR/../node_modules/hubot/node_modules/.bin:$PATH"
+export HUBOT_PATH="$BASEDIR/.."
+
+exec $BASEDIR/../node_modules/.bin/hubot "$@"
