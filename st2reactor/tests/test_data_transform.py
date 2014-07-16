@@ -1,10 +1,9 @@
-import sys
 import copy
 
 from st2tests import DbTestCase
 from st2common.models.db.datastore import KeyValuePairDB
 from st2common.persistence.datastore import KeyValuePair
-from st2reactor.ruleenforcement import datatransform
+from st2reactor.rules import datatransform
 
 
 PAYLOAD = {'k1': 'v1', 'k2': 'v2'}

@@ -9,10 +9,12 @@ less_than = lambda v1, v2: v1 < v2
 
 greater_than = lambda v1, v2: v1 > v2
 
+
 def match_regex(value, match_pattern):
     regex = re.compile(match_pattern)
     # check for a match and not for details of the match.
     return regex.match(value) is not None
+
 
 def _timediff(diff_target, period_seconds, operator):
     # pickup now in UTC to compare against
@@ -22,11 +24,13 @@ def _timediff(diff_target, period_seconds, operator):
     diff_target_utc = datetime.strptime(diff_target, '%Y-%m-%dT%H:%M:%S.%f')
     return operator((utc_now - diff_target_utc).total_seconds(), period_seconds)
 
+
 def timediff_lt(diff_target, period):
     return _timediff(diff_target, period, less_than)
 
+
 def timediff_gt(diff_target, period):
-        return _timediff(diff_target, period, greater_than)
+    return _timediff(diff_target, period, greater_than)
 
 
 # operator match strings
@@ -58,6 +62,7 @@ operators = {
     TIMEDIFF_GT_LONG: timediff_gt,
     DEFAULT: match_regex
 }
+
 
 def get_operator(op):
     return operators[op] if op in operators else operators[DEFAULT]

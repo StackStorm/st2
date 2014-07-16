@@ -4,7 +4,7 @@ from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
     RuleDB, ActionExecutionSpecDB
 from st2common.models.db.action import ActionDB
 from st2common.util import reference
-from st2reactor.ruleenforcement import filter
+from st2reactor.rules.filter import RuleFilter
 
 MOCK_TRIGGER = TriggerDB()
 MOCK_TRIGGER.id = 'trigger-test.id'
@@ -38,25 +38,25 @@ MOCK_RULE_2.action.action = reference.get_ref_from_model(MOCK_ACTION)
 class FilterTest(unittest2.TestCase):
 
     def test_matchregex_operator_pass_criteria(self):
-        f = filter.get_filter(MOCK_TRIGGER_INSTANCE)
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.p1': {'type': 'matchregex', 'pattern': 'v1$'}}
-        self.assertTrue(f.apply_filter(rule), 'Failed to pass evaluation.')
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, rule)
+        self.assertTrue(f.filter(), 'Failed to pass evaluation.')
 
     def test_matchregex_operator_fail_criteria(self):
-        f = filter.get_filter(MOCK_TRIGGER_INSTANCE)
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.p1': {'type': 'matchregex', 'pattern': 'v$'}}
-        self.assertFalse(f.apply_filter(rule), 'regex check should have failed.')
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, rule)
+        self.assertFalse(f.filter(), 'regex check should have failed.')
 
     def test_equals_operator_pass_criteria(self):
-        f = filter.get_filter(MOCK_TRIGGER_INSTANCE)
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': 'v1'}}
-        self.assertTrue(f.apply_filter(rule), 'regex check should have failed.')
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, rule)
+        self.assertTrue(f.filter(), 'regex check should have failed.')
 
     def test_equals_operator_fail_criteria(self):
-        f = filter.get_filter(MOCK_TRIGGER_INSTANCE)
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': 'v'}}
-        self.assertFalse(f.apply_filter(rule), 'equals check should have failed.')
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, rule)
+        self.assertFalse(f.filter(), 'equals check should have failed.')
