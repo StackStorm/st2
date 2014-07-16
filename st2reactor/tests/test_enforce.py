@@ -1,12 +1,12 @@
 import datetime
 import mock
 import unittest2
-from st2common.persistence.reactor import Rule, RuleEnforcement
+from st2common.persistence.reactor import RuleEnforcement
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
     RuleDB, ActionExecutionSpecDB
 from st2common.models.db.action import ActionDB, ActionExecutionDB
 from st2common.util import reference
-from st2reactor.ruleenforcement.enforce import RuleEnforcer
+from st2reactor.rules.enforcer import RuleEnforcer
 
 MOCK_TRIGGER = TriggerDB()
 MOCK_TRIGGER.id = 'trigger-test.id'
@@ -45,35 +45,11 @@ MOCK_RULE_2.enabled = True
 
 class EnforceTest(unittest2.TestCase):
 
-    @mock.patch.object(Rule, 'query', mock.MagicMock(
-        return_value=[MOCK_RULE_1]))
     @mock.patch.object(RuleEnforcement, 'add_or_update')
     @mock.patch.object(RuleEnforcer, '_RuleEnforcer__invoke_action', mock.MagicMock(
         return_value=reference.get_ref_from_model(MOCK_ACTION_EXECUTION)))
-    def test_single_ruleenforcement_creation(self, mock_ruleenforcement_add):
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE)
+    def test_ruleenforcement_creation(self, mock_ruleenforcement_add):
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, MOCK_RULE_1)
         enforcer.enforce()
         self.assertEqual(mock_ruleenforcement_add.call_count, 1,
                          'Expected RuleEnforcement(s) not added.')
-
-    @mock.patch.object(Rule, 'query', mock.MagicMock(
-        return_value=[MOCK_RULE_1, MOCK_RULE_2]))
-    @mock.patch.object(RuleEnforcement, 'add_or_update')
-    @mock.patch.object(RuleEnforcer, '_RuleEnforcer__invoke_action', mock.MagicMock(
-        return_value=reference.get_ref_from_model(MOCK_ACTION_EXECUTION)))
-    def test_multiple_ruleenforcement_creation(
-            self, mock_ruleenforcement_add):
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE)
-        enforcer.enforce()
-        self.assertEqual(mock_ruleenforcement_add.call_count, 2,
-                         'Expected RuleEnforcement(s) not added.')
-
-    @mock.patch.object(Rule, 'query', mock.MagicMock(
-        return_value=[MOCK_RULE_1, MOCK_RULE_2]))
-    @mock.patch.object(RuleEnforcement, 'add_or_update', mock.MagicMock())
-    @mock.patch.object(RuleEnforcer, '_RuleEnforcer__invoke_action')
-    def test_action_execution(self, mock_ruleenforcer_invokeaction):
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE)
-        enforcer.enforce()
-        self.assertEqual(mock_ruleenforcer_invokeaction.call_count, 2,
-                         'Expected no of invokes not called.')
