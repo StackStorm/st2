@@ -1,0 +1,10 @@
+{
+    "name": "aggregate-ordered-events",
+    "runner_type": "shell",
+    "description": "Aggregate an ordered list of events.",
+    "enabled": true,
+    "artifact_paths": ["actions/correlation"],
+    "entry_point": "actions/correlation/eval_ordered_events.py",
+    "parameters": {
+    }
+}
