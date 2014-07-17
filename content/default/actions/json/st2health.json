@@ -1,0 +1,9 @@
+{ "name": "st2health"
+, "runner_type": "shell"
+, "description": "This script touches a file to be used for monitoring purposes"
+, "enabled": true
+, "artifact_paths": ["actions/st2generic"]
+, "uri": null
+, "entry_point": "actions/st2generic/file_touch"
+, "parameters": {"args": "/opt/stackstorm/.st2health"}
+}
