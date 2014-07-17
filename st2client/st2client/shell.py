@@ -86,7 +86,7 @@ class Shell(object):
         self.commands['trigger'] = resource.ResourceBranch(
             reactor.Trigger,
             'TODO: Put description of trigger here.',
-            self, self.subparsers, read_only=True)
+            self, self.subparsers)
 
     def run(self, argv):
         # Parse command line arguments.
