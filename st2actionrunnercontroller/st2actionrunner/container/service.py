@@ -7,7 +7,6 @@ import logging as pylogging
 
 from oslo.config import cfg
 
-from st2actionrunnercontroller import config
 from st2common import log as logging
 
 
