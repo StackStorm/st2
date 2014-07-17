@@ -17,30 +17,32 @@ from st2actionrunner.container import get_runner_container
 LOG = logging.getLogger(__name__)
 
 
-ACTION_TYPES = {'internaldummy-builtin': {'name': 'internaldummy-builtin',
-                                  'description': ('An built-in, internal action type for '
-                                                  'development only.'),
-                                  'enabled': True,
-                                  'runner_parameters': {'command': None},
-                                  'runner_module': 'no.such.module',
-                                  },
-                'internaldummy': {'name': 'internaldummy',
-                                         'description': ('An internal action type for '
-                                                         'development only. Implemented '
-                                                         'using a plugin.'),
-                                         'enabled': True,
-                                         'runner_parameters': {'command': None},
-                                         'runner_module': 'st2actionrunner.runners.internaldummy',
-                                         },
-                'shell': {'name': 'shell',
-                          'description': 'A bash shell action type.',
-                          'enabled': True,
-                          'runner_parameters': {'shell': '/usr/bin/bash',
-                                                'args': None,
-                                                },
-                          'runner_module': 'st2actionrunner.runners.shellrunner',
-                          },
-                }
+ACTION_TYPES = [{'name': 'internaldummy-builtin',
+                 'description': ('An built-in, internal action type for development only.'),
+                 'enabled': True,
+                 'runner_parameters': {'command': None},
+                 'runner_module': 'no.such.module'},
+
+                {'name': 'internaldummy',
+                  'description': ('An internal action type for development only. Implemented '
+                                  'using a plugin.'),
+                  'enabled': True,
+                  'runner_parameters': {'command': None},
+                  'runner_module': 'st2actionrunner.runners.internaldummy'},
+
+                {'name': 'shell',
+                 'description': 'A bash shell action type.',
+                 'enabled': True,
+                 'runner_parameters': {'shell': '/usr/bin/bash',
+                                       'args': None},
+                 'runner_module': 'st2actionrunner.runners.shellrunner'},
+
+                 {'name': 'remote-execution',
+                  'description': 'A remote execution action type.',
+                  'enabled': True,
+                  'runner_parameters': {'host': None,
+                                        'key': None},
+                  'runner_module': 'st2actionrunner.runners.remoterunner'}]
 
 
 class ActionTypesController(RestController):
@@ -51,8 +53,9 @@ class ActionTypesController(RestController):
 
     def _register_internal_actiontypes(self):
         LOG.debug('Registering actiontypes')
-        for name in ACTION_TYPES:
+        for fields in ACTION_TYPES:
             actiontype_db = None
+            name = fields['name']
             try:
                 actiontype_db = get_actiontype_by_name(name)
             except StackStormDBObjectNotFoundError:
@@ -62,7 +65,6 @@ class ActionTypesController(RestController):
 
             if actiontype_db is None:
                 actiontype = ActionTypeAPI()
-                fields = ACTION_TYPES[name]
                 for (key, value) in fields.items():
                     LOG.debug('actiontype name=%s field=%s value=%s', name, key, value)
                     setattr(actiontype, key, value)
