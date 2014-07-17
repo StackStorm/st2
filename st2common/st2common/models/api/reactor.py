@@ -2,7 +2,7 @@ import datetime
 from wsme import types as wstypes
 
 from st2common.models.api.stormbase import StormBaseAPI, StormFoundationAPI
-from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB
+from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerDB
 from st2common.persistence.reactor import Trigger
 from st2common.persistence.action import Action
 
@@ -39,6 +39,12 @@ class TriggerAPI(StormBaseAPI):
         trigger = StormBaseAPI.from_model(kls, model)
         trigger.payload_info = model.payload_info
         return trigger
+
+    @classmethod
+    def to_model(kls, trigger):
+        model = StormBaseAPI.to_model(TriggerDB, trigger)
+        model.payload_info = trigger.payload_info
+        return model
 
 
 class TriggerInstanceAPI(StormFoundationAPI):
