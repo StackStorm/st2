@@ -23,6 +23,9 @@ class TestShell(unittest2.TestCase):
         args_list = [
             ['trigger', 'list'],
             ['trigger', 'get', 'abc'],
+            ['trigger', 'create', '/tmp/trigger.json'],
+            ['trigger', 'update', '123', '/tmp/trigger.json'],
+            ['trigger', 'delete', 'abc']
         ]
         self._validate_parser(args_list)
 
