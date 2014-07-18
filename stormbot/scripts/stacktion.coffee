@@ -27,12 +27,24 @@ parseArgs = (scheme=[], argstr="") ->
   _.zipObject scheme, args
 
 formatCommand = (command, type) ->
-  line = "hubot execute #{command.name} "
-  for arg in type.runner_parameter_names
+  line = "hubot run #{command.name} "
+  for arg in _.keys(command.parameters)
     line += "[#{arg}] "
   line += "- #{command.description}"
 
 module.exports = (robot) ->
+
+  # ST2 Listener
+  robot.router.post '/stormbot/st2', (req, res) ->
+    user = {}
+    if process.env.HUBOT_ADAPTER_ROOM
+      user.room = process.env.HUBOT_ADAPTER_ROOM
+
+    if data = req.body.payload
+      robot.send user, "[#{req.body.type} #{data.event}] #{data.msg}"
+      res.end '{"status": "completed", "msg": "Message posted successfully"}'
+    else
+      res.end '{"status": "failed", "msg": "An error occurred trying to post the message")'
 
   # handle uncaught exceptions
   robot.error (err, msg) ->
@@ -89,12 +101,12 @@ module.exports = (robot) ->
         msg.send "No such action: '#{command}'"
         return
 
-      expectedParams = actiontypes[action.runner_type].runner_parameter_names
+      expectedParams = _.keys(action.parameters)
 
       payload =
         action: action,
-        runner_parameters: parseArgs(expectedParams, command_args)
-        action_parameters: {}
+        runner_parameters: {}
+        action_parameters: parseArgs(expectedParams, command_args)
 
       httpclients.actionexecutions
         .header('Content-Type', 'application/json')
@@ -103,6 +115,7 @@ module.exports = (robot) ->
 
           unless res.statusCode is 201
             msg.send "Action has failed to run"
+            return
 
           unless action_execution.status is 'complete'
             msg.send "Action has failed to execute"
