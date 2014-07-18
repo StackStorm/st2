@@ -46,6 +46,8 @@ class TestShell(unittest2.TestCase):
             ['action', 'create', '/tmp/action.json'],
             ['action', 'update', '123', '/tmp/action.json'],
             ['action', 'delete', 'abc'],
+            ['action', 'execute', '-h'],
+            ['action', 'execute', 'abc', '-h'],
             ['action', 'execute', 'abc', '-r', 'command="uname =a"']
         ]
         self._validate_parser(args_list)

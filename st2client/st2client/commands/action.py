@@ -14,41 +14,12 @@ class ActionBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionBranch, self).__init__(
             action.Action, description, app, subparsers,
-            parent_parser=parent_parser,
-            commands={'help': ActionHelpCommand})
+            parent_parser=parent_parser)
 
         # Registers extended commands
         self.commands['execute'] = ActionExecuteCommand(
-            self.resource, self.app, self.subparsers)
-
-
-class ActionHelpCommand(resource.ResourceCommand):
-
-    def __init__(self, commands, resource, *args, **kwargs):
-        super(ActionHelpCommand, self).__init__(resource, 'help',
-            'Print usage for the given command or action.',
-            *args, **kwargs)
-
-        self.parser.add_argument('command', metavar='command/action',
-                                 help='Name of the command or action.')
-
-        self.commands = commands
-        self.commands['help'] = self
-
-    def run(self, args):
-        pass
-
-    def run_and_print(self, args):
-        if args.command in self.commands:
-            command = self.commands[args.command]
-            command.parser.print_help()
-        else:
-            try:
-                action = self.manager.get_by_name(args.command)
-                print action.description
-            except Exception as e:
-                print 'Action "%s" is not found.' % args.command
-        print
+            self.resource, self.app, self.subparsers,
+            add_help=False)
 
 
 class ActionExecuteCommand(resource.ResourceCommand):
@@ -58,8 +29,11 @@ class ActionExecuteCommand(resource.ResourceCommand):
             'Execute an action manually.',
             *args, **kwargs)
 
-        self.parser.add_argument('name',
+        self.parser.add_argument('name', nargs='?',
                                  help='Name of the action.')
+        self.parser.add_argument('-h', '--help',
+                                 action='store_true', dest='help',
+                                 help='Print usage for the given action.')
         self.parser.add_argument('-p', '--params', nargs='+',
                                  help='List of parameters (i.e. k1=v1 k2=v2) '
                                       'to pass into the action.')
@@ -71,6 +45,8 @@ class ActionExecuteCommand(resource.ResourceCommand):
                                  help='Prints output in JSON format.')
 
     def run(self, args):
+        if not args.name:
+            self.parser.error('too few arguments')
         action_exec_mgr = self.app.client.managers['ActionExecution'] 
         if not self.manager.get_by_name(args.name):
             raise Exception('Action "%s" cannot be found.' % args.name)
@@ -89,6 +65,19 @@ class ActionExecuteCommand(resource.ResourceCommand):
         return action_exec_mgr.create(instance)
 
     def run_and_print(self, args):
+        # Print appropriate help message if the help option is given.
+        if args.help:
+            if args.name:
+                try:
+                    action = self.manager.get_by_name(args.name)
+                    print action.description
+                except Exception as e:
+                    print 'Action "%s" is not found.' % args.name
+            else:
+                self.parser.print_help()
+            return
+
+        # Execute the action.
         instance = self.run(args)
         self.print_output(instance, table.PropertyValueTable,
                           attributes=['all'], json=args.json)
