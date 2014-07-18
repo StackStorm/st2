@@ -14,3 +14,4 @@ prettytable
 pyyaml
 apscheduler>=3.0.0rc1
 python-dateutil
+Fabric
