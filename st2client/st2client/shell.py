@@ -27,8 +27,7 @@ class Shell(object):
 
         # Set up the main parser.
         self.parser = argparse.ArgumentParser(
-            description='TODO: Add description for the CLI here.',
-            add_help=False)
+            description='TODO: Add description for the CLI here.')
 
         # Set up general program options.
         self.parser.add_argument(
@@ -67,9 +66,6 @@ class Shell(object):
         # Set up list of commands and subcommands.
         self.subparsers = self.parser.add_subparsers()
         self.commands = dict()
-        self.commands['help'] = resource.ResourceHelpCommand(
-            self.commands, None, self, self.subparsers,
-            parent_parser=self.parser)
         self.commands['action'] = action.ActionBranch(
             'TODO: Put description of action here.',
             self, self.subparsers)

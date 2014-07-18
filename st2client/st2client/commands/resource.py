@@ -35,8 +35,6 @@ class ResourceBranch(commands.Branch):
                   self.resource.get_plural_display_name().lower()))
 
         # Resolves if commands need to be overridden.
-        if 'help' not in commands:
-            commands['help'] = ResourceHelpCommand
         if 'list' not in commands:
             commands['list'] = ResourceListCommand
         if 'get' not in commands:
@@ -50,7 +48,6 @@ class ResourceBranch(commands.Branch):
 
         # Instantiate commands.
         args = [self.resource, self.app, self.subparsers]
-        self.commands['help'] = commands['help'](self.commands, *args)
         self.commands['list'] = commands['list'](*args)
         self.commands['get'] = commands['get'](*args)
         if not read_only:
@@ -77,40 +74,6 @@ class ResourceCommand(commands.Command):
     def print_not_found(self, name):
         print ('%s "%s" cannot be found.' %
                (self.resource.get_display_name(), name))
-
-
-class ResourceHelpCommand(ResourceCommand):
-
-    def __init__(self, commands, resource, *args, **kwargs):
-        super(ResourceHelpCommand, self).__init__(resource, 'help',
-            'Print usage for the given command.',
-            *args, **kwargs)
-
-        # If parent parser is the top level parser, set the command argument to
-        # optional so that running "prog help" will return the program's help
-        # message instead of throwing the "too few arguments" error.
-        nargs = '?' if self.parent_parser and self.parent_parser.prog else None
-        self.parser.add_argument('command', nargs=nargs,
-                                 help='Name of the command.')
-
-        # Registers this help command in the command list so "prog help help"
-        # will return the help message for this help command.
-        self.commands = commands
-        self.commands['help'] = self
-
-    def run(self, args):
-        pass
-
-    def run_and_print(self, args):
-        if args.command:
-            command = self.commands[args.command]
-            command.parser.print_help()
-        else:
-            if self.parent_parser and self.parent_parser.prog:
-                self.parent_parser.print_help()
-            else:
-                self.parser.print_help()
-        print
 
 
 class ResourceListCommand(ResourceCommand):

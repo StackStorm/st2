@@ -19,8 +19,7 @@ class Branch(object):
         self.parent_parser = parent_parser
         self.parser = subparsers.add_parser(self.name,
                                             description=self.description,
-                                            help=self.description,
-                                            add_help=False)
+                                            help=self.description)
         self.commands = dict()
 
 
@@ -28,7 +27,8 @@ class Branch(object):
 class Command(object):
     """Represents a commandlet in the command tree."""
 
-    def __init__(self, name, description, app, subparsers, parent_parser=None):
+    def __init__(self, name, description, app, subparsers,
+                 parent_parser=None, add_help=True):
         self.name = name
         self.description = description
         self.app = app
@@ -36,7 +36,7 @@ class Command(object):
         self.parser = subparsers.add_parser(self.name,
                                             description=self.description,
                                             help=self.description,
-                                            add_help=False)
+                                            add_help=add_help)
         self.parser.set_defaults(func=self.run_and_print)
 
     @abc.abstractmethod
