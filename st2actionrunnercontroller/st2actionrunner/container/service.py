@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import tempfile
@@ -29,16 +30,18 @@ class RunnerContainerService():
 
     def __init__(self, container):
         self._container = container
-        self._exit_code = None
-        self._output = []
+        self._result = None
         self._payload = {}
         self._action_workingdir = None
 
-    def report_exit_code(self, code):
-        self._exit_code = code
+    def report_result(self, result):
+        self._result = result
 
-    def report_output(self, stream, output):
-        self._output.append((stream, output))
+    def get_result(self):
+        return self._result
+
+    def get_result_json(self):
+        return json.dumps(self._result)
 
     def report_payload(self, name, value):
         self._payload[name] = value
@@ -139,8 +142,7 @@ class RunnerContainerService():
         result.append(str(id(self)))
         result.append('(')
         result.append('_container="%s", ' % self._container)
-        result.append('_exit_code="%s", ' % self._exit_code)
-        result.append('_output="%s", ' % self._output)
+        result.append('_result="%s", ' % self._result)
         result.append('_payload="%s", ' % self._payload)
         result.append(')')
         return ''.join(result)

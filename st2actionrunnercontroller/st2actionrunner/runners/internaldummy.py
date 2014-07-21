@@ -72,9 +72,11 @@ class InternalDummyRunner(ActionRunner):
         LOG.debug('    [Internal Dummy Runner] command_exit: %s', command_exitcode)
         LOG.debug('    [Internal Dummy Runner] TODO: Save output to DB')
 
-        self.container_service.report_exit_code(command_exitcode)
-        self.container_service.report_output(STDOUT, command_stdout)
-        self.container_service.report_output(STDERR, command_stderr)
+        result = {'exit_code': command_exitcode,
+                  'std_out': command_stdout,
+                  'std_err': command_stderr}
+
+        self.container_service.report_result(result)
 
         return (command_exitcode, command_stdout, command_stderr)
 

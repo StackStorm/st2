@@ -35,6 +35,7 @@ class RunnerContainer():
         try:
             module = importlib.import_module(module_name, package=None)
         except Exception as e:
+            LOG.exception('Failed to import module %s.', module_name)
             raise ActionRunnerCreateError(e)
 
         LOG.debug('Instance of runner module: %s', module)
@@ -52,15 +53,16 @@ class RunnerContainer():
         LOG.debug('    ActionType: %s', actiontype_db)
         LOG.debug('    ActionExecution: %s', actionexec_db)
 
-        if runner_type == 'internaldummy':
+        if runner_type == 'internaldummy-builtin':
             (exit_code, std_out, std_err) = self._handle_internaldummy_runner(
                                                       actionexec_db.runner_parameters,
                                                       actionexec_db.action_parameters)
 
             LOG.info('Update ActionExecution object with Action result data')
-            actionexec_db.exit_code = str(exit_code)
-            actionexec_db.std_out = str(json.dumps(std_out))
-            actionexec_db.std_err = str(json.dumps(std_err))
+            action_result = {'exit_code': str(exit_code),
+                             'std_out': str(json.dumps(std_out)),
+                             'std_err': str(json.dumps(std_err))}
+            actionexec_db.result = json.dumps(action_result)
             actionexec_db.status = str(ACTIONEXEC_STATUS_COMPLETE)
             actionexec_db = ActionExecution.add_or_update(actionexec_db)
             LOG.info('ActionExecution object after exit_code update: %s', actionexec_db)
@@ -72,6 +74,7 @@ class RunnerContainer():
         try:
             runner = self._get_runner_for_actiontype(actiontype_db)
         except ActionRunnerCreateError as e:
+            LOG.exception('Failed to create action of type %s.', actiontype_db.name)
             raise ActionRunnerDispatchError(e.message)
 
         LOG.debug('Runner instance for ActionType "%s" is: %s', actiontype_db.name, runner)
@@ -137,19 +140,11 @@ class RunnerContainer():
         # Re-load Action Execution from DB:
         actionexec_db = get_actionexec_by_id(actionexec_db.id)
 
-        # TODO: Do not flatten when DB model can store raw stream data
         # TODO: Store payload when DB model can hold payload data
-        stream_map = self._get_flattened_stream_map(container_service)
-        LOG.debug('Flattened stream map from container service: %s', stream_map)
+        action_result = container_service.get_result_json()
+        LOG.debug('Result as reporter to container service: %s', action_result)
 
-        # TODO: Replace stream if statements with loop over all streams when
-        #       DB model can store raw stream data
-        if stream_map[STDOUT]:
-            actionexec_db.std_out = str(json.dumps(stream_map[STDOUT]))
-        if stream_map[STDERR]:
-            actionexec_db.std_err = str(json.dumps(stream_map[STDERR]))
-
-        if container_service._exit_code is None:
+        if action_result is None:
             # If the runner didn't set an exit code then the liveaction didn't complete.
             # Therefore, the liveaction produced an error.
             result = False
@@ -158,23 +153,13 @@ class RunnerContainer():
             # So long as the runner produced an exit code, we can assume that the
             # Live Action ran to completion.
             result = True
-            actionexec_db.exit_code = str(container_service._exit_code)
+            actionexec_db.result = action_result
             actionexec_status = ACTIONEXEC_STATUS_COMPLETE
 
         # Push result data and updated status to ActionExecution DB
         update_actionexecution_status(actionexec_status, actionexec_db=actionexec_db)
 
         return result
-
-    def _get_flattened_stream_map(self, container_service):
-        result_map = {}
-        for data in container_service._output:
-            if data[0] not in result_map:
-                result_map[data[0]] = data[1]
-            else:
-                result_map[data[0]] = ''.join([result_map[data[0]], data[1]])
-
-        return result_map
 
     def _handle_internaldummy_runner(self, runner_parameters, action_parameters):
         """
