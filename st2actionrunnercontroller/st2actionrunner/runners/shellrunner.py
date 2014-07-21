@@ -117,9 +117,11 @@ class ShellRunner(ActionRunner):
         LOG.debug('    [ShellRunner,liveaction_id="%s"] command_exit: %s',
                   self.liveaction_id, command_exitcode)
 
-        self.container_service.report_exit_code(command_exitcode)
-        self.container_service.report_output(STDOUT, command_stdout)
-        self.container_service.report_output(STDERR, command_stderr)
+        result = {'exit_code': command_exitcode,
+                  'std_out': command_stdout,
+                  'std_err': command_stderr}
+
+        self.container_service.report_result(result)
 
         os.chdir(old_dir)
 

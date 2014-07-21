@@ -7,9 +7,7 @@ from st2common.models.db.stormbase import (StormFoundationDB, StormBaseDB)
 
 __all__ = ['LiveActionDB',
            'ActionRunnerDB',
-           'ActionTypeDB',
-           'ActionExecutionResultDB',
-           ]
+           'ActionTypeDB']
 
 
 LOG = logging.getLogger(__name__)
@@ -87,16 +85,6 @@ class ActionRunnerDB(StormFoundationDB):
         Attributes:
     """
     pass
-
-
-class ActionExecutionResultDB(me.EmbeddedDocument):
-    """
-    TODO: fill-in
-    Not sure if I will need this to be persisted.
-    """
-    exit_code = me.IntField()
-    std_out = me.StringField()
-    std_err = me.StringField()
 
 
 # specialized access objects
