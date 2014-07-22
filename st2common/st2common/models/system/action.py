@@ -49,6 +49,7 @@ class SSHCommandAction(object):
         str_rep = []
         str_rep.append('name: ' + self.name)
         str_rep.append('id: ' + self.id)
+        str_rep.append('command: ' + self.command)
         str_rep.append('user: ' + self.user)
         str_rep.append('sudo: ' + str(self.sudo))
         str_rep.append('parallel: ' + str(self.parallel))
@@ -71,6 +72,7 @@ class RemoteAction(SSHCommandAction):
         str_rep = []
         str_rep.append('name: ' + self.name)
         str_rep.append('id: ' + self.id)
+        str_rep.append('command: ' + self.command)
         str_rep.append('user: ' + self.user)
         str_rep.append('on_behalf_user: ' + self.on_behalf_user)
         str_rep.append('sudo: ' + str(self.sudo))
