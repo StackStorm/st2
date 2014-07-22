@@ -33,7 +33,10 @@ all: requirements web tests
 # Target for debugging Makefile variable assembly
 .PHONY: play
 play:
-	echo $(COMPONENTS)
+	@echo COMPONENTS=$(COMPONENTS)
+	@echo COMPONENTS_TEST=$(COMPONENTS_TEST)
+	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
+
 
 .PHONY: check
 check: flake8 pep8
@@ -70,6 +73,9 @@ distclean: clean
 
 .PHONY: requirements
 requirements: virtualenv $(REQUIREMENTS)
+	@echo ""
+	@echo "Installing requirements"
+	@echo
 	. $(VIRTUALENV_DIR)/bin/activate && pip install -U $(foreach req,$(REQUIREMENTS),-r $(req))
 
 .PHONY: virtualenv
@@ -114,7 +120,6 @@ tests: requirements
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		#. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component || exit 1; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component || exit 1; \
 	done
 
