@@ -99,11 +99,12 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
 class ActionExecutionListCommand(resource.ResourceCommand):
 
-    display_attributes = ['id', 'action.name', 'status']
+    display_attributes = ['id', 'action.name', 'status', 'start_timestamp']
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionListCommand, self).__init__(resource, 'list',
-            'Get the list of %s.' % resource.get_plural_display_name().lower(),
+            'Get the list of the 50 most recent %s.' %
+            resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
         self.group = self.parser.add_mutually_exclusive_group()
@@ -111,13 +112,19 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                                  help='Action name to filter the list.') 
         self.group.add_argument('--action-id',
                                  help='Action id to filter the list.')
+        self.parser.add_argument('-n', '--last', type=int, dest='last',
+                                 default=50,
+                                 help=('List N most recent %s; '
+                                       'list all if 0.' %
+                                       resource.get_plural_display_name().\
+                                          lower()))
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=self.display_attributes,
                                  help=('List of attributes to include in the '
                                        'output. "all" will return all '
                                        'attributes.'))
         self.parser.add_argument('-w', '--width', nargs='+', type=int,
-                                 default=[25],
+                                 default=[28],
                                  help=('Set the width of columns in output.'))
         self.parser.add_argument('-j', '--json',
                                  action='store_true', dest='json',
@@ -129,8 +136,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
             filters['action_name'] = args.action_name
         elif args.action_id:
             filters['action_id'] = args.action_id
-        return (self.manager.query(**filters)
-                if filters else self.manager.get_all())
+        return (self.manager.query(limit=args.last, **filters)
+                if filters else self.manager.get_all(limit=args.last))
 
     def run_and_print(self, args):
         instances = self.run(args)

@@ -91,7 +91,7 @@ class ResourceListCommand(ResourceCommand):
                                        'output. "all" will return all '
                                        'attributes.'))
         self.parser.add_argument('-w', '--width', nargs='+', type=int,
-                                 default=[25],
+                                 default=[28],
                                  help=('Set the width of columns in output.'))
         self.parser.add_argument('-j', '--json',
                                  action='store_true', dest='json',

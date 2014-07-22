@@ -85,17 +85,22 @@ class ActionExecutionsController(RestController):
         return(result, request_error)
 
     @staticmethod
-    def _get_action_executions(action_id, action_name):
+    def _get_action_executions(action_id, action_name, limit=None):
         if action_id is not None:
             LOG.debug('Using action_id=%s to get action executions', action_id)
             # action__id <- this queries action.id
-            return ActionExecution.query(action__id=action_id)
+            return ActionExecution.query(action__id=action_id,
+                                         order_by=['-start_timestamp'],
+                                         limit=limit)
         elif action_name is not None:
             LOG.debug('Using action_name=%s to get action executions', action_name)
             # action__name <- this queries against action.name
-            return ActionExecution.query(action__name=action_name)
+            return ActionExecution.query(action__name=action_name,
+                                         order_by=['-start_timestamp'],
+                                         limit=limit)
         LOG.debug('Retrieving all action executions')
-        return ActionExecution.get_all()
+        return ActionExecution.get_all(order_by=['-start_timestamp'],
+                                       limit=limit)
 
     def _create_custom_headers(self):
         return {'content-type': 'application/json'}
@@ -125,8 +130,9 @@ class ActionExecutionsController(RestController):
         LOG.debug('GET /actionexecutions/ with id=%s, client_result=%s', id, actionexec_api)
         return actionexec_api
 
-    @wsme_pecan.wsexpose([ActionExecutionAPI], wstypes.text, wstypes.text)
-    def get_all(self, action_id=None, action_name=None):
+    @wsme_pecan.wsexpose([ActionExecutionAPI], wstypes.text,
+                         wstypes.text, wstypes.text)
+    def get_all(self, action_id=None, action_name=None, limit='50'):
         """
             List all actionexecutions.
 
@@ -134,12 +140,15 @@ class ActionExecutionsController(RestController):
                 GET /actionexecutions/
         """
 
-        LOG.info('GET all /actionexecutions/ with action_name=%s and action_id=%s',
-                 action_name, action_id)
+        LOG.info('GET all /actionexecutions/ with action_name=%s, '
+                 'action_id=%s, and limit=%s', action_name, action_id, limit)
 
-        actionexec_dbs = ActionExecutionsController._get_action_executions(action_id, action_name)
+        actionexec_dbs = ActionExecutionsController._get_action_executions(
+            action_id, action_name, limit=int(limit))
         actionexec_apis = [ActionExecutionAPI.from_model(actionexec_db)
-                           for actionexec_db in actionexec_dbs]
+                           for actionexec_db
+                           in sorted(actionexec_dbs,
+                                     key=lambda x: x.start_timestamp)]
 
         # TODO: unpack list in log message
         LOG.debug('GET all /actionexecutions/ client_result=%s', actionexec_apis)

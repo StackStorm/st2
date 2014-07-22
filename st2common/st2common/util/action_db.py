@@ -86,6 +86,9 @@ def get_action_by_dict(action_dict):
         action_id = action_dict[ACTION_ID]
         try:
             action = get_action_by_id(action_id)
+            if (ACTION_NAME not in action_dict or
+                action_dict[ACTION_NAME] != getattr(action, ACTION_NAME)):
+                action_dict[ACTION_NAME] = getattr(action, ACTION_NAME)
         except StackStormDBObjectNotFoundError:
             LOG.info('Action not found by id, falling back to lookup by name and '
                      'removing action id from Action Execution.')
@@ -97,6 +100,7 @@ def get_action_by_dict(action_dict):
         action_name = action_dict[ACTION_NAME]
         try:
             action = get_action_by_name(action_name)
+            action_dict[ACTION_ID] = str(getattr(action, ACTION_ID))
         except StackStormDBObjectNotFoundError:
             LOG.info('Action not found by name.')
         else:

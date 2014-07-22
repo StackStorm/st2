@@ -68,8 +68,13 @@ class ResourceManager(object):
         self.read_only = read_only
         self.client = httpclient.HTTPClient(self.endpoint)
 
-    def get_all(self):
+    def get_all(self, *args, **kwargs):
         url = '/%s' % self.resource.get_plural_name().lower()
+        limit = kwargs.get('limit', None)
+        if limit and limit <= 0:
+            limit = None
+        if limit:
+            url += '/?limit=%s' % limit
         LOG.info('GET %s/%s' % (self.endpoint, url))
         response = self.client.get(url)
         if response.status_code != 200:
@@ -90,10 +95,11 @@ class ResourceManager(object):
     def query(self, *args, **kwargs):
         if not kwargs:
             raise Exception('Query parameter is not provided.')
+        if 'limit' in kwargs and kwargs.get('limit') <= 0:
+            kwargs.pop('limit')
         url = '/%s/?' % self.resource.get_plural_name().lower()
         for k, v in kwargs.iteritems():
             url += '%s%s=%s' % (('&' if url[-1] != '?' else ''), k, v)
-        LOG.info('GET %s/%s' % (self.endpoint, url))
         response = self.client.get(url)
         if response.status_code == 404:
             return []

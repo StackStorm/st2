@@ -42,6 +42,7 @@ class ActionDB(StormBaseDB):
         result.append(str(id(self)))
         result.append('(')
         result.append('id="%s", ' % self.id)
+        result.append('name"%s", ' % self.name)
         result.append('enabled="%s", ' % self.enabled)
         result.append('artifact_paths="%s", ' % str(self.artifact_paths))
         result.append('entry_point="%s", ' % self.entry_point)

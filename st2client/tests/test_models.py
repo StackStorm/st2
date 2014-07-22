@@ -40,6 +40,17 @@ class TestResourceManager(unittest2.TestCase):
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=\
+            base.FakeResponse(json.dumps(base.RESOURCES), 200, 'OK')))
+    def test_resource_get_all_with_limit(self):
+        mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        resources = mgr.get_all(limit=50)
+        actual = [resource.serialize() for resource in resources]
+        expected = json.loads(json.dumps(base.RESOURCES))
+        self.assertListEqual(actual, expected)
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
             base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
     def test_resource_get_all_failed(self):
         mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
@@ -80,6 +91,17 @@ class TestResourceManager(unittest2.TestCase):
     def test_resource_query(self):
         mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
         resources = mgr.query(name='abc')
+        actual = [resource.serialize() for resource in resources]
+        expected = json.loads(json.dumps([base.RESOURCES[0]]))
+        self.assertEqual(actual, expected)
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
+            base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+    def test_resource_query_with_limit(self):
+        mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        resources = mgr.query(name='abc', limit=50)
         actual = [resource.serialize() for resource in resources]
         expected = json.loads(json.dumps([base.RESOURCES[0]]))
         self.assertEqual(actual, expected)
