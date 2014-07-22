@@ -102,7 +102,8 @@ class ParamikoSSHCommandAction(SSHCommandAction):
 
 class FabricRemoteAction(RemoteAction):
     def get_fabric_task(self):
-        return WrappedCallableTask(self.action_method, name=self.name, alias=self.id,
+        action_method = self._get_action_method()
+        return WrappedCallableTask(action_method, name=self.name, alias=self.id,
             parallel=self.parallel, sudo=self.sudo)
 
     def _get_action_method(self):
