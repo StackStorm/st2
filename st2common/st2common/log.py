@@ -9,7 +9,10 @@ logging.AUDIT = logging.CRITICAL + 10
 logging.addLevelName(logging.AUDIT, 'AUDIT')
 
 
-_loggers = {}
+def _audit(logger, msg, *args, **kwargs):
+    if logger.isEnabledFor(logging.AUDIT):
+        logger._log(logging.AUDIT, msg, args, **kwargs)
+logging.Logger.audit = _audit
 
 
 def setup(config_file):
@@ -23,21 +26,5 @@ def setup(config_file):
         raise Exception(six.text_type(exc))
 
 
-def getLogger(name, extra=None):
-    if name not in _loggers:
-        _loggers[name] = AuditLoggerAdapter(logging.getLogger(name), extra)
-    return _loggers[name]
-
-
-class AuditLoggerAdapter(logging.LoggerAdapter):
-    """Logger adapter to write message with the audit log level.
-    """
-
-    def audit(self, msg, *args, **kwargs):
-        self.log(logging.AUDIT, msg, *args, **kwargs)
-
-    def setLevel(self, lvl):
-        self.logger.setLevel(lvl)
-
-    def getEffectiveLevel(self):
-        return self.logger.getEffectiveLevel()
+def getLogger(name):
+    return logging.getLogger(name)
