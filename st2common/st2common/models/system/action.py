@@ -45,7 +45,16 @@ class SSHCommandAction(object):
     def get_command(self):
         return self.command
 
-    # XXX: needs a __str__ method
+    def __str__(self):
+        str_rep = []
+        str_rep.append('name: ' + self.name)
+        str_rep.append('id: ' + self.id)
+        str_rep.append('user: ' + self.user)
+        str_rep.append('sudo: ' + str(self.sudo))
+        str_rep.append('parallel: ' + str(self.parallel))
+        str_rep.append('hosts: ' + str(self.hosts))
+
+        return '[' + ', '.join(str_rep) + ']'
 
 
 class RemoteAction(SSHCommandAction):
@@ -58,7 +67,17 @@ class RemoteAction(SSHCommandAction):
     def get_on_behalf_user(self):
         return self.user
 
-    # XXX: needs a __str__ method
+    def __str__(self):
+        str_rep = []
+        str_rep.append('name: ' + self.name)
+        str_rep.append('id: ' + self.id)
+        str_rep.append('user: ' + self.user)
+        str_rep.append('on_behalf_user: ' + self.on_behalf_user)
+        str_rep.append('sudo: ' + str(self.sudo))
+        str_rep.append('parallel: ' + str(self.parallel))
+        str_rep.append('hosts: ' + str(self.hosts))
+
+        return '[' + ', '.join(str_rep) + ']'
 
 
 class RemoteScriptAction(RemoteAction):
@@ -81,8 +100,7 @@ class ParamikoSSHCommandAction(SSHCommandAction):
 
 class FabricRemoteAction(RemoteAction):
     def get_fabric_task(self):
-        action_method = self._get_action_method()
-        return WrappedCallableTask(action_method, name=self.name, alias=self.id,
+        return WrappedCallableTask(self.action_method, name=self.name, alias=self.id,
             parallel=self.parallel, sudo=self.sudo)
 
     def _get_action_method(self):
@@ -91,34 +109,34 @@ class FabricRemoteAction(RemoteAction):
         return self._run
 
     def _run(self):
-            output = run(self.command, combine_stderr=False, pty=False, quiet=True)
-            result = {
-                'stdout': output.stdout,
-                'stderr': output.stderr,
-                'return_code': output.return_code,
-                'succeeded': output.succeeded,
-                'failed': output.failed
-            }
-            return result
+        output = run(self.command, combine_stderr=False, pty=False, quiet=True)
+        result = {
+            'stdout': output.stdout,
+            'stderr': output.stderr,
+            'return_code': output.return_code,
+            'succeeded': output.succeeded,
+            'failed': output.failed
+        }
+        return result
 
     def _sudo(self):
-            output = sudo(self.command, combine_stderr=False, pty=True, quiet=True)
-            result = {
-                'stdout': output.stdout,
-                'stderr': output.stderr,
-                'return_code': output.return_code,
-                'succeeded': output.succeeded,
-                'failed': output.failed
-            }
+        output = sudo(self.command, combine_stderr=False, pty=True, quiet=True)
+        result = {
+            'stdout': output.stdout,
+            'stderr': output.stderr,
+            'return_code': output.return_code,
+            'succeeded': output.succeeded,
+            'failed': output.failed
+        }
 
-            # XXX: For sudo, fabric requires to set pty=True. This basically combines stdout and
-            # stderr into a single stdout stream. So if the command fails, we explictly set stderr
-            # to stdout and stdout to ''.
-            if result['failed']:
-                result['stderr'] = result['stdout']
-                result['stdout'] = ''
+        # XXX: For sudo, fabric requires to set pty=True. This basically combines stdout and
+        # stderr into a single stdout stream. So if the command fails, we explictly set stderr
+        # to stdout and stdout to ''.
+        if result['failed']:
+            result['stderr'] = result['stdout']
+            result['stdout'] = ''
 
-            return result
+        return result
 
 
 class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
@@ -151,5 +169,3 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             result['error'] = 'Failed copying file %s to %s on remote box' % (
                 self.script_local_path_abs, self.remote_path)
         return result
-
-    # XXX: needs a __str__ method
