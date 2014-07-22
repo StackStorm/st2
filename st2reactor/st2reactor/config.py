@@ -2,6 +2,26 @@ from oslo.config import cfg
 
 CONF = cfg.CONF
 
+api_opts = [
+    cfg.StrOpt('host', default='0.0.0.0', help='stackaton API server host'),
+    cfg.IntOpt('port', default=9104, help='stackaton API server port')
+]
+CONF.register_opts(api_opts, group='reactor_api')
+
+pecan_opts = [
+    cfg.StrOpt('root',
+               default='st2reactor.controllers.root.RootController',
+               help='Pecan root controller'),
+    cfg.StrOpt('static_root', default='%(confdir)s/public'),
+    cfg.StrOpt('template_path',
+               default='%(confdir)s/st2reactor/templates'),
+    cfg.ListOpt('modules', default=['st2reactor']),
+    cfg.BoolOpt('debug', default=False),
+    cfg.BoolOpt('auth_enable', default=True),
+    cfg.DictOpt('errors', default={})
+]
+CONF.register_opts(pecan_opts, group='reactor_pecan')
+
 logging_opts = [
     cfg.StrOpt('config_file', default='etc/logging.conf',
                help='location of the logging.conf file')

@@ -29,13 +29,15 @@ def _get_plugin_module(plugin_file_path):
     return plugin_module
 
 
-def _get_classes_in_module(module):
+def _get_classes_in_module(module, plugin_base_class):
     return [kls for name, kls in inspect.getmembers(module,
-        lambda member: inspect.isclass(member) and member.__module__ == module.__name__)]
+        lambda member: inspect.isclass(member) and
+                       issubclass(member, plugin_base_class) and
+                       member.__module__ == module.__name__)]
 
 
-def _get_plugin_classes(module_name):
-    return _get_classes_in_module(module_name)
+def _get_plugin_classes(module_name, plugin_base_class):
+    return _get_classes_in_module(module_name, plugin_base_class)
 
 
 def _get_plugin_methods(plugin_klass):
@@ -69,7 +71,7 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
     if module_name is None:
         return None
     module = importlib.import_module(module_name)
-    klasses = _get_plugin_classes(module)
+    klasses = _get_plugin_classes(module, plugin_base_class)
 
     # Try registering classes in plugin file. Some may fail.
     for klass in klasses:

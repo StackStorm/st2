@@ -1,9 +1,13 @@
 from functools import wraps
 import httplib
 import os
-
+from pecan.rest import RestController
 from flask import (jsonify, request, Flask)
+import wsmeext.pecan as wsme_pecan
+from wsme import types as wstypes
 import yaml
+
+from st2reactor import webhook
 
 '''
 Dectorators for request validations.
@@ -22,7 +26,18 @@ def validate_json(f):
     return wrapper
 
 
+# class SensorHook(RestController):
+#     def __init__(self, key):
+#         self.key = key
+#
+#     @wsme_pecan.wsexpose(str, wstypes.text)
+#     def get_one(self, arg):
+#         return arg
+
+
 class St2GenericWebhooksSensor(object):
+    # webhook = SensorHook
+
     def __init__(self, container_service):
         self._container_service = container_service
         self._log = self._container_service.get_logger(self.__class__.__name__)
@@ -35,6 +50,7 @@ class St2GenericWebhooksSensor(object):
         self._config = None
 
     def setup(self):
+        # webhook.register_sensor_hook('webhook', SensorHook)
         with open(self._config_file) as f:
             self._config = yaml.safe_load(f)
             self._setup_flask_app(urls=self._config.get('urls', []))

@@ -7,6 +7,12 @@ class Sensor(object):
     """
     """
 
+    webhook = None
+
+    def __init__(self, container_service):
+        if self.webhook:
+            self.webhook.container_service = container_service
+
     @abc.abstractmethod
     def setup(self):
         """

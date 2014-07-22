@@ -11,11 +11,13 @@ from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 import st2common.util.loader as sensors_loader
+from st2reactor import app
 from st2reactor import config
-from st2reactor.container.base import SensorContainer
+from st2reactor.container.base import get_sensor_container
 from st2reactor.container.containerservice import ContainerService
 import st2reactor.container.utils as container_utils
 from st2reactor.sensor.base import Sensor
+from wsgiref import simple_server
 
 
 LOG = logging.getLogger('st2reactor.bin.sensor_container')
@@ -106,11 +108,7 @@ def _run_sensor(sensor_file_path):
         LOG.warning('Exception registering plugin %s. Exception: %s', sensor_file_path, e,
                     exc_info=True)
         return -1
-    exit_code = _run_sensors(sensors_dict)
-    LOG.info('SensorContainer process[{}] exit with code {}.'.format(
-        os.getpid(), exit_code))
-    _teardown()
-    return exit_code
+    return _run_sensors(sensors_dict)
 
 
 def _run_sensors(sensors_dict):
@@ -141,22 +139,39 @@ def _run_sensors(sensors_dict):
                     sensors_to_run.append(sensor)
 
     LOG.info('SensorContainer process[{}] started.'.format(os.getpid()))
-    sensor_container = SensorContainer(sensor_instances=sensors_to_run)
+    sensor_container = get_sensor_container(sensor_instances=sensors_to_run)
     return sensor_container.run()
+
+
+def _run_server():
+
+    host = cfg.CONF.reactor_api.host
+    port = cfg.CONF.reactor_api.port
+
+    server = simple_server.make_server(host, port, app.setup_app())
+
+    LOG.info("Reactor API is serving on http://%s:%s (PID=%s)",
+             host, port, os.getpid())
+
+    server.serve_forever()
 
 
 def main():
     _setup()
-    sensors_dict = None
-    if _is_single_sensor_mode():
-        return _run_sensor(cfg.CONF.sensor_path)
-    else:
-        sensors_dict = _load_sensor_modules(os.path.realpath(cfg.CONF.sensors.system_path))
-        user_sensor_dict = _load_sensor_modules(os.path.realpath(cfg.CONF.sensors.modules_path))
-        sensors_dict.update(user_sensor_dict)
-        LOG.info('Found %d sensors.', len(sensors_dict))
-        exit_code = _run_sensors(sensors_dict)
+    try:
+        if _is_single_sensor_mode():
+            _run_sensor(cfg.CONF.sensor_path)
+        else:
+            sensors_dict = _load_sensor_modules(os.path.realpath(cfg.CONF.sensors.system_path))
+            user_sensor_dict = _load_sensor_modules(os.path.realpath(cfg.CONF.sensors.modules_path))
+
+            sensors_dict.update(user_sensor_dict)
+            LOG.info('Found %d sensors.', len(sensors_dict))
+
+            _run_sensors(sensors_dict)
+
+        _run_server()
+    except KeyboardInterrupt:
+        LOG.info('Interrupted by user')
+    finally:
         _teardown()
-        LOG.info('SensorContainer process[{}] exit with code {}.'.format(
-            os.getpid(), exit_code))
-        return exit_code
