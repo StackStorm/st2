@@ -19,12 +19,13 @@ class Access(object):
         return kls._get_impl().get_by_id(value)
 
     @classmethod
-    def get_all(kls):
-        return kls._get_impl().get_all()
+    def get_all(kls, *args, **kwargs):
+        return kls._get_impl().get_all(*args, **kwargs)
 
     @classmethod
-    def query(kls, **query_args):
-        return kls._get_impl().query(**query_args)
+    def query(kls, order_by=[], limit=None,  **query_args):
+        return kls._get_impl().query(order_by=order_by,
+                                     limit=limit, **query_args)
 
     @classmethod
     def add_or_update(kls, model_object):

@@ -35,11 +35,27 @@ class MongoDBAccess(object):
         raise ValueError('{} with id "{}" does not exist.'.format(
             self._model_kls.__name__, value))
 
-    def get_all(self):
-        return self._model_kls.objects()
+    def get_all(self, *args, **kwargs):
+        order_by = kwargs.get('order_by', ['name'])
+        limit = kwargs.get('limit', None)
+        if limit and limit <= 0:
+            limit = None
+        if not limit:
+            return (self._model_kls.objects().order_by(*order_by)
+                    if order_by else self._model_kls.objects())
+        else:
+            return (self._model_kls.objects().order_by(*order_by)[:limit]
+                    if order_by else self._model_kls.objects()[:limit])
 
-    def query(self, **query_args):
-        return self._model_kls.objects(**query_args)
+    def query(self, order_by=[], limit=None, **query_args):
+        if not limit:
+            return (self._model_kls.objects(**query_args).order_by(*order_by)
+                    if order_by else self._model_kls.objects(**query_args))
+        else:
+            return (self._model_kls.objects(**query_args).\
+                        order_by(*order_by)[:limit]
+                    if order_by else self._model_kls.\
+                        objects(**query_args)[:limit])
 
     @staticmethod
     def add_or_update(model_object):
