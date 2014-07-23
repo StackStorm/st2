@@ -56,3 +56,8 @@ def add_trigger_types(trigger_types):
      for trigger_type in trigger_types) if r is not None]
     return [r for r in (__add_trigger_type(trigger_type)
             for trigger_type in trigger_types) if r is not None]
+
+
+def add_trigger_type(trigger_type):
+    __validate_trigger_type(trigger_type)
+    return __add_trigger_type(trigger_type)

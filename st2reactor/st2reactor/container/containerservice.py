@@ -4,6 +4,8 @@ import Queue
 
 from triggerdispatcher import TriggerDispatcher
 
+from st2reactor.container import utils as container_utils
+
 
 class ContainerService(object):
     _base_logger_name = 'st2reactor.sensorcontainer.sensors.'
@@ -52,3 +54,7 @@ class ContainerService(object):
 
     def shutdown(self):
         self._dispatch_monitor_thread.kill()
+
+    @staticmethod
+    def add_trigger_type(trigger_type):
+        container_utils.add_trigger_type(trigger_type)

@@ -12,7 +12,6 @@ def __get_pecan_config():
     cfg_dict = {
         'app': {
             'root': opts.root,
-            'static_root': opts.static_root,
             'template_path': opts.template_path,
             'modules': opts.modules,
             'debug': opts.debug,
