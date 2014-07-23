@@ -108,6 +108,16 @@ action_runner_opts = [
 ]
 CONF.register_opts(action_runner_opts, group='action_runner')
 
+fabric_runner_opts = [
+    cfg.StrOpt('user',
+               default='stanley',
+               help='User for running remote tasks via the FabricRunner.'),
+    cfg.StrOpt('remote_dir',
+               default='/tmp',
+               help='Location of the script on the remote filesystem.'),
+]
+CONF.register_opts(fabric_runner_opts, group='fabric_runner')
+
 
 def parse_args(args=None):
     CONF(args=args)

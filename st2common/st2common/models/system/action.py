@@ -3,9 +3,10 @@ import os
 from fabric.api import (put, run, sudo)
 from fabric.tasks import WrappedCallableTask
 
-# XXX: This should be read from the config file.
-# Set the default user for remote actions.
-ENV_USER = 'lakshmi'
+from st2common import log as logging
+
+
+LOG = logging.getLogger(__name__)
 
 
 class SSHCommandAction(object):
@@ -47,21 +48,22 @@ class SSHCommandAction(object):
 
     def __str__(self):
         str_rep = []
+        str_rep.append('%s@%s [' % (self.__class__.__name__, id(self)))
         str_rep.append('name: ' + self.name)
         str_rep.append('id: ' + self.id)
         str_rep.append('command: ' + self.command)
         str_rep.append('user: ' + self.user)
         str_rep.append('sudo: ' + str(self.sudo))
         str_rep.append('parallel: ' + str(self.parallel))
-        str_rep.append('hosts: ' + str(self.hosts))
+        str_rep.append('hosts: %s]' % str(self.hosts))
 
-        return '[' + ', '.join(str_rep) + ']'
+        return ', '.join(str_rep)
 
 
 class RemoteAction(SSHCommandAction):
-    def __init__(self, name, action_exec_id, command, on_behalf_user, hosts=None, parallel=True,
-                 sudo=False):
-        super(RemoteAction, self).__init__(name, action_exec_id, command, ENV_USER,
+    def __init__(self, name, action_exec_id, command, on_behalf_user=None, user=None, hosts=None,
+                 parallel=True, sudo=False):
+        super(RemoteAction, self).__init__(name, action_exec_id, command, user,
                                            hosts=hosts, parallel=parallel, sudo=sudo)
         self.on_behalf_user = on_behalf_user  # Used for audit purposes.
 
@@ -70,6 +72,7 @@ class RemoteAction(SSHCommandAction):
 
     def __str__(self):
         str_rep = []
+        str_rep.append('%s@%s [' % (self.__class__.__name__, id(self)))
         str_rep.append('name: ' + self.name)
         str_rep.append('id: ' + self.id)
         str_rep.append('command: ' + self.command)
@@ -77,22 +80,20 @@ class RemoteAction(SSHCommandAction):
         str_rep.append('on_behalf_user: ' + self.on_behalf_user)
         str_rep.append('sudo: ' + str(self.sudo))
         str_rep.append('parallel: ' + str(self.parallel))
-        str_rep.append('hosts: ' + str(self.hosts))
+        str_rep.append('hosts: %s]' % str(self.hosts))
 
-        return '[' + ', '.join(str_rep) + ']'
+        return ', '.join(str_rep)
 
 
 class RemoteScriptAction(RemoteAction):
-    def __init__(self, name, action_exec_id, script_local_path_abs,
-                 on_behalf_user, remote_dir=None, hosts=None, parallel=True, sudo=False):
-        super(RemoteScriptAction, self).__init__(name, action_exec_id, '', ENV_USER,
-                                           hosts=hosts, parallel=parallel, sudo=sudo)
+    def __init__(self, name, action_exec_id, script_local_path_abs, on_behalf_user=None, user=None,
+                 remote_dir=None, hosts=None, parallel=True, sudo=False):
+        super(RemoteScriptAction, self).__init__(name, action_exec_id, '', on_behalf_user, user,
+                                                 hosts=hosts, parallel=parallel, sudo=sudo)
         self.script_local_path_abs = script_local_path_abs
         self.script_local_dir, self.script_name = os.path.split(self.script_local_path_abs)
 
-        self.remote_dir = '/tmp'
-        if remote_dir is not None:
-            self.remote_dir = remote_dir
+        self.remote_dir = remote_dir if remote_dir is not None else '/tmp'
         self.command = os.path.join(self.remote_dir, self.script_name)
 
 
@@ -103,6 +104,7 @@ class ParamikoSSHCommandAction(SSHCommandAction):
 class FabricRemoteAction(RemoteAction):
     def get_fabric_task(self):
         action_method = self._get_action_method()
+        LOG.info('action_method is %s' % action_method)
         return WrappedCallableTask(action_method, name=self.name, alias=self.id,
             parallel=self.parallel, sudo=self.sudo)
 
@@ -157,7 +159,9 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         if output_put.get('failed'):
             return output_put
         action_method = self._get_action_method()
-        return action_method()
+        result = action_method()
+        self._rm()
+        return result
 
     def _put(self):
         output = put(self.script_local_path_abs, self.remote_dir, use_sudo=self.sudo,
@@ -172,3 +176,12 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             result['error'] = 'Failed copying file %s to %s on remote box' % (
                 self.script_local_path_abs, self.remote_path)
         return result
+
+    def _rm(self):
+        action_method = sudo if self.sudo else run
+        rm_command = 'rm %s' % self.command
+        output = action_method(rm_command, combine_stderr=False, pty=False, quiet=True)
+        if output.failed:
+            LOG.error('Failed to remove file %s from remote host.', self.command)
+        else:
+            LOG.debug('Succesfully cleaned up file %s from remote host.', self.command)

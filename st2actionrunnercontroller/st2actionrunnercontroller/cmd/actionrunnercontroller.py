@@ -13,7 +13,7 @@ from wsgiref import simple_server
 
 eventlet.monkey_patch(
     os=True,
-    select=True,
+    select=False, # monkey_patching select plays havoc with fabric. Patch at your own peril!
     socket=True,
     thread=False if '--use-debugger' in sys.argv else True,
     time=True)

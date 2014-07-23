@@ -37,12 +37,16 @@ ACTION_TYPES = [{'name': 'internaldummy-builtin',
                                        'args': None},
                  'runner_module': 'st2actionrunner.runners.shellrunner'},
 
-                 {'name': 'remote-execution',
-                  'description': 'A remote execution action type.',
+                 {'name': 'remote-exec-sysuser',
+                  'description': 'A remote execution action type with a fixed system user.',
                   'enabled': True,
-                  'runner_parameters': {'host': None,
-                                        'key': None},
-                  'runner_module': 'st2actionrunner.runners.remoterunner'}]
+                  'runner_parameters': {'hosts': None,
+                                        'parallel': None,
+                                        'sudo': None,
+                                        'user': None,
+                                        'command': None,
+                                        'remotedir': None},
+                  'runner_module': 'st2actionrunner.runners.fabricrunner'}]
 
 
 class ActionTypesController(RestController):
