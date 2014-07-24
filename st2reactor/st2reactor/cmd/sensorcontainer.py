@@ -22,15 +22,20 @@ LOG = logging.getLogger('st2reactor.bin.sensor_container')
 
 
 def _setup():
-    # setup config before anything else.
+    # 1. parse config args
     config.parse_args()
-    # 1. setup logging.
+
+    # 2. setup logging.
     logging.setup(cfg.CONF.reactor_logging.config_file)
-    # 2. all other setup which requires config to be parsed and logging to
+
+    # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
              cfg.CONF.database.port)
 
+    # 4. ensure paths exist
+    if not os.path.exists(cfg.CONF.sensors.modules_path):
+        os.makedirs(cfg.CONF.sensors.modules_path)
 
 def _teardown():
     db_teardown()

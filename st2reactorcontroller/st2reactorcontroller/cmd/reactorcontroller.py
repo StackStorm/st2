@@ -24,6 +24,7 @@ LOG = logging.getLogger(__name__)
 def __setup():
     # 1. parse config args
     config.parse_args()
+
     # 2. setup logging.
     logging.setup(cfg.CONF.reactor_controller_logging.config_file)
 
@@ -32,6 +33,9 @@ def __setup():
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
              cfg.CONF.database.port)
 
+    # 4. ensure paths exist
+    if not os.path.exists(cfg.CONF.rules.rules_path):
+        os.makedirs(cfg.CONF.rules.rules_path)
 
 def __run_server():
 
