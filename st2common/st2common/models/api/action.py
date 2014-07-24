@@ -101,8 +101,7 @@ class ActionExecutionAPI(StormFoundationAPI):
     status = wstypes.Enum(str, *ACTIONEXEC_STATUSES)
     start_timestamp = datetime.datetime
     action = wsattr(wstypes.DictType(str, str), mandatory=True)
-    runner_parameters = wsattr(wstypes.DictType(str, str), default={})
-    action_parameters = wsattr(wstypes.DictType(str, str), default={})
+    parameters = wsattr(wstypes.DictType(str, str), default={})
     result = wsattr(str, default='')
 
     @classmethod
@@ -112,8 +111,7 @@ class ActionExecutionAPI(StormFoundationAPI):
         actionexec.action = dict(model.action)
         actionexec.status = str(model.status)
         actionexec.start_timestamp = model.start_timestamp
-        actionexec.runner_parameters = dict(model.runner_parameters)
-        actionexec.action_parameters = dict(model.action_parameters)
+        actionexec.parameters = dict(model.parameters)
         actionexec.result = model.result
         LOG.debug('exiting ActionExecutionAPI.from_model() Result object: %s', actionexec)
         return actionexec
@@ -125,8 +123,7 @@ class ActionExecutionAPI(StormFoundationAPI):
         model.status = str(actionexec.status)
         model.start_timestamp = actionexec.start_timestamp
         model.action = actionexec.action
-        model.runner_parameters = dict(actionexec.runner_parameters)
-        model.action_parameters = dict(actionexec.action_parameters)
+        model.parameters = dict(actionexec.parameters)
         model.result = actionexec.result
         LOG.debug('exiting ActionExecutionAPI.to_model() Result object: %s', model)
         return model
@@ -139,8 +136,7 @@ class ActionExecutionAPI(StormFoundationAPI):
         result.append('id="%s", ' % self.id)
         result.append('status="%s", ' % self.status)
         result.append('action="%s", ' % self.action)
-        result.append('runner_parameters="%s", ' % self.runner_parameters)
-        result.append('action_parameters="%s", ' % self.action_parameters)
+        result.append('parameters="%s", ' % self.parameters)
         result.append('result=%s, ' % json.dumps(self.result))
         result.append('uri="%s")' % self.uri)
         return ''.join(result)

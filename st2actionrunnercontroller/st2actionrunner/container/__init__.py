@@ -54,9 +54,10 @@ class RunnerContainer():
         LOG.debug('    ActionExecution: %s', actionexec_db)
 
         if runner_type == 'internaldummy-builtin':
-            (exit_code, std_out, std_err) = self._handle_internaldummy_runner(
-                                                      actionexec_db.runner_parameters,
-                                                      actionexec_db.action_parameters)
+            runner_parameters, action_parameters = RunnerContainer._split_params(
+                    actiontype_db, action_db, actionexec_db)
+            (exit_code, std_out, std_err) = self._handle_internaldummy_runner(runner_parameters,
+                                                                              action_parameters)
 
             LOG.info('Update ActionExecution object with Action result data')
             action_result = {'exit_code': str(exit_code),
@@ -80,8 +81,7 @@ class RunnerContainer():
         LOG.debug('Runner instance for ActionType "%s" is: %s', actiontype_db.name, runner)
 
         # Invoke pre_run, run, post_run cycle.
-        result = self._do_run(liveaction_db.id, runner,
-                              actiontype_db, action_db, actionexec_db)
+        result = self._do_run(liveaction_db.id, runner, actiontype_db, action_db, actionexec_db)
 
         LOG.debug('runner do_run result: %s', result)
 
@@ -104,15 +104,16 @@ class RunnerContainer():
         # Runner parameters should use the defaults from the ActionType object.
         # The runner parameter defaults may be overridden by values provided in
         # the Action Execution.
+        actionexec_runner_parameters, actionexec_action_parameters = RunnerContainer._split_params(
+                actiontype_db, action_db, actionexec_db)
+
         runner_parameters = actiontype_db.runner_parameters
-        runner_parameters.update(actionexec_db.runner_parameters)
+        runner_parameters.update(actionexec_runner_parameters)
 
         # Create action parameters by merging default values with dynamic values
         action_parameters = {}
         action_action_parameters = dict(action_db.parameters)
         action_parameters.update(action_action_parameters)
-
-        actionexec_action_parameters = dict(actionexec_db.action_parameters)
         action_parameters.update(actionexec_action_parameters)
 
         runner.set_liveaction_id(liveaction_id)
@@ -189,6 +190,16 @@ class RunnerContainer():
         LOG.debug('    [Internal Dummy Runner] TODO: Save output to DB')
 
         return (command_exitcode, command_stdout, command_stderr)
+
+    @staticmethod
+    def _split_params(actiontype_db, action_db, actionexec_db):
+        return (
+            {param: actionexec_db.parameters[param] \
+                for param in actiontype_db.runner_parameters if param in actionexec_db.parameters},
+
+            {param: actionexec_db.parameters[param] \
+                for param in action_db.parameters if param in actionexec_db.parameters}
+        )
 
 
 def get_runner_container():

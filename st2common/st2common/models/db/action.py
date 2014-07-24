@@ -71,10 +71,8 @@ class ActionExecutionDB(StormFoundationDB):
                 help_text='The timestamp when the ActionExecution was created.')
     action = me.DictField(required=True,
                 help_text='The action executed by this instance.')
-    runner_parameters = me.DictField(default={},
-                help_text='The key-value pairs passed as parameters to the action runner.')
-    action_parameters = me.DictField(default={},
-                help_text='The key-value pairs passed as parameters to the execution.')
+    parameters = me.DictField(default={},
+                help_text='The key-value pairs passed as to the action runner & execution.')
     result = me.StringField(default='', help_text='Action defined result.')
 
     # TODO: Write generic str function for API and DB model base classes
@@ -87,8 +85,7 @@ class ActionExecutionDB(StormFoundationDB):
         result.append('action=%s, ' % str(self.action))
         result.append('status=%s, ' % str(self.status))
         result.append('start_timestamp=%s, ' % str(self.start_timestamp))
-        result.append('runner_parameters=%s, ' % str(self.runner_parameters))
-        result.append('action_parameters=%s, ' % str(self.action_parameters))
+        result.append('parameters=%s, ' % str(self.parameters))
         result.append('result=%s, ' % self.result)
         result.append(')')
         return ''.join(result)

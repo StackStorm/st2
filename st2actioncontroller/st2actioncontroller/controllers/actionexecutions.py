@@ -170,15 +170,10 @@ class ActionExecutionsController(RestController):
 
         # Fill-in runner_parameters and action_parameter fields if they are not
         # provided in the request.
-        if actionexecution.runner_parameters is Unset:
+        if actionexecution.parameters is Unset:
             LOG.warning('POST /actionexecutions/ request did not '
-                        'provide runner_parameters field.')
+                        'provide parameters field.')
             actionexecution.runner_parameters = {}
-
-        if actionexecution.action_parameters is Unset:
-            LOG.warning('POST /actionexecutions/ request did not '
-                        'provide action_parameters field.')
-            actionexecution.action_parameters = {}
 
         (action_db, action_dict) = get_action_by_dict(actionexecution.action)
         if not action_db:
@@ -196,10 +191,6 @@ class ActionExecutionsController(RestController):
             LOG.error('POST /actionexecutions/ Unable to create Action Execution for a disabled '
                       'Action. Action is: %s', action_db)
             abort(httplib.FORBIDDEN)
-
-        # ActionExecution doesn't hold the runner_type data. Disable this field update.
-        # LOG.debug('Setting actionexecution runner_type to "%s"', action_db.runner_type)
-        # actionexecution.runner_type = str(action_db.runner_type)
 
         # Set initial value for ActionExecution status.
         # Not using update_actionexecution_status to allow other initialization to

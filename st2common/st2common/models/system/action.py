@@ -48,14 +48,13 @@ class SSHCommandAction(object):
 
     def __str__(self):
         str_rep = []
-        str_rep.append('%s@%s [' % (self.__class__.__name__, id(self)))
-        str_rep.append('name: ' + self.name)
+        str_rep.append('%s@%s(name: %s' % (self.__class__.__name__, id(self), self.name))
         str_rep.append('id: ' + self.id)
         str_rep.append('command: ' + self.command)
         str_rep.append('user: ' + self.user)
         str_rep.append('sudo: ' + str(self.sudo))
         str_rep.append('parallel: ' + str(self.parallel))
-        str_rep.append('hosts: %s]' % str(self.hosts))
+        str_rep.append('hosts: %s)' % str(self.hosts))
 
         return ', '.join(str_rep)
 
@@ -72,15 +71,14 @@ class RemoteAction(SSHCommandAction):
 
     def __str__(self):
         str_rep = []
-        str_rep.append('%s@%s [' % (self.__class__.__name__, id(self)))
-        str_rep.append('name: ' + self.name)
+        str_rep.append('%s@%s(name: %s' % (self.__class__.__name__, id(self), self.name))
         str_rep.append('id: ' + self.id)
         str_rep.append('command: ' + self.command)
         str_rep.append('user: ' + self.user)
         str_rep.append('on_behalf_user: ' + self.on_behalf_user)
         str_rep.append('sudo: ' + str(self.sudo))
         str_rep.append('parallel: ' + str(self.parallel))
-        str_rep.append('hosts: %s]' % str(self.hosts))
+        str_rep.append('hosts: %s)' % str(self.hosts))
 
         return ', '.join(str_rep)
 
