@@ -1,0 +1,10 @@
+{
+    "name": "shell-remote-cmd-sysuser",
+    "runner_type": "remote-exec-sysuser",
+    "description": "Action to execute arbitrary linux command remotely.",
+    "enabled": true,
+    "artifact_paths": [],
+    "uri": null,
+    "entry_point": "",
+    "parameters": {}
+}

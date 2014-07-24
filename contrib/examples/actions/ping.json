@@ -1,0 +1,9 @@
+{
+    "name": "ping",
+    "runner_type": "shell",
+    "description": "A ping host action.",
+    "enabled": true,
+    "artifact_paths": ["actions/bash_ping"],
+    "entry_point": "actions/bash_ping/bash_ping.sh",
+    "parameters": {"count": null}
+}

@@ -1,0 +1,10 @@
+{
+    "name": "shell-remote-random-exit",
+    "runner_type": "remote-exec-sysuser",
+    "description": "Action that returns a randomly generated exit code remotely."
+    "enabled": true,
+    "artifact_paths": ["actions/bash_random"],
+    "uri": null,
+    "entry_point": "actions/bash_random/random2.sh",
+    "parameters": {"count":null}
+}

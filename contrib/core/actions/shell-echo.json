@@ -1,0 +1,10 @@
+{
+    "name": "shell-echo",
+    "runner_type": "shell",
+    "description": "An echo action.",
+    "enabled": true,
+    "uri": null,
+    "entry_point": "actions/bash_echo/bash_echo.sh",
+    "artifact_paths": ["actions/bash_echo"],
+    "parameters": {}
+}

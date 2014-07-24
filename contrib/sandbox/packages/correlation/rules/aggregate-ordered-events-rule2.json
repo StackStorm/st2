@@ -1,0 +1,24 @@
+{
+    "name": "aggregate-ordered-events-rule2", 
+    "trigger_type": {
+        "name": "st2.event"
+    }, 
+    "enabled": true, 
+    "rule_data": {
+    }, 
+    "criteria": {
+        "event_id": {
+            "pattern": 2000,
+            "type": "equals"
+        }
+    }, 
+    "action": {
+        "type": {
+            "name": "shell-echo"
+        },
+        "mapping": {
+            "args": "\"{{ trigger.host }}_{{ trigger.event_id }}\""
+        }
+    }, 
+    "description": "A sample rule that demonstrates chaining a series of triggers, rules, and actions."
+}

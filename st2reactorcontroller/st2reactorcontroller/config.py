@@ -47,6 +47,11 @@ use_debugger = cfg.BoolOpt(
 )
 CONF.register_cli_opt(use_debugger)
 
+rules_opts = [
+    cfg.StrOpt('rules_path', default='/opt/stackstorm/rules',
+        help='path to load rule files')
+]
+CONF.register_opts(rules_opts, group='rules')
 
 def parse_args(args=None):
     CONF(args=args)
