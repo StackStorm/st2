@@ -112,7 +112,7 @@ module.exports = (robot) ->
         .header('Content-Type', 'application/json')
         .post(JSON.stringify(payload), errorHandler) (err, res, body) ->
           action_execution = JSON.parse(body)
-
+          result = JSON.parse(action_execution.result)
           unless res.statusCode is 201
             msg.send "Action has failed to run"
             return
@@ -122,6 +122,8 @@ module.exports = (robot) ->
             return
 
           msg.send "STATUS: #{action_execution.status}"
-          msg.send "STDOUT: #{action_execution.std_out}"
-          msg.send "STDERR: #{action_execution.std_err}"
-          msg.send "EXIT_CODE: #{action_execution.exit_code}"
+          if(result.std_out != "")
+            msg.send "STDOUT: #{result.std_out}"
+          if(result.std_err != "")
+            msg.send "STDERR: #{result.std_err}"
+          msg.send "EXIT_CODE: #{result.exit_code}"
