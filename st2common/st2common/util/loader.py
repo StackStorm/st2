@@ -31,7 +31,9 @@ def _get_plugin_module(plugin_file_path):
 
 def _get_classes_in_module(module):
     return [kls for name, kls in inspect.getmembers(module,
-        lambda member: inspect.isclass(member) and member.__module__ == module.__name__)]
+        lambda member: inspect.isclass(member) and
+                       hasattr(member, 'schema') and
+                       member.__module__ == module.__name__)]
 
 
 def _get_plugin_classes(module_name):
@@ -57,8 +59,11 @@ def _validate_methods(plugin_base_class, plugin_klass):
 
 
 def _register_plugin(plugin_base_class, plugin_impl):
-    _validate_methods(plugin_base_class, plugin_impl)
+    # I've disabled it temporarly because it doesn't play well with abstract properties
+    # _validate_methods(plugin_base_class, plugin_impl)
     plugin_base_class.register(plugin_impl)
+    if hasattr(plugin_impl, 'webhook'):
+        plugin_base_class.webhook.register(plugin_impl.webhook)
 
 
 def register_plugin(plugin_base_class, plugin_abs_file_path):

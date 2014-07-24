@@ -16,6 +16,8 @@ eventlet.monkey_patch(
 
 LOG = logging.getLogger('st2reactor.sensorcontainer')
 
+_sensor_container = None
+
 
 class SensorContainer(object):
     def __init__(self, sensor_instances=[]):
@@ -80,6 +82,10 @@ class SensorContainer(object):
 
         return True
 
+    def get_sensor_webhook(self, name):
+        sensors_hooks = (sensor.webhook for sensor in self._sensors if hasattr(sensor, 'webhook'))
+        return next((hook for hook in sensors_hooks if hook.name == name), None)
+
     def run(self):
         self._run_all_sensors()
         self._pool.waitall()
@@ -97,3 +103,11 @@ class SensorContainer(object):
         LOG.info('All sensors are shut down.')
         self._sensors = {}
         self._threads = {}
+
+
+def get_sensor_container(sensor_instances=None):
+    global _sensor_container
+    if not _sensor_container:
+        _sensor_container = SensorContainer(sensor_instances)
+    return _sensor_container
+
