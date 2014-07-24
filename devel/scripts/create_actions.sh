@@ -20,3 +20,9 @@ curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "ping-google", 
 
 # Random exit action
 curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "random-exit", "runner_type": "shell", "description": "A random exit code action.", "enabled": true, "artifact_paths": ["actions/bash_exit_code"], "uri": null, "entry_point": "actions/bash_exit_code/bash_exit_code.sh", "parameters": {}}' ${ACTION_URL}/actions
+
+# Execute arbitrary linux command remote action
+curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "remote-action-sysuser", "runner_type": "remote-exec-sysuser", "description": "Action to execute arbitrary linux command remotely.", "enabled": true, "artifact_paths": [], "uri": null, "entry_point": "", "parameters": {}}' ${ACTION_URL}/actions
+
+# Execute random number generating script remote action
+curl -i -H 'Content-Type: application/json' -X POST -d '{"name": "random2-remote", "runner_type": "remote-exec-sysuser", "description": "Random number gen action to be run remote.", "enabled": true, "artifact_paths": ["actions/bash_random"], "uri": null, "entry_point": "actions/bash_random/random2.sh", "parameters": {"count":null}}' ${ACTION_URL}/actions

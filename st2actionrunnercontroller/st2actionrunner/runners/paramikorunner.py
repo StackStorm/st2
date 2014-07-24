@@ -1,14 +1,16 @@
 import uuid
 
+from st2actionrunner.runners import ActionRunner
 from st2common import log as logging
 from st2common.util.ssh import SSHClient
 from st2common.models.system.action import ParamikoSSHCommandAction
 
-LOG = logging.getLogger('st2.actions.runner.paramiko_runner')
+LOG = logging.getLogger(__name__)
 
 
-class SSHRunner(object):
+class SSHRunner(ActionRunner):
     def __init__(self, id):
+        super().__init__()
         self.runner_id = id
 
     def run(self, ssh_action):
@@ -48,6 +50,9 @@ class SSHRunner(object):
             return SSHClient(host, user=user, pkey=pkey)
         return SSHClient(host, user=user, password=password)
 
+
+def get_runner():
+    return SSHRunner(str(uuid.uuid4()))
 
 # XXX: Write proper tests.
 if __name__ == '__main__':

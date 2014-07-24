@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 
-class ActionRunner():
+class ActionRunner(object):
     """
         The interface that must be implemented by each StackStorm
         Action Runner implementation.
@@ -11,6 +11,7 @@ class ActionRunner():
         self.container_service = None
         self.liveaction_id = None
         self.runner_parameters = None
+        self.action_name = None
         self.entry_point = None
         self.artifact_paths = None
 
@@ -19,6 +20,9 @@ class ActionRunner():
 
     def set_liveaction_id(self, liveaction_id):
         self.liveaction_id = liveaction_id
+
+    def set_action_name(self, action_name):
+        self.action_name = action_name
 
     # Consider making set_runner_parameters abstract rather than
     # forcing a dict-model of runner_parameters on ActionRunner developers.
