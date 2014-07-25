@@ -7,11 +7,11 @@ import argparse
 import logging
 
 from st2client import utils
+from st2client import models
 from st2client.client import Client
 from st2client.commands import resource
 from st2client.commands import action
 from st2client.commands import datastore
-from st2client.models import reactor
 
 
 LOG = logging.getLogger(__name__)
@@ -66,22 +66,29 @@ class Shell(object):
         # Set up list of commands and subcommands.
         self.subparsers = self.parser.add_subparsers()
         self.commands = dict()
-        self.commands['action'] = action.ActionBranch(
-            'TODO: Put description of action here.',
-            self, self.subparsers)
+
         self.commands['key'] = datastore.KeyValuePairBranch(
             'TODO: Put description of key value pair here.',
             self, self.subparsers)
-        self.commands['execution'] = action.ActionExecutionBranch(
-            'TODO: Put description of action execution here.',
+
+        self.commands['trigger'] = resource.ResourceBranch(
+            models.Trigger,
+            'TODO: Put description of trigger here.',
             self, self.subparsers)
+
         self.commands['rule'] = resource.ResourceBranch(
-            reactor.Rule,
+            models.Rule,
             'TODO: Put description of rule here.',
             self, self.subparsers)
-        self.commands['trigger'] = resource.ResourceBranch(
-            reactor.Trigger,
-            'TODO: Put description of trigger here.',
+
+        self.commands['action'] = action.ActionBranch(
+            'TODO: Put description of action here.',
+            self, self.subparsers)
+        self.commands['run'] = action.ActionExecuteCommand(
+            models.Action, self, self.subparsers,
+            name='run', add_help=False)
+        self.commands['execution'] = action.ActionExecutionBranch(
+            'TODO: Put description of action execution here.',
             self, self.subparsers)
 
     def run(self, argv):

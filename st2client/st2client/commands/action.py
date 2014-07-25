@@ -25,7 +25,9 @@ class ActionBranch(resource.ResourceBranch):
 class ActionExecuteCommand(resource.ResourceCommand):
 
     def __init__(self, resource, *args, **kwargs):
-        super(ActionExecuteCommand, self).__init__(resource, 'execute',
+
+        super(ActionExecuteCommand, self).__init__(resource,
+            kwargs.pop('name', 'execute'),
             'Execute an action manually.',
             *args, **kwargs)
 

@@ -13,10 +13,13 @@ class TestShell(unittest2.TestCase):
         super(TestShell, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
 
-    def _validate_parser(self, args_list):
+    def _validate_parser(self, args_list, is_subcommand=True):
         for args in args_list:
             ns = self.shell.parser.parse_args(args)
-            func = self.shell.commands[args[0]].commands[args[1]].run_and_print
+            func = (self.shell.commands[args[0]].run_and_print
+                    if not is_subcommand
+                    else self.shell.commands[args[0]].\
+                            commands[args[1]].run_and_print)
             self.assertEqual(ns.func, func)
 
     def test_trigger(self):
@@ -48,9 +51,17 @@ class TestShell(unittest2.TestCase):
             ['action', 'delete', 'abc'],
             ['action', 'execute', '-h'],
             ['action', 'execute', 'abc', '-h'],
-            ['action', 'execute', 'abc', '-p', 'command="uname =a"']
+            ['action', 'execute', 'abc', '-p', 'command="uname =a"'],
         ]
         self._validate_parser(args_list)
+
+    def test_run(self):
+        args_list = [
+            ['run', '-h'],
+            ['run', 'abc', '-h'],
+            ['run', 'abc', '-p', 'command="uname =a"']
+        ]
+        self._validate_parser(args_list, is_subcommand=False)
 
     def test_action_execution(self):
         args_list = [
