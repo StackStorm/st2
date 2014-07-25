@@ -1,5 +1,5 @@
 from st2common import log as logging
-from st2reactor.rules import operators
+import st2common.operators as criteria_operators
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.filter')
@@ -34,5 +34,5 @@ class RuleFilter(object):
         criteria_pattern = criterion_v['pattern']
         if 'type' in criterion_v:
             criteria_operator = criterion_v['type']
-        operator = operators.get_operator(criteria_operator)
-        return operator(payload_value, criteria_pattern)
+        op_func = criteria_operators.get_operator(criteria_operator)
+        return op_func(payload_value, criteria_pattern)
