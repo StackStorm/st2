@@ -1,7 +1,7 @@
 import datetime
 import unittest2
 
-from st2reactor.rules import operators
+from st2common import operators
 
 
 class OperatorTest(unittest2.TestCase):
