@@ -6,8 +6,7 @@ from st2common.models.db.stormbase import (StormFoundationDB, StormBaseDB)
 
 
 __all__ = ['LiveActionDB',
-           'ActionRunnerDB',
-           'ActionTypeDB']
+           'ActionRunnerDB']
 
 
 LOG = logging.getLogger(__name__)
@@ -32,50 +31,6 @@ class LiveActionDB(StormFoundationDB):
         result.append('uri="%s")' % self.uri)
         return ''.join(result)
 
-
-class ActionTypeDB(StormBaseDB):
-    """
-        The representation of an ActionType in the system. An ActionType
-        has a one-to-one mapping to a particular ActionRunner implementation.
-
-        Attributes:
-            id: See StormBaseAPI
-            name: See StormBaseAPI
-            description: See StormBaseAPI
-
-            enabled: Boolean value indicating whether the runner for this type
-                     is enabled.
-            runner_parameter_names: The names required by the action runner to
-                                    function.
-            runner_module: The python module that implements the action runner
-                           for this type.
-    """
-
-    enabled = me.BooleanField(required=True, default=True,
-                              help_text=(u'Flag indicating whether the action runner ' +
-                                         u'represented by this actiontype is enabled.'))
-    runner_parameters = me.DictField(required=True, default={},
-                                     help_text=u'The parameter names required by the action runner. ' +
-                                               u'Default values are optional.')
-    runner_module = me.StringField(required=True,
-                                   help_text=u'Implementation of the action runner.')
-
-    # TODO: Write generic str function for API and DB model base classes
-    def __str__(self):
-        result = []
-        result.append('ActionTypeDB@')
-        result.append(str(id(self)))
-        result.append('(')
-        result.append('id="%s", ' % self.id)
-        result.append('name="%s", ' % self.name)
-        result.append('description="%s", ' % self.description)
-        result.append('enabled="%s", ' % self.enabled)
-        result.append('runner_module="%s", ' % str(self.runner_module))
-        result.append('runner_parameters="%s", ' % str(self.runner_parameters))
-        result.append('uri="%s")' % self.uri)
-        return ''.join(result)
-
-
 class ActionRunnerDB(StormFoundationDB):
     """
         The system entity that represents an ActionRunner environment in the system.
@@ -89,5 +44,4 @@ class ActionRunnerDB(StormFoundationDB):
 
 # specialized access objects
 liveaction_access = MongoDBAccess(LiveActionDB)
-actiontype_access = MongoDBAccess(ActionTypeDB)
 actionrunner_access = MongoDBAccess(ActionRunnerDB)
