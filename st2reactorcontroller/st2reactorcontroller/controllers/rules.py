@@ -4,6 +4,7 @@ from mongoengine import ValidationError, NotUniqueError
 from pecan import abort
 from pecan.rest import RestController
 from st2common import log as logging
+from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.reactor import RuleAPI, RuleEnforcementAPI
 from st2common.persistence.reactor import Rule, RuleEnforcement
 from wsme import types as wstypes
@@ -59,6 +60,9 @@ class RuleController(RestController):
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
             rule_db = Rule.add_or_update(rule_db)
         except (ValidationError, ValueError) as e:
+            LOG.exception('Validation failed for rule data=%s.', rule)
+            abort(httplib.BAD_REQUEST, str(e))
+        except ValueValidationException as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
             abort(httplib.BAD_REQUEST, str(e))
         except NotUniqueError as e:
