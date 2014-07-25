@@ -48,7 +48,7 @@ class TestShell(unittest2.TestCase):
             ['action', 'delete', 'abc'],
             ['action', 'execute', '-h'],
             ['action', 'execute', 'abc', '-h'],
-            ['action', 'execute', 'abc', '-r', 'command="uname =a"']
+            ['action', 'execute', 'abc', '-p', 'command="uname =a"']
         ]
         self._validate_parser(args_list)
 

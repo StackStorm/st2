@@ -37,9 +37,6 @@ class ActionExecuteCommand(resource.ResourceCommand):
         self.parser.add_argument('-p', '--params', nargs='+',
                                  help='List of parameters (i.e. k1=v1 k2=v2) '
                                       'to pass into the action.')
-        self.parser.add_argument('-r', '--runner-params', nargs='+',
-                                 help='List of parameters (i.e. k3=v3 k4=v4) '
-                                      'to pass into the action runner.')
         self.parser.add_argument('-j', '--json',
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
@@ -47,21 +44,16 @@ class ActionExecuteCommand(resource.ResourceCommand):
     def run(self, args):
         if not args.name:
             self.parser.error('too few arguments')
-        action_exec_mgr = self.app.client.managers['ActionExecution'] 
+        action_exec_mgr = self.app.client.managers['ActionExecution']
         if not self.manager.get_by_name(args.name):
             raise Exception('Action "%s" cannot be found.' % args.name)
         instance = action.ActionExecution()
         instance.action = { "name": args.name }
-        instance.action_parameters = {}
+        instance.parameters = {}
         if args.params:
             for kvp in args.params:
                 k, v = kvp.split('=')
-                instance.action_parameters[k] = v
-        instance.runner_parameters = {}
-        if args.runner_params:
-            for kvp in args.runner_params:
-                k, v = kvp.split('=')
-                instance.runner_parameters[k] = v
+                instance.parameters[k] = v
         return action_exec_mgr.create(instance)
 
     def run_and_print(self, args):
@@ -109,7 +101,7 @@ class ActionExecutionListCommand(resource.ResourceCommand):
 
         self.group = self.parser.add_mutually_exclusive_group()
         self.group.add_argument('--action-name',
-                                 help='Action name to filter the list.') 
+                                 help='Action name to filter the list.')
         self.group.add_argument('--action-id',
                                  help='Action id to filter the list.')
         self.parser.add_argument('-n', '--last', type=int, dest='last',

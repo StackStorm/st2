@@ -105,8 +105,7 @@ module.exports = (robot) ->
 
       payload =
         action: action,
-        runner_parameters: {}
-        action_parameters: parseArgs(expectedParams, command_args)
+        parameters: parseArgs(expectedParams, command_args)
 
       httpclients.actionexecutions
         .header('Content-Type', 'application/json')

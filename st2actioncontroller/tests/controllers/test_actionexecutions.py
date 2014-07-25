@@ -25,13 +25,11 @@ ACTION_2 = {
 }
 ACTION_EXECUTION_1 = {
     'action': {'name': 'st2.dummy.action1'},
-    'runner_parameters': {},
-    'action_parameters': {}
+    'parameters': {}
 }
 ACTION_EXECUTION_2 = {
     'action': {'name': 'st2.dummy.action2'},
-    'runner_parameters': {},
-    'action_parameters': {}
+    'parameters': {}
 }
 
 

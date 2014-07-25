@@ -36,7 +36,7 @@ class InternalDummyRunner(ActionRunner):
 
     def pre_run(self):
         LOG.info('In InternalDummyRunner.pre_run()')
-        self._command = self.parameters[COMMAND_PARAM]
+        self._command = self.runner_parameters[COMMAND_PARAM]
         LOG.debug('    [Internal Dummy Runner] "%s" argument is: %s', COMMAND_PARAM, self._command)
 
     def run(self, action_parameters):
