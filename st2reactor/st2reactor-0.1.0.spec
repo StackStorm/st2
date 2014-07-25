@@ -24,7 +24,6 @@ sed -i -r "s~logs~/var/log/stanley~g" conf/logging.conf
 mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/etc/st2reactor
 mkdir -p %{buildroot}/usr/bin/
-mkdir -p %{buildroot}/opt/stackstorm/
 cp -R st2reactor %{buildroot}%{python2_sitelib}/
 cp -R conf/* %{buildroot}/etc/st2reactor
 install -m755 bin/sensor_container %{buildroot}/usr/bin/sensor_container

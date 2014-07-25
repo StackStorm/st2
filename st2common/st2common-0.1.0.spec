@@ -30,6 +30,9 @@ mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/var/log/stanley
 mkdir -p %{buildroot}/etc/stanley
 mkdir -p %{buildroot}/opt/stackstorm
+cp -R contrib/core/rules %{buildroot}/opt/stackstorm/
+cp -R contrib/core/sensors %{buildroot}/opt/stackstorm/
+cp -R contrib/core/actions %{buildroot}/opt/stackstorm/
 cp -R external/mirantis %{buildroot}%{python2_sitelib}/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 install conf/stanley.conf %{buildroot}/etc/stanley/stanley.conf

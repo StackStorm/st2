@@ -24,10 +24,7 @@ sed -i -r "s~logs~/var/log/stanley~g" conf/logging.conf
 mkdir -p %{buildroot}/etc/st2reactorcontroller
 mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/usr/bin
-mkdir -p %{buildroot}/opt/stackstorm
 cp -R st2reactorcontroller %{buildroot}/%{python2_sitelib}/
-cp -R contrib/core/rules %{buildroot}/opt/stackstorm/
-cp -R contrib/core/sensors %{buildroot}/opt/stackstorm/
 cp -R conf/* %{buildroot}/etc/st2reactorcontroller
 install -m755 bin/reactor_controller %{buildroot}/usr/bin/reactor_controller
 
@@ -36,5 +33,3 @@ install -m755 bin/reactor_controller %{buildroot}/usr/bin/reactor_controller
 /usr/lib/python2.7/site-packages/st2reactorcontroller*
 /usr/bin/reactor_controller
 /etc/st2reactorcontroller*
-/opt/stackstorm/rules/*
-/opt/stackstorm/sensors/*
