@@ -5,14 +5,76 @@ from wsme import types as wstypes
 
 from st2common import log as logging
 from st2common.models.api.stormbase import (StormFoundationAPI, StormBaseAPI)
-from st2common.models.db.action import (ActionDB, ActionExecutionDB)
+from st2common.models.db.action import (ActionTypeDB, ActionDB, ActionExecutionDB)
 
 __all__ = ['ActionAPI',
            'ActionExecutionAPI',
-           ]
+           'ActionTypeAPI']
 
 
 LOG = logging.getLogger(__name__)
+
+
+class ActionTypeAPI(StormBaseAPI):
+    """
+        The representation of an ActionType in the system. An ActionType
+        has a one-to-one mapping to a particular ActionRunner implementation.
+
+        Attributes:
+            id: See StormBaseAPI
+            name: See StormBaseAPI
+            description: See StormBaseAPI
+
+            enabled: Boolean value indicating whether the runner for this type
+                     is enabled.
+            runner_module: The python module that implements the action runner
+                           for this type.
+            runner_parameters: The names for the parameter that are required by the
+                               action runner. Any values in this dictionary are
+                               default values for the parameters.
+    """
+    enabled = bool
+    runner_parameters = wstypes.DictType(str, str)
+    runner_module = wstypes.text
+
+    @classmethod
+    def from_model(kls, model):
+        LOG.debug('entering ActionTypeAPI.from_model() Input object: %s', model)
+
+        actiontype = StormBaseAPI.from_model(kls, model)
+        actiontype.enabled = bool(model.enabled)
+        actiontype.runner_module = str(model.runner_module)
+        actiontype.runner_parameters = dict(model.runner_parameters)
+
+        LOG.debug('exiting ActionTypeAPI.from_model() Result object: %s', actiontype)
+        return actiontype
+
+    @classmethod
+    def to_model(kls, actiontype):
+        LOG.debug('entering ActionTypeAPI.to_model() Input object: %s', actiontype)
+
+        model = StormBaseAPI.to_model(ActionTypeDB, actiontype)
+        model.enabled = bool(actiontype.enabled)
+        model.runner_module = str(actiontype.runner_module)
+        model.runner_parameters = dict(actiontype.runner_parameters)
+
+        LOG.debug('exiting ActionTypeAPI.to_model() Result object: %s', model)
+        return model
+
+    # TODO: Write generic str function for API and DB model base classes
+    def __str__(self):
+        result = []
+        result.append('ActionTypeAPI@')
+        result.append(str(id(self)))
+        result.append('(')
+        result.append('id="%s", ' % self.id)
+        result.append('name="%s", ' % self.name)
+        result.append('description="%s", ' % self.description)
+        result.append('enabled="%s", ' % self.enabled)
+        result.append('runner_module="%s", ' % str(self.runner_module))
+        result.append('runner_parameters="%s", ' % str(self.runner_parameters))
+        result.append('uri="%s")' % self.uri)
+        return ''.join(result)
 
 
 class ActionAPI(StormBaseAPI):

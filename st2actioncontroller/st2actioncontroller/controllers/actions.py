@@ -15,7 +15,7 @@ from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
-from st2common.util.action_db import (get_action_by_id, get_action_by_name)
+from st2common.util.action_db import (get_action_by_id, get_action_by_name, get_actiontype_by_name)
 
 
 LOG = logging.getLogger(__name__)
@@ -85,16 +85,24 @@ class ActionsController(RestController):
         else:
             action.enabled = bool(action.enabled)
 
-        action_api = ActionAPI.to_model(action)
-        LOG.debug('/actions/ POST verified ActionAPI object=%s', action_api)
-
-        LOG.audit('Action about to be created in database. Action is: %s', action_api)
+        # check if action parameters conflict with those from the supplied runner_type.
         try:
-            action_db = Action.add_or_update(action_api)
+            ActionsController._validate_action_parameters(action)
+        except StackStormDBObjectNotFoundError:
+            msg = 'ActionType %s not found.' % action.runner_type
+            LOG.exception(msg)
+            abort(httplib.NOT_FOUND, msg)
+
+        action_model = ActionAPI.to_model(action)
+        LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
+
+        LOG.audit('Action about to be created in database. Action is: %s', action_model)
+        try:
+            action_db = Action.add_or_update(action_model)
         except (NotUniqueError) as e:
             # If an existing DB object conflicts with new object then raise error.
-            LOG.error('/actions/ POST unable to save ActionDB object "%s" due to uniqueness '
-                      'conflict. Exception was: %s', action_api, e)
+            LOG.exception('/actions/ POST unable to save ActionDB object "%s" due to uniqueness '
+                          'conflict. Exception was: %s', action_model)
             abort(httplib.CONFLICT)
 
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
@@ -160,9 +168,20 @@ class ActionsController(RestController):
         return None
 
     @staticmethod
-    def __get_by_name(action_name):
+    def _get_by_name(action_name):
         try:
             return [Action.get_by_name(action_name)]
         except ValueError as e:
             LOG.debug('Database lookup for name="%s" resulted in exception : %s.', action_name, e)
             return []
+
+    @staticmethod
+    def _validate_action_parameters(action):
+        # check if action parameters conflict with those from the supplied runner_type.
+        actiontype_db = get_actiontype_by_name(action.runner_type)
+        conflicts = [p for p in action.parameters if p in actiontype_db.runner_parameters]
+        if len(conflicts) > 0:
+            msg = 'Parameters %s conflict with those inherited from runner_type : %s' % \
+                    (str(conflicts), action.runner_type)
+            LOG.error(msg)
+            abort(httplib.CONFLICT, msg)

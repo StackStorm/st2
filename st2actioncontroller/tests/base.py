@@ -2,7 +2,7 @@ import tests.config
 from pecan.testing import load_test_app
 from st2tests import DbTestCase
 from oslo.config import cfg
-
+from st2actioncontroller import model
 
 class FunctionalTest(DbTestCase):
 
@@ -24,6 +24,11 @@ class FunctionalTest(DbTestCase):
                 'errors': {404: '/error/404', '__force_dict__': True}
             }
         }
+
+        # TODO(manas) : register action types here for now. ActionType registration can be moved
+        # to posting to /actiontypes but that implies implementing POST.
+        model.register_action_types()
+
         cls.app = load_test_app(config=cfg_dict)
 
     @classmethod

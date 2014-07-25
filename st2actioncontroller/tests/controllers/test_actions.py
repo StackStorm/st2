@@ -19,7 +19,7 @@ ACTION_2 = {
     'enabled': True,
     'artifact_paths': ['/tmp/test'],
     'entry_point': 'action2.py',
-    'runner_type': 'python',
+    'runner_type': 'shell',
     'parameters': {'c': 'C1', 'D': 'D1'}
 }
 # ACTION_3: No enabled field
@@ -70,6 +70,16 @@ ACTION_7 = {
     'entry_point': 'action1.sh',
     'runner_type': 'shell',
     'parameters': {'a': 'A1', 'b': 'B1'}
+}
+# ACTION_8: id field provided
+ACTION_8 = {
+    'name': 'st2.dummy.action8',
+    'description': 'test description',
+    'enabled': True,
+    'artifact_paths': ['/tmp/test'],
+    'entry_point': 'action1.sh',
+    'runner_type': 'shell',
+    'parameters': {'args': 'A1', 'b': 'B1'}
 }
 
 
@@ -152,10 +162,13 @@ class TestActionController(FunctionalTest):
         for i in action_ids:
             self.__do_delete(i)
 
-#    def test_post_invalid_runner_type(self):
-#        post_resp = self.__do_post(ACTION_5)
-#        self.assertEquals(post_resp.status_int, 403)
-#        self.__do_delete(self.__get_action_id(post_resp))
+    def test_post_invalid_runner_type(self):
+        post_resp = self.__do_post(ACTION_5)
+        self.assertEquals(post_resp.status_int, 404)
+
+    def test_post_override_runner_param(self):
+        post_resp = self.__do_post(ACTION_8)
+        self.assertEquals(post_resp.status_int, 409)
 
     def test_delete(self):
         post_resp = self.__do_post(ACTION_1)
