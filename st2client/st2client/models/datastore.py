@@ -1,12 +1,12 @@
 import logging
 
-from st2client import models
+from st2client.models import core
 
 
 LOG = logging.getLogger(__name__)
 
 
-class KeyValuePair(models.Resource):
+class KeyValuePair(core.Resource):
     _alias = 'Key'
     _display_name = 'Key Value Pair'
     _plural = 'Keys'

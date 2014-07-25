@@ -59,7 +59,7 @@ class ActionsController(RestController):
         """
 
         LOG.info('GET all /actions/ and name=%s', name)
-        action_dbs = Action.get_all() if name is None else ActionsController.__get_by_name(name)
+        action_dbs = Action.get_all() if name is None else ActionsController._get_by_name(name)
         action_apis = [ActionAPI.from_model(action_db) for action_db in action_dbs]
 
         # TODO: unpack list in log message
