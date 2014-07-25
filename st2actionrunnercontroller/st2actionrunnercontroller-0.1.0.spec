@@ -23,9 +23,11 @@ sed -i -r "s~logs~/var/log/stanley~g" conf/logging.conf
 
 mkdir -p %{buildroot}/etc/st2actionrunnercontroller
 mkdir -p %{buildroot}%{python2_sitelib}
-mkdir -p %{buildroot}/usr/bin/
+mkdir -p %{buildroot}/usr/bin
+mkdir -p %{buildroot}/opt/stackstorm
 cp -R st2actionrunnercontroller %{buildroot}%{python2_sitelib}/
 cp -R st2actionrunner %{buildroot}%{python2_sitelib}/
+cp -R contrib/core/sensors %{buildroot}/opt/stackstorm/
 cp -R conf/* %{buildroot}/etc/st2actionrunnercontroller
 install -m755 bin/actionrunner_controller %{buildroot}/usr/bin/actionrunner_controller
 
@@ -34,4 +36,4 @@ install -m755 bin/actionrunner_controller %{buildroot}/usr/bin/actionrunner_cont
 /usr/lib/python2.7/site-packages/st2actionrunner*
 /usr/bin/actionrunner_controller
 /etc/st2actionrunnercontroller*
-
+/opt/stackstorm/actions/*

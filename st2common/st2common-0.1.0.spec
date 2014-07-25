@@ -21,19 +21,15 @@ An automation plaform that needs a much better description than this.
 
 %build
 sed -i -r "s~(st2.*)/conf~/etc/\1~g" conf/stanley.conf
-sed -i -r "s~st2reactor/(st2reactor/sensor/samples)~/opt/stackstorm~g" conf/stanley.conf
-sed -i '/modules_path/a system_path = /var/lib/stackstorm/sensors' conf/stanley.conf
+sed -i "/modules_path/a system_path = %{python2_sitelib}/st2reactor/contrib/sensors" conf/stanley.conf
 
 %install
 
 mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}%{python2_sitelib}
+mkdir -p %{buildroot}/var/log/stanley
 mkdir -p %{buildroot}/etc/stanley
-mkdir -p %{buildroot}/opt/stackstorm/repo
-mkdir -p %{buildroot}/var/lib/stackstorm/sensors
-mkdir -p %{buildroot}/var/lib/stackstorm/actions
-cp -R content/default/sensors %{buildroot}/opt/stackstorm/repo/
-cp -R content/devel/actions %{buildroot}/opt/stackstorm/repo/
+mkdir -p %{buildroot}/opt/stackstorm
 cp -R external/mirantis %{buildroot}%{python2_sitelib}/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 install conf/stanley.conf %{buildroot}/etc/stanley/stanley.conf
