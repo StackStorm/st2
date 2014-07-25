@@ -10,6 +10,17 @@ less_than = lambda v1, v2: v1 < v2
 greater_than = lambda v1, v2: v1 > v2
 
 
+def get_allowed_operators():
+    return operators
+
+
+def get_operator(op):
+    if op in operators:
+        return operators[op]
+    else:
+        raise Exception('Invalid operator: ' + op)
+
+
 def match_regex(value, match_pattern):
     regex = re.compile(match_pattern)
     # check for a match and not for details of the match.
@@ -32,7 +43,6 @@ def timediff_lt(diff_target, period):
 def timediff_gt(diff_target, period):
     return _timediff(diff_target, period, greater_than)
 
-
 # operator match strings
 MATCH_REGEX = 'matchregex'
 EQUALS_SHORT = 'eq'
@@ -45,7 +55,6 @@ TIMEDIFF_LT_SHORT = 'td_lt'
 TIMEDIFF_LT_LONG = 'timediff_lt'
 TIMEDIFF_GT_SHORT = 'td_gt'
 TIMEDIFF_GT_LONG = 'timediff_gt'
-DEFAULT = 'default'
 
 # operator lookups
 operators = {
@@ -59,10 +68,5 @@ operators = {
     TIMEDIFF_LT_SHORT: timediff_lt,
     TIMEDIFF_LT_LONG: timediff_lt,
     TIMEDIFF_GT_SHORT: timediff_gt,
-    TIMEDIFF_GT_LONG: timediff_gt,
-    DEFAULT: match_regex
+    TIMEDIFF_GT_LONG: timediff_gt
 }
-
-
-def get_operator(op):
-    return operators[op] if op in operators else operators[DEFAULT]

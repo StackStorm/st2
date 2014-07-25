@@ -5,6 +5,7 @@ from st2common.models.api.stormbase import StormBaseAPI, StormFoundationAPI
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerDB
 from st2common.persistence.reactor import Trigger
 from st2common.persistence.action import Action
+import st2common.validators.api.reactor as validator
 
 
 def get_id(identifiable):
@@ -110,6 +111,7 @@ class RuleAPI(StormBaseAPI):
         model = StormBaseAPI.to_model(RuleDB, rule)
         model.trigger_type = rule.trigger_type
         model.criteria = dict(rule.criteria)
+        validator.validate_criteria(model.criteria)
         model.action = ActionExecutionSpecDB()
         if 'type' in rule.action:
             model.action.action = rule.action['type']
