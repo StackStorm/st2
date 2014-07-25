@@ -16,7 +16,7 @@ if [[ ${1} == "start" ]]; then
     fi
 
     # Determine where the stanley repo is located. Some assumption is made here
-    # that this script is located under stanley/devel/scripts.
+    # that this script is located under stanley/contrib/sandbox/scripts.
 
     COMMAND_PATH=${0%/*}
     CURRENT_DIR=`pwd`
@@ -32,6 +32,10 @@ if [[ ${1} == "start" ]]; then
     ST2_REPO=`realpath ${ST2_REPO}`
     echo "Changing working directory to ${ST2_REPO}..."
     cd ${ST2_REPO}
+
+    # Copy and overwrite the action contents
+    mkdir -p /opt/stackstorm
+    cp -Rp ./contrib/core/actions /opt/stackstorm 
 
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate
