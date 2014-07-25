@@ -13,9 +13,6 @@ from st2actioncontroller import app
 from st2actioncontroller import model
 
 
-from wsgiref import simple_server
-
-
 eventlet.monkey_patch(
     os=True,
     select=True,
