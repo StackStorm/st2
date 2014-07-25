@@ -54,7 +54,6 @@ class ActionExecuteCommand(resource.ResourceCommand):
             for kvp in args.params:
                 k, v = kvp.split('=')
                 instance.parameters[k] = v
-        instance.runner_parameters = {}
         return action_exec_mgr.create(instance)
 
     def run_and_print(self, args):
