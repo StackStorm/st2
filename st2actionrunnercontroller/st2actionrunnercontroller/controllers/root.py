@@ -4,26 +4,19 @@ from webob.exc import status_map
 
 from st2common import log as logging
 from st2actionrunnercontroller.controllers.liveactions import LiveActionsController
-from st2actionrunnercontroller.controllers.actiontypes import ActionTypesController
 
 
 LOG = logging.getLogger(__name__)
 
 
 class RootController(object):
-    # actionrunners = ActionRunnersController()
-    actiontypes = ActionTypesController()
     liveactions = LiveActionsController()
 
-# TODO: Remove index handler
+    # TODO: Remove index handler
     @expose(generic=True, template='index.html')
     def index(self):
         return dict()
 
-#    @index.when(method='POST')
-#    def index_post(self, q):
-#        redirect('http://pecan.readthedocs.org/en/latest/search.html?q=%s' % q)
-#
     @expose('error.html')
     def error(self, status):
         try:

@@ -12,9 +12,8 @@ from st2common.models.api.action import ACTIONEXEC_STATUS_RUNNING
 from st2common.models.api.actionrunner import LiveActionAPI
 from st2common.persistence.actionrunner import LiveAction
 from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict,
-                                      update_actionexecution_status)
-from st2common.util.actionrunner_db import (get_actiontype_by_name,
-                                            get_liveaction_by_id,
+                                      get_actiontype_by_name, update_actionexecution_status)
+from st2common.util.actionrunner_db import (get_liveaction_by_id,
                                             get_liveactions_by_actionexec_id)
 
 from st2actionrunnercontroller.controllers import runner_container
