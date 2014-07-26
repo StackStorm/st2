@@ -23,7 +23,7 @@ sed -i -r "s~logs~/var/log/stanley~g" conf/logging.conf
 
 mkdir -p %{buildroot}/etc/st2reactorcontroller
 mkdir -p %{buildroot}%{python2_sitelib}
-mkdir -p %{buildroot}/usr/bin/
+mkdir -p %{buildroot}/usr/bin
 cp -R st2reactorcontroller %{buildroot}/%{python2_sitelib}/
 cp -R conf/* %{buildroot}/etc/st2reactorcontroller
 install -m755 bin/reactor_controller %{buildroot}/usr/bin/reactor_controller
