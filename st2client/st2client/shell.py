@@ -92,20 +92,29 @@ class Shell(object):
             self, self.subparsers)
 
     def run(self, argv):
-        # Parse command line arguments.
-        args = self.parser.parse_args()
+        try:
+            # Parse command line arguments.
+            args = self.parser.parse_args()
 
-        # Set up client.
-        self.endpoints['action'] = (
-            args.action_url if args.action_url else '%s:9101' % args.url)
-        self.endpoints['reactor'] = (
-            args.reactor_url if args.reactor_url else '%s:9102' % args.url)
-        self.endpoints['datastore'] = (
-            args.datastore_url if args.datastore_url else '%s:9103' % args.url)
-        self.client = Client(self.endpoints)
+            # Set up client.
+            self.endpoints['action'] = (
+                args.action_url
+                if args.action_url
+                else '%s:9101' % args.url)
+            self.endpoints['reactor'] = (
+                args.reactor_url
+                if args.reactor_url
+                else '%s:9102' % args.url)
+            self.endpoints['datastore'] = (
+                args.datastore_url
+                if args.datastore_url
+                else '%s:9103' % args.url)
+            self.client = Client(self.endpoints)
 
-        # Execute command.
-        args.func(args)
+            # Execute command.
+            args.func(args)
+        except Exception as e:
+            print 'ERROR: %s\n' % e.message
 
 
 def main(argv=sys.argv[1:]):
