@@ -2,6 +2,9 @@ from tests import FunctionalTest
 import json
 import unittest2
 
+
+SHELL_RUNNER_ARGS = {'shell': '/usr/bin/bash', 'args': None}
+
 # ACTION_1: Good action definition.
 ACTION_1 = {
     'name': 'st2.dummy.action1',
@@ -83,6 +86,17 @@ class TestActionController(FunctionalTest):
         get_resp = self.__do_get_one(action_id)
         self.assertEquals(get_resp.status_int, 200)
         self.assertEquals(self.__get_action_id(get_resp), action_id)
+        self.__do_delete(action_id)
+
+    def test_get_one_validate_params(self):
+        post_resp = self.__do_post(ACTION_1)
+        action_id = self.__get_action_id(post_resp)
+        get_resp = self.__do_get_one(action_id)
+        self.assertEquals(get_resp.status_int, 200)
+        self.assertEquals(self.__get_action_id(get_resp), action_id)
+        expected_args = dict(SHELL_RUNNER_ARGS)
+        expected_args.update(ACTION_1['parameters'])
+        self.assertEquals(get_resp.json['parameters'], expected_args)
         self.__do_delete(action_id)
 
     def test_get_all(self):

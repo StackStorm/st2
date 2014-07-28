@@ -146,13 +146,6 @@ class LiveActionsController(RestController):
                       'Action. Action is: %s', action_db)
             abort(httplib.FORBIDDEN)
 
-        try:
-            actiontype_db = get_actiontype_by_name(action_db.runner_type)
-        except StackStormDBObjectNotFoundError as e:
-            LOG.error(e.message)
-            # TODO: Is there a more appropriate status code?
-            abort(httplib.BAD_REQUEST)
-
         #  Got ActionType object (3)
         LOG.info('POST /liveactions/ obtained ActionType object from database. '
                  'Object is %s', actiontype_db)
@@ -174,7 +167,8 @@ class LiveActionsController(RestController):
             raise NotImplementedError('Error: Asynchronous execution of Live Action not yet implemented')
         else:
             global runner_container
-            result = runner_container.dispatch(liveaction_db, actiontype_db, action_db, actionexec_db)
+            result = runner_container.dispatch(liveaction_db, action_db.runner_type, action_db,
+                                               actionexec_db)
             LOG.info('Runner dispatch produced result: %s', result)
 
         if not result:
