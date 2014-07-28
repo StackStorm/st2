@@ -28,7 +28,7 @@ parseArgs = (scheme=[], argstr="") ->
 
 formatCommand = (command, type) ->
   line = "hubot run #{command.name} "
-  for arg in _.keys(command.parameters)
+  for arg in _({}).assign(type.runner_parameters).assign(command.parameters).keys().value()
     line += "[#{arg}] "
   line += "- #{command.description}"
 
@@ -56,7 +56,7 @@ module.exports = (robot) ->
 
   # define basic clients
   httpclients =
-    actiontypes: robot.http('http://localhost:9501').path('/actiontypes')
+    actiontypes: robot.http('http://localhost:9101').path('/actiontypes')
     actions: robot.http('http://localhost:9101').path('/actions')
     actionexecutions: robot.http('http://localhost:9101').path('/actionexecutions')
 
@@ -101,11 +101,15 @@ module.exports = (robot) ->
         msg.send "No such action: '#{command}'"
         return
 
-      expectedParams = _.keys(action.parameters)
+      expectedParams = _({})
+        .assign(actiontypes[action.runner_type].runner_parameters)
+        .assign(action.parameters)
+
+      actualParams = parseArgs(expectedParams.keys().value(), command_args)
 
       payload =
         action: action,
-        parameters: parseArgs(expectedParams, command_args)
+        parameters: _({}).assign(expectedParams.value()).assign(actualParams).value()
 
       httpclients.actionexecutions
         .header('Content-Type', 'application/json')
@@ -120,7 +124,9 @@ module.exports = (robot) ->
             msg.send "Action has failed to execute"
             return
 
+          result = JSON.parse(action_execution.result)
+
           msg.send "STATUS: #{action_execution.status}"
-          msg.send "STDOUT: #{action_execution.std_out}"
-          msg.send "STDERR: #{action_execution.std_err}"
-          msg.send "EXIT_CODE: #{action_execution.exit_code}"
+          msg.send "STDOUT: #{result.std_out}"
+          msg.send "STDERR: #{result.std_err}"
+          msg.send "EXIT_CODE: #{result.exit_code}"
