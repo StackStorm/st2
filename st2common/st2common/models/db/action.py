@@ -70,8 +70,6 @@ class ActionDB(StormBaseDB):
 
     enabled = me.BooleanField(required=True, default=True,
                           help_text='Flag indicating whether the action is enabled.')
-    artifact_paths = me.ListField(
-                          help_text='Paths to action content relative to repository base.')
     entry_point = me.StringField(required=True,
                           help_text='Action entrypoint.')
     runner_type = me.StringField(required=True,
@@ -87,7 +85,6 @@ class ActionDB(StormBaseDB):
         result.append('id="%s", ' % self.id)
         result.append('name"%s", ' % self.name)
         result.append('enabled="%s", ' % self.enabled)
-        result.append('artifact_paths="%s", ' % str(self.artifact_paths))
         result.append('entry_point="%s", ' % self.entry_point)
         result.append('runner_type="%s", ' % self.runner_type)
         result.append('parameters=%s, ' % str(self.parameters))

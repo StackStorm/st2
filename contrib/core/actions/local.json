@@ -1,10 +1,8 @@
 {
-    "name": "shell-local-cmd",
+    "name": "local",
     "runner_type": "shell",
     "description": "Action that executes an arbitrary Linux command on the localhost.",
     "enabled": true,
-    "uri": null,
     "entry_point": "",
-    "artifact_paths": [],
     "parameters": {}
 }

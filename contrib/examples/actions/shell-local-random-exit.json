@@ -1,9 +1,0 @@
-{
-    "name": "shell-local-random-exit",
-    "runner_type": "shell",
-    "description": "Action that returns a randomly generated exit code.",
-    "enabled": true,
-    "artifact_paths": ["actions/bash_exit_code"],
-    "entry_point": "actions/bash_exit_code/bash_exit_code.sh",
-    "parameters": {}
-}

@@ -13,7 +13,6 @@ class ActionRunner(object):
         self.runner_parameters = None
         self.action_name = None
         self.entry_point = None
-        self.artifact_paths = None
 
     def set_container_service(self, container_service):
         self.container_service = container_service
@@ -28,9 +27,6 @@ class ActionRunner(object):
     # forcing a dict-model of runner_parameters on ActionRunner developers.
     def set_runner_parameters(self, parameters):
         self.runner_parameters = parameters
-
-    def set_artifact_paths(self, paths):
-        self.artifact_paths = paths
 
     def set_entry_point(self, entry_point):
         self.entry_point = entry_point
@@ -57,7 +53,6 @@ class ActionRunner(object):
         result.append('liveaction_id="%s", ' % self.liveaction_id)
         result.append('container_service="%s", ' % self.container_service)
         result.append('runner_parameters="%s", ' % self.runner_parameters)
-        result.append('artifact_paths="%s", ' % self.artifact_paths)
         result.append('entry_point="%s"' % self.entry_point)
         result.append(')')
         return ''.join(result)
