@@ -87,13 +87,14 @@ class ActionsController(RestController):
 
         # check if action parameters conflict with those from the supplied runner_type.
         try:
-            ActionsController._validate_action_parameters(action)
+            actiontype_db = get_actiontype_by_name(action.runner_type)
+            ActionsController._validate_action_parameters(action, actiontype_db)
         except StackStormDBObjectNotFoundError:
             msg = 'ActionType %s not found.' % action.runner_type
             LOG.exception(msg)
             abort(httplib.NOT_FOUND, msg)
 
-        action_model = ActionAPI.to_model(action)
+        action_model = ActionAPI.to_model(action, actiontype_db)
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
 
         LOG.audit('Action about to be created in database. Action is: %s', action_model)
@@ -176,9 +177,8 @@ class ActionsController(RestController):
             return []
 
     @staticmethod
-    def _validate_action_parameters(action):
+    def _validate_action_parameters(action, actiontype_db):
         # check if action parameters conflict with those from the supplied runner_type.
-        actiontype_db = get_actiontype_by_name(action.runner_type)
         conflicts = [p for p in action.parameters if p in actiontype_db.runner_parameters]
         if len(conflicts) > 0:
             msg = 'Parameters %s conflict with those inherited from runner_type : %s' % \

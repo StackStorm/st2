@@ -72,7 +72,7 @@ class ActionDB(StormBaseDB):
                           help_text='Flag indicating whether the action is enabled.')
     entry_point = me.StringField(required=True,
                           help_text='Action entrypoint.')
-    runner_type = me.StringField(required=True,
+    runner_type = me.ReferenceField(ActionTypeDB, required=True,
                           help_text='Execution environment to use when invoking the action.')
     parameters = me.DictField(default={},
                           help_text='Action parameters with optional default values.')
@@ -86,7 +86,7 @@ class ActionDB(StormBaseDB):
         result.append('name"%s", ' % self.name)
         result.append('enabled="%s", ' % self.enabled)
         result.append('entry_point="%s", ' % self.entry_point)
-        result.append('runner_type="%s", ' % self.runner_type)
+        result.append('runner_type="%s", ' % self.runner_type.name)
         result.append('parameters=%s, ' % str(self.parameters))
         result.append('uri="%s")' % self.uri)
         return ''.join(result)

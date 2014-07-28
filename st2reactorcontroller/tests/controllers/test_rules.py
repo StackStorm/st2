@@ -1,8 +1,16 @@
 import httplib
-from st2common.persistence.action import Action
+from st2common.persistence.action import Action, ActionType
 from st2common.persistence.reactor import Trigger
 from st2common.models.db import action, reactor
 from tests import FunctionalTest
+
+
+ACTION_TYPE = action.ActionTypeDB()
+ACTION_TYPE.name = 'python'
+ACTION_TYPE.description = ''
+ACTION_TYPE.enabled = True
+ACTION_TYPE.runner_parameters = {'r1': None, 'r2': None}
+ACTION_TYPE.runner_module = 'nomodule'
 
 ACTION = action.ActionDB()
 ACTION.name = 'st2.test.action1'
@@ -10,8 +18,8 @@ ACTION.description = ''
 ACTION.enabled = True
 ACTION.artifact_path = '/tmp/action.py'
 ACTION.entry_point = ''
-ACTION.runner_type = 'python'
-ACTION.parameter_names = ['p1', 'p2', 'p3']
+ACTION.runner_type = None
+ACTION.parameter_names = {'p1': None, 'p2': None, 'p3': None}
 
 TRIGGER = reactor.TriggerDB()
 TRIGGER.name = 'st2.test.trigger1'
@@ -51,13 +59,17 @@ RULE_1 = {
 class TestRuleController(FunctionalTest):
 
     def setUp(self):
+        ACTION_TYPE.id = None
+        ActionType.add_or_update(ACTION_TYPE)
         ACTION.id = None
+        ACTION.runner_type = ACTION_TYPE
         Action.add_or_update(ACTION)
         TRIGGER.id = None
         Trigger.add_or_update(TRIGGER)
 
     def tearDown(self):
         Action.delete(ACTION)
+        ActionType.delete(ACTION_TYPE)
         Trigger.delete(TRIGGER)
 
     def test_get_all(self):

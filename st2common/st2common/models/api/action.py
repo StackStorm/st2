@@ -102,19 +102,20 @@ class ActionAPI(StormBaseAPI):
         action = StormBaseAPI.from_model(kls, model)
         action.enabled = bool(model.enabled)
         action.entry_point = str(model.entry_point)
-        action.runner_type = str(model.runner_type)
+        action.runner_type = str(model.runner_type.name)
         action.parameters = dict(model.parameters)
+        action.parameters.update(model.runner_type.runner_parameters)
         LOG.debug('exiting ActionAPI.from_model() Result object: %s', action)
         return action
 
     @classmethod
-    def to_model(kls, action):
+    def to_model(kls, action, actiontype_db):
         LOG.debug('entering ActionAPI.to_model() Input object: %s', action)
 
         model = StormBaseAPI.to_model(ActionDB, action)
         model.enabled = bool(action.enabled)
         model.entry_point = str(action.entry_point)
-        model.runner_type = str(action.runner_type)
+        model.runner_type = actiontype_db
         model.parameters = dict(action.parameters)
 
         LOG.debug('exiting ActionAPI.to_model() Result object: %s', model)
