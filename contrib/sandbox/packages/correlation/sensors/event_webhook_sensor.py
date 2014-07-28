@@ -1,4 +1,4 @@
-from st2reactor.sensor.samples.st2_webhook_sensor import St2WebhookSensor
+from st2reactor.contrib.sensors.st2_webhook_sensor import St2WebhookSensor
 
 class EventWebhookSensor(St2WebhookSensor):
 
