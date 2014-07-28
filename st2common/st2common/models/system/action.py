@@ -95,13 +95,13 @@ class RemoteScriptAction(RemoteAction):
         self.script_args = script_args
 
         self.remote_dir = remote_dir if remote_dir is not None else '/tmp'
-        self.command_base = os.path.join(self.remote_dir, self.script_name)
+        self.remote_script = os.path.join(self.remote_dir, self.script_name)
         command_parts = []
-        command_parts.append(self.command_base)
+        command_parts.append(self.remote_script)
         if self.script_args is not None:
             command_parts.append(self.script_args)
         self.command = " ".join(pipes.quote(s) for s in command_parts)
-        LOG.info('RemoteScriptAction: command to run on remote box: %s', self.command)
+        LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
 
 
 class ParamikoSSHCommandAction(SSHCommandAction):
@@ -162,13 +162,20 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
                                    parallel=self.parallel, sudo=self.sudo)
 
     def _run_script(self):
-        output_put = self._put()
-        if output_put.get('failed'):
-            return output_put
-        action_method = self._get_action_method()
-        result = action_method()
-        self._rm()
-        return result
+        try:
+            output_put = self._put()
+            if output_put.get('failed'):
+                return output_put
+            action_method = self._get_action_method()
+            result = action_method()
+            self._rm()
+        except Exception as e:
+            result = {}
+            result.failed = True
+            result.succeeded = False
+            result.exception = str(e)
+        finally:
+            return result
 
     def _put(self):
         output = put(self.script_local_path_abs, self.remote_dir, use_sudo=self.sudo,
@@ -186,9 +193,9 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
 
     def _rm(self):
         action_method = sudo if self.sudo else run
-        rm_command = 'rm %s' % self.command
+        rm_command = 'rm %s' % self.remote_script
         output = action_method(rm_command, combine_stderr=False, pty=False, quiet=True)
         if output.failed:
-            LOG.error('Failed to remove file %s from remote host.', self.command)
+            LOG.error('Failed to remove file %s from remote host.', self.remote_script)
         else:
-            LOG.debug('Succesfully cleaned up file %s from remote host.', self.command)
+            LOG.debug('Succesfully cleaned up file %s from remote host.', self.remote_script)
