@@ -14,10 +14,10 @@
     }, 
     "action": {
         "type": {
-            "name": "shell-echo"
+            "name": "local"
         },
         "mapping": {
-            "args": "\"{{ trigger.host }}_{{ trigger.event_id }}\""
+            "args": "echo \"{{ trigger.host }}_{{ trigger.event_id }}\""
         }
     }, 
     "description": "A sample rule that demonstrates chaining a series of triggers, rules, and actions."
