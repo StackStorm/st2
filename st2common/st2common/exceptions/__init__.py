@@ -1,4 +1,3 @@
-
 class StackStormBaseException(Exception):
     """
         The root of the exception class hierarchy for all
@@ -7,8 +6,7 @@ class StackStormBaseException(Exception):
         For exceptions raised by plug-ins, see StackStormPluginException
         class.
     """
-    def __init__(self, msg=''):
-        self.message = msg
+    pass
 
 
 class StackStormPluginException(StackStormBaseException):
