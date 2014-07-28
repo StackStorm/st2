@@ -10,6 +10,12 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('matchregex')
         self.assertTrue(op('v1', 'v1$'), 'Failed matchregex.')
 
+    def test_matchregex_case_variants(self):
+        op = operators.get_operator('MATCHREGEX')
+        self.assertTrue(op('v1', 'v1$'), 'Failed matchregex.')
+        op = operators.get_operator('MATCHregex')
+        self.assertTrue(op('v1', 'v1$'), 'Failed matchregex.')
+
     def test_matchregex_fail(self):
         op = operators.get_operator('matchregex')
         self.assertFalse(op('v1_foo', 'v1$'), 'Passed matchregex.')

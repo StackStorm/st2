@@ -15,6 +15,7 @@ def get_allowed_operators():
 
 
 def get_operator(op):
+    op = op.lower()
     if op in operators:
         return operators[op]
     else:
