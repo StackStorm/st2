@@ -6,7 +6,7 @@
 
 
 _ = require 'lodash'
-rvsp = require 'rsvp'
+rsvp = require 'rsvp'
 
 CONN_ERRORS =
   'ECONNREFUSED': (err) ->
@@ -26,9 +26,9 @@ parseArgs = (scheme=[], argstr="") ->
   # build an object
   _.zipObject scheme, args
 
-formatCommand = (command, type) ->
+formatCommand = (command) ->
   line = "hubot run #{command.name} "
-  for arg in _({}).assign(type.runner_parameters).assign(command.parameters).keys().value()
+  for arg in _({}).assign(command.parameters).keys().value()
     line += "[#{arg}] "
   line += "- #{command.description}"
 
@@ -56,12 +56,11 @@ module.exports = (robot) ->
 
   # define basic clients
   httpclients =
-    actiontypes: robot.http('http://localhost:9101').path('/actiontypes')
     actions: robot.http('http://localhost:9101').path('/actions')
     actionexecutions: robot.http('http://localhost:9101').path('/actionexecutions')
 
   # init for actions
-  actionsPromise = new rvsp.Promise (resolve, reject) ->
+  actionsPromise = new rsvp.Promise (resolve, reject) ->
     httpclients.actions
       .get(errorHandler) (err, res, body) ->
         return reject err if err
@@ -70,39 +69,27 @@ module.exports = (robot) ->
         robot.brain.set 'actions', obj
         resolve obj
 
-  actiontypesPromise = new rvsp.Promise (resolve, reject) ->
-    httpclients.actiontypes
-      .get(errorHandler) (err, res, body) ->
-        return reject err if err
-        actiontypes = JSON.parse body
-        obj = _.zipObject _.map(actiontypes, 'name'), actiontypes
-        robot.brain.set 'actiontypes', obj
-        resolve obj
-
   # Populate robot's command list for `help`
-  rvsp.hash
-    actions: actionsPromise,
-    actiontypes: actiontypesPromise
+  rsvp.hash
+    actions: actionsPromise
   .then (d) ->
     for _name, command of d.actions
-      robot.commands.push formatCommand command, d.actiontypes[command.runner_type]
+      robot.commands.push formatCommand command
 
   # responder to run a staction
   robot.respond /run\s+(\S+)\s*(.*)?/i, (msg) ->
     [command, command_args] = msg.match[1..]
 
-    rvsp.hash
-      actions: actionsPromise,
-      actiontypes: actiontypesPromise
+    rsvp.hash
+      actions: actionsPromise
     .then (d) ->
-      {actions, actiontypes} = d
+      actions = d.actions
 
       unless action = actions[command]
         msg.send "No such action: '#{command}'"
         return
 
       expectedParams = _({})
-        .assign(actiontypes[action.runner_type].runner_parameters)
         .assign(action.parameters)
 
       actualParams = parseArgs(expectedParams.keys().value(), command_args)
