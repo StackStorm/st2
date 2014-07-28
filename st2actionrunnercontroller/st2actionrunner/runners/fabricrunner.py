@@ -1,4 +1,3 @@
-import json
 import os
 import uuid
 
@@ -29,6 +28,7 @@ RUNNER_SUDO = 'sudo'
 RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_REMOTE_DIR = 'remotedir'
 RUNNER_COMMAND = 'command'
+ARGS_PARAM = 'args'
 
 
 class FabricRunner(ActionRunner):
@@ -44,8 +44,8 @@ class FabricRunner(ActionRunner):
     def pre_run(self):
         LOG.debug('Entering FabricRunner.pre_run() for liveaction_id="%s"', self.liveaction_id)
         LOG.debug('    runner_parameters = %s', self.runner_parameters)
-        self._hosts = [h.strip() for h in self.runner_parameters.get(RUNNER_HOSTS, '').split(',') \
-                      if len(h) > 0]
+        hosts = self.runner_parameters.get(RUNNER_HOSTS, '').split(',')
+        self._hosts = [h.strip() for h in hosts if len(h) > 0]
         if len(self._hosts) < 1:
             raise ActionRunnerPreRunError('No hosts specified to run action for liveaction %s.',
                                           self.liveaction_id)
@@ -62,8 +62,8 @@ class FabricRunner(ActionRunner):
     def run(self, action_parameters):
         LOG.debug('    action_parameters = %s', action_parameters)
         remote_action = self._get_fabric_remote_action(action_parameters) \
-                        if self.entry_point is None or len(self.entry_point) < 1 \
-                        else self._get_fabric_remote_script_action(action_parameters)
+            if self.entry_point is None or len(self.entry_point) < 1 \
+            else self._get_fabric_remote_script_action(action_parameters)
         LOG.debug('Will execute remote_action : %s.', str(remote_action))
         try:
             result = self._run(remote_action)
@@ -92,13 +92,18 @@ class FabricRunner(ActionRunner):
         return FabricRemoteAction(self.action_name,
                                   str(self.liveaction_id),
                                   command,
-                                  on_behalf_user = self._on_behalf_user,
-                                  user = self._user,
-                                  hosts = self._hosts,
-                                  parallel = self._parallel,
-                                  sudo = self._sudo)
+                                  on_behalf_user=self._on_behalf_user,
+                                  user=self._user,
+                                  hosts=self._hosts,
+                                  parallel=self._parallel,
+                                  sudo=self._sudo)
 
     def _get_fabric_remote_script_action(self, action_parameters):
+        script_args = ''
+        if ARGS_PARAM in action_parameters:
+            # Use the 'args' param from the action_parameters if it
+            # was not provided in runner parameters.
+            script_args = action_parameters[ARGS_PARAM]
         script_local_path = os.path.join(self.container_service.get_artifact_repo_path(),
                                          self.entry_point)
         script_local_path_abs = os.path.abspath(script_local_path)
@@ -109,12 +114,13 @@ class FabricRunner(ActionRunner):
         return FabricRemoteScriptAction(self.action_name,
                                         str(self.liveaction_id),
                                         script_local_path_abs,
-                                        on_behalf_user = self._on_behalf_user,
-                                        user = self._user,
-                                        remote_dir = remote_dir,
-                                        hosts = self._hosts,
-                                        parallel = self._parallel,
-                                        sudo = self._sudo)
+                                        script_args=script_args,
+                                        on_behalf_user=self._on_behalf_user,
+                                        user=self._user,
+                                        remote_dir=remote_dir,
+                                        hosts=self._hosts,
+                                        parallel=self._parallel,
+                                        sudo=self._sudo)
 
 
 def get_runner():
@@ -131,7 +137,7 @@ if __name__ == '__main__':
     remote_action = FabricRemoteAction('UNAME', 'action_exec_id' + str(uuid.uuid4()), 'uname -a',
                                        'narcissist', 'stanley', hosts=['54.191.85.86',
                                        '54.191.17.38', '54.200.102.55'])
-    print str(remote_action)
+    print(str(remote_action))
     results = runner._run(remote_action)
 
     print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
@@ -159,8 +165,10 @@ if __name__ == '__main__':
     print('!!!!!!!!!!!!!!!!!!!!! SCRIPT DAWG !!!!!!!!!!!!!!!!!!!!!!!!!!!')
     print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     script_action = FabricRemoteScriptAction('UNAME', 'action_exec_id' + str(uuid.uuid4()),
-                                             '/tmp/uname-script.sh', 'narcissist', 'stanley',
-                                             hosts=['54.191.85.86'], parallel=True, sudo=False)
+                                             '/tmp/ls-script.sh', script_args='/tmp',
+                                             on_behalf_user='narcissist',
+                                             user='stanley', hosts=['54.191.85.86'],
+                                             parallel=True, sudo=False)
     results = runner._run(script_action)
 
     print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')

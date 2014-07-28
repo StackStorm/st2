@@ -1,4 +1,5 @@
 import os
+import pipes
 
 from fabric.api import (put, run, sudo)
 from fabric.tasks import WrappedCallableTask
@@ -84,15 +85,23 @@ class RemoteAction(SSHCommandAction):
 
 
 class RemoteScriptAction(RemoteAction):
-    def __init__(self, name, action_exec_id, script_local_path_abs, on_behalf_user=None, user=None,
-                 remote_dir=None, hosts=None, parallel=True, sudo=False):
+    def __init__(self, name, action_exec_id, script_local_path_abs, script_args=None,
+                 on_behalf_user=None, user=None, remote_dir=None, hosts=None, parallel=True,
+                 sudo=False):
         super(RemoteScriptAction, self).__init__(name, action_exec_id, '', on_behalf_user, user,
                                                  hosts=hosts, parallel=parallel, sudo=sudo)
         self.script_local_path_abs = script_local_path_abs
         self.script_local_dir, self.script_name = os.path.split(self.script_local_path_abs)
+        self.script_args = script_args
 
         self.remote_dir = remote_dir if remote_dir is not None else '/tmp'
-        self.command = os.path.join(self.remote_dir, self.script_name)
+        self.command_base = os.path.join(self.remote_dir, self.script_name)
+        command_parts = []
+        command_parts.append(self.command_base)
+        if self.script_args is not None:
+            command_parts.append(self.script_args)
+        self.command = " ".join(pipes.quote(s) for s in command_parts)
+        LOG.info('RemoteScriptAction: command to run on remote box: %s', self.command)
 
 
 class ParamikoSSHCommandAction(SSHCommandAction):
@@ -104,7 +113,7 @@ class FabricRemoteAction(RemoteAction):
         action_method = self._get_action_method()
         LOG.info('action_method is %s' % action_method)
         return WrappedCallableTask(action_method, name=self.name, alias=self.id,
-            parallel=self.parallel, sudo=self.sudo)
+                                   parallel=self.parallel, sudo=self.sudo)
 
     def _get_action_method(self):
         if (self.sudo):
@@ -146,11 +155,11 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
     def get_fabric_task(self):
         action_method = self._get_script_action_method()
         return WrappedCallableTask(action_method, name=self.name, alias=self.id,
-            parallel=self.parallel, sudo=self.sudo)
+                                   parallel=self.parallel, sudo=self.sudo)
 
     def _get_script_action_method(self):
         return WrappedCallableTask(self._run_script, name=self.name, alias=self.id,
-            parallel=self.parallel, sudo=self.sudo)
+                                   parallel=self.parallel, sudo=self.sudo)
 
     def _run_script(self):
         output_put = self._put()
