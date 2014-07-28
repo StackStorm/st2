@@ -103,8 +103,8 @@ class ActionAPI(StormBaseAPI):
         action.enabled = bool(model.enabled)
         action.entry_point = str(model.entry_point)
         action.runner_type = str(model.runner_type.name)
-        action.parameters = dict(model.parameters)
-        action.parameters.update(model.runner_type.runner_parameters)
+        action.parameters = dict(model.runner_type.runner_parameters)
+        action.parameters.update(model.parameters)
         LOG.debug('exiting ActionAPI.from_model() Result object: %s', action)
         return action
 
