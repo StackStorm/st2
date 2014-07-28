@@ -27,11 +27,15 @@ class RuleEnforcer(object):
                  RuleEnforcer.__get_action_name(self.rule.action), self.trigger_instance.id,
                  json.dumps(data))
         action_execution = RuleEnforcer.__invoke_action(self.rule.action.action, data)
-        rule_enforcement.action_execution = action_execution
-        rule_enforcement = RuleEnforcement.add_or_update(rule_enforcement)
-        LOG.audit('[re=%s] ActionExecution %s for TriggerInstance %s due to Rule %s.',
-                 rule_enforcement.id, action_execution.get('id', None), self.rule.id,
-                 self.trigger_instance.id)
+        if action_execution is not None:
+            rule_enforcement.action_execution = action_execution
+            rule_enforcement = RuleEnforcement.add_or_update(rule_enforcement)
+            LOG.audit('[re=%s] ActionExecution %s for TriggerInstance %s due to Rule %s.',
+                      rule_enforcement.id, action_execution.get('id', None), self.rule.id,
+                      self.trigger_instance.id)
+        else:
+            LOG.error('Action execution failed. Trigger: id: %s, Rule: %s',
+                      self.trigger_instance.id, self.rule)
 
     @staticmethod
     def __get_action_name(action_exec_spec):
@@ -46,6 +50,7 @@ class RuleEnforcer(object):
         r = requests.post(cfg.CONF.reactor.actionexecution_base_url,
                           data=payload,
                           headers=HTTP_AE_POST_HEADER)
+        # XXX: POST /liveactions should always return an id as part of error response.
         if r.status_code != 201:
             return None
         action_execution_id = r.json()['id']
