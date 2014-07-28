@@ -60,9 +60,15 @@ class PropertyValueTable(formatters.Formatter):
     @classmethod
     def format(self, subject, *args, **kwargs):
         attributes = kwargs.get('attributes', None)
+        display_order = kwargs.get('display_order',
+                                   ['name', 'id', 'description'])
         if not attributes or 'all' in attributes:
             attributes = sorted([attr for attr in subject.__dict__
                                  if not attr.startswith('_')])
+        for attr in display_order[::-1]:
+            if attr in attributes:
+                attributes.remove(attr)
+                attributes = [attr] + attributes
         table = PrettyTable()
         table.field_names = ['Property', 'Value']
         table.max_width['Property'] = 20
