@@ -1,0 +1,8 @@
+{
+    "name": "local-random-exit",
+    "runner_type": "shell",
+    "description": "Action that returns a randomly generated exit code.",
+    "enabled": true,
+    "entry_point": "bash_exit_code/bash_exit_code.sh",
+    "parameters": {}
+}

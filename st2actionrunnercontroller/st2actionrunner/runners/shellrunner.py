@@ -55,17 +55,12 @@ class ShellRunner(ActionRunner):
         LOG.debug('    [ShellRunner,liveaction_id="%s"] Runner argument "%s" is: "%s"',
                   self.liveaction_id, SHELL_PARAM, self._shell)
 
-        # Create a temporary working directory for action
-        self._workingdir = self.container_service.create_runner_folder()
-
-        if not self.container_service.populate_runner_folder(self.artifact_paths):
-            error_msg = ('Encountered error while populating Action Runner folder ' +
-                         '"%s" for liveaction_id="%s"') % (self._workingdir, self.liveaction_id)
-            LOG.error(error_msg)
-            raise ActionRunnerPreRunError(error_msg)
-
-        LOG.info('    [ShellRunner,liveaction_id="%s"] Finished pre_run populating temporary '
-                 'artifact folder "%s"', self.liveaction_id, self._workingdir)
+        # Identify the working directory for the Action. Entry point is the
+        # the relative path from the artifact repo path to the script to be
+        # executed. The working directory is the absolute path to the location
+        # of the script.
+        self._workingdir = self.container_service.\
+            get_artifact_working_dir_path(self.entry_point)
 
     def run(self, action_parameters):
         """
@@ -83,9 +78,13 @@ class ShellRunner(ActionRunner):
                         ARGS_PARAM, self.liveaction_id)
             self._args = ''
 
+        # Execute the shell script at it's location. Change the working
+        # directory to the folder where the shell script is located.
         old_dir = os.getcwd()
         os.chdir(self._workingdir)
-        command_list = shlex.split(str(self.entry_point) + ' ' + str(self._args))
+        # Get the name of the shell script from the entry_point path.
+        paths = self.entry_point.rsplit('/', 1)[::-1]
+        command_list = shlex.split(str(paths[0]) + ' ' + str(self._args))
 
         # Convert shell environment dictionary to strings and omit any args that
         # have not been set by the user. (Value is None.)
@@ -129,7 +128,6 @@ class ShellRunner(ActionRunner):
 
     def post_run(self):
         LOG.debug('Entering ShellRunner.post_run() for liveaction_id="%s"', self.liveaction_id)
-        self.container_service.destroy_runner_folder()
 
 
 def get_runner():

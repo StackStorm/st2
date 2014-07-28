@@ -9,8 +9,7 @@ ACTION_1 = {
     'name': 'st2.dummy.action1',
     'description': 'test description',
     'enabled': True,
-    'artifact_paths': ['/tmp/test'],
-    'entry_point': 'action1.sh',
+    'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'shell',
     'parameters': {'a':'1', 'b':'2'}
 }
@@ -18,8 +17,7 @@ ACTION_2 = {
     'name': 'st2.dummy.action2',
     'description': 'another test description',
     'enabled': True,
-    'artifact_paths': ['/tmp/test'],
-    'entry_point': 'action2.sh',
+    'entry_point': '/tmp/test/action2.sh',
     'runner_type': 'shell',
     'parameters': {'c':'3', 'd':'4'}
 }

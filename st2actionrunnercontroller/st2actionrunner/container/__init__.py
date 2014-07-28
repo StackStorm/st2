@@ -120,7 +120,6 @@ class RunnerContainer():
         runner.set_container_service(RunnerContainerService(self))
 
         runner.set_action_name(action_db.name)
-        runner.set_artifact_paths(action_db.artifact_paths)
         runner.set_entry_point(action_db.entry_point)
         runner.set_runner_parameters(runner_parameters)
 

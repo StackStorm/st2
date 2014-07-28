@@ -7,8 +7,7 @@ ACTION_1 = {
     'name': 'st2.dummy.action1',
     'description': 'test description',
     'enabled': True,
-    'artifact_paths': ['/tmp/test'],
-    'entry_point': 'action1.sh',
+    'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'shell',
     'parameters': {'a': 'A1', 'b': 'B1'}
 }
@@ -17,8 +16,7 @@ ACTION_2 = {
     'name': 'st2.dummy.action2',
     'description': 'test description',
     'enabled': True,
-    'artifact_paths': ['/tmp/test'],
-    'entry_point': 'action2.py',
+    'entry_point': '/tmp/test/action2.py',
     'runner_type': 'shell',
     'parameters': {'c': 'C1', 'D': 'D1'}
 }
@@ -26,8 +24,7 @@ ACTION_2 = {
 ACTION_3 = {
     'name': 'st2.dummy.action3',
     'description': 'test description',
-    'artifact_paths': ['/tmp/test'],
-    'entry_point': 'action1.sh',
+    'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'shell',
     'parameters': {'a': 'A1', 'b': 'B1'}
 }
@@ -36,8 +33,7 @@ ACTION_4 = {
     'name': 'st2.dummy.action4',
     'description': 'test description',
     'enabled': False,
-    'artifact_paths': ['/tmp/test'],
-    'entry_point': 'action1.sh',
+    'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'shell',
     'parameters': {'a': 'A1', 'b': 'B1'}
 }
@@ -46,8 +42,7 @@ ACTION_5 = {
     'name': 'st2.dummy.action5',
     'description': 'test description',
     'enabled': False,
-    'artifact_paths': ['/tmp/test'],
-    'entry_point': 'action1.sh',
+    'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'xyzxyz',
     'parameters': {'a': 'A1', 'b': 'B1'}
 }
@@ -55,8 +50,7 @@ ACTION_5 = {
 ACTION_6 = {
     'name': 'st2.dummy.action6',
     'enabled': False,
-    'artifact_paths': ['/tmp/test'],
-    'entry_point': 'action1.sh',
+    'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'shell',
     'parameters': {'a': 'A1', 'b': 'B1'}
 }
@@ -66,8 +60,7 @@ ACTION_7 = {
     'name': 'st2.dummy.action7',
     'description': 'test description',
     'enabled': False,
-    'artifact_paths': ['/tmp/test'],
-    'entry_point': 'action1.sh',
+    'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'shell',
     'parameters': {'a': 'A1', 'b': 'B1'}
 }
@@ -76,8 +69,7 @@ ACTION_8 = {
     'name': 'st2.dummy.action8',
     'description': 'test description',
     'enabled': True,
-    'artifact_paths': ['/tmp/test'],
-    'entry_point': 'action1.sh',
+    'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'shell',
     'parameters': {'args': 'A1', 'b': 'B1'}
 }

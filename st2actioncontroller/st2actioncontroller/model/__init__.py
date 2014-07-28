@@ -82,7 +82,6 @@ def register_actions():
             model.name = str(content['name'])
             model.description = str(content['description'])
             model.enabled = bool(content['enabled'])
-            model.artifact_paths = [str(v) for v in content['artifact_paths']]
             model.entry_point = str(content['entry_point'])
             model.runner_type = str(content['runner_type'])
             model.parameters = dict(content['parameters'])
