@@ -4,7 +4,6 @@ import copy
 import jinja2
 
 from st2common.persistence.datastore import KeyValuePair
-from st2common.models.db.datastore import KeyValuePairDB
 
 
 PAYLOAD_PREFIX = 'trigger'

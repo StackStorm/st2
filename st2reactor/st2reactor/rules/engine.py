@@ -37,7 +37,7 @@ class RulesEngine(object):
         trigger_names = Set(trigger_names)  # uniquify the list
         trigger_rules_map = self.get_rules_for_triggers(trigger_names)  # Saves some queries to db.
         matchers = [(trigger_instance, RulesMatcher(trigger_instance,
-                        trigger_rules_map[trigger_instance.trigger['name']]))
+                    trigger_rules_map[trigger_instance.trigger['name']]))
                     for trigger_instance in trigger_instances]
 
         matching_rules_map = {}
@@ -59,4 +59,7 @@ class RulesEngine(object):
 
     def enforce_rules(self, enforcers):
         for enforcer in enforcers:
-            enforcer.enforce()  # Should this happen in an eventlet pool?
+            try:
+                enforcer.enforce()  # Should this happen in an eventlet pool?
+            except Exception as e:
+                LOG.error('Exception enforcing rule %s: %s', enforcer.rule, e)
