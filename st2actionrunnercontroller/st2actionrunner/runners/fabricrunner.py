@@ -104,9 +104,7 @@ class FabricRunner(ActionRunner):
             # Use the 'args' param from the action_parameters if it
             # was not provided in runner parameters.
             script_args = action_parameters[ARGS_PARAM]
-        script_local_path = os.path.join(self.container_service.get_artifact_repo_path(),
-                                         self.entry_point)
-        script_local_path_abs = os.path.abspath(script_local_path)
+        script_local_path_abs = self.container_service.get_entry_point_abs_path(self.entry_point)
         remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
                                                 cfg.CONF.fabric_runner.remote_dir)
         # TODO(manas) : add support for args to a script.
