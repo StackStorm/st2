@@ -21,11 +21,11 @@ def register_action_types():
                      'runner_module': 'no.such.module'},
 
                     {'name': 'internaldummy',
-                      'description': ('An internal action type for development only. Implemented '
-                                      'using a plugin.'),
-                      'enabled': True,
-                      'runner_parameters': {'command': None},
-                      'runner_module': 'st2actionrunner.runners.internaldummy'},
+                     'description': ('An internal action type for development only. Implemented '
+                                     'using a plugin.'),
+                     'enabled': True,
+                     'runner_parameters': {'command': None},
+                     'runner_module': 'st2actionrunner.runners.internaldummy'},
 
                     {'name': 'shell',
                      'description': 'A bash shell action type.',
@@ -34,16 +34,16 @@ def register_action_types():
                                            'args': None},
                      'runner_module': 'st2actionrunner.runners.shellrunner'},
 
-                     {'name': 'remote-exec-sysuser',
-                      'description': 'A remote execution action type with a fixed system user.',
-                      'enabled': True,
-                      'runner_parameters': {'hosts': None,
-                                            'parallel': None,
-                                            'sudo': None,
-                                            'user': None,
-                                            'command': None,
-                                            'remotedir': None},
-                      'runner_module': 'st2actionrunner.runners.fabricrunner'}]
+                    {'name': 'remote-exec-sysuser',
+                     'description': 'A remote execution action type with a fixed system user.',
+                     'enabled': True,
+                     'runner_parameters': {'hosts': None,
+                                           'parallel': None,
+                                           'sudo': None,
+                                           'user': None,
+                                           'command': None,
+                                           'remotedir': None},
+                     'runner_module': 'st2actionrunner.runners.fabricrunner'}]
 
     LOG.debug('Registering actiontypes')
 
@@ -70,6 +70,7 @@ def register_action_types():
 
     LOG.debug('Registering actiontypes complete')
 
+
 def register_actions():
     actions = glob.glob(cfg.CONF.actions.modules_path + '/*.json')
     for action in actions:
@@ -91,6 +92,7 @@ def register_actions():
                 continue
             model.parameters = dict(content['parameters'])
             model = Action.add_or_update(model)
+
 
 def init_model():
     pass
