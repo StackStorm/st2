@@ -108,15 +108,18 @@ class Shell(object):
     def run(self, argv):
         try:
             # Parse command line arguments.
-            args = self.parser.parse_args()
+            args = self.parser.parse_args(args=argv)
 
             # Set up client.
             self.client = self.get_client(args)
 
             # Execute command.
             args.func(args)
+
+            return 0
         except Exception as e:
             print 'ERROR: %s\n' % e.message
+            return 1
 
 
 def main(argv=sys.argv[1:]):
