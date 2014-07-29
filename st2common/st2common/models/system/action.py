@@ -103,6 +103,21 @@ class RemoteScriptAction(RemoteAction):
         self.command = " ".join(pipes.quote(s) for s in command_parts)
         LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
 
+    def __str__(self):
+            str_rep = []
+            str_rep.append('%s@%s(name: %s' % (self.__class__.__name__, id(self), self.name))
+            str_rep.append('id: ' + self.id)
+            str_rep.append('local_script: ' + self.script_local_path_abs)
+            str_rep.append('remote_dir: ' + self.remote_dir)
+            str_rep.append('command: ' + self.command)
+            str_rep.append('user: ' + self.user)
+            str_rep.append('on_behalf_user: ' + self.on_behalf_user)
+            str_rep.append('sudo: ' + str(self.sudo))
+            str_rep.append('parallel: ' + str(self.parallel))
+            str_rep.append('hosts: %s)' % str(self.hosts))
+
+            return ', '.join(str_rep)
+
 
 class ParamikoSSHCommandAction(SSHCommandAction):
     pass
@@ -153,9 +168,7 @@ class FabricRemoteAction(RemoteAction):
 
 class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
     def get_fabric_task(self):
-        action_method = self._get_script_action_method()
-        return WrappedCallableTask(action_method, name=self.name, alias=self.id,
-                                   parallel=self.parallel, sudo=self.sudo)
+        return self._get_script_action_method()
 
     def _get_script_action_method(self):
         return WrappedCallableTask(self._run_script, name=self.name, alias=self.id,
@@ -187,6 +200,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         }
 
         if output.failed:
+            LOG.error('Failed copying file %s to remote host.', self.script_local_path_abs)
             result['error'] = 'Failed copying file %s to %s on remote box' % (
                 self.script_local_path_abs, self.remote_path)
         return result
