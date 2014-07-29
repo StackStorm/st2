@@ -85,23 +85,36 @@ class RemoteAction(SSHCommandAction):
 
 
 class RemoteScriptAction(RemoteAction):
-    def __init__(self, name, action_exec_id, script_local_path_abs, script_args=None,
-                 on_behalf_user=None, user=None, remote_dir=None, hosts=None, parallel=True,
-                 sudo=False):
+    def __init__(self, name, action_exec_id, script_local_path_abs, named_args=None,
+                 positional_args=None, on_behalf_user=None, user=None, remote_dir=None, hosts=None,
+                 parallel=True, sudo=False):
         super(RemoteScriptAction, self).__init__(name, action_exec_id, '', on_behalf_user, user,
                                                  hosts=hosts, parallel=parallel, sudo=sudo)
         self.script_local_path_abs = script_local_path_abs
         self.script_local_dir, self.script_name = os.path.split(self.script_local_path_abs)
-        self.script_args = script_args
+        self.named_args = named_args
+        self.positional_args = positional_args
 
         self.remote_dir = remote_dir if remote_dir is not None else '/tmp'
-        self.remote_script = os.path.join(self.remote_dir, self.script_name)
+        self.remote_script = os.path.join(self.remote_dir, pipes.quote(self.script_name))
+        self.command = self._format_command()
+        LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
+
+    def _format_command(self):
         command_parts = []
         command_parts.append(self.remote_script)
-        for arg in self.script_args.split(' '):
-            command_parts.append(arg)
-        self.command = " ".join(pipes.quote(s) for s in command_parts)
-        LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
+        # add all named_args in the format name=value
+        if self.named_args is not None:
+            for (arg, value) in self.named_args.items():
+                if value is None or len(value) < 1:
+                    continue
+                if ' ' in value:
+                    command_parts.append('%s=\'%s\'' % (arg,value))
+                else:
+                    command_parts.append('%s=%s' % (arg,value))
+        # add the positional args
+        command_parts.append(self.positional_args)
+        return ' '.join(command_parts)
 
     def __str__(self):
             str_rep = []

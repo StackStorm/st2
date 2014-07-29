@@ -1,5 +1,6 @@
 import json
 import os
+import pipes
 
 from oslo.config import cfg
 
@@ -51,7 +52,7 @@ class RunnerContainerService():
         return wkdir
 
     def get_entry_point_abs_path(self, entry_point):
-        return os.path.join(self.get_artifact_repo_path(), entry_point)
+        return os.path.join(self.get_artifact_repo_path(), pipes.quote(entry_point))
 
     def __str__(self):
         result = []

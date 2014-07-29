@@ -41,7 +41,7 @@ def register_action_types():
                                            'parallel': None,
                                            'sudo': None,
                                            'user': None,
-                                           'command': None,
+                                           'cmd': None,
                                            'remotedir': None},
                      'runner_module': 'st2actionrunner.runners.fabricrunner'}]
 
