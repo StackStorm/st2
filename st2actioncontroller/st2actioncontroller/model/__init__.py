@@ -83,7 +83,12 @@ def register_actions():
             model.description = str(content['description'])
             model.enabled = bool(content['enabled'])
             model.entry_point = str(content['entry_point'])
-            model.runner_type = str(content['runner_type'])
+            try:
+                model.runner_type = get_actiontype_by_name(str(content['runner_type']))
+            except StackStormDBObjectNotFoundError:
+                LOG.exception('Failed to register action %s as runner %s was not found',
+                               model.name, str(content['runner_type']))
+                continue
             model.parameters = dict(content['parameters'])
             model = Action.add_or_update(model)
 
