@@ -84,7 +84,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
             action.ActionExecution, description, app, subparsers,
             parent_parser=parent_parser, read_only=True,
             commands={'list': ActionExecutionListCommand,
-                      'get': resource.ResourceGetByIdCommand})
+                      'get': resource.ResourceGetCommand})
 
         # Registers extended commands
         self.commands['cancel'] = ActionExecutionCancelCommand(

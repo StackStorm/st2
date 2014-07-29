@@ -8,6 +8,7 @@ import unittest2
 
 from tests import base
 
+from st2client import models
 from st2client.utils import httpclient
 from st2client.commands import resource
 
@@ -45,9 +46,27 @@ class TestResourceCommand(unittest2.TestCase):
         self.assertRaises(Exception, self.branch.commands['list'].run, args)
 
     @mock.patch.object(
-        httpclient.HTTPClient, 'get',
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(return_value=None))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_id',
         mock.MagicMock(return_value=\
-            base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+            base.FakeResource(**base.RESOURCES[0])))
+    def test_command_get_by_id(self):
+        args = self.parser.parse_args(['fakeresource', 'get', '123'])
+        self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
+        instance = self.branch.commands['get'].run(args)
+        actual = instance.serialize()
+        expected = json.loads(json.dumps(base.RESOURCES[0]))
+        self.assertEqual(actual, expected)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(return_value=\
+            base.FakeResource(**base.RESOURCES[0])))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_id',
+        mock.MagicMock(return_value=None))
     def test_command_get_by_name(self):
         args = self.parser.parse_args(['fakeresource', 'get', 'abc'])
         self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
@@ -59,8 +78,20 @@ class TestResourceCommand(unittest2.TestCase):
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=\
+            base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+    def test_command_get(self):
+        args = self.parser.parse_args(['fakeresource', 'get', 'abc'])
+        self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
+        instance = self.branch.commands['get'].run(args)
+        actual = instance.serialize()
+        expected = json.loads(json.dumps(base.RESOURCES[0]))
+        self.assertEqual(actual, expected)
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
             base.FakeResponse('', 404, 'NOT FOUND')))
-    def test_command_get_by_name_404(self):
+    def test_command_get_404(self):
         args = self.parser.parse_args(['fakeresource', 'get', 'cba'])
         self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
         self.assertRaises(resource.ResourceNotFoundError,
@@ -71,7 +102,7 @@ class TestResourceCommand(unittest2.TestCase):
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=\
             base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
-    def test_command_get_by_name_failed(self):
+    def test_command_get_failed(self):
         args = self.parser.parse_args(['fakeresource', 'get', 'cba'])
         self.assertRaises(Exception, self.branch.commands['get'].run, args)
 
@@ -115,6 +146,10 @@ class TestResourceCommand(unittest2.TestCase):
             os.unlink(path)
 
     @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
+            base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+    @mock.patch.object(
         httpclient.HTTPClient, 'put',
         mock.MagicMock(return_value=\
             base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, 'OK')))
@@ -137,6 +172,10 @@ class TestResourceCommand(unittest2.TestCase):
             os.unlink(path)
 
     @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
+            base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+    @mock.patch.object(
         httpclient.HTTPClient, 'put',
         mock.MagicMock(return_value=\
             base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
@@ -155,6 +194,10 @@ class TestResourceCommand(unittest2.TestCase):
             os.close(fd)
             os.unlink(path)
 
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
+            base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
     def test_command_update_id_mismatch(self):
         instance = base.FakeResource(id='789', name='abc')
         fd, path = tempfile.mkstemp()

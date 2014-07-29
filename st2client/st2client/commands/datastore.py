@@ -19,6 +19,7 @@ class KeyValuePairBranch(resource.ResourceBranch):
             parent_parser=parent_parser,
             commands={
                 'list': KeyValuePairListCommand,
+                'get': KeyValuePairGetCommand,
                 'create': KeyValuePairCreateCommand,
                 'update': KeyValuePairUpdateCommand
             })
@@ -29,6 +30,10 @@ class KeyValuePairBranch(resource.ResourceBranch):
 
 
 class KeyValuePairListCommand(resource.ResourceListCommand):
+    display_attributes = ['id', 'name', 'value']
+
+
+class KeyValuePairGetCommand(resource.ResourceGetCommand):
     display_attributes = ['id', 'name', 'value']
 
 
@@ -62,14 +67,16 @@ class KeyValuePairUpdateCommand(resource.ResourceCommand):
             'Update an existing %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('name', help='Key name.')
+        self.parser.add_argument('name_or_id',
+                                 metavar='name-or-id',
+                                 help='Name or ID of the key value pair.')
         self.parser.add_argument('value', help='Value paired with the key.')
         self.parser.add_argument('-j', '--json',
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
     def run(self, args):
-        instance = self.manager.get_by_name(args.name)
+        instance = self.get_resource(args.name_or_id)
         instance.value = args.value
         return self.manager.update(instance)
 
@@ -101,7 +108,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             instances = []
             kvps = json.loads(f.read())
             for k, v in kvps.iteritems():
-                instance = self.manager.get_by_name(k)
+                instance = self.get_resource(k)
                 if not instance:
                     instance = self.resource(name=k, value=v)
                     instances.append(self.manager.create(instance))
