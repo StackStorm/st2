@@ -1,8 +1,14 @@
 import os
+import sys
+import json
+import mock
 import logging
 import unittest2
 
+from tests import base
+
 from st2client import shell
+from st2client.utils import httpclient
 
 
 LOG = logging.getLogger(__name__)
@@ -13,6 +19,18 @@ class TestShell(unittest2.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestShell, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
+
+    def setUp(self): 
+        # Redirect standard output and error to null. If not, then
+        # some of the print output from shell commands will pollute
+        # the test output.
+        sys.stdout = open(os.devnull, 'w')
+        sys.stderr = open(os.devnull, 'w')
+
+    def tearDown(self):
+        # Reset to original stdout and stderr.
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
 
     def test_endpoints_default(self):
         base_url = 'http://localhost'
@@ -56,6 +74,22 @@ class TestShell(unittest2.TestCase):
         self.assertEqual(client.endpoints['action'], action_url)
         self.assertEqual(client.endpoints['reactor'], reactor_url)
         self.assertEqual(client.endpoints['datastore'], datastore_url)
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
+            base.FakeResponse(json.dumps(base.RESOURCES), 200, 'OK')))
+    def test_exit_code_on_success(self):
+        argv = ['trigger', 'list']
+        self.assertEqual(self.shell.run(argv), 0)
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=\
+            base.FakeResponse(None, 500, 'INTERNAL SERVER ERROR')))
+    def test_exit_code_on_error(self):
+        argv = ['trigger', 'list']
+        self.assertEqual(self.shell.run(argv), 1)
 
     def _validate_parser(self, args_list, is_subcommand=True):
         for args in args_list:
