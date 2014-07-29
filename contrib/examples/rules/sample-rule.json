@@ -1,0 +1,27 @@
+{
+    "name": "st2.test.rule1",
+    "description": "Some test rule.",
+
+    "trigger": {
+        "name": "st2.test.trigger1"
+    },
+
+    "criteria": {
+        "t1_p": {
+            "pattern": "t1_p_v",
+            "type": "equals"
+        }
+    },
+
+    "action": {
+        "type": {
+            "name": "st2.test.action"
+        },
+        "mapping": {
+            "ip2": "{{system.k1}}",
+            "ip1": "{{trigger.t1_p}}"
+        }
+    },
+
+    "enabled": true
+}
