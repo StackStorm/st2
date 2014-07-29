@@ -30,11 +30,8 @@ TRIGGER.trigger_source = None
 RULE_1 = {
     'enabled': True,
     'name': 'st2.test.rule1',
-    'trigger_type': {
+    'trigger': {
         'name': 'st2.test.trigger1'
-    },
-    'rule_data': {
-        'k1': 'v1'
     },
     'criteria': {
         't1_p': {

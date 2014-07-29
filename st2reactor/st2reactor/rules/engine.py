@@ -27,8 +27,8 @@ class RulesEngine(object):
         return trigger_rules_map
 
     def get_rules_for_trigger_from_db(self, trigger_name):
-        trigger_type = {'name': trigger_name}
-        rules = Rule.query(trigger_type=trigger_type, enabled=True)
+        trigger = {'name': trigger_name}
+        rules = Rule.query(trigger=trigger, enabled=True)
         LOG.info('Found %d rules defined for trigger %s.', len(rules), trigger_name)
         return rules
 

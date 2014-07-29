@@ -16,10 +16,8 @@ class Jinja2BasedTransformer(object):
         self._payload_context = Jinja2BasedTransformer.\
             _construct_context(PAYLOAD_PREFIX, payload, {})
 
-    def __call__(self, mapping, rule_data):
+    def __call__(self, mapping):
         context = copy.copy(self._payload_context)
-        context = Jinja2BasedTransformer._construct_context(
-            RULE_DATA_PREFIX, rule_data, context)
         context = self._construct_system_context(mapping, context)
         resolved_mapping = {}
         for mapping_k, mapping_v in mapping.iteritems():

@@ -3,8 +3,6 @@ from wsme import types as wstypes
 
 from st2common.models.api.stormbase import StormBaseAPI, StormFoundationAPI
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerDB
-from st2common.persistence.reactor import Trigger
-from st2common.persistence.action import Action
 import st2common.validators.api.reactor as validator
 
 
@@ -70,46 +68,43 @@ class RuleAPI(StormBaseAPI):
         criteria: Criteria used to further restrict the trigger that applies to this rule.
         e.g.
         { "trigger.from" :
-            { "pattern": "{{ rule_data.mailserver }}$"
+            { "pattern": "{{ system.mailserver }}$"
             , "type": "matchregex" }
         , "trigger.subject" :
             { "pattern": "RE:"
             , "operator": "contain" }
         }
-        rule_data:
         action: Specification of the action to execute and the mappings to apply.
         expected arguments are type, mapping.
         e.g.
         "action":
         { "type": {"id": "2345678901"}
         , "mapping":
-            { "command": "{{ rule_data.foo }}"
+            { "command": "{{ system.foo }}"
             , "args": "--email {{ trigger.from }} --subject \'{{ user[stanley].ALERT_SUBJECT }}\'"}
         }
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
-    trigger_type = wstypes.DictType(str, str)
+    trigger = wstypes.DictType(str, str)
     criteria = wstypes.DictType(str, wstypes.DictType(str, str))
-    rule_data = wstypes.DictType(str, str)
     action = wstypes.DictType(str, wstypes.DictType(str, str))
     enabled = wstypes.wsattr(bool, default=True)
 
     @classmethod
     def from_model(kls, model):
         rule = StormBaseAPI.from_model(kls, model)
-        rule.trigger_type = model.trigger_type
+        rule.trigger = model.trigger
         rule.criteria = dict(model.criteria)
         rule.action = {'type': model.action.action,
                        'mapping': dict(model.action.data_mapping)}
-        rule.rule_data = dict(model.rule_data)
         rule.enabled = model.enabled
         return rule
 
     @classmethod
     def to_model(kls, rule):
         model = StormBaseAPI.to_model(RuleDB, rule)
-        model.trigger_type = rule.trigger_type
+        model.trigger = rule.trigger
         model.criteria = dict(rule.criteria)
         validator.validate_criteria(model.criteria)
         model.action = ActionExecutionSpecDB()
@@ -117,7 +112,6 @@ class RuleAPI(StormBaseAPI):
             model.action.action = rule.action['type']
         if 'mapping' in rule.action:
             model.action.data_mapping = rule.action['mapping']
-        model.rule_data = rule.rule_data
         model.enabled = rule.enabled
         return model
 

@@ -1,7 +1,6 @@
 import mongoengine as me
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
-from st2common.models.db.action import ActionDB, ActionExecutionDB
 
 
 class TriggerSourceDB(StormBaseDB):
@@ -55,14 +54,12 @@ class RuleDB(StormBaseDB):
     Attribute:
         trigger: Trigger that trips this rule.
         criteria:
-        rule_data:
         action: Action to execute when the rule is tripped.
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
-    trigger_type = me.DictField()
+    trigger = me.DictField()
     criteria = me.DictField()
-    rule_data = me.DictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
     enabled = me.BooleanField(required=True, default=True,
                               help_text=u'Flag indicating whether the rule is enabled.')
