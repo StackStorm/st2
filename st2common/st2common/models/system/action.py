@@ -153,9 +153,7 @@ class FabricRemoteAction(RemoteAction):
 
 class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
     def get_fabric_task(self):
-        action_method = self._get_script_action_method()
-        return WrappedCallableTask(action_method, name=self.name, alias=self.id,
-                                   parallel=self.parallel, sudo=self.sudo)
+        return self._get_script_action_method()
 
     def _get_script_action_method(self):
         return WrappedCallableTask(self._run_script, name=self.name, alias=self.id,
@@ -165,6 +163,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         try:
             output_put = self._put()
             if output_put.get('failed'):
+                LOG.error('Failed to put %s.', self.remote_script)
                 return output_put
             action_method = self._get_action_method()
             result = action_method()
