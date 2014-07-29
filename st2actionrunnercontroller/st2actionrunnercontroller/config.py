@@ -100,7 +100,7 @@ CONF.register_cli_opt(use_debugger)
 
 action_runner_opts = [
     cfg.StrOpt('artifact_repo_path',
-               default='/opt/stackstorm',
+               default='/opt/stackstorm/actions',
                help='Path to root of artifact repository'),
     cfg.StrOpt('artifact_working_dir_path',
                default='/tmp/actionrunner',

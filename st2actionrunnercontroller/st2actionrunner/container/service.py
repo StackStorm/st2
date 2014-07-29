@@ -1,23 +1,13 @@
 import json
 import os
-import tempfile
-
-# TODO: fix st2common.log so that it supports all of the python logging API
-import logging as pylogging
 
 from oslo.config import cfg
 
 from st2common import log as logging
 
-
 LOG = logging.getLogger(__name__)
-
-
 STDOUT = 'stdout'
 STDERR = 'stderr'
-
-
-CLEAN_UP_TEMPDIR = False
 
 
 class RunnerContainerService():
@@ -52,13 +42,16 @@ class RunnerContainerService():
     def get_artifact_repo_path(self):
         return cfg.CONF.action_runner.artifact_repo_path
 
-    def get_artifact_working_dir_path(self, entry_point):
-        paths = entry_point.rsplit('/', 1)
-        wkdir = (self.get_artifact_repo_path() + '/actions' +
-                 ('/%s' % paths[0] if len(paths) == 2 else ''))
-        if not os.path.isdir(wkdir):
-            os.makedirs(wkdir)
+    def get_artifact_working_dir(self, entry_point):
+        wkdir = self.get_artifact_repo_path()
+        entry_point_path = os.path.split(entry_point)[0]
+        if not entry_point_path:
+            return wkdir
+        wkdir = os.path.join(wkdir, entry_point_path)
         return wkdir
+
+    def get_entry_point_abs_path(self, entry_point):
+        return os.path.join(self.get_artifact_repo_path(), entry_point)
 
     def __str__(self):
         result = []

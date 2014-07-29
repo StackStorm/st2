@@ -13,7 +13,7 @@ from wsgiref import simple_server
 
 eventlet.monkey_patch(
     os=True,
-    select=False, # monkey_patching select plays havoc with fabric. Patch at your own peril!
+    select=False,  # monkey_patching select plays havoc with fabric. Patch at your own peril!
     socket=True,
     thread=False if '--use-debugger' in sys.argv else True,
     time=True)
@@ -26,13 +26,13 @@ def __setup():
     # 1. parse args to setup config.
     config.parse_args()
     # 2. setup logging.
-    print cfg.CONF.actionrunner_controller_logging.config_file
     logging.setup(cfg.CONF.actionrunner_controller_logging.config_file)
 
     # 2. all other setup which requires config to be parsed and logging to
     # be correctly setup.
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
              cfg.CONF.database.port)
+
 
 def __run_server():
     host = cfg.CONF.actionrunner_controller_api.host
@@ -54,8 +54,8 @@ def main():
     try:
         __setup()
         __run_server()
-    except Exception, e:
-        LOG.exception(e)
+    except Exception as e:
+        LOG.error('Failed spinning up action runner controller: %s', e)
     finally:
         __teardown()
     return 1

@@ -5,9 +5,6 @@ import subprocess
 from st2actionrunner.runners import ActionRunner
 
 from st2common import log as logging
-from st2common.exceptions.actionrunner import ActionRunnerPreRunError
-from st2actionrunner.container.service import (STDOUT, STDERR)
-
 
 # Replace with container call to get logger.
 LOG = logging.getLogger(__name__)
@@ -59,8 +56,7 @@ class ShellRunner(ActionRunner):
         # the relative path from the artifact repo path to the script to be
         # executed. The working directory is the absolute path to the location
         # of the script.
-        self._workingdir = self.container_service.\
-            get_artifact_working_dir_path(self.entry_point)
+        self._workingdir = self.container_service.get_artifact_working_dir(self.entry_point)
 
     def run(self, action_parameters):
         """
