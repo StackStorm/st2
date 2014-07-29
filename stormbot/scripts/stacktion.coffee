@@ -28,7 +28,7 @@ parseArgs = (scheme=[], argstr="") ->
 
 formatCommand = (command) ->
   line = "hubot run #{command.name} "
-  for arg in _({}).assign(command.parameters).keys().value()
+  for arg in _.keys(command.parameters)
     line += "[#{arg}] "
   line += "- #{command.description}"
 
@@ -89,8 +89,7 @@ module.exports = (robot) ->
         msg.send "No such action: '#{command}'"
         return
 
-      expectedParams = _({})
-        .assign(action.parameters)
+      expectedParams = _.keys(action.parameters)
 
       actualParams = parseArgs(expectedParams.keys().value(), command_args)
 
