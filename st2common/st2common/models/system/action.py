@@ -98,8 +98,8 @@ class RemoteScriptAction(RemoteAction):
         self.remote_script = os.path.join(self.remote_dir, self.script_name)
         command_parts = []
         command_parts.append(self.remote_script)
-        if self.script_args is not None:
-            command_parts.append(self.script_args)
+        for arg in self.script_args.split(' '):
+            command_parts.append(arg)
         self.command = " ".join(pipes.quote(s) for s in command_parts)
         LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
 
