@@ -37,12 +37,24 @@ def __setup():
 
     # 4. ensure paths exist
     if not os.path.exists(cfg.CONF.actions.modules_path):
-        os.makedirs(cfg.CONF.actions.modules_path)
+        try:
+            os.makedirs(cfg.CONF.actions.modules_path)
+        except Exception as e:
+            LOG.warning('Failed to create directory: %s, %s', cfg.CONF.actions.modules_path, e,
+                        exc_info=True)
 
     # 5. register actiontypes and actions. The order is important because actions require action
     #    types to be present in the system.
-    model.register_action_types()
-    model.register_actions()
+    try:
+        model.register_action_types()
+    except Exception as e:
+        LOG.warning('Failed to register action types: %s', e, exc_info=True)
+        LOG.warning('Not registering stock actions.')
+    else:
+        try:
+            model.register_actions()
+        except Exception as e:
+            LOG.warning('Failed to register actions: %s', e, exc_info=True)
 
 
 def __run_server():
@@ -66,8 +78,8 @@ def main():
     try:
         __setup()
         __run_server()
-    except Exception, e:
-        LOG.exception(e)
+    except Exception as e:
+        LOG.warning('Exception starting up action controller: %s', e, exc_info=True)
     finally:
         __teardown()
     return 1
