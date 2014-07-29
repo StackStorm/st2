@@ -8,6 +8,7 @@ from oslo.config import cfg
 from st2actionrunner.runners import ActionRunner
 from st2common import log as logging
 from st2common.exceptions.actionrunner import (ActionRunnerPreRunError, ActionRunnerException)
+from st2common.exceptions.fabricrunner import FabricExecutionFailureException
 from st2common.models.system.action import (FabricRemoteAction, FabricRemoteScriptAction)
 
 # Replace with container call to get logger.
@@ -16,10 +17,11 @@ LOG = logging.getLogger(__name__)
 # Fabric environment level settings.
 # XXX: Note fabric env is a global singleton.
 env.parallel = True  # By default, execute things in parallel. Uses multiprocessing under the hood.
-env.user = cfg.CONF.fabric_runner.user  # Detect who is the owner of this process and use his ssh keys.
+env.user = cfg.CONF.fabric_runner.user
 env.timeout = 60  # Timeout for commands. 1 minute.
 env.combine_stderr = False
 env.group = 'staff'
+env.abort_exception = FabricExecutionFailureException
 
 # constants to lookup in runner_parameters.
 RUNNER_HOSTS = 'hosts'
