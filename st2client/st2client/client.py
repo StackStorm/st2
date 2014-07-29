@@ -1,9 +1,7 @@
+import os
 import logging
 
 from st2client import models
-from st2client.models import reactor
-from st2client.models import action
-from st2client.models import datastore
 
 
 LOG = logging.getLogger(__name__)
@@ -11,18 +9,37 @@ LOG = logging.getLogger(__name__)
 
 class Client(object):
 
-    def __init__(self, endpoints):
-        self.managers = {}
+    def __init__(self, *args, **kwargs):
+
+        # If API endpoints not provided, then try to get it from environment.
+        self.endpoints = dict()
+        self.endpoints['base'] = os.environ.get(
+            'ST2_BASE_URL', kwargs.get('base_url', 'http://localhost'))
+        self.endpoints['action'] = kwargs.get('action_url', None)
+        if not self.endpoints['action']:
+            self.endpoints['action'] = os.environ.get(
+                'ST2_ACTION_URL', '%s:%s' % (self.endpoints['base'], 9101))
+        self.endpoints['reactor'] = kwargs.get('reactor_url', None)
+        if not self.endpoints['reactor']:
+            self.endpoints['reactor'] = os.environ.get(
+                'ST2_REACTOR_URL', '%s:%s' % (self.endpoints['base'], 9102))
+        self.endpoints['datastore'] = kwargs.get('datastore_url', None)
+        if not self.endpoints['datastore']:
+            self.endpoints['datastore'] = os.environ.get(
+                'ST2_DATASTORE_URL', '%s:%s' % (self.endpoints['base'], 9103))
+
+        # Instantiate resource managers and assign appropriate API endpoint.
+        self.managers = dict()
         self.managers['Action'] = models.ResourceManager(
-            action.Action, endpoints['action'])
+            models.Action, self.endpoints['action'])
         self.managers['ActionExecution'] = models.ResourceManager(
-            action.ActionExecution, endpoints['action'])
+            models.ActionExecution, self.endpoints['action'])
         self.managers['Rule'] = models.ResourceManager(
-            reactor.Rule, endpoints['reactor'])
+            models.Rule, self.endpoints['reactor'])
         self.managers['Trigger'] = models.ResourceManager(
-            reactor.Trigger, endpoints['reactor'], read_only=True)
+            models.Trigger, self.endpoints['reactor'])
         self.managers['KeyValuePair'] = models.ResourceManager(
-            datastore.KeyValuePair, endpoints['datastore'])
+            models.KeyValuePair, self.endpoints['datastore'])
 
     @property
     def actions(self):

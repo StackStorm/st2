@@ -1,3 +1,4 @@
+import os
 import logging
 import unittest2
 
@@ -12,6 +13,49 @@ class TestShell(unittest2.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestShell, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
+
+    def test_endpoints_default(self):
+        base_url = 'http://localhost'
+        action_url = 'http://localhost:9101'
+        reactor_url = 'http://localhost:9102'
+        datastore_url = 'http://localhost:9103'
+        args = ['trigger', 'list']
+        parsed_args = self.shell.parser.parse_args(args)
+        client = self.shell.get_client(parsed_args)
+        self.assertEqual(client.endpoints['base'], base_url)
+        self.assertEqual(client.endpoints['action'], action_url)
+        self.assertEqual(client.endpoints['reactor'], reactor_url)
+        self.assertEqual(client.endpoints['datastore'], datastore_url)
+
+    def test_endpoints_base_url(self):
+        base_url = 'http://www.st2.com'
+        action_url = 'http://www.st2.com:9101'
+        reactor_url = 'http://www.st2.com:9102'
+        datastore_url = 'http://www.st2.com:9103'
+        args = ['--url', base_url, 'trigger', 'list']
+        parsed_args = self.shell.parser.parse_args(args)
+        client = self.shell.get_client(parsed_args)
+        self.assertEqual(client.endpoints['base'], base_url)
+        self.assertEqual(client.endpoints['action'], action_url)
+        self.assertEqual(client.endpoints['reactor'], reactor_url)
+        self.assertEqual(client.endpoints['datastore'], datastore_url)
+
+    def test_endpoints_override(self):
+        base_url = 'http://www.st2.com'
+        action_url = 'http://www.stackstorm1.com:9101'
+        reactor_url = 'http://www.stackstorm2.com:9102'
+        datastore_url = 'http://www.stackstorm3.com:9103'
+        args = ['--url', base_url,
+                '--action-url', action_url,
+                '--reactor-url', reactor_url,
+                '--datastore-url', datastore_url,
+                'trigger', 'list']
+        parsed_args = self.shell.parser.parse_args(args)
+        client = self.shell.get_client(parsed_args)
+        self.assertEqual(client.endpoints['base'], base_url)
+        self.assertEqual(client.endpoints['action'], action_url)
+        self.assertEqual(client.endpoints['reactor'], reactor_url)
+        self.assertEqual(client.endpoints['datastore'], datastore_url)
 
     def _validate_parser(self, args_list, is_subcommand=True):
         for args in args_list:
