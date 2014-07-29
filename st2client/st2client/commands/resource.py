@@ -38,7 +38,7 @@ class ResourceBranch(commands.Branch):
         if 'list' not in commands:
             commands['list'] = ResourceListCommand
         if 'get' not in commands:
-            commands['get'] = ResourceGetByNameCommand
+            commands['get'] = ResourceGetCommand
         if 'create' not in commands:
             commands['create'] = ResourceCreateCommand
         if 'update' not in commands:
@@ -75,6 +75,13 @@ class ResourceCommand(commands.Command):
         print ('%s "%s" is not found.\n' %
                (self.resource.get_display_name(), name))
 
+    def get_resource(self, name_or_id):
+        instance = self.manager.get_by_name(name_or_id)
+        if not instance:
+            instance = self.manager.get_by_id(name_or_id)
+        if not instance:
+            raise ResourceNotFoundError()
+        return instance
 
 class ResourceListCommand(ResourceCommand):
 
@@ -107,18 +114,21 @@ class ResourceListCommand(ResourceCommand):
                           json=args.json)
 
 
-class ResourceGetByNameCommand(ResourceCommand):
+class ResourceGetCommand(ResourceCommand):
+
+    display_attributes = ['all']
 
     def __init__(self, resource, *args, **kwargs):
-        super(ResourceGetByNameCommand, self).__init__(resource, 'get',
+        super(ResourceGetCommand, self).__init__(resource, 'get',
             'Get individual %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('name',
-                                 help=('Name of the %s.' %
+        self.parser.add_argument('name_or_id',
+                                 metavar='name-or-id',
+                                 help=('Name or ID of the %s.' %
                                        resource.get_display_name().lower()))
         self.parser.add_argument('-a', '--attr', nargs='+',
-                                 default=[],
+                                 default=self.display_attributes,
                                  help=('List of attributes to include in the '
                                        'output. "all" or unspecified will '
                                        'return all attributes.'))
@@ -127,10 +137,7 @@ class ResourceGetByNameCommand(ResourceCommand):
                                  help='Prints output in JSON format.')
 
     def run(self, args):
-        instance = self.manager.get_by_name(args.name)
-        if not instance:
-            raise ResourceNotFoundError()
-        return instance
+        return self.get_resource(args.name_or_id)
 
     def run_and_print(self, args):
         try:
@@ -138,42 +145,7 @@ class ResourceGetByNameCommand(ResourceCommand):
             self.print_output(instance, table.PropertyValueTable,
                               attributes=args.attr, json=args.json)
         except ResourceNotFoundError as e:
-            self.print_not_found(args.name)
-
-
-class ResourceGetByIdCommand(ResourceCommand):
-
-    def __init__(self, resource, *args, **kwargs):
-        super(ResourceGetByIdCommand, self).__init__(resource, 'get',
-            'Get individual %s.' % resource.get_display_name().lower(),
-            *args, **kwargs)
-
-        self.parser.add_argument(self.arg_name_for_resource_id,
-                                 help=('Identifier for the %s.' %
-                                       resource.get_display_name().lower()))
-        self.parser.add_argument('-a', '--attr', nargs='+',
-                                 default=[],
-                                 help=('List of attributes to include in the '
-                                       'output. "all" or unspecified will '
-                                       'return all attributes.'))
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
-
-    def run(self, args):
-        args_id = getattr(args, self.arg_name_for_resource_id, None)
-        instance = self.manager.get_by_id(args_id)
-        if not instance:
-            raise ResourceNotFoundError()
-        return instance
-
-    def run_and_print(self, args):
-        try:
-            instance = self.run(args)
-            self.print_output(instance, table.PropertyValueTable,
-                              attributes=args.attr, json=args.json)
-        except ResourceNotFoundError as e:
-            self.print_not_found(args_id)
+            self.print_not_found(args.name_or_id)
 
 
 class ResourceCreateCommand(ResourceCommand):
@@ -211,8 +183,9 @@ class ResourceUpdateCommand(ResourceCommand):
             'Updating an existing %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument(self.arg_name_for_resource_id,
-                                 help=('Identifier for the %s to be updated.' %
+        self.parser.add_argument('name_or_id',
+                                 metavar='name-or-id',
+                                 help=('Name or ID of the %s to be updated.' %
                                        resource.get_display_name().lower()))
         self.parser.add_argument('file',
                                  help=('JSON file containing the %s to update.'
@@ -224,20 +197,19 @@ class ResourceUpdateCommand(ResourceCommand):
     def run(self, args):
         if not os.path.isfile(args.file):
             raise Exception('File "%s" does not exist.' % args.file)
+        instance = self.get_resource(args.name_or_id)
         with open(args.file, 'r') as f:
             data = json.loads(f.read())
-            instance = self.resource.deserialize(data)
-            args_id = getattr(args, self.arg_name_for_resource_id)
-            if not getattr(instance, 'id', None):
-                instance.id = args_id
+            modified_instance = self.resource.deserialize(data)
+            if not getattr(modified_instance, 'id', None):
+                modified_instance.id = instance.id
             else:
-                if instance.id != args_id:
+                if modified_instance.id != instance.id:
                     raise Exception('The value for the %s id in the JSON file '
-                                    'does not match the %s provided in the '
+                                    'does not match the ID provided in the '
                                     'command line arguments.' %
-                                    (self.resource.get_display_name().lower(),
-                                     self.arg_name_for_resource_id))
-            return self.manager.update(instance)
+                                    self.resource.get_display_name().lower())
+            return self.manager.update(modified_instance)
 
     def run_and_print(self, args):
         instance = self.run(args)
@@ -252,14 +224,13 @@ class ResourceDeleteCommand(ResourceCommand):
             'Delete an existing %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('name',
-                                 help=('Name of the %s.' %
+        self.parser.add_argument('name_or_id',
+                                 metavar='name-or-id',
+                                 help=('Name or ID of the %s.' %
                                        resource.get_display_name().lower()))
 
     def run(self, args):
-        instance = self.manager.get_by_name(args.name)
-        if not instance:
-            raise ResourceNotFoundError()
+        instance = self.get_resource(args.name_or_id)
         self.manager.delete(instance)
 
     def run_and_print(self, args):
