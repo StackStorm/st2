@@ -136,6 +136,8 @@ class LiveActionsController(RestController):
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
 
+        actiontype_db = action_db.runner_type
+
         #  Got Action object (2)
         LOG.info('POST /liveactions/ obtained Action object from database. '
                  'Object is %s', action_db)
@@ -167,7 +169,7 @@ class LiveActionsController(RestController):
             raise NotImplementedError('Error: Asynchronous execution of Live Action not yet implemented')
         else:
             global runner_container
-            result = runner_container.dispatch(liveaction_db, action_db.runner_type, action_db,
+            result = runner_container.dispatch(liveaction_db, actiontype_db, action_db,
                                                actionexec_db)
             LOG.info('Runner dispatch produced result: %s', result)
 
