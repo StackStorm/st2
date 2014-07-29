@@ -178,6 +178,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         try:
             output_put = self._put()
             if output_put.get('failed'):
+                LOG.error('Failed to put %s.', self.remote_script)
                 return output_put
             action_method = self._get_action_method()
             result = action_method()
