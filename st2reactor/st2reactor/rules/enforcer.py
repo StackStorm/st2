@@ -26,7 +26,7 @@ class RuleEnforcer(object):
         LOG.info('Invoking action %s for trigger_instance %s with data %s.',
                  RuleEnforcer.__get_action_name(self.rule.action), self.trigger_instance.id,
                  json.dumps(data))
-        action_execution = RuleEnforcer.__invoke_action(self.rule.action.action, data)
+        action_execution = RuleEnforcer.__invoke_action(self.rule.action.name, data)
         if action_execution is not None:
             rule_enforcement.action_execution = action_execution
             rule_enforcement = RuleEnforcement.add_or_update(rule_enforcement)
