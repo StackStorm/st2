@@ -55,7 +55,7 @@ class RunnerContainer():
 
         if runner_type == 'internaldummy-builtin':
             runner_parameters, action_parameters = RunnerContainer._split_params(
-                    actiontype_db, action_db, actionexec_db)
+                actiontype_db, action_db, actionexec_db)
             (exit_code, std_out, std_err) = self._handle_internaldummy_runner(runner_parameters,
                                                                               action_parameters)
 
@@ -105,7 +105,7 @@ class RunnerContainer():
         # The runner parameter defaults may be overridden by values provided in
         # the Action Execution.
         actionexec_runner_parameters, actionexec_action_parameters = RunnerContainer._split_params(
-                actiontype_db, action_db, actionexec_db)
+            actiontype_db, action_db, actionexec_db)
 
         runner_parameters = actiontype_db.runner_parameters
         runner_parameters.update(actionexec_runner_parameters)
@@ -193,10 +193,10 @@ class RunnerContainer():
     @staticmethod
     def _split_params(actiontype_db, action_db, actionexec_db):
         return (
-            {param: actionexec_db.parameters[param] \
+            {param: actionexec_db.parameters[param]
                 for param in actiontype_db.runner_parameters if param in actionexec_db.parameters},
 
-            {param: actionexec_db.parameters[param] \
+            {param: actionexec_db.parameters[param]
                 for param in action_db.parameters if param in actionexec_db.parameters}
         )
 
