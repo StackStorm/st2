@@ -29,8 +29,7 @@ RUNNER_PARALLEL = 'parallel'
 RUNNER_SUDO = 'sudo'
 RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_REMOTE_DIR = 'remotedir'
-RUNNER_COMMAND = 'command'
-ARGS_PARAM = 'args'
+RUNNER_COMMAND = 'cmd'
 
 
 class FabricRunner(ActionRunner):
@@ -101,20 +100,15 @@ class FabricRunner(ActionRunner):
                                   sudo=self._sudo)
 
     def _get_fabric_remote_script_action(self, action_parameters):
-        script_args = ''
-        if ARGS_PARAM in action_parameters:
-            # Use the 'args' param from the action_parameters if it
-            # was not provided in runner parameters.
-            script_args = action_parameters[ARGS_PARAM]
         script_local_path_abs = self.container_service.get_entry_point_abs_path(self.entry_point)
+        positional_args = self.runner_parameters.get(RUNNER_COMMAND,  '')
         remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
                                                 cfg.CONF.fabric_runner.remote_dir)
-        # TODO(manas) : add support for args to a script.
-        # args = action_parameter.get(ACTION_ARGS, '')
         return FabricRemoteScriptAction(self.action_name,
                                         str(self.liveaction_id),
                                         script_local_path_abs,
-                                        script_args=script_args,
+                                        named_args=action_parameters,
+                                        positional_args=positional_args,
                                         on_behalf_user=self._on_behalf_user,
                                         user=self._user,
                                         remote_dir=remote_dir,
@@ -165,8 +159,8 @@ if __name__ == '__main__':
     print('!!!!!!!!!!!!!!!!!!!!! SCRIPT DAWG !!!!!!!!!!!!!!!!!!!!!!!!!!!')
     print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     script_action = FabricRemoteScriptAction('UNAME', 'action_exec_id' + str(uuid.uuid4()),
-                                             '/tmp/ls-script.sh', script_args='/tmp',
-                                             on_behalf_user='narcissist',
+                                             '/tmp/ls-script.sh', named_args={},
+                                             positional_args='/tmp', on_behalf_user='narcissist',
                                              user='stanley', hosts=['54.191.85.86'],
                                              parallel=True, sudo=False)
     results = runner._run(script_action)
