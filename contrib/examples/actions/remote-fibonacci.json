@@ -4,5 +4,5 @@
     "description": "Action that returns fibonacci numbers in a range.",
     "enabled": true,
     "entry_point": "python_fibonacci/fibonacci.py",
-    "parameters": {"args": null}
+    "parameters": {}
 }
