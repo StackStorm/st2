@@ -201,7 +201,7 @@ class ReactorModelTest(DbTestCase):
         created.criteria = {}
         created.action = ActionExecutionSpecDB()
         created.action.action = reference.get_ref_from_model(action)
-        created.action.data_mapping = {}
+        created.action.parameters = {}
         return Rule.add_or_update(created)
 
     @staticmethod

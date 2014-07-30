@@ -17,9 +17,9 @@
         "type": {
             "name": "st2.test.action"
         },
-        "mapping": {
-            "ip2": "{{system.k1}}",
-            "ip1": "{{trigger.t1_p}}"
+        "parameters": {
+            "ip1": "{{trigger.t1_p}}",
+            "ip2": "{{system.k1}}"
         }
     },
 

@@ -22,7 +22,7 @@ class RuleEnforcer(object):
         rule_enforcement = RuleEnforcementDB()
         rule_enforcement.trigger_instance = reference.get_ref_from_model(self.trigger_instance)
         rule_enforcement.rule = reference.get_ref_from_model(self.rule)
-        data = self.data_transformer(self.rule.action.data_mapping)
+        data = self.data_transformer(self.rule.action.parameters)
         LOG.info('Invoking action %s for trigger_instance %s with data %s.',
                  RuleEnforcer.__get_action_name(self.rule.action), self.trigger_instance.id,
                  json.dumps(data))
