@@ -101,7 +101,7 @@ class FabricRunner(ActionRunner):
 
     def _get_fabric_remote_script_action(self, action_parameters):
         script_local_path_abs = self.container_service.get_entry_point_abs_path(self.entry_point)
-        positional_args = self.runner_parameters.get(RUNNER_COMMAND,  '')
+        positional_args = self.runner_parameters.get(RUNNER_COMMAND, '')
         remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
                                                 cfg.CONF.fabric_runner.remote_dir)
         return FabricRemoteScriptAction(self.action_name,
