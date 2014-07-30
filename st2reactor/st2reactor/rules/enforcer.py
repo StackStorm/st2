@@ -24,7 +24,7 @@ class RuleEnforcer(object):
         rule_enforcement.rule = reference.get_ref_from_model(self.rule)
         data = self.data_transformer(self.rule.action.parameters)
         LOG.info('Invoking action %s for trigger_instance %s with data %s.',
-                 RuleEnforcer.__get_action_name(self.rule.action), self.trigger_instance.id,
+                 self.rule.action.name, self.trigger_instance.id,
                  json.dumps(data))
         action_execution = RuleEnforcer.__invoke_action(self.rule.action.name, data)
         if action_execution is not None:
@@ -36,12 +36,6 @@ class RuleEnforcer(object):
         else:
             LOG.error('Action execution failed. Trigger: id: %s, Rule: %s',
                       self.trigger_instance.id, self.rule)
-
-    @staticmethod
-    def __get_action_name(action_exec_spec):
-        if action_exec_spec is None or action_exec_spec.action is None:
-            return ''
-        return action_exec_spec.action['name']
 
     @staticmethod
     def __invoke_action(action, action_args):
