@@ -1,7 +1,6 @@
 import logging
 
 from st2client import models
-from st2client.models import action
 from st2client.commands import resource
 from st2client.formatters import table
 
@@ -13,7 +12,7 @@ class ActionBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionBranch, self).__init__(
-            action.Action, description, app, subparsers,
+            models.Action, description, app, subparsers,
             parent_parser=parent_parser)
 
         # Registers extended commands
@@ -31,8 +30,9 @@ class ActionExecuteCommand(resource.ResourceCommand):
             'Execute an action manually.',
             *args, **kwargs)
 
-        self.parser.add_argument('name', nargs='?',
-                                 help='Name of the action.')
+        self.parser.add_argument('name_or_id', nargs='?',
+                                 metavar='name-or-id',
+                                 help='Name or ID of the action.')
         self.parser.add_argument('-h', '--help',
                                  action='store_true', dest='help',
                                  help='Print usage for the given action.')
@@ -44,29 +44,30 @@ class ActionExecuteCommand(resource.ResourceCommand):
                                  help='Prints output in JSON format.')
 
     def run(self, args):
-        if not args.name:
+        if not args.name_or_id:
             self.parser.error('too few arguments')
         action_exec_mgr = self.app.client.managers['ActionExecution']
-        if not self.manager.get_by_name(args.name):
-            raise Exception('Action "%s" cannot be found.' % args.name)
-        instance = action.ActionExecution()
-        instance.action = { "name": args.name }
-        instance.parameters = {}
+        action = self.get_resource(args.name_or_id)
+        if not action:
+            raise Exception('Action "%s" cannot be found.' % args.name_or_id)
+        execution = models.ActionExecution()
+        execution.action = { "name": action.name }
+        execution.parameters = {}
         if args.params:
             for kvp in args.params:
                 k, v = kvp.split('=')
-                instance.parameters[k] = v
-        return action_exec_mgr.create(instance)
+                execution.parameters[k] = v
+        return action_exec_mgr.create(execution)
 
     def run_and_print(self, args):
         # Print appropriate help message if the help option is given.
         if args.help:
-            if args.name:
+            if args.name_or_id:
                 try:
-                    action = self.manager.get_by_name(args.name)
+                    action = self.get_resource(args.name_or_id)
                     print action.description
                 except Exception as e:
-                    print 'Action "%s" is not found.' % args.name
+                    print 'Action "%s" is not found.' % args.name_or_id
             else:
                 self.parser.print_help()
             return
@@ -77,14 +78,90 @@ class ActionExecuteCommand(resource.ResourceCommand):
                           attributes=['all'], json=args.json)
 
 
+class ActionRunCommand(resource.ResourceCommand):
+
+    def __init__(self, resource, *args, **kwargs):
+
+        super(ActionRunCommand, self).__init__(resource,
+            kwargs.pop('name', 'execute'),
+            'Execute an action manually.',
+            *args, **kwargs)
+
+        self.parser.add_argument('name_or_id', nargs='?',
+                                 metavar='name-or-id',
+                                 help='Name or ID of the action.')
+        self.parser.add_argument('parameters', nargs='*',
+                                 help='List of keyword args, positional args, '
+                                      'and optional args for the action.')
+
+        self.parser.add_argument('-h', '--help',
+                                 action='store_true', dest='help',
+                                 help='Print usage for the given action.')
+        self.parser.add_argument('-j', '--json',
+                                 action='store_true', dest='json',
+                                 help='Prints output in JSON format.')
+
+    def run(self, args):
+        print args.parameters
+
+        if not args.name_or_id:
+            self.parser.error('too few arguments')
+
+        action = self.get_resource(args.name_or_id)
+        if not action:
+            raise resource.ResourceNotFoundError('Action "%s" cannot be found.'
+                                                 % args.name_or_id)
+
+        execution = models.ActionExecution()
+        execution.action = { "name": action.name }
+        execution.parameters = dict()
+        kwargs = list()
+        for param in args.parameters:
+            if '=' in param:
+                kwargs.append(param)
+                continue
+            break
+        for kwarg in kwargs:
+            k, v = kwarg.split('=')
+            execution.parameters[k] = v
+        if kwargs and len(kwargs) < len(args.parameters):
+            argv = args.parameters[len(kwargs):]
+            execution.parameters['cmd'] = ' '.join(argv)
+
+        action_exec_mgr = self.app.client.managers['ActionExecution']
+        return action_exec_mgr.create(execution)
+
+    def print_help(self, args):
+        # Print appropriate help message if the help option is given.
+        if args.help:
+            if args.name_or_id:
+                try:
+                    action = self.get_resource(args.name_or_id)
+                    print action.description
+                except Exception as e:
+                    print 'Action "%s" is not found.' % args.name_or_id
+            else:
+                self.parser.print_help()
+            return True
+        return False
+
+    def run_and_print(self, args):
+        if self.print_help(args):
+            return
+        # Execute the action.
+        instance = self.run(args)
+        self.print_output(instance, table.PropertyValueTable,
+                          attributes=['all'], json=args.json)
+
+
 class ActionExecutionBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
-            action.ActionExecution, description, app, subparsers,
+            models.ActionExecution, description, app, subparsers,
             parent_parser=parent_parser, read_only=True,
             commands={'list': ActionExecutionListCommand,
-                      'get': resource.ResourceGetCommand})
+                      'get': ActionExecutionGetCommand})
 
         # Registers extended commands
         self.commands['cancel'] = ActionExecutionCancelCommand(
@@ -138,6 +215,39 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         self.print_output(instances, table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json)
+
+
+class ActionExecutionGetCommand(resource.ResourceCommand):
+
+    display_attributes = ['all']
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionExecutionGetCommand, self).__init__(resource, 'get',
+            'Get individual %s.' % resource.get_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('id',
+                                 help=('ID of the %s.' %
+                                       resource.get_display_name().lower()))
+        self.parser.add_argument('-a', '--attr', nargs='+',
+                                 default=self.display_attributes,
+                                 help=('List of attributes to include in the '
+                                       'output. "all" or unspecified will '
+                                       'return all attributes.'))
+        self.parser.add_argument('-j', '--json',
+                                 action='store_true', dest='json',
+                                 help='Prints output in JSON format.')
+
+    def run(self, args):
+        return self.manager.get_by_id(args.id)
+
+    def run_and_print(self, args):
+        try:
+            instance = self.run(args)
+            self.print_output(instance, table.PropertyValueTable,
+                              attributes=args.attr, json=args.json)
+        except ResourceNotFoundError as e:
+            self.print_not_found(args.id)
 
 
 class ActionExecutionCancelCommand(resource.ResourceCommand):

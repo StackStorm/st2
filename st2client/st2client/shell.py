@@ -86,7 +86,7 @@ class Shell(object):
         self.commands['action'] = action.ActionBranch(
             'TODO: Put description of action here.',
             self, self.subparsers)
-        self.commands['run'] = action.ActionExecuteCommand(
+        self.commands['run'] = action.ActionRunCommand(
             models.Action, self, self.subparsers,
             name='run', add_help=False)
         self.commands['execution'] = action.ActionExecutionBranch(
