@@ -1,6 +1,7 @@
 import datetime
 from wsme import types as wstypes
 
+from mirantis.resource import Resource
 from st2common.models.api.stormbase import StormBaseAPI, StormFoundationAPI
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerDB
 import st2common.validators.api.reactor as validator
@@ -60,6 +61,11 @@ class TriggerInstanceAPI(StormFoundationAPI):
         return trigger_instance
 
 
+class ActionSpec(Resource):
+    name = wstypes.text
+    parameters = wstypes.DictType(str, str)
+
+
 class RuleAPI(StormBaseAPI):
     """
     Attribute:
@@ -75,10 +81,10 @@ class RuleAPI(StormBaseAPI):
             , "operator": "contain" }
         }
         action: Specification of the action to execute and the mappings to apply.
-        expected arguments are type, mapping.
+        expected arguments are name, parameters.
         e.g.
         "action":
-        { "type": {"id": "2345678901"}
+        { "name": "st2.action.foo"
         , "parameters":
             { "command": "{{ system.foo }}"
             , "args": "--email {{ trigger.from }} --subject \'{{ user[stanley].ALERT_SUBJECT }}\'"}
@@ -88,7 +94,7 @@ class RuleAPI(StormBaseAPI):
     """
     trigger = wstypes.DictType(str, str)
     criteria = wstypes.DictType(str, wstypes.DictType(str, str))
-    action = wstypes.DictType(str, wstypes.DictType(str, str))
+    action = ActionSpec
     enabled = wstypes.wsattr(bool, default=True)
 
     @classmethod
@@ -96,8 +102,9 @@ class RuleAPI(StormBaseAPI):
         rule = StormBaseAPI.from_model(kls, model)
         rule.trigger = model.trigger
         rule.criteria = dict(model.criteria)
-        rule.action = {'type': model.action.action,
-                       'parameters': dict(model.action.parameters)}
+        rule.action = ActionSpec()
+        rule.action.name = model.action.name
+        rule.action.parameters = model.action.parameters
         rule.enabled = model.enabled
         return rule
 
@@ -108,10 +115,8 @@ class RuleAPI(StormBaseAPI):
         model.criteria = dict(rule.criteria)
         validator.validate_criteria(model.criteria)
         model.action = ActionExecutionSpecDB()
-        if 'type' in rule.action:
-            model.action.action = rule.action['type']
-        if 'parameters' in rule.action:
-            model.action.parameters = rule.action['parameters']
+        model.action.name = rule.action.name
+        model.action.parameters = rule.action.parameters
         model.enabled = rule.enabled
         return model
 

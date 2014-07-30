@@ -43,7 +43,7 @@ class TriggerInstanceDB(StormFoundationDB):
 
 
 class ActionExecutionSpecDB(me.EmbeddedDocument):
-    action = me.DictField()
+    name = me.StringField(required=True, unique=True)
     parameters = me.DictField()
 
 
