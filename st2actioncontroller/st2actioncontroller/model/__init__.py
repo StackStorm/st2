@@ -74,8 +74,13 @@ def register_action_types():
 def register_actions():
     actions = glob.glob(cfg.CONF.actions.modules_path + '/*.json')
     for action in actions:
+        LOG.debug('Loading action from %s', action)
         with open(action, 'r') as fd:
-            content = json.load(fd)
+            try:
+                content = json.load(fd)
+            except:
+                LOG.exception('Unable to load action from %s.', action)
+                continue
             try:
                 model = Action.get_by_name(str(content['name']))
             except:
@@ -92,6 +97,7 @@ def register_actions():
                 continue
             model.parameters = dict(content['parameters'])
             model = Action.add_or_update(model)
+            LOG.debug('Added action %s from %s.', model.name, action)
 
 
 def init_model():
