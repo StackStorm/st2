@@ -200,7 +200,7 @@ class ReactorModelTest(DbTestCase):
         created.trigger = reference.get_ref_from_model(trigger)
         created.criteria = {}
         created.action = ActionExecutionSpecDB()
-        created.action.action = reference.get_ref_from_model(action)
+        created.action.name = action.name
         created.action.parameters = {}
         return Rule.add_or_update(created)
 
