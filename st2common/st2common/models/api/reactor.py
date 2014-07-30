@@ -79,7 +79,7 @@ class RuleAPI(StormBaseAPI):
         e.g.
         "action":
         { "type": {"id": "2345678901"}
-        , "mapping":
+        , "parameters":
             { "command": "{{ system.foo }}"
             , "args": "--email {{ trigger.from }} --subject \'{{ user[stanley].ALERT_SUBJECT }}\'"}
         }
@@ -97,7 +97,7 @@ class RuleAPI(StormBaseAPI):
         rule.trigger = model.trigger
         rule.criteria = dict(model.criteria)
         rule.action = {'type': model.action.action,
-                       'mapping': dict(model.action.data_mapping)}
+                       'parameters': dict(model.action.parameters)}
         rule.enabled = model.enabled
         return rule
 
@@ -110,8 +110,8 @@ class RuleAPI(StormBaseAPI):
         model.action = ActionExecutionSpecDB()
         if 'type' in rule.action:
             model.action.action = rule.action['type']
-        if 'mapping' in rule.action:
-            model.action.data_mapping = rule.action['mapping']
+        if 'parameters' in rule.action:
+            model.action.parameters = rule.action['parameters']
         model.enabled = rule.enabled
         return model
 

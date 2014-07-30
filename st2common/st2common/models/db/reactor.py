@@ -44,7 +44,7 @@ class TriggerInstanceDB(StormFoundationDB):
 
 class ActionExecutionSpecDB(me.EmbeddedDocument):
     action = me.DictField()
-    data_mapping = me.DictField()
+    parameters = me.DictField()
 
 
 class RuleDB(StormBaseDB):

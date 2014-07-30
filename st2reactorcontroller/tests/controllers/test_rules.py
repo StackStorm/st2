@@ -43,7 +43,7 @@ RULE_1 = {
         'type': {
             'name': 'st2.test.action'
         },
-        'mapping': {
+        'parameters': {
             'ip2': '{{rule.k1}}',
             'ip1': '{{trigger.t1_p}}'
         }
