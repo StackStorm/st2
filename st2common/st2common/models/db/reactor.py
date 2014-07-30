@@ -3,31 +3,17 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
 
 
-class TriggerSourceDB(StormBaseDB):
-    """Source of a trigger. Typically an external system or service that
-    generates events which must be adapted to a trigger using the provided
-    adapter.
-    Attribute:
-        url: url of the source
-        auth_token: token used by an adapter to authenticate with the
-        adapter_file_uri: uri of the adapter which will translate an event
-        specific to the source to a corresponding trigger.
-    """
-    url = me.URLField()
-    auth_token = me.StringField()
-    adapter_file_uri = me.StringField()
-
-
 class TriggerDB(StormBaseDB):
     """Description of a specific kind/type of a trigger. The name is expected
        uniquely identify a trigger in the namespace of all triggers provided
        by a specific trigger_source.
     Attribute:
         trigger_source: Source that owns this trigger type.
-        payload_info: Meta information of the expected payload.
+        payload_schema: Meta information of the expected payload.
+        parameters_schema: Meta information of the expected parameters.
     """
-    trigger_source = me.ReferenceField(TriggerSourceDB.__name__)
-    payload_info = me.ListField()
+    payload_schema = me.DictField()
+    parameters_schema = me.DictField()
 
 
 class TriggerInstanceDB(StormFoundationDB):
@@ -80,7 +66,6 @@ class RuleEnforcementDB(StormFoundationDB):
 
 
 # specialized access objects
-triggersource_access = MongoDBAccess(TriggerSourceDB)
 trigger_access = MongoDBAccess(TriggerDB)
 triggerinstance_access = MongoDBAccess(TriggerInstanceDB)
 rule_access = MongoDBAccess(RuleDB)
