@@ -137,7 +137,8 @@ class TestShell(unittest2.TestCase):
         args_list = [
             ['run', '-h'],
             ['run', 'abc', '-h'],
-            ['run', 'abc', '-p', 'command="uname =a"']
+            ['run', 'remote', 'hosts=192.168.1.1', 'user=st2', 'cmd="ls -l"'],
+            ['run', 'remote-fib', 'hosts=192.168.1.1', '3', '8']
         ]
         self._validate_parser(args_list, is_subcommand=False)
 

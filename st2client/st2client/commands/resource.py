@@ -78,7 +78,10 @@ class ResourceCommand(commands.Command):
     def get_resource(self, name_or_id):
         instance = self.manager.get_by_name(name_or_id)
         if not instance:
-            instance = self.manager.get_by_id(name_or_id)
+            try:
+                instance = self.manager.get_by_id(name_or_id)
+            except:
+                pass
         if not instance:
             raise ResourceNotFoundError()
         return instance
