@@ -1,9 +1,12 @@
 from functools import wraps
 import httplib
 import os
+from urlparse import urljoin
 
 from flask import (jsonify, request, Flask)
 import yaml
+
+BASE_URL = '/webhooks/generic/'
 
 '''
 Dectorators for request validations.
@@ -53,8 +56,10 @@ class St2GenericWebhooksSensor(object):
         return []
 
     @validate_json
-    def _handle_webhook(self, name):
+    def _handle_webhook(self):
         webhook_body = request.get_json()
+        start = len(BASE_URL)
+        name = request.path[start:]
         # Generate trigger instances and send them.
         triggers = self._to_triggers(name, webhook_body)
 
@@ -72,8 +77,9 @@ class St2GenericWebhooksSensor(object):
     '''
     def _setup_flask_app(self, urls=[]):
         for url in urls:
-            self._app.add_url_rule('/webhooks/generic/<path:name>',
-                                   'generic-webhook-' + url,
+            full_url = urljoin(BASE_URL, url)
+            self._log.info('Listening to endpoint: %s', full_url)
+            self._app.add_url_rule(full_url, 'generic-webhook-' + url,
                                    self._handle_webhook, methods=['POST'])
 
     def _to_triggers(self, name, webhook_body):
