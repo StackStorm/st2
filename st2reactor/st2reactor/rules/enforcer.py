@@ -38,8 +38,8 @@ class RuleEnforcer(object):
                       self.trigger_instance.id, self.rule)
 
     @staticmethod
-    def __invoke_action(action, action_args):
-        payload = json.dumps({'action': action,
+    def __invoke_action(action_name, action_args):
+        payload = json.dumps({'action': {'name': action_name},
                               'parameters': action_args})
         r = requests.post(cfg.CONF.reactor.actionexecution_base_url,
                           data=payload,
