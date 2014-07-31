@@ -1,6 +1,8 @@
 import json
 import logging
 
+from requests import exceptions
+
 from st2client.utils import httpclient
 
 
@@ -68,6 +70,15 @@ class ResourceManager(object):
         self.read_only = read_only
         self.client = httpclient.HTTPClient(self.endpoint)
 
+    def handle_error(self, response):
+        try:
+            response.reason += ('\nMESSAGE: %s' %
+                                response.json().get('faultstring', ''))
+        except Exception as e:
+            response.reason += ('\nUnable to retrieve detailed message '
+                                'from the HTTP response. %s\n' % str(e))
+        response.raise_for_status()
+
     def get_all(self, *args, **kwargs):
         url = '/%s' % self.resource.get_plural_name().lower()
         limit = kwargs.get('limit', None)
@@ -78,7 +89,7 @@ class ResourceManager(object):
         LOG.info('GET %s/%s' % (self.endpoint, url))
         response = self.client.get(url)
         if response.status_code != 200:
-            response.raise_for_status()
+            self.handle_error(response)
         return [self.resource.deserialize(item)
                 for item in response.json()]
 
@@ -89,7 +100,7 @@ class ResourceManager(object):
         if response.status_code == 404:
             return None
         if response.status_code != 200:
-            response.raise_for_status()
+            self.handle_eror(response)
         return self.resource.deserialize(response.json())
 
     def query(self, *args, **kwargs):
@@ -104,7 +115,7 @@ class ResourceManager(object):
         if response.status_code == 404:
             return []
         if response.status_code != 200:
-            response.raise_for_status()
+            self.handle_error(response)
         items = response.json()
         instances = [self.resource.deserialize(item) for item in items]
         return instances
@@ -124,7 +135,7 @@ class ResourceManager(object):
         LOG.info('POST %s/%s' % (self.endpoint, url))
         response = self.client.post(url, instance.serialize())
         if response.status_code != 200:
-            response.raise_for_status()
+            self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
 
@@ -133,7 +144,7 @@ class ResourceManager(object):
         LOG.info('PUT %s/%s' % (self.endpoint, url))
         response = self.client.put(url, instance.serialize())
         if response.status_code != 200:
-            response.raise_for_status()
+            self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
 
@@ -142,4 +153,4 @@ class ResourceManager(object):
         LOG.info('DELETE %s/%s' % (self.endpoint, url))
         response = self.client.delete(url)
         if response.status_code not in (204, 404):
-            response.raise_for_status()
+            self.handle_error(response)
