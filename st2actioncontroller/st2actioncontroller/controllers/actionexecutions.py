@@ -1,34 +1,44 @@
 import datetime
 import httplib
 import json
+import sys
+import Queue
+
+import eventlet
 from pecan import abort
 from pecan.rest import RestController
-
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
 #       that bubble up to this layer should be core Python exceptions or
 #       StackStorm defined exceptions.
 
 import requests
-
 from wsme import types as wstypes
 from wsme import Unset
 import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.util.http import HTTP_SUCCESS
 from st2common.persistence.action import ActionExecution
 from st2common.models.api.action import (ActionExecutionAPI,
                                          ACTIONEXEC_STATUS_INIT,
+                                         ACTIONEXEC_STATUS_SCHEDULED,
                                          ACTIONEXEC_STATUS_ERROR)
 from st2common.util.action_db import (get_action_by_dict, get_actionexec_by_id,
                                       update_actionexecution_status)
 
+eventlet.monkey_patch(
+    os=True,
+    select=True,
+    socket=True,
+    thread=False if '--use-debugger' in sys.argv else True,
+    time=True)
 
 LOG = logging.getLogger(__name__)
 
 
-LIVEACTION_ENDPOINT = 'http://localhost:9501/liveactions'
+DEFAULT_LIVEACTIONS_ENDPOINT = 'http://localhost:9501/liveactions'
+MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
+MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
 
 
 class ActionExecutionsController(RestController):
@@ -36,6 +46,16 @@ class ActionExecutionsController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of ActionExecutions in the system.
     """
+
+    def __init__(self, live_actions_ep=DEFAULT_LIVEACTIONS_ENDPOINT, live_actions_pool_size=50):
+        self._live_actions_ep = live_actions_ep
+        self.live_actions_pool_size = live_actions_pool_size
+        self._live_actions_pool = eventlet.GreenPool(self.live_actions_pool_size)
+        self._threads = {}
+        self._live_actions = Queue.Queue()
+        self._live_actions_monitor_thread = eventlet.greenthread.spawn(self._drain_live_actions)
+        self._monitor_thread_empty_q_sleep_time = MONITOR_THREAD_EMPTY_Q_SLEEP_TIME
+        self._monitor_thread_no_workers_sleep_time = MONITOR_THREAD_NO_WORKERS_SLEEP_TIME
 
     def _issue_liveaction_delete(self, actionexec_id):
         """
@@ -46,7 +66,7 @@ class ActionExecutionsController(RestController):
         request_error = False
         result = None
         try:
-            result = requests.delete(LIVEACTION_ENDPOINT +
+            result = requests.delete(self._live_actions_ep +
                                      '/?actionexecution_id=' + str(actionexec_id))
         except requests.exceptions.ConnectionError as e:
             LOG.error('Caught encoundered connection error while performing /liveactions/ '
@@ -56,7 +76,7 @@ class ActionExecutionsController(RestController):
 
         LOG.debug('/liveactions/ DELETE request result: %s', result)
 
-        return(result, request_error)
+        return (result, request_error)
 
     def _issue_liveaction_post(self, actionexec_id):
         """
@@ -73,7 +93,7 @@ class ActionExecutionsController(RestController):
         request_error = False
         result = None
         try:
-            result = requests.post(LIVEACTION_ENDPOINT,
+            result = requests.post(self._live_actions_ep,
                                    data=json.dumps(payload), headers=custom_headers)
         except requests.exceptions.ConnectionError as e:
             LOG.error('Caught encoundered connection error while performing /liveactions/ POST.'
@@ -82,7 +102,7 @@ class ActionExecutionsController(RestController):
 
         LOG.debug('/liveactions/ POST request result: %s', result)
 
-        return(result, request_error)
+        return (result, request_error)
 
     @staticmethod
     def _get_action_executions(action_id, action_name, limit=None):
@@ -217,38 +237,27 @@ class ActionExecutionsController(RestController):
                   'ActionExecution is: %s', actionexec_db)
 
         actionexec_id = actionexec_db.id
-        (result, request_error) = self._issue_liveaction_post(actionexec_id)
-
-        if (not request_error) and (result.status_code in HTTP_SUCCESS):
-            LOG.info('/liveactions/ POST request reported successful creation of LiveAction')
-            # TODO: This should be "running status, or "scheduled" status when execution is async
-            # actionexec_status = ACTIONEXEC_STATUS_COMPLETE
-
-            # Update actionexec_db status.
-            # With side-effect of re-loading ActionExecution from DB.
-            # LOG.info('/actionexecutions/ POST update ActionExecution in DB after '
-            #         'LiveAction POST: %s', actionexec_db)
-            # actionexec_db = update_actionexecution_status(actionexec_status,
-            #                                              actionexec_id=actionexec_id)
-
-            actionexec_db = get_actionexec_by_id(actionexec_db.id)
-        else:
-            LOG.info('/liveactions/ POST request reported error: %s', result.status_code)
+        try:
+            LOG.debug('Adding action exec id: %s to live actions queue.', )
+            self._live_actions.put(actionexec_id, block=True, timeout=1)
+        except Exception as e:
+            LOG.error('Aborting /actionexecutions/ POST operation for id: %s. Exception: %s',
+                      actionexec_id, e)
             actionexec_status = ACTIONEXEC_STATUS_ERROR
-
-            # Update actionexec_db status.
-            LOG.info('/actionexecutions/ POST update ActionExecution in DB after '
-                     'LiveAction POST: %s', actionexec_db)
             actionexec_db = update_actionexecution_status(actionexec_status,
                                                           actionexec_id=actionexec_id)
-            LOG.error('Unable to launch LiveAction.')
-            LOG.info('Aborting /actionexecutions/ POST operation.')
-            abort(httplib.INTERNAL_SERVER_ERROR)
-
-        actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
-
-        LOG.debug('POST /actionexecutions/ client_result=%s', actionexec_api)
-        return actionexec_api
+            actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
+            error = 'Failed to kickoff live action for id: %s, exception: %s' % (actionexec_id,
+                                                                                 str(e))
+            abort(httplib.INTERNAL_SERVER_ERROR, error)
+        else:
+            actionexec_status = ACTIONEXEC_STATUS_SCHEDULED
+            actionexec_db = update_actionexecution_status(actionexec_status,
+                                                          actionexec_id=actionexec_id)
+            self._kickoff_live_actions()
+            actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
+            LOG.debug('POST /actionexecutions/ client_result=%s', actionexec_api)
+            return actionexec_api
 
     @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI,
                          status_code=httplib.FORBIDDEN)
@@ -302,3 +311,18 @@ class ActionExecutionsController(RestController):
 
         LOG.info('DELETE /actionexecutions/ with id="%s" completed', id)
         return None
+
+    def _kickoff_live_actions(self):
+        if self._live_actions_pool.free() <= 0:
+            return
+        while not self._live_actions.empty() and self._live_actions_pool.free() > 0:
+            action_exec_id = self._live_actions.get_nowait()
+            self._live_actions_pool.spawn(self._issue_liveaction_post, action_exec_id)
+
+    def _drain_live_actions(self):
+        while True:
+            while self._live_actions.empty():
+                eventlet.greenthread.sleep(self._monitor_thread_empty_q_sleep_time)
+            while self._live_actions_pool.free() <= 0:
+                eventlet.greenthread.sleep(self._monitor_thread_no_workers_sleep_time)
+            self._kickoff_live_actions()
