@@ -16,6 +16,36 @@ CONN_ERRORS =
       "throw an error too. [#{err.code}]"
   'default': (err) -> "Something gone terribly wrong. [#{err.code}]"
 
+PUBLISHERS =
+  'remote-exec-sysuser': (action_execution, msg) ->
+    publishMultiHostResult action_execution, msg
+  'internaldummy-builtin': (action_execution, msg) ->
+    publishLocalResult action_execution, msg
+  'internaldummy': (action_execution, msg) ->
+    publishLocalResult action_execution, msg
+  'shell': (action_execution, msg) ->
+    publishLocalResult action_execution, msg
+
+publishMultiHostResult = (action_execution, msg) ->
+  result = JSON.parse(action_execution.result)
+  msg.send "STATUS: #{action_execution.status}"
+  for host, hostResult of result
+    msg.send "Result for \'#{host}\'"
+    if hostResult.stdout?.length
+      msg.send "\tSTDOUT: #{hostResult.stdout}"
+    if hostResult.stderr?.length
+      msg.send "\tSTDERR: #{hostResult.stderr}"
+    msg.send "\tEXIT_CODE: #{hostResult.return_code}"
+
+publishLocalResult = (action_execution, msg) ->
+  result = JSON.parse(action_execution.result)
+  msg.send "STATUS: #{action_execution.status}"
+  if result.std_out?.length > 0
+    msg.send "STDOUT: #{result.std_out}"
+  if result.std_err?.length > 0
+    msg.send "STDERR: #{result.std_err}"
+  msg.send "EXIT_CODE: #{result.exit_code}"
+
 parseArgs = (scheme=[], argstr="") ->
   # split string by space while preserving quoted literals and escaped quotes
   args = argstr.match(/(["'])(?:(?!\1)[^\\]|\\.)*\1|(\S)+/g) or []
@@ -111,9 +141,5 @@ module.exports = (robot) ->
             msg.send "Action has failed to execute"
             return
 
-          result = JSON.parse(action_execution.result)
-
-          msg.send "STATUS: #{action_execution.status}"
-          msg.send "STDOUT: #{result.std_out}"
-          msg.send "STDERR: #{result.std_err}"
-          msg.send "EXIT_CODE: #{result.exit_code}"
+          action = actions[action_execution.action.name]
+          PUBLISHERS[action.runner_type] action_execution, msg
