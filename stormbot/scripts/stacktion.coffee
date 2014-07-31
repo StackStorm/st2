@@ -148,6 +148,5 @@ module.exports = (robot) ->
           unless action_execution.status is 'complete'
             msg.send "Action has failed to execute"
             return
-          msg.send robot.adapterName
           action = actions[action_execution.action.name]
           PUBLISHERS[action.runner_type] action_execution, msg, robot.adapterName
