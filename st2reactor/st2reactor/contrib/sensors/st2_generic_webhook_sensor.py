@@ -86,10 +86,9 @@ class St2GenericWebhooksSensor(object):
         triggers = []
 
         # XXX: if there is schema mismatch among entries, we ignore.
-        for item in webhook_body:
-            trigger = {}
-            trigger['name'] = name
-            trigger['payload'] = item
-            triggers.append(trigger)
+        trigger = {}
+        trigger['name'] = name
+        trigger['payload'] = webhook_body
+        triggers.append(trigger)
 
         return triggers
