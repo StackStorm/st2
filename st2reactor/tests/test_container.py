@@ -19,9 +19,13 @@ class ContainerTest(EventletTestCase):
             self.stop_call_count += 1
 
         def get_trigger_types(self):
-            return [
-                {'name': 'st2.dummy.t1', 'description': 'some desc', 'payload_info': ['a', 'b']}
-            ]
+            return [{
+                'name': 'st2.dummy.t1',
+                'description': 'some desc',
+                'payload_schema': {
+                    'type': 'object'
+                }
+            }]
 
     def test_sensor_methods_are_called(self):
         sensor_modules = [ContainerTest.RunTestSensor(), ContainerTest.RunTestSensor()]

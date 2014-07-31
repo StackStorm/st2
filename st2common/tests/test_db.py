@@ -23,28 +23,15 @@ class DbConnectionTest(DbTestCase):
 
 
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
-    TriggerSourceDB, RuleEnforcementDB, RuleDB, ActionExecutionSpecDB
+    RuleEnforcementDB, RuleDB, ActionExecutionSpecDB
 from st2common.persistence.reactor import Trigger, TriggerInstance, \
-    TriggerSource, RuleEnforcement, Rule
+    RuleEnforcement, Rule
 
 
 class ReactorModelTest(DbTestCase):
 
-    def test_triggersource_crud(self):
-        saved = ReactorModelTest._create_save_triggersource()
-        retrieved = TriggerSource.get_by_id(saved.id)
-        self.assertEqual(saved.name, retrieved.name,
-                         'Same TriggerSource was not returned.')
-        ReactorModelTest._delete([retrieved])
-        try:
-            retrieved = TriggerSource.get_by_id(saved.id)
-        except ValueError:
-            retrieved = None
-        self.assertIsNone(retrieved, 'managed to retrieve after failure.')
-
     def test_trigger_crud(self):
-        triggersource = ReactorModelTest._create_save_triggersource()
-        saved = ReactorModelTest._create_save_trigger(triggersource)
+        saved = ReactorModelTest._create_save_trigger()
         retrieved = Trigger.get_by_id(saved.id)
         self.assertEqual(saved.name, retrieved.name,
                          'Same trigger was not returned.')
@@ -55,7 +42,7 @@ class ReactorModelTest(DbTestCase):
         retrieved = Trigger.get_by_id(saved.id)
         self.assertEqual(retrieved.description, DUMMY_DESCRIPTION, 'Update to trigger failed.')
         # cleanup
-        ReactorModelTest._delete([retrieved, triggersource])
+        ReactorModelTest._delete([retrieved])
         try:
             retrieved = Trigger.get_by_id(saved.id)
         except ValueError:
@@ -63,12 +50,11 @@ class ReactorModelTest(DbTestCase):
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
     def test_triggerinstance_crud(self):
-        triggersource = ReactorModelTest._create_save_triggersource()
-        trigger = ReactorModelTest._create_save_trigger(triggersource)
+        trigger = ReactorModelTest._create_save_trigger()
         saved = ReactorModelTest._create_save_triggerinstance(trigger)
         retrieved = TriggerInstance.get_by_id(saved.id)
         self.assertIsNotNone(retrieved, 'No triggerinstance created.')
-        ReactorModelTest._delete([retrieved, trigger, triggersource])
+        ReactorModelTest._delete([retrieved, trigger])
         try:
             retrieved = TriggerInstance.get_by_id(saved.id)
         except ValueError:
@@ -76,10 +62,9 @@ class ReactorModelTest(DbTestCase):
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
     def test_rule_crud(self):
-        triggersource = ReactorModelTest._create_save_triggersource()
         actiontype = ActionModelTest._create_save_actiontype()
         action = ActionModelTest._create_save_action(actiontype)
-        trigger = ReactorModelTest._create_save_trigger(triggersource)
+        trigger = ReactorModelTest._create_save_trigger()
         saved = ReactorModelTest._create_save_rule(trigger, action)
         retrieved = Rule.get_by_id(saved.id)
         self.assertEqual(saved.name, retrieved.name, 'Same rule was not returned.')
@@ -90,7 +75,7 @@ class ReactorModelTest(DbTestCase):
         retrieved = Rule.get_by_id(saved.id)
         self.assertEqual(retrieved.enabled, False, 'Update to rule failed.')
         # cleanup
-        ReactorModelTest._delete([retrieved, trigger, action, actiontype, triggersource])
+        ReactorModelTest._delete([retrieved, trigger, action, actiontype])
         try:
             retrieved = Rule.get_by_id(saved.id)
         except ValueError:
@@ -98,8 +83,7 @@ class ReactorModelTest(DbTestCase):
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
     def test_ruleenforcement_crud(self):
-        triggersource = ReactorModelTest._create_save_triggersource()
-        trigger = ReactorModelTest._create_save_trigger(triggersource)
+        trigger = ReactorModelTest._create_save_trigger()
         actiontype = ActionModelTest._create_save_actiontype()
         action = ActionModelTest._create_save_action(actiontype)
         triggerinstance = ReactorModelTest._create_save_triggerinstance(trigger)
@@ -109,7 +93,7 @@ class ReactorModelTest(DbTestCase):
         retrieved = RuleEnforcement.get_by_id(saved.id)
         self.assertIsNotNone(retrieved, 'No ruleenforcement created.')
         ReactorModelTest._delete([retrieved, rule, triggerinstance, trigger,
-                                  action, actiontype, triggersource])
+                                  action, actiontype])
         try:
             retrieved = RuleEnforcement.get_by_id(saved.id)
         except ValueError:
@@ -117,23 +101,21 @@ class ReactorModelTest(DbTestCase):
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
     def test_rule_lookup(self):
-        triggersource = ReactorModelTest._create_save_triggersource()
         actiontype = ActionModelTest._create_save_actiontype()
         action = ActionModelTest._create_save_action(actiontype)
-        trigger = ReactorModelTest._create_save_trigger(triggersource)
+        trigger = ReactorModelTest._create_save_trigger()
         saved = ReactorModelTest._create_save_rule(trigger, action)
         retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger))
         self.assertEqual(1, len(retrievedrules), 'No rules found.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id,
                              'Incorrect rule returned.')
-        ReactorModelTest._delete([saved, trigger, action, actiontype, triggersource])
+        ReactorModelTest._delete([saved, trigger, action, actiontype])
 
     def test_rule_lookup_enabled(self):
-        triggersource = ReactorModelTest._create_save_triggersource()
         actiontype = ActionModelTest._create_save_actiontype()
         action = ActionModelTest._create_save_action(actiontype)
-        trigger = ReactorModelTest._create_save_trigger(triggersource)
+        trigger = ReactorModelTest._create_save_trigger()
         saved = ReactorModelTest._create_save_rule(trigger, action)
         retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger),
                                     enabled=True)
@@ -141,13 +123,12 @@ class ReactorModelTest(DbTestCase):
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id,
                              'Incorrect rule returned.')
-        ReactorModelTest._delete([saved, trigger, action, actiontype, triggersource])
+        ReactorModelTest._delete([saved, trigger, action, actiontype])
 
     def test_rule_lookup_disabled(self):
-        triggersource = ReactorModelTest._create_save_triggersource()
         actiontype = ActionModelTest._create_save_actiontype()
         action = ActionModelTest._create_save_action(actiontype)
-        trigger = ReactorModelTest._create_save_trigger(triggersource)
+        trigger = ReactorModelTest._create_save_trigger()
         saved = ReactorModelTest._create_save_rule(trigger, action, False)
         retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger),
                                     enabled=False)
@@ -155,33 +136,25 @@ class ReactorModelTest(DbTestCase):
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id,
                              'Incorrect rule returned.')
-        ReactorModelTest._delete([saved, trigger, action, actiontype, triggersource])
+        ReactorModelTest._delete([saved, trigger, action, actiontype])
 
     def test_trigger_lookup(self):
-        triggersource = ReactorModelTest._create_save_triggersource()
-        saved = ReactorModelTest._create_save_trigger(triggersource)
+        saved = ReactorModelTest._create_save_trigger()
         retrievedtriggers = Trigger.query(name=saved.name)
         self.assertEqual(1, len(retrievedtriggers), 'No triggers found.')
         for retrievedtrigger in retrievedtriggers:
             self.assertEqual(saved.id, retrievedtrigger.id,
                              'Incorrect trigger returned.')
-        ReactorModelTest._delete([saved, triggersource])
+        ReactorModelTest._delete([saved])
 
     @staticmethod
-    def _create_save_triggersource():
-        created = TriggerSourceDB()
-        created.name = 'triggersource-1'
-        created.description = ''
-        return TriggerSource.add_or_update(created)
-
-    @staticmethod
-    def _create_save_trigger(triggersource):
+    def _create_save_trigger():
         created = TriggerDB()
         created.name = 'trigger-1'
         created.description = ''
-        created.payload_info = []
-        created.trigger_source = triggersource
-        return TriggerSource.add_or_update(created)
+        created.payload_schema = {}
+        created.parameters_schema = {}
+        return Trigger.add_or_update(created)
 
     @staticmethod
     def _create_save_triggerinstance(trigger):
