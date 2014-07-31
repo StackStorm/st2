@@ -1,7 +1,8 @@
 import datetime
+import json
 from wsme import types as wstypes
 
-from mirantis.resource import Resource
+from st2common.models.base import BaseAPI
 from st2common.models.api.stormbase import StormBaseAPI, StormFoundationAPI
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerDB
 import st2common.validators.api.reactor as validator
@@ -61,12 +62,25 @@ class TriggerInstanceAPI(StormFoundationAPI):
         return trigger_instance
 
 
-class ActionSpec(Resource):
-    name = wstypes.text
-    parameters = wstypes.DictType(str, str)
+class ActionSpec(BaseAPI):
+    # name = wstypes.text
+    # parameters = wstypes.DictType(str, *)
+    schema = {
+        'type': 'object',
+        'properties': {
+            'name': {
+                'type': 'string'
+            },
+            'parameters': {
+                'type': 'object'
+            }
+        },
+        'required': ['name'],
+        'additionalProperties': False
+    }
 
 
-class RuleAPI(StormBaseAPI):
+class RuleAPI(BaseAPI):
     """
     Attribute:
         trigger_type: Trigger that trips this rule. Of the form {'id':'1234', 'name':'trigger-1'}.
@@ -92,31 +106,54 @@ class RuleAPI(StormBaseAPI):
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
-    trigger = wstypes.DictType(str, str)
-    criteria = wstypes.wsattr(wstypes.DictType(str, wstypes.DictType(str, str)), default=True)
-    action = ActionSpec
-    enabled = wstypes.wsattr(bool, default=True)
+    # trigger = wstypes.DictType(str, *)
+    # criteria = wstypes.DictType(str, wstypes.DictType(str, str))
+    # action = ActionSpec
+    # enabled = wstypes.wsattr(bool, default=True)
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string'
+            },
+            'name': {
+                'type': 'string'
+            },
+            'description': {
+                'type': 'string'
+            },
+            'trigger': {
+                'type': 'object'
+            },
+            'criteria': {
+                'type': 'object'
+            },
+            'action': ActionSpec.schema,
+            'enabled': {
+                'type': 'boolean',
+                'default': True
+            }
+        },
+        'required': ['name', 'trigger', 'criteria', 'action'],
+        'additionalProperties': False
+    }
 
     @classmethod
-    def from_model(kls, model):
-        rule = StormBaseAPI.from_model(kls, model)
-        rule.trigger = model.trigger
-        rule.criteria = dict(model.criteria)
-        rule.action = ActionSpec()
-        rule.action.name = model.action.name
-        rule.action.parameters = model.action.parameters
-        rule.enabled = model.enabled
-        return rule
+    def from_model(cls, model):
+        rule = model.to_mongo()
+        rule['id'] = str(rule['_id'])
+        del rule['_id']
+        return cls(**rule)
 
     @classmethod
-    def to_model(kls, rule):
+    def to_model(cls, rule):
         model = StormBaseAPI.to_model(RuleDB, rule)
         model.trigger = rule.trigger
         model.criteria = dict(rule.criteria)
         validator.validate_criteria(model.criteria)
         model.action = ActionExecutionSpecDB()
-        model.action.name = rule.action.name
-        model.action.parameters = rule.action.parameters
+        model.action.name = rule.action['name']
+        model.action.parameters = rule.action['parameters']
         model.enabled = rule.enabled
         return model
 
