@@ -49,9 +49,16 @@ CONF.register_cli_opt(use_debugger)
 
 actions_opts = [
     cfg.StrOpt('modules_path', default='/opt/stackstorm/actions',
-        help='path where action plugins are located')
+               help='path where action plugins are located')
 ]
 CONF.register_opts(actions_opts, group='actions')
+
+liveactions_opts = [
+    cfg.StrOpt('liveactions_base_url', default='http://localhost:9501/liveactions',
+               help='Base URL for live actions.')
+]
+CONF.register_opts(liveactions_opts, group='liveactions')
+
 
 def parse_args(args=None):
     CONF(args=args)
