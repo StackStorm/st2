@@ -7,12 +7,12 @@ See [Install.md](Install.md)
 ## Running from sources
 Install prerequisites. See Prerequisites in [main README.md](../Readme.md)
 
-From stanley root, run make. This creates virtualenv, installs all dependencies adn runs the tests. 
+From stanley root, run make. This creates virtualenv, installs all dependencies and runs the tests. 
 
 	make all
 
 
-Activatge virtual environment, start and stop st2 services:
+Activate virtual environment, start and stop st2 services:
 
 	source virtualenv/bin/activate # Activates virtual environment 
 	tools/lauchdev.sh start  # Launches all st2 services 
@@ -42,8 +42,6 @@ Some examples of using CLI:
 ## Adding a Rule
 Create a rule JSON definition. See an example at [Stanley/contrib/examples/rules/sample-rule.json](../contrib/examples/rules/sample-rule.json) for the rule structure. Look at [../contrib/sandbox/packages/](../contrib/sandbox/packages/) for more sample rules. 
 	
-**TODO:** fix  rules in contrib/sandbox/packages to confirm to new rule schema. 
-
 **TODO:** draw a sample with here with commenst on required and optional fields. 
 
 Deploy the rule:
