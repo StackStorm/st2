@@ -29,7 +29,6 @@ from st2common.util.action_db import (get_action_by_dict, get_actionexec_by_id,
 LOG = logging.getLogger(__name__)
 
 
-DEFAULT_LIVEACTIONS_ENDPOINT = cfg.CONF.liveactions.liveactions_base_url
 MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
 
@@ -40,8 +39,8 @@ class ActionExecutionsController(RestController):
         the lifecycle of ActionExecutions in the system.
     """
 
-    def __init__(self, live_actions_ep=DEFAULT_LIVEACTIONS_ENDPOINT, live_actions_pool_size=50):
-        self._live_actions_ep = live_actions_ep
+    def __init__(self, live_actions_pool_size=50):
+        self._live_actions_ep = cfg.CONF.liveactions.liveactions_base_url
         LOG.info('Live actions ep: %s', self._live_actions_ep)
         self.live_actions_pool_size = live_actions_pool_size
         self._live_actions_pool = eventlet.GreenPool(self.live_actions_pool_size)
