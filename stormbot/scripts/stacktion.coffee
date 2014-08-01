@@ -164,7 +164,7 @@ module.exports = (robot) ->
           .get(errorHandler) (err, res, body) ->
             action_execution = JSON.parse(body)
 
-            if action_execution.status is 'scheduled'
+            if action_execution.status is 'scheduled' or action_execution.status is 'running'
               setTimeout () ->
                 pullResults(action_execution.id)
               , 1000
