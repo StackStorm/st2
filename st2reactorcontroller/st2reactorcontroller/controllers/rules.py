@@ -8,6 +8,7 @@ from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.reactor import RuleAPI, RuleEnforcementAPI
 from st2common.models.db.reactor import RuleDB
+from st2common.models.base import jsexpose
 from st2common.persistence.reactor import Rule, RuleEnforcement
 from wsme import types as wstypes
 
@@ -19,7 +20,7 @@ class RuleController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of Rules in the system.
     """
-    # @wsme_pecan.wsexpose(RuleAPI, wstypes.text)
+    @jsexpose(str)
     def get_one(self, id):
         """
             List rule by id.
@@ -33,7 +34,7 @@ class RuleController(RestController):
         LOG.debug('GET /rules/ with id=%s, client_result=%s', id, rule_api)
         return rule_api
 
-    # @wsme_pecan.wsexpose([RuleAPI], wstypes.text)
+    @jsexpose(str)
     def get_all(self, name=None):
         """
             List all rules.
@@ -47,19 +48,15 @@ class RuleController(RestController):
         LOG.debug('GET all /rules/ client_result=%s', rule_apis)
         return rule_apis
 
-    # @wsme_pecan.wsexpose(RuleAPI, body=RuleAPI, status_code=httplib.CREATED)
-    @expose(content_type='application/json')
-    def post(self):
+
+    @jsexpose(body=RuleAPI, status_code=httplib.CREATED)
+    def post(self, rule):
         """
             Create a new rule.
 
             Handles requests:
                 POST /rules/
         """
-        # Well, hell. I'm tired of wsme. Until we figure out how to make it parse arbitrary objects,
-        # I'll just stick with pecan.request
-        rule = RuleAPI(**request.json)
-
         LOG.info('POST /rules/ with rule data=%s', rule)
 
         try:
@@ -80,9 +77,9 @@ class RuleController(RestController):
         rule_api = RuleAPI.from_model(rule_db)
         LOG.debug('POST /rules/ client_result=%s', rule_api)
 
-        return jsonify(rule_api)
+        return rule_api
 
-    # @wsme_pecan.wsexpose(RuleAPI, wstypes.text, body=RuleAPI, status_code=httplib.OK)
+    @jsexpose(str, body=RuleAPI, status_code=httplib.OK)
     def put(self, rule_id, rule):
         LOG.info('PUT /rules/ with rule id=%s and data=%s', rule_id, rule)
         rule_db = RuleController.__get_by_id(rule_id)
@@ -105,7 +102,7 @@ class RuleController(RestController):
 
         return rule_api
 
-    # @wsme_pecan.wsexpose(None, wstypes.text, status_code=httplib.NO_CONTENT)
+    @jsexpose(str, status_code=httplib.NO_CONTENT)
     def delete(self, rule_id):
         """
             Delete a rule.

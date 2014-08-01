@@ -114,7 +114,8 @@ class RuleAPI(BaseAPI):
         'type': 'object',
         'properties': {
             'id': {
-                'type': 'string'
+                'type': 'string',
+                'default': None
             },
             'name': {
                 'type': 'string'
