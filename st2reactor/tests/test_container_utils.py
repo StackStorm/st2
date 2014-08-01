@@ -16,9 +16,7 @@ class ContainerUtilsTest(unittest2.TestCase):
     @mock.patch.object(Trigger, 'add_or_update')
     def test_add_trigger(self, mock_add_handler):
         mock_add_handler.return_value = MOCK_TRIGGER
-        container_utils.add_trigger_types([{
-            "name": MOCK_TRIGGER.name
-        }])
+        container_utils.add_trigger_types([MOCK_TRIGGER])
         self.assertTrue(mock_add_handler.called, 'trigger not added.')
 
     def test_add_trigger_type(self):

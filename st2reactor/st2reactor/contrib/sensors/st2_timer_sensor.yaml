@@ -1,37 +1,43 @@
 # Time zones are to be specified as full names.
 # See http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-- type: interval
-  timezone: utc
-  time:
-    delta: 30
-    unit: seconds
-- type: cron
-  timezone: utc
-  time:
-    year: 1
-    day: 1
-    hour: 0
-    minute: 0
-    second: 0
-- type: date
-  time:
-    date: '2013-08-10T20:59:50.000000Z'  # ISO 8601 format in UTC. (Preferred)
-- type: date
-  time:
-    date: '2013-08-10T20:59:50.000000+00:00'  # ISO 8601 format with offset. (OK)
-- type: date
-  timezone: America/Los_Angeles
-  time:
-    date: '2014-08-10 13:59:50.000000'  # Python str(datetime.now()) format. (Pushing it)
-- type: date
-  timezone: America/Los_Angeles
-  time:
-    date: '2014-08-10 13:59:50'  # Same format as above but no seconds. (Hate it)
-
+st2.timer.30s:
+    type: interval
+    timezone: utc
+    time:
+        delta: 30
+        unit: seconds
+st2.timer.yearly:
+    type: cron
+    timezone: utc
+    time:
+        year: 1
+        day: 1
+        hour: 0
+        minute: 0
+        second: 0
+st2.timer.pacific.dately-1:
+    type: date
+    time:
+        date: '2013-07-10T20:59:50.000000Z'  # ISO 8601 format in UTC. (Preferred)
+st2.timer.pacific.dately-2:
+    type: date
+    time:
+        date: '2013-07-10T20:59:50.000000+00:00'  # ISO 8601 format with offset. (OK)
+st2.timer.pacific.dately-3:
+    type: date
+    timezone: America/Los_Angeles
+    time:
+        date: '2014-07-10 13:59:50.000000'  # Python str(datetime.now()) format. (Pushing it)
+st2.timer.pacific.dately-4:
+    type: date
+    timezone: America/Los_Angeles
+    time:
+        date: '2014-07-10 13:59:50'  # Same format as above but no seconds. (Hate it)
 # In the following, user specifies both timezone field (TZ is America/Los_Angeles) and
 # provides date in ISO8601 (TZ in UTC).
 # Here, timezone field is completely ignored.
-- type: date
-  timezone: America/Los_Angeles
-  time:
-    date: '2013-08-10T20:59:50.000000Z'
+st2.timer.pacific.dately-2:
+    type: date
+    timezone: America/Los_Angeles
+    time:
+        date: '2013-07-10T20:59:50.000000Z'
