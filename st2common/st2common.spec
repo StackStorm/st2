@@ -4,6 +4,7 @@ Version: 0.1.0
 Release: 1
 License: license
 Group: Applications/Engineering
+BuildArch: noarch
 Source: /opt/git/stanley/st2common.tar.gz
 URL: https://github.com/StackStorm/stanley
 Vendor: StackStorm
@@ -22,6 +23,7 @@ An automation plaform that needs a much better description than this.
 %build
 sed -i -r "s~(st2.*)/conf~/etc/\1~g" conf/stanley.conf
 sed -i "/modules_path/a system_path = %{python2_sitelib}/st2reactor/contrib/sensors" conf/stanley.conf
+sed -i "s/vagrant/stanley/" conf/stanley.conf
 
 %install
 

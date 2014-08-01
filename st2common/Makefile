@@ -8,7 +8,7 @@ COMPONENTS := st2common
 .PHONY: rpm
 rpm: 
 	pushd ~ && rpmdev-setuptree && popd
-	tar --transform=s~^~$(COMPONENTS)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz $(COMPONENTS) ../contrib ../external ../conf ../requirements.txt
-	cp $(COMPONENTS)-$(VER).spec $(RPM_SPECS_DIR)/
+	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz $(COMPONENTS) ../contrib ../external ../conf ../requirements.txt
+	cp $(COMPONENTS).spec $(RPM_SPECS_DIR)/
 	cd $(RPM_SPECS_DIR)
-	rpmbuild -ba $(COMPONENTS).spec
+	rpmbuild --clean --rmsource -ba $(COMPONENTS).spec
