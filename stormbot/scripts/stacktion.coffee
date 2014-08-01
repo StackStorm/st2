@@ -85,9 +85,11 @@ module.exports = (robot) ->
       robot.logger.error (CONN_ERRORS[err.code] || CONN_ERRORS['default']) err
 
   # define basic clients
+  httpclient = robot.http('http://localhost:9101')
+
   httpclients =
-    actions: robot.http('http://localhost:9101').path('/actions')
-    actionexecutions: robot.http('http://localhost:9101').path('/actionexecutions')
+    actions: httpclient.scope('/actions')
+    actionexecutions: httpclient.scope('/actionexecutions')
 
   # init for actions
   actionsPromise = new rsvp.Promise (resolve, reject) ->
@@ -137,9 +139,33 @@ module.exports = (robot) ->
             msg.send "Action has failed to run"
             return
 
+          if action_execution.status is 'scheduled'
+            setTimeout () ->
+              pullResults(action_execution.id)
+            , 1000
+            return
+
           unless action_execution.status is 'complete'
             msg.send "Action has failed to execute"
             return
 
           action = actions[action_execution.action.name]
           PUBLISHERS[action.runner_type] action_execution, msg
+
+      pullResults = (id) ->
+        httpclient.scope("/actionexecutions/#{id}")
+          .get(errorHandler) (err, res, body) ->
+            action_execution = JSON.parse(body)
+
+            if action_execution.status is 'scheduled'
+              setTimeout () ->
+                pullResults(action_execution.id)
+              , 1000
+              return
+
+            unless action_execution.status is 'complete'
+              msg.send "Action has failed to execute"
+              return
+
+            action = actions[action_execution.action.name]
+            PUBLISHERS[action.runner_type] action_execution, msg
