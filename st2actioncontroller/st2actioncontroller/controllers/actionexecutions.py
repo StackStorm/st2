@@ -1,7 +1,6 @@
 import datetime
 import httplib
 import json
-import sys
 import Queue
 
 import eventlet
@@ -26,13 +25,6 @@ from st2common.models.api.action import (ActionExecutionAPI,
                                          ACTIONEXEC_STATUS_ERROR)
 from st2common.util.action_db import (get_action_by_dict, get_actionexec_by_id,
                                       update_actionexecution_status)
-
-eventlet.monkey_patch(
-    os=True,
-    select=True,
-    socket=True,
-    thread=False if '--use-debugger' in sys.argv else True,
-    time=True)
 
 LOG = logging.getLogger(__name__)
 
