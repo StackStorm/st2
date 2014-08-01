@@ -12,7 +12,7 @@ successfully run.
 How?
 ====
 
-For a simple sensor, look here: ${SRC_ROOT}/contrib/examples/sensors/sample_sensor.py. It shows
+For a simple sensor, look here: ```${SRC_ROOT}/contrib/examples/sensors/sample_sensor.py```. It shows
 a bare minimum version of how a sensor would look like.
 
 Your sensor should generate triggers of the form (python dict):
