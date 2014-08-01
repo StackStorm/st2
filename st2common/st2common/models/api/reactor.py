@@ -32,18 +32,18 @@ def get_model_from_ref(db_api, ref):
 
 
 class TriggerAPI(StormBaseAPI):
-    payload_schema = wstypes.DictType(str, str)
+    payload_info = wstypes.ArrayType(str)
 
     @classmethod
     def from_model(kls, model):
         trigger = StormBaseAPI.from_model(kls, model)
-        trigger.payload_schema = model.payload_schema
+        trigger.payload_info = model.payload_info
         return trigger
 
     @classmethod
     def to_model(kls, trigger):
         model = StormBaseAPI.to_model(TriggerDB, trigger)
-        model.payload_schema = trigger.payload_schema
+        model.payload_info = trigger.payload_info
         return model
 
 

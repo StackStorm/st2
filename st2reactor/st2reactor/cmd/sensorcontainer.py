@@ -137,7 +137,7 @@ def _run_sensors(sensors_dict):
                         LOG.warning('No trigger type registered by sensor %s in file %s',
                                     sensor_class, filename)
                     else:
-                        container_utils.add_trigger_types(trigger_type)
+                        container_utils.add_trigger_types(sensor.get_trigger_types())
                 except TriggerTypeRegistrationException as e:
                     LOG.warning('Unable to register trigger type for sensor %s in file %s.'
                                 + ' Exception: %s', sensor_class, filename, e, exc_info=True)
@@ -152,21 +152,15 @@ def _run_sensors(sensors_dict):
 
 def main():
     _setup()
-    exit_code = 0
-    try:
-        if _is_single_sensor_mode():
-            exit_code = _run_sensor(cfg.CONF.sensor_path)
-        else:
-            sensors_dict = _load_sensor_modules(os.path.realpath(cfg.CONF.sensors.system_path))
-            user_sensor_dict = _load_sensor_modules(os.path.realpath(cfg.CONF.sensors.modules_path))
-            sensors_dict.update(user_sensor_dict)
-            LOG.info('Found %d sensors.', len(sensors_dict))
-            exit_code = _run_sensors(sensors_dict)
-    except KeyboardInterrupt:
-        LOG.info('Interrupted by user')
-    except Exception as e:
-        LOG.error('Unhandled exception: %s', e)
-    finally:
+    sensors_dict = None
+    if _is_single_sensor_mode():
+        return _run_sensor(cfg.CONF.sensor_path)
+    else:
+        sensors_dict = _load_sensor_modules(os.path.realpath(cfg.CONF.sensors.system_path))
+        user_sensor_dict = _load_sensor_modules(os.path.realpath(cfg.CONF.sensors.modules_path))
+        sensors_dict.update(user_sensor_dict)
+        LOG.info('Found %d sensors.', len(sensors_dict))
+        exit_code = _run_sensors(sensors_dict)
         _teardown()
         LOG.info('SensorContainer process[{}] exit with code {}.'.format(
             os.getpid(), exit_code))

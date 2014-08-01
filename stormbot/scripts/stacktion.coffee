@@ -17,34 +17,42 @@ CONN_ERRORS =
   'default': (err) -> "Something gone terribly wrong. [#{err.code}]"
 
 PUBLISHERS =
-  'remote-exec-sysuser': (action_execution, msg) ->
-    publishMultiHostResult action_execution, msg
-  'internaldummy-builtin': (action_execution, msg) ->
-    publishLocalResult action_execution, msg
-  'internaldummy': (action_execution, msg) ->
-    publishLocalResult action_execution, msg
-  'shell': (action_execution, msg) ->
-    publishLocalResult action_execution, msg
+  'remote-exec-sysuser': (action_execution, msg, adapterName) ->
+    publishMultiHostResult action_execution, msg, adapterName
+  'internaldummy-builtin': (action_execution, msg, adapterName) ->
+    publishLocalResult action_execution, msg, adapterName
+  'internaldummy': (action_execution, msg, adapterName) ->
+    publishLocalResult action_execution, msg, adapterName
+  'shell': (action_execution, msg, adapterName) ->
+    publishLocalResult action_execution, msg, adapterName
 
-publishMultiHostResult = (action_execution, msg) ->
+getPublishHeader = (action_execution, adapterName) ->
+    # See http://help.hipchat.com/knowledgebase/articles/64451-work-faster-with-slash-commands
+    # for /code niceness in hipchat.
+    message = if adapterName?.toLowerCase() == 'hipchat' then "/code" else ""
+    "#{message} STATUS: #{action_execution.status}\n"
+
+publishMultiHostResult = (action_execution, msg, adapterName) ->
   result = JSON.parse(action_execution.result)
-  msg.send "STATUS: #{action_execution.status}"
+  message = getPublishHeader action_execution, adapterName
   for host, hostResult of result
-    msg.send "Result for \'#{host}\'"
+    message = "#{message}Result for \'#{host}\'\n"
     if hostResult.stdout?.length
-      msg.send "\tSTDOUT: #{hostResult.stdout}"
+      message = "#{message}  STDOUT: #{hostResult.stdout}\n"
     if hostResult.stderr?.length
-      msg.send "\tSTDERR: #{hostResult.stderr}"
-    msg.send "\tEXIT_CODE: #{hostResult.return_code}"
+      message = "#{message}  STDERR: #{hostResult.stderr}\n"
+    message = "#{message}  EXIT_CODE: #{hostResult.return_code}\n"
+  msg.send message
 
-publishLocalResult = (action_execution, msg) ->
+publishLocalResult = (action_execution, msg, adapterName) ->
   result = JSON.parse(action_execution.result)
-  msg.send "STATUS: #{action_execution.status}"
+  message = getPublishHeader action_execution, adapterName
   if result.std_out?.length > 0
-    msg.send "STDOUT: #{result.std_out}"
+    message = "#{message} STDOUT: #{result.std_out}\n"
   if result.std_err?.length > 0
-    msg.send "STDERR: #{result.std_err}"
-  msg.send "EXIT_CODE: #{result.exit_code}"
+    message = "#{message} STDERR: #{result.std_err}\n"
+  message = "#{message} EXIT_CODE: #{result.exit_code}"
+  msg.send message
 
 parseArgs = (scheme=[], argstr="") ->
   # split string by space while preserving quoted literals and escaped quotes
@@ -148,9 +156,8 @@ module.exports = (robot) ->
           unless action_execution.status is 'complete'
             msg.send "Action has failed to execute"
             return
-
           action = actions[action_execution.action.name]
-          PUBLISHERS[action.runner_type] action_execution, msg
+          PUBLISHERS[action.runner_type] action_execution, msg, robot.adapterName
 
       pullResults = (id) ->
         httpclient.scope("/actionexecutions/#{id}")
@@ -168,4 +175,4 @@ module.exports = (robot) ->
               return
 
             action = actions[action_execution.action.name]
-            PUBLISHERS[action.runner_type] action_execution, msg
+            PUBLISHERS[action.runner_type] action_execution, msg, robot.adapterName

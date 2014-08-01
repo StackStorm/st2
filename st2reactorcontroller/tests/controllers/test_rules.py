@@ -24,9 +24,7 @@ ACTION.parameter_names = {'p1': None, 'p2': None, 'p3': None}
 TRIGGER = reactor.TriggerDB()
 TRIGGER.name = 'st2.test.trigger1'
 TRIGGER.description = ''
-TRIGGER.payload_schema = {
-    'type': 'object'
-}
+TRIGGER.payload_info = ['tp1', 'tp2', 'tp3']
 TRIGGER.trigger_source = None
 
 RULE_1 = {
