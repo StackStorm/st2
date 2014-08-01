@@ -86,10 +86,10 @@ own sensor.
 Configuring Webhooks:
 =====================
 
-1. Edit ${SRC_ROOT}/st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.yaml.
+1. Edit ```${SRC_ROOT}/st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.yaml.```
    Add a string there. This string will serve both as a name of the webhook trigger,
    and a subpath to the url. For example, call it "mywebhook". This will spin up an endpoint
-   http://{host}:6001/webhooks/generic/mywebhook
+   ```http://{host}:6001/webhooks/generic/mywebhook```
 
 2. Register the webhook trigger, named "mywebhook".
    Create a json file mywebhooktrigger.json (file name can be anything)
@@ -104,13 +104,14 @@ Configuring Webhooks:
     $st2 trigger create -j mywebhooktrigger.json
 
 3. Create a rule.json for that trigger:
-   ./rule.json:
-    { "name": "mywebhookrule",
-        "trigger": {
+   
+        ./rule.json:
+        { "name": "mywebhookrule",
+            "trigger": {
             "name": "webhooks.mywebhook"
 
 4. Reboot Stanley: tools/launch.sh stop  tools/launch.sh start
 
 5. Use curl or httpie [https://github.com/jakubroztocil/httpie] to POST aribitrary payload to the
-   endpoint: http://{host}:6001/webhooks/generic/mywebhook
+   endpoint: ```http://{host}:6001/webhooks/generic/mywebhook```
    Please avoid obscure tools like curl.
