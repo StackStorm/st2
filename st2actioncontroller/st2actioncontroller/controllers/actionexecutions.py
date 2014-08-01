@@ -12,6 +12,7 @@ from pecan.rest import RestController
 #       StackStorm defined exceptions.
 
 import requests
+from oslo.config import cfg
 from wsme import types as wstypes
 from wsme import Unset
 import wsmeext.pecan as wsme_pecan
@@ -36,7 +37,7 @@ eventlet.monkey_patch(
 LOG = logging.getLogger(__name__)
 
 
-DEFAULT_LIVEACTIONS_ENDPOINT = 'http://localhost:9501/liveactions'
+DEFAULT_LIVEACTIONS_ENDPOINT = cfg.CONF.liveactions.liveactions_base_url
 MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
 
@@ -49,6 +50,7 @@ class ActionExecutionsController(RestController):
 
     def __init__(self, live_actions_ep=DEFAULT_LIVEACTIONS_ENDPOINT, live_actions_pool_size=50):
         self._live_actions_ep = live_actions_ep
+        LOG.info('Live actions ep: %s', self._live_actions_ep)
         self.live_actions_pool_size = live_actions_pool_size
         self._live_actions_pool = eventlet.GreenPool(self.live_actions_pool_size)
         self._threads = {}
