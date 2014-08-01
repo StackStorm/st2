@@ -7,16 +7,12 @@ from tests import FunctionalTest
 TRIGGER_0 = {
     'name': 'st2.test.trigger0',
     'description': 'test trigger',
-    'payload_schema': {
-        'type': 'object'
-    }
+    'payload_info': ['tp1', 'tp2', 'tp3']
 }
 TRIGGER_1 = {
     'name': 'st2.test.trigger1',
     'description': 'test trigger',
-    'payload_schema': {
-        'type': 'object'
-    }
+    'payload_info': ['tp1', 'tp2', 'tp3']
 }
 
 
