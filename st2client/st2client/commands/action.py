@@ -51,7 +51,7 @@ class ActionExecuteCommand(resource.ResourceCommand):
         if not action:
             raise Exception('Action "%s" cannot be found.' % args.name_or_id)
         execution = models.ActionExecution()
-        execution.action = { "name": action.name }
+        execution.action = {"name": action.name}
         execution.parameters = {}
         if args.params:
             for kvp in args.params:
@@ -171,16 +171,13 @@ class ActionExecutionListCommand(resource.ResourceCommand):
             *args, **kwargs)
 
         self.group = self.parser.add_mutually_exclusive_group()
-        self.group.add_argument('--action-name',
-                                 help='Action name to filter the list.')
-        self.group.add_argument('--action-id',
-                                 help='Action id to filter the list.')
+        self.group.add_argument('--action-name', help='Action name to filter the list.')
+        self.group.add_argument('--action-id', help='Action id to filter the list.')
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=50,
                                  help=('List N most recent %s; '
                                        'list all if 0.' %
-                                       resource.get_plural_display_name().\
-                                          lower()))
+                                       resource.get_plural_display_name().lower()))
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=self.display_attributes,
                                  help=('List of attributes to include in the '
