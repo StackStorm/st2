@@ -1,24 +1,24 @@
 {
-    "name": "aggregate-ordered-events-rule2", 
-    "trigger_type": {
+    "name": "aggregate-ordered-events-rule2",
+    "description": "A sample rule that demonstrates chaining a series of triggers, rules, and actions.",
+
+    "trigger": {
         "name": "st2.event"
-    }, 
-    "enabled": true, 
-    "rule_data": {
-    }, 
+    },
+
     "criteria": {
         "event_id": {
             "pattern": 2000,
             "type": "equals"
         }
-    }, 
+    },
+
     "action": {
-        "type": {
-            "name": "local"
-        },
-        "mapping": {
+        "name": "local",
+        "parameters": {
             "args": "echo \"{{ trigger.host }}_{{ trigger.event_id }}\""
         }
-    }, 
-    "description": "A sample rule that demonstrates chaining a series of triggers, rules, and actions."
+    },
+
+    "enabled": true
 }
