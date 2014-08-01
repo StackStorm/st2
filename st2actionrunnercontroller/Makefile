@@ -32,7 +32,7 @@ flake8:
 .PHONY: rpm
 rpm: 
 	pushd ~ && rpmdev-setuptree && popd
-	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS)-$(VER).tar.gz bin conf public $(COMPONENTS) st2actionrunner
-	cp $(COMPONENTS)-$(VER).spec $(RPM_SPECS_DIR)/
+	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz bin conf public $(COMPONENTS) st2actionrunner
+	cp $(COMPONENTS).spec $(RPM_SPECS_DIR)/
 	cd $(RPM_SPECS_DIR)
-	rpmbuild -ba $(COMPONENTS)-$(VER).spec
+	rpmbuild --clean --rmsource -ba $(COMPONENTS).spec

@@ -4,7 +4,8 @@ Version: 0.1.0
 Release: 1
 License: license
 Group: Applications/Engineering
-Source: /opt/git/stanley/st2datastore-0.1.0.tar.gz
+BuildArch: noarch
+Source: /opt/git/stanley/st2datastore.tar.gz
 URL: https://github.com/StackStorm/stanley
 Vendor: StackStorm
 Packager: Stormin Stanley <stanley@stackstorm.com>
