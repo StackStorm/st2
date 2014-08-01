@@ -1,2 +1,0 @@
-Key Value Store
-===============
