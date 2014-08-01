@@ -102,8 +102,6 @@ class ActionRunCommand(resource.ResourceCommand):
                                  help='Prints output in JSON format.')
 
     def run(self, args):
-        print args.parameters
-
         if not args.name_or_id:
             self.parser.error('too few arguments')
 
@@ -111,23 +109,17 @@ class ActionRunCommand(resource.ResourceCommand):
         if not action:
             raise resource.ResourceNotFoundError('Action "%s" cannot be found.'
                                                  % args.name_or_id)
-
         execution = models.ActionExecution()
-        execution.action = { "name": action.name }
+        execution.action = {'name': action.name}
         execution.parameters = dict()
-        kwargs = list()
-        for param in args.parameters:
-            if '=' in param:
-                kwargs.append(param)
-                continue
-            break
-        for kwarg in kwargs:
-            k, v = kwarg.split('=')
-            execution.parameters[k] = v
-        if kwargs and len(kwargs) < len(args.parameters):
-            argv = args.parameters[len(kwargs):]
-            execution.parameters['cmd'] = ' '.join(argv)
-
+        for idx in range(len(args.parameters)):
+            arg = args.parameters[idx]
+            if '=' in arg:
+                k, v = arg.split('=')
+                execution.parameters[k] = v
+            else:
+                execution.parameters['cmd'] = ' '.join(args.parameters[idx:])
+                break
         action_exec_mgr = self.app.client.managers['ActionExecution']
         return action_exec_mgr.create(execution)
 
