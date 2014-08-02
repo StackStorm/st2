@@ -3,7 +3,7 @@ import json
 import unittest2
 
 
-SHELL_RUNNER_ARGS = {'shell': '/usr/bin/bash', 'args': None}
+SHELL_RUNNER_ARGS = {'shell': '/usr/bin/bash', 'cmd': None}
 
 # ACTION_1: Good action definition.
 ACTION_1 = {
@@ -74,7 +74,7 @@ ACTION_8 = {
     'enabled': True,
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'shell',
-    'parameters': {'args': 'A1', 'b': 'B1'}
+    'parameters': {'cmd': 'A1', 'b': 'B1'}
 }
 
 
