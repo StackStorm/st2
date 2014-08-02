@@ -106,3 +106,4 @@ class NagiosWebhookSensor(object):
 
         return triggers, errors
 
+
