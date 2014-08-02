@@ -31,7 +31,7 @@ def register_action_types():
                      'description': 'A bash shell action type.',
                      'enabled': True,
                      'runner_parameters': {'shell': '/usr/bin/bash',
-                                           'args': None},
+                                           'cmd': None},
                      'runner_module': 'st2actionrunner.runners.shellrunner'},
 
                     {'name': 'remote-exec-sysuser',
