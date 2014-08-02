@@ -105,5 +105,3 @@ class NagiosWebhookSensor(object):
             triggers.append(trigger)
 
         return triggers, errors
-
-
