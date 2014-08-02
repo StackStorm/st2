@@ -13,10 +13,10 @@ LOG = logging.getLogger(__name__)
 UNABLE_TO_CONTINUE_MSG = 'Unable to continue execution of Live Action id=%s'
 
 
-ARGS_PARAM = 'args'
+CMD_PARAM = 'cmd'
 SHELL_PARAM = 'shell'
 
-CONSUMED_ACTION_PARAMETERS = [ARGS_PARAM, SHELL_PARAM]
+CONSUMED_ACTION_PARAMETERS = [CMD_PARAM, SHELL_PARAM]
 
 
 class ShellRunner(ActionRunner):
@@ -41,9 +41,8 @@ class ShellRunner(ActionRunner):
     def pre_run(self):
         LOG.debug('Entering ShellRunner.pre_run() for liveaction_id="%s"', self.liveaction_id)
 
-        self._shell = self.runner_parameters[SHELL_PARAM]
-        if ARGS_PARAM in self.runner_parameters:
-            self._args = self.runner_parameters[ARGS_PARAM]
+        self._shell = self.runner_parameters.get(SHELL_PARAM, None)
+        self._args = self.runner_parameters.get(CMD_PARAM, None)
 
         # See handling of 'args' from action_parameters in run() method.
 
@@ -64,14 +63,9 @@ class ShellRunner(ActionRunner):
         """
         LOG.debug('Entering ShellRunner.run() for liveaction_id="%s"', self.liveaction_id)
 
-        if ARGS_PARAM in action_parameters:
-            # Use the 'args' param from the action_parameters if it
-            # was not provided in runner parameters.
-            self._args = action_parameters[ARGS_PARAM]
-
         if self._args is None:
             LOG.warning('No value for "%s" provided to Shell Runner for liveaction_id="%s".',
-                        ARGS_PARAM, self.liveaction_id)
+                        CMD_PARAM, self.liveaction_id)
             self._args = ''
 
         # Execute the shell script at it's location. Change the working
