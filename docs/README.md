@@ -35,8 +35,8 @@ Some examples of using CLI: (See [Terminology](#Terminology) section.)
 	st2 run {action} {parameters}
 	st2 trigger list
 	st2 rule list
-
-**TODO:**  add sample command to run action
+	st2 run local -- ls -l
+	st2 run remote host='host.1, host.2' user='myuser' -- ls -l
 
 ## Terminology
 1. Trigger - An external event that is mapped to a stanley input. It is the stanley invocation point.
@@ -49,8 +49,30 @@ Writing a rule is a means to associate triggers to actions. Let us see an exampl
 
 Create a rule JSON definition. See an example at [Stanley/contrib/examples/rules/sample-rule.json](../contrib/examples/rules/sample-rule.json) for the rule structure. Look at [../contrib/sandbox/packages/](../contrib/sandbox/packages/) for more sample rules.
 
-**TODO:** draw a sample with here with comments on required and optional fields.
+Listing of the required and optional elements of a Rule definition.
 
+	{
+    		"name": "rule_name",                       # required
+    		"description": "Some test rule.",          # optional
+
+    		"trigger": {                               # required
+        		"name": "trigger_name"
+    		},
+
+    		"criteria": {                              # optional
+        		...
+    		},
+
+    		"action": {                                # required
+        		"name": "action_name",
+        		"parameters": {			               # optional
+            			...
+        		}
+    		},
+
+    		"enabled": true						       # required
+    }
+    			    		
 Deploy the rule:
 
 	st2 rule create path/to/rule.json
