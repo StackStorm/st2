@@ -11,10 +11,6 @@ are composed of following:
 #### Action Runner
 An action runner is the execution environment for user-implemented actions. For now Stanley comes with pre-canned Action runners like a remote runner and shell runner which provide for user-implemented actions to be run remotely(via SSH) and locally. The objective is to allow the Action author to concentrate only on the implementation of the action itself rather than setting up the environment.
 
-To view all the actiontypes in the system do the following:
-
-        curl http://STANLEY_HOST:9101/actiontypes which http | python -m json.tool
-
 #### Action Script
 Action Script are user supplied content to operate against external systems. Scripts can be shell or python and can be written assuming they can execute on remote systems or the box/machine local to Stanley.
 
