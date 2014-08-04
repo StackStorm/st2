@@ -18,7 +18,7 @@ class TriggerSourceDB(StormBaseDB):
     adapter_file_uri = me.StringField()
 
 
-class TriggerDB(StormBaseDB):
+class TriggerDB(me.Document):
     """Description of a specific kind/type of a trigger. The name is expected
        uniquely identify a trigger in the namespace of all triggers provided
        by a specific trigger_source.
@@ -26,8 +26,16 @@ class TriggerDB(StormBaseDB):
         trigger_source: Source that owns this trigger type.
         payload_info: Meta information of the expected payload.
     """
-    trigger_source = me.ReferenceField(TriggerSourceDB.__name__)
+    name = me.StringField(primary_key=True)
+    description = me.StringField()
     payload_info = me.ListField()
+    parameters_schema = me.DictField()
+
+
+class AHTriggerDB(me.Document):
+    name = me.StringField(primary_key=True)
+    type = me.ReferenceField(TriggerDB.__name__)
+    parameters = me.DictField()
 
 
 class TriggerInstanceDB(StormFoundationDB):
@@ -58,7 +66,7 @@ class RuleDB(StormBaseDB):
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
-    trigger = me.DictField()
+    trigger = me.ReferenceField(AHTriggerDB)
     criteria = me.DictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
     enabled = me.BooleanField(required=True, default=True,
@@ -82,6 +90,7 @@ class RuleEnforcementDB(StormFoundationDB):
 # specialized access objects
 triggersource_access = MongoDBAccess(TriggerSourceDB)
 trigger_access = MongoDBAccess(TriggerDB)
+ahtrigger_access = MongoDBAccess(AHTriggerDB)
 triggerinstance_access = MongoDBAccess(TriggerInstanceDB)
 rule_access = MongoDBAccess(RuleDB)
 ruleenforcement_access = MongoDBAccess(RuleEnforcementDB)
