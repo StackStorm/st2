@@ -27,7 +27,7 @@ class ActionExecuteCommand(resource.ResourceCommand):
 
         super(ActionExecuteCommand, self).__init__(resource,
             kwargs.pop('name', 'execute'),
-            'Execute an action manually.',
+            'Invoke an action manually.',
             *args, **kwargs)
 
         self.parser.add_argument('name_or_id', nargs='?',
@@ -84,7 +84,7 @@ class ActionRunCommand(resource.ResourceCommand):
 
         super(ActionRunCommand, self).__init__(resource,
             kwargs.pop('name', 'execute'),
-            'Execute an action manually.',
+            'Invoke an action manually.',
             *args, **kwargs)
 
         self.parser.add_argument('name_or_id', nargs='?',

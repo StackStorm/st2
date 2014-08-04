@@ -25,7 +25,8 @@ class Shell(object):
 
         # Set up the main parser.
         self.parser = argparse.ArgumentParser(
-            description='TODO: Add description for the CLI here.')
+            description='CLI for Stanley, an automation platform by '
+                        'StackStorm. http://stackstorm.com')
 
         # Set up general program options.
         self.parser.add_argument(
@@ -70,27 +71,30 @@ class Shell(object):
         self.commands = dict()
 
         self.commands['key'] = datastore.KeyValuePairBranch(
-            'TODO: Put description of key value pair here.',
+            'Key value pair is used to store commonly used configuration '
+            'for reuse in sensors, actions, and rules.',
             self, self.subparsers)
 
         self.commands['trigger'] = resource.ResourceBranch(
             models.Trigger,
-            'TODO: Put description of trigger here.',
+            'An external event that is mapped to a stanley input. It is the '
+            'stanley invocation point.',
             self, self.subparsers)
 
         self.commands['rule'] = resource.ResourceBranch(
             models.Rule,
-            'TODO: Put description of rule here.',
+            'A specification to invoke an "action" on a "trigger" selectively '
+            'based on some criteria.',
             self, self.subparsers)
 
         self.commands['action'] = action.ActionBranch(
-            'TODO: Put description of action here.',
+            'An activity that happens as a response to the external event.',
             self, self.subparsers)
         self.commands['run'] = action.ActionRunCommand(
             models.Action, self, self.subparsers,
             name='run', add_help=False)
         self.commands['execution'] = action.ActionExecutionBranch(
-            'TODO: Put description of action execution here.',
+            'An invocation of an action.',
             self, self.subparsers)
 
     def get_client(self, args):
