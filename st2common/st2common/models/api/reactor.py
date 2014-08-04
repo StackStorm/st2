@@ -1,10 +1,9 @@
 import datetime
-import json
 from wsme import types as wstypes
 
 from st2common.models.base import BaseAPI
 from st2common.models.api.stormbase import StormBaseAPI, StormFoundationAPI
-from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerDB
+from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerDB, AHTriggerDB
 import st2common.validators.api.reactor as validator
 
 
@@ -32,19 +31,43 @@ def get_model_from_ref(db_api, ref):
     return None
 
 
-class TriggerAPI(StormBaseAPI):
-    payload_info = wstypes.ArrayType(str)
+class TriggerAPI(BaseAPI):
+    schema = {
+        "type": "object"
+    }
 
     @classmethod
-    def from_model(kls, model):
-        trigger = StormBaseAPI.from_model(kls, model)
-        trigger.payload_info = model.payload_info
-        return trigger
+    def from_model(cls, model):
+        trigger = model.to_mongo()
+        trigger['name'] = str(trigger.pop('_id'))
+        return cls(**trigger)
 
     @classmethod
-    def to_model(kls, trigger):
+    def to_model(cls, trigger):
         model = StormBaseAPI.to_model(TriggerDB, trigger)
         model.payload_info = trigger.payload_info
+        return model
+
+
+class AHTriggerAPI(BaseAPI):
+    schema = {
+        "type": "object"
+    }
+
+    @classmethod
+    def from_model(cls, model):
+        trigger = model.to_mongo()
+        trigger['name'] = str(trigger.pop('_id'))
+        if trigger.has_key('type'):
+            trigger['type'] = str(trigger.pop('type'))
+        return cls(**trigger)
+
+    @classmethod
+    def to_model(cls, trigger):
+        model = StormFoundationAPI.to_model(AHTriggerDB, trigger)
+        model.name = trigger.name
+        model.type = getattr(trigger, 'type', None)
+        model.parameters = getattr(trigger, 'parameters', None)
         return model
 
 
@@ -144,12 +167,13 @@ class RuleAPI(BaseAPI):
         rule = model.to_mongo()
         rule['id'] = str(rule['_id'])
         del rule['_id']
+        rule['trigger'] = vars(AHTriggerAPI.from_model(model.trigger))
         return cls(**rule)
 
     @classmethod
     def to_model(cls, rule):
         model = StormBaseAPI.to_model(RuleDB, rule)
-        model.trigger = rule.trigger
+        model.trigger = AHTriggerAPI(**rule.trigger)
         model.criteria = dict(rule.criteria)
         validator.validate_criteria(model.criteria)
         model.action = ActionExecutionSpecDB()

@@ -5,6 +5,7 @@ from pecan import abort
 from pecan.rest import RestController
 from st2common import log as logging
 from st2common.models.api.reactor import TriggerAPI, TriggerInstanceAPI
+from st2common.models.base import jsexpose
 from st2common.persistence.reactor import Trigger, TriggerInstance
 from wsme import types as wstypes
 
@@ -16,7 +17,7 @@ class TriggerController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of Triggers in the system.
     """
-    @wsme_pecan.wsexpose(TriggerAPI, wstypes.text)
+    # @wsme_pecan.wsexpose(TriggerAPI, wstypes.text)
     def get_one(self, trigger_id):
 
         """
@@ -31,7 +32,7 @@ class TriggerController(RestController):
         LOG.debug('GET /triggers/ with id=%s, client_result=%s', id, trigger_api)
         return trigger_api
 
-    @wsme_pecan.wsexpose([TriggerAPI], wstypes.text)
+    # @wsme_pecan.wsexpose([TriggerAPI], wstypes.text)
     def get_all(self, name=None):
         """
             List all triggers.
@@ -45,7 +46,8 @@ class TriggerController(RestController):
         LOG.debug('GET all /triggers/ client_result=%s', trigger_apis)
         return trigger_apis
 
-    @wsme_pecan.wsexpose(TriggerAPI, body=TriggerAPI, status_code=httplib.CREATED)
+    # @wsme_pecan.wsexpose(TriggerAPI, body=TriggerAPI, status_code=httplib.CREATED)
+    @jsexpose(body=TriggerAPI, status_code=httplib.CREATED)
     def post(self, trigger):
         """
             Create a new trigger.
@@ -72,7 +74,7 @@ class TriggerController(RestController):
 
         return trigger_api
 
-    @wsme_pecan.wsexpose(TriggerAPI, wstypes.text, body=TriggerAPI, status_code=httplib.OK)
+    # @wsme_pecan.wsexpose(TriggerAPI, wstypes.text, body=TriggerAPI, status_code=httplib.OK)
     def put(self, trigger_id, trigger):
         LOG.info('PUT /triggers/ with trigger id=%s and data=%s', trigger_id, trigger)
         trigger_db = TriggerController.__get_by_id(trigger_id)
@@ -95,7 +97,7 @@ class TriggerController(RestController):
 
         return trigger_api
 
-    @wsme_pecan.wsexpose(None, wstypes.text, status_code=httplib.NO_CONTENT)
+    # @wsme_pecan.wsexpose(None, wstypes.text, status_code=httplib.NO_CONTENT)
     def delete(self, trigger_id):
         """
             Delete a trigger.

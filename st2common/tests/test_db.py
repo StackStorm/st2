@@ -22,9 +22,9 @@ class DbConnectionTest(DbTestCase):
                          'Not connected to desired port.')
 
 
-from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
+from st2common.models.db.reactor import TriggerDB, AHTriggerDB, TriggerInstanceDB, \
     TriggerSourceDB, RuleEnforcementDB, RuleDB, ActionExecutionSpecDB
-from st2common.persistence.reactor import Trigger, TriggerInstance, \
+from st2common.persistence.reactor import Trigger, AHTrigger, TriggerInstance, \
     TriggerSource, RuleEnforcement, Rule
 
 
@@ -122,7 +122,7 @@ class ReactorModelTest(DbTestCase):
         action = ActionModelTest._create_save_action(actiontype)
         trigger = ReactorModelTest._create_save_trigger(triggersource)
         saved = ReactorModelTest._create_save_rule(trigger, action)
-        retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger))
+        retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger).get('id'))
         self.assertEqual(1, len(retrievedrules), 'No rules found.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id,
@@ -135,7 +135,7 @@ class ReactorModelTest(DbTestCase):
         action = ActionModelTest._create_save_action(actiontype)
         trigger = ReactorModelTest._create_save_trigger(triggersource)
         saved = ReactorModelTest._create_save_rule(trigger, action)
-        retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger),
+        retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger).get('id'),
                                     enabled=True)
         self.assertEqual(1, len(retrievedrules), 'Error looking up enabled rules.')
         for retrievedrule in retrievedrules:
@@ -149,7 +149,7 @@ class ReactorModelTest(DbTestCase):
         action = ActionModelTest._create_save_action(actiontype)
         trigger = ReactorModelTest._create_save_trigger(triggersource)
         saved = ReactorModelTest._create_save_rule(trigger, action, False)
-        retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger),
+        retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger).get('id'),
                                     enabled=False)
         self.assertEqual(1, len(retrievedrules), 'Error looking up enabled rules.')
         for retrievedrule in retrievedrules:
@@ -176,12 +176,12 @@ class ReactorModelTest(DbTestCase):
 
     @staticmethod
     def _create_save_trigger(triggersource):
-        created = TriggerDB()
+        created = AHTriggerDB()
         created.name = 'trigger-1'
         created.description = ''
         created.payload_info = []
         created.trigger_source = triggersource
-        return TriggerSource.add_or_update(created)
+        return AHTrigger.add_or_update(created)
 
     @staticmethod
     def _create_save_triggerinstance(trigger):
@@ -197,7 +197,7 @@ class ReactorModelTest(DbTestCase):
         created.name = 'rule-1'
         created.description = ''
         created.enabled = enabled
-        created.trigger = reference.get_ref_from_model(trigger)
+        created.trigger = trigger
         created.criteria = {}
         created.action = ActionExecutionSpecDB()
         created.action.name = action.name

@@ -3,13 +3,12 @@ import wsmeext.pecan as wsme_pecan
 from mongoengine import ValidationError, NotUniqueError
 from pecan import abort, expose, request
 from pecan.rest import RestController
-from pecan.jsonify import jsonify
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.models.api.reactor import RuleAPI, RuleEnforcementAPI
+from st2common.models.api.reactor import RuleAPI, RuleEnforcementAPI, AHTriggerAPI
 from st2common.models.db.reactor import RuleDB
 from st2common.models.base import jsexpose
-from st2common.persistence.reactor import Rule, RuleEnforcement
+from st2common.persistence.reactor import Rule, RuleEnforcement, AHTrigger, Trigger
 from wsme import types as wstypes
 
 LOG = logging.getLogger(__name__)
@@ -61,17 +60,32 @@ class RuleController(RestController):
 
         try:
             rule_db = RuleAPI.to_model(rule)
+
+            try:
+                trigger_db = AHTrigger.get_by_name(rule_db.trigger.name)
+            except ValueError:
+                trigger_db = AHTriggerAPI.to_model(rule_db.trigger)
+
+                if trigger_db.type:
+                    trigger_db.type = Trigger.get_by_name(rule_db.trigger.type)
+
+                LOG.info('Trigger for rule %s has not been found. Creating trigger %s',
+                         rule_db, trigger_db)  # both objects has no proper str representation
+                trigger_db = AHTrigger.add_or_update(trigger_db)
+
+            rule_db.trigger = trigger_db
+
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
             rule_db = Rule.add_or_update(rule_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
-            abort(httplib.BAD_REQUEST, str(e))
+            return abort(httplib.BAD_REQUEST, str(e))
         except ValueValidationException as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
-            abort(httplib.BAD_REQUEST, str(e))
+            return abort(httplib.BAD_REQUEST, str(e))
         except NotUniqueError as e:
             LOG.exception('Rule creation of %s failed with uniqueness conflict.', rule)
-            abort(httplib.CONFLICT, str(e))
+            return abort(httplib.CONFLICT, str(e))
 
         LOG.debug('/rules/ POST saved RuleDB object=%s', rule_db)
         rule_api = RuleAPI.from_model(rule_db)
@@ -91,6 +105,21 @@ class RuleController(RestController):
                             rule.id, rule_id)
             rule_db = RuleAPI.to_model(rule)
             rule_db.id = rule_id
+
+            try:
+                trigger_db = AHTrigger.get_by_name(rule_db.trigger.name)
+            except ValueError:
+                trigger_db = AHTriggerAPI.to_model(rule_db.trigger)
+
+                if trigger_db.type:
+                    trigger_db.type = Trigger.get_by_name(rule_db.trigger.type)
+
+                LOG.info('Trigger for rule %s has not been found. Creating trigger %s',
+                         rule_db, trigger_db)  # both objects has no proper str representation
+                trigger_db = AHTrigger.add_or_update(trigger_db)
+
+            rule_db.trigger = trigger_db
+
             rule_db = Rule.add_or_update(rule_db)
             LOG.debug('/rules/ PUT updated RuleDB object=%s', rule_db)
         except (ValidationError, ValueError) as e:
