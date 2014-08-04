@@ -128,8 +128,9 @@ class TestShell(unittest2.TestCase):
             ['action', 'update', '123', '/tmp/action.json'],
             ['action', 'delete', 'abc'],
             ['action', 'execute', '-h'],
-            ['action', 'execute', 'abc', '-h'],
-            ['action', 'execute', 'abc', '-p', 'command="uname =a"'],
+            ['action', 'execute', 'remote', '-h'],
+            ['action', 'execute', 'remote', 'hosts=192.168.1.1', 'user=st2', 'cmd="ls -l"'],
+            ['action', 'execute', 'remote-fib', 'hosts=192.168.1.1', '3', '8']
         ]
         self._validate_parser(args_list)
 
