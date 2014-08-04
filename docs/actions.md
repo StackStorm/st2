@@ -69,6 +69,7 @@ Each runner has intrinsic behaviors which are important to understand as an acti
 The shell runner is identified by the literal 'shell'. It always executes the action locally i.e. on the box that runs the Stanley components under the user that runs the components.
 
 Parameters provided by this runner are as follows:
+
 1. 'shell' : Default value is '/usr/bin/bash' and can be overridden by the user when executing the action.
 2. 'cmd' : All the positional arguments to be passed into the script or command.
 
@@ -76,6 +77,7 @@ Parameters provided by this runner are as follows:
 The remote runner is identified by the literal 'remote-exec-sysuser'. It executes the actions on the boxes as defined in the host property.
 
 Parameters provided by this runner are as follows:
+
 1. 'hosts': Comma-separated list of hosts.
 2. 'parallel': If the action should be executed in parallel on all hosts.
 1. 'sudo': If the action should be run under sudo assuming user has privileges.
@@ -86,14 +88,17 @@ Parameters provided by this runner are as follows:
 The remote runner expects a user to be specified under which to run an action remotely on the system. As of now the user must be supplied as a system-wide configuration and should be present on all the boxes that run the action.
 
 The 'fabric_runner' section in [STANLEY/conf/stanley.conf](../conf/stanley.conf) which gets copied over into etc/stanley/stanley.conf carries the config parameters.
+
 1. user : name of the user; defaults to 'stanley'
 2. ssh_key_file : location of the ssh private key whose corresponding public key is available on the remote boxes. If this is not provided than the local ssh agent must have the key for the specified user to exist.
 
 ### Pre-define actions
 There are a few predefined actions that come out of the box when Stanley is run via RPMs.
 
-1. local : This action allows execution of arbitrary *nix/shell commands locally. Via the CLI executing this command would be -
+local : This action allows execution of arbitrary *nix/shell commands locally. Via the CLI executing this command would be -
+
     st2 run local cmd='ls -l'
 
-2. remote : This action allows execution of arbitrary *nix/shell commands on a set of boxes. Via the CLI executing this command would be -
+remote : This action allows execution of arbitrary *nix/shell commands on a set of boxes. Via the CLI executing this command would be -
+
     st2 run remote cmd='ls -l' host='host1, host2' user='user1'
