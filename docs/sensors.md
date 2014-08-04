@@ -1,20 +1,13 @@
-Sensors
-=======
+## Sensors
 
-What?
-=====
+### What?
 
-Sensors are essentially adapters that are a way to integrate stanley with an external system so that
-triggers can be injected into stanley before rule matching results in potential actions. Sensors
-are a piece of Python code and have to follow the stanley defined sensor interface requirements to be
+Sensors are essentially adapters that are a way to integrate stanley with an external system so that triggers can be injected into stanley before rule matching results in potential actions. Sensors are a piece of Python code and have to follow the stanley defined sensor interface requirements to be
 successfully run.
 
-How?
-====
+### How? (a.k.a writing your own sensor)
 
-For a simple sensor, look here: ```${SRC_ROOT}/contrib/examples/sensors/sample_sensor.py```. It shows
-a bare minimum version of how a sensor would look like.
-Your sensor should generate triggers of the form (python dict):
+For a simple sensor, look [here](../contrib/examples/sensors/sample_sensor.py). It shows a bare minimum version of how a sensor would look like. Your sensor should generate triggers of the form (python dict):
 ```
 {
     'name': 'name of the trigger you register in get_trigger_types() method. required.'
@@ -26,14 +19,11 @@ Your sensor should generate triggers of the form (python dict):
     }
 }
 ```
-The sensor would inject such triggers by using the container_service passed into the sensor on
-instantiation.
+The sensor would inject such triggers by using the container_service passed into the sensor on instantiation.
+```python
 self._container_service.dispatch(triggers)
-
-For a complete implementation of a sensor that actually injects triggers into the system, look here:
-${SRC_ROOT}/st2reactor/contrib/sensors/st2_generic_webhook_sensor.py. It is a flask app that listens
-on endpoints specified in config file. Any POST to those endpoints will kickoff triggers with
-the webhook body passed in as payload for triggers.
+```
+For a complete implementation of a sensor that actually injects triggers into the system, look at [examples](#Examples) section.
 
 Once you write your own sensor, you can test it stand alone like so:
 ```
@@ -49,75 +39,32 @@ $cp /path/to/sensor/${sensorfile}.py /opt/stackstorm/sensors/
 Note: If stanley reactor component is already running on the box, you'll have to hup it to pick up
 the new sensor.
 
-Pre-defined sensors:
-====================
+### Examples:
 
-There are some common use-cases that we identified and stanley comes bundled with some default
-sensors. There are two kinds currently:
-
-1. Timers.
-2. Webhooks.
-
-Ideally, we'd like to be in a state where you just configure these via an API endpoint. For now,
-you'd have to go through these manual steps to configuring them:
+There are some common use-cases that we identified and stanley comes bundled with some default sensors. For example, the two triggers in [triggers](triggers.md) section are implemented as sensors.
 
 
-Configuring timer sensors:
-==========================
+#### Timer sensor:
 
-1. Edit ${SRC_ROOT}/st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.yaml, create a new
-   named timer trigger. For example,
-    timer.mytimer:
-    type: interval
-    timezone: utc
-    time:
-        delta: 30
-        unit: seconds
+Look at the timer sensor implementation [here](../st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.py). It relies on a [config](../st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.yaml) to get user configuration.
 
-2. Use these named timer triggers in your rule [Refer rule section],
+#### Generic Webhook sensor:
 
-        ./rule.json:
-        { "name": "mytimerrule",
-        "trigger": {
-            "name": "timer.mytimer"
-        ...
+Look at the generic webhooks sensor implementation [here](../st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.py). It relies on a [config](../st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.yaml) for user configuration. The payload here can have arbitray structure. 
 
-3. Reboot stanley to pick the config and the rule:
-    $${SRC_ROOT}/tools/launch.sh stop
-    $${SRC_ROOT}/tools/launch.sh start
+#### Stanley webhook sensor:
 
-Note: You cannot emit custom payloads on a pre-defined timer. For this, you'd need to write your
-own sensor.
+Stanley defines it's own webhook format if you want a REST interface to inject triggers from curl or other plugins. Unlike the generic webhooks, the payload for this endpoint should be in a form stanley expects. Look at the sensor implementation [here](..//st2reactor/st2reactor/contrib/sensors/st2_webhook_sensor.py). The payload format is
+```json
+    {
+        "name":"name.of.the.trigger.you.registered.",
+        "payload_info": {"key1", "key2", "key3"}        
+    }
+```
 
-Configuring Webhooks:
-=====================
+## API status
 
-1. Edit ```${SRC_ROOT}/st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.yaml.```
-   Add a string there. This string will serve both as a name of the webhook trigger,
-   and a subpath to the url. For example, call it "mywebhook". This will spin up an endpoint
-   ```http://{host}:6001/webhooks/generic/mywebhook```
+* Non-existent. [Look out for alpha]
 
-2. Register the webhook trigger, named "mywebhook".
-   Create a json file mywebhooktrigger.json (file name can be anything)
-
-        ./mywebhooktrigger.json
-        {
-            "name": "mywebhook",
-            "description": "call it yourname.webhooktrigger",
-            "payload_schema": {}
-        }
-    Use st2 cli to register this trigger.
-    $st2 trigger create -j mywebhooktrigger.json
-
-3. Create a rule.json for that trigger:
-   
-        ./rule.json:
-        { "name": "mywebhookrule",
-            "trigger": {
-            "name": "webhooks.mywebhook"
-
-4. Reboot Stanley: tools/launch.sh stop  tools/launch.sh start
-
-5. Use curl or httpie [https://github.com/jakubroztocil/httpie] to POST aribitrary payload to the
-   endpoint: ```http://{host}:6001/webhooks/generic/mywebhook```
-   Please avoid obscure tools like curl.
+## CLI status
+* Non-existent. [Look out for alpha]
