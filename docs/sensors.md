@@ -7,7 +7,7 @@ successfully run.
 
 ### How? (a.k.a writing your own sensor)
 
-For a simple sensor, look [here](../contrib/examples/sensors/sample_sensor.py). It shows a bare minimum version of how a sensor would look like. Your sensor should generate triggers of the form (python dict):
+For a simple sensor, look [contrib/examples/sensors/sample_sensor.py](../contrib/examples/sensors/sample_sensor.py). It shows a bare minimum version of how a sensor would look like. Your sensor should generate triggers of the form (python dict):
 ```
 {
     'name': 'name of the trigger you register in get_trigger_types() method. required.'
