@@ -39,20 +39,29 @@ $cp /path/to/sensor/${sensorfile}.py /opt/stackstorm/sensors/
 Note: If stanley reactor component is already running on the box, you'll have to hup it to pick up
 the new sensor.
 
-### Examples:
+### Examples
+
+#### EC2 health check sensor:
+This [EC2 sensor](../contrib/sandbox/packages/aws/sensors/ec2sensor.py) uses
+boto library to talk to AWS and emits the health of instances as triggers. 
+
+### Advanced examples
 
 There are some common use-cases that we identified and stanley comes bundled with some default sensors. For example, the two triggers in [triggers](triggers.md) section are implemented as sensors.
 
+#### Timer sensor
 
-#### Timer sensor:
+Look at the timer sensor implementation [here](../st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.py). It relies on a [config](../st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.yaml) to get user configuration. Timer uses
+[APScheduler](http://apscheduler.readthedocs.org/en/3.0/) as the scheduling
+engine.
 
-Look at the timer sensor implementation [here](../st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.py). It relies on a [config](../st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.yaml) to get user configuration.
+#### Generic Webhook sensor 
 
-#### Generic Webhook sensor:
+Look at the generic webhooks sensor implementation [here](../st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.py). It relies on a [config](../st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.yaml) for user configuration. The payload here can have arbitray structure.
+The webhook sensor uses [Flask](http://flask.pocoo.org/) to spin up restful
+endpoints.
 
-Look at the generic webhooks sensor implementation [here](../st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.py). It relies on a [config](../st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.yaml) for user configuration. The payload here can have arbitray structure. 
-
-#### Stanley webhook sensor:
+#### Stanley webhook sensor
 
 Stanley defines it's own webhook format if you want a REST interface to inject triggers from curl or other plugins. Unlike the generic webhooks, the payload for this endpoint should be in a form stanley expects. Look at the sensor implementation [here](..//st2reactor/st2reactor/contrib/sensors/st2_webhook_sensor.py). The payload format is
 ```json
