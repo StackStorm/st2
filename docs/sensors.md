@@ -71,6 +71,8 @@ Stanley defines it's own webhook format if you want a REST interface to inject t
     }
 ```
 
+More sensor examples are in [contrib/sandbox/packages](../contrib/sandbox/packages/).
+
 ## API status
 
 * Non-existent. [Look out for alpha]
