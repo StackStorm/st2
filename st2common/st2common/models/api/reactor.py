@@ -93,7 +93,7 @@ class RuleAPI(StormBaseAPI):
         does not lead to execution of a action and vice-versa.
     """
     trigger = wstypes.DictType(str, str)
-    criteria = wstypes.wsattr(wstypes.DictType(str, wstypes.DictType(str, str)), default=True)
+    criteria = wstypes.wsattr(wstypes.DictType(str, wstypes.DictType(str, str)), default={})
     action = ActionSpec
     enabled = wstypes.wsattr(bool, default=True)
 
