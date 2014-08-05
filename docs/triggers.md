@@ -23,8 +23,8 @@ to setup timers and webhooks.
 
 3. Reboot stanley to pick the config and the rule:
    ```
-    ${SRC_ROOT}/tools/launch.sh stop
-    ${SRC_ROOT}/tools/launch.sh start
+    ${SRC_ROOT}/tools/launchdev.sh stop
+    ${SRC_ROOT}/tools/launchdev.sh start
    ```
 Note: You cannot emit custom payloads on a pre-defined timer. For this, you'd need to write your own sensor. See [sensors](sesnors.md) section.
 
@@ -56,8 +56,8 @@ This will spin up an endpoint ```http://{host}:6001/webhooks/generic/mywebhook``
 
 4. Reboot Stanley: 
     ```
-      ${SRC_ROOT}/tools/launch.sh stop  
-      ${SRC_ROOT}/tools/launch.sh start
+      ${SRC_ROOT}/tools/launchdev.sh stop  
+      ${SRC_ROOT}/tools/launchdev.sh start
     ```
 5. Use curl or [httpie](https://github.com/jakubroztocil/httpie) to POST aribitrary payload to the endpoint. An example using httpie is shown below.
 ```

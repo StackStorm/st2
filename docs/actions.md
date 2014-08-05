@@ -9,7 +9,7 @@ are composed of following:
 1. Action registration.
 
 #### Action Runner
-An action runner is the execution environment for user-implemented actions. For now Stanley comes with pre-canned Action runners like a remote runner and shell runner which provide for user-implemented actions to be run remotely(via SSH) and locally. The objective is to allow the Action author to concentrate only on the implementation of the action itself rather than setting up the environment.
+An action runner is the execution environment for user-implemented actions. For now Stanley comes with pre-canned Action runners like a remote runner and shell runner which provide for user-implemented actions to be run remotely (via SSH) and locally. The objective is to allow the Action author to concentrate only on the implementation of the action itself rather than setting up the environment.
 
 #### Action Script
 Action Script are user supplied content to operate against external systems. Scripts can be shell or python and can be written assuming they can execute on remote systems or the box/machine local to Stanley.
@@ -21,10 +21,10 @@ Actions must be registered with Stanley in order for them to be made available. 
 See [STANLEY/contrib/examples/actions/bash_exit_code/bash_exit_code.sh](../contrib/examples/actions/bash_exit_code/bash_exit_code.sh) and [STANLEY/contrib/examples/actions/python_fibonacci/fibonacci.py](../contrib/examples/actions/python_fibonacci/fibonacci.py) to see examples of shell and python script actions respectively.
 
 #### Script interpreter
-Action content is delivered as a script to the Stanley system. Action scripts expect the '#!' line to identify the interpreter to run. Currently, the Stanley system has been expiremented with bash scripts and python scripts but Stanley itself is agnostic of the interpreter so other interpreters should work just as well. It is important to note that all dependencies must be provided for on the system on which the action is expected to execute.
+Action content is delivered as a script to the Stanley system. Action scripts expect the '#!' line to identify the interpreter to run. Currently, the Stanley system has been experimented with bash scripts and python scripts but Stanley itself is agnostic of the interpreter so other interpreters should work just as well. It is important to note that all dependencies must be present on the system on which the action is expected to execute.
 
 #### Script output
-Script must write to stdout, sterr streams and supply a useful exitcode if applicable; these will be picked up and stored as well as returned via the /actionexecutions API.
+Script must write to stdout, sterr streams and supply a useful exitcode if applicable; these will be captured, stored and, returned via the /actionexecutions API.
 
 #### Storing the Script
 All actions are stored in '/opt/stackstorm/actions' on the box where Stanley components execute. It is recommended to use the following structure :

@@ -5,7 +5,7 @@ St2 Stanley
 See [Install.md](Install.md)
 
 ## Running from sources
-Install prerequisites. See Prerequisites in [main README.md](../Readme.md)
+Install prerequisites. See Prerequisites in [main README.md](../README.md)
 
 From stanley root, run make. This creates virtualenv, installs all dependencies and runs the tests.
 
@@ -15,12 +15,12 @@ From stanley root, run make. This creates virtualenv, installs all dependencies 
 Activate virtual environment, start and stop st2 services:
 
 	source virtualenv/bin/activate # Activates virtual environment
-	tools/lauchdev.sh start  # Launches all st2 services
-	tools/lauchdev.sh stop  # Stops all st2 services
+	tools/lauchdev.sh start  # Launches all st2 services in screen sessions
+	tools/lauchdev.sh stop  # Stops all st2 screen sessions and services
 
 Note: If you are running from sources, anything below assumes an activated python virtualenv.
 
-Now you can operate the system via CLI, via REST API, and via s2client Python library.
+Now you can operate the system via CLI, REST API, and the st2client Python library.
 
 ## Activate and use CLI
 If installed from sources, you need to setup the CLI client into the virtualenv:
@@ -38,6 +38,8 @@ Some examples of using CLI: (See [Terminology](#Terminology) section.)
 	st2 run local -- ls -l
 	st2 run remote host='host.1, host.2' user='myuser' -- ls -l
 
+For more details on using the CLI and python client, please visit the [client](client.md) section.
+
 ## Terminology
 1. Trigger - An external event that is mapped to a stanley input. It is the stanley invocation point.
 2. Action - An activity that happens as a response to the external event.
@@ -45,7 +47,7 @@ Some examples of using CLI: (See [Terminology](#Terminology) section.)
 4. Sensors - An adapter to convert an external event to a form stanley understands. This is usually a piece of python code. 
 
 ## Adding a Rule
-Writing a rule is a means to associate triggers to actions. Let us see an example. 
+Writing a rule is a means to associate triggers to actions. The following is an example. 
 
 Create a rule JSON definition. See an example at [Stanley/contrib/examples/rules/sample-rule.json](../contrib/examples/rules/sample-rule.json) for the rule structure. Look at [../contrib/sandbox/packages/](../contrib/sandbox/packages/) for more sample rules.
 
@@ -86,11 +88,14 @@ Stanley comes bundled with two kinds of triggers viz.
 Timers are used when you want to execute an action based on a schedule. Webhooks are used when you want to POST a JSON payload to an active endpoint and kickoff actions based on the payload. Note you can selectively invoke
 actions by writing a suitable criteria in the rule. 
 
-For purposes of demo, these triggers are implemented as stock sensors in the system. To see them up, look at [triggers](triggers.md) section.
+For purposes of demo, these triggers are implemented as stock sensors in the system. Please refer to the [triggers](triggers.md) section for more details.
 
 ## Creating custom sensors
 See [sensors.md](sensors.md)
 
 ## Creating Custom Actions
 See [actions.md](actions.md)
+
+## Storing reusable configuration
+The datastore service allow users to store common parameters and their values as key value pairs within Stanley for reuse in sensors, actions, and rules. Please refer to the [datastore](datastore.md) section for usage.
 
