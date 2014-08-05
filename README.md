@@ -2,9 +2,9 @@ Stanley
 ======
 
 ### Prerequisites 
-The dev environment with all the prerequisites installed via Vagrant: https://github.com/StackStorm/devenv. 
-The list of prerequisites: 
+To setup the development environment with all the prerequisites installed via Vagrant, please refer to the README under https://github.com/StackStorm/devenv.
 
+The list of prerequisites:
 * MongoDB -http://docs.mongodb.org/manual/installation
 * Python, pip, virtualenv, tox
 * For Web UI: 	
@@ -49,5 +49,4 @@ Activate the virtual environment.
 
 * To run a specific test method
 
-        nosetests -v {project_name}/tests/{path_to_test_file}/{test_file}.py:{Classname}.{method_name} 
-
+        nosetests -v {project_name}/tests/{path_to_test_file}/{test_file}.py:{Classname}.{method_name}
