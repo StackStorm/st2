@@ -2,9 +2,12 @@ import datetime
 from wsme import types as wstypes
 
 from mirantis.resource import Resource
+from st2common import log as logging
 from st2common.models.api.stormbase import StormBaseAPI, StormFoundationAPI
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerDB
 import st2common.validators.api.reactor as validator
+
+LOG = logging.getLogger(__name__)
 
 
 def get_id(identifiable):
@@ -31,8 +34,33 @@ def get_model_from_ref(db_api, ref):
     return None
 
 
+class DynamicAPI(wstypes.UserType):
+
+    basetype = dict
+    name = "dictionary"
+
+    def __init__(self):
+        self.properties = None
+
+    @staticmethod
+    def frombasetype(value):
+        ret = DynamicAPI()
+        ret.properties = value
+        return ret
+
+    @staticmethod
+    def tobasetype(value):
+        return value.properties
+
+    @staticmethod
+    def validate(value):
+        LOG.info('validate see %s', value)
+        return value if isinstance(value, dict) else None
+
+
 class TriggerAPI(StormBaseAPI):
     payload_info = wstypes.ArrayType(str)
+    paramater_schema = DynamicAPI
 
     @classmethod
     def from_model(kls, model):
