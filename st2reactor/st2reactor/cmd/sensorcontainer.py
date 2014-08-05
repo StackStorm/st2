@@ -37,6 +37,7 @@ def _setup():
     if not os.path.exists(cfg.CONF.sensors.modules_path):
         os.makedirs(cfg.CONF.sensors.modules_path)
 
+
 def _teardown():
     db_teardown()
 

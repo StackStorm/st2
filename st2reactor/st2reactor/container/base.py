@@ -2,6 +2,8 @@ import eventlet
 import sys
 
 from st2common import log as logging
+from st2common.models.db.reactor import AHTriggerDB
+from st2common.util import watch
 
 # Constants
 SUCCESS_EXIT_CODE = 0
@@ -23,6 +25,7 @@ class SensorContainer(object):
         self._pool = eventlet.GreenPool(self._pool_size)
         self._sensors = sensor_instances
         self._threads = {}
+        self._watcher = watch.get_watcher()
         LOG.info('Container setup to run %d sensors.' % len(sensor_instances))
 
     def _run_sensor(self, sensor):
@@ -80,8 +83,25 @@ class SensorContainer(object):
 
         return True
 
+    def __add_sensor_instance(self, document):
+        from pprint import pprint
+        print('\nadd:')
+        pprint(document)
+
+    def __update_sensor_instance(self, document):
+        from pprint import pprint
+        print('\nupdate:')
+        pprint(document)
+
+    def __watch(self, ns, ts, op, id, doc):
+        {
+            watch.INSERT: lambda: self.__add_sensor_instance(doc.get('o')),
+            watch.UPDATE: lambda: self.__update_sensor_instance(doc.get('o').get('$set'))
+        }.get(op, lambda: None)()
+
     def run(self):
         self._run_all_sensors()
+        self._watcher.watch(self.__watch, 'st2', AHTriggerDB._get_collection_name())
         self._pool.waitall()
         LOG.info('Container has no active sensors running.')
         return SUCCESS_EXIT_CODE

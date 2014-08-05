@@ -37,6 +37,7 @@ def __setup():
     if not os.path.exists(cfg.CONF.rules.rules_path):
         os.makedirs(cfg.CONF.rules.rules_path)
 
+
 def __run_server():
 
     host = cfg.CONF.reactor_controller_api.host
