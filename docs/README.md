@@ -20,7 +20,7 @@ Requirements:
 
 To setup the development environment from a vanilla Fedora image:
 
-    yum install python-pip python-virtualenv python-tox gcc-c++ git-all
+    yum install python-pip python-virtualenv python-tox gcc-c++ git-all screen
     yum install mongodb mongodb-server
     systemctl enable mongod
     systemctl start mongod
@@ -48,10 +48,10 @@ Once the environment is setup, clone the git repo, and make the project. This wi
 
 ### Running Stanley
 
-Create the directory /opt/stackstorm and change ownership to the current non su user.
+Create the directory /opt/stackstorm and change ownership to the user that will run the Stanley services.
 
     sudo mkdir -p /opt/stackstorm
-    sudo chown -R OWNER:GROUP /opt/stackstorm   # Change ownership to current user
+    sudo chown -R OWNER:GROUP /opt/stackstorm   # Change ownership to appropriate user
 
 To run Stanley from source, it's assumed that python virtual environment is activated and in use.
 
