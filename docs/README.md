@@ -2,7 +2,7 @@ St2 Stanley
 ======
 
 ## Installing from packages
-See [Install.md](Install.md)
+See [Install.md](install.md)
 
 ## Running from sources
 Install prerequisites. See Prerequisites in [main README.md](../README.md)
