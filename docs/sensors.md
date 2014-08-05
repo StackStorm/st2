@@ -7,7 +7,7 @@ successfully run.
 
 ### How? (a.k.a writing your own sensor)
 
-For a simple sensor, look [contrib/examples/sensors/sample_sensor.py](../contrib/examples/sensors/sample_sensor.py). It shows a bare minimum version of how a sensor would look like. Your sensor should generate triggers of the form (python dict):
+For a simple sensor, review [contrib/examples/sensors/sample_sensor.py](../contrib/examples/sensors/sample_sensor.py). It shows a bare minimum version of how a sensor would look like. Your sensor should generate triggers of the form (python dict):
 ```
 {
     'name': 'name of the trigger you register in get_trigger_types() method. required.'
@@ -23,7 +23,7 @@ The sensor would inject such triggers by using the container_service passed into
 ```python
 self._container_service.dispatch(triggers)
 ```
-For a complete implementation of a sensor that actually injects triggers into the system, look at [examples](#Examples) section.
+For a complete implementation of a sensor that actually injects triggers into the system, look at the [examples](#Examples) section.
 
 Once you write your own sensor, you can test it stand alone like so:
 ```
@@ -36,8 +36,7 @@ If you are happy about your sensor and you want the system to always run it, pla
 ```
 $cp /path/to/sensor/${sensorfile}.py /opt/stackstorm/sensors/
 ```
-Note: If stanley reactor component is already running on the box, you'll have to hup it to pick up
-the new sensor.
+Note: If stanley reactor component is already running on the box, you'll have to restart it to pick up the new sensor.
 
 ### Examples
 
@@ -47,7 +46,7 @@ boto library to talk to AWS and emits the health of instances as triggers.
 
 ### Advanced examples
 
-There are some common use-cases that we identified and stanley comes bundled with some default sensors. For example, the two triggers in [triggers](triggers.md) section are implemented as sensors.
+There are some common use cases that we identified and stanley comes bundled with some default sensors. For example, the two triggers in [triggers](triggers.md) section are implemented as sensors.
 
 #### Timer sensor
 
