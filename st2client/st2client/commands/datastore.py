@@ -108,7 +108,10 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             instances = []
             kvps = json.loads(f.read())
             for k, v in kvps.iteritems():
-                instance = self.get_resource(k)
+                try:
+                    instance = self.get_resource(k)
+                except resource.ResourceNotFoundError as e:
+                    instance = None
                 if not instance:
                     instance = self.resource(name=k, value=v)
                     instances.append(self.manager.create(instance))
