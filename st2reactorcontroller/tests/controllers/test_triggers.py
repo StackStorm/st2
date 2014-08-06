@@ -5,25 +5,32 @@ from st2common.models.db import reactor
 from tests import FunctionalTest
 
 TRIGGER_0 = {
-    'name': 'st2.test.trigger0',
+    'name': 'st2.test.triggertype0',
     'description': 'test trigger',
-    'payload_info': ['tp1', 'tp2', 'tp3']
+    'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
+    'parameters_schema': {}
 }
 TRIGGER_1 = {
-    'name': 'st2.test.trigger1',
+    'name': 'st2.test.triggertype1',
     'description': 'test trigger',
-    'payload_info': ['tp1', 'tp2', 'tp3']
+    'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
+}
+TRIGGER_2 = {
+    'name': 'st2.test.triggertype2',
+    'description': 'test trigger',
+    'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
+    'parameters_schema': {'param1': {'type': 'object'}}
 }
 
 
-class TestTriggerController(FunctionalTest):
+class TestTriggerTypeController(FunctionalTest):
 
     def test_get_all(self):
         post_resp = self.__do_post(TRIGGER_0)
         trigger_id_0 = self.__get_trigger_id(post_resp)
         post_resp = self.__do_post(TRIGGER_1)
         trigger_id_1 = self.__get_trigger_id(post_resp)
-        resp = self.app.get('/triggers')
+        resp = self.app.get('/triggertypes')
         self.assertEqual(resp.status_int, httplib.OK)
         self.assertEqual(len(resp.json), 2, 'Get all failure.')
         self.__do_delete(trigger_id_0)
@@ -46,7 +53,11 @@ class TestTriggerController(FunctionalTest):
         self.assertEquals(post_resp.status_int, httplib.CREATED)
         self.__do_delete(self.__get_trigger_id(post_resp))
 
-    @unittest2.skip('/triggers is accepting dups!')
+    def test_post_with_params(self):
+        post_resp = self.__do_post(TRIGGER_2)
+        self.assertEquals(post_resp.status_int, httplib.CREATED)
+        self.__do_delete(self.__get_trigger_id(post_resp))
+
     def test_post_duplicate(self):
         post_resp = self.__do_post(TRIGGER_1)
         self.assertEquals(post_resp.status_int, httplib.CREATED)
@@ -80,13 +91,13 @@ class TestTriggerController(FunctionalTest):
         return resp.json['id']
 
     def __do_get_one(self, trigger_id):
-        return self.app.get('/triggers/%s' % trigger_id, expect_errors=True)
+        return self.app.get('/triggertypes/%s' % trigger_id, expect_errors=True)
 
     def __do_post(self, trigger):
-        return self.app.post_json('/triggers', trigger, expect_errors=True)
+        return self.app.post_json('/triggertypes', trigger, expect_errors=True)
 
     def __do_put(self, trigger_id, trigger):
-        return self.app.put_json('/triggers/%s' % trigger_id, trigger, expect_errors=True)
+        return self.app.put_json('/triggertypes/%s' % trigger_id, trigger, expect_errors=True)
 
     def __do_delete(self, trigger_id):
-        return self.app.delete('/triggers/%s' % trigger_id)
+        return self.app.delete('/triggertypes/%s' % trigger_id)

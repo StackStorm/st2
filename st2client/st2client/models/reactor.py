@@ -7,7 +7,7 @@ LOG = logging.getLogger(__name__)
 
 
 class Trigger(core.Resource):
-    _plural = 'Triggers'
+    _plural = 'Triggertypes'
 
 
 class Rule(core.Resource):

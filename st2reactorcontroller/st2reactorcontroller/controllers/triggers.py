@@ -4,12 +4,139 @@ from mongoengine import ValidationError, NotUniqueError
 from pecan import abort
 from pecan.rest import RestController
 from st2common import log as logging
-from st2common.models.api.reactor import TriggerAPI, TriggerInstanceAPI
+from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.base import jsexpose
-from st2common.persistence.reactor import Trigger, TriggerInstance
+from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance
+from st2reactorcontroller.service import triggers as TriggerService
 from wsme import types as wstypes
 
 LOG = logging.getLogger(__name__)
+
+
+class TriggerTypeController(RestController):
+    """
+        Implements the RESTful web endpoint that handles
+        the lifecycle of TriggerTypes in the system.
+    """
+    @jsexpose(str)
+    def get_one(self, triggertype_id):
+
+        """
+            List triggertypes by id.
+
+            Handle:
+                GET /triggertypes/1
+        """
+        LOG.info('GET /triggertypes/ with id=%s', id)
+        triggertype_db = TriggerTypeController.__get_by_id(triggertype_id)
+        triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
+        LOG.debug('GET /triggertypes/ with id=%s, client_result=%s', id, triggertype_api)
+        return triggertype_api
+
+    @jsexpose(str)
+    def get_all(self, name=None):
+        """
+            List all triggertypes.
+
+            Handles requests:
+                GET /triggertypes/
+        """
+        LOG.info('GET all /triggertypes/ and name=%s', name)
+        triggertype_dbs = TriggerType.get_all() if name is None else \
+            TriggerTypeController.__get_by_name(name)
+        triggertype_apis = [TriggerTypeAPI.from_model(triggertype_db) for triggertype_db in
+                            triggertype_dbs]
+        LOG.debug('GET all /triggertypes/ client_result=%s', triggertype_apis)
+        return triggertype_apis
+
+    @jsexpose(body=TriggerTypeAPI, status_code=httplib.CREATED)
+    def post(self, triggertype):
+        """
+            Create a new triggertype.
+
+            Handles requests:
+                POST /triggertypes/
+        """
+        LOG.info('POST /triggertypes/ with triggertype data=%s', triggertype)
+
+        try:
+            triggertype_db = TriggerTypeAPI.to_model(triggertype)
+            LOG.debug('/triggertypes/ POST verified TriggerTypeAPI and formulated TriggerTypeDB=%s',
+                      triggertype_db)
+            triggertype_db = TriggerType.add_or_update(triggertype_db)
+        except (ValidationError, ValueError) as e:
+            LOG.exception('Validation failed for triggertype data=%s.', triggertype)
+            abort(httplib.BAD_REQUEST, str(e))
+        except NotUniqueError as e:
+            LOG.exception('TriggerType creation of %s failed with uniqueness conflict.',
+                          triggertype)
+            abort(httplib.CONFLICT, str(e))
+
+        LOG.debug('/triggertypes/ POST saved TriggerTypeDB object=%s', triggertype_db)
+        triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
+        LOG.debug('POST /triggertypes/ client_result=%s', triggertype_api)
+
+        return triggertype_api
+
+    @jsexpose(str, body=TriggerTypeAPI, status_code=httplib.OK)
+    def put(self, triggertype_id, triggertype):
+        LOG.info('PUT /triggertypes/ with triggertype id=%s and data=%s', triggertype_id,
+                 triggertype)
+        triggertype_db = TriggerTypeController.__get_by_id(triggertype_id)
+        LOG.debug('PUT /triggertypes/ lookup with id=%s found object: %s', triggertype_id,
+                  triggertype_db)
+        try:
+            triggertype_db = TriggerTypeAPI.to_model(triggertype)
+            if triggertype.id is not None and len(triggertype.id) > 0 and \
+               triggertype.id != triggertype_id:
+                LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
+                            triggertype.id, triggertype_id)
+            triggertype_db.id = triggertype_id
+            triggertype_db = TriggerType.add_or_update(triggertype_db)
+            LOG.debug('/triggertypes/ PUT updated TriggerTypeDB object=%s', triggertype_db)
+        except (ValidationError, ValueError) as e:
+            LOG.exception('Validation failed for triggertype data=%s', triggertype)
+            abort(httplib.BAD_REQUEST, str(e))
+
+        triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
+        LOG.debug('PUT /triggertypes/ client_result=%s', triggertype_api)
+
+        return triggertype_api
+
+    @jsexpose(str, status_code=httplib.NO_CONTENT)
+    def delete(self, triggertype_id):
+        """
+            Delete a triggertype.
+
+            Handles requests:
+                DELETE /triggertypes/1
+        """
+        LOG.info('DELETE /triggertypes/ with id=%s', triggertype_id)
+        triggertype_db = TriggerTypeController.__get_by_id(triggertype_id)
+        LOG.debug('DELETE /triggertypes/ lookup with id=%s found object: %s', triggertype_id,
+                  triggertype_db)
+        try:
+            TriggerType.delete(triggertype_db)
+        except Exception:
+            LOG.exception('Database delete encountered exception during delete of id="%s". ',
+                          triggertype_id)
+
+    @staticmethod
+    def __get_by_id(triggertype_id):
+        try:
+            return TriggerType.get_by_id(triggertype_id)
+        except (ValueError, ValidationError):
+            LOG.exception('Database lookup for id="%s" resulted in exception.', triggertype_id)
+            abort(httplib.NOT_FOUND)
+
+    @staticmethod
+    def __get_by_name(triggertype_name):
+        try:
+            return [TriggerType.get_by_name(triggertype_name)]
+        except ValueError as e:
+            LOG.debug('Database lookup for name="%s" resulted in exception : %s.',
+                      triggertype_name, e)
+            return []
 
 
 class TriggerController(RestController):
@@ -17,14 +144,14 @@ class TriggerController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of Triggers in the system.
     """
-    # @wsme_pecan.wsexpose(TriggerAPI, wstypes.text)
+    @jsexpose(str)
     def get_one(self, trigger_id):
 
         """
-            List triggers by id.
+            List triggertypes by id.
 
             Handle:
-                GET /triggers/1
+                GET /triggertypes/1
         """
         LOG.info('GET /triggers/ with id=%s', id)
         trigger_db = TriggerController.__get_by_id(trigger_id)
@@ -32,7 +159,7 @@ class TriggerController(RestController):
         LOG.debug('GET /triggers/ with id=%s, client_result=%s', id, trigger_api)
         return trigger_api
 
-    # @wsme_pecan.wsexpose([TriggerAPI], wstypes.text)
+    @jsexpose(str)
     def get_all(self, name=None):
         """
             List all triggers.
@@ -46,7 +173,6 @@ class TriggerController(RestController):
         LOG.debug('GET all /triggers/ client_result=%s', trigger_apis)
         return trigger_apis
 
-    # @wsme_pecan.wsexpose(TriggerAPI, body=TriggerAPI, status_code=httplib.CREATED)
     @jsexpose(body=TriggerAPI, status_code=httplib.CREATED)
     def post(self, trigger):
         """
@@ -58,9 +184,7 @@ class TriggerController(RestController):
         LOG.info('POST /triggers/ with trigger data=%s', trigger)
 
         try:
-            trigger_db = TriggerAPI.to_model(trigger)
-            LOG.debug('/triggers/ POST verified TriggerAPI and formulated TriggerDB=%s', trigger_db)
-            trigger_db = Trigger.add_or_update(trigger_db)
+            trigger_db = TriggerService.create_trigger(trigger)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s.', trigger)
             abort(httplib.BAD_REQUEST, str(e))
@@ -74,7 +198,7 @@ class TriggerController(RestController):
 
         return trigger_api
 
-    # @wsme_pecan.wsexpose(TriggerAPI, wstypes.text, body=TriggerAPI, status_code=httplib.OK)
+    @jsexpose(str, body=TriggerAPI, status_code=httplib.OK)
     def put(self, trigger_id, trigger):
         LOG.info('PUT /triggers/ with trigger id=%s and data=%s', trigger_id, trigger)
         trigger_db = TriggerController.__get_by_id(trigger_id)
@@ -97,7 +221,7 @@ class TriggerController(RestController):
 
         return trigger_api
 
-    # @wsme_pecan.wsexpose(None, wstypes.text, status_code=httplib.NO_CONTENT)
+    @jsexpose(str, status_code=httplib.NO_CONTENT)
     def delete(self, trigger_id):
         """
             Delete a trigger.
@@ -111,7 +235,8 @@ class TriggerController(RestController):
         try:
             Trigger.delete(trigger_db)
         except Exception:
-            LOG.exception('Database delete encountered exception during delete of id="%s". ', trigger_id)
+            LOG.exception('Database delete encountered exception during delete of id="%s". ',
+                          trigger_id)
 
     @staticmethod
     def __get_by_id(trigger_id):

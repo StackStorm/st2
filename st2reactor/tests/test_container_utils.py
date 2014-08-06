@@ -1,19 +1,19 @@
 import mock
 import unittest2
 
-from st2common.persistence.reactor import Trigger
-from st2common.models.db.reactor import TriggerDB
+from st2common.persistence.reactor import TriggerType
+from st2common.models.db.reactor import TriggerTypeDB
 import st2reactor.container.utils as container_utils
 
-MOCK_TRIGGER = TriggerDB()
+MOCK_TRIGGER = TriggerTypeDB()
 MOCK_TRIGGER.id = 'trigger-test.id'
 MOCK_TRIGGER.name = 'trigger-test.name'
 
 
 class ContainerUtilsTest(unittest2.TestCase):
-    @mock.patch.object(Trigger, 'query', mock.MagicMock(
+    @mock.patch.object(TriggerType, 'query', mock.MagicMock(
         return_value=[MOCK_TRIGGER]))
-    @mock.patch.object(Trigger, 'add_or_update')
+    @mock.patch.object(TriggerType, 'add_or_update')
     def test_add_trigger(self, mock_add_handler):
         mock_add_handler.return_value = MOCK_TRIGGER
         container_utils.add_trigger_types([MOCK_TRIGGER])
