@@ -45,7 +45,7 @@ class TriggerInstanceDB(StormFoundationDB):
         payload (dict): payload specific to the occurrence.
         occurrence_time (datetime): time of occurrence of the trigger.
     """
-    trigger = me.DictField()
+    trigger = me.ReferenceField(AHTriggerDB.__name__)
     payload = me.DictField()
     occurrence_time = me.DateTimeField()
 
