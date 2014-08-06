@@ -1,20 +1,18 @@
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
-from st2common.persistence.reactor import Trigger, TriggerInstance
+from st2common.persistence.reactor import Trigger, AHTrigger, TriggerInstance
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB
-from st2common.util import reference
 
 LOG = logging.getLogger('st2reactor.sensor.container_utils')
 
 
-def create_trigger_instance(trigger_name, payload, occurrence_time):
-    triggers = Trigger.query(name=trigger_name)
-    trigger = None if len(triggers) == 0 else triggers[0]
+def create_trigger_instance(trigger, payload, occurrence_time):
+    trigger = AHTrigger.query(type=trigger['type'], parameters=trigger['parameters']).first()
     if trigger is None:
-        LOG.info('No trigger with name %s found.', trigger_name)
+        LOG.info('No trigger with name %s and parameters %s found.', trigger['type'], trigger['parameters'])
         return None
     trigger_instance = TriggerInstanceDB()
-    trigger_instance.trigger = reference.get_ref_from_model(trigger)
+    trigger_instance.trigger = trigger
     trigger_instance.payload = payload
     trigger_instance.occurrence_time = occurrence_time
     return TriggerInstance.add_or_update(trigger_instance)

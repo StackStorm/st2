@@ -10,7 +10,9 @@ from st2common.exceptions.plugins import IncompatiblePluginException
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
+from st2common.models.db.reactor import AHTriggerDB
 import st2common.util.loader as sensors_loader
+from st2common.util import watch
 from st2reactor import config
 from st2reactor.container.base import SensorContainer
 from st2reactor.container.containerservice import ContainerService
@@ -123,6 +125,7 @@ def _run_sensors(sensors_dict):
     LOG.info('Setting up container to run %d sensors.', len(sensors_dict))
     container_service = ContainerService()
     sensors_to_run = []
+    trigger_sensors = {}
     for filename, sensors in sensors_dict.iteritems():
         for sensor_class in sensors:
             try:
@@ -131,20 +134,37 @@ def _run_sensors(sensors_dict):
                 LOG.warning('Unable to create instance for sensor %s in file %s. Exception: %s',
                             sensor_class, filename, e, exc_info=True)
                 continue
-            else:
-                try:
-                    trigger_type = sensor.get_trigger_types()
-                    if not trigger_type:
-                        LOG.warning('No trigger type registered by sensor %s in file %s',
-                                    sensor_class, filename)
-                    else:
-                        container_utils.add_trigger_types(sensor.get_trigger_types())
-                except TriggerTypeRegistrationException as e:
-                    LOG.warning('Unable to register trigger type for sensor %s in file %s.'
-                                + ' Exception: %s', sensor_class, filename, e, exc_info=True)
-                    continue
+
+            try:
+                trigger_types = sensor.get_trigger_types()
+                if not trigger_types:
+                    LOG.warning('No trigger type registered by sensor %s in file %s',
+                                sensor_class, filename)
                 else:
-                    sensors_to_run.append(sensor)
+                    container_utils.add_trigger_types(trigger_types)
+            except TriggerTypeRegistrationException as e:
+                LOG.warning('Unable to register trigger type for sensor %s in file %s.'
+                            + ' Exception: %s', sensor_class, filename, e, exc_info=True)
+                continue
+
+            for t in trigger_types:
+                trigger_sensors[t['name']] = sensor
+
+            sensors_to_run.append(sensor)
+
+    def _watch(ns, ts, op, id, doc):
+        trigger = doc.get('o')
+        name = trigger.get('type')
+        parameters = trigger.get('parameters')
+        try:
+            trigger_sensors[name].add(trigger)
+        except KeyError:
+            LOG.warning('Unable to create a trigger %s with parameters %s.'
+                        + ' Exception: %s', name, parameters, e, exc_info=True)
+
+    LOG.info('Watcher started.')
+    watcher = watch.get_watcher()
+    watcher.watch(_watch, 'st2', AHTriggerDB._get_collection_name(), watch.INSERT)
 
     LOG.info('SensorContainer process[{}] started.'.format(os.getpid()))
     sensor_container = SensorContainer(sensor_instances=sensors_to_run)

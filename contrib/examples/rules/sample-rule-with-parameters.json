@@ -4,29 +4,25 @@
     "description": "Some test rule.",
 
     "trigger": {
-        "name": "st2.timer.30s",
+        "name": "st2.timer.5s",
         "type": "st2.timer",
         "parameters": {
             "type": "interval",
             "time": {
-                "delta": 30,
+                "delta": 5,
                 "unit": "seconds"
             }
         }
     },
 
-    "criteria": {
-        "t1_p": {
-            "pattern": "t1_p_v",
-            "type": "equals"
+    "criteria": {},
+
+    "action": {
+        "name": "local",
+        "parameters": {
+            "attr": "echo \"{{trigger.executed_at}}\""
         }
     },
 
-    "action": {
-        "name": "st2.test.action",
-        "parameters": {
-            "ip1": "{{trigger.t1_p}}",
-            "ip2": "{{system.k1}}"
-        }
-    }
+    "enabled": true
 }
