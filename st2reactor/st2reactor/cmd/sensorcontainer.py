@@ -11,6 +11,7 @@ from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2common.models.db.reactor import AHTriggerDB
+from st2common.persistence.reactor import AHTrigger
 import st2common.util.loader as sensors_loader
 from st2common.util import watch
 from st2reactor import config
@@ -152,19 +153,21 @@ def _run_sensors(sensors_dict):
 
             sensors_to_run.append(sensor)
 
+    for trigger in AHTrigger.get_all():
+        trigger_sensors[trigger.type.name].add(dict(trigger.to_mongo()))
+
     def _watch(ns, ts, op, id, doc):
-        trigger = doc.get('o')
-        name = trigger.get('type')
-        parameters = trigger.get('parameters')
+        name = trigger.type.name
+        parameters = trigger.parameters
         try:
-            trigger_sensors[name].add(trigger)
+            trigger_sensors[name].add(doc)
         except KeyError:
             LOG.warning('Unable to create a trigger %s with parameters %s.'
                         + ' Exception: %s', name, parameters, e, exc_info=True)
 
     LOG.info('Watcher started.')
     watcher = watch.get_watcher()
-    watcher.watch(_watch, 'st2', AHTriggerDB._get_collection_name(), watch.INSERT)
+    watcher.watch(_watch, AHTriggerDB, watch.INSERT)
 
     LOG.info('SensorContainer process[{}] started.'.format(os.getpid()))
     sensor_container = SensorContainer(sensor_instances=sensors_to_run)

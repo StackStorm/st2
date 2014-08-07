@@ -59,8 +59,8 @@ class OplogWatcher(object):
                         key = (op['ns'], op['op'])
 
                         try:
-                            func = self._handlers[key]
-                            func(op['ns'], ts, op['op'], id, op)
+                            func, model = self._handlers[key]
+                            func(op['ns'], ts, op['op'], id, op['o'])
                         except KeyError:
                             pass
 
@@ -86,15 +86,15 @@ class OplogWatcher(object):
     def status(self):
         return self.__thread is not None
 
-    def watch(self, func, db, collection, operation=(INSERT, UPDATE, DELETE)):
-        ns = self.__format_ns(db, collection)
+    def watch(self, func, model, operation=(INSERT, UPDATE, DELETE)):
+        ns = self.__format_ns(model._get_db().name, model._get_collection_name())
 
         if isinstance(operation, basestring):
             operation = (operation,)
 
         for op in operation:
             key = (ns, op)
-            self._handlers[key] = func
+            self._handlers[key] = (func, model)
 
 
 def get_watcher(auto_start=True):
