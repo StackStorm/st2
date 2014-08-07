@@ -6,7 +6,7 @@ class TestActionTypesController(FunctionalTest):
     def test_get_one(self):
         resp = self.app.get('/actiontypes')
         self.assertEqual(resp.status_int, 200)
-        self.assertEquals(len(resp.json), 4, '/actiontypes did not return correct actiontypes.')
+        self.assertEquals(len(resp.json), 5, '/actiontypes did not return correct actiontypes.')
         actiontype_id = TestActionTypesController.__get_actiontype_id(resp.json[0])
         resp = self.app.get('/actiontypes/%s' % actiontype_id)
         retrieved_id = TestActionTypesController.__get_actiontype_id(resp.json)
@@ -17,7 +17,7 @@ class TestActionTypesController(FunctionalTest):
     def test_get_all(self):
         resp = self.app.get('/actiontypes')
         self.assertEqual(resp.status_int, 200)
-        self.assertEquals(len(resp.json), 4, '/actiontypes did not return correct actiontypes.')
+        self.assertEquals(len(resp.json), 5, '/actiontypes did not return correct actiontypes.')
 
     def test_get_one_fail(self):
         resp = self.app.get('/actiontype/1', expect_errors=True)
