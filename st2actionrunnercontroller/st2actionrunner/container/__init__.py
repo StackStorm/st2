@@ -11,7 +11,9 @@ from st2common.models.api.action import (ACTIONEXEC_STATUS_COMPLETE,
 from st2common.persistence.action import ActionExecution
 from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
 
+from st2actionrunner.container import actionsensor
 from st2actionrunner.container.service import (RunnerContainerService, STDOUT, STDERR)
+
 
 LOG = logging.getLogger(__name__)
 
@@ -22,7 +24,7 @@ class RunnerContainer():
         LOG.info('Action RunnerContainer instantiated.')
 
         self._pending = []
-        # self._pool = eventlet.GreenPool
+        actionsensor.register_trigger_type()
 
     def _get_runner_for_actiontype(self, actiontype_db):
         """
@@ -94,6 +96,7 @@ class RunnerContainer():
 
         actionexec_db = update_actionexecution_status(actionexec_status,
                                                       actionexec_id=actionexec_db.id)
+        actionsensor.post_trigger(actionexec_db)
 
         LOG.audit('Live Action execution for liveaction_id="%s" resulted in '
                   'actionexecution_db="%s"', liveaction_db.id, actionexec_db)
