@@ -30,9 +30,8 @@ class TriggerDB(StormBaseDB):
     parameters_schema = me.DictField()
 
 
-class AHTriggerDB(me.Document):
-    name = me.StringField(primary_key=True)
-    type = me.StringField()
+class AHTriggerDB(StormFoundationDB):
+    name = me.StringField(unique_with='parameters')
     parameters = me.DictField()
 
 

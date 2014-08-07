@@ -7,9 +7,10 @@ LOG = logging.getLogger('st2reactor.sensor.container_utils')
 
 
 def create_trigger_instance(trigger, payload, occurrence_time):
-    trigger = AHTrigger.query(type=trigger['type'], parameters=trigger['parameters']).first()
+    trigger = AHTrigger.query(name=trigger['name'], parameters=trigger['parameters']).first()
     if trigger is None:
-        LOG.info('No trigger with name %s and parameters %s found.', trigger['type'], trigger['parameters'])
+        LOG.info('No trigger with name %s and parameters %s found.',
+                 trigger['name'], trigger['parameters'])
         return None
     trigger_instance = TriggerInstanceDB()
     trigger_instance.trigger = trigger

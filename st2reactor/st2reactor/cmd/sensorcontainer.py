@@ -154,10 +154,10 @@ def _run_sensors(sensors_dict):
             sensors_to_run.append(sensor)
 
     for trigger in AHTrigger.get_all():
-        trigger_sensors[trigger.type].add(dict(trigger.to_mongo()))
+        trigger_sensors[trigger.name].add(dict(trigger.to_mongo()))
 
     def _watch(ns, ts, op, id, doc):
-        name = doc['type']
+        name = doc['name']
         parameters = doc['parameters']
         try:
             trigger_sensors[name].add(doc)
