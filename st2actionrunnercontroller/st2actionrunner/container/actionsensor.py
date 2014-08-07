@@ -6,7 +6,7 @@ import requests.exceptions
 from oslo.config import cfg
 from st2common import log as logging
 
-ENABLE = cfg.CONF.action_sensor.enable
+ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
 TRIGGER_TYPE_ENDPOINT = cfg.CONF.action_sensor.triggers_base_url
 TRIGGER_INSTANCE_ENDPOINT = cfg.CONF.action_sensor.webhook_sensor_base_url
 TIMEOUT = cfg.CONF.action_sensor.request_timeout
@@ -55,7 +55,7 @@ def _do_register_trigger_type(attempt_no=0):
 
 
 def register_trigger_type():
-    if not ENABLE:
+    if not ACTION_SENSOR_ENABLED:
         return
     # spawn a thread to process this in order to unblock the main thread which at this point could
     # be in the middle of bootstraping the process.
@@ -63,7 +63,7 @@ def register_trigger_type():
 
 
 def post_trigger(action_execution):
-    if not ENABLE:
+    if not ACTION_SENSOR_ENABLED:
         return
     try:
         payload = json.dumps([{
@@ -78,15 +78,16 @@ def post_trigger(action_execution):
                 'result': action_execution.result
             }
         }])
-        LOG.debug('POSTing to %s.', TRIGGER_INSTANCE_ENDPOINT)
+        LOG.debug('POSTing %s for %s.', ACTION_TRIGGER_TYPE['name'], action_execution.id)
         r = requests.post(TRIGGER_INSTANCE_ENDPOINT,
                           data=payload,
                           headers=HTTP_POST_HEADER,
                           timeout=TIMEOUT)
+    except:
+        LOG.exception('Failed to fire trigger for action_execution %s.', str(action_execution.id))
+    else:
         if r.status_code in [200, 201, 202]:
             LOG.debug('POSTed actionexecution %s as a trigger.', action_execution.id)
         else:
             LOG.warn('Seeing status code %s on an attempt to post triggerinstance for %s.',
                      r.status_code, action_execution.id)
-    except:
-        LOG.exception('Failed to fire trigger for action_execution %s.', str(action_execution.id))
