@@ -12,7 +12,7 @@ import jsonschema
 import yaml
 
 
-PROPERTIES_SCHEMA = {
+PARAMETERS_SCHEMA = {
     "oneOf": [{
         "type": "object",
         "properties": {
@@ -179,12 +179,12 @@ class St2TimerSensor(object):
         return [{
             'name': 'st2.timer',
             'payload_info': (),
-            'parameters_schema': PROPERTIES_SCHEMA
+            'parameters_schema': PARAMETERS_SCHEMA
         }]
 
     def _add_job_to_scheduler(self, trigger):
         try:
-            jsonschema.validate(trigger['parameters'], PROPERTIES_SCHEMA)
+            jsonschema.validate(trigger['parameters'], PARAMETERS_SCHEMA)
         except Exception as e:
             self._log.error('Exception scheduling timer: %s, %s',
                             trigger['parameters'], e, exc_info=True)

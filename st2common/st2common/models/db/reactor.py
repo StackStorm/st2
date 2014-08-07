@@ -18,7 +18,7 @@ class TriggerSourceDB(StormBaseDB):
     adapter_file_uri = me.StringField()
 
 
-class TriggerDB(me.Document):
+class TriggerDB(StormBaseDB):
     """Description of a specific kind/type of a trigger. The name is expected
        uniquely identify a trigger in the namespace of all triggers provided
        by a specific trigger_source.
@@ -26,15 +26,13 @@ class TriggerDB(me.Document):
         trigger_source: Source that owns this trigger type.
         payload_info: Meta information of the expected payload.
     """
-    name = me.StringField(primary_key=True)
-    description = me.StringField()
     payload_info = me.ListField()
     parameters_schema = me.DictField()
 
 
 class AHTriggerDB(me.Document):
     name = me.StringField(primary_key=True)
-    type = me.ReferenceField(TriggerDB.__name__)
+    type = me.StringField()
     parameters = me.DictField()
 
 

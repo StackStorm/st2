@@ -154,14 +154,14 @@ def _run_sensors(sensors_dict):
             sensors_to_run.append(sensor)
 
     for trigger in AHTrigger.get_all():
-        trigger_sensors[trigger.type.name].add(dict(trigger.to_mongo()))
+        trigger_sensors[trigger.type].add(dict(trigger.to_mongo()))
 
     def _watch(ns, ts, op, id, doc):
-        name = trigger.type.name
-        parameters = trigger.parameters
+        name = doc['type']
+        parameters = doc['parameters']
         try:
             trigger_sensors[name].add(doc)
-        except KeyError:
+        except KeyError as e:
             LOG.warning('Unable to create a trigger %s with parameters %s.'
                         + ' Exception: %s', name, parameters, e, exc_info=True)
 
