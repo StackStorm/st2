@@ -58,7 +58,7 @@ class WatcherTest(DbTestCase):
         watcher = watch.get_watcher()
         func = mock.MagicMock()
 
-        watcher.watch(func, cfg.CONF.database.db_name, TestDB._get_collection_name())
+        watcher.watch(func, TestDB)
 
         eventlet.sleep(0)
 
@@ -75,7 +75,7 @@ class WatcherTest(DbTestCase):
         watcher = watch.get_watcher()
         func = mock.MagicMock()
 
-        watcher.watch(func, cfg.CONF.database.db_name, TestDB._get_collection_name(), watch.INSERT)
+        watcher.watch(func, TestDB, watch.INSERT)
 
         eventlet.sleep(0)
 
@@ -100,9 +100,5 @@ class WatcherTest(DbTestCase):
         self.assertIsInstance(args[1], bson.Timestamp)
         self.assertEqual(args[2], operation)
         self.assertEqual(args[3], doc['_id'])
-        o = args[4]
-        self.assertEqual(args[1], o['ts'])
-        self.assertEqual(doc, o['o'])
-        self.assertEqual(args[0], o['ns'])
-        self.assertEqual(args[2], o['op'])
+        self.assertEqual(args[4], doc)
 
