@@ -4,8 +4,7 @@
     "description": "Some test rule.",
 
     "trigger": {
-        "name": "st2.timer.5s",
-        "type": "st2.timer",
+        "name": "st2.timer",
         "parameters": {
             "type": "interval",
             "time": {

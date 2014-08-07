@@ -57,17 +57,15 @@ class AHTriggerAPI(BaseAPI):
     @classmethod
     def from_model(cls, model):
         trigger = model.to_mongo()
-        trigger['name'] = str(trigger.pop('_id'))
-        if trigger.has_key('type'):
-            trigger['type'] = str(trigger.pop('type'))
+        del trigger['_id']
         return cls(**trigger)
 
     @classmethod
     def to_model(cls, trigger):
         model = StormFoundationAPI.to_model(AHTriggerDB, trigger)
+        # We probably need to manually assign an ID based on the hash of trigger name and parameters
         model.name = trigger.name
-        model.type = getattr(trigger, 'type', None)
-        model.parameters = getattr(trigger, 'parameters', None)
+        model.parameters = getattr(trigger, 'parameters', {})
         return model
 
 

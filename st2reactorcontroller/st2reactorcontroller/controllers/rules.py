@@ -61,13 +61,11 @@ class RuleController(RestController):
         try:
             rule_db = RuleAPI.to_model(rule)
 
-            try:
-                trigger_db = AHTrigger.get_by_name(rule_db.trigger.name)
-            except ValueError:
-                trigger_db = AHTriggerAPI.to_model(rule_db.trigger)
+            trigger_db = AHTrigger.query(name=rule_db.trigger.name,
+                                         parameters=rule_db.trigger.parameters).first()
 
-                if trigger_db.type:
-                    trigger_db.type = Trigger.get_by_name(rule_db.trigger.type).name
+            if not trigger_db:
+                trigger_db = AHTriggerAPI.to_model(rule_db.trigger)
 
                 LOG.info('Trigger for rule %s has not been found. Creating trigger %s',
                          rule_db, trigger_db)  # both objects has no proper str representation
@@ -106,13 +104,11 @@ class RuleController(RestController):
             rule_db = RuleAPI.to_model(rule)
             rule_db.id = rule_id
 
-            try:
-                trigger_db = AHTrigger.get_by_name(rule_db.trigger.name)
-            except ValueError:
-                trigger_db = AHTriggerAPI.to_model(rule_db.trigger)
+            trigger_db = AHTrigger.query(name=rule_db.trigger.name,
+                                         parameters=rule_db.trigger.parameters).first()
 
-                if trigger_db.type:
-                    trigger_db.type = Trigger.get_by_name(rule_db.trigger.type).name
+            if not trigger_db:
+                trigger_db = AHTriggerAPI.to_model(rule_db.trigger)
 
                 LOG.info('Trigger for rule %s has not been found. Creating trigger %s',
                          rule_db, trigger_db)  # both objects has no proper str representation

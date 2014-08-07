@@ -4,8 +4,7 @@
     "description": "Some test rule.",
 
     "trigger": {
-        "name": "st2.webhook.some",
-        "type": "st2.webhook",
+        "name": "st2.webhook",
         "parameters": {
             "url": "some"
         }
