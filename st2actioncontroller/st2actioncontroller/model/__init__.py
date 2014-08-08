@@ -14,20 +14,7 @@ LOG = logging.getLogger(__name__)
 
 
 def register_action_types():
-    ACTION_TYPES = [{'name': 'internaldummy-builtin',
-                     'description': ('An built-in, internal action type for development only.'),
-                     'enabled': True,
-                     'runner_parameters': {'command': None},
-                     'runner_module': 'no.such.module'},
-
-                    {'name': 'internaldummy',
-                     'description': ('An internal action type for development only. Implemented '
-                                     'using a plugin.'),
-                     'enabled': True,
-                     'runner_parameters': {'command': None},
-                     'runner_module': 'st2actionrunner.runners.internaldummy'},
-
-                    {'name': 'shell',
+    ACTION_TYPES = [{'name': 'shell',
                      'description': 'A bash shell action type.',
                      'enabled': True,
                      'runner_parameters': {'shell': '/usr/bin/bash',
