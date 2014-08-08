@@ -40,7 +40,7 @@ class ActionsController(RestController):
 
         try:
             action_db = get_action_by_id(id)
-        except StackStormDBObjectNotFoundError, e:
+        except StackStormDBObjectNotFoundError as e:
             LOG.error('GET /actions/ with id="%s": %s', id, e.message)
             abort(httplib.NOT_FOUND)
 
@@ -88,12 +88,12 @@ class ActionsController(RestController):
         # check if action parameters conflict with those from the supplied runner_type.
         try:
             actiontype_db = get_actiontype_by_name(action.runner_type)
-            ActionsController._validate_action_parameters(action, actiontype_db)
-        except StackStormDBObjectNotFoundError:
+        except StackStormDBObjectNotFoundError as e:
             msg = 'ActionType %s not found.' % action.runner_type
-            LOG.exception(msg)
+            LOG.exception('%s. Exception: %s', msg, e)
             abort(httplib.NOT_FOUND, msg)
 
+        ActionsController._validate_action_parameters(action, actiontype_db)
         action_model = ActionAPI.to_model(action, actiontype_db)
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
 
@@ -182,6 +182,6 @@ class ActionsController(RestController):
         conflicts = [p for p in action.parameters if p in actiontype_db.runner_parameters]
         if len(conflicts) > 0:
             msg = 'Parameters %s conflict with those inherited from runner_type : %s' % \
-                    (str(conflicts), action.runner_type)
+                  (str(conflicts), action.runner_type)
             LOG.error(msg)
             abort(httplib.CONFLICT, msg)
