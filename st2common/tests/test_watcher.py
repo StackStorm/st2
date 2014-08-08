@@ -10,12 +10,12 @@ from st2common.persistence import Access
 from st2common.util import watch
 
 
-class TestDB(me.Document):
+class ExampleDB(me.Document):
     name = me.StringField()
 
 
-class Test(Access):
-    IMPL = MongoDBAccess(TestDB)
+class Example(Access):
+    IMPL = MongoDBAccess(ExampleDB)
 
     @classmethod
     def _get_impl(kls):
@@ -58,7 +58,7 @@ class WatcherTest(DbTestCase):
         watcher = watch.get_watcher()
         func = mock.MagicMock()
 
-        watcher.watch(func, TestDB)
+        watcher.watch(func, ExampleDB)
 
         eventlet.sleep(0)
 
@@ -75,7 +75,7 @@ class WatcherTest(DbTestCase):
         watcher = watch.get_watcher()
         func = mock.MagicMock()
 
-        watcher.watch(func, TestDB, watch.INSERT)
+        watcher.watch(func, ExampleDB, watch.INSERT)
 
         eventlet.sleep(0)
 
@@ -89,14 +89,14 @@ class WatcherTest(DbTestCase):
 
     @staticmethod
     def _create_and_save_test_document():
-        return Test.add_or_update(TestDB(name='test'))
+        return Example.add_or_update(ExampleDB(name='test'))
 
     @staticmethod
     def _delete_test_document(doc):
-        return Test.delete(doc)
+        return Example.delete(doc)
 
     def _assert_call_args(self, args, doc, operation):
-        self.assertEqual(args[0], 'st2-test.test_d_b')
+        self.assertEqual(args[0], 'st2-test.example_d_b')
         self.assertIsInstance(args[1], bson.Timestamp)
         self.assertEqual(args[2], operation)
         self.assertEqual(args[3], doc['_id'])
