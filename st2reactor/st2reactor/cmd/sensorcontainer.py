@@ -10,8 +10,8 @@ from st2common.exceptions.plugins import IncompatiblePluginException
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-from st2common.models.db.reactor import AHTriggerDB
-from st2common.persistence.reactor import AHTrigger
+from st2common.models.db.reactor import TriggerDB
+from st2common.persistence.reactor import Trigger
 import st2common.util.loader as sensors_loader
 from st2common.util import watch
 from st2reactor import config
@@ -153,11 +153,11 @@ def _run_sensors(sensors_dict):
 
             sensors_to_run.append(sensor)
 
-    for trigger in AHTrigger.get_all():
-        trigger_sensors[trigger.name].add(dict(trigger.to_mongo()))
+    for trigger in Trigger.get_all():
+        trigger_sensors[trigger.type['name']].add(dict(trigger.to_mongo()))
 
     def _watch(ns, ts, op, id, doc):
-        name = doc['name']
+        name = doc['type']['name']
         parameters = doc['parameters']
         try:
             trigger_sensors[name].add(doc)
@@ -167,7 +167,7 @@ def _run_sensors(sensors_dict):
 
     LOG.info('Watcher started.')
     watcher = watch.get_watcher()
-    watcher.watch(_watch, AHTriggerDB, watch.INSERT)
+    watcher.watch(_watch, TriggerDB, watch.INSERT)
 
     LOG.info('SensorContainer process[{}] started.'.format(os.getpid()))
     sensor_container = SensorContainer(sensor_instances=sensors_to_run)

@@ -8,7 +8,7 @@ LOG = logging.getLogger('st2reactor.sensor.container_utils')
 
 
 def create_trigger_instance(trigger, payload, occurrence_time):
-    trigger = Trigger.query(type__name=trigger.type, parameters=trigger.parameters).first()
+    trigger = Trigger.query(type__name=trigger['type']['name'], parameters=trigger['parameters']).first()
     if trigger is None:
         LOG.info('No trigger with name %s and parameters %s found.',
                  trigger['name'], trigger['parameters'])
