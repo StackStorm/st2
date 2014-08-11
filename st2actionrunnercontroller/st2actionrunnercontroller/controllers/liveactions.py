@@ -12,7 +12,7 @@ from st2common.models.api.action import ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_ST
 from st2common.models.api.actionrunner import LiveActionAPI
 from st2common.persistence.actionrunner import LiveAction
 from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict,
-                                      get_actiontype_by_name, update_actionexecution_status)
+                                      update_actionexecution_status)
 from st2common.util.actionrunner_db import (get_liveaction_by_id,
                                             get_liveactions_by_actionexec_id)
 
@@ -113,7 +113,7 @@ class LiveActionsController(RestController):
         # To launch a LiveAction we need:
         #     1. ActionExecution object
         #     2. Action object
-        #     3. ActionType object
+        #     3. RunnerType object
         LOG.info('POST /liveactions/ received actionexecution_id: %s. '
                  'Attempting to obtain ActionExecution object from database.',
                  str(liveaction.actionexecution_id))
@@ -136,7 +136,7 @@ class LiveActionsController(RestController):
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
 
-        actiontype_db = action_db.runner_type
+        runnertype_db = action_db.runner_type
 
         #  Got Action object (2)
         LOG.info('POST /liveactions/ obtained Action object from database. '
@@ -148,9 +148,9 @@ class LiveActionsController(RestController):
                       'Action. Action is: %s', action_db)
             abort(httplib.FORBIDDEN)
 
-        #  Got ActionType object (3)
-        LOG.info('POST /liveactions/ obtained ActionType object from database. '
-                 'Object is %s', actiontype_db)
+        #  Got RunnerType object (3)
+        LOG.info('POST /liveactions/ obtained RunnerType object from database. '
+                 'Object is %s', runnertype_db)
 
         # Save LiveAction to DB
         liveaction_db = LiveAction.add_or_update(liveaction_api)
@@ -161,16 +161,17 @@ class LiveActionsController(RestController):
         actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_RUNNING,
                                                       actionexec_db.id)
         # Launch action
-        LOG.audit('Launching LiveAction command with liveaction_db="%s", actiontype_db="%s", '
-                  'action_db="%s", actionexec_db="%s"', liveaction_db, actiontype_db,
+        LOG.audit('Launching LiveAction command with liveaction_db="%s", runnertype_db="%s", '
+                  'action_db="%s", actionexec_db="%s"', liveaction_db, runnertype_db,
                   action_db, actionexec_db)
 
         if ASYNCHRONOUS_EXECUTION:
-            raise NotImplementedError('Error: Asynchronous execution of Live Action not yet implemented')
+            raise NotImplementedError(
+                'Error: Asynchronous execution of Live Action not yet implemented')
         else:
             try:
                 global runner_container
-                result = runner_container.dispatch(liveaction_db, actiontype_db, action_db,
+                result = runner_container.dispatch(liveaction_db, runnertype_db, action_db,
                                                    actionexec_db)
                 LOG.info('Runner dispatch produced result: %s', result)
             except Exception as e:

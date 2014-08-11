@@ -3,7 +3,7 @@ from mongoengine import ValidationError
 
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.persistence.action import (ActionType, Action, ActionExecution)
+from st2common.persistence.action import (RunnerType, Action, ActionExecution)
 from st2common.models.api.action import (ACTIONEXEC_STATUSES,
                                          ACTION_ID, ACTION_NAME
                                          )
@@ -11,48 +11,48 @@ from st2common.models.api.action import (ACTIONEXEC_STATUSES,
 LOG = logging.getLogger(__name__)
 
 
-def get_actiontype_by_id(actiontype_id):
+def get_runnertype_by_id(runnertype_id):
     """
-        Get ActionType by id.
+        Get RunnerType by id.
 
         On error, raise StackStormDBObjectNotFoundError
     """
     try:
-        actiontype = ActionType.get_by_id(actiontype_id)
+        runnertype = RunnerType.get_by_id(runnertype_id)
     except (ValueError, ValidationError) as e:
-        LOG.warning('Database lookup for ActionType with id="%s" resulted in '
-                    'exception: %s', actiontype_id, e)
-        raise StackStormDBObjectNotFoundError('Unable to find ActionType with '
-                                              'id="%s"' % actiontype_id)
+        LOG.warning('Database lookup for runnertype with id="%s" resulted in '
+                    'exception: %s', runnertype_id, e)
+        raise StackStormDBObjectNotFoundError('Unable to find runnertype with '
+                                              'id="%s"' % runnertype_id)
 
-    return actiontype
+    return runnertype
 
 
-def get_actiontype_by_name(actiontype_name):
+def get_runnertype_by_name(runnertype_name):
         """
-            Get an ActionType by name.
+            Get an runnertype by name.
             On error, raise ST2ObjectNotFoundError.
         """
-        LOG.debug('Lookup for ActionType with name="%s"', actiontype_name)
+        LOG.debug('Lookup for runnertype with name="%s"', runnertype_name)
         try:
-            actiontypes = ActionType.query(name=actiontype_name)
+            runnertypes = RunnerType.query(name=runnertype_name)
         except (ValueError, ValidationError) as e:
             LOG.error('Database lookup for name="%s" resulted in exception: %s',
-                      actiontype_name, e)
-            raise StackStormDBObjectNotFoundError('Unable to find actiontype with name="%s"'
-                                                  % actiontype_name)
+                      runnertype_name, e)
+            raise StackStormDBObjectNotFoundError('Unable to find runnertype with name="%s"'
+                                                  % runnertype_name)
 
-        if not actiontypes:
-            LOG.error('Database lookup for ActionType with name="%s" produced no results',
-                      actiontype_name)
-            raise StackStormDBObjectNotFoundError('Unable to find actiontype with name="%s"'
-                                                  % actiontype_name)
+        if not runnertypes:
+            LOG.error('Database lookup for RunnerType with name="%s" produced no results',
+                      runnertype_name)
+            raise StackStormDBObjectNotFoundError('Unable to find RunnerType with name="%s"'
+                                                  % runnertype_name)
 
-        if len(actiontypes) > 1:
-            LOG.warning('More than one ActionType returned from DB lookup by name. '
-                        'Result list is: %s', actiontypes)
+        if len(runnertypes) > 1:
+            LOG.warning('More than one RunnerType returned from DB lookup by name. '
+                        'Result list is: %s', runnertypes)
 
-        return actiontypes[0]
+        return runnertypes[0]
 
 
 def get_action_by_id(action_id):
@@ -131,7 +131,7 @@ def get_action_by_dict(action_dict):
         try:
             action = get_action_by_id(action_id)
             if (ACTION_NAME not in action_dict or
-                action_dict[ACTION_NAME] != getattr(action, ACTION_NAME)):
+                    action_dict[ACTION_NAME] != getattr(action, ACTION_NAME)):
                 action_dict[ACTION_NAME] = getattr(action, ACTION_NAME)
         except StackStormDBObjectNotFoundError:
             LOG.info('Action not found by id, falling back to lookup by name and '

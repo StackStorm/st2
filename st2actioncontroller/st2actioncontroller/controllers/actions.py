@@ -15,7 +15,7 @@ from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
-from st2common.util.action_db import (get_action_by_id, get_action_by_name, get_actiontype_by_name)
+from st2common.util.action_db import (get_action_by_id, get_action_by_name, get_runnertype_by_name)
 
 
 LOG = logging.getLogger(__name__)
@@ -87,14 +87,14 @@ class ActionsController(RestController):
 
         # check if action parameters conflict with those from the supplied runner_type.
         try:
-            actiontype_db = get_actiontype_by_name(action.runner_type)
+            runnertype_db = get_runnertype_by_name(action.runner_type)
         except StackStormDBObjectNotFoundError as e:
-            msg = 'ActionType %s not found.' % action.runner_type
+            msg = 'RunnerType %s not found.' % action.runner_type
             LOG.exception('%s. Exception: %s', msg, e)
             abort(httplib.NOT_FOUND, msg)
 
-        ActionsController._validate_action_parameters(action, actiontype_db)
-        action_model = ActionAPI.to_model(action, actiontype_db)
+        ActionsController._validate_action_parameters(action, runnertype_db)
+        action_model = ActionAPI.to_model(action, runnertype_db)
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
 
         LOG.audit('Action about to be created in database. Action is: %s', action_model)
@@ -177,9 +177,9 @@ class ActionsController(RestController):
             return []
 
     @staticmethod
-    def _validate_action_parameters(action, actiontype_db):
+    def _validate_action_parameters(action, runnertype_db):
         # check if action parameters conflict with those from the supplied runner_type.
-        conflicts = [p for p in action.parameters if p in actiontype_db.runner_parameters]
+        conflicts = [p for p in action.parameters if p in runnertype_db.runner_parameters]
         if len(conflicts) > 0:
             msg = 'Parameters %s conflict with those inherited from runner_type : %s' % \
                   (str(conflicts), action.runner_type)

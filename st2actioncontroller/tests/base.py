@@ -4,6 +4,7 @@ from st2tests import DbTestCase
 from oslo.config import cfg
 from st2actioncontroller import model
 
+
 class FunctionalTest(DbTestCase):
 
     db_connection = None
@@ -25,9 +26,9 @@ class FunctionalTest(DbTestCase):
             }
         }
 
-        # TODO(manas) : register action types here for now. ActionType registration can be moved
-        # to posting to /actiontypes but that implies implementing POST.
-        model.register_action_types()
+        # TODO(manas) : register action types here for now. RunnerType registration can be moved
+        # to posting to /runnertypes but that implies implementing POST.
+        model.register_runner_types()
 
         cls.app = load_test_app(config=cfg_dict)
 
