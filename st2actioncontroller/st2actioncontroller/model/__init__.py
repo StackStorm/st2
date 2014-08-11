@@ -1,6 +1,7 @@
 import glob
 import json
 
+from mongoengine import ValidationError
 from oslo.config import cfg
 
 from st2common import log as logging
@@ -82,26 +83,29 @@ def register_actions():
         with open(action, 'r') as fd:
             try:
                 content = json.load(fd)
-            except:
+            except ValueError:
                 LOG.exception('Unable to load action from %s.', action)
                 continue
             try:
                 model = Action.get_by_name(str(content['name']))
-            except:
+            except ValueError:
                 model = ActionDB()
-            model.name = str(content['name'])
-            model.description = str(content['description'])
-            model.enabled = bool(content['enabled'])
-            model.entry_point = str(content['entry_point'])
+            model.name = content['name']
+            model.description = content['description']
+            model.enabled = content['enabled']
+            model.entry_point = content['entry_point']
+            model.parameters = content['parameters']
             try:
                 model.runner_type = get_runnertype_by_name(str(content['runner_type']))
             except StackStormDBObjectNotFoundError:
                 LOG.exception('Failed to register action %s as runner %s was not found',
                               model.name, str(content['runner_type']))
                 continue
-            model.parameters = dict(content['parameters'])
-            model = Action.add_or_update(model)
-            LOG.debug('Added action %s from %s.', model.name, action)
+            try:
+                model = Action.add_or_update(model)
+                LOG.debug('Added action %s from %s.', model.name, action)
+            except (ValueError, ValidationError):
+                LOG.exception('Failed to register action %s.', model.name)
 
 
 def init_model():
