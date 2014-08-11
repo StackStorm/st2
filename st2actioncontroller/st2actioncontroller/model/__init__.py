@@ -5,17 +5,17 @@ from oslo.config import cfg
 
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.api.action import ActionTypeAPI
-from st2common.persistence.action import (ActionType, Action)
+from st2common.models.api.action import RunnerTypeAPI
+from st2common.persistence.action import (RunnerType, Action)
 from st2common.models.db.action import ActionDB
-from st2common.util.action_db import get_actiontype_by_name
+from st2common.util.action_db import get_runnertype_by_name
 
 LOG = logging.getLogger(__name__)
 
 
-def register_action_types():
-    ACTION_TYPES = [{'name': 'shell',
-                     'description': 'A local execution action type with a fixed system user.',
+def register_runner_types():
+    RUNNER_TYPES = [{'name': 'shell',
+                     'description': 'A bash shell action type.',
                      'enabled': True,
                      'runner_parameters': {'hosts': 'localhost',
                                            'parallel': 'False',
@@ -46,33 +46,33 @@ def register_action_types():
                                            'redirects': None},
                      'runner_module': 'st2actionrunner.runners.httprunner'}]
 
-    LOG.debug('Registering actiontypes')
+    LOG.debug('Registering runnertypes')
 
-    for fields in ACTION_TYPES:
-        actiontype_db = None
+    for fields in RUNNER_TYPES:
+        runnertype_db = None
         name = fields['name']
         try:
-            actiontype_db = get_actiontype_by_name(name)
+            runnertype_db = get_runnertype_by_name(name)
         except StackStormDBObjectNotFoundError:
-            LOG.debug('ActionType "%s" does not exist in DB', name)
+            LOG.debug('RunnerType "%s" does not exist in DB', name)
         else:
             continue
 
-        if actiontype_db is None:
-            actiontype = ActionTypeAPI()
+        if runnertype_db is None:
+            runnertype = RunnerTypeAPI()
             for (key, value) in fields.items():
-                LOG.debug('actiontype name=%s field=%s value=%s', name, key, value)
-                setattr(actiontype, key, value)
+                LOG.debug('runnertype name=%s field=%s value=%s', name, key, value)
+                setattr(runnertype, key, value)
 
-            actiontype_api = ActionTypeAPI.to_model(actiontype)
-            LOG.debug('ActionType after field population: %s', actiontype_api)
+            runnertype_api = RunnerTypeAPI.to_model(runnertype)
+            LOG.debug('RunnerType after field population: %s', runnertype_api)
             try:
-                actiontype_db = ActionType.add_or_update(actiontype_api)
-                LOG.debug('created actiontype name=%s in DB. Object: %s', name, actiontype_db)
+                runnertype_db = RunnerType.add_or_update(runnertype_api)
+                LOG.debug('created runnertype name=%s in DB. Object: %s', name, runnertype_db)
             except:
-                LOG.exception('Unable to register action_type %s.', actiontype['name'])
+                LOG.exception('Unable to register runner type %s.', runnertype['name'])
 
-    LOG.debug('Registering actiontypes complete')
+    LOG.debug('Registering runnertypes complete')
 
 
 def register_actions():
@@ -94,7 +94,7 @@ def register_actions():
             model.enabled = bool(content['enabled'])
             model.entry_point = str(content['entry_point'])
             try:
-                model.runner_type = get_actiontype_by_name(str(content['runner_type']))
+                model.runner_type = get_runnertype_by_name(str(content['runner_type']))
             except StackStormDBObjectNotFoundError:
                 LOG.exception('Failed to register action %s as runner %s was not found',
                               model.name, str(content['runner_type']))

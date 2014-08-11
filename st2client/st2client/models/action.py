@@ -6,10 +6,10 @@ from st2client.models import core
 LOG = logging.getLogger(__name__)
 
 
-class ActionType(core.Resource):
-    _display_name = 'Action Type'
-    _plural = 'ActionTypes'
-    _plural_display_name = 'Action Types'
+class RunnerType(core.Resource):
+    _display_name = 'Runner Type'
+    _plural = 'RunnerTypes'
+    _plural_display_name = 'Runner Types'
 
 
 class Action(core.Resource):
