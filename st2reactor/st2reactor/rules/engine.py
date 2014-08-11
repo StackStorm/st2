@@ -21,9 +21,8 @@ class RulesEngine(object):
         return self.get_rules_for_trigger_from_db(trigger)
 
     def get_rules_for_trigger_from_db(self, trigger):
-        rules = Rule.query(trigger=trigger.id, enabled=True)
-        LOG.info('Found %d rules defined for trigger %s with parameters %s',
-                 len(rules), trigger.name, trigger.parameters)
+        rules = Rule.query(trigger__id=trigger['id'], enabled=True)
+        LOG.info('Found %d rules defined for trigger %s', len(rules), trigger['name'])
         return rules
 
     def get_matching_rules_for_trigger(self, trigger_instance):
@@ -46,4 +45,4 @@ class RulesEngine(object):
             try:
                 enforcer.enforce()  # Should this happen in an eventlet pool?
             except Exception as e:
-                LOG.error('Exception enforcing rule %s: %s', enforcer.rule, e)
+                LOG.error('Exception enforcing rule %s: %s', enforcer.rule, e, exc_info=True)
