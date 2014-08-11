@@ -26,7 +26,7 @@ def extend_with_default(validator_class):
                 instance.setdefault(property, subschema["default"])
 
     return jsonschema.validators.extend(
-        validator_class, {"properties" : set_defaults},
+        validator_class, {"properties": set_defaults},
     )
 
 

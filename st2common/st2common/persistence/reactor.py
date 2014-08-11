@@ -1,11 +1,10 @@
 from st2common.persistence import Access
-from st2common.models.db.reactor import triggersource_access, \
-    trigger_access, triggerinstance_access, rule_access, \
-    ruleenforcement_access, ahtrigger_access
+from st2common.models.db.reactor import triggertype_access, trigger_access, triggerinstance_access,\
+    rule_access, ruleenforcement_access
 
 
-class TriggerSource(Access):
-    IMPL = triggersource_access
+class TriggerType(Access):
+    IMPL = triggertype_access
 
     @classmethod
     def _get_impl(kls):
@@ -14,14 +13,6 @@ class TriggerSource(Access):
 
 class Trigger(Access):
     IMPL = trigger_access
-
-    @classmethod
-    def _get_impl(kls):
-        return kls.IMPL
-
-
-class AHTrigger(Access):
-    IMPL = ahtrigger_access
 
     @classmethod
     def _get_impl(kls):

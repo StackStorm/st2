@@ -1,71 +1,96 @@
 import datetime
+import uuid
 from wsme import types as wstypes
 
 from st2common.models.base import BaseAPI
 from st2common.models.api.stormbase import StormBaseAPI, StormFoundationAPI
-from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerDB, AHTriggerDB
+from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerTypeDB, TriggerDB
+from st2common.persistence.reactor import Trigger
+from st2common.util import reference
 import st2common.validators.api.reactor as validator
 
 
-def get_id(identifiable):
-    if identifiable is None:
-        return ''
-    return str(identifiable.id)
+class TriggerTypeAPI(BaseAPI):
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'default': None
+            },
+            'name': {
+                'type': 'string'
+            },
+            'description': {
+                'type': 'string',
+                'default': None
+            },
+            'payload_schema': {
+                'type': 'object',
+                'default': {}
+            },
+            'parameters_schema': {
+                'type': 'object',
+                'default': {}
+            }
+        },
+        'required': ['name'],
+        'additionalProperties': False
+    }
 
+    @classmethod
+    def from_model(cls, model):
+        trigger = model.to_mongo()
+        trigger['id'] = str(trigger.pop('_id'))
+        return cls(**trigger)
 
-def get_ref(identifiable):
-    if identifiable is None:
-        return {}
-    return {'id': str(identifiable.id), 'name': identifiable.name}
-
-
-def get_model_from_ref(db_api, ref):
-    if ref is None:
-        return None
-    model_id = ref['id'] if 'id' in ref else None
-    if model_id is not None:
-        return db_api.get_by_id(model_id)
-    model_name = ref['name'] if 'name' in ref else None
-    for model in db_api.query(name=model_name):
+    @classmethod
+    def to_model(cls, triggertype):
+        model = StormBaseAPI.to_model(TriggerTypeDB, triggertype)
+        model.payload_schema = triggertype.payload_schema
+        model.parameters_schema = triggertype.parameters_schema
         return model
-    return None
 
 
 class TriggerAPI(BaseAPI):
     schema = {
-        "type": "object"
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'default': None
+            },
+            'name': {
+                'type': 'string'
+            },
+            'type': {
+                'type': 'string'
+            },
+            'parameters': {
+                'type': 'object'
+            }
+        },
+        'required': ['type'],
+        'additionalProperties': False
     }
 
     @classmethod
     def from_model(cls, model):
         trigger = model.to_mongo()
-        trigger['name'] = str(trigger.pop('_id'))
-        return cls(**trigger)
-
-    @classmethod
-    def to_model(cls, trigger):
-        model = StormBaseAPI.to_model(TriggerDB, trigger)
-        model.payload_info = trigger.payload_info
-        return model
-
-
-class AHTriggerAPI(BaseAPI):
-    schema = {
-        "type": "object"
-    }
-
-    @classmethod
-    def from_model(cls, model):
-        trigger = model.to_mongo()
+        trigger['id'] = str(trigger['_id'])
         del trigger['_id']
+        if 'type' in trigger:
+            trigger['type'] = str(trigger['type'].get('name', ''))
         return cls(**trigger)
 
     @classmethod
     def to_model(cls, trigger):
-        model = StormFoundationAPI.to_model(AHTriggerDB, trigger)
-        # We probably need to manually assign an ID based on the hash of trigger name and parameters
-        model.name = trigger.name
-        model.parameters = getattr(trigger, 'parameters', {})
+        model = StormFoundationAPI.to_model(TriggerDB, trigger)
+        # assign a name if none is provided.
+        model.name = trigger.name if hasattr(trigger, 'name') and trigger.name else \
+            str(uuid.uuid4())
+        model.type = {'name': getattr(trigger, 'type', None)}
+        model.parameters = getattr(trigger, 'parameters', None)
         return model
 
 
@@ -77,7 +102,7 @@ class TriggerInstanceAPI(StormFoundationAPI):
     @classmethod
     def from_model(kls, model):
         trigger_instance = StormFoundationAPI.from_model(kls, model)
-        trigger_instance.trigger = model.trigger
+        trigger_instance.trigger = model.trigger.get('name', '')
         trigger_instance.payload = dict(model.payload)
         trigger_instance.occurrence_time = model.occurrence_time
         return trigger_instance
@@ -127,10 +152,6 @@ class RuleAPI(BaseAPI):
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
-    # trigger = wstypes.DictType(str, *)
-    # criteria = wstypes.DictType(str, wstypes.DictType(str, str))
-    # action = ActionSpec
-    # enabled = wstypes.wsattr(bool, default=True)
     schema = {
         'type': 'object',
         'properties': {
@@ -145,7 +166,18 @@ class RuleAPI(BaseAPI):
                 'type': 'string'
             },
             'trigger': {
-                'type': 'object'
+                'type': 'object',
+                'properties': {
+                    'type': {
+                        'type': 'string'
+                    },
+                    'parameters': {
+                        'type': 'object',
+                        'default': {}
+                    }
+                },
+                'required': ['type'],
+                'additionalProperties': False
             },
             'criteria': {
                 'type': 'object'
@@ -165,13 +197,16 @@ class RuleAPI(BaseAPI):
         rule = model.to_mongo()
         rule['id'] = str(rule['_id'])
         del rule['_id']
-        rule['trigger'] = vars(AHTriggerAPI.from_model(model.trigger))
+        rule['trigger'] = vars(TriggerAPI.from_model(reference.get_model_from_ref(Trigger,
+                                                                                  model.trigger)))
+        del rule['trigger']['id']
+        del rule['trigger']['name']
         return cls(**rule)
 
     @classmethod
     def to_model(cls, rule):
         model = StormBaseAPI.to_model(RuleDB, rule)
-        model.trigger = AHTriggerAPI(**rule.trigger)
+        model.trigger = TriggerAPI(**rule.trigger)
         model.criteria = dict(rule.criteria)
         validator.validate_criteria(model.criteria)
         model.action = ActionExecutionSpecDB()

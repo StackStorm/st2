@@ -5,10 +5,12 @@ from pecan import abort, expose, request
 from pecan.rest import RestController
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.models.api.reactor import RuleAPI, RuleEnforcementAPI, AHTriggerAPI
+from st2common.models.api.reactor import RuleAPI, RuleEnforcementAPI, TriggerAPI
 from st2common.models.db.reactor import RuleDB
 from st2common.models.base import jsexpose
-from st2common.persistence.reactor import Rule, RuleEnforcement, AHTrigger, Trigger
+from st2common.persistence.reactor import Rule, RuleEnforcement, TriggerType, Trigger
+from st2common.util import reference
+from st2reactorcontroller.service import triggers as TriggerService
 from wsme import types as wstypes
 
 LOG = logging.getLogger(__name__)
@@ -47,7 +49,6 @@ class RuleController(RestController):
         LOG.debug('GET all /rules/ client_result=%s', rule_apis)
         return rule_apis
 
-
     @jsexpose(body=RuleAPI, status_code=httplib.CREATED)
     def post(self, rule):
         """
@@ -61,18 +62,9 @@ class RuleController(RestController):
         try:
             rule_db = RuleAPI.to_model(rule)
 
-            trigger_db = AHTrigger.query(name=rule_db.trigger.name,
-                                         parameters=rule_db.trigger.parameters).first()
+            trigger_db = TriggerService.create_trigger(TriggerAPI(**rule.trigger))
 
-            if not trigger_db:
-                trigger_db = AHTriggerAPI.to_model(rule_db.trigger)
-
-                LOG.info('Trigger for rule %s has not been found. Creating trigger %s',
-                         rule_db, trigger_db)  # both objects has no proper str representation
-                trigger_db = AHTrigger.add_or_update(trigger_db)
-
-            rule_db.trigger = trigger_db
-
+            rule_db.trigger = reference.get_ref_from_model(trigger_db)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
             rule_db = Rule.add_or_update(rule_db)
         except (ValidationError, ValueError) as e:
@@ -104,17 +96,8 @@ class RuleController(RestController):
             rule_db = RuleAPI.to_model(rule)
             rule_db.id = rule_id
 
-            trigger_db = AHTrigger.query(name=rule_db.trigger.name,
-                                         parameters=rule_db.trigger.parameters).first()
-
-            if not trigger_db:
-                trigger_db = AHTriggerAPI.to_model(rule_db.trigger)
-
-                LOG.info('Trigger for rule %s has not been found. Creating trigger %s',
-                         rule_db, trigger_db)  # both objects has no proper str representation
-                trigger_db = AHTrigger.add_or_update(trigger_db)
-
-            rule_db.trigger = trigger_db
+            trigger_db = TriggerService.create_trigger(TriggerAPI(**rule.trigger))
+            rule_db.trigger = reference.get_ref_from_model(trigger_db)
 
             rule_db = Rule.add_or_update(rule_db)
             LOG.debug('/rules/ PUT updated RuleDB object=%s', rule_db)

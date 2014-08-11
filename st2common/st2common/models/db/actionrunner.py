@@ -21,15 +21,6 @@ class LiveActionDB(StormFoundationDB):
     actionexecution_id = me.StringField(required=True,
                                         help_text=u'The id of of the action_execution.')
 
-    def __str__(self):
-        result = []
-        result.append('LiveActionDB@')
-        result.append(str(id(self)))
-        result.append('(')
-        result.append('id="%s", ' % self.id)
-        result.append('actionexecution_id="%s", ' % self.actionexecution_id)
-        result.append('uri="%s")' % self.uri)
-        return ''.join(result)
 
 class ActionRunnerDB(StormFoundationDB):
     """

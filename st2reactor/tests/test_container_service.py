@@ -8,22 +8,6 @@ from st2reactor.container.triggerdispatcher import TriggerDispatcher
 from st2tests import EventletTestCase
 
 
-def _generate_mock_trigger_instances(count=5):
-    instances = []
-    for i in xrange(count):
-        instances.append(_make_trigger_instance(i))
-    return instances
-
-
-def _make_trigger_instance(id):
-    mock_trigger_instance = {}
-    mock_trigger_instance['id'] = 'triggerinstance-test-' + str(id)
-    mock_trigger_instance['name'] = 'triggerinstance-test.name'
-    mock_trigger_instance['payload'] = {}
-    mock_trigger_instance['occurrence_time'] = datetime.datetime.now()
-    return mock_trigger_instance
-
-
 class ContainerServiceTest(EventletTestCase):
     class TestDispatcher(TriggerDispatcher):
         def __init__(self):
@@ -32,18 +16,17 @@ class ContainerServiceTest(EventletTestCase):
             self.called_dispatch = 0
             self.lock = threading.Lock()
 
-        def dispatch(self, triggers):
+        def dispatch(self, trigger, payload=None):
             self.lock.acquire()
             self.called_dispatch += 1
             self.lock.release()
-            self.triggers_queue.put(triggers)
+            self.triggers_queue.put((trigger, payload))
 
     def test_dispatch_pool_available(self):
         dispatcher = ContainerServiceTest.TestDispatcher()
         container_service = ContainerService(dispatch_pool_size=2,
                                              dispatcher=dispatcher)
-        instances = _generate_mock_trigger_instances(5)
-        container_service.dispatch(instances)
+        container_service.dispatch(True, True)
         time.sleep(0.1)  # give time for eventlet threads to dispatch.
         self.assertEquals(dispatcher.called_dispatch, 1,
                           'dispatch() should have been called only once')
@@ -57,11 +40,8 @@ class ContainerServiceTest(EventletTestCase):
                                              dispatcher=dispatcher,
                                              monitor_thread_empty_q_sleep_time=0.2,
                                              monitor_thread_no_workers_sleep_time=0.1)
-        instances = []
         for i in xrange(5):
-            instances.append(_generate_mock_trigger_instances(5))
-        for i in xrange(5):
-            container_service.dispatch(instances)
+            container_service.dispatch(i, i)
         time.sleep(0.3)  # give time for eventlet threads to dispatch.
         self.assertEquals(dispatcher.called_dispatch, 5,
                           'dispatch() called fewer than 5 times')
