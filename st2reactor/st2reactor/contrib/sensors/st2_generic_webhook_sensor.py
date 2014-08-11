@@ -2,11 +2,13 @@ from functools import wraps
 import httplib
 import os
 from urlparse import urljoin
+from oslo.config import cfg
 
 from flask import (jsonify, request, Flask)
 import yaml
 
-BASE_URL = '/webhooks/generic/'
+PORT = cfg.CONF.generic_webhook_sensor.port
+BASE_URL = cfg.CONF.generic_webhook_sensor.url
 
 PARAMETERS_SCHEMA = {
     "type": "object",
@@ -35,7 +37,7 @@ class St2GenericWebhooksSensor(object):
     def __init__(self, container_service):
         self._container_service = container_service
         self._log = self._container_service.get_logger(self.__class__.__name__)
-        self._port = 6001
+        self._port = PORT
         self._app = Flask(__name__)
         # dirname, filename = os.path.split(os.path.abspath(__file__))
         # self._config_file = os.path.join(dirname, __name__ + '.yaml')

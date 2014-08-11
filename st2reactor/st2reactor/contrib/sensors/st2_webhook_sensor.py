@@ -4,6 +4,10 @@ import os
 
 from flask import (jsonify, request, Flask)
 from flask_jsonschema import (JsonSchema, ValidationError)
+from oslo.config import cfg
+
+PORT = cfg.CONF.st2_webhook_sensor.port
+BASE_URL = cfg.CONF.st2_webhook_sensor.url
 
 '''
 Dectorators for request validations.
@@ -43,7 +47,7 @@ class St2WebhookSensor(object):
     def __init__(self, container_service):
         self._container_service = container_service
         self._log = self._container_service.get_logger(self.__class__.__name__)
-        self._port = 6000
+        self._port = PORT
 
     def setup(self):
         self._setup_flask_app()
@@ -83,7 +87,7 @@ class St2WebhookSensor(object):
     Flask app specific stuff.
     '''
     def _setup_flask_app(self):
-        St2WebhookSensor._app.add_url_rule('/webhooks/st2', 'st2webhooks', self._handle_webhook,
+        St2WebhookSensor._app.add_url_rule(BASE_URL, 'st2webhooks', self._handle_webhook,
                                            methods=['POST'])
 
     def _to_triggers(self, webhook_body):

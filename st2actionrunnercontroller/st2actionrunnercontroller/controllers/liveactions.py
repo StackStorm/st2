@@ -8,7 +8,7 @@ import wsmeext.pecan as wsme_pecan
 from st2common import log as logging
 
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.api.action import ACTIONEXEC_STATUS_RUNNING
+from st2common.models.api.action import ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_ERROR
 from st2common.models.api.actionrunner import LiveActionAPI
 from st2common.persistence.actionrunner import LiveAction
 from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict,
@@ -168,10 +168,16 @@ class LiveActionsController(RestController):
         if ASYNCHRONOUS_EXECUTION:
             raise NotImplementedError('Error: Asynchronous execution of Live Action not yet implemented')
         else:
-            global runner_container
-            result = runner_container.dispatch(liveaction_db, actiontype_db, action_db,
-                                               actionexec_db)
-            LOG.info('Runner dispatch produced result: %s', result)
+            try:
+                global runner_container
+                result = runner_container.dispatch(liveaction_db, actiontype_db, action_db,
+                                                   actionexec_db)
+                LOG.info('Runner dispatch produced result: %s', result)
+            except Exception as e:
+                LOG.error(e.message)
+                actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_ERROR,
+                                                              actionexec_db.id)
+                abort(httplib.BAD_REQUEST, e)
 
         if not result:
             # Return different code for live action execution failure

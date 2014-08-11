@@ -1,6 +1,4 @@
 import importlib
-import json
-import subprocess
 
 from st2common import log as logging
 from st2common.exceptions.actionrunner import (ActionRunnerCreateError,
@@ -8,10 +6,11 @@ from st2common.exceptions.actionrunner import (ActionRunnerCreateError,
 from st2common.models.api.action import (ACTIONEXEC_STATUS_COMPLETE,
                                          ACTIONEXEC_STATUS_ERROR)
 
-from st2common.persistence.action import ActionExecution
 from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
 
-from st2actionrunner.container.service import (RunnerContainerService, STDOUT, STDERR)
+from st2actionrunner.container import actionsensor
+from st2actionrunner.container.service import (RunnerContainerService)
+
 
 LOG = logging.getLogger(__name__)
 
@@ -22,7 +21,7 @@ class RunnerContainer():
         LOG.info('Action RunnerContainer instantiated.')
 
         self._pending = []
-        # self._pool = eventlet.GreenPool
+        actionsensor.register_trigger_type()
 
     def _get_runner_for_actiontype(self, actiontype_db):
         """
@@ -53,23 +52,6 @@ class RunnerContainer():
         LOG.debug('    ActionType: %s', actiontype_db)
         LOG.debug('    ActionExecution: %s', actionexec_db)
 
-        if runner_type == 'internaldummy-builtin':
-            runner_parameters, action_parameters = RunnerContainer._split_params(
-                actiontype_db, action_db, actionexec_db)
-            (exit_code, std_out, std_err) = self._handle_internaldummy_runner(runner_parameters,
-                                                                              action_parameters)
-
-            LOG.info('Update ActionExecution object with Action result data')
-            action_result = {'exit_code': str(exit_code),
-                             'std_out': str(json.dumps(std_out)),
-                             'std_err': str(json.dumps(std_err))}
-            actionexec_db.result = json.dumps(action_result)
-            actionexec_db.status = str(ACTIONEXEC_STATUS_COMPLETE)
-            actionexec_db = ActionExecution.add_or_update(actionexec_db)
-            LOG.info('ActionExecution object after exit_code update: %s', actionexec_db)
-
-            return (exit_code == 0)
-
         # Get runner instance.
         runner = None
         try:
@@ -94,6 +76,7 @@ class RunnerContainer():
 
         actionexec_db = update_actionexecution_status(actionexec_status,
                                                       actionexec_id=actionexec_db.id)
+        actionsensor.post_trigger(actionexec_db)
 
         LOG.audit('Live Action execution for liveaction_id="%s" resulted in '
                   'actionexecution_db="%s"', liveaction_db.id, actionexec_db)
@@ -161,34 +144,6 @@ class RunnerContainer():
         update_actionexecution_status(actionexec_status, actionexec_db=actionexec_db)
 
         return result
-
-    def _handle_internaldummy_runner(self, runner_parameters, action_parameters):
-        """
-            ActionRunner for "internaldummy" ActionType.
-
-            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            !!!!!!!    This is for internal scaffolding use only.    !!!!!!!
-            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        """
-        LOG.info('Entering Internal Dummy Runner')
-
-        command_list = runner_parameters['command']
-        LOG.debug('    [Internal Dummy Runner] command list is: %s', command_list)
-
-        LOG.debug('    [Internal Dummy Runner] Launching command as blocking operation.')
-        process = subprocess.Popen(command_list, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, shell=True)
-
-        command_stdout, command_stderr = process.communicate()
-        command_exitcode = process.returncode
-
-        LOG.debug('    [Internal Dummy Runner] command_stdout: %s', command_stdout)
-        LOG.debug('    [Internal Dummy Runner] command_stderr: %s', command_stderr)
-        LOG.debug('    [Internal Dummy Runner] command_exit: %s', command_exitcode)
-        LOG.debug('    [Internal Dummy Runner] TODO: Save output to DB')
-
-        return (command_exitcode, command_stdout, command_stderr)
 
     @staticmethod
     def _split_params(actiontype_db, action_db, actionexec_db):

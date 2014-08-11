@@ -14,20 +14,7 @@ LOG = logging.getLogger(__name__)
 
 
 def register_action_types():
-    ACTION_TYPES = [{'name': 'internaldummy-builtin',
-                     'description': ('An built-in, internal action type for development only.'),
-                     'enabled': True,
-                     'runner_parameters': {'command': None},
-                     'runner_module': 'no.such.module'},
-
-                    {'name': 'internaldummy',
-                     'description': ('An internal action type for development only. Implemented '
-                                     'using a plugin.'),
-                     'enabled': True,
-                     'runner_parameters': {'command': None},
-                     'runner_module': 'st2actionrunner.runners.internaldummy'},
-
-                    {'name': 'shell',
+    ACTION_TYPES = [{'name': 'shell',
                      'description': 'A bash shell action type.',
                      'enabled': True,
                      'runner_parameters': {'shell': '/usr/bin/bash',
@@ -43,7 +30,17 @@ def register_action_types():
                                            'user': None,
                                            'cmd': None,
                                            'remotedir': None},
-                     'runner_module': 'st2actionrunner.runners.fabricrunner'}]
+                     'runner_module': 'st2actionrunner.runners.fabricrunner'},
+
+                    {'name': 'http-runner',
+                     'description': 'A HTTP client for running HTTP actions.',
+                     'enabled': True,
+                     'runner_parameters': {'url': None,
+                                           'headers': None,
+                                           'cookies': None,
+                                           'proxy': None,
+                                           'redirects': None},
+                     'runner_module': 'st2actionrunner.runners.httprunner'}]
 
     LOG.debug('Registering actiontypes')
 
@@ -93,7 +90,7 @@ def register_actions():
                 model.runner_type = get_actiontype_by_name(str(content['runner_type']))
             except StackStormDBObjectNotFoundError:
                 LOG.exception('Failed to register action %s as runner %s was not found',
-                               model.name, str(content['runner_type']))
+                              model.name, str(content['runner_type']))
                 continue
             model.parameters = dict(content['parameters'])
             model = Action.add_or_update(model)

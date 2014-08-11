@@ -16,66 +16,9 @@ class ActionBranch(resource.ResourceBranch):
             parent_parser=parent_parser)
 
         # Registers extended commands
-        self.commands['execute'] = ActionExecuteCommand(
+        self.commands['execute'] = ActionRunCommand(
             self.resource, self.app, self.subparsers,
             add_help=False)
-
-
-class ActionExecuteCommand(resource.ResourceCommand):
-
-    def __init__(self, resource, *args, **kwargs):
-
-        super(ActionExecuteCommand, self).__init__(resource,
-            kwargs.pop('name', 'execute'),
-            'Execute an action manually.',
-            *args, **kwargs)
-
-        self.parser.add_argument('name_or_id', nargs='?',
-                                 metavar='name-or-id',
-                                 help='Name or ID of the action.')
-        self.parser.add_argument('-h', '--help',
-                                 action='store_true', dest='help',
-                                 help='Print usage for the given action.')
-        self.parser.add_argument('-p', '--params', nargs='+',
-                                 help='List of parameters (i.e. k1=v1 k2=v2) '
-                                      'to pass into the action.')
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
-
-    def run(self, args):
-        if not args.name_or_id:
-            self.parser.error('too few arguments')
-        action_exec_mgr = self.app.client.managers['ActionExecution']
-        action = self.get_resource(args.name_or_id)
-        if not action:
-            raise Exception('Action "%s" cannot be found.' % args.name_or_id)
-        execution = models.ActionExecution()
-        execution.action = {"name": action.name}
-        execution.parameters = {}
-        if args.params:
-            for kvp in args.params:
-                k, v = kvp.split('=')
-                execution.parameters[k] = v
-        return action_exec_mgr.create(execution)
-
-    def run_and_print(self, args):
-        # Print appropriate help message if the help option is given.
-        if args.help:
-            if args.name_or_id:
-                try:
-                    action = self.get_resource(args.name_or_id)
-                    print action.description
-                except Exception as e:
-                    print 'Action "%s" is not found.' % args.name_or_id
-            else:
-                self.parser.print_help()
-            return
-
-        # Execute the action.
-        instance = self.run(args)
-        self.print_output(instance, table.PropertyValueTable,
-                          attributes=['all'], json=args.json)
 
 
 class ActionRunCommand(resource.ResourceCommand):
@@ -84,7 +27,7 @@ class ActionRunCommand(resource.ResourceCommand):
 
         super(ActionRunCommand, self).__init__(resource,
             kwargs.pop('name', 'execute'),
-            'Execute an action manually.',
+            'Invoke an action manually.',
             *args, **kwargs)
 
         self.parser.add_argument('name_or_id', nargs='?',
