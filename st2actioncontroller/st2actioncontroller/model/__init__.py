@@ -15,11 +15,15 @@ LOG = logging.getLogger(__name__)
 
 def register_action_types():
     ACTION_TYPES = [{'name': 'shell',
-                     'description': 'A bash shell action type.',
+                     'description': 'A local execution action type with a fixed system user.',
                      'enabled': True,
-                     'runner_parameters': {'shell': '/usr/bin/bash',
-                                           'cmd': None},
-                     'runner_module': 'st2actionrunner.runners.shellrunner'},
+                     'runner_parameters': {'hosts': 'localhost',
+                                           'parallel': 'False',
+                                           'sudo': 'False',
+                                           'user': None,
+                                           'cmd': None,
+                                           'remotedir': None},
+                     'runner_module': 'st2actionrunner.runners.fabricrunner'},
 
                     {'name': 'remote-exec-sysuser',
                      'description': 'A remote execution action type with a fixed system user.',
@@ -62,8 +66,11 @@ def register_action_types():
 
             actiontype_api = ActionTypeAPI.to_model(actiontype)
             LOG.debug('ActionType after field population: %s', actiontype_api)
-            actiontype_db = ActionType.add_or_update(actiontype_api)
-            LOG.debug('created actiontype name=%s in DB. Object: %s', name, actiontype_db)
+            try:
+                actiontype_db = ActionType.add_or_update(actiontype_api)
+                LOG.debug('created actiontype name=%s in DB. Object: %s', name, actiontype_db)
+            except:
+                LOG.exception('Unable to register action_type %s.', actiontype['name'])
 
     LOG.debug('Registering actiontypes complete')
 
