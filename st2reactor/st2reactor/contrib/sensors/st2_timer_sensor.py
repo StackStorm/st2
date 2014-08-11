@@ -1,127 +1,97 @@
-from datetime import datetime
-import os
-
 from apscheduler.schedulers.background import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 import apscheduler.util as aps_utils
+from datetime import datetime
 import dateutil.parser as date_parser
 from dateutil.tz import tzutc
 import jsonschema
-import yaml
 
 
-PARAMETERS_SCHEMA = {
-    "oneOf": [{
-        "type": "object",
-        "properties": {
-            "type": {
-                "enum": ["cron"]
-            },
-            "timezone": {
-                "type": "string"
-            },
-            "time": {
-                "type": "object",
-                "properties": {
-                    "year": {
-                        "type": "integer"
-                    },
-                    "month": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 12
-                    },
-                    "day": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 31
-                    },
-                    "week": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 53
-                    },
-                    "day_of_week": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 6
-                    },
-                    "hour": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 23
-                    },
-                    "minute": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 59
-                    },
-                    "second": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 59
-                    }
-                }
-            }
+INTERVAL_PARAMETERS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "timezone": {
+            "type": "string"
         },
-        "required": [
-            "type",
-            "time"
-        ],
-        "additionalProperties": False
-    }, {
-        "type": "object",
-        "properties": {
-            "type": {
-                "enum": ["interval"]
-            },
-            "timezone": {
-                "type": "string"
-            },
-            "time": {
-                "type": "object",
-                "properties": {
-                    "units": {
-                        "enum": ["weeks", "days", "hours", "minutes", "seconds"]
-                    },
-                    "delta": {
-                        "type": "integer"
-                    }
-                }
-            }
+        "unit": {
+            "enum": ["weeks", "days", "hours", "minutes", "seconds"]
         },
-        "required": [
-            "type",
-            "time"
-        ],
-        "additionalProperties": False
-    }, {
-        "type": "object",
-        "properties": {
-            "type": {
-                "enum": ["date"]
-            },
-            "timezone": {
-                "type": "string"
-            },
-            "time": {
-                "type": "object",
-                "properties": {
-                    "date": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                }
-            }
+        "delta": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "unit",
+        "delta"
+    ],
+    "additionalProperties": False
+}
+
+DATE_PARAMETERS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "timezone": {
+            "type": "string"
         },
-        "required": [
-            "type",
-            "time"
-        ],
-        "additionalProperties": False
-    }]
+        "date": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "required": [
+        "date"
+    ],
+    "additionalProperties": False
+}
+
+CRON_PARAMETERS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "timezone": {
+            "type": "string"
+        },
+        "year": {
+            "type": "integer"
+        },
+        "month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+        },
+        "day": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 31
+        },
+        "week": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 53
+        },
+        "day_of_week": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6
+        },
+        "hour": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 23
+        },
+        "minute": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 59
+        },
+        "second": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 59
+        }
+    },
+    "additionalProperties": False
 }
 
 PAYLOAD_SCHEMA = {
@@ -139,6 +109,21 @@ PAYLOAD_SCHEMA = {
                 "units": "seconds"
             }
         }
+    }
+}
+
+TRIGGER_TYPES = {
+    'st2.IntervalTimer': {
+        'payload_schema': PAYLOAD_SCHEMA,
+        'parameters_schema': INTERVAL_PARAMETERS_SCHEMA
+    },
+    'st2.DateTimer': {
+        'payload_schema': PAYLOAD_SCHEMA,
+        'parameters_schema': DATE_PARAMETERS_SCHEMA
+    },
+    'st2.CronTimer': {
+        'payload_schema': PAYLOAD_SCHEMA,
+        'parameters_schema': CRON_PARAMETERS_SCHEMA
     }
 }
 
@@ -167,77 +152,52 @@ class St2TimerSensor(object):
         self._add_job_to_scheduler(trigger)
 
     def get_trigger_types(self):
-        return [{
-            'name': 'st2.timer',
-            'payload_schema': PAYLOAD_SCHEMA,
-            'parameters_schema': PARAMETERS_SCHEMA
-        }]
+        return [dict(name=key, **value) for key, value in TRIGGER_TYPES.items()]
 
     def _add_job_to_scheduler(self, trigger):
+        name = trigger['type']['name']
         try:
-            jsonschema.validate(trigger['parameters'], PARAMETERS_SCHEMA)
-        except Exception as e:
+            jsonschema.validate(trigger['parameters'], TRIGGER_TYPES[name]['parameters_schema'])
+        except jsonschema.ValidationError as e:
             self._log.error('Exception scheduling timer: %s, %s',
                             trigger['parameters'], e, exc_info=True)
+            raise  # Or should we just return?
 
-        time_type = trigger['parameters'].get('type')
-        # time_spec = parameters.get('time')
-        # time_zone = aps_utils.astimezone(parameters.get('timezone'))
-
-        if time_type == 'interval':
-            self._add_interval_job(trigger)
-        elif time_type == 'cron':
-            self._add_cron_job(trigger)
-        elif time_type == 'date':
-            self._add_date_job(trigger)
-
-    def _add_interval_job(self, trigger):
-        time_spec = trigger['parameters'].get('time')
+        time_spec = trigger['parameters']
         time_zone = aps_utils.astimezone(trigger['parameters'].get('timezone'))
 
-        unit = time_spec.get('unit', None)
-        value = time_spec.get('delta', None)
+        time_type = None
 
-        interval_trigger = IntervalTrigger(**{unit: value, 'timezone': time_zone})
-        self._add_job(trigger, interval_trigger)
+        if name == 'st2.IntervalTimer':
+            unit = time_spec.get('unit', None)
+            value = time_spec.get('delta', None)
+            time_type = IntervalTrigger(**{unit: value, 'timezone': time_zone})
+        elif name == 'st2.DateTimer':
+            dat = date_parser.parse(time_spec.get('date', None))  # Raises an exception if date string isn't a valid one.
+            time_type = DateTrigger(dat, timezone=time_zone)
+        elif name == 'st2.CronTimer':
+            cron = time_spec.copy()
+            cron['timezone'] = time_zone
 
-    def _add_date_job(self, trigger):
-        time_spec = trigger['parameters'].get('time')
-        time_zone = aps_utils.astimezone(trigger['parameters'].get('timezone'))
+            time_type = CronTrigger(**cron)
 
-        dat = date_parser.parse(time_spec.get('date', None))  # Raises an exception if date string isn't a valid one.
-        date_trigger = DateTrigger(dat, timezone=time_zone)
-
-        if datetime.now(tzutc()) < date_trigger.run_date:
-            self._add_job(trigger, date_trigger)
+        if hasattr(time_type, 'run_date') and datetime.now(tzutc()) > time_type.run_date:
+            self._log.warning('Not scheduling expired timer: %s : %s',
+                              trigger['parameters'], time_type.run_date)
         else:
-            self._log.warning('Not scheduling expired timer: %s : %s', trigger['parameters'], date_trigger.run_date)
+            self._add_job(trigger, time_type)
 
-    def _add_cron_job(self, trigger):
-        time_spec = trigger['parameters'].get('time')
-        time_zone = aps_utils.astimezone(trigger['parameters'].get('timezone'))
-
-        cron = time_spec
-        cron['timezone'] = time_zone
-
-        cron_trigger = CronTrigger(**cron)
-        self._add_job(trigger, cron_trigger)
-
-    def _add_job(self, trigger, type, replace=True):
-        def hashify(d):
-            return frozenset(
-                (k, hashify(v)) if type(v) is dict else (k, v) for (k, v) in d.iteritems()
-            )
-
+    def _add_job(self, trigger, time_type, replace=True):
         try:
             job = self._scheduler.add_job(self._emit_trigger_instance,
-                                          trigger=type,
+                                          trigger=time_type,
                                           args=[trigger],
                                           replace_existing=replace)
             self._log.info('Job %s scheduled.', job.id)
             self._jobs[trigger['_id']] = job.id
         except Exception, e:
-            self._log.error('Exception scheduling timer: %s, %s', trigger['parameters'], e, exc_info=True)
+            self._log.error('Exception scheduling timer: %s, %s',
+                            trigger['parameters'], e, exc_info=True)
 
     def _emit_trigger_instance(self, trigger):
         self._log.info('Timer fired at: %s. Trigger: %s', str(datetime.now()), trigger)
