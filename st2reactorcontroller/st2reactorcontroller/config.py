@@ -22,7 +22,7 @@ pecan_opts = [
     cfg.ListOpt('modules', default=['st2reactorcontroller']),
     cfg.BoolOpt('debug', default=True),
     cfg.BoolOpt('auth_enable', default=True),
-    cfg.DictOpt('errors', default={404: '/error/404', '__force_dict__': True})
+    cfg.DictOpt('errors', default={'__force_dict__': True})
 ]
 CONF.register_opts(pecan_opts, group='reactor_pecan')
 

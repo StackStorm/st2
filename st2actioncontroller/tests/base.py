@@ -22,7 +22,7 @@ class FunctionalTest(DbTestCase):
                 'modules': opts.modules,
                 'debug': opts.debug,
                 'auth_enable': opts.auth_enable,
-                'errors': {404: '/error/404', '__force_dict__': True}
+                'errors': {'__force_dict__': True}
             }
         }
 
