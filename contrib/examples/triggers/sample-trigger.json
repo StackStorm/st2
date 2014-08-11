@@ -1,6 +1,6 @@
 {
     "name": "st2.timer",
-    "payload_info": [],
+    "payload_schema": {},
     "description": "",
     "parameters_schema": {}
 }

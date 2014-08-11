@@ -69,13 +69,16 @@ class RuleController(RestController):
             rule_db = Rule.add_or_update(rule_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
-            return abort(httplib.BAD_REQUEST, str(e))
+            abort(httplib.BAD_REQUEST, str(e))
+            return
         except ValueValidationException as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
-            return abort(httplib.BAD_REQUEST, str(e))
+            abort(httplib.BAD_REQUEST, str(e))
+            return
         except NotUniqueError as e:
             LOG.exception('Rule creation of %s failed with uniqueness conflict.', rule)
-            return abort(httplib.CONFLICT, str(e))
+            abort(httplib.CONFLICT, str(e))
+            return
 
         LOG.debug('/rules/ POST saved RuleDB object=%s', rule_db)
         rule_api = RuleAPI.from_model(rule_db)
@@ -104,6 +107,7 @@ class RuleController(RestController):
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s', rule)
             abort(httplib.BAD_REQUEST, str(e))
+            return
 
         rule_api = RuleAPI.from_model(rule_db)
         LOG.debug('PUT /rules/ client_result=%s', rule_api)
@@ -163,6 +167,7 @@ class RuleEnforcementController(RestController):
         except (ValueError, ValidationError):
             LOG.exception('Database lookup for id="%s" resulted in exception.', id)
             abort(httplib.NOT_FOUND)
+            return
 
         rule_enforcement_api = RuleEnforcementAPI.from_model(rule_enforcement_db)
         LOG.debug('GET /ruleenforcements/ with id=%s, client_result=%s', id, rule_enforcement_api)

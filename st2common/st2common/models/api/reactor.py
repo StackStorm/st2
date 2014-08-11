@@ -109,8 +109,6 @@ class TriggerInstanceAPI(StormFoundationAPI):
 
 
 class ActionSpec(BaseAPI):
-    # name = wstypes.text
-    # parameters = wstypes.DictType(str, *)
     schema = {
         'type': 'object',
         'properties': {

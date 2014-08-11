@@ -4,7 +4,7 @@
     "description": "Some test rule.",
 
     "trigger": {
-        "name": "st2.timer"
+        "type": "st2.trigger"
     },
 
     "criteria": {
@@ -20,5 +20,7 @@
             "ip1": "{{trigger.t1_p}}",
             "ip2": "{{system.k1}}"
         }
-    }
+    },
+
+    "enabled": true
 }

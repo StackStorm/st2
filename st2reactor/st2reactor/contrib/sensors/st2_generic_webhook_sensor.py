@@ -19,6 +19,10 @@ PARAMETERS_SCHEMA = {
     "additionalProperties": False
 }
 
+PAYLOAD_SCHEMA = {
+    "type": "object"
+}
+
 
 # Dectorators for request validations.
 def validate_json(f):
@@ -39,16 +43,8 @@ class St2GenericWebhooksSensor(object):
         self._log = self._container_service.get_logger(self.__class__.__name__)
         self._port = PORT
         self._app = Flask(__name__)
-        # dirname, filename = os.path.split(os.path.abspath(__file__))
-        # self._config_file = os.path.join(dirname, __name__ + '.yaml')
-        # if not os.path.exists(self._config_file):
-        #     raise Exception('Config file %s not found.' % self._config_file)
-        # self._config = None
 
     def setup(self):
-        # with open(self._config_file) as f:
-        #     self._config = yaml.safe_load(f)
-        #     self._setup_flask_app(urls=self._config.get('urls', []))
         pass
 
     def start(self):
@@ -76,6 +72,8 @@ class St2GenericWebhooksSensor(object):
             # "The entity returned with this response SHOULD include an indication of the request's
             # current status and either a pointer to a status monitor or some estimate of when the
             # user can expect the request to be fulfilled."
+            # We should either pick another status code or, better, find a way to provide a
+            # reference for the actionexecution that have been created during that call.
             return jsonify({}), httplib.ACCEPTED
 
         url = trigger['parameters']['url']
@@ -87,6 +85,6 @@ class St2GenericWebhooksSensor(object):
     def get_trigger_types(self):
         return [{
             'name': 'st2.webhook',
-            'payload_info': (),
+            'payload_schema': PAYLOAD_SCHEMA,
             'parameters_schema': PARAMETERS_SCHEMA
         }]

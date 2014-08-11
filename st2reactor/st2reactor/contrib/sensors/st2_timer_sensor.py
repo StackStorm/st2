@@ -152,18 +152,9 @@ class St2TimerSensor(object):
         self._container_service = container_service
         self._log = self._container_service.get_logger(self.__class__.__name__)
         self._scheduler = BlockingScheduler(timezone=self._timezone)
-        # dirname, filename = os.path.split(os.path.abspath(__file__))
-        # self._config_file = os.path.join(dirname, __name__ + '.yaml')
-        # if not os.path.exists(self._config_file):
-        #     raise Exception('Config file %s not found.' % self._config_file)
-        # with open(self._config_file) as f:
-        #     self._config = yaml.safe_load(f)
         self._jobs = {}
 
     def setup(self):
-        # if self._config is not None:
-        #     for parameters in self._config:
-        #         self.add(parameters)
         pass
 
     def start(self):
@@ -178,7 +169,7 @@ class St2TimerSensor(object):
     def get_trigger_types(self):
         return [{
             'name': 'st2.timer',
-            'payload_info': (),
+            'payload_schema': PAYLOAD_SCHEMA,
             'parameters_schema': PARAMETERS_SCHEMA
         }]
 
