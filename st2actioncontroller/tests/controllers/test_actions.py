@@ -3,7 +3,12 @@ import json
 import unittest2
 
 
-SHELL_RUNNER_ARGS = {'shell': '/usr/bin/bash', 'cmd': None}
+SHELL_RUNNER_ARGS = {'hosts': 'localhost',
+                     'parallel': 'False',
+                     'sudo': 'False',
+                     'user': None,
+                     'cmd': None,
+                     'remotedir': None}
 
 # ACTION_1: Good action definition.
 ACTION_1 = {
