@@ -19,7 +19,7 @@
     "action": {
         "name": "local",
         "parameters": {
-            "attr": "echo \"{{trigger.executed_at}}\""
+            "cmd": "echo \"{{trigger.executed_at}}\""
         }
     },
 

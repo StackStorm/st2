@@ -15,7 +15,7 @@
     "action": {
         "name": "local",
         "parameters": {
-            "attr": "echo \"{{trigger.name}}\""
+            "cmd": "echo \"{{trigger.name}}\""
         }
     },
 
