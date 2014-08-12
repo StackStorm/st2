@@ -1,0 +1,26 @@
+{
+    "id": "53df5e5a0f6d4087dea24414",
+    "name": "st2.rule2",
+    "description": "Some test rule.",
+
+    "trigger": {
+        "type": "st2.generic.actiontrigger",
+        "parameters": {}
+    },
+
+    "criteria": {
+        "action_name": {
+            "pattern": "local",
+            "type": "equals"
+        }
+    },
+
+    "action": {
+        "name": "local",
+        "parameters": {
+            "attr": "echo \"{{trigger.start_timestamp}}\""
+        }
+    },
+
+    "enabled": true
+}

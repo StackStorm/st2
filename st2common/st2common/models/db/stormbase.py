@@ -20,6 +20,20 @@ class StormFoundationDB(me.Document):
         'abstract': True
     }
 
+    def __str__(self):
+        result = []
+        result.append('%s@' % self.__class__.__name__)
+        result.append(str(id(self)))
+        result.append('(')
+        add_sep = False
+        for fieldname in self._fields:
+            if add_sep:
+                result.append(', ')
+            result.append('%s="%s"' % (fieldname, getattr(self, fieldname)))
+            add_sep = True
+        result.append(')')
+        return ''.join(result)
+
 
 class StormBaseDB(StormFoundationDB):
     """Minimal representation of a model entity where the entity is created by users.

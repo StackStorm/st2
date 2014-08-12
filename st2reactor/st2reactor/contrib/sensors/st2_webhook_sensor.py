@@ -3,17 +3,14 @@ import httplib
 import os
 
 from flask import (jsonify, request, Flask)
-from flask_jsonschema import (JsonSchema, ValidationError)
+import flask_jsonschema
 from oslo.config import cfg
 
 PORT = cfg.CONF.st2_webhook_sensor.port
 BASE_URL = cfg.CONF.st2_webhook_sensor.url
 
-'''
-Dectorators for request validations.
-'''
 
-
+# Dectorators for request validations.
 def validate_json(f):
     @wraps(f)
     def wrapper(*args, **kw):
@@ -31,14 +28,13 @@ class St2WebhookSensor(object):
     A webhook sensor using a micro-framework Flask.
     '''
 
-    '''
-    Flask specific stuff.
-    '''
+    # Flask specific stuff.
     _app = Flask('st2_webhook_sensor')
     _app.config['JSONSCHEMA_DIR'] = os.path.join(_app.root_path, 'st2webhookschemas')
-    _jsonschema = JsonSchema(_app)
 
-    @_app.errorhandler(ValidationError)
+    jsonschema = flask_jsonschema.JsonSchema(_app)
+
+    @_app.errorhandler(flask_jsonschema.ValidationError)
     def on_validation_error(e):
         data = {'error': e.message}
         js = jsonify(data)
@@ -66,16 +62,17 @@ class St2WebhookSensor(object):
         return []
 
     @validate_json
-    @_jsonschema.validate('st2webhooks', 'create')
+    @flask_jsonschema.validate('st2webhooks', 'create')
     def _handle_webhook(self):
-        webhook_body = request.get_json()
-        # Generate trigger instances and send them.
-        triggers, errors = self._to_triggers(webhook_body)
-        if errors:
-            return jsonify({'invalid': errors}), httplib.BAD_REQUEST
+        body = request.get_json()
 
         try:
-            self._container_service.dispatch(triggers)
+            trigger, payload = self._to_trigger(body)
+        except KeyError as e:
+            return jsonify({'invalid': e}), httplib.BAD_REQUEST
+
+        try:
+            self._container_service.dispatch(trigger, payload)
         except Exception as e:
             self._log.exception('Exception %s handling webhook', e)
             status = httplib.INTERNAL_SERVER_ERROR
@@ -83,28 +80,16 @@ class St2WebhookSensor(object):
 
         return jsonify({}), httplib.ACCEPTED
 
-    '''
-    Flask app specific stuff.
-    '''
+    # Flask app specific stuff.
     def _setup_flask_app(self):
         St2WebhookSensor._app.add_url_rule(BASE_URL, 'st2webhooks', self._handle_webhook,
                                            methods=['POST'])
 
-    def _to_triggers(self, webhook_body):
-        triggers = []
-        errors = []
-        for obj in webhook_body:
-            trigger = {}
-            trigger['name'] = obj.get(u'name', '')
-
-            if not trigger['name']:
-                errors.append(obj)
-                continue
-
-            trigger['payload'] = obj.get(u'payload', {})
-            event_id = obj.get(u'event_id')
-            if event_id is not None:
-                trigger['event_id'] = event_id
-            triggers.append(trigger)
-
-        return triggers, errors
+    def _to_trigger(self, body):
+        return {
+            'name': body.get('name', ''),
+            'type': {
+                'name': body['type']
+            },
+            'parameters': {}
+        }, body['payload']

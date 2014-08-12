@@ -31,7 +31,7 @@ RULE_1 = {
     'enabled': True,
     'name': 'st2.test.rule1',
     'trigger': {
-        'name': 'st2.test.trigger1'
+        'type': 'st2.test.trigger1'
     },
     'criteria': {
         't1_p': {

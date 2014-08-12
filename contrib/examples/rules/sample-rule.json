@@ -1,14 +1,15 @@
 {
-    "name": "st2.test.rule1",
+    "id": "53df498a0f6d406f4541d3e6",
+    "name": "st2.rule1",
     "description": "Some test rule.",
 
     "trigger": {
-        "name": "st2.test.trigger1"
+        "type": "st2.trigger"
     },
 
     "criteria": {
-        "t1_p": {
-            "pattern": "t1_p_v",
+        "work": {
+            "pattern": "done",
             "type": "equals"
         }
     },
@@ -16,8 +17,7 @@
     "action": {
         "name": "st2.test.action",
         "parameters": {
-            "ip1": "{{trigger.t1_p}}",
-            "ip2": "{{system.k1}}"
+            "args": "{{trigger.result}}"
         }
     },
 

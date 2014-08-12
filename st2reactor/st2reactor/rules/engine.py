@@ -1,5 +1,3 @@
-from sets import Set
-
 from st2common import log as logging
 from st2common.persistence.reactor import Rule
 from st2reactor.rules.enforcer import RuleEnforcer
@@ -9,52 +7,37 @@ LOG = logging.getLogger('st2reactor.rules.RulesEngine')
 
 
 class RulesEngine(object):
-    def handle_trigger_instances(self, trigger_instances):
-        # Find matching rules for each trigger instance.
-        matching_rules_map = self.get_matching_rules_for_triggers(trigger_instances)
+    def handle_trigger_instance(self, trigger_instance):
+        # Find matching rules for trigger instance.
+        matching_rules = self.get_matching_rules_for_trigger(trigger_instance)
 
         # Create rule enforcers.
-        enforcers = self.create_rule_enforcers(matching_rules_map)
+        enforcers = self.create_rule_enforcers(trigger_instance, matching_rules)
 
         # Enforce the rules.
         self.enforce_rules(enforcers)
 
-    def get_rules_for_triggers(self, trigger_names):
-        trigger_rules_map = {}
-        for trigger_name in trigger_names:
-            rules = self.get_rules_for_trigger_from_db(trigger_name)
-            trigger_rules_map[trigger_name] = rules
-        return trigger_rules_map
+    def get_rules_for_trigger(self, trigger):
+        return self.get_rules_for_trigger_from_db(trigger)
 
-    def get_rules_for_trigger_from_db(self, trigger_name):
-        trigger = {'name': trigger_name}
-        rules = Rule.query(trigger=trigger, enabled=True)
-        LOG.info('Found %d rules defined for trigger %s.', len(rules), trigger_name)
+    def get_rules_for_trigger_from_db(self, trigger):
+        rules = Rule.query(trigger__id=trigger['id'], enabled=True)
+        LOG.info('Found %d rules defined for trigger %s', len(rules), trigger['name'])
         return rules
 
-    def get_matching_rules_for_triggers(self, trigger_instances):
-        trigger_names = [trigger_instance.trigger['name'] for trigger_instance in trigger_instances]
-        trigger_names = Set(trigger_names)  # uniquify the list
-        trigger_rules_map = self.get_rules_for_triggers(trigger_names)  # Saves some queries to db.
-        matchers = [(trigger_instance, RulesMatcher(trigger_instance,
-                    trigger_rules_map[trigger_instance.trigger['name']]))
-                    for trigger_instance in trigger_instances]
+    def get_matching_rules_for_trigger(self, trigger_instance):
+        rules = self.get_rules_for_trigger(trigger_instance.trigger)  # Saves some queries to db.
+        matcher = RulesMatcher(trigger_instance, rules)
 
-        matching_rules_map = {}
-        for trigger_instance, matcher in matchers:
-            matching_rules = matcher.get_matching_rules()
-            LOG.info('Matched %s rule(s) for trigger_instance %s.', len(matching_rules),
-                     trigger_instance.trigger['name'])
-            if not matching_rules:
-                continue
-            matching_rules_map[trigger_instance] = matching_rules
-        return matching_rules_map
+        matching_rules = matcher.get_matching_rules()
+        LOG.info('Matched %s rule(s) for trigger_instance %s.', len(matching_rules),
+                 trigger_instance.trigger['name'])
+        return matching_rules
 
-    def create_rule_enforcers(self, matching_rules_map):
+    def create_rule_enforcers(self, trigger_instance, matching_rules):
         enforcers = []
-        for trigger_instance, matching_rules in matching_rules_map.iteritems():
-            for matching_rule in matching_rules:
-                enforcers.append(RuleEnforcer(trigger_instance, matching_rule))
+        for matching_rule in matching_rules:
+            enforcers.append(RuleEnforcer(trigger_instance, matching_rule))
         return enforcers
 
     def enforce_rules(self, enforcers):
@@ -62,4 +45,4 @@ class RulesEngine(object):
             try:
                 enforcer.enforce()  # Should this happen in an eventlet pool?
             except Exception as e:
-                LOG.error('Exception enforcing rule %s: %s', enforcer.rule, e)
+                LOG.error('Exception enforcing rule %s: %s', enforcer.rule, e, exc_info=True)

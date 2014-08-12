@@ -40,21 +40,6 @@ class RunnerTypeDB(StormBaseDB):
     runner_module = me.StringField(required=True,
                                    help_text=u'Implementation of the action runner.')
 
-    # TODO: Write generic str function for API and DB model base classes
-    def __str__(self):
-        result = []
-        result.append('RunnerTypeDB@')
-        result.append(str(id(self)))
-        result.append('(')
-        result.append('id="%s", ' % self.id)
-        result.append('name="%s", ' % self.name)
-        result.append('description="%s", ' % self.description)
-        result.append('enabled="%s", ' % self.enabled)
-        result.append('runner_module="%s", ' % str(self.runner_module))
-        result.append('runner_parameters="%s", ' % str(self.runner_parameters))
-        result.append('uri="%s")' % self.uri)
-        return ''.join(result)
-
 
 class ActionDB(StormBaseDB):
     """The system entity that represents a Stack Action/Automation in
@@ -76,20 +61,6 @@ class ActionDB(StormBaseDB):
                                     help_text='Execution environment to use.')
     parameters = me.DictField(default={},
                               help_text='Action parameters with optional default values.')
-
-    def __str__(self):
-        result = []
-        result.append('ActionDB@')
-        result.append(str(id(self)))
-        result.append('(')
-        result.append('id="%s", ' % self.id)
-        result.append('name"%s", ' % self.name)
-        result.append('enabled="%s", ' % self.enabled)
-        result.append('entry_point="%s", ' % self.entry_point)
-        result.append('runner_type="%s", ' % self.runner_type.name)
-        result.append('parameters=%s, ' % str(self.parameters))
-        result.append('uri="%s")' % self.uri)
-        return ''.join(result)
 
 
 class ActionExecutionDB(StormFoundationDB):
@@ -116,21 +87,6 @@ class ActionExecutionDB(StormFoundationDB):
                               help_text=(u'The key-value pairs passed as to the action runner & ' +
                                          u' execution.'))
     result = me.StringField(default='', help_text='Action defined result.')
-
-    # TODO: Write generic str function for API and DB model base classes
-    def __str__(self):
-        result = []
-        result.append('ActionExecutionDB@')
-        result.append(str(id(self)))
-        result.append('(')
-        result.append('id=%s, ' % self.id)
-        result.append('action=%s, ' % str(self.action))
-        result.append('status=%s, ' % str(self.status))
-        result.append('start_timestamp=%s, ' % str(self.start_timestamp))
-        result.append('parameters=%s, ' % str(self.parameters))
-        result.append('result=%s, ' % self.result)
-        result.append(')')
-        return ''.join(result)
 
 
 # specialized access objects
