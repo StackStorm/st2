@@ -44,3 +44,4 @@ class DbTestCase(TestCase):
     def tearDownClass(cls):
         DbTestCase.db_connection.drop_database(cfg.CONF.database.db_name)
         db_teardown()
+        DbTestCase.db_connection = None

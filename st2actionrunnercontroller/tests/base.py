@@ -1,13 +1,11 @@
 import tests.config
 from pecan.testing import load_test_app
-from st2tests import DbTestCase
 from oslo.config import cfg
+
+from st2tests import DbTestCase
 
 
 class FunctionalTest(DbTestCase):
-
-    db_connection = None
-
     @classmethod
     def setUpClass(cls):
         super(FunctionalTest, cls).setUpClass()
