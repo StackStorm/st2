@@ -1,6 +1,7 @@
 {
-    "name": "st2.timer",
-    "payload_schema": {},
-    "description": "",
-    "parameters_schema": {}
+    "type": "st2.trigger",
+    "payload": {
+        "work": "done",
+        "result": 10
+    }
 }
