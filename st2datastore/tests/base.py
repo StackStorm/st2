@@ -1,22 +1,15 @@
 import tests.config
 from pecan.testing import load_test_app
-from unittest import TestCase
 from oslo.config import cfg
 
-from st2common.models.db import db_setup, db_teardown
+from st2tests import DbTestCase
 
 
-class FunctionalTest(TestCase):
-
-    db_connection = None
-
+class FunctionalTest(DbTestCase):
     @classmethod
     def setUpClass(cls):
+        super(FunctionalTest, cls).setUpClass()
         tests.config.parse_args()
-        FunctionalTest.db_connection = db_setup(cfg.CONF.database.db_name,
-                                                cfg.CONF.database.host,
-                                                cfg.CONF.database.port)
-
         opts = cfg.CONF.datastore_pecan
         cfg_dict = {
             'app': {
@@ -32,9 +25,4 @@ class FunctionalTest(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        FunctionalTest.__do_db_teardown()
-
-    @staticmethod
-    def __do_db_teardown():
-        FunctionalTest.db_connection.drop_database(cfg.CONF.database.db_name)
-        db_teardown()
+        super(FunctionalTest, cls).tearDownClass()
