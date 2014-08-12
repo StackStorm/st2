@@ -19,12 +19,17 @@ LOG = logging.getLogger(__name__)
 ACTION_TRIGGER_TYPE = {
     'name': 'st2.generic.actiontrigger',
     'description': 'Trigger encapsulating the completion of an action execution.',
-    'payload_info': ['execution_id',
-                     'status',
-                     'start_timestamp',
-                     'action_name',
-                     'parameters',
-                     'result']
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'execution_id': {},
+            'status': {},
+            'start_timestamp': {},
+            'action_name': {},
+            'parameters': {},
+            'result': {}
+        }
+    }
 }
 
 
@@ -66,9 +71,8 @@ def post_trigger(action_execution):
     if not ACTION_SENSOR_ENABLED:
         return
     try:
-        payload = json.dumps([{
-            'name': ACTION_TRIGGER_TYPE['name'],
-            'event_id': str(action_execution.id),
+        payload = json.dumps({
+            'type': ACTION_TRIGGER_TYPE['name'],
             'payload': {
                 'execution_id': str(action_execution.id),
                 'status': action_execution.status,
@@ -77,7 +81,7 @@ def post_trigger(action_execution):
                 'parameters': action_execution.parameters,
                 'result': action_execution.result
             }
-        }])
+        })
         LOG.debug('POSTing %s for %s.', ACTION_TRIGGER_TYPE['name'], action_execution.id)
         r = requests.post(TRIGGER_INSTANCE_ENDPOINT,
                           data=payload,

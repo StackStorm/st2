@@ -32,6 +32,8 @@ class St2WebhookSensor(object):
     _app = Flask('st2_webhook_sensor')
     _app.config['JSONSCHEMA_DIR'] = os.path.join(_app.root_path, 'st2webhookschemas')
 
+    jsonschema = flask_jsonschema.JsonSchema(_app)
+
     @_app.errorhandler(flask_jsonschema.ValidationError)
     def on_validation_error(e):
         data = {'error': e.message}
