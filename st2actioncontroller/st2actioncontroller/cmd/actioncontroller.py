@@ -43,10 +43,10 @@ def __setup():
             LOG.warning('Failed to create directory: %s, %s', cfg.CONF.actions.modules_path, e,
                         exc_info=True)
 
-    # 5. register actiontypes and actions. The order is important because actions require action
+    # 5. register runnertypes and actions. The order is important because actions require action
     #    types to be present in the system.
     try:
-        model.register_action_types()
+        model.register_runner_types()
     except Exception as e:
         LOG.warning('Failed to register action types: %s', e, exc_info=True)
         LOG.warning('Not registering stock actions.')

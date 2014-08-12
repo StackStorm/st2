@@ -59,7 +59,7 @@ class ShellRunner(ActionRunner):
 
     def run(self, action_parameters):
         """
-            ActionRunner for "shell" ActionType.
+            ActionRunner for "shell" RunnerType.
         """
         LOG.debug('Entering ShellRunner.run() for liveaction_id="%s"', self.liveaction_id)
 

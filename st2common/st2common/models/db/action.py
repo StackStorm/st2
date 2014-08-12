@@ -5,7 +5,7 @@ from st2common import log as logging
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import (StormFoundationDB, StormBaseDB)
 
-__all__ = ['ActionTypeDB',
+__all__ = ['RunnerTypeDB',
            'ActionDB',
            'ActionExecutionDB']
 
@@ -13,9 +13,9 @@ __all__ = ['ActionTypeDB',
 LOG = logging.getLogger(__name__)
 
 
-class ActionTypeDB(StormBaseDB):
+class RunnerTypeDB(StormBaseDB):
     """
-    The representation of an ActionType in the system. An ActionType
+    The representation of an RunnerType in the system. An RunnerType
     has a one-to-one mapping to a particular ActionRunner implementation.
 
     Attributes:
@@ -32,13 +32,13 @@ class ActionTypeDB(StormBaseDB):
     """
 
     enabled = me.BooleanField(required=True, default=True,
-                          help_text=(u'Flag indicating whether the action runner ' +
-                                     u'represented by this actiontype is enabled.'))
+                              help_text=(u'Flag indicating whether the action runner ' +
+                                         u'represented by this runnertype is enabled.'))
     runner_parameters = me.DictField(required=True, default={},
-                                 help_text=u'The parameter names required by the action runner. ' +
-                                           u'Default values are optional.')
+                                     help_text=(u'The parameter names required by the action ' +
+                                                u'runner. Default values are optional.'))
     runner_module = me.StringField(required=True,
-                               help_text=u'Implementation of the action runner.')
+                                   help_text=u'Implementation of the action runner.')
 
 
 class ActionDB(StormBaseDB):
@@ -54,13 +54,13 @@ class ActionDB(StormBaseDB):
     """
 
     enabled = me.BooleanField(required=True, default=True,
-                          help_text='Flag indicating whether the action is enabled.')
+                              help_text='Flag indicating whether the action is enabled.')
     entry_point = me.StringField(required=True,
-                          help_text='Action entrypoint.')
-    runner_type = me.ReferenceField(ActionTypeDB, required=True,
-                          help_text='Execution environment to use when invoking the action.')
+                                 help_text='Action entrypoint.')
+    runner_type = me.ReferenceField(RunnerTypeDB, required=True,
+                                    help_text='Execution environment to use.')
     parameters = me.DictField(default={},
-                          help_text='Action parameters with optional default values.')
+                              help_text='Action parameters with optional default values.')
 
 
 class ActionExecutionDB(StormFoundationDB):
@@ -77,17 +77,19 @@ class ActionExecutionDB(StormFoundationDB):
 
     # TODO: Can status be an enum at the Mongo layer?
     status = me.StringField(required=True,
-                help_text='The current status of the ActionExecution.')
+                            help_text='The current status of the ActionExecution.')
     start_timestamp = me.DateTimeField(default=datetime.datetime.now(),
-                help_text='The timestamp when the ActionExecution was created.')
+                                       help_text=(u'The timestamp when the ActionExecution ' +
+                                                  u' was created.'))
     action = me.DictField(required=True,
-                help_text='The action executed by this instance.')
+                          help_text='The action executed by this instance.')
     parameters = me.DictField(default={},
-                help_text='The key-value pairs passed as to the action runner & execution.')
+                              help_text=(u'The key-value pairs passed as to the action runner & ' +
+                                         u' execution.'))
     result = me.StringField(default='', help_text='Action defined result.')
 
 
 # specialized access objects
-actiontype_access = MongoDBAccess(ActionTypeDB)
+runnertype_access = MongoDBAccess(RunnerTypeDB)
 action_access = MongoDBAccess(ActionDB)
 actionexec_access = MongoDBAccess(ActionExecutionDB)

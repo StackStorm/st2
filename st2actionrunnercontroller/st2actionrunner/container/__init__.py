@@ -23,13 +23,13 @@ class RunnerContainer():
         self._pending = []
         actionsensor.register_trigger_type()
 
-    def _get_runner_for_actiontype(self, actiontype_db):
+    def _get_runner_for_runnertype(self, runnertype_db):
         """
-            Load the module specified by the actiontype_db.runner_module field and
+            Load the module specified by the runnertype_db.runner_module field and
             return an instance of the runner.
         """
 
-        module_name = actiontype_db.runner_module
+        module_name = runnertype_db.runner_module
         LOG.debug('Runner loading python module: %s', module_name)
         try:
             module = importlib.import_module(module_name, package=None)
@@ -43,27 +43,27 @@ class RunnerContainer():
         LOG.debug('Instance of runner: %s', runner)
         return runner
 
-    def dispatch(self, liveaction_db, actiontype_db, action_db, actionexec_db):
+    def dispatch(self, liveaction_db, runnertype_db, action_db, actionexec_db):
 
-        runner_type = actiontype_db.name
+        runner_type = runnertype_db.name
 
         LOG.info('Dispatching runner for Live Action "%s"', liveaction_db)
         LOG.debug('    liverunner_type: %s', runner_type)
-        LOG.debug('    ActionType: %s', actiontype_db)
+        LOG.debug('    RunnerType: %s', runnertype_db)
         LOG.debug('    ActionExecution: %s', actionexec_db)
 
         # Get runner instance.
         runner = None
         try:
-            runner = self._get_runner_for_actiontype(actiontype_db)
+            runner = self._get_runner_for_runnertype(runnertype_db)
         except ActionRunnerCreateError as e:
-            LOG.exception('Failed to create action of type %s.', actiontype_db.name)
+            LOG.exception('Failed to create action of type %s.', runnertype_db.name)
             raise ActionRunnerDispatchError(e.message)
 
-        LOG.debug('Runner instance for ActionType "%s" is: %s', actiontype_db.name, runner)
+        LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Invoke pre_run, run, post_run cycle.
-        result = self._do_run(liveaction_db.id, runner, actiontype_db, action_db, actionexec_db)
+        result = self._do_run(liveaction_db.id, runner, runnertype_db, action_db, actionexec_db)
 
         LOG.debug('runner do_run result: %s', result)
 
@@ -83,14 +83,14 @@ class RunnerContainer():
 
         return result
 
-    def _do_run(self, liveaction_id, runner, actiontype_db, action_db, actionexec_db):
-        # Runner parameters should use the defaults from the ActionType object.
+    def _do_run(self, liveaction_id, runner, runnertype_db, action_db, actionexec_db):
+        # Runner parameters should use the defaults from the RunnerType object.
         # The runner parameter defaults may be overridden by values provided in
         # the Action Execution.
         actionexec_runner_parameters, actionexec_action_parameters = RunnerContainer._split_params(
-            actiontype_db, action_db, actionexec_db)
+            runnertype_db, action_db, actionexec_db)
 
-        runner_parameters = actiontype_db.runner_parameters
+        runner_parameters = runnertype_db.runner_parameters
         runner_parameters.update(actionexec_runner_parameters)
 
         # Create action parameters by merging default values with dynamic values
@@ -146,10 +146,10 @@ class RunnerContainer():
         return result
 
     @staticmethod
-    def _split_params(actiontype_db, action_db, actionexec_db):
+    def _split_params(runnertype_db, action_db, actionexec_db):
         return (
             {param: actionexec_db.parameters[param]
-                for param in actiontype_db.runner_parameters if param in actionexec_db.parameters},
+                for param in runnertype_db.runner_parameters if param in actionexec_db.parameters},
 
             {param: actionexec_db.parameters[param]
                 for param in action_db.parameters if param in actionexec_db.parameters}
