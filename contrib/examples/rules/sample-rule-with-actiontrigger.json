@@ -18,7 +18,7 @@
     "action": {
         "name": "local",
         "parameters": {
-            "attr": "echo \"{{trigger.start_timestamp}}\""
+            "cmd": "echo \"{{trigger.start_timestamp}}\""
         }
     },
 
