@@ -154,7 +154,9 @@ def _run_sensors(sensors_dict):
             sensors_to_run.append(sensor)
 
     for trigger in Trigger.get_all():
-        trigger_sensors[trigger.type['name']].add(dict(trigger.to_mongo()))
+        name = trigger.type['name']
+        if name in trigger_sensors:
+            trigger_sensors[name].add(dict(trigger.to_mongo()))
 
     def _watch(ns, ts, op, id, doc):
         name = doc['type']['name']
@@ -162,8 +164,9 @@ def _run_sensors(sensors_dict):
         try:
             trigger_sensors[name].add(doc)
         except KeyError as e:
-            LOG.warning('Unable to create a trigger %s with parameters %s.'
-                        + ' Exception: %s', name, parameters, e, exc_info=True)
+            if parameters:
+                LOG.warning('Unable to create a trigger %s with parameters %s.'
+                            + ' Exception: %s', name, parameters, e, exc_info=True)
 
     LOG.info('Watcher started.')
     watcher = watch.get_watcher()
