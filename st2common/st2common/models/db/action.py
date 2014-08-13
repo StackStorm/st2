@@ -1,9 +1,12 @@
 import datetime
 import mongoengine as me
 
+from oslo.config import cfg
+
 from st2common import log as logging
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import (StormFoundationDB, StormBaseDB)
+
 
 __all__ = ['RunnerTypeDB',
            'ActionDB',
@@ -22,45 +25,49 @@ class RunnerTypeDB(StormBaseDB):
         id: See StormBaseAPI
         name: See StormBaseAPI
         description: See StormBaseAPI
-
-        enabled: Boolean value indicating whether the runner for this type
-                 is enabled.
-        runner_parameter_names: The names required by the action runner to
-                                function.
-        runner_module: The python module that implements the action runner
-                       for this type.
+        enabled: A flag indicating whether the runner for this type is enabled.
+        runner_module: The python module that implements the action runner for this type.
+        runner_parameters: The specification for parameters for the action runner.
+        required_parameters: The list of parameters required by the action runner.
     """
 
-    enabled = me.BooleanField(required=True, default=True,
-                              help_text=(u'Flag indicating whether the action runner ' +
-                                         u'represented by this runnertype is enabled.'))
-    runner_parameters = me.DictField(required=True, default={},
-                                     help_text=(u'The parameter names required by the action ' +
-                                                u'runner. Default values are optional.'))
-    runner_module = me.StringField(required=True,
-                                   help_text=u'Implementation of the action runner.')
+    enabled = me.BooleanField(
+        required=True, default=True,
+        help_text='A flag indicating whether the runner for this type is enabled.')
+    runner_module = me.StringField(
+        required=True,
+        help_text='The python module that implements the action runner for this type.')
+    runner_parameters = me.DictField(
+        help_text='The specification for parameters for the action runner.')
+    required_parameters = me.ListField(
+        help_text='The list of parameters required by the action runner.')
 
 
 class ActionDB(StormBaseDB):
-    """The system entity that represents a Stack Action/Automation in
-       the system.
+    """
+    The system entity that represents a Stack Action/Automation in the system.
+
     Attribute:
-        enabled: flag indicating whether this action is enabled in the system.
-        repo_path: relative path to the action artifact. Relative to the root
-                   of the repo.
-        run_type: string identifying which actionrunner is used to execute the action.
-        parameter_names: flat list of strings required as key names when running
-                   the action.
+        enabled: A flag indicating whether this action is enabled in the system.
+        entry_point: The entry point to the action.
+        runner_type: The actionrunner is used to execute the action.
+        parameters: The specification for parameters for the action.
+        required_parameters: The list of parameters required by the action.
     """
 
-    enabled = me.BooleanField(required=True, default=True,
-                              help_text='Flag indicating whether the action is enabled.')
-    entry_point = me.StringField(required=True,
-                                 help_text='Action entrypoint.')
-    runner_type = me.ReferenceField(RunnerTypeDB, required=True,
-                                    help_text='Execution environment to use.')
-    parameters = me.DictField(default={},
-                              help_text='Action parameters with optional default values.')
+    enabled = me.BooleanField(
+        required=True, default=True,
+        help_text='A flag indicating whether the action is enabled.')
+    entry_point = me.StringField(
+        required=True,
+        help_text='The entry point to the action.')
+    runner_type = me.DictField(
+        required=True, default={},
+        help_text='The action runner to use for executing the action.')
+    parameters = me.DictField(
+        help_text='The specification for parameters for the action.')
+    required_parameters = me.ListField(
+        help_text='The list of parameters required by the action.')
 
 
 class ActionExecutionDB(StormFoundationDB):
@@ -76,17 +83,21 @@ class ActionExecutionDB(StormFoundationDB):
     """
 
     # TODO: Can status be an enum at the Mongo layer?
-    status = me.StringField(required=True,
-                            help_text='The current status of the ActionExecution.')
-    start_timestamp = me.DateTimeField(default=datetime.datetime.now(),
-                                       help_text=(u'The timestamp when the ActionExecution ' +
-                                                  u' was created.'))
-    action = me.DictField(required=True,
-                          help_text='The action executed by this instance.')
-    parameters = me.DictField(default={},
-                              help_text=(u'The key-value pairs passed as to the action runner & ' +
-                                         u' execution.'))
-    result = me.StringField(default='', help_text='Action defined result.')
+    status = me.StringField(
+        required=True,
+        help_text='The current status of the ActionExecution.')
+    start_timestamp = me.DateTimeField(
+        default=datetime.datetime.now(),
+        help_text='The timestamp when the ActionExecution was created.')
+    action = me.DictField(
+        required=True,
+        help_text='The action executed by this instance.')
+    parameters = me.DictField(
+        default={},
+        help_text='The key-value pairs passed as to the action runner &  execution.')
+    result = me.StringField(
+        default='',
+        help_text='Action defined result.')
 
 
 # specialized access objects

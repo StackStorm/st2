@@ -90,13 +90,15 @@ class RunnerContainer():
         actionexec_runner_parameters, actionexec_action_parameters = RunnerContainer._split_params(
             runnertype_db, action_db, actionexec_db)
 
-        runner_parameters = runnertype_db.runner_parameters
+        runner_parameters = dict([(k, v['default'])
+                                  for k, v in runnertype_db.runner_parameters.iteritems()
+                                  if 'default' in v and v['default']])
         runner_parameters.update(actionexec_runner_parameters)
 
         # Create action parameters by merging default values with dynamic values
-        action_parameters = {}
-        action_action_parameters = dict(action_db.parameters)
-        action_parameters.update(action_action_parameters)
+        action_parameters = dict([(k, v['default'])
+                                  for k, v in action_db.parameters.iteritems()
+                                  if 'default' in v and v['default']])
         action_parameters.update(actionexec_action_parameters)
 
         runner.set_liveaction_id(liveaction_id)

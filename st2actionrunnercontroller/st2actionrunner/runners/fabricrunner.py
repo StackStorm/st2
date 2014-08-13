@@ -53,10 +53,8 @@ class FabricRunner(ActionRunner):
         if len(self._hosts) < 1:
             raise ActionRunnerPreRunError('No hosts specified to run action for liveaction %s.',
                                           self.liveaction_id)
-        parallel = self.runner_parameters.get(RUNNER_PARALLEL, 'true')
-        self._parallel = True if parallel is None else parallel.lower() == 'true'
-        sudo = self.runner_parameters.get(RUNNER_SUDO, 'false')
-        self._sudo = False if sudo is None else sudo.lower() == 'true'
+        self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
+        self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._on_behalf_user = self.runner_parameters.get(RUNNER_ON_BEHALF_USER, env.user)
         self._user = cfg.CONF.fabric_runner.user
 

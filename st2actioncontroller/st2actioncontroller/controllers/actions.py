@@ -1,4 +1,5 @@
 import httplib
+import jsonschema
 from pecan import abort
 from pecan.rest import RestController
 
@@ -13,6 +14,7 @@ import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.models.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.util.action_db import (get_action_by_id, get_action_by_name, get_runnertype_by_name)
@@ -27,7 +29,25 @@ class ActionsController(RestController):
         the lifecycle of Actions in the system.
     """
 
-    @wsme_pecan.wsexpose(ActionAPI, wstypes.text)
+    @staticmethod
+    def __get_by_id(id):
+        try:
+            return Action.get_by_id(id)
+        except Exception as e:
+            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e.message)
+            LOG.exception(msg)
+            abort(httplib.NOT_FOUND, msg)
+
+    @staticmethod
+    def __get_by_name(name):
+        try:
+            action = Action.get_by_name(name)
+            return [action]
+        except Exception as e:
+            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
+            return []
+
+    @jsexpose(str)
     def get_one(self, id):
         """
             List action by id.
@@ -37,19 +57,12 @@ class ActionsController(RestController):
         """
 
         LOG.info('GET /actions/ with id=%s', id)
-
-        try:
-            action_db = get_action_by_id(id)
-        except StackStormDBObjectNotFoundError as e:
-            LOG.error('GET /actions/ with id="%s": %s', id, e.message)
-            abort(httplib.NOT_FOUND)
-
+        action_db = ActionsController.__get_by_id(id)
         action_api = ActionAPI.from_model(action_db)
-
         LOG.debug('GET /actions/ with id=%s, client_result=%s', id, action_api)
         return action_api
 
-    @wsme_pecan.wsexpose([ActionAPI], wstypes.text)
+    @jsexpose(str)
     def get_all(self, name=None):
         """
             List all actions.
@@ -57,16 +70,23 @@ class ActionsController(RestController):
             Handles requests:
                 GET /actions/
         """
-
-        LOG.info('GET all /actions/ and name=%s', name)
-        action_dbs = Action.get_all() if name is None else ActionsController._get_by_name(name)
+        LOG.info('GET all /actions/ and name=%s', str(name))
+        action_dbs = Action.get_all() if name is None else ActionsController.__get_by_name(name)
         action_apis = [ActionAPI.from_model(action_db) for action_db in action_dbs]
-
-        # TODO: unpack list in log message
         LOG.debug('GET all /actions/ client_result=%s', action_apis)
         return action_apis
 
-    @wsme_pecan.wsexpose(ActionAPI, body=ActionAPI, status_code=httplib.CREATED)
+    @staticmethod
+    def _validate_action_parameters(action, runnertype_db):
+        # check if action parameters conflict with those from the supplied runner_type.
+        conflicts = [p for p in action.parameters.keys() if p in runnertype_db.runner_parameters]
+        if len(conflicts) > 0:
+            msg = 'Parameters %s conflict with those inherited from runner_type : %s' % \
+                  (str(conflicts), action.runner_type)
+            LOG.error(msg)
+            abort(httplib.CONFLICT, msg)
+
+    @jsexpose(body=ActionAPI, status_code=httplib.CREATED)
     def post(self, action):
         """
             Create a new action.
@@ -77,11 +97,10 @@ class ActionsController(RestController):
 
         LOG.info('POST /actions/ with action data=%s', action)
 
-        if action.enabled is wstypes.Unset:
-            # Default enabled flag to True
+        if not hasattr(action, 'enabled'):
             LOG.debug('POST /actions/ incoming action data has enabled field unset. '
                       'Defaulting enabled to True.')
-            action.enabled = True
+            setattr(action, 'enabled', True)
         else:
             action.enabled = bool(action.enabled)
 
@@ -89,22 +108,26 @@ class ActionsController(RestController):
         try:
             runnertype_db = get_runnertype_by_name(action.runner_type)
         except StackStormDBObjectNotFoundError as e:
-            msg = 'RunnerType %s not found.' % action.runner_type
+            msg = 'RunnerType %s is not found.' % action.runner_type
             LOG.exception('%s. Exception: %s', msg, e)
             abort(httplib.NOT_FOUND, msg)
 
         ActionsController._validate_action_parameters(action, runnertype_db)
-        action_model = ActionAPI.to_model(action, runnertype_db)
+        action_model = ActionAPI.to_model(action)
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
 
         LOG.audit('Action about to be created in database. Action is: %s', action_model)
         try:
             action_db = Action.add_or_update(action_model)
-        except (NotUniqueError) as e:
+        except NotUniqueError as e:
             # If an existing DB object conflicts with new object then raise error.
-            LOG.exception('/actions/ POST unable to save ActionDB object "%s" due to uniqueness ' +
-                          'conflict.', action_model)
-            abort(httplib.CONFLICT)
+            LOG.exception('/actions/ POST unable to save ActionDB object "%s" due to uniqueness '
+                          'conflict. %s', action_model, e)
+            abort(httplib.CONFLICT, e.message)
+        except Exception as e:
+            LOG.exception('/actions/ POST unable to save ActionDB object "%s". %s',
+                          action_model, e)
+            abort(httplib.INTERNAL_SERVER_ERROR, e.message)
 
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
 
@@ -114,47 +137,18 @@ class ActionsController(RestController):
         LOG.debug('POST /actions/ client_result=%s', action_api)
         return action_api
 
-    @wsme_pecan.wsexpose(ActionAPI, body=ActionAPI, status_code=httplib.NOT_IMPLEMENTED)
-    def put(self, action):
-        """
-            Update an action.
-
-            Handles requests:
-                POST /actions/1?_method=put
-                PUT /actions/1
-        """
-        # TODO: Implement
-        return None
-
-    @wsme_pecan.wsexpose(None, wstypes.text, wstypes.text, status_code=httplib.NO_CONTENT)
-    def delete(self, id, name=None):
+    @jsexpose(str, status_code=httplib.NO_CONTENT)
+    def delete(self, id):
         """
             Delete an action.
 
             Handles requests:
                 POST /actions/1?_method=delete
                 DELETE /actions/1
-                DELETE /actions/?name=myaction
         """
 
-        LOG.info('DELETE /actions/ with id="%s" and name="%s"', id, name)
-
-        # Lookup object by ID or name
-        if id:
-            try:
-                action_db = get_action_by_id(id)
-            except StackStormDBObjectNotFoundError as e:
-                LOG.error('DELETE /actions/ with id="%s": %s', id, e.message)
-                abort(httplib.NOT_FOUND)
-        elif name:
-            try:
-                action_db = get_action_by_name(name)
-            except StackStormDBObjectNotFoundError as e:
-                LOG.error('DELETE /actions/ with name="%s": %s', name, e.message)
-                abort(httplib.NOT_FOUND)
-        else:
-            LOG.error('DELETE /actions/ unknown identifier provided')
-            abort(httplib.BAD_REQUEST)
+        LOG.info('DELETE /actions/ with id="%s"', id)
+        action_db = ActionsController.__get_by_id(id)
 
         LOG.debug('DELETE /actions/ lookup with id=%s found object: %s', id, action_db)
 
@@ -167,21 +161,3 @@ class ActionsController(RestController):
         LOG.audit('An Action was deleted from database. The Action was: %s', action_db)
         LOG.info('DELETE /actions/ with id="%s" completed', id)
         return None
-
-    @staticmethod
-    def _get_by_name(action_name):
-        try:
-            return [Action.get_by_name(action_name)]
-        except ValueError as e:
-            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', action_name, e)
-            return []
-
-    @staticmethod
-    def _validate_action_parameters(action, runnertype_db):
-        # check if action parameters conflict with those from the supplied runner_type.
-        conflicts = [p for p in action.parameters if p in runnertype_db.runner_parameters]
-        if len(conflicts) > 0:
-            msg = 'Parameters %s conflict with those inherited from runner_type : %s' % \
-                  (str(conflicts), action.runner_type)
-            LOG.error(msg)
-            abort(httplib.CONFLICT, msg)

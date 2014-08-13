@@ -1,8 +1,0 @@
-{
-    "name": "ping-google",
-    "runner_type": "shell",
-    "description": "A ping host action.",
-    "enabled": true,
-    "entry_point": "bash_ping/bash_ping.sh",
-    "parameters": {"args": "8.8.8.8", "count": null}
-}

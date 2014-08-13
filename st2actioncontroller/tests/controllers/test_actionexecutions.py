@@ -14,25 +14,53 @@ ACTION_1 = {
     'enabled': True,
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'shell',
-    'parameters': {'a':'1', 'b':'2'}
+    'parameters': {
+        'a': {
+            'type': 'string',
+            'default': 'abc'
+        },
+        'b': {
+            'type': 'number',
+            'default': 123
+        }
+    }
 }
+
 ACTION_2 = {
     'name': 'st2.dummy.action2',
     'description': 'another test description',
     'enabled': True,
     'entry_point': '/tmp/test/action2.sh',
     'runner_type': 'shell',
-    'parameters': {'c':'3', 'd':'4'}
-}
-ACTION_EXECUTION_1 = {
-    'action': {'name': 'st2.dummy.action1'},
-    'parameters': {}
-}
-ACTION_EXECUTION_2 = {
-    'action': {'name': 'st2.dummy.action2'},
-    'parameters': {}
+    'parameters': {
+        'c': {
+            'type': 'object',
+            'properties': {
+                'c1': {
+                    'type': 'string'
+                }
+            }
+        },
+        'd': {
+            'type': 'boolean',
+            'default': False
+        }
+    }
 }
 
+ACTION_EXECUTION_1 = {
+    'action': {'name': 'st2.dummy.action1'},
+    'parameters': {
+        'cmd': 'uname -a'
+    }
+}
+
+ACTION_EXECUTION_2 = {
+    'action': {'name': 'st2.dummy.action2'},
+    'parameters': {
+        'cmd': 'ls -l'
+    }
+}
 
 class FakeResponse(object):
 
@@ -187,6 +215,24 @@ class TestActionExecutionsController(FunctionalTest):
         self.assertEquals(post_resp.status_int, 201)
         self.__do_delete(self.__get_actionexecution_id(post_resp))
 
+    def test_post_parameter_validation_failed(self):
+        execution = copy.copy(ACTION_EXECUTION_1)
+
+        # Runner type does not expects additional properties.
+        execution['parameters']['foo'] = 'bar'
+        post_resp = self.__do_post(execution, expect_errors=True)
+        self.assertEquals(post_resp.status_int, 400)
+
+        # Runner type expects parameter "cmd".
+        execution['parameters'] = {}
+        post_resp = self.__do_post(execution, expect_errors=True)
+        self.assertEquals(post_resp.status_int, 400)
+
+        # Runner type expects parameters "cmd" to be str.
+        execution['parameters'] = {"cmd": 1000}
+        post_resp = self.__do_post(execution, expect_errors=True)
+        self.assertEquals(post_resp.status_int, 400)
+
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
         mock.MagicMock(return_value=\
@@ -204,11 +250,14 @@ class TestActionExecutionsController(FunctionalTest):
     def __get_actionexecution_id(resp):
         return resp.json['id']
 
-    def __do_get_one(self, actionexecution_id):
-        return self.app.get('/actionexecutions/%s' % actionexecution_id)
+    def __do_get_one(self, actionexecution_id, expect_errors=False):
+        return self.app.get('/actionexecutions/%s' % actionexecution_id,
+                            expect_errors=expect_errors)
 
-    def __do_post(self, actionexecution):
-        return self.app.post_json('/actionexecutions', actionexecution)
+    def __do_post(self, actionexecution, expect_errors=False):
+        return self.app.post_json('/actionexecutions', actionexecution,
+                                  expect_errors=expect_errors)
 
-    def __do_delete(self, actionexecution_id):
-        return self.app.delete('/actionexecutions/%s' % actionexecution_id)
+    def __do_delete(self, actionexecution_id, expect_errors=False):
+        return self.app.delete('/actionexecutions/%s' % actionexecution_id,
+                               expect_errors=expect_errors)
