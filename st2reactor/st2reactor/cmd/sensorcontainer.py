@@ -153,24 +153,51 @@ def _run_sensors(sensors_dict):
 
             sensors_to_run.append(sensor)
 
-    for trigger in Trigger.get_all():
-        name = trigger.type['name']
-        if name in trigger_sensors:
-            trigger_sensors[name].add(dict(trigger.to_mongo()))
+    trigger_names = {}
 
-    def _watch(ns, ts, op, id, doc):
+    for trigger in Trigger.get_all():
+        doc = dict(trigger.to_mongo())
+        name = trigger.type['name']
+
+        trigger_names[trigger.id] = doc
+        if name in trigger_sensors:
+            trigger_sensors[name].add_trigger(doc)
+
+    def _watch_insert(ns, ts, op, id, doc):
         name = doc['type']['name']
         parameters = doc['parameters']
+
+        trigger_names[doc['_id']] = doc
         try:
-            trigger_sensors[name].add(doc)
+            trigger_sensors[name].add_trigger(doc)
         except KeyError as e:
             if parameters:
                 LOG.warning('Unable to create a trigger %s with parameters %s.'
                             + ' Exception: %s', name, parameters, e, exc_info=True)
 
+    def _watch_update(ns, ts, op, id, doc):
+        name = doc['type']['name']
+        parameters = doc['parameters']
+
+        trigger_names[doc['_id']] = doc
+        try:
+            trigger_sensors[name].update_trigger(doc)
+        except KeyError as e:
+            if parameters:
+                LOG.warning('Unable to update a trigger %s with parameters %s.'
+                            + ' Exception: %s', name, parameters, e, exc_info=True)
+
+    def _watch_delete(ns, ts, op, id, doc):
+        doc = trigger_names[doc['_id']]
+        name = doc['type']['name']
+
+        trigger_sensors[name].remove_trigger(doc)
+
     LOG.info('Watcher started.')
     watcher = watch.get_watcher()
-    watcher.watch(_watch, TriggerDB, watch.INSERT)
+    watcher.watch(_watch_insert, TriggerDB, watch.INSERT)
+    watcher.watch(_watch_update, TriggerDB, watch.UPDATE)
+    watcher.watch(_watch_delete, TriggerDB, watch.DELETE)
 
     LOG.info('SensorContainer process[{}] started.'.format(os.getpid()))
     sensor_container = SensorContainer(sensor_instances=sensors_to_run)

@@ -58,6 +58,15 @@ class St2WebhookSensor(object):
             raise RuntimeError('Not running with the Werkzeug Server')
         func()
 
+    def add_trigger(self, trigger):
+        pass
+
+    def update_trigger(self, trigger):
+        pass
+
+    def remove_trigger(self, trigger):
+        pass
+
     def get_trigger_types(self):
         return []
 

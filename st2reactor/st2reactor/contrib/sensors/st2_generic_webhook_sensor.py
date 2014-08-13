@@ -43,24 +43,19 @@ class St2GenericWebhooksSensor(object):
         self._log = self._container_service.get_logger(self.__class__.__name__)
         self._port = PORT
         self._app = Flask(__name__)
+        self._hooks = {}
 
     def setup(self):
-        pass
-
-    def start(self):
-        self._app.run(port=self._port)
-
-    def stop(self):
-        # If Flask is using the default Werkzeug server, then call shutdown on it.
-        func = request.environ.get('werkzeug.server.shutdown')
-        if func is None:
-            raise RuntimeError('Not running with the Werkzeug Server')
-        func()
-
-    def add(self, trigger):
-        @validate_json
-        def _handle_webhook():
+        @self._app.route(urljoin(BASE_URL, '<path:url>'), methods=['POST'])
+        def _handle_webhook(url):
             webhook_body = request.get_json()
+
+            try:
+                trigger = self._hooks[url]
+            except KeyError:
+                self._log.info('Got request for a hook that have not been registered yet: %s',
+                               url)
+                return '', httplib.NOT_FOUND
 
             try:
                 self._container_service.dispatch(trigger, webhook_body)
@@ -76,11 +71,28 @@ class St2GenericWebhooksSensor(object):
             # reference for the actionexecution that have been created during that call.
             return jsonify({}), httplib.ACCEPTED
 
+    def start(self):
+        self._app.run(port=self._port)
+
+    def stop(self):
+        # If Flask is using the default Werkzeug server, then call shutdown on it.
+        func = request.environ.get('werkzeug.server.shutdown')
+        if func is None:
+            raise RuntimeError('Not running with the Werkzeug Server')
+        func()
+
+    def add_trigger(self, trigger):
         url = trigger['parameters']['url']
-        full_url = urljoin(BASE_URL, url)
-        self._log.info('Listening to endpoint: %s', full_url)
-        self._app.add_url_rule(full_url, 'generic-webhook-' + url, _handle_webhook,
-                               methods=['POST'])
+        self._log.info('Listening to endpoint: %s', urljoin(BASE_URL, url))
+        self._hooks[url] = trigger
+
+    def update_trigger(self, trigger):
+        pass
+
+    def remove_trigger(self, trigger):
+        url = trigger['parameters']['url']
+        self._log.info('Stop listening to endpoint: %s', urljoin(BASE_URL, url))
+        del self._hooks[url]
 
     def get_trigger_types(self):
         return [{

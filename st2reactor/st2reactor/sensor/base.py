@@ -26,6 +26,24 @@ class Sensor(object):
         pass
 
     @abc.abstractmethod
+    def add_trigger(self):
+        """
+        """
+        pass
+
+    @abc.abstractmethod
+    def update_trigger(self):
+        """
+        """
+        pass
+
+    @abc.abstractmethod
+    def remove_trigger(self):
+        """
+        """
+        pass
+
+    @abc.abstractmethod
     def get_trigger_types(self):
         """
         """

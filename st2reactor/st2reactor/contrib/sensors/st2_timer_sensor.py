@@ -163,8 +163,22 @@ class St2TimerSensor(object):
     def stop(self):
         self._scheduler.shutdown(wait=True)
 
-    def add(self, trigger):
+    def add_trigger(self, trigger):
         self._add_job_to_scheduler(trigger)
+
+    def update_trigger(self, trigger):
+        pass
+
+    def remove_trigger(self, trigger):
+        id = trigger['_id']
+
+        try:
+            job_id = self._jobs[id]
+        except KeyError:
+            self._log.info('Job not found: %s', id)
+            return
+
+        self._scheduler.remove_job(job_id)
 
     def get_trigger_types(self):
         return [{
