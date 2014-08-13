@@ -1,6 +1,10 @@
-from tests import FunctionalTest
-import json
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
+from tests import FunctionalTest
+from st2common.persistence.action import Action
 
 SHELL_RUNNER_ARGS = {'hosts': 'localhost',
                      'parallel': 'False',
