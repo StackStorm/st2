@@ -1,0 +1,7 @@
+{ "name": "send_mail"
+, "runner_type": "shell"
+, "description": "This sends an email"
+, "enabled": true
+, "entry_point": "send_mail/send_mail"
+, "parameters": {}
+}
