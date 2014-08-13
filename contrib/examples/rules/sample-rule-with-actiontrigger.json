@@ -12,6 +12,10 @@
         "action_name": {
             "pattern": "local",
             "type": "equals"
+        },
+        "status": {
+            "pattern": "error",
+            "type": "equals"
         }
     },
 
