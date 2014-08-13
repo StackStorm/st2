@@ -83,3 +83,6 @@ trigger_access = MongoDBAccess(TriggerDB)
 triggerinstance_access = MongoDBAccess(TriggerInstanceDB)
 rule_access = MongoDBAccess(RuleDB)
 ruleenforcement_access = MongoDBAccess(RuleEnforcementDB)
+
+MODELS = [TriggerTypeDB, TriggerDB, TriggerInstanceDB, RuleDB,
+          RuleEnforcementDB]

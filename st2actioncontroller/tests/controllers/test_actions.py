@@ -1,6 +1,5 @@
 from tests import FunctionalTest
 import json
-import unittest2
 
 
 SHELL_RUNNER_ARGS = {'hosts': 'localhost',
@@ -157,13 +156,13 @@ class TestActionController(FunctionalTest):
         self.assertNotEquals(data['id'], ACTION_7['id'])
         self.__do_delete(self.__get_action_id(post_resp))
 
-    @unittest2.skip('/actions is accepting dups!')
     def test_post_name_duplicate(self):
         action_ids = []
 
         post_resp = self.__do_post(ACTION_1)
         self.assertEquals(post_resp.status_int, 201)
-
+        action_in_db = Action.get_by_name(ACTION_1.get('name'))
+        self.assertTrue(action_in_db is not None, 'Action must be in db.')
         action_ids.append(self.__get_action_id(post_resp))
 
         post_resp = self.__do_post(ACTION_1)

@@ -102,8 +102,8 @@ class ActionsController(RestController):
             action_db = Action.add_or_update(action_model)
         except (NotUniqueError) as e:
             # If an existing DB object conflicts with new object then raise error.
-            LOG.exception('/actions/ POST unable to save ActionDB object "%s" due to uniqueness '
-                          'conflict. Exception was: %s', action_model)
+            LOG.exception('/actions/ POST unable to save ActionDB object "%s" due to uniqueness ' +
+                          'conflict.', action_model)
             abort(httplib.CONFLICT)
 
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
