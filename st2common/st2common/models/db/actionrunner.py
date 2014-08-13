@@ -36,3 +36,5 @@ class ActionRunnerDB(StormFoundationDB):
 # specialized access objects
 liveaction_access = MongoDBAccess(LiveActionDB)
 actionrunner_access = MongoDBAccess(ActionRunnerDB)
+
+MODELS = [LiveActionDB, ActionRunnerDB]

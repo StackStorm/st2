@@ -14,3 +14,5 @@ class KeyValuePairDB(stormbase.StormBaseDB):
 
 # specialized access objects
 keyvaluepair_access = MongoDBAccess(KeyValuePairDB)
+
+MODELS = [KeyValuePairDB]

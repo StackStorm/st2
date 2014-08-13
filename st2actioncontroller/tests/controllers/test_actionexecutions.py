@@ -1,6 +1,9 @@
 import copy
+try:
+    import simplejson as json
+except ImportError:
+    import json
 import mock
-from nose.tools import nottest
 from tests import FunctionalTest
 
 from st2actioncontroller.controllers.actionexecutions import ActionExecutionsController

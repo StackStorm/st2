@@ -93,3 +93,5 @@ class ActionExecutionDB(StormFoundationDB):
 runnertype_access = MongoDBAccess(RunnerTypeDB)
 action_access = MongoDBAccess(ActionDB)
 actionexec_access = MongoDBAccess(ActionExecutionDB)
+
+MODELS = [RunnerTypeDB, ActionDB, ActionExecutionDB]
