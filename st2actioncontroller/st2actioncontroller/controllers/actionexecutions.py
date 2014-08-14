@@ -11,6 +11,7 @@ from pecan.rest import RestController
 #       StackStorm defined exceptions.
 
 import requests
+import jsonschema
 from oslo.config import cfg
 from wsme import types as wstypes
 from wsme import Unset
@@ -18,13 +19,15 @@ import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.models.base import jsexpose
 from st2common.persistence.action import ActionExecution
 from st2common.models.api.action import (ActionExecutionAPI,
                                          ACTIONEXEC_STATUS_INIT,
                                          ACTIONEXEC_STATUS_SCHEDULED,
                                          ACTIONEXEC_STATUS_ERROR)
-from st2common.util.action_db import (get_action_by_dict, get_actionexec_by_id,
-                                      update_actionexecution_status)
+from st2common import util
+from st2common.util.action_db import (get_action_by_dict, update_actionexecution_status,
+                                      get_runnertype_by_name)
 
 LOG = logging.getLogger(__name__)
 
@@ -98,6 +101,15 @@ class ActionExecutionsController(RestController):
         return (result, request_error)
 
     @staticmethod
+    def __get_by_id(id):
+        try:
+            return ActionExecution.get_by_id(id)
+        except Exception as e:
+            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e.message)
+            LOG.exception(msg)
+            abort(httplib.NOT_FOUND, msg)
+
+    @staticmethod
     def _get_action_executions(action_id, action_name, limit=None):
         if action_id is not None:
             LOG.debug('Using action_id=%s to get action executions', action_id)
@@ -121,7 +133,7 @@ class ActionExecutionsController(RestController):
     def _create_liveaction_data(self, actionexecution_id):
         return {'actionexecution_id': str(actionexecution_id)}
 
-    @wsme_pecan.wsexpose(ActionExecutionAPI, wstypes.text)
+    @jsexpose(str)
     def get_one(self, id):
         """
             List actionexecution by id.
@@ -129,22 +141,13 @@ class ActionExecutionsController(RestController):
             Handle:
                 GET /actionexecutions/1
         """
-
-        LOG.info('GET /actionexecutions/ with id="%s"', id)
-
-        try:
-            actionexec_db = get_actionexec_by_id(id)
-        except StackStormDBObjectNotFoundError as e:
-            LOG.error('GET /actionexecutions/ with id="%s": %s', id, e.message)
-            abort(httplib.NOT_FOUND)
-
+        LOG.info('GET /actionexecutions/ with id=%s', id)
+        actionexec_db = ActionExecutionsController.__get_by_id(id)
         actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
-
         LOG.debug('GET /actionexecutions/ with id=%s, client_result=%s', id, actionexec_api)
         return actionexec_api
 
-    @wsme_pecan.wsexpose([ActionExecutionAPI], wstypes.text,
-                         wstypes.text, wstypes.text)
+    @jsexpose(str, str, str)
     def get_all(self, action_id=None, action_name=None, limit='50'):
         """
             List all actionexecutions.
@@ -167,8 +170,7 @@ class ActionExecutionsController(RestController):
         LOG.debug('GET all /actionexecutions/ client_result=%s', actionexec_apis)
         return actionexec_apis
 
-    @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI,
-                         status_code=httplib.CREATED)
+    @jsexpose(body=ActionExecutionAPI, status_code=httplib.CREATED)
     def post(self, actionexecution):
         """
             Create a new actionexecution.
@@ -183,16 +185,17 @@ class ActionExecutionsController(RestController):
 
         # Fill-in runner_parameters and action_parameter fields if they are not
         # provided in the request.
-        if actionexecution.parameters is Unset:
+        if not hasattr(actionexecution, 'parameters'):
             LOG.warning('POST /actionexecutions/ request did not '
                         'provide parameters field.')
-            actionexecution.runner_parameters = {}
+            setattr(actionexecution, 'runner_parameters', {})
 
         (action_db, action_dict) = get_action_by_dict(actionexecution.action)
+
         if not action_db:
             LOG.error('POST /actionexecutions/ Action for "%s" cannot be found.',
                       actionexecution.action)
-            abort(httplib.INTERNAL_SERVER_ERROR)
+            abort(httplib.NOT_FOUND, 'Unable to find action.')
         else:
             if action_dict != dict(actionexecution.action):
                 LOG.info('POST /actionexecutions/ Action identity dict updated to remove '
@@ -203,7 +206,22 @@ class ActionExecutionsController(RestController):
         if not action_db.enabled:
             LOG.error('POST /actionexecutions/ Unable to create Action Execution for a disabled '
                       'Action. Action is: %s', action_db)
-            abort(httplib.FORBIDDEN)
+            abort(httplib.FORBIDDEN, 'Action is disabled.')
+
+        # Assign default parameters
+        runnertype = get_runnertype_by_name(action_db.runner_type['name'])
+        for key, metadata in runnertype.runner_parameters.iteritems():
+            if key not in actionexecution.parameters and 'default' in metadata:
+                actionexecution.parameters[key] = metadata['default']
+
+        # Validate action parameters
+        schema = util.schema.get_parameter_schema(action_db)
+        try:
+            jsonschema.validate(actionexecution.parameters, schema)
+        except jsonschema.ValidationError as e:
+            LOG.error('POST /actionexecutions/ Validation failed on input parameters. '
+                      'Parameters: %s; Action is: %s' % (actionexecution.parameters, action_db))
+            abort(httplib.BAD_REQUEST, e.message)
 
         # Set initial value for ActionExecution status.
         # Not using update_actionexecution_status to allow other initialization to
@@ -252,19 +270,7 @@ class ActionExecutionsController(RestController):
             LOG.debug('POST /actionexecutions/ client_result=%s', actionexec_api)
             return actionexec_api
 
-    @wsme_pecan.wsexpose(ActionExecutionAPI, body=ActionExecutionAPI,
-                         status_code=httplib.FORBIDDEN)
-    def put(self, data):
-        """
-            Update an actionexecution does not make any sense.
-
-            Handles requests:
-                POST /actionexecutions/1?_method=put
-                PUT /actionexecutions/1
-        """
-        return None
-
-    @wsme_pecan.wsexpose(None, wstypes.text, status_code=httplib.NO_CONTENT)
+    @jsexpose(str, status_code=httplib.NO_CONTENT)
     def delete(self, id):
         """
             Delete an actionexecution.
@@ -275,12 +281,7 @@ class ActionExecutionsController(RestController):
         """
 
         LOG.info('DELETE /actionexecutions/ with id=%s', id)
-
-        try:
-            actionexec_db = get_actionexec_by_id(id)
-        except StackStormDBObjectNotFoundError as e:
-            LOG.error('DELETE /actionexecutions/ with id="%s": %s', id, e.message)
-            abort(httplib.NOT_FOUND)
+        actionexec_db = ActionExecutionsController.__get_by_id(id)
 
         LOG.debug('DELETE /actionexecutions/ lookup with id=%s found object: %s',
                   id, actionexec_db)

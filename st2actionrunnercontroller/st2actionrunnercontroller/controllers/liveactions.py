@@ -12,7 +12,7 @@ from st2common.models.api.action import ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_ST
 from st2common.models.api.actionrunner import LiveActionAPI
 from st2common.persistence.actionrunner import LiveAction
 from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict,
-                                      update_actionexecution_status)
+                                      update_actionexecution_status, get_runnertype_by_name)
 from st2common.util.actionrunner_db import (get_liveaction_by_id,
                                             get_liveactions_by_actionexec_id)
 
@@ -136,7 +136,7 @@ class LiveActionsController(RestController):
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST)
 
-        runnertype_db = action_db.runner_type
+        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
 
         #  Got Action object (2)
         LOG.info('POST /liveactions/ obtained Action object from database. '

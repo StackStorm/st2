@@ -77,7 +77,7 @@ class WatcherTest(DbTestCase):
 
         watcher.watch(func, ExampleDB, watch.INSERT)
 
-        eventlet.sleep(0)
+        eventlet.sleep(1)
 
         doc = self._create_and_save_test_document()
         self._delete_test_document(doc)

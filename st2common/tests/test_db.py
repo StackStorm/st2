@@ -1,6 +1,8 @@
 import datetime
+import jsonschema
 import mongoengine.connection
 from oslo.config import cfg
+from st2common import util
 from st2common.util import reference
 from st2tests import DbTestCase
 
@@ -234,22 +236,92 @@ from st2common.models.db.action import ActionDB, RunnerTypeDB
 from st2common.persistence.action import Action, RunnerType
 
 
+PARAM_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "action-1",
+    "description": "awesomeness",
+    "type": "object",
+    "properties": {
+        "r1": {
+            "type": "object",
+            "properties": {
+                "r1a": {
+                    "type":"string"
+                }
+            }
+        },
+        "r2": {
+            "type": "string"
+        },
+        "p1": {
+            "type": "string"
+        },
+        "p2": {
+            "type": "number",
+            "default": 2868
+        }, 
+        "p3": {
+            "type": "boolean",
+            "default": False
+        }
+    },
+    "required": ["p1", "r2"],
+    "additionalProperties": False
+}
+
+
 class ActionModelTest(DbTestCase):
 
+    def tearDown(self):
+        runnertype = RunnerType.get_by_name('python')
+        self._delete([runnertype])
+        super(ActionModelTest, self).tearDown()
+
     def test_action_crud(self):
-        runnertype = ActionModelTest._create_save_runnertype()
-        saved = ActionModelTest._create_save_action(runnertype)
+        runnertype = self._create_save_runnertype(metadata=False)
+        saved = self._create_save_action(runnertype, metadata=False)
         retrieved = Action.get_by_id(saved.id)
         self.assertEqual(saved.name, retrieved.name,
-                         'Same TriggerSource was not returned.')
+                         'Same Action was not returned.')
+
         # test update
-        self.assertEqual(retrieved.description, '')
+        self.assertEqual(retrieved.description, 'awesomeness')
         retrieved.description = DUMMY_DESCRIPTION
         saved = Action.add_or_update(retrieved)
         retrieved = Action.get_by_id(saved.id)
         self.assertEqual(retrieved.description, DUMMY_DESCRIPTION, 'Update to action failed.')
+
         # cleanup
-        ActionModelTest._delete([retrieved])
+        self._delete([retrieved])
+        try:
+            retrieved = Action.get_by_id(saved.id)
+        except ValueError:
+            retrieved = None
+        self.assertIsNone(retrieved, 'managed to retrieve after failure.')
+
+    def test_parameter_schema(self):
+        runnertype = self._create_save_runnertype(metadata=True)
+        saved = self._create_save_action(runnertype, metadata=True)
+        retrieved = Action.get_by_id(saved.id)
+
+        # validate generated schema
+        schema = util.schema.get_parameter_schema(retrieved)
+        self.assertDictEqual(schema, PARAM_SCHEMA)
+        validator = util.schema.get_validator()
+        validator.check_schema(schema)
+
+        # use schema to validate parameters
+        jsonschema.validate({"r2": "abc", "p1": "def"}, schema)
+        jsonschema.validate({"r2": "abc", "p1": "def", "r1": {"r1a": "ghi"}}, schema)
+        self.assertRaises(jsonschema.ValidationError, jsonschema.validate,
+                          '{"r2": "abc", "p1": "def"}', schema)
+        self.assertRaises(jsonschema.ValidationError, jsonschema.validate,
+                          {"r2": "abc"}, schema)
+        self.assertRaises(jsonschema.ValidationError, jsonschema.validate,
+                          {"r2": "abc", "p1": "def", "r1": 123}, schema)
+
+        # cleanup
+        self._delete([retrieved])
         try:
             retrieved = Action.get_by_id(saved.id)
         except ValueError:
@@ -257,25 +329,39 @@ class ActionModelTest(DbTestCase):
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
     @staticmethod
-    def _create_save_runnertype():
+    def _create_save_runnertype(metadata=False):
         created = RunnerTypeDB()
         created.name = 'python'
         created.description = ''
         created.enabled = True
-        created.runner_parameters = {'r1': None, 'r2': None}
+        if not metadata:
+            created.runner_parameters = {'r1': None, 'r2': None}
+        else:
+            created.runner_parameters = {
+                'r1': {'type': 'object', 'properties': {'r1a': {'type':'string'}}},
+                'r2': {'type': 'string'}
+            }
+            created.required_parameters = ['r2']
         created.runner_module = 'nomodule'
         return RunnerType.add_or_update(created)
 
     @staticmethod
-    def _create_save_action(runnertype):
+    def _create_save_action(runnertype, metadata=False):
         created = ActionDB()
         created.name = 'action-1'
-        created.description = ''
+        created.description = 'awesomeness'
         created.enabled = True
-        created.artifact_path = ''
         created.entry_point = '/tmp/action.py'
-        created.runner_type = runnertype
-        created.parameters = {'p1': None, 'p2': None, 'p3': None}
+        created.runner_type = {'name': runnertype.name}
+        if not metadata:
+            created.parameters = {'p1': None, 'p2': None, 'p3': None}
+        else:
+            created.parameters = {
+                'p1': {'type': 'string'},
+                'p2': {'type': 'number', 'default': 2868},
+                'p3': {'type': 'boolean', 'default': False}
+            }
+            created.required_parameters = ['p1']
         return Action.add_or_update(created)
 
     @staticmethod

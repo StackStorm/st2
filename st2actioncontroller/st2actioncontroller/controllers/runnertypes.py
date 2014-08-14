@@ -7,6 +7,7 @@ import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.models.base import jsexpose
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.action import RunnerType
 from st2common.util.action_db import get_runnertype_by_id
@@ -20,7 +21,25 @@ class RunnerTypesController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of an RunnerType in the system.
     """
-    @wsme_pecan.wsexpose(RunnerTypeAPI, wstypes.text)
+
+    @staticmethod
+    def __get_by_id(id):
+        try:
+            return RunnerType.get_by_id(id)
+        except (ValueError, ValidationError) as e:
+            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e.message)
+            LOG.exception(msg)
+            abort(httplib.NOT_FOUND, msg)
+
+    @staticmethod
+    def __get_by_name(name):
+        try:
+            return [RunnerType.get_by_name(name)]
+        except ValueError as e:
+            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
+            return []
+
+    @jsexpose(str)
     def get_one(self, id):
         """
             List RunnerType objects by id.
@@ -28,38 +47,29 @@ class RunnerTypesController(RestController):
             Handle:
                 GET /runnertypes/1
         """
-
         LOG.info('GET /runnertypes/ with id=%s', id)
-
-        try:
-            runnertype_db = get_runnertype_by_id(id)
-        except StackStormDBObjectNotFoundError as e:
-            LOG.error('GET /runnertypes/ with id="%s": %s', id, e.message)
-            abort(httplib.NOT_FOUND)
+        runnertype_db = RunnerTypesController.__get_by_id(id)
         runnertype_api = RunnerTypeAPI.from_model(runnertype_db)
-
         LOG.debug('GET /runnertypes/ with id=%s, client_result=%s', id, runnertype_api)
         return runnertype_api
 
-    @wsme_pecan.wsexpose([RunnerTypeAPI])
-    def get_all(self):
+    @jsexpose(str)
+    def get_all(self, name=None):
         """
             List all RunnerType objects.
 
             Handles requests:
                 GET /runnertypes/
         """
-
-        LOG.info('GET all /runnertypes/')
-
+        LOG.info('GET all /runnertypes/ and name=%s', str(name))
+        runnertype_dbs = (RunnerType.get_all() if name is None else
+                          RunnerTypesController.__get_by_name(name))
         runnertype_apis = [RunnerTypeAPI.from_model(runnertype_db)
-                           for runnertype_db in RunnerType.get_all()]
-
-        # TODO: Unpack list in log message
+                           for runnertype_db in runnertype_dbs]
         LOG.debug('GET all /runnertypes/ client_result=%s', runnertype_apis)
         return runnertype_apis
 
-    @wsme_pecan.wsexpose(RunnerTypeAPI, body=RunnerTypeAPI)
+    @jsexpose(body=RunnerTypeAPI, status_code=httplib.NOT_IMPLEMENTED)
     def post(self, runnertype):
         """
             Update not supported for RunnerType.
@@ -72,9 +82,8 @@ class RunnerTypesController(RestController):
 
         abort(httplib.NOT_IMPLEMENTED)
 
-    @wsme_pecan.wsexpose(RunnerTypeAPI, body=RunnerTypeAPI,
-                         status_code=httplib.NOT_IMPLEMENTED)
-    def put(self, action):
+    @jsexpose(str, body=RunnerTypeAPI, status_code=httplib.NOT_IMPLEMENTED)
+    def put(self, runnertype):
         """
             Update not supported for RunnerType.
 
@@ -85,7 +94,7 @@ class RunnerTypesController(RestController):
 
         abort(httplib.METHOD_NOT_ALLOWED)
 
-    @wsme_pecan.wsexpose(None, status_code=httplib.NOT_IMPLEMENTED)
+    @jsexpose(status_code=httplib.NOT_IMPLEMENTED)
     def delete(self):
         """
             Delete an RunnerType.

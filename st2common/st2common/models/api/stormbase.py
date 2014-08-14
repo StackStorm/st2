@@ -53,12 +53,12 @@ class StormBaseAPI(StormFoundationAPI):
     def from_model(kls, model):
         api_instance = StormFoundationAPI.from_model(kls, model)
         api_instance.name = model.name
-        api_instance.description = model.description
+        setattr(api_instance, 'description', getattr(model, 'description', None))
         return api_instance
 
     @staticmethod
     def to_model(kls, api_instance):
         model = StormFoundationAPI.to_model(kls, api_instance)
         model.name = api_instance.name
-        model.description = api_instance.description
+        setattr(model, 'description', getattr(api_instance, 'description', None))
         return model

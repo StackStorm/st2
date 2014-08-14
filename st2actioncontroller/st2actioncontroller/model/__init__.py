@@ -11,75 +11,149 @@ from st2common.persistence.action import (RunnerType, Action)
 from st2common.models.db.action import ActionDB
 from st2common.util.action_db import get_runnertype_by_name
 
+
 LOG = logging.getLogger(__name__)
 
 
 def register_runner_types():
-    RUNNER_TYPES = [{'name': 'shell',
-                     'description': 'A bash shell action type.',
-                     'enabled': True,
-                     'runner_parameters': {'hosts': 'localhost',
-                                           'parallel': 'False',
-                                           'sudo': 'False',
-                                           'user': None,
-                                           'cmd': None,
-                                           'remotedir': None},
-                     'runner_module': 'st2actionrunner.runners.fabricrunner'},
+    RUNNER_TYPES = [
+        {'name': 'shell',
+         'description': 'A bash shell action type.',
+         'enabled': True,
+         'runner_parameters': {
+            'hosts': {
+                'description': 'A comma delimited string of a list of hosts '
+                               'where the remote command will be executed.',
+                'type': 'string',
+                'default': 'localhost'
+            },
+            'cmd': {
+                'description': 'Arbitrary Linux command to be executed on the '
+                               'remote host(s).',
+                'type': 'string'
+            },
+            'parallel': {
+                'description': 'If true, the command will be executed on all the '
+                               'hosts in parallel.',
+                'type': 'boolean',
+                'default': False
+            },
+            'sudo': {
+                'description': 'The remote command will be executed with sudo.',
+                'type': 'boolean',
+                'default': False
+            },
+            'user': {
+                'description': 'The user who is executing this remote command. '
+                               'This is for audit purposes only. The remote '
+                               'command will always execute as the user stanley.',
+                'type': 'string'
+            },
+            'remotedir': {
+                'description': 'The working directory where the command will be '
+                               'executed on the remote host.',
+                'type': 'string'
+            }
+         },
+         'required_parameters': ['cmd'],
+         'runner_module': 'st2actionrunner.runners.fabricrunner'
+        },
 
-                    {'name': 'remote-exec-sysuser',
-                     'description': 'A remote execution action type with a fixed system user.',
-                     'enabled': True,
-                     'runner_parameters': {'hosts': None,
-                                           'parallel': None,
-                                           'sudo': None,
-                                           'user': None,
-                                           'cmd': None,
-                                           'remotedir': None},
-                     'runner_module': 'st2actionrunner.runners.fabricrunner'},
+        {'name': 'remote-exec-sysuser',
+         'description': 'A remote execution action type with a fixed system user.',
+         'enabled': True,
+         'runner_parameters': {
+            'hosts': {
+                'description': 'A comma delimited string of a list of hosts '
+                               'where the remote command will be executed.',
+                'type': 'string'
+            },
+            'cmd': {
+                'description': 'Arbitrary Linux command to be executed on the '
+                               'remote host(s).',
+                'type': 'string'
+            },
+            'parallel': {
+                'description': 'If true, the command will be executed on all the '
+                               'hosts in parallel.',
+                'type': 'boolean'
+            },
+            'sudo': {
+                'description': 'The remote command will be executed with sudo.',
+                'type': 'boolean'
+            },
+            'user': {
+                'description': 'The user who is executing this remote command. '
+                               'This is for audit purposes only. The remote '
+                               'command will always execute as the user stanley.',
+                'type': 'string'
+            },
+            'remotedir': {
+                'description': 'The working directory where the command will be '
+                               'executed on the remote host.',
+                'type': 'string'
+            }
+         },
+         'required_parameters': ['hosts', 'cmd'],
+         'runner_module': 'st2actionrunner.runners.fabricrunner'
+        },
 
-                    {'name': 'http-runner',
-                     'description': 'A HTTP client for running HTTP actions.',
-                     'enabled': True,
-                     'runner_parameters': {'url': None,
-                                           'headers': None,
-                                           'cookies': None,
-                                           'proxy': None,
-                                           'redirects': None},
-                     'runner_module': 'st2actionrunner.runners.httprunner'}]
+        {'name': 'http-runner',
+         'description': 'A HTTP client for running HTTP actions.',
+         'enabled': True,
+         'runner_parameters': {
+            'url': {
+                'description': 'URL to the HTTP endpoint.',
+                'type': 'string'
+            },
+            'headers': {
+                'description': 'HTTP headers for the request.',
+                'type': 'object'
+            },
+            'cookies': {
+                'description': 'TODO: Description for cookies.',
+                'type': 'string'
+            },
+            'proxy': {
+                'description': 'TODO: Description for proxy.',
+                'type': 'string'
+            },
+            'redirects': {
+                'description': 'TODO: Description for redirects.',
+                'type': 'string'
+            },
+         },
+         'required_parameters': ['url'],
+         'runner_module': 'st2actionrunner.runners.httprunner'
+        }
+    ]
 
     LOG.debug('Registering runnertypes')
 
-    for fields in RUNNER_TYPES:
-        runnertype_db = None
-        name = fields['name']
+    for runnertype in RUNNER_TYPES:
         try:
-            runnertype_db = get_runnertype_by_name(name)
+            runnertype_db = get_runnertype_by_name(runnertype['name'])
+            if runnertype_db:
+                continue
         except StackStormDBObjectNotFoundError:
-            LOG.debug('RunnerType "%s" does not exist in DB', name)
-        else:
-            continue
+            LOG.debug('RunnerType "%s" does not exist in DB.', runnertype['name'])
 
-        if runnertype_db is None:
-            runnertype = RunnerTypeAPI()
-            for (key, value) in fields.items():
-                LOG.debug('runnertype name=%s field=%s value=%s', name, key, value)
-                setattr(runnertype, key, value)
+        runnertype_api = RunnerTypeAPI(**runnertype)
+        LOG.debug('RunnerType after field population: %s', runnertype_api)
+        try:
+            runnertype_db = RunnerType.add_or_update(RunnerTypeAPI.to_model(runnertype_api))
+            LOG.debug('created runnertype name=%s in DB. Object: %s',
+                      runnertype['name'], runnertype_db)
+        except Exception as e:
+            LOG.exception('Unable to register runner type %s. %s', runnertype['name'], e)
 
-            runnertype_api = RunnerTypeAPI.to_model(runnertype)
-            LOG.debug('RunnerType after field population: %s', runnertype_api)
-            try:
-                runnertype_db = RunnerType.add_or_update(runnertype_api)
-                LOG.debug('created runnertype name=%s in DB. Object: %s', name, runnertype_db)
-            except:
-                LOG.exception('Unable to register runner type %s.', runnertype['name'])
-
-    LOG.debug('Registering runnertypes complete')
+    LOG.debug('Registering runnertypes complete.')
 
 
 def register_actions():
     actions = glob.glob(cfg.CONF.actions.modules_path + '/*.json')
     for action in actions:
-        LOG.debug('Loading action from %s', action)
+        LOG.debug('Loading action from %s.', action)
         with open(action, 'r') as fd:
             try:
                 content = json.load(fd)
@@ -94,9 +168,11 @@ def register_actions():
             model.description = content['description']
             model.enabled = content['enabled']
             model.entry_point = content['entry_point']
-            model.parameters = content['parameters']
+            model.parameters = content.get('parameters', {})
+            model.required_parameters = content.get('required_parameters', [])
             try:
-                model.runner_type = get_runnertype_by_name(str(content['runner_type']))
+                runnertype = get_runnertype_by_name(str(content['runner_type']))
+                model.runner_type = {'name': runnertype.name}
             except StackStormDBObjectNotFoundError:
                 LOG.exception('Failed to register action %s as runner %s was not found',
                               model.name, str(content['runner_type']))
@@ -104,8 +180,8 @@ def register_actions():
             try:
                 model = Action.add_or_update(model)
                 LOG.debug('Added action %s from %s.', model.name, action)
-            except (ValueError, ValidationError):
-                LOG.exception('Failed to register action %s.', model.name)
+            except Exception as e:
+                LOG.exception('Failed to register action %s. %s', model.name, e)
 
 
 def init_model():

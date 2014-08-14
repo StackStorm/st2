@@ -57,7 +57,7 @@ class TestRuleController(FunctionalTest):
         RUNNER_TYPE.id = None
         RunnerType.add_or_update(RUNNER_TYPE)
         ACTION.id = None
-        ACTION.runner_type = RUNNER_TYPE
+        ACTION.runner_type = {'name': RUNNER_TYPE.name}
         Action.add_or_update(ACTION)
         TRIGGER.id = None
         Trigger.add_or_update(TRIGGER)
