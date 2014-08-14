@@ -1,8 +1,0 @@
-{
-    "name": "remote-http-google-action",
-    "runner_type": "http-runner",
-    "description": "Action that returns results for google search.",
-    "enabled": true,
-    "entry_point":null,
-    "parameters": {"method":null,"timeout":null,"auth":null,"headers":null,"params":null}
-}

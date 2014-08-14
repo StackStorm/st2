@@ -86,20 +86,31 @@ class RunnerContainer():
     def _do_run(self, liveaction_id, runner, runnertype_db, action_db, actionexec_db):
         # Runner parameters should use the defaults from the RunnerType object.
         # The runner parameter defaults may be overridden by values provided in
-        # the Action Execution.
+        # the Action and ActionExecution.
         actionexec_runner_parameters, actionexec_action_parameters = RunnerContainer._split_params(
             runnertype_db, action_db, actionexec_db)
+        action_action_parameters = dict(action_db.parameters)
 
-        runner_parameters = dict([(k, v['default'])
-                                  for k, v in runnertype_db.runner_parameters.iteritems()
-                                  if 'default' in v and v['default']])
-        runner_parameters.update(actionexec_runner_parameters)
+        # Create runner parameter by merging default values with dynamic values
+        runner_parameters = {k: v['default'] if 'default' in v else None
+                             for k, v in runnertype_db.runner_parameters.iteritems()}
+
+        # pick overrides from action_action_parameters & actionexec_runner_parameters
+        for param in runner_parameters:
+            # values from actionexec_runner_parameters override action_action_parameters.
+            if param in actionexec_runner_parameters:
+                runner_parameters[param] = actionexec_runner_parameters[param]
+                continue
+            if param in action_action_parameters:
+                runner_parameters[param] = action_action_parameters[param]
 
         # Create action parameters by merging default values with dynamic values
-        action_parameters = dict([(k, v['default'])
-                                  for k, v in action_db.parameters.iteritems()
-                                  if 'default' in v and v['default']])
-        action_parameters.update(actionexec_action_parameters)
+        action_parameters = {k: v['default'] if 'default' in v else None
+                             for k, v in action_db.parameters.iteritems()}
+        # pick overrides from actionexec_action_parameters
+        for param in action_parameters:
+            if param in actionexec_action_parameters:
+                action_parameters[param] = actionexec_action_parameters[param]
 
         runner.set_liveaction_id(liveaction_id)
         runner.set_container_service(RunnerContainerService(self))

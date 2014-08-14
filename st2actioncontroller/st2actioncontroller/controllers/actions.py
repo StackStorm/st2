@@ -112,8 +112,9 @@ class ActionsController(RestController):
             LOG.exception('%s. Exception: %s', msg, e)
             abort(httplib.NOT_FOUND, msg)
 
-        ActionsController._validate_action_parameters(action, runnertype_db)
+        # ActionsController._validate_action_parameters(action, runnertype_db)
         action_model = ActionAPI.to_model(action)
+
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
 
         LOG.audit('Action about to be created in database. Action is: %s', action_model)

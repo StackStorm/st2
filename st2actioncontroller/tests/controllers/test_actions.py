@@ -241,10 +241,6 @@ class TestActionController(FunctionalTest):
         post_resp = self.__do_post(ACTION_5, expect_errors=True)
         self.assertEquals(post_resp.status_int, 404)
 
-    def test_post_override_runner_param(self):
-        post_resp = self.__do_post(ACTION_8, expect_errors=True)
-        self.assertEquals(post_resp.status_int, 409)
-
     def test_delete(self):
         post_resp = self.__do_post(ACTION_1)
         del_resp = self.__do_delete(self.__get_action_id(post_resp))
