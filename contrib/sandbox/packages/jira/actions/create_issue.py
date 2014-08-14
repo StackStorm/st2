@@ -3,11 +3,16 @@
 # Requirements
 # pip install jira
 
+try:
+    import simplejson as json
+except ImportError:
+    import json
 import os
 import sys
+
 from jira.client import JIRA
 
-RSA_CERT_FILE = '/home/vagrant/jira.pem'
+CONFIG_FILE = './jira_config.json'
 
 
 class AuthedJiraClient(object):
@@ -40,36 +45,45 @@ def _read_cert(file_path):
 
 def _parse_args(args):
     params = {}
-    params['jira_server'] = args[1]
-    params['oauth_token'] = args[2]
-    params['oauth_secret'] = args[3]
-    params['consumer_key'] = args[4]
-    params['project_name'] = args[5]
-    params['issue_summary'] = args[6]
-    params['issue_description'] = args[7]
-    params['issue_type'] = args[8]
+    params['project_name'] = args[1]
+    params['issue_summary'] = args[2]
+    params['issue_description'] = args[3]
+    params['issue_type'] = args[4]
     return params
 
 
-def _get_jira_client(params):
-    if not os.path.exists(RSA_CERT_FILE):
-        raise Exception('Cert file for JIRA OAuth not found at %s.' % RSA_CERT_FILE)
-    rsa_key = _read_cert(RSA_CERT_FILE)
+def _get_jira_client(config):
+    rsa_cert_file = config['rsa_cert_file']
+    if not os.path.exists(rsa_cert_file):
+        raise Exception('Cert file for JIRA OAuth not found at %s.' % rsa_cert_file)
+    rsa_key = _read_cert(rsa_cert_file)
     oauth_creds = {
-        'access_token': params['oauth_token'],
-        'access_token_secret': params['oauth_secret'],
-        'consumer_key': params['consumer_key'],
+        'access_token': config['oauth_token'],
+        'access_token_secret': config['oauth_secret'],
+        'consumer_key': config['consumer_key'],
         'key_cert': rsa_key
     }
-    jira_client = AuthedJiraClient(params['jira_server'], oauth_creds)
+    jira_client = AuthedJiraClient(config['jira_server'], oauth_creds)
     return jira_client
 
 
-def main(args):
-    params = _parse_args(args)
-    client = _get_jira_client(params)
-    proj = params['project_name']
+def _get_config():
+    global CONFIG_FILE
+    if not os.path.exists(CONFIG_FILE):
+        raise Exception('Config file not found at %s.' % CONFIG_FILE)
+    with open(CONFIG_FILE) as f:
+        return json.load(f)
 
+
+def main(args):
+    try:
+        client = _get_jira_client(_get_config())
+    except Exception as e:
+        sys.stderr.write('Failed to create JIRA client: %s\n' % str(e))
+        sys.exit(1)
+
+    params = _parse_args(args)
+    proj = params['project_name']
     try:
         if not client.is_project_exists(proj):
             raise Exception('Project ' + proj + ' does not exist.')
@@ -78,7 +92,8 @@ def main(args):
                                     desc=params['issue_description'],
                                     issuetype=params['issue_type'])
     except Exception as e:
-        sys.stderr.write(e.message + '\n')
+        sys.stderr.write(str(e) + '\n')
+        sys.exit(2)
     else:
         sys.stdout.write('Issue ' + issue + ' created.\n')
 
