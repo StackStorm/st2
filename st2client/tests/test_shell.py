@@ -120,6 +120,13 @@ class TestShell(unittest2.TestCase):
         ]
         self._validate_parser(args_list)
 
+    def test_runner(self):
+        args_list = [
+            ['runner', 'list'],
+            ['runner', 'get', 'abc']
+        ]
+        self._validate_parser(args_list)
+
     def test_action(self):
         args_list = [
             ['action', 'list'],

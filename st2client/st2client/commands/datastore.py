@@ -50,12 +50,12 @@ class KeyValuePairCreateCommand(resource.ResourceCommand):
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
-    def run(self, args):
+    def run(self, args, **kwargs):
         instance = self.resource(name=args.name, value=args.value)
         return self.manager.create(instance)
 
-    def run_and_print(self, args):
-        instance = self.run(args)
+    def run_and_print(self, args, **kwargs):
+        instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
                           attributes=['id', 'name', 'value'], json=args.json)
 
@@ -75,13 +75,13 @@ class KeyValuePairUpdateCommand(resource.ResourceCommand):
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
-    def run(self, args):
+    def run(self, args, **kwargs):
         instance = self.get_resource(args.name_or_id)
         instance.value = args.value
         return self.manager.update(instance)
 
-    def run_and_print(self, args):
-        instance = self.run(args)
+    def run_and_print(self, args, **kwargs):
+        instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
                           attributes=['id', 'name', 'value'], json=args.json)
 
@@ -101,7 +101,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
-    def run(self, args):
+    def run(self, args, **kwargs):
         if not os.path.isfile(args.file):
             raise Exception('File "%s" does not exist.' % args.file)
         with open(args.file, 'r') as f:
@@ -120,7 +120,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
                     instances.append(self.manager.update(instance))
             return instances
 
-    def run_and_print(self, args):
-        instances = self.run(args)
+    def run_and_print(self, args, **kwargs):
+        instances = self.run(args, **kwargs)
         self.print_output(instances, table.MultiColumnTable,
                           attributes=['id', 'name', 'value'], json=args.json)

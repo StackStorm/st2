@@ -1,4 +1,6 @@
+import copy
 import logging
+import textwrap
 
 from st2client import models
 from st2client.commands import resource
@@ -25,9 +27,9 @@ class ActionRunCommand(resource.ResourceCommand):
 
     def __init__(self, resource, *args, **kwargs):
 
-        super(ActionRunCommand, self).__init__(resource,
-            kwargs.pop('name', 'execute'),
-            'Invoke an action manually.',
+        super(ActionRunCommand, self).__init__(
+            resource, kwargs.pop('name', 'execute'),
+            'A command to invoke an action manually.',
             *args, **kwargs)
 
         self.parser.add_argument('name_or_id', nargs='?',
@@ -44,7 +46,7 @@ class ActionRunCommand(resource.ResourceCommand):
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
-    def run(self, args):
+    def run(self, args, **kwargs):
         if not args.name_or_id:
             self.parser.error('too few arguments')
 
@@ -66,25 +68,60 @@ class ActionRunCommand(resource.ResourceCommand):
         action_exec_mgr = self.app.client.managers['ActionExecution']
         return action_exec_mgr.create(execution)
 
+    @staticmethod
+    def print_param(name, schema):
+        wrapper = textwrap.TextWrapper(width=78)
+        wrapper.initial_indent = ' ' * 4
+        wrapper.subsequent_indent = wrapper.initial_indent
+        print(wrapper.fill(name))
+        wrapper.initial_indent = ' ' * 8
+        wrapper.subsequent_indent = wrapper.initial_indent
+        if 'description' in schema and schema['description']:
+            print(wrapper.fill(schema['description']))
+        if 'type' in schema and schema['type']:
+            print(wrapper.fill('Type: %s' % schema['type']))
+        if 'default' in schema and schema['default']:
+            print(wrapper.fill('Default: %s' % schema['default']))
+        print('')
+
     def print_help(self, args):
         # Print appropriate help message if the help option is given.
         if args.help:
             if args.name_or_id:
                 try:
                     action = self.get_resource(args.name_or_id)
-                    print action.description
+                    runner_mgr = self.app.client.managers['RunnerType']
+                    runner = runner_mgr.get_by_name(action.runner_type)
+                    parameters = copy.copy(runner.runner_parameters)
+                    parameters.update(copy.copy(action.parameters))
+                    required = (getattr(runner, 'required_parameters', list()) +
+                                getattr(action, 'required_parameters', list()))
+                    print('')
+                    print(textwrap.fill(action.description))
+                    print('')
+                    if set(parameters.keys()) & set(required):
+                        print('Required Parameters:')
+                        [self.print_param(name, parameters.get(name))
+                         for name in sorted(parameters) if name in required]
+                    if set(parameters.keys()) - set(required): 
+                        print('Optional Parameters:')
+                        [self.print_param(name, parameters.get(name))
+                        for name in sorted(parameters) if name not in required]
+                except resource.ResourceNotFoundError:
+                    print('Action "%s" is not found.' % args.name_or_id)
                 except Exception as e:
-                    print 'Action "%s" is not found.' % args.name_or_id
+                    print('ERROR: Unable to print help for action "%s". %s' %
+                          (args.name_or_id, e.message))
             else:
                 self.parser.print_help()
             return True
         return False
 
-    def run_and_print(self, args):
+    def run_and_print(self, args, **kwargs):
         if self.print_help(args):
             return
         # Execute the action.
-        instance = self.run(args)
+        instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
                           attributes=['all'], json=args.json)
 
@@ -108,8 +145,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
     display_attributes = ['id', 'action.name', 'status', 'start_timestamp']
 
     def __init__(self, resource, *args, **kwargs):
-        super(ActionExecutionListCommand, self).__init__(resource, 'list',
-            'Get the list of the 50 most recent %s.' %
+        super(ActionExecutionListCommand, self).__init__(
+            resource, 'list', 'Get the list of the 50 most recent %s.' %
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
@@ -133,7 +170,7 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
-    def run(self, args):
+    def run(self, args, **kwargs):
         filters = dict()
         if args.action_name:
             filters['action_name'] = args.action_name
@@ -142,8 +179,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         return (self.manager.query(limit=args.last, **filters)
                 if filters else self.manager.get_all(limit=args.last))
 
-    def run_and_print(self, args):
-        instances = self.run(args)
+    def run_and_print(self, args, **kwargs):
+        instances = self.run(args, **kwargs)
         self.print_output(instances, table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json)
@@ -154,7 +191,8 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
     display_attributes = ['all']
 
     def __init__(self, resource, *args, **kwargs):
-        super(ActionExecutionGetCommand, self).__init__(resource, 'get',
+        super(ActionExecutionGetCommand, self).__init__(
+            resource, 'get',
             'Get individual %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
@@ -170,12 +208,12 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
-    def run(self, args):
+    def run(self, args, **kwargs):
         return self.manager.get_by_id(args.id)
 
-    def run_and_print(self, args):
+    def run_and_print(self, args, **kwargs):
         try:
-            instance = self.run(args)
+            instance = self.run(args, **kwargs)
             self.print_output(instance, table.PropertyValueTable,
                               attributes=args.attr, json=args.json)
         except ResourceNotFoundError as e:
@@ -185,7 +223,8 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
 class ActionExecutionCancelCommand(resource.ResourceCommand):
 
     def __init__(self, resource, *args, **kwargs):
-        super(ActionExecutionCancelCommand, self).__init__(resource, 'cancel',
+        super(ActionExecutionCancelCommand, self).__init__(
+            resource, 'cancel',
             'Cancels an %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
@@ -195,8 +234,8 @@ class ActionExecutionCancelCommand(resource.ResourceCommand):
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
-    def run(self, args):
+    def run(self, args, **kwargs):
         raise NotImplementedError
 
-    def run_and_print(self, args):
+    def run_and_print(self, args, **kwargs):
         raise NotImplementedError

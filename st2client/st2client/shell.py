@@ -90,9 +90,12 @@ class Shell(object):
         self.commands['action'] = action.ActionBranch(
             'An activity that happens as a response to the external event.',
             self, self.subparsers)
+        self.commands['runner'] = resource.ResourceBranch(
+            models.RunnerType,
+            'Runner is a type of handler for a specific class of actions.',
+            self, self.subparsers, read_only=True)
         self.commands['run'] = action.ActionRunCommand(
-            models.Action, self, self.subparsers,
-            name='run', add_help=False)
+            models.Action, self, self.subparsers, name='run', add_help=False)
         self.commands['execution'] = action.ActionExecutionBranch(
             'An invocation of an action.',
             self, self.subparsers)
@@ -118,7 +121,7 @@ class Shell(object):
             self.client = self.get_client(args)
 
             # Execute command.
-            args.func(args)
+            args.func(args, argv=argv)
 
             return 0
         except Exception as e:

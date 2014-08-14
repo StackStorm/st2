@@ -7,9 +7,10 @@ LOG = logging.getLogger(__name__)
 
 
 class RunnerType(core.Resource):
-    _display_name = 'Runner Type'
+    _alias = 'Runner'
+    _display_name = 'Runner'
     _plural = 'RunnerTypes'
-    _plural_display_name = 'Runner Types'
+    _plural_display_name = 'Runners'
 
 
 class Action(core.Resource):

@@ -107,11 +107,11 @@ class ResourceListCommand(ResourceCommand):
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
-    def run(self, args):
+    def run(self, args, **kwargs):
         return self.manager.get_all()
 
-    def run_and_print(self, args):
-        instances = self.run(args)
+    def run_and_print(self, args, **kwargs):
+        instances = self.run(args, **kwargs)
         self.print_output(instances, table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json)
@@ -139,12 +139,12 @@ class ResourceGetCommand(ResourceCommand):
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
-    def run(self, args):
+    def run(self, args, **kwargs):
         return self.get_resource(args.name_or_id)
 
-    def run_and_print(self, args):
+    def run_and_print(self, args, **kwargs):
         try:
-            instance = self.run(args)
+            instance = self.run(args, **kwargs)
             self.print_output(instance, table.PropertyValueTable,
                               attributes=args.attr, json=args.json)
         except ResourceNotFoundError as e:
@@ -165,7 +165,7 @@ class ResourceCreateCommand(ResourceCommand):
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
-    def run(self, args):
+    def run(self, args, **kwargs):
         if not os.path.isfile(args.file):
             raise Exception('File "%s" does not exist.' % args.file)
         with open(args.file, 'r') as f:
@@ -173,8 +173,8 @@ class ResourceCreateCommand(ResourceCommand):
             instance = self.resource.deserialize(data)
             return self.manager.create(instance)
 
-    def run_and_print(self, args):
-        instance = self.run(args)
+    def run_and_print(self, args, **kwargs):
+        instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
                           attributes=['all'], json=args.json)
 
@@ -197,7 +197,7 @@ class ResourceUpdateCommand(ResourceCommand):
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
-    def run(self, args):
+    def run(self, args, **kwargs):
         if not os.path.isfile(args.file):
             raise Exception('File "%s" does not exist.' % args.file)
         instance = self.get_resource(args.name_or_id)
@@ -214,8 +214,8 @@ class ResourceUpdateCommand(ResourceCommand):
                                     self.resource.get_display_name().lower())
             return self.manager.update(modified_instance)
 
-    def run_and_print(self, args):
-        instance = self.run(args)
+    def run_and_print(self, args, **kwargs):
+        instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
                           attributes=['all'], json=args.json)
 
@@ -232,12 +232,12 @@ class ResourceDeleteCommand(ResourceCommand):
                                  help=('Name or ID of the %s.' %
                                        resource.get_display_name().lower()))
 
-    def run(self, args):
+    def run(self, args, **kwargs):
         instance = self.get_resource(args.name_or_id)
         self.manager.delete(instance)
 
-    def run_and_print(self, args):
+    def run_and_print(self, args, **kwargs):
         try:
-            instance = self.run(args)
+            instance = self.run(args, **kwargs)
         except ResourceNotFoundError as e:
             self.print_not_found(args.name)

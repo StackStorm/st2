@@ -40,7 +40,7 @@ class Command(object):
         self.parser.set_defaults(func=self.run_and_print)
 
     @abc.abstractmethod
-    def run(self, args):
+    def run(self, args, **kwargs):
         """
         This method should be invoked from run_and_print. The separation of run
         is to let the core logic be testable.
@@ -48,7 +48,7 @@ class Command(object):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def run_and_print(self, args):
+    def run_and_print(self, args, **kwargs):
         """
         This method is invoked when the corresponding command is executed
         from the command line.
