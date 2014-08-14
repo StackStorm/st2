@@ -54,7 +54,7 @@ class JIRASensor(object):
             for proj in self._jira_client.projects():
                 if proj.key not in self._projects_available:
                     self._dispatch_trigger(proj)
-                    self._projects_available.add(proj)
+                    self._projects_available.add(proj.key)
             time.sleep(self._sleep_time)
 
     def stop(self):
