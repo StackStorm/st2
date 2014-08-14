@@ -30,6 +30,8 @@ class Client(object):
 
         # Instantiate resource managers and assign appropriate API endpoint.
         self.managers = dict()
+        self.managers['RunnerType'] = models.ResourceManager(
+            models.RunnerType, self.endpoints['action'])
         self.managers['Action'] = models.ResourceManager(
             models.Action, self.endpoints['action'])
         self.managers['ActionExecution'] = models.ResourceManager(
@@ -40,6 +42,10 @@ class Client(object):
             models.Trigger, self.endpoints['reactor'])
         self.managers['KeyValuePair'] = models.ResourceManager(
             models.KeyValuePair, self.endpoints['datastore'])
+
+    @property
+    def runners(self):
+        return self.managers['RunnerType']
 
     @property
     def actions(self):
