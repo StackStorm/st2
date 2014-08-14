@@ -1,9 +1,16 @@
+# Requirements
+# pip install jira
+
+try:
+    import simplejson as json
+except ImportError:
+    import json
 import os
 import time
 
 from jira.client import JIRA
 
-RSA_CERT_FILE = '/home/vagrant/jira.pem'
+CONFIG_FILE = './jira_config.json'
 
 
 class JIRASensor(object):
@@ -23,22 +30,29 @@ class JIRASensor(object):
         self._access_secret = u''
         self._projects_available = None
         self._sleep_time = 30
+        self._config = None
 
     def _read_cert(self, file_path):
         with open(file_path) as f:
             return f.read()
 
-    def setup(self):
-        global RSA_CERT_FILE
-        if not os.path.exists(RSA_CERT_FILE):
-            raise Exception('Cert file for JIRA OAuth not found at %s.' % RSA_CERT_FILE)
+    def _parse_config(self):
+        global CONFIG_FILE
+        if not os.path.exists(CONFIG_FILE):
+            raise Exception('Config file %s not found.' % CONFIG_FILE)
+        with open(CONFIG_FILE) as f:
+            self._config = json.load(f)
+        rsa_cert_file = self._config['rsa_cert_file']
+        if not os.path.exists(rsa_cert_file):
+            raise Exception('Cert file for JIRA OAuth not found at %s.' % rsa_cert_file)
+        self._rsa_key = self._read_cert(rsa_cert_file)
 
-        # The contents of the rsa.pem file generated (the private RSA key)
-        self._rsa_key = self._read_cert(RSA_CERT_FILE)
+    def setup(self):
+        self._parse_config()
         oauth_creds = {
-            'access_token': self._access_token,
-            'access_token_secret': self._access_secret,
-            'consumer_key': self._consumer_key,
+            'access_token': self._config['oauth_token'],
+            'access_token_secret': self._config['oauth_secret'],
+            'consumer_key': self._config['consumer_key'],
             'key_cert': self._rsa_key
         }
 
