@@ -1,0 +1,33 @@
+#!/usr/bin/python
+
+import os, sys, requests, json
+
+sys.argv.pop(0)
+
+data = {}
+payload = {}
+payload['source']=sys.argv[0]
+sys.argv.pop(0)
+payload['name']=sys.argv[0]
+sys.argv.pop(0)
+
+args = ' '.join(map(str,sys.argv))
+
+try:
+  json.loads(args)
+  payload['msg'] = args   
+except ValueError, e:
+  payload['msg'] = json.dumps({'std_out': args})
+
+host="st2chat"
+port="8080"
+ep="/stormbot/st2"
+url='http://'+host+':'+port+ep
+
+headers = {'content-type': 'application/json'}
+
+data['payload'] = payload
+r = requests.post(url,data=json.dumps(data),headers=headers)
+
+print r.text
+

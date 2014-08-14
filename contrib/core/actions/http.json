@@ -1,0 +1,24 @@
+{
+    "name": "http",
+    "runner_type": "http-runner",
+    "description": "Action that performs an http request.",
+    "enabled": true,
+    "entry_point":"",
+    "parameters": {
+        "method": {
+            "enum": ["GET", "POST", "PUT", "DELETE"]
+        },
+        "timeout": {
+            "type": "integer"
+        },
+        "auth": {
+            "type": "string"
+        },
+        "headers": {
+            "type": "string"
+        },
+        "params": {
+            "type":"string"
+        }
+    }
+}
