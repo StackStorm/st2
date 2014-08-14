@@ -1,0 +1,33 @@
+{
+    "name": "jira-create-issue",
+    "runner_type": "remote-exec-sysuser",
+    "description": "Create JIRA issue action.",
+    "enabled": true,
+    "entry_point": "jira/create_issue.py",
+    "parameters": {
+        "jira_server": {
+            "type": "string"
+        },
+        "oauth_token": {
+            "type": "string"
+        },
+        "oauth_token_secret": {
+            "type": "string"
+        },
+        "consumer_key": {
+            "type": "string"
+        },
+        "project_name": {
+            "type": "string"
+        },
+        "issue_summary": {
+            "type": "string"
+        },
+        "issue_description": {
+            "type": "string"
+        },
+        "issue_type": {
+            "type": "string"
+        }
+    }
+}
