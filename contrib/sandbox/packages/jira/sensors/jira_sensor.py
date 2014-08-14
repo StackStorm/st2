@@ -31,7 +31,7 @@ class JIRASensor(object):
     def setup(self):
         global RSA_CERT_FILE
         if not os.path.exists(RSA_CERT_FILE):
-            raise Exception('Cert file required for JIRA OAuth.')
+            raise Exception('Cert file for JIRA OAuth not found at %s.' % RSA_CERT_FILE)
 
         # The contents of the rsa.pem file generated (the private RSA key)
         self._rsa_key = self._read_cert(RSA_CERT_FILE)
@@ -77,4 +77,3 @@ class JIRASensor(object):
         payload['project_url'] = proj.self
         trigger['payload'] = payload
         self._container_service.dispatch(trigger)
-

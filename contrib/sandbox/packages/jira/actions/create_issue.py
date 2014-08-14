@@ -53,7 +53,7 @@ def _parse_args(args):
 
 def _get_jira_client(params):
     if not os.path.exists(RSA_CERT_FILE):
-        raise Exception('Cert file required for JIRA OAuth.')
+        raise Exception('Cert file for JIRA OAuth not found at %s.' % RSA_CERT_FILE)
     rsa_key = _read_cert(RSA_CERT_FILE)
     oauth_creds = {
         'access_token': params['oauth_token'],
