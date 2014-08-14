@@ -1,0 +1,17 @@
+{
+    "name": "docker-build-image",
+    "runner_type": "remote-exec-sysuser",
+    "description": "Build docker image action. Equivalent to docker build.",
+    "enabled": true,
+    "entry_point": "docker/docker_build_image.py",
+    "parameters": {
+        "dockerfile_path": {
+            "type": "string",
+            "description": "Local dir containing Dockerfile or local path to Dockerfile or remote url."
+        },
+        "tag": {
+            "type": "string",
+            "description": "Tag to use for this image"
+        }
+    }
+}
