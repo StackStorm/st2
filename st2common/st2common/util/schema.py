@@ -8,7 +8,7 @@ cfg.CONF.import_opt('draft', 'st2common.config', group='schema')
 
 # https://github.com/json-schema/json-schema/blob/master/draft-04/schema
 # The source material is licensed under the AFL or BSD license.
-draft4_schema = {
+SCHEMA_DRAFT4 = {
     "id": "http://json-schema.org/draft-04/schema#",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "description": "Core schema meta-schema",
@@ -160,8 +160,20 @@ draft4_schema = {
 }
 
 
+SCHEMA_ANY_TYPE = {
+    "anyOf": [
+        {"type": "array"},
+        {"type": "boolean"},
+        {"type": "integer"},
+        {"type": "number"},
+        {"type": "object"},
+        {"type": "string"}
+    ]
+}
+
+
 def get_draft_schema():
-    return draft4_schema
+    return SCHEMA_DRAFT4
 
 
 def get_validator():
@@ -173,10 +185,10 @@ def get_parameter_schema(model):
     schema = {"$schema": cfg.CONF.schema.draft}
     from st2common.util.action_db import get_runnertype_by_name
     runner_type = get_runnertype_by_name(model.runner_type['name'])
-    runner_params = [(k, v) for k, v in runner_type.runner_parameters.iteritems() if v]
-    params = [(k, v) for k, v in model.parameters.iteritems() if v]
     required = list(set(runner_type.required_parameters + model.required_parameters))
-    properties = runner_params + params
+    normalize = lambda x: {k: v if v else SCHEMA_ANY_TYPE for k, v in x.iteritems()}
+    properties = normalize(runner_type.runner_parameters)
+    properties.update(normalize(model.parameters))
     if properties:
         schema['title'] = model.name
         schema['description'] = model.description
@@ -184,9 +196,7 @@ def get_parameter_schema(model):
         schema['properties'] = dict()
         schema['required'] = required
         schema['additionalProperties'] = False
-        for p in properties:
-            name = p[0]
-            metadata = p[1]
+        for name, metadata in properties.iteritems():
             if name not in schema['properties']:
                 schema['properties'][name] = metadata
     return schema

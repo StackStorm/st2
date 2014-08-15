@@ -48,6 +48,18 @@ ACTION_2 = {
     }
 }
 
+ACTION_3 = {
+    'name': 'st2.dummy.action3',
+    'description': 'another test description',
+    'enabled': True,
+    'entry_point': '/tmp/test/action3.sh',
+    'runner_type': 'shell',
+    'parameters': {
+        'e': {},
+        'f': {}
+    }
+}
+
 ACTION_EXECUTION_1 = {
     'action': {'name': 'st2.dummy.action1'},
     'parameters': {
@@ -61,6 +73,16 @@ ACTION_EXECUTION_2 = {
         'cmd': 'ls -l'
     }
 }
+
+ACTION_EXECUTION_3 = {
+    'action': {'name': 'st2.dummy.action3'},
+    'parameters': {
+        'cmd': 'ls -l',
+        'e': 'abcde',
+        'f': 12345
+    }
+}
+
 
 class FakeResponse(object):
 
@@ -87,6 +109,9 @@ class TestActionExecutionsController(FunctionalTest):
         cls.action2 = copy.copy(ACTION_2)
         post_resp = cls.app.post_json('/actions', cls.action2)
         cls.action2['id'] = post_resp.json['id']
+        cls.action3 = copy.copy(ACTION_3)
+        post_resp = cls.app.post_json('/actions', cls.action3)
+        cls.action3['id'] = post_resp.json['id']
 
     @classmethod
     def tearDownClass(cls):
@@ -232,6 +257,11 @@ class TestActionExecutionsController(FunctionalTest):
         execution['parameters'] = {"cmd": 1000}
         post_resp = self.__do_post(execution, expect_errors=True)
         self.assertEquals(post_resp.status_int, 400)
+
+        # Runner type permits parameters with no metadata.
+        execution = copy.copy(ACTION_EXECUTION_3)
+        post_resp = self.__do_post(execution, expect_errors=False)
+        self.assertEquals(post_resp.status_int, 201)
 
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
