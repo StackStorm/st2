@@ -1,0 +1,11 @@
+{
+    "url": "unix://var/run/docker.sock",
+    "version": "1.13",
+    "timeout": 10,
+    "build_options": {
+        "rm": false,
+        "quiet": false,
+        "nocache": false,
+        "timeout": 10
+    }
+}
