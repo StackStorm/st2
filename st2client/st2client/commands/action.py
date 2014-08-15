@@ -1,6 +1,11 @@
 import copy
+import json
 import logging
 import textwrap
+import time
+import sys
+
+from st2common.models.api import action as act
 
 from st2client import models
 from st2client.commands import resource
@@ -46,6 +51,13 @@ class ActionRunCommand(resource.ResourceCommand):
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
 
+        if self.name == 'run':
+            self.parser.add_argument('-a', '--async',
+                                     action='store_true', dest='async',
+                                     help='Do not wait for action to finish.')
+        else:
+            self.parser.set_defaults(async=True)
+
     def run(self, args, **kwargs):
         if not args.name_or_id:
             self.parser.error('too few arguments')
@@ -66,7 +78,20 @@ class ActionRunCommand(resource.ResourceCommand):
                 execution.parameters['cmd'] = ' '.join(args.parameters[idx:])
                 break
         action_exec_mgr = self.app.client.managers['ActionExecution']
-        return action_exec_mgr.create(execution)
+        execution = action_exec_mgr.create(execution)
+
+        if not args.async:
+            while execution.status == act.ACTIONEXEC_STATUS_SCHEDULED \
+                    or execution.status == act.ACTIONEXEC_STATUS_RUNNING:
+                time.sleep(1)
+                sys.stdout.write('.')
+                execution = action_exec_mgr.get_by_id(execution.id)
+
+            sys.stdout.write('\n')
+
+            execution.result = json.loads(execution.result)
+
+        return execution
 
     @staticmethod
     def print_param(name, schema):
@@ -124,6 +149,10 @@ class ActionRunCommand(resource.ResourceCommand):
         instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
                           attributes=['all'], json=args.json)
+        if args.async:
+            self.print_output('To get the results, execute: \n'
+                              '    $ st2 execution get %s' % instance.id,
+                              unicode)
 
 
 class ActionExecutionBranch(resource.ResourceBranch):
