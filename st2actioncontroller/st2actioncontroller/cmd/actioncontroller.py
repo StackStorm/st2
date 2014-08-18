@@ -3,7 +3,7 @@ import os
 import sys
 
 from oslo.config import cfg
-from wsgiref import simple_server
+from eventlet import wsgi
 
 from st2common import log as logging
 from st2common.models.db import db_setup
@@ -62,12 +62,10 @@ def __run_server():
     host = cfg.CONF.action_controller_api.host
     port = cfg.CONF.action_controller_api.port
 
-    server = simple_server.make_server(host, port, app.setup_app())
-
     LOG.info("action API is serving on http://%s:%s (PID=%s)",
              host, port, os.getpid())
 
-    server.serve_forever()
+    wsgi.server(eventlet.listen((host, port)), app.setup_app())
 
 
 def __teardown():
