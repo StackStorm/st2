@@ -142,7 +142,7 @@ def _run_sensors(sensors_dict):
                     LOG.warning('No trigger type registered by sensor %s in file %s',
                                 sensor_class, filename)
                 else:
-                    container_utils.add_trigger_types(trigger_types)
+                    container_utils.add_trigger_models(trigger_types)
             except TriggerTypeRegistrationException as e:
                 LOG.warning('Unable to register trigger type for sensor %s in file %s.'
                             + ' Exception: %s', sensor_class, filename, e, exc_info=True)

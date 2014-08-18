@@ -184,7 +184,7 @@ class TriggerController(RestController):
         LOG.info('POST /triggers/ with trigger data=%s', trigger)
 
         try:
-            trigger_db = TriggerService.create_trigger(trigger)
+            trigger_db = TriggerService.create_trigger_db(trigger)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s.', trigger)
             abort(httplib.BAD_REQUEST, str(e))
