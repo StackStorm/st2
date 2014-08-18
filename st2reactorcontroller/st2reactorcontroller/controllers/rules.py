@@ -1,14 +1,15 @@
 import httplib
+
 import wsmeext.pecan as wsme_pecan
 from mongoengine import ValidationError, NotUniqueError
-from pecan import abort, expose, request
+from pecan import abort
 from pecan.rest import RestController
+
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.reactor import RuleAPI, RuleEnforcementAPI, TriggerAPI
-from st2common.models.db.reactor import RuleDB
 from st2common.models.base import jsexpose
-from st2common.persistence.reactor import Rule, RuleEnforcement, TriggerType, Trigger
+from st2common.persistence.reactor import Rule, RuleEnforcement
 from st2common.util import reference
 from st2reactorcontroller.service import triggers as TriggerService
 from wsme import types as wstypes
@@ -62,7 +63,7 @@ class RuleController(RestController):
         try:
             rule_db = RuleAPI.to_model(rule)
 
-            trigger_db = TriggerService.create_trigger(TriggerAPI(**rule.trigger))
+            trigger_db = TriggerService.create_trigger_db(TriggerAPI(**rule.trigger))
 
             rule_db.trigger = reference.get_ref_from_model(trigger_db)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
@@ -99,7 +100,7 @@ class RuleController(RestController):
             rule_db = RuleAPI.to_model(rule)
             rule_db.id = rule_id
 
-            trigger_db = TriggerService.create_trigger(TriggerAPI(**rule.trigger))
+            trigger_db = TriggerService.create_trigger_db(TriggerAPI(**rule.trigger))
             rule_db.trigger = reference.get_ref_from_model(trigger_db)
 
             rule_db = Rule.add_or_update(rule_db)
@@ -128,7 +129,8 @@ class RuleController(RestController):
         try:
             Rule.delete(rule_db)
         except Exception:
-            LOG.exception('Database delete encountered exception during delete of id="%s". ', rule_id)
+            LOG.exception('Database delete encountered exception ' +
+                          'during delete of id="%s". ', rule_id)
 
     @staticmethod
     def __get_by_id(rule_id):
@@ -183,6 +185,6 @@ class RuleEnforcementController(RestController):
         """
         LOG.info('GET all /ruleenforcements/')
         rule_enforcement_apis = [RuleEnforcementAPI.from_model(ruleenforcement_db)
-                                for ruleenforcement_db in RuleEnforcement.get_all()]
+                                 for ruleenforcement_db in RuleEnforcement.get_all()]
         LOG.debug('GET all /ruleenforcements/ client_result=%s', rule_enforcement_apis)
         return rule_enforcement_apis
