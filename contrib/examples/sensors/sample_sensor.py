@@ -38,3 +38,13 @@ class SimpleSensor(object):
             'name': 'st2.foo.sensor',
             'payload_schema': {'k1', 'k2'}
         }]
+
+    # Methods required for programmable sensors.
+    def add_trigger(self, trigger):
+        pass
+
+    def update_trigger(self, trigger):
+        pass
+
+    def remove_trigger(self, trigger):
+        pass

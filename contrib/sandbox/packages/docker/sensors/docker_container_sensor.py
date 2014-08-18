@@ -71,13 +71,21 @@ class DockerSensor(object):
             }
         ]
 
+    def add_trigger(self, trigger):
+        pass
+
+    def update_trigger(self, trigger):
+        pass
+
+    def remove_trigger(self, trigger):
+        pass
+
     def _dispatch_trigger(self, container):
         trigger = {}
         trigger['name'] = 'st2.docker.container_tracker'
         payload = {}
         payload['container_info'] = container
-        trigger['payload'] = payload
-        self._container_service.dispatch(trigger)
+        self._container_service.dispatch(trigger, payload)
 
     def _get_active_containers(self):
         opts = self._ps_opts
