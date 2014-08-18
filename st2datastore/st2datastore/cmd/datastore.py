@@ -3,12 +3,13 @@ import os
 import sys
 
 from oslo.config import cfg
+from eventlet import wsgi
+
 from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2datastore import app
 from st2datastore import config
-from wsgiref import simple_server
 
 
 eventlet.monkey_patch(
@@ -39,12 +40,10 @@ def __run_server():
     host = cfg.CONF.datastore_api.host
     port = cfg.CONF.datastore_api.port
 
-    server = simple_server.make_server(host, port, app.setup_app())
-
     LOG.info("Datastore API is serving on http://%s:%s (PID=%s)",
              host, port, os.getpid())
 
-    server.serve_forever()
+    wsgi.server(eventlet.listen((host, port)), app.setup_app())
 
 
 def __teardown():
