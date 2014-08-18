@@ -2,83 +2,18 @@
 // Prototype stackstorm hubot integration
 //
 // Commands:
-//   hubot some <command> [<argument>, ...] - calls out to run the shell staction.
+//   hubot run <command> [<argument>, ...] - calls out to run the shell staction.
 'use strict';
 
 var _ = require('lodash')
   , rsvp = require('rsvp');
 
-var CONN_ERRORS = {
-  'ECONNREFUSED': function(err) {
-    return 'Connection has been refused. Check if other components are running as well. [' + err.code + ']';
-  },
-  'ECONNRESET': function(err) {
-    return 'Remote server abruptly closed its end of the connection. Check if other components ' + ('throw an error too. [' + err.code + ']');
-  },
-  'default': function(err) {
-    return 'Something gone terribly wrong. [' + err.code + ']';
-  }
-};
-
-var PUBLISHERS = {
-  'remote-exec-sysuser': function(actionExecution, msg, adapterName) {
-    return publishMultiHostResult(actionExecution, msg, adapterName);
-  },
-  'internaldummy-builtin': function(actionExecution, msg, adapterName) {
-    return publishLocalResult(actionExecution, msg, adapterName);
-  },
-  'internaldummy': function(actionExecution, msg, adapterName) {
-    return publishLocalResult(actionExecution, msg, adapterName);
-  },
-  'shell': function(actionExecution, msg, adapterName) {
-    return publishLocalResult(actionExecution, msg, adapterName);
-  }
-};
-
-var getPublishHeader = function(actionExecution, adapterName) {
-  var message;
-  message = (adapterName !== null ? adapterName.toLowerCase() : void 0) === 'hipchat' ? '/code' : '';
-  return '' + message + ' STATUS: ' + actionExecution.status + '\n';
-};
-
-var publishMultiHostResult = function(actionExecution, msg, adapterName) {
-  var host, hostResult, message, result, _ref, _ref1;
-  result = JSON.parse(actionExecution.result);
-  message = getPublishHeader(actionExecution, adapterName);
-  for (host in result) {
-    hostResult = result[host];
-    message = '' + message + 'Result for \'' + host + '\'\n';
-    if ((_ref = hostResult.stdout) !== null ? _ref.length : void 0) {
-      message = '' + message + '  STDOUT: ' + hostResult.stdout + '\n';
-    }
-    if ((_ref1 = hostResult.stderr) !== null ? _ref1.length : void 0) {
-      message = '' + message + '  STDERR: ' + hostResult.stderr + '\n';
-    }
-    message = '' + message + '  EXIT_CODE: ' + hostResult.return_code + '\n';
-  }
-  return msg.send(message);
-};
-
-var publishLocalResult = function(action_execution, msg, adapterName) {
-  var message, result, _ref, _ref1;
-  result = JSON.parse(action_execution.result);
-  message = getPublishHeader(action_execution, adapterName);
-  if (((_ref = result.std_out) !== null ? _ref.length : void 0) > 0) {
-    message = '' + message + ' STDOUT: ' + result.std_out + '\n';
-  }
-  if (((_ref1 = result.std_err) !== null ? _ref1.length : void 0) > 0) {
-    message = '' + message + ' STDERR: ' + result.std_err + '\n';
-  }
-  message = '' + message + ' EXIT_CODE: ' + result.exit_code;
-  return msg.send(message);
-};
-
-var parseArgs = function(scheme, argstr) {
+var parseArgs = function(schema, argstr) {
   var arg, args, i, _i, _len, _ref;
-  if (scheme === null) {
-    scheme = [];
+  if (!schema) {
+    schema = {};
   }
-  if (argstr === null) {
+  if (!argstr) {
     argstr = '';
   }
   args = argstr.match(/([''])(?:(?!\1)[^\\]|\\.)*\1|(\S)+/g) || [];
@@ -88,7 +23,7 @@ var parseArgs = function(scheme, argstr) {
       args[i] = arg.slice(1, -1).replace(/\\(.)/mg, '$1');
     }
   }
-  return _.zipObject(scheme, args);
+  return _.zipObject(_.keys(schema), args);
 };
 
 var formatCommand = function(command) {
@@ -104,8 +39,205 @@ var formatCommand = function(command) {
 
 module.exports = function(robot) {
 
-  var actionsPromise, errorHandler, httpclient, httpclients;
+  // Handle uncaught exceptions
+  robot.error(function(err) {
+    return robot.logger.error('Uncaught exception:', err);
+  });
 
+
+  // Promise helper for HTTP requests.
+  var promiseMe = function (target) {
+    return new rsvp.Promise(function (ok, fail) {
+      target(function (err, res, body) {
+
+        if (err) {
+          fail(err);
+        }
+
+        if (res.statusCode >= 400) {
+          fail(res.req.method + ' ' + res.req.path +
+            ' resulted in error status code ' + res.statusCode);
+        }
+
+        try {
+          body = JSON.parse(body);
+        } catch (err) {
+          fail(err);
+        }
+
+        ok({
+          res: res,
+          body: body
+        });
+
+      });
+    });
+  };
+
+
+  var client = robot.http('http://172.168.50.50:9101');
+
+
+  // Figure out format. Since we're not going to change adapter at runtime, we can pick proper
+  // format once during initialization and use it throughout the livetime of the script.
+  var baseFormat = function (execution) {
+    var template = [
+      'STATUS: ${status}',
+      '<% _.forEach(result, function(host, hostname) { %>',
+      'Results for ${hostname}',
+      '  STDOUT: ${host.stdout}',
+      '  STDERR: ${host.stderr}',
+      '  EXIT CODE: ${host.return_code}',
+      '<% }); %>'
+    ].join('\n');
+
+    var result = JSON.parse(execution.result);
+
+    return _.template(template, {
+      status: execution.status,
+      result: result
+    });
+  };
+
+  var hipchatFormat = function () {
+    return '/code ' + baseFormat.apply(this, arguments);
+  };
+
+  var format = {
+    'hipchat': hipchatFormat
+  }[robot.adapterName.toLowerCase()] || baseFormat;
+
+
+  // Populate help with Stanley's actions.
+  rsvp.all([
+    promiseMe(client.scope('/actions').get()),
+    promiseMe(client.scope('/runnertypes').get())
+  ]).then(function (d) {
+
+    d = _.zipObject(['actions', 'types'], d);
+
+    _.each(d.actions.body, function (action) {
+
+      var runner = _.find(d.types.body, function (type) {
+        return type.name === action.runner_type;
+      });
+
+      action.parameters = _({})
+        .assign(runner.runner_parameters)
+        .assign(action.parameters)
+        .value();
+
+      robot.commands.push(formatCommand(action));
+
+    });
+
+  }).catch(function (err) {
+    robot.emit('error', err);
+  });
+
+
+  // Handle `run` command
+  robot.respond(/run\s+(\S+)\s*(.*)?/i, function (msg) {
+
+    var command = msg.match[1]
+      , args = msg.match[2]
+      ;
+
+    promiseMe(client.scope('/actions').get()).then(function (data) {
+      // Looks for the action requested
+
+      var action = _.find(data.body, function (e) {
+        return e.name === command;
+      });
+
+      if (!action) {
+        throw new Error('Action not found: ' + command);
+      }
+
+      return action;
+
+    }).then(function (action) {
+      // Requests for the runner type for the action
+
+      return promiseMe(client.scope('/runnertypes/').query('name', action.runner_type).get())
+        .then(function (type) {
+          // Extends action's parameters with the ones defined by runner
+
+          client.query('name');
+
+          action.parameters = _({})
+            .assign(type.body[0].runner_parameters)
+            .assign(action.parameters)
+            .value();
+
+          return action;
+
+        });
+
+    }).then(function (action) {
+      // Prepares payload for ActionExecution
+
+      var expectedParams = _.clone(_.mapValues(action.parameters, 'default'))
+        , actualParams = parseArgs(expectedParams, args);
+
+      var payload = {
+        action: { 'name': action.name },
+        parameters: _({}).assign(expectedParams).assign(actualParams).value()
+      };
+
+      return payload;
+
+    }).then(function (payload) {
+      // Creates ActionExecution
+
+      return promiseMe(client.scope('/actionexecutions/').post(JSON.stringify(payload)));
+
+    }).then(function (execution) {
+      // Tries to get the results of the execution until either the action is finished or when
+      // there is no more retries left.
+
+      var RETRY = 10
+        , TIMEOUT = 1000
+        ;
+
+      var retry = function (retries) {
+        return new rsvp.Promise(function (ok, fail) {
+          setTimeout(function () {
+
+            promiseMe(client.scope('/actionexecutions/' + execution.body.id).get())
+              .then(function (execution) {
+                // Fetches the results for execution
+
+                if (execution.body.status !== 'error' && execution.body.status !== 'complete') {
+                  if (retries) {
+                    process.stdout.write('.');
+                    return retry(--retries);
+                  }
+                }
+
+                return execution.body;
+
+              }).then(ok).catch(fail);
+
+          }, TIMEOUT);
+        });
+      };
+
+      return retry(RETRY);
+
+    }).then(function (execution) {
+      // Format results
+
+      return msg.send(format(execution));
+
+    }).catch(function (err) {
+      robot.emit('error', err);
+    });
+
+  });
+
+
+  // Listen HTTP endpoint for incoming commands
   robot.router.post('/stormbot/st2', function(req, res) {
     var data, user;
     user = {};
@@ -120,128 +252,4 @@ module.exports = function(robot) {
     }
   });
 
-  robot.error(function(err) {
-    return robot.logger.error('Uncaught exception:', err);
-  });
-
-  errorHandler = function(err) {
-    if (err) {
-      return robot.logger.error((CONN_ERRORS[err.code] || CONN_ERRORS['default'])(err));
-    }
-  };
-
-  httpclient = robot.http('http://172.168.50.50:9101');
-
-  httpclients = {
-    actions: httpclient.scope('/actions'),
-    actionexecutions: httpclient.scope('/actionexecutions')
-  };
-
-  actionsPromise = new rsvp.Promise(function(resolve, reject) {
-    return httpclients.actions.get(errorHandler)(function(err, res, body) {
-      var actions, obj;
-      if (err) {
-        return reject(err);
-      }
-      actions = JSON.parse(body);
-      obj = _.zipObject(_.map(actions, 'name'), actions);
-      robot.brain.set('actions', obj);
-      return resolve(obj);
-    });
-  });
-
-  rsvp.hash({
-    actions: actionsPromise
-  }).then(function(d) {
-    var command, _name, _ref, _results;
-    _ref = d.actions;
-    _results = [];
-    for (_name in _ref) {
-      command = _ref[_name];
-      _results.push(robot.commands.push(formatCommand(command)));
-    }
-    return _results;
-  });
-
-  return robot.respond(/run\s+(\S+)\s*(.*)?/i, function(msg) {
-
-    var command, command_args, _ref;
-
-    _ref = msg.match.slice(1), command = _ref[0], command_args = _ref[1];
-
-    return rsvp.hash({
-      actions: actionsPromise
-    }).then(function(d) {
-
-      var action, actions, actualParams, expectedParams, payload, pullResults;
-
-      actions = d.actions;
-
-      if (!(action = actions[command])) {
-        msg.send('No such action: ' + command);
-        return;
-      }
-
-      expectedParams = _({}).assign(action.parameters);
-      actualParams = parseArgs(expectedParams.keys().value(), command_args);
-
-      payload = {
-        action: action,
-        parameters: _({}).assign(expectedParams.value()).assign(actualParams).value()
-      };
-
-      httpclients.actionexecutions.header('Content-Type', 'application/json').post(JSON.stringify(payload), errorHandler)(function(err, res, body) {
-
-        var action_execution;
-
-        action_execution = JSON.parse(body);
-
-        if (res.statusCode !== 201) {
-          msg.send('Action has failed to run');
-          return;
-        }
-
-        if (action_execution.status === 'scheduled') {
-          setTimeout(function() {
-            return pullResults(action_execution.id);
-          }, 1000);
-          return;
-        }
-
-        if (action_execution.status !== 'complete') {
-          msg.send('Action has failed to execute');
-          return;
-        }
-
-        action = actions[action_execution.action.name];
-
-        return PUBLISHERS[action.runner_type](action_execution, msg, robot.adapterName);
-      });
-
-      return pullResults = function(id) {
-        return httpclient.scope('/actionexecutions/' + id).get(errorHandler)(function(err, res, body) {
-
-          var action_execution;
-
-          action_execution = JSON.parse(body);
-
-          if (action_execution.status === 'scheduled' || action_execution.status === 'running') {
-            setTimeout(function() {
-              return pullResults(action_execution.id);
-            }, 1000);
-            return;
-          }
-
-          if (action_execution.status !== 'complete') {
-            msg.send('Action has failed to execute');
-            return;
-          }
-
-          action = actions[action_execution.action.name];
-
-          return PUBLISHERS[action.runner_type](action_execution, msg, robot.adapterName);
-        });
-      };
-    });
-  });
 };
