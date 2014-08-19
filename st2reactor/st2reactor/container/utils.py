@@ -9,13 +9,12 @@ LOG = logging.getLogger('st2reactor.sensor.container_utils')
 
 
 def create_trigger_instance(trigger, payload, occurrence_time):
-    trigger_ = TriggerService.get_trigger_db(trigger)
-    if trigger_ is None:
-        LOG.info('No trigger with name %s and parameters %s found.',
-                 trigger['type']['name'], trigger['parameters'])
+    trigger_db = TriggerService.get_trigger_db(trigger)
+    if trigger_db is None:
+        LOG.info('No trigger in db for %s', trigger)
         return None
     trigger_instance = TriggerInstanceDB()
-    trigger_instance.trigger = reference.get_ref_from_model(trigger_)
+    trigger_instance.trigger = reference.get_ref_from_model(trigger_db)
     trigger_instance.payload = payload
     trigger_instance.occurrence_time = occurrence_time
     return TriggerInstance.add_or_update(trigger_instance)
@@ -49,9 +48,10 @@ def _validate_trigger_type(trigger_type):
 
 def _create_trigger(trigger_type):
     if hasattr(trigger_type, 'parameters_schema') and not trigger_type['parameters_schema']:
-        trigger_db = TriggerService.get_trigger_db(trigger_type)
+        trigger_db = TriggerService.get_trigger_db(trigger_type.name)
         if trigger_db is None:
-            trigger_db = TriggerService.create_trigger_db(trigger_type)
+            trigger_dict = {'name': trigger_type.name, 'type': trigger_type.name}
+            trigger_db = TriggerService.create_trigger_db(trigger_dict)
         return trigger_db
     else:
         LOG.debug('Won\'t create Trigger object as TriggerType %s expects ' +
