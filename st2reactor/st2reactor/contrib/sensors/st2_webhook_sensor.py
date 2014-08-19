@@ -6,6 +6,7 @@ from flask import (jsonify, request, Flask)
 import flask_jsonschema
 from oslo.config import cfg
 
+HOST = cfg.CONF.st2_webhook_sensor.host
 PORT = cfg.CONF.st2_webhook_sensor.port
 BASE_URL = cfg.CONF.st2_webhook_sensor.url
 
@@ -43,13 +44,14 @@ class St2WebhookSensor(object):
     def __init__(self, container_service):
         self._container_service = container_service
         self._log = self._container_service.get_logger(self.__class__.__name__)
+        self._host = HOST
         self._port = PORT
 
     def setup(self):
         self._setup_flask_app()
 
     def start(self):
-        St2WebhookSensor._app.run(port=self._port)
+        St2WebhookSensor._app.run(port=self._port, host=self._host)
 
     def stop(self):
         # If Flask is using the default Werkzeug server, then call shutdown on it.
