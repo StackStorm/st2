@@ -64,7 +64,7 @@ class HttpRunner(ActionRunner):
     def _get_http_client(self, action_parameters):
         # XXX: Action context should be passed in and we need to add x-headers here.
         body = action_parameters.get(ACTION_BODY, None)
-        timeout = float(action_parameters.get(ACTION_TIMEOUT, None))
+        timeout = float(action_parameters.get(ACTION_TIMEOUT, self._timeout))
         method = action_parameters.get(ACTION_METHOD, 'GET')
         params = action_parameters.get(ACTION_QUERY_PARAMS, None)
         auth = action_parameters.get('ACTION_AUTH', {})

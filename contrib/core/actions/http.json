@@ -9,7 +9,8 @@
             "enum": ["GET", "POST", "PUT", "DELETE"]
         },
         "timeout": {
-            "type": "integer"
+            "type": "integer",
+            "default": 60
         },
         "auth": {
             "type": "string"
