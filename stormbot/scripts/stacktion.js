@@ -63,7 +63,7 @@ module.exports = function(robot) {
   };
 
 
-  var client = robot.http('http://172.168.50.50:9101');
+  var client = robot.http(process.env.HUBOT_STANLEY_URL || 'http://localhost:9101');
 
 
   // Figure out format. Since we're not going to change adapter at runtime, we can pick proper
