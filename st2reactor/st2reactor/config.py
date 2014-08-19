@@ -43,12 +43,14 @@ reactor_opts = [
 CONF.register_opts(reactor_opts, group='reactor')
 
 st2_webhook_opts = [
+    cfg.StrOpt('host', default='0.0.0.0', help='Host for the st2 webhook endpoint.'),
     cfg.IntOpt('port', default='6000', help='Port for the st2 webhook endpoint.'),
     cfg.StrOpt('url', default='/webhooks/st2/', help='URL of the st2 webhook endpoint.')
 ]
 CONF.register_opts(st2_webhook_opts, group='st2_webhook_sensor')
 
 generic_webhook_opts = [
+    cfg.StrOpt('host', default='0.0.0.0', help='Host for the generic webhook endpoint.'),
     cfg.IntOpt('port', default='6001', help='Port for the generic webhook endpoint.'),
     cfg.StrOpt('url', default='/webhooks/generic/', help='URL of the st2 webhook endpoint.')
 ]
