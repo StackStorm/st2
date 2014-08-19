@@ -34,14 +34,13 @@ def get_trigger_db(trigger):
         return _get_trigger_db(type_name=trigger['type']['name'],
                                parameters=trigger['parameters'])
     if isinstance(trigger, object):
+        trigger_db = None
         if hasattr(trigger, 'name') and trigger.name:
             trigger_db = _get_trigger_db_by_name(trigger.name)
-            if not trigger_db:
-                trigger_db = _get_trigger_db(type_name=trigger.type,
-                                             parameters=trigger.parameters)
-            if trigger_db:
-                LOG.debug('Found matching TriggerDB=%s for trigger=%s', trigger_db, trigger)
-    return trigger_db
+        else:
+            trigger_db = _get_trigger_db(type_name=trigger.type,
+                                         parameters=trigger.parameters)
+        return trigger_db
 
 
 def create_trigger_db(trigger):
