@@ -77,7 +77,8 @@ class RuleController(RestController):
             abort(httplib.BAD_REQUEST, str(e))
             return
         except NotUniqueError as e:
-            LOG.exception('Rule creation of %s failed with uniqueness conflict.', rule)
+            LOG.warn('Rule creation of %s failed with uniqueness conflict. Exception %s',
+                     rule, str(e))
             abort(httplib.CONFLICT, str(e))
             return
 
