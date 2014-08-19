@@ -89,7 +89,10 @@ class ActionRunCommand(resource.ResourceCommand):
 
             sys.stdout.write('\n')
 
-            execution.result = json.loads(execution.result)
+            try:
+                execution.result = json.loads(execution.result)
+            except:
+                pass
 
         return execution
 
