@@ -27,8 +27,7 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse(json.dumps(base.RESOURCES), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES), 200, 'OK')))
     def test_command_list(self):
         args = self.parser.parse_args(['fakeresource', 'list'])
         self.assertEqual(args.func, self.branch.commands['list'].run_and_print)
@@ -39,8 +38,7 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
+        mock.MagicMock(return_value=base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
     def test_command_list_failed(self):
         args = self.parser.parse_args(['fakeresource', 'list'])
         self.assertRaises(Exception, self.branch.commands['list'].run, args)
@@ -50,8 +48,7 @@ class TestResourceCommand(unittest2.TestCase):
         mock.MagicMock(return_value=None))
     @mock.patch.object(
         models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_value=\
-            base.FakeResource(**base.RESOURCES[0])))
+        mock.MagicMock(return_value=base.FakeResource(**base.RESOURCES[0])))
     def test_command_get_by_id(self):
         args = self.parser.parse_args(['fakeresource', 'get', '123'])
         self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
@@ -62,8 +59,7 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
-        mock.MagicMock(return_value=\
-            base.FakeResource(**base.RESOURCES[0])))
+        mock.MagicMock(return_value=base.FakeResource(**base.RESOURCES[0])))
     @mock.patch.object(
         models.ResourceManager, 'get_by_id',
         mock.MagicMock(return_value=None))
@@ -77,8 +73,7 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
     def test_command_get(self):
         args = self.parser.parse_args(['fakeresource', 'get', 'abc'])
         self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
@@ -89,8 +84,7 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse('', 404, 'NOT FOUND')))
+        mock.MagicMock(return_value=base.FakeResponse('', 404, 'NOT FOUND')))
     def test_command_get_404(self):
         args = self.parser.parse_args(['fakeresource', 'get', 'cba'])
         self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
@@ -100,16 +94,14 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
+        mock.MagicMock(return_value=base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
     def test_command_get_failed(self):
         args = self.parser.parse_args(['fakeresource', 'get', 'cba'])
         self.assertRaises(Exception, self.branch.commands['get'].run, args)
 
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=\
-            base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, 'OK')))
     def test_command_create(self):
         instance = base.FakeResource(name='abc')
         fd, path = tempfile.mkstemp()
@@ -129,8 +121,7 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=\
-            base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
+        mock.MagicMock(return_value=base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
     def test_command_create_failed(self):
         instance = base.FakeResource(name='abc')
         fd, path = tempfile.mkstemp()
@@ -147,12 +138,10 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
     @mock.patch.object(
         httpclient.HTTPClient, 'put',
-        mock.MagicMock(return_value=\
-            base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, 'OK')))
     def test_command_update(self):
         instance = base.FakeResource(id='123', name='abc')
         fd, path = tempfile.mkstemp()
@@ -173,12 +162,10 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
     @mock.patch.object(
         httpclient.HTTPClient, 'put',
-        mock.MagicMock(return_value=\
-            base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
+        mock.MagicMock(return_value=base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
     def test_command_update_failed(self):
         instance = base.FakeResource(id='123', name='abc')
         fd, path = tempfile.mkstemp()
@@ -196,8 +183,7 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
     def test_command_update_id_mismatch(self):
         instance = base.FakeResource(id='789', name='abc')
         fd, path = tempfile.mkstemp()
@@ -215,12 +201,10 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
     @mock.patch.object(
         httpclient.HTTPClient, 'delete',
-        mock.MagicMock(return_value=\
-            base.FakeResponse('', 204, 'NO CONTENT')))
+        mock.MagicMock(return_value=base.FakeResponse('', 204, 'NO CONTENT')))
     def test_command_delete(self):
         args = self.parser.parse_args(['fakeresource', 'delete', 'abc'])
         self.assertEqual(args.func,
@@ -229,8 +213,7 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse('', 404, 'NOT FOUND')))
+        mock.MagicMock(return_value=base.FakeResponse('', 404, 'NOT FOUND')))
     def test_command_delete_404(self):
         args = self.parser.parse_args(['fakeresource', 'delete', 'cba'])
         self.assertEqual(args.func,
@@ -241,12 +224,10 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
     @mock.patch.object(
         httpclient.HTTPClient, 'delete',
-        mock.MagicMock(return_value=\
-            base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
+        mock.MagicMock(return_value=base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
     def test_command_delete_failed(self):
         args = self.parser.parse_args(['fakeresource', 'delete', 'cba'])
         self.assertRaises(Exception, self.branch.commands['delete'].run, args)

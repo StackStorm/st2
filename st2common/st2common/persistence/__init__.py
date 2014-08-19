@@ -23,7 +23,7 @@ class Access(object):
         return kls._get_impl().get_all(*args, **kwargs)
 
     @classmethod
-    def query(kls, order_by=[], limit=None,  **query_args):
+    def query(kls, order_by=[], limit=None, **query_args):
         return kls._get_impl().query(order_by=order_by,
                                      limit=limit, **query_args)
 

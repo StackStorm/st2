@@ -60,8 +60,9 @@ if __name__ == '__main__':
     print('!!!!!!!!!!!!!!!!!!!!! NORMAL CMD !!!!!!!!!!!!!!!!!!!!!!!!!!')
     print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     runner = SSHRunner(str(uuid.uuid4()))
-    remote_action = ParamikoSSHCommandAction('UNAME', 'action_exec_id' + str(uuid.uuid4()), 'unam -a',
-                                             'lakshmi', hosts=['54.191.85.86', '54.200.102.55'],
+    remote_action = ParamikoSSHCommandAction('UNAME', 'action_exec_id' + str(uuid.uuid4()),
+                                             'unam -a', 'lakshmi',
+                                             hosts=['54.191.85.86', '54.200.102.55'],
                                              sudo=True)
     results = runner.run(remote_action)
     print(results)

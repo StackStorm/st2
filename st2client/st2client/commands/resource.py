@@ -1,6 +1,4 @@
 import os
-import abc
-import six
 import json
 import logging
 
@@ -86,6 +84,7 @@ class ResourceCommand(commands.Command):
             raise ResourceNotFoundError()
         return instance
 
+
 class ResourceListCommand(ResourceCommand):
 
     display_attributes = ['id', 'name', 'description']
@@ -147,7 +146,7 @@ class ResourceGetCommand(ResourceCommand):
             instance = self.run(args, **kwargs)
             self.print_output(instance, table.PropertyValueTable,
                               attributes=args.attr, json=args.json)
-        except ResourceNotFoundError as e:
+        except ResourceNotFoundError:
             self.print_not_found(args.name_or_id)
 
 
@@ -238,6 +237,6 @@ class ResourceDeleteCommand(ResourceCommand):
 
     def run_and_print(self, args, **kwargs):
         try:
-            instance = self.run(args, **kwargs)
-        except ResourceNotFoundError as e:
+            self.run(args, **kwargs)
+        except ResourceNotFoundError:
             self.print_not_found(args.name)

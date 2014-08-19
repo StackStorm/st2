@@ -128,7 +128,7 @@ class ActionRunCommand(resource.ResourceCommand):
                         print('Required Parameters:')
                         [self.print_param(name, parameters.get(name))
                          for name in sorted(parameters) if name in required]
-                    if set(parameters.keys()) - set(required): 
+                    if set(parameters.keys()) - set(required):
                         print('Optional Parameters:')
                         [self.print_param(name, parameters.get(name))
                         for name in sorted(parameters) if name not in required]
@@ -245,7 +245,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
             instance = self.run(args, **kwargs)
             self.print_output(instance, table.PropertyValueTable,
                               attributes=args.attr, json=args.json)
-        except ResourceNotFoundError as e:
+        except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
 
 

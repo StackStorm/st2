@@ -20,7 +20,7 @@ class TestShell(unittest2.TestCase):
         super(TestShell, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
 
-    def setUp(self): 
+    def setUp(self):
         # Redirect standard output and error to null. If not, then
         # some of the print output from shell commands will pollute
         # the test output.
@@ -77,16 +77,14 @@ class TestShell(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse(json.dumps(base.RESOURCES), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES), 200, 'OK')))
     def test_exit_code_on_success(self):
         argv = ['trigger', 'list']
         self.assertEqual(self.shell.run(argv), 0)
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=\
-            base.FakeResponse(None, 500, 'INTERNAL SERVER ERROR')))
+        mock.MagicMock(return_value=base.FakeResponse(None, 500, 'INTERNAL SERVER ERROR')))
     def test_exit_code_on_error(self):
         argv = ['trigger', 'list']
         self.assertEqual(self.shell.run(argv), 1)
@@ -96,8 +94,7 @@ class TestShell(unittest2.TestCase):
             ns = self.shell.parser.parse_args(args)
             func = (self.shell.commands[args[0]].run_and_print
                     if not is_subcommand
-                    else self.shell.commands[args[0]].\
-                            commands[args[1]].run_and_print)
+                    else self.shell.commands[args[0]].commands[args[1]].run_and_print)
             self.assertEqual(ns.func, func)
 
     def test_trigger(self):

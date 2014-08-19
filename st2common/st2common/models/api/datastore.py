@@ -2,7 +2,6 @@ from wsme import types as wstypes
 
 from st2common.models.api.stormbase import StormBaseAPI
 from st2common.models.db.datastore import KeyValuePairDB
-from st2common.persistence.datastore import KeyValuePair
 
 
 class KeyValuePairAPI(StormBaseAPI):

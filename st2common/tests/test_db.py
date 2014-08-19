@@ -246,7 +246,7 @@ PARAM_SCHEMA = {
             "type": "object",
             "properties": {
                 "r1a": {
-                    "type":"string"
+                    "type": "string"
                 }
             }
         },
@@ -259,7 +259,7 @@ PARAM_SCHEMA = {
         "p2": {
             "type": "number",
             "default": 2868
-        }, 
+        },
         "p3": {
             "type": "boolean",
             "default": False
@@ -338,7 +338,7 @@ class ActionModelTest(DbTestCase):
             created.runner_parameters = {'r1': None, 'r2': None}
         else:
             created.runner_parameters = {
-                'r1': {'type': 'object', 'properties': {'r1a': {'type':'string'}}},
+                'r1': {'type': 'object', 'properties': {'r1a': {'type': 'string'}}},
                 'r2': {'type': 'string'}
             }
             created.required_parameters = ['r2']

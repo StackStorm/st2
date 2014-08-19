@@ -1,11 +1,10 @@
 from functools import wraps
 import httplib
-import os
 from urlparse import urljoin
 from oslo.config import cfg
 
 from flask import (jsonify, request, Flask)
-import yaml
+
 
 HOST = cfg.CONF.generic_webhook_sensor.host
 PORT = cfg.CONF.generic_webhook_sensor.port

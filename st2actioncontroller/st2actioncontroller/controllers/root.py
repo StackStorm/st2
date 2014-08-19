@@ -1,6 +1,4 @@
-import httplib
 from pecan import expose
-from webob.exc import status_map
 
 from st2common import log as logging
 from st2actioncontroller.controllers.actions import ActionsController

@@ -1,9 +1,5 @@
 from tests import FunctionalTest
 
-from st2common.models.db import datastore
-from st2common.persistence.datastore import KeyValuePair
-
-
 KVP = {
     'name': 'keystone_endpoint',
     'value': 'http://localhost:5000/v3'

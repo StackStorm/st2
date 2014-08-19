@@ -1,8 +1,5 @@
-import re
 import json
 import logging
-
-from requests import exceptions
 
 from st2client.utils import httpclient
 

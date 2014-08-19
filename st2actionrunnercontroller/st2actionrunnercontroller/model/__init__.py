@@ -1,6 +1,3 @@
-from pecan import conf
-
-
 def init_model():
     """
     This is a stub method which is called at application startup time.

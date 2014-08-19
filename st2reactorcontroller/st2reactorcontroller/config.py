@@ -53,5 +53,6 @@ rules_opts = [
 ]
 CONF.register_opts(rules_opts, group='rules')
 
+
 def parse_args(args=None):
     CONF(args=args)

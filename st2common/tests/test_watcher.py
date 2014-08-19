@@ -2,7 +2,6 @@ import bson
 import eventlet
 import mock
 import mongoengine as me
-from oslo.config import cfg
 
 from st2tests import DbTestCase
 from st2common.models.db import MongoDBAccess

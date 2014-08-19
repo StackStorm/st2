@@ -1,7 +1,6 @@
 import glob
 import json
 
-from mongoengine import ValidationError
 from oslo.config import cfg
 
 from st2common import log as logging
@@ -17,114 +16,115 @@ LOG = logging.getLogger(__name__)
 
 def register_runner_types():
     RUNNER_TYPES = [
-        {'name': 'shell',
-         'description': 'A bash shell action type.',
-         'enabled': True,
-         'runner_parameters': {
-            'hosts': {
-                'description': 'A comma delimited string of a list of hosts '
-                               'where the remote command will be executed.',
-                'type': 'string',
-                'default': 'localhost'
+        {
+            'name': 'shell',
+            'description': 'A bash shell action type.',
+            'enabled': True,
+            'runner_parameters': {
+                'hosts': {
+                    'description': 'A comma delimited string of a list of hosts '
+                                   'where the remote command will be executed.',
+                    'type': 'string',
+                    'default': 'localhost'
+                },
+                'cmd': {
+                    'description': 'Arbitrary Linux command to be executed on the '
+                                   'remote host(s).',
+                    'type': 'string'
+                },
+                'parallel': {
+                    'description': 'If true, the command will be executed on all the '
+                                   'hosts in parallel.',
+                    'type': 'boolean',
+                    'default': False
+                },
+                'sudo': {
+                    'description': 'The remote command will be executed with sudo.',
+                    'type': 'boolean',
+                    'default': False
+                },
+                'user': {
+                    'description': 'The user who is executing this remote command. '
+                                   'This is for audit purposes only. The remote '
+                                   'command will always execute as the user stanley.',
+                    'type': 'string'
+                },
+                'remotedir': {
+                    'description': 'The working directory where the command will be '
+                                   'executed on the remote host.',
+                    'type': 'string'
+                }
             },
-            'cmd': {
-                'description': 'Arbitrary Linux command to be executed on the '
-                               'remote host(s).',
-                'type': 'string'
-            },
-            'parallel': {
-                'description': 'If true, the command will be executed on all the '
-                               'hosts in parallel.',
-                'type': 'boolean',
-                'default': False
-            },
-            'sudo': {
-                'description': 'The remote command will be executed with sudo.',
-                'type': 'boolean',
-                'default': False
-            },
-            'user': {
-                'description': 'The user who is executing this remote command. '
-                               'This is for audit purposes only. The remote '
-                               'command will always execute as the user stanley.',
-                'type': 'string'
-            },
-            'remotedir': {
-                'description': 'The working directory where the command will be '
-                               'executed on the remote host.',
-                'type': 'string'
-            }
-         },
-         'required_parameters': ['cmd'],
-         'runner_module': 'st2actionrunner.runners.fabricrunner'
+            'required_parameters': ['cmd'],
+            'runner_module': 'st2actionrunner.runners.fabricrunner'
         },
-
-        {'name': 'remote-exec-sysuser',
-         'description': 'A remote execution action type with a fixed system user.',
-         'enabled': True,
-         'runner_parameters': {
-            'hosts': {
-                'description': 'A comma delimited string of a list of hosts '
-                               'where the remote command will be executed.',
-                'type': 'string'
+        {
+            'name': 'remote-exec-sysuser',
+            'description': 'A remote execution action type with a fixed system user.',
+            'enabled': True,
+            'runner_parameters': {
+                'hosts': {
+                    'description': 'A comma delimited string of a list of hosts '
+                                   'where the remote command will be executed.',
+                    'type': 'string'
+                },
+                'cmd': {
+                    'description': 'Arbitrary Linux command to be executed on the '
+                                   'remote host(s).',
+                    'type': 'string'
+                },
+                'parallel': {
+                    'description': 'If true, the command will be executed on all the '
+                                   'hosts in parallel.',
+                    'type': 'boolean'
+                },
+                'sudo': {
+                    'description': 'The remote command will be executed with sudo.',
+                    'type': 'boolean'
+                },
+                'user': {
+                    'description': 'The user who is executing this remote command. '
+                                   'This is for audit purposes only. The remote '
+                                   'command will always execute as the user stanley.',
+                    'type': 'string'
+                },
+                'remotedir': {
+                    'description': 'The working directory where the command will be '
+                                   'executed on the remote host.',
+                    'type': 'string'
+                }
             },
-            'cmd': {
-                'description': 'Arbitrary Linux command to be executed on the '
-                               'remote host(s).',
-                'type': 'string'
-            },
-            'parallel': {
-                'description': 'If true, the command will be executed on all the '
-                               'hosts in parallel.',
-                'type': 'boolean'
-            },
-            'sudo': {
-                'description': 'The remote command will be executed with sudo.',
-                'type': 'boolean'
-            },
-            'user': {
-                'description': 'The user who is executing this remote command. '
-                               'This is for audit purposes only. The remote '
-                               'command will always execute as the user stanley.',
-                'type': 'string'
-            },
-            'remotedir': {
-                'description': 'The working directory where the command will be '
-                               'executed on the remote host.',
-                'type': 'string'
-            }
-         },
-         'required_parameters': ['hosts', 'cmd'],
-         'runner_module': 'st2actionrunner.runners.fabricrunner'
+            'required_parameters': ['hosts', 'cmd'],
+            'runner_module': 'st2actionrunner.runners.fabricrunner'
         },
-
-        {'name': 'http-runner',
-         'description': 'A HTTP client for running HTTP actions.',
-         'enabled': True,
-         'runner_parameters': {
-            'url': {
-                'description': 'URL to the HTTP endpoint.',
-                'type': 'string'
+        {
+            'name': 'http-runner',
+            'description': 'A HTTP client for running HTTP actions.',
+            'enabled': True,
+            'runner_parameters': {
+                'url': {
+                    'description': 'URL to the HTTP endpoint.',
+                    'type': 'string'
+                },
+                'headers': {
+                    'description': 'HTTP headers for the request.',
+                    'type': 'object'
+                },
+                'cookies': {
+                    'description': 'TODO: Description for cookies.',
+                    'type': 'string'
+                },
+                'proxy': {
+                    'description': 'TODO: Description for proxy.',
+                    'type': 'string'
+                },
+                'redirects': {
+                    'description': 'TODO: Description for redirects.',
+                    'type': 'string'
+                },
             },
-            'headers': {
-                'description': 'HTTP headers for the request.',
-                'type': 'object'
-            },
-            'cookies': {
-                'description': 'TODO: Description for cookies.',
-                'type': 'string'
-            },
-            'proxy': {
-                'description': 'TODO: Description for proxy.',
-                'type': 'string'
-            },
-            'redirects': {
-                'description': 'TODO: Description for redirects.',
-                'type': 'string'
-            },
-         },
-         'required_parameters': ['url'],
-         'runner_module': 'st2actionrunner.runners.httprunner'
+            'required_parameters': ['url'],
+            'runner_module': 'st2actionrunner.runners.httprunner'
         }
     ]
 
