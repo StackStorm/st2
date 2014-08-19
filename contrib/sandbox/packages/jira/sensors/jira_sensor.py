@@ -29,7 +29,7 @@ class JIRASensor(object):
         self._access_token = u''
         self._access_secret = u''
         self._projects_available = None
-        self._sleep_time = 30
+        self._poll_interval = 30
         self._config = None
 
     def _read_cert(self, file_path):
@@ -49,6 +49,7 @@ class JIRASensor(object):
 
     def setup(self):
         self._parse_config()
+        self._poll_interval = self._config.get('poll_interval', self._poll_interval)
         oauth_creds = {
             'access_token': self._config['oauth_token'],
             'access_token_secret': self._config['oauth_secret'],
@@ -69,7 +70,7 @@ class JIRASensor(object):
                 if proj.key not in self._projects_available:
                     self._dispatch_trigger(proj)
                     self._projects_available.add(proj.key)
-            time.sleep(self._sleep_time)
+            time.sleep(self._poll_interval)
 
     def stop(self):
         pass

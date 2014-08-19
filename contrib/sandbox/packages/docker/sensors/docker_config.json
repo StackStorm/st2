@@ -10,5 +10,6 @@
         "since": null,
         "before": null,
         "limit": -1
-    }
+    },
+    "poll_interval": 5
 }
