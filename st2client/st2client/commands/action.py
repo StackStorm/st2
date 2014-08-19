@@ -108,6 +108,8 @@ class ActionRunCommand(resource.ResourceCommand):
             print(wrapper.fill(schema['description']))
         if 'type' in schema and schema['type']:
             print(wrapper.fill('Type: %s' % schema['type']))
+        if 'enum' in schema and schema['enum']:
+            print(wrapper.fill('Enum: %s' % ', '.join(schema['enum'])))
         if 'default' in schema and schema['default']:
             print(wrapper.fill('Default: %s' % schema['default']))
         print('')
