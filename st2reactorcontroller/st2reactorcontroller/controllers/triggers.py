@@ -68,11 +68,11 @@ class TriggerTypeController(RestController):
             LOG.exception('Validation failed for triggertype data=%s.', triggertype)
             abort(httplib.BAD_REQUEST, str(e))
         except NotUniqueError as e:
-            LOG.exception('TriggerType creation of %s failed with uniqueness conflict.',
-                          triggertype)
+            LOG.warn('TriggerType creation of %s failed with uniqueness conflict. Exception : %s',
+                     triggertype, str(e))
             abort(httplib.CONFLICT, str(e))
 
-        LOG.debug('/triggertypes/ POST saved TriggerTypeDB object=%s', triggertype_db)
+        LOG.audit('TriggerType created. TriggerType=%s', triggertype_db)
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
         LOG.debug('POST /triggertypes/ client_result=%s', triggertype_api)
 
@@ -92,12 +92,14 @@ class TriggerTypeController(RestController):
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
                             triggertype.id, triggertype_id)
             triggertype_db.id = triggertype_id
+            old_triggertype_db = triggertype_db
             triggertype_db = TriggerType.add_or_update(triggertype_db)
-            LOG.debug('/triggertypes/ PUT updated TriggerTypeDB object=%s', triggertype_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for triggertype data=%s', triggertype)
             abort(httplib.BAD_REQUEST, str(e))
 
+        LOG.audit('TriggerType updated. TriggerType=%s and original TriggerType=%s',
+                  triggertype_db, old_triggertype_db)
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
         LOG.debug('PUT /triggertypes/ client_result=%s', triggertype_api)
 
@@ -121,6 +123,7 @@ class TriggerTypeController(RestController):
             LOG.exception('Database delete encountered exception during delete of id="%s". ',
                           triggertype_id)
             abort(httplib.INTERNAL_SERVER_ERROR, str(e))
+        LOG.audit('TriggerType deleted. TriggerType=%s', triggertype_db)
 
     @staticmethod
     def __get_by_id(triggertype_id):
@@ -193,7 +196,7 @@ class TriggerController(RestController):
             LOG.exception('Trigger creation of %s failed with uniqueness conflict.', trigger)
             abort(httplib.CONFLICT, str(e))
 
-        LOG.debug('/triggers/ POST saved TriggerDB object=%s', trigger_db)
+        LOG.audit('Trigger created. Trigger=%s', trigger_db)
         trigger_api = TriggerAPI.from_model(trigger_db)
         LOG.debug('POST /triggers/ client_result=%s', trigger_api)
 
@@ -212,11 +215,11 @@ class TriggerController(RestController):
             trigger_db = TriggerAPI.to_model(trigger)
             trigger_db.id = trigger_id
             trigger_db = Trigger.add_or_update(trigger_db)
-            LOG.debug('/triggers/ PUT updated TriggerDB object=%s', trigger_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s', trigger)
             abort(httplib.BAD_REQUEST, str(e))
 
+        LOG.audit('Trigger updated. Trigger=%s and original Trigger=%s.', trigger_db)
         trigger_api = TriggerAPI.from_model(trigger_db)
         LOG.debug('PUT /triggers/ client_result=%s', trigger_api)
 
@@ -239,6 +242,7 @@ class TriggerController(RestController):
             LOG.exception('Database delete encountered exception during delete of id="%s". ',
                           trigger_id)
             abort(httplib.INTERNAL_SERVER_ERROR, str(e))
+        LOG.audit('Trigger deleted. Trigger=%s', trigger_db)
 
     @staticmethod
     def __get_by_id(trigger_id):

@@ -230,32 +230,24 @@ class ActionExecutionsController(RestController):
         LOG.debug('/actionexecutions/ POST verified ActionExecutionAPI object=%s',
                   actionexec_api)
 
-        # TODO: POST operations should only add to DB.
-        #       If an existing object conflicts then raise an error.
-
-        LOG.audit('ActionExecution requested. '
-                  'ActionExecution about to be created in database.'
-                  'ActionExecution is: %s', actionexec_api)
         actionexec_db = ActionExecution.add_or_update(actionexec_api)
         LOG.debug('/actionexecutions/ POST saved ActionExecution object=%s', actionexec_db)
 
-        LOG.audit('Received a request  to execute an Action. '
-                  'ActionExecution created in the database. '
-                  'ActionExecution is: %s', actionexec_db)
+        LOG.audit('ActionExecution created. ActionExecution=%s. ', actionexec_db)
 
         actionexec_id = actionexec_db.id
         try:
             LOG.debug('Adding action exec id: %s to live actions queue.', )
             self._live_actions.put(actionexec_id, block=True, timeout=1)
         except Exception as e:
-            LOG.error('Aborting /actionexecutions/ POST operation for id: %s. Exception: %s',
-                      actionexec_id, e)
+            LOG.exception('Aborting /actionexecutions/ POST operation for id: %s.', actionexec_id)
             actionexec_status = ACTIONEXEC_STATUS_ERROR
             actionexec_db = update_actionexecution_status(actionexec_status,
                                                           actionexec_id=actionexec_id)
             actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
             error = 'Failed to kickoff live action for id: %s, exception: %s' % (actionexec_id,
                                                                                  str(e))
+            LOG.audit('ActionExecution failed. ActionExecution=%s error=%s', actionexec_db, error)
             abort(httplib.INTERNAL_SERVER_ERROR, error)
         else:
             actionexec_status = ACTIONEXEC_STATUS_SCHEDULED
@@ -297,8 +289,7 @@ class ActionExecutionsController(RestController):
                       'Exception was %s', id, e)
             abort(httplib.INTERNAL_SERVER_ERROR, str(e))
 
-        LOG.audit('ActionExecution was deleted from database. '
-                  'The ActionExecution was: "%s', actionexec_db)
+        LOG.audit('ActionExecution deleted. ActionExecution=%s', actionexec_db)
 
         LOG.info('DELETE /actionexecutions/ with id="%s" completed', id)
         return None

@@ -22,17 +22,24 @@ def create_trigger_instance(trigger, payload, occurrence_time):
 
 def _create_trigger_type(name, description=None, payload_schema=None, parameters_schema=None):
     triggertypes = TriggerType.query(name=name)
+    is_update = False
     if len(triggertypes) > 0:
         trigger_type = triggertypes[0]
-        LOG.info('Found existing trigger id:%s with name:%s. Will update '
-                 'trigger.', trigger_type.id, name)
+        LOG.debug('Found existing trigger id:%s with name:%s. Will update '
+                  'trigger.', trigger_type.id, name)
+        is_update = True
     else:
         trigger_type = TriggerTypeDB()
     trigger_type.name = name
     trigger_type.description = description
     trigger_type.payload_schema = payload_schema
     trigger_type.parameters_schema = parameters_schema
-    return TriggerType.add_or_update(trigger_type)
+    triggertype_db = TriggerType.add_or_update(trigger_type)
+    if is_update:
+        LOG.audit('TriggerType updated. TriggerType=%s', triggertype_db)
+    else:
+        LOG.audit('TriggerType created. TriggerType=%s', triggertype_db)
+    return triggertype_db
 
 
 def _validate_trigger_type(trigger_type):

@@ -78,7 +78,7 @@ class RunnerContainer():
                                                       actionexec_id=actionexec_db.id)
         actionsensor.post_trigger(actionexec_db)
 
-        LOG.audit('Live Action execution for liveaction_id="%s" resulted in '
+        LOG.audit('ActionExecution complete. liveaction_id="%s" resulted in '
                   'actionexecution_db="%s"', liveaction_db.id, actionexec_db)
 
         return result

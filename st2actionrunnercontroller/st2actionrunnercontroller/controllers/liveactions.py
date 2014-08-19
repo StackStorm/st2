@@ -165,20 +165,16 @@ class LiveActionsController(RestController):
                   'action_db="%s", actionexec_db="%s"', liveaction_db, runnertype_db,
                   action_db, actionexec_db)
 
-        if ASYNCHRONOUS_EXECUTION:
-            raise NotImplementedError(
-                'Error: Asynchronous execution of Live Action not yet implemented')
-        else:
-            try:
-                global runner_container
-                result = runner_container.dispatch(liveaction_db, runnertype_db, action_db,
-                                                   actionexec_db)
-                LOG.info('Runner dispatch produced result: %s', result)
-            except Exception as e:
-                LOG.error(e.message)
-                actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_ERROR,
-                                                              actionexec_db.id)
-                abort(httplib.BAD_REQUEST, str(e))
+        try:
+            global runner_container
+            result = runner_container.dispatch(liveaction_db, runnertype_db, action_db,
+                                               actionexec_db)
+            LOG.info('Runner dispatch produced result: %s', result)
+        except Exception as e:
+            LOG.error(e.message)
+            actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_ERROR,
+                                                          actionexec_db.id)
+            abort(httplib.BAD_REQUEST, str(e))
 
         if not result:
             # Return different code for live action execution failure

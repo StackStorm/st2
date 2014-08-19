@@ -112,8 +112,6 @@ class ActionsController(RestController):
         action_model = ActionAPI.to_model(action)
 
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
-
-        LOG.audit('Action about to be created in database. Action is: %s', action_model)
         try:
             action_db = Action.add_or_update(action_model)
         except NotUniqueError as e:
@@ -128,7 +126,7 @@ class ActionsController(RestController):
 
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
 
-        LOG.audit('Action created in database. Action is: %s', action_db)
+        LOG.audit('Action created. Action=%s', action_db)
         action_api = ActionAPI.from_model(action_db)
 
         LOG.debug('POST /actions/ client_result=%s', action_api)
@@ -156,6 +154,6 @@ class ActionsController(RestController):
                       'Exception was %s', id, e)
             abort(httplib.INTERNAL_SERVER_ERROR, str(e))
 
-        LOG.audit('An Action was deleted from database. The Action was: %s', action_db)
+        LOG.audit('Action deleted. Action=%s', action_db)
         LOG.info('DELETE /actions/ with id="%s" completed', id)
         return None

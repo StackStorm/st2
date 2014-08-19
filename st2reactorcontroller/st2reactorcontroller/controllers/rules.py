@@ -81,7 +81,7 @@ class RuleController(RestController):
             abort(httplib.CONFLICT, str(e))
             return
 
-        LOG.debug('/rules/ POST saved RuleDB object=%s', rule_db)
+        LOG.audit('Rule created. Rule=%s', rule_db)
         rule_api = RuleAPI.from_model(rule_db)
         LOG.debug('POST /rules/ client_result=%s', rule_api)
 
@@ -97,6 +97,7 @@ class RuleController(RestController):
             if rule.id is not None and rule.id is not '' and rule.id != rule_id:
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
                             rule.id, rule_id)
+            old_rule_db = rule_db
             rule_db = RuleAPI.to_model(rule)
             rule_db.id = rule_id
 
@@ -104,12 +105,12 @@ class RuleController(RestController):
             rule_db.trigger = reference.get_ref_from_model(trigger_db)
 
             rule_db = Rule.add_or_update(rule_db)
-            LOG.debug('/rules/ PUT updated RuleDB object=%s', rule_db)
+
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s', rule)
             abort(httplib.BAD_REQUEST, str(e))
             return
-
+        LOG.audit('Rule updated. Rule=%s and original Rule=%s.', rule_db, old_rule_db)
         rule_api = RuleAPI.from_model(rule_db)
         LOG.debug('PUT /rules/ client_result=%s', rule_api)
 
@@ -129,9 +130,10 @@ class RuleController(RestController):
         try:
             Rule.delete(rule_db)
         except Exception as e:
-            LOG.exception('Database delete encountered exception during delete of id="%s". ',
+            LOG.exception('Database delete encountered exception during delete of id="%s".',
                           rule_id)
             abort(httplib.INTERNAL_SERVER_ERROR, str(e))
+        LOG.audit('Rule deleted. Rule=%s.', rule_db)
 
     @staticmethod
     def __get_by_id(rule_id):
