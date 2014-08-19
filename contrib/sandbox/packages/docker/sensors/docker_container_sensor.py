@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Requirements
-# pip install jira
+# pip install docker
 
 try:
     import simplejson as json
@@ -21,6 +21,7 @@ class DockerSensor(object):
         self._running_containers = {}
         self._container_service = container_service
         self._ps_opts = None
+        self._poll_interval = 5  # seconds.
 
     def setup(self):
         docker_opts = self._get_config()
@@ -40,6 +41,7 @@ class DockerSensor(object):
                                      version=self._version,
                                      timeout=self._timeout)
         self._running_containers = self._get_active_containers()
+        self._poll_interval = docker_opts.get('poll_interval', self._poll_interval)
 
     def start(self):
         while True:
@@ -56,7 +58,7 @@ class DockerSensor(object):
                     self._dispatch_trigger(container)
 
             self._running_containers = containers
-            time.sleep(5)
+            time.sleep(self._poll_interval)
 
     def stop(self):
         if getattr(self._client, 'close') is not None:
