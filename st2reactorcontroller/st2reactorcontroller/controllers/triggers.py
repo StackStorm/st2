@@ -78,7 +78,7 @@ class TriggerTypeController(RestController):
 
         return triggertype_api
 
-    @jsexpose(str, body=TriggerTypeAPI, status_code=httplib.OK)
+    @jsexpose(str, body=TriggerTypeAPI)
     def put(self, triggertype_id, triggertype):
         LOG.info('PUT /triggertypes/ with triggertype id=%s and data=%s', triggertype_id,
                  triggertype)
@@ -117,9 +117,10 @@ class TriggerTypeController(RestController):
                   triggertype_db)
         try:
             TriggerType.delete(triggertype_db)
-        except Exception:
+        except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s". ',
                           triggertype_id)
+            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
 
     @staticmethod
     def __get_by_id(triggertype_id):
@@ -198,7 +199,7 @@ class TriggerController(RestController):
 
         return trigger_api
 
-    @jsexpose(str, body=TriggerAPI, status_code=httplib.OK)
+    @jsexpose(str, body=TriggerAPI)
     def put(self, trigger_id, trigger):
         LOG.info('PUT /triggers/ with trigger id=%s and data=%s', trigger_id, trigger)
         trigger_db = TriggerController.__get_by_id(trigger_id)
@@ -234,9 +235,10 @@ class TriggerController(RestController):
         LOG.debug('DELETE /triggers/ lookup with id=%s found object: %s', trigger_id, trigger_db)
         try:
             Trigger.delete(trigger_db)
-        except Exception:
+        except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s". ',
                           trigger_id)
+            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
 
     @staticmethod
     def __get_by_id(trigger_id):

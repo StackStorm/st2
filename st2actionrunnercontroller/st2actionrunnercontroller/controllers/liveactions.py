@@ -50,7 +50,7 @@ class LiveActionsController(RestController):
             liveaction_db = get_liveaction_by_id(id)
         except StackStormDBObjectNotFoundError as e:
             LOG.error('GET /liveactions/ with id="%s": %s', id, e.message)
-            abort(httplib.NOT_FOUND)
+            abort(httplib.NOT_FOUND, str(e))
 
         liveaction_api = LiveActionAPI.from_model(liveaction_db)
 
@@ -80,7 +80,7 @@ class LiveActionsController(RestController):
             except StackStormDBObjectNotFoundError as e:
                 LOG.error('GET /liveactions/ with actionexecution_id="%s": %s',
                           actionexec_id, e.message)
-                abort(httplib.NOT_FOUND)
+                abort(httplib.NOT_FOUND, str(e))
             liveactions_db.extend(dbs)
         else:
             # Get all
@@ -122,7 +122,7 @@ class LiveActionsController(RestController):
         except StackStormDBObjectNotFoundError as e:
             LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
-            abort(httplib.BAD_REQUEST)
+            abort(httplib.BAD_REQUEST, str(e))
 
         #  Got ActionExecution object (1)
         LOG.info('POST /liveactions/ obtained ActionExecution object from database. '
@@ -134,7 +134,7 @@ class LiveActionsController(RestController):
         except StackStormDBObjectNotFoundError as e:
             LOG.error(e.message)
             # TODO: Is there a more appropriate status code?
-            abort(httplib.BAD_REQUEST)
+            abort(httplib.BAD_REQUEST, str(e))
 
         runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
 
@@ -146,7 +146,7 @@ class LiveActionsController(RestController):
         if not action_db.enabled:
             LOG.error('POST /actionexecutions/ Unable to create Live Action for a disabled '
                       'Action. Action is: %s', action_db)
-            abort(httplib.FORBIDDEN)
+            abort(httplib.FORBIDDEN, 'Action is disabled.')
 
         #  Got RunnerType object (3)
         LOG.info('POST /liveactions/ obtained RunnerType object from database. '
@@ -178,7 +178,7 @@ class LiveActionsController(RestController):
                 LOG.error(e.message)
                 actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_ERROR,
                                                               actionexec_db.id)
-                abort(httplib.BAD_REQUEST, e)
+                abort(httplib.BAD_REQUEST, str(e))
 
         if not result:
             # Return different code for live action execution failure
@@ -188,17 +188,6 @@ class LiveActionsController(RestController):
 
         LOG.debug('POST /liveactions/ client_result=%s', liveaction_api)
         return liveaction_api
-
-    @expose('json')
-    def put(self, id, **kwargs):
-        """
-            Update not supported for LiveActions.
-
-            Handles requests:
-                POST /liveactions/1?_method=put
-                PUT /liveactions/1
-        """
-        abort(httplib.METHOD_NOT_ALLOWED)
 
     @wsme_pecan.wsexpose(None, wstypes.text, wstypes.text)
     def delete(self, id, actionexecution_id=None):
@@ -258,7 +247,7 @@ class LiveActionsController(RestController):
             except Exception as e:
                 LOG.error('Database delete encountered exception during delete of LiveAction: '
                           '"%s". Exception was %s', liveaction_db, e)
-                httplib.INTERNAL_SERVER_ERROR
+                abort(httplib.INTERNAL_SERVER_ERROR, str(e))
 
         LOG.info('DELETE /liveactions/ compeleted.')
         return None

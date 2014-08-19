@@ -124,11 +124,11 @@ class ActionsController(RestController):
             # If an existing DB object conflicts with new object then raise error.
             LOG.exception('/actions/ POST unable to save ActionDB object "%s" due to uniqueness '
                           'conflict. %s', action_model, e)
-            abort(httplib.CONFLICT, e.message)
+            abort(httplib.CONFLICT, str(e))
         except Exception as e:
             LOG.exception('/actions/ POST unable to save ActionDB object "%s". %s',
                           action_model, e)
-            abort(httplib.INTERNAL_SERVER_ERROR, e.message)
+            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
 
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
 
@@ -158,6 +158,7 @@ class ActionsController(RestController):
         except Exception as e:
             LOG.error('Database delete encountered exception during delete of id="%s". '
                       'Exception was %s', id, e)
+            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
 
         LOG.audit('An Action was deleted from database. The Action was: %s', action_db)
         LOG.info('DELETE /actions/ with id="%s" completed', id)

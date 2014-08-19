@@ -1,3 +1,4 @@
+import re
 import json
 import logging
 
@@ -70,10 +71,13 @@ class ResourceManager(object):
         self.read_only = read_only
         self.client = httpclient.HTTPClient(self.endpoint)
 
-    def handle_error(self, response):
+    @staticmethod
+    def handle_error(response):
         try:
-            response.reason += ('\nMESSAGE: %s' %
-                                response.json().get('faultstring', ''))
+            content = response.json()
+            fault = content.get('faultstring', '') if content else ''
+            if fault:
+                response.reason += '\nMESSAGE: %s' % fault
         except Exception as e:
             response.reason += ('\nUnable to retrieve detailed message '
                                 'from the HTTP response. %s\n' % str(e))

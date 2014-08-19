@@ -6,6 +6,8 @@ import jsonschema.validators
 import pecan
 import pecan.jsonify
 import six
+import httplib
+from webob import exc
 
 from st2common import log as logging
 
@@ -88,13 +90,26 @@ def jsexpose(*argtypes, **opts):
 
             args = tuple(more) + tuple(args)
 
-            result = f(*args, **kwargs)
-
             status_code = opts.get('status_code')
-            if status_code:
-                pecan.response.status = status_code
 
-            return pecan.jsonify.encode(result)
+            noop_codes = [httplib.NOT_IMPLEMENTED, httplib.METHOD_NOT_ALLOWED, httplib.FORBIDDEN]
+            if status_code and status_code in noop_codes:
+                pecan.response.status = status_code
+                return pecan.jsonify.encode(None)
+
+            try:
+                result = f(*args, **kwargs)
+                if status_code:
+                    pecan.response.status = status_code
+                return pecan.jsonify.encode(result)
+            except exc.HTTPException as e:
+                pecan.response.status = e.wsgi_response.status
+                error = {'faultstring': e.message}
+                return pecan.jsonify.encode(error)
+            except Exception as e:
+                pecan.response.status = httplib.INTERNAL_SERVER_ERROR
+                error = {'faultstring': e.message}
+                return pecan.jsonify.encode(error)
 
         pecan_json_decorate(callfunction)
 

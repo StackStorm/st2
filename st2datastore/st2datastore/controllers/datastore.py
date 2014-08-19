@@ -28,7 +28,11 @@ class KeyValuePairController(RestController):
         """
         LOG.info('GET /keys/ with id=%s', id)
         kvp_db = self.__get_by_id(id)
-        kvp_api = KeyValuePairAPI.from_model(kvp_db)
+
+        try:
+            kvp_api = KeyValuePairAPI.from_model(kvp_db)
+        except (ValidationError, ValueError) as e:
+            abort(httplib.INTERNAL_SERVER_ERROR, str(e)) 
         LOG.debug('GET /keys/ with id=%s, client_result=%s', id, kvp_api)
         return kvp_api
 
@@ -78,8 +82,7 @@ class KeyValuePairController(RestController):
 
         return kvp_api
 
-    @wsme_pecan.wsexpose(KeyValuePairAPI, wstypes.text, body=KeyValuePairAPI,
-                         status_code=httplib.OK)
+    @wsme_pecan.wsexpose(KeyValuePairAPI, wstypes.text, body=KeyValuePairAPI)
     def put(self, id, kvp):
         LOG.info('PUT /keys/ with key id=%s and data=%s', id, kvp)
         kvp_db = self.__get_by_id(id)
@@ -117,15 +120,16 @@ class KeyValuePairController(RestController):
                   'object: %s', id, kvp_db)
         try:
             KeyValuePair.delete(kvp_db)
-        except Exception:
+        except Exception as e:
             LOG.exception('Database delete encountered exception during '
                           'delete of id="%s". ', id)
+            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
 
     @staticmethod
     def __get_by_id(id):
         try:
             return KeyValuePair.get_by_id(id)
-        except (ValueError, ValidationError):
+        except Exception as e:
             LOG.exception('Database lookup for id="%s" '
                           'resulted in exception.', id)
             abort(httplib.NOT_FOUND)
