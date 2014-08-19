@@ -83,11 +83,19 @@ class JIRASensor(object):
             }
         ]
 
+    def add_trigger(self, trigger):
+        pass
+
+    def update_trigger(self, trigger):
+        pass
+
+    def remove_trigger(self, trigger):
+        pass
+
     def _dispatch_trigger(self, proj):
         trigger = {}
-        trigger['name'] = 'st2.jira.projects-tracker'
+        trigger['name'] = 'st2.jira.project_tracker'
         payload = {}
         payload['project_name'] = proj.key
         payload['project_url'] = proj.self
-        trigger['payload'] = payload
-        self._container_service.dispatch(trigger)
+        self._container_service.dispatch(trigger, payload)
