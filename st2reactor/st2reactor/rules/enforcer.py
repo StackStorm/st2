@@ -29,13 +29,14 @@ class RuleEnforcer(object):
         action_execution = RuleEnforcer.__invoke_action(self.rule.action.name, data)
         if action_execution is not None:
             rule_enforcement.action_execution = action_execution
-            rule_enforcement = RuleEnforcement.add_or_update(rule_enforcement)
-            LOG.audit('[re=%s] ActionExecution %s for TriggerInstance %s due to Rule %s.',
-                      rule_enforcement.id, action_execution.get('id', None), self.rule.id,
-                      self.trigger_instance.id)
+            LOG.audit('Rule enforced. ActionExecution %s, TriggerInstance %s and Rule %s.',
+                      action_execution.get('id', None), self.trigger_instance, self.rule)
         else:
-            LOG.error('Action execution failed. Trigger: id: %s, Rule: %s',
-                      self.trigger_instance.id, self.rule)
+            rule_enforcement.action_execution = {}
+            LOG.audit('Rule enforcement failed. ActionExecution for Action %s failed. '
+                      'TriggerInstance: %s and Rule: %s',
+                      self.rule.action.name, self.trigger_instance, self.rule)
+        rule_enforcement = RuleEnforcement.add_or_update(rule_enforcement)
 
     @staticmethod
     def __invoke_action(action_name, action_args):

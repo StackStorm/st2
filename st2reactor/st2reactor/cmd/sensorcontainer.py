@@ -116,8 +116,7 @@ def _run_sensor(sensor_file_path):
                     exc_info=True)
         return -1
     exit_code = _run_sensors(sensors_dict)
-    LOG.info('SensorContainer process[{}] exit with code {}.'.format(
-        os.getpid(), exit_code))
+    LOG.info('SensorContainer process[%s] exit with code %s.', os.getpid(), exit_code)
     _teardown()
     return exit_code
 
@@ -199,7 +198,7 @@ def _run_sensors(sensors_dict):
     watcher.watch(_watch_update, TriggerDB, watch.UPDATE)
     watcher.watch(_watch_delete, TriggerDB, watch.DELETE)
 
-    LOG.info('SensorContainer process[{}] started.'.format(os.getpid()))
+    LOG.info('SensorContainer process[%s] started.', os.getpid())
     sensor_container = SensorContainer(sensor_instances=sensors_to_run)
     return sensor_container.run()
 
@@ -216,6 +215,5 @@ def main():
         LOG.info('Found %d sensors.', len(sensors_dict))
         exit_code = _run_sensors(sensors_dict)
         _teardown()
-        LOG.info('SensorContainer process[{}] exit with code {}.'.format(
-            os.getpid(), exit_code))
+        LOG.info('SensorContainer process[%s] exit with code %s.', os.getpid(), exit_code)
         return exit_code

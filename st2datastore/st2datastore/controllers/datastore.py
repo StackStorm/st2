@@ -75,7 +75,7 @@ class KeyValuePairController(RestController):
             abort(httplib.BAD_REQUEST, str(e))
 
         kvp_db = KeyValuePair.add_or_update(kvp_db)
-        LOG.debug('/keys/ POST saved KeyValuePairDB object=%s', kvp_db)
+        LOG.audit('KeyValuePair created. KeyValuePair=%s', kvp_db)
 
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
         LOG.debug('POST /keys/ client_result=%s', kvp_api)
@@ -93,14 +93,15 @@ class KeyValuePairController(RestController):
                 LOG.warning('Discarding mismatched id=%s found in payload '
                             'and using uri_id=%s.',
                             kvp.id, id)
+            old_kvp_db = kvp_db
             kvp_db = KeyValuePairAPI.to_model(kvp)
             kvp_db.id = id
             kvp_db = KeyValuePair.add_or_update(kvp_db)
-            LOG.debug('/keys/ PUT updated KeyValuePairDB object=%s', kvp_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for key value data=%s', kvp)
             abort(httplib.BAD_REQUEST, str(e))
-
+        LOG.audit('KeyValuePair updated. KeyValuePair=%s and original KeyValuePair=%s',
+                  kvp_db, old_kvp_db)
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
         LOG.debug('PUT /keys/ client_result=%s', kvp_api)
 
@@ -124,6 +125,7 @@ class KeyValuePairController(RestController):
             LOG.exception('Database delete encountered exception during '
                           'delete of id="%s". ', id)
             abort(httplib.INTERNAL_SERVER_ERROR, str(e))
+        LOG.audit('KeyValuePair deleted. KeyValuePair=%s', kvp_db)
 
     @staticmethod
     def __get_by_id(id):
