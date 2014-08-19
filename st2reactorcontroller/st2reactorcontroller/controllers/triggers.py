@@ -193,7 +193,8 @@ class TriggerController(RestController):
             LOG.exception('Validation failed for trigger data=%s.', trigger)
             abort(httplib.BAD_REQUEST, str(e))
         except NotUniqueError as e:
-            LOG.exception('Trigger creation of %s failed with uniqueness conflict.', trigger)
+            LOG.warn('Trigger creation of %s failed with uniqueness conflict. Exception %s',
+                     trigger, str(e))
             abort(httplib.CONFLICT, str(e))
 
         LOG.audit('Trigger created. Trigger=%s', trigger_db)
