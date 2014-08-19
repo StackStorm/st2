@@ -4,13 +4,10 @@
     "description": "Some test rule.",
 
     "trigger": {
-        "type": "st2.timer",
+        "type": "st2.IntervalTimer",
         "parameters": {
-            "type": "interval",
-            "time": {
-                "delta": 5,
-                "unit": "seconds"
-            }
+            "delta": 5,
+            "unit": "seconds"
         }
     },
 
