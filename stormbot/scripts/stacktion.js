@@ -6,35 +6,23 @@
 'use strict';
 
 var _ = require('lodash')
-  , rsvp = require('rsvp');
-
-var parseArgs = function(schema, argstr) {
-  var arg, args, i, _i, _len, _ref;
-  if (!schema) {
-    schema = {};
-  }
-  if (!argstr) {
-    argstr = '';
-  }
-  args = argstr.match(/([''])(?:(?!\1)[^\\]|\\.)*\1|(\S)+/g) || [];
-  for (i = _i = 0, _len = args.length; _i < _len; i = ++_i) {
-    arg = args[i];
-    if ((_ref = arg[0]) === '\'' || _ref === '\'') {
-      args[i] = arg.slice(1, -1).replace(/\\(.)/mg, '$1');
-    }
-  }
-  return _.zipObject(_.keys(schema), args);
-};
+  , rsvp = require('rsvp')
+  , parse = require('../lib/parser.js')
+  ;
 
 var formatCommand = function(command) {
-  var arg, line, _i, _len, _ref;
-  line = 'hubot run ' + command.name + ' ';
-  _ref = _({}).assign(command.parameters).keys().value();
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    arg = _ref[_i];
-    line += '[' + arg + '] ';
-  }
-  return line += '- ' + command.description;
+  var template = 'hubot run ${name} ${params} - ${description}';
+
+  return _.template(template, {
+    name: command.name,
+    description: command.description,
+    params: _.map(command.parameters, function (v, k) {
+      if (v.default) {
+        return '[' + k + '=' + v.default + ']';
+      }
+      return '[' + k + ']';
+    }).join(' ')
+  });
 };
 
 module.exports = function(robot) {
@@ -177,12 +165,9 @@ module.exports = function(robot) {
     }).then(function (action) {
       // Prepares payload for ActionExecution
 
-      var expectedParams = _.clone(_.mapValues(action.parameters, 'default'))
-        , actualParams = parseArgs(expectedParams, args);
-
       var payload = {
         action: { 'name': action.name },
-        parameters: _({}).assign(expectedParams).assign(actualParams).value()
+        parameters: parse(args, action.parameters)
       };
 
       return payload;
