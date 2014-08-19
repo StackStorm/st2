@@ -1,5 +1,4 @@
 from pecan import expose
-from webob.exc import status_map
 
 from st2datastore.controllers import datastore
 

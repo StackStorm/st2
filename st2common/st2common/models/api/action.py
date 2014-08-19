@@ -1,9 +1,6 @@
 import datetime
-import json
 
 import jsonschema
-from wsme import wsattr
-from wsme import types as wstypes
 
 from st2common import util
 from st2common import log as logging

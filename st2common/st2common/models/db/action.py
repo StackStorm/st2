@@ -1,8 +1,6 @@
 import datetime
 import mongoengine as me
 
-from oslo.config import cfg
-
 from st2common import log as logging
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import (StormFoundationDB, StormBaseDB)

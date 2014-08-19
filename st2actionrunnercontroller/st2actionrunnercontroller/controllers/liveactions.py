@@ -1,5 +1,5 @@
 import httplib
-from pecan import (abort, expose)
+from pecan import abort
 from pecan.rest import RestController
 
 from wsme import types as wstypes

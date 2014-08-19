@@ -1,5 +1,4 @@
 import httplib
-import jsonschema
 from pecan import abort
 from pecan.rest import RestController
 
@@ -9,15 +8,12 @@ from mongoengine import NotUniqueError
 #       that bubble up to this layer should be core Python exceptions or
 #       StackStorm defined exceptions.
 
-from wsme import types as wstypes
-import wsmeext.pecan as wsme_pecan
-
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
-from st2common.util.action_db import (get_action_by_id, get_action_by_name, get_runnertype_by_name)
+from st2common.util.action_db import get_runnertype_by_name
 
 
 LOG = logging.getLogger(__name__)
@@ -106,7 +102,7 @@ class ActionsController(RestController):
 
         # check if action parameters conflict with those from the supplied runner_type.
         try:
-            runnertype_db = get_runnertype_by_name(action.runner_type)
+            get_runnertype_by_name(action.runner_type)
         except StackStormDBObjectNotFoundError as e:
             msg = 'RunnerType %s is not found.' % action.runner_type
             LOG.exception('%s. Exception: %s', msg, e)

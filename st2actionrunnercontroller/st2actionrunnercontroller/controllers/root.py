@@ -1,7 +1,4 @@
-import httplib
-from pecan import expose, redirect
-from webob.exc import status_map
-
+from pecan import expose
 from st2common import log as logging
 from st2actionrunnercontroller.controllers.liveactions import LiveActionsController
 

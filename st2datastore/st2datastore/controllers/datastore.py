@@ -32,7 +32,7 @@ class KeyValuePairController(RestController):
         try:
             kvp_api = KeyValuePairAPI.from_model(kvp_db)
         except (ValidationError, ValueError) as e:
-            abort(httplib.INTERNAL_SERVER_ERROR, str(e)) 
+            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
         LOG.debug('GET /keys/ with id=%s, client_result=%s', id, kvp_api)
         return kvp_api
 
@@ -129,7 +129,7 @@ class KeyValuePairController(RestController):
     def __get_by_id(id):
         try:
             return KeyValuePair.get_by_id(id)
-        except Exception as e:
+        except Exception:
             LOG.exception('Database lookup for id="%s" '
                           'resulted in exception.', id)
             abort(httplib.NOT_FOUND)

@@ -2,7 +2,6 @@ import os
 import json
 import logging
 
-from st2client import models
 from st2client.models import datastore
 from st2client.commands import resource
 from st2client.formatters import table
@@ -110,7 +109,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             for k, v in kvps.iteritems():
                 try:
                     instance = self.get_resource(k)
-                except resource.ResourceNotFoundError as e:
+                except resource.ResourceNotFoundError:
                     instance = None
                 if not instance:
                     instance = self.resource(name=k, value=v)

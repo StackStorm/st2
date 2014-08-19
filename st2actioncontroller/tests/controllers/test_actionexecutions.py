@@ -121,12 +121,10 @@ class TestActionExecutionsController(FunctionalTest):
 
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=\
-            (FakeResponse('', 200, 'OK'), False)))
+        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=\
-            (FakeResponse('', 204, 'NO CONTENT'), False)))
+        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
     def test_get_one(self):
         post_resp = self.__do_post(ACTION_EXECUTION_1)
         actionexecution_id = self.__get_actionexecution_id(post_resp)
@@ -137,12 +135,10 @@ class TestActionExecutionsController(FunctionalTest):
 
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=\
-            (FakeResponse('', 200, 'OK'), False)))
+        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=\
-            (FakeResponse('', 204, 'NO CONTENT'), False)))
+        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
     def test_get_all(self):
         actionexecution_1_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
         actionexecution_2_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_2))
@@ -156,12 +152,10 @@ class TestActionExecutionsController(FunctionalTest):
 
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=\
-            (FakeResponse('', 200, 'OK'), False)))
+        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=\
-            (FakeResponse('', 204, 'NO CONTENT'), False)))
+        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
     def test_get_query(self):
         actionexecution_1_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
         actionexecution_2_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_2))
@@ -183,12 +177,10 @@ class TestActionExecutionsController(FunctionalTest):
 
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=\
-            (FakeResponse('', 200, 'OK'), False)))
+        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=\
-            (FakeResponse('', 204, 'NO CONTENT'), False)))
+        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
     def test_get_query_with_limit(self):
         actionexecution_1_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
         actionexecution_2_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
@@ -229,12 +221,10 @@ class TestActionExecutionsController(FunctionalTest):
 
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=\
-            (FakeResponse('', 200, 'OK'), False)))
+        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=\
-            (FakeResponse('', 204, 'NO CONTENT'), False)))
+        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
     def test_post_delete(self):
         post_resp = self.__do_post(ACTION_EXECUTION_1)
         self.assertEquals(post_resp.status_int, 201)
@@ -265,12 +255,10 @@ class TestActionExecutionsController(FunctionalTest):
 
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=\
-            (FakeResponse('', 200, 'OK'), False)))
+        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=\
-            (FakeResponse('', 204, 'NO CONTENT'), False)))
+        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
     def test_delete(self):
         post_resp = self.__do_post(ACTION_EXECUTION_1)
         del_resp = self.__do_delete(self.__get_actionexecution_id(post_resp))

@@ -187,7 +187,8 @@ class St2TimerSensor(object):
             value = time_spec.get('delta', None)
             time_type = IntervalTrigger(**{unit: value, 'timezone': time_zone})
         elif name == 'st2.DateTimer':
-            dat = date_parser.parse(time_spec.get('date', None))  # Raises an exception if date string isn't a valid one.
+            # Raises an exception if date string isn't a valid one.
+            dat = date_parser.parse(time_spec.get('date', None))
             time_type = DateTrigger(dat, timezone=time_zone)
         elif name == 'st2.CronTimer':
             cron = time_spec.copy()

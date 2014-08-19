@@ -50,7 +50,7 @@ class MultiColumnTable(formatters.Formatter):
                             break
                     values.append(value)
                 else:
-                    values.append(getattr(entry, field_name, '')) 
+                    values.append(getattr(entry, field_name, ''))
             table.add_row(values)
         return table
 

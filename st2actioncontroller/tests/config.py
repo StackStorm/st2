@@ -39,6 +39,7 @@ def __setup_config_opts():
     ]
     __register_opts(liveactions_opts, group='liveactions')
 
+
 def parse_args():
     __setup_config_opts()
     CONF(args=[])

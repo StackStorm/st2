@@ -1,7 +1,4 @@
 import httplib
-import unittest2
-from st2common.persistence.reactor import Trigger
-from st2common.models.db import reactor
 from tests import FunctionalTest
 
 TRIGGER_0 = {

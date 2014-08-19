@@ -1,16 +1,12 @@
 import httplib
 from pecan import abort
 from pecan.rest import RestController
-
-from wsme import types as wstypes
-import wsmeext.pecan as wsme_pecan
+from mongoengine import ValidationError
 
 from st2common import log as logging
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.base import jsexpose
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.action import RunnerType
-from st2common.util.action_db import get_runnertype_by_id
 
 
 LOG = logging.getLogger(__name__)

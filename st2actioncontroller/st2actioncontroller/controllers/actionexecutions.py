@@ -13,12 +13,8 @@ from pecan.rest import RestController
 import requests
 import jsonschema
 from oslo.config import cfg
-from wsme import types as wstypes
-from wsme import Unset
-import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.base import jsexpose
 from st2common.persistence.action import ActionExecution
 from st2common.models.api.action import (ActionExecutionAPI,

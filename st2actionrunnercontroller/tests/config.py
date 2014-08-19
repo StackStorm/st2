@@ -24,8 +24,8 @@ def __setup_config_opts():
         cfg.StrOpt('root',
                    default='st2actionrunnercontroller.controllers.root.RootController',
                    help='Pecan root controller'),
-        cfg.StrOpt('template_path', default=
-                   '%(confdir)s/st2actionrunnercontroller/st2actionrunnercontroller/templates'),
+        cfg.StrOpt('template_path', default=('%(confdir)s/st2actionrunnercontroller/'
+                                             'st2actionrunnercontroller/templates')),
         cfg.ListOpt('modules', default=['st2actionrunnercontroller']),
         cfg.BoolOpt('debug', default=True),
         cfg.BoolOpt('auth_enable', default=True),

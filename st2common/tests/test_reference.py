@@ -7,6 +7,7 @@ from st2common.persistence.reactor import Trigger
 from st2common.util import reference
 from st2tests import DbTestCase
 
+
 class ReferenceTest(DbTestCase):
 
     __model = None
@@ -65,14 +66,14 @@ class ReferenceTest(DbTestCase):
 
     def test_to_model_unknown_id(self):
         try:
-            reference.get_model_from_ref(Trigger, {'id':'1'})
+            reference.get_model_from_ref(Trigger, {'id': '1'})
             self.assertTrue(False, 'Exception expected.')
         except mongoengine.ValidationError:
             self.assertTrue(True)
 
     def test_to_model_unknown_name(self):
         try:
-            reference.get_model_from_ref(Trigger, {'name':'unknown'})
+            reference.get_model_from_ref(Trigger, {'name': 'unknown'})
             self.assertTrue(False, 'Exception expected.')
         except ValueError:
             self.assertTrue(True)

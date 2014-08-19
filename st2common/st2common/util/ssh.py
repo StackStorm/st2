@@ -90,8 +90,7 @@ class SSHClient(object):
         channel = self.client.get_transport().open_session()
         if sudo:
             channel.get_pty()
-        (stdin, stdout, stderr) = (channel.makefile('wb'), channel.makefile('rb'),
-                               channel.makefile_stderr('rb'))
+        (stdout, stderr) = (channel.makefile('rb'), channel.makefile_stderr('rb'))
         if sudo:
             command = 'sudo -S bash -c "%s"' % command.replace('"', '\\"')
         else:
@@ -132,7 +131,6 @@ class SSHClient(object):
     def copy_file(self, local_file, remote_file):
         sftp = self._make_sftp()
         destination = remote_file.split(os.path.sep)
-        filename = destination[0] if len(destination) == 1 else destination[-1]
         remote_file = os.path.sep.join(destination)
         destination = destination[:-1]
         for directory in destination:

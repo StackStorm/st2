@@ -52,10 +52,8 @@ class MongoDBAccess(object):
             return (self._model_kls.objects(**query_args).order_by(*order_by)
                     if order_by else self._model_kls.objects(**query_args))
         else:
-            return (self._model_kls.objects(**query_args).\
-                        order_by(*order_by)[:limit]
-                    if order_by else self._model_kls.\
-                        objects(**query_args)[:limit])
+            return (self._model_kls.objects(**query_args).order_by(*order_by)[:limit]
+                    if order_by else self._model_kls.objects(**query_args)[:limit])
 
     @staticmethod
     def add_or_update(model_object):
