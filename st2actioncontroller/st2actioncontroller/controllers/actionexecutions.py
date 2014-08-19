@@ -221,7 +221,7 @@ class ActionExecutionsController(RestController):
         except jsonschema.ValidationError as e:
             LOG.error('POST /actionexecutions/ Validation failed on input parameters. '
                       'Parameters: %s; Action is: %s' % (actionexecution.parameters, action_db))
-            abort(httplib.BAD_REQUEST, e.message)
+            abort(httplib.BAD_REQUEST, str(e))
 
         # Set initial value for ActionExecution status.
         # Not using update_actionexecution_status to allow other initialization to
@@ -299,6 +299,7 @@ class ActionExecutionsController(RestController):
         except Exception as e:
             LOG.error('Database delete encountered exception during delete of id="%s". '
                       'Exception was %s', id, e)
+            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
 
         LOG.audit('ActionExecution was deleted from database. '
                   'The ActionExecution was: "%s', actionexec_db)

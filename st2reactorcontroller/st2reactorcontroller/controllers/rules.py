@@ -87,7 +87,7 @@ class RuleController(RestController):
 
         return rule_api
 
-    @jsexpose(str, body=RuleAPI, status_code=httplib.OK)
+    @jsexpose(str, body=RuleAPI)
     def put(self, rule_id, rule):
         LOG.info('PUT /rules/ with rule id=%s and data=%s', rule_id, rule)
         rule_db = RuleController.__get_by_id(rule_id)
@@ -128,17 +128,18 @@ class RuleController(RestController):
         LOG.debug('DELETE /rules/ lookup with id=%s found object: %s', rule_id, rule_db)
         try:
             Rule.delete(rule_db)
-        except Exception:
-            LOG.exception('Database delete encountered exception ' +
-                          'during delete of id="%s". ', rule_id)
+        except Exception as e:
+            LOG.exception('Database delete encountered exception during delete of id="%s". ',
+                          rule_id)
+            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
 
     @staticmethod
     def __get_by_id(rule_id):
         try:
             return Rule.get_by_id(rule_id)
-        except (ValueError, ValidationError):
+        except (ValueError, ValidationError) as e:
             LOG.exception('Database lookup for id="%s" resulted in exception.', rule_id)
-            abort(httplib.NOT_FOUND)
+            abort(httplib.NOT_FOUND, str(e))
 
     @staticmethod
     def __get_by_name(rule_name):
@@ -166,9 +167,9 @@ class RuleEnforcementController(RestController):
         LOG.info('GET /ruleenforcements/ with id=%s', id)
         try:
             rule_enforcement_db = RuleEnforcement.get_by_id(id)
-        except (ValueError, ValidationError):
+        except (ValueError, ValidationError) as e:
             LOG.exception('Database lookup for id="%s" resulted in exception.', id)
-            abort(httplib.NOT_FOUND)
+            abort(httplib.NOT_FOUND, str(e))
             return
 
         rule_enforcement_api = RuleEnforcementAPI.from_model(rule_enforcement_db)
