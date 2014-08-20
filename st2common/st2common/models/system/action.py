@@ -111,7 +111,8 @@ class RemoteScriptAction(RemoteAction):
                     continue
                 command_parts.append('%s=%s' % (arg, pipes.quote(value)))
         # add the positional args
-        command_parts.append(self.positional_args)
+        if self.positional_args:
+            command_parts.append(self.positional_args)
         return ' '.join(command_parts)
 
     def __str__(self):
