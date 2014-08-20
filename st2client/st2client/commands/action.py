@@ -244,9 +244,17 @@ class ActionExecutionListCommand(resource.ResourceCommand):
 
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
-        self.print_output(instances, table.MultiColumnTable,
-                          attributes=args.attr, widths=args.width,
-                          json=args.json)
+        if len(instances) == 1:
+            attr = (args.attr
+                    if (set(args.attr) - set(self.display_attributes) or
+                        set(self.display_attributes) - set(args.attr))
+                    else ['all'])
+            self.print_output(instances[0], table.PropertyValueTable,
+                              attributes=attr, json=args.json)
+        else:
+            self.print_output(instances, table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              json=args.json)
 
 
 class ActionExecutionGetCommand(resource.ResourceCommand):
