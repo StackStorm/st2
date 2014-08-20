@@ -31,7 +31,7 @@ RUNNER_HOSTS = 'hosts'
 RUNNER_PARALLEL = 'parallel'
 RUNNER_SUDO = 'sudo'
 RUNNER_ON_BEHALF_USER = 'user'
-RUNNER_REMOTE_DIR = 'remotedir'
+RUNNER_REMOTE_DIR = 'dir'
 RUNNER_COMMAND = 'cmd'
 
 

@@ -13,7 +13,7 @@ ACTION_1 = {
     'description': 'test description',
     'enabled': True,
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'shell',
+    'runner_type': 'run-local',
     'parameters': {
         'a': {
             'type': 'string',
@@ -31,7 +31,7 @@ ACTION_2 = {
     'description': 'another test description',
     'enabled': True,
     'entry_point': '/tmp/test/action2.sh',
-    'runner_type': 'shell',
+    'runner_type': 'run-local',
     'parameters': {
         'c': {
             'type': 'object',
@@ -53,7 +53,7 @@ ACTION_3 = {
     'description': 'another test description',
     'enabled': True,
     'entry_point': '/tmp/test/action3.sh',
-    'runner_type': 'shell',
+    'runner_type': 'run-local',
     'parameters': {
         'e': {},
         'f': {}

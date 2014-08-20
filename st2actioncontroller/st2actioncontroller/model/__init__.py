@@ -17,19 +17,19 @@ LOG = logging.getLogger(__name__)
 def register_runner_types():
     RUNNER_TYPES = [
         {
-            'name': 'shell',
-            'description': 'A bash shell action type.',
+            'name': 'run-local',
+            'description': 'A runner to execute local actions as a fixed user.',
             'enabled': True,
             'runner_parameters': {
                 'hosts': {
                     'description': 'A comma delimited string of a list of hosts '
-                                   'where the remote command will be executed.',
+                                   'where the command will be executed.',
                     'type': 'string',
                     'default': 'localhost'
                 },
                 'cmd': {
                     'description': 'Arbitrary Linux command to be executed on the '
-                                   'remote host(s).',
+                                   'host.',
                     'type': 'string'
                 },
                 'parallel': {
@@ -39,19 +39,19 @@ def register_runner_types():
                     'default': False
                 },
                 'sudo': {
-                    'description': 'The remote command will be executed with sudo.',
+                    'description': 'The command will be executed with sudo.',
                     'type': 'boolean',
                     'default': False
                 },
                 'user': {
-                    'description': 'The user who is executing this remote command. '
-                                   'This is for audit purposes only. The remote '
+                    'description': 'The user who is executing this command. '
+                                   'This is for audit purposes only. The '
                                    'command will always execute as the user stanley.',
                     'type': 'string'
                 },
-                'remotedir': {
+                'dir': {
                     'description': 'The working directory where the command will be '
-                                   'executed on the remote host.',
+                                   'executed on the host.',
                     'type': 'string'
                 }
             },
@@ -59,8 +59,9 @@ def register_runner_types():
             'runner_module': 'st2actionrunner.runners.fabricrunner'
         },
         {
-            'name': 'remote-exec-sysuser',
-            'description': 'A remote execution action type with a fixed system user.',
+            'name': 'run-remote',
+            'description': 'A remote execution runner that executes actions '
+                           'as a fixed system user.',
             'enabled': True,
             'runner_parameters': {
                 'hosts': {
@@ -88,7 +89,7 @@ def register_runner_types():
                                    'command will always execute as the user stanley.',
                     'type': 'string'
                 },
-                'remotedir': {
+                'dir': {
                     'description': 'The working directory where the command will be '
                                    'executed on the remote host.',
                     'type': 'string'

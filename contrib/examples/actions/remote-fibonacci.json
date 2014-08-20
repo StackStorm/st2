@@ -1,6 +1,6 @@
 {
     "name": "remote-fib",
-    "runner_type": "remote-exec-sysuser",
+    "runner_type": "run-remote",
     "description": "Action that returns fibonacci numbers in a range.",
     "enabled": true,
     "entry_point": "python_fibonacci/fibonacci.py",
