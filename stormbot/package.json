@@ -16,19 +16,27 @@
       "url": "https://github.com/github/hubot/raw/master/LICENSE"
     }
   ],
+  "scripts": {
+    "test": "node_modules/.bin/mocha tests/"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/github/hubot.git"
   },
   "dependencies": {
     "hubot": "git://github.com/enykeev/hubot.git#feature/cwd",
+    "hubot-hipchat": "~2.7.5",
     "hubot-scripts": ">= 2.5.0 < 3.0.0",
     "lodash": "~2.4.1",
     "rsvp": "^3.0.9",
-    "hubot-hipchat": "~2.7.5"
+    "splitargs": "0.0.3"
   },
   "engines": {
     "node": ">= 0.8.x",
     "npm": ">= 1.1.x"
+  },
+  "devDependencies": {
+    "chai": "^1.9.1",
+    "mocha": "^1.21.4"
   }
 }

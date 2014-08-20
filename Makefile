@@ -2,6 +2,7 @@ TOX_DIR := .tox
 #VIRTUALENV_DIR := $(TOX_DIR)/py27
 VIRTUALENV_DIR := virtualenv
 WEB_DIR := web
+STORMBOT_DIR := stormbot
 
 DOXYGEN_CONFIG := Doxyfile
 DOC_DIR := docs
@@ -13,7 +14,7 @@ COMPONENTS := $(wildcard st2*)
 
 # Components that implement a component-controlled test-runner. These components provide an
 # in-component Makefile. (Temporary fix until I can generalize the pecan unittest setup. -mar)
-COMPONENT_SPECIFIC_TESTS := st2tests 
+COMPONENT_SPECIFIC_TESTS := st2tests
 
 EXTERNAL_DIR := external
 
@@ -28,7 +29,7 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
-all: requirements web check tests
+all: requirements web stormbot check tests
 
 # Target for debugging Makefile variable assembly
 .PHONY: play
@@ -70,6 +71,7 @@ clean:
 distclean: clean
 	rm -rf $(VIRTUALENV_DIR)
 	rm -rf $(WEB_DIR)/css/ $(WEB_DIR)/components/ $(WEB_DIR)/node_modules/ $(WEB_DIR)/font/
+	rm -rf $(STORMBOT_DIR)/node_modules/
 
 .PHONY: requirements
 requirements: virtualenv $(REQUIREMENTS)
@@ -114,14 +116,19 @@ web:
 	bower install --config.cwd=$(WEB_DIR) --config.directory=components
 	gulp --cwd $(WEB_DIR) build
 
+.PHONY: stormbot
+stormbot:
+	npm install --prefix $(STORMBOT_DIR)
+
 .PHONY: tests
-tests: requirements
+tests: requirements stormbot
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component || exit 1; \
 	done
+	npm test ../$(STORMBOT_DIR)
 
 .PHONY: install
 install:
