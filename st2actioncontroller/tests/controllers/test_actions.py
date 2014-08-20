@@ -8,49 +8,13 @@ import unittest2
 from tests import FunctionalTest
 from st2common.persistence.action import Action
 
-SHELL_RUNNER_ARGS = {
-    'hosts': {
-        'description': 'A comma delimited string of a list of hosts '
-                       'where the remote command will be executed.',
-        'type': 'string',
-        'default': 'localhost'
-    },
-    'cmd': {
-        'description': 'Arbitrary Linux command to be executed on the '
-                       'remote host(s).',
-        'type': 'string'
-    },
-    'parallel': {
-        'description': 'If true, the command will be executed on all the '
-                       'hosts in parallel.',
-        'type': 'boolean',
-        'default': False
-    },
-    'sudo': {
-        'description': 'The remote command will be executed with sudo.',
-        'type': 'boolean',
-        'default': False
-    },
-    'user': {
-        'description': 'The user who is executing this remote command. '
-                       'This is for audit purposes only. The remote '
-                       'command will always execute as the user stanley.',
-        'type': 'string'
-    },
-    'remotedir': {
-        'description': 'The working directory where the command will be '
-                       'executed on the remote host.',
-        'type': 'string'
-    }
-}
-
 # ACTION_1: Good action definition.
 ACTION_1 = {
     'name': 'st2.dummy.action1',
     'description': 'test description',
     'enabled': True,
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'shell',
+    'runner_type': 'run-local',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -63,7 +27,7 @@ ACTION_2 = {
     'description': 'test description',
     'enabled': True,
     'entry_point': '/tmp/test/action2.py',
-    'runner_type': 'shell',
+    'runner_type': 'run-local',
     'parameters': {
         'c': {'type': 'string', 'default': 'C1'},
         'd': {'type': 'string', 'default': 'D1'}
@@ -75,7 +39,7 @@ ACTION_3 = {
     'name': 'st2.dummy.action3',
     'description': 'test description',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'shell',
+    'runner_type': 'run-local',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -88,7 +52,7 @@ ACTION_4 = {
     'description': 'test description',
     'enabled': False,
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'shell',
+    'runner_type': 'run-local',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -113,7 +77,7 @@ ACTION_6 = {
     'name': 'st2.dummy.action6',
     'enabled': False,
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'shell',
+    'runner_type': 'run-local',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -127,7 +91,7 @@ ACTION_7 = {
     'description': 'test description',
     'enabled': False,
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'shell',
+    'runner_type': 'run-local',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -140,7 +104,7 @@ ACTION_8 = {
     'description': 'test description',
     'enabled': True,
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'shell',
+    'runner_type': 'run-local',
     'parameters': {
         'cmd': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
