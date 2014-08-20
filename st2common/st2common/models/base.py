@@ -45,11 +45,17 @@ class BaseAPI(object):
         for key, value in kw.items():
             setattr(self, key, value)
 
+    def __repr__(self):
+        name = type(self).__name__
+        attrs = ', '.join("'%s':%r" % item for item in vars(self).iteritems())
+        # The format here is so that eval can be applied.
+        return "%s(**{%s})" % (name, attrs)
+
     def __str__(self):
         name = type(self).__name__
         attrs = ', '.join("%s=%r" % item for item in vars(self).iteritems())
 
-        return "%s [%s]" % (name, attrs)
+        return "%s[%s]" % (name, attrs)
 
     def __json__(self):
         return vars(self)
