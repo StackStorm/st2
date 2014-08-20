@@ -51,21 +51,21 @@ https://ops.stackstorm.net/releases/stanley/<VERSION>/rpms/current/
 
 The required packages are listed below:
 
-st2actioncontroller-<VERSION>-<BUILD>.noarch.rpm
-st2actionrunnercontroller-<VERSION>-<BUILD>.noarch.rpm
-st2common-<VERSION>-<BUILD>.noarch.rpm
-st2client-<VERSION>-<BUILD>.noarch.rpm
-st2datastore-<VERSION>-<BUILD>.noarch.rpm
-st2reactor-<VERSION>-<BUILD>.noarch.rpm
-st2reactorcontroller-<VERSION>-<BUILD>.noarch.rpm
+    st2actioncontroller-<VERSION>-<BUILD>.noarch.rpm
+    st2actionrunnercontroller-<VERSION>-<BUILD>.noarch.rpm
+    st2common-<VERSION>-<BUILD>.noarch.rpm
+    st2client-<VERSION>-<BUILD>.noarch.rpm
+    st2datastore-<VERSION>-<BUILD>.noarch.rpm
+    st2reactor-<VERSION>-<BUILD>.noarch.rpm
+    st2reactorcontroller-<VERSION>-<BUILD>.noarch.rpm
 
 Download the following script, and edit the USER and PASS variables to match the credentials you received from StackStorm.
 
-https://ops.stackstorm.net/releases/stanley/scripts/deploy_stan.sh
+    https://ops.stackstorm.net/releases/stanley/scripts/deploy_stan.sh
 
 You can then run the script to download and install the Stanley packages by simply passing in the version number:
 
-./deploy_stan.sh 0.2.0
+    ./deploy_stan.sh 0.2.0
 
 This will download the latest build of Stanley version 0.2.0.
 
@@ -77,12 +77,12 @@ By default, the username is Stanley, and the private key is located at /home/sta
 
 These options can be changed in the Stanley configuration file:
 
-/etc/stanley/stanley.conf
+    /etc/stanley/stanley.conf
 
 #### Starting and Stopping
 
 The command to start and or stop stanley is 'st2run'.
 
-st2run start|stop|restart|status
+    st2run start|stop|restart|status
 
 
