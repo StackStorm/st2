@@ -128,26 +128,25 @@ def register_runner_types():
         }
     ]
 
-    LOG.debug('Registering runnertypes')
+    LOG.info('Start : register default RunnerTypes.')
 
     for runnertype in RUNNER_TYPES:
         try:
             runnertype_db = get_runnertype_by_name(runnertype['name'])
             if runnertype_db:
+                LOG.info('RunnerType name=%s exists.', runnertype['name'])
                 continue
         except StackStormDBObjectNotFoundError:
-            LOG.debug('RunnerType "%s" does not exist in DB.', runnertype['name'])
+            pass
 
         runnertype_api = RunnerTypeAPI(**runnertype)
-        LOG.debug('RunnerType after field population: %s', runnertype_api)
         try:
             runnertype_db = RunnerType.add_or_update(RunnerTypeAPI.to_model(runnertype_api))
-            LOG.debug('created runnertype name=%s in DB. Object: %s',
-                      runnertype['name'], runnertype_db)
-        except Exception as e:
-            LOG.exception('Unable to register runner type %s. %s', runnertype['name'], e)
+            LOG.audit('RunnerType created. RunnerType %s', runnertype_db)
+        except Exception:
+            LOG.exception('Unable to register runner type %s.', runnertype['name'])
 
-    LOG.debug('Registering runnertypes complete.')
+    LOG.info('End : register default RunnerTypes.')
 
 
 def register_actions():
@@ -179,9 +178,9 @@ def register_actions():
                 continue
             try:
                 model = Action.add_or_update(model)
-                LOG.debug('Added action %s from %s.', model.name, action)
-            except Exception as e:
-                LOG.exception('Failed to register action %s. %s', model.name, e)
+                LOG.audit('Action created. Action %s from %s.', model, action)
+            except Exception:
+                LOG.exception('Failed to create action %s.', model.name)
 
 
 def init_model():

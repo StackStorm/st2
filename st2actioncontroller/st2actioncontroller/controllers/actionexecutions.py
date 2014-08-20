@@ -78,10 +78,7 @@ class ActionExecutionsController(RestController):
 
         custom_headers = self._create_custom_headers()
         payload = self._create_liveaction_data(actionexec_id)
-        LOG.info('Payload for /liveactions/ POST: data="%s" custom_headers="%s"',
-                 payload, custom_headers)
-        LOG.info('Issuing /liveactions/ POST for ActionExecution with id ="%s"', actionexec_id)
-
+        LOG.info('Issuing /liveactions/ POST data=%s custom_headers=%s', payload, custom_headers)
         request_error = False
         result = None
         try:
@@ -192,11 +189,7 @@ class ActionExecutionsController(RestController):
             LOG.error('POST /actionexecutions/ Action for "%s" cannot be found.',
                       actionexecution.action)
             abort(httplib.NOT_FOUND, 'Unable to find action.')
-        else:
-            if action_dict != dict(actionexecution.action):
-                LOG.info('POST /actionexecutions/ Action identity dict updated to remove '
-                         'lookup failure.')
-                actionexecution.action = action_dict
+        actionexecution.action = action_dict
 
         # If the Action is disabled, abort the POST call.
         if not action_db.enabled:
@@ -223,17 +216,9 @@ class ActionExecutionsController(RestController):
         # Set initial value for ActionExecution status.
         # Not using update_actionexecution_status to allow other initialization to
         # be done before saving to DB.
-        LOG.debug('Setting actionexecution status to "%s"', ACTIONEXEC_STATUS_INIT)
         actionexecution.status = ACTIONEXEC_STATUS_INIT
-
-        LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
-        actionexec_api = ActionExecutionAPI.to_model(actionexecution)
-        LOG.debug('/actionexecutions/ POST verified ActionExecutionAPI object=%s',
-                  actionexec_api)
-
-        actionexec_db = ActionExecution.add_or_update(actionexec_api)
-        LOG.debug('/actionexecutions/ POST saved ActionExecution object=%s', actionexec_db)
-
+        actionexec_db = ActionExecutionAPI.to_model(actionexecution)
+        actionexec_db = ActionExecution.add_or_update(actionexec_db)
         LOG.audit('ActionExecution created. ActionExecution=%s. ', actionexec_db)
 
         actionexec_id = actionexec_db.id

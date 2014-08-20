@@ -34,7 +34,7 @@ ACTION_TRIGGER_TYPE = {
 
 
 def _do_register_trigger_type(attempt_no=0):
-    LOG.info('Attempt no %s to register %s.', attempt_no, ACTION_TRIGGER_TYPE['name'])
+    LOG.debug('Attempt no %s to register %s.', attempt_no, ACTION_TRIGGER_TYPE['name'])
     try:
         payload = json.dumps(ACTION_TRIGGER_TYPE)
         r = requests.post(TRIGGER_TYPE_ENDPOINT,
@@ -51,7 +51,6 @@ def _do_register_trigger_type(attempt_no=0):
     except requests.exceptions.ConnectionError:
         if attempt_no < MAX_ATTEMPTS:
             eventlet.spawn_after(RETRY_WAIT, _do_register_trigger_type, attempt_no + 1)
-            eventlet.sleep(0)
         else:
             LOG.exception('Exceeded max attempts to register trigger %s.',
                           ACTION_TRIGGER_TYPE['name'])
