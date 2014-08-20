@@ -89,7 +89,8 @@ class ActionExecutionsController(RestController):
                       'Error was: %s', e)
             request_error = True
 
-        LOG.debug('/liveactions/ POST request result: status: %s body: %s', result, result.text)
+        LOG.debug('/liveactions/ POST request result: status: %s body: %s', result,
+                  result.text if result else None)
 
         return (result, request_error)
 
