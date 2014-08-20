@@ -15,9 +15,8 @@ Stanley RPMs have been tested and precompiled for Fedora 20.  In order to downlo
 - python-tox 
 - gcc-c++ 
 - git-all
-- npm
 
-yum install -y python-pip python-virtualenv python-tox gcc-c++ git-all mongodb mongodb-server npm
+yum install -y python-pip python-virtualenv python-tox gcc-c++ git-all mongodb mongodb-server
 
 ##### Pip
 
