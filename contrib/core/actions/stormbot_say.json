@@ -1,5 +1,5 @@
 { "name": "stormbot_say"
-, "runner_type": "shell"
+, "runner_type": "run-local"
 , "description": "This posts a message to StormBot"
 , "enabled": true
 , "entry_point": "stormbot_say/stormbot_say"
