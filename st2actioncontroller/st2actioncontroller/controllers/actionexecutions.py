@@ -185,6 +185,7 @@ class ActionExecutionsController(RestController):
             setattr(actionexecution, 'runner_parameters', {})
 
         (action_db, action_dict) = get_action_by_dict(actionexecution.action)
+        LOG.debug('POST /actionexecutions/ Action=%s', action_db)
 
         if not action_db:
             LOG.error('POST /actionexecutions/ Action for "%s" cannot be found.',
@@ -200,6 +201,7 @@ class ActionExecutionsController(RestController):
 
         # Assign default parameters
         runnertype = get_runnertype_by_name(action_db.runner_type['name'])
+        LOG.debug('POST /actionexecutions/ Runner=%s', runnertype)
         for key, metadata in runnertype.runner_parameters.iteritems():
             if key not in actionexecution.parameters and 'default' in metadata:
                 if metadata.get('default') is not None:
@@ -208,10 +210,12 @@ class ActionExecutionsController(RestController):
         # Validate action parameters
         schema = util.schema.get_parameter_schema(action_db)
         try:
+            LOG.debug('POST /actionexecutions/ Validation for parameters=%s & schema=%s',
+                      actionexecution.parameters, schema)
             jsonschema.validate(actionexecution.parameters, schema)
+            LOG.debug('POST /actionexecutions/ Parameter validation passed.')
         except jsonschema.ValidationError as e:
-            LOG.error('POST /actionexecutions/ Validation failed on input parameters. '
-                      'Parameters: %s; Action is: %s' % (actionexecution.parameters, action_db))
+            LOG.error('POST /actionexecutions/ Parameter validation failed. %s', actionexecution)
             abort(httplib.BAD_REQUEST, str(e))
 
         # Set initial value for ActionExecution status.
