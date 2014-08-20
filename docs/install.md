@@ -16,7 +16,7 @@ Stanley RPMs have been tested and precompiled for Fedora 20.  In order to downlo
 - gcc-c++ 
 - git-all
 
-yum install -y python-pip python-virtualenv python-tox gcc-c++ git-all mongodb mongodb-server
+    sudo yum install -y python-pip python-virtualenv python-tox gcc-c++ git-all mongodb mongodb-server
 
 ##### Pip
 
@@ -40,7 +40,7 @@ yum install -y python-pip python-virtualenv python-tox gcc-c++ git-all mongodb m
 - git+https://github.com/StackStorm/fabric.git@stanley-patched
 - jsonschema>=2.3.0
 
-pip install -U all ze packages
+    sudo pip install -U all ze packages
 
 #### Installation
 
