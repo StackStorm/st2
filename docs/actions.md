@@ -40,15 +40,72 @@ Action registration can be provided as a json file stored in '/opt/stackstorm/ac
 
     /opt/stacktorm/actions/myaction.json        # registration json
 
-#### Schema
+#### Action Definition
+| Attribute   | Description |
+|-------------|-------------|
+| name        | Name of the action.|
+| runner_type | The type of runner to execute the action. |
+| enabled     | Action cannot be invoked when disabled. |
+| entry_point | Location of the action launch script relative to the /opt/stackstorm/actions. |
+| parameters  | A dictionary of parameters and optional metadata describing type and default. The metadata is structured data following the [jsonschema][1] specification draft 4. If metadata is provided, input args are validated on action execution. Otherwise, validation is skipped. |
+| required_parameters | The list of parameters that are required by the action. |
+
+##### Example
+The following is the action definition and a table describing the attributes.
+
     {
-        "name": "local",         # name of the action.
-        "runner_type": "shell",  # name of the runner.
-        "description": "",       # description of the action.
-        "enabled": true,         # If this action is enabled. A disabled action will not execute until it is enabled.
-        "entry_point": "",       # Location of the script relative to '/opt/stackstorm/actions'
-        "parameters": {}         # The parameter of the action. These are passed down as key-value arg on the command line.
+        "name": "http",
+        "runner_type": "http-runner",
+        "description": "Action that performs an http request.",
+        "enabled": True,
+        "entry_point":"",
+        "parameters": {
+            "method": {
+                "enum": ["GET", "POST", "PUT", "DELETE"]
+            },
+            "timeout": {
+                "type": "integer",
+                "default": 60
+            },
+            "auth": {
+                "type": "string"
+            },
+            "params": {
+                "type":"string"
+            }
+        }
     }
+
+##### Action Parameters
+Parameter definition for the action uses jsonschema. The basic data type that is supported are boolean, integer, number, object (json), and string.  Please review the jsonschema draft 4 for further details. On execution of an action, the input arguments provided will be validated against the metadata provided.
+
+For simple data type such as string and integer, the metadata is simply as follows. If default is provided, the value will be automatically assigned during action execution if it is not supplied in the input arguments.
+
+    "parameters": {
+        "simple1": {"type": "string"},
+        "simple2": {"type": "integer", "default": 1}
+    }
+
+The corresponding command line to execute an action with this parameter set is as follows.
+
+    st2 run myaction simple1=hi simple2=3
+
+Complex object is also supported by jsonschema. The following example defines an input parameter that takes a JSON as input.
+
+      "parameters": {
+            "complex1": {
+                "type": "object",
+                "properties": {
+                    "simple1": {"type": "string"},
+                    "simple2": {"type": "integer", "default": 1}
+                }
+        }
+
+For the above action, the corresponding command line to execute an action with this parameter set is as follows.
+
+    st2 run myaction complex1='{"simple1": "hi", "simple2": 3}'
+
+Please note that an action runner may have additional parameters and how a particular action runner handles positional args and keyword args are different.
 
 #### Picking an action runner
 The environment in which the action runs is specified by the runner. Currently the system provides the following runners:
@@ -98,3 +155,45 @@ local : This action allows execution of arbitrary *nix/shell commands locally. V
 remote : This action allows execution of arbitrary *nix/shell commands on a set of boxes. Via the CLI executing this command would be -
 
     st2 run remote cmd='ls -l' host='host1, host2' user='user1'
+
+### Action Usage
+Usage information for an action can be queried at runtime in the CLI.  The information will include additional information from the underlying runner.
+
+    st2 run <action> -h
+
+The following is an example usage information for the included "local" action. The list of required and optional parameters also includes those from the "run-local" runner.
+
+    ~/ $ st2 run local -h
+
+    Action that executes an arbitrary Linux command on the localhost.
+
+    Optional Parameters:
+        cmd
+            Arbitrary Linux command to be executed on the host.
+            Type: string
+
+        dir
+            The working directory where the command will be executed on the host.
+            Type: string
+
+        hosts
+            A comma delimited string of a list of hosts where the command will be
+            executed.
+            Type: string
+            Default: localhost
+
+        parallel
+            If true, the command will be executed on all the hosts in parallel.
+            Type: boolean
+
+        sudo
+            The command will be executed with sudo.
+            Type: boolean
+
+        user
+            The user who is executing this command. This is for audit purposes
+            only. The command will always execute as the user stanley.
+            Type: string
+
+
+[1]: http://json-schema.org
