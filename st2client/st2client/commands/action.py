@@ -1,3 +1,4 @@
+import ast
 import copy
 import json
 import logging
@@ -66,6 +67,33 @@ class ActionRunCommand(resource.ResourceCommand):
         if not action:
             raise resource.ResourceNotFoundError('Action "%s" cannot be found.'
                                                  % args.name_or_id)
+
+        runner_mgr = self.app.client.managers['RunnerType']
+        runner = runner_mgr.get_by_name(action.runner_type)
+        if not runner:
+            raise resource.ResourceNotFoundError('Runner type "%s" for action "%s" cannot be found.'
+                                                 % (action.runner_type, action.name))
+
+        transformer = {
+            'array': list,
+            'boolean': (lambda x: ast.literal_eval(x.capitalize())),
+            'integer': int,
+            'number': float,
+            'object': json.loads,
+            'string': str
+        }
+
+        def normalize(name, value):
+            if name in runner.runner_parameters:
+                param = runner.runner_parameters[name]
+                if 'type' in param and param['type'] in transformer:
+                    return transformer[param['type']](value)
+            if name in action.parameters:
+                param = action.parameters[name]
+                if 'type' in param and param['type'] in transformer:
+                    return transformer[param['type']](value)
+            return value
+
         execution = models.ActionExecution()
         execution.action = {'name': action.name}
         execution.parameters = dict()
@@ -73,10 +101,11 @@ class ActionRunCommand(resource.ResourceCommand):
             arg = args.parameters[idx]
             if '=' in arg:
                 k, v = arg.split('=')
-                execution.parameters[k] = v
+                execution.parameters[k] = normalize(k, v)
             else:
                 execution.parameters['cmd'] = ' '.join(args.parameters[idx:])
                 break
+
         action_exec_mgr = self.app.client.managers['ActionExecution']
         execution = action_exec_mgr.create(execution)
 

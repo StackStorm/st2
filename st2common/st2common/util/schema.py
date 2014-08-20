@@ -193,10 +193,7 @@ def get_parameter_schema(model):
         schema['title'] = model.name
         schema['description'] = model.description
         schema['type'] = 'object'
-        schema['properties'] = dict()
+        schema['properties'] = properties
         schema['required'] = required
         schema['additionalProperties'] = False
-        for name, metadata in properties.iteritems():
-            if name not in schema['properties']:
-                schema['properties'][name] = metadata
     return schema
