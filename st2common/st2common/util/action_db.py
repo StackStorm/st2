@@ -33,7 +33,6 @@ def get_runnertype_by_name(runnertype_name):
             Get an runnertype by name.
             On error, raise ST2ObjectNotFoundError.
         """
-        LOG.debug('Lookup for runnertype with name="%s"', runnertype_name)
         try:
             runnertypes = RunnerType.query(name=runnertype_name)
         except (ValueError, ValidationError) as e:

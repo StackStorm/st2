@@ -107,20 +107,16 @@ class LiveActionsController(RestController):
 
         # Validate incoming API object
         liveaction_api = LiveActionAPI.to_model(liveaction)
-        LOG.debug('/liveactions/ POST verified LiveActionAPI object=%s',
-                  liveaction_api)
 
         # To launch a LiveAction we need:
         #     1. ActionExecution object
         #     2. Action object
         #     3. RunnerType object
-        LOG.info('POST /liveactions/ received actionexecution_id: %s. '
-                 'Attempting to obtain ActionExecution object from database.',
-                 str(liveaction.actionexecution_id))
         try:
             actionexec_db = get_actionexec_by_id(liveaction.actionexecution_id)
         except StackStormDBObjectNotFoundError as e:
-            LOG.error(e.message)
+            LOG.exception('Failed to find ActionExecution %s in the database.',
+                          liveaction.actionexecution_id)
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST, str(e))
 
@@ -129,18 +125,13 @@ class LiveActionsController(RestController):
                  'Object is %s', actionexec_db)
 
         try:
-            LOG.debug('actionexecution.action value: %s', actionexec_db.action)
             (action_db, d) = get_action_by_dict(actionexec_db.action)
         except StackStormDBObjectNotFoundError as e:
-            LOG.error(e.message)
+            LOG.exception('Failed to find Action in the database.')
             # TODO: Is there a more appropriate status code?
             abort(httplib.BAD_REQUEST, str(e))
 
         runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
-
-        #  Got Action object (2)
-        LOG.info('POST /liveactions/ obtained Action object from database. '
-                 'Object is %s', action_db)
 
         # If the Action is disabled, abort the POST call.
         if not action_db.enabled:
@@ -148,14 +139,8 @@ class LiveActionsController(RestController):
                       'Action. Action is: %s', action_db)
             abort(httplib.FORBIDDEN, 'Action is disabled.')
 
-        #  Got RunnerType object (3)
-        LOG.info('POST /liveactions/ obtained RunnerType object from database. '
-                 'Object is %s', runnertype_db)
-
         # Save LiveAction to DB
         liveaction_db = LiveAction.add_or_update(liveaction_api)
-        LOG.info('POST /liveactions/ LiveAction object saved to DB. '
-                 'Object is: %s', liveaction_db)
 
         # Update ActionExecution status to "running"
         actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_RUNNING,
@@ -178,7 +163,7 @@ class LiveActionsController(RestController):
 
         if not result:
             # Return different code for live action execution failure
-            abort(httplib.INTERNAL_SERVER_ERROR)
+            abort(httplib.INTERNAL_SERVER_ERROR, 'Failed to execute action.')
 
         liveaction_api = LiveActionAPI.from_model(liveaction_db)
 

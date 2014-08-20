@@ -57,7 +57,6 @@ class MongoDBAccess(object):
 
     @staticmethod
     def add_or_update(model_object):
-        LOG.debug('MongoDBAccess.add_or_update() model_object=%s', model_object)
         return model_object.save()
 
     @staticmethod
