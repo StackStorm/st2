@@ -55,7 +55,6 @@ def register_runner_types():
                     'type': 'string'
                 }
             },
-            'required_parameters': ['cmd'],
             'runner_module': 'st2actionrunner.runners.fabricrunner'
         },
         {
@@ -95,7 +94,7 @@ def register_runner_types():
                     'type': 'string'
                 }
             },
-            'required_parameters': ['hosts', 'cmd'],
+            'required_parameters': ['hosts'],
             'runner_module': 'st2actionrunner.runners.fabricrunner'
         },
         {

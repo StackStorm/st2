@@ -13,7 +13,7 @@ ACTION_1 = {
     'description': 'test description',
     'enabled': True,
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'run-remote',
     'parameters': {
         'a': {
             'type': 'string',
@@ -31,7 +31,7 @@ ACTION_2 = {
     'description': 'another test description',
     'enabled': True,
     'entry_point': '/tmp/test/action2.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'run-remote',
     'parameters': {
         'c': {
             'type': 'object',
@@ -53,7 +53,7 @@ ACTION_3 = {
     'description': 'another test description',
     'enabled': True,
     'entry_point': '/tmp/test/action3.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'run-remote',
     'parameters': {
         'e': {},
         'f': {}
@@ -63,6 +63,7 @@ ACTION_3 = {
 ACTION_EXECUTION_1 = {
     'action': {'name': 'st2.dummy.action1'},
     'parameters': {
+        'hosts': 'localhost',
         'cmd': 'uname -a'
     }
 }
@@ -70,6 +71,7 @@ ACTION_EXECUTION_1 = {
 ACTION_EXECUTION_2 = {
     'action': {'name': 'st2.dummy.action2'},
     'parameters': {
+        'hosts': 'localhost',
         'cmd': 'ls -l'
     }
 }
@@ -77,6 +79,7 @@ ACTION_EXECUTION_2 = {
 ACTION_EXECUTION_3 = {
     'action': {'name': 'st2.dummy.action3'},
     'parameters': {
+        'hosts': 'localhost',
         'cmd': 'ls -l',
         'e': 'abcde',
         'f': 12345
@@ -238,13 +241,13 @@ class TestActionExecutionsController(FunctionalTest):
         post_resp = self.__do_post(execution, expect_errors=True)
         self.assertEquals(post_resp.status_int, 400)
 
-        # Runner type expects parameter "cmd".
+        # Runner type expects parameter "hosts".
         execution['parameters'] = {}
         post_resp = self.__do_post(execution, expect_errors=True)
         self.assertEquals(post_resp.status_int, 400)
 
         # Runner type expects parameters "cmd" to be str.
-        execution['parameters'] = {"cmd": 1000}
+        execution['parameters'] = {"hosts": "localhost", "cmd": 1000}
         post_resp = self.__do_post(execution, expect_errors=True)
         self.assertEquals(post_resp.status_int, 400)
 

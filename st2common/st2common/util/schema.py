@@ -194,6 +194,7 @@ def get_parameter_schema(model):
         schema['description'] = model.description
         schema['type'] = 'object'
         schema['properties'] = properties
-        schema['required'] = required
+        if required:
+            schema['required'] = required
         schema['additionalProperties'] = False
     return schema
