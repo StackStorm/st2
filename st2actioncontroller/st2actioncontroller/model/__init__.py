@@ -23,13 +23,13 @@ def register_runner_types():
             'runner_parameters': {
                 'hosts': {
                     'description': 'A comma delimited string of a list of hosts '
-                                   'where the remote command will be executed.',
+                                   'where the command will be executed.',
                     'type': 'string',
                     'default': 'localhost'
                 },
                 'cmd': {
                     'description': 'Arbitrary Linux command to be executed on the '
-                                   'remote host(s).',
+                                   'host.',
                     'type': 'string'
                 },
                 'parallel': {
@@ -39,13 +39,13 @@ def register_runner_types():
                     'default': False
                 },
                 'sudo': {
-                    'description': 'The remote command will be executed with sudo.',
+                    'description': 'The command will be executed with sudo.',
                     'type': 'boolean',
                     'default': False
                 },
                 'user': {
-                    'description': 'The user who is executing this remote command. '
-                                   'This is for audit purposes only. The remote '
+                    'description': 'The user who is executing this command. '
+                                   'This is for audit purposes only. The '
                                    'command will always execute as the user stanley.',
                     'type': 'string'
                 },
