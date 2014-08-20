@@ -17,8 +17,8 @@ LOG = logging.getLogger(__name__)
 def register_runner_types():
     RUNNER_TYPES = [
         {
-            'name': 'shell',
-            'description': 'A bash shell action type.',
+            'name': 'run-local',
+            'description': 'A runner to execute local actions as a fixed user.',
             'enabled': True,
             'runner_parameters': {
                 'hosts': {
@@ -49,9 +49,9 @@ def register_runner_types():
                                    'command will always execute as the user stanley.',
                     'type': 'string'
                 },
-                'remotedir': {
+                'dir': {
                     'description': 'The working directory where the command will be '
-                                   'executed on the remote host.',
+                                   'executed on the host.',
                     'type': 'string'
                 }
             },
@@ -59,8 +59,9 @@ def register_runner_types():
             'runner_module': 'st2actionrunner.runners.fabricrunner'
         },
         {
-            'name': 'remote-exec-sysuser',
-            'description': 'A remote execution action type with a fixed system user.',
+            'name': 'run-remote',
+            'description': 'A remote execution runner that executes actions '
+                           'as a fixed system user.',
             'enabled': True,
             'runner_parameters': {
                 'hosts': {
@@ -88,7 +89,7 @@ def register_runner_types():
                                    'command will always execute as the user stanley.',
                     'type': 'string'
                 },
-                'remotedir': {
+                'dir': {
                     'description': 'The working directory where the command will be '
                                    'executed on the remote host.',
                     'type': 'string'
