@@ -208,7 +208,8 @@ class ActionExecutionsController(RestController):
         runnertype = get_runnertype_by_name(action_db.runner_type['name'])
         for key, metadata in runnertype.runner_parameters.iteritems():
             if key not in actionexecution.parameters and 'default' in metadata:
-                actionexecution.parameters[key] = metadata['default']
+                if metadata.get('default') is not None:
+                    actionexecution.parameters[key] = metadata['default']
 
         # Validate action parameters
         schema = util.schema.get_parameter_schema(action_db)
