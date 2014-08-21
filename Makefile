@@ -54,7 +54,7 @@ flake8: requirements
 	@echo
 	@echo "====================flake===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS) || exit 0
+	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS)
 
 .PHONY: clean
 clean:
