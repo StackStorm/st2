@@ -199,6 +199,11 @@ class RuleAPI(BaseAPI):
                                                                                   model.trigger)))
         del rule['trigger']['id']
         del rule['trigger']['name']
+        for oldkey, value in rule['criteria'].iteritems():
+            newkey = oldkey.replace(u'\u2024', '.')
+            if oldkey != newkey:
+                rule['criteria'][newkey] = value
+                del rule['criteria'][oldkey]
         return cls(**rule)
 
     @classmethod
@@ -206,6 +211,11 @@ class RuleAPI(BaseAPI):
         model = StormBaseAPI.to_model(RuleDB, rule)
         model.trigger = TriggerAPI(**rule.trigger)
         model.criteria = dict(rule.criteria)
+        for oldkey, value in model.criteria.iteritems():
+            newkey = oldkey.replace('.', u'\u2024')
+            if oldkey != newkey:
+                model.criteria[newkey] = value
+                del model.criteria[oldkey]
         validator.validate_criteria(model.criteria)
         model.action = ActionExecutionSpecDB()
         model.action.name = rule.action['name']
