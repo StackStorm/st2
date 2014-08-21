@@ -3,8 +3,6 @@ try:
 except ImportError:
     import json
 
-import unittest2
-
 from tests import FunctionalTest
 from st2common.persistence.action import Action
 
@@ -184,7 +182,6 @@ class TestActionController(FunctionalTest):
         self.assertNotEquals(data['id'], ACTION_7['id'])
         self.__do_delete(self.__get_action_id(post_resp))
 
-    @unittest2.skip('Duplicate problem is not solved!')
     def test_post_name_duplicate(self):
         action_ids = []
 
@@ -194,7 +191,7 @@ class TestActionController(FunctionalTest):
         self.assertTrue(action_in_db is not None, 'Action must be in db.')
         action_ids.append(self.__get_action_id(post_resp))
 
-        post_resp = self.__do_post(ACTION_1)
+        post_resp = self.__do_post(ACTION_1, expect_errors=True)
         # Verify name conflict
         self.assertEquals(post_resp.status_int, 409)
 

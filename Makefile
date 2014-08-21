@@ -56,6 +56,13 @@ flake8: requirements
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS)
 
+.PHONY: .flake8
+.flake8:
+	@echo
+	@echo "====================flake===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS)
+
 .PHONY: clean
 clean:
 	@echo
@@ -126,7 +133,10 @@ botrqmnts:
 tests: pytests bottests
 
 .PHONY: pytests
-pytests: requirements
+pytests: requirements .flake8 .pytests
+
+.PHONY: .pytests
+.pytests:
 	@echo
 	@echo "====================tests===================="
 	@echo
