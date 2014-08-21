@@ -50,10 +50,12 @@ def _do_register_trigger_type(attempt_no=0):
                       r.status_code, ACTION_TRIGGER_TYPE['name'])
     except requests.exceptions.ConnectionError:
         if attempt_no < MAX_ATTEMPTS:
-            eventlet.spawn_after(RETRY_WAIT, _do_register_trigger_type, attempt_no + 1)
+            retry_wait = RETRY_WAIT * (attempt_no + 1)
+            LOG.debug('    ConnectionError. Will retry in %ss.', retry_wait)
+            eventlet.spawn_after(retry_wait, _do_register_trigger_type, attempt_no + 1)
         else:
-            LOG.exception('Exceeded max attempts to register trigger %s.',
-                          ACTION_TRIGGER_TYPE['name'])
+            LOG.warn('Failed to register trigger %s. Exceeded max attempts to register trigger.',
+                     ACTION_TRIGGER_TYPE['name'])
     except:
         LOG.exception('Failed to register trigger %s.', ACTION_TRIGGER_TYPE['name'])
 
