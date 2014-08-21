@@ -33,7 +33,7 @@ def get_runner():
 class HttpRunner(ActionRunner):
     def __init__(self, id):
         super(HttpRunner, self).__init__()
-        self._on_behalf_user = cfg.CONF.fabric_runner.user
+        self._on_behalf_user = cfg.CONF.ssh_runner.user
         self._timeout = 60
 
     def pre_run(self):

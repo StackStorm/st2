@@ -140,7 +140,7 @@ Parameters provided by this runner are as follows:
 
 The remote runner expects a user to be specified under which to run an action remotely on the system. As of now the user must be supplied as a system-wide configuration and should be present on all the boxes that run the action.
 
-The 'fabric_runner' section in [STANLEY/conf/stanley.conf](../conf/stanley.conf) which gets copied over into etc/stanley/stanley.conf carries the config parameters.
+The 'ssh_runner' section in [STANLEY/conf/stanley.conf](../conf/stanley.conf) which gets copied over into etc/stanley/stanley.conf carries the config parameters.
 
 1. user : name of the user; defaults to 'stanley'
 2. ssh_key_file : location of the ssh private key whose corresponding public key is available on the remote boxes. If this is not provided than the local ssh agent must have the key for the specified user to exist.

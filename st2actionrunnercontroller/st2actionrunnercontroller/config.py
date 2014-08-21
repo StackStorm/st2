@@ -57,7 +57,7 @@ action_runner_opts = [
 ]
 CONF.register_opts(action_runner_opts, group='action_runner')
 
-fabric_runner_opts = [
+ssh_runner_opts = [
     cfg.StrOpt('user',
                default='stanley',
                help='User for running remote tasks via the FabricRunner.'),
@@ -68,7 +68,7 @@ fabric_runner_opts = [
                default='/tmp',
                help='Location of the script on the remote filesystem.'),
 ]
-CONF.register_opts(fabric_runner_opts, group='fabric_runner')
+CONF.register_opts(ssh_runner_opts, group='ssh_runner')
 
 action_sensor_opts = [
     cfg.BoolOpt('enable', default=True,
