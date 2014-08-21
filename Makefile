@@ -118,12 +118,15 @@ web:
 	bower install --config.cwd=$(WEB_DIR) --config.directory=components
 	gulp --cwd $(WEB_DIR) build
 
-.PHONY: stormbot
-stormbot:
+.PHONY: botrqmnts
+botrqmnts:
 	npm install --prefix $(STORMBOT_DIR)
 
 .PHONY: tests
-tests: requirements stormbot
+tests: pytests bottests
+
+.PHONY: pytests
+pytests: requirements
 	@echo
 	@echo "====================tests===================="
 	@echo
@@ -133,6 +136,9 @@ tests: requirements stormbot
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component || exit 1; \
 	done
+
+.PHONY: bottests
+bottests: botrqmnts
 	npm test ../$(STORMBOT_DIR)
 
 .PHONY: install
