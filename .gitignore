@@ -35,6 +35,7 @@ nosetests.xml
 .idea
 .DS_Store
 ._*
+screenlog.*
 
 # Generated documentation
 docs/html
