@@ -40,26 +40,27 @@ play:
 
 
 .PHONY: check
-check: flake8 pep8
+check: flake8
 
 .PHONY: docs
 docs:
-	@echo ""
-	@echo "Creating docs"
+	@echo
+	@echo "====================docs===================="
+	@echo
 	doxygen $(DOXYGEN_CONFIG)
-
-.PHONY: pep8
-pep8: requirements
-	@echo "==========================================================="
-	. $(VIRTUALENV_DIR)/bin/activate; pep8 --config ./.pep8 $(COMPONENTS)
 
 .PHONY: flake8
 flake8: requirements
-	@echo "==========================================================="
+	@echo
+	@echo "====================flake===================="
+	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS)
 
 .PHONY: clean
 clean:
+	@echo
+	@echo "====================clean===================="
+	@echo
 	@echo "Removing all .pyc files"
 	find $(COMPONENTS)  -name \*.pyc -type f -print0 | xargs -0 -I {} rm {}
 	@echo "Removing generated documentation"
@@ -67,22 +68,25 @@ clean:
 
 .PHONY: distclean
 distclean: clean
+	@echo
+	@echo "====================distclean===================="
+	@echo
 	rm -rf $(VIRTUALENV_DIR)
 	rm -rf $(WEB_DIR)/css/ $(WEB_DIR)/components/ $(WEB_DIR)/node_modules/ $(WEB_DIR)/font/
 	rm -rf $(STORMBOT_DIR)/node_modules/
 
 .PHONY: requirements
 requirements: virtualenv $(REQUIREMENTS)
-	@echo ""
-	@echo "Installing requirements"
+	@echo
+	@echo "====================requirements===================="
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate && pip install -U $(foreach req,$(REQUIREMENTS),-r $(req))
 
 .PHONY: virtualenv
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
 $(VIRTUALENV_DIR)/bin/activate:
-	@echo ""
-	@echo "Creating python virtual environment"
+	@echo
+	@echo "====================virtualenv===================="
 	@echo
 	test -d $(VIRTUALENV_DIR) || virtualenv --no-site-packages $(VIRTUALENV_DIR)
 
@@ -120,6 +124,9 @@ stormbot:
 
 .PHONY: tests
 tests: requirements stormbot
+	@echo
+	@echo "====================tests===================="
+	@echo
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -130,6 +137,9 @@ tests: requirements stormbot
 
 .PHONY: install
 install:
+	@echo
+	@echo "====================install===================="
+	@echo
 	pip install -r requirements.txt
 	cp -R st2*/st2* /usr/lib/python2.7/site-packages/
 	cp -R external/* /usr/lib/python2.7/site-packages/
@@ -140,6 +150,9 @@ install:
 
 .PHONY: rpms
 rpms:
+	@echo
+	@echo "====================rpms===================="
+	@echo
 	rm -Rf ~/rpmbuild
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make rpm; popd;)
 	pushd st2client && make rpm && popd

@@ -1,4 +1,0 @@
-[pep8]
-max-line-length = 100
-ignore = E128
-exclude = *.egg/*
