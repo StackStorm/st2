@@ -75,13 +75,13 @@ class HttpRunner(ActionRunner):
 
 
 class HTTPClient(object):
-    def __init__(self, url=None, method='GET', body='', params=None, headers=None, cookies=None,
+    def __init__(self, url=None, method=None, body='', params=None, headers=None, cookies=None,
                  auth=None, timeout=60, allow_redirects=True, proxies=None):
         if url is None:
             raise Exception('URL must be specified.')
         self.url = url
         if method is None:
-            raise Exception('Method must be specified.')
+            method = 'GET'
         self.method = method
         self.headers = headers
         self.body = body
