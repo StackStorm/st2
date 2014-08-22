@@ -22,6 +22,8 @@ Command:
 
 ##### Pip
 
+The following packages are required by Stanley to run but will be installed by the deploy_stan.sh script if it is used.
+
 - pbr>=0.5.21,<1.0
 - pymongo
 - mongoengine
@@ -42,15 +44,11 @@ Command:
 - git+https://github.com/StackStorm/fabric.git@stanley-patched
 - jsonschema>=2.3.0
 
-Command:
-
-    sudo pip install -U all ze packages
-
 #### Installation
 
 Once you have the credentials you can download the packages from:
 
-https://ops.stackstorm.net/releases/stanley/<VERSION>/rpms/current/
+    https://ops.stackstorm.net/releases/stanley/<VERSION>/rpms/current/
 
 The required packages are listed below:
 
@@ -62,7 +60,7 @@ The required packages are listed below:
     st2reactor-<VERSION>-<BUILD>.noarch.rpm
     st2reactorcontroller-<VERSION>-<BUILD>.noarch.rpm
 
-Download the following script, and edit the USER and PASS variables to match the credentials you received from StackStorm.
+Alternatively, download the following script, and edit the USER and PASS variables to match the credentials you received from StackStorm.
 
     https://ops.stackstorm.net/releases/stanley/scripts/deploy_stan.sh
 
@@ -73,6 +71,15 @@ You can then run the script to download and install the Stanley packages by simp
 This will download the latest build of Stanley version 0.2.0.
 
 #### Configuration
+
+##### MongoDB
+
+MongoDB will need to be started and enabled by default.
+
+    systemctl start mongod.service
+    systemctl enable mongod.service
+
+##### SSH
 
 In order to run commands on remote you will need to setup a ssh keypair and place the private key in a location accessible by the user that the processes are running as.
 
