@@ -98,6 +98,8 @@ class St2GenericWebhooksSensor(object):
     def get_trigger_types(self):
         return [{
             'name': 'st2.webhook',
+            'description': 'Relays a Trigger POSTed to the supplied URL. The supplied url is used '
+                           'as a suffix of http://<stanley-host>:%s/{URL}.' % str(self._port),
             'payload_schema': PAYLOAD_SCHEMA,
             'parameters_schema': PARAMETERS_SCHEMA
         }]
