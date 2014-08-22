@@ -29,7 +29,7 @@ if [[ ${1} == "start" ]]; then
 
     # Copy and overwrite the action contents
     mkdir -p /opt/stackstorm
-    cp -Rp ./contrib/core/actions /opt/stackstorm 
+    cp -Rp ./contrib/core/actions /opt/stackstorm
 
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate
@@ -53,10 +53,10 @@ if [[ ${1} == "start" ]]; then
         ./st2actionrunnercontroller/bin/actionrunner_controller \
         --config-file ./conf/stanley.conf
 
-    # Run the action API server
-    echo 'Starting screen session st2-action...'
-    screen -d -m -S st2-action ./virtualenv/bin/python \
-        ./st2actioncontroller/bin/action_controller \
+    # Run the st2 API server
+    echo 'Starting screen session st2-api...'
+    screen -d -m -S st2-api ./virtualenv/bin/python \
+        ./st2api/bin/st2api \
         --config-file ./conf/stanley.conf
 
     # Run the reactor server
@@ -65,19 +65,12 @@ if [[ ${1} == "start" ]]; then
         ./st2reactor/bin/sensor_container \
         --config-file ./conf/stanley.conf
 
-    # Run the reactor API server
-    echo 'Starting screen session st2-reactorcontroller...'
-    screen -d -m -S st2-reactorcontroller ./virtualenv/bin/python \
-        ./st2reactorcontroller/bin/reactor_controller \
-        --config-file ./conf/stanley.conf
-
     # Check whether screen sessions are started
     screens=(
         "st2-datastore"
-        "st2-action"
+        "st2-api"
         "st2-actionrunner"
         "st2-reactor"
-        "st2-reactorcontroller"
     )
 
     echo

@@ -25,7 +25,7 @@ def __setup_config_opts():
     api_opts = [
         cfg.StrOpt('host', default='0.0.0.0',
                    help='Stanley Datastore API server host'),
-        cfg.IntOpt('port', default=9102,
+        cfg.IntOpt('port', default=9103,
                    help='Stanley Datastore API server port')
     ]
     __register_opts(api_opts, group='datastore_api')
