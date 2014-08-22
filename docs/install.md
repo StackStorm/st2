@@ -28,8 +28,8 @@ This will download the latest build of Stanley version 0.1.0.
 - mongodb-server
 - python-pip
 - python-virtualenv
-- python-tox 
-- gcc-c++ 
+- python-tox
+- gcc-c++
 - git-all
 
 
