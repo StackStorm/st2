@@ -7,7 +7,7 @@ Stanley RPMs have been tested and precompiled for Fedora 20.  In order to downlo
 
 #### Deployment Script Installation
 
-Once you have your credentials you can download our deployment script and use it to install all the prerequisites and the Stanley packages.  With this script, you can jump straight to the configuration section.
+Once you have your credentials you can download our deployment script and use it to install all the prerequisites and the Stanley packages.  With this script, you can jump straight to the [Confiuration](#Configuration) section.
 
 Ddownload the following script, and edit the USER and PASS variables to match the credentials you received from StackStorm.
 
