@@ -114,14 +114,19 @@ PAYLOAD_SCHEMA = {
 
 TRIGGER_TYPES = {
     'st2.IntervalTimer': {
+        'description': 'Triggers on specified intervals. e.g. every 30s, 1week etc.',
         'payload_schema': PAYLOAD_SCHEMA,
         'parameters_schema': INTERVAL_PARAMETERS_SCHEMA
     },
     'st2.DateTimer': {
+        'description': 'Triggers exactly once when the current time matches the specified time. '
+                       'e.g. timezone:UTC date:2014-12-31 23:59:59.',
         'payload_schema': PAYLOAD_SCHEMA,
         'parameters_schema': DATE_PARAMETERS_SCHEMA
     },
     'st2.CronTimer': {
+        'description': 'Triggers whenever current time matches the specified time constaints like '
+                       'a UNIX cron scheduler.',
         'payload_schema': PAYLOAD_SCHEMA,
         'parameters_schema': CRON_PARAMETERS_SCHEMA
     }
