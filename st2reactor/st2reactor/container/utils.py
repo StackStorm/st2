@@ -34,7 +34,11 @@ def _create_trigger_type(name, description=None, payload_schema=None, parameters
     trigger_type.description = description
     trigger_type.payload_schema = payload_schema
     trigger_type.parameters_schema = parameters_schema
-    triggertype_db = TriggerType.add_or_update(trigger_type)
+    try:
+        triggertype_db = TriggerType.add_or_update(trigger_type)
+    except:
+        LOG.exception('Validation failed for TriggerType=%s.', trigger_type)
+        raise TriggerTypeRegistrationException('Invalid TriggerType name=%s.' % name)
     if is_update:
         LOG.audit('TriggerType updated. TriggerType=%s', triggertype_db)
     else:
@@ -58,8 +62,14 @@ def _create_trigger(trigger_type):
         trigger_db = TriggerService.get_trigger_db(trigger_type.name)
         if trigger_db is None:
             trigger_dict = {'name': trigger_type.name, 'type': trigger_type.name}
-            trigger_db = TriggerService.create_trigger_db(trigger_dict)
-        return trigger_db
+            try:
+                trigger_db = TriggerService.create_trigger_db(trigger_dict)
+            except:
+                LOG.exception('Validation failed for Trigger=%s.', trigger_dict)
+                raise TriggerTypeRegistrationException(
+                    'Unable to create Trigger for TriggerType=%s.' % trigger_type.name)
+            else:
+                return trigger_db
     else:
         LOG.debug('Won\'t create Trigger object as TriggerType %s expects ' +
                   'parameters.', trigger_type)
@@ -67,23 +77,13 @@ def _create_trigger(trigger_type):
 
 
 def _add_trigger_models(trigger_type):
-    try:
-        trigger_type = _create_trigger_type(
-            trigger_type['name'],
-            trigger_type['description'] if 'description' in trigger_type else '',
-            trigger_type['payload_schema'] if 'payload_schema' in trigger_type else {},
-            trigger_type['parameters_schema'] if 'parameters_schema' in trigger_type else {})
-    except:
-        raise
-
-    else:
-        try:
-            trigger = _create_trigger(trigger_type)
-        except:
-            LOG.exception('Unable to create a trigger db object for trigger_type: %s', trigger_type)
-            raise
-        else:
-            return (trigger_type, trigger)
+    trigger_type = _create_trigger_type(
+        trigger_type['name'],
+        trigger_type['description'] if 'description' in trigger_type else '',
+        trigger_type['payload_schema'] if 'payload_schema' in trigger_type else {},
+        trigger_type['parameters_schema'] if 'parameters_schema' in trigger_type else {})
+    trigger = _create_trigger(trigger_type)
+    return (trigger_type, trigger)
 
 
 def add_trigger_models(trigger_types):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Requirements
-# pip install docker
+# pip install docker-py
 
 try:
     import simplejson as json
@@ -65,13 +65,18 @@ class DockerSensor(object):
             self._client.close()
 
     def get_trigger_types(self):
-        return [
-            {
-                'name': 'st2.docker.container_tracker',
-                'description': 'Stackstorm Docker containers tracker',
-                'payload_info': ['container_info']
+        return [{
+            'name': 'st2.docker.container_tracker',
+            'description': 'Stackstorm Docker containers tracker',
+            'payload_schema': {
+                'type': 'object',
+                'properties': {
+                    'container_info': {
+                        'type': 'object'
+                    }
+                }
             }
-        ]
+        }]
 
     def add_trigger(self, trigger):
         pass

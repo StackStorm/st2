@@ -36,7 +36,19 @@ class SimpleSensor(object):
         # Note you can register multiple trigger types.
         return [{
             'name': 'st2.foo.sensor',
-            'payload_schema': {'k1', 'k2'}
+            'payload_schema': {
+                'type': 'object',
+                'properties': {
+                    'k1': {
+                        'type': 'string'
+                    },
+                    'k2': {
+                        'enum': ['foo', 'bar', 'baz']
+                    }
+                },
+                'required': ['k1', 'k2'],
+                'additionalProperties': False
+            }
         }]
 
     # Methods required for programmable sensors.
