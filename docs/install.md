@@ -5,6 +5,22 @@ Install
 
 Stanley RPMs have been tested and precompiled for Fedora 20.  In order to download them from the StackStorm release server you need to contact us to obtain login credentials.  
 
+#### Deployment Script Installation
+
+Once you have your credentials you can download our deployment script and use it to install all the prerequisites and the Stanley packages.  With this script, you can jump straight to the configuration section.
+
+Ddownload the following script, and edit the USER and PASS variables to match the credentials you received from StackStorm.
+
+    https://ops.stackstorm.net/releases/stanley/scripts/deploy_stan.sh
+
+You can then run the script to download and install the Stanley packages by simply passing in the version number:
+
+    ./deploy_stan.sh 0.1.0
+
+This will download the latest build of Stanley version 0.1.0.
+
+---
+
 #### Prerequisites
 ##### Yum
 
@@ -44,7 +60,7 @@ The following packages are required by Stanley to run but will be installed by t
 - git+https://github.com/StackStorm/fabric.git@stanley-patched
 - jsonschema>=2.3.0
 
-#### Installation
+#### Manual Installation
 
 Once you have the credentials you can download the packages from:
 
@@ -60,15 +76,7 @@ The required packages are listed below:
     st2reactor-<VERSION>-<BUILD>.noarch.rpm
     st2reactorcontroller-<VERSION>-<BUILD>.noarch.rpm
 
-Alternatively, download the following script, and edit the USER and PASS variables to match the credentials you received from StackStorm.
-
-    https://ops.stackstorm.net/releases/stanley/scripts/deploy_stan.sh
-
-You can then run the script to download and install the Stanley packages by simply passing in the version number:
-
-    ./deploy_stan.sh 0.1.0
-
-This will download the latest build of Stanley version 0.1.0.
+---
 
 #### Configuration
 
