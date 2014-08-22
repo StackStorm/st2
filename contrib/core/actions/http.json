@@ -6,7 +6,8 @@
     "entry_point":"",
     "parameters": {
         "method": {
-            "enum": ["GET", "POST", "PUT", "DELETE"]
+            "enum": ["GET", "POST", "PUT", "DELETE"],
+            "default": "GET"
         },
         "timeout": {
             "type": "integer",
