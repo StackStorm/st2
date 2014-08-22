@@ -3,6 +3,8 @@ try:
 except ImportError:
     import json
 
+import copy
+
 from tests import FunctionalTest
 from st2common.persistence.action import Action
 
@@ -198,6 +200,21 @@ class TestActionController(FunctionalTest):
         for i in action_ids:
             self.__do_delete(i)
 
+    def test_post_put_delete(self):
+        action = copy.copy(ACTION_1)
+        post_resp = self.__do_post(action)
+        self.assertEquals(post_resp.status_int, 201)
+        self.assertIn('id', post_resp.body)
+        body = json.loads(post_resp.body)
+        action['id'] = body['id']
+        action['description'] = 'some other test description'
+        put_resp = self.__do_put(action['id'], action)
+        self.assertEquals(put_resp.status_int, 200)
+        self.assertIn('description', put_resp.body)
+        body = json.loads(put_resp.body)
+        self.assertEquals(body['description'], action['description'])
+        self.__do_delete(self.__get_action_id(post_resp))
+
     def test_post_invalid_runner_type(self):
         post_resp = self.__do_post(ACTION_5, expect_errors=True)
         self.assertEquals(post_resp.status_int, 404)
@@ -220,6 +237,9 @@ class TestActionController(FunctionalTest):
 
     def __do_post(self, action, expect_errors=False):
         return self.app.post_json('/actions', action, expect_errors=expect_errors)
+
+    def __do_put(self, action_id, action, expect_errors=False):
+        return self.app.put_json('/actions/%s' % action_id, action, expect_errors=expect_errors)
 
     def __do_delete(self, action_id, expect_errors=False):
         return self.app.delete('/actions/%s' % action_id, expect_errors=expect_errors)
