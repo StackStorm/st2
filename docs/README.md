@@ -26,7 +26,7 @@ To setup the development environment from a vanilla Fedora image:
     echo "replSet = rs0" >> /etc/mongodb.conf
     echo "oplogSize = 100" >> /etc/mongodb.conf
     systemctl enable mongod
-    systemctl start mongod
+    systemctl restart mongod
     # give it few moments to spin up then initiate replication set
     sleep 10
     mongo --eval "rs.initiate()"
@@ -62,7 +62,7 @@ Create the directory /opt/stackstorm and change ownership to the user that will 
 
 Specify a user for running local and remote SSH actions: in conf/stanley.conf:
 
-    [fabric_runner]
+    [ssh_runner]
     user = stanley
     ssh_key_file = /home/vagrant/.ssh/stanley_rsa
     remote_dir = /tmp
@@ -116,7 +116,7 @@ If the services are started successfully, you will see the following output.
 Stanley can now be operated using the REST API, st2 CLI, and the st2client python client library. [Hubot/Chat integration](hubot.md) is also provided.
 
 ### Running Stanley from Packages
-If you installed according to the steps at [Install.md](install.md), Stanley can be run by using the folling command:
+If you installed according to the steps at [Install.md](install.md), Stanley can be run by using the following command:
 
     st2run start|stop|restart|status
 
@@ -252,7 +252,7 @@ Criteria in the rule is expressed as:
 
 Current criteria types are: `'matchregex', 'eq' (or 'equals'), 'lt' (or 'lessthan'), 'gt' (or 'greaterthan'), 'td_lt' (or 'timediff_lt'), 'td_gt' (or 'timediff_gt')`.
 
-**DEV NOTE:** The criterias are defined in [Stanley/st2common/st2common/operators.py](../st2common/st2common/operators.py), if you miss some code it up and submit a patch :)
+**DEV NOTE:** The criterion are defined in [Stanley/st2common/st2common/operators.py](../st2common/st2common/operators.py), if you miss some code it up and submit a patch :)
 
 See more rule examples at [Stanley/contrib/examples/rules/](../contrib/examples/rules/). The directory [../contrib/sandbox/packages/](../contrib/sandbox/packages/) contains some more rules.
 

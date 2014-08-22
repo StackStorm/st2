@@ -110,15 +110,16 @@ Please note that an action runner may have additional parameters and how a parti
 #### Picking an action runner
 The environment in which the action runs is specified by the runner. Currently the system provides the following runners:
 
-1. shell : This is the local runner.
-2. remote-exec-sysuser : This is a remote runner.
+1. run-local : This is the local runner.
+2. run-remote : This is a remote runner.
+3. http-runner : This is a http runner.
 
 Runners come with their own set of input parameters and when an action picks a runner_type it also inherits the runner parameters.
 
 ### Specific about the runners
 Each runner has intrinsic behaviors which are important to understand as an action author.
 
-#### shell runner
+#### run-local runner
 The shell runner is identified by the literal 'shell'. It always executes the action locally i.e. on the box that runs the Stanley components under the user that runs the components.
 
 Parameters provided by this runner are as follows:
@@ -126,7 +127,7 @@ Parameters provided by this runner are as follows:
 1. 'shell' : Default value is '/usr/bin/bash' and can be overridden by the user when executing the action.
 2. 'cmd' : All the positional arguments to be passed into the script or command.
 
-#### remote runner
+#### run-remote runner
 The remote runner is identified by the literal 'remote-exec-sysuser'. It executes the actions on the boxes as defined in the host property.
 
 Parameters provided by this runner are as follows:
@@ -155,6 +156,10 @@ local : This action allows execution of arbitrary *nix/shell commands locally. V
 remote : This action allows execution of arbitrary *nix/shell commands on a set of boxes. Via the CLI executing this command would be -
 
     st2 run remote cmd='ls -l' host='host1, host2' user='user1'
+
+http : This action allows execution of http requests. Think curl executed from the stanley box.
+
+    st2 run http url="http://localhost:9101/actions" method="GET"
 
 ### Action Usage
 Usage information for an action can be queried at runtime in the CLI.  The information will include additional information from the underlying runner.
