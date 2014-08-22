@@ -46,7 +46,7 @@ Once the environment is setup, clone the git repo, and make the project. This wi
     cd stanley
     make all
 
-### Running Stanley
+### Running Stanley From Source
 
 Create the directory /opt/stackstorm and change ownership to the user that will run the Stanley services.
 
@@ -78,6 +78,11 @@ If the services are started successfully, you will see the following output.
     5 Sockets in /var/run/screen/S-vagrant.
 
 Stanley can now be operated using the REST API, st2 CLI, and the st2client python client library.
+
+### Running Stanley from Packages
+If you installed according to the steps at [Install.md](install.md), Stanley can be run by using the folling command:
+
+    st2run start|stop|restart|status
 
 ### Setup st2 CLI
 If installed from source, the CLI client needs to be installed into the virtualenv:
