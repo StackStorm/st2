@@ -191,7 +191,8 @@ def get_parameter_schema(model):
     properties.update(normalize(model.parameters))
     if properties:
         schema['title'] = model.name
-        schema['description'] = model.description
+        if model.description:
+            schema['description'] = model.description
         schema['type'] = 'object'
         schema['properties'] = properties
         if required:
