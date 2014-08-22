@@ -2,7 +2,7 @@ import httplib
 from pecan import abort
 from pecan.rest import RestController
 
-from mongoengine import NotUniqueError
+from mongoengine import ValidationError, NotUniqueError
 
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
 #       that bubble up to this layer should be core Python exceptions or
@@ -130,6 +130,24 @@ class ActionsController(RestController):
         action_api = ActionAPI.from_model(action_db)
 
         LOG.debug('POST /actions/ client_result=%s', action_api)
+        return action_api
+
+    @jsexpose(str, body=ActionAPI)
+    def put(self, id, action):
+        action_db = ActionsController.__get_by_id(id)
+
+        try:
+            action_db = ActionAPI.to_model(action)
+            action_db.id = id
+            action_db = Action.add_or_update(action_db)
+        except (ValidationError, ValueError) as e:
+            LOG.exception('Unable to update action data=%s', action)
+            abort(httplib.BAD_REQUEST, str(e))
+            return
+
+        action_api = ActionAPI.from_model(action_db)
+        LOG.debug('PUT /actions/ client_result=%s', action_api)
+
         return action_api
 
     @jsexpose(str, status_code=httplib.NO_CONTENT)
