@@ -9,11 +9,11 @@
     },
 
     "criteria": {
-        "action_name": {
+        "trigger.action_name": {
             "pattern": "local",
             "type": "equals"
         },
-        "status": {
+        "trigger.status": {
             "pattern": "error",
             "type": "equals"
         }
