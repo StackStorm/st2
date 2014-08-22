@@ -82,10 +82,21 @@ The required packages are listed below:
 
 ##### MongoDB
 
+Stanley requires replication to be enabled in MongoDB.  Add these lines to your mongo.conf file:
+
+    echo "replSet = rs0" >> /etc/mongodb.conf
+    echo "oplogSize = 100" >> /etc/mongodb.conf
+
+
 MongoDB will need to be started and enabled by default.
 
-    systemctl start mongod.service
+    systemctl restart mongod.service
     systemctl enable mongod.service
+
+Initiate the replica set
+
+    mongo --eval "rs.initiate()"
+
 
 ##### SSH
 
