@@ -112,4 +112,6 @@ The command to start and or stop stanley is 'st2run'.
 
     sudo st2run start|stop|restart|status
 
+#### Content
 
+Refer to the Terminology, Running Actions, Defining Rules, & Storing Resuable Parameters sections in [README.md](README.md)
