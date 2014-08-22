@@ -10,7 +10,7 @@
     },
 
     "criteria": {
-        "name": {
+        "trigger.name": {
             "pattern": "Joe",
             "type": "equals" 
          }
@@ -19,7 +19,7 @@
     "action": {
         "name": "local",
         "parameters": {
-            "cmd": "echo \"{{trigger}}\" >> /tmp/st2.rule1.out"
+            "cmd": "echo \"{{trigger}}\" >> /tmp/st2.webhook-sample.out"
         }
     },
 

@@ -132,7 +132,7 @@ class RuleAPI(BaseAPI):
         criteria: Criteria used to further restrict the trigger that applies to this rule.
         e.g.
         { "trigger.from" :
-            { "pattern": "{{ system.mailserver }}$"
+            { "pattern": "@gmail.com$"
             , "type": "matchregex" }
         , "trigger.subject" :
             { "pattern": "RE:"
