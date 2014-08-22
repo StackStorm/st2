@@ -48,10 +48,19 @@ class EC2InstanceStatusSensor(object):
             {
                 'name': 'st2.ec2.instance_status',
                 'description': 'EC2 Instance Status Sensor',
-                'payload_info': [
-                    'instance_id', 'instance_type', 'launch_time', 'tags', 'image_id',
-                    'ip_address', 'state', 'state_code'
-                ]
+                'payload_schema': {
+                    'type': 'object',
+                    'properties': {
+                        'instance_id': {},
+                        'instance_type': {},
+                        'launch_time': {},
+                        'tags': {},
+                        'image_id': {},
+                        'ip_address': {},
+                        'state': {},
+                        'state_code': {}
+                    }
+                }
             }
         ]
 
@@ -99,10 +108,22 @@ class EC2VolumeStatusSensor(object):
             {
                 'name': 'st2.ec2.volume_status',
                 'description': 'EC2 Volume Status Sensor',
-                'payload_info': [
-                    'volume_id', 'create_time', 'region', 'size', 'status', 'tags',
-                    'type', 'attach_time', 'device_map', 'instance_id'
-                ]
+                'payload_schema': {
+                    'type': 'object',
+                    'properties': {
+                        'volume_id': {},
+                        'create_time': {},
+                        'launch_time': {},
+                        'region': {},
+                        'size': {},
+                        'status': {},
+                        'tags': {},
+                        'type': {},
+                        'attach_time': {},
+                        'device_map': {},
+                        'instance_id': {}
+                    }
+                }
             }
         ]
 
