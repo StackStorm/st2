@@ -6,7 +6,7 @@ var _ = require('lodash')
   ;
 
 module.exports = function (argstr, spec) {
-  var args = splitargs(argstr);
+  var args = splitargs(argstr || '');
 
   // Prepare an object that consists of only the pairs that has default value
   var defaults = _.reduce(spec, function (result, value, key) {
