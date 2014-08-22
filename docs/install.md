@@ -81,9 +81,9 @@ The required packages are listed below:
 
 Stanley requires replication to be enabled in MongoDB.  Add these lines to your mongo.conf file:
 
-    sudo echo "replSet = rs0" >> /etc/mongodb.conf
-    sudo echo "oplogSize = 100" >> /etc/mongodb.conf
-    sudo echo -e '127.0.0.1'\\t`hostname` >> /etc/hosts
+    echo "replSet = rs0" >> /etc/mongodb.conf
+    echo "oplogSize = 100" >> /etc/mongodb.conf
+    echo -e '127.0.0.1'\\t`hostname` >> /etc/hosts
 
 
 MongoDB will need to be started and enabled by default.
