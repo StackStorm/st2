@@ -40,7 +40,14 @@ play:
 
 
 .PHONY: check
-check: flake8
+check: flake8 checklogs
+
+.PHONY: checklogs
+checklogs:
+	@echo
+	@echo "==================LOG WATCHER===================="
+	@echo
+	./log_watcher.py 10
 
 .PHONY: docs
 docs:
