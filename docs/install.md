@@ -11,11 +11,11 @@ Once you have your credentials you can download our deployment script and use it
 
 Download the following script, and edit the USER and PASS variables to match the credentials you received from StackStorm.
 
-    https://ops.stackstorm.net/releases/stanley/scripts/deploy_stan.sh
+    curl -q -k -O https://<USERNAME>:<PASSWORD>@ops.stackstorm.net/releases/stanley/scripts/deploy_stan.sh
 
 You can then run the script to download and install the Stanley packages by simply passing in the version number:
 
-    ./deploy_stan.sh 0.1.0
+    sudo ./deploy_stan.sh 0.1.0
 
 This will download the latest build of Stanley version 0.1.0.
 
@@ -32,9 +32,6 @@ This will download the latest build of Stanley version 0.1.0.
 - gcc-c++ 
 - git-all
 
-Command:
-
-    sudo yum install -y python-pip python-virtualenv python-tox gcc-c++ git-all mongodb mongodb-server
 
 ##### Pip
 
@@ -112,6 +109,6 @@ These options can be changed in the Stanley configuration file:
 
 The command to start and or stop stanley is 'st2run'.
 
-    st2run start|stop|restart|status
+    sudo st2run start|stop|restart|status
 
 
