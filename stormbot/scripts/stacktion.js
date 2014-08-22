@@ -79,7 +79,11 @@ module.exports = function(robot) {
       '<% }); %>'
     ].join('\n');
 
-    var result = JSON.parse(execution.result);
+    var result = '';
+
+    try {
+      result = JSON.parse(execution.result);
+    } catch(e) {}
 
     return _.template(template, {
       status: execution.status,
