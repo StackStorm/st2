@@ -18,10 +18,13 @@ class SimpleSensor(object):
         # while True:
         #   time.sleep(30)
         #   some_data = aws_client.get('')
-        #   triggers = self._to_triggers(some_data)
+        #   payload = self._to_payload(some_data)
         #   # _to_triggers is something you'd write to convert the data format you have
-        #   # into something stanley would understand.
-        #   self._container_service.dispatch(triggers)
+        #   # into a standard python dictionary. This should follow the payload schema
+        #   # registered for the trigger.
+        #   self._container_service.dispatch(trigger, payload)
+        #   # You can refer to the trigger as dict { "name": ${trigger_name} }
+        #   # or just simply by name as string. i.e. dispatch(${trigger_name}, payload)
         pass
 
     def stop(self):

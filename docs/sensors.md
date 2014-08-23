@@ -21,7 +21,7 @@ For a simple sensor, review [contrib/examples/sensors/sample_sensor.py](../contr
 ```
 The sensor would inject such triggers by using the container_service passed into the sensor on instantiation.
 ```python
-self._container_service.dispatch(triggers)
+self._container_service.dispatch(trigger, payload)
 ```
 For a complete implementation of a sensor that actually injects triggers into the system, look at the [examples](#Examples) section.
 
@@ -50,23 +50,20 @@ There are some common use cases that we identified and stanley comes bundled wit
 
 #### Timer sensor
 
-Look at the timer sensor implementation [here](../st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.py). It relies on a [config](../st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.yaml) to get user configuration. Timer uses
-[APScheduler](http://apscheduler.readthedocs.org/en/3.0/) as the scheduling
-engine.
+Look at the timer sensor implementation [here](../st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.py). Timer uses [APScheduler](http://apscheduler.readthedocs.org/en/3.0/) as the scheduling engine.
 
 #### Generic Webhook sensor 
 
-Look at the generic webhooks sensor implementation [here](../st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.py). It relies on a [config](../st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.yaml) for user configuration. The payload here can have arbitray structure.
-The webhook sensor uses [Flask](http://flask.pocoo.org/) to spin up restful
-endpoints.
+Look at the generic webhooks sensor implementation [here](../st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.py). The payload here can have arbitray structure. The webhook sensor uses [Flask](http://flask.pocoo.org/) to spin up restful endpoints.
 
 #### Stanley webhook sensor
 
 Stanley defines it's own webhook format if you want a REST interface to inject triggers from curl or other plugins. Unlike the generic webhooks, the payload for this endpoint should be in a form stanley expects. Look at the sensor implementation [here](..//st2reactor/st2reactor/contrib/sensors/st2_webhook_sensor.py). The payload format is
 ```json
     {
-        "name":"name.of.the.trigger.you.registered.",
-        "payload_info": {"key1", "key2", "key3"}        
+        "name": "some user identifiable name.",
+        "type": "name of the trigger registered with system"
+        "payload": {"key1" "value1", "key2": "value2", "key3": "value3"}       
     }
 ```
 
@@ -74,7 +71,7 @@ More sensor examples are in [contrib/sandbox/packages](../contrib/sandbox/packag
 
 ## API status
 
-* Non-existent. [Look out for alpha]
+* Non-existent. [Look out for beta]
 
 ## CLI status
-* Non-existent. [Look out for alpha]
+* Non-existent. [Look out for beta]
