@@ -1,6 +1,6 @@
 version_name = 'Stanley Action Runner Controller'
 
-version_number = 'v0.1.0'
+version_number = 'v0.4.0'
 
 build_number = '0'
 

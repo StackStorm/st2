@@ -3,7 +3,7 @@ VIRTUALENV_DIR=virtualenv
 RPM_ROOT=~/rpmbuild
 RPM_SOURCES_DIR := $(RPM_ROOT)/SOURCES/
 RPM_SPECS_DIR := $(RPM_ROOT)/SPECS/
-VER=0.1.0
+VER=0.4.0
 
 COMPONENTS := st2actionrunnercontroller
 
