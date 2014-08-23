@@ -1,6 +1,6 @@
 Summary: Stanley Common Libraries
 Name: st2common
-Version: 0.1.0
+Version: 0.4.0
 Release: 1
 License: license
 Group: Applications/Engineering

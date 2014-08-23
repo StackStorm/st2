@@ -1,6 +1,6 @@
 Summary: Stanley Action Runner Controller
 Name: st2actionrunnercontroller
-Version: 0.1.0
+Version: 0.4.0
 Release: 1
 License: license
 Group: Applications/Engineering
