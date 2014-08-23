@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name='st2actionrunnercontroller',
-    version=0.4.0
+    version='0.4.0',
     description='',
     author='StackStorm',
     author_email='info@stackstorm.com',
