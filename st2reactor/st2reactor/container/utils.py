@@ -3,7 +3,7 @@ from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import TriggerType, TriggerInstance
 from st2common.models.db.reactor import TriggerTypeDB, TriggerInstanceDB
 from st2common.util import reference
-from st2reactorcontroller.service import triggers as TriggerService
+from st2api.service import triggers as TriggerService
 
 LOG = logging.getLogger('st2reactor.sensor.container_utils')
 

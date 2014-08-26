@@ -15,14 +15,10 @@ class Client(object):
         self.endpoints = dict()
         self.endpoints['base'] = os.environ.get(
             'ST2_BASE_URL', kwargs.get('base_url', 'http://localhost'))
-        self.endpoints['action'] = kwargs.get('action_url', None)
-        if not self.endpoints['action']:
-            self.endpoints['action'] = os.environ.get(
-                'ST2_ACTION_URL', '%s:%s' % (self.endpoints['base'], 9101))
-        self.endpoints['reactor'] = kwargs.get('reactor_url', None)
-        if not self.endpoints['reactor']:
-            self.endpoints['reactor'] = os.environ.get(
-                'ST2_REACTOR_URL', '%s:%s' % (self.endpoints['base'], 9102))
+        self.endpoints['api'] = kwargs.get('api_url', None)
+        if not self.endpoints['api']:
+            self.endpoints['api'] = os.environ.get(
+                'ST2_API_URL', '%s:%s' % (self.endpoints['base'], 9101))
         self.endpoints['datastore'] = kwargs.get('datastore_url', None)
         if not self.endpoints['datastore']:
             self.endpoints['datastore'] = os.environ.get(
@@ -31,15 +27,15 @@ class Client(object):
         # Instantiate resource managers and assign appropriate API endpoint.
         self.managers = dict()
         self.managers['RunnerType'] = models.ResourceManager(
-            models.RunnerType, self.endpoints['action'])
+            models.RunnerType, self.endpoints['api'])
         self.managers['Action'] = models.ResourceManager(
-            models.Action, self.endpoints['action'])
+            models.Action, self.endpoints['api'])
         self.managers['ActionExecution'] = models.ResourceManager(
-            models.ActionExecution, self.endpoints['action'])
+            models.ActionExecution, self.endpoints['api'])
         self.managers['Rule'] = models.ResourceManager(
-            models.Rule, self.endpoints['reactor'])
+            models.Rule, self.endpoints['api'])
         self.managers['Trigger'] = models.ResourceManager(
-            models.Trigger, self.endpoints['reactor'])
+            models.Trigger, self.endpoints['api'])
         self.managers['KeyValuePair'] = models.ResourceManager(
             models.KeyValuePair, self.endpoints['datastore'])
 

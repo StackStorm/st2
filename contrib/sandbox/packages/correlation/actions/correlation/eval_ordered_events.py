@@ -42,7 +42,7 @@ rule = ast.literal_eval(args.rule)
 subject = args.subject
 event_id = str(args.event_id)
 timestamp = datetime.datetime.strptime(
-    args.timestamp, '%Y-%m-%d %H:%M:%S.%f') 
+    args.timestamp, '%Y-%m-%d %H:%M:%S.%f')
 
 # Exit if event id does not match does in aggregation rule.
 if event_id not in rule['ordered_events']:
@@ -51,8 +51,7 @@ if event_id not in rule['ordered_events']:
 
 # Setup client to the key value store
 client = Client({
-    'action': 'http://localhost:9101',
-    'reactor': 'http://localhost:9102',
+    'api': 'http://localhost:9101',
     'datastore': 'http://localhost:9103'})
 
 # Get existing state data from the key value store
