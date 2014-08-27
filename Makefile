@@ -40,7 +40,7 @@ play:
 
 
 .PHONY: check
-check: flake8 checklogs
+check: requirements flake8 checklogs
 
 .PHONY: checklogs
 checklogs:
@@ -56,12 +56,23 @@ docs:
 	@echo
 	doxygen $(DOXYGEN_CONFIG)
 
+.PHONY: pylint
+pylint: requirements .pylint
+
+.PHONY: .pylint
+.pylint:
+	@echo
+	@echo "================== pylint ===================="
+	@echo
+	@for component in $(COMPONENTS); do\
+		echo "==========================================================="; \
+		echo "Running pylint on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; pylint --rcfile=./.pylintrc $$component/$$component; \
+	done
+
 .PHONY: flake8
-flake8: requirements
-	@echo
-	@echo "====================flake===================="
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS)
+flake8: requirements .flake8
 
 .PHONY: .flake8
 .flake8:
