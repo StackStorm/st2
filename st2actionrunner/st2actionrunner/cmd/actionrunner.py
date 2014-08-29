@@ -1,5 +1,6 @@
 import eventlet
 import os
+import datetime
 import sys
 
 from oslo.config import cfg
@@ -8,8 +9,8 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-from st2actionrunnercontroller import config
-from st2actionrunnercontroller import app
+from st2actionrunner import config
+from st2actionrunner import worker
 
 
 eventlet.monkey_patch(
@@ -20,28 +21,21 @@ eventlet.monkey_patch(
     time=True)
 
 
-LOG = logging.getLogger(__name__)
-
-
 def __setup():
     # 1. parse args to setup config.
     config.parse_args()
     # 2. setup logging.
-    logging.setup(cfg.CONF.actionrunner_controller_logging.config_file)
+    logging.setup(cfg.CONF.actionrunner_logging.config_file)
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
              cfg.CONF.database.port)
 
 
-def __run_server():
-    host = cfg.CONF.actionrunner_controller_api.host
-    port = cfg.CONF.actionrunner_controller_api.port
-
-    LOG.info("actionrunner API is serving on http://%s:%s (PID=%s)",
-             host, port, os.getpid())
-
-    wsgi.server(eventlet.listen((host, port)), app.setup_app())
+def __run_worker():
+    LOG = logging.getLogger(__name__)
+    LOG.info('[PID=%s] Worker started.', os.getpid())
+    worker.work()
 
 
 def __teardown():
@@ -51,9 +45,10 @@ def __teardown():
 def main():
     try:
         __setup()
-        __run_server()
+        __run_worker()
     except Exception as e:
-        LOG.error('Failed spinning up action runner controller: %s', e)
+        LOG = logging.getLogger(__name__)
+        LOG.exception('[PID=%s] Worker quit.', os.getpid())
     finally:
         __teardown()
     return 1

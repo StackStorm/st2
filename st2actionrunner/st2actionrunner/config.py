@@ -6,31 +6,11 @@ from oslo.config import cfg
 
 CONF = cfg.CONF
 
-api_opts = [
-    cfg.StrOpt('host', default='0.0.0.0', help='StackStorm Live Action API server host'),
-    cfg.IntOpt('port', default=9501, help='StackStorm Live Action API server port')
-]
-CONF.register_opts(api_opts, group='actionrunner_controller_api')
-
-pecan_opts = [
-    cfg.StrOpt('root',
-               default='st2actionrunnercontroller.controllers.root.RootController',
-               help='LiveAction root controller'),
-    cfg.StrOpt('static_root', default='%(confdir)s/public'),
-    cfg.StrOpt('template_path',
-               default='%(confdir)s/st2actioncontroller/templates'),
-    cfg.ListOpt('modules', default=['st2actioncontroller']),
-    cfg.BoolOpt('debug', default=True),
-    cfg.BoolOpt('auth_enable', default=True),
-    cfg.DictOpt('errors', default={'__force_dict__': True})
-]
-CONF.register_opts(pecan_opts, group='action_pecan')
-
 logging_opts = [
     cfg.StrOpt('config_file', default='conf/logging.conf',
                help='location of the logging.conf file')
 ]
-CONF.register_opts(logging_opts, group='actionrunner_controller_logging')
+CONF.register_opts(logging_opts, group='actionrunner_logging')
 
 db_opts = [
     cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),

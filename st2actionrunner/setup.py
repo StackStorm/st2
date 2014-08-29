@@ -7,7 +7,7 @@ except ImportError:
     from setuptools import setup, find_packages
 
 setup(
-    name='st2actionrunnercontroller',
+    name='st2actionrunner',
     version='0.4.0',
     description='',
     author='StackStorm',
@@ -15,7 +15,7 @@ setup(
     install_requires=[
         "pecan",
     ],
-    test_suite='st2actionrunnercontroller',
+    test_suite='st2actionrunner',
     zip_safe=False,
     include_package_data=True,
     packages=find_packages(exclude=['ez_setup'])

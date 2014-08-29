@@ -96,3 +96,5 @@ def post_trigger(action_execution):
         else:
             LOG.warn('Seeing status code %s on an attempt to post triggerinstance for %s.',
                      r.status_code, action_execution.id)
+
+register_trigger_type()

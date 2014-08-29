@@ -22,6 +22,9 @@ from st2common.models.api.action import (ActionExecutionAPI,
                                          ACTIONEXEC_STATUS_SCHEDULED,
                                          ACTIONEXEC_STATUS_ERROR)
 from st2common import util
+# from st2common.transport import publishers
+# from st2common.transport import actionexecution as ae_transport
+from st2common import transport
 from st2common.util.action_db import (get_action_by_dict, update_actionexecution_status,
                                       get_runnertype_by_name)
 
@@ -48,6 +51,7 @@ class ActionExecutionsController(RestController):
         self._live_actions_monitor_thread = eventlet.greenthread.spawn(self._drain_live_actions)
         self._monitor_thread_empty_q_sleep_time = MONITOR_THREAD_EMPTY_Q_SLEEP_TIME
         self._monitor_thread_no_workers_sleep_time = MONITOR_THREAD_NO_WORKERS_SLEEP_TIME
+        self._publisher = transport.publishers.PoolPublisher()
 
     def _issue_liveaction_delete(self, actionexec_id):
         """
@@ -82,11 +86,11 @@ class ActionExecutionsController(RestController):
         request_error = False
         result = None
         try:
-            result = requests.post(self._live_actions_ep,
-                                   data=json.dumps(payload), headers=custom_headers)
-        except requests.exceptions.ConnectionError as e:
-            LOG.error('Caught encoundered connection error while performing /liveactions/ POST.'
-                      'Error was: %s', e)
+            self._publisher.publish(json.dumps(payload),
+                                    exchange=transport.actionexecution.ACTIONEXECUTION_XCHG,
+                                    routing_key=transport.actionexecution.CREATE_RK)
+        except Exception as e:
+            LOG.exception('Unable to publish to exchange.')
             request_error = True
 
         LOG.debug('/liveactions/ POST request result: status: %s body: %s', result,

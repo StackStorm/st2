@@ -1,11 +1,11 @@
-Summary: Stanley Action Runner Controller
-Name: st2actionrunnercontroller
+Summary: Stanley Action Runner
+Name: st2actionrunner
 Version: 0.4.0
 Release: 1
 License: license
 Group: Applications/Engineering
 BuildArch: noarch
-Source: /opt/git/stanley/st2actionrunnercontroller.tar.gz
+Source: /opt/git/stanley/st2actionrunner.tar.gz
 URL: https://github.com/StackStorm/stanley
 Vendor: StackStorm
 Packager: Stormin Stanley <stanley@stackstorm.com>
@@ -22,16 +22,15 @@ sed -i -r "s~logs~/var/log/stanley~g" conf/logging.conf
 
 %install
 
-mkdir -p %{buildroot}/etc/st2actionrunnercontroller
+mkdir -p %{buildroot}/etc/st2actionrunner
 mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/usr/bin
-cp -R st2actionrunnercontroller %{buildroot}%{python2_sitelib}/
 cp -R st2actionrunner %{buildroot}%{python2_sitelib}/
-cp -R conf/* %{buildroot}/etc/st2actionrunnercontroller
-install -m755 bin/actionrunner_controller %{buildroot}/usr/bin/actionrunner_controller
+cp -R conf/* %{buildroot}/etc/st2actionrunner
+install -m755 bin/actionrunner %{buildroot}/usr/bin/actionrunner
 
 %files
 
 /usr/lib/python2.7/site-packages/st2actionrunner*
-/usr/bin/actionrunner_controller
-/etc/st2actionrunnercontroller*
+/usr/bin/actionrunner
+/etc/st2actionrunner*
