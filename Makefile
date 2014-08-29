@@ -47,7 +47,7 @@ checklogs:
 	@echo
 	@echo "==================LOG WATCHER===================="
 	@echo
-	./log_watcher.py 10
+	. $(VIRTUALENV_DIR)/bin/activate; ./tools/log_watcher.py 10
 
 .PHONY: docs
 docs:

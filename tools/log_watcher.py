@@ -5,6 +5,8 @@ import os
 import re
 import sys
 
+from tabulate import tabulate
+
 LOG_ALERT_PERCENT = 5  # default.
 
 EVILS = [
@@ -118,24 +120,38 @@ def _detect_log_lines(fil, matchers):
                 FILE_LOG_COUNT[fil][level] += 1
 
 
-def _post_process():
+def _post_process(file_dir):
+    alerts = []
     for fil, lines in FILE_LINE_COUNT.iteritems():
         log_lines_count_level = FILE_LOG_COUNT[fil]
         total_log_count = 0
         for level, count in log_lines_count_level.iteritems():
             total_log_count += count
         if total_log_count > 0:
-            if float(total_log_count)/lines * 100 > LOG_ALERT_PERCENT:
-                _alert(fil, lines, total_log_count, log_lines_count_level)
+            if float(total_log_count) / lines * 100 > LOG_ALERT_PERCENT:
+                if file_dir in fil:
+                    fil = fil[len(file_dir) + 1:]
+                alerts.append([fil, lines, total_log_count, float(total_log_count) / lines * 100,
+                               log_lines_count_level['audit'],
+                               log_lines_count_level['exception'],
+                               log_lines_count_level['error'],
+                               log_lines_count_level['warning'],
+                               log_lines_count_level['info'],
+                               log_lines_count_level['debug']])
+    # sort by percent
+    alerts.sort(key=lambda alert: alert[3], reverse=True)
+    print tabulate(alerts, headers=['File', 'Lines', 'Logs', 'Percent', 'adt', 'exc', 'err', 'wrn',
+                                    'inf', 'dbg'])
 
 
 def main(args):
     params = _parse_args(args)
-    files = _get_files(params.get('dir', os.getcwd()))
+    file_dir = params.get('dir', os.getcwd())
+    files = _get_files(file_dir)
     matchers = _build_str_matchers()
     for f in files:
         _detect_log_lines(f, matchers)
-    _post_process()
+    _post_process(file_dir)
 
 
 if __name__ == '__main__':
