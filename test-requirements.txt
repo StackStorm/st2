@@ -4,3 +4,4 @@ nose
 unittest2
 flake8
 pylint
+tabulate
