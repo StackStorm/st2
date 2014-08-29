@@ -246,7 +246,13 @@ class ActionExecutionAPI(BaseAPI):
                 }
             },
             "result": {
-                "type": "string"
+                "type": ["boolean", "integer", "null", "number", "object", "string"]
+            },
+            "context": {
+                "type": "object"
+            },
+            "callback": {
+                "type": "object"
             }
         },
         "required": ["action"],
@@ -274,8 +280,10 @@ class ActionExecutionAPI(BaseAPI):
     def to_model(cls, execution):
         model = StormFoundationAPI.to_model(ActionExecutionDB, execution)
         model.status = str(execution.status)
-        model.start_timestamp = execution.start_timestamp
+        model.start_timestamp = getattr(execution, 'start_timestamp')
         model.action = execution.action
-        model.parameters = dict(execution.parameters)
-        setattr(model, 'result', getattr(execution, 'result', None))
+        model.parameters = getattr(execution, 'parameters', dict())
+        model.context = getattr(execution, 'context', dict())
+        model.callback = getattr(execution, 'callback', dict())
+        model.result = getattr(execution, 'result', None)
         return model

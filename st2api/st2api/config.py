@@ -65,6 +65,12 @@ rules_opts = [
 ]
 CONF.register_opts(rules_opts, group='rules')
 
+workflow_opts = [
+    cfg.StrOpt('host', default='0.0.0.0', help='Mistral API server host.'),
+    cfg.IntOpt('port', default=8989, help='Mistral API server port.')
+]
+CONF.register_opts(workflow_opts, group='workflow')
+
 
 def parse_args(args=None):
     CONF(args=args)

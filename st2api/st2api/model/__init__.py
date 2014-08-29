@@ -1,5 +1,6 @@
 import glob
 import json
+import importlib
 
 from oslo.config import cfg
 
@@ -125,6 +126,26 @@ def register_runner_types():
             },
             'required_parameters': ['url'],
             'runner_module': 'st2actionrunner.runners.httprunner'
+        },
+        {
+            'name': 'workflow',
+            'description': 'A runner for launching workflow actions.',
+            'enabled': True,
+            'runner_parameters': {
+                'workbook': {
+                    'description': 'The name of the workbook.',
+                    'type': 'string'
+                },
+                'task': {
+                    'description': 'The startup task in the workbook to execute.',
+                    'type': 'string'
+                },
+                'context': {
+                    'description': 'Context for the startup task.',
+                    'type': 'object'
+                }
+            },
+            'runner_module': 'st2actionrunner.runners.mistral'
         }
     ]
 
@@ -170,17 +191,25 @@ def register_actions():
             model.parameters = content.get('parameters', {})
             model.required_parameters = content.get('required_parameters', [])
             try:
-                runnertype = get_runnertype_by_name(str(content['runner_type']))
-                model.runner_type = {'name': runnertype.name}
+                runner_type = get_runnertype_by_name(str(content['runner_type']))
+                model.runner_type = {'name': runner_type.name}
             except StackStormDBObjectNotFoundError:
                 LOG.exception('Failed to register action %s as runner %s was not found',
                               model.name, str(content['runner_type']))
                 continue
             try:
+                if runner_type.name == 'workflow':
+                    runner = get_runner(runner_type)
+                    runner.on_action_update(model)
                 model = Action.add_or_update(model)
                 LOG.audit('Action created. Action %s from %s.', model, action)
             except Exception:
                 LOG.exception('Failed to create action %s.', model.name)
+
+
+def get_runner(runnertype_db):
+    module = importlib.import_module(runnertype_db.runner_module, package=None)
+    return module.get_runner_class()
 
 
 def init_model():

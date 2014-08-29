@@ -1,6 +1,8 @@
-from abc import abstractmethod
+import six
+import abc
 
 
+@six.add_metaclass(abc.ABCMeta)
 class ActionRunner(object):
     """
         The interface that must be implemented by each StackStorm
@@ -12,47 +14,35 @@ class ActionRunner(object):
         self.liveaction_id = None
         self.runner_parameters = None
         self.action_name = None
+        self.action_execution_id = None
         self.entry_point = None
+        self.context = None
+        self.callback = None
 
-    def set_container_service(self, container_service):
-        self.container_service = container_service
-
-    def set_liveaction_id(self, liveaction_id):
-        self.liveaction_id = liveaction_id
-
-    def set_action_name(self, action_name):
-        self.action_name = action_name
-
-    # Consider making set_runner_parameters abstract rather than
-    # forcing a dict-model of runner_parameters on ActionRunner developers.
-    def set_runner_parameters(self, parameters):
-        self.runner_parameters = parameters
-
-    def set_entry_point(self, entry_point):
-        self.entry_point = entry_point
-
-    @abstractmethod
+    @abc.abstractmethod
     def pre_run(self):
         raise NotImplementedError()
 
     # Run will need to take an action argument
     # Run may need result data argument
-    @abstractmethod
+    @abc.abstractmethod
     def run(self, action_parameters):
         raise NotImplementedError()
 
-    @abstractmethod
     def post_run(self):
+        if self.callback and not (set(['url', 'source']) - set(self.callback.keys())):
+            from st2actionrunner import handlers
+            handler = handlers.get_handler(self.callback['source'])
+            handler.callback(self.callback['url'],
+                             self.context,
+                             self.container_service.get_status(),
+                             self.container_service.get_result())
+
+    @classmethod
+    @abc.abstractmethod
+    def on_action_update(cls, action):
         raise NotImplementedError()
 
     def __str__(self):
-        result = []
-        result.append('ActionRunner@')
-        result.append(str(id(self)))
-        result.append('(')
-        result.append('liveaction_id="%s", ' % self.liveaction_id)
-        result.append('container_service="%s", ' % self.container_service)
-        result.append('runner_parameters="%s", ' % self.runner_parameters)
-        result.append('entry_point="%s"' % self.entry_point)
-        result.append(')')
-        return ''.join(result)
+        attrs = ', '.join(['%s=%s' % (k, v) for k, v in self.__dict__.iteritems()])
+        return '%s@%s(%s)' % (self.__class__.__name__, str(id(self)), attrs)

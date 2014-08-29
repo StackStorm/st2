@@ -1,8 +1,7 @@
 import importlib
 
 from st2common import log as logging
-from st2common.exceptions.actionrunner import (ActionRunnerCreateError,
-                                               ActionRunnerDispatchError)
+from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.api.action import (ACTIONEXEC_STATUS_COMPLETE,
                                          ACTIONEXEC_STATUS_ERROR)
 
@@ -21,7 +20,7 @@ class RunnerContainer():
         LOG.info('Action RunnerContainer instantiated.')
         self._pending = []
 
-    def _get_runner_for_runnertype(self, runnertype_db):
+    def _get_runner(self, runnertype_db):
         """
             Load the module specified by the runnertype_db.runner_module field and
             return an instance of the runner.
@@ -51,31 +50,14 @@ class RunnerContainer():
         LOG.debug('    ActionExecution: %s', actionexec_db)
 
         # Get runner instance.
-        runner = None
-        try:
-            runner = self._get_runner_for_runnertype(runnertype_db)
-        except ActionRunnerCreateError as e:
-            LOG.exception('Failed to create action of type %s.', runnertype_db.name)
-            raise ActionRunnerDispatchError(e.message)
-
+        runner = self._get_runner(runnertype_db)
         LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Invoke pre_run, run, post_run cycle.
         result = self._do_run(liveaction_db.id, runner, runnertype_db, action_db, actionexec_db)
-
         LOG.debug('runner do_run result: %s', result)
 
-        # Update DB with status of execution
-        if result:
-            actionexec_status = ACTIONEXEC_STATUS_COMPLETE
-        else:
-            # Live Action produced error. Report in ActionExecution DB record.
-            actionexec_status = ACTIONEXEC_STATUS_ERROR
-
-        actionexec_db = update_actionexecution_status(actionexec_status,
-                                                      actionexec_id=actionexec_db.id)
         actionsensor.post_trigger(actionexec_db)
-
         LOG.audit('ActionExecution complete. liveaction_id="%s" resulted in '
                   'actionexecution_db="%s"', liveaction_db.id, actionexec_db)
 
@@ -99,23 +81,26 @@ class RunnerContainer():
             if param in actionexec_runner_parameters:
                 runner_parameters[param] = actionexec_runner_parameters[param]
                 continue
-            if param in action_action_parameters:
-                runner_parameters[param] = action_action_parameters[param]
+            if param in action_action_parameters and 'default' in action_action_parameters[param]:
+                runner_parameters[param] = action_action_parameters[param]['default']
 
         # Create action parameters by merging default values with dynamic values
         action_parameters = {k: v['default'] if 'default' in v else None
                              for k, v in action_db.parameters.iteritems()}
+
         # pick overrides from actionexec_action_parameters
         for param in action_parameters:
             if param in actionexec_action_parameters:
                 action_parameters[param] = actionexec_action_parameters[param]
 
-        runner.set_liveaction_id(liveaction_id)
-        runner.set_container_service(RunnerContainerService(self))
-
-        runner.set_action_name(action_db.name)
-        runner.set_entry_point(action_db.entry_point)
-        runner.set_runner_parameters(runner_parameters)
+        runner.liveaction_id = liveaction_id
+        runner.container_service = RunnerContainerService(self)
+        runner.action_name = action_db.name
+        runner.action_execution_id = str(actionexec_db.id)
+        runner.entry_point = action_db.entry_point
+        runner.runner_parameters = {k: v for k, v in runner_parameters.iteritems() if v}
+        runner.context = getattr(actionexec_db, 'context', dict())
+        runner.callback = getattr(actionexec_db, 'callback', dict())
 
         LOG.debug('Performing pre-run for runner: %s', runner)
         runner.pre_run()
@@ -124,35 +109,36 @@ class RunnerContainer():
         run_result = runner.run(action_parameters)
         LOG.debug('Result of run: %s', run_result)
 
-        LOG.debug('Performing post_run for runner: %s', runner)
-        runner.post_run()
-
-        container_service = runner.container_service
-        runner.set_container_service(None)
-
-        LOG.debug('Container Service after post_run: %s', container_service)
-
         # Re-load Action Execution from DB:
         actionexec_db = get_actionexec_by_id(actionexec_db.id)
 
         # TODO: Store payload when DB model can hold payload data
-        action_result = container_service.get_result_json()
+        action_result = runner.container_service.get_result_json()
+        actionexec_status = runner.container_service.get_status()
         LOG.debug('Result as reporter to container service: %s', action_result)
 
         if action_result is None:
             # If the runner didn't set an exit code then the liveaction didn't complete.
             # Therefore, the liveaction produced an error.
             result = False
-            actionexec_status = ACTIONEXEC_STATUS_ERROR
+            if not actionexec_status:
+                actionexec_status = ACTIONEXEC_STATUS_ERROR
+                runner.container_service.report_status(actionexec_status)
         else:
             # So long as the runner produced an exit code, we can assume that the
             # Live Action ran to completion.
             result = True
             actionexec_db.result = action_result
-            actionexec_status = ACTIONEXEC_STATUS_COMPLETE
+            if not actionexec_status:
+                actionexec_status = ACTIONEXEC_STATUS_COMPLETE
+                runner.container_service.report_status(actionexec_status)
 
         # Push result data and updated status to ActionExecution DB
         update_actionexecution_status(actionexec_status, actionexec_db=actionexec_db)
+
+        LOG.debug('Performing post_run for runner: %s', runner)
+        runner.post_run()
+        runner.container_service = None
 
         return result
 

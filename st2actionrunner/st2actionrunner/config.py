@@ -72,6 +72,24 @@ action_sensor_opts = [
 ]
 CONF.register_opts(action_sensor_opts, group='action_sensor')
 
+core_api_opts = [
+    cfg.StrOpt('host', default='0.0.0.0', help='ST2 API server host.'),
+    cfg.IntOpt('port', default=9101, help='ST2 API server port.')
+]
+CONF.register_opts(core_api_opts, group='core_api')
+
+workflow_opts = [
+    cfg.StrOpt('host', default='0.0.0.0', help='Mistral API server host.'),
+    cfg.IntOpt('port', default=8989, help='Mistral API server port.')
+]
+CONF.register_opts(workflow_opts, group='workflow')
+
+actions_opts = [
+    cfg.StrOpt('modules_path', default='/opt/stackstorm/actions',
+               help='path where action plugins are located')
+]
+CONF.register_opts(actions_opts, group='actions')
+
 
 def parse_args(args=None):
     CONF(args=args)

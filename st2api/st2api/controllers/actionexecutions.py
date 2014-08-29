@@ -223,6 +223,19 @@ class ActionExecutionsController(RestController):
             LOG.debug('POST /actionexecutions/ client_result=%s', actionexec_api)
             return actionexec_api
 
+    @jsexpose(str, body=ActionExecutionAPI)
+    def put(self, id, actionexecution):
+        actionexecution.start_timestamp = datetime.datetime.now()
+        actionexec_db = ActionExecutionsController.__get_by_id(id)
+        new_actionexec_db = ActionExecutionAPI.to_model(actionexecution)
+        if actionexec_db.status != new_actionexec_db.status:
+            actionexec_db.status = new_actionexec_db.status
+        if actionexec_db.result != new_actionexec_db.result:
+            actionexec_db.result = new_actionexec_db.result
+        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+        actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
+        return actionexec_api
+
     def _kickoff_live_actions(self):
         if self._live_actions_pool.free() <= 0:
             return

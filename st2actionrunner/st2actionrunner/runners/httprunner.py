@@ -26,6 +26,10 @@ ACTION_METHOD = 'method'
 ACTION_QUERY_PARAMS = 'params'
 
 
+def get_runner_class():
+    return HttpRunner
+
+
 def get_runner():
     return HttpRunner(str(uuid.uuid4()))
 
@@ -35,6 +39,10 @@ class HttpRunner(ActionRunner):
         super(HttpRunner, self).__init__()
         self._on_behalf_user = cfg.CONF.ssh_runner.user
         self._timeout = 60
+
+    @classmethod
+    def on_action_update(cls, action):
+        pass
 
     def pre_run(self):
         LOG.debug('Entering HttpRunner.pre_run() for liveaction_id="%s"', self.liveaction_id)
@@ -59,7 +67,7 @@ class HttpRunner(ActionRunner):
         return output is not None
 
     def post_run(self):
-        pass
+        super(HttpRunner, self).post_run()
 
     def _get_http_client(self, action_parameters):
         # XXX: Action context should be passed in and we need to add x-headers here.

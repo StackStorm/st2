@@ -45,6 +45,10 @@ class FabricRunner(ActionRunner):
         self._on_behalf_user = None
         self._user = None
 
+    @classmethod
+    def on_action_update(cls, action):
+        pass
+
     def pre_run(self):
         LOG.debug('Entering FabricRunner.pre_run() for liveaction_id="%s"', self.liveaction_id)
         LOG.debug('    runner_parameters = %s', self.runner_parameters)
@@ -78,7 +82,7 @@ class FabricRunner(ActionRunner):
         return result is not None
 
     def post_run(self):
-        pass
+        super(FabricRunner, self).post_run()
 
     def _run(self, remote_action):
         LOG.info('Executing action via FabricRunner :%s for user: %s.',
@@ -120,6 +124,10 @@ class FabricRunner(ActionRunner):
 
 def get_runner():
     return FabricRunner(str(uuid.uuid4()))
+
+
+def get_runner_class():
+    return FabricRunner
 
 
 # XXX: Write proper tests.

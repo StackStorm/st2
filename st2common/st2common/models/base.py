@@ -1,6 +1,7 @@
 import abc
 import functools
 import inspect
+import json
 import jsonschema
 import jsonschema.validators
 import pecan
@@ -69,53 +70,65 @@ def jsexpose(*argtypes, **opts):
     def decorate(f):
         @functools.wraps(f)
         def callfunction(*args, **kwargs):
-            args = list(args)
-            types = list(argtypes)
-            more = [args.pop(0)]
-
-            if len(types):
-                argspec = inspect.getargspec(f)
-                names = argspec.args[1:]
-
-                for name in names:
-                    try:
-                        a = args.pop(0)
-                        more.append(types.pop(0)(a))
-                    except IndexError:
-                        try:
-                            kwargs[name] = types.pop(0)(kwargs[name])
-                        except IndexError:
-                            LOG.warning("Type definition for '%s' argument of '%s' is missing.",
-                                        name, f.__name__)
-                        except KeyError:
-                            pass
-
-            body_cls = opts.get('body')
-            if body_cls:
-                more.append(body_cls(**pecan.request.json))
-
-            args = tuple(more) + tuple(args)
-
-            status_code = opts.get('status_code')
-
-            noop_codes = [httplib.NOT_IMPLEMENTED, httplib.METHOD_NOT_ALLOWED, httplib.FORBIDDEN]
-            if status_code and status_code in noop_codes:
-                pecan.response.status = status_code
-                return pecan.jsonify.encode(None)
-
             try:
-                result = f(*args, **kwargs)
-                if status_code:
+                args = list(args)
+                types = list(argtypes)
+                more = [args.pop(0)]
+
+                if len(types):
+                    argspec = inspect.getargspec(f)
+                    names = argspec.args[1:]
+
+                    for name in names:
+                        try:
+                            a = args.pop(0)
+                            more.append(types.pop(0)(a))
+                        except IndexError:
+                            try:
+                                kwargs[name] = types.pop(0)(kwargs[name])
+                            except IndexError:
+                                LOG.warning("Type definition for '%s' argument of '%s' "
+                                            "is missing.", name, f.__name__)
+                            except KeyError:
+                                pass
+
+                body_cls = opts.get('body')
+                if body_cls:
+                    obj = body_cls(**pecan.request.json)
+                    if ('st2-context' in pecan.request.headers and
+                            pecan.request.headers['st2-context']):
+                        context = pecan.request.headers['st2-context'].replace("'", "\"")
+                        obj.context = json.loads(context)
+                    more.append(obj)
+
+                args = tuple(more) + tuple(args)
+
+                status_code = opts.get('status_code')
+
+                noop_codes = [httplib.NOT_IMPLEMENTED,
+                              httplib.METHOD_NOT_ALLOWED,
+                              httplib.FORBIDDEN]
+
+                if status_code and status_code in noop_codes:
                     pecan.response.status = status_code
-                return pecan.jsonify.encode(result)
-            except exc.HTTPException as e:
-                pecan.response.status = e.wsgi_response.status
-                error = {'faultstring': e.message}
-                return pecan.jsonify.encode(error)
+                    return pecan.jsonify.encode(None)
+
+                try:
+                    result = f(*args, **kwargs)
+                    if status_code:
+                        pecan.response.status = status_code
+                    return pecan.jsonify.encode(result)
+                except exc.HTTPException as e:
+                    pecan.response.status = e.wsgi_response.status
+                    error = {'faultstring': e.message}
+                    return pecan.jsonify.encode(error)
+                except Exception as e:
+                    pecan.response.status = httplib.INTERNAL_SERVER_ERROR
+                    error = {'faultstring': e.message}
+                    return pecan.jsonify.encode(error)
+
             except Exception as e:
-                pecan.response.status = httplib.INTERNAL_SERVER_ERROR
-                error = {'faultstring': e.message}
-                return pecan.jsonify.encode(error)
+                LOG.error(e)
 
         pecan_json_decorate(callfunction)
 
