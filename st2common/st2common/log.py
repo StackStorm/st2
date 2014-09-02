@@ -1,6 +1,7 @@
 import datetime
 import logging
 import logging.config
+import os
 import six
 from six import moves
 
@@ -8,11 +9,12 @@ logging.AUDIT = logging.CRITICAL + 10
 logging.addLevelName(logging.AUDIT, 'AUDIT')
 
 
-class TimeStampedFileHandler(logging.FileHandler):
+class FormatNamedFileHandler(logging.FileHandler):
     def __init__(self, filename, mode='a', encoding=None, delay=False):
         # Include timestamp in the name.
-        filename = filename.format(str(datetime.datetime.now()).replace(' ', '_'))
-        super(TimeStampedFileHandler, self).__init__(filename, mode, encoding, delay)
+        filename = filename.format(ts=str(datetime.datetime.now()).replace(' ', '_'),
+                                   pid=os.getpid())
+        super(FormatNamedFileHandler, self).__init__(filename, mode, encoding, delay)
 
 
 def _audit(logger, msg, *args, **kwargs):
