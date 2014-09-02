@@ -50,7 +50,7 @@ if [[ ${1} == "start" ]]; then
     # Run the action runner API server
     echo 'Starting screen session st2-actionrunner...'
     screen -d -m -S st2-actionrunner ./virtualenv/bin/python \
-        ./st2actionrunnercontroller/bin/actionrunner_controller \
+        ./st2actionrunner/bin/actionrunner \
         --config-file ./conf/stanley.conf
 
     # Run the st2 API server
