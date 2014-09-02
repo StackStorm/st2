@@ -22,8 +22,6 @@ from st2common.models.api.action import (ActionExecutionAPI,
                                          ACTIONEXEC_STATUS_SCHEDULED,
                                          ACTIONEXEC_STATUS_ERROR)
 from st2common import util
-# from st2common.transport import publishers
-# from st2common.transport import actionexecution as ae_transport
 from st2common import transport
 from st2common.util.action_db import (get_action_by_dict, update_actionexecution_status,
                                       get_runnertype_by_name)
@@ -53,36 +51,14 @@ class ActionExecutionsController(RestController):
         self._monitor_thread_no_workers_sleep_time = MONITOR_THREAD_NO_WORKERS_SLEEP_TIME
         self._publisher = transport.publishers.PoolPublisher()
 
-    def _issue_liveaction_delete(self, actionexec_id):
-        """
-            Destroy the LiveActions specified by actionexec_id by performing
-            a DELETE against the /liveactions/ http endpoint.
-        """
-        LOG.info('Issuing /liveactions/ DELETE for ActionExecution with id="%s"', actionexec_id)
-        request_error = False
-        result = None
-        try:
-            result = requests.delete(self._live_actions_ep +
-                                     '/?actionexecution_id=' + str(actionexec_id))
-        except requests.exceptions.ConnectionError as e:
-            LOG.error('Caught encoundered connection error while performing /liveactions/ '
-                      'DELETE for actionexec_id="%s".'
-                      'Error was: %s', actionexec_id, e)
-            request_error = True
-
-        LOG.debug('/liveactions/ DELETE request result: %s', result)
-
-        return (result, request_error)
-
-    def _issue_liveaction_post(self, actionexec_id):
+    def _issue_liveaction(self, actionexec_id):
         """
             Launch the ActionExecution specified by actionexec_id by performing
             a POST against the /liveactions/ http endpoint.
         """
 
-        custom_headers = self._create_custom_headers()
         payload = self._create_liveaction_data(actionexec_id)
-        LOG.info('Issuing /liveactions/ POST data=%s custom_headers=%s', payload, custom_headers)
+        LOG.info('Issuing /liveactions/ POST data=%s', payload)
         request_error = False
         result = None
         try:
@@ -124,9 +100,6 @@ class ActionExecutionsController(RestController):
         LOG.debug('Retrieving all action executions')
         return ActionExecution.get_all(order_by=['-start_timestamp'],
                                        limit=limit)
-
-    def _create_custom_headers(self):
-        return {'content-type': 'application/json'}
 
     def _create_liveaction_data(self, actionexecution_id):
         return {'actionexecution_id': str(actionexecution_id)}
@@ -253,48 +226,12 @@ class ActionExecutionsController(RestController):
             LOG.debug('POST /actionexecutions/ client_result=%s', actionexec_api)
             return actionexec_api
 
-    @jsexpose(str, status_code=httplib.NO_CONTENT)
-    def delete(self, id):
-        """
-            Delete an actionexecution.
-
-            Handles requests:
-                POST /actionexecutions/1?_method=delete
-                DELETE /actionexecutions/1
-        """
-
-        LOG.info('DELETE /actionexecutions/ with id=%s', id)
-        actionexec_db = ActionExecutionsController.__get_by_id(id)
-
-        LOG.debug('DELETE /actionexecutions/ lookup with id=%s found object: %s',
-                  id, actionexec_db)
-
-        # TODO: Delete should migrate the execution data to a history collection.
-
-        (result, request_error) = self._issue_liveaction_delete(actionexec_db.id)
-        # TODO: Validate that liveactions for actionexec are all deleted.
-        if request_error:
-            LOG.warning('DELETE of Live Actions for actionexecution_id="%s" encountered '
-                        'an error. HTTP result is: %s', actionexec_db.id, result)
-
-        try:
-            ActionExecution.delete(actionexec_db)
-        except Exception as e:
-            LOG.error('Database delete encountered exception during delete of id="%s". '
-                      'Exception was %s', id, e)
-            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
-
-        LOG.audit('ActionExecution deleted. ActionExecution=%s', actionexec_db)
-
-        LOG.info('DELETE /actionexecutions/ with id="%s" completed', id)
-        return None
-
     def _kickoff_live_actions(self):
         if self._live_actions_pool.free() <= 0:
             return
         while not self._live_actions.empty() and self._live_actions_pool.free() > 0:
             action_exec_id = self._live_actions.get_nowait()
-            self._live_actions_pool.spawn(self._issue_liveaction_post, action_exec_id)
+            self._live_actions_pool.spawn(self._issue_liveaction, action_exec_id)
 
     def _drain_live_actions(self):
         while True:
