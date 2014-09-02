@@ -3,8 +3,8 @@ from kombu.pools import producers
 
 
 class PoolPublisher(object):
-    def __init__(self):
-        self.pool = Connection('librabbitmq://guest:guest@localhost:5672//').Pool(10)
+    def __init__(self, url):
+        self.pool = Connection(url).Pool(10)
 
     def publish(self, payload, exchange, routing_key=''):
         with self.pool.acquire(block=True) as connection:

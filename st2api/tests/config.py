@@ -33,12 +33,6 @@ def __setup_config_opts():
     ]
     __register_opts(pecan_opts, group='api_pecan')
 
-    liveactions_opts = [
-        cfg.StrOpt('liveactions_base_url', default='http://localhost:9501/liveactions',
-               help='Base URL for live actions.')
-    ]
-    __register_opts(liveactions_opts, group='liveactions')
-
 
 def parse_args():
     __setup_config_opts()

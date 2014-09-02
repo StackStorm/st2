@@ -39,6 +39,12 @@ db_opts = [
 ]
 CONF.register_opts(db_opts, group='database')
 
+messaging_opts = [
+    cfg.StrOpt('url', default='librabbitmq://guest:guest@localhost:5672//',
+               help='URL of the messaging server.')
+]
+CONF.register_opts(messaging_opts, group='messaging')
+
 use_debugger = cfg.BoolOpt(
     'use-debugger', default=True,
     help='Enables debugger. Note that using this option changes how the '
@@ -52,12 +58,6 @@ actions_opts = [
                help='path where action plugins are located')
 ]
 CONF.register_opts(actions_opts, group='actions')
-
-liveactions_opts = [
-    cfg.StrOpt('liveactions_base_url', default='http://localhost:9501/liveactions',
-               help='Base URL for live actions.')
-]
-CONF.register_opts(liveactions_opts, group='liveactions')
 
 rules_opts = [
     cfg.StrOpt('rules_path', default='/opt/stackstorm/rules',

@@ -2,6 +2,7 @@ import json
 
 from kombu import Connection
 from kombu.mixins import ConsumerMixin
+from oslo.config import cfg
 from st2common import log as logging
 from st2common.transport import actionexecution
 from st2actionrunner.controllers import liveactions
@@ -16,16 +17,15 @@ class Worker(ConsumerMixin):
         self.controller = liveactions.LiveActionsController()
 
     def get_consumers(self, Consumer, channel):
-        consumer = Consumer(queues=[actionexecution.ACTIONRUNNER_WORK_Q],
-                            accept=['json'],
-                            callbacks=[self.process_task])
-        return [consumer]
+        return [Consumer(queues=[actionexecution.ACTIONRUNNER_WORK_Q],
+                         accept=['json'],
+                         callbacks=[self.process_task])]
 
     def process_task(self, body, message):
-        LOG.debug('process_task')
-        LOG.debug('     [%s]body: %s', type(body), body)
-        LOG.debug('     message.properties: %s', message.properties)
-        LOG.debug('     message.delivery_info: %s', message.delivery_info)
+        # LOG.debug('process_task')
+        # LOG.debug('     [%s]body: %s', type(body), body)
+        # LOG.debug('     message.properties: %s', message.properties)
+        # LOG.debug('     message.delivery_info: %s', message.delivery_info)
         try:
             self.controller.execute_action(json.loads(str(body)))
         except:
@@ -35,6 +35,6 @@ class Worker(ConsumerMixin):
 
 
 def work():
-    with Connection('librabbitmq://guest:guest@localhost:5672//') as conn:
+    with Connection(cfg.CONF.messaging.url) as conn:
         worker = Worker(conn)
         worker.run()

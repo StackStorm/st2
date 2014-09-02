@@ -40,8 +40,6 @@ class ActionExecutionsController(RestController):
     """
 
     def __init__(self, live_actions_pool_size=50):
-        self._live_actions_ep = cfg.CONF.liveactions.liveactions_base_url
-        LOG.info('Live actions ep: %s', self._live_actions_ep)
         self.live_actions_pool_size = live_actions_pool_size
         self._live_actions_pool = eventlet.GreenPool(self.live_actions_pool_size)
         self._threads = {}
@@ -49,7 +47,7 @@ class ActionExecutionsController(RestController):
         self._live_actions_monitor_thread = eventlet.greenthread.spawn(self._drain_live_actions)
         self._monitor_thread_empty_q_sleep_time = MONITOR_THREAD_EMPTY_Q_SLEEP_TIME
         self._monitor_thread_no_workers_sleep_time = MONITOR_THREAD_NO_WORKERS_SLEEP_TIME
-        self._publisher = transport.publishers.PoolPublisher()
+        self._publisher = transport.publishers.PoolPublisher(cfg.CONF.messaging.url)
 
     def _issue_liveaction(self, actionexec_id):
         """
