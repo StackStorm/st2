@@ -28,8 +28,10 @@ if [[ ${1} == "start" ]]; then
     cd ${ST2_REPO}
 
     # Copy and overwrite the action contents
-    mkdir -p /opt/stackstorm
+    sudo mkdir -p /opt/stackstorm
+    sudo chown vagrant:vagrant /opt/stackstorm
     cp -Rp ./contrib/core/actions /opt/stackstorm
+    cp -Rp ./contrib/core/rules /opt/stackstorm
 
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate
