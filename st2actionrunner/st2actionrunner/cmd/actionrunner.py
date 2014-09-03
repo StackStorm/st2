@@ -1,10 +1,8 @@
 import eventlet
 import os
-import datetime
 import sys
 
 from oslo.config import cfg
-from eventlet import wsgi
 
 from st2common import log as logging
 from st2common.models.db import db_setup
@@ -46,7 +44,7 @@ def main():
     try:
         __setup()
         __run_worker()
-    except Exception as e:
+    except:
         LOG = logging.getLogger(__name__)
         LOG.exception('[PID=%s] Worker quit.', os.getpid())
     finally:

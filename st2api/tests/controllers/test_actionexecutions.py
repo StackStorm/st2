@@ -125,40 +125,28 @@ class TestActionExecutionsController(FunctionalTest):
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
         mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
     def test_get_one(self):
         post_resp = self.__do_post(ACTION_EXECUTION_1)
         actionexecution_id = self.__get_actionexecution_id(post_resp)
         get_resp = self.__do_get_one(actionexecution_id)
         self.assertEquals(get_resp.status_int, 200)
         self.assertEquals(self.__get_actionexecution_id(get_resp), actionexecution_id)
-        self.__do_delete(actionexecution_id)
 
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
         mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
     def test_get_all(self):
-        actionexecution_1_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
-        actionexecution_2_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_2))
+        self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
+        self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_2))
         resp = self.app.get('/actionexecutions')
         self.assertEqual(resp.status_int, 200)
         self.assertEquals(len(resp.json), 2,
                           '/actionexecutions did not return all '
                           'actionexecutions.')
-        self.__do_delete(actionexecution_1_id)
-        self.__do_delete(actionexecution_2_id)
 
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
         mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
     def test_get_query(self):
         actionexecution_1_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
         actionexecution_2_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_2))
@@ -166,31 +154,27 @@ class TestActionExecutionsController(FunctionalTest):
         resp = self.app.get('/actionexecutions?action_name=%s' %
                             ACTION_EXECUTION_1['action']['name'])
         self.assertEqual(resp.status_int, 200)
-        self.assertEquals(resp.json[0]['id'], actionexecution_1_id,
+        matching_execution = filter(lambda ae: ae['id'] == actionexecution_1_id, resp.json)
+        self.assertEquals(len(matching_execution), 1,
                           '/actionexecutions did not return correct actionexecution.')
 
         resp = self.app.get('/actionexecutions?action_id=%s' %
                             self.action2['id'])
         self.assertEqual(resp.status_int, 200)
-        self.assertEquals(resp.json[0]['id'], actionexecution_2_id,
+        matching_execution = filter(lambda ae: ae['id'] == actionexecution_2_id, resp.json)
+        self.assertEquals(len(matching_execution), 1,
                           '/actionexecutions did not return correct actionexecution.')
-
-        self.__do_delete(actionexecution_1_id)
-        self.__do_delete(actionexecution_2_id)
 
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
         mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
     def test_get_query_with_limit(self):
-        actionexecution_1_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
-        actionexecution_2_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
+        self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
+        self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
 
         resp = self.app.get('/actionexecutions')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2)
+        self.assertTrue(len(resp.json) > 0)
 
         resp = self.app.get('/actionexecutions?limit=1')
         self.assertEqual(resp.status_int, 200)
@@ -198,12 +182,12 @@ class TestActionExecutionsController(FunctionalTest):
 
         resp = self.app.get('/actionexecutions?limit=0')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2)
+        self.assertTrue(len(resp.json) > 1)
 
         resp = self.app.get('/actionexecutions?action_name=%s' %
                             ACTION_EXECUTION_1['action']['name'])
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2)
+        self.assertTrue(len(resp.json) > 1)
 
         resp = self.app.get('/actionexecutions?action_name=%s&limit=1' %
                             ACTION_EXECUTION_1['action']['name'])
@@ -213,10 +197,7 @@ class TestActionExecutionsController(FunctionalTest):
         resp = self.app.get('/actionexecutions?action_name=%s&limit=0' %
                             ACTION_EXECUTION_1['action']['name'])
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2)
-
-        self.__do_delete(actionexecution_1_id)
-        self.__do_delete(actionexecution_2_id)
+        self.assertTrue(len(resp.json) > 1)
 
     def test_get_one_fail(self):
         resp = self.app.get('/actionexecutions/100', expect_errors=True)
@@ -225,13 +206,9 @@ class TestActionExecutionsController(FunctionalTest):
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
         mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
     def test_post_delete(self):
         post_resp = self.__do_post(ACTION_EXECUTION_1)
         self.assertEquals(post_resp.status_int, 201)
-        self.__do_delete(self.__get_actionexecution_id(post_resp))
 
     def test_post_parameter_validation_failed(self):
         execution = copy.copy(ACTION_EXECUTION_1)
@@ -256,17 +233,6 @@ class TestActionExecutionsController(FunctionalTest):
         post_resp = self.__do_post(execution, expect_errors=False)
         self.assertEquals(post_resp.status_int, 201)
 
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
-    def test_delete(self):
-        post_resp = self.__do_post(ACTION_EXECUTION_1)
-        del_resp = self.__do_delete(self.__get_actionexecution_id(post_resp))
-        self.assertEquals(del_resp.status_int, 204)
-
     @staticmethod
     def __get_actionexecution_id(resp):
         return resp.json['id']
@@ -278,7 +244,3 @@ class TestActionExecutionsController(FunctionalTest):
     def __do_post(self, actionexecution, expect_errors=False):
         return self.app.post_json('/actionexecutions', actionexecution,
                                   expect_errors=expect_errors)
-
-    def __do_delete(self, actionexecution_id, expect_errors=False):
-        return self.app.delete('/actionexecutions/%s' % actionexecution_id,
-                               expect_errors=expect_errors)

@@ -10,7 +10,6 @@ from pecan.rest import RestController
 #       that bubble up to this layer should be core Python exceptions or
 #       StackStorm defined exceptions.
 
-import requests
 import jsonschema
 from oslo.config import cfg
 
@@ -49,7 +48,7 @@ class ActionExecutionsController(RestController):
         self._monitor_thread_no_workers_sleep_time = MONITOR_THREAD_NO_WORKERS_SLEEP_TIME
         self._publisher = transport.publishers.PoolPublisher(cfg.CONF.messaging.url)
 
-    def _issue_liveaction(self, actionexec_id):
+    def _issue_liveaction_post(self, actionexec_id):
         """
             Launch the ActionExecution specified by actionexec_id by performing
             a POST against the /liveactions/ http endpoint.
@@ -63,7 +62,7 @@ class ActionExecutionsController(RestController):
             self._publisher.publish(json.dumps(payload),
                                     exchange=transport.actionexecution.ACTIONEXECUTION_XCHG,
                                     routing_key=transport.actionexecution.CREATE_RK)
-        except Exception as e:
+        except Exception:
             LOG.exception('Unable to publish to exchange.')
             request_error = True
 
@@ -229,7 +228,7 @@ class ActionExecutionsController(RestController):
             return
         while not self._live_actions.empty() and self._live_actions_pool.free() > 0:
             action_exec_id = self._live_actions.get_nowait()
-            self._live_actions_pool.spawn(self._issue_liveaction, action_exec_id)
+            self._live_actions_pool.spawn(self._issue_liveaction_post, action_exec_id)
 
     def _drain_live_actions(self):
         while True:

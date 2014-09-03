@@ -5,7 +5,6 @@ import os
 import six
 import sys
 import traceback
-from six import moves
 
 logging.AUDIT = logging.CRITICAL + 10
 logging.addLevelName(logging.AUDIT, 'AUDIT')

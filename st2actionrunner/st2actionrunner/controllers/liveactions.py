@@ -1,13 +1,12 @@
 from st2common import log as logging
 
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.exceptions.actionrunner import ActionRunnerPreRunError, ActionRunnerException
 from st2common.models.api.action import ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_ERROR
 from st2common.models.api.actionrunner import LiveActionAPI
 from st2common.persistence.actionrunner import LiveAction
 from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict,
                                       update_actionexecution_status, get_runnertype_by_name)
-from st2common.util.actionrunner_db import (get_liveaction_by_id,
-                                            get_liveactions_by_actionexec_id)
 
 from st2actionrunner import container
 
@@ -36,11 +35,10 @@ class LiveActionsController():
         #     3. RunnerType object
         try:
             actionexec_db = get_actionexec_by_id(liveaction.actionexecution_id)
-        except StackStormDBObjectNotFoundError as e:
+        except StackStormDBObjectNotFoundError:
             LOG.exception('Failed to find ActionExecution %s in the database.',
                           liveaction.actionexecution_id)
-            # TODO: Is there a more appropriate status code?
-            abort(httplib.BAD_REQUEST, str(e))
+            raise
 
         #  Got ActionExecution object (1)
         LOG.debug('execute_action obtained ActionExecution object from database. Object is %s',
@@ -70,7 +68,7 @@ class LiveActionsController():
             result = self.container.dispatch(liveaction_db, runnertype_db, action_db,
                                              actionexec_db)
             LOG.debug('Runner dispatch produced result: %s', result)
-        except Exception as e:
+        except Exception:
             actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_ERROR,
                                                           actionexec_db.id)
             raise
