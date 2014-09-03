@@ -2,7 +2,6 @@
 'use strict';
 
 var gulp = require('gulp')
-  , gutil = require('gulp-util')
   , jshint = require('gulp-jshint')
   , path = require('path')
   , es = require('event-stream')
@@ -10,7 +9,6 @@ var gulp = require('gulp')
   , concat = require('gulp-concat')
   , serve = require('gulp-serve')
   , prefix = require('gulp-autoprefixer')
-  , ApiMock = require('api-mock')
   , fontelloUpdate = require('fontello-update')
   ;
 
@@ -76,22 +74,6 @@ gulp.task('watch', function () {
   gulp.watch(settings.styles.src.concat(settings.styles.includes), ['styles']);
 });
 
-gulp.task('mockapi', function () {
-  var configuration = {
-    blueprintPath: settings.apiBlueprint,
-    options: {
-      port: 3300
-    }
-  };
-
-  try {
-    new ApiMock(configuration).run();
-    gutil.log('API mock is listening on port ' + configuration.options.port);
-  } catch(e) {
-    throw new gutil.PluginError('mockapi', e, { showStack: true });
-  }
-});
-
 gulp.task('font', function () {
   return fontelloUpdate({
     config: 'fontello.json',
@@ -102,4 +84,4 @@ gulp.task('font', function () {
 
 
 gulp.task('build', ['gulphint', 'scripts', 'font', 'styles']);
-gulp.task('default', ['build', 'watch', 'mockapi', 'serve']);
+gulp.task('default', ['build', 'watch', 'serve']);
