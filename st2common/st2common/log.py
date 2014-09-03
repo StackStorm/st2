@@ -3,6 +3,8 @@ import logging
 import logging.config
 import os
 import six
+import sys
+import traceback
 from six import moves
 
 logging.AUDIT = logging.CRITICAL + 10
@@ -33,8 +35,6 @@ def setup(config_file):
                                   disable_existing_loggers=False)
     except Exception as exc:
         # No logger yet therefore write to stderr
-        import sys
-        import traceback
         sys.stderr.write('ERROR: %s' % traceback.format_exc())
         raise Exception(six.text_type(exc))
 
