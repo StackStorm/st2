@@ -20,18 +20,25 @@ class RunnerContainerService():
 
     def __init__(self, container):
         self._container = container
+        self._status = None
         self._result = None
         self._payload = {}
         self._action_workingdir = None
 
+    def report_status(self, status):
+        self._status = status
+
     def report_result(self, result):
-        self._result = result
+        try:
+            self._result = json.loads(result)
+        except:
+            self._result = result
+
+    def get_status(self):
+        return self._status
 
     def get_result(self):
         return self._result
-
-    def get_result_json(self):
-        return json.dumps(self._result)
 
     def report_payload(self, name, value):
         self._payload[name] = value

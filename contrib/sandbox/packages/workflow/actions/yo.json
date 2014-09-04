@@ -1,0 +1,8 @@
+{
+    "name": "yo",
+    "runner_type": "run-local",
+    "description": "Say Yo x number of times.",
+    "enabled": true,
+    "entry_point":"yo/yo.sh",
+    "parameters": {}
+}

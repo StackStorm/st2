@@ -4,6 +4,7 @@ import json
 import Queue
 
 import eventlet
+import pecan
 from pecan import abort
 from pecan.rest import RestController
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
@@ -151,6 +152,11 @@ class ActionExecutionsController(RestController):
 
         actionexecution.start_timestamp = datetime.datetime.now()
 
+        # Retrieve context from request header.
+        if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
+            context = pecan.request.headers['st2-context'].replace("'", "\"")
+            actionexecution.context = json.loads(context)
+
         # Fill-in runner_parameters and action_parameter fields if they are not
         # provided in the request.
         if not hasattr(actionexecution, 'parameters'):
@@ -222,6 +228,19 @@ class ActionExecutionsController(RestController):
             actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
             LOG.debug('POST /actionexecutions/ client_result=%s', actionexec_api)
             return actionexec_api
+
+    @jsexpose(str, body=ActionExecutionAPI)
+    def put(self, id, actionexecution):
+        actionexecution.start_timestamp = datetime.datetime.now()
+        actionexec_db = ActionExecutionsController.__get_by_id(id)
+        new_actionexec_db = ActionExecutionAPI.to_model(actionexecution)
+        if actionexec_db.status != new_actionexec_db.status:
+            actionexec_db.status = new_actionexec_db.status
+        if actionexec_db.result != new_actionexec_db.result:
+            actionexec_db.result = new_actionexec_db.result
+        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+        actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
+        return actionexec_api
 
     def _kickoff_live_actions(self):
         if self._live_actions_pool.free() <= 0:

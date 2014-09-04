@@ -19,3 +19,4 @@ git+https://github.com/StackStorm/fabric.git@stanley-patched
 jsonschema>=2.3.0
 librabbitmq
 kombu
+git+https://github.com/stackforge/python-mistralclient.git

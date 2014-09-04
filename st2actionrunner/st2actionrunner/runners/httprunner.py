@@ -58,9 +58,6 @@ class HttpRunner(ActionRunner):
         self.container_service.report_result(output)
         return output is not None
 
-    def post_run(self):
-        pass
-
     def _get_http_client(self, action_parameters):
         # XXX: Action context should be passed in and we need to add x-headers here.
         body = action_parameters.get(ACTION_BODY, None)

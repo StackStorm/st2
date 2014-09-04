@@ -1,0 +1,33 @@
+Workflow:
+  tasks:
+    yo:
+      action: st2.action
+      parameters:
+        name: "yo"
+        parameters:
+          cmd: $.count
+      publish:
+        greet: $.localhost.stdout
+      on-success: ["ma"]
+    ma:
+      action: st2.action
+      parameters:
+        name: "ma"
+        parameters:
+          cmd: $.friend
+      publish:
+        towhom: $.localhost.stdout
+      on-success: ["yoma"]
+    yoma:
+      action: st2.action
+      parameters:
+        name: "local"
+        parameters:
+          cmd: "echo \"{$.greet}, {$.towhom}\""
+      publish:
+        message: $.localhost.stdout
+      on-success: ["callback"]
+    callback:
+      action: st2.callback
+      parameters:
+        result: $.message

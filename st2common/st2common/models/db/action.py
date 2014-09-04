@@ -93,9 +93,15 @@ class ActionExecutionDB(StormFoundationDB):
     parameters = me.DictField(
         default={},
         help_text='The key-value pairs passed as to the action runner &  execution.')
-    result = me.StringField(
+    result = me.DynamicField(
         default='',
         help_text='Action defined result.')
+    context = me.DictField(
+        default={},
+        help_text='Contextual information on the action execution.')
+    callback = me.DictField(
+        default={},
+        help_text='Callback information for the on completion of action execution.')
 
 
 # specialized access objects

@@ -35,6 +35,10 @@ RUNNER_REMOTE_DIR = 'dir'
 RUNNER_COMMAND = 'cmd'
 
 
+def get_runner():
+    return FabricRunner(str(uuid.uuid4()))
+
+
 class FabricRunner(ActionRunner):
     def __init__(self, id):
         super(FabricRunner, self).__init__()
@@ -77,9 +81,6 @@ class FabricRunner(ActionRunner):
         # TODO (manas) : figure out the right boolean representation.
         return result is not None
 
-    def post_run(self):
-        pass
-
     def _run(self, remote_action):
         LOG.info('Executing action via FabricRunner :%s for user: %s.',
                  self._runner_id, remote_action.get_on_behalf_user())
@@ -116,10 +117,6 @@ class FabricRunner(ActionRunner):
                                         hosts=self._hosts,
                                         parallel=self._parallel,
                                         sudo=self._sudo)
-
-
-def get_runner():
-    return FabricRunner(str(uuid.uuid4()))
 
 
 # XXX: Write proper tests.
