@@ -1,7 +1,0 @@
-#!/usr/bin/env python2.7
-
-import sys
-from st2datastore import cmd
-
-if __name__ == '__main__':
-    sys.exit(cmd.datastore.main())

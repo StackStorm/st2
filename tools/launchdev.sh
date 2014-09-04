@@ -41,12 +41,6 @@ if [[ ${1} == "start" ]]; then
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs kill
     fi
 
-    # Run the datastore API server
-    echo 'Starting screen session st2-datastore...'
-    screen -d -m -S st2-datastore ./virtualenv/bin/python \
-        ./st2datastore/bin/datastore_controller \
-        --config-file ./conf/stanley.conf
-
     # Run the action runner API server
     echo 'Starting screen session st2-actionrunner...'
     screen -d -m -S st2-actionrunner ./virtualenv/bin/python \
@@ -67,7 +61,6 @@ if [[ ${1} == "start" ]]; then
 
     # Check whether screen sessions are started
     screens=(
-        "st2-datastore"
         "st2-api"
         "st2-actionrunner"
         "st2-reactor"

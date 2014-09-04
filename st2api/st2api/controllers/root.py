@@ -6,6 +6,7 @@ from st2api.controllers.runnertypes import RunnerTypesController
 from st2api.controllers.triggers import TriggerTypeController, TriggerController, \
     TriggerInstanceController
 from st2api.controllers.rules import RuleController, RuleEnforcementController
+from st2api.controllers.datastore import KeyValuePairController
 
 
 class RootController(object):
@@ -17,6 +18,7 @@ class RootController(object):
     triggerinstances = TriggerInstanceController()
     rules = RuleController()
     ruleenforcements = RuleEnforcementController()
+    keys = KeyValuePairController()
 
     @expose(generic=True, template='index.html')
     def index(self):
