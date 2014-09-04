@@ -1,3 +1,3 @@
-from st2reactor.cmd import sensorcontainer
+from st2reactor.cmd import sensormanager
 
-__all__ = ['sensorcontainer']
+__all__ = ['sensormanager']

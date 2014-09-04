@@ -28,7 +28,7 @@ class SensorContainer(object):
     def _run_sensor(self, sensor):
         try:
             sensor.setup()
-        except Exception, e:
+        except Exception as e:
             LOG.error('Error calling setup on sensor: %s. Exception: %s',
                       sensor.__class__.__name__, e, exc_info=True)
         else:
@@ -37,7 +37,7 @@ class SensorContainer(object):
     def _sensor_cleanup(self, sensor):
         try:
             sensor.stop()
-        except Exception, e:
+        except Exception as e:
             LOG.error('Error cleaning up sensor: %s. Exception: %s',
                       sensor.__class__.__name__, e)
 
