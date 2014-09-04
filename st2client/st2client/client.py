@@ -19,10 +19,6 @@ class Client(object):
         if not self.endpoints['api']:
             self.endpoints['api'] = os.environ.get(
                 'ST2_API_URL', '%s:%s' % (self.endpoints['base'], 9101))
-        self.endpoints['datastore'] = kwargs.get('datastore_url', None)
-        if not self.endpoints['datastore']:
-            self.endpoints['datastore'] = os.environ.get(
-                'ST2_DATASTORE_URL', '%s:%s' % (self.endpoints['base'], 9103))
 
         # Instantiate resource managers and assign appropriate API endpoint.
         self.managers = dict()
@@ -37,7 +33,7 @@ class Client(object):
         self.managers['Trigger'] = models.ResourceManager(
             models.Trigger, self.endpoints['api'])
         self.managers['KeyValuePair'] = models.ResourceManager(
-            models.KeyValuePair, self.endpoints['datastore'])
+            models.KeyValuePair, self.endpoints['api'])
 
     @property
     def runners(self):

@@ -10,7 +10,6 @@ interval = 20
 st2_endpoints = {
     'base_url': 'http://localhost',
     'api_url': '9101'
-    'datastore_url': '9103'
 }
 
 
