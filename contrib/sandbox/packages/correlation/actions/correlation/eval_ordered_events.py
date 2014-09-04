@@ -51,8 +51,7 @@ if event_id not in rule['ordered_events']:
 
 # Setup client to the key value store
 client = Client({
-    'api': 'http://localhost:9101',
-    'datastore': 'http://localhost:9103'})
+    'api': 'http://localhost:9101'})
 
 # Get existing state data from the key value store
 key_name = 'events_ordered_%s' % subject
