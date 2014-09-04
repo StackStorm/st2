@@ -1,0 +1,4 @@
+contrib/core opt/stackstorm/
+external/mirantis usr/lib/python2.7/dist-packages/
+st2common usr/lib/python2.7/dist-packages/
+conf/stanley.conf /etc/stanley/

@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 TOX_DIR := .tox
 #VIRTUALENV_DIR := $(TOX_DIR)/py27
 VIRTUALENV_DIR := virtualenv
@@ -190,3 +191,13 @@ rpms:
 	rm -Rf ~/rpmbuild
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make rpm; popd;)
 	pushd st2client && make rpm && popd
+
+.PHONY: debs
+debs:
+	@echo
+	@echo "====================debs===================="
+	@echo
+	rm -Rf ~/debbuild
+	$(foreach COM,$(COMPONENTS), pushd $(COM); make deb; popd;)
+	pushd st2client && make deb && popd
+
