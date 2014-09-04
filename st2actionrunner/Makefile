@@ -35,8 +35,7 @@ rpm:
 	pushd ~ && rpmdev-setuptree && popd
 	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz bin conf $(COMPONENTS)
 	cp packaging/rpm/$(COMPONENTS).spec $(RPM_SPECS_DIR)/
-	cd $(RPM_SPECS_DIR)
-	rpmbuild --clean --rmsource -ba $(COMPONENTS).spec
+	cd $(RPM_SPECS_DIR) && rpmbuild --clean --rmsource -ba $(COMPONENTS).spec
 
 .PHONY: deb
 deb:
