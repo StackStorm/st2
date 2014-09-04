@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 REPO_ROOT := ..
 VIRTUALENV_DIR=virtualenv
 RPM_ROOT=~/rpmbuild
@@ -31,6 +32,14 @@ flake8:
 rpm:
 	pushd ~ && rpmdev-setuptree && popd
 	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz bin conf public $(COMPONENTS)
-	cp $(COMPONENTS).spec $(RPM_SPECS_DIR)/
+	cp packaging/rpm/$(COMPONENTS).spec $(RPM_SPECS_DIR)/
 	cd $(RPM_SPECS_DIR)
 	rpmbuild --clean --rmsource -ba $(COMPONENTS).spec
+
+.PHONY: deb
+deb:
+	mkdir -p ~/debbuild
+	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf ~/$(COMPONENTS).tar.gz bin conf public $(COMPONENTS) packaging/debian
+	pushd ~ && tar -xzf $(COMPONENTS).tar.gz && cd $(COMPONENTS)-$(VER) && mv packaging/debian ./ && dpkg-buildpackage -b && popd
+	cp -f ~/$(COMPONENT)*.deb ~/debbuild/
+

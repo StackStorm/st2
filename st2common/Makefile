@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 RPM_ROOT=~/rpmbuild
 RPM_SOURCES_DIR := $(RPM_ROOT)/SOURCES/
 RPM_SPECS_DIR := $(RPM_ROOT)/SPECS/
@@ -8,7 +9,15 @@ COMPONENTS := st2common
 .PHONY: rpm
 rpm: 
 	pushd ~ && rpmdev-setuptree && popd
-	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz $(COMPONENTS) ../contrib ../external ../conf ../requirements.txt
-	cp $(COMPONENTS).spec $(RPM_SPECS_DIR)/
+	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz $(COMPONENTS) ../contrib ../external ../conf ../docs ../requirements.txt
+	cp packaging/rpm/$(COMPONENTS).spec $(RPM_SPECS_DIR)/
 	cd $(RPM_SPECS_DIR)
 	rpmbuild --clean --rmsource -ba $(COMPONENTS).spec
+
+.PHONY: deb
+deb:
+	mkdir -p ~/debbuild
+	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf ~/$(COMPONENTS).tar.gz $(COMPONENTS) ../contrib ../external ../conf ../docs ../requirements.txt packaging/debian
+	pushd ~ && tar -xzf $(COMPONENTS).tar.gz && cd $(COMPONENTS)-$(VER) && mv packaging/debian ./ && dpkg-buildpackage -b && popd
+	cp -f ~/$(COMPONENT)*.deb ~/debbuild/
+

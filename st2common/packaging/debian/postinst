@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ -d /etc/stanley ]; then
+  sed -i -r "s~(st2.*)/conf~/etc/\1~g" /etc/stanley/stanley.conf
+  sed -i "s/vagrant/stanley/g" /etc/stanley/stanley.conf
+  sed -i "/modules_path/a system_path = /usr/lib/python2.7/dist-packages/st2reactor/contrib/sensors" /etc/stanley/stanley.conf
+fi
