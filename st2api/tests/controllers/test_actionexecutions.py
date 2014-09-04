@@ -213,9 +213,6 @@ class TestActionExecutionsController(FunctionalTest):
     @mock.patch.object(
         ActionExecutionsController, '_issue_liveaction_post',
         mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_delete',
-        mock.MagicMock(return_value=(FakeResponse('', 204, 'NO CONTENT'), False)))
     def test_post_parameter_validation_failed(self):
         execution = copy.copy(ACTION_EXECUTION_1)
 
