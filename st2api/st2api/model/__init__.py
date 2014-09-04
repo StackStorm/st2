@@ -1,6 +1,5 @@
 import glob
 import json
-import importlib
 
 from oslo.config import cfg
 
@@ -142,7 +141,8 @@ def register_runner_types():
                 },
                 'context': {
                     'description': 'Context for the startup task.',
-                    'type': 'object'
+                    'type': 'object',
+                    'default': {}
                 }
             },
             'runner_module': 'st2actionrunner.runners.mistral'
@@ -198,18 +198,10 @@ def register_actions():
                               model.name, str(content['runner_type']))
                 continue
             try:
-                if runner_type.name == 'workflow':
-                    runner = get_runner(runner_type)
-                    runner.on_action_update(model)
                 model = Action.add_or_update(model)
                 LOG.audit('Action created. Action %s from %s.', model, action)
             except Exception:
                 LOG.exception('Failed to create action %s.', model.name)
-
-
-def get_runner(runnertype_db):
-    module = importlib.import_module(runnertype_db.runner_module, package=None)
-    return module.get_runner_class()
 
 
 def init_model():

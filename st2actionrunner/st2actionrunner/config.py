@@ -79,8 +79,7 @@ core_api_opts = [
 CONF.register_opts(core_api_opts, group='core_api')
 
 workflow_opts = [
-    cfg.StrOpt('host', default='0.0.0.0', help='Mistral API server host.'),
-    cfg.IntOpt('port', default=8989, help='Mistral API server port.')
+    cfg.StrOpt('url', default='http://localhost:8989/v1', help='Mistral API server endpoint.')
 ]
 CONF.register_opts(workflow_opts, group='workflow')
 

@@ -40,9 +40,6 @@ class RunnerContainerService():
     def get_result(self):
         return self._result
 
-    def get_result_json(self):
-        return self._result
-
     def report_payload(self, name, value):
         self._payload[name] = value
 

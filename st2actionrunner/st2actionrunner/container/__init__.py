@@ -95,10 +95,11 @@ class RunnerContainer():
 
         runner.liveaction_id = liveaction_id
         runner.container_service = RunnerContainerService(self)
+        runner.action = action_db
         runner.action_name = action_db.name
         runner.action_execution_id = str(actionexec_db.id)
         runner.entry_point = action_db.entry_point
-        runner.runner_parameters = {k: v for k, v in runner_parameters.iteritems() if v}
+        runner.runner_parameters = runner_parameters
         runner.context = getattr(actionexec_db, 'context', dict())
         runner.callback = getattr(actionexec_db, 'callback', dict())
 
@@ -113,7 +114,7 @@ class RunnerContainer():
         actionexec_db = get_actionexec_by_id(actionexec_db.id)
 
         # TODO: Store payload when DB model can hold payload data
-        action_result = runner.container_service.get_result_json()
+        action_result = runner.container_service.get_result()
         actionexec_status = runner.container_service.get_status()
         LOG.debug('Result as reporter to container service: %s', action_result)
 

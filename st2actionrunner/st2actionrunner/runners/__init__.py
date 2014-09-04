@@ -1,6 +1,12 @@
 import six
 import abc
 
+from st2actionrunner import handlers
+from st2common import log as logging
+
+
+LOG = logging.getLogger(__name__)
+
 
 @six.add_metaclass(abc.ABCMeta)
 class ActionRunner(object):
@@ -13,6 +19,7 @@ class ActionRunner(object):
         self.container_service = None
         self.liveaction_id = None
         self.runner_parameters = None
+        self.action = None
         self.action_name = None
         self.action_execution_id = None
         self.entry_point = None
@@ -31,17 +38,11 @@ class ActionRunner(object):
 
     def post_run(self):
         if self.callback and not (set(['url', 'source']) - set(self.callback.keys())):
-            from st2actionrunner import handlers
             handler = handlers.get_handler(self.callback['source'])
             handler.callback(self.callback['url'],
                              self.context,
                              self.container_service.get_status(),
                              self.container_service.get_result())
-
-    @classmethod
-    @abc.abstractmethod
-    def on_action_update(cls, action):
-        raise NotImplementedError()
 
     def __str__(self):
         attrs = ', '.join(['%s=%s' % (k, v) for k, v in self.__dict__.iteritems()])

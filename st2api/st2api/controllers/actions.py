@@ -14,7 +14,6 @@ from st2common.models.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.util.action_db import get_runnertype_by_name
-from st2api.model import get_runner
 
 
 LOG = logging.getLogger(__name__)
@@ -103,7 +102,7 @@ class ActionsController(RestController):
 
         # check if action parameters conflict with those from the supplied runner_type.
         try:
-            runner_type = get_runnertype_by_name(action.runner_type)
+            get_runnertype_by_name(action.runner_type)
         except StackStormDBObjectNotFoundError as e:
             msg = 'RunnerType %s is not found.' % action.runner_type
             LOG.exception('%s. Exception: %s', msg, e)
@@ -114,8 +113,6 @@ class ActionsController(RestController):
 
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
         try:
-            runner = get_runner(runner_type)
-            runner.on_action_update(action_model)
             action_db = Action.add_or_update(action_model)
         except NotUniqueError as e:
             # If an existing DB object conflicts with new object then raise error.
@@ -140,11 +137,8 @@ class ActionsController(RestController):
         action_db = ActionsController.__get_by_id(id)
 
         try:
-            runner_type = get_runnertype_by_name(action.runner_type)
             action_db = ActionAPI.to_model(action)
             action_db.id = id
-            runner = get_runner(runner_type)
-            runner.on_action_update(action_db)
             action_db = Action.add_or_update(action_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Unable to update action data=%s', action)

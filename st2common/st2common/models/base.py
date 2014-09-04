@@ -1,7 +1,6 @@
 import abc
 import functools
 import inspect
-import json
 import jsonschema
 import jsonschema.validators
 import pecan
@@ -95,10 +94,6 @@ def jsexpose(*argtypes, **opts):
                 body_cls = opts.get('body')
                 if body_cls:
                     obj = body_cls(**pecan.request.json)
-                    if ('st2-context' in pecan.request.headers and
-                            pecan.request.headers['st2-context']):
-                        context = pecan.request.headers['st2-context'].replace("'", "\"")
-                        obj.context = json.loads(context)
                     more.append(obj)
 
                 args = tuple(more) + tuple(args)

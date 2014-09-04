@@ -116,9 +116,6 @@ class ShellRunner(ActionRunner):
 
         return (command_exitcode, command_stdout, command_stderr)
 
-    def post_run(self):
-        LOG.debug('Entering ShellRunner.post_run() for liveaction_id="%s"', self.liveaction_id)
-
 
 def get_runner():
     return ShellRunner()

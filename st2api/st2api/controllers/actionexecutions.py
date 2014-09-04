@@ -4,6 +4,7 @@ import json
 import Queue
 
 import eventlet
+import pecan
 from pecan import abort
 from pecan.rest import RestController
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
@@ -150,6 +151,11 @@ class ActionExecutionsController(RestController):
         LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
 
         actionexecution.start_timestamp = datetime.datetime.now()
+
+        # Retrieve context from request header.
+        if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
+            context = pecan.request.headers['st2-context'].replace("'", "\"")
+            actionexecution.context = json.loads(context)
 
         # Fill-in runner_parameters and action_parameter fields if they are not
         # provided in the request.
