@@ -33,11 +33,11 @@ def __setup_config_opts():
     ]
     __register_opts(pecan_opts, group='api_pecan')
 
-    liveactions_opts = [
-        cfg.StrOpt('liveactions_base_url', default='http://localhost:9501/liveactions',
-               help='Base URL for live actions.')
+    messaging_opts = [
+        cfg.StrOpt('url', default='librabbitmq://guest:guest@localhost:5672//',
+                   help='URL of the messaging server.')
     ]
-    __register_opts(liveactions_opts, group='liveactions')
+    __register_opts(messaging_opts, group='messaging')
 
 
 def parse_args():

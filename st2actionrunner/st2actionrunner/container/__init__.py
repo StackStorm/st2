@@ -19,9 +19,7 @@ class RunnerContainer():
 
     def __init__(self):
         LOG.info('Action RunnerContainer instantiated.')
-
         self._pending = []
-        actionsensor.register_trigger_type()
 
     def _get_runner_for_runnertype(self, runnertype_db):
         """
