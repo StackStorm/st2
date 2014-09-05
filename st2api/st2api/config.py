@@ -61,7 +61,7 @@ CONF.register_opts(actions_opts, group='actions')
 
 rules_opts = [
     cfg.StrOpt('rules_path', default='/opt/stackstorm/rules',
-        help='path to load rule files')
+               help='path to load rule files')
 ]
 CONF.register_opts(rules_opts, group='rules')
 

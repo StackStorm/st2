@@ -1,5 +1,8 @@
 from oslo.config import cfg
 
+import st2common.config as common_config
+common_config.register_opts()
+
 CONF = cfg.CONF
 
 logging_opts = [
@@ -25,11 +28,11 @@ CONF.register_cli_opt(use_debugger)
 
 sensors_opts = [
     cfg.StrOpt('modules_path', default='/opt/stackstorm/sensors',
-        help='path to load sensor modules from'),
+               help='path to load sensor modules from'),
     cfg.StrOpt('scripts_path', default='/opt/stackstorm/sensors/scripts',
-        help='path to load sensor scripts from'),
+               help='path to load sensor scripts from'),
     cfg.StrOpt('system_path', default='st2reactor/st2reactor/contrib/sensors',
-        help='path to load system sensor modules from')
+               help='path to load system sensor modules from')
 ]
 CONF.register_opts(sensors_opts, group='sensors')
 
