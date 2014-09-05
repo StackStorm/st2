@@ -2,12 +2,12 @@
 
 angular.module('main')
   .service('sk0Api', function($resource, $rootScope) {
-    var HOST = '//localhost:3300';
+    var HOST = '//172.168.50.50:9101';
 
     var scope = $rootScope.$new();
 
     function fetchInventory(type) {
-      var Resource = $resource('http://localhost:3300/' + type)
+      var Resource = $resource(HOST + '/' + type)
         , r = scope.$new();
 
       r.index = {};

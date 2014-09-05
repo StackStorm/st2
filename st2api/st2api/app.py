@@ -1,11 +1,23 @@
 from oslo.config import cfg
 import pecan
+from pecan.hooks import PecanHook
 
 from st2common import log as logging
 from st2api.version import version_string
 
 
 LOG = logging.getLogger(__name__)
+
+
+class CorsHook(PecanHook):
+
+    def after(self, state):
+        # TODO: Figure out proper CORS rules
+        state.response.headers['Access-Control-Allow-Origin'] = '*'
+        state.response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        state.response.headers['Access-Control-Allow-Headers'] = 'origin, authorization, accept'
+        if not state.response.headers['Content-Length']:
+            state.response.headers['Content-Length'] = str(len(state.response.body))
 
 
 def __get_pecan_config():
@@ -37,6 +49,7 @@ def setup_app(config=None):
 
     app = pecan.make_app(app_conf.pop('root'),
                          logging=getattr(config, 'logging', {}),
+                         hooks=[CorsHook()],
                          **app_conf
                          )
 
