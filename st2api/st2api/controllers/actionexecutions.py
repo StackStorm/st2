@@ -45,7 +45,8 @@ class ActionExecutionsController(RestController):
         self._live_actions_monitor_thread = eventlet.greenthread.spawn(self._drain_live_actions)
         self._monitor_thread_empty_q_sleep_time = MONITOR_THREAD_EMPTY_Q_SLEEP_TIME
         self._monitor_thread_no_workers_sleep_time = MONITOR_THREAD_NO_WORKERS_SLEEP_TIME
-        self._publisher = transport.publishers.PoolPublisher(cfg.CONF.messaging.url)
+        self._publisher = transport.actionexecution.ActionExecutionPublisher(
+            cfg.CONF.messaging.url)
 
     def _issue_liveaction_post(self, actionexec_id):
         """
@@ -58,9 +59,7 @@ class ActionExecutionsController(RestController):
         request_error = False
         result = None
         try:
-            self._publisher.publish(json.dumps(payload),
-                                    exchange=transport.actionexecution.ACTIONEXECUTION_XCHG,
-                                    routing_key=transport.actionexecution.CREATE_RK)
+            self._publisher.publish_create(json.dumps(payload))
         except Exception:
             LOG.exception('Unable to publish to exchange.')
             request_error = True
