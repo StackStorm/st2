@@ -15,9 +15,9 @@ class SSHRunner(ActionRunner):
 
     def run(self, ssh_action):
         LOG.info('Executing action via SSHRunner :%s for user: %s.' %
-              (self.runner_id, ssh_action.get_user()))
+                 (self.runner_id, ssh_action.get_user()))
         LOG.info('Action info:: name: %s, Id: %s, command: %s, actual user: %s' % (ssh_action.name,
-              ssh_action.id, ssh_action.get_command(), ssh_action.get_user()))
+                 ssh_action.id, ssh_action.get_command(), ssh_action.get_user()))
 
         results = {}
         for host in ssh_action.get_hosts():
@@ -47,7 +47,7 @@ class SSHRunner(ActionRunner):
 
     def _get_ssh_client(self, host, user=None, pkey=None, password=None):
         if pkey is not None:
-            return SSHClient(host, user=user, pkey=pkey)
+            return SSHClient(host, user=user, key=pkey)
         return SSHClient(host, user=user, password=password)
 
 
