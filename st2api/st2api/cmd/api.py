@@ -63,6 +63,12 @@ def __setup():
         except Exception as e:
             LOG.warning('Failed to register actions: %s', e, exc_info=True)
 
+    # 6. register rules
+    try:
+        model.register_rules()
+    except Exception as e:
+        LOG.warning('Failed to register rules: %s', e, exc_info=True)
+
 
 def __run_server():
 
