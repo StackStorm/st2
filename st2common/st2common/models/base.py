@@ -6,10 +6,11 @@ import jsonschema.validators
 import pecan
 import pecan.jsonify
 import six
-import httplib
 from webob import exc
 
 from st2common import log as logging
+
+http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ def extend_with_default(validator_class):
         ):
             yield error
 
-        for property, subschema in properties.iteritems():
+        for property, subschema in six.iteritems(properties):
             if "default" in subschema:
                 instance.setdefault(property, subschema["default"])
 
@@ -47,13 +48,13 @@ class BaseAPI(object):
 
     def __repr__(self):
         name = type(self).__name__
-        attrs = ', '.join("'%s':%r" % item for item in vars(self).iteritems())
+        attrs = ', '.join("'%s':%r" % item for item in six.iteritems(vars(self)))
         # The format here is so that eval can be applied.
         return "%s(**{%s})" % (name, attrs)
 
     def __str__(self):
         name = type(self).__name__
-        attrs = ', '.join("%s=%r" % item for item in vars(self).iteritems())
+        attrs = ', '.join("%s=%r" % item for item in six.iteritems(vars(self)))
 
         return "%s[%s]" % (name, attrs)
 
@@ -100,9 +101,9 @@ def jsexpose(*argtypes, **opts):
 
                 status_code = opts.get('status_code')
 
-                noop_codes = [httplib.NOT_IMPLEMENTED,
-                              httplib.METHOD_NOT_ALLOWED,
-                              httplib.FORBIDDEN]
+                noop_codes = [http_client.NOT_IMPLEMENTED,
+                              http_client.METHOD_NOT_ALLOWED,
+                              http_client.FORBIDDEN]
 
                 if status_code and status_code in noop_codes:
                     pecan.response.status = status_code
@@ -115,11 +116,11 @@ def jsexpose(*argtypes, **opts):
                     return pecan.jsonify.encode(result)
                 except exc.HTTPException as e:
                     pecan.response.status = e.wsgi_response.status
-                    error = {'faultstring': e.message}
+                    error = {'faultstring': str(e)}
                     return pecan.jsonify.encode(error)
                 except Exception as e:
-                    pecan.response.status = httplib.INTERNAL_SERVER_ERROR
-                    error = {'faultstring': e.message}
+                    pecan.response.status = http_client.INTERNAL_SERVER_ERROR
+                    error = {'faultstring': str(e)}
                     return pecan.jsonify.encode(error)
 
             except Exception as e:

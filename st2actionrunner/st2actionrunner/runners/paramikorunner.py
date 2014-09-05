@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 
 class SSHRunner(ActionRunner):
     def __init__(self, id):
-        super().__init__()
+        super(SSHRunner, self).__init__()
         self.runner_id = id
 
     def run(self, ssh_action):

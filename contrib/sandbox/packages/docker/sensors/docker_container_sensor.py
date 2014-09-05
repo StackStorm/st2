@@ -11,6 +11,7 @@ import os
 import time
 
 import docker
+import six
 
 CONFIG_FILE = './docker_config.json'
 
@@ -48,12 +49,12 @@ class DockerSensor(object):
             containers = self._get_active_containers()
 
             # Deleted.
-            for id, running_container in self._running_containers.iteritems():
+            for id, running_container in six.iteritems(self._running_containers):
                 if id not in containers:
                     self._dispatch_trigger(running_container)
 
             # Added.
-            for id, container in containers.iteritems():
+            for id, container in six.iteritems(containers):
                 if id not in self._running_containers:
                     self._dispatch_trigger(container)
 

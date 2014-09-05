@@ -2,6 +2,7 @@ import json
 import logging
 
 from st2client import formatters
+import six
 
 
 LOG = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ class Json(formatters.Formatter):
             attr = (doc.keys()
                     if not attributes or 'all' in attributes
                     else attributes)
-            output = dict((k, v) for k, v in doc.iteritems()
+            output = dict((k, v) for k, v in six.iteritems(doc)
                           if k in attr)
         else:
             output = []
@@ -28,6 +29,6 @@ class Json(formatters.Formatter):
                 attr = (doc.keys()
                         if not attributes or 'all' in attributes
                         else attributes)
-                output.append(dict((k, v) for k, v in doc.iteritems()
+                output.append(dict((k, v) for k, v in six.iteritems(doc)
                                    if k in attr))
         return json.dumps(output, indent=4)

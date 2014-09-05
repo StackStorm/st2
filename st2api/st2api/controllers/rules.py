@@ -1,9 +1,8 @@
-import httplib
-
-import wsmeext.pecan as wsme_pecan
 from mongoengine import ValidationError, NotUniqueError
 from pecan import abort
 from pecan.rest import RestController
+import six
+import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -13,6 +12,8 @@ from st2common.persistence.reactor import Rule, RuleEnforcement
 from st2common.util import reference
 from st2api.service import triggers as TriggerService
 from wsme import types as wstypes
+
+http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ class RuleController(RestController):
         LOG.debug('GET all /rules/ client_result=%s', rule_apis)
         return rule_apis
 
-    @jsexpose(body=RuleAPI, status_code=httplib.CREATED)
+    @jsexpose(body=RuleAPI, status_code=http_client.CREATED)
     def post(self, rule):
         """
             Create a new rule.
@@ -70,16 +71,16 @@ class RuleController(RestController):
             rule_db = Rule.add_or_update(rule_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
-            abort(httplib.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
             return
         except ValueValidationException as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
-            abort(httplib.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
             return
         except NotUniqueError as e:
             LOG.warn('Rule creation of %s failed with uniqueness conflict. Exception %s',
                      rule, str(e))
-            abort(httplib.CONFLICT, str(e))
+            abort(http_client.CONFLICT, str(e))
             return
 
         LOG.audit('Rule created. Rule=%s', rule_db)
@@ -109,7 +110,7 @@ class RuleController(RestController):
 
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s', rule)
-            abort(httplib.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
             return
         LOG.audit('Rule updated. Rule=%s and original Rule=%s.', rule_db, old_rule_db)
         rule_api = RuleAPI.from_model(rule_db)
@@ -117,7 +118,7 @@ class RuleController(RestController):
 
         return rule_api
 
-    @jsexpose(str, status_code=httplib.NO_CONTENT)
+    @jsexpose(str, status_code=http_client.NO_CONTENT)
     def delete(self, rule_id):
         """
             Delete a rule.
@@ -133,7 +134,7 @@ class RuleController(RestController):
         except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s".',
                           rule_id)
-            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
         LOG.audit('Rule deleted. Rule=%s.', rule_db)
 
     @staticmethod
@@ -142,7 +143,7 @@ class RuleController(RestController):
             return Rule.get_by_id(rule_id)
         except (ValueError, ValidationError) as e:
             LOG.exception('Database lookup for id="%s" resulted in exception.', rule_id)
-            abort(httplib.NOT_FOUND, str(e))
+            abort(http_client.NOT_FOUND, str(e))
 
     @staticmethod
     def __get_by_name(rule_name):
@@ -172,7 +173,7 @@ class RuleEnforcementController(RestController):
             rule_enforcement_db = RuleEnforcement.get_by_id(id)
         except (ValueError, ValidationError) as e:
             LOG.exception('Database lookup for id="%s" resulted in exception.', id)
-            abort(httplib.NOT_FOUND, str(e))
+            abort(http_client.NOT_FOUND, str(e))
             return
 
         rule_enforcement_api = RuleEnforcementAPI.from_model(rule_enforcement_db)

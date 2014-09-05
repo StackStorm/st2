@@ -4,6 +4,7 @@ import copy
 import jinja2
 
 from st2common.persistence.datastore import KeyValuePair
+import six
 
 
 PAYLOAD_PREFIX = 'trigger'
@@ -20,7 +21,7 @@ class Jinja2BasedTransformer(object):
         context = copy.copy(self._payload_context)
         context = self._construct_system_context(mapping, context)
         resolved_mapping = {}
-        for mapping_k, mapping_v in mapping.iteritems():
+        for mapping_k, mapping_v in six.iteritems(mapping):
             template = jinja2.Template(mapping_v)
             resolved_mapping[mapping_k] = template.render(context)
         return resolved_mapping

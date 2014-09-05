@@ -1,5 +1,7 @@
-import httplib
+import six
 from tests import FunctionalTest
+
+http_client = six.moves.http_client
 
 TRIGGER_0 = {
     'name': 'st2.test.triggertype0',
@@ -28,7 +30,7 @@ class TestTriggerTypeController(FunctionalTest):
         post_resp = self.__do_post(TRIGGER_1)
         trigger_id_1 = self.__get_trigger_id(post_resp)
         resp = self.app.get('/triggertypes')
-        self.assertEqual(resp.status_int, httplib.OK)
+        self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 2, 'Get all failure.')
         self.__do_delete(trigger_id_0)
         self.__do_delete(trigger_id_1)
@@ -37,29 +39,29 @@ class TestTriggerTypeController(FunctionalTest):
         post_resp = self.__do_post(TRIGGER_1)
         trigger_id = self.__get_trigger_id(post_resp)
         get_resp = self.__do_get_one(trigger_id)
-        self.assertEquals(get_resp.status_int, httplib.OK)
+        self.assertEquals(get_resp.status_int, http_client.OK)
         self.assertEquals(self.__get_trigger_id(get_resp), trigger_id)
         self.__do_delete(trigger_id)
 
     def test_get_one_fail(self):
         resp = self.__do_get_one('1')
-        self.assertEqual(resp.status_int, httplib.NOT_FOUND)
+        self.assertEqual(resp.status_int, http_client.NOT_FOUND)
 
     def test_post(self):
         post_resp = self.__do_post(TRIGGER_1)
-        self.assertEquals(post_resp.status_int, httplib.CREATED)
+        self.assertEquals(post_resp.status_int, http_client.CREATED)
         self.__do_delete(self.__get_trigger_id(post_resp))
 
     def test_post_with_params(self):
         post_resp = self.__do_post(TRIGGER_2)
-        self.assertEquals(post_resp.status_int, httplib.CREATED)
+        self.assertEquals(post_resp.status_int, http_client.CREATED)
         self.__do_delete(self.__get_trigger_id(post_resp))
 
     def test_post_duplicate(self):
         post_resp = self.__do_post(TRIGGER_1)
-        self.assertEquals(post_resp.status_int, httplib.CREATED)
+        self.assertEquals(post_resp.status_int, http_client.CREATED)
         post_resp_2 = self.__do_post(TRIGGER_1)
-        self.assertEquals(post_resp_2.status_int, httplib.CONFLICT)
+        self.assertEquals(post_resp_2.status_int, http_client.CONFLICT)
         self.__do_delete(self.__get_trigger_id(post_resp))
 
     def test_put(self):
@@ -67,7 +69,7 @@ class TestTriggerTypeController(FunctionalTest):
         update_input = post_resp.json
         update_input['description'] = 'updated description.'
         put_resp = self.__do_put(self.__get_trigger_id(post_resp), update_input)
-        self.assertEquals(put_resp.status_int, httplib.OK)
+        self.assertEquals(put_resp.status_int, http_client.OK)
         self.__do_delete(self.__get_trigger_id(put_resp))
 
     def test_put_fail(self):
@@ -75,13 +77,13 @@ class TestTriggerTypeController(FunctionalTest):
         update_input = post_resp.json
         # If the id in the URL is incorrect the update will fail since id in the body is ignored.
         put_resp = self.__do_put(1, update_input)
-        self.assertEquals(put_resp.status_int, httplib.NOT_FOUND)
+        self.assertEquals(put_resp.status_int, http_client.NOT_FOUND)
         self.__do_delete(self.__get_trigger_id(post_resp))
 
     def test_delete(self):
         post_resp = self.__do_post(TRIGGER_1)
         del_resp = self.__do_delete(self.__get_trigger_id(post_resp))
-        self.assertEquals(del_resp.status_int, httplib.NO_CONTENT)
+        self.assertEquals(del_resp.status_int, http_client.NO_CONTENT)
 
     @staticmethod
     def __get_trigger_id(resp):

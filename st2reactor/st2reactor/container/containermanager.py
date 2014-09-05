@@ -8,6 +8,7 @@ from st2common.util import watch
 from st2reactor.container.base import SensorContainer
 from st2reactor.container.containerservice import ContainerService
 import st2reactor.container.utils as container_utils
+import six
 
 LOG = logging.getLogger('st2reactor.container.container_manager')
 
@@ -23,7 +24,7 @@ class SensorContainerManager(object):
         container_service = ContainerService()
         sensors_to_run = []
         trigger_sensors = {}
-        for filename, sensors in sensors_dict.iteritems():
+        for filename, sensors in six.iteritems(sensors_dict):
             for sensor_class in sensors:
                 try:
                     sensor = sensor_class(container_service)

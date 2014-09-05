@@ -3,6 +3,7 @@ import logging
 from prettytable import PrettyTable
 
 from st2client import formatters
+from six.moves import zip
 
 
 LOG = logging.getLogger(__name__)

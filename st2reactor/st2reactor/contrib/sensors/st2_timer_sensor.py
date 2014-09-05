@@ -215,7 +215,7 @@ class St2TimerSensor(object):
                                           replace_existing=replace)
             self._log.info('Job %s scheduled.', job.id)
             self._jobs[trigger['_id']] = job.id
-        except Exception, e:
+        except Exception as e:
             self._log.error('Exception scheduling timer: %s, %s',
                             trigger['parameters'], e, exc_info=True)
 

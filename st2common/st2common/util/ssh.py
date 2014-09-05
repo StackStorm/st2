@@ -77,7 +77,7 @@ class SSHClient(object):
             raise ConnectionErrorException("%s for host '%s:%s'" % (str(e.args[1]),
                                                                     self.host,
                                                                     self.port,))
-        except paramiko.AuthenticationException, e:
+        except paramiko.AuthenticationException as e:
             raise AuthenticationException(e)
 
     def _retry(self, retries):

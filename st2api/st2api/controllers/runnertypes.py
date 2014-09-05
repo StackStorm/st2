@@ -1,13 +1,14 @@
-import httplib
+from mongoengine import ValidationError
 from pecan import abort
 from pecan.rest import RestController
-from mongoengine import ValidationError
+import six
 
 from st2common import log as logging
 from st2common.models.base import jsexpose
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.action import RunnerType
 
+http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
@@ -23,9 +24,9 @@ class RunnerTypesController(RestController):
         try:
             return RunnerType.get_by_id(id)
         except (ValueError, ValidationError) as e:
-            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e.message)
+            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e)
             LOG.exception(msg)
-            abort(httplib.NOT_FOUND, msg)
+            abort(http_client.NOT_FOUND, msg)
 
     @staticmethod
     def __get_by_name(name):

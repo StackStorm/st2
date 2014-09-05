@@ -1,3 +1,4 @@
+from __future__ import print_function
 #!/usr/bin/python
 
 import sys
@@ -33,4 +34,4 @@ data = {
 
 r = requests.post(url,data=json.dumps([data]),headers=headers)
 
-print r
+print(r)

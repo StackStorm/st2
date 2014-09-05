@@ -1,6 +1,5 @@
 SHELL := /bin/bash
 TOX_DIR := .tox
-#VIRTUALENV_DIR := $(TOX_DIR)/py27
 VIRTUALENV_DIR ?= virtualenv
 WEB_DIR := web
 STORMBOT_DIR := stormbot
@@ -163,7 +162,7 @@ pytests: requirements .flake8 .pytests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component || exit 1; \
 	done
 
 .PHONY: bottests

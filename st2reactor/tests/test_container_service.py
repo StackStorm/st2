@@ -39,7 +39,7 @@ class ContainerServiceTest(EventletTestCase):
                                              dispatcher=dispatcher,
                                              monitor_thread_empty_q_sleep_time=0.2,
                                              monitor_thread_no_workers_sleep_time=0.1)
-        for i in xrange(5):
+        for i in range(5):
             container_service.dispatch(i, i)
         time.sleep(0.3)  # give time for eventlet threads to dispatch.
         self.assertEquals(dispatcher.called_dispatch, 5,

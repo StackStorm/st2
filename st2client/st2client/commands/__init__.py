@@ -1,3 +1,4 @@
+from __future__ import print_function
 import abc
 import six
 import logging
@@ -62,5 +63,5 @@ class Command(object):
 
     def print_output(self, subject, formatter, *args, **kwargs):
         output = self.format_output(subject, formatter, *args, **kwargs)
-        print output
-        print
+        print(output)
+        print()

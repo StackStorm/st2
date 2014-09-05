@@ -1,6 +1,7 @@
 """
 Command-line interface to Stanley
 """
+from __future__ import print_function
 
 import sys
 import argparse
@@ -114,7 +115,7 @@ class Shell(object):
 
             return 0
         except Exception as e:
-            print 'ERROR: %s\n' % e.message
+            print('ERROR: %s\n' % e)
             return 1
 
 
