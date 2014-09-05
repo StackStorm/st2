@@ -11,6 +11,7 @@ import os
 import sys
 
 import docker
+import six
 
 CONFIG_FILE = './docker_config.json'
 
@@ -47,11 +48,11 @@ class DockerWrapper(object):
                                     nocache=opts['nocache'], rm=opts['rm'],
                                     stream=True, timeout=opts['timeout'])
         try:
-            json_output = result.next()
+            json_output = six.advance_iterator(result)
             while json_output:
                 output = json.loads(json_output)
                 sys.stdout.write(output['stream'] + '\n')
-                json_output = result.next()
+                json_output = six.advance_iterator(result)
         except:
             pass
 

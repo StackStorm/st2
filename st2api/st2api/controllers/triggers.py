@@ -1,14 +1,18 @@
-import httplib
-import wsmeext.pecan as wsme_pecan
+
 from mongoengine import ValidationError, NotUniqueError
 from pecan import abort
 from pecan.rest import RestController
+import six
+from wsme import types as wstypes
+import wsmeext.pecan as wsme_pecan
+
 from st2common import log as logging
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.base import jsexpose
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance
 from st2api.service import triggers as TriggerService
-from wsme import types as wstypes
+
+http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
@@ -49,7 +53,7 @@ class TriggerTypeController(RestController):
         LOG.debug('GET all /triggertypes/ client_result=%s', triggertype_apis)
         return triggertype_apis
 
-    @jsexpose(body=TriggerTypeAPI, status_code=httplib.CREATED)
+    @jsexpose(body=TriggerTypeAPI, status_code=http_client.CREATED)
     def post(self, triggertype):
         """
             Create a new triggertype.
@@ -66,11 +70,11 @@ class TriggerTypeController(RestController):
             triggertype_db = TriggerType.add_or_update(triggertype_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for triggertype data=%s.', triggertype)
-            abort(httplib.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
         except NotUniqueError as e:
             LOG.warn('TriggerType creation of %s failed with uniqueness conflict. Exception : %s',
                      triggertype, str(e))
-            abort(httplib.CONFLICT, str(e))
+            abort(http_client.CONFLICT, str(e))
 
         LOG.audit('TriggerType created. TriggerType=%s', triggertype_db)
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
@@ -96,7 +100,7 @@ class TriggerTypeController(RestController):
             triggertype_db = TriggerType.add_or_update(triggertype_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for triggertype data=%s', triggertype)
-            abort(httplib.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
 
         LOG.audit('TriggerType updated. TriggerType=%s and original TriggerType=%s',
                   triggertype_db, old_triggertype_db)
@@ -105,7 +109,7 @@ class TriggerTypeController(RestController):
 
         return triggertype_api
 
-    @jsexpose(str, status_code=httplib.NO_CONTENT)
+    @jsexpose(str, status_code=http_client.NO_CONTENT)
     def delete(self, triggertype_id):
         """
             Delete a triggertype.
@@ -122,7 +126,7 @@ class TriggerTypeController(RestController):
         except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s". ',
                           triggertype_id)
-            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
         LOG.audit('TriggerType deleted. TriggerType=%s', triggertype_db)
 
     @staticmethod
@@ -131,7 +135,7 @@ class TriggerTypeController(RestController):
             return TriggerType.get_by_id(triggertype_id)
         except (ValueError, ValidationError):
             LOG.exception('Database lookup for id="%s" resulted in exception.', triggertype_id)
-            abort(httplib.NOT_FOUND)
+            abort(http_client.NOT_FOUND)
 
     @staticmethod
     def __get_by_name(triggertype_name):
@@ -177,7 +181,7 @@ class TriggerController(RestController):
         LOG.debug('GET all /triggers/ client_result=%s', trigger_apis)
         return trigger_apis
 
-    @jsexpose(body=TriggerAPI, status_code=httplib.CREATED)
+    @jsexpose(body=TriggerAPI, status_code=http_client.CREATED)
     def post(self, trigger):
         """
             Create a new trigger.
@@ -191,11 +195,11 @@ class TriggerController(RestController):
             trigger_db = TriggerService.create_trigger_db(trigger)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s.', trigger)
-            abort(httplib.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
         except NotUniqueError as e:
             LOG.warn('Trigger creation of %s failed with uniqueness conflict. Exception %s',
                      trigger, str(e))
-            abort(httplib.CONFLICT, str(e))
+            abort(http_client.CONFLICT, str(e))
 
         LOG.audit('Trigger created. Trigger=%s', trigger_db)
         trigger_api = TriggerAPI.from_model(trigger_db)
@@ -218,7 +222,7 @@ class TriggerController(RestController):
             trigger_db = Trigger.add_or_update(trigger_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s', trigger)
-            abort(httplib.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
 
         LOG.audit('Trigger updated. Trigger=%s and original Trigger=%s.', trigger_db)
         trigger_api = TriggerAPI.from_model(trigger_db)
@@ -226,7 +230,7 @@ class TriggerController(RestController):
 
         return trigger_api
 
-    @jsexpose(str, status_code=httplib.NO_CONTENT)
+    @jsexpose(str, status_code=http_client.NO_CONTENT)
     def delete(self, trigger_id):
         """
             Delete a trigger.
@@ -242,7 +246,7 @@ class TriggerController(RestController):
         except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s". ',
                           trigger_id)
-            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
         LOG.audit('Trigger deleted. Trigger=%s', trigger_db)
 
     @staticmethod
@@ -251,7 +255,7 @@ class TriggerController(RestController):
             return Trigger.get_by_id(trigger_id)
         except (ValueError, ValidationError):
             LOG.exception('Database lookup for id="%s" resulted in exception.', trigger_id)
-            abort(httplib.NOT_FOUND)
+            abort(http_client.NOT_FOUND)
 
     @staticmethod
     def __get_by_name(trigger_name):
@@ -282,7 +286,7 @@ class TriggerInstanceController(RestController):
             trigger_instance_db = TriggerInstance.get_by_id(id)
         except (ValueError, ValidationError):
             LOG.exception('Database lookup for id="%s" resulted in exception.', id)
-            abort(httplib.NOT_FOUND)
+            abort(http_client.NOT_FOUND)
 
         trigger_instance_api = TriggerInstanceAPI.from_model(trigger_instance_db)
         LOG.debug('GET /triggerinstances/ with id=%s, client_result=%s', id, trigger_instance_api)

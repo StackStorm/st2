@@ -1,4 +1,5 @@
 import copy
+from six.moves import filter
 try:
     import simplejson as json
 except ImportError:
@@ -155,14 +156,14 @@ class TestActionExecutionsController(FunctionalTest):
                             ACTION_EXECUTION_1['action']['name'])
         self.assertEqual(resp.status_int, 200)
         matching_execution = filter(lambda ae: ae['id'] == actionexecution_1_id, resp.json)
-        self.assertEquals(len(matching_execution), 1,
+        self.assertEquals(len(list(matching_execution)), 1,
                           '/actionexecutions did not return correct actionexecution.')
 
         resp = self.app.get('/actionexecutions?action_id=%s' %
                             self.action2['id'])
         self.assertEqual(resp.status_int, 200)
         matching_execution = filter(lambda ae: ae['id'] == actionexecution_2_id, resp.json)
-        self.assertEquals(len(matching_execution), 1,
+        self.assertEquals(len(list(matching_execution)), 1,
                           '/actionexecutions did not return correct actionexecution.')
 
     @mock.patch.object(

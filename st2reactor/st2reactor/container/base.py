@@ -2,6 +2,7 @@ import eventlet
 import sys
 
 from st2common import log as logging
+import six
 
 # Constants
 SUCCESS_EXIT_CODE = 0
@@ -91,7 +92,7 @@ class SensorContainer(object):
 
     def shutdown(self):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
-        for sensor, gt in self._threads.iteritems():
+        for sensor, gt in six.iteritems(self._threads):
             gt.kill()
             self._sensor_cleanup(sensor)
         LOG.info('All sensors are shut down.')

@@ -2,7 +2,7 @@ import datetime
 import jsonschema
 import mongoengine.connection
 from oslo.config import cfg
-from st2common import util
+from st2common.util import schema as util_schema
 from st2common.util import reference
 from st2tests import DbTestCase
 
@@ -305,9 +305,9 @@ class ActionModelTest(DbTestCase):
         retrieved = Action.get_by_id(saved.id)
 
         # validate generated schema
-        schema = util.schema.get_parameter_schema(retrieved)
+        schema = util_schema.get_parameter_schema(retrieved)
         self.assertDictEqual(schema, PARAM_SCHEMA)
-        validator = util.schema.get_validator()
+        validator = util_schema.get_validator()
         validator.check_schema(schema)
 
         # use schema to validate parameters

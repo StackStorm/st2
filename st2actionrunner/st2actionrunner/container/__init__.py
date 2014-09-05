@@ -9,6 +9,7 @@ from st2common.util.action_db import (update_actionexecution_status, get_actione
 
 from st2actionrunner.container import actionsensor
 from st2actionrunner.container.service import (RunnerContainerService)
+import six
 
 
 LOG = logging.getLogger(__name__)
@@ -73,7 +74,7 @@ class RunnerContainer():
 
         # Create runner parameter by merging default values with dynamic values
         runner_parameters = {k: v['default'] if 'default' in v else None
-                             for k, v in runnertype_db.runner_parameters.iteritems()}
+                             for k, v in six.iteritems(runnertype_db.runner_parameters)}
 
         # pick overrides from action_action_parameters & actionexec_runner_parameters
         for param in runner_parameters:
@@ -86,7 +87,7 @@ class RunnerContainer():
 
         # Create action parameters by merging default values with dynamic values
         action_parameters = {k: v['default'] if 'default' in v else None
-                             for k, v in action_db.parameters.iteritems()}
+                             for k, v in six.iteritems(action_db.parameters)}
 
         # pick overrides from actionexec_action_parameters
         for param in action_parameters:

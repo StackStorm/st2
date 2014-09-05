@@ -1,10 +1,12 @@
 from functools import wraps
-import httplib
 import os
+import six
 
 from flask import (jsonify, request, Flask)
 import flask_jsonschema
 from oslo.config import cfg
+
+http_client = six.moves.http_client
 
 HOST = cfg.CONF.st2_webhook_sensor.host
 PORT = cfg.CONF.st2_webhook_sensor.port
@@ -19,7 +21,7 @@ def validate_json(f):
             request.json
         except Exception:
             msg = 'Content-Type must be application/json.'
-            return jsonify({'error': msg}), httplib.BAD_REQUEST
+            return jsonify({'error': msg}), http_client.BAD_REQUEST
         return f(*args, **kw)
     return wrapper
 
@@ -36,10 +38,10 @@ class St2WebhookSensor(object):
     jsonschema = flask_jsonschema.JsonSchema(_app)
 
     @_app.errorhandler(flask_jsonschema.ValidationError)
-    def on_validation_error(e):
-        data = {'error': e.message}
+    def on_validation_error(self, e):
+        data = {'error': str(e)}
         js = jsonify(data)
-        return js, httplib.BAD_REQUEST
+        return js, http_client.BAD_REQUEST
 
     def __init__(self, container_service):
         self._container_service = container_service
@@ -80,16 +82,16 @@ class St2WebhookSensor(object):
         try:
             trigger, payload = self._to_trigger(body)
         except KeyError as e:
-            return jsonify({'invalid': e}), httplib.BAD_REQUEST
+            return jsonify({'invalid': e}), http_client.BAD_REQUEST
 
         try:
             self._container_service.dispatch(trigger, payload)
         except Exception as e:
             self._log.exception('Exception %s handling webhook', e)
-            status = httplib.INTERNAL_SERVER_ERROR
+            status = http_client.INTERNAL_SERVER_ERROR
             return jsonify({'error': str(e)}), status
 
-        return jsonify({}), httplib.ACCEPTED
+        return jsonify({}), http_client.ACCEPTED
 
     # Flask app specific stuff.
     def _setup_flask_app(self):

@@ -45,5 +45,5 @@ class ActionRunner(object):
                              self.container_service.get_result())
 
     def __str__(self):
-        attrs = ', '.join(['%s=%s' % (k, v) for k, v in self.__dict__.iteritems()])
+        attrs = ', '.join(['%s=%s' % (k, v) for k, v in six.iteritems(self.__dict__)])
         return '%s@%s(%s)' % (self.__class__.__name__, str(id(self)), attrs)

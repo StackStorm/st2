@@ -1,6 +1,6 @@
-import httplib
 from pecan import abort
 from pecan.rest import RestController
+import six
 import wsmeext.pecan as wsme_pecan
 from wsme import types as wstypes
 from mongoengine import ValidationError
@@ -9,6 +9,7 @@ from st2common import log as logging
 from st2common.models.api.datastore import KeyValuePairAPI
 from st2common.persistence.datastore import KeyValuePair
 
+http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class KeyValuePairController(RestController):
         try:
             kvp_api = KeyValuePairAPI.from_model(kvp_db)
         except (ValidationError, ValueError) as e:
-            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
         LOG.debug('GET /keys/ with id=%s, client_result=%s', id, kvp_api)
         return kvp_api
 
@@ -56,7 +57,7 @@ class KeyValuePairController(RestController):
         return kvps
 
     @wsme_pecan.wsexpose(KeyValuePairAPI, body=KeyValuePairAPI,
-                         status_code=httplib.CREATED)
+                         status_code=http_client.CREATED)
     def post(self, kvp):
         """
             Create a new key value pair.
@@ -72,7 +73,7 @@ class KeyValuePairController(RestController):
                       'formulated KeyValuePairDB=%s', kvp_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for key value data=%s.', kvp)
-            abort(httplib.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
 
         kvp_db = KeyValuePair.add_or_update(kvp_db)
         LOG.audit('KeyValuePair created. KeyValuePair=%s', kvp_db)
@@ -99,7 +100,7 @@ class KeyValuePairController(RestController):
             kvp_db = KeyValuePair.add_or_update(kvp_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for key value data=%s', kvp)
-            abort(httplib.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
         LOG.audit('KeyValuePair updated. KeyValuePair=%s and original KeyValuePair=%s',
                   kvp_db, old_kvp_db)
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
@@ -107,7 +108,7 @@ class KeyValuePairController(RestController):
 
         return kvp_api
 
-    @wsme_pecan.wsexpose(None, wstypes.text, status_code=httplib.NO_CONTENT)
+    @wsme_pecan.wsexpose(None, wstypes.text, status_code=http_client.NO_CONTENT)
     def delete(self, id):
         """
             Delete the key value pair.
@@ -124,7 +125,7 @@ class KeyValuePairController(RestController):
         except Exception as e:
             LOG.exception('Database delete encountered exception during '
                           'delete of id="%s". ', id)
-            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
         LOG.audit('KeyValuePair deleted. KeyValuePair=%s', kvp_db)
 
     @staticmethod
@@ -134,7 +135,7 @@ class KeyValuePairController(RestController):
         except Exception:
             LOG.exception('Database lookup for id="%s" '
                           'resulted in exception.', id)
-            abort(httplib.NOT_FOUND)
+            abort(http_client.NOT_FOUND)
 
     @staticmethod
     def __get_by_name(name):

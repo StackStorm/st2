@@ -1,17 +1,13 @@
 import datetime
-import httplib
-import json
-import Queue
-
 import eventlet
+import json
+import jsonschema
 import pecan
 from pecan import abort
 from pecan.rest import RestController
-# TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
-#       that bubble up to this layer should be core Python exceptions or
-#       StackStorm defined exceptions.
+import six
+import Queue
 
-import jsonschema
 from oslo.config import cfg
 
 from st2common import log as logging
@@ -21,10 +17,12 @@ from st2common.models.api.action import (ActionExecutionAPI,
                                          ACTIONEXEC_STATUS_INIT,
                                          ACTIONEXEC_STATUS_SCHEDULED,
                                          ACTIONEXEC_STATUS_ERROR)
-from st2common import util
+from st2common.util import schema as util_schema
 from st2common import transport
 from st2common.util.action_db import (get_action_by_dict, update_actionexecution_status,
                                       get_runnertype_by_name)
+
+http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
@@ -77,9 +75,9 @@ class ActionExecutionsController(RestController):
         try:
             return ActionExecution.get_by_id(id)
         except Exception as e:
-            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e.message)
+            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e)
             LOG.exception(msg)
-            abort(httplib.NOT_FOUND, msg)
+            abort(http_client.NOT_FOUND, msg)
 
     @staticmethod
     def _get_action_executions(action_id, action_name, limit=None):
@@ -139,7 +137,7 @@ class ActionExecutionsController(RestController):
         LOG.debug('GET all /actionexecutions/ client_result=%s', actionexec_apis)
         return actionexec_apis
 
-    @jsexpose(body=ActionExecutionAPI, status_code=httplib.CREATED)
+    @jsexpose(body=ActionExecutionAPI, status_code=http_client.CREATED)
     def post(self, actionexecution):
         """
             Create a new actionexecution.
@@ -170,25 +168,25 @@ class ActionExecutionsController(RestController):
         if not action_db:
             LOG.error('POST /actionexecutions/ Action for "%s" cannot be found.',
                       actionexecution.action)
-            abort(httplib.NOT_FOUND, 'Unable to find action.')
+            abort(http_client.NOT_FOUND, 'Unable to find action.')
         actionexecution.action = action_dict
 
         # If the Action is disabled, abort the POST call.
         if not action_db.enabled:
             LOG.error('POST /actionexecutions/ Unable to create Action Execution for a disabled '
                       'Action. Action is: %s', action_db)
-            abort(httplib.FORBIDDEN, 'Action is disabled.')
+            abort(http_client.FORBIDDEN, 'Action is disabled.')
 
         # Assign default parameters
         runnertype = get_runnertype_by_name(action_db.runner_type['name'])
         LOG.debug('POST /actionexecutions/ Runner=%s', runnertype)
-        for key, metadata in runnertype.runner_parameters.iteritems():
+        for key, metadata in six.iteritems(runnertype.runner_parameters):
             if key not in actionexecution.parameters and 'default' in metadata:
                 if metadata.get('default') is not None:
                     actionexecution.parameters[key] = metadata['default']
 
         # Validate action parameters
-        schema = util.schema.get_parameter_schema(action_db)
+        schema = util_schema.get_parameter_schema(action_db)
         try:
             LOG.debug('POST /actionexecutions/ Validation for parameters=%s & schema=%s',
                       actionexecution.parameters, schema)
@@ -196,7 +194,7 @@ class ActionExecutionsController(RestController):
             LOG.debug('POST /actionexecutions/ Parameter validation passed.')
         except jsonschema.ValidationError as e:
             LOG.error('POST /actionexecutions/ Parameter validation failed. %s', actionexecution)
-            abort(httplib.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
 
         # Set initial value for ActionExecution status.
         # Not using update_actionexecution_status to allow other initialization to
@@ -219,7 +217,7 @@ class ActionExecutionsController(RestController):
             error = 'Failed to kickoff live action for id: %s, exception: %s' % (actionexec_id,
                                                                                  str(e))
             LOG.audit('ActionExecution failed. ActionExecution=%s error=%s', actionexec_db, error)
-            abort(httplib.INTERNAL_SERVER_ERROR, error)
+            abort(http_client.INTERNAL_SERVER_ERROR, error)
         else:
             actionexec_status = ACTIONEXEC_STATUS_SCHEDULED
             actionexec_db = update_actionexecution_status(actionexec_status,

@@ -1,7 +1,6 @@
 SHELL := /bin/bash
 TOX_DIR := .tox
-#VIRTUALENV_DIR := $(TOX_DIR)/py27
-VIRTUALENV_DIR := virtualenv
+VIRTUALENV_DIR ?= virtualenv
 WEB_DIR := web
 STORMBOT_DIR := stormbot
 
@@ -69,7 +68,7 @@ pylint: requirements .pylint
 		echo "==========================================================="; \
 		echo "Running pylint on" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; pylint --rcfile=./.pylintrc $$component/$$component; \
+		. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc $$component/$$component; \
 	done
 
 .PHONY: flake8

@@ -8,6 +8,7 @@ from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerTy
 from st2common.persistence.reactor import Trigger
 from st2common.util import reference
 import st2common.validators.api.reactor as validator
+import six
 
 
 class TriggerTypeAPI(BaseAPI):
@@ -199,7 +200,7 @@ class RuleAPI(BaseAPI):
                                                                                   model.trigger)))
         del rule['trigger']['id']
         del rule['trigger']['name']
-        for oldkey, value in rule['criteria'].iteritems():
+        for oldkey, value in six.iteritems(rule['criteria']):
             newkey = oldkey.replace(u'\u2024', '.')
             if oldkey != newkey:
                 rule['criteria'][newkey] = value
@@ -211,7 +212,7 @@ class RuleAPI(BaseAPI):
         model = StormBaseAPI.to_model(RuleDB, rule)
         model.trigger = TriggerAPI(**rule.trigger)
         model.criteria = dict(rule.criteria)
-        for oldkey, value in model.criteria.iteritems():
+        for oldkey, value in six.iteritems(model.criteria):
             newkey = oldkey.replace('.', u'\u2024')
             if oldkey != newkey:
                 model.criteria[newkey] = value

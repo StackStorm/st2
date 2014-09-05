@@ -1,13 +1,12 @@
 import abc
 import logging
+import six
 
 
 LOG = logging.getLogger(__name__)
 
 
-class Formatter(object):
-
-    __metaclass__ = abc.ABCMeta
+class Formatter(six.with_metaclass(abc.ABCMeta, object)):
 
     @classmethod
     @abc.abstractmethod

@@ -1,6 +1,6 @@
-import httplib
 from pecan import abort
 from pecan.rest import RestController
+import six
 
 from mongoengine import ValidationError, NotUniqueError
 
@@ -15,6 +15,7 @@ from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.util.action_db import get_runnertype_by_name
 
+http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
@@ -30,9 +31,9 @@ class ActionsController(RestController):
         try:
             return Action.get_by_id(id)
         except Exception as e:
-            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e.message)
+            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e)
             LOG.exception(msg)
-            abort(httplib.NOT_FOUND, msg)
+            abort(http_client.NOT_FOUND, msg)
 
     @staticmethod
     def __get_by_name(name):
@@ -80,9 +81,9 @@ class ActionsController(RestController):
             msg = 'Parameters %s conflict with those inherited from runner_type : %s' % \
                   (str(conflicts), action.runner_type)
             LOG.error(msg)
-            abort(httplib.CONFLICT, msg)
+            abort(http_client.CONFLICT, msg)
 
-    @jsexpose(body=ActionAPI, status_code=httplib.CREATED)
+    @jsexpose(body=ActionAPI, status_code=http_client.CREATED)
     def post(self, action):
         """
             Create a new action.
@@ -106,7 +107,7 @@ class ActionsController(RestController):
         except StackStormDBObjectNotFoundError as e:
             msg = 'RunnerType %s is not found.' % action.runner_type
             LOG.exception('%s. Exception: %s', msg, e)
-            abort(httplib.NOT_FOUND, msg)
+            abort(http_client.NOT_FOUND, msg)
 
         # ActionsController._validate_action_parameters(action, runnertype_db)
         action_model = ActionAPI.to_model(action)
@@ -118,11 +119,11 @@ class ActionsController(RestController):
             # If an existing DB object conflicts with new object then raise error.
             LOG.warn('/actions/ POST unable to save ActionDB object "%s" due to uniqueness '
                      'conflict. %s', action_model, str(e))
-            abort(httplib.CONFLICT, str(e))
+            abort(http_client.CONFLICT, str(e))
         except Exception as e:
             LOG.exception('/actions/ POST unable to save ActionDB object "%s". %s',
                           action_model, e)
-            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
 
@@ -142,7 +143,7 @@ class ActionsController(RestController):
             action_db = Action.add_or_update(action_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Unable to update action data=%s', action)
-            abort(httplib.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
             return
 
         action_api = ActionAPI.from_model(action_db)
@@ -150,7 +151,7 @@ class ActionsController(RestController):
 
         return action_api
 
-    @jsexpose(str, status_code=httplib.NO_CONTENT)
+    @jsexpose(str, status_code=http_client.NO_CONTENT)
     def delete(self, id):
         """
             Delete an action.
@@ -170,7 +171,7 @@ class ActionsController(RestController):
         except Exception as e:
             LOG.error('Database delete encountered exception during delete of id="%s". '
                       'Exception was %s', id, e)
-            abort(httplib.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
         LOG.audit('Action deleted. Action=%s', action_db)
         LOG.info('DELETE /actions/ with id="%s" completed', id)

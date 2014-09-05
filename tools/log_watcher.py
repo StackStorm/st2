@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+from __future__ import print_function
 import collections
 import fnmatch
 import os
@@ -6,6 +7,7 @@ import re
 import sys
 
 from tabulate import tabulate
+import six
 
 LOG_ALERT_PERCENT = 5  # default.
 
@@ -94,7 +96,7 @@ def _alert(fil, lines, logs, logs_level):
 
 
 def _match(line, match_strings):
-    for level, match_strings in match_strings.iteritems():
+    for level, match_strings in six.iteritems(match_strings):
         for match_string in match_strings:
             if line.startswith(match_string):
                 # print('Line: %s, match: %s' % (line, match_string))
@@ -122,10 +124,10 @@ def _detect_log_lines(fil, matchers):
 
 def _post_process(file_dir):
     alerts = []
-    for fil, lines in FILE_LINE_COUNT.iteritems():
+    for fil, lines in six.iteritems(FILE_LINE_COUNT):
         log_lines_count_level = FILE_LOG_COUNT[fil]
         total_log_count = 0
-        for level, count in log_lines_count_level.iteritems():
+        for level, count in six.iteritems(log_lines_count_level):
             total_log_count += count
         if total_log_count > 0:
             if float(total_log_count) / lines * 100 > LOG_ALERT_PERCENT:
@@ -140,8 +142,8 @@ def _post_process(file_dir):
                                log_lines_count_level['debug']])
     # sort by percent
     alerts.sort(key=lambda alert: alert[3], reverse=True)
-    print tabulate(alerts, headers=['File', 'Lines', 'Logs', 'Percent', 'adt', 'exc', 'err', 'wrn',
-                                    'inf', 'dbg'])
+    print(tabulate(alerts, headers=['File', 'Lines', 'Logs', 'Percent', 'adt', 'exc', 'err', 'wrn',
+                                    'inf', 'dbg']))
 
 
 def main(args):

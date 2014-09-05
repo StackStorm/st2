@@ -2,6 +2,7 @@ import eventlet
 import oslo.config.cfg
 import pymongo
 import pymongo.errors
+import six
 
 from st2common import log as logging
 
@@ -89,7 +90,7 @@ class OplogWatcher(object):
     def watch(self, func, model, operation=(INSERT, UPDATE, DELETE)):
         ns = self.__format_ns(model._get_db().name, model._get_collection_name())
 
-        if isinstance(operation, basestring):
+        if isinstance(operation, six.string_types):
             operation = (operation,)
 
         for op in operation:
