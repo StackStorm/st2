@@ -102,7 +102,7 @@ class ResourceManager(object):
         if response.status_code == 404:
             return None
         if response.status_code != 200:
-            self.handle_eror(response)
+            self.handle_error(response)
         return self.resource.deserialize(response.json())
 
     def query(self, *args, **kwargs):

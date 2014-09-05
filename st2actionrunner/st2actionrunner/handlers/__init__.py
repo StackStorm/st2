@@ -13,7 +13,7 @@ def get_handler(name):
         module = importlib.import_module(HANDLERS[name], package=None)
         return module.get_handler()
     except Exception as e:
-        LOG.exception('Failed to import module %s for %s. %s', (HANDLERS[name], name, str(e)))
+        LOG.exception('Failed to import module %s for %s. %s', HANDLERS[name], name, str(e))
 
 
 @six.add_metaclass(abc.ABCMeta)
