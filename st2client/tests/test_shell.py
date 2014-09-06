@@ -34,46 +34,32 @@ class TestShell(unittest2.TestCase):
 
     def test_endpoints_default(self):
         base_url = 'http://localhost'
-        action_url = 'http://localhost:9101'
-        reactor_url = 'http://localhost:9102'
-        datastore_url = 'http://localhost:9103'
+        api_url = 'http://localhost:9101'
         args = ['trigger', 'list']
         parsed_args = self.shell.parser.parse_args(args)
         client = self.shell.get_client(parsed_args)
         self.assertEqual(client.endpoints['base'], base_url)
-        self.assertEqual(client.endpoints['action'], action_url)
-        self.assertEqual(client.endpoints['reactor'], reactor_url)
-        self.assertEqual(client.endpoints['datastore'], datastore_url)
+        self.assertEqual(client.endpoints['api'], api_url)
 
     def test_endpoints_base_url(self):
         base_url = 'http://www.st2.com'
-        action_url = 'http://www.st2.com:9101'
-        reactor_url = 'http://www.st2.com:9102'
-        datastore_url = 'http://www.st2.com:9103'
+        api_url = 'http://www.st2.com:9101'
         args = ['--url', base_url, 'trigger', 'list']
         parsed_args = self.shell.parser.parse_args(args)
         client = self.shell.get_client(parsed_args)
         self.assertEqual(client.endpoints['base'], base_url)
-        self.assertEqual(client.endpoints['action'], action_url)
-        self.assertEqual(client.endpoints['reactor'], reactor_url)
-        self.assertEqual(client.endpoints['datastore'], datastore_url)
+        self.assertEqual(client.endpoints['api'], api_url)
 
     def test_endpoints_override(self):
         base_url = 'http://www.st2.com'
-        action_url = 'http://www.stackstorm1.com:9101'
-        reactor_url = 'http://www.stackstorm2.com:9102'
-        datastore_url = 'http://www.stackstorm3.com:9103'
+        api_url = 'http://www.stackstorm1.com:9101'
         args = ['--url', base_url,
-                '--action-url', action_url,
-                '--reactor-url', reactor_url,
-                '--datastore-url', datastore_url,
+                '--api-url', api_url,
                 'trigger', 'list']
         parsed_args = self.shell.parser.parse_args(args)
         client = self.shell.get_client(parsed_args)
         self.assertEqual(client.endpoints['base'], base_url)
-        self.assertEqual(client.endpoints['action'], action_url)
-        self.assertEqual(client.endpoints['reactor'], reactor_url)
-        self.assertEqual(client.endpoints['datastore'], datastore_url)
+        self.assertEqual(client.endpoints['api'], api_url)
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',

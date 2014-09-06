@@ -2,7 +2,7 @@ import eventlet
 import logging
 import Queue
 
-from triggerdispatcher import TriggerDispatcher
+from .triggerdispatcher import TriggerDispatcher
 
 
 class ContainerService(object):

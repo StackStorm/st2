@@ -5,6 +5,7 @@ import logging
 from st2client.models import datastore
 from st2client.commands import resource
 from st2client.formatters import table
+import six
 
 
 LOG = logging.getLogger(__name__)
@@ -106,7 +107,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
         with open(args.file, 'r') as f:
             instances = []
             kvps = json.loads(f.read())
-            for k, v in kvps.iteritems():
+            for k, v in six.iteritems(kvps):
                 try:
                     instance = self.get_resource(k)
                 except resource.ResourceNotFoundError:

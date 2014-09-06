@@ -1,6 +1,6 @@
+SHELL := /bin/bash
 TOX_DIR := .tox
-#VIRTUALENV_DIR := $(TOX_DIR)/py27
-VIRTUALENV_DIR := virtualenv
+VIRTUALENV_DIR ?= virtualenv
 WEB_DIR := web
 STORMBOT_DIR := stormbot
 
@@ -40,14 +40,14 @@ play:
 
 
 .PHONY: check
-check: flake8 checklogs
+check: requirements flake8 checklogs
 
 .PHONY: checklogs
 checklogs:
 	@echo
 	@echo "==================LOG WATCHER===================="
 	@echo
-	./log_watcher.py 10
+	. $(VIRTUALENV_DIR)/bin/activate; ./tools/log_watcher.py 10
 
 .PHONY: docs
 docs:
@@ -56,12 +56,23 @@ docs:
 	@echo
 	doxygen $(DOXYGEN_CONFIG)
 
+.PHONY: pylint
+pylint: requirements .pylint
+
+.PHONY: .pylint
+.pylint:
+	@echo
+	@echo "================== pylint ===================="
+	@echo
+	@for component in $(COMPONENTS); do\
+		echo "==========================================================="; \
+		echo "Running pylint on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc $$component/$$component; \
+	done
+
 .PHONY: flake8
-flake8: requirements
-	@echo
-	@echo "====================flake===================="
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS)
+flake8: requirements .flake8
 
 .PHONY: .flake8
 .flake8:
@@ -179,3 +190,13 @@ rpms:
 	rm -Rf ~/rpmbuild
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make rpm; popd;)
 	pushd st2client && make rpm && popd
+
+.PHONY: debs
+debs:
+	@echo
+	@echo "====================debs===================="
+	@echo
+	rm -Rf ~/debbuild
+	$(foreach COM,$(COMPONENTS), pushd $(COM); make deb; popd;)
+	pushd st2client && make deb && popd
+

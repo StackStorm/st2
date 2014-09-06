@@ -1,6 +1,7 @@
-flake8
 ipython
 mock>=1.0
 nose
-pep8
 unittest2
+flake8
+pylint
+tabulate

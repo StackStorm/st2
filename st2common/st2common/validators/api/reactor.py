@@ -1,5 +1,6 @@
 from st2common.exceptions.apivalidation import ValueValidationException
 import st2common.operators as criteria_operators
+import six
 
 allowed_operators = criteria_operators.get_allowed_operators()
 
@@ -8,7 +9,7 @@ def validate_criteria(criteria):
     if not isinstance(criteria, dict):
         raise ValueValidationException('Criteria should be a dict.')
 
-    for key, value in criteria.iteritems():
+    for key, value in six.iteritems(criteria):
         operator = value.get('type', None)
         if operator is None:
             raise ValueValidationException('Operator not specified for field: ' + key)

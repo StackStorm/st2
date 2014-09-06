@@ -1,6 +1,7 @@
 """
 Command-line interface to Stanley
 """
+from __future__ import print_function
 
 import sys
 import argparse
@@ -40,20 +41,11 @@ class Shell(object):
         )
 
         self.parser.add_argument(
-            '--action-url',
+            '--api-url',
             action='store',
-            dest='action_url',
+            dest='api_url',
             default=None,
-            help='URL for the Action API server. Get ST2_ACTION_URL'
-                 'from the environment variables by default.'
-        )
-
-        self.parser.add_argument(
-            '--reactor-url',
-            action='store',
-            dest='reactor_url',
-            default=None,
-            help='URL for the Reactor API server. Get ST2_REACTOR_URL'
+            help='URL for the API server. Get ST2_API_URL'
                  'from the environment variables by default.'
         )
 
@@ -104,10 +96,8 @@ class Shell(object):
         endpoints = dict()
         if args.url:
             endpoints['base_url'] = args.url
-        if args.action_url:
-            endpoints['action_url'] = args.action_url
-        if args.reactor_url:
-            endpoints['reactor_url'] = args.reactor_url
+        if args.api_url:
+            endpoints['api_url'] = args.api_url
         if args.datastore_url:
             endpoints['datastore_url'] = args.datastore_url
         return Client(**endpoints)
@@ -125,7 +115,7 @@ class Shell(object):
 
             return 0
         except Exception as e:
-            print 'ERROR: %s\n' % e.message
+            print('ERROR: %s\n' % e)
             return 1
 
 

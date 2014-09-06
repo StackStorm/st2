@@ -1,10 +1,11 @@
 from functools import wraps
-import httplib
+import six
 from urlparse import urljoin
 from oslo.config import cfg
 
 from flask import (jsonify, request, Flask)
 
+http_client = six.moves.http_client
 
 HOST = cfg.CONF.generic_webhook_sensor.host
 PORT = cfg.CONF.generic_webhook_sensor.port
@@ -32,7 +33,7 @@ def validate_json(f):
             request.json
         except Exception:
             msg = 'Content-Type must be application/json.'
-            return jsonify({'error': msg}), httplib.BAD_REQUEST
+            return jsonify({'error': msg}), http_client.BAD_REQUEST
         return f(*args, **kw)
     return wrapper
 
@@ -56,13 +57,13 @@ class St2GenericWebhooksSensor(object):
             except KeyError:
                 self._log.info('Got request for a hook that have not been registered yet: %s',
                                url)
-                return '', httplib.NOT_FOUND
+                return '', http_client.NOT_FOUND
 
             try:
                 self._container_service.dispatch(trigger, webhook_body)
             except Exception as e:
                 self._log.exception('Exception %s handling webhook', e)
-                return jsonify({'error': str(e)}), httplib.INTERNAL_SERVER_ERROR
+                return jsonify({'error': str(e)}), http_client.INTERNAL_SERVER_ERROR
 
             # From rfc2616 sec 10.2.3 202 Accepted
             # "The entity returned with this response SHOULD include an indication of the request's
@@ -70,7 +71,7 @@ class St2GenericWebhooksSensor(object):
             # user can expect the request to be fulfilled."
             # We should either pick another status code or, better, find a way to provide a
             # reference for the actionexecution that have been created during that call.
-            return jsonify({}), httplib.ACCEPTED
+            return jsonify({}), http_client.ACCEPTED
 
     def start(self):
         self._app.run(port=self._port, host=self._host)

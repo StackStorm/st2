@@ -1,8 +1,8 @@
 <div ng-class="{'sk0-rule--expanded': open}">
   <div class="sk0-rule__title" ng-click="open = !open">
     <span class="sk0-rule__title-name">{{ rule.name }}</span>
-    <span class="sk0-rule__trigger">{{ (rule.trigger_type.name | toEntity:'triggers').title }}</span> →
-    <span class="sk0-rule__action">{{ (rule.action.type | toEntity:'actions').title }}</span>
+    <span class="sk0-rule__trigger">{{ rule.trigger.type }}</span> →
+    <span class="sk0-rule__action">{{ rule.action.name }}</span>
   </div>
   <p class="sk0-rule__info">{{ rule.description }}</p>
   <div class="sk0-rule__buttons">

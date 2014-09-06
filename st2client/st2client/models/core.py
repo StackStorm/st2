@@ -2,6 +2,7 @@ import json
 import logging
 
 from st2client.utils import httpclient
+import six
 
 
 LOG = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ class Resource(object):
     _plural_display_name = None
 
     def __init__(self, *args, **kwargs):
-        for k, v in kwargs.iteritems():
+        for k, v in six.iteritems(kwargs):
             setattr(self, k, v)
 
     @classmethod
@@ -50,7 +51,7 @@ class Resource(object):
 
     def serialize(self):
         return dict((k, v)
-                    for k, v in self.__dict__.iteritems()
+                    for k, v in six.iteritems(self.__dict__)
                     if not k.startswith('_'))
 
     @classmethod
@@ -101,7 +102,7 @@ class ResourceManager(object):
         if response.status_code == 404:
             return None
         if response.status_code != 200:
-            self.handle_eror(response)
+            self.handle_error(response)
         return self.resource.deserialize(response.json())
 
     def query(self, *args, **kwargs):
@@ -110,7 +111,7 @@ class ResourceManager(object):
         if 'limit' in kwargs and kwargs.get('limit') <= 0:
             kwargs.pop('limit')
         url = '/%s/?' % self.resource.get_plural_name().lower()
-        for k, v in kwargs.iteritems():
+        for k, v in six.iteritems(kwargs):
             url += '%s%s=%s' % (('&' if url[-1] != '?' else ''), k, v)
         response = self.client.get(url)
         if response.status_code == 404:

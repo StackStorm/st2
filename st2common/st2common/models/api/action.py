@@ -2,7 +2,7 @@ import datetime
 
 import jsonschema
 
-from st2common import util
+from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.base import BaseAPI
 from st2common.models.api.stormbase import (StormFoundationAPI, StormBaseAPI)
@@ -55,7 +55,7 @@ class RunnerTypeAPI(BaseAPI):
                 "description": "Input parameters for the action runner.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util.schema.get_draft_schema()
+                    "^\w+$": util_schema.get_draft_schema()
                 }
             },
             "required_parameters": {
@@ -134,7 +134,7 @@ class ActionAPI(BaseAPI):
                 "description": "Input parameters for the action.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util.schema.get_draft_schema()
+                    "^\w+$": util_schema.get_draft_schema()
                 }
             },
             "required_parameters": {
@@ -246,7 +246,13 @@ class ActionExecutionAPI(BaseAPI):
                 }
             },
             "result": {
-                "type": "string"
+                "type": ["boolean", "integer", "null", "number", "object", "string"]
+            },
+            "context": {
+                "type": "object"
+            },
+            "callback": {
+                "type": "object"
             }
         },
         "required": ["action"],
@@ -274,8 +280,10 @@ class ActionExecutionAPI(BaseAPI):
     def to_model(cls, execution):
         model = StormFoundationAPI.to_model(ActionExecutionDB, execution)
         model.status = str(execution.status)
-        model.start_timestamp = execution.start_timestamp
+        model.start_timestamp = getattr(execution, 'start_timestamp')
         model.action = execution.action
-        model.parameters = dict(execution.parameters)
-        setattr(model, 'result', getattr(execution, 'result', None))
+        model.parameters = getattr(execution, 'parameters', dict())
+        model.context = getattr(execution, 'context', dict())
+        model.callback = getattr(execution, 'callback', dict())
+        model.result = getattr(execution, 'result', None)
         return model

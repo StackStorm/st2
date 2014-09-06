@@ -216,7 +216,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         if output.failed:
             LOG.error('Failed copying file %s to remote host.', self.script_local_path_abs)
             result['error'] = 'Failed copying file %s to %s on remote box' % (
-                self.script_local_path_abs, self.remote_path)
+                self.script_local_path_abs, self.remote_dir)
         return result
 
     def _rm(self):

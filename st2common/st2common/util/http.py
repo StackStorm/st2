@@ -1,7 +1,9 @@
-import httplib
+import six
 
-HTTP_SUCCESS = [httplib.OK, httplib.CREATED, httplib.ACCEPTED,
-                httplib.NON_AUTHORITATIVE_INFORMATION, httplib.NO_CONTENT,
-                httplib.RESET_CONTENT, httplib.PARTIAL_CONTENT,
-                httplib.MULTI_STATUS, httplib.IM_USED,
+http_client = six.moves.http_client
+
+HTTP_SUCCESS = [http_client.OK, http_client.CREATED, http_client.ACCEPTED,
+                http_client.NON_AUTHORITATIVE_INFORMATION, http_client.NO_CONTENT,
+                http_client.RESET_CONTENT, http_client.PARTIAL_CONTENT,
+                http_client.MULTI_STATUS, http_client.IM_USED,
                 ]

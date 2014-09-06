@@ -23,6 +23,10 @@ class LiveActionAPI(StormFoundationAPI):
     """
     actionexecution_id = wstypes.text
 
+    def __init__(self, **kw):
+        for key, value in kw.items():
+            setattr(self, key, value)
+
     @classmethod
     def from_model(kls, model):
         live_action = StormFoundationAPI.from_model(kls, model)

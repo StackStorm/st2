@@ -28,8 +28,10 @@ if [[ ${1} == "start" ]]; then
     cd ${ST2_REPO}
 
     # Copy and overwrite the action contents
-    mkdir -p /opt/stackstorm
-    cp -Rp ./contrib/core/actions /opt/stackstorm 
+    sudo mkdir -p /opt/stackstorm
+    sudo chown vagrant:vagrant /opt/stackstorm
+    cp -Rp ./contrib/core/actions /opt/stackstorm
+    cp -Rp ./contrib/core/rules /opt/stackstorm
 
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate
@@ -41,22 +43,16 @@ if [[ ${1} == "start" ]]; then
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs kill
     fi
 
-    # Run the datastore API server
-    echo 'Starting screen session st2-datastore...'
-    screen -d -m -S st2-datastore ./virtualenv/bin/python \
-        ./st2datastore/bin/datastore_controller \
-        --config-file ./conf/stanley.conf
-
     # Run the action runner API server
     echo 'Starting screen session st2-actionrunner...'
     screen -d -m -S st2-actionrunner ./virtualenv/bin/python \
-        ./st2actionrunnercontroller/bin/actionrunner_controller \
+        ./st2actionrunner/bin/actionrunner \
         --config-file ./conf/stanley.conf
 
-    # Run the action API server
-    echo 'Starting screen session st2-action...'
-    screen -d -m -S st2-action ./virtualenv/bin/python \
-        ./st2actioncontroller/bin/action_controller \
+    # Run the st2 API server
+    echo 'Starting screen session st2-api...'
+    screen -d -m -S st2-api ./virtualenv/bin/python \
+        ./st2api/bin/st2api \
         --config-file ./conf/stanley.conf
 
     # Run the reactor server
@@ -65,19 +61,11 @@ if [[ ${1} == "start" ]]; then
         ./st2reactor/bin/sensor_container \
         --config-file ./conf/stanley.conf
 
-    # Run the reactor API server
-    echo 'Starting screen session st2-reactorcontroller...'
-    screen -d -m -S st2-reactorcontroller ./virtualenv/bin/python \
-        ./st2reactorcontroller/bin/reactor_controller \
-        --config-file ./conf/stanley.conf
-
     # Check whether screen sessions are started
     screens=(
-        "st2-datastore"
-        "st2-action"
+        "st2-api"
         "st2-actionrunner"
         "st2-reactor"
-        "st2-reactorcontroller"
     )
 
     echo

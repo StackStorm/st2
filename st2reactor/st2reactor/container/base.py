@@ -2,6 +2,7 @@ import eventlet
 import sys
 
 from st2common import log as logging
+import six
 
 # Constants
 SUCCESS_EXIT_CODE = 0
@@ -28,7 +29,7 @@ class SensorContainer(object):
     def _run_sensor(self, sensor):
         try:
             sensor.setup()
-        except Exception, e:
+        except Exception as e:
             LOG.error('Error calling setup on sensor: %s. Exception: %s',
                       sensor.__class__.__name__, e, exc_info=True)
         else:
@@ -37,7 +38,7 @@ class SensorContainer(object):
     def _sensor_cleanup(self, sensor):
         try:
             sensor.stop()
-        except Exception, e:
+        except Exception as e:
             LOG.error('Error cleaning up sensor: %s. Exception: %s',
                       sensor.__class__.__name__, e)
 
@@ -91,7 +92,7 @@ class SensorContainer(object):
 
     def shutdown(self):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
-        for sensor, gt in self._threads.iteritems():
+        for sensor, gt in six.iteritems(self._threads):
             gt.kill()
             self._sensor_cleanup(sensor)
         LOG.info('All sensors are shut down.')

@@ -3,6 +3,7 @@ import logging
 from prettytable import PrettyTable
 
 from st2client import formatters
+from six.moves import zip
 
 
 LOG = logging.getLogger(__name__)
@@ -77,6 +78,8 @@ class PropertyValueTable(formatters.Formatter):
         table.align = 'l'
         for attribute in attributes:
             value = getattr(subject, attribute, '')
+            if not value:
+                value = ''
             if type(value) is dict:
                 value = json.dumps(value, indent=4)
             elif type(value) is list:

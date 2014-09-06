@@ -8,9 +8,8 @@ from st2client.client import Client
 interval = 20
 
 st2_endpoints = {
-    'action': 'http://localhost:9101',
-    'reactor': 'http://localhost:9102',
-    'datastore': 'http://localhost:9103'
+    'base_url': 'http://localhost',
+    'api_url': '9101'
 }
 
 

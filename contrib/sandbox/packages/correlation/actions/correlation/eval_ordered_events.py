@@ -19,6 +19,7 @@ Make sure that a python virtualenv is created under
 /opt/stackstorm/repo/venvs/correlation with the appropriate python
 modules installed.
 """
+from __future__ import print_function
 
 import ast
 import sys
@@ -30,6 +31,7 @@ import requests
 
 from st2client.client import Client
 from st2client.models.datastore import KeyValuePair
+from six.moves import zip
 
 # Parse arguments.
 parser = argparse.ArgumentParser(description='Evaluate ordered events.')
@@ -42,18 +44,16 @@ rule = ast.literal_eval(args.rule)
 subject = args.subject
 event_id = str(args.event_id)
 timestamp = datetime.datetime.strptime(
-    args.timestamp, '%Y-%m-%d %H:%M:%S.%f') 
+    args.timestamp, '%Y-%m-%d %H:%M:%S.%f')
 
 # Exit if event id does not match does in aggregation rule.
 if event_id not in rule['ordered_events']:
-    print 'Event is not one of the events being watched.'
+    print('Event is not one of the events being watched.')
     sys.exit()
 
 # Setup client to the key value store
 client = Client({
-    'action': 'http://localhost:9101',
-    'reactor': 'http://localhost:9102',
-    'datastore': 'http://localhost:9103'})
+    'api': 'http://localhost:9101'})
 
 # Get existing state data from the key value store
 key_name = 'events_ordered_%s' % subject
@@ -63,7 +63,7 @@ kvp = client.keys.get_by_name(key_name)
 # since this is not the first event in the ordered list,
 # we can ignore this event.
 if not kvp and rule['ordered_events'][0] != event_id:
-    print 'Event does not match aggregation criteria.'
+    print('Event does not match aggregation criteria.')
     sys.exit()
 
 # Start over if first event in the ordered list.
@@ -73,11 +73,11 @@ if rule['ordered_events'][0] == event_id:
         'events': [(event_id, str(timestamp))]
     }
     if kvp:
-        print 'Restarting aggregation state.'
+        print('Restarting aggregation state.')
         kvp.value = json.dumps(data)
         client.keys.update(kvp)
     else:
-        print 'Starting new aggregation state.'
+        print('Starting new aggregation state.')
         kvp = KeyValuePair(name=key_name, value=json.dumps(data))
         kvp = client.keys.create(kvp)
     sys.exit()
@@ -96,16 +96,16 @@ if rule['ordered_events'][num_occurred] == event_id:
     delta = datetime.timedelta(seconds=rule['time_window_in_sec'])
     ending = started + delta
     if (ending < timestamp):
-        print 'Event time window passed.'
-        print 'Event timestamp: %s' % str(timestamp)
-        print 'Time window ends: %s' % str(ending)
+        print('Event time window passed.')
+        print('Event timestamp: %s' % str(timestamp))
+        print('Time window ends: %s' % str(ending))
         client.keys.delete(kvp)
         sys.exit()
     else:
         # Fire aggregated event if sequence is completed.
         data['events'].append((event_id, str(timestamp)))
         if len(rule['ordered_events']) == len(data['events']):
-            print 'Raise aggregated event.'
+            print('Raise aggregated event.')
             url = 'http://localhost:6886/webhooks/events'
             payload = {
                 'host': subject,
@@ -121,6 +121,6 @@ if rule['ordered_events'][num_occurred] == event_id:
             client.keys.delete(kvp)
         else:
             # Otherwise, write update.
-            print 'Update aggregation state.'
+            print('Update aggregation state.')
             kvp.value = json.dumps(data)
             client.keys.update(kvp)

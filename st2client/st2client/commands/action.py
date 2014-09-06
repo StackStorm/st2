@@ -4,6 +4,7 @@ import json
 import logging
 import textwrap
 import time
+import six
 import sys
 
 from st2common.models.api import action as act
@@ -170,7 +171,7 @@ class ActionRunCommand(resource.ResourceCommand):
                     print('Action "%s" is not found.' % args.name_or_id)
                 except Exception as e:
                     print('ERROR: Unable to print help for action "%s". %s' %
-                          (args.name_or_id, e.message))
+                          (args.name_or_id, e))
             else:
                 self.parser.print_help()
             return True
@@ -186,7 +187,7 @@ class ActionRunCommand(resource.ResourceCommand):
         if args.async:
             self.print_output('To get the results, execute: \n'
                               '    $ st2 execution get %s' % instance.id,
-                              unicode)
+                              six.text_type)
 
 
 class ActionExecutionBranch(resource.ResourceBranch):
