@@ -1,0 +1,30 @@
+{
+    "chain": [
+        {
+            "name": "c1",
+            "action": "a1",
+            "params": {},
+            "on-success": "c2",
+            "on-failure": "c4"
+        },
+        {
+            "name": "c2",
+            "action": "a2",
+            "params": {},
+            "on-success": "c3",
+            "on-failure": "c4"
+        },
+        {
+            "name": "c3",
+            "action": "a3",
+            "params": {},
+            "on-failure": "c4"
+        },
+        {
+            "name": "c4",
+            "action": "a1",
+            "params": {}
+        }
+    ],
+    "default": "c1"
+}

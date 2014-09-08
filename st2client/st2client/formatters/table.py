@@ -80,9 +80,7 @@ class PropertyValueTable(formatters.Formatter):
             value = getattr(subject, attribute, '')
             if not value:
                 value = ''
-            if type(value) is dict:
+            if type(value) is dict or type(value) is list:
                 value = json.dumps(value, indent=4)
-            elif type(value) is list:
-                value = ", ".join(value)
             table.add_row([attribute, value])
         return table

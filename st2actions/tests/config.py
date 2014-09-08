@@ -5,14 +5,14 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-def __register_opts(opts, group=None):
+def _register_opts(opts, group=None):
     try:
         CONF.register_opts(opts, group)
     except cfg.DuplicateOptError:
         LOG.exception('Will skip registration of [%s] %s.', group, opts)
 
 
-def __setup_config_opts():
+def _setup_config_opts():
     action_sensor_opts = [
         cfg.BoolOpt('enable', default=True,
                     help='Whether to enable or disable the ability to post a trigger on action.'),
@@ -27,7 +27,7 @@ def __setup_config_opts():
         cfg.IntOpt('retry_wait', default=1,
                    help='Amount of time to wait prior to retrying a request.')
     ]
-    CONF.register_opts(action_sensor_opts, group='action_sensor')
+    _register_opts(action_sensor_opts, group='action_sensor')
 
     ssh_runner_opts = [
         cfg.StrOpt('user',
@@ -40,9 +40,15 @@ def __setup_config_opts():
                    default='/tmp',
                    help='Location of the script on the remote filesystem.'),
     ]
-    CONF.register_opts(ssh_runner_opts, group='ssh_runner')
+    _register_opts(ssh_runner_opts, group='ssh_runner')
+
+    api_opts = [
+        cfg.StrOpt('host', default='0.0.0.0', help='ST2 API server host.'),
+        cfg.IntOpt('port', default=9101, help='ST2 API server port.')
+    ]
+    _register_opts(api_opts, group='api')
 
 
 def parse_args():
-    __setup_config_opts()
+    _setup_config_opts()
     CONF(args=[])

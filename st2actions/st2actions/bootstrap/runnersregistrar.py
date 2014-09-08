@@ -140,6 +140,13 @@ def register_runner_types():
                 }
             },
             'runner_module': 'st2actions.runners.mistral'
+        },
+        {
+            'name': 'action-chain',
+            'description': 'A runner for launching linear action chains.',
+            'enabled': True,
+            'runner_parameters': {},
+            'runner_module': 'st2actions.runners.actionchainrunner'
         }
     ]
 
