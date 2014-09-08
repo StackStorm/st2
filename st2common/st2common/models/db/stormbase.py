@@ -1,4 +1,5 @@
 import mongoengine as me
+from st2common.util import mongoescape
 
 
 class StormFoundationDB(me.Document):
@@ -52,3 +53,14 @@ class StormBaseDB(StormFoundationDB):
     meta = {
         'abstract': True
     }
+
+
+class EscapedDynamicField(me.DynamicField):
+
+    def to_mongo(self, value):
+        value = mongoescape.escape_chars(value)
+        return super(EscapedDynamicField, self).to_mongo(value)
+
+    def to_python(self, value):
+        value = super(EscapedDynamicField, self).to_python(value)
+        return mongoescape.unescape_chars(value)
