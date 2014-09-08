@@ -5,6 +5,7 @@ import sys
 from oslo.config import cfg
 
 from st2common import log as logging
+from st2common.content.loader import ContentPackLoader
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2reactor import config
@@ -47,20 +48,37 @@ def _is_single_sensor_mode():
             return True
 
 
-def main():
-    _setup()
-    sensor_loader = SensorLoader()
+def _get_user_sensors():
     sensors_dict = defaultdict(list)
-    container_manager = SensorContainerManager()
+    pack_loader = ContentPackLoader()
+    sensor_loader = SensorLoader()
+    dirs = pack_loader.get_content(base_dir=cfg.CONF.content.content_pack_path,
+                                   content_type='sensors')
+    for sensor_dir in dirs:
+        try:
+            LOG.info('Loading sensors from: %s' % sensor_dir)
+            sensors_dict.update(sensor_loader.get_sensors(base_dir=os.path.realpath(sensor_dir)))
+        except:
+            LOG.exception('Failed loading sensors from dir: %s' % sensor_dir)
+    return sensors_dict
+
+
+def _get_all_sensors():
+    sensor_loader = SensorLoader()
     if _is_single_sensor_mode():
         sensors_dict = sensor_loader.get_sensors(fil=cfg.CONF.sensor_path)
     else:
         sensors_dict = sensor_loader.get_sensors(base_dir=os.path.realpath(
                                                  cfg.CONF.sensors.system_path))
-        user_sensor_dict = sensor_loader.get_sensors(base_dir=os.path.realpath(
-                                                     cfg.CONF.sensors.modules_path))
+        user_sensor_dict = _get_user_sensors()
         sensors_dict.update(user_sensor_dict)
         LOG.info('Found %d user sensors.', len(user_sensor_dict))
-    exit_code = container_manager.run_sensors(sensors_dict)
+    return sensors_dict
+
+
+def main():
+    _setup()
+    container_manager = SensorContainerManager()
+    exit_code = container_manager.run_sensors(_get_all_sensors())
     _teardown()
     return exit_code
