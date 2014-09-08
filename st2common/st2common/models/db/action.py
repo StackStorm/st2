@@ -3,7 +3,7 @@ import mongoengine as me
 
 from st2common import log as logging
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.stormbase import (StormFoundationDB, StormBaseDB)
+from st2common.models.db.stormbase import StormFoundationDB, StormBaseDB, EscapedDynamicField
 
 
 __all__ = ['RunnerTypeDB',
@@ -93,8 +93,8 @@ class ActionExecutionDB(StormFoundationDB):
     parameters = me.DictField(
         default={},
         help_text='The key-value pairs passed as to the action runner &  execution.')
-    result = me.DynamicField(
-        default='',
+    result = EscapedDynamicField(
+        default={},
         help_text='Action defined result.')
     context = me.DictField(
         default={},
