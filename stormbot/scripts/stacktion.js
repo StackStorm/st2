@@ -228,13 +228,22 @@ module.exports = function(robot) {
 
   // Listen HTTP endpoint for incoming commands
   robot.router.post('/stormbot/st2', function(req, res) {
-    var data, user;
+    var data, user, message;
     user = {};
     if (process.env.HUBOT_ADAPTER_ROOM) {
       user.room = process.env.HUBOT_ADAPTER_ROOM;
     }
     if (data = req.body.payload) {
-      robot.send(user, '[' + req.body.type + ' ' + data.event + '] ' + data.msg);
+      message = "/code ";
+      message = message + "[" + data.source + " " + data.name + "]\n";
+      if (msg = JSON.parse(data.msg)) {
+        for (var k in msg) {
+          message = message + "    " + k.toUpperCase() + ":" + msg[k] + "\n";
+        }  
+      } else {
+        message = message + data.msg
+      }
+      robot.send(user, message);
       return res.end('{"status": "completed", "msg": "Message posted successfully"}');
     } else {
       return res.end('{"status": "failed", "msg": "An error occurred trying to post the message"}');
