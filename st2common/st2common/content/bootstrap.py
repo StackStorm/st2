@@ -1,6 +1,11 @@
+from oslo.config import cfg
+
 import st2actions.bootstrap.actionsregistrar as actions_registrar
 import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2common import log as logging
+import st2common.config as config
+from st2common.models.db import db_setup
+from st2common.models.db import db_teardown
 import st2reactor.bootstrap.registrar as rules_registrar
 
 
@@ -28,8 +33,26 @@ def register_content():
         LOG.warning('Failed to register rules: %s', e, exc_info=True)
 
 
+def _setup():
+    config.parse_args()
+
+    # 2. setup logging.
+    logging.setup(cfg.CONF.common_logging.config_file)
+
+    # 3. all other setup which requires config to be parsed and logging to
+    # be correctly setup.
+    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
+             cfg.CONF.database.port)
+
+
+def _teardown():
+    db_teardown()
+
+
 def main():
+    _setup()
     register_content()
+    _teardown()
 
 
 # This script registers actions and rules from content-packs.

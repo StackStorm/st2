@@ -1,5 +1,7 @@
 from oslo.config import cfg
+
 from st2common import log as logging
+import st2common.config as common_config
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -22,6 +24,11 @@ def __setup_config_opts():
         CONF.register_opts(db_opts, group='database')
     except cfg.DuplicateOptError:
         LOG.exception('Will skip registration.')
+
+    try:
+        common_config.register_opts()
+    except:
+        pass
 
 
 def parse_args():

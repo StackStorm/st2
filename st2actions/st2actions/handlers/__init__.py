@@ -26,5 +26,5 @@ class ActionExecutionCallbackHandler(object):
 
 
 HANDLERS = {
-    'mistral': 'st2actionrunner.handlers.mistral'
+    'mistral': 'st2actions.handlers.mistral'
 }

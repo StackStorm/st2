@@ -2,12 +2,6 @@ import jsonschema
 from oslo.config import cfg
 import six
 
-import st2common.config as common_config
-common_config.register_opts()
-
-cfg.CONF.import_opt('version', 'st2common.config', group='schema')
-cfg.CONF.import_opt('draft', 'st2common.config', group='schema')
-
 
 # https://github.com/json-schema/json-schema/blob/master/draft-04/schema
 # The source material is licensed under the AFL or BSD license.
