@@ -1,18 +1,17 @@
 import json
 
-from kombu import Connection, Queue
+from kombu import Connection
 from kombu.mixins import ConsumerMixin
 from oslo.config import cfg
 from st2common import log as logging
-from st2common.transport import actionexecution
+from st2common.transport import actionexecution, publishers
 from st2actionrunner.controllers import liveactions
 
 LOG = logging.getLogger(__name__)
 
 
-ACTIONRUNNER_WORK_Q = Queue('st2.actionrunner.work',
-                            actionexecution.ACTIONEXECUTION_XCHG,
-                            routing_key=actionexecution.CREATE_RK)
+ACTIONRUNNER_WORK_Q = actionexecution.get_queue('st2.actionrunner.work',
+                                                routing_key=publishers.CREATE_RK)
 
 
 class Worker(ConsumerMixin):

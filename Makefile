@@ -139,6 +139,9 @@ $(VIRTUALENV_DIR)/bin/activate:
 
 .PHONY: web
 web:
+	@echo
+	@echo "====================web===================="
+	@echo
 	npm install --prefix $(WEB_DIR)
 	bower install --config.cwd=$(WEB_DIR) --config.directory=components
 	gulp --cwd $(WEB_DIR) build
@@ -199,4 +202,3 @@ debs:
 	rm -Rf ~/debbuild
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make deb; popd;)
 	pushd st2client && make deb && popd
-
