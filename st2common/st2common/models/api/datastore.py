@@ -1,21 +1,31 @@
-from wsme import types as wstypes
-
-from st2common.models.api.stormbase import StormBaseAPI
+from st2common.models.base import BaseAPI
 from st2common.models.db.datastore import KeyValuePairDB
 
 
-class KeyValuePairAPI(StormBaseAPI):
-
-    value = wstypes.text
-
-    @classmethod
-    def from_model(cls, model):
-        kvp = StormBaseAPI.from_model(cls, model)
-        kvp.value = model.value
-        return kvp
+class KeyValuePairAPI(BaseAPI):
+    model = KeyValuePairDB
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string'
+            },
+            'description': {
+                'type': 'string'
+            },
+            'name': {
+                'type': 'string'
+            },
+            'value': {
+                'type': 'string'
+            }
+        },
+        'required': ['name', 'value'],
+        'additionalProperties': False
+    }
 
     @classmethod
     def to_model(cls, kvp):
-        model = StormBaseAPI.to_model(KeyValuePairDB, kvp)
+        model = super(cls, cls).to_model(kvp)
         model.value = kvp.value
         return model

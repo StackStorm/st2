@@ -1,12 +1,11 @@
 from pecan import abort
 from pecan.rest import RestController
 import six
-import wsmeext.pecan as wsme_pecan
-from wsme import types as wstypes
 from mongoengine import ValidationError
 
 from st2common import log as logging
 from st2common.models.api.datastore import KeyValuePairAPI
+from st2common.models.base import jsexpose
 from st2common.persistence.datastore import KeyValuePair
 
 http_client = six.moves.http_client
@@ -19,7 +18,7 @@ class KeyValuePairController(RestController):
     Implements the REST endpoint for managing the key value store.
     """
 
-    @wsme_pecan.wsexpose(KeyValuePairAPI, wstypes.text)
+    @jsexpose(str)
     def get_one(self, id):
         """
             List key by id.
@@ -34,10 +33,12 @@ class KeyValuePairController(RestController):
             kvp_api = KeyValuePairAPI.from_model(kvp_db)
         except (ValidationError, ValueError) as e:
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            return
+
         LOG.debug('GET /keys/ with id=%s, client_result=%s', id, kvp_api)
         return kvp_api
 
-    @wsme_pecan.wsexpose([KeyValuePairAPI], wstypes.text)
+    @jsexpose(str)
     def get_all(self, name=None):
         """
             List all keys.
@@ -56,8 +57,7 @@ class KeyValuePairController(RestController):
 
         return kvps
 
-    @wsme_pecan.wsexpose(KeyValuePairAPI, body=KeyValuePairAPI,
-                         status_code=http_client.CREATED)
+    @jsexpose(body=KeyValuePairAPI, status_code=http_client.CREATED)
     def post(self, kvp):
         """
             Create a new key value pair.
@@ -74,6 +74,7 @@ class KeyValuePairController(RestController):
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for key value data=%s.', kvp)
             abort(http_client.BAD_REQUEST, str(e))
+            return
 
         kvp_db = KeyValuePair.add_or_update(kvp_db)
         LOG.audit('KeyValuePair created. KeyValuePair=%s', kvp_db)
@@ -83,7 +84,7 @@ class KeyValuePairController(RestController):
 
         return kvp_api
 
-    @wsme_pecan.wsexpose(KeyValuePairAPI, wstypes.text, body=KeyValuePairAPI)
+    @jsexpose(str, body=KeyValuePairAPI)
     def put(self, id, kvp):
         LOG.info('PUT /keys/ with key id=%s and data=%s', id, kvp)
         kvp_db = self.__get_by_id(id)
@@ -101,6 +102,8 @@ class KeyValuePairController(RestController):
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for key value data=%s', kvp)
             abort(http_client.BAD_REQUEST, str(e))
+            return
+
         LOG.audit('KeyValuePair updated. KeyValuePair=%s and original KeyValuePair=%s',
                   kvp_db, old_kvp_db)
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
@@ -108,7 +111,7 @@ class KeyValuePairController(RestController):
 
         return kvp_api
 
-    @wsme_pecan.wsexpose(None, wstypes.text, status_code=http_client.NO_CONTENT)
+    @jsexpose(str, status_code=http_client.NO_CONTENT)
     def delete(self, id):
         """
             Delete the key value pair.
@@ -126,6 +129,8 @@ class KeyValuePairController(RestController):
             LOG.exception('Database delete encountered exception during '
                           'delete of id="%s". ', id)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            return
+
         LOG.audit('KeyValuePair deleted. KeyValuePair=%s', kvp_db)
 
     @staticmethod

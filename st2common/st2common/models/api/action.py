@@ -5,7 +5,6 @@ import jsonschema
 from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.base import BaseAPI
-from st2common.models.api.stormbase import (StormFoundationAPI, StormBaseAPI)
 from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB)
 
 __all__ = ['ActionAPI',
@@ -21,7 +20,7 @@ class RunnerTypeAPI(BaseAPI):
     The representation of an RunnerType in the system. An RunnerType
     has a one-to-one mapping to a particular ActionRunner implementation.
     """
-
+    model = RunnerTypeDB
     schema = {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "Runner",
@@ -71,6 +70,13 @@ class RunnerTypeAPI(BaseAPI):
     }
 
     def __init__(self, **kw):
+        # Ideally, you should not do that. You should not redefine __init__ to validate and then set
+        # default values, instead you should define defaults in schema and use BaseAPI __init__
+        # validator to unwrap them. The problem here is that draft schema also contains default
+        # values and we don't want them to be unwrapped at the same time. I've tried to remove the
+        # default values from draft schema, but, either because of a bug or some weird intention, it
+        # has continued to resolve $ref'erenced properties against the initial draft schema, not the
+        # modified one
         jsonschema.validate(kw, self.schema)
         for key, value in kw.items():
             setattr(self, key, value)
@@ -80,15 +86,8 @@ class RunnerTypeAPI(BaseAPI):
             setattr(self, 'required_parameters', list())
 
     @classmethod
-    def from_model(cls, model):
-        runnertype = model.to_mongo()
-        runnertype['id'] = str(runnertype['_id'])
-        del runnertype['_id']
-        return cls(**runnertype)
-
-    @classmethod
     def to_model(cls, runnertype):
-        model = StormBaseAPI.to_model(RunnerTypeDB, runnertype)
+        model = super(cls, cls).to_model(runnertype)
         model.enabled = bool(runnertype.enabled)
         model.runner_module = str(runnertype.runner_module)
         model.runner_parameters = getattr(runnertype, 'runner_parameters', dict())
@@ -99,6 +98,7 @@ class RunnerTypeAPI(BaseAPI):
 class ActionAPI(BaseAPI):
     """The system entity that represents a Stack Action/Automation in the system."""
 
+    model = ActionDB
     schema = {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "Action",
@@ -160,15 +160,13 @@ class ActionAPI(BaseAPI):
 
     @classmethod
     def from_model(cls, model):
-        action = model.to_mongo()
-        action['id'] = str(action['_id'])
+        action = cls._from_model(model)
         action['runner_type'] = action['runner_type']['name']
-        del action['_id']
         return cls(**action)
 
     @classmethod
     def to_model(cls, action):
-        model = StormBaseAPI.to_model(ActionDB, action)
+        model = super(cls, cls).to_model(action)
         model.enabled = bool(action.enabled)
         model.entry_point = str(action.entry_point)
         model.runner_type = {'name': str(action.runner_type)}
@@ -196,6 +194,7 @@ class ActionExecutionAPI(BaseAPI):
     in the system.
     """
 
+    model = ActionExecutionDB
     schema = {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "ActionExecution",
@@ -269,16 +268,8 @@ class ActionExecutionAPI(BaseAPI):
             self.start_timestamp = start_timestamp
 
     @classmethod
-    def from_model(cls, model):
-        execution = model.to_mongo()
-        execution['id'] = str(execution['_id'])
-        del execution['_id']
-        result = cls(**execution)
-        return result
-
-    @classmethod
     def to_model(cls, execution):
-        model = StormFoundationAPI.to_model(ActionExecutionDB, execution)
+        model = super(cls, cls).to_model(execution)
         model.status = str(execution.status)
         model.start_timestamp = getattr(execution, 'start_timestamp')
         model.action = execution.action

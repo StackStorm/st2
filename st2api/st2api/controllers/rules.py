@@ -2,7 +2,6 @@ from mongoengine import ValidationError, NotUniqueError
 from pecan import abort
 from pecan.rest import RestController
 import six
-import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -10,8 +9,8 @@ from st2common.models.api.reactor import RuleAPI, RuleEnforcementAPI, TriggerAPI
 from st2common.models.base import jsexpose
 from st2common.persistence.reactor import Rule, RuleEnforcement
 from st2common.util import reference
+
 from st2api.service import triggers as TriggerService
-from wsme import types as wstypes
 
 http_client = six.moves.http_client
 
@@ -135,6 +134,8 @@ class RuleController(RestController):
             LOG.exception('Database delete encountered exception during delete of id="%s".',
                           rule_id)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            return
+
         LOG.audit('Rule deleted. Rule=%s.', rule_db)
 
     @staticmethod
@@ -160,7 +161,7 @@ class RuleEnforcementController(RestController):
         the lifecycle of RuleEnforcements in the system.
     """
 
-    @wsme_pecan.wsexpose(RuleEnforcementAPI, wstypes.text)
+    @jsexpose(str)
     def get_one(self, id):
         """
             List ruleenforcement by id.
@@ -180,7 +181,7 @@ class RuleEnforcementController(RestController):
         LOG.debug('GET /ruleenforcements/ with id=%s, client_result=%s', id, rule_enforcement_api)
         return rule_enforcement_api
 
-    @wsme_pecan.wsexpose([RuleEnforcementAPI], wstypes.text)
+    @jsexpose()
     def get_all(self):
         """
             List all ruleenforcements.

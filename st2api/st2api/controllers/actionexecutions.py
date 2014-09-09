@@ -168,6 +168,8 @@ class ActionExecutionsController(RestController):
             LOG.error('POST /actionexecutions/ Action for "%s" cannot be found.',
                       actionexecution.action)
             abort(http_client.NOT_FOUND, 'Unable to find action.')
+            return
+
         actionexecution.action = action_dict
 
         # If the Action is disabled, abort the POST call.
@@ -175,6 +177,7 @@ class ActionExecutionsController(RestController):
             LOG.error('POST /actionexecutions/ Unable to create Action Execution for a disabled '
                       'Action. Action is: %s', action_db)
             abort(http_client.FORBIDDEN, 'Action is disabled.')
+            return
 
         # Assign default parameters
         runnertype = get_runnertype_by_name(action_db.runner_type['name'])
@@ -194,6 +197,7 @@ class ActionExecutionsController(RestController):
         except jsonschema.ValidationError as e:
             LOG.error('POST /actionexecutions/ Parameter validation failed. %s', actionexecution)
             abort(http_client.BAD_REQUEST, str(e))
+            return
 
         # Set initial value for ActionExecution status.
         # Not using update_actionexecution_status to allow other initialization to
@@ -217,6 +221,7 @@ class ActionExecutionsController(RestController):
                                                                                  str(e))
             LOG.audit('ActionExecution failed. ActionExecution=%s error=%s', actionexec_db, error)
             abort(http_client.INTERNAL_SERVER_ERROR, error)
+            return
         else:
             actionexec_status = ACTIONEXEC_STATUS_SCHEDULED
             actionexec_db = update_actionexecution_status(actionexec_status,

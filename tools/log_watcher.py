@@ -54,7 +54,7 @@ def _get_files(dir_path):
         print('Directory %s doesn\'t exist.' % dir_path)
 
     files = []
-    exclude = set(['virtualenv', 'build', 'web', 'stormbot'])
+    exclude = set(['virtualenv', 'build', 'web', 'stormbot', '.tox'])
     for root, dirnames, filenames in os.walk(dir_path):
         dirnames[:] = [d for d in dirnames if d not in exclude]
         for filename in fnmatch.filter(filenames, '*.py'):
