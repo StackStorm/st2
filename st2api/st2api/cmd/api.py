@@ -8,11 +8,9 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-import st2actions.bootstrap.registrar as actions_registrar
-import st2actionrunner.bootstrap.registrar as runner_registrar
-import st2reactor.bootstrap.registrar as rules_registrar
 from st2api import config
 from st2api import app
+from st2api import model
 
 
 eventlet.monkey_patch(
@@ -55,19 +53,19 @@ def __setup():
     # 5. register runnertypes and actions. The order is important because actions require action
     #    types to be present in the system.
     try:
-        runner_registrar.register_runner_types()
+        model.register_runner_types()
     except Exception as e:
         LOG.warning('Failed to register action types: %s', e, exc_info=True)
         LOG.warning('Not registering stock actions.')
     else:
         try:
-            actions_registrar.register_actions()
+            model.register_actions()
         except Exception as e:
             LOG.warning('Failed to register actions: %s', e, exc_info=True)
 
     # 6. register rules
     try:
-        rules_registrar.register_rules()
+        model.register_rules()
     except Exception as e:
         LOG.warning('Failed to register rules: %s', e, exc_info=True)
 

@@ -1,7 +1,8 @@
 import tests.config
 from pecan.testing import load_test_app
 from oslo.config import cfg
-import st2actionrunner.bootstrap.registrar as runner_registrar
+
+from st2api import model
 from st2tests import DbTestCase
 
 
@@ -25,7 +26,7 @@ class FunctionalTest(DbTestCase):
 
         # TODO(manas) : register action types here for now. RunnerType registration can be moved
         # to posting to /runnertypes but that implies implementing POST.
-        runner_registrar.register_runner_types()
+        model.register_runner_types()
 
         cls.app = load_test_app(config=cfg_dict)
 
