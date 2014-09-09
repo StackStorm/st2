@@ -1,5 +1,5 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: st2actionrunner
+Upstream-Name: st2actions
 Source: https://github.com/StackStorm/stanley
 
 Files: *

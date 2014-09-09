@@ -19,7 +19,7 @@ eventlet.monkey_patch(
     time=True)
 
 
-def __setup():
+def _setup():
     # 1. parse args to setup config.
     config.parse_args()
     # 2. setup logging.
@@ -30,23 +30,23 @@ def __setup():
              cfg.CONF.database.port)
 
 
-def __run_worker():
+def _run_worker():
     LOG = logging.getLogger(__name__)
     LOG.info('[PID=%s] Worker started.', os.getpid())
     worker.work()
 
 
-def __teardown():
+def _teardown():
     db_teardown()
 
 
 def main():
     try:
-        __setup()
-        __run_worker()
+        _setup()
+        _run_worker()
     except:
         LOG = logging.getLogger(__name__)
         LOG.exception('[PID=%s] Worker quit.', os.getpid())
     finally:
-        __teardown()
+        _teardown()
     return 1

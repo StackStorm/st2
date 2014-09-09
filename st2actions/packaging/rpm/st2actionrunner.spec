@@ -5,7 +5,7 @@ Release: 1
 License: license
 Group: Applications/Engineering
 BuildArch: noarch
-Source: /opt/git/stanley/st2actionrunner.tar.gz
+Source: /opt/git/stanley/st2actions.tar.gz
 URL: https://github.com/StackStorm/stanley
 Vendor: StackStorm
 Packager: Stormin Stanley <stanley@stackstorm.com>
@@ -22,15 +22,15 @@ sed -i -r "s~logs~/var/log/stanley~g" conf/logging.conf
 
 %install
 
-mkdir -p %{buildroot}/etc/st2actionrunner
+mkdir -p %{buildroot}/etc/st2actions
 mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/usr/bin
-cp -R st2actionrunner %{buildroot}%{python2_sitelib}/
-cp -R conf/* %{buildroot}/etc/st2actionrunner
+cp -R st2actions %{buildroot}%{python2_sitelib}/
+cp -R conf/* %{buildroot}/etc/st2actions
 install -m755 bin/actionrunner %{buildroot}/usr/bin/actionrunner
 
 %files
 
-/usr/lib/python2.7/site-packages/st2actionrunner*
+/usr/lib/python2.7/site-packages/st2actions*
 /usr/bin/actionrunner
-/etc/st2actionrunner*
+/etc/st2actions*

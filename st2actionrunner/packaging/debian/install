@@ -1,4 +1,0 @@
-st2actionrunner usr/lib/python2.7/dist-packages/
-st2actionrunner usr/lib/python2.7/dist-packages/
-conf/* etc/st2actionrunner/
-bin/* usr/bin/

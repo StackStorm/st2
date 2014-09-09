@@ -6,7 +6,7 @@ RPM_SOURCES_DIR := $(RPM_ROOT)/SOURCES/
 RPM_SPECS_DIR := $(RPM_ROOT)/SPECS/
 VER=0.4.0
 
-COMPONENTS := st2actionrunner
+COMPONENTS := st2actions
 
 PEP8_CONFIG := $(REPO_ROOT)/.pep8
 FLAKE8_CONFIG := $(REPO_ROOT)/.flake8
@@ -31,7 +31,7 @@ flake8:
 	flake8 --config $(FLAKE8_CONFIG) $(COMPONENTS)
 
 .PHONY: rpm
-rpm: 
+rpm:
 	pushd ~ && rpmdev-setuptree && popd
 	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz bin conf $(COMPONENTS)
 	cp packaging/rpm/$(COMPONENTS).spec $(RPM_SPECS_DIR)/

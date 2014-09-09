@@ -8,9 +8,6 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-import st2actions.bootstrap.registrar as actions_registrar
-import st2actionrunner.bootstrap.registrar as runner_registrar
-import st2reactor.bootstrap.registrar as rules_registrar
 from st2api import config
 from st2api import app
 
@@ -25,7 +22,7 @@ eventlet.monkey_patch(
 LOG = logging.getLogger(__name__)
 
 
-def __setup():
+def _setup():
     # 1. parse args to setup config.
     config.parse_args()
 
@@ -37,42 +34,8 @@ def __setup():
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
              cfg.CONF.database.port)
 
-    # 4. ensure paths exist
-    if not os.path.exists(cfg.CONF.actions.modules_path):
-        try:
-            os.makedirs(cfg.CONF.actions.modules_path)
-        except Exception as e:
-            LOG.warning('Failed to create directory: %s, %s', cfg.CONF.actions.modules_path, e,
-                        exc_info=True)
 
-    if not os.path.exists(cfg.CONF.rules.rules_path):
-        try:
-            os.makedirs(cfg.CONF.rules.rules_path)
-        except Exception as e:
-            LOG.warning('Failed to create directory: %s, %s', cfg.CONF.actions.modules_path, e,
-                        exc_info=True)
-
-    # 5. register runnertypes and actions. The order is important because actions require action
-    #    types to be present in the system.
-    try:
-        runner_registrar.register_runner_types()
-    except Exception as e:
-        LOG.warning('Failed to register action types: %s', e, exc_info=True)
-        LOG.warning('Not registering stock actions.')
-    else:
-        try:
-            actions_registrar.register_actions()
-        except Exception as e:
-            LOG.warning('Failed to register actions: %s', e, exc_info=True)
-
-    # 6. register rules
-    try:
-        rules_registrar.register_rules()
-    except Exception as e:
-        LOG.warning('Failed to register rules: %s', e, exc_info=True)
-
-
-def __run_server():
+def _run_server():
 
     host = cfg.CONF.api.host
     port = cfg.CONF.api.port
@@ -82,16 +45,16 @@ def __run_server():
     wsgi.server(eventlet.listen((host, port)), app.setup_app())
 
 
-def __teardown():
+def _teardown():
     db_teardown()
 
 
 def main():
     try:
-        __setup()
-        __run_server()
+        _setup()
+        _run_server()
     except Exception as e:
         LOG.warning('Exception starting up api: %s', e, exc_info=True)
     finally:
-        __teardown()
+        _teardown()
     return 1

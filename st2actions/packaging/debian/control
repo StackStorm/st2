@@ -8,7 +8,7 @@ Homepage: http://www.stackstorm.com
 #Vcs-Git: git://git.debian.org/collab-maint/st2actionrunner.git
 #Vcs-Browser: http://git.debian.org/?p=collab-maint/st2actionrunner.git;a=summary
 
-Package: st2actionrunner
+Package: st2actions
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ST2 ActionRunner
