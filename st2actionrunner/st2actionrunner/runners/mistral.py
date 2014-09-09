@@ -27,7 +27,7 @@ class MistralRunner(ActionRunner):
         pass
 
     def run(self, action_parameters):
-        client = mistral.Client(mistral_url=self.url)
+        client = mistral.client(mistral_url=self.url)
 
         # Update workbook definition.
         workbook = next((w for w in client.workbooks.list() if w.name == self.action.name), None)
