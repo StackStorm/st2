@@ -10,7 +10,7 @@ CONF = cfg.CONF
 
 
 def _register_common_opts():
-    common_config.regsiter_opts()
+    common_config.register_opts()
 
 
 def _register_actions_opts():
