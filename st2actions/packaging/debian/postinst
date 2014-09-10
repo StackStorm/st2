@@ -1,5 +1,5 @@
 #!/bin/bash
 
-if [ -d /etc/st2actionrunner ]; then
+if [ -d /etc/st2actions ]; then
   sed -i -r "s~logs~/var/log/stanley~g" /etc/st2actions/logging.conf
 fi
