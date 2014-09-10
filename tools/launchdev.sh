@@ -45,8 +45,8 @@ if [[ ${1} == "start" ]]; then
 
     # Run the action runner API server
     echo 'Starting screen session st2-actionrunner...'
-    screen -d -m -S st2-actionrunner ./virtualenv/bin/python \
-        ./st2actionrunner/bin/actionrunner \
+    screen -d -m -S st2-actions ./virtualenv/bin/python \
+        ./st2actions/bin/actionrunner \
         --config-file ./conf/stanley.conf
 
     # Run the st2 API server
@@ -79,6 +79,12 @@ if [[ ${1} == "start" ]]; then
 
     # List screen sessions
     screen -ls
+
+    echo 'Registering actions and rules...'
+    ./virtualenv/bin/python \
+        ./st2common/bin/registercontent.py \
+        --config-file ./conf/stanley.conf
+
 
 elif [[ ${1} == "stop" ]]; then
 
