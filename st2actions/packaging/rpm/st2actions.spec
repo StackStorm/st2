@@ -1,8 +1,8 @@
-Summary: Stanley Action Runner
-Name: st2actionrunner
+Summary: Stanley Actions
+Name: st2actions
 Version: 0.4.0
 Release: 1
-License: license
+License: Apache
 Group: Applications/Engineering
 BuildArch: noarch
 Source: /opt/git/stanley/st2actions.tar.gz

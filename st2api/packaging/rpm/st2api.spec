@@ -2,7 +2,7 @@ Summary: Stanley API
 Name: st2api
 Version: 0.4.0
 Release: 1
-License: license
+License: Apache
 Group: Applications/Engineering
 BuildArch: noarch
 Source: /opt/git/stanley/st2api.tar.gz

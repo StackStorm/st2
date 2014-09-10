@@ -2,7 +2,7 @@ Summary: Stanley Common Libraries
 Name: st2common
 Version: 0.4.0
 Release: 1
-License: license
+License: Apache
 Group: Applications/Engineering
 BuildArch: noarch
 Source: /opt/git/stanley/st2common.tar.gz
@@ -31,6 +31,7 @@ mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/var/log/stanley
 mkdir -p %{buildroot}/etc/stanley
+mkdir -p %{buildroot}/etc/st2common
 mkdir -p %{buildroot}/opt/stackstorm
 cp -R bin st2common/
 cp -R contrib/core/rules %{buildroot}/opt/stackstorm/
@@ -39,6 +40,7 @@ cp -R contrib/core/actions %{buildroot}/opt/stackstorm/
 cp -R external/mirantis %{buildroot}%{python2_sitelib}/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 install conf/stanley.conf %{buildroot}/etc/stanley/stanley.conf
+install conf/logging.conf %{buildroot}/etc/st2common/logging.conf
 
 
 %files

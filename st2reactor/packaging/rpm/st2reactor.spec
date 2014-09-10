@@ -2,7 +2,7 @@ Summary: Stanley reactor
 Name: st2reactor
 Version: 0.4.0
 Release: 1
-License: license
+License: Apache
 Group: Applications/Engineering
 BuildArch: noarch
 Source: /opt/git/stanley/st2reactor.tar.gz
