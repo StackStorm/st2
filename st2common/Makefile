@@ -18,7 +18,7 @@ rpm:
 deb:
 	mkdir -p ~/debbuild
 	mkdir -p stanley && cp -Rf ../conf/* stanley/
-	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf ~/$(COMPONENTS).tar.gz bin conf stanley $(COMPONENTS) ../contrib ../external ../conf ../docs ../requirements.txt packaging/debian
+	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf ~/$(COMPONENTS).tar.gz bin conf stanley $(COMPONENTS) ../contrib ../external ../docs ../requirements.txt packaging/debian
 	pushd ~ && tar -xzf $(COMPONENTS).tar.gz && cd $(COMPONENTS)-$(VER) && cp -Rf packaging/debian ./ && dpkg-buildpackage -us -uc -b && popd
 	cp -f ~/$(COMPONENT)*.deb ~/debbuild/
 
