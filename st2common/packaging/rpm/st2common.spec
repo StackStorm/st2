@@ -39,7 +39,7 @@ cp -R contrib/core/sensors %{buildroot}/opt/stackstorm/
 cp -R contrib/core/actions %{buildroot}/opt/stackstorm/
 cp -R external/mirantis %{buildroot}%{python2_sitelib}/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
-install conf/stanley.conf %{buildroot}/etc/stanley/stanley.conf
+install stanley/stanley.conf %{buildroot}/etc/stanley/stanley.conf
 install conf/logging.conf %{buildroot}/etc/st2common/logging.conf
 
 
