@@ -43,4 +43,5 @@ def register_opts():
 
 
 def parse_args(args=None):
+    register_opts()
     cfg.CONF(args=args)
