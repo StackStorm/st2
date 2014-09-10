@@ -61,6 +61,24 @@ class BaseAPI(object):
     def __json__(self):
         return vars(self)
 
+    @classmethod
+    def _from_model(cls, model):
+        doc = model.to_mongo()
+        doc['id'] = str(doc.pop('_id'))
+        return doc
+
+    @classmethod
+    def from_model(cls, model):
+        doc = cls._from_model(model)
+        return cls(**doc)
+
+    @classmethod
+    def to_model(cls, doc):
+        model = cls.model()
+        setattr(model, 'name', getattr(doc, 'name', None))
+        setattr(model, 'description', getattr(doc, 'description', None))
+        return model
+
 
 def jsexpose(*argtypes, **opts):
     pecan_json_decorate = pecan.expose(

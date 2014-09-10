@@ -1,9 +1,6 @@
-import datetime
 import uuid
-from wsme import types as wstypes
 
 from st2common.models.base import BaseAPI
-from st2common.models.api.stormbase import StormBaseAPI, StormFoundationAPI
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerTypeDB, TriggerDB
 from st2common.persistence.reactor import Trigger
 from st2common.util import reference
@@ -12,6 +9,7 @@ import six
 
 
 class TriggerTypeAPI(BaseAPI):
+    model = TriggerTypeDB
     schema = {
         'type': 'object',
         'properties': {
@@ -40,20 +38,15 @@ class TriggerTypeAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model):
-        trigger = model.to_mongo()
-        trigger['id'] = str(trigger.pop('_id'))
-        return cls(**trigger)
-
-    @classmethod
     def to_model(cls, triggertype):
-        model = StormBaseAPI.to_model(TriggerTypeDB, triggertype)
+        model = super(cls, cls).to_model(triggertype)
         model.payload_schema = triggertype.payload_schema
         model.parameters_schema = triggertype.parameters_schema
         return model
 
 
 class TriggerAPI(BaseAPI):
+    model = TriggerDB
     schema = {
         'type': 'object',
         'properties': {
@@ -77,16 +70,14 @@ class TriggerAPI(BaseAPI):
 
     @classmethod
     def from_model(cls, model):
-        trigger = model.to_mongo()
-        trigger['id'] = str(trigger['_id'])
-        del trigger['_id']
+        trigger = cls._from_model(model)
         if 'type' in trigger:
             trigger['type'] = str(trigger['type'].get('name', ''))
         return cls(**trigger)
 
     @classmethod
     def to_model(cls, trigger):
-        model = StormFoundationAPI.to_model(TriggerDB, trigger)
+        model = super(cls, cls).to_model(trigger)
         # assign a name if none is provided.
         model.name = trigger.name if hasattr(trigger, 'name') and trigger.name else \
             str(uuid.uuid4())
@@ -95,18 +86,36 @@ class TriggerAPI(BaseAPI):
         return model
 
 
-class TriggerInstanceAPI(StormFoundationAPI):
-    trigger = wstypes.text
-    payload = wstypes.DictType(str, str)
-    occurrence_time = datetime.datetime
+class TriggerInstanceAPI(BaseAPI):
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string'
+            },
+            'occurrence_time': {
+                'type': 'string',
+                'format': 'date-time'
+            },
+            'payload': {
+                'type': 'object'
+            },
+            'trigger': {
+                'type': 'string',
+                'default': None
+            }
+        },
+        'required': ['trigger'],
+        'additionalProperties': False
+    }
 
     @classmethod
-    def from_model(kls, model):
-        trigger_instance = StormFoundationAPI.from_model(kls, model)
-        trigger_instance.trigger = model.trigger.get('name', '')
-        trigger_instance.payload = dict(model.payload)
-        trigger_instance.occurrence_time = model.occurrence_time
-        return trigger_instance
+    def from_model(cls, model):
+        instance = cls._from_model(model)
+        instance['occurrence_time'] = instance['occurrence_time'].isoformat()
+        if 'trigger' in instance:
+            instance['trigger'] = str(instance['trigger'].get('name', ''))
+        return cls(**instance)
 
 
 class ActionSpec(BaseAPI):
@@ -151,6 +160,7 @@ class RuleAPI(BaseAPI):
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
+    model = RuleDB
     schema = {
         'type': 'object',
         'properties': {
@@ -193,9 +203,7 @@ class RuleAPI(BaseAPI):
 
     @classmethod
     def from_model(cls, model):
-        rule = model.to_mongo()
-        rule['id'] = str(rule['_id'])
-        del rule['_id']
+        rule = cls._from_model(model)
         rule['trigger'] = vars(TriggerAPI.from_model(reference.get_model_from_ref(Trigger,
                                                                                   model.trigger)))
         del rule['trigger']['id']
@@ -209,7 +217,7 @@ class RuleAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, rule):
-        model = StormBaseAPI.to_model(RuleDB, rule)
+        model = super(cls, cls).to_model(rule)
         model.trigger = TriggerAPI(**rule.trigger)
         model.criteria = dict(rule.criteria)
         for oldkey, value in six.iteritems(model.criteria):
@@ -225,15 +233,23 @@ class RuleAPI(BaseAPI):
         return model
 
 
-class RuleEnforcementAPI(StormFoundationAPI):
-    rule = wstypes.text
-    trigger_instance = wstypes.text
-    action_execution = wstypes.text
-
-    @classmethod
-    def from_model(kls, model):
-        rule_enforcement = StormFoundationAPI.from_model(kls, model)
-        rule_enforcement.rule = model.rule
-        rule_enforcement.trigger_instance = model.trigger_instance
-        rule_enforcement.action_execution = model.action_execution
-        return rule_enforcement
+class RuleEnforcementAPI(BaseAPI):
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string'
+            },
+            'rule': {
+                'type': 'object'
+            },
+            'trigger_instance': {
+                'type': 'object'
+            },
+            'action_execution': {
+                'type': 'object'
+            }
+        },
+        'required': ['rule', 'trigger_instance', 'action_execution'],
+        'additionalProperties': False
+    }

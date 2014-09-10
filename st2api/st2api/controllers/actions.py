@@ -108,6 +108,7 @@ class ActionsController(RestController):
             msg = 'RunnerType %s is not found.' % action.runner_type
             LOG.exception('%s. Exception: %s', msg, e)
             abort(http_client.NOT_FOUND, msg)
+            return
 
         # ActionsController._validate_action_parameters(action, runnertype_db)
         action_model = ActionAPI.to_model(action)
@@ -120,10 +121,12 @@ class ActionsController(RestController):
             LOG.warn('/actions/ POST unable to save ActionDB object "%s" due to uniqueness '
                      'conflict. %s', action_model, str(e))
             abort(http_client.CONFLICT, str(e))
+            return
         except Exception as e:
             LOG.exception('/actions/ POST unable to save ActionDB object "%s". %s',
                           action_model, e)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            return
 
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
 
@@ -172,6 +175,7 @@ class ActionsController(RestController):
             LOG.error('Database delete encountered exception during delete of id="%s". '
                       'Exception was %s', id, e)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            return
 
         LOG.audit('Action deleted. Action=%s', action_db)
         LOG.info('DELETE /actions/ with id="%s" completed', id)

@@ -1,10 +1,7 @@
-
 from mongoengine import ValidationError, NotUniqueError
 from pecan import abort
 from pecan.rest import RestController
 import six
-from wsme import types as wstypes
-import wsmeext.pecan as wsme_pecan
 
 from st2common import log as logging
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
@@ -71,10 +68,12 @@ class TriggerTypeController(RestController):
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for triggertype data=%s.', triggertype)
             abort(http_client.BAD_REQUEST, str(e))
+            return
         except NotUniqueError as e:
             LOG.warn('TriggerType creation of %s failed with uniqueness conflict. Exception : %s',
                      triggertype, str(e))
             abort(http_client.CONFLICT, str(e))
+            return
 
         LOG.audit('TriggerType created. TriggerType=%s', triggertype_db)
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
@@ -101,6 +100,7 @@ class TriggerTypeController(RestController):
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for triggertype data=%s', triggertype)
             abort(http_client.BAD_REQUEST, str(e))
+            return
 
         LOG.audit('TriggerType updated. TriggerType=%s and original TriggerType=%s',
                   triggertype_db, old_triggertype_db)
@@ -127,6 +127,8 @@ class TriggerTypeController(RestController):
             LOG.exception('Database delete encountered exception during delete of id="%s". ',
                           triggertype_id)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            return
+
         LOG.audit('TriggerType deleted. TriggerType=%s', triggertype_db)
 
     @staticmethod
@@ -196,10 +198,12 @@ class TriggerController(RestController):
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s.', trigger)
             abort(http_client.BAD_REQUEST, str(e))
+            return
         except NotUniqueError as e:
             LOG.warn('Trigger creation of %s failed with uniqueness conflict. Exception %s',
                      trigger, str(e))
             abort(http_client.CONFLICT, str(e))
+            return
 
         LOG.audit('Trigger created. Trigger=%s', trigger_db)
         trigger_api = TriggerAPI.from_model(trigger_db)
@@ -223,6 +227,7 @@ class TriggerController(RestController):
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s', trigger)
             abort(http_client.BAD_REQUEST, str(e))
+            return
 
         LOG.audit('Trigger updated. Trigger=%s and original Trigger=%s.', trigger_db)
         trigger_api = TriggerAPI.from_model(trigger_db)
@@ -247,6 +252,8 @@ class TriggerController(RestController):
             LOG.exception('Database delete encountered exception during delete of id="%s". ',
                           trigger_id)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            return
+
         LOG.audit('Trigger deleted. Trigger=%s', trigger_db)
 
     @staticmethod
@@ -272,7 +279,7 @@ class TriggerInstanceController(RestController):
         the lifecycle of TriggerInstances in the system.
     """
 
-    @wsme_pecan.wsexpose(TriggerInstanceAPI, wstypes.text)
+    @jsexpose(str)
     def get_one(self, id):
         """
             List triggerinstance by id.
@@ -287,13 +294,14 @@ class TriggerInstanceController(RestController):
         except (ValueError, ValidationError):
             LOG.exception('Database lookup for id="%s" resulted in exception.', id)
             abort(http_client.NOT_FOUND)
+            return
 
         trigger_instance_api = TriggerInstanceAPI.from_model(trigger_instance_db)
         LOG.debug('GET /triggerinstances/ with id=%s, client_result=%s', id, trigger_instance_api)
 
         return trigger_instance_api
 
-    @wsme_pecan.wsexpose([TriggerInstanceAPI], wstypes.text)
+    @jsexpose()
     def get_all(self):
         """
             List all triggerinstances.
