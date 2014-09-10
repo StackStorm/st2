@@ -47,5 +47,6 @@ install conf/logging.conf %{buildroot}/etc/st2common/logging.conf
 %files
 %{python2_sitelib}/st2common*
 %{python2_sitelib}/mirantis*
+/etc/st2common/*
 /etc/stanley/*
 /opt/stackstorm/*
