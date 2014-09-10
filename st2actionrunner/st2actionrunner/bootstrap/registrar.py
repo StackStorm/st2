@@ -1,18 +1,8 @@
-import glob
-import json
-
-from oslo.config import cfg
-
-from st2api.service import triggers as TriggerService
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RunnerTypeAPI
-from st2common.models.api.reactor import RuleAPI, TriggerAPI
-from st2common.persistence.action import (RunnerType, Action)
-from st2common.persistence.reactor import Rule
-from st2common.models.db.action import ActionDB
+from st2common.persistence.action import RunnerType
 from st2common.util.action_db import get_runnertype_by_name
-from st2common.util import reference
 
 
 LOG = logging.getLogger(__name__)
@@ -172,71 +162,3 @@ def register_runner_types():
             LOG.exception('Unable to register runner type %s.', runnertype['name'])
 
     LOG.info('End : register default RunnerTypes.')
-
-
-def register_actions():
-    actions = glob.glob(cfg.CONF.actions.modules_path + '/*.json')
-    for action in actions:
-        LOG.debug('Loading action from %s.', action)
-        with open(action, 'r') as fd:
-            try:
-                content = json.load(fd)
-            except ValueError:
-                LOG.exception('Unable to load action from %s.', action)
-                continue
-            try:
-                model = Action.get_by_name(str(content['name']))
-            except ValueError:
-                model = ActionDB()
-            model.name = content['name']
-            model.description = content['description']
-            model.enabled = content['enabled']
-            model.entry_point = content['entry_point']
-            model.parameters = content.get('parameters', {})
-            model.required_parameters = content.get('required_parameters', [])
-            try:
-                runner_type = get_runnertype_by_name(str(content['runner_type']))
-                model.runner_type = {'name': runner_type.name}
-            except StackStormDBObjectNotFoundError:
-                LOG.exception('Failed to register action %s as runner %s was not found',
-                              model.name, str(content['runner_type']))
-                continue
-            try:
-                model = Action.add_or_update(model)
-                LOG.audit('Action created. Action %s from %s.', model, action)
-            except Exception:
-                LOG.exception('Failed to create action %s.', model.name)
-
-
-def register_rules():
-    rules = glob.glob(cfg.CONF.rules.rules_path + '/*.json')
-    for rule in rules:
-        LOG.debug('Loading rule from %s.', rule)
-        with open(rule, 'r') as fd:
-            try:
-                content = json.load(fd)
-            except ValueError:
-                LOG.exception('Unable to load rule from %s.', rule)
-                continue
-            rule_api = RuleAPI(**content)
-            trigger_api = TriggerAPI(**rule_api.trigger)
-
-            rule_db = RuleAPI.to_model(rule_api)
-            trigger_db = TriggerService.create_trigger_db(trigger_api)
-
-            try:
-                rule_db.id = Rule.get_by_name(rule_api.name).id
-            except ValueError:
-                LOG.info('Rule %s not found. Creating new one.', rule)
-
-            rule_db.trigger = reference.get_ref_from_model(trigger_db)
-
-            try:
-                rule_db = Rule.add_or_update(rule_db)
-                LOG.audit('Rule updated. Rule %s from %s.', rule_db, rule)
-            except Exception:
-                LOG.exception('Failed to create rule %s.', rule_api.name)
-
-
-def init_model():
-    pass
