@@ -16,12 +16,10 @@ COMPONENTS := $(wildcard st2*)
 # in-component Makefile. (Temporary fix until I can generalize the pecan unittest setup. -mar)
 COMPONENT_SPECIFIC_TESTS := st2tests
 
-EXTERNAL_DIR := external
-
 # nasty hack to get a space into a variable
 space_char :=
 space_char +=
-COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS) $(EXTERNAL_DIR)))
+COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS)))
 COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS)),$(component)/tests)
 
 PYTHON_TARGET := 2.7
@@ -179,7 +177,6 @@ install:
 	@echo
 	pip install -r requirements.txt
 	cp -R st2*/st2* /usr/lib/python2.7/site-packages/
-	cp -R external/* /usr/lib/python2.7/site-packages/
 	mkdir -p /etc/stanley && cp conf/stanley.conf /etc/stanley/
 	$(foreach COM,$(filter-out st2common,$(COMPONENTS)),mkdir -p /etc/$(COM) && cp $(COM)/conf/* /etc/$(COM)/ && cp $(COM)/bin/* /usr/bin/;)
 	mkdir -p /etc/st2reactor/sensor/samples
