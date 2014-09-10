@@ -177,6 +177,12 @@ class RuleAPI(BaseAPI):
             'trigger': {
                 'type': 'object',
                 'properties': {
+                    'id': {
+                        'type': 'string'
+                    },
+                    'name': {
+                        'type': 'string'
+                    },
                     'type': {
                         'type': 'string'
                     },
@@ -206,8 +212,6 @@ class RuleAPI(BaseAPI):
         rule = cls._from_model(model)
         rule['trigger'] = vars(TriggerAPI.from_model(reference.get_model_from_ref(Trigger,
                                                                                   model.trigger)))
-        del rule['trigger']['id']
-        del rule['trigger']['name']
         for oldkey, value in six.iteritems(rule['criteria']):
             newkey = oldkey.replace(u'\u2024', '.')
             if oldkey != newkey:

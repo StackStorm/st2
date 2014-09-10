@@ -20,7 +20,7 @@ class RuleFilter(object):
         if criteria and not self.trigger_instance.payload:
             return False
 
-        transform = get_transformer(self.trigger_instance.payload)
+        transform = get_transformer(self.trigger_instance.payload, self.rule)
 
         for criterion_k in criteria.keys():
             criterion_v = criteria[criterion_k]
