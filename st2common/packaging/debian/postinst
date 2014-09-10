@@ -5,3 +5,7 @@ if [ -d /etc/stanley ]; then
   sed -i "s~vagrant~/home/stanley~g" /etc/stanley/stanley.conf
   sed -i "/modules_path/a system_path = /usr/lib/python2.7/dist-packages/st2reactor/contrib/sensors" /etc/stanley/stanley.conf
 fi
+
+if [ -d /etc/st2common ]; then
+  sed -i -r "s~logs~/var/log/stanley~g" /etc/st2common/logging.conf
+fi

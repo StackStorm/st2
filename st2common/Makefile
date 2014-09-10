@@ -9,7 +9,7 @@ COMPONENTS := st2common
 .PHONY: rpm
 rpm: 
 	pushd ~ && rpmdev-setuptree && popd
-	mkdir -p stanley && cp -Rf ../conf/* /stanley/
+	mkdir -p stanley && cp -Rf ../conf/* stanley/
 	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz bin conf stanley $(COMPONENTS) ../contrib ../external ../docs ../requirements.txt
 	cp packaging/rpm/$(COMPONENTS).spec $(RPM_SPECS_DIR)/
 	cd $(RPM_SPECS_DIR) && rpmbuild --clean --rmsource -ba $(COMPONENTS).spec
