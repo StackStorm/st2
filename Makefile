@@ -185,7 +185,7 @@ install:
 .PHONY: rpms
 rpms:
 	@echo
-	@echo "====================rpms===================="
+	@echo "====================rpm===================="
 	@echo
 	rm -Rf ~/rpmbuild
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make rpm; popd;)
@@ -194,7 +194,7 @@ rpms:
 .PHONY: debs
 debs:
 	@echo
-	@echo "====================debs===================="
+	@echo "====================deb===================="
 	@echo
 	rm -Rf ~/debbuild
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make deb; popd;)
