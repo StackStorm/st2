@@ -32,6 +32,7 @@ mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/var/log/stanley
 mkdir -p %{buildroot}/etc/stanley
 mkdir -p %{buildroot}/opt/stackstorm
+cp -R bin st2common/
 cp -R contrib/core/rules %{buildroot}/opt/stackstorm/
 cp -R contrib/core/sensors %{buildroot}/opt/stackstorm/
 cp -R contrib/core/actions %{buildroot}/opt/stackstorm/
