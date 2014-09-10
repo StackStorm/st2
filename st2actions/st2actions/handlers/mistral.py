@@ -2,7 +2,7 @@ import json
 import requests
 
 from st2common.models.api import action
-from st2actionrunner import handlers
+from st2actions import handlers
 from st2common import log as logging
 
 

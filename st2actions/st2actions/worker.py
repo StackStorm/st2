@@ -5,7 +5,7 @@ from kombu.mixins import ConsumerMixin
 from oslo.config import cfg
 from st2common import log as logging
 from st2common.transport import actionexecution, publishers
-from st2actionrunner.controllers import liveactions
+from st2actions.controllers import liveactions
 
 LOG = logging.getLogger(__name__)
 

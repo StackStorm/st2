@@ -8,7 +8,7 @@ from st2common.persistence.actionrunner import LiveAction
 from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict,
                                       update_actionexecution_status, get_runnertype_by_name)
 
-from st2actionrunner import container
+from st2actions import container
 
 
 LOG = logging.getLogger(__name__)

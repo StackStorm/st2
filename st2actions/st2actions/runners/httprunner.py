@@ -3,7 +3,7 @@ import uuid
 
 from oslo.config import cfg
 
-from st2actionrunner.runners import ActionRunner
+from st2actions.runners import ActionRunner
 from st2common import log as logging
 
 LOG = logging.getLogger(__name__)

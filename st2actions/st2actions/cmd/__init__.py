@@ -1,3 +1,3 @@
-from st2actionrunner.cmd import actionrunner
+from st2actions.cmd import actionrunner
 
 __all__ = ['actionrunner']

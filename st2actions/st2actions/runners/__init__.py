@@ -1,7 +1,7 @@
 import six
 import abc
 
-from st2actionrunner import handlers
+from st2actions import handlers
 from st2common import log as logging
 
 

@@ -7,8 +7,8 @@ from st2common.models.api.action import (ACTIONEXEC_STATUS_COMPLETE,
 
 from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
 
-from st2actionrunner.container import actionsensor
-from st2actionrunner.container.service import (RunnerContainerService)
+from st2actions.container import actionsensor
+from st2actions.container.service import (RunnerContainerService)
 import six
 
 

@@ -1,6 +1,6 @@
 import uuid
 
-from st2actionrunner.runners import ActionRunner
+from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.util.ssh import SSHClient
 from st2common.models.system.action import ParamikoSSHCommandAction

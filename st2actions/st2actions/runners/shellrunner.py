@@ -2,7 +2,7 @@ import os
 import shlex
 import subprocess
 
-from st2actionrunner.runners import ActionRunner
+from st2actions.runners import ActionRunner
 
 from st2common import log as logging
 

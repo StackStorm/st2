@@ -5,7 +5,7 @@ from fabric.api import (env, execute)
 
 from oslo.config import cfg
 
-from st2actionrunner.runners import ActionRunner
+from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.exceptions.actionrunner import (ActionRunnerPreRunError, ActionRunnerException)
 from st2common.exceptions.fabricrunner import FabricExecutionFailureException

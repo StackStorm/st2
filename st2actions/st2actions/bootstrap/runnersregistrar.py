@@ -49,7 +49,7 @@ def register_runner_types():
                     'type': 'string'
                 }
             },
-            'runner_module': 'st2actionrunner.runners.fabricrunner'
+            'runner_module': 'st2actions.runners.fabricrunner'
         },
         {
             'name': 'run-remote',
@@ -89,7 +89,7 @@ def register_runner_types():
                 }
             },
             'required_parameters': ['hosts'],
-            'runner_module': 'st2actionrunner.runners.fabricrunner'
+            'runner_module': 'st2actions.runners.fabricrunner'
         },
         {
             'name': 'http-runner',
@@ -118,7 +118,7 @@ def register_runner_types():
                 },
             },
             'required_parameters': ['url'],
-            'runner_module': 'st2actionrunner.runners.httprunner'
+            'runner_module': 'st2actions.runners.httprunner'
         },
         {
             'name': 'workflow',
@@ -139,7 +139,7 @@ def register_runner_types():
                     'default': {}
                 }
             },
-            'runner_module': 'st2actionrunner.runners.mistral'
+            'runner_module': 'st2actions.runners.mistral'
         }
     ]
 
