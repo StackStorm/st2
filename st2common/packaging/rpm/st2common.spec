@@ -24,7 +24,7 @@ An automation plaform that needs a much better description than this.
 sed -i -r "s~(st2.*)/conf~/etc/\1~g" stanley/stanley.conf
 sed -i -r "s~logs~/var/log/stanley~g" conf/logging.conf
 sed -i "/modules_path/a system_path = %{python2_sitelib}/st2reactor/contrib/sensors" stanley/stanley.conf
-sed -i "s/vagrant/stanley/g" stanley/stanley.conf
+sed -i "s~vagrant~/home/stanley~g" stanley/stanley.conf
 
 %install
 
