@@ -52,11 +52,11 @@ def _get_user_sensors():
     sensors_dict = defaultdict(list)
     pack_loader = ContentPackLoader()
     sensor_loader = SensorLoader()
-    dirs = pack_loader.get_content(base_dir=cfg.CONF.content.content_pack_path,
-                                   content_type='sensors')
-    for sensor_dir in dirs:
+    packs = pack_loader.get_content(base_dir=cfg.CONF.content.content_pack_path,
+                                    content_type='sensors')
+    for pack, sensor_dir in packs.items():
         try:
-            LOG.info('Loading sensors from: %s' % sensor_dir)
+            LOG.info('Loading sensors from pack: %s, dir: %s', sensor_dir)
             sensors_dict.update(sensor_loader.get_sensors(base_dir=os.path.realpath(sensor_dir)))
         except:
             LOG.exception('Failed loading sensors from dir: %s' % sensor_dir)

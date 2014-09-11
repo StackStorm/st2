@@ -48,18 +48,19 @@ class RunnerContainerService():
         logging.getLogger(__name__ + '.' + name)
 
     def get_artifact_repo_path(self):
-        return cfg.CONF.action_runner.artifact_repo_path
+        return cfg.CONF.content.content_pack_path
 
-    def get_artifact_working_dir(self, entry_point):
+    def get_artifact_working_dir(self, pack=None, entry_point=None):
         wkdir = self.get_artifact_repo_path()
         entry_point_path = os.path.split(entry_point)[0]
         if not entry_point_path:
             return wkdir
-        wkdir = os.path.join(wkdir, entry_point_path)
+        wkdir = os.path.join(wkdir, pack, entry_point_path)
         return wkdir
 
-    def get_entry_point_abs_path(self, entry_point):
-        return os.path.join(self.get_artifact_repo_path(), pipes.quote(entry_point))
+    def get_entry_point_abs_path(self, pack=None, entry_point=None):
+        return os.path.join(self.get_artifact_repo_path(), pipes.quote(pack),
+                            pipes.quote(entry_point))
 
     def __str__(self):
         result = []
