@@ -2,6 +2,7 @@ import glob
 import json
 
 from oslo.config import cfg
+import six
 
 from st2common import log as logging
 from st2common.content.loader import ContentPackLoader
@@ -59,7 +60,7 @@ def _register_actions_from_packs(base_dir):
     pack_loader = ContentPackLoader()
     dirs = pack_loader.get_content(base_dir=base_dir,
                                    content_type='actions')
-    for pack, actions_dir in dirs.items():
+    for pack, actions_dir in six.iteritems(dirs):
         try:
             actions = _get_actions_from_pack(actions_dir)
             _register_actions_from_pack(pack, actions)

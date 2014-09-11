@@ -3,6 +3,7 @@ import os
 import sys
 
 from oslo.config import cfg
+import six
 
 from st2common import log as logging
 from st2common.content.loader import ContentPackLoader
@@ -54,9 +55,9 @@ def _get_user_sensors():
     sensor_loader = SensorLoader()
     packs = pack_loader.get_content(base_dir=cfg.CONF.content.content_pack_path,
                                     content_type='sensors')
-    for pack, sensor_dir in packs.items():
+    for pack, sensor_dir in six.iteritems(packs):
         try:
-            LOG.info('Loading sensors from pack: %s, dir: %s', sensor_dir)
+            LOG.info('Loading sensors from pack: %s, dir: %s', pack, sensor_dir)
             sensors_dict.update(sensor_loader.get_sensors(base_dir=os.path.realpath(sensor_dir)))
         except:
             LOG.exception('Failed loading sensors from dir: %s' % sensor_dir)
