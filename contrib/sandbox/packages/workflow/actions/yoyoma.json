@@ -3,6 +3,7 @@
     "runner_type": "workflow",
     "description": "Yo to friend!",
     "enabled": true,
+    "content_pack": "workflow",
     "entry_point":"yoyoma/yo.yaml",
     "parameters": {
         "workbook": {

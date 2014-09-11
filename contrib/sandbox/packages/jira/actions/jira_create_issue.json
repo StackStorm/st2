@@ -3,6 +3,7 @@
     "runner_type": "run-local",
     "description": "Create JIRA issue action.",
     "enabled": true,
+    "content_pack": "jira",
     "entry_point": "jira/create_issue.py",
     "parameters": {
         "jira_server": {
