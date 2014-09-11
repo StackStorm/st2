@@ -19,6 +19,7 @@ ACTION.description = ''
 ACTION.enabled = True
 ACTION.artifact_path = '/tmp/action.py'
 ACTION.entry_point = ''
+ACTION.content_pack = 'sixpack'
 ACTION.runner_type = None
 ACTION.parameter_names = {'p1': None, 'p2': None, 'p3': None}
 

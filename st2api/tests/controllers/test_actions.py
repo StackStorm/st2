@@ -13,6 +13,7 @@ ACTION_1 = {
     'name': 'st2.dummy.action1',
     'description': 'test description',
     'enabled': True,
+    'content_pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -26,6 +27,7 @@ ACTION_2 = {
     'name': 'st2.dummy.action2',
     'description': 'test description',
     'enabled': True,
+    'content_pack': 'wolfpack',
     'entry_point': '/tmp/test/action2.py',
     'runner_type': 'run-local',
     'parameters': {
@@ -38,6 +40,7 @@ ACTION_2 = {
 ACTION_3 = {
     'name': 'st2.dummy.action3',
     'description': 'test description',
+    'content_pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -51,6 +54,7 @@ ACTION_4 = {
     'name': 'st2.dummy.action4',
     'description': 'test description',
     'enabled': False,
+    'content_pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -64,6 +68,7 @@ ACTION_5 = {
     'name': 'st2.dummy.action5',
     'description': 'test description',
     'enabled': False,
+    'content_pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'xyzxyz',
     'parameters': {
@@ -76,6 +81,7 @@ ACTION_5 = {
 ACTION_6 = {
     'name': 'st2.dummy.action6',
     'enabled': False,
+    'content_pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -90,6 +96,7 @@ ACTION_7 = {
     'name': 'st2.dummy.action7',
     'description': 'test description',
     'enabled': False,
+    'content_pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -103,6 +110,7 @@ ACTION_8 = {
     'name': 'st2.dummy.action8',
     'description': 'test description',
     'enabled': True,
+    'content_pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
