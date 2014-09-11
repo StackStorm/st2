@@ -15,7 +15,7 @@ class ContentPackLoader(object):
         if content_type not in self._allowed_content_types:
             raise Exception('Unknown content type %s.' % content_type)
 
-        content = []
+        content = {}
         for pack in os.listdir(base_dir):
             pack_dir = os.path.join(base_dir, pack)
             new_content = None
@@ -29,7 +29,7 @@ class ContentPackLoader(object):
             except:
                 continue
             else:
-                content.append(new_content)
+                content[pack] = new_content
 
         return content
 

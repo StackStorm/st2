@@ -352,6 +352,7 @@ class ActionModelTest(DbTestCase):
         created.description = 'awesomeness'
         created.enabled = True
         created.entry_point = '/tmp/action.py'
+        created.content_pack = 'wolfpack'
         created.runner_type = {'name': runnertype.name}
         if not metadata:
             created.parameters = {'p1': None, 'p2': None, 'p3': None}

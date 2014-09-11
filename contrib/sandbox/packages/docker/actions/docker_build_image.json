@@ -3,6 +3,7 @@
     "runner_type": "run-remote",
     "description": "Build docker image action. Equivalent to docker build.",
     "enabled": true,
+    "content_pack": "docker",
     "entry_point": "docker/docker_build_image.py",
     "parameters": {
         "dockerfile_path": {

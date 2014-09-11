@@ -102,7 +102,8 @@ class FabricRunner(ActionRunner):
                                   sudo=self._sudo)
 
     def _get_fabric_remote_script_action(self, action_parameters):
-        script_local_path_abs = self.container_service.get_entry_point_abs_path(self.entry_point)
+        script_local_path_abs = self.container_service.get_entry_point_abs_path(
+            pack=self.action.content_pack, entry_point=self.action.entry_point)
         positional_args = self.runner_parameters.get(RUNNER_COMMAND, '')
         remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
                                                 cfg.CONF.ssh_runner.remote_dir)

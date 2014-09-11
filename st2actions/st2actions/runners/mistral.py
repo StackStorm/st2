@@ -33,7 +33,8 @@ class MistralRunner(ActionRunner):
         workbook = next((w for w in client.workbooks.list() if w.name == self.action.name), None)
         if not workbook:
             client.workbooks.create(self.action.name, description=self.action.description)
-        workbook_file = cfg.CONF.actions.modules_path + '/' + self.action.entry_point
+        workbook_file = self.container_service.get_entry_point_abs_path(
+            pack=self.action.content_pack, entry_point=self.action.entry_point)
         with open(workbook_file, 'r') as workbook_spec:
             definition = workbook_spec.read()
             try:

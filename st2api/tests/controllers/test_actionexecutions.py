@@ -14,6 +14,7 @@ ACTION_1 = {
     'description': 'test description',
     'enabled': True,
     'entry_point': '/tmp/test/action1.sh',
+    'content_pack': 'sixpack',
     'runner_type': 'run-remote',
     'parameters': {
         'a': {
@@ -32,6 +33,7 @@ ACTION_2 = {
     'description': 'another test description',
     'enabled': True,
     'entry_point': '/tmp/test/action2.sh',
+    'content_pack': 'familypack',
     'runner_type': 'run-remote',
     'parameters': {
         'c': {
@@ -54,6 +56,7 @@ ACTION_3 = {
     'description': 'another test description',
     'enabled': True,
     'entry_point': '/tmp/test/action3.sh',
+    'content_pack': 'wolfpack',
     'runner_type': 'run-remote',
     'parameters': {
         'e': {},

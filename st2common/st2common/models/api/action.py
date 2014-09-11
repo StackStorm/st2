@@ -130,6 +130,10 @@ class ActionAPI(BaseAPI):
                 "description": "The entry point for the action.",
                 "type": "string"
             },
+            "content_pack": {
+                "description": "The content pack this action belongs to.",
+                "type": "string"
+            },
             "parameters": {
                 "description": "Input parameters for the action.",
                 "type": "object",
@@ -169,6 +173,7 @@ class ActionAPI(BaseAPI):
         model = super(cls, cls).to_model(action)
         model.enabled = bool(action.enabled)
         model.entry_point = str(action.entry_point)
+        model.content_pack = str(action.content_pack)
         model.runner_type = {'name': str(action.runner_type)}
         model.parameters = getattr(action, 'parameters', dict())
         model.required_parameters = getattr(action, 'required_parameters', list())

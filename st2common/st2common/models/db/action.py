@@ -59,6 +59,9 @@ class ActionDB(StormBaseDB):
     entry_point = me.StringField(
         required=True,
         help_text='The entry point to the action.')
+    content_pack = me.StringField(
+        required=True,
+        help_text='Name of the content pack.')
     runner_type = me.DictField(
         required=True, default={},
         help_text='The action runner to use for executing the action.')

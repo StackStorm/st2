@@ -55,7 +55,8 @@ class ShellRunner(ActionRunner):
         # the relative path from the artifact repo path to the script to be
         # executed. The working directory is the absolute path to the location
         # of the script.
-        self._workingdir = self.container_service.get_artifact_working_dir(self.entry_point)
+        self._workingdir = self.container_service.get_artifact_working_dir(
+            pack=self.action.content_pack, entry_point=self.entry_point)
 
     def run(self, action_parameters):
         """
