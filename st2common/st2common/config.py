@@ -41,6 +41,12 @@ def register_opts():
     ]
     cfg.CONF.register_opts(rules_opts, group='rules')
 
+    messaging_opts = [
+        cfg.StrOpt('url', default='amqp://guest:guest@localhost:5672//',
+                   help='URL of the messaging server.')
+    ]
+    cfg.CONF.register_opts(messaging_opts, group='messaging')
+
 
 def parse_args(args=None):
     register_opts()

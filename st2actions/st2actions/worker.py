@@ -22,7 +22,7 @@ class Worker(ConsumerMixin):
 
     def get_consumers(self, Consumer, channel):
         return [Consumer(queues=[ACTIONRUNNER_WORK_Q],
-                         accept=['json'],
+                         accept=['pickle'],
                          callbacks=[self.process_task])]
 
     def process_task(self, body, message):
@@ -31,7 +31,7 @@ class Worker(ConsumerMixin):
         # LOG.debug('     message.properties: %s', message.properties)
         # LOG.debug('     message.delivery_info: %s', message.delivery_info)
         try:
-            self.controller.execute_action(json.loads(str(body)))
+            self.controller.execute_action(body)
         except:
             LOG.exception('execute_action failed. Message body : %s', body)
         finally:
