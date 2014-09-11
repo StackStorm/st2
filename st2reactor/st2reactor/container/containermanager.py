@@ -1,29 +1,33 @@
 import os
 
+from oslo.config import cfg
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.models.db.reactor import TriggerDB
 from st2common.persistence.reactor import Trigger
-from st2common.util import watch
 from st2reactor.container.base import SensorContainer
 from st2reactor.container.containerservice import ContainerService
+from st2reactor.container.triggerwatcher import TriggerWatcher
 import st2reactor.container.utils as container_utils
 import six
 
-LOG = logging.getLogger('st2reactor.container.container_manager')
+LOG = logging.getLogger(__name__)
 
 
 class SensorContainerManager(object):
     # TODO: Load balancing for sensors.
-    # TODO: OpLog watcher should be refactored.
     def __init__(self, max_containers=10):
         self._max_containers = max_containers
+        self._trigger_names = {}
+        self._trigger_sensors = {}
+        self._trigger_watcher = TriggerWatcher(self._create_handler,
+                                               self._update_handler,
+                                               self._delete_handler)
 
     def run_sensors(self, sensors_dict):
         LOG.info('Setting up container to run %d sensors.', len(sensors_dict))
         container_service = ContainerService()
         sensors_to_run = []
-        trigger_sensors = {}
         for filename, sensors in six.iteritems(sensors_dict):
             for sensor_class in sensors:
                 try:
@@ -46,56 +50,60 @@ class SensorContainerManager(object):
                     continue
 
                 for t in trigger_types:
-                    trigger_sensors[t['name']] = sensor
+                    self._trigger_sensors[t['name']] = sensor
 
                 sensors_to_run.append(sensor)
 
-        trigger_names = {}
-
         for trigger in Trigger.get_all():
-            doc = dict(trigger.to_mongo())
-            name = trigger.type['name']
+            self._create_handler(trigger)
 
-            trigger_names[trigger.id] = doc
-            if name in trigger_sensors:
-                trigger_sensors[name].add_trigger(doc)
-
-        def _watch_insert(ns, ts, op, id, doc):
-            name = doc['type']['name']
-            parameters = doc['parameters']
-
-            trigger_names[doc['_id']] = doc
-            try:
-                trigger_sensors[name].add_trigger(doc)
-            except KeyError as e:
-                if parameters:
-                    LOG.warning('Unable to create a trigger %s with parameters %s.'
-                                + ' Exception: %s', name, parameters, e, exc_info=True)
-
-        def _watch_update(ns, ts, op, id, doc):
-            name = doc['type']['name']
-            parameters = doc['parameters']
-
-            trigger_names[doc['_id']] = doc
-            try:
-                trigger_sensors[name].update_trigger(doc)
-            except KeyError as e:
-                if parameters:
-                    LOG.warning('Unable to update a trigger %s with parameters %s.'
-                                + ' Exception: %s', name, parameters, e, exc_info=True)
-
-        def _watch_delete(ns, ts, op, id, doc):
-            doc = trigger_names[doc['_id']]
-            name = doc['type']['name']
-
-            trigger_sensors[name].remove_trigger(doc)
-
+        self._trigger_watcher.start()
         LOG.info('Watcher started.')
-        watcher = watch.get_watcher()
-        watcher.watch(_watch_insert, TriggerDB, watch.INSERT)
-        watcher.watch(_watch_update, TriggerDB, watch.UPDATE)
-        watcher.watch(_watch_delete, TriggerDB, watch.DELETE)
 
         LOG.info('SensorContainer process[%s] started.', os.getpid())
         sensor_container = SensorContainer(sensor_instances=sensors_to_run)
-        return sensor_container.run()
+        try:
+            return sensor_container.run()
+        finally:
+            self._trigger_watcher.stop()
+
+    def _create_handler(self, trigger):
+        name = trigger.type['name']
+        parameters = trigger.parameters
+
+        self._trigger_names[str(trigger.id)] = trigger
+        try:
+            self._trigger_sensors[name].add_trigger(
+                SensorContainerManager.sanitize_trigger(trigger))
+        except KeyError as e:
+            if parameters:
+                LOG.warning('Unable to create a trigger %s with parameters %s.'
+                            + ' Exception: %s', name, parameters, e, exc_info=True)
+
+    def _update_handler(self, trigger):
+        name = trigger.type['name']
+        parameters = trigger.parameters
+
+        self._trigger_names[str(trigger.id)] = trigger
+        try:
+            self._trigger_sensors[name].update_trigger(
+                SensorContainerManager.sanitize_trigger(trigger))
+        except KeyError as e:
+            if parameters:
+                LOG.warning('Unable to update a trigger %s with parameters %s.'
+                            + ' Exception: %s', name, parameters, e, exc_info=True)
+
+    def _delete_handler(self, trigger):
+        doc = self._trigger_names[str(trigger.id)]
+        name = trigger.type['name']
+
+        self._trigger_sensors[name].remove_trigger(
+            SensorContainerManager.sanitize_trigger(trigger))
+
+    @staticmethod
+    def sanitize_trigger(trigger):
+        sanitized = trigger._data
+        if 'id' in sanitized:
+            # Friendly objectid rather than the MongoEngine representation.
+            sanitized['id'] = str(sanitized['id'])
+        return sanitized
