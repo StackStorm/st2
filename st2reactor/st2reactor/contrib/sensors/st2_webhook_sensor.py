@@ -38,7 +38,7 @@ class St2WebhookSensor(object):
     jsonschema = flask_jsonschema.JsonSchema(_app)
 
     @_app.errorhandler(flask_jsonschema.ValidationError)
-    def on_validation_error(self, e):
+    def on_validation_error(e):
         data = {'error': str(e)}
         js = jsonify(data)
         return js, http_client.BAD_REQUEST

@@ -4,6 +4,9 @@ Configuration options registration and useful routines.
 
 from oslo.config import cfg
 
+import st2common.config as common_config
+common_config.register_opts()
+
 CONF = cfg.CONF
 
 logging_opts = [
@@ -18,12 +21,6 @@ db_opts = [
     cfg.StrOpt('db_name', default='st2', help='name of database')
 ]
 CONF.register_opts(db_opts, group='database')
-
-messaging_opts = [
-    cfg.StrOpt('url', default='librabbitmq://guest:guest@localhost:5672//',
-               help='URL of the messaging server.')
-]
-CONF.register_opts(messaging_opts, group='messaging')
 
 use_debugger = cfg.BoolOpt(
     'use-debugger', default=True,

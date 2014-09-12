@@ -1,24 +1,18 @@
 import datetime
-import eventlet
 import json
 import jsonschema
 import pecan
 from pecan import abort
 from pecan.rest import RestController
 import six
-import Queue
-
-from oslo.config import cfg
 
 from st2common import log as logging
 from st2common.models.base import jsexpose
 from st2common.persistence.action import ActionExecution
 from st2common.models.api.action import (ActionExecutionAPI,
                                          ACTIONEXEC_STATUS_INIT,
-                                         ACTIONEXEC_STATUS_SCHEDULED,
-                                         ACTIONEXEC_STATUS_ERROR)
+                                         ACTIONEXEC_STATUS_SCHEDULED)
 from st2common.util import schema as util_schema
-from st2common import transport
 from st2common.util.action_db import (get_action_by_dict, update_actionexecution_status,
                                       get_runnertype_by_name)
 
@@ -36,38 +30,6 @@ class ActionExecutionsController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of ActionExecutions in the system.
     """
-
-    def __init__(self, live_actions_pool_size=50):
-        self.live_actions_pool_size = live_actions_pool_size
-        self._live_actions_pool = eventlet.GreenPool(self.live_actions_pool_size)
-        self._threads = {}
-        self._live_actions = Queue.Queue()
-        self._live_actions_monitor_thread = eventlet.greenthread.spawn(self._drain_live_actions)
-        self._monitor_thread_empty_q_sleep_time = MONITOR_THREAD_EMPTY_Q_SLEEP_TIME
-        self._monitor_thread_no_workers_sleep_time = MONITOR_THREAD_NO_WORKERS_SLEEP_TIME
-        self._publisher = transport.actionexecution.ActionExecutionPublisher(
-            cfg.CONF.messaging.url)
-
-    def _issue_liveaction_post(self, actionexec_id):
-        """
-            Launch the ActionExecution specified by actionexec_id by performing
-            a POST against the /liveactions/ http endpoint.
-        """
-
-        payload = self._create_liveaction_data(actionexec_id)
-        LOG.info('Issuing /liveactions/ POST data=%s', payload)
-        request_error = False
-        result = None
-        try:
-            self._publisher.publish_create(json.dumps(payload))
-        except Exception:
-            LOG.exception('Unable to publish to exchange.')
-            request_error = True
-
-        LOG.debug('/liveactions/ POST request result: status: %s body: %s', result,
-                  result.text if result else None)
-
-        return (result, request_error)
 
     @staticmethod
     def __get_by_id(id):
@@ -206,30 +168,13 @@ class ActionExecutionsController(RestController):
         actionexec_db = ActionExecutionAPI.to_model(actionexecution)
         actionexec_db = ActionExecution.add_or_update(actionexec_db)
         LOG.audit('ActionExecution created. ActionExecution=%s. ', actionexec_db)
-
         actionexec_id = actionexec_db.id
-        try:
-            LOG.debug('Adding action exec id: %s to live actions queue.', )
-            self._live_actions.put(actionexec_id, block=True, timeout=1)
-        except Exception as e:
-            LOG.exception('Aborting /actionexecutions/ POST operation for id: %s.', actionexec_id)
-            actionexec_status = ACTIONEXEC_STATUS_ERROR
-            actionexec_db = update_actionexecution_status(actionexec_status,
-                                                          actionexec_id=actionexec_id)
-            actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
-            error = 'Failed to kickoff live action for id: %s, exception: %s' % (actionexec_id,
-                                                                                 str(e))
-            LOG.audit('ActionExecution failed. ActionExecution=%s error=%s', actionexec_db, error)
-            abort(http_client.INTERNAL_SERVER_ERROR, error)
-            return
-        else:
-            actionexec_status = ACTIONEXEC_STATUS_SCHEDULED
-            actionexec_db = update_actionexecution_status(actionexec_status,
-                                                          actionexec_id=actionexec_id)
-            self._kickoff_live_actions()
-            actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
-            LOG.debug('POST /actionexecutions/ client_result=%s', actionexec_api)
-            return actionexec_api
+        actionexec_status = ACTIONEXEC_STATUS_SCHEDULED
+        actionexec_db = update_actionexecution_status(actionexec_status,
+                                                      actionexec_id=actionexec_id)
+        actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
+        LOG.debug('POST /actionexecutions/ client_result=%s', actionexec_api)
+        return actionexec_api
 
     @jsexpose(str, body=ActionExecutionAPI)
     def put(self, id, actionexecution):
@@ -243,18 +188,3 @@ class ActionExecutionsController(RestController):
         actionexec_db = ActionExecution.add_or_update(actionexec_db)
         actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
         return actionexec_api
-
-    def _kickoff_live_actions(self):
-        if self._live_actions_pool.free() <= 0:
-            return
-        while not self._live_actions.empty() and self._live_actions_pool.free() > 0:
-            action_exec_id = self._live_actions.get_nowait()
-            self._live_actions_pool.spawn(self._issue_liveaction_post, action_exec_id)
-
-    def _drain_live_actions(self):
-        while True:
-            while self._live_actions.empty():
-                eventlet.greenthread.sleep(self._monitor_thread_empty_q_sleep_time)
-            while self._live_actions_pool.free() <= 0:
-                eventlet.greenthread.sleep(self._monitor_thread_no_workers_sleep_time)
-            self._kickoff_live_actions()

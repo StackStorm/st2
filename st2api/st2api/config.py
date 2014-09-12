@@ -13,7 +13,7 @@ def _register_common_opts():
     common_config.register_opts()
 
 
-def _register_actions_opts():
+def _register_api_opts():
     api_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='StackStorm Robotinator API server host'),
         cfg.IntOpt('port', default=9101, help='StackStorm Robotinator API server port')
@@ -40,12 +40,6 @@ def _register_actions_opts():
     ]
     CONF.register_opts(logging_opts, group='api_logging')
 
-    messaging_opts = [
-        cfg.StrOpt('url', default='librabbitmq://guest:guest@localhost:5672//',
-                   help='URL of the messaging server.')
-    ]
-    CONF.register_opts(messaging_opts, group='messaging')
-
     use_debugger = cfg.BoolOpt(
         'use-debugger', default=True,
         help='Enables debugger. Note that using this option changes how the '
@@ -56,12 +50,12 @@ def _register_actions_opts():
 
 
 def regsiter_opts():
-    _register_actions_opts()
     _register_common_opts()
-
-
-regsiter_opts()
+    _register_api_opts()
 
 
 def parse_args(args=None):
     CONF(args=args)
+
+
+regsiter_opts()

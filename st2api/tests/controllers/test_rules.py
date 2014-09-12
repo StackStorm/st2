@@ -1,7 +1,9 @@
+import mock
 import six
 from st2common.persistence.action import Action, RunnerType
 from st2common.persistence.reactor import Trigger
 from st2common.models.db import action, reactor
+from st2common.transport.publishers import PoolPublisher
 from tests import FunctionalTest
 
 http_client = six.moves.http_client
@@ -55,6 +57,7 @@ RULE_1 = {
 
 class TestRuleController(FunctionalTest):
 
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def setUp(self):
         RUNNER_TYPE.id = None
         RunnerType.add_or_update(RUNNER_TYPE)
@@ -64,6 +67,7 @@ class TestRuleController(FunctionalTest):
         TRIGGER.id = None
         Trigger.add_or_update(TRIGGER)
 
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def tearDown(self):
         Action.delete(ACTION)
         RunnerType.delete(RUNNER_TYPE)
@@ -125,11 +129,14 @@ class TestRuleController(FunctionalTest):
     def __do_get_one(self, rule_id):
         return self.app.get('/rules/%s' % rule_id, expect_errors=True)
 
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def __do_post(self, rule):
         return self.app.post_json('/rules', rule, expect_errors=True)
 
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def __do_put(self, rule_id, rule):
         return self.app.put_json('/rules/%s' % rule_id, rule, expect_errors=True)
 
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def __do_delete(self, rule_id):
         return self.app.delete('/rules/%s' % rule_id)

@@ -51,7 +51,6 @@ class St2GenericWebhooksSensor(object):
         @self._app.route(urljoin(BASE_URL, '<path:url>'), methods=['POST'])
         def _handle_webhook(url):
             webhook_body = request.get_json()
-
             try:
                 trigger = self._hooks[url]
             except KeyError:
@@ -97,10 +96,11 @@ class St2GenericWebhooksSensor(object):
         del self._hooks[url]
 
     def get_trigger_types(self):
+        sampleurl = 'http://<stanley-host>:%s%s.' % (str(self._port), BASE_URL)
         return [{
             'name': 'st2.webhook',
             'description': 'Relays a Trigger POSTed to the supplied URL. The supplied url is used '
-                           'as a suffix of http://<stanley-host>:%s/{URL}.' % str(self._port),
+                           'as a suffix of %s.' % sampleurl,
             'payload_schema': PAYLOAD_SCHEMA,
             'parameters_schema': PARAMETERS_SCHEMA
         }]

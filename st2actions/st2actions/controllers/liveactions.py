@@ -19,14 +19,14 @@ class LiveActionsController():
     def __init__(self):
         self.container = container.get_runner_container()
 
-    def execute_action(self, liveaction_dict):
+    def execute_action(self, actionexecution):
         """
             Create a new LiveAction.
 
             Handles requests:
                 POST /liveactions/
         """
-        liveaction = LiveActionAPI(**liveaction_dict)
+        liveaction = LiveActionAPI(**{'actionexecution_id': str(actionexecution.id)})
         LOG.info('execute_action with data=%s', liveaction)
 
         # To launch a LiveAction we need:

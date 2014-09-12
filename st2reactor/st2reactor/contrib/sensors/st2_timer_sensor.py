@@ -157,10 +157,11 @@ class St2TimerSensor(object):
         self._add_job_to_scheduler(trigger)
 
     def update_trigger(self, trigger):
-        pass
+        self.remove_trigger(trigger)
+        self.add_trigger(trigger)
 
     def remove_trigger(self, trigger):
-        id = trigger['_id']
+        id = trigger['id']
 
         try:
             job_id = self._jobs[id]
@@ -214,7 +215,7 @@ class St2TimerSensor(object):
                                           args=[trigger],
                                           replace_existing=replace)
             self._log.info('Job %s scheduled.', job.id)
-            self._jobs[trigger['_id']] = job.id
+            self._jobs[trigger['id']] = job.id
         except Exception as e:
             self._log.error('Exception scheduling timer: %s, %s',
                             trigger['parameters'], e, exc_info=True)

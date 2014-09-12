@@ -34,7 +34,7 @@ def __setup_config_opts():
     __register_opts(pecan_opts, group='api_pecan')
 
     messaging_opts = [
-        cfg.StrOpt('url', default='librabbitmq://guest:guest@localhost:5672//',
+        cfg.StrOpt('url', default='amqp://guest:guest@localhost:5672//',
                    help='URL of the messaging server.')
     ]
     __register_opts(messaging_opts, group='messaging')

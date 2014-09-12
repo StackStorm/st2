@@ -1,43 +1,52 @@
+from oslo.config import cfg
+from st2common import transport
 from st2common.persistence import Access
 from st2common.models.db.reactor import triggertype_access, trigger_access, triggerinstance_access,\
     rule_access, ruleenforcement_access
 
 
 class TriggerType(Access):
-    IMPL = triggertype_access
+    impl = triggertype_access
 
     @classmethod
     def _get_impl(kls):
-        return kls.IMPL
+        return kls.impl
 
 
 class Trigger(Access):
-    IMPL = trigger_access
+    impl = trigger_access
+    publisher = None
 
     @classmethod
     def _get_impl(kls):
-        return kls.IMPL
+        return kls.impl
+
+    @classmethod
+    def _get_publisher(kls):
+        if not kls.publisher:
+            kls.publisher = transport.reactor.TriggerPublisher(cfg.CONF.messaging.url)
+        return kls.publisher
 
 
 class TriggerInstance(Access):
-    IMPL = triggerinstance_access
+    impl = triggerinstance_access
 
     @classmethod
     def _get_impl(kls):
-        return kls.IMPL
+        return kls.impl
 
 
 class Rule(Access):
-    IMPL = rule_access
+    impl = rule_access
 
     @classmethod
     def _get_impl(kls):
-        return kls.IMPL
+        return kls.impl
 
 
 class RuleEnforcement(Access):
-    IMPL = ruleenforcement_access
+    impl = ruleenforcement_access
 
     @classmethod
     def _get_impl(kls):
-        return kls.IMPL
+        return kls.impl
