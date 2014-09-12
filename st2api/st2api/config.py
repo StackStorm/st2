@@ -13,7 +13,7 @@ def _register_common_opts():
     common_config.register_opts()
 
 
-def _register_api_opts():
+def _register_app_opts():
     api_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='StackStorm Robotinator API server host'),
         cfg.IntOpt('port', default=9101, help='StackStorm Robotinator API server port')
@@ -51,7 +51,7 @@ def _register_api_opts():
 
 def regsiter_opts():
     _register_common_opts()
-    _register_api_opts()
+    _register_app_opts()
 
 
 def parse_args(args=None):
