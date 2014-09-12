@@ -2,9 +2,11 @@ import glob
 import json
 
 from oslo.config import cfg
+import six
 
 from st2api.service import triggers as TriggerService
 from st2common import log as logging
+from st2common.content.loader import ContentPackLoader
 from st2common.models.api.reactor import RuleAPI, TriggerAPI
 from st2common.persistence.reactor import Rule
 from st2common.util import reference
@@ -12,8 +14,11 @@ from st2common.util import reference
 LOG = logging.getLogger(__name__)
 
 
-def register_rules():
-    rules = glob.glob(cfg.CONF.rules.rules_path + '/*.json')
+def _get_rules_from_pack(pack):
+    return glob.glob(pack + '/*.json')
+
+
+def _register_rules_from_pack(pack, rules):
     for rule in rules:
         LOG.debug('Loading rule from %s.', rule)
         try:
@@ -43,3 +48,20 @@ def register_rules():
                     LOG.exception('Failed to create rule %s.', rule_api.name)
         except:
             LOG.exception('Failed registering rule from %s.', rule)
+
+
+def _register_rules_from_packs(base_dir):
+    pack_loader = ContentPackLoader()
+    dirs = pack_loader.get_content(base_dir=base_dir,
+                                   content_type='rules')
+    for pack, rules_dir in six.iteritems(dirs):
+        try:
+            LOG.info('Registering rules from pack: %s', pack)
+            rules = _get_rules_from_pack(rules_dir)
+            _register_rules_from_pack(pack, rules)
+        except:
+            LOG.exception('Failed registering all rules from pack: %s', rules_dir)
+
+
+def register_rules():
+    return _register_rules_from_packs(cfg.CONF.content.content_pack_path)
