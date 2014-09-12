@@ -1,11 +1,13 @@
 import glob
 import json
+import os
 
 from oslo.config import cfg
 import six
 
 from st2common import log as logging
 from st2common.content.loader import ContentPackLoader
+from st2common.content.requirementsvalidator import RequirementsValidator
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.models.db.action import ActionDB
@@ -54,6 +56,21 @@ def _register_actions_from_pack(pack, actions):
                 LOG.audit('Action created. Action %s from %s.', model, action)
             except Exception:
                 LOG.exception('Failed to create action %s.', model.name)
+
+
+# XXX: Requirements for actions is tricky because actions can execute remotely.
+# Currently, this method is unused.
+def _is_requirements_ok(actions_dir):
+    rqmnts_file = os.path.join(actions_dir, 'requirements.txt')
+
+    if not os.path.exists(rqmnts_file):
+        return True
+
+    missing = RequirementsValidator.validate(rqmnts_file)
+    if missing:
+        LOG.warning('Actions in %s missing dependencies: %s', actions_dir, ','.join(missing))
+        return False
+    return True
 
 
 def _register_actions_from_packs(base_dir):

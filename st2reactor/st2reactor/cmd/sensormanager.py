@@ -7,6 +7,7 @@ import six
 
 from st2common import log as logging
 from st2common.content.loader import ContentPackLoader
+from st2common.content.requirementsvalidator import RequirementsValidator
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2reactor import config
@@ -49,6 +50,19 @@ def _is_single_sensor_mode():
             return True
 
 
+def _is_requirements_ok(sensor_dir):
+    rqmnts_file = os.path.join(sensor_dir, 'requirements.txt')
+
+    if not os.path.exists(rqmnts_file):
+        return True
+
+    missing = RequirementsValidator.validate(rqmnts_file)
+    if missing:
+        LOG.warning('Sensors in %s missing dependencies: %s', sensor_dir, ','.join(missing))
+        return False
+    return True
+
+
 def _get_user_sensors():
     sensors_dict = defaultdict(list)
     pack_loader = ContentPackLoader()
@@ -58,7 +72,11 @@ def _get_user_sensors():
     for pack, sensor_dir in six.iteritems(packs):
         try:
             LOG.info('Loading sensors from pack: %s, dir: %s', pack, sensor_dir)
-            sensors_dict.update(sensor_loader.get_sensors(base_dir=os.path.realpath(sensor_dir)))
+            if _is_requirements_ok(sensor_dir):
+                sensors_dict.update(sensor_loader.get_sensors(
+                    base_dir=os.path.realpath(sensor_dir)))
+            else:
+                LOG.warning('Not registering sensors in sensor_dir: %s.', sensor_dir)
         except:
             LOG.exception('Failed loading sensors from dir: %s' % sensor_dir)
     return sensors_dict
