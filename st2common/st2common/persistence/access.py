@@ -4,8 +4,16 @@ from st2common.models.db.access import UserDB, TokenDB
 
 
 class User(Access):
-    IMPL = MongoDBAccess(UserDB)
+    impl = MongoDBAccess(UserDB)
+
+    @classmethod
+    def _get_impl(kls):
+        return kls.impl
 
 
 class Token(Access):
-    IMPL = MongoDBAccess(TokenDB)
+    impl = MongoDBAccess(TokenDB)
+
+    @classmethod
+    def _get_impl(kls):
+        return kls.impl
