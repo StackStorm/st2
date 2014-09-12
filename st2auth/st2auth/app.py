@@ -12,8 +12,6 @@ def _get_pecan_config():
     config = {
         'app': {
             'root': 'st2auth.controllers.root.RootController',
-            'static_root': '%(confdir)s/public',
-            'template_path': '%(confdir)s/st2auth/templates',
             'modules': ['st2auth'],
             'debug': cfg.CONF.auth.debug,
             'errors': {'__force_dict__': True}
