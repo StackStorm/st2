@@ -27,14 +27,11 @@ class TokenController(rest.RestController):
         username = pecan.request.remote_user
         if username:
             try:
-                user_db = User.get_by_name(username)
+                User.get_by_name(username)
             except:
                 user = UserAPI(name=username)
-                user_db = User.add_or_update(UserAPI.to_model(user))
+                User.add_or_update(UserAPI.to_model(user))
                 LOG.audit('Registered new user "%s".' % username)
-            if user_db and not user_db.active:
-                LOG.audit('Access denied to inactive user "%s".' % username)
-                pecan.abort(http_client.UNAUTHORIZED)
             LOG.audit('Access granted to user "%s".' % username)
 
         token = uuid.uuid4().hex

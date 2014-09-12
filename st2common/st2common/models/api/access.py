@@ -17,10 +17,6 @@ class UserAPI(BaseAPI):
         "properties": {
             "name": {
                 "type": "string"
-            },
-            "active": {
-                "type": "boolean",
-                "default": True
             }
         },
         "required": ["name"],
@@ -63,10 +59,6 @@ class TokenAPI(BaseAPI):
             "expiry": {
                 "type": ["string", "null"],
                 "pattern": "^\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}:\d{2}.\d{6}$"
-            },
-            "active": {
-                "type": "boolean",
-                "default": True
             }
         },
         "required": ["user", "token"],

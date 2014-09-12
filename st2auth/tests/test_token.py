@@ -72,13 +72,6 @@ class TestTokenController(FunctionalTest):
 
     @mock.patch.object(
         User, 'get_by_name',
-        mock.MagicMock(return_value=UserDB(name=USERNAME, active=False)))
-    def test_token_post_inactive_user(self):
-        response = self.app.post_json('/tokens', {}, expect_errors=True)
-        self.assertEqual(response.status_int, 401)
-
-    @mock.patch.object(
-        User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name=USERNAME, active=True)))
     def test_token_post_set_ttl(self):
         timestamp = datetime.datetime.now()
