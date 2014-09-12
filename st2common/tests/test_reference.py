@@ -1,19 +1,23 @@
 import copy
+import mock
 import mongoengine
 
 from st2common.exceptions import db
 from st2common.models.db.reactor import TriggerDB
 from st2common.persistence.reactor import Trigger
+from st2common.transport.publishers import PoolPublisher
 from st2common.util import reference
 from st2tests import DbTestCase
 
 
+@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class ReferenceTest(DbTestCase):
 
     __model = None
     __ref = None
 
     @classmethod
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def setUpClass(cls):
         super(ReferenceTest, cls).setUpClass()
         trigger = TriggerDB()
@@ -23,6 +27,7 @@ class ReferenceTest(DbTestCase):
                      'name': cls.__model.name}
 
     @classmethod
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def tearDownClass(cls):
         Trigger.delete(cls.__model)
         super(ReferenceTest, cls).tearDownClass()

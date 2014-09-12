@@ -7,7 +7,7 @@ except ImportError:
 import mock
 from tests import FunctionalTest
 
-from st2api.controllers.actionexecutions import ActionExecutionsController
+from st2common.transport.publishers import PoolPublisher
 
 ACTION_1 = {
     'name': 'st2.dummy.action1',
@@ -102,6 +102,7 @@ class FakeResponse(object):
         raise Exception(self.reason)
 
 
+@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class TestActionExecutionsController(FunctionalTest):
 
     @classmethod
@@ -123,9 +124,6 @@ class TestActionExecutionsController(FunctionalTest):
         cls.app.delete('/actions/%s' % cls.action2['id'])
         super(TestActionExecutionsController, cls).tearDownClass()
 
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
     def test_get_one(self):
         post_resp = self.__do_post(ACTION_EXECUTION_1)
         actionexecution_id = self.__get_actionexecution_id(post_resp)
@@ -133,9 +131,6 @@ class TestActionExecutionsController(FunctionalTest):
         self.assertEquals(get_resp.status_int, 200)
         self.assertEquals(self.__get_actionexecution_id(get_resp), actionexecution_id)
 
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
     def test_get_all(self):
         self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
         self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_2))
@@ -145,9 +140,6 @@ class TestActionExecutionsController(FunctionalTest):
                           '/actionexecutions did not return all '
                           'actionexecutions.')
 
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
     def test_get_query(self):
         actionexecution_1_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
         actionexecution_2_id = self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_2))
@@ -166,9 +158,6 @@ class TestActionExecutionsController(FunctionalTest):
         self.assertEquals(len(list(matching_execution)), 1,
                           '/actionexecutions did not return correct actionexecution.')
 
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
     def test_get_query_with_limit(self):
         self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
         self.__get_actionexecution_id(self.__do_post(ACTION_EXECUTION_1))
@@ -204,16 +193,10 @@ class TestActionExecutionsController(FunctionalTest):
         resp = self.app.get('/actionexecutions/100', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
 
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
     def test_post_delete(self):
         post_resp = self.__do_post(ACTION_EXECUTION_1)
         self.assertEquals(post_resp.status_int, 201)
 
-    @mock.patch.object(
-        ActionExecutionsController, '_issue_liveaction_post',
-        mock.MagicMock(return_value=(FakeResponse('', 200, 'OK'), False)))
     def test_post_parameter_validation_failed(self):
         execution = copy.copy(ACTION_EXECUTION_1)
 

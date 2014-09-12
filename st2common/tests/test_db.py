@@ -1,7 +1,9 @@
 import datetime
 import jsonschema
+import mock
 import mongoengine.connection
 from oslo.config import cfg
+from st2common.transport.publishers import PoolPublisher
 from st2common.util import schema as util_schema
 from st2common.util import reference
 from st2tests import DbTestCase
@@ -30,6 +32,7 @@ from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance,
     RuleEnforcement, Rule
 
 
+@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class ReactorModelTest(DbTestCase):
 
     def test_triggertype_crud(self):
@@ -270,6 +273,7 @@ PARAM_SCHEMA = {
 }
 
 
+@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class ActionModelTest(DbTestCase):
 
     def tearDown(self):

@@ -26,9 +26,9 @@ def __setup_config_opts():
         LOG.exception('Will skip registration.')
 
     try:
-        common_config.register_opts()
+        common_config.register_opts(ignore_errors=True)
     except:
-        pass
+        LOG.exception('Common config registration failed.')
 
 
 def parse_args():
