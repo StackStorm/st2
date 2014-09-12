@@ -15,8 +15,6 @@ class FunctionalTest(DbTestCase):
         config = {
             'app': {
                 'root': 'st2auth.controllers.root.RootController',
-                'static_root': '%(confdir)s/public',
-                'template_path': '%(confdir)s/st2auth/templates',
                 'modules': ['st2auth'],
                 'debug': True,
                 'errors': {'__force_dict__': True}
