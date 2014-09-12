@@ -17,14 +17,6 @@ def _register_reactor_opts():
     ]
     CONF.register_opts(logging_opts, group='reactor_logging')
 
-    use_debugger = cfg.BoolOpt(
-        'use-debugger', default=False,
-        help='Enables debugger. Note that using this option changes how the '
-             'eventlet library is used to support async IO. This could result in '
-             'failures that do not occur under normal operation.'
-    )
-    CONF.register_cli_opt(use_debugger)
-
     sensors_opts = [
         cfg.StrOpt('modules_path', default='/opt/stackstorm/sensors',
                    help='path to load sensor modules from'),

@@ -10,9 +10,8 @@ LOG = logging.getLogger(__name__)
 class Access(object):
 
     @classmethod
-    @abc.abstractmethod
     def _get_impl(kls):
-        pass
+        return getattr(kls, 'IMPL')
 
     @classmethod
     @abc.abstractmethod
