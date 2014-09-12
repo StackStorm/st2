@@ -30,12 +30,6 @@ def register_opts(ignore_errors=False):
     ]
     _do_register_opts(db_opts, 'database', ignore_errors)
 
-    logging_opts = [
-        cfg.StrOpt('config_file', default='conf/logging.conf',
-                   help='location of the logging.conf file')
-    ]
-    _do_register_opts(logging_opts, 'common_logging', ignore_errors)
-
     actions_opts = [
         cfg.StrOpt('modules_path', default='/opt/stackstorm/actions',
                    help='path where action plugins are located')

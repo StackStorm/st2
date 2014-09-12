@@ -1,8 +1,10 @@
+import logging
+import sys
+
 from oslo.config import cfg
 
 import st2actions.bootstrap.actionsregistrar as actions_registrar
 import st2actions.bootstrap.runnersregistrar as runners_registrar
-from st2common import log as logging
 import st2common.config as config
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
@@ -12,7 +14,20 @@ import st2reactor.bootstrap.registrar as rules_registrar
 LOG = logging.getLogger('st2common.content.bootstrap')
 
 
-def register_content():
+def register_opts():
+    content_opts = [
+        cfg.BoolOpt('all', default=False, help='Register actions and rules.'),
+        cfg.BoolOpt('actions', default=True, help='Register actions.'),
+        cfg.BoolOpt('rules', default=False, help='Register rules.')
+    ]
+    try:
+        cfg.CONF.register_cli_opts(content_opts, group='register')
+    except:
+        sys.stderr.write('Failed registering opts.\n')
+register_opts()
+
+
+def register_actions():
     # Register runnertypes and actions. The order is important because actions require action
     # types to be present in the system.
     try:
@@ -26,6 +41,8 @@ def register_content():
         except Exception as e:
             LOG.warning('Failed to register actions: %s', e, exc_info=True)
 
+
+def register_rules():
     # 6. register rules
     try:
         rules_registrar.register_rules()
@@ -33,11 +50,30 @@ def register_content():
         LOG.warning('Failed to register rules: %s', e, exc_info=True)
 
 
+def register_content():
+    if cfg.CONF.register.rules:
+        print('Registering rules.')
+        register_rules()
+        return
+
+    if cfg.CONF.register.all:
+        print('Register actions and rules.')
+        register_actions()
+        register_rules()
+        return
+
+    if cfg.CONF.register.actions:
+        print('Registering actions.')
+        register_actions()
+        return
+
+
 def _setup():
     config.parse_args()
 
     # 2. setup logging.
-    logging.setup(cfg.CONF.common_logging.config_file)
+    logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s',
+                        level=logging.DEBUG)
 
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
