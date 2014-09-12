@@ -52,18 +52,15 @@ def register_rules():
 
 def register_content():
     if cfg.CONF.register.rules:
-        print('Registering rules.')
         register_rules()
         return
 
     if cfg.CONF.register.all:
-        print('Register actions and rules.')
         register_actions()
         register_rules()
         return
 
     if cfg.CONF.register.actions:
-        print('Registering actions.')
         register_actions()
         return
 
