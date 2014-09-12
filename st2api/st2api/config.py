@@ -40,14 +40,6 @@ def _register_app_opts():
     ]
     CONF.register_opts(logging_opts, group='api_logging')
 
-    use_debugger = cfg.BoolOpt(
-        'use-debugger', default=True,
-        help='Enables debugger. Note that using this option changes how the '
-             'eventlet library is used to support async IO. This could result in '
-             'failures that do not occur under normal operation.'
-    )
-    CONF.register_cli_opt(use_debugger)
-
 
 def regsiter_opts():
     _register_common_opts()

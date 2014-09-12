@@ -22,14 +22,6 @@ db_opts = [
 ]
 CONF.register_opts(db_opts, group='database')
 
-use_debugger = cfg.BoolOpt(
-    'use-debugger', default=True,
-    help='Enables debugger. Note that using this option changes how the '
-         'eventlet library is used to support async IO. This could result in '
-         'failures that do not occur under normal operation.'
-)
-CONF.register_cli_opt(use_debugger)
-
 action_runner_opts = [
     cfg.StrOpt('artifact_repo_path',
                default='/opt/stackstorm/actions',

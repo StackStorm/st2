@@ -64,7 +64,8 @@ class BaseAPI(object):
     @classmethod
     def _from_model(cls, model):
         doc = model.to_mongo()
-        doc['id'] = str(doc.pop('_id'))
+        if '_id' in doc:
+            doc['id'] = str(doc.pop('_id'))
         return doc
 
     @classmethod
@@ -111,7 +112,7 @@ def jsexpose(*argtypes, **opts):
                                 pass
 
                 body_cls = opts.get('body')
-                if body_cls:
+                if body_cls and pecan.request.body:
                     obj = body_cls(**pecan.request.json)
                     more.append(obj)
 
@@ -143,6 +144,7 @@ def jsexpose(*argtypes, **opts):
 
             except Exception as e:
                 LOG.error(e)
+                pecan.abort(http_client.BAD_REQUEST, str(e))
 
         pecan_json_decorate(callfunction)
 
