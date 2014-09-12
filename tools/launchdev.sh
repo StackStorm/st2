@@ -83,7 +83,7 @@ if [[ ${1} == "start" ]]; then
     echo 'Registering actions and rules...'
     ./virtualenv/bin/python \
         ./st2common/bin/registercontent.py \
-        --config-file ./conf/stanley.conf
+        --config-file ./conf/stanley.conf --register-all
 
 
 elif [[ ${1} == "stop" ]]; then
