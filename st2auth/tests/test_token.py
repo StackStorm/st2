@@ -5,13 +5,12 @@ import string
 
 import mock
 import pecan
-import jsonschema
 from oslo.config import cfg
 
 from tests.base import FunctionalTest
-from st2common.models.db.access import UserDB
+from st2common.models.db.access import UserDB, TokenDB
 from st2common.models.api.access import TokenAPI
-from st2common.persistence.access import User
+from st2common.persistence.access import User, Token
 
 
 USERNAME = ''.join(random.choice(string.lowercase) for i in range(10))
@@ -26,20 +25,31 @@ class TestTokenController(FunctionalTest):
 
     def test_token_model(self):
         tk1 = TokenAPI(user='stanley', token=uuid.uuid4().hex, expiry=datetime.datetime.now())
-        tk2 = TokenAPI.from_model(TokenAPI.to_model(tk1))
-        self.assertEqual(tk1.__dict__, tk2.__dict__)
+        tkdb1 = TokenAPI.to_model(tk1)
+        self.assertIsNotNone(tkdb1)
+        self.assertIsInstance(tkdb1, TokenDB)
+        self.assertEqual(tkdb1.user, tk1.user)
+        self.assertEqual(tkdb1.token, tk1.token)
+        self.assertEqual(tkdb1.expiry, tk1.expiry)
+        tkdb2 = Token.add_or_update(tkdb1)
+        self.assertEqual(tkdb1, tkdb2)
+        self.assertIsNotNone(tkdb2.id)
+        tk2 = TokenAPI.from_model(tkdb2)
+        self.assertEqual(tk2.user, tk1.user)
+        self.assertEqual(tk2.token, tk1.token)
+        self.assertEqual(tk2.expiry, tk1.expiry)
 
     def test_token_model_null_token(self):
-        self.assertRaises(jsonschema.exceptions.ValidationError, TokenAPI,
-                          user='stanley', token=None, expiry=datetime.datetime.now())
+        tk = TokenAPI(user='stanley', token=None, expiry=datetime.datetime.now())
+        self.assertRaises(ValueError, Token.add_or_update, TokenAPI.to_model(tk))
 
     def test_token_model_null_user(self):
-        self.assertRaises(jsonschema.exceptions.ValidationError, TokenAPI,
-                          user=None, token=uuid.uuid4().hex, expiry=datetime.datetime.now())
+        tk = TokenAPI(user=None, token=uuid.uuid4().hex, expiry=datetime.datetime.now())
+        self.assertRaises(ValueError, Token.add_or_update, TokenAPI.to_model(tk))
 
     def test_token_model_null_expiry(self):
-        self.assertRaises(ValueError, TokenAPI,
-                          user='stanley', token=uuid.uuid4().hex, expiry=None)
+        tk = TokenAPI(user='stanley', token=uuid.uuid4().hex, expiry=None)
+        self.assertRaises(ValueError, Token.add_or_update, TokenAPI.to_model(tk))
 
     def _test_token_post(self):
         ttl = cfg.CONF.auth.token_ttl

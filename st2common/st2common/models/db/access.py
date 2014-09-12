@@ -9,4 +9,4 @@ class UserDB(stormbase.StormFoundationDB):
 class TokenDB(stormbase.StormFoundationDB):
     user = me.StringField(required=True)
     token = me.StringField(required=True, unique=True)
-    expiry = me.DateTimeField()
+    expiry = me.DateTimeField(required=True)

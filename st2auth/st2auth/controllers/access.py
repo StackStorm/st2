@@ -7,7 +7,7 @@ from oslo.config import cfg
 from six.moves import http_client
 
 from st2common.models.base import jsexpose
-from st2common.models.api.access import TokenRequestAPI, TokenAPI, UserAPI
+from st2common.models.api.access import TokenAPI, UserAPI
 from st2common.persistence.access import Token, User
 from st2common import log as logging
 
@@ -17,7 +17,7 @@ LOG = logging.getLogger(__name__)
 
 class TokenController(rest.RestController):
 
-    @jsexpose(body=TokenRequestAPI, status_code=http_client.CREATED)
+    @jsexpose(body=TokenAPI, status_code=http_client.CREATED)
     def post(self, request=None):
 
         if not pecan.request.remote_user:
