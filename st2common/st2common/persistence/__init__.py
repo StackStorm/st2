@@ -1,5 +1,4 @@
 import abc
-import json
 import six
 
 from st2common import log as logging

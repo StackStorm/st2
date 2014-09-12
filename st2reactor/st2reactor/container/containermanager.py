@@ -1,9 +1,7 @@
 import os
 
-from oslo.config import cfg
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
-from st2common.models.db.reactor import TriggerDB
 from st2common.persistence.reactor import Trigger
 from st2reactor.container.base import SensorContainer
 from st2reactor.container.containerservice import ContainerService
@@ -94,9 +92,11 @@ class SensorContainerManager(object):
                             + ' Exception: %s', name, parameters, e, exc_info=True)
 
     def _delete_handler(self, trigger):
-        doc = self._trigger_names[str(trigger.id)]
+        triggerid = str(trigger.id)
+        if triggerid not in self._trigger_names:
+            return
+        del self._trigger_names[triggerid]
         name = trigger.type['name']
-
         self._trigger_sensors[name].remove_trigger(
             SensorContainerManager.sanitize_trigger(trigger))
 

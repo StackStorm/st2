@@ -6,15 +6,12 @@ from pecan import abort
 from pecan.rest import RestController
 import six
 
-from oslo.config import cfg
-
 from st2common import log as logging
 from st2common.models.base import jsexpose
 from st2common.persistence.action import ActionExecution
 from st2common.models.api.action import (ActionExecutionAPI,
                                          ACTIONEXEC_STATUS_INIT,
-                                         ACTIONEXEC_STATUS_SCHEDULED,
-                                         ACTIONEXEC_STATUS_ERROR)
+                                         ACTIONEXEC_STATUS_SCHEDULED)
 from st2common.util import schema as util_schema
 from st2common.util.action_db import (get_action_by_dict, update_actionexecution_status,
                                       get_runnertype_by_name)

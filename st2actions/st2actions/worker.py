@@ -1,5 +1,3 @@
-import json
-
 from kombu import Connection
 from kombu.mixins import ConsumerMixin
 from oslo.config import cfg
