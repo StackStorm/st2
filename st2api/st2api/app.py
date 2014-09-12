@@ -3,6 +3,7 @@ import pecan
 from pecan.hooks import PecanHook
 
 from st2common import log as logging
+from st2common.middleware import auth
 from st2api.version import version_string
 
 
@@ -52,6 +53,9 @@ def setup_app(config=None):
                          hooks=[CorsHook()],
                          **app_conf
                          )
+
+    if cfg.CONF.auth.enable:
+        app = auth.AuthMiddleware(app)
 
     LOG.info('%s app created.' % __name__)
 

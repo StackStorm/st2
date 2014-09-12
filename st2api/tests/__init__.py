@@ -1,3 +1,3 @@
-from tests.base import FunctionalTest
+from tests.base import FunctionalTest, AuthMiddlewareTest
 
-__all__ = ['FunctionalTest']
+__all__ = ['FunctionalTest', 'AuthMiddlewareTest']

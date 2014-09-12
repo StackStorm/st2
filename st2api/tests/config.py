@@ -13,6 +13,12 @@ def __register_opts(opts, group=None):
 
 
 def __setup_config_opts():
+
+    auth_opts = [
+        cfg.BoolOpt('enable', default=False, help='Enable authentication middleware.')
+    ]
+    __register_opts(auth_opts, group='auth')
+
     api_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='action API server host'),
         cfg.IntOpt('port', default=9101, help='action API server port')
