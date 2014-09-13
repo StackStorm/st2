@@ -47,7 +47,6 @@ class TriggerTypeController(RestController):
             TriggerTypeController.__get_by_name(name)
         triggertype_apis = [TriggerTypeAPI.from_model(triggertype_db) for triggertype_db in
                             triggertype_dbs]
-        LOG.debug('GET all /triggertypes/ client_result=%s', triggertype_apis)
         return triggertype_apis
 
     @jsexpose(body=TriggerTypeAPI, status_code=http_client.CREATED)
@@ -59,11 +58,8 @@ class TriggerTypeController(RestController):
                 POST /triggertypes/
         """
         LOG.info('POST /triggertypes/ with triggertype data=%s', triggertype)
-
         try:
             triggertype_db = TriggerTypeAPI.to_model(triggertype)
-            LOG.debug('/triggertypes/ POST verified TriggerTypeAPI and formulated TriggerTypeDB=%s',
-                      triggertype_db)
             triggertype_db = TriggerType.add_or_update(triggertype_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for triggertype data=%s.', triggertype)
@@ -74,8 +70,11 @@ class TriggerTypeController(RestController):
                      triggertype, str(e))
             abort(http_client.CONFLICT, str(e))
             return
+        else:
+            LOG.audit('TriggerType created. TriggerType=%s', triggertype_db)
+            if not triggertype_db.parameters_schema:
+                TriggerTypeController._create_shadow_trigger(triggertype_db)
 
-        LOG.audit('TriggerType created. TriggerType=%s', triggertype_db)
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
         LOG.debug('POST /triggertypes/ client_result=%s', triggertype_api)
 
@@ -86,8 +85,6 @@ class TriggerTypeController(RestController):
         LOG.info('PUT /triggertypes/ with triggertype id=%s and data=%s', triggertype_id,
                  triggertype)
         triggertype_db = TriggerTypeController.__get_by_id(triggertype_id)
-        LOG.debug('PUT /triggertypes/ lookup with id=%s found object: %s', triggertype_id,
-                  triggertype_db)
         try:
             triggertype_db = TriggerTypeAPI.to_model(triggertype)
             if triggertype.id is not None and len(triggertype.id) > 0 and \
@@ -119,8 +116,6 @@ class TriggerTypeController(RestController):
         """
         LOG.info('DELETE /triggertypes/ with id=%s', triggertype_id)
         triggertype_db = TriggerTypeController.__get_by_id(triggertype_id)
-        LOG.debug('DELETE /triggertypes/ lookup with id=%s found object: %s', triggertype_id,
-                  triggertype_db)
         try:
             TriggerType.delete(triggertype_db)
         except Exception as e:
@@ -128,8 +123,10 @@ class TriggerTypeController(RestController):
                           triggertype_id)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
-
-        LOG.audit('TriggerType deleted. TriggerType=%s', triggertype_db)
+        else:
+            LOG.audit('TriggerType deleted. TriggerType=%s', triggertype_db)
+            if not triggertype_db.parameters_schema:
+                TriggerTypeController._delete_shadow_trigger(triggertype_db)
 
     @staticmethod
     def __get_by_id(triggertype_id):
@@ -147,6 +144,39 @@ class TriggerTypeController(RestController):
             LOG.debug('Database lookup for name="%s" resulted in exception : %s.',
                       triggertype_name, e)
             return []
+
+    @staticmethod
+    def _create_shadow_trigger(triggertype_db):
+        try:
+            trigger = {'type': triggertype_db.name,
+                       'name': triggertype_db.name,
+                       'parameters': {}}
+            trigger_db = TriggerService.create_trigger_db(trigger)
+            LOG.audit('Trigger created for parameter-less TriggerType. Trigger=%s',
+                      trigger_db)
+        except (ValidationError, ValueError) as e:
+                LOG.exception('Validation failed for trigger data=%s.', trigger)
+                # Not aborting as this is convenience.
+                return
+        except NotUniqueError as e:
+            LOG.warn('Trigger creation of %s failed with uniqueness conflict. Exception %s',
+                     trigger, str(e))
+            # Not aborting as this is convenience.
+            return
+
+    @staticmethod
+    def _delete_shadow_trigger(triggertype_db):
+        # shadow Trigger's have the same name as the shadowed TriggerType.
+        trigger_db = TriggerService.get_trigger_db(triggertype_db.name)
+        if not trigger_db:
+            LOG.warn('No shadow trigger found for %s. Will skip delete.', triggertype_db)
+            return
+        try:
+            Trigger.delete(trigger_db)
+        except Exception:
+            LOG.exception('Database delete encountered exception during delete of id="%s". ',
+                          trigger_db.id)
+        LOG.audit('Trigger deleted. Trigger=%s', trigger_db)
 
 
 class TriggerController(RestController):
@@ -180,7 +210,6 @@ class TriggerController(RestController):
         LOG.info('GET all /triggers/ and name=%s', name)
         trigger_dbs = Trigger.get_all() if name is None else TriggerController.__get_by_name(name)
         trigger_apis = [TriggerAPI.from_model(trigger_db) for trigger_db in trigger_dbs]
-        LOG.debug('GET all /triggers/ client_result=%s', trigger_apis)
         return trigger_apis
 
     @jsexpose(body=TriggerAPI, status_code=http_client.CREATED)
@@ -215,8 +244,6 @@ class TriggerController(RestController):
     def put(self, trigger_id, trigger):
         LOG.info('PUT /triggers/ with trigger id=%s and data=%s', trigger_id, trigger)
         trigger_db = TriggerController.__get_by_id(trigger_id)
-        LOG.debug('PUT /triggers/ lookup with id=%s found object: %s', trigger_id, trigger_db)
-
         try:
             if trigger.id is not None and trigger.id is not '' and trigger.id != trigger_id:
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
@@ -245,7 +272,6 @@ class TriggerController(RestController):
         """
         LOG.info('DELETE /triggers/ with id=%s', trigger_id)
         trigger_db = TriggerController.__get_by_id(trigger_id)
-        LOG.debug('DELETE /triggers/ lookup with id=%s found object: %s', trigger_id, trigger_db)
         try:
             Trigger.delete(trigger_db)
         except Exception as e:
@@ -312,5 +338,4 @@ class TriggerInstanceController(RestController):
         LOG.info('GET all /triggerinstances/')
         trigger_instance_apis = [TriggerInstanceAPI.from_model(trigger_instance_db)
                                  for trigger_instance_db in TriggerInstance.get_all()]
-        LOG.debug('GET all /triggerinstances/ client_result=%s', trigger_instance_apis)
         return trigger_instance_apis

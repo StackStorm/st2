@@ -30,7 +30,6 @@ class St2WebhookSensor(object):
     '''
     A webhook sensor using a micro-framework Flask.
     '''
-
     # Flask specific stuff.
     _app = Flask('st2_webhook_sensor')
     _app.config['JSONSCHEMA_DIR'] = os.path.join(_app.root_path, 'st2webhookschemas')
@@ -82,7 +81,8 @@ class St2WebhookSensor(object):
         try:
             trigger, payload = self._to_trigger(body)
         except KeyError as e:
-            return jsonify({'invalid': e}), http_client.BAD_REQUEST
+            self._log.exception('Exception %s handling webhook', e)
+            return jsonify({'invalid': str(e)}), http_client.BAD_REQUEST
 
         try:
             self._container_service.dispatch(trigger, payload)
@@ -102,7 +102,7 @@ class St2WebhookSensor(object):
         return {
             'name': body.get('name', ''),
             'type': {
-                'name': body['type']
+                'name': body.get('type', '')
             },
             'parameters': {}
         }, body['payload']

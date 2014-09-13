@@ -25,7 +25,7 @@ def _get_trigger_db_by_name(name):
 
 
 def get_trigger_db(trigger):
-    if type(trigger) == str:
+    if isinstance(trigger, str) or isinstance(trigger, unicode):
         return _get_trigger_db_by_name(trigger)
     if isinstance(trigger, dict):
         name = trigger.get('name', None)
