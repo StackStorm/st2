@@ -2,10 +2,20 @@
     "create": {
         "type": "object",
         "properties": {
-            "name": {},
-            "type": {},
-            "payload": {}
+            "name": {
+                "description": "Name of the Trigger. Can use name of a parameter-less TriggerType.",
+                "type": "string"
+            },
+            "type": {
+                "description": "Type of the Trigger i.e. the TriggerType. Used with a parameterized TriggerType where the payload would further clarify the Trigger.",
+                "type": "string",
+                "default": ""
+            },
+            "payload": {
+                "description": "Payload as described at time of TriggerType registration.",
+                "type": "object"
+            }
         },
-        "required": ["type", "payload"]
+        "required": ["name", "payload"]
     }
 }
