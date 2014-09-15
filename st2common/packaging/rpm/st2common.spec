@@ -33,9 +33,7 @@ mkdir -p %{buildroot}/var/log/stanley
 mkdir -p %{buildroot}/etc/stanley
 mkdir -p %{buildroot}/opt/stackstorm
 cp -R bin st2common/
-cp -R contrib/core/rules %{buildroot}/opt/stackstorm/
-cp -R contrib/core/sensors %{buildroot}/opt/stackstorm/
-cp -R contrib/core/actions %{buildroot}/opt/stackstorm/
+cp -R contrib/core %{buildroot}/opt/stackstorm/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 install stanley/stanley.conf %{buildroot}/etc/stanley/stanley.conf
 
