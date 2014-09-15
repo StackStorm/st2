@@ -32,8 +32,11 @@ def _setup():
 def _run_server():
     host = cfg.CONF.auth.host
     port = cfg.CONF.auth.port
-    LOG.info("Auth service is listening on http://%s:%s (PID=%s)", host, port, os.getpid())
+
+    LOG.info('(PID=%s) ST2 Auth is listening on http://%s:%s', os.getpid(), host, port)
+
     wsgi.server(eventlet.listen((host, port)), app.setup_app())
+    return 0
 
 
 def _teardown():
@@ -43,9 +46,9 @@ def _teardown():
 def main():
     try:
         _setup()
-        _run_server()
-    except Exception as e:
-        LOG.warning('An exception occurred while launching the auth service. %s', e, exc_info=True)
+        return _run_server()
+    except:
+        LOG.exception('(PID=%s) ST2 Auth quit due to exception.', os.getpid())
+        return 1
     finally:
         _teardown()
-    return 1

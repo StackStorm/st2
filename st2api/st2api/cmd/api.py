@@ -36,13 +36,13 @@ def _setup():
 
 
 def _run_server():
-
     host = cfg.CONF.api.host
     port = cfg.CONF.api.port
 
-    LOG.info("ST2 API is serving on http://%s:%s (PID=%s)", host, port, os.getpid())
+    LOG.info('(PID=%s) ST2 API is serving on http://%s:%s.', os.getpid(), host, port)
 
     wsgi.server(eventlet.listen((host, port)), app.setup_app())
+    return 0
 
 
 def _teardown():
@@ -52,9 +52,9 @@ def _teardown():
 def main():
     try:
         _setup()
-        _run_server()
-    except Exception as e:
-        LOG.warning('Exception starting up api: %s', e, exc_info=True)
+        return _run_server()
+    except:
+        LOG.exception('(PID=%s) ST2 API quit due to exception.', os.getpid())
+        return 1
     finally:
         _teardown()
-    return 1

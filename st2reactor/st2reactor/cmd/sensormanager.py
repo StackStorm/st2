@@ -96,8 +96,12 @@ def _get_all_sensors():
 
 
 def main():
-    _setup()
-    container_manager = SensorContainerManager()
-    exit_code = container_manager.run_sensors(_get_all_sensors())
-    _teardown()
-    return exit_code
+    try:
+        _setup()
+        container_manager = SensorContainerManager()
+        return container_manager.run_sensors(_get_all_sensors())
+    except:
+        LOG.exception('(PID:%s) SensorContainer quit due to exception.', os.getpid())
+        return 1
+    finally:
+        _teardown()
