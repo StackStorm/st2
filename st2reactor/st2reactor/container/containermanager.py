@@ -1,4 +1,6 @@
 import os
+import sys
+
 
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
@@ -58,10 +60,16 @@ class SensorContainerManager(object):
         self._trigger_watcher.start()
         LOG.info('Watcher started.')
 
-        LOG.info('SensorContainer process[%s] started.', os.getpid())
+        LOG.info('(PID:%s) SensorContainer started.', os.getpid())
         sensor_container = SensorContainer(sensor_instances=sensors_to_run)
         try:
-            return sensor_container.run()
+            exit_code = sensor_container.run()
+            LOG.info('(PID:%s) SensorContainer stopped. Reason - run ended.', os.getpid())
+            return exit_code
+        except (KeyboardInterrupt, SystemExit):
+            LOG.info('(PID:%s) SensorContainer stopped. Reason - %s', os.getpid(),
+                     sys.exc_info()[0].__name__)
+            return 0
         finally:
             self._trigger_watcher.stop()
 

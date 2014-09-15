@@ -11,6 +11,9 @@ from st2actions import config
 from st2actions import worker
 
 
+LOG = logging.getLogger(__name__)
+
+
 eventlet.monkey_patch(
     os=True,
     select=True,
@@ -31,9 +34,14 @@ def _setup():
 
 
 def _run_worker():
-    LOG = logging.getLogger(__name__)
-    LOG.info('[PID=%s] Worker started.', os.getpid())
-    worker.work()
+    LOG.info('(PID=%s) Worker started.', os.getpid())
+    try:
+        worker.work()
+    except (KeyboardInterrupt, SystemExit):
+        LOG.info('(PID=%s) Worker stopped.', os.getpid())
+    except:
+        return 1
+    return 0
 
 
 def _teardown():
@@ -43,10 +51,9 @@ def _teardown():
 def main():
     try:
         _setup()
-        _run_worker()
+        return _run_worker()
     except:
-        LOG = logging.getLogger(__name__)
-        LOG.exception('[PID=%s] Worker quit.', os.getpid())
+        LOG.exception('(PID=%s) Worker quit due to exception.', os.getpid())
+        return 1
     finally:
         _teardown()
-    return 1
