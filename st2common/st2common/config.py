@@ -10,6 +10,12 @@ def _do_register_opts(opts, group, ignore_errors):
 
 
 def register_opts(ignore_errors=False):
+
+    auth_opts = [
+        cfg.BoolOpt('enable', default=True, help='Enable authentication middleware.')
+    ]
+    _do_register_opts(auth_opts, 'auth', ignore_errors)
+
     schema_opts = [
         cfg.IntOpt('version', default=4, help='Version of JSON schema to use.'),
         cfg.StrOpt('draft', default='http://json-schema.org/draft-04/schema#',

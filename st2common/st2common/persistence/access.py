@@ -1,6 +1,7 @@
 from st2common.persistence import Access
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.access import UserDB, TokenDB
+from st2common.exceptions.access import TokenNotFoundError
 
 
 class User(Access):
@@ -27,3 +28,8 @@ class Token(Access):
         if not getattr(model_object, 'expiry', None):
             raise ValueError('Token expiry is not provided in the token.')
         return super(Token, kls).add_or_update(model_object, publish=publish)
+
+    def get(self, value):
+        for model_object in self._model_kls.objects(token=value):
+            return model_object
+        raise TokenNotFoundError()
