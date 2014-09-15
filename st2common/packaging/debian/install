@@ -2,4 +2,3 @@ contrib/core/* opt/stackstorm/
 st2common usr/lib/python2.7/dist-packages/
 bin usr/lib/python2.7/dist-packages/st2common/
 stanley/stanley.conf /etc/stanley/
-conf/logging.conf /etc/st2common/
