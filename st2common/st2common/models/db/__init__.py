@@ -36,16 +36,11 @@ class MongoDBAccess(object):
             self._model_kls.__name__, value))
 
     def get_all(self, *args, **kwargs):
-        order_by = kwargs.get('order_by', ['name'])
-        limit = kwargs.get('limit', None)
+        order_by = kwargs.pop('order_by', ['name'])
+        limit = kwargs.pop('limit', None)
         if limit and limit <= 0:
             limit = None
-        if not limit:
-            return (self._model_kls.objects().order_by(*order_by)
-                    if order_by else self._model_kls.objects())
-        else:
-            return (self._model_kls.objects().order_by(*order_by)[:limit]
-                    if order_by else self._model_kls.objects()[:limit])
+        return self.query(order_by, limit, **kwargs)
 
     def query(self, order_by=[], limit=None, **query_args):
         if not limit:

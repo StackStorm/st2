@@ -23,7 +23,7 @@ class TriggerTypeController(RestController):
     def get_one(self, triggertype_id):
 
         """
-            List triggertypes by id.
+            List triggertype by id.
 
             Handle:
                 GET /triggertypes/1
@@ -35,15 +35,15 @@ class TriggerTypeController(RestController):
         return triggertype_api
 
     @jsexpose(str)
-    def get_all(self, name=None):
+    def get_all(self, name=None, **kw):
         """
             List all triggertypes.
 
             Handles requests:
                 GET /triggertypes/
         """
-        LOG.info('GET all /triggertypes/ and name=%s', name)
-        triggertype_dbs = TriggerType.get_all() if name is None else \
+        LOG.info('GET all /triggertypes/ with name=%s and filter=%s', name, kw)
+        triggertype_dbs = TriggerType.get_all(**kw) if name is None else \
             TriggerTypeController.__get_by_name(name)
         triggertype_apis = [TriggerTypeAPI.from_model(triggertype_db) for triggertype_db in
                             triggertype_dbs]
@@ -188,10 +188,10 @@ class TriggerController(RestController):
     def get_one(self, trigger_id):
 
         """
-            List triggertypes by id.
+            List trigger by id.
 
             Handle:
-                GET /triggertypes/1
+                GET /triggers/1
         """
         LOG.info('GET /triggers/ with id=%s', id)
         trigger_db = TriggerController.__get_by_id(trigger_id)
@@ -200,7 +200,7 @@ class TriggerController(RestController):
         return trigger_api
 
     @jsexpose(str)
-    def get_all(self, name=None):
+    def get_all(self, name=None, **kw):
         """
             List all triggers.
 
@@ -208,7 +208,8 @@ class TriggerController(RestController):
                 GET /triggers/
         """
         LOG.info('GET all /triggers/ and name=%s', name)
-        trigger_dbs = Trigger.get_all() if name is None else TriggerController.__get_by_name(name)
+        trigger_dbs = Trigger.get_all(**kw) if name is None \
+            else TriggerController.__get_by_name(name)
         trigger_apis = [TriggerAPI.from_model(trigger_db) for trigger_db in trigger_dbs]
         return trigger_apis
 
@@ -328,7 +329,7 @@ class TriggerInstanceController(RestController):
         return trigger_instance_api
 
     @jsexpose()
-    def get_all(self):
+    def get_all(self, **kw):
         """
             List all triggerinstances.
 
@@ -337,5 +338,5 @@ class TriggerInstanceController(RestController):
         """
         LOG.info('GET all /triggerinstances/')
         trigger_instance_apis = [TriggerInstanceAPI.from_model(trigger_instance_db)
-                                 for trigger_instance_db in TriggerInstance.get_all()]
+                                 for trigger_instance_db in TriggerInstance.get_all(**kw)]
         return trigger_instance_apis

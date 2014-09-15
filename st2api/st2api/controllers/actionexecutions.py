@@ -41,22 +41,22 @@ class ActionExecutionsController(RestController):
             abort(http_client.NOT_FOUND, msg)
 
     @staticmethod
-    def _get_action_executions(action_id, action_name, limit=None):
+    def _get_action_executions(action_id, action_name, limit=None, **kw):
         if action_id is not None:
             LOG.debug('Using action_id=%s to get action executions', action_id)
             # action__id <- this queries action.id
             return ActionExecution.query(action__id=action_id,
                                          order_by=['-start_timestamp'],
-                                         limit=limit)
+                                         limit=limit, **kw)
         elif action_name is not None:
             LOG.debug('Using action_name=%s to get action executions', action_name)
             # action__name <- this queries against action.name
             return ActionExecution.query(action__name=action_name,
                                          order_by=['-start_timestamp'],
-                                         limit=limit)
+                                         limit=limit, **kw)
         LOG.debug('Retrieving all action executions')
         return ActionExecution.get_all(order_by=['-start_timestamp'],
-                                       limit=limit)
+                                       limit=limit, **kw)
 
     def _create_liveaction_data(self, actionexecution_id):
         return {'actionexecution_id': str(actionexecution_id)}
@@ -76,7 +76,7 @@ class ActionExecutionsController(RestController):
         return actionexec_api
 
     @jsexpose(str, str, str)
-    def get_all(self, action_id=None, action_name=None, limit='50'):
+    def get_all(self, action_id=None, action_name=None, limit='50', **kw):
         """
             List all actionexecutions.
 
@@ -88,7 +88,7 @@ class ActionExecutionsController(RestController):
                  'action_id=%s, and limit=%s', action_name, action_id, limit)
 
         actionexec_dbs = ActionExecutionsController._get_action_executions(
-            action_id, action_name, limit=int(limit))
+            action_id, action_name, limit=int(limit), **kw)
         actionexec_apis = [ActionExecutionAPI.from_model(actionexec_db)
                            for actionexec_db
                            in sorted(actionexec_dbs,

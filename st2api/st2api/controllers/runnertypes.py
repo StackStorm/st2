@@ -51,7 +51,7 @@ class RunnerTypesController(RestController):
         return runnertype_api
 
     @jsexpose(str)
-    def get_all(self, name=None):
+    def get_all(self, name=None, **kw):
         """
             List all RunnerType objects.
 
@@ -59,7 +59,7 @@ class RunnerTypesController(RestController):
                 GET /runnertypes/
         """
         LOG.info('GET all /runnertypes/ and name=%s', str(name))
-        runnertype_dbs = (RunnerType.get_all() if name is None else
+        runnertype_dbs = (RunnerType.get_all(**kw) if name is None else
                           RunnerTypesController.__get_by_name(name))
         runnertype_apis = [RunnerTypeAPI.from_model(runnertype_db)
                            for runnertype_db in runnertype_dbs]

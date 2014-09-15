@@ -37,7 +37,7 @@ class RuleController(RestController):
         return rule_api
 
     @jsexpose(str)
-    def get_all(self, name=None):
+    def get_all(self, name=None, **kw):
         """
             List all rules.
 
@@ -45,7 +45,7 @@ class RuleController(RestController):
                 GET /rules/
         """
         LOG.info('GET all /rules/ and name=%s', str(name))
-        rule_dbs = Rule.get_all() if name is None else RuleController.__get_by_name(name)
+        rule_dbs = Rule.get_all(**kw) if name is None else RuleController.__get_by_name(name)
         rule_apis = [RuleAPI.from_model(rule_db) for rule_db in rule_dbs]
         LOG.debug('GET all /rules/ client_result=%s', rule_apis)
         return rule_apis
@@ -182,7 +182,7 @@ class RuleEnforcementController(RestController):
         return rule_enforcement_api
 
     @jsexpose()
-    def get_all(self):
+    def get_all(self, **kw):
         """
             List all ruleenforcements.
 
@@ -191,6 +191,6 @@ class RuleEnforcementController(RestController):
         """
         LOG.info('GET all /ruleenforcements/')
         rule_enforcement_apis = [RuleEnforcementAPI.from_model(ruleenforcement_db)
-                                 for ruleenforcement_db in RuleEnforcement.get_all()]
+                                 for ruleenforcement_db in RuleEnforcement.get_all(**kw)]
         LOG.debug('GET all /ruleenforcements/ client_result=%s', rule_enforcement_apis)
         return rule_enforcement_apis
