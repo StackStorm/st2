@@ -64,4 +64,4 @@ def _register_rules_from_packs(base_dir):
 
 
 def register_rules():
-    return _register_rules_from_packs(cfg.CONF.content.content_pack_path)
+    return _register_rules_from_packs(cfg.CONF.content.content_packs_base_path)

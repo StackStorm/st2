@@ -29,10 +29,6 @@ def _setup():
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
              cfg.CONF.database.port)
 
-    # 4. ensure paths exist
-    if not os.path.exists(cfg.CONF.sensors.modules_path):
-        os.makedirs(cfg.CONF.sensors.modules_path)
-
 
 def _teardown():
     db_teardown()
@@ -67,7 +63,7 @@ def _get_user_sensors():
     sensors_dict = defaultdict(list)
     pack_loader = ContentPackLoader()
     sensor_loader = SensorLoader()
-    packs = pack_loader.get_content(base_dir=cfg.CONF.content.content_pack_path,
+    packs = pack_loader.get_content(base_dir=cfg.CONF.content.content_packs_base_path,
                                     content_type='sensors')
     for pack, sensor_dir in six.iteritems(packs):
         try:

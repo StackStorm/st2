@@ -27,7 +27,7 @@ def _setup():
     config.parse_args()
 
     # 2. setup logging.
-    logging.setup(cfg.CONF.api_logging.config_file)
+    logging.setup(cfg.CONF.api.logging)
 
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.

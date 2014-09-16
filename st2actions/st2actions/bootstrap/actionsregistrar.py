@@ -86,4 +86,4 @@ def _register_actions_from_packs(base_dir):
 
 
 def register_actions():
-    return _register_actions_from_packs(cfg.CONF.content.content_pack_path)
+    return _register_actions_from_packs(cfg.CONF.content.content_packs_base_path)
