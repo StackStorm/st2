@@ -29,9 +29,11 @@ if [[ ${1} == "start" ]]; then
 
     # Copy and overwrite the action contents
     sudo mkdir -p /opt/stackstorm
+    sudo mkdir -p /opt/stackstorm/default/sensors/
+    sudo mkdir -p /opt/stackstorm/default/actions/
+    sudo mkdir -p /opt/stackstorm/default/rules/
     sudo chown vagrant:vagrant /opt/stackstorm
-    cp -Rp ./contrib/core/actions /opt/stackstorm
-    cp -Rp ./contrib/core/rules /opt/stackstorm
+    cp -Rp ./contrib/core/ /opt/stackstorm
 
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate
