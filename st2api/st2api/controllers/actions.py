@@ -1,8 +1,11 @@
+import os
+
+from mongoengine import ValidationError, NotUniqueError
+from oslo.config import cfg
+
 from pecan import abort
 from pecan.rest import RestController
 import six
-
-from mongoengine import ValidationError, NotUniqueError
 
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
 #       that bubble up to this layer should be core Python exceptions or
@@ -110,6 +113,16 @@ class ActionsController(RestController):
             abort(http_client.NOT_FOUND, msg)
             return
 
+        if not hasattr(action, 'content_pack'):
+            setattr(action, 'content_pack', 'default')
+
+        if not self._is_valid_content_pack(action.content_pack):
+            msg = 'Content pack %s does not exist in %s.' % (
+                action.content_pack,
+                cfg.CONF.content.content_packs_base_path)
+            abort(http_client.BAD_REQUEST, msg)
+            return
+
         # ActionsController._validate_action_parameters(action, runnertype_db)
         action_model = ActionAPI.to_model(action)
 
@@ -180,3 +193,7 @@ class ActionsController(RestController):
         LOG.audit('Action deleted. Action=%s', action_db)
         LOG.info('DELETE /actions/ with id="%s" completed', id)
         return None
+
+    def _is_valid_content_pack(self, content_pack):
+        base_path = cfg.CONF.content.content_packs_base_path
+        return os.path.exists(os.path.join(base_path, content_pack, 'actions'))
