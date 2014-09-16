@@ -5,9 +5,11 @@ try:
 except ImportError:
     import json
 import mock
+
+from st2api.controllers.actions import ActionsController
+from st2common.transport.publishers import PoolPublisher
 from tests import FunctionalTest
 
-from st2common.transport.publishers import PoolPublisher
 
 ACTION_1 = {
     'name': 'st2.dummy.action1',
@@ -109,6 +111,8 @@ class FakeResponse(object):
 class TestActionExecutionsController(FunctionalTest):
 
     @classmethod
+    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+        return_value=True))
     def setUpClass(cls):
         super(TestActionExecutionsController, cls).setUpClass()
         cls.action1 = copy.copy(ACTION_1)
