@@ -22,12 +22,19 @@ class ActionBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionBranch, self).__init__(
             models.Action, description, app, subparsers,
-            parent_parser=parent_parser)
+            parent_parser=parent_parser,
+            commands={
+                'list': ActionListCommand
+            })
 
         # Registers extended commands
         self.commands['execute'] = ActionRunCommand(
             self.resource, self.app, self.subparsers,
             add_help=False)
+
+
+class ActionListCommand(resource.ResourceListCommand):
+    display_attributes = ['id', 'content_pack', 'name', 'description']
 
 
 class ActionRunCommand(resource.ResourceCommand):
