@@ -59,8 +59,13 @@ class RunnerContainerService():
         return wkdir
 
     def get_entry_point_abs_path(self, pack=None, entry_point=None):
-        return os.path.join(self.get_content_packs_base_path(), pipes.quote(pack),
-                            pipes.quote(entry_point))
+        if entry_point is not None:
+            if os.path.isabs(entry_point):
+                return entry_point
+            return os.path.join(self.get_content_packs_base_path(), pipes.quote(pack),
+                                'actions', pipes.quote(entry_point))
+        else:
+            return None
 
     def __str__(self):
         result = []
