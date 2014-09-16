@@ -10,10 +10,10 @@ common_config.register_opts()
 CONF = cfg.CONF
 
 logging_opts = [
-    cfg.StrOpt('config_file', default='conf/logging.conf',
+    cfg.StrOpt('logging', default='conf/logging.conf',
                help='location of the logging.conf file')
 ]
-CONF.register_opts(logging_opts, group='actionrunner_logging')
+CONF.register_opts(logging_opts, group='actionrunner')
 
 db_opts = [
     cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
@@ -21,16 +21,6 @@ db_opts = [
     cfg.StrOpt('db_name', default='st2', help='name of database')
 ]
 CONF.register_opts(db_opts, group='database')
-
-action_runner_opts = [
-    cfg.StrOpt('artifact_repo_path',
-               default='/opt/stackstorm/actions',
-               help='Path to root of artifact repository'),
-    cfg.StrOpt('artifact_working_dir_path',
-               default='/tmp/actionrunner',
-               help='Path to the root of the working directory for live action execution.'),
-]
-CONF.register_opts(action_runner_opts, group='action_runner')
 
 ssh_runner_opts = [
     cfg.StrOpt('user',
@@ -71,12 +61,6 @@ workflow_opts = [
     cfg.StrOpt('url', default='http://localhost:8989/v1', help='Mistral API server endpoint.')
 ]
 CONF.register_opts(workflow_opts, group='workflow')
-
-actions_opts = [
-    cfg.StrOpt('modules_path', default='/opt/stackstorm/actions',
-               help='path where action plugins are located')
-]
-CONF.register_opts(actions_opts, group='actions')
 
 
 def parse_args(args=None):

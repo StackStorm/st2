@@ -26,7 +26,7 @@ def _setup():
     # 1. parse args to setup config.
     config.parse_args()
     # 2. setup logging.
-    logging.setup(cfg.CONF.actionrunner_logging.config_file)
+    logging.setup(cfg.CONF.actionrunner.logging)
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,

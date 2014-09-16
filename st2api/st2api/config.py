@@ -35,10 +35,10 @@ def _register_app_opts():
     CONF.register_opts(pecan_opts, group='api_pecan')
 
     logging_opts = [
-        cfg.StrOpt('config_file', default='conf/logging.conf',
+        cfg.StrOpt('logging', default='conf/logging.conf',
                    help='location of the logging.conf file')
     ]
-    CONF.register_opts(logging_opts, group='api_logging')
+    CONF.register_opts(logging_opts, group='api')
 
 
 def regsiter_opts():

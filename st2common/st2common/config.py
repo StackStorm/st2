@@ -24,7 +24,7 @@ def register_opts(ignore_errors=False):
     _do_register_opts(schema_opts, 'schema', ignore_errors)
 
     content_opts = [
-        cfg.StrOpt('content_pack_path', default='/opt/stackstorm/',
+        cfg.StrOpt('content_packs_base_path', default='/opt/stackstorm/',
                    help='path to load sensor modules from')
     ]
     _do_register_opts(content_opts, 'content', ignore_errors)
@@ -35,18 +35,6 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('db_name', default='st2', help='name of database')
     ]
     _do_register_opts(db_opts, 'database', ignore_errors)
-
-    actions_opts = [
-        cfg.StrOpt('modules_path', default='/opt/stackstorm/actions',
-                   help='path where action plugins are located')
-    ]
-    _do_register_opts(actions_opts, 'actions', ignore_errors)
-
-    rules_opts = [
-        cfg.StrOpt('rules_path', default='/opt/stackstorm/rules',
-                   help='path to load rule files')
-    ]
-    _do_register_opts(rules_opts, 'rules', ignore_errors)
 
     messaging_opts = [
         cfg.StrOpt('url', default='amqp://guest:guest@localhost:5672//',

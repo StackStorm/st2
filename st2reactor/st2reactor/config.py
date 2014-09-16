@@ -12,16 +12,12 @@ def _register_common_opts():
 
 def _register_reactor_opts():
     logging_opts = [
-        cfg.StrOpt('config_file', default='etc/logging.conf',
+        cfg.StrOpt('logging', default='etc/logging.conf',
                    help='location of the logging.conf file')
     ]
-    CONF.register_opts(logging_opts, group='reactor_logging')
+    CONF.register_opts(logging_opts, group='reactor')
 
     sensors_opts = [
-        cfg.StrOpt('modules_path', default='/opt/stackstorm/sensors',
-                   help='path to load sensor modules from'),
-        cfg.StrOpt('scripts_path', default='/opt/stackstorm/sensors/scripts',
-                   help='path to load sensor scripts from'),
         cfg.StrOpt('system_path', default='st2reactor/st2reactor/contrib/sensors',
                    help='path to load system sensor modules from')
     ]
