@@ -1,6 +1,28 @@
 #!/usr/bin/python
 
 import os, sys, requests, json
+from st2client.client import Client
+
+st2_endpoints = {
+    'action': 'http://localhost:9101',
+    'reactor': 'http://localhost:9102',
+    'datastore': 'http://localhost:9103'
+}
+
+try:
+  client = Client(st2_endpoints)
+  bot_host = client.keys.get_by_name('bot_host').value
+  if not bot_host:
+    raise Exception('Key error with bot_host.')
+  bot_port = client.keys.get_by_name('bot_port').value
+  if not bot_port:
+    raise Exception('Key error with bot_port.')
+  bot_endpoint = client.keys.get_by_name('bot_endpoint').value
+  if not bot_endpoint:
+    raise Exception('Key error with bot_endpoint.')
+except Exception, e:
+  print e
+  sys.exit(2)
 
 sys.argv.pop(0)
 
@@ -15,19 +37,14 @@ args = ' '.join(map(str,sys.argv))
 
 try:
   json.loads(args)
-  payload['msg'] = args   
+  payload['msg'] = args
 except ValueError, e:
-  payload['msg'] = json.dumps({'std_out': args})
+  payload['msg'] = json.dumps({'message': args})
 
-host="st2chat"
-port="8080"
-ep="/stormbot/st2"
-url='http://'+host+':'+port+ep
-
+url='http://'+bot_host+':'+bot_port+bot_endpoint
 headers = {'content-type': 'application/json'}
 
 data['payload'] = payload
 r = requests.post(url,data=json.dumps(data),headers=headers)
 
 print r.text
-
