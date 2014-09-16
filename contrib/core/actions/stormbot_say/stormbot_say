@@ -5,8 +5,8 @@ from st2client.client import Client
 
 st2_endpoints = {
     'action': 'http://localhost:9101',
-    'reactor': 'http://localhost:9102',
-    'datastore': 'http://localhost:9103'
+    'reactor': 'http://localhost:9101',
+    'datastore': 'http://localhost:9101'
 }
 
 try:
@@ -41,7 +41,7 @@ try:
 except ValueError, e:
   payload['msg'] = json.dumps({'message': args})
 
-url='http://'+bot_host+':'+bot_port+bot_endpoint
+url = 'http://' + bot_host + ':' + bot_port + bot_endpoint
 headers = {'content-type': 'application/json'}
 
 data['payload'] = payload
