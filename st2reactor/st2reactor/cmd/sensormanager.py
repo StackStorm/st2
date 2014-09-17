@@ -84,7 +84,7 @@ def _get_all_sensors():
         sensors_dict = sensor_loader.get_sensors(fil=cfg.CONF.sensor_path)
     else:
         sensors_dict = sensor_loader.get_sensors(base_dir=os.path.realpath(
-                                                 cfg.CONF.sensors.system_path))
+                                                 cfg.CONF.content.system_path))
         user_sensor_dict = _get_user_sensors()
         sensors_dict.update(user_sensor_dict)
         LOG.info('Found %d user sensors.', len(user_sensor_dict))
