@@ -63,11 +63,9 @@ class Resource(object):
 
 class ResourceManager(object):
 
-    def __init__(self, resource, endpoint, read_only=False):
-        self.endpoint = endpoint
+    def __init__(self, resource, endpoint, cacert=None):
         self.resource = resource
-        self.read_only = read_only
-        self.client = httpclient.HTTPClient(self.endpoint)
+        self.client = httpclient.HTTPClient(endpoint, cacert=cacert)
 
     @staticmethod
     def handle_error(response):
@@ -88,7 +86,6 @@ class ResourceManager(object):
             limit = None
         if limit:
             url += '/?limit=%s' % limit
-        LOG.info('GET %s/%s' % (self.endpoint, url))
         response = self.client.get(url, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
@@ -97,7 +94,6 @@ class ResourceManager(object):
 
     def get_by_id(self, id, **kwargs):
         url = '/%s/%s' % (self.resource.get_plural_name().lower(), id)
-        LOG.info('GET %s/%s' % (self.endpoint, url))
         response = self.client.get(url, **kwargs)
         if response.status_code == 404:
             return None
@@ -136,7 +132,6 @@ class ResourceManager(object):
 
     def create(self, instance, **kwargs):
         url = '/%s' % self.resource.get_plural_name().lower()
-        LOG.info('POST %s/%s' % (self.endpoint, url))
         response = self.client.post(url, instance.serialize(), **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
@@ -145,7 +140,6 @@ class ResourceManager(object):
 
     def update(self, instance, **kwargs):
         url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance.id)
-        LOG.info('PUT %s/%s' % (self.endpoint, url))
         response = self.client.put(url, instance.serialize(), **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
@@ -154,7 +148,6 @@ class ResourceManager(object):
 
     def delete(self, instance, **kwargs):
         url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance.id)
-        LOG.info('DELETE %s/%s' % (self.endpoint, url))
         response = self.client.delete(url, **kwargs)
         if response.status_code not in (204, 404):
             self.handle_error(response)
