@@ -17,12 +17,6 @@ def _register_reactor_opts():
     ]
     CONF.register_opts(logging_opts, group='reactor')
 
-    sensors_opts = [
-        cfg.StrOpt('system_path', default='st2reactor/st2reactor/contrib/sensors',
-                   help='path to load system sensor modules from')
-    ]
-    CONF.register_opts(sensors_opts, group='sensors')
-
     sensor_test_opt = cfg.StrOpt('sensor-path', help='Path to the sensor to test.')
     CONF.register_cli_opt(sensor_test_opt)
 
