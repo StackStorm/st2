@@ -63,5 +63,7 @@ def _register_rules_from_packs(base_dir):
             LOG.exception('Failed registering all rules from pack: %s', rules_dir)
 
 
-def register_rules():
-    return _register_rules_from_packs(cfg.CONF.content.content_packs_base_path)
+def register_rules(content_packs_base_path=None):
+    if not content_packs_base_path:
+        content_packs_base_path = cfg.CONF.content.content_packs_base_path
+    return _register_rules_from_packs(content_packs_base_path)

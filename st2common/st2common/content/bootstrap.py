@@ -8,7 +8,7 @@ import st2actions.bootstrap.runnersregistrar as runners_registrar
 import st2common.config as config
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-import st2reactor.bootstrap.registrar as rules_registrar
+import st2reactor.bootstrap.rulesregistrar as rules_registrar
 
 
 LOG = logging.getLogger('st2common.content.bootstrap')
