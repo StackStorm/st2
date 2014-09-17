@@ -62,6 +62,9 @@ class Command(object):
         return func(subject, *args, **kwargs)
 
     def print_output(self, subject, formatter, *args, **kwargs):
-        output = self.format_output(subject, formatter, *args, **kwargs)
-        print(output)
+        if subject:
+            output = self.format_output(subject, formatter, *args, **kwargs)
+            print(output)
+        else:
+            print('None')
         print()

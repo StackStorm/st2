@@ -4,6 +4,7 @@ import logging
 
 from st2client.models import datastore
 from st2client.commands import resource
+from st2client.commands.resource import add_auth_token_to_kwargs
 from st2client.formatters import table
 import six
 
@@ -46,13 +47,11 @@ class KeyValuePairCreateCommand(resource.ResourceCommand):
 
         self.parser.add_argument('name', help='Key name.')
         self.parser.add_argument('value', help='Value paired with the key.')
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
 
+    @add_auth_token_to_kwargs
     def run(self, args, **kwargs):
         instance = self.resource(name=args.name, value=args.value)
-        return self.manager.create(instance)
+        return self.manager.create(instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
@@ -71,14 +70,12 @@ class KeyValuePairUpdateCommand(resource.ResourceCommand):
                                  metavar='name-or-id',
                                  help='Name or ID of the key value pair.')
         self.parser.add_argument('value', help='Value paired with the key.')
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
 
+    @add_auth_token_to_kwargs
     def run(self, args, **kwargs):
-        instance = self.get_resource(args.name_or_id)
+        instance = self.get_resource(args.name_or_id, **kwargs)
         instance.value = args.value
-        return self.manager.update(instance)
+        return self.manager.update(instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
@@ -97,10 +94,8 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
         self.parser.add_argument(
             'file', help=('JSON file containing the %s to create.'
                           % resource.get_plural_display_name().lower()))
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
 
+    @add_auth_token_to_kwargs
     def run(self, args, **kwargs):
         if not os.path.isfile(args.file):
             raise Exception('File "%s" does not exist.' % args.file)
@@ -109,15 +104,15 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             kvps = json.loads(f.read())
             for k, v in six.iteritems(kvps):
                 try:
-                    instance = self.get_resource(k)
+                    instance = self.get_resource(k, **kwargs)
                 except resource.ResourceNotFoundError:
                     instance = None
                 if not instance:
                     instance = self.resource(name=k, value=v)
-                    instances.append(self.manager.create(instance))
+                    instances.append(self.manager.create(instance, **kwargs))
                 else:
                     instance.value = v
-                    instances.append(self.manager.update(instance))
+                    instances.append(self.manager.update(instance, **kwargs))
             return instances
 
     def run_and_print(self, args, **kwargs):

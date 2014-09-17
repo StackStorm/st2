@@ -81,39 +81,41 @@ class ResourceManager(object):
                                 'from the HTTP response. %s\n' % str(e))
         response.raise_for_status()
 
-    def get_all(self, *args, **kwargs):
+    def get_all(self, **kwargs):
         url = '/%s' % self.resource.get_plural_name().lower()
-        limit = kwargs.get('limit', None)
+        limit = kwargs.pop('limit', None)
         if limit and limit <= 0:
             limit = None
         if limit:
             url += '/?limit=%s' % limit
         LOG.info('GET %s/%s' % (self.endpoint, url))
-        response = self.client.get(url)
+        response = self.client.get(url, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
         return [self.resource.deserialize(item)
                 for item in response.json()]
 
-    def get_by_id(self, id):
+    def get_by_id(self, id, **kwargs):
         url = '/%s/%s' % (self.resource.get_plural_name().lower(), id)
         LOG.info('GET %s/%s' % (self.endpoint, url))
-        response = self.client.get(url)
+        response = self.client.get(url, **kwargs)
         if response.status_code == 404:
             return None
         if response.status_code != 200:
             self.handle_error(response)
         return self.resource.deserialize(response.json())
 
-    def query(self, *args, **kwargs):
+    def query(self, **kwargs):
         if not kwargs:
             raise Exception('Query parameter is not provided.')
         if 'limit' in kwargs and kwargs.get('limit') <= 0:
             kwargs.pop('limit')
+        token = kwargs.get('token', None)
         url = '/%s/?' % self.resource.get_plural_name().lower()
         for k, v in six.iteritems(kwargs):
-            url += '%s%s=%s' % (('&' if url[-1] != '?' else ''), k, v)
-        response = self.client.get(url)
+            if k != 'token':
+                url += '%s%s=%s' % (('&' if url[-1] != '?' else ''), k, v)
+        response = self.client.get(url, token=token) if token else self.client.get(url)
         if response.status_code == 404:
             return []
         if response.status_code != 200:
@@ -122,37 +124,37 @@ class ResourceManager(object):
         instances = [self.resource.deserialize(item) for item in items]
         return instances
 
-    def get_by_name(self, name):
-        instances = self.query(name=name)
+    def get_by_name(self, name_or_id, **kwargs):
+        instances = self.query(name=name_or_id, **kwargs)
         if not instances:
             return None
         else:
             if len(instances) > 1:
                 raise Exception('More than one %s named "%s" are found.' %
-                                (self.resource.__name__.lower(), name))
+                                (self.resource.__name__.lower(), name_or_id))
             return instances[0]
 
-    def create(self, instance):
+    def create(self, instance, **kwargs):
         url = '/%s' % self.resource.get_plural_name().lower()
         LOG.info('POST %s/%s' % (self.endpoint, url))
-        response = self.client.post(url, instance.serialize())
+        response = self.client.post(url, instance.serialize(), **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
 
-    def update(self, instance):
+    def update(self, instance, **kwargs):
         url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance.id)
         LOG.info('PUT %s/%s' % (self.endpoint, url))
-        response = self.client.put(url, instance.serialize())
+        response = self.client.put(url, instance.serialize(), **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
 
-    def delete(self, instance):
+    def delete(self, instance, **kwargs):
         url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance.id)
         LOG.info('DELETE %s/%s' % (self.endpoint, url))
-        response = self.client.delete(url)
+        response = self.client.delete(url, **kwargs)
         if response.status_code not in (204, 404):
             self.handle_error(response)
