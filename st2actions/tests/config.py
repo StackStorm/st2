@@ -13,25 +13,34 @@ def __register_opts(opts, group=None):
 
 
 def __setup_config_opts():
-    api_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='action API server host'),
-        cfg.IntOpt('port', default=9501, help='action API server port')
+    action_sensor_opts = [
+        cfg.BoolOpt('enable', default=True,
+                    help='Whether to enable or disable the ability to post a trigger on action.'),
+        cfg.StrOpt('triggers_base_url', default='http://localhost:9101/triggertypes/',
+                   help='URL for action sensor to post TriggerType.'),
+        cfg.StrOpt('webhook_sensor_base_url', default='http://localhost:6000/webhooks/st2/',
+                   help='URL for action sensor to post TriggerInstances.'),
+        cfg.IntOpt('request_timeout', default=1,
+                   help='Timeout value of all httprequests made by action sensor.'),
+        cfg.IntOpt('max_attempts', default=10,
+                   help='No. of times to retry registration.'),
+        cfg.IntOpt('retry_wait', default=1,
+                   help='Amount of time to wait prior to retrying a request.')
     ]
-    __register_opts(api_opts, group='action_controller_api')
+    CONF.register_opts(action_sensor_opts, group='action_sensor')
 
-    # note : template_path value only works if started from the top-level of the codebase. Brittle!
-    pecan_opts = [
-        cfg.StrOpt('root',
-                   default='st2actionrunnercontroller.controllers.root.RootController',
-                   help='Pecan root controller'),
-        cfg.StrOpt('template_path', default=('%(confdir)s/st2actionrunnercontroller/'
-                                             'st2actionrunnercontroller/templates')),
-        cfg.ListOpt('modules', default=['st2actionrunnercontroller']),
-        cfg.BoolOpt('debug', default=True),
-        cfg.BoolOpt('auth_enable', default=True),
-        cfg.DictOpt('errors', default={404: '/error/404', '__force_dict__': True})
+    ssh_runner_opts = [
+        cfg.StrOpt('user',
+                   default='stanley',
+                   help='User for running remote tasks via the FabricRunner.'),
+        cfg.StrOpt('ssh_key_file',
+                   default='/home/vagrant/.ssh/stanley_rsa',
+                   help='SSH private key for running remote tasks via the FabricRunner.'),
+        cfg.StrOpt('remote_dir',
+                   default='/tmp',
+                   help='Location of the script on the remote filesystem.'),
     ]
-    __register_opts(pecan_opts, group='action_runner_controller_pecan')
+    CONF.register_opts(ssh_runner_opts, group='ssh_runner')
 
 
 def parse_args():

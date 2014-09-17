@@ -1,5 +1,5 @@
+import st2actions.container.base as runner_container
 from st2common import log as logging
-
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError, ActionRunnerException
 from st2common.models.api.action import ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_ERROR
@@ -8,8 +8,6 @@ from st2common.persistence.actionrunner import LiveAction
 from st2common.util.action_db import (get_actionexec_by_id, get_action_by_dict,
                                       update_actionexecution_status, get_runnertype_by_name)
 
-from st2actions import container
-
 
 LOG = logging.getLogger(__name__)
 
@@ -17,7 +15,7 @@ LOG = logging.getLogger(__name__)
 class LiveActionsController():
 
     def __init__(self):
-        self.container = container.get_runner_container()
+        self.container = runner_container.get_runner_container()
 
     def execute_action(self, actionexecution):
         """

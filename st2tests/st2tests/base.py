@@ -49,6 +49,8 @@ class DbTestCase(TestCase):
         st2tests.config.parse_args()
         DbTestCase.db_connection = db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
                                             cfg.CONF.database.port)
+        cls.drop_collections()
+        DbTestCase.db_connection.drop_database(cfg.CONF.database.db_name)
 
     @classmethod
     def tearDownClass(cls):
