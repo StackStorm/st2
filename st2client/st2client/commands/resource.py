@@ -1,4 +1,6 @@
 import os
+import abc
+import six
 import json
 import logging
 
@@ -7,6 +9,17 @@ from st2client.formatters import table
 
 
 LOG = logging.getLogger(__name__)
+
+
+def add_auth_token_to_kwargs(func):
+    def decorate(*args, **kwargs):
+        ns = args[1]
+        if getattr(ns, 'token', None):
+            kwargs['token'] = ns.token
+        if not kwargs.get('token') and os.environ.get('ST2_AUTH_TOKEN', None):
+            kwargs['token'] = os.environ.get('ST2_AUTH_TOKEN')
+        return func(*args, **kwargs)
+    return decorate
 
 
 class ResourceCommandError(Exception):
@@ -54,11 +67,26 @@ class ResourceBranch(commands.Branch):
             self.commands['delete'] = commands['delete'](*args)
 
 
+@six.add_metaclass(abc.ABCMeta)
 class ResourceCommand(commands.Command):
 
     def __init__(self, resource, *args, **kwargs):
+
+        has_token_opt = kwargs.pop('has_token_opt', True)
+
         super(ResourceCommand, self).__init__(*args, **kwargs)
+
         self.resource = resource
+
+        if has_token_opt:
+            self.parser.add_argument('-t', '--token', dest='token',
+                                     help='Access token for user authentication. '
+                                          'Get ST2_AUTH_TOKEN from the environment '
+                                          'variables by default.')
+
+        self.parser.add_argument('-j', '--json',
+                                 action='store_true', dest='json',
+                                 help='Prints output in JSON format.')
 
     @property
     def manager(self):
@@ -73,16 +101,24 @@ class ResourceCommand(commands.Command):
         print ('%s "%s" is not found.\n' %
                (self.resource.get_display_name(), name))
 
-    def get_resource(self, name_or_id):
-        instance = self.manager.get_by_name(name_or_id)
+    def get_resource(self, name_or_id, **kwargs):
+        instance = self.manager.get_by_name(name_or_id, **kwargs)
         if not instance:
             try:
-                instance = self.manager.get_by_id(name_or_id)
+                instance = self.manager.get_by_id(name_or_id, **kwargs)
             except:
                 pass
         if not instance:
             raise ResourceNotFoundError()
         return instance
+
+    @abc.abstractmethod
+    def run(self, args, **kwargs):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def run_and_print(self, args, **kwargs):
+        raise NotImplementedError
 
 
 class ResourceListCommand(ResourceCommand):
@@ -102,12 +138,10 @@ class ResourceListCommand(ResourceCommand):
         self.parser.add_argument('-w', '--width', nargs='+', type=int,
                                  default=[28],
                                  help=('Set the width of columns in output.'))
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
 
+    @add_auth_token_to_kwargs
     def run(self, args, **kwargs):
-        return self.manager.get_all()
+        return self.manager.get_all(**kwargs)
 
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
@@ -134,12 +168,10 @@ class ResourceGetCommand(ResourceCommand):
                                  help=('List of attributes to include in the '
                                        'output. "all" or unspecified will '
                                        'return all attributes.'))
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
 
+    @add_auth_token_to_kwargs
     def run(self, args, **kwargs):
-        return self.get_resource(args.name_or_id)
+        return self.get_resource(args.name_or_id, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         try:
@@ -160,17 +192,15 @@ class ResourceCreateCommand(ResourceCommand):
         self.parser.add_argument('file',
                                  help=('JSON file containing the %s to create.'
                                        % resource.get_display_name().lower()))
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
 
+    @add_auth_token_to_kwargs
     def run(self, args, **kwargs):
         if not os.path.isfile(args.file):
             raise Exception('File "%s" does not exist.' % args.file)
         with open(args.file, 'r') as f:
             data = json.loads(f.read())
             instance = self.resource.deserialize(data)
-            return self.manager.create(instance)
+            return self.manager.create(instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
@@ -192,14 +222,12 @@ class ResourceUpdateCommand(ResourceCommand):
         self.parser.add_argument('file',
                                  help=('JSON file containing the %s to update.'
                                        % resource.get_display_name().lower()))
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
 
+    @add_auth_token_to_kwargs
     def run(self, args, **kwargs):
         if not os.path.isfile(args.file):
             raise Exception('File "%s" does not exist.' % args.file)
-        instance = self.get_resource(args.name_or_id)
+        instance = self.get_resource(args.name_or_id, **kwargs)
         with open(args.file, 'r') as f:
             data = json.loads(f.read())
             modified_instance = self.resource.deserialize(data)
@@ -211,7 +239,7 @@ class ResourceUpdateCommand(ResourceCommand):
                                     'does not match the ID provided in the '
                                     'command line arguments.' %
                                     self.resource.get_display_name().lower())
-            return self.manager.update(modified_instance)
+            return self.manager.update(modified_instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
@@ -231,9 +259,10 @@ class ResourceDeleteCommand(ResourceCommand):
                                  help=('Name or ID of the %s.' %
                                        resource.get_display_name().lower()))
 
+    @add_auth_token_to_kwargs
     def run(self, args, **kwargs):
-        instance = self.get_resource(args.name_or_id)
-        self.manager.delete(instance)
+        instance = self.get_resource(args.name_or_id, **kwargs)
+        self.manager.delete(instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         try:

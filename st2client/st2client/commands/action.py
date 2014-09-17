@@ -11,6 +11,7 @@ from st2common.models.api import action as act
 
 from st2client import models
 from st2client.commands import resource
+from st2client.commands.resource import add_auth_token_to_kwargs
 from st2client.formatters import table
 
 
@@ -56,9 +57,6 @@ class ActionRunCommand(resource.ResourceCommand):
         self.parser.add_argument('-h', '--help',
                                  action='store_true', dest='help',
                                  help='Print usage for the given action.')
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
 
         if self.name == 'run':
             self.parser.add_argument('-a', '--async',
@@ -67,17 +65,18 @@ class ActionRunCommand(resource.ResourceCommand):
         else:
             self.parser.set_defaults(async=True)
 
+    @add_auth_token_to_kwargs
     def run(self, args, **kwargs):
         if not args.name_or_id:
             self.parser.error('too few arguments')
 
-        action = self.get_resource(args.name_or_id)
+        action = self.get_resource(args.name_or_id, **kwargs)
         if not action:
             raise resource.ResourceNotFoundError('Action "%s" cannot be found.'
                                                  % args.name_or_id)
 
         runner_mgr = self.app.client.managers['RunnerType']
-        runner = runner_mgr.get_by_name(action.runner_type)
+        runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
         if not runner:
             raise resource.ResourceNotFoundError('Runner type "%s" for action "%s" cannot be found.'
                                                  % (action.runner_type, action.name))
@@ -115,14 +114,14 @@ class ActionRunCommand(resource.ResourceCommand):
                 break
 
         action_exec_mgr = self.app.client.managers['ActionExecution']
-        execution = action_exec_mgr.create(execution)
+        execution = action_exec_mgr.create(execution, **kwargs)
 
         if not args.async:
             while execution.status == act.ACTIONEXEC_STATUS_SCHEDULED \
                     or execution.status == act.ACTIONEXEC_STATUS_RUNNING:
                 time.sleep(1)
                 sys.stdout.write('.')
-                execution = action_exec_mgr.get_by_id(execution.id)
+                execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
 
             sys.stdout.write('\n')
 
@@ -151,14 +150,15 @@ class ActionRunCommand(resource.ResourceCommand):
             print(wrapper.fill('Default: %s' % schema['default']))
         print('')
 
-    def print_help(self, args):
+    @add_auth_token_to_kwargs
+    def print_help(self, args, **kwargs):
         # Print appropriate help message if the help option is given.
         if args.help:
             if args.name_or_id:
                 try:
-                    action = self.get_resource(args.name_or_id)
+                    action = self.get_resource(args.name_or_id, **kwargs)
                     runner_mgr = self.app.client.managers['RunnerType']
-                    runner = runner_mgr.get_by_name(action.runner_type)
+                    runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
                     parameters = copy.copy(runner.runner_parameters)
                     parameters.update(copy.copy(action.parameters))
                     required = (getattr(runner, 'required_parameters', list()) +
@@ -185,7 +185,7 @@ class ActionRunCommand(resource.ResourceCommand):
         return False
 
     def run_and_print(self, args, **kwargs):
-        if self.print_help(args):
+        if self.print_help(args, **kwargs):
             return
         # Execute the action.
         instance = self.run(args, **kwargs)
@@ -205,10 +205,6 @@ class ActionExecutionBranch(resource.ResourceBranch):
             parent_parser=parent_parser, read_only=True,
             commands={'list': ActionExecutionListCommand,
                       'get': ActionExecutionGetCommand})
-
-        # Registers extended commands
-        self.commands['cancel'] = ActionExecutionCancelCommand(
-            self.resource, self.app, self.subparsers)
 
 
 class ActionExecutionListCommand(resource.ResourceCommand):
@@ -237,18 +233,14 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         self.parser.add_argument('-w', '--width', nargs='+', type=int,
                                  default=[28],
                                  help=('Set the width of columns in output.'))
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
 
+    @add_auth_token_to_kwargs
     def run(self, args, **kwargs):
-        filters = dict()
         if args.action_name:
-            filters['action_name'] = args.action_name
+            kwargs['action_name'] = args.action_name
         elif args.action_id:
-            filters['action_id'] = args.action_id
-        return (self.manager.query(limit=args.last, **filters)
-                if filters else self.manager.get_all(limit=args.last))
+            kwargs['action_id'] = args.action_id
+        return self.manager.query(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
@@ -283,12 +275,10 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
                                  help=('List of attributes to include in the '
                                        'output. "all" or unspecified will '
                                        'return all attributes.'))
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
 
+    @add_auth_token_to_kwargs
     def run(self, args, **kwargs):
-        return self.manager.get_by_id(args.id)
+        return self.manager.get_by_id(args.id, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         try:
@@ -297,24 +287,3 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
                               attributes=args.attr, json=args.json)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
-
-
-class ActionExecutionCancelCommand(resource.ResourceCommand):
-
-    def __init__(self, resource, *args, **kwargs):
-        super(ActionExecutionCancelCommand, self).__init__(
-            resource, 'cancel',
-            'Cancels an %s.' % resource.get_display_name().lower(),
-            *args, **kwargs)
-
-        self.parser.add_argument('execution-id',
-                                 help='ID of the action execution.')
-        self.parser.add_argument('-j', '--json',
-                                 action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
-
-    def run(self, args, **kwargs):
-        raise NotImplementedError
-
-    def run_and_print(self, args, **kwargs):
-        raise NotImplementedError

@@ -10,6 +10,7 @@ import logging
 from st2client import models
 from st2client.client import Client
 from st2client.commands import resource
+from st2client.commands import access
 from st2client.commands import action
 from st2client.commands import datastore
 
@@ -41,6 +42,15 @@ class Shell(object):
         )
 
         self.parser.add_argument(
+            '--auth-url',
+            action='store',
+            dest='auth_url',
+            default=None,
+            help='URL for the autentication service. Get ST2_AUTH_URL'
+                 'from the environment variables by default.'
+        )
+
+        self.parser.add_argument(
             '--api-url',
             action='store',
             dest='api_url',
@@ -49,18 +59,12 @@ class Shell(object):
                  'from the environment variables by default.'
         )
 
-        self.parser.add_argument(
-            '--datastore-url',
-            action='store',
-            dest='datastore_url',
-            default=None,
-            help='URL for the Datastore API server. Get ST2_DATASTORE_URL'
-                 'from the environment variables by default.'
-        )
-
         # Set up list of commands and subcommands.
         self.subparsers = self.parser.add_subparsers()
         self.commands = dict()
+
+        self.commands['auth'] = access.TokenCreateCommand(
+            models.Token, self, self.subparsers, name='auth')
 
         self.commands['key'] = datastore.KeyValuePairBranch(
             'Key value pair is used to store commonly used configuration '
@@ -96,10 +100,10 @@ class Shell(object):
         endpoints = dict()
         if args.url:
             endpoints['base_url'] = args.url
+        if args.auth_url:
+            endpoints['auth_url'] = args.auth_url
         if args.api_url:
             endpoints['api_url'] = args.api_url
-        if args.datastore_url:
-            endpoints['datastore_url'] = args.datastore_url
         return Client(**endpoints)
 
     def run(self, argv):
@@ -111,7 +115,7 @@ class Shell(object):
             self.client = self.get_client(args)
 
             # Execute command.
-            args.func(args, argv=argv)
+            args.func(args)
 
             return 0
         except Exception as e:

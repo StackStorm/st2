@@ -29,7 +29,8 @@ class Token(Access):
             raise ValueError('Token expiry is not provided in the token.')
         return super(Token, kls).add_or_update(model_object, publish=publish)
 
-    def get(self, value):
-        for model_object in self._model_kls.objects(token=value):
+    @classmethod
+    def get(kls, value):
+        for model_object in TokenDB.objects(token=value):
             return model_object
         raise TokenNotFoundError()

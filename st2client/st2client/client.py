@@ -15,13 +15,19 @@ class Client(object):
         self.endpoints = dict()
         self.endpoints['base'] = os.environ.get(
             'ST2_BASE_URL', kwargs.get('base_url', 'http://localhost'))
-        self.endpoints['api'] = kwargs.get('api_url', None)
+        self.endpoints['auth'] = kwargs.get('auth_url')
+        if not self.endpoints['auth']:
+            self.endpoints['auth'] = os.environ.get(
+                'ST2_AUTH_URL', '%s:%s' % (self.endpoints['base'], 9100))
+        self.endpoints['api'] = kwargs.get('api_url')
         if not self.endpoints['api']:
             self.endpoints['api'] = os.environ.get(
                 'ST2_API_URL', '%s:%s' % (self.endpoints['base'], 9101))
 
         # Instantiate resource managers and assign appropriate API endpoint.
         self.managers = dict()
+        self.managers['Token'] = models.ResourceManager(
+            models.Token, self.endpoints['auth'])
         self.managers['RunnerType'] = models.ResourceManager(
             models.RunnerType, self.endpoints['api'])
         self.managers['Action'] = models.ResourceManager(
@@ -34,6 +40,10 @@ class Client(object):
             models.Trigger, self.endpoints['api'])
         self.managers['KeyValuePair'] = models.ResourceManager(
             models.KeyValuePair, self.endpoints['api'])
+
+    @property
+    def tokens(self):
+        return self.managers['Token']
 
     @property
     def runners(self):

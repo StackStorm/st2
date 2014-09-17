@@ -62,7 +62,7 @@ ACTION_EXECUTION = {
 }
 
 
-def get_by_name(name):
+def get_by_name(name, **kwargs):
     if name == 'mock-runner1':
         return models.RunnerType(**RUNNER1)
     if name == 'mock1':
