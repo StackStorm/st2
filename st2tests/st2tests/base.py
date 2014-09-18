@@ -55,7 +55,8 @@ class DbTestCase(TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.drop_collections()
-        DbTestCase.db_connection.drop_database(cfg.CONF.database.db_name)
+        if DbTestCase.db_connection is not None:
+            DbTestCase.db_connection.drop_database(cfg.CONF.database.db_name)
         db_teardown()
         DbTestCase.db_connection = None
 
