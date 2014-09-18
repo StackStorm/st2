@@ -14,6 +14,9 @@ class RuleFilter(object):
 
     def filter(self):
         LOG.info('Validating rule %s for %s.', self.rule.id, self.trigger_instance.trigger['name'])
+        if not self.rule.enabled:
+            return False
+
         criteria = RuleAPI.from_model(self.rule).criteria
         is_rule_applicable = True
 
@@ -40,4 +43,5 @@ class RuleFilter(object):
         if 'type' in criterion_v:
             criteria_operator = criterion_v['type']
         op_func = criteria_operators.get_operator(criteria_operator)
+
         return op_func(payload_value['result'], criteria_pattern)

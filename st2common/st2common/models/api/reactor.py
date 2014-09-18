@@ -62,6 +62,10 @@ class TriggerAPI(BaseAPI):
             },
             'parameters': {
                 'type': 'object'
+            },
+            'description': {
+                'type': 'string',
+                'default': ''
             }
         },
         'required': ['type'],
@@ -186,7 +190,7 @@ class RuleAPI(BaseAPI):
                     }
                 },
                 'required': ['type'],
-                'additionalProperties': False
+                'additionalProperties': True
             },
             'criteria': {
                 'type': 'object'
