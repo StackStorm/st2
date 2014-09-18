@@ -20,12 +20,6 @@ def _register_reactor_opts():
     sensor_test_opt = cfg.StrOpt('sensor-path', help='Path to the sensor to test.')
     CONF.register_cli_opt(sensor_test_opt)
 
-    reactor_opts = [
-        cfg.StrOpt('actionexecution_base_url', default='http://0.0.0.0:9101/actionexecutions',
-                   help='URL of POSTing to the actionexecution endpoint.')
-    ]
-    CONF.register_opts(reactor_opts, group='reactor')
-
     st2_webhook_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='Host for the st2 webhook endpoint.'),
         cfg.IntOpt('port', default='6000', help='Port for the st2 webhook endpoint.'),
