@@ -19,9 +19,13 @@ class Worker(ConsumerMixin):
         self.controller = liveactions.LiveActionsController()
 
     def get_consumers(self, Consumer, channel):
-        return [Consumer(queues=[ACTIONRUNNER_WORK_Q],
-                         accept=['pickle'],
-                         callbacks=[self.process_task])]
+        consumer = Consumer(queues=[ACTIONRUNNER_WORK_Q],
+                            accept=['pickle'],
+                            callbacks=[self.process_task])
+        # use prefetch_count=1 for fair dispatch. This way workers that finish an item get the next
+        # task and the work does not get queued behind any single large item.
+        consumer.qos(prefetch_count=1)
+        return [consumer]
 
     def process_task(self, body, message):
         # LOG.debug('process_task')

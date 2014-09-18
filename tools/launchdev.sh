@@ -1,5 +1,10 @@
 #!/bin/bash
 
+runner_count=1
+if [ "$#" -gt 1 ]; then
+    runner_count=${2}
+fi
+
 function st2start(){
     echo "Starting all st2 servers..."
 
@@ -41,9 +46,14 @@ function st2start(){
 
     # Run the action runner API server
     echo 'Starting screen session st2-actionrunner...'
-    screen -d -m -S st2-actionrunner ./virtualenv/bin/python \
-        ./st2actions/bin/actionrunner \
-        --config-file ./conf/stanley.conf
+    screen -d -m -S st2-actionrunner
+
+    # start each runner in its own nested screen tab
+    for i in $(seq 1 $runner_count)
+    do
+        # a screen for every runner
+        screen -S st2-actionrunner -X screen -t runner-$i ./virtualenv/bin/python ./st2actions/bin/actionrunner --config-file ./conf/stanley.conf
+    done
 
     # Run the st2 API server
     echo 'Starting screen session st2-api...'
@@ -91,6 +101,8 @@ function st2stop(){
 }
 
 function st2clean(){
+    # clean mongo
+    mongo st2 --eval "db.dropDatabase();"
     # start with clean logs
     LOGDIR=$(dirname $0)/../logs
     rm ${LOGDIR}/*
