@@ -68,7 +68,7 @@ class RemoteAction(SSHCommandAction):
         self.on_behalf_user = on_behalf_user  # Used for audit purposes.
 
     def get_on_behalf_user(self):
-        return self.user
+        return self.on_behalf_user
 
     def __str__(self):
         str_rep = []
