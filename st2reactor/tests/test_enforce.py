@@ -46,7 +46,7 @@ MOCK_RULE_2.enabled = True
 class EnforceTest(unittest2.TestCase):
 
     @mock.patch.object(RuleEnforcement, 'add_or_update')
-    @mock.patch.object(RuleEnforcer, '_RuleEnforcer__invoke_action', mock.MagicMock(
+    @mock.patch.object(RuleEnforcer, '_invoke_action', mock.MagicMock(
         return_value=reference.get_ref_from_model(MOCK_ACTION_EXECUTION)))
     def test_ruleenforcement_creation(self, mock_ruleenforcement_add):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, MOCK_RULE_1)

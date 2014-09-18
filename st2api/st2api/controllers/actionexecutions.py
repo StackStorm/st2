@@ -1,22 +1,18 @@
-import datetime
 import json
+import datetime
+
 import jsonschema
 import pecan
 from pecan import abort
 from pecan.rest import RestController
-import six
+from six.moves import http_client
 
 from st2common import log as logging
 from st2common.models.base import jsexpose
+from st2common.services import action as action_service
 from st2common.persistence.action import ActionExecution
-from st2common.models.api.action import (ActionExecutionAPI,
-                                         ACTIONEXEC_STATUS_INIT,
-                                         ACTIONEXEC_STATUS_SCHEDULED)
-from st2common.util import schema as util_schema
-from st2common.util.action_db import (get_action_by_dict, update_actionexecution_status,
-                                      get_runnertype_by_name)
+from st2common.models.api.action import ActionExecutionAPI
 
-http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
@@ -99,82 +95,24 @@ class ActionExecutionsController(RestController):
         return actionexec_apis
 
     @jsexpose(body=ActionExecutionAPI, status_code=http_client.CREATED)
-    def post(self, actionexecution):
-        """
-            Create a new actionexecution.
-
-            Handles requests:
-                POST /actionexecutions/
-        """
-
-        LOG.info('POST /actionexecutions/ with actionexec data=%s', actionexecution)
-
-        actionexecution.start_timestamp = datetime.datetime.now()
-
-        # Retrieve context from request header.
-        if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
-            context = pecan.request.headers['st2-context'].replace("'", "\"")
-            actionexecution.context = json.loads(context)
-
-        # Fill-in runner_parameters and action_parameter fields if they are not
-        # provided in the request.
-        if not hasattr(actionexecution, 'parameters'):
-            LOG.warning('POST /actionexecutions/ request did not '
-                        'provide parameters field.')
-            setattr(actionexecution, 'runner_parameters', {})
-
-        (action_db, action_dict) = get_action_by_dict(actionexecution.action)
-        LOG.debug('POST /actionexecutions/ Action=%s', action_db)
-
-        if not action_db:
-            LOG.error('POST /actionexecutions/ Action for "%s" cannot be found.',
-                      actionexecution.action)
-            abort(http_client.NOT_FOUND, 'Unable to find action.')
-            return
-
-        actionexecution.action = action_dict
-
-        # If the Action is disabled, abort the POST call.
-        if not action_db.enabled:
-            LOG.error('POST /actionexecutions/ Unable to create Action Execution for a disabled '
-                      'Action. Action is: %s', action_db)
-            abort(http_client.FORBIDDEN, 'Action is disabled.')
-            return
-
-        # Assign default parameters
-        runnertype = get_runnertype_by_name(action_db.runner_type['name'])
-        LOG.debug('POST /actionexecutions/ Runner=%s', runnertype)
-        for key, metadata in six.iteritems(runnertype.runner_parameters):
-            if key not in actionexecution.parameters and 'default' in metadata:
-                if metadata.get('default') is not None:
-                    actionexecution.parameters[key] = metadata['default']
-
-        # Validate action parameters
-        schema = util_schema.get_parameter_schema(action_db)
+    def post(self, execution):
         try:
-            LOG.debug('POST /actionexecutions/ Validation for parameters=%s & schema=%s',
-                      actionexecution.parameters, schema)
-            jsonschema.validate(actionexecution.parameters, schema)
-            LOG.debug('POST /actionexecutions/ Parameter validation passed.')
-        except jsonschema.ValidationError as e:
-            LOG.error('POST /actionexecutions/ Parameter validation failed. %s', actionexecution)
-            abort(http_client.BAD_REQUEST, str(e))
-            return
+            # Retrieve context from request header.
+            if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
+                context = pecan.request.headers['st2-context'].replace("'", "\"")
+                execution.context = json.loads(context)
 
-        # Set initial value for ActionExecution status.
-        # Not using update_actionexecution_status to allow other initialization to
-        # be done before saving to DB.
-        actionexecution.status = ACTIONEXEC_STATUS_INIT
-        actionexec_db = ActionExecutionAPI.to_model(actionexecution)
-        actionexec_db = ActionExecution.add_or_update(actionexec_db)
-        LOG.audit('ActionExecution created. ActionExecution=%s. ', actionexec_db)
-        actionexec_id = actionexec_db.id
-        actionexec_status = ACTIONEXEC_STATUS_SCHEDULED
-        actionexec_db = update_actionexecution_status(actionexec_status,
-                                                      actionexec_id=actionexec_id)
-        actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
-        LOG.debug('POST /actionexecutions/ client_result=%s', actionexec_api)
-        return actionexec_api
+            # Schedule the action execution.
+            return action_service.schedule(execution)
+        except ValueError as e:
+            LOG.exception('Unable to execute action.')
+            abort(http_client.BAD_REQUEST, str(e))
+        except jsonschema.ValidationError as e:
+            LOG.exception('Unable to execute action. Parameter validation failed.')
+            abort(http_client.BAD_REQUEST, str(e))
+        except Exception as e:
+            LOG.exception('Unable to execute action. Unexpected error encountered.')
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
     @jsexpose(str, body=ActionExecutionAPI)
     def put(self, id, actionexecution):

@@ -1,15 +1,15 @@
 import json
+
 from st2common import log as logging
-import requests
-from oslo.config import cfg
+from st2common.util import reference
 from st2reactor.rules.datatransform import get_transformer
 from st2common.models.db.reactor import RuleEnforcementDB
 from st2common.persistence.reactor import RuleEnforcement
-from st2common.util import reference
+from st2common.services import action as action_service
+from st2common.models.api.action import ActionExecutionAPI, ACTIONEXEC_STATUS_SCHEDULED
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.enforce')
-HTTP_AE_POST_HEADER = {'content-type': 'application/json'}
 
 
 class RuleEnforcer(object):
@@ -26,7 +26,7 @@ class RuleEnforcer(object):
         LOG.info('Invoking action %s for trigger_instance %s with data %s.',
                  self.rule.action.name, self.trigger_instance.id,
                  json.dumps(data))
-        action_execution = RuleEnforcer.__invoke_action(self.rule.action.name, data)
+        action_execution = RuleEnforcer._invoke_action(self.rule.action.name, data)
         if action_execution is not None:
             rule_enforcement.action_execution = action_execution
             LOG.audit('Rule enforced. ActionExecution %s, TriggerInstance %s and Rule %s.',
@@ -39,14 +39,7 @@ class RuleEnforcer(object):
         rule_enforcement = RuleEnforcement.add_or_update(rule_enforcement)
 
     @staticmethod
-    def __invoke_action(action_name, action_args):
-        payload = json.dumps({'action': {'name': action_name},
-                              'parameters': action_args})
-        r = requests.post(cfg.CONF.reactor.actionexecution_base_url,
-                          data=payload,
-                          headers=HTTP_AE_POST_HEADER)
-        # XXX: POST /liveactions should always return an id as part of error response.
-        if r.status_code != 201:
-            return None
-        action_execution_id = r.json()['id']
-        return {'id': action_execution_id}
+    def _invoke_action(action_name, action_args):
+        execution = ActionExecutionAPI(action={'name': action_name}, parameters=action_args)
+        execution = action_service.schedule(execution)
+        return {'id': execution.id} if execution.status == ACTIONEXEC_STATUS_SCHEDULED else None
