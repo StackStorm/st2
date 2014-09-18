@@ -34,7 +34,7 @@ class Shell(object):
         self.parser.add_argument(
             '--url',
             action='store',
-            dest='url',
+            dest='base_url',
             default=None,
             help='Base URL for the API servers. Assumes all servers uses the '
                  'same base URL and default ports are used. Get ST2_BASE_URL'
@@ -57,6 +57,16 @@ class Shell(object):
             default=None,
             help='URL for the API server. Get ST2_API_URL'
                  'from the environment variables by default.'
+        )
+
+        self.parser.add_argument(
+            '--cacert',
+            action='store',
+            dest='cacert',
+            default=None,
+            help='Path to the CA cert bundle for the SSL endpoints. '
+                 'Get ST2_CACERT from the environment variables by default. '
+                 'If this is not provided, then SSL cert will not be verified.'
         )
 
         # Set up list of commands and subcommands.
@@ -97,14 +107,9 @@ class Shell(object):
             self, self.subparsers)
 
     def get_client(self, args):
-        endpoints = dict()
-        if args.url:
-            endpoints['base_url'] = args.url
-        if args.auth_url:
-            endpoints['auth_url'] = args.auth_url
-        if args.api_url:
-            endpoints['api_url'] = args.api_url
-        return Client(**endpoints)
+        options = ['base_url', 'auth_url', 'api_url', 'cacert']
+        kwargs = {opt: getattr(args, opt) for opt in options}
+        return Client(**kwargs)
 
     def run(self, argv):
         try:

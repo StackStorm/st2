@@ -21,6 +21,11 @@ class TestShell(unittest2.TestCase):
         self.shell = shell.Shell()
 
     def setUp(self):
+        # Setup environment.
+        for var in ['ST2_BASE_URL', 'ST2_AUTH_URL', 'ST2_API_URL']:
+            if var in os.environ:
+                del os.environ[var]
+
         # Redirect standard output and error to null. If not, then
         # some of the print output from shell commands will pollute
         # the test output.
@@ -34,31 +39,64 @@ class TestShell(unittest2.TestCase):
 
     def test_endpoints_default(self):
         base_url = 'http://localhost'
+        auth_url = 'https://localhost:9100'
         api_url = 'http://localhost:9101'
         args = ['trigger', 'list']
         parsed_args = self.shell.parser.parse_args(args)
         client = self.shell.get_client(parsed_args)
         self.assertEqual(client.endpoints['base'], base_url)
+        self.assertEqual(client.endpoints['auth'], auth_url)
         self.assertEqual(client.endpoints['api'], api_url)
 
-    def test_endpoints_base_url(self):
+    def test_endpoints_base_url_from_cli(self):
         base_url = 'http://www.st2.com'
+        auth_url = 'https://www.st2.com:9100'
         api_url = 'http://www.st2.com:9101'
         args = ['--url', base_url, 'trigger', 'list']
         parsed_args = self.shell.parser.parse_args(args)
         client = self.shell.get_client(parsed_args)
         self.assertEqual(client.endpoints['base'], base_url)
+        self.assertEqual(client.endpoints['auth'], auth_url)
         self.assertEqual(client.endpoints['api'], api_url)
 
-    def test_endpoints_override(self):
+    def test_endpoints_base_url_from_env(self):
         base_url = 'http://www.st2.com'
+        auth_url = 'https://www.st2.com:9100'
+        api_url = 'http://www.st2.com:9101'
+        os.environ['ST2_BASE_URL'] = base_url
+        args = ['trigger', 'list']
+        parsed_args = self.shell.parser.parse_args(args)
+        client = self.shell.get_client(parsed_args)
+        self.assertEqual(client.endpoints['base'], base_url)
+        self.assertEqual(client.endpoints['auth'], auth_url)
+        self.assertEqual(client.endpoints['api'], api_url)
+
+    def test_endpoints_override_from_cli(self):
+        base_url = 'http://www.st2.com'
+        auth_url = 'http://www.st2.com:8888'
         api_url = 'http://www.stackstorm1.com:9101'
         args = ['--url', base_url,
+                '--auth-url', auth_url,
                 '--api-url', api_url,
                 'trigger', 'list']
         parsed_args = self.shell.parser.parse_args(args)
         client = self.shell.get_client(parsed_args)
         self.assertEqual(client.endpoints['base'], base_url)
+        self.assertEqual(client.endpoints['auth'], auth_url)
+        self.assertEqual(client.endpoints['api'], api_url)
+
+    def test_endpoints_override_from_env(self):
+        base_url = 'http://www.st2.com'
+        auth_url = 'http://www.st2.com:8888'
+        api_url = 'http://www.stackstorm1.com:9101'
+        os.environ['ST2_BASE_URL'] = base_url
+        os.environ['ST2_AUTH_URL'] = auth_url
+        os.environ['ST2_API_URL'] = api_url
+        args = ['trigger', 'list']
+        parsed_args = self.shell.parser.parse_args(args)
+        client = self.shell.get_client(parsed_args)
+        self.assertEqual(client.endpoints['base'], base_url)
+        self.assertEqual(client.endpoints['auth'], auth_url)
         self.assertEqual(client.endpoints['api'], api_url)
 
     @mock.patch.object(
