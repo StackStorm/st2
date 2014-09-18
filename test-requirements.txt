@@ -1,7 +1,9 @@
+coverage
+flake8
 ipython
 mock>=1.0
 nose
-unittest2
-flake8
+nosexcover
 pylint
 tabulate
+unittest2
