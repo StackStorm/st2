@@ -1,12 +1,6 @@
 #!/bin/bash
 
-if [ "$#" -ne 1 ] || ([ ${1} != "start" ] && [ ${1} != "stop" ]) ; then
-  echo "Usage: $0 [start|stop]" >&2
-  exit 1
-fi
-
-if [[ ${1} == "start" ]]; then
-
+function st2start(){
     echo "Starting all st2 servers..."
 
     # Determine where the stanley repo is located. Some assumption is made here
@@ -86,14 +80,39 @@ if [[ ${1} == "start" ]]; then
     ./virtualenv/bin/python \
         ./st2common/bin/registercontent.py \
         --config-file ./conf/stanley.conf --register-all
+}
 
-
-elif [[ ${1} == "stop" ]]; then
-
+function st2stop(){
     screen -ls | grep st2 &> /dev/null
     if [ $? == 0 ]; then
         echo 'Killing existing st2 screen sessions...'
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs kill
     fi
+}
 
-fi
+function st2clean(){
+    # start with clean logs
+    LOGDIR=$(dirname $0)/../logs
+    rm ${LOGDIR}/*
+}
+
+case ${1} in
+start)
+    st2start
+    ;;
+startclean)
+    st2clean
+    st2start
+    ;;
+stop)
+    st2stop
+    ;;
+restart)
+    st2stop
+    sleep 1
+    st2start
+    ;;
+*)
+    echo "Usage: $0 [start|stop|restart|startclean]" >&2
+    ;;
+esac
