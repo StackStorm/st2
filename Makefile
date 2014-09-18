@@ -20,7 +20,7 @@ COMPONENT_SPECIFIC_TESTS := st2tests
 space_char :=
 space_char +=
 COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS)))
-COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS)),$(component)/tests)
+COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS)),$(component))
 
 PYTHON_TARGET := 2.7
 
@@ -152,7 +152,7 @@ botrqmnts:
 tests: pytests bottests
 
 .PHONY: pytests
-pytests: requirements .flake8 .pytests
+pytests: requirements .flake8 .pytests-coverage
 
 .PHONY: .pytests
 .pytests:
@@ -163,7 +163,19 @@ pytests: requirements .flake8 .pytests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component/tests || exit 1; \
+	done
+
+.PHONY: .pytests-coverage
+.pytests-coverage:
+	@echo
+	@echo "====================tests with coverage===================="
+	@echo
+	@for component in $(COMPONENTS_TEST); do\
+		echo "==========================================================="; \
+		echo "Running tests in" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-xcoverage --xcoverage-file=coverage-$$component.xml --cover-package=$$component $$component/tests || exit 1; \
 	done
 
 .PHONY: bottests
