@@ -257,7 +257,7 @@ class TriggerController(RestController):
             abort(http_client.BAD_REQUEST, str(e))
             return
 
-        LOG.audit('Trigger updated. Trigger=%s and original Trigger=%s.', trigger_db)
+        LOG.audit('Trigger updated. Trigger=%s and original Trigger=%s.', trigger, trigger_db)
         trigger_api = TriggerAPI.from_model(trigger_db)
         LOG.debug('PUT /triggers/ client_result=%s', trigger_api)
 
