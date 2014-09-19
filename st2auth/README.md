@@ -1,7 +1,7 @@
 Authentication Service
 ======================
 
-**Deploy to Apache**
+###Deploy to Apache
 
 Install Apache and other dependencies.
 
@@ -56,7 +56,7 @@ Enable SSL and st2-auth and restart Apache.
     sudo a2enmod ssl
     sudo service apache2 restart
 
-**Testing and Usage**
+###Testing
     
 Run the following curl commands to test.
 
@@ -71,6 +71,8 @@ Run the following curl commands to test.
 
     # The following will verify the SSL cert.
     curl -X POST --cacert /path/to/cacert.pem -u yourusername:yourpassword https://myhost.example.com:9100/tokens
+
+###Usage
 
 Once st2auth is setup, to enable st2api for authentication, change enable to True in the auth section at stanley.conf and restart the st2api service.
 
@@ -105,3 +107,24 @@ By default, the token expires in 24 hours.  This is configurable on the server s
 
     [auth]
     token_ttl = 2592000
+
+###Mistral Integration
+
+Communications from mistral to st2 uses the REST API. Therefore, a token is required in the headers of the REST calls. Currently, token for integration with external systems have to be generated manually.
+
+    import uuid
+    from datetime import datetime
+    from oslo.config import cfg
+    from st2auth import config
+    cfg.CONF(args=['--config-file', '/etc/stanley/stanley.conf'])
+    from st2common.models import db
+    db.db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port)
+    from st2common.models.db.access import *
+    from st2common.persistence.access import *
+    User.add_or_update(UserDB(name='mistral'))
+    Token.add_or_update(TokenDB(user='mistral', token=uuid.uuid4().hex, expiry=datetime(2015, 1, 1)))
+
+Once a token has been generated, put the token under auth_token at the st2 section in the mistral.conf file and then restart the mistral service.
+
+    [st2]
+    auth_token = a42ddd39632e4661b46e08bdd791c0a5
