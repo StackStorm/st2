@@ -48,7 +48,7 @@ class MistralRunner(ActionRunner):
         context = self.runner_parameters.get('context', dict())
         context['st2_parent_exec_id'] = self.action_execution_id
         context['st2_action_exec_url'] = ('http://%s:%s/actionexecutions' % (
-                                          cfg.CONF.core_api.host, cfg.CONF.core_api.port))
+                                          cfg.CONF.api.host, cfg.CONF.api.port))
         context.update(action_parameters)
 
         # Execute the workflow.

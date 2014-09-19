@@ -1,0 +1,9 @@
+{
+    "name": "dumbchain",
+    "runner_type": "action-chain",
+    "description": "",
+    "enabled": true,
+    "entry_point":"dumbchain",
+    "parameters": {
+    }
+}

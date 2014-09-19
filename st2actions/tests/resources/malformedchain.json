@@ -1,0 +1,9 @@
+{
+    "chain": [
+        {
+            "malformed_name": "c1",
+            "malformed_action": "a1"
+        }
+    ],
+    "default": "c1"
+}

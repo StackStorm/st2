@@ -250,7 +250,12 @@ class ActionExecutionAPI(BaseAPI):
                 }
             },
             "result": {
-                "type": ["boolean", "integer", "null", "number", "object", "string"]
+                "anyOf": [{"type": "array"},
+                          {"type": "boolean"},
+                          {"type": "integer"},
+                          {"type": "number"},
+                          {"type": "object"},
+                          {"type": "string"}]
             },
             "context": {
                 "type": "object"
