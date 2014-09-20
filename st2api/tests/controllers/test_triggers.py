@@ -1,4 +1,7 @@
+import mock
 import six
+
+from st2common.transport.publishers import PoolPublisher
 from tests import FunctionalTest
 
 http_client = six.moves.http_client
@@ -29,6 +32,7 @@ TRIGGER_2 = {
 }
 
 
+@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class TestTriggerController(FunctionalTest):
 
     @classmethod
