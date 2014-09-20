@@ -56,4 +56,8 @@ class AuthMiddlewareTest(DbTestCase):
             }
         }
 
+        # TODO(manas) : register action types here for now. RunnerType registration can be moved
+        # to posting to /runnertypes but that implies implementing POST.
+        runners_registrar.register_runner_types()
+
         cls.app = TestApp(auth.AuthMiddleware(load_app(cfg_dict)))

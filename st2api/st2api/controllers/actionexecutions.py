@@ -97,10 +97,20 @@ class ActionExecutionsController(RestController):
     @jsexpose(body=ActionExecutionAPI, status_code=http_client.CREATED)
     def post(self, execution):
         try:
-            # Retrieve context from request header.
+            # Retrieve user context from the request header.
+            execution.user = pecan.request.headers.get('X-User-Name')
+
+            # Retrieve other st2 context from request header.
             if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
                 context = pecan.request.headers['st2-context'].replace("'", "\"")
                 execution.context = json.loads(context)
+
+            # Use the user context from the parent action execution. Subtasks in a workflow
+            # action can be invoked by a system user and so we want to use the user context
+            # from the original workflow action.
+            if getattr(execution, 'context', None) and 'parent' in execution.context:
+                parent = ActionExecution.get_by_id(execution.context['parent'])
+                execution.user = parent.user
 
             # Schedule the action execution.
             return action_service.schedule(execution)

@@ -7,6 +7,7 @@ from st2common.models.db.reactor import RuleEnforcementDB
 from st2common.persistence.reactor import RuleEnforcement
 from st2common.services import action as action_service
 from st2common.models.api.action import ActionExecutionAPI, ACTIONEXEC_STATUS_SCHEDULED
+from st2common.models.api.access import SYSTEM_USERNAME
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.enforce')
@@ -40,6 +41,7 @@ class RuleEnforcer(object):
 
     @staticmethod
     def _invoke_action(action_name, action_args):
-        execution = ActionExecutionAPI(action={'name': action_name}, parameters=action_args)
+        action = {'name': action_name}
+        execution = ActionExecutionAPI(action=action, parameters=action_args, user=SYSTEM_USERNAME)
         execution = action_service.schedule(execution)
         return {'id': execution.id} if execution.status == ACTIONEXEC_STATUS_SCHEDULED else None
