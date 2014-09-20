@@ -38,6 +38,9 @@ ACTION = {
     }
 }
 
+ACTION_REF = {'name': 'my.action'}
+USERNAME = 'stanley'
+
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class TestActionExecutionService(DbTestCase):
@@ -58,10 +61,11 @@ class TestActionExecutionService(DbTestCase):
 
     def test_schedule(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        execution = ActionExecutionAPI(action={'name': 'my.action'}, parameters=parameters)
+        execution = ActionExecutionAPI(action=ACTION_REF, parameters=parameters, user=USERNAME)
         execution = action_service.schedule(execution)
         self.assertIsNotNone(execution)
         self.assertIsNotNone(execution.id)
+        self.assertEqual(execution.user, USERNAME)
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_SCHEDULED)
         self.assertIsInstance(execution.start_timestamp, datetime.datetime)
         executiondb = ActionExecution.get_by_id(execution.id)
@@ -69,13 +73,14 @@ class TestActionExecutionService(DbTestCase):
         self.assertEqual(executiondb.id, bson.ObjectId(execution.id))
         action = {'id': str(self.actiondb.id), 'name': self.actiondb.name}
         self.assertDictEqual(executiondb.action, action)
+        self.assertEqual(executiondb.user, execution.user)
         self.assertDictEqual(executiondb.parameters, execution.parameters)
         self.assertEqual(executiondb.status, ACTIONEXEC_STATUS_SCHEDULED)
         self.assertIsInstance(executiondb.start_timestamp, datetime.datetime)
 
     def test_schedule_invalid_parameters(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'a': 123}
-        execution = ActionExecutionAPI(action={'name': 'my.action'}, parameters=parameters)
+        execution = ActionExecutionAPI(action=ACTION_REF, parameters=parameters)
         self.assertRaises(jsonschema.ValidationError, action_service.schedule, execution)
 
     def test_schedule_nonexistent_action(self):
@@ -87,7 +92,7 @@ class TestActionExecutionService(DbTestCase):
         self.actiondb.enabled = False
         Action.add_or_update(self.actiondb)
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        execution = ActionExecutionAPI(action={'name': 'my.action'}, parameters=parameters)
+        execution = ActionExecutionAPI(action=ACTION_REF, parameters=parameters)
         self.assertRaises(ValueError, action_service.schedule, execution)
         self.actiondb.enabled = True
         Action.add_or_update(self.actiondb)

@@ -8,6 +8,9 @@ from st2common import log as logging
 LOG = logging.getLogger(__name__)
 
 
+SYSTEM_USERNAME = 'system'
+
+
 class UserAPI(BaseAPI):
     model = UserDB
     schema = {
