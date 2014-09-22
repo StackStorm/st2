@@ -238,11 +238,11 @@ class TestActionExecutionController(FunctionalTest):
     def test_post_with_st2_context_in_headers(self):
         resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1))
         self.assertEqual(resp.status_int, 201)
-        context = {'parent': str(resp.json['id'])}
+        context = {'parent': str(resp.json['id']), 'user': None}
         headers = {'content-type': 'application/json', 'st2-context': json.dumps(context)}
         resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
-        self.assertNotIn('user', resp.json)
+        self.assertIsNone(resp.json['context']['user'])
         self.assertDictEqual(resp.json['context'], context)
 
     @staticmethod
@@ -303,12 +303,12 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
         headers = {'content-type': 'application/json', 'X-Auth-Token': str(USR_TOKEN.token)}
         resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json['user'], 'stanley')
+        self.assertEqual(resp.json['context']['user'], 'stanley')
         context = {'parent': str(resp.json['id'])}
         headers = {'content-type': 'application/json',
                    'X-Auth-Token': str(SYS_TOKEN.token),
                    'st2-context': json.dumps(context)}
         resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json['user'], 'stanley')
-        self.assertDictEqual(resp.json['context'], context)
+        self.assertEqual(resp.json['context']['user'], 'stanley')
+        self.assertEqual(resp.json['context']['parent'], context['parent'])

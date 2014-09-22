@@ -262,9 +262,6 @@ class ActionExecutionAPI(BaseAPI):
             },
             "callback": {
                 "type": "object"
-            },
-            "user": {
-                "type": "string"
             }
         },
         "required": ["action"],
@@ -290,5 +287,4 @@ class ActionExecutionAPI(BaseAPI):
         model.context = getattr(execution, 'context', dict())
         model.callback = getattr(execution, 'callback', dict())
         model.result = getattr(execution, 'result', None)
-        model.user = getattr(execution, 'user', None)
         return model

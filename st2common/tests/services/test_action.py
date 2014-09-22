@@ -60,12 +60,13 @@ class TestActionExecutionService(DbTestCase):
         super(TestActionExecutionService, cls).tearDownClass()
 
     def test_schedule(self):
+        context = {'user': USERNAME}
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        execution = ActionExecutionAPI(action=ACTION_REF, parameters=parameters, user=USERNAME)
+        execution = ActionExecutionAPI(action=ACTION_REF, context=context, parameters=parameters)
         execution = action_service.schedule(execution)
         self.assertIsNotNone(execution)
         self.assertIsNotNone(execution.id)
-        self.assertEqual(execution.user, USERNAME)
+        self.assertEqual(execution.context['user'], USERNAME)
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_SCHEDULED)
         self.assertIsInstance(execution.start_timestamp, datetime.datetime)
         executiondb = ActionExecution.get_by_id(execution.id)
@@ -73,7 +74,7 @@ class TestActionExecutionService(DbTestCase):
         self.assertEqual(executiondb.id, bson.ObjectId(execution.id))
         action = {'id': str(self.actiondb.id), 'name': self.actiondb.name}
         self.assertDictEqual(executiondb.action, action)
-        self.assertEqual(executiondb.user, execution.user)
+        self.assertEqual(executiondb.context['user'], execution.context['user'])
         self.assertDictEqual(executiondb.parameters, execution.parameters)
         self.assertEqual(executiondb.status, ACTIONEXEC_STATUS_SCHEDULED)
         self.assertIsInstance(executiondb.start_timestamp, datetime.datetime)

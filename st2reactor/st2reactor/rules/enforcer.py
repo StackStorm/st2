@@ -42,6 +42,7 @@ class RuleEnforcer(object):
     @staticmethod
     def _invoke_action(action_name, action_args):
         action = {'name': action_name}
-        execution = ActionExecutionAPI(action=action, parameters=action_args, user=SYSTEM_USERNAME)
+        context = {'user': SYSTEM_USERNAME}
+        execution = ActionExecutionAPI(action=action, context=context, parameters=action_args)
         execution = action_service.schedule(execution)
         return {'id': execution.id} if execution.status == ACTIONEXEC_STATUS_SCHEDULED else None

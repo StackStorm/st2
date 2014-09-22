@@ -105,8 +105,6 @@ class ActionExecutionDB(StormFoundationDB):
     callback = me.DictField(
         default={},
         help_text='Callback information for the on completion of action execution.')
-    user = me.StringField(
-        help_text='The user that invoked this action execution.')
 
 
 # specialized access objects
