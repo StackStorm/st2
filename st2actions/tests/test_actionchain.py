@@ -14,9 +14,18 @@ from st2client.models import ResourceManager
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.api import action
 
-CHAIN_1_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources/chain1.json')
+CHAIN_1_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+    'fixtures/actionchains/chain1.json')
+CHAIN_STR_TEMP_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+    'fixtures/actionchains/chain_str_template.json')
+CHAIN_LIST_TEMP_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+    'fixtures/actionchains/chain_list_template.json')
+CHAIN_DICT_TEMP_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+    'fixtures/actionchains/chain_dict_template.json')
+CHAIN_DEP_INPUT = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+    'fixtures/actionchains/chain_dependent_input.json')
 MALFORMED_CHAIN_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                    'resources/malformedchain.json')
+    'fixtures/actionchains/malformedchain.json')
 
 with open(CHAIN_1_PATH, 'r') as fd:
     CHAIN_1 = json.load(fd)
@@ -102,8 +111,7 @@ class TestActionChainRunner(TestCase):
         except runnerexceptions.ActionRunnerPreRunError:
             self.assertTrue(True)
 
-    @mock.patch.object(ResourceManager, 'create',
-        return_value=DummyActionExecution())
+    @mock.patch.object(ResourceManager, 'create', return_value=DummyActionExecution())
     def test_chain_runner_success_path(self, resourcemgr_create):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
@@ -155,3 +163,68 @@ class TestActionChainRunner(TestCase):
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEqual(resourcemgr_create.call_count, 2)
+
+    @mock.patch.object(ResourceManager, 'create', return_value=DummyActionExecution())
+    def test_chain_runner_str_param_temp(self, resourcemgr_create):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_STR_TEMP_PATH
+        chain_runner.action = DummyAction()
+        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.pre_run()
+        chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
+        self.assertNotEqual(chain_runner.action_chain, None)
+        mock_args, _ = resourcemgr_create.call_args
+        self.assertEquals(mock_args[0].parameters, {"p1": "1"})
+
+    @mock.patch.object(ResourceManager, 'create', return_value=DummyActionExecution())
+    def test_chain_runner_list_param_temp(self, resourcemgr_create):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_LIST_TEMP_PATH
+        chain_runner.action = DummyAction()
+        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.pre_run()
+        chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
+        self.assertNotEqual(chain_runner.action_chain, None)
+        mock_args, _ = resourcemgr_create.call_args
+        self.assertEquals(mock_args[0].parameters, {"p1": "[2, 3, 4]"})
+
+    @mock.patch.object(ResourceManager, 'create', return_value=DummyActionExecution())
+    def test_chain_runner_dict_param_temp(self, resourcemgr_create):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_DICT_TEMP_PATH
+        chain_runner.action = DummyAction()
+        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.pre_run()
+        chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
+        self.assertNotEqual(chain_runner.action_chain, None)
+        mock_args, _ = resourcemgr_create.call_args
+        self.assertEquals(mock_args[0].parameters,
+        {"p1": '{"p1.3": "[3, 4]", "p1.2": "2", "p1.1": "1"}'})
+
+    @mock.patch.object(ResourceManager, 'create',
+        return_value=DummyActionExecution(result={'o1': '1'}))
+    def test_chain_runner_dependent_param_temp(self, resourcemgr_create):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_DEP_INPUT
+        chain_runner.action = DummyAction()
+        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.pre_run()
+        chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
+        self.assertNotEqual(chain_runner.action_chain, None)
+        expected_values = [{u'p1': u'1'},
+                           {u'p1': u'1'},
+                           {u'p2': u'1', u'p3': u'1', u'p1': u'1'}]
+        # Each of the call_args must be one of
+        for call_args in resourcemgr_create.call_args_list:
+            self.assertTrue(call_args[0][0].parameters in expected_values)
+            expected_values.remove(call_args[0][0].parameters)
+
+    @mock.patch.object(ResourceManager, 'create', return_value=DummyActionExecution())
+    def test_chain_runner_missing_param_temp(self, resourcemgr_create):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_STR_TEMP_PATH
+        chain_runner.action = DummyAction()
+        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.pre_run()
+        chain_runner.run({})
+        self.assertEquals(resourcemgr_create.call_count, 0, 'No call expected.')

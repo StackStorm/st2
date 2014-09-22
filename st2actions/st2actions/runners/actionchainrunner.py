@@ -1,5 +1,7 @@
 import eventlet
+import jinja2
 import json
+import six
 import uuid
 
 from oslo.config import cfg
@@ -60,6 +62,7 @@ class ActionChain(object):
 
 
 class ClientService(object):
+
     def __init__(self):
         endpoint_url = 'http://%s:%s' % (cfg.CONF.api.host, cfg.CONF.api.port)
         endpoints = {
@@ -103,23 +106,47 @@ class ActionChainRunner(ActionRunner):
 
     def run(self, action_parameters):
         action_node = self.action_chain.get_next_node()
-        result = []
+        results = {}
         while action_node:
             actionexec = None
             try:
-                actionexec = self._client.run_action(action_node.action_name, action_node.params)
+                resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
+                    results)
+                actionexec = self._client.run_action(action_node.action_name, resolved_params)
             except:
                 LOG.exception('Failure in running action %s.', action_node.name)
             else:
                 # for now append all successful results
-                result.append(actionexec.result)
+                results[action_node.name] = actionexec.result
             finally:
                 if not actionexec or actionexec.status == ACTIONEXEC_STATUS_ERROR:
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-failure')
                 elif actionexec.status == ACTIONEXEC_STATUS_COMPLETE:
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-success')
-        self.container_service.report_result(result)
-        return result is not None
+        self.container_service.report_result(results)
+        return results is not None
+
+    @staticmethod
+    def _resolve_params(action_node, original_parameters, results):
+        context = {}
+        context.update(original_parameters)
+        context.update(results)
+
+        def template_loader(template_name):
+            template = action_node.params[template_name]
+            if isinstance(template, dict) or isinstance(template, list):
+                return json.dumps(template)
+            else:
+                return str(template)
+
+        env = jinja2.Environment(undefined=jinja2.StrictUndefined,
+                                 loader=jinja2.FunctionLoader(template_loader))
+        # TODO(manas) - generated params must be typed as per the expected schema.
+        rendered_params = {}
+        for k in action_node.params:
+            rendered_v = env.get_template(k).render(context)
+            rendered_params[k] = rendered_v
+        return rendered_params
 
 
 def get_runner():
