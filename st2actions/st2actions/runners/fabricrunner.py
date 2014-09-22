@@ -56,7 +56,7 @@ class FabricRunner(ActionRunner):
         hosts = self.runner_parameters.get(RUNNER_HOSTS, '').split(',')
         self._hosts = [h.strip() for h in hosts if len(h) > 0]
         if len(self._hosts) < 1:
-            raise ActionRunnerPreRunError('No hosts specified to run action for liveaction %s.',
+            raise ActionRunnerPreRunError('No hosts specified to run action for action %s.',
                                           self.action_execution_id)
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)

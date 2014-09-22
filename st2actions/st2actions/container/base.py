@@ -120,8 +120,8 @@ class RunnerContainer():
         LOG.debug('Result as reporter to container service: %s', action_result)
 
         if action_result is None:
-            # If the runner didn't set an exit code then the liveaction didn't complete.
-            # Therefore, the liveaction produced an error.
+            # If the runner didn't set an exit code then the action didn't complete.
+            # Therefore, the action produced an error.
             result = False
             if not actionexec_status:
                 actionexec_status = ACTIONEXEC_STATUS_ERROR
