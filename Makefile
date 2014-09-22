@@ -159,6 +159,8 @@ pytests: requirements .flake8 .pytests-coverage
 	@echo
 	@echo "====================tests===================="
 	@echo
+	@echo "----- Dropping st2-test db -----"
+	@mongo st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
