@@ -80,12 +80,15 @@ flake8: requirements .flake8
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS)
 
 .PHONY: clean
-clean:
-	@echo
-	@echo "====================clean===================="
-	@echo
+clean: .cleanpycs .cleandocs
+
+.PHONY: .cleanpycs
+.cleanpycs:
 	@echo "Removing all .pyc files"
 	find $(COMPONENTS)  -name \*.pyc -type f -print0 | xargs -0 -I {} rm {}
+
+.PHONY: .cleandocs
+.cleandocs:
 	@echo "Removing generated documentation"
 	rm -rf $(DOC_DIR)/html $(DOC_DIR)/latex $(DOC_DIR)/rtf
 
@@ -155,10 +158,12 @@ tests: pytests bottests
 pytests: requirements .flake8 .pytests-coverage
 
 .PHONY: .pytests
-.pytests:
+.pytests: clean
 	@echo
 	@echo "====================tests===================="
 	@echo
+	@echo "----- Dropping st2-test db -----"
+	@mongo st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -167,7 +172,7 @@ pytests: requirements .flake8 .pytests-coverage
 	done
 
 .PHONY: .pytests-coverage
-.pytests-coverage:
+.pytests-coverage: clean
 	@echo
 	@echo "====================tests with coverage===================="
 	@echo

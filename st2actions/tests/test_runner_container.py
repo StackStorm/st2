@@ -1,9 +1,11 @@
 import datetime
+import mock
 
 from st2common.models.db.action import (ActionDB, ActionExecutionDB)
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.models.api.actionrunner import LiveActionAPI
 from st2common.persistence.action import (Action, ActionExecution, RunnerType)
+from st2common.transport.publishers import PoolPublisher
 from st2tests.base import DbTestCase
 
 import tests.config as tests_config
@@ -15,6 +17,7 @@ tests_config.parse_args()
 from st2actions.container.base import RunnerContainer
 
 
+@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class RunnerContainerTest(DbTestCase):
     action_db = None
     runnertype_db = None
@@ -104,7 +107,7 @@ class RunnerContainerTest(DbTestCase):
                     'type': 'number'
                 }
             },
-            'runner_module': 'tests.testrunner'
+            'runner_module': 'tests.test_runner'
         }
         runnertype_api = RunnerTypeAPI(**test_runner)
         RunnerContainerTest.runnertype_db = RunnerType.add_or_update(
