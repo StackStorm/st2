@@ -26,18 +26,19 @@ class MultiColumnTable(formatters.Formatter):
             columns = zip(attributes, widths)
         else:
             # If only 1 width value is provided then
-            # apply it to all columns else fix at 25.
-            width = widths[0] if len(widths) == 1 else 25
+            # apply it to all columns else fix at 28.
+            width = widths[0] if len(widths) == 1 else 28
             columns = zip(attributes,
                           [width for i in range(0, len(attributes))])
 
         # Format result to table.
         table = PrettyTable()
-        table.field_names = [column[0] for column in columns]
         for column in columns:
+            table.field_names.append(column[0])
             table.max_width[column[0]] = column[1]
         table.padding_width = 1
         table.align = 'l'
+        table.valign = 'm'
         for entry in entries:
             # TODO: Improve getting values of nested dict.
             values = []
@@ -76,6 +77,7 @@ class PropertyValueTable(formatters.Formatter):
         table.max_width['Value'] = 55
         table.padding_widht = 1
         table.align = 'l'
+        table.valign = 'm'
         for attribute in attributes:
             value = getattr(subject, attribute, '')
             if not value:
