@@ -4,7 +4,7 @@ from st2common import log as logging
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.api.action import (ACTIONEXEC_STATUS_COMPLETE,
                                          ACTIONEXEC_STATUS_ERROR)
-
+from st2common.util.action_db import (get_action_by_dict, get_runnertype_by_name)
 from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
 
 from st2actions.container import actionsensor
@@ -41,11 +41,12 @@ class RunnerContainer():
         LOG.debug('Instance of runner: %s', runner)
         return runner
 
-    def dispatch(self, liveaction_db, runnertype_db, action_db, actionexec_db):
-
+    def dispatch(self, actionexec_db):
+        (action_db, d) = get_action_by_dict(actionexec_db.action)
+        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
         runner_type = runnertype_db.name
 
-        LOG.info('Dispatching runner for Live Action "%s"', liveaction_db)
+        LOG.info('Dispatching runner for Action "%s"', actionexec_db)
         LOG.debug('    liverunner_type: %s', runner_type)
         LOG.debug('    RunnerType: %s', runnertype_db)
         LOG.debug('    ActionExecution: %s', actionexec_db)
@@ -55,16 +56,16 @@ class RunnerContainer():
         LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Invoke pre_run, run, post_run cycle.
-        result = self._do_run(liveaction_db.id, runner, runnertype_db, action_db, actionexec_db)
+        result = self._do_run(runner, runnertype_db, action_db, actionexec_db)
         LOG.debug('runner do_run result: %s', result)
 
         actionsensor.post_trigger(actionexec_db)
-        LOG.audit('ActionExecution complete. liveaction_id="%s" resulted in '
-                  'actionexecution_db="%s"', liveaction_db.id, actionexec_db)
+        LOG.audit('ActionExecution complete. actionexec_id="%s" resulted in '
+                  'actionexecution_db="%s"', actionexec_db.id, actionexec_db)
 
         return result
 
-    def _do_run(self, liveaction_id, runner, runnertype_db, action_db, actionexec_db):
+    def _do_run(self, runner, runnertype_db, action_db, actionexec_db):
         # Runner parameters should use the defaults from the RunnerType object.
         # The runner parameter defaults may be overridden by values provided in
         # the Action and ActionExecution.
@@ -94,7 +95,6 @@ class RunnerContainer():
             if param in actionexec_action_parameters:
                 action_parameters[param] = actionexec_action_parameters[param]
 
-        runner.liveaction_id = liveaction_id
         runner.container_service = RunnerContainerService(self)
         runner.action = action_db
         runner.action_name = action_db.name

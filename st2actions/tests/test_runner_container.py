@@ -32,17 +32,13 @@ class RunnerContainerTest(DbTestCase):
 
     def test_dispatch(self):
         runner_container = RunnerContainer()
-        runnertype_db = RunnerContainerTest.runnertype_db
-        action_db = RunnerContainerTest.action_db
         params = {
             'actionstr': 'bar'
         }
         actionexec_db = self._get_action_exec_db_model(params)
         actionexec_db = ActionExecution.add_or_update(actionexec_db)
-        liveaction_db = self._get_live_action_db_model(actionexec_db.id)
         # Assert that execution ran successfully.
-        self.assertTrue(runner_container.dispatch(liveaction_db, runnertype_db,
-                                                  action_db, actionexec_db))
+        self.assertTrue(runner_container.dispatch(actionexec_db))
         actionexec_db = ActionExecution.get_by_id(actionexec_db.id)
         result = actionexec_db.result
         self.assertTrue(result.get('action_params').get('actionint') == 10)
@@ -50,20 +46,15 @@ class RunnerContainerTest(DbTestCase):
 
     def test_dispatch_override_default_action_params(self):
         runner_container = RunnerContainer()
-        runnertype_db = RunnerContainerTest.runnertype_db
-        action_db = RunnerContainerTest.action_db
         params = {
             'actionstr': 'foo',
             'actionint': 20
         }
         actionexec_db = self._get_action_exec_db_model(params)
         actionexec_db = ActionExecution.add_or_update(actionexec_db)
-        liveactionapi = LiveActionAPI(**{'actionexecution_id': str(actionexec_db.id)})
-        liveaction_db = LiveActionAPI.to_model(liveactionapi)
 
         # Assert that execution ran successfully.
-        self.assertTrue(runner_container.dispatch(liveaction_db, runnertype_db,
-                                                  action_db, actionexec_db))
+        self.assertTrue(runner_container.dispatch(actionexec_db))
         actionexec_db = ActionExecution.get_by_id(actionexec_db.id)
         result = actionexec_db.result
         self.assertTrue(result.get('action_params').get('actionint') == 20)
@@ -104,7 +95,7 @@ class RunnerContainerTest(DbTestCase):
                     'type': 'number'
                 }
             },
-            'runner_module': 'tests.testrunner'
+            'runner_module': 'tests.test_runner'
         }
         runnertype_api = RunnerTypeAPI(**test_runner)
         RunnerContainerTest.runnertype_db = RunnerType.add_or_update(

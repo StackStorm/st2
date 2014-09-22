@@ -39,17 +39,18 @@ class ShellRunner(ActionRunner):
         self._args = None
 
     def pre_run(self):
-        LOG.debug('Entering ShellRunner.pre_run() for liveaction_id="%s"', self.liveaction_id)
+        LOG.debug('Entering ShellRunner.pre_run() for action_execution_id="%s"',
+                  self.action_execution_id)
 
         self._shell = self.runner_parameters.get(SHELL_PARAM, None)
         self._args = self.runner_parameters.get(CMD_PARAM, None)
 
         # See handling of 'args' from action_parameters in run() method.
 
-        LOG.debug('    [ShellRunner,liveaction_id="%s"] Runner argument "%s" is: "%s"',
-                  self.liveaction_id, SHELL_PARAM, self._shell)
-        LOG.debug('    [ShellRunner,liveaction_id="%s"] Runner argument "%s" is: "%s"',
-                  self.liveaction_id, SHELL_PARAM, self._shell)
+        LOG.debug('    [ShellRunner,action_execution_id="%s"] Runner argument "%s" is: "%s"',
+                  self.action_execution_id, SHELL_PARAM, self._shell)
+        LOG.debug('    [ShellRunner,action_execution_id="%s"] Runner argument "%s" is: "%s"',
+                  self.action_execution_id, SHELL_PARAM, self._shell)
 
         # Identify the working directory for the Action. Entry point is the
         # the relative path from the artifact repo path to the script to be
@@ -62,11 +63,12 @@ class ShellRunner(ActionRunner):
         """
             ActionRunner for "shell" RunnerType.
         """
-        LOG.debug('Entering ShellRunner.run() for liveaction_id="%s"', self.liveaction_id)
+        LOG.debug('Entering ShellRunner.run() for action_execution_id="%s"',
+                  self.action_execution_id)
 
         if self._args is None:
-            LOG.warning('No value for "%s" provided to Shell Runner for liveaction_id="%s".',
-                        CMD_PARAM, self.liveaction_id)
+            LOG.warning('No value for "%s" provided to Shell Runner for action_execution_id="%s".',
+                        CMD_PARAM, self.action_execution_id)
             self._args = ''
 
         # Execute the shell script at it's location. Change the working
@@ -85,27 +87,28 @@ class ShellRunner(ActionRunner):
             if name in command_env:
                 del command_env[name]
 
-        LOG.debug('    [ShellRunner,liveaction_id="%s"] command is: "%s"',
-                  self.liveaction_id, command_list)
-        LOG.debug('    [ShellRunner,liveaction_id="%s"] command env is: %s',
-                  self.liveaction_id, command_env)
+        LOG.debug('    [ShellRunner,action_execution_id="%s"] command is: "%s"',
+                  self.action_execution_id, command_list)
+        LOG.debug('    [ShellRunner,action_execution_id="%s"] command env is: %s',
+                  self.action_execution_id, command_env)
 
         # TODO: run shell command until it exits. periodically collect output
         # TODO: support other shells
-        LOG.debug('    [ShellRunner,liveaction_id="%s"] Launching shell "%s" as blocking '
-                  'operation for command "%s".', self.liveaction_id, '/usr/bin/bash', command_list)
+        LOG.debug('    [ShellRunner,action_execution_id="%s"] Launching shell "%s" as blocking '
+                  'operation for command "%s".', self.action_execution_id,
+                  '/usr/bin/bash', command_list)
         process = subprocess.Popen(command_list, env=command_env,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         command_stdout, command_stderr = process.communicate()
         command_exitcode = process.returncode
 
-        LOG.debug('    [ShellRunner,liveaction_id="%s"] command_stdout: %s',
-                  self.liveaction_id, command_stdout)
-        LOG.debug('    [ShellRunner,liveaction_id="%s"] command_stderr: %s',
-                  self.liveaction_id, command_stderr)
-        LOG.debug('    [ShellRunner,liveaction_id="%s"] command_exit: %s',
-                  self.liveaction_id, command_exitcode)
+        LOG.debug('    [ShellRunner,action_execution_id="%s"] command_stdout: %s',
+                  self.action_execution_id, command_stdout)
+        LOG.debug('    [ShellRunner,action_execution_id="%s"] command_stderr: %s',
+                  self.action_execution_id, command_stderr)
+        LOG.debug('    [ShellRunner,action_execution_id="%s"] command_exit: %s',
+                  self.action_execution_id, command_exitcode)
 
         result = {'exit_code': command_exitcode,
                   'std_out': command_stdout,
