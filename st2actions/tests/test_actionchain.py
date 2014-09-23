@@ -174,7 +174,8 @@ class TestActionChainRunner(TestCase):
         chain_runner.action = DummyAction()
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        chain_runner.run({})
+        success = chain_runner.run({})
+        self.assertFalse(success)
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEqual(resourcemgr_create.call_count, 2)

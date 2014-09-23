@@ -85,6 +85,7 @@ class ActionChainRunner(ActionRunner):
         results = {}
         while action_node:
             actionexec = None
+            fail = False
             try:
                 resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
                     results)
@@ -96,11 +97,12 @@ class ActionChainRunner(ActionRunner):
                 results[action_node.name] = actionexec.result
             finally:
                 if not actionexec or actionexec.status == action.ACTIONEXEC_STATUS_ERROR:
+                    fail = True
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-failure')
                 elif actionexec.status == action.ACTIONEXEC_STATUS_COMPLETE:
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-success')
         self.container_service.report_result(results)
-        return results is not None
+        return not fail
 
     @staticmethod
     def _resolve_params(action_node, original_parameters, results):
