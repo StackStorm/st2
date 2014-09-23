@@ -49,14 +49,6 @@ class RunnerContainerService():
     def get_content_packs_base_path():
         return cfg.CONF.content.content_packs_base_path
 
-    def get_artifact_working_dir(self, pack=None, entry_point=None):
-        wkdir = self.get_content_packs_base_path()
-        entry_point_path = os.path.split(entry_point)[0]
-        if not entry_point_path:
-            return wkdir
-        wkdir = os.path.join(wkdir, pack, 'actions', entry_point_path)
-        return wkdir
-
     @staticmethod
     def get_entry_point_abs_path(pack=None, entry_point=None):
         if entry_point is not None:
