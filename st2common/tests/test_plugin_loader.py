@@ -40,7 +40,7 @@ class LoaderTest(unittest2.TestCase):
             LoaderTest.DummyPlugin, plugin_path)
         # Even though there are two classes in that file, only one
         # matches the specs of DummyPlugin class.
-        self.assertEquals(1, len(plugin_classes))
+        self.assertEqual(1, len(plugin_classes))
         # Validate sys.path now contains the plugin directory.
         self.assertTrue(os.path.join(SRC_ROOT, 'plugin') in sys.path)
         # Validate the individual plugins
@@ -75,4 +75,4 @@ class LoaderTest(unittest2.TestCase):
                 LoaderTest.DummyPlugin, plugin_2_path)
         except ImportError:
             pass
-        self.assertEquals(old_sys_path, sys.path, 'Should be equal.')
+        self.assertEqual(old_sys_path, sys.path, 'Should be equal.')

@@ -128,8 +128,8 @@ class TestActionController(FunctionalTest):
         post_resp = self.__do_post(ACTION_1)
         action_id = self.__get_action_id(post_resp)
         get_resp = self.__do_get_one(action_id)
-        self.assertEquals(get_resp.status_int, 200)
-        self.assertEquals(self.__get_action_id(get_resp), action_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self.__get_action_id(get_resp), action_id)
         self.__do_delete(action_id)
 
     @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
@@ -138,8 +138,8 @@ class TestActionController(FunctionalTest):
         post_resp = self.__do_post(ACTION_1)
         action_id = self.__get_action_id(post_resp)
         get_resp = self.__do_get_one(action_id)
-        self.assertEquals(get_resp.status_int, 200)
-        self.assertEquals(self.__get_action_id(get_resp), action_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self.__get_action_id(get_resp), action_id)
         expected_args = ACTION_1['parameters']
         self.assertEqual(get_resp.json['parameters'], expected_args)
         self.__do_delete(action_id)
@@ -151,7 +151,7 @@ class TestActionController(FunctionalTest):
         action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
         resp = self.app.get('/actions')
         self.assertEqual(resp.status_int, 200)
-        self.assertEquals(len(resp.json), 2, '/actions did not return all actions.')
+        self.assertEqual(len(resp.json), 2, '/actions did not return all actions.')
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
 
@@ -165,21 +165,21 @@ class TestActionController(FunctionalTest):
         return_value=True))
     def test_post_delete(self):
         post_resp = self.__do_post(ACTION_1)
-        self.assertEquals(post_resp.status_int, 201)
+        self.assertEqual(post_resp.status_int, 201)
         self.__do_delete(self.__get_action_id(post_resp))
 
     @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
         return_value=True))
     def test_post_no_description_field(self):
         post_resp = self.__do_post(ACTION_6)
-        self.assertEquals(post_resp.status_int, 201)
+        self.assertEqual(post_resp.status_int, 201)
         self.__do_delete(self.__get_action_id(post_resp))
 
     @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
         return_value=True))
     def test_post_no_enable_field(self):
         post_resp = self.__do_post(ACTION_3)
-        self.assertEquals(post_resp.status_int, 201)
+        self.assertEqual(post_resp.status_int, 201)
         self.assertIn('enabled', post_resp.body)
 
         # If enabled field is not provided it should default to True
@@ -192,7 +192,7 @@ class TestActionController(FunctionalTest):
         return_value=True))
     def test_post_false_enable_field(self):
         post_resp = self.__do_post(ACTION_4)
-        self.assertEquals(post_resp.status_int, 201)
+        self.assertEqual(post_resp.status_int, 201)
 
         data = json.loads(post_resp.body)
         self.assertDictContainsSubset({'enabled': False}, data)
@@ -203,7 +203,7 @@ class TestActionController(FunctionalTest):
         return_value=True))
     def test_post_discard_id_field(self):
         post_resp = self.__do_post(ACTION_7)
-        self.assertEquals(post_resp.status_int, 201)
+        self.assertEqual(post_resp.status_int, 201)
         self.assertIn('id', post_resp.body)
         data = json.loads(post_resp.body)
         # Verify that user-provided id is discarded.
@@ -216,14 +216,14 @@ class TestActionController(FunctionalTest):
         action_ids = []
 
         post_resp = self.__do_post(ACTION_1)
-        self.assertEquals(post_resp.status_int, 201)
+        self.assertEqual(post_resp.status_int, 201)
         action_in_db = Action.get_by_name(ACTION_1.get('name'))
         self.assertTrue(action_in_db is not None, 'Action must be in db.')
         action_ids.append(self.__get_action_id(post_resp))
 
         post_resp = self.__do_post(ACTION_1, expect_errors=True)
         # Verify name conflict
-        self.assertEquals(post_resp.status_int, 409)
+        self.assertEqual(post_resp.status_int, 409)
 
         for i in action_ids:
             self.__do_delete(i)
@@ -233,30 +233,30 @@ class TestActionController(FunctionalTest):
     def test_post_put_delete(self):
         action = copy.copy(ACTION_1)
         post_resp = self.__do_post(action)
-        self.assertEquals(post_resp.status_int, 201)
+        self.assertEqual(post_resp.status_int, 201)
         self.assertIn('id', post_resp.body)
         body = json.loads(post_resp.body)
         action['id'] = body['id']
         action['description'] = 'some other test description'
         put_resp = self.__do_put(action['id'], action)
-        self.assertEquals(put_resp.status_int, 200)
+        self.assertEqual(put_resp.status_int, 200)
         self.assertIn('description', put_resp.body)
         body = json.loads(put_resp.body)
-        self.assertEquals(body['description'], action['description'])
+        self.assertEqual(body['description'], action['description'])
         self.__do_delete(self.__get_action_id(post_resp))
 
     @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
         return_value=True))
     def test_post_invalid_runner_type(self):
         post_resp = self.__do_post(ACTION_5, expect_errors=True)
-        self.assertEquals(post_resp.status_int, 404)
+        self.assertEqual(post_resp.status_int, 404)
 
     @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
         return_value=True))
     def test_delete(self):
         post_resp = self.__do_post(ACTION_1)
         del_resp = self.__do_delete(self.__get_action_id(post_resp))
-        self.assertEquals(del_resp.status_int, 204)
+        self.assertEqual(del_resp.status_int, 204)
 
     @staticmethod
     def __get_action_id(resp):

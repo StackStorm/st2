@@ -11,8 +11,8 @@ class TestRunnerTypesController(FunctionalTest):
         resp = self.app.get('/runnertypes/%s' % runnertype_id)
         retrieved_id = TestRunnerTypesController.__get_runnertype_id(resp.json)
         self.assertEqual(resp.status_int, 200)
-        self.assertEquals(retrieved_id, runnertype_id,
-                          '/runnertypes returned incorrect runnertype.')
+        self.assertEqual(retrieved_id, runnertype_id,
+                         '/runnertypes returned incorrect runnertype.')
 
     def test_get_all(self):
         resp = self.app.get('/runnertypes')

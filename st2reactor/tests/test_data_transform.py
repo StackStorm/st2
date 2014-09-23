@@ -19,7 +19,7 @@ class DataTransformTest(DbTestCase):
         mapping = {'ip1': '{{trigger.k1}}-static',
                    'ip2': '{{trigger.k2}} static'}
         result = transformer(mapping)
-        self.assertEquals(result, {'ip1': 'v1-static', 'ip2': 'v2 static'})
+        self.assertEqual(result, {'ip1': 'v1-static', 'ip2': 'v2 static'})
 
     def test_system_transform(self):
         k5 = KeyValuePair.add_or_update(KeyValuePairDB(name='k5', value='v5'))
@@ -34,7 +34,7 @@ class DataTransformTest(DbTestCase):
             expected = {'ip5': 'v5-static',
                         'ip6': 'v6-static',
                         'ip7': 'v7-static'}
-            self.assertEquals(result, expected)
+            self.assertEqual(result, expected)
         finally:
             KeyValuePair.delete(k5)
             KeyValuePair.delete(k6)
