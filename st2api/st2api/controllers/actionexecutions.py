@@ -54,9 +54,6 @@ class ActionExecutionsController(RestController):
         return ActionExecution.get_all(order_by=['-start_timestamp'],
                                        limit=limit, **kw)
 
-    def _create_liveaction_data(self, actionexecution_id):
-        return {'actionexecution_id': str(actionexecution_id)}
-
     @jsexpose(str)
     def get_one(self, id):
         """
