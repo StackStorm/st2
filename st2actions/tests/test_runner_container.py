@@ -62,6 +62,35 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(result.get('action_params').get('actionint') == 20)
         self.assertTrue(result.get('action_params').get('actionstr') == 'foo')
 
+    def test_get_resolved_params(self):
+        runner_container = RunnerContainer()
+        params = {
+            'actionstr': 'foo',
+            'some_key_that_aint_exist_in_action_or_runner': 'bar',
+            'runnerint': 555
+        }
+        actionexec_db = self._get_action_exec_db_model(params)
+        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+
+        runner_params, action_params = runner_container.get_resolved_params(
+            RunnerContainerTest.runnertype_db,
+            RunnerContainerTest.action_db,
+            actionexec_db)
+
+        # Asserts for runner params.
+        # Assert that default values for runner params are resolved.
+        self.assertEqual(runner_params.get('runnerstr'), 'defaultfoo')
+        # Assert that a runner param from action exec is picked up.
+        self.assertEqual(runner_params.get('runnerint'), 555)
+        # Assert that a runner param can be overriden by action param default.
+        self.assertEqual(runner_params.get('runnerdummy'), 'actiondummy')
+
+        # Asserts for action params.
+        self.assertEqual(action_params.get('actionstr'), 'foo')
+        # Assert that a param that is provided in action exec that isn't in action or runner params
+        # isn't in resolved params.
+        self.assertEqual(action_params.get('some_key_that_aint_exist_in_action_or_runner'), None)
+
     def _get_action_exec_db_model(self, params):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
@@ -90,6 +119,11 @@ class RunnerContainerTest(DbTestCase):
                 'runnerint': {
                     'description': 'Foo int param.',
                     'type': 'number'
+                },
+                'runnerdummy': {
+                    'description': 'Dummy param.',
+                    'type': 'string',
+                    'default': 'runnerdummy'
                 }
             },
             'runner_module': 'tests.test_runner'
@@ -110,6 +144,7 @@ class RunnerContainerTest(DbTestCase):
         action_db.parameters = {
             'actionstr': {'type': 'string'},
             'actionint': {'type': 'number', 'default': 10},
+            'runnerdummy': {'type': 'string', 'default': 'actiondummy'}
         }
         action_db.required_parameters = ['actionstr']
         RunnerContainerTest.action_db = Action.add_or_update(action_db)

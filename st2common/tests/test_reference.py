@@ -34,7 +34,7 @@ class ReferenceTest(DbTestCase):
 
     def test_to_reference(self):
         ref = reference.get_ref_from_model(self.__model)
-        self.assertEquals(ref, self.__ref, 'Failed to generated equivalent ref.')
+        self.assertEqual(ref, self.__ref, 'Failed to generated equivalent ref.')
 
     def test_to_reference_no_model(self):
         try:
@@ -54,13 +54,13 @@ class ReferenceTest(DbTestCase):
 
     def test_to_model_with_id(self):
         model = reference.get_model_from_ref(Trigger, self.__ref)
-        self.assertEquals(model, self.__model, 'Failed to return correct model.')
+        self.assertEqual(model, self.__model, 'Failed to return correct model.')
 
     def test_to_model_with_name(self):
         ref = copy.copy(self.__ref)
         ref['id'] = None
         model = reference.get_model_from_ref(Trigger, ref)
-        self.assertEquals(model, self.__model, 'Failed to return correct model.')
+        self.assertEqual(model, self.__model, 'Failed to return correct model.')
 
     def test_to_model_no_name_no_id(self):
         try:

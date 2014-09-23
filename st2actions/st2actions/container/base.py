@@ -66,42 +66,16 @@ class RunnerContainer():
         return result
 
     def _do_run(self, runner, runnertype_db, action_db, actionexec_db):
-        # Runner parameters should use the defaults from the RunnerType object.
-        # The runner parameter defaults may be overridden by values provided in
-        # the Action and ActionExecution.
-        actionexec_runner_parameters, actionexec_action_parameters = RunnerContainer._split_params(
-            runnertype_db, action_db, actionexec_db)
-        action_action_parameters = dict(action_db.parameters)
-
-        # Create runner parameter by merging default values with dynamic values
-        runner_parameters = {k: v['default'] if 'default' in v else None
-                             for k, v in six.iteritems(runnertype_db.runner_parameters)}
-
-        # pick overrides from action_action_parameters & actionexec_runner_parameters
-        for param in runner_parameters:
-            # values from actionexec_runner_parameters override action_action_parameters.
-            if param in actionexec_runner_parameters:
-                runner_parameters[param] = actionexec_runner_parameters[param]
-                continue
-            if param in action_action_parameters and 'default' in action_action_parameters[param]:
-                runner_parameters[param] = action_action_parameters[param]['default']
-
-        # Create action parameters by merging default values with dynamic values
-        action_parameters = {k: v['default'] if 'default' in v else None
-                             for k, v in six.iteritems(action_db.parameters)}
-
-        # pick overrides from actionexec_action_parameters
-        for param in action_parameters:
-            if param in actionexec_action_parameters:
-                action_parameters[param] = actionexec_action_parameters[param]
-
+        runner_params, action_params = self.get_resolved_params(runnertype_db, action_db,
+                                                                actionexec_db)
+        resolved_entry_point = self._get_entry_point_abs_path(action_db.content_pack,
+                                                              action_db.entry_point)
         runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
         runner.action_execution_id = str(actionexec_db.id)
-        runner.entry_point = self._get_entry_point_abs_path(action_db.content_pack,
-                                                            action_db.entry_point)
-        runner.runner_parameters = runner_parameters
+        runner.entry_point = resolved_entry_point
+        runner.runner_parameters = runner_params
         runner.context = getattr(actionexec_db, 'context', dict())
         runner.callback = getattr(actionexec_db, 'callback', dict())
 
@@ -109,7 +83,7 @@ class RunnerContainer():
         runner.pre_run()
 
         LOG.debug('Performing run for runner: %s', runner)
-        run_result = runner.run(action_parameters)
+        run_result = runner.run(action_params)
         LOG.debug('Result of run: %s', run_result)
 
         # Re-load Action Execution from DB:
@@ -144,6 +118,54 @@ class RunnerContainer():
         runner.container_service = None
 
         return result
+
+    def get_resolved_params(self, runnertype_db, action_db, actionexec_db):
+        # Runner parameters should use the defaults from the RunnerType object.
+        # The runner parameter defaults may be overridden by values provided in
+        # the Action and ActionExecution.
+        actionexec_runner_parameters, actionexec_action_parameters = RunnerContainer._split_params(
+            runnertype_db, action_db, actionexec_db)
+        action_parameters = dict(action_db.parameters)
+        runner_params = self._get_resolved_runner_params(runnertype_db.runner_parameters,
+                                                         actionexec_runner_parameters,
+                                                         action_parameters)
+        action_params = self._get_resolved_action_params(action_parameters,
+                                                         actionexec_action_parameters)
+
+        return runner_params, action_params
+
+    def _get_resolved_runner_params(self, runner_parameters, actionexec_runner_parameters,
+                                    action_parameters):
+        # Runner parameters should use the defaults from the RunnerType object.
+        # The runner parameter defaults may be overridden by values provided in
+        # the Action and ActionExecution.
+
+        # Create runner parameter by merging default values with dynamic values
+        runner_parameters = {k: v['default'] if 'default' in v else None
+                             for k, v in six.iteritems(runner_parameters)}
+
+        # pick overrides from action_action_parameters & actionexec_runner_parameters
+        for param in runner_parameters:
+            # values from actionexec_runner_parameters override action_action_parameters.
+            if param in actionexec_runner_parameters:
+                runner_parameters[param] = actionexec_runner_parameters[param]
+                continue
+            if param in action_parameters and 'default' in action_parameters[param]:
+                runner_parameters[param] = action_parameters[param]['default']
+
+        return runner_parameters
+
+    def _get_resolved_action_params(self, action_parameters, actionexec_action_parameters):
+        # Create action parameters by merging default values with dynamic values
+        action_parameters = {k: v['default'] if 'default' in v else None
+                             for k, v in six.iteritems(action_parameters)}
+
+        # pick overrides from actionexec_action_parameters
+        for param in action_parameters:
+            if param in actionexec_action_parameters:
+                action_parameters[param] = actionexec_action_parameters[param]
+
+        return action_parameters
 
     def _get_entry_point_abs_path(self, pack, entry_point):
         return RunnerContainerService.get_entry_point_abs_path(pack=pack,

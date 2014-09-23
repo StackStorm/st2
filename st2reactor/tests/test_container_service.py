@@ -27,10 +27,10 @@ class ContainerServiceTest(EventletTestCase):
                                              dispatcher=dispatcher)
         container_service.dispatch(True, True)
         time.sleep(0.1)  # give time for eventlet threads to dispatch.
-        self.assertEquals(dispatcher.called_dispatch, 1,
-                          'dispatch() should have been called only once')
-        self.assertEquals(dispatcher.triggers_queue.qsize(), 1,
-                          'Only one batch should have been dispatched.')
+        self.assertEqual(dispatcher.called_dispatch, 1,
+                         'dispatch() should have been called only once')
+        self.assertEqual(dispatcher.triggers_queue.qsize(), 1,
+                         'Only one batch should have been dispatched.')
         container_service.shutdown()
 
     def test_dispatch_pool_full(self):
@@ -42,8 +42,8 @@ class ContainerServiceTest(EventletTestCase):
         for i in range(5):
             container_service.dispatch(i, i)
         time.sleep(0.3)  # give time for eventlet threads to dispatch.
-        self.assertEquals(dispatcher.called_dispatch, 5,
-                          'dispatch() called fewer than 5 times')
-        self.assertEquals(dispatcher.triggers_queue.qsize(), 5,
-                          'output queue size is not 5.')
+        self.assertEqual(dispatcher.called_dispatch, 5,
+                         'dispatch() called fewer than 5 times')
+        self.assertEqual(dispatcher.triggers_queue.qsize(), 5,
+                         'output queue size is not 5.')
         container_service.shutdown()

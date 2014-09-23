@@ -57,8 +57,8 @@ class TestTriggerController(FunctionalTest):
         post_resp = self._do_post(TRIGGER_1)
         trigger_id = self._get_trigger_id(post_resp)
         get_resp = self._do_get_one(trigger_id)
-        self.assertEquals(get_resp.status_int, http_client.OK)
-        self.assertEquals(self._get_trigger_id(get_resp), trigger_id)
+        self.assertEqual(get_resp.status_int, http_client.OK)
+        self.assertEqual(self._get_trigger_id(get_resp), trigger_id)
         self._do_delete(trigger_id)
 
     def test_get_one_fail(self):
@@ -67,22 +67,22 @@ class TestTriggerController(FunctionalTest):
 
     def test_post(self):
         post_resp = self._do_post(TRIGGER_1)
-        self.assertEquals(post_resp.status_int, http_client.CREATED)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
         self._do_delete(self._get_trigger_id(post_resp))
 
     def test_post_with_params(self):
         post_resp = self._do_post(TRIGGER_2)
-        self.assertEquals(post_resp.status_int, http_client.CREATED)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
         self._do_delete(self._get_trigger_id(post_resp))
 
     def test_post_duplicate(self):
         post_resp = self._do_post(TRIGGER_1)
-        self.assertEquals(post_resp.status_int, http_client.CREATED)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
         # Trying to create the same trigger again will still say "CREATED"
         # but under the hood gets the one already in db. So we just check
         # id is same in both cases.
         post_resp_2 = self._do_post(TRIGGER_1)
-        self.assertEquals(post_resp_2.status_int, http_client.CREATED)
+        self.assertEqual(post_resp_2.status_int, http_client.CREATED)
         self.assertEqual(self._get_trigger_id(post_resp), self._get_trigger_id(post_resp_2))
         self._do_delete(self._get_trigger_id(post_resp))
 
@@ -91,7 +91,7 @@ class TestTriggerController(FunctionalTest):
         update_input = post_resp.json
         update_input['description'] = 'updated description.'
         put_resp = self._do_put(self._get_trigger_id(post_resp), update_input)
-        self.assertEquals(put_resp.status_int, http_client.OK)
+        self.assertEqual(put_resp.status_int, http_client.OK)
         self._do_delete(self._get_trigger_id(put_resp))
 
     def test_put_fail(self):
@@ -99,13 +99,13 @@ class TestTriggerController(FunctionalTest):
         update_input = post_resp.json
         # If the id in the URL is incorrect the update will fail since id in the body is ignored.
         put_resp = self._do_put(1, update_input)
-        self.assertEquals(put_resp.status_int, http_client.NOT_FOUND)
+        self.assertEqual(put_resp.status_int, http_client.NOT_FOUND)
         self._do_delete(self._get_trigger_id(post_resp))
 
     def test_delete(self):
         post_resp = self._do_post(TRIGGER_1)
         del_resp = self._do_delete(self._get_trigger_id(post_resp))
-        self.assertEquals(del_resp.status_int, http_client.NO_CONTENT)
+        self.assertEqual(del_resp.status_int, http_client.NO_CONTENT)
 
     @classmethod
     def _setupTriggerTypes(cls):

@@ -53,6 +53,6 @@ class ActionsRegistrarTest(DbTestCase):
             content = json.load(fd)
             action_name = str(content['name'])
             action_db = Action.get_by_name(action_name)
-            self.assertEquals(action_db.content_pack, 'dummy', 'Content pack must be ' +
-                              'set to dummy')
+            self.assertEqual(action_db.content_pack, 'dummy', 'Content pack must be ' +
+                             'set to dummy')
             Action.delete(action_db)

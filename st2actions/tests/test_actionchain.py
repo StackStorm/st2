@@ -53,14 +53,14 @@ class TestActionChain(TestCase):
             if 'on-failure' in node:
                 expected_link_count += 1
 
-        self.assertEquals(len(action_chain.nodes), expected_node_count)
+        self.assertEqual(len(action_chain.nodes), expected_node_count)
 
         link_count = 0
         for _, links in six.iteritems(action_chain.links):
             link_count += len(links)
-        self.assertEquals(link_count, expected_link_count)
+        self.assertEqual(link_count, expected_link_count)
 
-        self.assertEquals(action_chain.default, CHAIN_1['default'])
+        self.assertEqual(action_chain.default, CHAIN_1['default'])
 
     def test_chain_iteration(self):
         action_chain = acr.ActionChain(CHAIN_1)
@@ -68,20 +68,20 @@ class TestActionChain(TestCase):
         for node in CHAIN_1['chain']:
             if 'on-success' in node:
                 next_node = action_chain.get_next_node(node['name'], 'on-success')
-                self.assertEquals(next_node.name, node['on-success'])
+                self.assertEqual(next_node.name, node['on-success'])
             if 'on-failure' in node:
                 next_node = action_chain.get_next_node(node['name'], 'on-failure')
-                self.assertEquals(next_node.name, node['on-failure'])
+                self.assertEqual(next_node.name, node['on-failure'])
 
         default = action_chain.get_next_node()
-        self.assertEquals(type(default), acr.ActionChain.Node)
-        self.assertEquals(default.name, CHAIN_1['default'])
+        self.assertEqual(type(default), acr.ActionChain.Node)
+        self.assertEqual(default.name, CHAIN_1['default'])
 
     def test_empty_chain(self):
         action_chain = acr.ActionChain(CHAIN_EMPTY)
-        self.assertEquals(len(action_chain.nodes), 0)
-        self.assertEquals(len(action_chain.links), 0)
-        self.assertEquals(action_chain.default, '')
+        self.assertEqual(len(action_chain.nodes), 0)
+        self.assertEqual(len(action_chain.links), 0)
+        self.assertEqual(action_chain.default, '')
 
 
 class TestActionChainRunner(TestCase):
@@ -113,7 +113,7 @@ class TestActionChainRunner(TestCase):
         chain_runner.run({})
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 3. Not great but works.
-        self.assertEquals(resourcemgr_create.call_count, 3)
+        self.assertEqual(resourcemgr_create.call_count, 3)
 
     @mock.patch('eventlet.sleep', mock.MagicMock())
     @mock.patch.object(ResourceManager, 'get_by_id', mock.MagicMock(
@@ -129,7 +129,7 @@ class TestActionChainRunner(TestCase):
         chain_runner.run({})
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 3. Not great but works.
-        self.assertEquals(resourcemgr_create.call_count, 3)
+        self.assertEqual(resourcemgr_create.call_count, 3)
 
     @mock.patch.object(ResourceManager, 'create',
         return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_ERROR))
@@ -142,7 +142,7 @@ class TestActionChainRunner(TestCase):
         chain_runner.run({})
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
-        self.assertEquals(resourcemgr_create.call_count, 2)
+        self.assertEqual(resourcemgr_create.call_count, 2)
 
     @mock.patch.object(ResourceManager, 'create', side_effect=RuntimeError('Test Failure.'))
     def test_chain_runner_action_exception(self, resourcemgr_create):
@@ -154,4 +154,4 @@ class TestActionChainRunner(TestCase):
         chain_runner.run({})
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
-        self.assertEquals(resourcemgr_create.call_count, 2)
+        self.assertEqual(resourcemgr_create.call_count, 2)
