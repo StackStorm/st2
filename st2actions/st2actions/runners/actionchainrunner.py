@@ -89,8 +89,7 @@ class ActionChainRunner(ActionRunner):
         self.id = id
 
     def pre_run(self):
-        chainspec_file = self.container_service.get_entry_point_abs_path(
-            pack=self.action.content_pack, entry_point=self.action.entry_point)
+        chainspec_file = self.entry_point
         LOG.debug('Reading action chain from %s for action %s.', chainspec_file,
                   self.action)
         try:

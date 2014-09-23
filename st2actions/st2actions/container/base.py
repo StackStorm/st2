@@ -95,11 +95,12 @@ class RunnerContainer():
             if param in actionexec_action_parameters:
                 action_parameters[param] = actionexec_action_parameters[param]
 
-        runner.container_service = RunnerContainerService(self)
+        runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
         runner.action_execution_id = str(actionexec_db.id)
-        runner.entry_point = action_db.entry_point
+        runner.entry_point = self._get_entry_point_abs_path(action_db.content_pack,
+                                                            action_db.entry_point)
         runner.runner_parameters = runner_parameters
         runner.context = getattr(actionexec_db, 'context', dict())
         runner.callback = getattr(actionexec_db, 'callback', dict())
@@ -143,6 +144,10 @@ class RunnerContainer():
         runner.container_service = None
 
         return result
+
+    def _get_entry_point_abs_path(self, pack, entry_point):
+        return RunnerContainerService.get_entry_point_abs_path(pack=pack,
+                                                               entry_point=entry_point)
 
     @staticmethod
     def _split_params(runnertype_db, action_db, actionexec_db):

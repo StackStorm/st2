@@ -18,12 +18,10 @@ class RunnerContainerService():
         provided by the Action Runner Container.
     """
 
-    def __init__(self, container):
-        self._container = container
+    def __init__(self):
         self._status = None
         self._result = None
         self._payload = {}
-        self._action_workingdir = None
 
     def report_status(self, status):
         self._status = status
@@ -47,7 +45,8 @@ class RunnerContainerService():
         from st2common import log as logging
         logging.getLogger(__name__ + '.' + name)
 
-    def get_content_packs_base_path(self):
+    @staticmethod
+    def get_content_packs_base_path():
         return cfg.CONF.content.content_packs_base_path
 
     def get_artifact_working_dir(self, pack=None, entry_point=None):
@@ -58,12 +57,13 @@ class RunnerContainerService():
         wkdir = os.path.join(wkdir, pack, 'actions', entry_point_path)
         return wkdir
 
-    def get_entry_point_abs_path(self, pack=None, entry_point=None):
+    @staticmethod
+    def get_entry_point_abs_path(pack=None, entry_point=None):
         if entry_point is not None:
             if os.path.isabs(entry_point):
                 return entry_point
-            return os.path.join(self.get_content_packs_base_path(), pipes.quote(pack),
-                                'actions', pipes.quote(entry_point))
+            return os.path.join(RunnerContainerService.get_content_packs_base_path(),
+                                pipes.quote(pack), 'actions', pipes.quote(entry_point))
         else:
             return None
 
@@ -72,7 +72,6 @@ class RunnerContainerService():
         result.append('RunnerContainerService@')
         result.append(str(id(self)))
         result.append('(')
-        result.append('_container="%s", ' % self._container)
         result.append('_result="%s", ' % self._result)
         result.append('_payload="%s", ' % self._payload)
         result.append(')')
