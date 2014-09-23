@@ -1,3 +1,4 @@
+import ast
 import eventlet
 import jinja2
 import json
@@ -12,6 +13,8 @@ from st2client.client import Client
 from st2common import log as logging
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.api.action import ACTIONEXEC_STATUS_ERROR, ACTIONEXEC_STATUS_COMPLETE
+from st2common.util import action_db as action_db_util
+
 
 LOG = logging.getLogger(__name__)
 
@@ -75,7 +78,7 @@ class ClientService(object):
     def run_action(self, action_name, params, wait_for_completion=True):
         execution = models.ActionExecution()
         execution.action = {'name': action_name}
-        execution.parameters = params
+        execution.parameters = ClientService._cast_params(action_name, params)
         action_exec_mgr = self.client.managers['ActionExecution']
         actionexec = action_exec_mgr.create(execution)
         while (wait_for_completion and
@@ -84,6 +87,44 @@ class ClientService(object):
             eventlet.sleep(1)
             actionexec = action_exec_mgr.get_by_id(actionexec.id)
         return actionexec
+
+    @staticmethod
+    def _cast_params(action_name, params):
+        casts = {
+            'array': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
+                else x),
+            'boolean': (lambda x: ast.literal_eval(x.capitalize())
+                if isinstance(x, str) or isinstance(x, unicode) else x),
+            'integer': int,
+            'number': float,
+            'object': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
+                else x),
+            'string': str
+        }
+
+        action_db = action_db_util.get_action_by_name(action_name)
+        action_parameters_schema = action_db.parameters
+        runnertype_db = action_db_util.get_runnertype_by_name(action_db.runner_type['name'])
+        runner_parameters_schema = runnertype_db.parameters
+        # combine into 1 list of parameter schemas
+        parameters_schema = {}
+        if runner_parameters_schema:
+            parameters_schema.update(runner_parameters_schema)
+        if action_parameters_schema:
+            parameters_schema.update(action_parameters_schema)
+        # cast each param individually
+        for k, v in six.iteritems(params):
+            parameter_schema = parameters_schema.get(k, None)
+            if not parameter_schema:
+                continue
+            parameter_type = parameter_schema.get('type', None)
+            if not parameter_type:
+                continue
+            cast = casts.get(parameter_type, None)
+            if not cast:
+                continue
+            params[k] = cast(v)
+        return params
 
 
 class ActionChainRunner(ActionRunner):
@@ -128,23 +169,28 @@ class ActionChainRunner(ActionRunner):
 
     @staticmethod
     def _resolve_params(action_node, original_parameters, results):
+        # setup context with original parameters and the intermediate results.
         context = {}
         context.update(original_parameters)
         context.update(results)
-
-        def template_loader(template_name):
-            template = action_node.params[template_name]
-            if isinstance(template, dict) or isinstance(template, list):
-                return json.dumps(template)
-            else:
-                return str(template)
-
-        env = jinja2.Environment(undefined=jinja2.StrictUndefined,
-                                 loader=jinja2.FunctionLoader(template_loader))
-        # TODO(manas) - generated params must be typed as per the expected schema.
+        env = jinja2.Environment(undefined=jinja2.StrictUndefined)
         rendered_params = {}
-        for k in action_node.params:
-            rendered_v = env.get_template(k).render(context)
+        for k, v in six.iteritems(action_node.params):
+            # jinja2 works with string so transform list and dict to strings.
+            reverse_json_dumps = False
+            if isinstance(v, dict) or isinstance(v, list):
+                v = json.dumps(v)
+                reverse_json_dumps = True
+            else:
+                v = str(v)
+            rendered_v = env.from_string(v).render(context)
+            # no change therefore no templatization so pick params from original to retain
+            # original type
+            if rendered_v == v:
+                rendered_params[k] = action_node.params[k]
+                continue
+            if reverse_json_dumps:
+                rendered_v = json.loads(rendered_v)
             rendered_params[k] = rendered_v
         return rendered_params
 
