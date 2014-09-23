@@ -17,7 +17,6 @@ class ActionRunner(object):
 
     def __init__(self):
         self.container_service = None
-        self.liveaction_id = None
         self.runner_parameters = None
         self.action = None
         self.action_name = None
