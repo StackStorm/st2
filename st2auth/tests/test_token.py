@@ -20,9 +20,8 @@ DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 
 class TestTokenController(FunctionalTest):
 
-    @classmethod
-    def setUpClass(cls):
-        super(TestTokenController, cls).setUpClass()
+    def setUp(self):
+        super(TestTokenController, self).setUp()
         type(pecan.request).remote_user = mock.PropertyMock(return_value=USERNAME)
 
     def test_token_model(self):
@@ -66,9 +65,14 @@ class TestTokenController(FunctionalTest):
         self.assertLess(timestamp, actual_expiry)
         self.assertLess(actual_expiry, expected_expiry)
 
+    def test_token_post_unauthorized(self):
+        type(pecan.request).remote_user = None
+        response = self.app.post_json('/tokens', {}, expect_errors=True)
+        self.assertEqual(response.status_int, 401)
+
     @mock.patch.object(
         User, 'get_by_name',
-        mock.MagicMock(return_value=None))
+        mock.MagicMock(side_effect=Exception()))
     @mock.patch.object(
         User, 'add_or_update',
         mock.Mock(return_value=UserDB(user=USERNAME)))
