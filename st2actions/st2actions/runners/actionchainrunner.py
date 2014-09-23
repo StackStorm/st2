@@ -8,11 +8,10 @@ import uuid
 from oslo.config import cfg
 
 from st2actions.runners import ActionRunner
-from st2client import models
-from st2client.client import Client
 from st2common import log as logging
 from st2common.exceptions import actionrunner as runnerexceptions
-from st2common.models.api.action import ACTIONEXEC_STATUS_ERROR, ACTIONEXEC_STATUS_COMPLETE
+from st2common.models.api import action
+from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 
 
@@ -64,29 +63,83 @@ class ActionChain(object):
         return None
 
 
-class ClientService(object):
+class ActionChainRunner(ActionRunner):
 
-    def __init__(self):
-        endpoint_url = 'http://%s:%s' % (cfg.CONF.api.host, cfg.CONF.api.port)
-        endpoints = {
-            'action': endpoint_url,
-            'reactor': endpoint_url,
-            'datastore': endpoint_url,
-        }
-        self.client = Client(endpoints)
+    def __init__(self, id):
+        self.id = id
 
-    def run_action(self, action_name, params, wait_for_completion=True):
-        execution = models.ActionExecution()
-        execution.action = {'name': action_name}
-        execution.parameters = ClientService._cast_params(action_name, params)
-        action_exec_mgr = self.client.managers['ActionExecution']
-        actionexec = action_exec_mgr.create(execution)
+    def pre_run(self):
+        chainspec_file = self.entry_point
+        LOG.debug('Reading action chain from %s for action %s.', chainspec_file,
+                  self.action)
+        try:
+            with open(chainspec_file, 'r') as fd:
+                chainspec = json.load(fd)
+                self.action_chain = ActionChain(chainspec)
+        except Exception as e:
+            LOG.exception('Failed to instantiate ActionChain.')
+            raise runnerexceptions.ActionRunnerPreRunError(e.message)
+
+    def run(self, action_parameters):
+        action_node = self.action_chain.get_next_node()
+        results = {}
+        while action_node:
+            actionexec = None
+            try:
+                resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
+                    results)
+                actionexec = ActionChainRunner._run_action(action_node.action_name, resolved_params)
+            except:
+                LOG.exception('Failure in running action %s.', action_node.name)
+            else:
+                # for now append all successful results
+                results[action_node.name] = actionexec.result
+            finally:
+                if not actionexec or actionexec.status == action.ACTIONEXEC_STATUS_ERROR:
+                    action_node = self.action_chain.get_next_node(action_node.name, 'on-failure')
+                elif actionexec.status == action.ACTIONEXEC_STATUS_COMPLETE:
+                    action_node = self.action_chain.get_next_node(action_node.name, 'on-success')
+        self.container_service.report_result(results)
+        return results is not None
+
+    @staticmethod
+    def _resolve_params(action_node, original_parameters, results):
+        # setup context with original parameters and the intermediate results.
+        context = {}
+        context.update(original_parameters)
+        context.update(results)
+        env = jinja2.Environment(undefined=jinja2.StrictUndefined)
+        rendered_params = {}
+        for k, v in six.iteritems(action_node.params):
+            # jinja2 works with string so transform list and dict to strings.
+            reverse_json_dumps = False
+            if isinstance(v, dict) or isinstance(v, list):
+                v = json.dumps(v)
+                reverse_json_dumps = True
+            else:
+                v = str(v)
+            rendered_v = env.from_string(v).render(context)
+            # no change therefore no templatization so pick params from original to retain
+            # original type
+            if rendered_v == v:
+                rendered_params[k] = action_node.params[k]
+                continue
+            if reverse_json_dumps:
+                rendered_v = json.loads(rendered_v)
+            rendered_params[k] = rendered_v
+        return rendered_params
+
+    @staticmethod
+    def _run_action(action_name, params, wait_for_completion=True):
+        execution = action.ActionExecutionAPI(**{'action': {'name': action_name}})
+        execution.parameters = ActionChainRunner._cast_params(action_name, params)
+        execution = action_service.schedule(execution)
         while (wait_for_completion and
-               actionexec.status != ACTIONEXEC_STATUS_COMPLETE and
-               actionexec.status != ACTIONEXEC_STATUS_ERROR):
+               execution.status != action.ACTIONEXEC_STATUS_COMPLETE and
+               execution.status != action.ACTIONEXEC_STATUS_ERROR):
             eventlet.sleep(1)
-            actionexec = action_exec_mgr.get_by_id(actionexec.id)
-        return actionexec
+            execution = action_db_util.get_actionexec_by_id(execution.id)
+        return execution
 
     @staticmethod
     def _cast_params(action_name, params):
@@ -125,74 +178,6 @@ class ClientService(object):
                 continue
             params[k] = cast(v)
         return params
-
-
-class ActionChainRunner(ActionRunner):
-
-    def __init__(self, id):
-        self.id = id
-
-    def pre_run(self):
-        chainspec_file = self.entry_point
-        LOG.debug('Reading action chain from %s for action %s.', chainspec_file,
-                  self.action)
-        try:
-            with open(chainspec_file, 'r') as fd:
-                chainspec = json.load(fd)
-                self.action_chain = ActionChain(chainspec)
-        except Exception as e:
-            LOG.exception('Failed to instantiate ActionChain.')
-            raise runnerexceptions.ActionRunnerPreRunError(e.message)
-        self._client = ClientService()
-
-    def run(self, action_parameters):
-        action_node = self.action_chain.get_next_node()
-        results = {}
-        while action_node:
-            actionexec = None
-            try:
-                resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
-                    results)
-                actionexec = self._client.run_action(action_node.action_name, resolved_params)
-            except:
-                LOG.exception('Failure in running action %s.', action_node.name)
-            else:
-                # for now append all successful results
-                results[action_node.name] = actionexec.result
-            finally:
-                if not actionexec or actionexec.status == ACTIONEXEC_STATUS_ERROR:
-                    action_node = self.action_chain.get_next_node(action_node.name, 'on-failure')
-                elif actionexec.status == ACTIONEXEC_STATUS_COMPLETE:
-                    action_node = self.action_chain.get_next_node(action_node.name, 'on-success')
-        self.container_service.report_result(results)
-        return results is not None
-
-    @staticmethod
-    def _resolve_params(action_node, original_parameters, results):
-        # setup context with original parameters and the intermediate results.
-        context = {}
-        context.update(original_parameters)
-        context.update(results)
-        env = jinja2.Environment(undefined=jinja2.StrictUndefined)
-        rendered_params = {}
-        for k, v in six.iteritems(action_node.params):
-            # jinja2 works with string so transform list and dict to strings.
-            reverse_json_dumps = False
-            if isinstance(v, dict) or isinstance(v, list):
-                v = json.dumps(v)
-                reverse_json_dumps = True
-            else:
-                v = str(v)
-            rendered_v = env.from_string(v).render(context)
-            # no change therefore no templatization so pick params from original to retain
-            # original type
-            if rendered_v == v:
-                rendered_params[k] = action_node.params[k]
-                continue
-            if reverse_json_dumps:
-                rendered_v = json.loads(rendered_v)
-            rendered_params[k] = rendered_v
-        return rendered_params
 
 
 def get_runner():

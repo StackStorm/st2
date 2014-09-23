@@ -10,9 +10,9 @@ from unittest2 import TestCase
 
 from st2actions.runners import actionchainrunner as acr
 from st2actions.container.service import RunnerContainerService
-from st2client.models import ResourceManager
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.api import action
+from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 
 
@@ -136,7 +136,7 @@ class TestActionChainRunner(TestCase):
             self.assertTrue(True)
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(ResourceManager, 'create', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_success_path(self, resourcemgr_create):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
@@ -149,10 +149,10 @@ class TestActionChainRunner(TestCase):
         self.assertEqual(resourcemgr_create.call_count, 3)
 
     @mock.patch('eventlet.sleep', mock.MagicMock())
-    @mock.patch.object(ResourceManager, 'get_by_id', mock.MagicMock(
+    @mock.patch.object(action_db_util, 'get_actionexec_by_id', mock.MagicMock(
         return_value=DummyActionExecution()))
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(ResourceManager, 'create',
+    @mock.patch.object(action_service, 'schedule',
         return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_RUNNING))
     def test_chain_runner_success_path_with_wait(self, resourcemgr_create):
         chain_runner = acr.get_runner()
@@ -166,7 +166,7 @@ class TestActionChainRunner(TestCase):
         self.assertEqual(resourcemgr_create.call_count, 3)
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(ResourceManager, 'create',
+    @mock.patch.object(action_service, 'schedule',
         return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_ERROR))
     def test_chain_runner_failure_path(self, resourcemgr_create):
         chain_runner = acr.get_runner()
@@ -180,7 +180,7 @@ class TestActionChainRunner(TestCase):
         self.assertEqual(resourcemgr_create.call_count, 2)
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(ResourceManager, 'create', side_effect=RuntimeError('Test Failure.'))
+    @mock.patch.object(action_service, 'schedule', side_effect=RuntimeError('Test Failure.'))
     def test_chain_runner_action_exception(self, resourcemgr_create):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
@@ -193,7 +193,7 @@ class TestActionChainRunner(TestCase):
         self.assertEqual(resourcemgr_create.call_count, 2)
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(ResourceManager, 'create', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_str_param_temp(self, resourcemgr_create):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_STR_TEMP_PATH
@@ -206,7 +206,7 @@ class TestActionChainRunner(TestCase):
         self.assertEquals(mock_args[0].parameters, {"p1": "1"})
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(ResourceManager, 'create', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_list_param_temp(self, resourcemgr_create):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_LIST_TEMP_PATH
@@ -219,7 +219,7 @@ class TestActionChainRunner(TestCase):
         self.assertEquals(mock_args[0].parameters, {"p1": "[2, 3, 4]"})
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(ResourceManager, 'create', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_dict_param_temp(self, resourcemgr_create):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DICT_TEMP_PATH
@@ -233,7 +233,7 @@ class TestActionChainRunner(TestCase):
         self.assertEquals(mock_args[0].parameters, expected_value)
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(ResourceManager, 'create',
+    @mock.patch.object(action_service, 'schedule',
         return_value=DummyActionExecution(result={'o1': '1'}))
     def test_chain_runner_dependent_param_temp(self, resourcemgr_create):
         chain_runner = acr.get_runner()
@@ -252,7 +252,7 @@ class TestActionChainRunner(TestCase):
             expected_values.remove(call_args[0][0].parameters)
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(ResourceManager, 'create', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_missing_param_temp(self, resourcemgr_create):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_STR_TEMP_PATH
@@ -265,7 +265,7 @@ class TestActionChainRunner(TestCase):
     @mock.patch.object(RunnerContainerService, 'get_entry_point_abs_path', mock.MagicMock(
         return_value=CHAIN_TYPED_PARAMS))
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_2))
-    @mock.patch.object(ResourceManager, 'create', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_typed_params(self, resourcemgr_create):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = ''
