@@ -91,36 +91,30 @@ class TestActionChainRunner(TestCase):
         self.assertTrue(runner)
         self.assertTrue(runner.id)
 
-    @mock.patch.object(RunnerContainerService, 'get_entry_point_abs_path', mock.MagicMock(
-        return_value=MALFORMED_CHAIN_PATH))
     def test_malformed_chain(self):
         try:
             chain_runner = acr.get_runner()
-            chain_runner.entry_point = ''
+            chain_runner.entry_point = MALFORMED_CHAIN_PATH
             chain_runner.action = DummyAction()
-            chain_runner.container_service = RunnerContainerService(None)
+            chain_runner.container_service = RunnerContainerService()
             chain_runner.pre_run()
             self.assertTrue(False, 'Expected pre_run to fail.')
         except runnerexceptions.ActionRunnerPreRunError:
             self.assertTrue(True)
 
-    @mock.patch.object(RunnerContainerService, 'get_entry_point_abs_path', mock.MagicMock(
-        return_value=CHAIN_1_PATH))
     @mock.patch.object(ResourceManager, 'create',
         return_value=DummyActionExecution())
     def test_chain_runner_success_path(self, resourcemgr_create):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = ''
+        chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = DummyAction()
-        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 3. Not great but works.
         self.assertEquals(resourcemgr_create.call_count, 3)
 
-    @mock.patch.object(RunnerContainerService, 'get_entry_point_abs_path', mock.MagicMock(
-        return_value=CHAIN_1_PATH))
     @mock.patch('eventlet.sleep', mock.MagicMock())
     @mock.patch.object(ResourceManager, 'get_by_id', mock.MagicMock(
         return_value=DummyActionExecution()))
@@ -128,38 +122,34 @@ class TestActionChainRunner(TestCase):
         return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_RUNNING))
     def test_chain_runner_success_path_with_wait(self, resourcemgr_create):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = ''
+        chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = DummyAction()
-        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 3. Not great but works.
         self.assertEquals(resourcemgr_create.call_count, 3)
 
-    @mock.patch.object(RunnerContainerService, 'get_entry_point_abs_path', mock.MagicMock(
-        return_value=CHAIN_1_PATH))
     @mock.patch.object(ResourceManager, 'create',
         return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_ERROR))
     def test_chain_runner_failure_path(self, resourcemgr_create):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = ''
+        chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = DummyAction()
-        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEquals(resourcemgr_create.call_count, 2)
 
-    @mock.patch.object(RunnerContainerService, 'get_entry_point_abs_path', mock.MagicMock(
-        return_value=CHAIN_1_PATH))
     @mock.patch.object(ResourceManager, 'create', side_effect=RuntimeError('Test Failure.'))
     def test_chain_runner_action_exception(self, resourcemgr_create):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = ''
+        chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = DummyAction()
-        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.action_chain, None)
