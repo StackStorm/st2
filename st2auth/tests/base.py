@@ -1,7 +1,8 @@
-from pecan.testing import load_test_app
+from webtest import TestApp
 
 import tests.config
 from st2tests import DbTestCase
+from st2auth import app
 
 
 class FunctionalTest(DbTestCase):
@@ -9,19 +10,8 @@ class FunctionalTest(DbTestCase):
     @classmethod
     def setUpClass(cls):
         super(FunctionalTest, cls).setUpClass()
-
         tests.config.parse_args()
-
-        config = {
-            'app': {
-                'root': 'st2auth.controllers.root.RootController',
-                'modules': ['st2auth'],
-                'debug': True,
-                'errors': {'__force_dict__': True}
-            }
-        }
-
-        cls.app = load_test_app(config=config)
+        cls.app = TestApp(app.setup_app())
 
     @classmethod
     def tearDownClass(cls):
