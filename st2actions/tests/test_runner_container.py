@@ -2,7 +2,6 @@ import datetime
 
 from st2common.models.db.action import (ActionDB, ActionExecutionDB)
 from st2common.models.api.action import RunnerTypeAPI
-from st2common.models.api.actionrunner import LiveActionAPI
 from st2common.persistence.action import (Action, ActionExecution, RunnerType)
 from st2tests.base import DbTestCase
 
@@ -67,11 +66,6 @@ class RunnerContainerTest(DbTestCase):
         actionexec_db.action = {'name': RunnerContainerTest.action_db.name}
         actionexec_db.parameters = params
         return actionexec_db
-
-    def _get_live_action_db_model(self, actionexec_id):
-        liveactionapi = LiveActionAPI(**{'actionexecution_id': actionexec_id})
-        liveaction_db = LiveActionAPI.to_model(liveactionapi)
-        return liveaction_db
 
     @classmethod
     def _setup_test_models(cls):
