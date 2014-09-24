@@ -5,9 +5,9 @@ import six
 
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.models.api.reactor import RuleAPI, RuleEnforcementAPI, TriggerAPI
+from st2common.models.api.reactor import RuleAPI, TriggerAPI
 from st2common.models.base import jsexpose
-from st2common.persistence.reactor import Rule, RuleEnforcement
+from st2common.persistence.reactor import Rule
 from st2common.util import reference
 
 from st2api.service import triggers as TriggerService
@@ -153,44 +153,3 @@ class RuleController(RestController):
         except ValueError as e:
             LOG.debug('Database lookup for name="%s" resulted in exception : %s.', rule_name, e)
             return []
-
-
-class RuleEnforcementController(RestController):
-    """
-        Implements the RESTful web endpoint that handles
-        the lifecycle of RuleEnforcements in the system.
-    """
-
-    @jsexpose(str)
-    def get_one(self, id):
-        """
-            List ruleenforcement by id.
-
-            Handle:
-                GET /ruleenforcements/1
-        """
-        LOG.info('GET /ruleenforcements/ with id=%s', id)
-        try:
-            rule_enforcement_db = RuleEnforcement.get_by_id(id)
-        except (ValueError, ValidationError) as e:
-            LOG.exception('Database lookup for id="%s" resulted in exception.', id)
-            abort(http_client.NOT_FOUND, str(e))
-            return
-
-        rule_enforcement_api = RuleEnforcementAPI.from_model(rule_enforcement_db)
-        LOG.debug('GET /ruleenforcements/ with id=%s, client_result=%s', id, rule_enforcement_api)
-        return rule_enforcement_api
-
-    @jsexpose()
-    def get_all(self, **kw):
-        """
-            List all ruleenforcements.
-
-            Handles requests:
-                GET /ruleenforcements/
-        """
-        LOG.info('GET all /ruleenforcements/')
-        rule_enforcement_apis = [RuleEnforcementAPI.from_model(ruleenforcement_db)
-                                 for ruleenforcement_db in RuleEnforcement.get_all(**kw)]
-        LOG.debug('GET all /ruleenforcements/ client_result=%s', rule_enforcement_apis)
-        return rule_enforcement_apis
