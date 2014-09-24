@@ -5,8 +5,6 @@ import json
 import six
 import uuid
 
-from oslo.config import cfg
-
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.exceptions import actionrunner as runnerexceptions
