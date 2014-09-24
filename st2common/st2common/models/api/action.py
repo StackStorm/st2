@@ -179,14 +179,12 @@ class ActionAPI(BaseAPI):
         model.required_parameters = getattr(action, 'required_parameters', list())
         return model
 
-
-ACTIONEXEC_STATUS_INIT = 'initializing'
 ACTIONEXEC_STATUS_SCHEDULED = 'scheduled'
 ACTIONEXEC_STATUS_RUNNING = 'running'
 ACTIONEXEC_STATUS_COMPLETE = 'complete'
 ACTIONEXEC_STATUS_ERROR = 'error'
 
-ACTIONEXEC_STATUSES = [ACTIONEXEC_STATUS_INIT, ACTIONEXEC_STATUS_SCHEDULED,
+ACTIONEXEC_STATUSES = [ACTIONEXEC_STATUS_SCHEDULED,
                        ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_COMPLETE,
                        ACTIONEXEC_STATUS_ERROR]
 
