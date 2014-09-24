@@ -2,8 +2,8 @@ import importlib
 
 from st2common import log as logging
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
-from st2common.models.api.action import (ACTIONEXEC_STATUS_COMPLETE,
-                                         ACTIONEXEC_STATUS_ERROR)
+from st2common.models.api.action import (ACTIONEXEC_STATUS_SUCCEEDED,
+                                         ACTIONEXEC_STATUS_FAILED)
 from st2common.util.action_db import (get_action_by_dict, get_runnertype_by_name)
 from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
 
@@ -99,7 +99,7 @@ class RunnerContainer():
             # Therefore, the action produced an error.
             result = False
             if not actionexec_status:
-                actionexec_status = ACTIONEXEC_STATUS_ERROR
+                actionexec_status = ACTIONEXEC_STATUS_FAILED
                 runner.container_service.report_status(actionexec_status)
         else:
             # So long as the runner produced an exit code, we can assume that the
@@ -107,7 +107,7 @@ class RunnerContainer():
             result = True
             actionexec_db.result = action_result
             if not actionexec_status:
-                actionexec_status = ACTIONEXEC_STATUS_COMPLETE
+                actionexec_status = ACTIONEXEC_STATUS_SUCCEEDED
                 runner.container_service.report_status(actionexec_status)
 
         # Push result data and updated status to ActionExecution DB

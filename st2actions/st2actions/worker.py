@@ -5,7 +5,7 @@ from oslo.config import cfg
 from st2actions.container.base import RunnerContainer
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.api.action import (ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_ERROR)
+from st2common.models.api.action import (ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_FAILED)
 from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.util.action_db import (get_actionexec_by_id, update_actionexecution_status)
 from st2common.transport import actionexecution, publishers
@@ -62,7 +62,7 @@ class Worker(ConsumerMixin):
             result = self.container.dispatch(actionexec_db)
             LOG.debug('Runner dispatch produced result: %s', result)
         except Exception:
-            actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_ERROR,
+            actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_FAILED,
                                                           actionexec_db.id)
             raise
 

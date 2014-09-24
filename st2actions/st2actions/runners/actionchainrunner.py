@@ -94,10 +94,10 @@ class ActionChainRunner(ActionRunner):
                 # for now append all successful results
                 results[action_node.name] = actionexec.result
             finally:
-                if not actionexec or actionexec.status == action.ACTIONEXEC_STATUS_ERROR:
+                if not actionexec or actionexec.status == action.ACTIONEXEC_STATUS_FAILED:
                     fail = True
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-failure')
-                elif actionexec.status == action.ACTIONEXEC_STATUS_COMPLETE:
+                elif actionexec.status == action.ACTIONEXEC_STATUS_SUCCEEDED:
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-success')
         self.container_service.report_result(results)
         return not fail
@@ -135,8 +135,8 @@ class ActionChainRunner(ActionRunner):
         execution.parameters = ActionChainRunner._cast_params(action_name, params)
         execution = action_service.schedule(execution)
         while (wait_for_completion and
-               execution.status != action.ACTIONEXEC_STATUS_COMPLETE and
-               execution.status != action.ACTIONEXEC_STATUS_ERROR):
+               execution.status != action.ACTIONEXEC_STATUS_SUCCEEDED and
+               execution.status != action.ACTIONEXEC_STATUS_FAILED):
             eventlet.sleep(1)
             execution = action_db_util.get_actionexec_by_id(execution.id)
         return execution
