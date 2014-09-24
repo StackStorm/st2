@@ -21,6 +21,16 @@ class RunnerContainerServiceTest(unittest2.TestCase):
         self.assertEqual(acutal_path, '/foo/bar.py', 'Entry point path doesn\'t match.')
         cfg.CONF.content.content_packs_base_path = orig_path
 
+    def test_get_entry_point_absolute_path_empty(self):
+        service = RunnerContainerService()
+        orig_path = cfg.CONF.content.content_packs_base_path
+        cfg.CONF.content.content_packs_base_path = '/tests/packs'
+        acutal_path = service.get_entry_point_abs_path(pack='foo', entry_point=None)
+        self.assertEqual(acutal_path, None, 'Entry point path doesn\'t match.')
+        acutal_path = service.get_entry_point_abs_path(pack='foo', entry_point='')
+        self.assertEqual(acutal_path, None, 'Entry point path doesn\'t match.')
+        cfg.CONF.content.content_packs_base_path = orig_path
+
     def test_get_entry_point_relative_path(self):
         service = RunnerContainerService()
         orig_path = cfg.CONF.content.content_packs_base_path
