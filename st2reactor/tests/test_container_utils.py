@@ -1,9 +1,10 @@
 import mock
-import unittest2
 
 from st2common.persistence.reactor import Trigger, TriggerType
 from st2common.models.db.reactor import TriggerDB, TriggerTypeDB
+from st2common.transport.publishers import PoolPublisher
 import st2reactor.container.utils as container_utils
+from st2tests.base import DbTestCase
 
 MOCK_TRIGGER_TYPE = TriggerTypeDB()
 MOCK_TRIGGER_TYPE.id = 'trigger-type-test.id'
@@ -18,7 +19,8 @@ MOCK_TRIGGER.parameters = {}
 MOCK_TRIGGER.type = {'name': MOCK_TRIGGER_TYPE.name, 'id': MOCK_TRIGGER_TYPE.id}
 
 
-class ContainerUtilsTest(unittest2.TestCase):
+@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
+class ContainerUtilsTest(DbTestCase):
     @mock.patch.object(TriggerType, 'query', mock.MagicMock(
         return_value=[MOCK_TRIGGER_TYPE]))
     @mock.patch.object(Trigger, 'get_by_name', mock.MagicMock(return_value=MOCK_TRIGGER))
@@ -54,3 +56,44 @@ class ContainerUtilsTest(unittest2.TestCase):
             self.assertTrue(False, 'Trigger type doesn\'t have \'name\' field. Should have thrown.')
         except Exception:
             self.assertTrue(True)
+
+    def test_create_trigger_instance_invalid_trigger(self):
+        instance = container_utils.create_trigger_instance({'name': 'footrigger'}, {}, None)
+        self.assertTrue(instance is None)
+
+    def test_add_trigger_type_no_params(self):
+        # Trigger type with no params should create a trigger with same name as trigger type.
+        trig_type = {
+            'name': 'myawesometriggertype',
+            'description': 'Words cannot describe how awesome I am.',
+            'parameters_schema': {},
+            'payload_schema': {}
+        }
+        trigtype_dbs = container_utils.add_trigger_models([trig_type])
+        trigger_type, trigger = trigtype_dbs[0]
+        trigtype_db = TriggerType.get_by_id(trigger_type.id)
+        self.assertEqual(trigtype_db.name, trig_type.get('name'))
+        self.assertTrue(trigger is not None)
+        self.assertEqual(trigger.name, trigtype_db.name)
+
+    def test_add_trigger_type_with_params(self):
+        # Trigger type with params should not create a trigger.
+        PARAMETERS_SCHEMA = {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string"}
+            },
+            "required": ['url'],
+            "additionalProperties": False
+        }
+        trig_type = {
+            'name': 'myawesometriggertype2',
+            'description': 'Words cannot describe how awesome I am.',
+            'parameters_schema': PARAMETERS_SCHEMA,
+            'payload_schema': {}
+        }
+        trigtype_dbs = container_utils.add_trigger_models([trig_type])
+        trigger_type, trigger = trigtype_dbs[0]
+        trigtype_db = TriggerType.get_by_id(trigger_type.id)
+        self.assertEqual(trigtype_db.name, trig_type.get('name'))
+        self.assertEqual(trigger, None)
