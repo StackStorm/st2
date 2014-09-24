@@ -17,7 +17,7 @@ from st2common.util import action_db as action_db_util
 
 
 class DummyActionExecution(object):
-    def __init__(self, status=action.ACTIONEXEC_STATUS_COMPLETE, result=''):
+    def __init__(self, status=action.ACTIONEXEC_STATUS_SUCCEEDED, result=''):
         self.id = None
         self.status = status
         self.result = result
@@ -167,7 +167,7 @@ class TestActionChainRunner(TestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
-        return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_ERROR))
+        return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_FAILED))
     def test_chain_runner_failure_path(self, resourcemgr_create):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
