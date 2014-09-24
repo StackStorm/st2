@@ -51,7 +51,7 @@ class RunnerContainerService():
 
     @staticmethod
     def get_entry_point_abs_path(pack=None, entry_point=None):
-        if entry_point is not None:
+        if entry_point is not None and len(entry_point) > 0:
             if os.path.isabs(entry_point):
                 return entry_point
             return os.path.join(RunnerContainerService.get_content_packs_base_path(),
