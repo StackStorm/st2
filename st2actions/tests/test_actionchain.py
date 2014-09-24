@@ -199,12 +199,12 @@ class TestActionChainRunner(TestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_STR_TEMP_PATH
         chain_runner.action = DummyAction()
-        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
         self.assertNotEqual(chain_runner.action_chain, None)
         mock_args, _ = resourcemgr_create.call_args
-        self.assertEquals(mock_args[0].parameters, {"p1": "1"})
+        self.assertEqual(mock_args[0].parameters, {"p1": "1"})
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
@@ -212,12 +212,12 @@ class TestActionChainRunner(TestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_LIST_TEMP_PATH
         chain_runner.action = DummyAction()
-        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
         self.assertNotEqual(chain_runner.action_chain, None)
         mock_args, _ = resourcemgr_create.call_args
-        self.assertEquals(mock_args[0].parameters, {"p1": "[2, 3, 4]"})
+        self.assertEqual(mock_args[0].parameters, {"p1": "[2, 3, 4]"})
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
@@ -225,13 +225,13 @@ class TestActionChainRunner(TestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DICT_TEMP_PATH
         chain_runner.action = DummyAction()
-        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
         self.assertNotEqual(chain_runner.action_chain, None)
         expected_value = {"p1": {"p1.3": "[3, 4]", "p1.2": "2", "p1.1": "1"}}
         mock_args, _ = resourcemgr_create.call_args
-        self.assertEquals(mock_args[0].parameters, expected_value)
+        self.assertEqual(mock_args[0].parameters, expected_value)
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
@@ -240,7 +240,7 @@ class TestActionChainRunner(TestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DEP_INPUT
         chain_runner.action = DummyAction()
-        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
         self.assertNotEqual(chain_runner.action_chain, None)
@@ -258,20 +258,18 @@ class TestActionChainRunner(TestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_STR_TEMP_PATH
         chain_runner.action = DummyAction()
-        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
-        self.assertEquals(resourcemgr_create.call_count, 0, 'No call expected.')
+        self.assertEqual(resourcemgr_create.call_count, 0, 'No call expected.')
 
-    @mock.patch.object(RunnerContainerService, 'get_entry_point_abs_path', mock.MagicMock(
-        return_value=CHAIN_TYPED_PARAMS))
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_2))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_typed_params(self, resourcemgr_create):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = ''
+        chain_runner.entry_point = CHAIN_TYPED_PARAMS
         chain_runner.action = DummyAction()
-        chain_runner.container_service = RunnerContainerService(None)
+        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 'two', 's3': 3.14})
         self.assertNotEqual(chain_runner.action_chain, None)
@@ -283,4 +281,4 @@ class TestActionChainRunner(TestCase):
                           'objtype': {'s2': 'two',
                                       'k1': '1'}}
         mock_args, _ = resourcemgr_create.call_args
-        self.assertEquals(mock_args[0].parameters, expected_value)
+        self.assertEqual(mock_args[0].parameters, expected_value)
