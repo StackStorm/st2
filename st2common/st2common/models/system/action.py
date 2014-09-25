@@ -1,5 +1,6 @@
 import os
 import pipes
+import uuid
 
 from fabric.api import (put, run, sudo)
 from fabric.tasks import WrappedCallableTask
@@ -8,6 +9,18 @@ from st2common import log as logging
 
 
 LOG = logging.getLogger(__name__)
+
+
+class Writer(object):
+    def __init__(self):
+        self._id = str(uuid.uuid4())
+
+    def write(self, text):
+        text = text or ''
+        LOG.info('[Writer: %s] %s', self._id, text)
+
+    def flush(self):
+        pass
 
 
 class SSHCommandAction(object):
@@ -150,7 +163,8 @@ class FabricRemoteAction(RemoteAction):
         return self._run
 
     def _run(self):
-        output = run(self.command, combine_stderr=False, pty=False, quiet=True)
+        output = run(self.command, combine_stderr=False, pty=False, quiet=False,
+                     stdout=Writer(), stderr=Writer())
         result = {
             'stdout': output.stdout,
             'stderr': output.stderr,
@@ -161,7 +175,8 @@ class FabricRemoteAction(RemoteAction):
         return result
 
     def _sudo(self):
-        output = sudo(self.command, combine_stderr=False, pty=True, quiet=True)
+        output = sudo(self.command, combine_stderr=False, pty=True, quiet=False,
+                     stdout=Writer(), stderr=Writer())
         result = {
             'stdout': output.stdout,
             'stderr': output.stderr,
