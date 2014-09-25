@@ -14,6 +14,7 @@ function st2start(){
     COMMAND_PATH=${0%/*}
     CURRENT_DIR=`pwd`
     CURRENT_USER=`whoami`
+    CURRENT_USER_GROUP=`id -gn`
 
     if [[ (${COMMAND_PATH} == /*) ]] ;
     then
@@ -32,7 +33,7 @@ function st2start(){
     sudo mkdir -p /opt/stackstorm/default/sensors/
     sudo mkdir -p /opt/stackstorm/default/actions/
     sudo mkdir -p /opt/stackstorm/default/rules/
-    sudo chown -R ${CURRENT_USER}:${CURRENT_USER} /opt/stackstorm
+    sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} /opt/stackstorm
     cp -Rp ./contrib/core/ /opt/stackstorm
 
     # activate virtualenv to set PYTHONPATH
