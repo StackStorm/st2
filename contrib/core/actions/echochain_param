@@ -1,0 +1,31 @@
+{
+    "chain": [
+        {
+            "name": "c1",
+            "action": "local",
+            "params": {"cmd":"echo c1"},
+            "on-success": "c2",
+            "on-failure": "c4"
+        },
+        {
+            "name": "c2",
+            "action": "local",
+            "params": {"cmd":"echo c2 {{c1.localhost.stdout}}"},
+            "on-success": "c3",
+            "on-failure": "c4"
+        },
+        {
+            "name": "c3",
+            "action": "local",
+            "params": {"cmd":"echo c3 {{c2.localhost.stdout}}"},
+            "on-failure": "c4"
+        },
+        {
+            "name": "c4",
+            "action": "local",
+            "params": {"cmd":"echo fail c4"}
+        }
+    ],
+    "default": "c1"
+}
+

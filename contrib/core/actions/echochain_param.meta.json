@@ -1,0 +1,9 @@
+{
+    "name": "echochain-param",
+    "runner_type": "action-chain",
+    "description": "",
+    "enabled": true,
+    "entry_point":"echochain_param",
+    "parameters": {
+    }
+}
