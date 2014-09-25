@@ -158,7 +158,7 @@ class ActionChainRunner(ActionRunner):
         action_db = action_db_util.get_action_by_name(action_name)
         action_parameters_schema = action_db.parameters
         runnertype_db = action_db_util.get_runnertype_by_name(action_db.runner_type['name'])
-        runner_parameters_schema = runnertype_db.parameters
+        runner_parameters_schema = runnertype_db.runner_parameters
         # combine into 1 list of parameter schemas
         parameters_schema = {}
         if runner_parameters_schema:

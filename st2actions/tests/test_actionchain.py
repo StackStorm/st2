@@ -40,7 +40,7 @@ class DummyAction(object):
 
 class DummyRunner(object):
     def __init__(self):
-        self.parameters = {}
+        self.runner_parameters = {}
 
 
 CHAIN_1_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
