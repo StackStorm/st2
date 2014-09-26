@@ -11,7 +11,8 @@ import unittest2
 
 from tests import base
 from st2client import shell
-from st2client.commands.resource import add_auth_token_to_kwargs
+from st2client.models.core import add_auth_token_to_kwargs_from_env
+from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.utils.httpclient import add_auth_token_to_headers, add_json_content_type_to_headers
 
 
@@ -55,7 +56,8 @@ class TestAuthToken(unittest2.TestCase):
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_env
     def _mock_run(self, args, **kwargs):
         return kwargs
 
@@ -107,9 +109,16 @@ class TestAuthToken(unittest2.TestCase):
         kwargs = {}
         requests.get.assert_called_with(url, **kwargs)
 
-        # Test with token.
+        # Test with token from  cli.
         token = uuid.uuid4().hex
         self.shell.run(['rule', 'list', '-t', token])
+        kwargs = {'headers': {'X-Auth-Token': token}}
+        requests.get.assert_called_with(url, **kwargs)
+
+        # Test with token from env.
+        token = uuid.uuid4().hex
+        os.environ['ST2_AUTH_TOKEN'] = token
+        self.shell.run(['rule', 'list'])
         kwargs = {'headers': {'X-Auth-Token': token}}
         requests.get.assert_called_with(url, **kwargs)
 
@@ -124,9 +133,16 @@ class TestAuthToken(unittest2.TestCase):
         kwargs = {}
         requests.get.assert_called_with(url, **kwargs)
 
-        # Test with token.
+        # Test with token from cli.
         token = uuid.uuid4().hex
         self.shell.run(['rule', 'get', RULE['name'], '-t', token])
+        kwargs = {'headers': {'X-Auth-Token': token}}
+        requests.get.assert_called_with(url, **kwargs)
+
+        # Test with token from env.
+        token = uuid.uuid4().hex
+        os.environ['ST2_AUTH_TOKEN'] = token
+        self.shell.run(['rule', 'get', RULE['name']])
         kwargs = {'headers': {'X-Auth-Token': token}}
         requests.get.assert_called_with(url, **kwargs)
 
@@ -147,9 +163,16 @@ class TestAuthToken(unittest2.TestCase):
             kwargs = {'headers': {'content-type': 'application/json'}}
             requests.post.assert_called_with(url, json.dumps(data), **kwargs)
 
-            # Test with token.
+            # Test with token from cli.
             token = uuid.uuid4().hex
             self.shell.run(['rule', 'create', path, '-t', token])
+            kwargs = {'headers': {'content-type': 'application/json', 'X-Auth-Token': token}}
+            requests.post.assert_called_with(url, json.dumps(data), **kwargs)
+
+            # Test with token from env.
+            token = uuid.uuid4().hex
+            os.environ['ST2_AUTH_TOKEN'] = token
+            self.shell.run(['rule', 'create', path])
             kwargs = {'headers': {'content-type': 'application/json', 'X-Auth-Token': token}}
             requests.post.assert_called_with(url, json.dumps(data), **kwargs)
         finally:
@@ -179,9 +202,18 @@ class TestAuthToken(unittest2.TestCase):
             kwargs = {'headers': {'content-type': 'application/json'}}
             requests.put.assert_called_with(put_url, json.dumps(RULE), **kwargs)
 
-            # Test with token.
+            # Test with token from cli.
             token = uuid.uuid4().hex
             self.shell.run(['rule', 'update', RULE['name'], path, '-t', token])
+            kwargs = {'headers': {'X-Auth-Token': token}}
+            requests.get.assert_called_with(get_url, **kwargs)
+            kwargs = {'headers': {'content-type': 'application/json', 'X-Auth-Token': token}}
+            requests.put.assert_called_with(put_url, json.dumps(RULE), **kwargs)
+
+            # Test with token from env.
+            token = uuid.uuid4().hex
+            os.environ['ST2_AUTH_TOKEN'] = token
+            self.shell.run(['rule', 'update', RULE['name'], path])
             kwargs = {'headers': {'X-Auth-Token': token}}
             requests.get.assert_called_with(get_url, **kwargs)
             kwargs = {'headers': {'content-type': 'application/json', 'X-Auth-Token': token}}
@@ -206,9 +238,17 @@ class TestAuthToken(unittest2.TestCase):
         requests.get.assert_called_with(get_url, **kwargs)
         requests.delete.assert_called_with(del_url, **kwargs)
 
-        # Test with token.
+        # Test with token from cli.
         token = uuid.uuid4().hex
         self.shell.run(['rule', 'delete', RULE['name'], '-t', token])
+        kwargs = {'headers': {'X-Auth-Token': token}}
+        requests.get.assert_called_with(get_url, **kwargs)
+        requests.delete.assert_called_with(del_url, **kwargs)
+
+        # Test with token from env.
+        token = uuid.uuid4().hex
+        os.environ['ST2_AUTH_TOKEN'] = token
+        self.shell.run(['rule', 'delete', RULE['name']])
         kwargs = {'headers': {'X-Auth-Token': token}}
         requests.get.assert_called_with(get_url, **kwargs)
         requests.delete.assert_called_with(del_url, **kwargs)

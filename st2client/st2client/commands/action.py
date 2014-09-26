@@ -11,7 +11,7 @@ from st2common.models.api import action as act
 
 from st2client import models
 from st2client.commands import resource
-from st2client.commands.resource import add_auth_token_to_kwargs
+from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 
 
@@ -65,7 +65,7 @@ class ActionRunCommand(resource.ResourceCommand):
         else:
             self.parser.set_defaults(async=True)
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         if not args.name_or_id:
             self.parser.error('too few arguments')
@@ -150,7 +150,7 @@ class ActionRunCommand(resource.ResourceCommand):
             print(wrapper.fill('Default: %s' % schema['default']))
         print('')
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
     def print_help(self, args, **kwargs):
         # Print appropriate help message if the help option is given.
         if args.help:
@@ -234,7 +234,7 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                                  default=[28],
                                  help=('Set the width of columns in output.'))
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         if args.action_name:
             kwargs['action_name'] = args.action_name
@@ -276,7 +276,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
                                        'output. "all" or unspecified will '
                                        'return all attributes.'))
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.get_by_id(args.id, **kwargs)
 

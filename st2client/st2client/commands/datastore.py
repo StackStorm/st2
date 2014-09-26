@@ -4,7 +4,7 @@ import logging
 
 from st2client.models import datastore
 from st2client.commands import resource
-from st2client.commands.resource import add_auth_token_to_kwargs
+from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 import six
 
@@ -48,7 +48,7 @@ class KeyValuePairCreateCommand(resource.ResourceCommand):
         self.parser.add_argument('name', help='Key name.')
         self.parser.add_argument('value', help='Value paired with the key.')
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         instance = self.resource(name=args.name, value=args.value)
         return self.manager.create(instance, **kwargs)
@@ -71,7 +71,7 @@ class KeyValuePairUpdateCommand(resource.ResourceCommand):
                                  help='Name or ID of the key value pair.')
         self.parser.add_argument('value', help='Value paired with the key.')
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         instance = self.get_resource(args.name_or_id, **kwargs)
         instance.value = args.value
@@ -95,7 +95,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             'file', help=('JSON file containing the %s to create.'
                           % resource.get_plural_display_name().lower()))
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         if not os.path.isfile(args.file):
             raise Exception('File "%s" does not exist.' % args.file)

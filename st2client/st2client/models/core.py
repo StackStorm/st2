@@ -1,3 +1,4 @@
+import os
 import json
 import logging
 
@@ -6,6 +7,14 @@ import six
 
 
 LOG = logging.getLogger(__name__)
+
+
+def add_auth_token_to_kwargs_from_env(func):
+    def decorate(*args, **kwargs):
+        if not kwargs.get('token') and os.environ.get('ST2_AUTH_TOKEN', None):
+            kwargs['token'] = os.environ.get('ST2_AUTH_TOKEN')
+        return func(*args, **kwargs)
+    return decorate
 
 
 class Resource(object):
@@ -79,6 +88,7 @@ class ResourceManager(object):
                                 'from the HTTP response. %s\n' % str(e))
         response.raise_for_status()
 
+    @add_auth_token_to_kwargs_from_env
     def get_all(self, **kwargs):
         url = '/%s' % self.resource.get_plural_name().lower()
         limit = kwargs.pop('limit', None)
@@ -92,6 +102,7 @@ class ResourceManager(object):
         return [self.resource.deserialize(item)
                 for item in response.json()]
 
+    @add_auth_token_to_kwargs_from_env
     def get_by_id(self, id, **kwargs):
         url = '/%s/%s' % (self.resource.get_plural_name().lower(), id)
         response = self.client.get(url, **kwargs)
@@ -101,6 +112,7 @@ class ResourceManager(object):
             self.handle_error(response)
         return self.resource.deserialize(response.json())
 
+    @add_auth_token_to_kwargs_from_env
     def query(self, **kwargs):
         if not kwargs:
             raise Exception('Query parameter is not provided.')
@@ -120,6 +132,7 @@ class ResourceManager(object):
         instances = [self.resource.deserialize(item) for item in items]
         return instances
 
+    @add_auth_token_to_kwargs_from_env
     def get_by_name(self, name_or_id, **kwargs):
         instances = self.query(name=name_or_id, **kwargs)
         if not instances:
@@ -130,6 +143,7 @@ class ResourceManager(object):
                                 (self.resource.__name__.lower(), name_or_id))
             return instances[0]
 
+    @add_auth_token_to_kwargs_from_env
     def create(self, instance, **kwargs):
         url = '/%s' % self.resource.get_plural_name().lower()
         response = self.client.post(url, instance.serialize(), **kwargs)
@@ -138,6 +152,7 @@ class ResourceManager(object):
         instance = self.resource.deserialize(response.json())
         return instance
 
+    @add_auth_token_to_kwargs_from_env
     def update(self, instance, **kwargs):
         url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance.id)
         response = self.client.put(url, instance.serialize(), **kwargs)
@@ -146,6 +161,7 @@ class ResourceManager(object):
         instance = self.resource.deserialize(response.json())
         return instance
 
+    @add_auth_token_to_kwargs_from_env
     def delete(self, instance, **kwargs):
         url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance.id)
         response = self.client.delete(url, **kwargs)
