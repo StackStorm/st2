@@ -38,7 +38,7 @@ class MultiColumnTable(formatters.Formatter):
             table.max_width[column[0]] = column[1]
         table.padding_width = 1
         table.align = 'l'
-        table.valign = 'm'
+        table.valign = 't'
         for entry in entries:
             # TODO: Improve getting values of nested dict.
             values = []
@@ -77,7 +77,7 @@ class PropertyValueTable(formatters.Formatter):
         table.max_width['Value'] = 55
         table.padding_widht = 1
         table.align = 'l'
-        table.valign = 'm'
+        table.valign = 't'
         for attribute in attributes:
             value = getattr(subject, attribute, '')
             if not value:
