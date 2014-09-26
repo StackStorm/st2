@@ -64,7 +64,9 @@ class ActionChain(object):
 class ActionChainRunner(ActionRunner):
 
     def __init__(self, id):
+        super(ActionChainRunner, self).__init__()
         self.id = id
+        self.action_chain = None
 
     def pre_run(self):
         chainspec_file = self.entry_point
@@ -86,8 +88,10 @@ class ActionChainRunner(ActionRunner):
             fail = False
             try:
                 resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
-                    results)
-                actionexec = ActionChainRunner._run_action(action_node.action_name, resolved_params)
+                                                                    results)
+                actionexec = ActionChainRunner._run_action(action_node.action_name,
+                                                           self.action_execution_id,
+                                                           resolved_params)
             except:
                 LOG.exception('Failure in running action %s.', action_node.name)
             else:
@@ -130,9 +134,10 @@ class ActionChainRunner(ActionRunner):
         return rendered_params
 
     @staticmethod
-    def _run_action(action_name, params, wait_for_completion=True):
+    def _run_action(action_name, parent_execution_id, params, wait_for_completion=True):
         execution = action.ActionExecutionAPI(**{'action': {'name': action_name}})
         execution.parameters = ActionChainRunner._cast_params(action_name, params)
+        execution.context = {'parent': str(parent_execution_id)}
         execution = action_service.schedule(execution)
         while (wait_for_completion and
                execution.status != action.ACTIONEXEC_STATUS_SUCCEEDED and
@@ -145,13 +150,13 @@ class ActionChainRunner(ActionRunner):
     def _cast_params(action_name, params):
         casts = {
             'array': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
-                else x),
+                      else x),
             'boolean': (lambda x: ast.literal_eval(x.capitalize())
-                if isinstance(x, str) or isinstance(x, unicode) else x),
+                        if isinstance(x, str) or isinstance(x, unicode) else x),
             'integer': int,
             'number': float,
             'object': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
-                else x),
+                       else x),
             'string': str
         }
 

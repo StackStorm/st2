@@ -15,6 +15,13 @@ LOG = logging.getLogger(__name__)
 
 def schedule(execution):
 
+    # Use the user context from the parent action execution. Subtasks in a workflow
+    # action can be invoked by a system user and so we want to use the user context
+    # from the original workflow action.
+    if getattr(execution, 'context', None) and 'parent' in execution.context:
+        parent = ActionExecution.get_by_id(execution.context['parent'])
+        execution.context['user'] = getattr(parent, 'context', dict()).get('user')
+
     # Validate action.
     (action_db, action_dict) = db.get_action_by_dict(execution.action)
     if not action_db:

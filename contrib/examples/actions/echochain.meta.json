@@ -1,9 +1,9 @@
 {
-    "name": "dumbchain",
+    "name": "echochain",
     "runner_type": "action-chain",
     "description": "",
     "enabled": true,
-    "entry_point":"dumbchain",
+    "entry_point":"echochain",
     "parameters": {
     }
 }
