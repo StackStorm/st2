@@ -12,7 +12,7 @@ LOG = logging.getLogger(__name__)
 
 class PoolPublisher(object):
     def __init__(self, url):
-        self.pool = Connection(url).Pool(limit=10, preload=1)
+        self.pool = Connection(url).Pool(limit=10)
 
     def errback(self, exc, interval):
         LOG.error('Rabbitmq connection error: %r', exc, exc_info=True)
