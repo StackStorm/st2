@@ -11,13 +11,11 @@ from st2client.formatters import table
 LOG = logging.getLogger(__name__)
 
 
-def add_auth_token_to_kwargs(func):
+def add_auth_token_to_kwargs_from_cli(func):
     def decorate(*args, **kwargs):
         ns = args[1]
         if getattr(ns, 'token', None):
             kwargs['token'] = ns.token
-        if not kwargs.get('token') and os.environ.get('ST2_AUTH_TOKEN', None):
-            kwargs['token'] = os.environ.get('ST2_AUTH_TOKEN')
         return func(*args, **kwargs)
     return decorate
 
@@ -139,7 +137,7 @@ class ResourceListCommand(ResourceCommand):
                                  default=[28],
                                  help=('Set the width of columns in output.'))
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.get_all(**kwargs)
 
@@ -169,7 +167,7 @@ class ResourceGetCommand(ResourceCommand):
                                        'output. "all" or unspecified will '
                                        'return all attributes.'))
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.get_resource(args.name_or_id, **kwargs)
 
@@ -193,7 +191,7 @@ class ResourceCreateCommand(ResourceCommand):
                                  help=('JSON file containing the %s to create.'
                                        % resource.get_display_name().lower()))
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         if not os.path.isfile(args.file):
             raise Exception('File "%s" does not exist.' % args.file)
@@ -223,7 +221,7 @@ class ResourceUpdateCommand(ResourceCommand):
                                  help=('JSON file containing the %s to update.'
                                        % resource.get_display_name().lower()))
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         if not os.path.isfile(args.file):
             raise Exception('File "%s" does not exist.' % args.file)
@@ -259,7 +257,7 @@ class ResourceDeleteCommand(ResourceCommand):
                                  help=('Name or ID of the %s.' %
                                        resource.get_display_name().lower()))
 
-    @add_auth_token_to_kwargs
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         instance = self.get_resource(args.name_or_id, **kwargs)
         self.manager.delete(instance, **kwargs)
