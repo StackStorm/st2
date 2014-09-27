@@ -28,13 +28,33 @@ function st2start(){
     echo "Changing working directory to ${ST2_REPO}..."
     cd ${ST2_REPO}
 
+    if [ -z "$ST2_CONF" ]; then
+        ST2_CONF=${ST2_REPO}/st2tests/conf/stanley.conf
+    fi
+    echo "Using st2 config file: $ST2_CONF"
+
+    if [ ! -f "$ST2_CONF" ]; then
+        echo "Config file $ST2_CONF does not exist."
+        exit 1
+    fi
+
+    CONTENT_PACKS_BASE_DIR=$(grep 'content_packs_base_path' ${ST2_CONF} | awk 'BEGIN {FS=" = "}; {print $2}')
+    if [ -z $CONTENT_PACKS_BASE_DIR ]; then
+        CONTENT_PACKS_BASE_DIR="/opt/stackstorm"
+    fi
+    echo "Using conent packs base dir: $CONTENT_PACKS_BASE_DIR"
+
     # Copy and overwrite the action contents
-    sudo mkdir -p /opt/stackstorm
-    sudo mkdir -p /opt/stackstorm/default/sensors/
-    sudo mkdir -p /opt/stackstorm/default/actions/
-    sudo mkdir -p /opt/stackstorm/default/rules/
-    sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} /opt/stackstorm
-    cp -Rp ./contrib/core/ /opt/stackstorm
+    if [ ! -d "/opt/stackstorm" ]; then
+        echo "/opt/stackstorm doesn't exist. Creating..."
+        sudo mkdir -p $CONTENT_PACKS_BASE_DIR
+    fi
+
+    sudo mkdir -p $CONTENT_PACKS_BASE_DIR/default/sensors/
+    sudo mkdir -p $CONTENT_PACKS_BASE_DIR/default/actions/
+    sudo mkdir -p $CONTENT_PACKS_BASE_DIR/default/rules/
+    sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $CONTENT_PACKS_BASE_DIR
+    cp -Rp ./contrib/core/ $CONTENT_PACKS_BASE_DIR
 
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate
@@ -54,20 +74,20 @@ function st2start(){
     for i in $(seq 1 $runner_count)
     do
         # a screen for every runner
-        screen -S st2-actionrunner -X screen -t runner-$i ./virtualenv/bin/python ./st2actions/bin/actionrunner --config-file ./conf/stanley.conf
+        screen -S st2-actionrunner -X screen -t runner-$i ./virtualenv/bin/python ./st2actions/bin/actionrunner --config-file $ST2_CONF
     done
 
     # Run the st2 API server
     echo 'Starting screen session st2-api...'
     screen -d -m -S st2-api ./virtualenv/bin/python \
         ./st2api/bin/st2api \
-        --config-file ./conf/stanley.conf
+        --config-file $ST2_CONF
 
     # Run the reactor server
     echo 'Starting screen session st2-reactor...'
     screen -d -m -S st2-reactor ./virtualenv/bin/python \
         ./st2reactor/bin/sensor_container \
-        --config-file ./conf/stanley.conf
+        --config-file $ST2_CONF
 
     # Check whether screen sessions are started
     screens=(
@@ -91,7 +111,7 @@ function st2start(){
     echo 'Registering actions and rules...'
     ./virtualenv/bin/python \
         ./st2common/bin/registercontent.py \
-        --config-file ./conf/stanley.conf --register-all
+        --config-file $ST2_CONF --register-all
 }
 
 function st2stop(){
