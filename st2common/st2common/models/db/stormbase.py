@@ -27,7 +27,7 @@ class StormFoundationDB(me.Document):
             v = getattr(self, k)
             v = '"%s"' % str(v) if type(v) in [str, unicode, datetime.datetime] else str(v)
             attrs.append('%s=%s' % (k, v))
-        return '%s@%s(%s)' % (self.__class__.__name__, str(id(self)), ', '.join(attrs))
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
 
 
 class StormBaseDB(StormFoundationDB):

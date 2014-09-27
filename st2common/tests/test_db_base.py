@@ -22,8 +22,8 @@ class TestBaseModel(DbTestCase):
                              description=u'fun!', dict_field={'a': 1},
                              integer_field=68, list_field=['abc'])
 
-        expected = ('FakeModel@%s(boolean_field=True, datetime_field="%s", description="fun!", '
+        expected = ('FakeModel(boolean_field=True, datetime_field="%s", description="fun!", '
                     'dict_field={\'a\': 1}, id=None, integer_field=68, list_field=[\'abc\'], '
-                    'name="seesaw")' % (id(instance), str(instance.datetime_field)))
+                    'name="seesaw")' % str(instance.datetime_field))
 
         self.assertEqual(str(instance), expected)
