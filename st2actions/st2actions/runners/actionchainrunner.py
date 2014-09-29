@@ -14,6 +14,7 @@ from st2common.util import action_db as action_db_util
 
 
 LOG = logging.getLogger(__name__)
+RESULTS_KEY = '__results'
 
 
 class ActionChain(object):
@@ -112,6 +113,7 @@ class ActionChainRunner(ActionRunner):
         context = {}
         context.update(original_parameters)
         context.update(results)
+        context.update({RESULTS_KEY: results})
         env = jinja2.Environment(undefined=jinja2.StrictUndefined)
         rendered_params = {}
         for k, v in six.iteritems(action_node.params):

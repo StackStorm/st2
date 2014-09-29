@@ -55,6 +55,8 @@ CHAIN_DICT_TEMP_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
     'fixtures/actionchains/chain_dict_template.json')
 CHAIN_DEP_INPUT = os.path.join(os.path.dirname(os.path.realpath(__file__)),
     'fixtures/actionchains/chain_dependent_input.json')
+CHAIN_DEP_RESULTS_INPUT = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+    'fixtures/actionchains/chain_dep_result_input.json')
 MALFORMED_CHAIN_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
     'fixtures/actionchains/malformedchain.json')
 CHAIN_TYPED_PARAMS = os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -137,7 +139,7 @@ class TestActionChainRunner(TestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
-    def test_chain_runner_success_path(self, resourcemgr_create):
+    def test_chain_runner_success_path(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = DummyAction()
@@ -146,7 +148,7 @@ class TestActionChainRunner(TestCase):
         chain_runner.run({})
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 3. Not great but works.
-        self.assertEqual(resourcemgr_create.call_count, 3)
+        self.assertEqual(schedule.call_count, 3)
 
     @mock.patch('eventlet.sleep', mock.MagicMock())
     @mock.patch.object(action_db_util, 'get_actionexec_by_id', mock.MagicMock(
@@ -154,7 +156,7 @@ class TestActionChainRunner(TestCase):
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
         return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_RUNNING))
-    def test_chain_runner_success_path_with_wait(self, resourcemgr_create):
+    def test_chain_runner_success_path_with_wait(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = DummyAction()
@@ -163,12 +165,12 @@ class TestActionChainRunner(TestCase):
         chain_runner.run({})
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 3. Not great but works.
-        self.assertEqual(resourcemgr_create.call_count, 3)
+        self.assertEqual(schedule.call_count, 3)
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
         return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_FAILED))
-    def test_chain_runner_failure_path(self, resourcemgr_create):
+    def test_chain_runner_failure_path(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = DummyAction()
@@ -178,11 +180,11 @@ class TestActionChainRunner(TestCase):
         self.assertFalse(success)
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
-        self.assertEqual(resourcemgr_create.call_count, 2)
+        self.assertEqual(schedule.call_count, 2)
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', side_effect=RuntimeError('Test Failure.'))
-    def test_chain_runner_action_exception(self, resourcemgr_create):
+    def test_chain_runner_action_exception(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = DummyAction()
@@ -191,11 +193,11 @@ class TestActionChainRunner(TestCase):
         chain_runner.run({})
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
-        self.assertEqual(resourcemgr_create.call_count, 2)
+        self.assertEqual(schedule.call_count, 2)
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
-    def test_chain_runner_str_param_temp(self, resourcemgr_create):
+    def test_chain_runner_str_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_STR_TEMP_PATH
         chain_runner.action = DummyAction()
@@ -203,12 +205,12 @@ class TestActionChainRunner(TestCase):
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
         self.assertNotEqual(chain_runner.action_chain, None)
-        mock_args, _ = resourcemgr_create.call_args
+        mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, {"p1": "1"})
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
-    def test_chain_runner_list_param_temp(self, resourcemgr_create):
+    def test_chain_runner_list_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_LIST_TEMP_PATH
         chain_runner.action = DummyAction()
@@ -216,12 +218,12 @@ class TestActionChainRunner(TestCase):
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
         self.assertNotEqual(chain_runner.action_chain, None)
-        mock_args, _ = resourcemgr_create.call_args
+        mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, {"p1": "[2, 3, 4]"})
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
-    def test_chain_runner_dict_param_temp(self, resourcemgr_create):
+    def test_chain_runner_dict_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DICT_TEMP_PATH
         chain_runner.action = DummyAction()
@@ -230,13 +232,13 @@ class TestActionChainRunner(TestCase):
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
         self.assertNotEqual(chain_runner.action_chain, None)
         expected_value = {"p1": {"p1.3": "[3, 4]", "p1.2": "2", "p1.1": "1"}}
-        mock_args, _ = resourcemgr_create.call_args
+        mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
         return_value=DummyActionExecution(result={'o1': '1'}))
-    def test_chain_runner_dependent_param_temp(self, resourcemgr_create):
+    def test_chain_runner_dependent_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DEP_INPUT
         chain_runner.action = DummyAction()
@@ -248,24 +250,46 @@ class TestActionChainRunner(TestCase):
                            {u'p1': u'1'},
                            {u'p2': u'1', u'p3': u'1', u'p1': u'1'}]
         # Each of the call_args must be one of
-        for call_args in resourcemgr_create.call_args_list:
+        for call_args in schedule.call_args_list:
             self.assertTrue(call_args[0][0].parameters in expected_values)
             expected_values.remove(call_args[0][0].parameters)
+        self.assertEqual(len(expected_values), 0, 'Not all expected values received.')
+
+    @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'schedule',
+        return_value=DummyActionExecution(result={'o1': '1'}))
+    def test_chain_runner_dependent_results_param(self, schedule):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_DEP_RESULTS_INPUT
+        chain_runner.action = DummyAction()
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        chain_runner.run({'s1': 1})
+        self.assertNotEqual(chain_runner.action_chain, None)
+        expected_values = [{u'p1': u'1'},
+                           {u'p1': u'1'},
+                           {u'out': u"{u'c2': {'o1': '1'}, u'c1': {'o1': '1'}}"}]
+        # Each of the call_args must be one of
+        self.assertEqual(schedule.call_count, 3)
+        for call_args in schedule.call_args_list:
+            self.assertTrue(call_args[0][0].parameters in expected_values)
+            expected_values.remove(call_args[0][0].parameters)
+        self.assertEqual(len(expected_values), 0, 'Not all expected values received.')
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
-    def test_chain_runner_missing_param_temp(self, resourcemgr_create):
+    def test_chain_runner_missing_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_STR_TEMP_PATH
         chain_runner.action = DummyAction()
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
-        self.assertEqual(resourcemgr_create.call_count, 0, 'No call expected.')
+        self.assertEqual(schedule.call_count, 0, 'No call expected.')
 
     @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_2))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
-    def test_chain_runner_typed_params(self, resourcemgr_create):
+    def test_chain_runner_typed_params(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_TYPED_PARAMS
         chain_runner.action = DummyAction()
@@ -280,5 +304,5 @@ class TestActionChainRunner(TestCase):
                           'arrtype': ['1', 'two'],
                           'objtype': {'s2': 'two',
                                       'k1': '1'}}
-        mock_args, _ = resourcemgr_create.call_args
+        mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
