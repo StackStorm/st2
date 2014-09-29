@@ -120,7 +120,8 @@ class ActionRunCommand(resource.ResourceCommand):
             while execution.status == act.ACTIONEXEC_STATUS_SCHEDULED \
                     or execution.status == act.ACTIONEXEC_STATUS_RUNNING:
                 time.sleep(1)
-                sys.stdout.write('.')
+                if not args.json:
+                    sys.stdout.write('.')
                 execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
 
             sys.stdout.write('\n')
@@ -173,7 +174,7 @@ class ActionRunCommand(resource.ResourceCommand):
                     if set(parameters.keys()) - set(required):
                         print('Optional Parameters:')
                         [self.print_param(name, parameters.get(name))
-                        for name in sorted(parameters) if name not in required]
+                            for name in sorted(parameters) if name not in required]
                 except resource.ResourceNotFoundError:
                     print('Action "%s" is not found.' % args.name_or_id)
                 except Exception as e:
