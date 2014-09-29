@@ -29,7 +29,7 @@ function st2start(){
     cd ${ST2_REPO}
 
     if [ -z "$ST2_CONF" ]; then
-        ST2_CONF=${ST2_REPO}/st2tests/conf/stanley.conf
+        ST2_CONF=${ST2_REPO}/conf/stanley.conf
     fi
     echo "Using st2 config file: $ST2_CONF"
 
@@ -38,7 +38,8 @@ function st2start(){
         exit 1
     fi
 
-    CONTENT_PACKS_BASE_DIR=$(grep 'content_packs_base_path' ${ST2_CONF} | awk 'BEGIN {FS=" = "}; {print $2}')
+    CONTENT_PACKS_BASE_DIR=$(grep 'content_packs_base_path' ${ST2_CONF} \
+        | awk 'BEGIN {FS=" = "}; {print $2}')
     if [ -z $CONTENT_PACKS_BASE_DIR ]; then
         CONTENT_PACKS_BASE_DIR="/opt/stackstorm"
     fi
@@ -74,7 +75,9 @@ function st2start(){
     for i in $(seq 1 $runner_count)
     do
         # a screen for every runner
-        screen -S st2-actionrunner -X screen -t runner-$i ./virtualenv/bin/python ./st2actions/bin/actionrunner --config-file $ST2_CONF
+        screen -S st2-actionrunner -X screen -t runner-$i ./virtualenv/bin/python \
+            ./st2actions/bin/actionrunner \
+            --config-file $ST2_CONF
     done
 
     # Run the st2 API server
