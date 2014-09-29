@@ -9,10 +9,8 @@ To setup the development environment with all the prerequisites installed via Va
 The list of prerequisites:
 * MongoDB -http://docs.mongodb.org/manual/installation
 * Python, pip, virtualenv, tox
-* For Web UI: 	
-	* nodejs and npm - http://nodejs.org/
-	* [bower](http://bower.io/), [gulp.js](http://gulpjs.com/)
- 	
+* nodejs and npm - http://nodejs.org/ (for stormbot)
+
 
 ### Using make for typical tasks
 * To create virtualenv, install dependencies, and run tests

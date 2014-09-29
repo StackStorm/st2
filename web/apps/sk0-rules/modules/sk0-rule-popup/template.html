@@ -1,7 +1,0 @@
-<h3>Pick trigger</h3>
-<div ng-repeat="service in (inventory[type+'s'] | unwrap).tree">
-  <h3 class="sk0-rules__type">{{ service.title }}</h3>
-  <div class="sk0-rules__node" ng-repeat="entity in service.entities" ng-click="pick(entity)">
-    {{ entity.title }}
-  </div>
-</div>

@@ -1,7 +1,6 @@
 SHELL := /bin/bash
 TOX_DIR := .tox
 VIRTUALENV_DIR ?= virtualenv
-WEB_DIR := web
 STORMBOT_DIR := stormbot
 
 DOXYGEN_CONFIG := Doxyfile
@@ -27,7 +26,7 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
-all: requirements web stormbot check tests
+all: requirements stormbot check tests
 
 # Target for debugging Makefile variable assembly
 .PHONY: play
@@ -98,7 +97,6 @@ distclean: clean
 	@echo "====================distclean===================="
 	@echo
 	rm -rf $(VIRTUALENV_DIR)
-	rm -rf $(WEB_DIR)/css/ $(WEB_DIR)/components/ $(WEB_DIR)/node_modules/ $(WEB_DIR)/font/
 	rm -rf $(STORMBOT_DIR)/node_modules/
 
 .PHONY: requirements
@@ -137,15 +135,6 @@ $(VIRTUALENV_DIR)/bin/activate:
 	echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	touch $(VIRTUALENV_DIR)/bin/activate.fish
-
-.PHONY: web
-web:
-	@echo
-	@echo "====================web===================="
-	@echo
-	npm install --prefix $(WEB_DIR)
-	bower install --config.cwd=$(WEB_DIR) --config.directory=components
-	gulp --cwd $(WEB_DIR) build
 
 .PHONY: botrqmnts
 botrqmnts:
