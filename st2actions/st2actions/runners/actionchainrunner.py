@@ -84,6 +84,7 @@ class ActionChainRunner(ActionRunner):
     def run(self, action_parameters):
         action_node = self.action_chain.get_next_node()
         results = {}
+        fail = True
         while action_node:
             actionexec = None
             fail = False
@@ -105,6 +106,10 @@ class ActionChainRunner(ActionRunner):
                 elif actionexec.status == action.ACTIONEXEC_STATUS_SUCCEEDED:
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-success')
         self.container_service.report_result(results)
+        if fail:
+            self.container_service.report_status(action.ACTIONEXEC_STATUS_FAILED)
+        else:
+            self.container_service.report_status(action.ACTIONEXEC_STATUS_SUCCEEDED)
         return not fail
 
     @staticmethod
