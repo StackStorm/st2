@@ -20,5 +20,6 @@
             "description": "Body of the email.",
             "position": 2
         }
-    }
+    },
+    "required_parameters": ["to", "subject", "body"]
 }
