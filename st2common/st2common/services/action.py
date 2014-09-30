@@ -33,7 +33,6 @@ def schedule(execution):
     # Populate runner and action parameters if parameters are not provided.
     if not hasattr(execution, 'parameters'):
         execution.parameters = dict()
-        execution.runner_parameters = dict()
 
     # Assign default parameters.
     runnertype = db.get_runnertype_by_name(action_db.runner_type['name'])
