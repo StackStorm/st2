@@ -25,7 +25,7 @@ class ActionExecutionHistoryAPI(BaseAPI):
             "trigger_instance": TriggerInstanceAPI.schema,
             "rule": RuleAPI.schema,
             "action": ActionAPI.schema,
-            "runner_type": RunnerTypeAPI.schema,
+            "runner": RunnerTypeAPI.schema,
             "execution": ActionExecutionAPI.schema
         },
         "required": ["id",
@@ -34,7 +34,7 @@ class ActionExecutionHistoryAPI(BaseAPI):
                      "trigger_instance",
                      "rule",
                      "action",
-                     "runner_type",
+                     "runner",
                      "execution"],
         "additionalProperties": False
     }

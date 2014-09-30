@@ -13,5 +13,5 @@ class ActionExecutionHistoryDB(stormbase.StormFoundationDB):
     trigger_instance = me.DictField(required=True)
     rule = me.DictField(required=True)
     action = me.DictField(required=True)
-    runner_type = me.DictField(required=True)
+    runner = me.DictField(required=True)
     execution = me.DictField(required=True)

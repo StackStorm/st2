@@ -20,7 +20,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
             'trigger_instance': copy.deepcopy(fixture.ARTIFACTS['trigger_instance']),
             'rule': copy.deepcopy(fixture.ARTIFACTS['rule']),
             'action': copy.deepcopy(fixture.ARTIFACTS['action']),
-            'runner_type': copy.deepcopy(fixture.ARTIFACTS['runner_type']),
+            'runner': copy.deepcopy(fixture.ARTIFACTS['runner']),
             'execution': copy.deepcopy(fixture.ARTIFACTS['executions'][0])
         }
 
@@ -40,7 +40,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(obj.trigger_instance, self.fake_history['trigger_instance'])
         self.assertDictEqual(obj.rule, self.fake_history['rule'])
         self.assertDictEqual(obj.action, self.fake_history['action'])
-        self.assertDictEqual(obj.runner_type, self.fake_history['runner_type'])
+        self.assertDictEqual(obj.runner, self.fake_history['runner'])
         self.assertDictEqual(obj.execution, self.fake_history['execution'])
 
         # Convert API object to DB model.
@@ -52,7 +52,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         escaped_rule = util.escape_chars(copy.deepcopy(self.fake_history['rule']))
         self.assertDictEqual(model.rule, escaped_rule)
         self.assertDictEqual(model.action, self.fake_history['action'])
-        self.assertDictEqual(model.runner_type, self.fake_history['runner_type'])
+        self.assertDictEqual(model.runner, self.fake_history['runner'])
         self.assertDictEqual(model.execution, self.fake_history['execution'])
 
         # Convert DB model to API object.
@@ -63,7 +63,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(obj.trigger_instance, self.fake_history['trigger_instance'])
         self.assertDictEqual(obj.rule, self.fake_history['rule'])
         self.assertDictEqual(obj.action, self.fake_history['action'])
-        self.assertDictEqual(obj.runner_type, self.fake_history['runner_type'])
+        self.assertDictEqual(obj.runner, self.fake_history['runner'])
         self.assertDictEqual(obj.execution, self.fake_history['execution'])
 
     def test_crud(self):
@@ -76,5 +76,5 @@ class TestActionExecutionHistoryModel(DbTestCase):
         escaped_rule = util.escape_chars(copy.deepcopy(self.fake_history['rule']))
         self.assertDictEqual(model.rule, escaped_rule)
         self.assertDictEqual(model.action, self.fake_history['action'])
-        self.assertDictEqual(model.runner_type, self.fake_history['runner_type'])
+        self.assertDictEqual(model.runner, self.fake_history['runner'])
         self.assertDictEqual(model.execution, self.fake_history['execution'])
