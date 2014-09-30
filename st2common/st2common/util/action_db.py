@@ -1,5 +1,7 @@
+from collections import OrderedDict
 
 from mongoengine import ValidationError
+import six
 
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -154,29 +156,61 @@ def get_action_by_dict(action_dict):
 
 
 def update_actionexecution_status(new_status, actionexec_id=None, actionexec_db=None):
-        """
-            Update the status of the specified ActionExecution to the value provided in
-            new_status.
+    """
+        Update the status of the specified ActionExecution to the value provided in
+        new_status.
 
-            The ActionExecution may be specified using either actionexec_id, or as an
-            actionexec_db instance.
-        """
+        The ActionExecution may be specified using either actionexec_id, or as an
+        actionexec_db instance.
+    """
 
-        if (actionexec_id is None) and (actionexec_db is None):
-            raise ValueError('Must specify an actionexec_id or an actionexec_db when '
-                             'calling update_actionexecution_status')
+    if (actionexec_id is None) and (actionexec_db is None):
+        raise ValueError('Must specify an actionexec_id or an actionexec_db when '
+                         'calling update_actionexecution_status')
 
-        if actionexec_db is None:
-            actionexec_db = get_actionexec_by_id(actionexec_id)
+    if actionexec_db is None:
+        actionexec_db = get_actionexec_by_id(actionexec_id)
 
-        if new_status not in ACTIONEXEC_STATUSES:
-            raise ValueError('Attempting to set status for ActionExecution "%s" '
-                             'to unknown status string. Unknown status is "%s"',
-                             actionexec_db, new_status)
+    if new_status not in ACTIONEXEC_STATUSES:
+        raise ValueError('Attempting to set status for ActionExecution "%s" '
+                         'to unknown status string. Unknown status is "%s"',
+                         actionexec_db, new_status)
 
-        LOG.debug('Updating ActionExection: "%s" with status="%s"',
-                  actionexec_db, new_status)
-        actionexec_db.status = new_status
-        actionexec_db = ActionExecution.add_or_update(actionexec_db)
-        LOG.debug('Updated status for ActionExecution object: %s', actionexec_db)
-        return actionexec_db
+    LOG.debug('Updating ActionExection: "%s" with status="%s"',
+              actionexec_db, new_status)
+    actionexec_db.status = new_status
+    actionexec_db = ActionExecution.add_or_update(actionexec_db)
+    LOG.debug('Updated status for ActionExecution object: %s', actionexec_db)
+    return actionexec_db
+
+
+def get_args(action_parameters, action_db):
+    position_args_dict = _get_position_arg_dict(action_parameters, action_db)
+
+    positional_args = []
+    positional_args_keys = set()
+    for pos, arg in six.iteritems(position_args_dict):
+        positional_args.append(str(action_parameters.get(arg)))
+        positional_args_keys.add(arg)
+    positional_args = ' '.join(positional_args)  # convert to string.
+
+    named_args = {}
+    for param in action_parameters:
+        if param not in positional_args_keys:
+            named_args[param] = action_parameters.get(param)
+
+    return positional_args, named_args
+
+
+def _get_position_arg_dict(action_parameters, action_db):
+    action_db_params = action_db.parameters
+
+    args_dict = {}
+    for param in action_db_params:
+        param_meta = action_db_params.get(param, None)
+        if param_meta is not None:
+            pos = param_meta.get('position')
+            if pos is not None:
+                args_dict[pos] = param
+    args_dict = OrderedDict(sorted(args_dict.items()))
+    return args_dict
