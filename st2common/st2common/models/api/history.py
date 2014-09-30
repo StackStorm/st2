@@ -1,6 +1,6 @@
 import copy
 
-from st2common.util import data as util
+from st2common.util import mongoescape as util
 from st2common.models.base import BaseAPI
 from st2common.models.db.history import ActionExecutionHistoryDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI, RuleAPI
@@ -42,7 +42,7 @@ class ActionExecutionHistoryAPI(BaseAPI):
     @classmethod
     def from_model(cls, model):
         instance = cls._from_model(model)
-        instance = util.replace_u2024_in_key(instance)
+        instance = util.unescape_chars(instance)
         return cls(**instance)
 
     @classmethod
@@ -54,6 +54,6 @@ class ActionExecutionHistoryAPI(BaseAPI):
             if not value and not cls.model._fields[attr].required:
                 continue
             if isinstance(value, dict):
-                value = util.replace_dot_in_key(value)
+                value = util.escape_chars(value)
             setattr(model, attr, value)
         return model
