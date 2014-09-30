@@ -1,6 +1,5 @@
 import datetime
 
-import six
 import jsonschema
 
 from st2common import log as logging
@@ -33,13 +32,6 @@ def schedule(execution):
     # Populate runner and action parameters if parameters are not provided.
     if not hasattr(execution, 'parameters'):
         execution.parameters = dict()
-
-    # Assign default parameters.
-    runnertype = db.get_runnertype_by_name(action_db.runner_type['name'])
-    for key, metadata in six.iteritems(runnertype.runner_parameters):
-        if key not in execution.parameters and 'default' in metadata:
-            if metadata.get('default') is not None:
-                execution.parameters[key] = metadata['default']
 
     # Validate action parameters.
     schema = util_schema.get_parameter_schema(action_db)
