@@ -32,8 +32,8 @@ ACTION_2 = {
     'entry_point': '/tmp/test/action2.py',
     'runner_type': 'run-local',
     'parameters': {
-        'c': {'type': 'string', 'default': 'C1'},
-        'd': {'type': 'string', 'default': 'D1'}
+        'c': {'type': 'string', 'default': 'C1', 'position': 0},
+        'd': {'type': 'string', 'default': 'D1', 'locked': True}
     }
 }
 
@@ -120,6 +120,20 @@ ACTION_8 = {
     }
 }
 
+# ACTION_9: Parameter dict has fields not part of JSONSchema spec.
+ACTION_9 = {
+    'name': 'st2.dummy.action9',
+    'description': 'test description',
+    'enabled': True,
+    'content_pack': 'wolfpack',
+    'entry_point': '/tmp/test/action1.sh',
+    'runner_type': 'run-local',
+    'parameters': {
+        'a': {'type': 'string', 'default': 'A1', 'dummyfield': True},  # dummyfield is invalid.
+        'b': {'type': 'string', 'default': 'B1'}
+    }
+}
+
 
 class TestActionController(FunctionalTest):
     @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
@@ -167,6 +181,12 @@ class TestActionController(FunctionalTest):
         post_resp = self.__do_post(ACTION_1)
         self.assertEqual(post_resp.status_int, 201)
         self.__do_delete(self.__get_action_id(post_resp))
+
+    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+        return_value=True))
+    def test_post_action_with_bad_params(self):
+        post_resp = self.__do_post(ACTION_9, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 400)
 
     @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
         return_value=True))

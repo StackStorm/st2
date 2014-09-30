@@ -144,6 +144,14 @@ SCHEMA_DRAFT4 = {
                 }
             ]
         },
+        "position": {
+            "type": "number",
+            "minimum": 0
+        },
+        "locked": {
+            "type": "boolean",
+            "default": False
+        },
         "allOf": {"$ref": "#/definitions/schemaArray"},
         "anyOf": {"$ref": "#/definitions/schemaArray"},
         "oneOf": {"$ref": "#/definitions/schemaArray"},
@@ -153,7 +161,8 @@ SCHEMA_DRAFT4 = {
         "exclusiveMaximum": ["maximum"],
         "exclusiveMinimum": ["minimum"]
     },
-    "default": {}
+    "default": {},
+    'additionalProperties': False
 }
 
 
