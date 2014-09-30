@@ -52,6 +52,43 @@ def register_runner_types():
             'runner_module': 'st2actions.runners.fabricrunner'
         },
         {
+            'name': 'run-local-script',
+            'description': 'A runner to execute local actions as a fixed user.',
+            'enabled': True,
+            'runner_parameters': {
+                'hosts': {
+                    'description': 'A comma delimited string of a list of hosts '
+                                   'where the command will be executed.',
+                    'type': 'string',
+                    'default': 'localhost'
+                },
+                'parallel': {
+                    'description': 'If true, the command will be executed on all the '
+                                   'hosts in parallel.',
+                    'type': 'boolean',
+                    'default': False,
+                    'locked': True
+                },
+                'sudo': {
+                    'description': 'The command will be executed with sudo.',
+                    'type': 'boolean',
+                    'default': False
+                },
+                'user': {
+                    'description': 'The user who is executing this command. '
+                                   'This is for audit purposes only. The '
+                                   'command will always execute as the user stanley.',
+                    'type': 'string'
+                },
+                'dir': {
+                    'description': 'The working directory where the command will be '
+                                   'executed on the host.',
+                    'type': 'string'
+                }
+            },
+            'runner_module': 'st2actions.runners.fabricscriptrunner'
+        },
+        {
             'name': 'run-remote',
             'description': 'A remote execution runner that executes actions '
                            'as a fixed system user.',
@@ -90,6 +127,41 @@ def register_runner_types():
             },
             'required_parameters': ['hosts'],
             'runner_module': 'st2actions.runners.fabricrunner'
+        },
+        {
+            'name': 'run-remote-script',
+            'description': 'A remote execution runner that executes actions '
+                           'as a fixed system user.',
+            'enabled': True,
+            'runner_parameters': {
+                'hosts': {
+                    'description': 'A comma delimited string of a list of hosts '
+                                   'where the remote command will be executed.',
+                    'type': 'string'
+                },
+                'parallel': {
+                    'description': 'If true, the command will be executed on all the '
+                                   'hosts in parallel.',
+                    'type': 'boolean'
+                },
+                'sudo': {
+                    'description': 'The remote command will be executed with sudo.',
+                    'type': 'boolean'
+                },
+                'user': {
+                    'description': 'The user who is executing this remote command. '
+                                   'This is for audit purposes only. The remote '
+                                   'command will always execute as the user stanley.',
+                    'type': 'string'
+                },
+                'dir': {
+                    'description': 'The working directory where the command will be '
+                                   'executed on the remote host.',
+                    'type': 'string'
+                }
+            },
+            'required_parameters': ['hosts'],
+            'runner_module': 'st2actions.runners.fabricscriptrunner'
         },
         {
             'name': 'http-runner',

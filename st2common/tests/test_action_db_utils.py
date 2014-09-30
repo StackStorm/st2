@@ -114,6 +114,18 @@ class ActionDBUtilsTestCase(DbTestCase):
         self.assertRaises(ValueError, action_db_utils.update_actionexecution_status,
                           'mea culpa', actionexec_id=actionexec_db.id)
 
+    def test_get_args(self):
+        params = {
+            'actionstr': 'foo',
+            'actionint': 20,
+            'runnerint': 555
+        }
+        pos_args, named_args = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
+        self.assertEqual(pos_args, '20 foo', 'Positional args not parsed correctly.')
+        self.assertTrue('actionint' not in named_args)
+        self.assertTrue('actionstr' not in named_args)
+        self.assertEqual(named_args.get('runnerint'), 555)
+
     @classmethod
     def _setup_test_models(cls):
         ActionDBUtilsTestCase.setup_runner()
@@ -157,8 +169,8 @@ class ActionDBUtilsTestCase(DbTestCase):
         action_db.entry_point = ''
         action_db.runner_type = {'name': 'test-runner'}
         action_db.parameters = {
-            'actionstr': {'type': 'string'},
-            'actionint': {'type': 'number', 'default': 10},
+            'actionstr': {'type': 'string', 'position': 1},
+            'actionint': {'type': 'number', 'default': 10, 'position': 0},
             'runnerdummy': {'type': 'string', 'default': 'actiondummy'}
         }
         action_db.required_parameters = ['actionstr']

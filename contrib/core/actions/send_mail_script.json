@@ -1,0 +1,25 @@
+{
+    "name": "send_mail_script",
+    "runner_type": "run-local-script",
+    "description": "This sends an email",
+    "enabled": true,
+    "entry_point": "send_mail/send_mail",
+    "parameters": {
+        "to": {
+            "type": "string",
+            "description": "Recipient email address.",
+            "position": 0
+        },
+        "subject": {
+            "type": "string",
+            "description": "Subject of the email.",
+            "position": 1
+        },
+        "body": {
+            "type": "string",
+            "description": "Body of the email.",
+            "position": 2
+        }
+    },
+    "required_parameters": ["to", "subject", "body"]
+}
