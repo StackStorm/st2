@@ -10,6 +10,7 @@ from st2common import log as logging
 from st2common.exceptions.actionrunner import (ActionRunnerPreRunError, ActionRunnerException)
 from st2common.exceptions.fabricrunner import FabricExecutionFailureException
 from st2common.models.system.action import (FabricRemoteAction, FabricRemoteScriptAction)
+import st2common.util.action_db as action_utils
 
 # Replace with container call to get logger.
 LOG = logging.getLogger(__name__)
@@ -104,20 +105,31 @@ class FabricRunner(ActionRunner):
 
     def _get_fabric_remote_script_action(self, action_parameters):
         script_local_path_abs = self.entry_point
-        positional_args = self.runner_parameters.get(RUNNER_COMMAND, '')
+        pos_args, named_args = self._get_script_args(action_parameters)
         remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
                                                 cfg.CONF.ssh_runner.remote_dir)
         return FabricRemoteScriptAction(self.action_name,
                                         str(self.action_execution_id),
                                         script_local_path_abs,
-                                        named_args=action_parameters,
-                                        positional_args=positional_args,
+                                        named_args=named_args,
+                                        positional_args=pos_args,
                                         on_behalf_user=self._on_behalf_user,
                                         user=self._user,
                                         remote_dir=remote_dir,
                                         hosts=self._hosts,
                                         parallel=self._parallel,
                                         sudo=self._sudo)
+
+    def _get_script_args(self, action_parameters):
+        is_script_run_as_cmd = self.runner_parameters.get(RUNNER_COMMAND, None)
+        pos_args = ''
+        named_args = {}
+        if is_script_run_as_cmd:
+            pos_args = self.runner_parameters.get(RUNNER_COMMAND, '')
+            named_args = action_parameters
+        else:
+            pos_args, named_args = action_utils.get_args(action_parameters, self.action)
+        return pos_args, named_args
 
 
 # XXX: Write proper tests.

@@ -86,7 +86,7 @@ def register_runner_types():
                     'type': 'string'
                 }
             },
-            'runner_module': 'st2actions.runners.fabricscriptrunner'
+            'runner_module': 'st2actions.runners.fabricrunner'
         },
         {
             'name': 'run-remote',
@@ -161,7 +161,7 @@ def register_runner_types():
                 }
             },
             'required_parameters': ['hosts'],
-            'runner_module': 'st2actions.runners.fabricscriptrunner'
+            'runner_module': 'st2actions.runners.fabricrunner'
         },
         {
             'name': 'http-runner',
