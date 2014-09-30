@@ -1,0 +1,18 @@
+{
+    "payload_schema": {
+        "type": "object"
+    },
+    "parameters_schema": {
+        "additionalProperties": false,
+        "required": [
+            "url"
+        ],
+        "type": "object",
+        "properties": {
+            "url": {
+                "type": "string"
+            }
+        }
+    },
+    "name": "st2.webhook"
+}

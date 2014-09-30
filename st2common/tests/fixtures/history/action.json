@@ -1,0 +1,6 @@
+{
+    "runner_type": "run-local",
+    "name": "local",
+    "enabled": true,
+    "content_pack": "core"
+}

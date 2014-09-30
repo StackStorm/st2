@@ -1,0 +1,22 @@
+{
+    "enabled": true,
+    "trigger": {
+        "type": "st2.webhook",
+        "parameters": {
+            "url": "person"
+        }
+    },
+    "criteria": {
+        "trigger.name": {
+            "pattern": "Joe",
+            "type": "equals"
+        }
+    },
+    "action": {
+        "name": "local",
+        "parameters": {
+            "cmd": "echo \"{{trigger}}\" >> /tmp/st2.persons.out"
+        }
+    },
+    "name": "st2.person.joe"
+}

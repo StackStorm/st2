@@ -1,7 +1,8 @@
 import copy
 import json
+import bson
 
-from tests.data import fake
+from tests.fixtures import history as fixture
 from st2tests import DbTestCase
 from st2common.util import data as util
 from st2common.persistence.history import ActionExecutionHistory
@@ -10,54 +11,70 @@ from st2common.models.api.history import ActionExecutionHistoryAPI
 
 class TestActionExecutionHistoryModel(DbTestCase):
 
+    def setUp(self):
+        super(TestActionExecutionHistoryModel, self).setUp()
+        self.fake_history = {
+            'id': str(bson.ObjectId()),
+            'trigger': copy.deepcopy(fixture.ARTIFACTS['trigger']),
+            'trigger_type': copy.deepcopy(fixture.ARTIFACTS['trigger_type']),
+            'trigger_instance': copy.deepcopy(fixture.ARTIFACTS['trigger_instance']),
+            'rule': copy.deepcopy(fixture.ARTIFACTS['rule']),
+            'action': copy.deepcopy(fixture.ARTIFACTS['action']),
+            'runner_type': copy.deepcopy(fixture.ARTIFACTS['runner_type']),
+            'execution': copy.deepcopy(fixture.ARTIFACTS['executions'][0])
+        }
+
     def test_dot_notation_in_key(self):
-        rule1 = json.loads(json.dumps(fake.RULE).replace('trigger.name', u'trigger\u2024name'))
-        rule2 = util.replace_dot_in_key(copy.deepcopy(fake.RULE))
-        rule3 = util.replace_u2024_in_key(copy.deepcopy(rule2))
-        self.assertDictEqual(rule2, rule1)
-        self.assertDictEqual(rule3, copy.deepcopy(fake.RULE))
+        original = self.fake_history['rule']
+        escaped = json.loads(json.dumps(original).replace('trigger.name', u'trigger\u2024name'))
+        rule1 = util.replace_dot_in_key(copy.deepcopy(original))
+        rule2 = util.replace_u2024_in_key(copy.deepcopy(rule1))
+        self.assertDictEqual(rule1, escaped)
+        self.assertDictEqual(rule2, original)
 
     def test_model(self):
         # Create API object.
-        obj = ActionExecutionHistoryAPI(**copy.deepcopy(fake.ACTION_EXECUTION_HISTORY))
-        self.assertDictEqual(obj.trigger, fake.TRIGGER)
-        self.assertDictEqual(obj.trigger_type, fake.TRIGGER_TYPE)
-        self.assertDictEqual(obj.trigger_instance, fake.TRIGGER_INSTANCE)
-        self.assertDictEqual(obj.rule, fake.RULE)
-        self.assertDictEqual(obj.action, fake.ACTION)
-        self.assertDictEqual(obj.runner_type, fake.RUNNER_TYPE)
-        self.assertDictEqual(obj.execution, fake.ACTION_EXECUTION)
+        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history))
+        self.assertDictEqual(obj.trigger, self.fake_history['trigger'])
+        self.assertDictEqual(obj.trigger_type, self.fake_history['trigger_type'])
+        self.assertDictEqual(obj.trigger_instance, self.fake_history['trigger_instance'])
+        self.assertDictEqual(obj.rule, self.fake_history['rule'])
+        self.assertDictEqual(obj.action, self.fake_history['action'])
+        self.assertDictEqual(obj.runner_type, self.fake_history['runner_type'])
+        self.assertDictEqual(obj.execution, self.fake_history['execution'])
 
         # Convert API object to DB model.
         model = ActionExecutionHistoryAPI.to_model(obj)
         self.assertEqual(str(model.id), obj.id)
-        self.assertDictEqual(model.trigger, fake.TRIGGER)
-        self.assertDictEqual(model.trigger_type, fake.TRIGGER_TYPE)
-        self.assertDictEqual(model.trigger_instance, fake.TRIGGER_INSTANCE)
-        self.assertDictEqual(model.rule, util.replace_dot_in_key(copy.deepcopy(fake.RULE)))
-        self.assertDictEqual(model.action, fake.ACTION)
-        self.assertDictEqual(model.runner_type, fake.RUNNER_TYPE)
-        self.assertDictEqual(model.execution, fake.ACTION_EXECUTION)
+        self.assertDictEqual(model.trigger, self.fake_history['trigger'])
+        self.assertDictEqual(model.trigger_type, self.fake_history['trigger_type'])
+        self.assertDictEqual(model.trigger_instance, self.fake_history['trigger_instance'])
+        escaped_rule = util.replace_dot_in_key(copy.deepcopy(self.fake_history['rule']))
+        self.assertDictEqual(model.rule, escaped_rule)
+        self.assertDictEqual(model.action, self.fake_history['action'])
+        self.assertDictEqual(model.runner_type, self.fake_history['runner_type'])
+        self.assertDictEqual(model.execution, self.fake_history['execution'])
 
         # Convert DB model to API object.
         obj = ActionExecutionHistoryAPI.from_model(model)
         self.assertEqual(str(model.id), obj.id)
-        self.assertDictEqual(obj.trigger, fake.TRIGGER)
-        self.assertDictEqual(obj.trigger_type, fake.TRIGGER_TYPE)
-        self.assertDictEqual(obj.trigger_instance, fake.TRIGGER_INSTANCE)
-        self.assertDictEqual(obj.rule, fake.RULE)
-        self.assertDictEqual(obj.action, fake.ACTION)
-        self.assertDictEqual(obj.runner_type, fake.RUNNER_TYPE)
-        self.assertDictEqual(obj.execution, fake.ACTION_EXECUTION)
+        self.assertDictEqual(obj.trigger, self.fake_history['trigger'])
+        self.assertDictEqual(obj.trigger_type, self.fake_history['trigger_type'])
+        self.assertDictEqual(obj.trigger_instance, self.fake_history['trigger_instance'])
+        self.assertDictEqual(obj.rule, self.fake_history['rule'])
+        self.assertDictEqual(obj.action, self.fake_history['action'])
+        self.assertDictEqual(obj.runner_type, self.fake_history['runner_type'])
+        self.assertDictEqual(obj.execution, self.fake_history['execution'])
 
     def test_crud(self):
-        obj = ActionExecutionHistoryAPI(**copy.deepcopy(fake.ACTION_EXECUTION_HISTORY))
+        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history))
         model = ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
         self.assertEqual(str(model.id), obj.id)
-        self.assertDictEqual(model.trigger, fake.TRIGGER)
-        self.assertDictEqual(model.trigger_type, fake.TRIGGER_TYPE)
-        self.assertDictEqual(model.trigger_instance, fake.TRIGGER_INSTANCE)
-        self.assertDictEqual(model.rule, util.replace_dot_in_key(copy.deepcopy(fake.RULE)))
-        self.assertDictEqual(model.action, fake.ACTION)
-        self.assertDictEqual(model.runner_type, fake.RUNNER_TYPE)
-        self.assertDictEqual(model.execution, fake.ACTION_EXECUTION)
+        self.assertDictEqual(model.trigger, self.fake_history['trigger'])
+        self.assertDictEqual(model.trigger_type, self.fake_history['trigger_type'])
+        self.assertDictEqual(model.trigger_instance, self.fake_history['trigger_instance'])
+        escaped_rule = util.replace_dot_in_key(copy.deepcopy(self.fake_history['rule']))
+        self.assertDictEqual(model.rule, escaped_rule)
+        self.assertDictEqual(model.action, self.fake_history['action'])
+        self.assertDictEqual(model.runner_type, self.fake_history['runner_type'])
+        self.assertDictEqual(model.execution, self.fake_history['execution'])
