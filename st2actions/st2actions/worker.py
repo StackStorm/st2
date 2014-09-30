@@ -7,8 +7,9 @@ from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import (ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_FAILED)
 from st2common.exceptions.actionrunner import ActionRunnerException
-from st2common.util.action_db import (get_actionexec_by_id, update_actionexecution_status)
 from st2common.transport import actionexecution, publishers
+from st2common.util.action_db import (get_actionexec_by_id, update_actionexecution_status)
+from st2common.util.greenpooldispatch import BufferedDispatcher
 
 LOG = logging.getLogger(__name__)
 
@@ -22,6 +23,10 @@ class Worker(ConsumerMixin):
     def __init__(self, connection):
         self.connection = connection
         self.container = RunnerContainer()
+        self._dispatcher = BufferedDispatcher()
+
+    def shutdown(self):
+        self._dispatcher.shutdown()
 
     def get_consumers(self, Consumer, channel):
         consumer = Consumer(queues=[ACTIONRUNNER_WORK_Q],
@@ -38,11 +43,15 @@ class Worker(ConsumerMixin):
         # LOG.debug('     message.properties: %s', message.properties)
         # LOG.debug('     message.delivery_info: %s', message.delivery_info)
         try:
+            self._dispatcher.dispatch(self._do_process_task, body)
+        finally:
+            message.ack()
+
+    def _do_process_task(self, body):
+        try:
             self.execute_action(body)
         except:
             LOG.exception('execute_action failed. Message body : %s', body)
-        finally:
-            message.ack()
 
     def execute_action(self, actionexecution):
         try:
@@ -75,4 +84,8 @@ class Worker(ConsumerMixin):
 def work():
     with Connection(cfg.CONF.messaging.url) as conn:
         worker = Worker(conn)
-        worker.run()
+        try:
+            worker.run()
+        except:
+            worker.shutdown()
+            raise
