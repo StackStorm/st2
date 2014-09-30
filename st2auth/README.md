@@ -6,7 +6,7 @@ Authentication Service
 Install Apache and other dependencies.
 
     # Install Apache, mod_wsgi, and pwauth for mod_auth_external.
-    sudo apt-get -y install apache2 libapache2-mod-wsgi pwauth
+    sudo apt-get -y install apache2 libapache2-mod-wsgi libapache2-mod-authz-unixgroup pwauth
     
     # Supply a x509 cert or create a self-signed cert.
     sudo mkdir -p /etc/apache2/ssl
@@ -14,7 +14,7 @@ Install Apache and other dependencies.
 
 Install st2auth.  The configuration file for st2auth should be located at /etc/stanley/stanley.conf.
 
-Follow the example below and create /etc/apache2/sites-available/st2-auth.conf. The following configures st2auth to authenticate users with PAM via apache. 
+Follow the example below and create /etc/apache2/sites-available/st2-auth.conf. The following configures st2auth to authenticate users who belong to the st2ops group, with PAM via apache. 
 
     <VirtualHost *:9100>
     
@@ -40,7 +40,7 @@ Follow the example below and create /etc/apache2/sites-available/st2-auth.conf. 
             AuthName "Restricted"
             AuthBasicProvider external
             AuthExternal pwauth
-            require valid-user
+            require unix-group st2ops
         </Directory>
     
     </VirtualHost>
