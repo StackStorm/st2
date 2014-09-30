@@ -148,7 +148,7 @@ SCHEMA_DRAFT4 = {
             "type": "number",
             "minimum": 0
         },
-        "locked": {
+        "immutable": {
             "type": "boolean",
             "default": False
         },

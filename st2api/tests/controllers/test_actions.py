@@ -33,7 +33,7 @@ ACTION_2 = {
     'runner_type': 'run-local',
     'parameters': {
         'c': {'type': 'string', 'default': 'C1', 'position': 0},
-        'd': {'type': 'string', 'default': 'D1', 'locked': True}
+        'd': {'type': 'string', 'default': 'D1', 'immutable': True}
     }
 }
 
