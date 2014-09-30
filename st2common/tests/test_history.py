@@ -1,5 +1,4 @@
 import copy
-import json
 import bson
 
 from tests.fixtures import history as fixture
@@ -24,14 +23,6 @@ class TestActionExecutionHistoryModel(DbTestCase):
             'execution': copy.deepcopy(fixture.ARTIFACTS['executions'][0])
         }
 
-    def test_dot_notation_in_key(self):
-        original = self.fake_history['rule']
-        escaped = json.loads(json.dumps(original).replace('trigger.name', u'trigger\uff0ename'))
-        rule1 = util.escape_chars(copy.deepcopy(original))
-        rule2 = util.unescape_chars(copy.deepcopy(rule1))
-        self.assertDictEqual(rule1, escaped)
-        self.assertDictEqual(rule2, original)
-
     def test_model(self):
         # Create API object.
         obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history))
@@ -49,8 +40,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.trigger, self.fake_history['trigger'])
         self.assertDictEqual(model.trigger_type, self.fake_history['trigger_type'])
         self.assertDictEqual(model.trigger_instance, self.fake_history['trigger_instance'])
-        escaped_rule = util.escape_chars(copy.deepcopy(self.fake_history['rule']))
-        self.assertDictEqual(model.rule, escaped_rule)
+        self.assertDictEqual(model.rule, self.fake_history['rule'])
         self.assertDictEqual(model.action, self.fake_history['action'])
         self.assertDictEqual(model.runner, self.fake_history['runner'])
         self.assertDictEqual(model.execution, self.fake_history['execution'])
@@ -73,8 +63,8 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.trigger, self.fake_history['trigger'])
         self.assertDictEqual(model.trigger_type, self.fake_history['trigger_type'])
         self.assertDictEqual(model.trigger_instance, self.fake_history['trigger_instance'])
-        escaped_rule = util.escape_chars(copy.deepcopy(self.fake_history['rule']))
-        self.assertDictEqual(model.rule, escaped_rule)
+        escaped = util.escape_chars(copy.deepcopy(self.fake_history['rule']))
+        self.assertDictEqual(model.rule, escaped)
         self.assertDictEqual(model.action, self.fake_history['action'])
         self.assertDictEqual(model.runner, self.fake_history['runner'])
         self.assertDictEqual(model.execution, self.fake_history['execution'])

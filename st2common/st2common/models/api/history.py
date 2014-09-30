@@ -1,6 +1,5 @@
 import copy
 
-from st2common.util import mongoescape as util
 from st2common.models.base import BaseAPI
 from st2common.models.db.history import ActionExecutionHistoryDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI, RuleAPI
@@ -40,12 +39,6 @@ class ActionExecutionHistoryAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model):
-        instance = cls._from_model(model)
-        instance = util.unescape_chars(instance)
-        return cls(**instance)
-
-    @classmethod
     def to_model(cls, instance):
         model = cls.model()
         for attr, meta in cls.schema.get('properties', dict()).iteritems():
@@ -53,7 +46,5 @@ class ActionExecutionHistoryAPI(BaseAPI):
             value = getattr(instance, attr, default)
             if not value and not cls.model._fields[attr].required:
                 continue
-            if isinstance(value, dict):
-                value = util.escape_chars(value)
             setattr(model, attr, value)
         return model

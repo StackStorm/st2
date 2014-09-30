@@ -1,5 +1,3 @@
-import mongoengine as me
-
 from st2common.models.db import stormbase
 from st2common import log as logging
 
@@ -8,10 +6,10 @@ LOG = logging.getLogger(__name__)
 
 
 class ActionExecutionHistoryDB(stormbase.StormFoundationDB):
-    trigger = me.DictField(required=True)
-    trigger_type = me.DictField(required=True)
-    trigger_instance = me.DictField(required=True)
-    rule = me.DictField(required=True)
-    action = me.DictField(required=True)
-    runner = me.DictField(required=True)
-    execution = me.DictField(required=True)
+    trigger = stormbase.EscapedDictField(required=True)
+    trigger_type = stormbase.EscapedDictField(required=True)
+    trigger_instance = stormbase.EscapedDictField(required=True)
+    rule = stormbase.EscapedDictField(required=True)
+    action = stormbase.EscapedDictField(required=True)
+    runner = stormbase.EscapedDictField(required=True)
+    execution = stormbase.EscapedDictField(required=True)

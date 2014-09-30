@@ -8,12 +8,13 @@ from webob import exc
 import pecan
 import pecan.jsonify
 
-from st2common.util import schema as util
+from st2common.util import mongoescape as util_mongodb
+from st2common.util import schema as util_schema
 from st2common import log as logging
 
 
 LOG = logging.getLogger(__name__)
-VALIDATOR = util.get_validator(assign_property_default=False)
+VALIDATOR = util_schema.get_validator(assign_property_default=False)
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -43,7 +44,7 @@ class BaseAPI(object):
 
     @classmethod
     def _from_model(cls, model):
-        doc = model.to_mongo()
+        doc = util_mongodb.unescape_chars(model.to_mongo())
         if '_id' in doc:
             doc['id'] = str(doc.pop('_id'))
         return doc

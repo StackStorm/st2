@@ -29,6 +29,11 @@ class StormFoundationDB(me.Document):
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
 
+    def to_python(self):
+        return {attr: field.to_python(getattr(self, attr))
+                for attr, field in self._fields.iteritems()
+                if getattr(self, attr, None)}
+
 
 class StormBaseDB(StormFoundationDB):
     """Abstraction for a user content model."""
@@ -40,6 +45,24 @@ class StormBaseDB(StormFoundationDB):
     meta = {
         'abstract': True
     }
+
+
+class EscapedDictField(me.DictField):
+
+    def to_mongo(self, value):
+        value = mongoescape.escape_chars(value)
+        return super(EscapedDictField, self).to_mongo(value)
+
+    def to_python(self, value):
+        value = super(EscapedDictField, self).to_python(value)
+        return mongoescape.unescape_chars(value)
+
+    def validate(self, value):
+        if not isinstance(value, dict):
+            self.error('Only dictionaries may be used in a DictField')
+        if me.fields.key_not_string(value):
+            self.error("Invalid dictionary key - documents must have only string keys")
+        me.base.ComplexBaseField.validate(self, value)
 
 
 class EscapedDynamicField(me.DynamicField):
