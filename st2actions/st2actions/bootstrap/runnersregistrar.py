@@ -16,10 +16,10 @@ def register_runner_types():
             'enabled': True,
             'runner_parameters': {
                 'hosts': {
-                    'description': 'A comma delimited string of a list of hosts '
-                                   'where the command will be executed.',
+                    'description': 'Fixed to localhost as this action is run locally.',
                     'type': 'string',
-                    'default': 'localhost'
+                    'default': 'localhost',
+                    'immutable': True
                 },
                 'cmd': {
                     'description': 'Arbitrary Linux command to be executed on the '
@@ -27,10 +27,10 @@ def register_runner_types():
                     'type': 'string'
                 },
                 'parallel': {
-                    'description': 'If true, the command will be executed on all the '
-                                   'hosts in parallel.',
+                    'description': 'Parallel execution is unsupported.',
                     'type': 'boolean',
-                    'default': False
+                    'default': False,
+                    'immutable': True
                 },
                 'sudo': {
                     'description': 'The command will be executed with sudo.',
@@ -57,17 +57,16 @@ def register_runner_types():
             'enabled': True,
             'runner_parameters': {
                 'hosts': {
-                    'description': 'A comma delimited string of a list of hosts '
-                                   'where the command will be executed.',
+                    'description': 'Fixed to localhost as this action is run locally.',
                     'type': 'string',
-                    'default': 'localhost'
+                    'default': 'localhost',
+                    'immutable': True
                 },
                 'parallel': {
-                    'description': 'If true, the command will be executed on all the '
-                                   'hosts in parallel.',
+                    'description': 'Parallel execution is unsupported.',
                     'type': 'boolean',
                     'default': False,
-                    'locked': True
+                    'immutable': True
                 },
                 'sudo': {
                     'description': 'The command will be executed with sudo.',
