@@ -3,7 +3,6 @@ import bson
 
 from tests.fixtures import history as fixture
 from st2tests import DbTestCase
-from st2common.util import mongoescape as util
 from st2common.persistence.history import ActionExecutionHistory
 from st2common.models.api.history import ActionExecutionHistoryAPI
 
@@ -71,22 +70,13 @@ class TestActionExecutionHistoryModel(DbTestCase):
         obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_auto))
         model = ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
         self.assertEqual(str(model.id), obj.id)
-
-        # mongoengine leaves the field escaped in the object post save.
-        escaped_trigger = util.escape_chars(copy.deepcopy(self.fake_auto['trigger']))
-        self.assertDictEqual(model.trigger, escaped_trigger)
-        escaped_trigger_type = util.escape_chars(copy.deepcopy(self.fake_auto['trigger_type']))
-        self.assertDictEqual(model.trigger_type, escaped_trigger_type)
-        escaped_trigger_in = util.escape_chars(copy.deepcopy(self.fake_auto['trigger_instance']))
-        self.assertDictEqual(model.trigger_instance, escaped_trigger_in)
-        escaped_rule = util.escape_chars(copy.deepcopy(self.fake_auto['rule']))
-        self.assertDictEqual(model.rule, escaped_rule)
-        escaped_action = util.escape_chars(copy.deepcopy(self.fake_auto['action']))
-        self.assertDictEqual(model.action, escaped_action)
-        escaped_runner = util.escape_chars(copy.deepcopy(self.fake_auto['runner']))
-        self.assertDictEqual(model.runner, escaped_runner)
-        escaped_executions = util.escape_chars(copy.deepcopy(self.fake_auto['executions']))
-        self.assertListEqual(model.executions, escaped_executions)
+        self.assertDictEqual(model.trigger, self.fake_auto['trigger'])
+        self.assertDictEqual(model.trigger_type, self.fake_auto['trigger_type'])
+        self.assertDictEqual(model.trigger_instance, self.fake_auto['trigger_instance'])
+        self.assertDictEqual(model.rule, self.fake_auto['rule'])
+        self.assertDictEqual(model.action, self.fake_auto['action'])
+        self.assertDictEqual(model.runner, self.fake_auto['runner'])
+        self.assertListEqual(model.executions, self.fake_auto['executions'])
 
     def test_model_partial(self):
         # Create API object.
@@ -125,16 +115,10 @@ class TestActionExecutionHistoryModel(DbTestCase):
         obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_manual))
         model = ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
         self.assertEqual(str(model.id), obj.id)
-
         self.assertDictEqual(model.trigger, {})
         self.assertDictEqual(model.trigger_type, {})
         self.assertDictEqual(model.trigger_instance, {})
         self.assertDictEqual(model.rule, {})
-
-        # mongoengine leaves the field escaped in the object post save.
-        escaped_action = util.escape_chars(copy.deepcopy(self.fake_auto['action']))
-        self.assertDictEqual(model.action, escaped_action)
-        escaped_runner = util.escape_chars(copy.deepcopy(self.fake_auto['runner']))
-        self.assertDictEqual(model.runner, escaped_runner)
-        escaped_executions = util.escape_chars(copy.deepcopy(self.fake_auto['executions']))
-        self.assertListEqual(model.executions, escaped_executions)
+        self.assertDictEqual(model.action, self.fake_auto['action'])
+        self.assertDictEqual(model.runner, self.fake_auto['runner'])
+        self.assertListEqual(model.executions, self.fake_auto['executions'])

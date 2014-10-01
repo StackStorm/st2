@@ -1,5 +1,8 @@
-from st2common import log as logging
 from mongoengine.connection import connect, disconnect
+
+from st2common.models.db import stormbase
+from st2common.util import mongoescape as util
+from st2common import log as logging
 
 
 LOG = logging.getLogger('st2common.models.db')
@@ -52,7 +55,13 @@ class MongoDBAccess(object):
 
     @staticmethod
     def add_or_update(model_object):
-        return model_object.save()
+        model_object.save()
+        fields = {k: v for k, v in model_object._fields.iteritems()
+                  if isinstance(v, stormbase.EscapedDictField)}
+        for attr, field in fields.iteritems():
+            value = util.unescape_chars(getattr(model_object, attr))
+            setattr(model_object, attr, value)
+        return model_object
 
     @staticmethod
     def delete(model_object):
