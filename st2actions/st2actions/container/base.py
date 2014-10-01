@@ -15,7 +15,7 @@ import six
 LOG = logging.getLogger(__name__)
 
 
-class RunnerContainer():
+class RunnerContainer(object):
 
     def __init__(self):
         LOG.info('Action RunnerContainer instantiated.')
@@ -42,7 +42,7 @@ class RunnerContainer():
         return runner
 
     def dispatch(self, actionexec_db):
-        (action_db, d) = get_action_by_dict(actionexec_db.action)
+        (action_db, _) = get_action_by_dict(actionexec_db.action)
         runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
         runner_type = runnertype_db.name
 
@@ -141,31 +141,42 @@ class RunnerContainer():
         # the Action and ActionExecution.
 
         # Create runner parameter by merging default values with dynamic values
-        runner_parameters = {k: v['default'] if 'default' in v else None
-                             for k, v in six.iteritems(runner_parameters)}
+        resolved_params = {k: v['default'] if 'default' in v else None
+                           for k, v in six.iteritems(runner_parameters)}
 
-        # pick overrides from action_action_parameters & actionexec_runner_parameters
-        for param in runner_parameters:
-            # values from actionexec_runner_parameters override action_action_parameters.
-            if param in actionexec_runner_parameters:
-                runner_parameters[param] = actionexec_runner_parameters[param]
+        # pick overrides from action_parameters & actionexec_runner_parameters
+        for param_name, param_value in six.iteritems(runner_parameters):
+            # No override if param is immutable
+            if param_value.get('immutable', False):
                 continue
-            if param in action_parameters and 'default' in action_parameters[param]:
-                runner_parameters[param] = action_parameters[param]['default']
+            # Check if param exists in action_parameters and if it has a default value then
+            # pickup the override.
+            if param_name in action_parameters and 'default' in action_parameters[param_name]:
+                action_param = action_parameters[param_name]
+                resolved_params[param_name] = action_param['default']
+                # No further override if param is immutable
+                if action_param.get('immutable', False):
+                    continue
+            # Finally pick up override from actionexec_runner_parameters
+            if param_name in actionexec_runner_parameters:
+                resolved_params[param_name] = actionexec_runner_parameters[param_name]
 
-        return runner_parameters
+        return resolved_params
 
     def _get_resolved_action_params(self, action_parameters, actionexec_action_parameters):
         # Create action parameters by merging default values with dynamic values
-        action_parameters = {k: v['default'] if 'default' in v else None
-                             for k, v in six.iteritems(action_parameters)}
+        resolved_params = {k: v['default'] if 'default' in v else None
+                           for k, v in six.iteritems(action_parameters)}
 
         # pick overrides from actionexec_action_parameters
-        for param in action_parameters:
-            if param in actionexec_action_parameters:
-                action_parameters[param] = actionexec_action_parameters[param]
+        for param_name, param_value in six.iteritems(action_parameters):
+            # No override if param is immutable
+            if param_value.get('immutable', False):
+                continue
+            if param_name in actionexec_action_parameters:
+                resolved_params[param_name] = actionexec_action_parameters[param_name]
 
-        return action_parameters
+        return resolved_params
 
     def _get_entry_point_abs_path(self, pack, entry_point):
         return RunnerContainerService.get_entry_point_abs_path(pack=pack,
@@ -175,7 +186,8 @@ class RunnerContainer():
     def _split_params(runnertype_db, action_db, actionexec_db):
         return (
             {param: actionexec_db.parameters[param]
-                for param in runnertype_db.runner_parameters if param in actionexec_db.parameters},
+                for param in runnertype_db.runner_parameters if param in
+                actionexec_db.parameters},
 
             {param: actionexec_db.parameters[param]
                 for param in action_db.parameters if param in actionexec_db.parameters}

@@ -32,6 +32,11 @@ ACTION_1 = {
         'b': {
             'type': 'number',
             'default': 123
+        },
+        'c': {
+            'type': 'number',
+            'default': 123,
+            'immutable': True
         }
     }
 }
@@ -227,6 +232,11 @@ class TestActionExecutionController(FunctionalTest):
 
         # Runner type expects parameters "cmd" to be str.
         execution['parameters'] = {"hosts": "localhost", "cmd": 1000}
+        post_resp = self._do_post(execution, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 400)
+
+        # Runner type expects parameters "cmd" to be str.
+        execution['parameters'] = {"hosts": "localhost", "cmd": "1000", "c": 1}
         post_resp = self._do_post(execution, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
 
