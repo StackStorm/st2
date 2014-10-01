@@ -1,12 +1,8 @@
 {
-    "name": "local",
+    "name": "local-sudo",
     "runner_type": "run-local",
     "description": "Action that executes an arbitrary Linux command on the localhost.",
     "enabled": true,
     "entry_point": "",
-    "parameters": {
-        "sudo": {
-            "immutable": true
-        }
-    }
+    "parameters": {}
 }
