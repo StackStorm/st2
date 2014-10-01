@@ -22,7 +22,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
             'rule': copy.deepcopy(fixture.ARTIFACTS['rule']),
             'action': copy.deepcopy(fixture.ARTIFACTS['action']),
             'runner': copy.deepcopy(fixture.ARTIFACTS['runner']),
-            'execution': copy.deepcopy(fixture.ARTIFACTS['executions'][0])
+            'executions': copy.deepcopy(fixture.ARTIFACTS['executions'])
         }
 
         # Fake history record for an action execution triggered manually.
@@ -30,10 +30,11 @@ class TestActionExecutionHistoryModel(DbTestCase):
             'id': str(bson.ObjectId()),
             'action': copy.deepcopy(fixture.ARTIFACTS['action']),
             'runner': copy.deepcopy(fixture.ARTIFACTS['runner']),
-            'execution': copy.deepcopy(fixture.ARTIFACTS['executions'][0])
+            'executions': copy.deepcopy(fixture.ARTIFACTS['executions'])
         }
 
     def test_model_complete(self):
+
         # Create API object.
         obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_auto))
         self.assertDictEqual(obj.trigger, self.fake_auto['trigger'])
@@ -42,7 +43,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(obj.rule, self.fake_auto['rule'])
         self.assertDictEqual(obj.action, self.fake_auto['action'])
         self.assertDictEqual(obj.runner, self.fake_auto['runner'])
-        self.assertDictEqual(obj.execution, self.fake_auto['execution'])
+        self.assertListEqual(obj.executions, self.fake_auto['executions'])
 
         # Convert API object to DB model.
         model = ActionExecutionHistoryAPI.to_model(obj)
@@ -53,7 +54,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.rule, self.fake_auto['rule'])
         self.assertDictEqual(model.action, self.fake_auto['action'])
         self.assertDictEqual(model.runner, self.fake_auto['runner'])
-        self.assertDictEqual(model.execution, self.fake_auto['execution'])
+        self.assertListEqual(model.executions, self.fake_auto['executions'])
 
         # Convert DB model to API object.
         obj = ActionExecutionHistoryAPI.from_model(model)
@@ -64,7 +65,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(obj.rule, self.fake_auto['rule'])
         self.assertDictEqual(obj.action, self.fake_auto['action'])
         self.assertDictEqual(obj.runner, self.fake_auto['runner'])
-        self.assertDictEqual(obj.execution, self.fake_auto['execution'])
+        self.assertListEqual(obj.executions, self.fake_auto['executions'])
 
     def test_crud_complete(self):
         obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_auto))
@@ -84,8 +85,8 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.action, escaped_action)
         escaped_runner = util.escape_chars(copy.deepcopy(self.fake_auto['runner']))
         self.assertDictEqual(model.runner, escaped_runner)
-        escaped_execution = util.escape_chars(copy.deepcopy(self.fake_auto['execution']))
-        self.assertDictEqual(model.execution, escaped_execution)
+        escaped_executions = util.escape_chars(copy.deepcopy(self.fake_auto['executions']))
+        self.assertListEqual(model.executions, escaped_executions)
 
     def test_model_partial(self):
         # Create API object.
@@ -96,7 +97,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertIsNone(getattr(obj, 'rule', None))
         self.assertDictEqual(obj.action, self.fake_auto['action'])
         self.assertDictEqual(obj.runner, self.fake_auto['runner'])
-        self.assertDictEqual(obj.execution, self.fake_auto['execution'])
+        self.assertListEqual(obj.executions, self.fake_auto['executions'])
 
         # Convert API object to DB model.
         model = ActionExecutionHistoryAPI.to_model(obj)
@@ -107,7 +108,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.rule, {})
         self.assertDictEqual(model.action, self.fake_auto['action'])
         self.assertDictEqual(model.runner, self.fake_auto['runner'])
-        self.assertDictEqual(model.execution, self.fake_auto['execution'])
+        self.assertListEqual(model.executions, self.fake_auto['executions'])
 
         # Convert DB model to API object.
         obj = ActionExecutionHistoryAPI.from_model(model)
@@ -118,7 +119,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertIsNone(getattr(obj, 'rule', None))
         self.assertDictEqual(obj.action, self.fake_auto['action'])
         self.assertDictEqual(obj.runner, self.fake_auto['runner'])
-        self.assertDictEqual(obj.execution, self.fake_auto['execution'])
+        self.assertListEqual(obj.executions, self.fake_auto['executions'])
 
     def test_crud_partial(self):
         obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_manual))
@@ -135,5 +136,5 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.action, escaped_action)
         escaped_runner = util.escape_chars(copy.deepcopy(self.fake_auto['runner']))
         self.assertDictEqual(model.runner, escaped_runner)
-        escaped_execution = util.escape_chars(copy.deepcopy(self.fake_auto['execution']))
-        self.assertDictEqual(model.execution, escaped_execution)
+        escaped_executions = util.escape_chars(copy.deepcopy(self.fake_auto['executions']))
+        self.assertListEqual(model.executions, escaped_executions)

@@ -1,3 +1,5 @@
+import mongoengine as me
+
 from st2common.models.db import stormbase
 from st2common import log as logging
 
@@ -12,4 +14,4 @@ class ActionExecutionHistoryDB(stormbase.StormFoundationDB):
     rule = stormbase.EscapedDictField()
     action = stormbase.EscapedDictField(required=True)
     runner = stormbase.EscapedDictField(required=True)
-    execution = stormbase.EscapedDictField(required=True)
+    executions = me.ListField(field=stormbase.EscapedDictField(required=True))
