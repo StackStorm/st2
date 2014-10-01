@@ -15,7 +15,7 @@ import six
 LOG = logging.getLogger(__name__)
 
 
-class RunnerContainer():
+class RunnerContainer(object):
 
     def __init__(self):
         LOG.info('Action RunnerContainer instantiated.')
@@ -149,12 +149,15 @@ class RunnerContainer():
             # No override if param is immutable
             if param_value.get('immutable', False):
                 continue
+            # Check if param exists in action_parameters and if it has a default value then
+            # pickup the override.
             if param_name in action_parameters and 'default' in action_parameters[param_name]:
                 action_param = action_parameters[param_name]
                 resolved_params[param_name] = action_param['default']
                 # No further override if param is immutable
                 if action_param.get('immutable', False):
                     continue
+            # Finally pick up override from actionexec_runner_parameters
             if param_name in actionexec_runner_parameters:
                 resolved_params[param_name] = actionexec_runner_parameters[param_name]
 
