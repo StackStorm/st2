@@ -28,10 +28,6 @@ class ActionExecutionHistoryAPI(BaseAPI):
             "execution": ActionExecutionAPI.schema
         },
         "required": ["id",
-                     "trigger",
-                     "trigger_type",
-                     "trigger_instance",
-                     "rule",
                      "action",
                      "runner",
                      "execution"],

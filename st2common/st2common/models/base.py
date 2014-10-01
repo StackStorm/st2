@@ -52,7 +52,8 @@ class BaseAPI(object):
     @classmethod
     def from_model(cls, model):
         doc = cls._from_model(model)
-        return cls(**doc)
+        attrs = {attr: value for attr, value in six.iteritems(doc) if value}
+        return cls(**attrs)
 
     @classmethod
     def to_model(cls, doc):

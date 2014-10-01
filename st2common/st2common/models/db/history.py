@@ -6,10 +6,10 @@ LOG = logging.getLogger(__name__)
 
 
 class ActionExecutionHistoryDB(stormbase.StormFoundationDB):
-    trigger = stormbase.EscapedDictField(required=True)
-    trigger_type = stormbase.EscapedDictField(required=True)
-    trigger_instance = stormbase.EscapedDictField(required=True)
-    rule = stormbase.EscapedDictField(required=True)
+    trigger = stormbase.EscapedDictField()
+    trigger_type = stormbase.EscapedDictField()
+    trigger_instance = stormbase.EscapedDictField()
+    rule = stormbase.EscapedDictField()
     action = stormbase.EscapedDictField(required=True)
     runner = stormbase.EscapedDictField(required=True)
     execution = stormbase.EscapedDictField(required=True)
