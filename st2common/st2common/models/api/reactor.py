@@ -21,8 +21,7 @@ class TriggerTypeAPI(BaseAPI):
                 'type': 'string'
             },
             'description': {
-                'type': 'string',
-                'default': None
+                'type': 'string'
             },
             'payload_schema': {
                 'type': 'object',
@@ -40,8 +39,8 @@ class TriggerTypeAPI(BaseAPI):
     @classmethod
     def to_model(cls, triggertype):
         model = super(cls, cls).to_model(triggertype)
-        model.payload_schema = triggertype.payload_schema
-        model.parameters_schema = triggertype.parameters_schema
+        model.payload_schema = getattr(triggertype, 'payload_schema', {})
+        model.parameters_schema = getattr(triggertype, 'parameters_schema', {})
         return model
 
 
@@ -64,8 +63,7 @@ class TriggerAPI(BaseAPI):
                 'type': 'object'
             },
             'description': {
-                'type': 'string',
-                'default': ''
+                'type': 'string'
             }
         },
         'required': ['type'],

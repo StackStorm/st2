@@ -32,14 +32,14 @@ def get_trigger_db(trigger):
         if name:
             return _get_trigger_db_by_name(name)
         return _get_trigger_db(type_name=trigger['type']['name'],
-                               parameters=trigger['parameters'])
+                               parameters=trigger.get('parameters'))
     if isinstance(trigger, object):
         trigger_db = None
         if hasattr(trigger, 'name') and trigger.name:
             trigger_db = _get_trigger_db_by_name(trigger.name)
         else:
             trigger_db = _get_trigger_db(type_name=trigger.type,
-                                         parameters=trigger.parameters)
+                                         parameters=getattr(trigger, 'parameters', None))
         return trigger_db
 
 

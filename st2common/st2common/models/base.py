@@ -1,39 +1,20 @@
 import abc
 import functools
 import inspect
-import jsonschema
-import jsonschema.validators
+
+import six
+from six.moves import http_client
+from webob import exc
 import pecan
 import pecan.jsonify
-import six
-from webob import exc
 
+from st2common.util import mongoescape as util_mongodb
+from st2common.util import schema as util_schema
 from st2common import log as logging
 
-http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
-
-
-def extend_with_default(validator_class):
-    validate_properties = validator_class.VALIDATORS["properties"]
-
-    def set_defaults(validator, properties, instance, schema):
-        for error in validate_properties(
-            validator, properties, instance, schema,
-        ):
-            yield error
-
-        for property, subschema in six.iteritems(properties):
-            if "default" in subschema:
-                instance.setdefault(property, subschema["default"])
-
-    return jsonschema.validators.extend(
-        validator_class, {"properties": set_defaults},
-    )
-
-
-Validator = extend_with_default(jsonschema.Draft4Validator)
+VALIDATOR = util_schema.get_validator(assign_property_default=False)
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -41,7 +22,7 @@ class BaseAPI(object):
     schema = abc.abstractproperty
 
     def __init__(self, **kw):
-        Validator(getattr(self, 'schema', {})).validate(kw)
+        VALIDATOR(getattr(self, 'schema', {})).validate(kw)
 
         for key, value in kw.items():
             setattr(self, key, value)
@@ -63,7 +44,7 @@ class BaseAPI(object):
 
     @classmethod
     def _from_model(cls, model):
-        doc = model.to_mongo()
+        doc = util_mongodb.unescape_chars(model.to_mongo())
         if '_id' in doc:
             doc['id'] = str(doc.pop('_id'))
         return doc
@@ -71,7 +52,8 @@ class BaseAPI(object):
     @classmethod
     def from_model(cls, model):
         doc = cls._from_model(model)
-        return cls(**doc)
+        attrs = {attr: value for attr, value in six.iteritems(doc) if value}
+        return cls(**attrs)
 
     @classmethod
     def to_model(cls, doc):

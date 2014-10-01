@@ -1,6 +1,6 @@
+import six
 import jsonschema
 from oslo.config import cfg
-import six
 
 
 # https://github.com/json-schema/json-schema/blob/master/draft-04/schema
@@ -182,8 +182,27 @@ def get_draft_schema():
     return SCHEMA_DRAFT4
 
 
-def get_validator():
-    return jsonschema.Draft4Validator
+def extend_with_default(validator_class):
+    validate_properties = validator_class.VALIDATORS["properties"]
+
+    def set_defaults(validator, properties, instance, schema):
+        for error in validate_properties(
+            validator, properties, instance, schema,
+        ):
+            yield error
+
+        for property, subschema in six.iteritems(properties):
+            if "default" in subschema:
+                instance.setdefault(property, subschema["default"])
+
+    return jsonschema.validators.extend(
+        validator_class, {"properties": set_defaults},
+    )
+
+
+def get_validator(assign_property_default=False):
+    validator = jsonschema.Draft4Validator
+    return extend_with_default(validator) if assign_property_default else validator
 
 
 def get_parameter_schema(model):

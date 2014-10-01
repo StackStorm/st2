@@ -42,6 +42,24 @@ class StormBaseDB(StormFoundationDB):
     }
 
 
+class EscapedDictField(me.DictField):
+
+    def to_mongo(self, value):
+        value = mongoescape.escape_chars(value)
+        return super(EscapedDictField, self).to_mongo(value)
+
+    def to_python(self, value):
+        value = super(EscapedDictField, self).to_python(value)
+        return mongoescape.unescape_chars(value)
+
+    def validate(self, value):
+        if not isinstance(value, dict):
+            self.error('Only dictionaries may be used in a DictField')
+        if me.fields.key_not_string(value):
+            self.error("Invalid dictionary key - documents must have only string keys")
+        me.base.ComplexBaseField.validate(self, value)
+
+
 class EscapedDynamicField(me.DynamicField):
 
     def to_mongo(self, value):
