@@ -29,11 +29,6 @@ class StormFoundationDB(me.Document):
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
 
-    def to_python(self):
-        return {attr: field.to_python(getattr(self, attr))
-                for attr, field in self._fields.iteritems()
-                if getattr(self, attr, None)}
-
 
 class StormBaseDB(StormFoundationDB):
     """Abstraction for a user content model."""
