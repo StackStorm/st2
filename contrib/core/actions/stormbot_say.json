@@ -1,7 +1,29 @@
-{ "name": "stormbot_say"
-, "runner_type": "run-local"
-, "description": "This posts a message to StormBot"
-, "enabled": true
-, "entry_point": "stormbot_say/stormbot_say"
-, "parameters": {}
+{ "name": "stormbot_say",
+    "runner_type": "run-local-script",
+    "description": "This posts a message to StormBot",
+    "enabled": true,
+    "entry_point": "stormbot_say/stormbot_say",
+    "parameters": {
+        "sudo": {
+            "immutable": true
+        },
+        "user": {
+            "immutable": true
+        },
+        "dir": {
+            "immutable": true
+        },
+        "source": {
+            "type": "string",
+            "position": 0
+        },
+        "name": {
+            "type": "string",
+            "position": 1
+        },
+        "msg": {
+            "type": "string",
+            "position": 2
+        }
+    }
 }
