@@ -1,7 +1,6 @@
 from mongoengine.connection import connect, disconnect
 
 from st2common.models.db import stormbase
-from st2common.util import mongoescape as util
 from st2common import log as logging
 
 
@@ -56,11 +55,10 @@ class MongoDBAccess(object):
     @staticmethod
     def add_or_update(model_object):
         model_object.save()
-        fields = {k: v for k, v in model_object._fields.iteritems()
-                  if isinstance(v, stormbase.EscapedDictField)}
-        for attr, field in fields.iteritems():
-            value = util.unescape_chars(getattr(model_object, attr))
-            setattr(model_object, attr, value)
+        for attr, field in model_object._fields.iteritems():
+            if isinstance(field, stormbase.EscapedDictField):
+                value = getattr(model_object, attr)
+                setattr(model_object, attr, field.to_python(value))
         return model_object
 
     @staticmethod
