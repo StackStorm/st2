@@ -151,6 +151,33 @@ class ActionRunCommand(resource.ResourceCommand):
             print(wrapper.fill('Default: %s' % schema['default']))
         print('')
 
+    @staticmethod
+    def _get_params_types(runner, action):
+        runner_params = runner.runner_parameters
+        action_params = action.parameters
+        parameters = copy.copy(runner_params)
+        parameters.update(copy.copy(action_params))
+        required = set((getattr(runner, 'required_parameters', list()) +
+                        getattr(action, 'required_parameters', list())))
+
+        def is_immutable(runner_param_meta, action_param_meta):
+            # If runner sets a param as immutable, action cannot override that.
+            if runner_param_meta.get('immutable', False):
+                return True
+            else:
+                return action_param_meta.get('immutable', False)
+
+        immutable = set()
+        for param in parameters.keys():
+            if is_immutable(runner_params.get(param, {}),
+                            action_params.get(param, {})):
+                immutable.add(param)
+
+        required = required - immutable
+        optional = set(parameters.keys()) - required - immutable
+
+        return parameters, required, optional, immutable
+
     @add_auth_token_to_kwargs_from_cli
     def print_help(self, args, **kwargs):
         # Print appropriate help message if the help option is given.
@@ -160,21 +187,23 @@ class ActionRunCommand(resource.ResourceCommand):
                     action = self.get_resource(args.name_or_id, **kwargs)
                     runner_mgr = self.app.client.managers['RunnerType']
                     runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
-                    parameters = copy.copy(runner.runner_parameters)
-                    parameters.update(copy.copy(action.parameters))
-                    required = (getattr(runner, 'required_parameters', list()) +
-                                getattr(action, 'required_parameters', list()))
+                    parameters, required, optional, immutable = self._get_params_types(runner,
+                                                                                       action)
                     print('')
                     print(textwrap.fill(action.description))
                     print('')
-                    if set(parameters.keys()) & set(required):
+                    if required:
                         print('Required Parameters:')
                         [self.print_param(name, parameters.get(name))
-                         for name in sorted(parameters) if name in required]
-                    if set(parameters.keys()) - set(required):
+                            for name in sorted(required)]
+                    if optional:
                         print('Optional Parameters:')
                         [self.print_param(name, parameters.get(name))
-                            for name in sorted(parameters) if name not in required]
+                            for name in sorted(optional)]
+                    if immutable:
+                        print('Immutable parameters:')
+                        [self.print_param(name, parameters.get(name))
+                            for name in sorted(immutable)]
                 except resource.ResourceNotFoundError:
                     print('Action "%s" is not found.' % args.name_or_id)
                 except Exception as e:
