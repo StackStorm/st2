@@ -15,9 +15,9 @@ Download the following script, and edit the USER and PASS variables to match the
 
 You can then run the script to download and install the Stanley packages by simply passing in the version number:
 
-    sudo ./deploy_stan.sh 0.4.0
+    sudo ./deploy_stan.sh 0.5.0
 
-This will download the latest build of Stanley version 0.4.0.
+This will download the latest build of Stanley version 0.5.0.
 
 ---
 
