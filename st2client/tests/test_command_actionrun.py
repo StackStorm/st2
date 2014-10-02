@@ -1,3 +1,5 @@
+import copy
+
 import unittest2
 
 from st2client.commands.action import ActionRunCommand
@@ -13,12 +15,14 @@ class ActionRunCommandTest(unittest2.TestCase):
             'bar': {'description': 'Some param.', 'type': 'string'}
         }
         runner.runner_parameters = runner_params
+        orig_runner_params = copy.deepcopy(runner.runner_parameters)
 
         action = Action()
         action.parameters = {
             'foo': {'immutable': False},  # Should not be allowed by API.
             'stuff': {'description': 'Some param.', 'type': 'string'}
         }
+        orig_action_params = copy.deepcopy(action.parameters)
 
         # Simulating the worst case where required param is also immutable.
         runner.required_parameters = ['foo']
@@ -38,3 +42,5 @@ class ActionRunCommandTest(unittest2.TestCase):
         self.assertTrue('stuff' in rqd, '"stuff" param should be in required set.')
         self.assertTrue('stuff' not in opt, '"stuff" param should be in optional set.')
         self.assertTrue('stuff' not in imm, '"stuff" param should be in immutable set.')
+        self.assertEqual(runner.runner_parameters, orig_runner_params, 'Runner params modified.')
+        self.assertEqual(action.parameters, orig_action_params, 'Action params modified.')
