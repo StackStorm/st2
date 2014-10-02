@@ -13,10 +13,7 @@ Requirements:
 - git
 - Python, pip, virtualenv, tox
 - MongoDB - http://docs.mongodb.org/manual/installation - with oplog enabled
-- Web UI
-    - nodejs and npm - http://nodejs.org/
-    - [bower](http://bower.io/)
-    - [gulp.js](http://gulpjs.com/)
+- nodejs and npm - http://nodejs.org/
 
 To setup the development environment from a vanilla Fedora image:
 
@@ -73,19 +70,20 @@ In case you don't have a user for this purpose (as in case of devenv), there is 
 
         sudo adduser stanley
 
-2. Generate keypair for the user running Stanley services
+
+1. Create an `.ssh` folder inside stanley's home folder
+
+        sudo mkdir -p /home/stanley/.ssh
+        
+1. Generate keypair for the user running Stanley services
 
         ssh-keygen -f ~/.ssh/stanley_rsa
 
-3. Create an `.ssh` folder inside stanley's home folder
-
-        sudo mkdir -p /home/stanley/.ssh
-
-4. Add service user public key to stanley's authorized_keys
+1. Add service user public key to stanley's authorized_keys
 
         sudo sh -c 'cat ~/.ssh/stanley_rsa.pub >> /home/stanley/.ssh/authorized_keys'
 
-5. Fix permissions
+1. Fix permissions
 
         sudo chown -R stanley:stanley /home/stanley/.ssh/
 
@@ -97,22 +95,30 @@ To run Stanley from source, it's assumed that python virtual environment is acti
 
 If the services are started successfully, you will see the following output.
 
-    Starting all st2 servers...
-    Changing working directory to /home/vagrant/stanley...
-    Starting screen session st2-datastore...
-    Starting screen session st2-actionrunner...
-    Starting screen session st2-action...
-    Starting screen session st2-reactor...
-    Starting screen session st2-reactorcontroller...
-
-    There are screens on:
-        7814.st2-reactorcontroller  (Detached)
-        7811.st2-reactor    (Detached)
-        7808.st2-action (Detached)
-        7805.st2-actionrunner   (Detached)
-        7802.st2-datastore  (Detached)
-    5 Sockets in /var/run/screen/S-vagrant.
-
+	Starting all st2 servers...
+	Changing working directory to /home/dzimine/share/stanley...
+	Starting screen session st2-actionrunner...
+	Starting screen session st2-api...
+	Starting screen session st2-reactor...
+	
+	There are screens on:
+		28158.st2-reactor	(09/25/2014 12:36:43 AM)	(Detached)
+		28154.st2-api	(09/25/2014 12:36:43 AM)	(Detached)
+		28143.st2-actionrunner	(09/25/2014 12:36:43 AM)	(Detached)
+	3 Sockets in /var/run/screen/S-stanley.
+	
+	Registering actions and rules...
+	2014-09-25 00:36:44,670 INFO [-] Database details - dbname:st2, host:0.0.0.0, port:27017
+	2014-09-25 00:36:44,676 INFO [-] Start : register default RunnerTypes.
+	2014-09-25 00:36:44,689 INFO [-] RunnerType name=run-local exists.
+	2014-09-25 00:36:44,697 INFO [-] RunnerType name=run-remote exists.
+	2014-09-25 00:36:44,708 INFO [-] RunnerType name=http-runner exists.
+	2014-09-25 00:36:44,720 INFO [-] RunnerType name=workflow exists.
+	2014-09-25 00:36:44,729 INFO [-] RunnerType name=action-chain exists.
+	2014-09-25 00:36:44,732 INFO [-] End : register default RunnerTypes.
+	...
+	...
+	
 Stanley can now be operated using the REST API, st2 CLI, and the st2client python client library. [Hubot/Chat integration](hubot.md) is also provided.
 
 ### Running Stanley from Packages
@@ -202,7 +208,7 @@ The example at [Stanley/contrib/examples/rules/sample-rule-with-webhook.json](..
 	    "trigger": {
 	        "type": "st2.webhook",
 	        "parameters": {
-	            "url": "sample"
+	            "url": "person"
 	        }
 	    },
 
@@ -236,7 +242,7 @@ Here is how to deploy the rule:
 
 Once the rule is created, the webhook begins to listen on `http://{host}:6001/webhooks/generic/{url}`. Fire the post, check out the file and see that it appends the payload if the name=Joe.
 
-	curl http://localhost:6001/webhooks/generic/sample -d '{"foo": "bar", "name": "Joe"}' -H 'Content-Type: application/json'
+	curl http://localhost:6001/webhooks/generic/person -d '{"foo": "bar", "name": "Joe"}' -H 'Content-Type: application/json'
 	tail /tmp/st2.webhook-sample.out
 
 Criteria in the rule is expressed as:
@@ -252,9 +258,9 @@ Criteria in the rule is expressed as:
 
 Current criteria types are: `'matchregex', 'eq' (or 'equals'), 'lt' (or 'lessthan'), 'gt' (or 'greaterthan'), 'td_lt' (or 'timediff_lt'), 'td_gt' (or 'timediff_gt')`.
 
-**DEV NOTE:** The criterion are defined in [Stanley/st2common/st2common/operators.py](../st2common/st2common/operators.py), if you miss some code it up and submit a patch :)
+**DEV NOTE:** The criterion are defined in [st2common/st2common/operators.py](../st2common/st2common/operators.py), if you miss some code it up and submit a patch :)
 
-See more rule examples at [Stanley/contrib/examples/rules/](../contrib/examples/rules/). The directory [../contrib/sandbox/packages/](../contrib/sandbox/packages/) contains some more rules.
+See more rule examples at [contrib/examples/rules/](../contrib/examples/rules/). The directory [../contrib/sandbox/packages/](../contrib/sandbox/packages/) contains some more rules.
 
 
 ## Storing Reusable Parameters
