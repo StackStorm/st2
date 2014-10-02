@@ -5,6 +5,7 @@ import mongoengine
 
 from st2tests import DbTestCase
 from st2common.models import db
+from st2common import persistence
 from st2common.models.db import stormbase
 
 
@@ -13,16 +14,24 @@ class FakeModelDB(stormbase.StormBaseDB):
     index = mongoengine.IntField(min_value=0)
 
 
-class TestAccessLayer(DbTestCase):
+class FakeModel(persistence.Access):
+    impl = db.MongoDBAccess(FakeModelDB)
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+
+class TestPersistence(DbTestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(TestAccessLayer, cls).setUpClass()
-        cls.access = db.MongoDBAccess(FakeModelDB)
+        super(TestPersistence, cls).setUpClass()
+        cls.access = FakeModel()
 
     def tearDown(self):
         FakeModelDB.drop_collection()
-        super(TestAccessLayer, self).tearDown()
+        super(TestPersistence, self).tearDown()
 
     def test_crud(self):
         obj1 = FakeModelDB(name=uuid.uuid4().hex, context={'a': 1})
