@@ -12,82 +12,96 @@ class TestActionExecutionHistoryModel(DbTestCase):
     def setUp(self):
         super(TestActionExecutionHistoryModel, self).setUp()
 
-        # Fake history record for an action execution triggered automatically by rule.
-        self.fake_auto = {
+        # Fake history record for action executions triggered by workflow runner.
+        self.fake_history_subtasks = [
+            {
+                'id': str(bson.ObjectId()),
+                'action': copy.deepcopy(fixture.ARTIFACTS['actions']['local']),
+                'runner': copy.deepcopy(fixture.ARTIFACTS['runners']['run-local']),
+                'execution': copy.deepcopy(fixture.ARTIFACTS['executions']['task1']),
+            },
+            {
+                'id': str(bson.ObjectId()),
+                'action': copy.deepcopy(fixture.ARTIFACTS['actions']['local']),
+                'runner': copy.deepcopy(fixture.ARTIFACTS['runners']['run-local']),
+                'execution': copy.deepcopy(fixture.ARTIFACTS['executions']['task2']),
+            }
+        ]
+
+        # Fake history record for a workflow action execution triggered by rule.
+        self.fake_history_workflow = {
             'id': str(bson.ObjectId()),
             'trigger': copy.deepcopy(fixture.ARTIFACTS['trigger']),
             'trigger_type': copy.deepcopy(fixture.ARTIFACTS['trigger_type']),
             'trigger_instance': copy.deepcopy(fixture.ARTIFACTS['trigger_instance']),
             'rule': copy.deepcopy(fixture.ARTIFACTS['rule']),
-            'action': copy.deepcopy(fixture.ARTIFACTS['action']),
-            'runner': copy.deepcopy(fixture.ARTIFACTS['runner']),
-            'executions': copy.deepcopy(fixture.ARTIFACTS['executions'])
-        }
-
-        # Fake history record for an action execution triggered manually.
-        self.fake_manual = {
-            'id': str(bson.ObjectId()),
-            'action': copy.deepcopy(fixture.ARTIFACTS['action']),
-            'runner': copy.deepcopy(fixture.ARTIFACTS['runner']),
-            'executions': copy.deepcopy(fixture.ARTIFACTS['executions'])
+            'action': copy.deepcopy(fixture.ARTIFACTS['actions']['chain']),
+            'runner': copy.deepcopy(fixture.ARTIFACTS['runners']['action-chain']),
+            'execution': copy.deepcopy(fixture.ARTIFACTS['executions']['workflow']),
+            'children': [task['id'] for task in self.fake_history_subtasks]
         }
 
     def test_model_complete(self):
 
         # Create API object.
-        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_auto))
-        self.assertDictEqual(obj.trigger, self.fake_auto['trigger'])
-        self.assertDictEqual(obj.trigger_type, self.fake_auto['trigger_type'])
-        self.assertDictEqual(obj.trigger_instance, self.fake_auto['trigger_instance'])
-        self.assertDictEqual(obj.rule, self.fake_auto['rule'])
-        self.assertDictEqual(obj.action, self.fake_auto['action'])
-        self.assertDictEqual(obj.runner, self.fake_auto['runner'])
-        self.assertListEqual(obj.executions, self.fake_auto['executions'])
+        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history_workflow))
+        self.assertDictEqual(obj.trigger, self.fake_history_workflow['trigger'])
+        self.assertDictEqual(obj.trigger_type, self.fake_history_workflow['trigger_type'])
+        self.assertDictEqual(obj.trigger_instance, self.fake_history_workflow['trigger_instance'])
+        self.assertDictEqual(obj.rule, self.fake_history_workflow['rule'])
+        self.assertDictEqual(obj.action, self.fake_history_workflow['action'])
+        self.assertDictEqual(obj.runner, self.fake_history_workflow['runner'])
+        self.assertDictEqual(obj.execution, self.fake_history_workflow['execution'])
+        self.assertListEqual(obj.children, self.fake_history_workflow['children'])
 
         # Convert API object to DB model.
         model = ActionExecutionHistoryAPI.to_model(obj)
         self.assertEqual(str(model.id), obj.id)
-        self.assertDictEqual(model.trigger, self.fake_auto['trigger'])
-        self.assertDictEqual(model.trigger_type, self.fake_auto['trigger_type'])
-        self.assertDictEqual(model.trigger_instance, self.fake_auto['trigger_instance'])
-        self.assertDictEqual(model.rule, self.fake_auto['rule'])
-        self.assertDictEqual(model.action, self.fake_auto['action'])
-        self.assertDictEqual(model.runner, self.fake_auto['runner'])
-        self.assertListEqual(model.executions, self.fake_auto['executions'])
+        self.assertDictEqual(model.trigger, self.fake_history_workflow['trigger'])
+        self.assertDictEqual(model.trigger_type, self.fake_history_workflow['trigger_type'])
+        self.assertDictEqual(model.trigger_instance, self.fake_history_workflow['trigger_instance'])
+        self.assertDictEqual(model.rule, self.fake_history_workflow['rule'])
+        self.assertDictEqual(model.action, self.fake_history_workflow['action'])
+        self.assertDictEqual(model.runner, self.fake_history_workflow['runner'])
+        self.assertDictEqual(model.execution, self.fake_history_workflow['execution'])
+        self.assertListEqual(model.children, self.fake_history_workflow['children'])
 
         # Convert DB model to API object.
         obj = ActionExecutionHistoryAPI.from_model(model)
         self.assertEqual(str(model.id), obj.id)
-        self.assertDictEqual(obj.trigger, self.fake_auto['trigger'])
-        self.assertDictEqual(obj.trigger_type, self.fake_auto['trigger_type'])
-        self.assertDictEqual(obj.trigger_instance, self.fake_auto['trigger_instance'])
-        self.assertDictEqual(obj.rule, self.fake_auto['rule'])
-        self.assertDictEqual(obj.action, self.fake_auto['action'])
-        self.assertDictEqual(obj.runner, self.fake_auto['runner'])
-        self.assertListEqual(obj.executions, self.fake_auto['executions'])
+        self.assertDictEqual(obj.trigger, self.fake_history_workflow['trigger'])
+        self.assertDictEqual(obj.trigger_type, self.fake_history_workflow['trigger_type'])
+        self.assertDictEqual(obj.trigger_instance, self.fake_history_workflow['trigger_instance'])
+        self.assertDictEqual(obj.rule, self.fake_history_workflow['rule'])
+        self.assertDictEqual(obj.action, self.fake_history_workflow['action'])
+        self.assertDictEqual(obj.runner, self.fake_history_workflow['runner'])
+        self.assertDictEqual(obj.execution, self.fake_history_workflow['execution'])
+        self.assertListEqual(obj.children, self.fake_history_workflow['children'])
 
     def test_crud_complete(self):
-        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_auto))
+        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history_workflow))
         model = ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
         self.assertEqual(str(model.id), obj.id)
-        self.assertDictEqual(model.trigger, self.fake_auto['trigger'])
-        self.assertDictEqual(model.trigger_type, self.fake_auto['trigger_type'])
-        self.assertDictEqual(model.trigger_instance, self.fake_auto['trigger_instance'])
-        self.assertDictEqual(model.rule, self.fake_auto['rule'])
-        self.assertDictEqual(model.action, self.fake_auto['action'])
-        self.assertDictEqual(model.runner, self.fake_auto['runner'])
-        self.assertListEqual(model.executions, self.fake_auto['executions'])
+        self.assertDictEqual(model.trigger, self.fake_history_workflow['trigger'])
+        self.assertDictEqual(model.trigger_type, self.fake_history_workflow['trigger_type'])
+        self.assertDictEqual(model.trigger_instance, self.fake_history_workflow['trigger_instance'])
+        self.assertDictEqual(model.rule, self.fake_history_workflow['rule'])
+        self.assertDictEqual(model.action, self.fake_history_workflow['action'])
+        self.assertDictEqual(model.runner, self.fake_history_workflow['runner'])
+        self.assertDictEqual(model.execution, self.fake_history_workflow['execution'])
+        self.assertListEqual(model.children, self.fake_history_workflow['children'])
 
     def test_model_partial(self):
         # Create API object.
-        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_manual))
+        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history_subtasks[0]))
         self.assertIsNone(getattr(obj, 'trigger', None))
         self.assertIsNone(getattr(obj, 'trigger_type', None))
         self.assertIsNone(getattr(obj, 'trigger_instance', None))
         self.assertIsNone(getattr(obj, 'rule', None))
-        self.assertDictEqual(obj.action, self.fake_auto['action'])
-        self.assertDictEqual(obj.runner, self.fake_auto['runner'])
-        self.assertListEqual(obj.executions, self.fake_auto['executions'])
+        self.assertDictEqual(obj.action, self.fake_history_subtasks[0]['action'])
+        self.assertDictEqual(obj.runner, self.fake_history_subtasks[0]['runner'])
+        self.assertDictEqual(obj.execution, self.fake_history_subtasks[0]['execution'])
+        self.assertIsNone(getattr(obj, 'children', None))
 
         # Convert API object to DB model.
         model = ActionExecutionHistoryAPI.to_model(obj)
@@ -96,9 +110,10 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.trigger_type, {})
         self.assertDictEqual(model.trigger_instance, {})
         self.assertDictEqual(model.rule, {})
-        self.assertDictEqual(model.action, self.fake_auto['action'])
-        self.assertDictEqual(model.runner, self.fake_auto['runner'])
-        self.assertListEqual(model.executions, self.fake_auto['executions'])
+        self.assertDictEqual(model.action, self.fake_history_subtasks[0]['action'])
+        self.assertDictEqual(model.runner, self.fake_history_subtasks[0]['runner'])
+        self.assertDictEqual(model.execution, self.fake_history_subtasks[0]['execution'])
+        self.assertListEqual(model.children, [])
 
         # Convert DB model to API object.
         obj = ActionExecutionHistoryAPI.from_model(model)
@@ -107,18 +122,20 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertIsNone(getattr(obj, 'trigger_type', None))
         self.assertIsNone(getattr(obj, 'trigger_instance', None))
         self.assertIsNone(getattr(obj, 'rule', None))
-        self.assertDictEqual(obj.action, self.fake_auto['action'])
-        self.assertDictEqual(obj.runner, self.fake_auto['runner'])
-        self.assertListEqual(obj.executions, self.fake_auto['executions'])
+        self.assertDictEqual(obj.action, self.fake_history_subtasks[0]['action'])
+        self.assertDictEqual(obj.runner, self.fake_history_subtasks[0]['runner'])
+        self.assertDictEqual(obj.execution, self.fake_history_subtasks[0]['execution'])
+        self.assertIsNone(getattr(obj, 'children', None))
 
     def test_crud_partial(self):
-        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_manual))
+        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history_subtasks[0]))
         model = ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
         self.assertEqual(str(model.id), obj.id)
         self.assertDictEqual(model.trigger, {})
         self.assertDictEqual(model.trigger_type, {})
         self.assertDictEqual(model.trigger_instance, {})
         self.assertDictEqual(model.rule, {})
-        self.assertDictEqual(model.action, self.fake_auto['action'])
-        self.assertDictEqual(model.runner, self.fake_auto['runner'])
-        self.assertListEqual(model.executions, self.fake_auto['executions'])
+        self.assertDictEqual(model.action, self.fake_history_subtasks[0]['action'])
+        self.assertDictEqual(model.runner, self.fake_history_subtasks[0]['runner'])
+        self.assertDictEqual(model.execution, self.fake_history_subtasks[0]['execution'])
+        self.assertListEqual(model.children, [])
