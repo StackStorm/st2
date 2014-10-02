@@ -3,6 +3,7 @@ import six
 
 from st2common import log as logging
 
+
 LOG = logging.getLogger(__name__)
 
 
@@ -28,13 +29,20 @@ class Access(object):
         return kls._get_impl().get_by_id(value)
 
     @classmethod
+    def get(kls, *args, **kwargs):
+        return kls._get_impl().get(*args, **kwargs)
+
+    @classmethod
     def get_all(kls, *args, **kwargs):
         return kls._get_impl().get_all(*args, **kwargs)
 
     @classmethod
-    def query(kls, order_by=[], limit=None, **query_args):
-        return kls._get_impl().query(order_by=order_by,
-                                     limit=limit, **query_args)
+    def count(kls, *args, **kwargs):
+        return kls._get_impl().count(*args, **kwargs)
+
+    @classmethod
+    def query(kls, *args, **kwargs):
+        return kls._get_impl().query(*args, **kwargs)
 
     @classmethod
     def add_or_update(kls, model_object, publish=True):
