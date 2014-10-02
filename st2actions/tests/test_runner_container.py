@@ -1,5 +1,6 @@
 import datetime
 import mock
+import six
 
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.db.action import (ActionDB, ActionExecutionDB, RunnerTypeDB)
@@ -108,6 +109,9 @@ class RunnerContainerTest(DbTestCase):
         self.assertEqual(action_params.get('some_key_that_aint_exist_in_action_or_runner'), None)
         # Assert that an immutable param cannot be overriden by execution param.
         self.assertEqual(action_params.get('actionimmutable'), 'actionimmutable')
+        # Assert that none of runner params are present in action_params.
+        for k, v in six.iteritems(action_params):
+            self.assertTrue(k not in runner_params, 'Param ' + k + ' is a runner param.')
 
     def test_get_resolved_params_action_immutable(self):
         runner_container = RunnerContainer()

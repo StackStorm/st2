@@ -2,8 +2,8 @@ import os
 import uuid
 
 from fabric.api import (env, execute)
-
 from oslo.config import cfg
+import six
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
@@ -34,6 +34,7 @@ RUNNER_SUDO = 'sudo'
 RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_REMOTE_DIR = 'dir'
 RUNNER_COMMAND = 'cmd'
+RUNNER_KWARG_OP = 'kwarg_op'
 
 
 def get_runner():
@@ -49,6 +50,7 @@ class FabricRunner(ActionRunner):
         self._sudo = False
         self._on_behalf_user = None
         self._user = None
+        self._kwarg_op = '--'
 
     def pre_run(self):
         LOG.debug('Entering FabricRunner.pre_run() for actionexec_id="%s"',
@@ -63,6 +65,7 @@ class FabricRunner(ActionRunner):
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._on_behalf_user = self.runner_parameters.get(RUNNER_ON_BEHALF_USER, env.user)
         self._user = cfg.CONF.ssh_runner.user
+        self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
 
         LOG.info('[FabricRunner="%s", actionexec_id="%s"] Finished pre_run.',
                  self._runner_id, self.action_execution_id)
@@ -106,6 +109,7 @@ class FabricRunner(ActionRunner):
     def _get_fabric_remote_script_action(self, action_parameters):
         script_local_path_abs = self.entry_point
         pos_args, named_args = self._get_script_args(action_parameters)
+        named_args = self._transform_pos_args(named_args)
         remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
                                                 cfg.CONF.ssh_runner.remote_dir)
         return FabricRemoteScriptAction(self.action_name,
@@ -119,6 +123,11 @@ class FabricRunner(ActionRunner):
                                         hosts=self._hosts,
                                         parallel=self._parallel,
                                         sudo=self._sudo)
+
+    def _transform_pos_args(self, named_args):
+        if named_args:
+            return {self._kwarg_op + k: v for (k, v) in six.iteritems(named_args)}
+        return None
 
     def _get_script_args(self, action_parameters):
         is_script_run_as_cmd = self.runner_parameters.get(RUNNER_COMMAND, None)

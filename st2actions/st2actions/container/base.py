@@ -129,7 +129,8 @@ class RunnerContainer(object):
         runner_params = self._get_resolved_runner_params(runnertype_db.runner_parameters,
                                                          actionexec_runner_parameters,
                                                          action_parameters)
-        action_params = self._get_resolved_action_params(action_parameters,
+        action_params = self._get_resolved_action_params(runnertype_db.runner_parameters,
+                                                         action_parameters,
                                                          actionexec_action_parameters)
 
         return runner_params, action_params
@@ -163,17 +164,19 @@ class RunnerContainer(object):
 
         return resolved_params
 
-    def _get_resolved_action_params(self, action_parameters, actionexec_action_parameters):
+    def _get_resolved_action_params(self, runner_parameters,
+                                    action_parameters, actionexec_action_parameters):
         # Create action parameters by merging default values with dynamic values
         resolved_params = {k: v['default'] if 'default' in v else None
-                           for k, v in six.iteritems(action_parameters)}
+                           for k, v in six.iteritems(action_parameters)
+                           if k not in runner_parameters}
 
         # pick overrides from actionexec_action_parameters
         for param_name, param_value in six.iteritems(action_parameters):
             # No override if param is immutable
             if param_value.get('immutable', False):
                 continue
-            if param_name in actionexec_action_parameters:
+            if param_name in actionexec_action_parameters and param_name not in runner_parameters:
                 resolved_params[param_name] = actionexec_action_parameters[param_name]
 
         return resolved_params

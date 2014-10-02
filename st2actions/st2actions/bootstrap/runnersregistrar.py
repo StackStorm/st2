@@ -47,6 +47,11 @@ def register_runner_types():
                     'description': 'The working directory where the command will be '
                                    'executed on the host.',
                     'type': 'string'
+                },
+                'kwarg_op': {
+                    'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
+                    'type': 'string',
+                    'default': '--'
                 }
             },
             'runner_module': 'st2actions.runners.fabricrunner'
@@ -83,6 +88,11 @@ def register_runner_types():
                     'description': 'The working directory where the command will be '
                                    'executed on the host.',
                     'type': 'string'
+                },
+                'kwarg_op': {
+                    'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
+                    'type': 'string',
+                    'default': '--'
                 }
             },
             'runner_module': 'st2actions.runners.fabricrunner'
@@ -122,6 +132,11 @@ def register_runner_types():
                     'description': 'The working directory where the command will be '
                                    'executed on the remote host.',
                     'type': 'string'
+                },
+                'kwarg_op': {
+                    'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
+                    'type': 'string',
+                    'default': '--'
                 }
             },
             'required_parameters': ['hosts'],
@@ -157,6 +172,11 @@ def register_runner_types():
                     'description': 'The working directory where the command will be '
                                    'executed on the remote host.',
                     'type': 'string'
+                },
+                'kwarg_op': {
+                    'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
+                    'type': 'string',
+                    'default': '--'
                 }
             },
             'required_parameters': ['hosts'],
