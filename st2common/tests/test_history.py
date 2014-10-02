@@ -79,8 +79,10 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertListEqual(obj.children, self.fake_history_workflow['children'])
 
     def test_crud_complete(self):
+        # Create the DB record.
         obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history_workflow))
-        model = ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
+        ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
+        model = ActionExecutionHistory.get_by_id(obj.id)
         self.assertEqual(str(model.id), obj.id)
         self.assertDictEqual(model.trigger, self.fake_history_workflow['trigger'])
         self.assertDictEqual(model.trigger_type, self.fake_history_workflow['trigger_type'])
@@ -90,6 +92,17 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.runner, self.fake_history_workflow['runner'])
         self.assertDictEqual(model.execution, self.fake_history_workflow['execution'])
         self.assertListEqual(model.children, self.fake_history_workflow['children'])
+
+        # Update the DB record.
+        children = [str(bson.ObjectId()), str(bson.ObjectId())]
+        model.children = children
+        ActionExecutionHistory.add_or_update(model)
+        model = ActionExecutionHistory.get_by_id(obj.id)
+        self.assertListEqual(model.children, children)
+
+        # Delete the DB record.
+        ActionExecutionHistory.delete(model)
+        self.assertRaises(ValueError, ActionExecutionHistory.get_by_id, obj.id)
 
     def test_model_partial(self):
         # Create API object.
@@ -128,8 +141,10 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertIsNone(getattr(obj, 'children', None))
 
     def test_crud_partial(self):
+        # Create the DB record.
         obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history_subtasks[0]))
-        model = ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
+        ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
+        model = ActionExecutionHistory.get_by_id(obj.id)
         self.assertEqual(str(model.id), obj.id)
         self.assertDictEqual(model.trigger, {})
         self.assertDictEqual(model.trigger_type, {})
@@ -139,3 +154,14 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.runner, self.fake_history_subtasks[0]['runner'])
         self.assertDictEqual(model.execution, self.fake_history_subtasks[0]['execution'])
         self.assertListEqual(model.children, [])
+
+        # Update the DB record.
+        children = [str(bson.ObjectId()), str(bson.ObjectId())]
+        model.children = children
+        ActionExecutionHistory.add_or_update(model)
+        model = ActionExecutionHistory.get_by_id(obj.id)
+        self.assertListEqual(model.children, children)
+
+        # Delete the DB record.
+        ActionExecutionHistory.delete(model)
+        self.assertRaises(ValueError, ActionExecutionHistory.get_by_id, obj.id)
