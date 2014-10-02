@@ -25,16 +25,17 @@ class ActionExecutionHistoryAPI(BaseAPI):
             "rule": RuleAPI.schema,
             "action": ActionAPI.schema,
             "runner": RunnerTypeAPI.schema,
-            "executions": {
+            "execution": ActionExecutionAPI.schema,
+            "children": {
                 "type": "array",
-                "items": ActionExecutionAPI.schema,
+                "items": {"type": "string"},
                 "uniqueItems": True
             }
         },
         "required": ["id",
                      "action",
                      "runner",
-                     "executions"],
+                     "execution"],
         "additionalProperties": False
     }
 

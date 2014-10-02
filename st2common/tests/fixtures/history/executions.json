@@ -1,5 +1,18 @@
-[
-    {
+{
+    "workflow": {
+        "status": "succeeded",
+        "start_timestamp": "2014-09-01 00:00:01.000000",
+        "parameters": {},
+        "callback": {},
+        "result": {},
+        "context": {
+            "user": "system"
+        },
+        "action": {
+            "name": "chain"
+        }
+    },
+    "task1": {
         "status": "succeeded",
         "start_timestamp": "2014-09-01 00:00:02.000000",
         "parameters": {
@@ -25,7 +38,7 @@
             "name": "local"
         }
     },
-    {
+    "task2": {
         "status": "succeeded",
         "start_timestamp": "2014-09-01 00:00:03.000000",
         "parameters": {
@@ -51,4 +64,4 @@
             "name": "local"
         }
     }
-]
+}

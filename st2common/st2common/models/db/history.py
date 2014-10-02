@@ -14,4 +14,5 @@ class ActionExecutionHistoryDB(stormbase.StormFoundationDB):
     rule = stormbase.EscapedDictField()
     action = stormbase.EscapedDictField(required=True)
     runner = stormbase.EscapedDictField(required=True)
-    executions = me.ListField(field=stormbase.EscapedDictField(required=True))
+    execution = stormbase.EscapedDictField(required=True)
+    children = me.ListField(field=me.StringField())
