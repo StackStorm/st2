@@ -46,7 +46,8 @@ def register_runner_types():
                 'dir': {
                     'description': 'The working directory where the command will be '
                                    'executed on the host.',
-                    'type': 'string'
+                    'type': 'string',
+                    'default': '/tmp'
                 },
                 'kwarg_op': {
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
@@ -87,7 +88,8 @@ def register_runner_types():
                 'dir': {
                     'description': 'The working directory where the command will be '
                                    'executed on the host.',
-                    'type': 'string'
+                    'type': 'string',
+                    'default': '/tmp'
                 },
                 'kwarg_op': {
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
@@ -131,7 +133,8 @@ def register_runner_types():
                 'dir': {
                     'description': 'The working directory where the command will be '
                                    'executed on the remote host.',
-                    'type': 'string'
+                    'type': 'string',
+                    'default': '/tmp'
                 },
                 'kwarg_op': {
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
@@ -171,7 +174,8 @@ def register_runner_types():
                 'dir': {
                     'description': 'The working directory where the command will be '
                                    'executed on the remote host.',
-                    'type': 'string'
+                    'type': 'string',
+                    'default': '/tmp'
                 },
                 'kwarg_op': {
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
