@@ -22,6 +22,7 @@ class ActionRunner(object):
         self.action_name = None
         self.action_execution_id = None
         self.entry_point = None
+        self.libs_dir_path = None
         self.context = None
         self.callback = None
 
