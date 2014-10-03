@@ -41,6 +41,10 @@ class TestActionExecutionHistoryModel(DbTestCase):
             'children': [task['id'] for task in self.fake_history_subtasks]
         }
 
+        # Assign parent to the history records for the subtasks.
+        for task in self.fake_history_subtasks:
+            task['parent'] = self.fake_history_workflow['id']
+
     def test_model_complete(self):
 
         # Create API object.
@@ -52,6 +56,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(obj.action, self.fake_history_workflow['action'])
         self.assertDictEqual(obj.runner, self.fake_history_workflow['runner'])
         self.assertDictEqual(obj.execution, self.fake_history_workflow['execution'])
+        self.assertIsNone(getattr(obj, 'parent', None))
         self.assertListEqual(obj.children, self.fake_history_workflow['children'])
 
         # Convert API object to DB model.
@@ -64,6 +69,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.action, self.fake_history_workflow['action'])
         self.assertDictEqual(model.runner, self.fake_history_workflow['runner'])
         self.assertDictEqual(model.execution, self.fake_history_workflow['execution'])
+        self.assertIsNone(getattr(model, 'parent', None))
         self.assertListEqual(model.children, self.fake_history_workflow['children'])
 
         # Convert DB model to API object.
@@ -76,6 +82,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(obj.action, self.fake_history_workflow['action'])
         self.assertDictEqual(obj.runner, self.fake_history_workflow['runner'])
         self.assertDictEqual(obj.execution, self.fake_history_workflow['execution'])
+        self.assertIsNone(getattr(obj, 'parent', None))
         self.assertListEqual(obj.children, self.fake_history_workflow['children'])
 
     def test_crud_complete(self):
@@ -91,6 +98,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.action, self.fake_history_workflow['action'])
         self.assertDictEqual(model.runner, self.fake_history_workflow['runner'])
         self.assertDictEqual(model.execution, self.fake_history_workflow['execution'])
+        self.assertIsNone(getattr(model, 'parent', None))
         self.assertListEqual(model.children, self.fake_history_workflow['children'])
 
         # Update the DB record.
@@ -114,6 +122,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(obj.action, self.fake_history_subtasks[0]['action'])
         self.assertDictEqual(obj.runner, self.fake_history_subtasks[0]['runner'])
         self.assertDictEqual(obj.execution, self.fake_history_subtasks[0]['execution'])
+        self.assertEqual(obj.parent, self.fake_history_subtasks[0]['parent'])
         self.assertIsNone(getattr(obj, 'children', None))
 
         # Convert API object to DB model.
@@ -126,6 +135,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.action, self.fake_history_subtasks[0]['action'])
         self.assertDictEqual(model.runner, self.fake_history_subtasks[0]['runner'])
         self.assertDictEqual(model.execution, self.fake_history_subtasks[0]['execution'])
+        self.assertEqual(model.parent, self.fake_history_subtasks[0]['parent'])
         self.assertListEqual(model.children, [])
 
         # Convert DB model to API object.
@@ -138,6 +148,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(obj.action, self.fake_history_subtasks[0]['action'])
         self.assertDictEqual(obj.runner, self.fake_history_subtasks[0]['runner'])
         self.assertDictEqual(obj.execution, self.fake_history_subtasks[0]['execution'])
+        self.assertEqual(obj.parent, self.fake_history_subtasks[0]['parent'])
         self.assertIsNone(getattr(obj, 'children', None))
 
     def test_crud_partial(self):
@@ -153,6 +164,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.action, self.fake_history_subtasks[0]['action'])
         self.assertDictEqual(model.runner, self.fake_history_subtasks[0]['runner'])
         self.assertDictEqual(model.execution, self.fake_history_subtasks[0]['execution'])
+        self.assertEqual(model.parent, self.fake_history_subtasks[0]['parent'])
         self.assertListEqual(model.children, [])
 
         # Update the DB record.

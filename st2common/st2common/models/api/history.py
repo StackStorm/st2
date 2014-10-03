@@ -26,6 +26,7 @@ class ActionExecutionHistoryAPI(BaseAPI):
             "action": ActionAPI.schema,
             "runner": RunnerTypeAPI.schema,
             "execution": ActionExecutionAPI.schema,
+            "parent": {"type": "string"},
             "children": {
                 "type": "array",
                 "items": {"type": "string"},

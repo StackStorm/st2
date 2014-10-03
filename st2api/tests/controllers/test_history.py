@@ -19,7 +19,7 @@ class TestActionExecutionHistory(FunctionalTest):
         super(TestActionExecutionHistory, cls).setUpClass()
 
         cls.num_records = 100
-        cls.references = {}
+        cls.refs = {}
 
         cls.fake_types = [
             {
@@ -30,7 +30,7 @@ class TestActionExecutionHistory(FunctionalTest):
                 'action': copy.deepcopy(fixture.ARTIFACTS['actions']['chain']),
                 'runner': copy.deepcopy(fixture.ARTIFACTS['runners']['action-chain']),
                 'execution': copy.deepcopy(fixture.ARTIFACTS['executions']['workflow']),
-                'children': [str(bson.ObjectId()), str(bson.ObjectId())]
+                'children': []
             },
             {
                 'action': copy.deepcopy(fixture.ARTIFACTS['actions']['local']),
@@ -39,14 +39,24 @@ class TestActionExecutionHistory(FunctionalTest):
             }
         ]
 
+        def assign_parent(child):
+            candidates = [v for k, v in cls.refs.iteritems() if v.action['name'] == 'chain']
+            if candidates:
+                parent = random.choice(candidates)
+                child['parent'] = str(parent.id)
+                parent.children.append(child['id'])
+                cls.refs[str(parent.id)] = ActionExecutionHistory.add_or_update(parent)
+
         for i in range(cls.num_records):
             obj_id = str(bson.ObjectId())
             fake_type = random.choice(cls.fake_types)
-            cls.references[obj_id] = fake_type
             data = copy.deepcopy(fake_type)
             data['id'] = obj_id
-            obj = ActionExecutionHistoryAPI(**data)
-            ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
+            if fake_type['action']['name'] == 'local' and random.choice([True, False]):
+                assign_parent(data)
+            wb_obj = ActionExecutionHistoryAPI(**data)
+            db_obj = ActionExecutionHistoryAPI.to_model(wb_obj)
+            cls.refs[obj_id] = ActionExecutionHistory.add_or_update(db_obj)
 
     def test_get_all(self):
         response = self.app.get('/history/executions')
@@ -54,15 +64,15 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), self.num_records)
         ids = [item['id'] for item in response.json]
-        self.assertListEqual(sorted(ids), sorted(self.references.keys()))
+        self.assertListEqual(sorted(ids), sorted(self.refs.keys()))
 
     def test_get_one(self):
-        obj_id = random.choice(self.references.keys())
+        obj_id = random.choice(self.refs.keys())
         response = self.app.get('/history/executions/%s' % obj_id)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, dict)
         record = response.json
-        fake_record = self.references[obj_id]
+        fake_record = self.refs[obj_id]
         self.assertEqual(record['id'], obj_id)
         self.assertDictEqual(record['action'], fake_record['action'])
         self.assertDictEqual(record['runner'], fake_record['runner'])
@@ -74,7 +84,7 @@ class TestActionExecutionHistory(FunctionalTest):
 
     def test_limit(self):
         limit = 10
-        refs = [k for k, v in six.iteritems(self.references) if v == self.fake_types[0]]
+        refs = [k for k, v in six.iteritems(self.refs) if v.action['name'] == 'chain']
         response = self.app.get('/history/executions?action=chain&limit=%s' % limit)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
@@ -83,7 +93,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertListEqual(list(set(ids) - set(refs)), [])
 
     def test_query(self):
-        refs = [k for k, v in six.iteritems(self.references) if v == self.fake_types[0]]
+        refs = [k for k, v in six.iteritems(self.refs) if v.action['name'] == 'chain']
         response = self.app.get('/history/executions?action=chain')
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
@@ -92,7 +102,10 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertListEqual(sorted(ids), sorted(refs))
 
     def test_filters(self):
+        excludes = ['parent']
         for param, field in six.iteritems(ActionExecutionController.supported_filters):
+            if param in excludes:
+                continue
             value = self.fake_types[0]
             for item in field.split('__'):
                 value = value[item]
@@ -100,6 +113,18 @@ class TestActionExecutionHistory(FunctionalTest):
             self.assertEqual(response.status_int, 200)
             self.assertIsInstance(response.json, list)
             self.assertGreater(len(response.json), 0)
+
+    def test_parent(self):
+        refs = [v for k, v in six.iteritems(self.refs)
+                if v.action['name'] == 'chain' and v.children]
+        self.assertTrue(refs)
+        ref = random.choice(refs)
+        response = self.app.get('/history/executions?parent=%s' % str(ref.id))
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        self.assertEqual(len(response.json), len(ref.children))
+        ids = [item['id'] for item in response.json]
+        self.assertListEqual(sorted(ids), sorted(ref.children))
 
     def test_pagination(self):
         retrieved = []
@@ -112,7 +137,7 @@ class TestActionExecutionHistory(FunctionalTest):
             self.assertIsInstance(response.json, list)
             self.assertEqual(len(response.json), page_size)
             ids = [item['id'] for item in response.json]
-            self.assertListEqual(list(set(ids) - set(self.references.keys())), [])
+            self.assertListEqual(list(set(ids) - set(self.refs.keys())), [])
             self.assertListEqual(sorted(list(set(ids) - set(retrieved))), sorted(ids))
             retrieved += ids
-        self.assertListEqual(sorted(retrieved), sorted(self.references.keys()))
+        self.assertListEqual(sorted(retrieved), sorted(self.refs.keys()))
