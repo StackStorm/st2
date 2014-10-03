@@ -126,6 +126,17 @@ class TestActionExecutionHistory(FunctionalTest):
         ids = [item['id'] for item in response.json]
         self.assertListEqual(sorted(ids), sorted(ref.children))
 
+    def test_parentless(self):
+        refs = {k: v for k, v in six.iteritems(self.refs) if not getattr(v, 'parent', None)}
+        self.assertTrue(refs)
+        self.assertNotEqual(len(refs), self.num_records)
+        response = self.app.get('/history/executions?parent=null')
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        self.assertEqual(len(response.json), len(refs))
+        ids = [item['id'] for item in response.json]
+        self.assertListEqual(sorted(ids), sorted(refs.keys()))
+
     def test_pagination(self):
         retrieved = []
         page_size = 10
