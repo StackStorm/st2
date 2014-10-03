@@ -45,11 +45,7 @@ def get_params_view(action_db=None, runner_db=None, merged_only=False):
     def is_immutable(param_meta):
         return param_meta.get('immutable', False)
 
-    immutable = set()
-    for param in parameters:
-        if is_immutable(merged_params.get(param)):
-            immutable.add(param)
-
+    immutable = {param for param in parameters if is_immutable(merged_params.get(param))}
     required = required - immutable
     optional = parameters - required - immutable
 
