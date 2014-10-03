@@ -7,6 +7,7 @@ from st2api.controllers.triggers import TriggerTypeController, TriggerController
     TriggerInstanceController
 from st2api.controllers.rules import RuleController
 from st2api.controllers.datastore import KeyValuePairController
+from st2api.controllers.history import HistoryController
 
 
 class RootController(object):
@@ -18,6 +19,7 @@ class RootController(object):
     triggerinstances = TriggerInstanceController()
     rules = RuleController()
     keys = KeyValuePairController()
+    history = HistoryController()
 
     @expose(generic=True, template='index.html')
     def index(self):

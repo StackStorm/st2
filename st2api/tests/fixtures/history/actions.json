@@ -1,0 +1,14 @@
+{
+    "local": {
+        "runner_type": "run-local",
+        "name": "local",
+        "enabled": true,
+        "content_pack": "core"
+    },
+    "chain": {
+        "runner_type": "action-chain",
+        "name": "chain",
+        "enabled": true,
+        "content_pack": "core"
+    }
+}

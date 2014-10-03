@@ -43,9 +43,9 @@ class MongoDBAccess(object):
         return self.model.objects(**kwargs).count()
 
     def query(self, *args, **kwargs):
-        offset = kwargs.pop('offset', 0)
+        offset = int(kwargs.pop('offset', 0))
         limit = kwargs.pop('limit', None)
-        eop = offset + limit if limit else None
+        eop = offset + int(limit) if limit else None
         order_by = kwargs.pop('order_by', [])
         return self.model.objects(**kwargs).order_by(*order_by)[offset:eop]
 
