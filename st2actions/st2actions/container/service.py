@@ -59,6 +59,15 @@ class RunnerContainerService():
         else:
             return None
 
+    @staticmethod
+    def get_action_libs_abs_path(pack=None, entry_point=None):
+        entry_point_abs_path = RunnerContainerService.get_entry_point_abs_path(
+            pack=pack, entry_point=entry_point)
+        if entry_point_abs_path is not None:
+            return os.path.join(os.path.dirname(entry_point_abs_path), 'libs')
+        else:
+            return None
+
     def __str__(self):
         result = []
         result.append('RunnerContainerService@')

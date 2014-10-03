@@ -41,6 +41,23 @@ class RunnerContainerServiceTest(unittest2.TestCase):
         self.assertEqual(acutal_path, expected_path, 'Entry point path doesn\'t match.')
         cfg.CONF.content.content_packs_base_path = orig_path
 
+    def test_get_action_libs_abs_path(self):
+        service = RunnerContainerService()
+        orig_path = cfg.CONF.content.content_packs_base_path
+        cfg.CONF.content.content_packs_base_path = '/tests/packs'
+
+        # entry point relative.
+        acutal_path = service.get_action_libs_abs_path(pack='foo', entry_point='foo/bar.py')
+        expected_path = os.path.join(cfg.CONF.content.content_packs_base_path, 'foo', 'actions',
+                                     'foo/libs')
+        self.assertEqual(acutal_path, expected_path, 'Action libs path doesn\'t match.')
+
+        # entry point absolute.
+        acutal_path = service.get_action_libs_abs_path(pack='foo', entry_point='/tmp/foo.py')
+        expected_path = os.path.join('/tmp/libs')
+        self.assertEqual(acutal_path, expected_path, 'Action libs path doesn\'t match.')
+        cfg.CONF.content.content_packs_base_path = orig_path
+
     def test_report_result_json(self):
         service = RunnerContainerService()
         result = '["foo", {"bar": ["baz", null, 1.0, 2]}]'
