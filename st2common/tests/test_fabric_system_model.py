@@ -25,6 +25,7 @@ class FabricRemoteActionsTest(unittest2.TestCase):
 
     def test_fabric_remote_script_action_method(self):
         remote_action = FabricRemoteScriptAction('foo', 'foo-id', '/tmp/st2.py',
+                                                 None,
                                                  on_behalf_user='stan',
                                                  parallel=True, sudo=False)
         self.assertTrue(remote_action.get_on_behalf_user(), 'stan')
@@ -34,6 +35,7 @@ class FabricRemoteActionsTest(unittest2.TestCase):
 
     def test_remote_dir_script_action_method_default(self):
         remote_action = FabricRemoteScriptAction('foo', 'foo-id', '/tmp/st2.py',
+                                                 None,
                                                  on_behalf_user='stan',
                                                  parallel=True, sudo=False)
         self.assertTrue(remote_action.remote_dir, '/tmp')
@@ -41,6 +43,7 @@ class FabricRemoteActionsTest(unittest2.TestCase):
 
     def test_remote_dir_script_action_method_override(self):
         remote_action = FabricRemoteScriptAction('foo', 'foo-id', '/tmp/st2.py',
+                                                 None,
                                                  on_behalf_user='stan',
                                                  parallel=True, sudo=False, remote_dir='/foo')
         self.assertTrue(remote_action.remote_dir, '/foo')

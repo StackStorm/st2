@@ -85,17 +85,18 @@ class RemoteAction(SSHCommandAction):
 
 
 class RemoteScriptAction(RemoteAction):
-    def __init__(self, name, action_exec_id, script_local_path_abs, named_args=None,
-                 positional_args=None, on_behalf_user=None, user=None, remote_dir=None, hosts=None,
-                 parallel=True, sudo=False):
+    def __init__(self, name, action_exec_id, script_local_path_abs, script_local_libs_path_abs,
+                 named_args=None, positional_args=None, on_behalf_user=None, user=None,
+                 remote_dir=None, hosts=None, parallel=True, sudo=False):
         super(RemoteScriptAction, self).__init__(name, action_exec_id, '', on_behalf_user, user,
                                                  hosts=hosts, parallel=parallel, sudo=sudo)
         self.script_local_path_abs = script_local_path_abs
+        self.script_local_libs_path_abs = script_local_libs_path_abs
         self.script_local_dir, self.script_name = os.path.split(self.script_local_path_abs)
         self.named_args = named_args
         self.positional_args = positional_args
-
         self.remote_dir = remote_dir if remote_dir is not None else '/tmp'
+        self.remote_libs_path_abs = os.path.join(self.remote_dir, 'libs')
         self.remote_script = os.path.join(self.remote_dir, pipes.quote(self.script_name))
         self.command = self._format_command()
         LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
@@ -120,7 +121,9 @@ class RemoteScriptAction(RemoteAction):
         str_rep.append('%s@%s(name: %s' % (self.__class__.__name__, id(self), self.name))
         str_rep.append('id: %s' % self.id)
         str_rep.append('local_script: %s' % self.script_local_path_abs)
+        str_rep.append('local_libs: %s' % self.script_local_libs_path_abs)
         str_rep.append('remote_dir: %s' % self.remote_dir)
+        str_rep.append('remote_libs: %s' % self.remote_libs_path_abs)
         str_rep.append('named_args: %s' % self.named_args)
         str_rep.append('positional_args: %s' % self.positional_args)
         str_rep.append('command: %s' % self.command)
@@ -190,12 +193,26 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
 
     def _run_script(self):
         try:
-            output_put = self._put()
+            self._execute_remote_command('mkdir %s' % self.remote_dir)
+
+            # Copy script.
+            output_put = self._put(self.script_local_path_abs)
             if output_put.get('failed'):
                 return output_put
+
+            # Copy libs.
+            if self.script_local_libs_path_abs is not None:
+                output_put_libs = self._put(self.script_local_libs_path_abs)
+                if output_put_libs.get('failed'):
+                    return output_put_libs
+
+            # Execute action.
             action_method = self._get_action_method()
             result = action_method()
-            self._rm()
+
+            # Cleanup.
+            self._execute_remote_command('rm %s' % self.remote_script)
+            self._execute_remote_command('rm -rf %s' % self.remote_dir)
         except Exception as e:
             result = {}
             result.failed = True
@@ -204,8 +221,20 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         finally:
             return result
 
-    def _put(self):
-        output = put(self.script_local_path_abs, self.remote_dir, use_sudo=self.sudo,
+    def _execute_remote_command(self, command):
+        action_method = sudo if self.sudo else run
+        output = action_method(command, combine_stderr=False, pty=False, quiet=True)
+
+        if output.failed:
+            msg = 'Remote command %s failed.' % command
+            LOG.error(msg)
+            raise Exception(msg)
+
+        LOG.debug('Remote command %s succeeded.', command)
+        return True
+
+    def _put(self, file_or_dir):
+        output = put(file_or_dir, self.remote_dir, use_sudo=self.sudo,
                      mirror_local_mode=True)
 
         result = {
@@ -214,16 +243,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         }
 
         if output.failed:
-            LOG.error('Failed copying file %s to remote host.', self.script_local_path_abs)
-            result['error'] = 'Failed copying file %s to %s on remote box' % (
-                self.script_local_path_abs, self.remote_dir)
+            msg = 'Failed copying %s to %s on remote box' % (file_or_dir, self.remote_dir)
+            LOG.error(msg)
+            result['error'] = msg
         return result
-
-    def _rm(self):
-        action_method = sudo if self.sudo else run
-        rm_command = 'rm %s' % self.remote_script
-        output = action_method(rm_command, combine_stderr=False, pty=False, quiet=True)
-        if output.failed:
-            LOG.error('Failed to remove file %s from remote host.', self.remote_script)
-        else:
-            LOG.debug('Succesfully cleaned up file %s from remote host.', self.remote_script)
