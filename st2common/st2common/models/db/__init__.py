@@ -16,6 +16,17 @@ def db_teardown():
     mongoengine.connection.disconnect()
 
 
+def process_null_filter(func):
+    def decorate(*args, **kwargs):
+        filters = {k: v for k, v in kwargs.iteritems()
+                   if v is None or (type(v) in [str, unicode] and str(v.lower()) == 'null')}
+        for k, v in filters.iteritems():
+            kwargs['%s__exists' % k] = False
+            del kwargs[k]
+        return func(*args, **kwargs)
+    return decorate
+
+
 class MongoDBAccess(object):
     """Database object access class that provides general functions for a model type."""
 
@@ -42,6 +53,7 @@ class MongoDBAccess(object):
     def count(self, *args, **kwargs):
         return self.model.objects(**kwargs).count()
 
+    @process_null_filter
     def query(self, *args, **kwargs):
         offset = int(kwargs.pop('offset', 0))
         limit = kwargs.pop('limit', None)

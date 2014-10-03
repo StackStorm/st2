@@ -103,6 +103,22 @@ class TestPersistence(DbTestCase):
         self.assertEqual(obj1.name, objs[0].name)
         self.assertDictEqual(obj1.context, objs[0].context)
 
+    def test_null_filter(self):
+        obj1 = FakeModelDB(name=uuid.uuid4().hex)
+        obj1 = self.access.add_or_update(obj1)
+
+        objs = self.access.query(index='null')
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(obj1.id, objs[0].id)
+        self.assertEqual(obj1.name, objs[0].name)
+        self.assertIsNone(getattr(obj1, 'index', None))
+
+        objs = self.access.query(index=None)
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(obj1.id, objs[0].id)
+        self.assertEqual(obj1.name, objs[0].name)
+        self.assertIsNone(getattr(obj1, 'index', None))
+
     def test_pagination(self):
         count = 100
         page_size = 25
