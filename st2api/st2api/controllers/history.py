@@ -8,21 +8,19 @@ from st2common import log as logging
 
 LOG = logging.getLogger(__name__)
 
-MANAGER = resource.ResourceManager(ActionExecutionHistoryAPI, ActionExecutionHistory)
 
-SUPPORTED_FILTERS = {
-    'action': 'action__name',
-    'rule': 'rule__name',
-    'runner': 'runner__name',
-    'trigger': 'trigger__name',
-    'trigger_type': 'trigger_type__name',
-    'user': 'execution__context__user'
-}
-
-
-class ActionExecutionController(rest.RestController, resource.QueryMixin):
-    pass
+class ActionExecutionController(resource.ResourceController):
+    model = ActionExecutionHistoryAPI
+    access = ActionExecutionHistory
+    supported_filters = {
+        'action': 'action__name',
+        'rule': 'rule__name',
+        'runner': 'runner__name',
+        'trigger': 'trigger__name',
+        'trigger_type': 'trigger_type__name',
+        'user': 'execution__context__user'
+    }
 
 
 class HistoryController(rest.RestController):
-    executions = ActionExecutionController(MANAGER, SUPPORTED_FILTERS)
+    executions = ActionExecutionController()

@@ -2,11 +2,12 @@ import copy
 import random
 
 import bson
+import six
 from six.moves import http_client
 
 from tests import FunctionalTest
 from tests.fixtures import history as fixture
-from st2api.controllers.history import SUPPORTED_FILTERS
+from st2api.controllers.history import ActionExecutionController
 from st2common.persistence.history import ActionExecutionHistory
 from st2common.models.api.history import ActionExecutionHistoryAPI
 
@@ -73,7 +74,7 @@ class TestActionExecutionHistory(FunctionalTest):
 
     def test_limit(self):
         limit = 10
-        refs = [k for k, v in self.references.iteritems() if v == self.fake_types[0]]
+        refs = [k for k, v in six.iteritems(self.references) if v == self.fake_types[0]]
         response = self.app.get('/history/executions?action=chain&limit=%s' % limit)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
@@ -82,7 +83,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertListEqual(list(set(ids) - set(refs)), [])
 
     def test_query(self):
-        refs = [k for k, v in self.references.iteritems() if v == self.fake_types[0]]
+        refs = [k for k, v in six.iteritems(self.references) if v == self.fake_types[0]]
         response = self.app.get('/history/executions?action=chain')
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
@@ -91,7 +92,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertListEqual(sorted(ids), sorted(refs))
 
     def test_filters(self):
-        for param, field in SUPPORTED_FILTERS.iteritems():
+        for param, field in six.iteritems(ActionExecutionController.supported_filters):
             value = self.fake_types[0]
             for item in field.split('__'):
                 value = value[item]
