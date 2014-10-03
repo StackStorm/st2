@@ -53,4 +53,4 @@ def get_params_view(action_db=None, runner_db=None, merged_only=False):
     optional_params = {k: merged_params[k] for k in optional}
     immutable_params = {k: merged_params[k] for k in immutable}
 
-    return required_params, optional_params, immutable_params
+    return (required_params, optional_params, immutable_params)
