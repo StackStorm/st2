@@ -16,3 +16,6 @@ class ActionExecutionHistoryDB(stormbase.StormFoundationDB):
     runner = stormbase.EscapedDictField(required=True)
     execution = stormbase.EscapedDictField(required=True)
     children = me.ListField(field=me.StringField())
+
+
+MODELS = [ActionExecutionHistoryDB]
