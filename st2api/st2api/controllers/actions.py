@@ -10,7 +10,7 @@ import six
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
 #       that bubble up to this layer should be core Python exceptions or
 #       StackStorm defined exceptions.
-
+from st2api.controllers.actionviews import ActionViewsController
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.base import jsexpose
@@ -28,6 +28,7 @@ class ActionsController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of Actions in the system.
     """
+    views = ActionViewsController()
 
     @staticmethod
     def __get_by_id(id):
