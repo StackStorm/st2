@@ -266,6 +266,10 @@ def _cast_params(rendered, parameter_schemas):
         # Add uncasted first and then override with casted param. Not all params will end up
         # being cast.
         casted_params[k] = v
+        # No casting if the value is None. It leads to weird cases like str(None) = 'None'
+        # leading to downstream failures as well as int(None) leading to TypeError.
+        if v is None:
+            continue
         parameter_schema = parameter_schemas.get(k, None)
         if not parameter_schema:
             continue

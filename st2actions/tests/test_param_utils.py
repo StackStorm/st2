@@ -137,8 +137,18 @@ class ParamsUtilsTest(TestCase):
         action_param_info = {}
         r_runner_params, r_action_params = param_utils.get_rendered_params(
             runner_params, action_params, runner_param_info, action_param_info)
-        self.assertEqual(r_runner_params, {})
-        self.assertEqual(r_action_params, {})
+        self.assertEqual(r_runner_params, runner_params)
+        self.assertEqual(r_action_params, action_params)
+
+    def test_get_rendered_params_none(self):
+        runner_params = {'r1': None}
+        action_params = {'a1': None}
+        runner_param_info = {'r1': {}}
+        action_param_info = {'a1': {}}
+        r_runner_params, r_action_params = param_utils.get_rendered_params(
+            runner_params, action_params, runner_param_info, action_param_info)
+        self.assertEqual(r_runner_params, runner_params)
+        self.assertEqual(r_action_params, action_params)
 
     def test_get_rendered_params_no_cast(self):
         runner_params = {'r1': '{{r2}}', 'r2': 1}
