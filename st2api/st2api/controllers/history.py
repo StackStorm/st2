@@ -17,6 +17,7 @@ class ActionExecutionController(resource.ResourceController):
         'parent': 'parent',
         'rule': 'rule__name',
         'runner': 'runner__name',
+        'timestamp': 'execution__start_timestamp',
         'trigger': 'trigger__name',
         'trigger_type': 'trigger_type__name',
         'user': 'execution__context__user'

@@ -1,3 +1,5 @@
+import datetime
+
 import mongoengine
 
 from st2common.models.db import stormbase
@@ -23,6 +25,24 @@ def process_null_filter(func):
         for k, v in filters.iteritems():
             kwargs['%s__exists' % k] = False
             del kwargs[k]
+        return func(*args, **kwargs)
+    return decorate
+
+
+def process_datetime_ranges(func):
+    def decorate(*args, **kwargs):
+        pattern = '%Y%m%dT%H%M%S%f'
+        ranges = {k: v for k, v in kwargs.iteritems()
+                  if type(v) in [str, unicode] and '..' in v}
+        for k, v in ranges.iteritems():
+            values = v.split('..')
+            dt1 = datetime.datetime.strptime(values[0].ljust(21, '0'), pattern)
+            dt2 = datetime.datetime.strptime(values[1].ljust(21, '0'), pattern)
+            k__gte = '%s__gte' % k
+            k__lte = '%s__lte' % k
+            query = {k__gte: dt1, k__lte: dt2} if dt1 < dt2 else {k__gte: dt2, k__lte: dt1}
+            del kwargs[k]
+            kwargs.update(query)
         return func(*args, **kwargs)
     return decorate
 
@@ -54,6 +74,7 @@ class MongoDBAccess(object):
         return self.model.objects(**kwargs).count()
 
     @process_null_filter
+    @process_datetime_ranges
     def query(self, *args, **kwargs):
         offset = int(kwargs.pop('offset', 0))
         limit = kwargs.pop('limit', None)

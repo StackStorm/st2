@@ -1,4 +1,5 @@
 import uuid
+import datetime
 
 import bson
 import mongoengine
@@ -12,6 +13,7 @@ from st2common.models.db import stormbase
 class FakeModelDB(stormbase.StormBaseDB):
     context = stormbase.EscapedDictField()
     index = mongoengine.IntField(min_value=0)
+    timestamp = mongoengine.DateTimeField()
 
 
 class FakeModel(persistence.Access):
@@ -118,6 +120,21 @@ class TestPersistence(DbTestCase):
         self.assertEqual(obj1.id, objs[0].id)
         self.assertEqual(obj1.name, objs[0].name)
         self.assertIsNone(getattr(obj1, 'index', None))
+
+    def test_datetime_range(self):
+        base = datetime.datetime(2014, 12, 25, 0, 0, 0)
+        for i in range(60):
+            timestamp = base + datetime.timedelta(seconds=i)
+            obj = FakeModelDB(name=uuid.uuid4().hex, timestamp=timestamp)
+            self.access.add_or_update(obj)
+
+        dt_range = '20141225T000010..20141225T000019'
+        objs = self.access.query(timestamp=dt_range)
+        self.assertEqual(len(objs), 10)
+
+        dt_range = '20141225T000019..20141225T000010'
+        objs = self.access.query(timestamp=dt_range)
+        self.assertEqual(len(objs), 10)
 
     def test_pagination(self):
         count = 100

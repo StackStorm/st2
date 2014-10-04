@@ -34,7 +34,7 @@ class ResourceController(rest.RestController):
     @jsexpose()
     def get_all(self, **kwargs):
         filters = {v: kwargs[k] for k, v in six.iteritems(self.supported_filters) if kwargs.get(k)}
-        instances = self.access.get_all(**filters)
+        instances = self.access.query(**filters)
         return [self.model.from_model(instance) for instance in instances]
 
     @jsexpose(str)
