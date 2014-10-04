@@ -1,0 +1,24 @@
+site_name: st2 Docs
+dev_addr: 0.0.0.0:8000
+docs_dir: sources
+#theme: readthedocs # Known-broken with folders
+theme: mkdocs
+
+repo_url: https://github.com/StackStorm/Stanley/ 
+#TODO: # explore: is it relevant to mkdocs.yaml file or else? 
+
+pages:
+  - [index.md]
+  # TODO: how to make category show in readthedocs theme?
+  # TODO: how to make default show under mkdocs theme (see docker)
+  # - [install/deb.md, "Install",  "**HIDDEN**"]
+  - [install/deb.md, "Install",  "Debian/Ubuntu"]
+  - [install/rpm.md, "Install", "RedHat/Fedora"]
+  - [install/vagrant.md, "Install", "Vagrant"]
+  - [install/source.md, "Install", "Run From Sources"]
+  - [start.md,  "Guides", "Quick Start"]
+  - [actions.md, "Guides", "Making Actions"]
+  - [sensors.md, "Guides", "Writing Custom Sensor"]
+  - [datastore.md, "Guides", "Using Datastore"]
+  - [client.md, "Reference", "CLI Client"]
+

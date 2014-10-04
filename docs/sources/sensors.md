@@ -46,7 +46,7 @@ boto library to talk to AWS and emits the health of instances as triggers.
 
 ### Advanced examples
 
-There are some common use cases that we identified and stanley comes bundled with some default sensors. For example, the two triggers in [triggers](triggers.md) section are implemented as sensors.
+There are some common use cases that we identified and stanley comes bundled with some default sensors. For example, the two triggers in [triggers]() section are implemented as sensors.
 
 #### Timer sensor
 
@@ -69,9 +69,3 @@ Stanley defines it's own webhook format if you want a REST interface to inject t
 
 More sensor examples are in [contrib/sandbox/packages](../contrib/sandbox/packages/).
 
-## API status
-
-* Non-existent. [Look out for beta]
-
-## CLI status
-* Non-existent. [Look out for beta]
