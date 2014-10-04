@@ -1,5 +1,6 @@
 import copy
 import random
+import datetime
 
 import bson
 import six
@@ -18,6 +19,7 @@ class TestActionExecutionHistory(FunctionalTest):
     def setUpClass(cls):
         super(TestActionExecutionHistory, cls).setUpClass()
 
+        cls.dt_base = datetime.datetime(2014, 12, 25, 0, 0, 0)
         cls.num_records = 100
         cls.refs = {}
 
@@ -49,9 +51,11 @@ class TestActionExecutionHistory(FunctionalTest):
 
         for i in range(cls.num_records):
             obj_id = str(bson.ObjectId())
+            timestamp = cls.dt_base + datetime.timedelta(seconds=i)
             fake_type = random.choice(cls.fake_types)
             data = copy.deepcopy(fake_type)
             data['id'] = obj_id
+            data['execution']['start_timestamp'] = str(timestamp) + '.000000'
             if fake_type['action']['name'] == 'local' and random.choice([True, False]):
                 assign_parent(data)
             wb_obj = ActionExecutionHistoryAPI(**data)
@@ -72,11 +76,11 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, dict)
         record = response.json
-        fake_record = self.refs[obj_id]
+        fake_record = ActionExecutionHistoryAPI.from_model(self.refs[obj_id])
         self.assertEqual(record['id'], obj_id)
-        self.assertDictEqual(record['action'], fake_record['action'])
-        self.assertDictEqual(record['runner'], fake_record['runner'])
-        self.assertDictEqual(record['execution'], fake_record['execution'])
+        self.assertDictEqual(record['action'], fake_record.action)
+        self.assertDictEqual(record['runner'], fake_record.runner)
+        self.assertDictEqual(record['execution'], fake_record.execution)
 
     def test_get_one_failed(self):
         response = self.app.get('/history/executions/%s' % str(bson.ObjectId()), expect_errors=True)
@@ -102,7 +106,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertListEqual(sorted(ids), sorted(refs))
 
     def test_filters(self):
-        excludes = ['parent']
+        excludes = ['parent', 'timestamp']
         for param, field in six.iteritems(ActionExecutionController.supported_filters):
             if param in excludes:
                 continue
@@ -152,3 +156,16 @@ class TestActionExecutionHistory(FunctionalTest):
             self.assertListEqual(sorted(list(set(ids) - set(retrieved))), sorted(ids))
             retrieved += ids
         self.assertListEqual(sorted(retrieved), sorted(self.refs.keys()))
+
+    def test_datetime_range(self):
+        dt_range = '20141225T000010..20141225T000019'
+        response = self.app.get('/history/executions?timestamp=%s' % dt_range)
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        self.assertEqual(len(response.json), 10)
+
+        dt_range = '20141225T000019..20141225T000010'
+        response = self.app.get('/history/executions?timestamp=%s' % dt_range)
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        self.assertEqual(len(response.json), 10)
