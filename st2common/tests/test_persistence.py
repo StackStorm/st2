@@ -13,6 +13,7 @@ from st2common.models.db import stormbase
 class FakeModelDB(stormbase.StormBaseDB):
     context = stormbase.EscapedDictField()
     index = mongoengine.IntField(min_value=0)
+    category = mongoengine.StringField()
     timestamp = mongoengine.DateTimeField()
 
 
@@ -131,10 +132,12 @@ class TestPersistence(DbTestCase):
         dt_range = '20141225T000010..20141225T000019'
         objs = self.access.query(timestamp=dt_range)
         self.assertEqual(len(objs), 10)
+        self.assertLess(objs[0].timestamp, objs[9].timestamp)
 
         dt_range = '20141225T000019..20141225T000010'
         objs = self.access.query(timestamp=dt_range)
         self.assertEqual(len(objs), 10)
+        self.assertLess(objs[9].timestamp, objs[0].timestamp)
 
     def test_pagination(self):
         count = 100
@@ -159,3 +162,21 @@ class TestPersistence(DbTestCase):
                 for j in range(page_size):
                     self.assertEqual(objs[j].context['user'], user)
                     self.assertEqual(objs[j].index, (i * page_size) + j)
+
+    def test_sort_multiple(self):
+        count = 60
+        base = datetime.datetime(2014, 12, 25, 0, 0, 0)
+        for i in range(count):
+            category = 'type1' if i % 2 else 'type2'
+            timestamp = base + datetime.timedelta(seconds=i)
+            obj = FakeModelDB(name=uuid.uuid4().hex, timestamp=timestamp, category=category)
+            self.access.add_or_update(obj)
+
+        objs = self.access.query(order_by=['category', 'timestamp'])
+        self.assertEqual(len(objs), count)
+        for i in range(count):
+            category = 'type1' if i < count / 2 else 'type2'
+            self.assertEqual(objs[i].category, category)
+        self.assertLess(objs[0].timestamp, objs[(count / 2) - 1].timestamp)
+        self.assertLess(objs[count / 2].timestamp, objs[(count / 2) - 1].timestamp)
+        self.assertLess(objs[count / 2].timestamp, objs[count - 1].timestamp)

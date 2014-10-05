@@ -10,7 +10,7 @@ from tests import FunctionalTest
 from tests.fixtures import history as fixture
 from st2api.controllers.history import ActionExecutionController
 from st2common.persistence.history import ActionExecutionHistory
-from st2common.models.api.history import ActionExecutionHistoryAPI
+from st2common.models.api.history import ActionExecutionHistoryAPI, DATE_FORMAT
 
 
 class TestActionExecutionHistory(FunctionalTest):
@@ -163,9 +163,26 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), 10)
+        dt1 = response.json[0]['execution']['start_timestamp']
+        dt2 = response.json[9]['execution']['start_timestamp']
+        self.assertLess(datetime.datetime.strptime(dt1, DATE_FORMAT),
+                        datetime.datetime.strptime(dt2, DATE_FORMAT))
 
         dt_range = '20141225T000019..20141225T000010'
         response = self.app.get('/history/executions?timestamp=%s' % dt_range)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), 10)
+        dt1 = response.json[0]['execution']['start_timestamp']
+        dt2 = response.json[9]['execution']['start_timestamp']
+        self.assertLess(datetime.datetime.strptime(dt2, DATE_FORMAT),
+                        datetime.datetime.strptime(dt1, DATE_FORMAT))
+
+    def test_default_sort(self):
+        response = self.app.get('/history/executions')
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        dt1 = response.json[0]['execution']['start_timestamp']
+        dt2 = response.json[len(response.json) - 1]['execution']['start_timestamp']
+        self.assertLess(datetime.datetime.strptime(dt2, DATE_FORMAT),
+                        datetime.datetime.strptime(dt1, DATE_FORMAT))

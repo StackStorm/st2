@@ -12,6 +12,7 @@ LOG = logging.getLogger(__name__)
 class ActionExecutionController(resource.ResourceController):
     model = ActionExecutionHistoryAPI
     access = ActionExecutionHistory
+
     supported_filters = {
         'action': 'action__name',
         'parent': 'parent',
@@ -21,6 +22,10 @@ class ActionExecutionController(resource.ResourceController):
         'trigger': 'trigger__name',
         'trigger_type': 'trigger_type__name',
         'user': 'execution__context__user'
+    }
+
+    options = {
+        'sort': ['-execution__start_timestamp']
     }
 
 

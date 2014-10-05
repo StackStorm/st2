@@ -26,6 +26,9 @@ class ResourceController(rest.RestController):
     model = abc.abstractproperty
     access = abc.abstractproperty
     supported_filters = abc.abstractproperty
+    options = {
+        'sort': []
+    }
 
     def __init__(self):
         self.supported_filters = copy.deepcopy(self.__class__.supported_filters)
@@ -33,6 +36,12 @@ class ResourceController(rest.RestController):
 
     @jsexpose()
     def get_all(self, **kwargs):
+        sort = kwargs.get('sort').split(',') if kwargs.get('sort') else []
+        for i in range(len(sort)):
+            sort.pop(i)
+            direction = '-' if sort[i].startswith('-') else ''
+            sort.insert(i, direction + self.supported_filters[sort[i]])
+        kwargs['sort'] = sort if sort else copy.copy(self.options.get('sort'))
         filters = {v: kwargs[k] for k, v in six.iteritems(self.supported_filters) if kwargs.get(k)}
         instances = self.access.query(**filters)
         return [self.model.from_model(instance) for instance in instances]

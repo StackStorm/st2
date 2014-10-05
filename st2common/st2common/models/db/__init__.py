@@ -38,11 +38,23 @@ def process_datetime_ranges(func):
             values = v.split('..')
             dt1 = datetime.datetime.strptime(values[0].ljust(21, '0'), pattern)
             dt2 = datetime.datetime.strptime(values[1].ljust(21, '0'), pattern)
+            order_by_list = kwargs.get('order_by', [])
             k__gte = '%s__gte' % k
             k__lte = '%s__lte' % k
-            query = {k__gte: dt1, k__lte: dt2} if dt1 < dt2 else {k__gte: dt2, k__lte: dt1}
+            if dt1 < dt2:
+                query = {k__gte: dt1, k__lte: dt2}
+                sort_key, reverse_sort_key = k, '-' + k
+            else:
+                query = {k__gte: dt2, k__lte: dt1}
+                sort_key, reverse_sort_key = '-' + k, k
             del kwargs[k]
             kwargs.update(query)
+            if reverse_sort_key in order_by_list:
+                idx = order_by_list.index(reverse_sort_key)
+                order_by_list.pop(idx)
+                order_by_list.insert(idx, sort_key)
+            elif sort_key not in order_by_list:
+                kwargs['order_by'] = [sort_key] + order_by_list
         return func(*args, **kwargs)
     return decorate
 
