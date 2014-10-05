@@ -207,3 +207,23 @@ class TestActionExecutionHistoryModel(DbTestCase):
         dt_range = '20141225T000019..20141225T000010'
         objs = ActionExecutionHistory.query(execution__start_timestamp=dt_range)
         self.assertEqual(len(objs), 10)
+
+    def test_sort_by_start_timestamp(self):
+        base = datetime.datetime(2014, 12, 25, 0, 0, 0)
+        for i in range(60):
+            timestamp = base + datetime.timedelta(seconds=i)
+            doc = copy.deepcopy(self.fake_history_subtasks[0])
+            doc['id'] = str(bson.ObjectId())
+            doc['execution']['start_timestamp'] = timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')
+            obj = ActionExecutionHistoryAPI(**doc)
+            ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
+
+        dt_range = '20141225T000010..20141225T000019'
+        objs = ActionExecutionHistory.query(execution__start_timestamp=dt_range,
+                                            order_by=['execution__start_timestamp'])
+        self.assertLess(objs[0].execution['start_timestamp'], objs[9].execution['start_timestamp'])
+
+        dt_range = '20141225T000019..20141225T000010'
+        objs = ActionExecutionHistory.query(execution__start_timestamp=dt_range,
+                                            order_by=['-execution__start_timestamp'])
+        self.assertLess(objs[9].execution['start_timestamp'], objs[0].execution['start_timestamp'])
