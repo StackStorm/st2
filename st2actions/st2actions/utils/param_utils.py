@@ -120,6 +120,11 @@ def _get_resolved_action_params(runner_parameters, action_parameters,
 
 
 def get_resolved_params(runnertype_parameter_info, action_parameter_info, actionexec_parameters):
+    '''
+    Looks at the parameter values from runner, action and action execution to fully resolve the
+    values. Resolution is the process of determinig the value of a parameter by taking into
+    consideration default, immutable and user supplied values.
+    '''
     # Runner parameters should use the defaults from the RunnerType object.
     # The runner parameter defaults may be overridden by values provided in
     # the Action and ActionExecution.
@@ -290,7 +295,9 @@ def get_rendered_params(runner_parameters, action_parameters, runnertype_paramet
     from *_parameter_info will appropriately cast the parameters.
     '''
     # To render the params it is necessary to combine the params together so that cross
-    # parameter category references are resolved.
+    # parameter category references are also rendered correctly. Particularly in the cases where
+    # a runner parameter is overridden in an action it is likely that a runner parameter could
+    # depend on an action parameter.
     renderable_params, context = _renderable_context_param_split(action_parameters,
                                                                  runner_parameters)
     rendered_params = _do_render_params(renderable_params, context)
