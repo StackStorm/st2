@@ -8,9 +8,8 @@ from st2common.util.action_db import (get_action_by_dict, get_runnertype_by_name
 from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
 
 from st2actions.container import actionsensor
-from st2actions.container.service import (RunnerContainerService)
-import six
-
+from st2actions.container.service import RunnerContainerService
+from st2actions.utils import param_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -66,8 +65,10 @@ class RunnerContainer(object):
         return result
 
     def _do_run(self, runner, runnertype_db, action_db, actionexec_db):
-        runner_params, action_params = self.get_resolved_params(runnertype_db, action_db,
-                                                                actionexec_db)
+        # Finalized parameters are resolved and then rendered.
+        runner_params, action_params = param_utils.get_finalized_params(
+            runnertype_db.runner_parameters, action_db.parameters, actionexec_db.parameters)
+
         resolved_entry_point = self._get_entry_point_abs_path(action_db.content_pack,
                                                               action_db.entry_point)
         runner.container_service = RunnerContainerService()
@@ -119,82 +120,9 @@ class RunnerContainer(object):
 
         return result
 
-    def get_resolved_params(self, runnertype_db, action_db, actionexec_db):
-        # Runner parameters should use the defaults from the RunnerType object.
-        # The runner parameter defaults may be overridden by values provided in
-        # the Action and ActionExecution.
-        actionexec_runner_parameters, actionexec_action_parameters = RunnerContainer._split_params(
-            runnertype_db, action_db, actionexec_db)
-        action_parameters = dict(action_db.parameters)
-        runner_params = self._get_resolved_runner_params(runnertype_db.runner_parameters,
-                                                         actionexec_runner_parameters,
-                                                         action_parameters)
-        action_params = self._get_resolved_action_params(runnertype_db.runner_parameters,
-                                                         action_parameters,
-                                                         actionexec_action_parameters)
-
-        return runner_params, action_params
-
-    def _get_resolved_runner_params(self, runner_parameters, actionexec_runner_parameters,
-                                    action_parameters):
-        # Runner parameters should use the defaults from the RunnerType object.
-        # The runner parameter defaults may be overridden by values provided in
-        # the Action and ActionExecution.
-
-        # Create runner parameter by merging default values with dynamic values
-        resolved_params = {k: v['default'] if 'default' in v else None
-                           for k, v in six.iteritems(runner_parameters)}
-
-        # pick overrides from action_parameters & actionexec_runner_parameters
-        for param_name, param_value in six.iteritems(runner_parameters):
-            # No override if param is immutable
-            if param_value.get('immutable', False):
-                continue
-            # Check if param exists in action_parameters and if it has a default value then
-            # pickup the override.
-            if param_name in action_parameters and 'default' in action_parameters[param_name]:
-                action_param = action_parameters[param_name]
-                resolved_params[param_name] = action_param['default']
-                # No further override if param is immutable
-                if action_param.get('immutable', False):
-                    continue
-            # Finally pick up override from actionexec_runner_parameters
-            if param_name in actionexec_runner_parameters:
-                resolved_params[param_name] = actionexec_runner_parameters[param_name]
-
-        return resolved_params
-
-    def _get_resolved_action_params(self, runner_parameters,
-                                    action_parameters, actionexec_action_parameters):
-        # Create action parameters by merging default values with dynamic values
-        resolved_params = {k: v['default'] if 'default' in v else None
-                           for k, v in six.iteritems(action_parameters)
-                           if k not in runner_parameters}
-
-        # pick overrides from actionexec_action_parameters
-        for param_name, param_value in six.iteritems(action_parameters):
-            # No override if param is immutable
-            if param_value.get('immutable', False):
-                continue
-            if param_name in actionexec_action_parameters and param_name not in runner_parameters:
-                resolved_params[param_name] = actionexec_action_parameters[param_name]
-
-        return resolved_params
-
     def _get_entry_point_abs_path(self, pack, entry_point):
         return RunnerContainerService.get_entry_point_abs_path(pack=pack,
                                                                entry_point=entry_point)
-
-    @staticmethod
-    def _split_params(runnertype_db, action_db, actionexec_db):
-        return (
-            {param: actionexec_db.parameters[param]
-                for param in runnertype_db.runner_parameters if param in
-                actionexec_db.parameters},
-
-            {param: actionexec_db.parameters[param]
-                for param in action_db.parameters if param in actionexec_db.parameters}
-        )
 
 
 def get_runner_container():

@@ -210,7 +210,12 @@ def get_parameter_schema(model):
     schema = {"$schema": cfg.CONF.schema.draft}
     from st2common.util.action_db import get_runnertype_by_name
     runner_type = get_runnertype_by_name(model.runner_type['name'])
-    required = list(set(runner_type.required_parameters + model.required_parameters))
+    # Any 'required' runner parameter which is provided in the action is no longer
+    # considered 'required' by the runner. The action could choose to keep it
+    # 'required' but will have to explicitly call it out.
+    runner_required_parameters = [p for p in runner_type.required_parameters
+                                  if p not in model.parameters]
+    required = list(set(runner_required_parameters + model.required_parameters))
     normalize = lambda x: {k: v if v else SCHEMA_ANY_TYPE for k, v in six.iteritems(x)}
     properties = normalize(runner_type.runner_parameters)
     properties.update(normalize(model.parameters))
