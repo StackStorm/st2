@@ -18,8 +18,8 @@ LOG = logging.getLogger(__name__)
 # Fabric environment level settings.
 # XXX: Note fabric env is a global singleton.
 env.parallel = True  # By default, execute things in parallel. Uses multiprocessing under the hood.
-env.user = cfg.CONF.ssh_runner.user
-ssh_key_file = cfg.CONF.ssh_runner.ssh_key_file
+env.user = cfg.CONF.system_user.user
+ssh_key_file = cfg.CONF.system_user.ssh_key_file
 if ssh_key_file is not None and os.path.exists(ssh_key_file):
     env.key_filename = ssh_key_file
 env.timeout = 60  # Timeout for commands. 1 minute.
@@ -63,7 +63,7 @@ class FabricRunner(ActionRunner):
                                           self.action_execution_id)
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
-        self._on_behalf_user = self.runner_parameters.get(RUNNER_ON_BEHALF_USER, env.user)
+        self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, env.user)
         self._user = cfg.CONF.ssh_runner.user
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
 
