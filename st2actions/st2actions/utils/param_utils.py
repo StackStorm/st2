@@ -175,6 +175,27 @@ def _renderable_context_param_split(action_parameters, runner_parameters):
     return (renderable_params, context_params)
 
 
+def _check_availability(param, param_dependencies, renderable_params, context):
+    for dependency in param_dependencies:
+        if dependency not in renderable_params and dependency not in context:
+            return False
+    return True
+
+
+def _check_cyclic(dep_chain, dependencies):
+    last_idx = len(dep_chain) - 1
+    last_value = dep_chain[last_idx]
+    for dependency in dependencies.get(last_value, []):
+        if dependency in dep_chain:
+            dep_chain.append(dependency)
+            return False
+        dep_chain.append(dependency)
+        if not _check_cyclic(dep_chain, dependencies):
+            return False
+        dep_chain.pop()
+    return True
+
+
 def _validate_dependencies(renderable_params, context):
     '''
     Validates dependencies between the parameters.
@@ -192,34 +213,13 @@ def _validate_dependencies(renderable_params, context):
         template_ast = env.parse(v)
         dependencies[k] = meta.find_undeclared_variables(template_ast)
 
-    def check_availability(param):
-        # Trusting self code.
-        param_dependencies = dependencies[param]
-        for dependency in param_dependencies:
-            if dependency not in renderable_params and dependency not in context:
-                return False
-        return True
-
-    def check_cyclic(dep_chain):
-        last_idx = len(dep_chain) - 1
-        last_value = dep_chain[last_idx]
-        for dependency in dependencies.get(last_value, []):
-            if dependency in dep_chain:
-                dep_chain.append(dependency)
-                return False
-            dep_chain.append(dependency)
-            if not check_cyclic(dep_chain):
-                return False
-            dep_chain.pop()
-        return True
-
-    for k in dependencies:
-        if not check_availability(k):
-            msg = 'Dependecy unsatisfied - %s: %s.' % (k, dependencies[k])
+    for k, v in six.iteritems(dependencies):
+        if not _check_availability(k, v, renderable_params, context):
+            msg = 'Dependecy unsatisfied - %s: %s.' % (k, v)
             raise actionrunner.ActionRunnerException(msg)
         dep_chain = []
         dep_chain.append(k)
-        if not check_cyclic(dep_chain):
+        if not _check_cyclic(dep_chain, dependencies):
             msg = 'Cyclic dependecy found - %s.' % dep_chain
             raise actionrunner.ActionRunnerException(msg)
 
@@ -285,6 +285,10 @@ def _cast_params(rendered, parameter_schemas):
 
 def get_rendered_params(runner_parameters, action_parameters, runnertype_parameter_info,
                         action_parameter_info):
+    '''
+    Renders the templates in runner_parameters and action_parameters. Using the type information
+    from *_parameter_info will appropriately cast the parameters.
+    '''
     # To render the params it is necessary to combine the params together so that cross
     # parameter category references are resolved.
     renderable_params, context = _renderable_context_param_split(action_parameters,
