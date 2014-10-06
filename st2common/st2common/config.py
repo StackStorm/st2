@@ -16,6 +16,16 @@ def register_opts(ignore_errors=False):
     ]
     _do_register_opts(auth_opts, 'auth', ignore_errors)
 
+    system_user_opts = [
+        cfg.StrOpt('user',
+                   default='stanley',
+                   help='Default system user.'),
+        cfg.StrOpt('ssh_key_file',
+                   default='/home/vagrant/.ssh/stanley_rsa',
+                   help='SSH private key for the system user.')
+    ]
+    _do_register_opts(system_user_opts, 'system_user', ignore_errors)
+
     schema_opts = [
         cfg.IntOpt('version', default=4, help='Version of JSON schema to use.'),
         cfg.StrOpt('draft', default='http://json-schema.org/draft-04/schema#',
