@@ -4,6 +4,7 @@ import pipes
 from fabric.api import (put, run, sudo)
 from fabric.tasks import WrappedCallableTask
 
+from st2actions.constants import LIBS_DIR as ACTION_LIBS_DIR
 from st2common import log as logging
 
 
@@ -96,7 +97,7 @@ class RemoteScriptAction(RemoteAction):
         self.named_args = named_args
         self.positional_args = positional_args
         self.remote_dir = remote_dir if remote_dir is not None else '/tmp'
-        self.remote_libs_path_abs = os.path.join(self.remote_dir, 'libs')
+        self.remote_libs_path_abs = os.path.join(self.remote_dir, ACTION_LIBS_DIR)
         self.remote_script = os.path.join(self.remote_dir, pipes.quote(self.script_name))
         self.command = self._format_command()
         LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)

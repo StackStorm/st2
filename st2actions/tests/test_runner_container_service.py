@@ -8,6 +8,7 @@ import os
 from oslo.config import cfg
 import unittest2
 
+from st2actions.constants import LIBS_DIR as ACTION_LIBS_DIR
 from st2actions.container.service import RunnerContainerService
 
 
@@ -49,12 +50,12 @@ class RunnerContainerServiceTest(unittest2.TestCase):
         # entry point relative.
         acutal_path = service.get_action_libs_abs_path(pack='foo', entry_point='foo/bar.py')
         expected_path = os.path.join(cfg.CONF.content.content_packs_base_path, 'foo', 'actions',
-                                     'foo/lib')
+                                     os.path.join('foo', ACTION_LIBS_DIR))
         self.assertEqual(acutal_path, expected_path, 'Action libs path doesn\'t match.')
 
         # entry point absolute.
         acutal_path = service.get_action_libs_abs_path(pack='foo', entry_point='/tmp/foo.py')
-        expected_path = os.path.join('/tmp/lib')
+        expected_path = os.path.join('/tmp', ACTION_LIBS_DIR)
         self.assertEqual(acutal_path, expected_path, 'Action libs path doesn\'t match.')
         cfg.CONF.content.content_packs_base_path = orig_path
 
