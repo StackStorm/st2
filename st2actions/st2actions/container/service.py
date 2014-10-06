@@ -4,6 +4,7 @@ import pipes
 
 from oslo.config import cfg
 
+from st2actions.constants import LIBS_DIR as ACTION_LIBS_DIR
 from st2common import log as logging
 
 LOG = logging.getLogger(__name__)
@@ -56,6 +57,15 @@ class RunnerContainerService():
                 return entry_point
             return os.path.join(RunnerContainerService.get_content_packs_base_path(),
                                 pipes.quote(pack), 'actions', pipes.quote(entry_point))
+        else:
+            return None
+
+    @staticmethod
+    def get_action_libs_abs_path(pack=None, entry_point=None):
+        entry_point_abs_path = RunnerContainerService.get_entry_point_abs_path(
+            pack=pack, entry_point=entry_point)
+        if entry_point_abs_path is not None:
+            return os.path.join(os.path.dirname(entry_point_abs_path), ACTION_LIBS_DIR)
         else:
             return None
 

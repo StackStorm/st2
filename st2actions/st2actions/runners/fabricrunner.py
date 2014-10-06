@@ -112,9 +112,11 @@ class FabricRunner(ActionRunner):
         named_args = self._transform_pos_args(named_args)
         remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
                                                 cfg.CONF.ssh_runner.remote_dir)
+        remote_dir = os.path.join(remote_dir, self.action_execution_id)
         return FabricRemoteScriptAction(self.action_name,
                                         str(self.action_execution_id),
                                         script_local_path_abs,
+                                        self.libs_dir_path,
                                         named_args=named_args,
                                         positional_args=pos_args,
                                         on_behalf_user=self._on_behalf_user,

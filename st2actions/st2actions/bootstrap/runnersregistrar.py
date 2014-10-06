@@ -1,3 +1,5 @@
+from oslo.config import cfg
+
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RunnerTypeAPI
@@ -9,6 +11,11 @@ LOG = logging.getLogger(__name__)
 
 
 def register_runner_types():
+    try:
+        default_remote_dir = cfg.CONF.ssh_runner.remote_dir
+    except:
+        default_remote_dir = '/tmp'
+
     RUNNER_TYPES = [
         {
             'name': 'run-local',
@@ -46,7 +53,8 @@ def register_runner_types():
                 'dir': {
                     'description': 'The working directory where the command will be '
                                    'executed on the host.',
-                    'type': 'string'
+                    'type': 'string',
+                    'default': default_remote_dir
                 },
                 'kwarg_op': {
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
@@ -87,7 +95,8 @@ def register_runner_types():
                 'dir': {
                     'description': 'The working directory where the command will be '
                                    'executed on the host.',
-                    'type': 'string'
+                    'type': 'string',
+                    'default': default_remote_dir
                 },
                 'kwarg_op': {
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
@@ -131,7 +140,8 @@ def register_runner_types():
                 'dir': {
                     'description': 'The working directory where the command will be '
                                    'executed on the remote host.',
-                    'type': 'string'
+                    'type': 'string',
+                    'default': default_remote_dir
                 },
                 'kwarg_op': {
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
@@ -171,7 +181,8 @@ def register_runner_types():
                 'dir': {
                     'description': 'The working directory where the command will be '
                                    'executed on the remote host.',
-                    'type': 'string'
+                    'type': 'string',
+                    'default': default_remote_dir
                 },
                 'kwarg_op': {
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',

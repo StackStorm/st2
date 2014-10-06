@@ -79,6 +79,8 @@ class RunnerContainer(object):
         runner.runner_parameters = runner_params
         runner.context = getattr(actionexec_db, 'context', dict())
         runner.callback = getattr(actionexec_db, 'callback', dict())
+        runner.libs_dir_path = self._get_action_libs_abs_path(action_db.content_pack,
+                                                              action_db.entry_point)
 
         LOG.debug('Performing pre-run for runner: %s', runner)
         runner.pre_run()
@@ -122,6 +124,10 @@ class RunnerContainer(object):
 
     def _get_entry_point_abs_path(self, pack, entry_point):
         return RunnerContainerService.get_entry_point_abs_path(pack=pack,
+                                                               entry_point=entry_point)
+
+    def _get_action_libs_abs_path(self, pack, entry_point):
+        return RunnerContainerService.get_action_libs_abs_path(pack=pack,
                                                                entry_point=entry_point)
 
 
