@@ -49,12 +49,12 @@ class RunnerContainerServiceTest(unittest2.TestCase):
         # entry point relative.
         acutal_path = service.get_action_libs_abs_path(pack='foo', entry_point='foo/bar.py')
         expected_path = os.path.join(cfg.CONF.content.content_packs_base_path, 'foo', 'actions',
-                                     'foo/libs')
+                                     'foo/lib')
         self.assertEqual(acutal_path, expected_path, 'Action libs path doesn\'t match.')
 
         # entry point absolute.
         acutal_path = service.get_action_libs_abs_path(pack='foo', entry_point='/tmp/foo.py')
-        expected_path = os.path.join('/tmp/libs')
+        expected_path = os.path.join('/tmp/lib')
         self.assertEqual(acutal_path, expected_path, 'Action libs path doesn\'t match.')
         cfg.CONF.content.content_packs_base_path = orig_path
 

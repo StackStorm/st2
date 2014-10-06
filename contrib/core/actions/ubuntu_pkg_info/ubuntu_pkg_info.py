@@ -3,7 +3,7 @@
 import shlex
 import sys
 import subprocess
-import libs.datatransformer as transformer
+import lib.datatransformer as transformer
 
 
 def main(args):

@@ -64,7 +64,7 @@ class RunnerContainerService():
         entry_point_abs_path = RunnerContainerService.get_entry_point_abs_path(
             pack=pack, entry_point=entry_point)
         if entry_point_abs_path is not None:
-            return os.path.join(os.path.dirname(entry_point_abs_path), 'libs')
+            return os.path.join(os.path.dirname(entry_point_abs_path), 'lib')
         else:
             return None
 
