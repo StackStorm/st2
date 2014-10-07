@@ -37,7 +37,3 @@ nosetests.xml
 .DS_Store
 ._*
 
-# Generated documentation
-docs/html
-docs/latex
-docs/rtf
