@@ -53,6 +53,17 @@ class TestActionViews(FunctionalTest):
         self._do_delete(action_1_id)
         self._do_delete(action_2_id)
 
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_all_filter_by_name(self):
+        action_1_id = self._get_action_id(self._do_post(ACTION_1))
+        action_2_id = self._get_action_id(self._do_post(ACTION_2))
+        resp = self.app.get('/actions/views/overview?name=%s' % str('st2.dummy.action2'))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json[0]['id'], action_2_id, 'Filtering failed')
+        self._do_delete(action_1_id)
+        self._do_delete(action_2_id)
+
     @staticmethod
     def _get_action_id(resp):
         return resp.json['id']

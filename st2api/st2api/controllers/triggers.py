@@ -35,16 +35,15 @@ class TriggerTypeController(RestController):
         return triggertype_api
 
     @jsexpose(str)
-    def get_all(self, name=None, **kw):
+    def get_all(self, **kw):
         """
             List all triggertypes.
 
             Handles requests:
                 GET /triggertypes/
         """
-        LOG.info('GET all /triggertypes/ with name=%s and filter=%s', name, kw)
-        triggertype_dbs = TriggerType.get_all(**kw) if name is None else \
-            TriggerTypeController.__get_by_name(name)
+        LOG.info('GET all /triggertypes/ with filters=%s', kw)
+        triggertype_dbs = TriggerType.get_all(**kw)
         triggertype_apis = [TriggerTypeAPI.from_model(triggertype_db) for triggertype_db in
                             triggertype_dbs]
         return triggertype_apis

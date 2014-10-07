@@ -37,15 +37,15 @@ class RuleController(RestController):
         return rule_api
 
     @jsexpose(str)
-    def get_all(self, name=None, **kw):
+    def get_all(self, **kw):
         """
             List all rules.
 
             Handles requests:
                 GET /rules/
         """
-        LOG.info('GET all /rules/ and name=%s', str(name))
-        rule_dbs = Rule.get_all(**kw) if name is None else RuleController.__get_by_name(name)
+        LOG.info('GET all /rules/ with filters=%s', kw)
+        rule_dbs = Rule.get_all(**kw)
         rule_apis = [RuleAPI.from_model(rule_db) for rule_db in rule_dbs]
         LOG.debug('GET all /rules/ client_result=%s', rule_apis)
         return rule_apis

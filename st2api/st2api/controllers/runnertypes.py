@@ -51,16 +51,15 @@ class RunnerTypesController(RestController):
         return runnertype_api
 
     @jsexpose(str)
-    def get_all(self, name=None, **kw):
+    def get_all(self, **kw):
         """
             List all RunnerType objects.
 
             Handles requests:
                 GET /runnertypes/
         """
-        LOG.info('GET all /runnertypes/ and name=%s', str(name))
-        runnertype_dbs = (RunnerType.get_all(**kw) if name is None else
-                          RunnerTypesController.__get_by_name(name))
+        LOG.info('GET all /runnertypes/ with filters=%s', kw)
+        runnertype_dbs = RunnerType.get_all(**kw)
         runnertype_apis = [RunnerTypeAPI.from_model(runnertype_db)
                            for runnertype_db in runnertype_dbs]
         LOG.debug('GET all /runnertypes/ client_result=%s', runnertype_apis)
