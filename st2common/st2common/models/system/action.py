@@ -202,7 +202,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
                 return output_put
 
             # Copy libs.
-            if self.script_local_libs_path_abs is not None:
+            if self.script_local_libs_path_abs and os.path.exists(self.script_local_libs_path_abs):
                 output_put_libs = self._put(self.script_local_libs_path_abs)
                 if output_put_libs.get('failed'):
                     return output_put_libs
@@ -215,6 +215,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             self._execute_remote_command('rm %s' % self.remote_script)
             self._execute_remote_command('rm -rf %s' % self.remote_dir)
         except Exception as e:
+            LOG.exception('Failed executing remote action.')
             result = {}
             result.failed = True
             result.succeeded = False
