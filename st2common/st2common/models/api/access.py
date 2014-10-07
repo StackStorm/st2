@@ -9,7 +9,8 @@ from st2common import log as logging
 LOG = logging.getLogger(__name__)
 
 
-SYSTEM_USERNAME = cfg.CONF.system_user.user
+def get_system_username():
+    return cfg.CONF.system_user.user
 
 
 class UserAPI(BaseAPI):
