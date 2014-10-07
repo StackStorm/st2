@@ -33,6 +33,7 @@ mkdir -p %{buildroot}/var/log/stanley
 mkdir -p %{buildroot}/etc/stanley
 mkdir -p %{buildroot}/opt/stackstorm
 mkdir -p %{buildroot}/usr/share/doc/stanley
+rm -Rf contrib/core/correlation
 cp -R contrib/core %{buildroot}/opt/stackstorm/
 cp -R contrib/examples %{buildroot}/usr/share/doc/stanley/
 cp -R contrib/sandbox %{buildroot}/usr/share/doc/stanley/
