@@ -52,6 +52,11 @@ def _setup_config_opts():
     ]
     _register_opts(system_user_opts, 'system_user')
 
+    auth_opts = [
+        cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.')
+    ]
+    _register_opts(auth_opts, group='auth')
+
 
 def parse_args():
     _setup_config_opts()

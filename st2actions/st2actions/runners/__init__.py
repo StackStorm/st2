@@ -25,6 +25,7 @@ class ActionRunner(object):
         self.libs_dir_path = None
         self.context = None
         self.callback = None
+        self.auth_token = None
 
     @abc.abstractmethod
     def pre_run(self):
