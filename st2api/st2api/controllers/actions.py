@@ -1,7 +1,4 @@
-import os
-
 from mongoengine import ValidationError, NotUniqueError
-from oslo.config import cfg
 
 from pecan import abort
 from pecan.rest import RestController
@@ -12,11 +9,11 @@ import six
 #       StackStorm defined exceptions.
 from st2api.controllers.actionviews import ActionViewsController
 from st2common import log as logging
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
-from st2common.util.action_db import get_runnertype_by_name
+import st2common.validators.api.action as action_validator
 
 http_client = six.moves.http_client
 
@@ -31,16 +28,16 @@ class ActionsController(RestController):
     views = ActionViewsController()
 
     @staticmethod
-    def __get_by_id(id):
+    def _get_by_id(action_id):
         try:
-            return Action.get_by_id(id)
+            return Action.get_by_id(action_id)
         except Exception as e:
-            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e)
+            msg = 'Database lookup for id="%s" resulted in exception. %s' % (action_id, e)
             LOG.exception(msg)
             abort(http_client.NOT_FOUND, msg)
 
     @staticmethod
-    def __get_by_name(name):
+    def _get_by_name(name):
         try:
             action = Action.get_by_name(name)
             return [action]
@@ -49,18 +46,18 @@ class ActionsController(RestController):
             return []
 
     @jsexpose(str)
-    def get_one(self, id):
+    def get_one(self, action_id):
         """
-            List action by id.
+            List action by action_id.
 
             Handle:
                 GET /actions/1
         """
 
-        LOG.info('GET /actions/ with id=%s', id)
-        action_db = ActionsController.__get_by_id(id)
+        LOG.info('GET /actions/ with id=%s', action_id)
+        action_db = ActionsController._get_by_id(action_id)
         action_api = ActionAPI.from_model(action_db)
-        LOG.debug('GET /actions/ with id=%s, client_result=%s', id, action_api)
+        LOG.debug('GET /actions/ with id=%s, client_result=%s', action_id, action_api)
         return action_api
 
     @jsexpose(str)
@@ -72,7 +69,7 @@ class ActionsController(RestController):
                 GET /actions/
         """
         LOG.info('GET all /actions/ and name=%s', str(name))
-        action_dbs = Action.get_all(**kw) if name is None else ActionsController.__get_by_name(name)
+        action_dbs = Action.get_all(**kw) if name is None else ActionsController._get_by_name(name)
         action_apis = [ActionAPI.from_model(action_db) for action_db in action_dbs]
         LOG.debug('GET all /actions/ client_result=%s', action_apis)
         return action_apis
@@ -105,23 +102,13 @@ class ActionsController(RestController):
         else:
             action.enabled = bool(action.enabled)
 
-        # check if action parameters conflict with those from the supplied runner_type.
-        try:
-            get_runnertype_by_name(action.runner_type)
-        except StackStormDBObjectNotFoundError as e:
-            msg = 'RunnerType %s is not found.' % action.runner_type
-            LOG.exception('%s. Exception: %s', msg, e)
-            abort(http_client.NOT_FOUND, msg)
-            return
-
         if not hasattr(action, 'content_pack'):
             setattr(action, 'content_pack', 'default')
 
-        if not self._is_valid_content_pack(action.content_pack):
-            msg = 'Content pack %s does not exist in %s.' % (
-                action.content_pack,
-                cfg.CONF.content.content_packs_base_path)
-            abort(http_client.BAD_REQUEST, msg)
+        try:
+            action_validator.validate_action(action)
+        except ValueValidationException as e:
+            abort(http_client.BAD_REQUEST, str(e))
             return
 
         # ActionsController._validate_action_parameters(action, runnertype_db)
@@ -151,12 +138,18 @@ class ActionsController(RestController):
         return action_api
 
     @jsexpose(str, body=ActionAPI)
-    def put(self, id, action):
-        action_db = ActionsController.__get_by_id(id)
+    def put(self, action_id, action):
+        action_db = ActionsController._get_by_id(action_id)
+
+        try:
+            action_validator.validate_action(action)
+        except ValueValidationException as e:
+            abort(http_client.BAD_REQUEST, str(e))
+            return
 
         try:
             action_db = ActionAPI.to_model(action)
-            action_db.id = id
+            action_db.id = action_id
             action_db = Action.add_or_update(action_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Unable to update action data=%s', action)
@@ -169,7 +162,7 @@ class ActionsController(RestController):
         return action_api
 
     @jsexpose(str, status_code=http_client.NO_CONTENT)
-    def delete(self, id):
+    def delete(self, action_id):
         """
             Delete an action.
 
@@ -178,23 +171,19 @@ class ActionsController(RestController):
                 DELETE /actions/1
         """
 
-        LOG.info('DELETE /actions/ with id="%s"', id)
-        action_db = ActionsController.__get_by_id(id)
+        LOG.info('DELETE /actions/ with id="%s"', action_id)
+        action_db = ActionsController._get_by_id(action_id)
 
-        LOG.debug('DELETE /actions/ lookup with id=%s found object: %s', id, action_db)
+        LOG.debug('DELETE /actions/ lookup with id=%s found object: %s', action_id, action_db)
 
         try:
             Action.delete(action_db)
         except Exception as e:
             LOG.error('Database delete encountered exception during delete of id="%s". '
-                      'Exception was %s', id, e)
+                      'Exception was %s', action_id, e)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
 
         LOG.audit('Action deleted. Action=%s', action_db)
-        LOG.info('DELETE /actions/ with id="%s" completed', id)
+        LOG.info('DELETE /actions/ with id="%s" completed', action_id)
         return None
-
-    def _is_valid_content_pack(self, content_pack):
-        base_path = cfg.CONF.content.content_packs_base_path
-        return os.path.exists(os.path.join(base_path, content_pack, 'actions'))
