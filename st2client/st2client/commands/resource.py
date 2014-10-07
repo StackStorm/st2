@@ -107,7 +107,9 @@ class ResourceCommand(commands.Command):
             except:
                 pass
         if not instance:
-            raise ResourceNotFoundError()
+            message = ('Resource with id or name "%s" doesn\'t exist.' %
+                       (name_or_id))
+            raise ResourceNotFoundError(message)
         return instance
 
     @abc.abstractmethod
