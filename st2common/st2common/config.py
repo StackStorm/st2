@@ -12,7 +12,8 @@ def _do_register_opts(opts, group, ignore_errors):
 def register_opts(ignore_errors=False):
 
     auth_opts = [
-        cfg.BoolOpt('enable', default=True, help='Enable authentication middleware.')
+        cfg.BoolOpt('enable', default=True, help='Enable authentication middleware.'),
+        cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.')
     ]
     _do_register_opts(auth_opts, 'auth', ignore_errors)
 

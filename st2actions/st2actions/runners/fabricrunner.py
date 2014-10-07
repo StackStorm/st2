@@ -64,7 +64,7 @@ class FabricRunner(ActionRunner):
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, env.user)
-        self._user = cfg.CONF.ssh_runner.user
+        self._user = cfg.CONF.system_user.user
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
 
         LOG.info('[FabricRunner="%s", actionexec_id="%s"] Finished pre_run.',
@@ -97,9 +97,11 @@ class FabricRunner(ActionRunner):
 
     def _get_fabric_remote_action(self, action_paramaters):
         command = self.runner_parameters.get(RUNNER_COMMAND, None)
+        env_vars = self._get_env_vars()
         return FabricRemoteAction(self.action_name,
                                   str(self.action_execution_id),
                                   command,
+                                  env_vars=env_vars,
                                   on_behalf_user=self._on_behalf_user,
                                   user=self._user,
                                   hosts=self._hosts,
@@ -110,6 +112,7 @@ class FabricRunner(ActionRunner):
         script_local_path_abs = self.entry_point
         pos_args, named_args = self._get_script_args(action_parameters)
         named_args = self._transform_pos_args(named_args)
+        env_vars = self._get_env_vars()
         remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
                                                 cfg.CONF.ssh_runner.remote_dir)
         remote_dir = os.path.join(remote_dir, self.action_execution_id)
@@ -119,6 +122,7 @@ class FabricRunner(ActionRunner):
                                         self.libs_dir_path,
                                         named_args=named_args,
                                         positional_args=pos_args,
+                                        env_vars=env_vars,
                                         on_behalf_user=self._on_behalf_user,
                                         user=self._user,
                                         remote_dir=remote_dir,
@@ -141,6 +145,9 @@ class FabricRunner(ActionRunner):
         else:
             pos_args, named_args = action_utils.get_args(action_parameters, self.action)
         return pos_args, named_args
+
+    def _get_env_vars(self):
+        return {'st2_auth_token': self.auth_token.token} if self.auth_token else {}
 
 
 # XXX: Write proper tests.
