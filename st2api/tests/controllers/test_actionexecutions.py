@@ -10,10 +10,10 @@ try:
 except ImportError:
     import json
 
-from st2api.controllers.actions import ActionsController
 from st2common.models.db.access import TokenDB
 from st2common.persistence.access import Token
 from st2common.transport.publishers import PoolPublisher
+import st2common.validators.api.action as action_validator
 from tests import FunctionalTest, AuthMiddlewareTest
 
 
@@ -122,9 +122,8 @@ class FakeResponse(object):
 class TestActionExecutionController(FunctionalTest):
 
     @classmethod
-    @mock.patch.object(
-        ActionsController, '_is_valid_content_pack',
-        mock.MagicMock(return_value=True))
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
     def setUpClass(cls):
         super(TestActionExecutionController, cls).setUpClass()
         cls.action1 = copy.deepcopy(ACTION_1)
@@ -284,9 +283,8 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
     @mock.patch.object(
         Token, 'get',
         mock.MagicMock(side_effect=mock_get_token))
-    @mock.patch.object(
-        ActionsController, '_is_valid_content_pack',
-        mock.MagicMock(return_value=True))
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
     def setUpClass(cls):
         super(TestActionExecutionControllerAuthEnabled, cls).setUpClass()
         cls.action = copy.deepcopy(ACTION_1)

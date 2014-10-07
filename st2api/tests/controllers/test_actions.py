@@ -6,8 +6,8 @@ except ImportError:
 
 import mock
 
-from st2api.controllers.actions import ActionsController
 from st2common.persistence.action import Action
+import st2common.validators.api.action as action_validator
 from tests import FunctionalTest
 
 # ACTION_1: Good action definition.
@@ -136,7 +136,7 @@ ACTION_9 = {
 
 
 class TestActionController(FunctionalTest):
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_one(self):
         post_resp = self.__do_post(ACTION_1)
@@ -146,7 +146,7 @@ class TestActionController(FunctionalTest):
         self.assertEqual(self.__get_action_id(get_resp), action_id)
         self.__do_delete(action_id)
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_one_validate_params(self):
         post_resp = self.__do_post(ACTION_1)
@@ -158,7 +158,7 @@ class TestActionController(FunctionalTest):
         self.assertEqual(get_resp.json['parameters'], expected_args)
         self.__do_delete(action_id)
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_all(self):
         action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
@@ -169,33 +169,33 @@ class TestActionController(FunctionalTest):
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_one_fail(self):
         resp = self.app.get('/actions/1', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_post_delete(self):
         post_resp = self.__do_post(ACTION_1)
         self.assertEqual(post_resp.status_int, 201)
         self.__do_delete(self.__get_action_id(post_resp))
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_post_action_with_bad_params(self):
         post_resp = self.__do_post(ACTION_9, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_post_no_description_field(self):
         post_resp = self.__do_post(ACTION_6)
         self.assertEqual(post_resp.status_int, 201)
         self.__do_delete(self.__get_action_id(post_resp))
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_post_no_enable_field(self):
         post_resp = self.__do_post(ACTION_3)
@@ -208,7 +208,7 @@ class TestActionController(FunctionalTest):
 
         self.__do_delete(self.__get_action_id(post_resp))
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_post_false_enable_field(self):
         post_resp = self.__do_post(ACTION_4)
@@ -219,7 +219,7 @@ class TestActionController(FunctionalTest):
 
         self.__do_delete(self.__get_action_id(post_resp))
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_post_discard_id_field(self):
         post_resp = self.__do_post(ACTION_7)
@@ -230,7 +230,7 @@ class TestActionController(FunctionalTest):
         self.assertNotEquals(data['id'], ACTION_7['id'])
         self.__do_delete(self.__get_action_id(post_resp))
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_post_name_duplicate(self):
         action_ids = []
@@ -248,7 +248,7 @@ class TestActionController(FunctionalTest):
         for i in action_ids:
             self.__do_delete(i)
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_post_put_delete(self):
         action = copy.copy(ACTION_1)
@@ -265,13 +265,11 @@ class TestActionController(FunctionalTest):
         self.assertEqual(body['description'], action['description'])
         self.__do_delete(self.__get_action_id(post_resp))
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
-        return_value=True))
     def test_post_invalid_runner_type(self):
         post_resp = self.__do_post(ACTION_5, expect_errors=True)
-        self.assertEqual(post_resp.status_int, 404)
+        self.assertEqual(post_resp.status_int, 400)
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_delete(self):
         post_resp = self.__do_post(ACTION_1)

@@ -10,5 +10,51 @@
         "name": "chain",
         "enabled": true,
         "content_pack": "core"
+    },
+    "local-override-runner-immutable": {
+        "runner_type": "run-local",
+        "name": "local-override-runner-immutable",
+        "enabled": true,
+        "content_pack": "core",
+        "parameters": {
+            "hosts": {
+                "immutable": false
+            }
+        }
+    },
+    "action-with-invalid-runner": {
+        "runner_type": "invalid-runner",
+        "name": "action-with-invalid-runner",
+        "enabled": true,
+        "content_pack": "core",
+        "parameters": {
+            "hosts": {
+                "immutable": false
+            }
+        }
+    },
+    "action-immutable-param-no-default": {
+        "runner_type": "run-local",
+        "name": "action-immutable-param-no-default",
+        "enabled": true,
+        "content_pack": "core",
+        "parameters": {
+            "foo": {
+                "immutable": true
+            }
+        }
+    },
+    "action-missing-param-required": {
+        "runner_type": "run-local",
+        "name": "action-missing-param-required",
+        "enabled": true,
+        "content_pack": "core",
+        "parameters": {
+            "foo": {
+                "immutable": true,
+                "default": "bar"
+            }
+        },
+        "required_parameters": ["bar"]
     }
 }

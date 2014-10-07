@@ -1,6 +1,6 @@
 import mock
 
-from st2api.controllers.actions import ActionsController
+import st2common.validators.api.action as action_validator
 from tests import FunctionalTest
 
 # ACTION_1: Good action definition.
@@ -32,7 +32,7 @@ ACTION_2 = {
 
 
 class TestActionViews(FunctionalTest):
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_one(self):
         post_resp = self._do_post(ACTION_1)
@@ -42,7 +42,7 @@ class TestActionViews(FunctionalTest):
         self.assertEqual(self._get_action_id(get_resp), action_id)
         self._do_delete(action_id)
 
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_all(self):
         action_1_id = self._get_action_id(self._do_post(ACTION_1))
@@ -72,7 +72,7 @@ class TestActionViews(FunctionalTest):
 
 
 class TestParametersView(FunctionalTest):
-    @mock.patch.object(ActionsController, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_one(self):
         post_resp = self.app.post_json('/actions', ACTION_1)
