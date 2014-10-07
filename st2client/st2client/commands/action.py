@@ -193,17 +193,26 @@ class ActionRunCommand(resource.ResourceCommand):
                     print(textwrap.fill(action.description))
                     print('')
                     if required:
+                        required = self._sort_parameters(parameters=parameters,
+                                                         names=required)
+
                         print('Required Parameters:')
                         [self.print_param(name, parameters.get(name))
-                            for name in sorted(required)]
+                            for name in required]
                     if optional:
+                        optional = self._sort_parameters(parameters=parameters,
+                                                         names=optional)
+
                         print('Optional Parameters:')
                         [self.print_param(name, parameters.get(name))
-                            for name in sorted(optional)]
+                            for name in optional]
                     if immutable:
+                        immutable = self._sort_parameters(parameters=parameters,
+                                                         names=immutable)
+
                         print('Immutable parameters:')
                         [self.print_param(name, parameters.get(name))
-                            for name in sorted(immutable)]
+                            for name in immutable]
                 except resource.ResourceNotFoundError:
                     print('Action "%s" is not found.' % args.name_or_id)
                 except Exception as e:
@@ -225,6 +234,36 @@ class ActionRunCommand(resource.ResourceCommand):
             self.print_output('To get the results, execute: \n'
                               '    $ st2 execution get %s' % instance.id,
                               six.text_type)
+
+    def _sort_parameters(self, parameters, names):
+        """
+        Sort a provided list of action parameters.
+
+        :type parameters: ``list``
+        :type names: ``list`` or ``set``
+        """
+        sorted_parameters = sorted(names, key=lambda name:
+                                   self._get_parameter_sort_value(
+                                       parameters=parameters,
+                                       name=name))
+
+        return sorted_parameters
+
+    def _get_parameter_sort_value(self, parameters, name):
+        """
+        Return a value which determines sort order for a particular parameter.
+
+        By default, parameters are sorted using "position" parameter attribute.
+        If this attribute is not available, parameter is sorted based on the
+        name.
+        """
+        parameter = parameters.get(name, None)
+
+        if not parameter:
+            return None
+
+        sort_value = parameter.get('position', name)
+        return sort_value
 
 
 class ActionExecutionBranch(resource.ResourceBranch):
