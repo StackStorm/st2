@@ -32,7 +32,11 @@ mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/var/log/stanley
 mkdir -p %{buildroot}/etc/stanley
 mkdir -p %{buildroot}/opt/stackstorm
+mkdir -p %{buildroot}/usr/share/doc/stanley
 cp -R contrib/core %{buildroot}/opt/stackstorm/
+cp -R contrib/examples %{buildroot}/usr/share/doc/stanley/
+cp -R contrib/sandbox %{buildroot}/usr/share/doc/stanley/
+cp -R docs/* %{buildroot}/usr/share/doc/stanley/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 cp -R bin %{buildroot}/%{python2_sitelib}/st2common/
 install stanley/stanley.conf %{buildroot}/etc/stanley/stanley.conf
@@ -40,5 +44,6 @@ install stanley/stanley.conf %{buildroot}/etc/stanley/stanley.conf
 
 %files
 %{python2_sitelib}/st2common*
+/usr/share/doc/stanley/*
 /etc/stanley/*
 /opt/stackstorm/*

@@ -1,4 +1,7 @@
 contrib/core opt/stackstorm/
+contrib/examples usr/share/doc/stanley/
+contrib/sandbox usr/share/doc/stanley/
+docs usr/share/doc/stanley/
 st2common usr/lib/python2.7/dist-packages/
 bin usr/lib/python2.7/dist-packages/st2common/
 stanley/stanley.conf /etc/stanley/
