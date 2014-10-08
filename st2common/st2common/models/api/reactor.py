@@ -1,11 +1,16 @@
 import uuid
+import datetime
 
 from st2common.models.base import BaseAPI
-from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB, TriggerTypeDB, TriggerDB
+from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB
+from st2common.models.db.reactor import TriggerTypeDB, TriggerDB, TriggerInstanceDB
 from st2common.persistence.reactor import Trigger
 from st2common.util import reference
 import st2common.validators.api.reactor as validator
 import six
+
+
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 
 
 class TriggerTypeAPI(BaseAPI):
@@ -89,6 +94,7 @@ class TriggerAPI(BaseAPI):
 
 
 class TriggerInstanceAPI(BaseAPI):
+    model = TriggerInstanceDB
     schema = {
         'type': 'object',
         'properties': {
@@ -118,6 +124,15 @@ class TriggerInstanceAPI(BaseAPI):
         if 'trigger' in instance:
             instance['trigger'] = str(instance['trigger'].get('name', ''))
         return cls(**instance)
+
+    @classmethod
+    def to_model(cls, instance):
+        model = super(cls, cls).to_model(instance)
+        trigger = Trigger.get_by_name(instance.trigger)
+        model.trigger = {'id': str(trigger.id), 'name': trigger.name}
+        model.payload = instance.payload
+        model.occurrence_time = datetime.datetime.strptime(instance.occurrence_time, DATE_FORMAT)
+        return model
 
 
 class ActionSpec(BaseAPI):

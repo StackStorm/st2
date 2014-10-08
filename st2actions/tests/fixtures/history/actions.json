@@ -1,0 +1,21 @@
+{
+    "local": {
+        "runner_type": "run-local",
+        "name": "local",
+        "parameters": {
+            "sudo": {
+                "immutable": true
+            }
+        }, 
+        "enabled": true,
+        "content_pack": "core",
+        "entry_point": ""
+    },
+    "chain": {
+        "runner_type": "action-chain",
+        "name": "chain",
+        "enabled": true,
+        "content_pack": "core",
+        "entry_point": ""
+    }
+}

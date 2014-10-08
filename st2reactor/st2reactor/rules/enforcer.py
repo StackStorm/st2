@@ -27,7 +27,10 @@ class RuleEnforcer(object):
         LOG.info('Invoking action %s for trigger_instance %s with data %s.',
                  self.rule.action.name, self.trigger_instance.id,
                  json.dumps(data))
-        action_execution = RuleEnforcer._invoke_action(self.rule.action.name, data)
+        context = {'trigger_instance': reference.get_ref_from_model(self.trigger_instance),
+                   'rule': reference.get_ref_from_model(self.rule),
+                   'user': get_system_username()}
+        action_execution = RuleEnforcer._invoke_action(self.rule.action.name, data, context)
         if action_execution is not None:
             rule_enforcement.action_execution = action_execution
             LOG.audit('Rule enforced. ActionExecution %s, TriggerInstance %s and Rule %s.',
@@ -40,9 +43,8 @@ class RuleEnforcer(object):
         rule_enforcement = RuleEnforcement.add_or_update(rule_enforcement)
 
     @staticmethod
-    def _invoke_action(action_name, action_args):
+    def _invoke_action(action_name, action_args, context=None):
         action = {'name': action_name}
-        context = {'user': get_system_username()}
         execution = ActionExecutionAPI(action=action, context=context, parameters=action_args)
         execution = action_service.schedule(execution)
         return {'id': execution.id} if execution.status == ACTIONEXEC_STATUS_SCHEDULED else None

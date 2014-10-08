@@ -18,5 +18,12 @@ class ActionExecutionHistoryDB(stormbase.StormFoundationDB):
     parent = me.StringField()
     children = me.ListField(field=me.StringField())
 
+    meta = {
+        'indexes': [
+            {'fields': ['parent']},
+            {'fields': ['execution.id']},
+            {'fields': ['execution.start_timestamp']}
+        ]
+    }
 
 MODELS = [ActionExecutionHistoryDB]

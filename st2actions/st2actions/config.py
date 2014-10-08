@@ -56,6 +56,12 @@ workflow_opts = [
 ]
 CONF.register_opts(workflow_opts, group='workflow')
 
+history_opts = [
+    cfg.StrOpt('logging', default='conf/logging.history.conf',
+               help='Location of the logging configuration file.')
+]
+CONF.register_opts(history_opts, group='history')
+
 
 def parse_args(args=None):
     CONF(args=args)

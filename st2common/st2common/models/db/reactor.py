@@ -76,6 +76,12 @@ class RuleEnforcementDB(StormFoundationDB):
     trigger_instance = me.DictField()
     action_execution = me.DictField()
 
+    meta = {
+        'indexes': [
+            {'fields': ['action_execution.id']}
+        ]
+    }
+
 
 # specialized access objects
 triggertype_access = MongoDBAccess(TriggerTypeDB)
