@@ -1,7 +1,9 @@
 import copy
-import time
 
 import mock
+
+from tests import config
+config.parse_args()
 
 from tests.fixtures import history as fixture
 from st2tests import DbTestCase
@@ -15,7 +17,7 @@ from st2common.services import action as action_service
 from st2common.models.db.action import ActionExecutionDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI, RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
-from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 from st2common.persistence.action import RunnerType, Action, ActionExecution
 from st2common.persistence.history import ActionExecutionHistory
@@ -51,19 +53,10 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         action_chain.entry_point = fixture.PATH + '/chain.json'
         Action.add_or_update(ActionAPI.to_model(action_chain))
 
-    @staticmethod
-    def _wait_for_completion(execution, seconds=3):
-        for i in range(seconds * 4):
-            execution = ActionExecutionAPI.from_model(ActionExecution.get_by_id(execution.id))
-            if execution.status in [ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED]:
-                break
-            time.sleep(0.25)
-        return execution
-
     def test_basic_execution(self):
         request = ActionExecutionAPI(action={'name': 'local'}, parameters={'cmd': 'uname -a'})
         request = action_service.schedule(request)
-        request = self._wait_for_completion(request)
+        request = ActionExecutionAPI.from_model(ActionExecution.get_by_id(request.id))
         self.assertEqual(request.status, ACTIONEXEC_STATUS_SUCCEEDED)
         history = ActionExecutionHistory.get(execution__id=request.id, raise_exception=True)
         self.assertDictEqual(history.trigger, {})
@@ -80,7 +73,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
     def test_chained_executions(self):
         request = ActionExecutionAPI(action={'name': 'chain'})
         request = action_service.schedule(request)
-        request = self._wait_for_completion(request)
+        request = ActionExecutionAPI.from_model(ActionExecution.get_by_id(request.id))
         self.assertEqual(request.status, ACTIONEXEC_STATUS_SUCCEEDED)
         history = ActionExecutionHistory.get(execution__id=request.id, raise_exception=True)
         action = vars(ActionAPI.from_model(Action.get_by_name(request.action['name'])))
@@ -119,7 +112,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         request = ActionExecutionAPI.from_model(
             ActionExecution.get(context__trigger_instance__id=str(trigger_instance.id)))
         self.assertIsNotNone(request)
-        request = self._wait_for_completion(request)
+        request = ActionExecutionAPI.from_model(ActionExecution.get_by_id(request.id))
         self.assertEqual(request.status, ACTIONEXEC_STATUS_SUCCEEDED)
         history = ActionExecutionHistory.get(execution__id=request.id, raise_exception=True)
         self.assertDictEqual(history.trigger, vars(TriggerAPI.from_model(trigger)))
