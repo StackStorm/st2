@@ -63,11 +63,12 @@ class Historian(ConsumerMixin):
                     execution=vars(ActionExecutionAPI.from_model(execution)))
                 history = ActionExecutionHistory.add_or_update(history)
 
-            if 'rule' in execution.context:
+            if 'rule' in execution.context and not getattr(history, 'rule', None):
                 rule = reference.get_model_from_ref(Rule, execution.context.get('rule', {}))
                 history.rule = vars(RuleAPI.from_model(rule))
 
-            if 'trigger_instance' in execution.context:
+            if ('trigger_instance' in execution.context and
+                    not getattr(history, 'trigger_instance', None)):
                 trigger_instance = reference.get_model_from_ref(
                     TriggerInstance, execution.context.get('trigger_instance', {}))
                 trigger = Trigger.get_by_name(trigger_instance.trigger['name'])
@@ -77,7 +78,7 @@ class Historian(ConsumerMixin):
                 history.trigger_type = vars(TriggerTypeAPI.from_model(trigger_type))
 
             parent = ActionExecutionHistory.get(execution__id=execution.context.get('parent', ''))
-            if parent:
+            if parent and not getattr(history, 'parent', None):
                 history.parent = str(parent.id)
                 if str(history.id) not in parent.children:
                     parent.children.append(str(history.id))
