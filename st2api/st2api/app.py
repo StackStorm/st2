@@ -14,9 +14,9 @@ class CorsHook(PecanHook):
 
     def after(self, state):
         # TODO: Figure out proper CORS rules
-        state.response.headers['Access-Control-Allow-Origin'] = '*'
+        state.response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
         state.response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-        state.response.headers['Access-Control-Allow-Headers'] = 'origin, authorization, accept'
+        state.response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
         if not state.response.headers['Content-Length']:
             state.response.headers['Content-Length'] = str(len(state.response.body))
 
