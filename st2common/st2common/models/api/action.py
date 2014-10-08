@@ -140,13 +140,6 @@ class ActionAPI(BaseAPI):
                 "patternProperties": {
                     "^\w+$": util_schema.get_draft_schema()
                 }
-            },
-            "required_parameters": {
-                "description": "List of required parameters.",
-                "type": "array",
-                "items": {
-                    "type": "string"
-                }
             }
         },
         "required": ["name", "runner_type"],
@@ -154,13 +147,14 @@ class ActionAPI(BaseAPI):
     }
 
     def __init__(self, **kw):
+        print('Validating action API object')
         jsonschema.validate(kw, self.schema)
         for key, value in kw.items():
             setattr(self, key, value)
         if not hasattr(self, 'parameters'):
             setattr(self, 'parameters', dict())
-        if not hasattr(self, 'required_parameters'):
-            setattr(self, 'required_parameters', list())
+        # if not hasattr(self, 'required_parameters'):
+        #    setattr(self, 'required_parameters', list())
 
     @classmethod
     def from_model(cls, model):
@@ -176,7 +170,7 @@ class ActionAPI(BaseAPI):
         model.content_pack = str(action.content_pack)
         model.runner_type = {'name': str(action.runner_type)}
         model.parameters = getattr(action, 'parameters', dict())
-        model.required_parameters = getattr(action, 'required_parameters', list())
+        # model.required_parameters = getattr(action, 'required_parameters', list())
         return model
 
 ACTIONEXEC_STATUS_SCHEDULED = 'scheduled'

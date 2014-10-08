@@ -2,170 +2,6 @@ import six
 import jsonschema
 from oslo.config import cfg
 
-
-# https://github.com/json-schema/json-schema/blob/master/draft-04/schema
-# The source material is licensed under the AFL or BSD license.
-SCHEMA_DRAFT4 = {
-    "id": "http://json-schema.org/draft-04/schema#",
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "description": "Core schema meta-schema",
-    "definitions": {
-        "schemaArray": {
-            "type": "array",
-            "minItems": 1,
-            "items": {"$ref": "#"}
-        },
-        "positiveInteger": {
-            "type": "integer",
-            "minimum": 0
-        },
-        "positiveIntegerDefault0": {
-            "allOf": [{"$ref": "#/definitions/positiveInteger"}, {"default": 0}]
-        },
-        "simpleTypes": {
-            "enum": ["array", "boolean", "integer", "null", "number", "object", "string"]
-        },
-        "stringArray": {
-            "type": "array",
-            "items": {"type": "string"},
-            "minItems": 1,
-            "uniqueItems": True
-        }
-    },
-    "type": "object",
-    "properties": {
-        "id": {
-            "type": "string",
-            "format": "uri"
-        },
-        "$schema": {
-            "type": "string",
-            "format": "uri"
-        },
-        "title": {
-            "type": "string"
-        },
-        "description": {
-            "type": "string"
-        },
-        "default": {},
-        "multipleOf": {
-            "type": "number",
-            "minimum": 0,
-            "exclusiveMinimum": True
-        },
-        "maximum": {
-            "type": "number"
-        },
-        "exclusiveMaximum": {
-            "type": "boolean",
-            "default": False
-        },
-        "minimum": {
-            "type": "number"
-        },
-        "exclusiveMinimum": {
-            "type": "boolean",
-            "default": False
-        },
-        "maxLength": {"$ref": "#/definitions/positiveInteger"},
-        "minLength": {"$ref": "#/definitions/positiveIntegerDefault0"},
-        "pattern": {
-            "type": "string",
-            "format": "regex"
-        },
-        "additionalItems": {
-            "anyOf": [
-                {"type": "boolean"},
-                {"$ref": "#"}
-            ],
-            "default": {}
-        },
-        "items": {
-            "anyOf": [
-                {"$ref": "#"},
-                {"$ref": "#/definitions/schemaArray"}
-            ],
-            "default": {}
-        },
-        "maxItems": {"$ref": "#/definitions/positiveInteger"},
-        "minItems": {"$ref": "#/definitions/positiveIntegerDefault0"},
-        "uniqueItems": {
-            "type": "boolean",
-            "default": False
-        },
-        "maxProperties": {"$ref": "#/definitions/positiveInteger"},
-        "minProperties": {"$ref": "#/definitions/positiveIntegerDefault0"},
-        "required": {"$ref": "#/definitions/stringArray"},
-        "additionalProperties": {
-            "anyOf": [
-                {"type": "boolean"},
-                {"$ref": "#"}
-            ],
-            "default": {}
-        },
-        "definitions": {
-            "type": "object",
-            "additionalProperties": {"$ref": "#"},
-            "default": {}
-        },
-        "properties": {
-            "type": "object",
-            "additionalProperties": {"$ref": "#"},
-            "default": {}
-        },
-        "patternProperties": {
-            "type": "object",
-            "additionalProperties": {"$ref": "#"},
-            "default": {}
-        },
-        "dependencies": {
-            "type": "object",
-            "additionalProperties": {
-                "anyOf": [
-                    {"$ref": "#"},
-                    {"$ref": "#/definitions/stringArray"}
-                ]
-            }
-        },
-        "enum": {
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": True
-        },
-        "type": {
-            "anyOf": [
-                {"$ref": "#/definitions/simpleTypes"},
-                {
-                    "type": "array",
-                    "items": {"$ref": "#/definitions/simpleTypes"},
-                    "minItems": 1,
-                    "uniqueItems": True
-                }
-            ]
-        },
-        "position": {
-            "type": "number",
-            "minimum": 0
-        },
-        "immutable": {
-            "type": "boolean",
-            "default": False
-        },
-        "allOf": {"$ref": "#/definitions/schemaArray"},
-        "anyOf": {"$ref": "#/definitions/schemaArray"},
-        "oneOf": {"$ref": "#/definitions/schemaArray"},
-        "not": {"$ref": "#"}
-    },
-    "dependencies": {
-        "exclusiveMaximum": ["maximum"],
-        "exclusiveMinimum": ["minimum"]
-    },
-    "default": {},
-    'additionalProperties': False
-}
-
-
 SCHEMA_ANY_TYPE = {
     "anyOf": [
         {"type": "array"},
@@ -177,9 +13,34 @@ SCHEMA_ANY_TYPE = {
     ]
 }
 
+ACTION_PARAMS_SCHEMA = {
+    "title": "ActionPatametersSchema",
+    "description": "Schema for validating action parameters",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "description": {"type": "string"},
+        "default": {},
+        "optional": {"type": "boolean", "default": False},
+        "type": {
+            "type": "string"
+        },
+        "position": {
+            "type": "number",
+            "minimum": 0
+        },
+        "immutable": {
+            "type": "boolean",
+            "default": False
+        }
+    },
+    "default": {},
+    'additionalProperties': False
+}
+
 
 def get_draft_schema():
-    return SCHEMA_DRAFT4
+    return ACTION_PARAMS_SCHEMA
 
 
 def extend_with_default(validator_class):
@@ -213,9 +74,9 @@ def get_parameter_schema(model):
     # Any 'required' runner parameter which is provided in the action is no longer
     # considered 'required' by the runner. The action could choose to keep it
     # 'required' but will have to explicitly call it out.
-    runner_required_parameters = [p for p in runner_type.required_parameters
+    runner_required_parameters = [p for p in _get_required_runner_params(runner_type)
                                   if p not in model.parameters]
-    required = list(set(runner_required_parameters + model.required_parameters))
+    required = list(set(runner_required_parameters + _get_required_action_params(model)))
     normalize = lambda x: {k: v if v else SCHEMA_ANY_TYPE for k, v in six.iteritems(x)}
     properties = normalize(runner_type.runner_parameters)
     properties.update(normalize(model.parameters))
@@ -229,3 +90,17 @@ def get_parameter_schema(model):
             schema['required'] = required
         schema['additionalProperties'] = False
     return schema
+
+
+def _get_required_action_params(model):
+    action_parameters = model.parameters
+    required = [param for param, meta in six.iteritems(action_parameters)
+                if meta.get('required', None)]
+    return required
+
+
+def _get_required_runner_params(model):
+    runner_parameters = model.runner_parameters
+    required = [param for param, meta in six.iteritems(runner_parameters)
+                if meta.get('required', None)]
+    return required
