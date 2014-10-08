@@ -1,9 +1,7 @@
-Install
-======
+#RedHat / Fedora
 
-### RPMs
 
-Stanley RPMs have been tested and precompiled for Fedora 20.  In order to download them from the StackStorm release server you need to contact us to obtain login credentials.  
+St2 RPMs have been tested and precompiled for Fedora 20.  In order to download them from the StackStorm release server you need to contact us to obtain login credentials.  
 
 #### Deployment Script Installation
 
@@ -114,4 +112,4 @@ The command to start and or stop stanley is 'st2run'.
 
 #### Content
 
-Refer to the Terminology, Running Actions, Defining Rules, & Storing Resuable Parameters sections in [README.md](README.md)
+Refer to the Terminology, Running Actions, Defining Rules, & Storing Resuable Parameters sections in [README.md]()
