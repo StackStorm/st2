@@ -1,7 +1,10 @@
 import copy
 import datetime
 
+import mock
+
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.transport.publishers import PoolPublisher
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.models.db.action import (ActionDB, ActionExecutionDB)
 from st2common.persistence.action import (Action, ActionExecution, RunnerType)
@@ -9,6 +12,7 @@ import st2common.util.action_db as action_db_utils
 from st2tests.base import DbTestCase
 
 
+@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class ActionDBUtilsTestCase(DbTestCase):
     runnertype_db = None
     action_db = None
@@ -160,6 +164,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             RunnerTypeAPI.to_model(runnertype_api))
 
     @classmethod
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def setup_action_models(cls):
         action_db = ActionDB()
         action_db.name = 'action-1'

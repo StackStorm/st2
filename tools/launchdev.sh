@@ -67,7 +67,13 @@ function st2start(){
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs kill
     fi
 
-    # Run the action runner API server
+    # Run the history server
+    echo 'Starting screen session st2-history...'
+    screen -d -m -S st2-history ./virtualenv/bin/python \
+        ./st2actions/bin/history \
+        --config-file $ST2_CONF
+
+    # Run the action runner server
     echo 'Starting screen session st2-actionrunner...'
     screen -d -m -S st2-actionrunner
 
@@ -95,6 +101,7 @@ function st2start(){
     # Check whether screen sessions are started
     screens=(
         "st2-api"
+        "st2-history"
         "st2-actionrunner"
         "st2-reactor"
     )

@@ -1,0 +1,7 @@
+{
+    "name": "46f67652-20cd-4bab-94e2-4615baa846d0",
+    "type": "st2.webhook",
+    "parameters": {
+        "url": "person"
+    }
+}
