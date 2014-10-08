@@ -4,6 +4,7 @@ from oslo.config import cfg
 
 from st2common.util import reference
 from st2common.transport import actionexecution, publishers
+from st2common.util.greenpooldispatch import BufferedDispatcher
 from st2common.persistence.history import ActionExecutionHistory
 from st2common.persistence.action import RunnerType, Action, ActionExecution
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
@@ -25,9 +26,10 @@ class Historian(ConsumerMixin):
 
     def __init__(self, connection):
         self.connection = connection
+        self._dispatcher = BufferedDispatcher()
 
     def shutdown(self):
-        pass
+        self._dispatcher.shutdown()
 
     def get_consumers(self, Consumer, channel):
         consumers = [Consumer(queues=QUEUES.values(), accept=['pickle'],
@@ -42,47 +44,48 @@ class Historian(ConsumerMixin):
 
     def process_action_execution(self, body, message):
         try:
-            self.record_action_execution(body)
-        except:
-            LOG.exception('An unexpected error occurred while recording the action execution.')
+            self._dispatcher.dispatch(self.record_action_execution, body)
         finally:
             message.ack()
 
     def record_action_execution(self, body):
-        execution = ActionExecution.get_by_id(str(body.id))
-        history = ActionExecutionHistory.get(execution__id=str(body.id))
-        if history:
-            history.execution = vars(ActionExecutionAPI.from_model(execution))
-        else:
-            action = Action.get_by_name(execution.action['name'])
-            runner = RunnerType.get_by_name(action.runner_type['name'])
-            history = ActionExecutionHistoryDB(
-                action=vars(ActionAPI.from_model(action)),
-                runner=vars(RunnerTypeAPI.from_model(runner)),
-                execution=vars(ActionExecutionAPI.from_model(execution)))
+        try:
+            execution = ActionExecution.get_by_id(str(body.id))
+            history = ActionExecutionHistory.get(execution__id=str(body.id))
+            if history:
+                history.execution = vars(ActionExecutionAPI.from_model(execution))
+            else:
+                action = Action.get_by_name(execution.action['name'])
+                runner = RunnerType.get_by_name(action.runner_type['name'])
+                history = ActionExecutionHistoryDB(
+                    action=vars(ActionAPI.from_model(action)),
+                    runner=vars(RunnerTypeAPI.from_model(runner)),
+                    execution=vars(ActionExecutionAPI.from_model(execution)))
+                history = ActionExecutionHistory.add_or_update(history)
+
+            if 'rule' in execution.context:
+                rule = reference.get_model_from_ref(Rule, execution.context.get('rule', {}))
+                history.rule = vars(RuleAPI.from_model(rule))
+
+            if 'trigger_instance' in execution.context:
+                trigger_instance = reference.get_model_from_ref(
+                    TriggerInstance, execution.context.get('trigger_instance', {}))
+                trigger = Trigger.get_by_name(trigger_instance.trigger['name'])
+                trigger_type = TriggerType.get_by_name(trigger.type['name'])
+                history.trigger_instance = vars(TriggerInstanceAPI.from_model(trigger_instance))
+                history.trigger = vars(TriggerAPI.from_model(trigger))
+                history.trigger_type = vars(TriggerTypeAPI.from_model(trigger_type))
+
+            parent = ActionExecutionHistory.get(execution__id=execution.context.get('parent', ''))
+            if parent:
+                history.parent = str(parent.id)
+                if str(history.id) not in parent.children:
+                    parent.children.append(str(history.id))
+                    ActionExecutionHistory.add_or_update(parent)
+
             history = ActionExecutionHistory.add_or_update(history)
-
-        if 'rule' in execution.context:
-            rule = reference.get_model_from_ref(Rule, execution.context.get('rule', {}))
-            history.rule = vars(RuleAPI.from_model(rule))
-
-        if 'trigger_instance' in execution.context:
-            trigger_instance = reference.get_model_from_ref(
-                TriggerInstance, execution.context.get('trigger_instance', {}))
-            trigger = Trigger.get_by_name(trigger_instance.trigger['name'])
-            trigger_type = TriggerType.get_by_name(trigger.type['name'])
-            history.trigger_instance = vars(TriggerInstanceAPI.from_model(trigger_instance))
-            history.trigger = vars(TriggerAPI.from_model(trigger))
-            history.trigger_type = vars(TriggerTypeAPI.from_model(trigger_type))
-
-        parent = ActionExecutionHistory.get(execution__id=execution.context.get('parent', ''))
-        if parent:
-            history.parent = str(parent.id)
-            if str(history.id) not in parent.children:
-                parent.children.append(str(history.id))
-                ActionExecutionHistory.add_or_update(parent)
-
-        history = ActionExecutionHistory.add_or_update(history)
+        except:
+            LOG.exception('An unexpected error occurred while recording the action execution.')
 
 
 def work():
