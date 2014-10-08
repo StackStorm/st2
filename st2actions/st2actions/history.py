@@ -62,17 +62,18 @@ class Historian(ConsumerMixin):
                 execution=vars(ActionExecutionAPI.from_model(execution)))
             history = ActionExecutionHistory.add_or_update(history)
 
-        if 'rule' in execution.context and 'trigger_instance' in execution.context:
+        if 'rule' in execution.context:
             rule = reference.get_model_from_ref(Rule, execution.context.get('rule', {}))
+            history.rule = vars(RuleAPI.from_model(rule))
+
+        if 'trigger_instance' in execution.context:
             trigger_instance = reference.get_model_from_ref(
                 TriggerInstance, execution.context.get('trigger_instance', {}))
-            if rule and trigger_instance:
-                trigger = Trigger.get_by_name(trigger_instance.trigger['name'])
-                trigger_type = TriggerType.get_by_name(trigger.type['name'])
-                history.rule = vars(RuleAPI.from_model(rule))
-                history.trigger_instance = vars(TriggerInstanceAPI.from_model(trigger_instance))
-                history.trigger = vars(TriggerAPI.from_model(trigger))
-                history.trigger_type = vars(TriggerTypeAPI.from_model(trigger_type))
+            trigger = Trigger.get_by_name(trigger_instance.trigger['name'])
+            trigger_type = TriggerType.get_by_name(trigger.type['name'])
+            history.trigger_instance = vars(TriggerInstanceAPI.from_model(trigger_instance))
+            history.trigger = vars(TriggerAPI.from_model(trigger))
+            history.trigger_type = vars(TriggerTypeAPI.from_model(trigger_type))
 
         parent = ActionExecutionHistory.get(execution__id=execution.context.get('parent', ''))
         if parent:
