@@ -1,6 +1,5 @@
 import pecan
 
-from oslo.config import cfg
 from pecan import rest
 from six.moves import http_client
 
@@ -22,7 +21,4 @@ class TokenController(rest.RestController):
             LOG.audit('Access denied to anonymous user.')
             pecan.abort(http_client.UNAUTHORIZED)
 
-        ttl = (request.ttl if request and hasattr(request, 'ttl') and
-               request.ttl < cfg.CONF.auth.token_ttl else cfg.CONF.auth.token_ttl)
-
-        return create_token(pecan.request.remote_user, ttl)
+        return create_token(pecan.request.remote_user, getattr(request, 'ttl', None))

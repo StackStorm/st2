@@ -12,7 +12,7 @@ LOG = logging.getLogger(__name__)
 
 
 def create_token(username, ttl=None):
-    if not ttl:
+    if not ttl or ttl > cfg.CONF.auth.token_ttl:
         ttl = cfg.CONF.auth.token_ttl
     if username:
         try:
