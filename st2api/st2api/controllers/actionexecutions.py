@@ -130,3 +130,7 @@ class ActionExecutionsController(RestController):
         actionexec_db = ActionExecution.add_or_update(actionexec_db)
         actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
         return actionexec_api
+
+    @jsexpose()
+    def options(self):
+        return
