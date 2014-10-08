@@ -33,17 +33,6 @@ def _setup():
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port)
 
 
-def _run_worker():
-    LOG.info('(PID=%s) History worker started.', os.getpid())
-    try:
-        history.work()
-    except (KeyboardInterrupt, SystemExit):
-        LOG.info('(PID=%s) History worker stopped.', os.getpid())
-    except:
-        return 1
-    return 0
-
-
 def _teardown():
     db_teardown()
 
@@ -51,9 +40,14 @@ def _teardown():
 def main():
     try:
         _setup()
-        return _run_worker()
+        LOG.info('(PID=%s) Historian started.', os.getpid())
+        history.work()
+    except (KeyboardInterrupt, SystemExit):
+        LOG.info('(PID=%s) Historian stopped.', os.getpid())
+        return 0
     except:
-        LOG.exception('(PID=%s) History worker quit due to exception.', os.getpid())
+        LOG.exception('(PID=%s) Historian quit due to exception.', os.getpid())
         return 1
     finally:
         _teardown()
+    return 0
