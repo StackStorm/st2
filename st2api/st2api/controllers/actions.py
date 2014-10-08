@@ -61,15 +61,15 @@ class ActionsController(RestController):
         return action_api
 
     @jsexpose(str)
-    def get_all(self, name=None, **kw):
+    def get_all(self, **kw):
         """
             List all actions.
 
             Handles requests:
                 GET /actions/
         """
-        LOG.info('GET all /actions/ and name=%s', str(name))
-        action_dbs = Action.get_all(**kw) if name is None else ActionsController._get_by_name(name)
+        LOG.info('GET all /actions/ with filters=%s', kw)
+        action_dbs = Action.get_all(**kw)
         action_apis = [ActionAPI.from_model(action_db) for action_db in action_dbs]
         LOG.debug('GET all /actions/ client_result=%s', action_apis)
         return action_apis

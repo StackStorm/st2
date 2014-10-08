@@ -83,22 +83,21 @@ class OverviewController(RestController):
                 GET /actions/views/overview/1
         """
 
-        LOG.info('GET /actions/ with id=%s', action_id)
+        LOG.info('GET /actions/views/overview with id=%s', action_id)
         action_db = LookupUtils._get_action_by_id(action_id)
         action_api = ActionAPI.from_model(action_db)
         return self._transform_action_api(action_api)
 
     @jsexpose(str)
-    def get_all(self, name=None, **kw):
+    def get_all(self, **kw):
         """
             List all actions.
 
             Handles requests:
                 GET /actions/views/overview
         """
-
-        LOG.info('GET all /actions/ and name=%s', str(name))
-        action_dbs = Action.get_all(**kw) if name is None else OverviewController._get_by_name(name)
+        LOG.info('GET all /actions/views/overview with filters=%s', kw)
+        action_dbs = Action.get_all(**kw)
         action_apis = [ActionAPI.from_model(action_db) for action_db in action_dbs]
         return map(self._transform_action_api, action_apis)
 

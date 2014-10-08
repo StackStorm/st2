@@ -39,20 +39,17 @@ class KeyValuePairController(RestController):
         return kvp_api
 
     @jsexpose(str)
-    def get_all(self, name=None, **kw):
+    def get_all(self, **kw):
         """
             List all keys.
 
             Handles requests:
                 GET /keys/
         """
-        LOG.info('GET all /keys/ and name=%s', str(name))
+        LOG.info('GET all /keys/ with filters=%s', kw)
 
-        kvp_dbs = (KeyValuePair.get_all(**kw)
-                   if name is None else self.__get_by_name(name))
-
+        kvp_dbs = KeyValuePair.get_all(**kw)
         kvps = [KeyValuePairAPI.from_model(kvp_db) for kvp_db in kvp_dbs]
-
         LOG.debug('GET all /keys/ client_result=%s', kvps)
 
         return kvps
