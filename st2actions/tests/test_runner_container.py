@@ -1,6 +1,7 @@
 import datetime
 import mock
 
+from oslo.config import cfg
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.db.action import (ActionDB, ActionExecutionDB, RunnerTypeDB)
 from st2common.models.api.action import RunnerTypeAPI
@@ -80,6 +81,7 @@ class RunnerContainerTest(DbTestCase):
         actionexec_db.start_timestamp = datetime.datetime.now()
         actionexec_db.action = {'name': RunnerContainerTest.action_db.name}
         actionexec_db.parameters = params
+        actionexec_db.context = {'user': cfg.CONF.system_user.user}
         return actionexec_db
 
     @classmethod

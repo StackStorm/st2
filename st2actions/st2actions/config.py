@@ -23,15 +23,9 @@ db_opts = [
 CONF.register_opts(db_opts, group='database')
 
 ssh_runner_opts = [
-    cfg.StrOpt('user',
-               default='stanley',
-               help='User for running remote tasks via the FabricRunner.'),
-    cfg.StrOpt('ssh_key_file',
-               default='/home/vagrant/.ssh/stanley_rsa',
-               help='SSH private key for running remote tasks via the FabricRunner.'),
     cfg.StrOpt('remote_dir',
                default='/tmp',
-               help='Location of the script on the remote filesystem.'),
+               help='Location of the script on the remote filesystem.')
 ]
 CONF.register_opts(ssh_runner_opts, group='ssh_runner')
 

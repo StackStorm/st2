@@ -1,7 +1,9 @@
 import os
 import pipes
+import six
 
 from fabric.api import (put, run, sudo)
+from fabric.context_managers import shell_env
 from fabric.tasks import WrappedCallableTask
 
 from st2actions.constants import LIBS_DIR as ACTION_LIBS_DIR
@@ -12,10 +14,11 @@ LOG = logging.getLogger(__name__)
 
 
 class SSHCommandAction(object):
-    def __init__(self, name, action_exec_id, command, user, password=None, pkey=None, hosts=None,
-                 parallel=True, sudo=False):
+    def __init__(self, name, action_exec_id, command, env_vars, user, password=None, pkey=None,
+                 hosts=None, parallel=True, sudo=False):
         self.name = name
         self.command = command
+        self.env_vars = env_vars
         self.id = action_exec_id
         self.hosts = hosts
         self.parallel = parallel
@@ -57,14 +60,13 @@ class SSHCommandAction(object):
         str_rep.append('sudo: %s' % str(self.sudo))
         str_rep.append('parallel: %s' % str(self.parallel))
         str_rep.append('hosts: %s)' % str(self.hosts))
-
         return ', '.join(str_rep)
 
 
 class RemoteAction(SSHCommandAction):
-    def __init__(self, name, action_exec_id, command, on_behalf_user=None, user=None, hosts=None,
-                 parallel=True, sudo=False):
-        super(RemoteAction, self).__init__(name, action_exec_id, command, user,
+    def __init__(self, name, action_exec_id, command, env_vars={}, on_behalf_user=None, user=None,
+                 hosts=None, parallel=True, sudo=False):
+        super(RemoteAction, self).__init__(name, action_exec_id, command, env_vars, user,
                                            hosts=hosts, parallel=parallel, sudo=sudo)
         self.on_behalf_user = on_behalf_user  # Used for audit purposes.
 
@@ -87,10 +89,10 @@ class RemoteAction(SSHCommandAction):
 
 class RemoteScriptAction(RemoteAction):
     def __init__(self, name, action_exec_id, script_local_path_abs, script_local_libs_path_abs,
-                 named_args=None, positional_args=None, on_behalf_user=None, user=None,
+                 named_args=None, positional_args=None, env_vars={}, on_behalf_user=None, user=None,
                  remote_dir=None, hosts=None, parallel=True, sudo=False):
-        super(RemoteScriptAction, self).__init__(name, action_exec_id, '', on_behalf_user, user,
-                                                 hosts=hosts, parallel=parallel, sudo=sudo)
+        super(RemoteScriptAction, self).__init__(name, action_exec_id, '', env_vars, on_behalf_user,
+                                                 user, hosts=hosts, parallel=parallel, sudo=sudo)
         self.script_local_path_abs = script_local_path_abs
         self.script_local_libs_path_abs = script_local_libs_path_abs
         self.script_local_dir, self.script_name = os.path.split(self.script_local_path_abs)
@@ -104,12 +106,14 @@ class RemoteScriptAction(RemoteAction):
 
     def _format_command(self):
         command_parts = []
+        if self.command and len(self.command) > 0:
+            command_parts.append(self.command)
         command_parts.append(self.remote_script)
         # add all named_args in the format name=value
         if self.named_args is not None:
-            for (arg, value) in self.named_args.items():
+            for (arg, value) in six.iteritems(self.named_args):
                 if value is None or len(value) < 1:
-                    LOG.debug('Ignoring named arg %s as its value is %s.', arg, value)
+                    LOG.debug('Ignoring arg %s as its value is %s.', arg, value)
                     continue
                 command_parts.append('%s=%s' % (arg, pipes.quote(value)))
         # add the positional args
@@ -154,7 +158,8 @@ class FabricRemoteAction(RemoteAction):
         return self._run
 
     def _run(self):
-        output = run(self.command, combine_stderr=False, pty=False, quiet=True)
+        with shell_env(**self.env_vars):
+            output = run(self.command, combine_stderr=False, pty=False, quiet=True)
         result = {
             'stdout': output.stdout,
             'stderr': output.stderr,
@@ -165,7 +170,8 @@ class FabricRemoteAction(RemoteAction):
         return result
 
     def _sudo(self):
-        output = sudo(self.command, combine_stderr=False, pty=True, quiet=True)
+        with shell_env(**self.env_vars):
+            output = sudo(self.command, combine_stderr=False, pty=True, quiet=True)
         result = {
             'stdout': output.stdout,
             'stderr': output.stderr,

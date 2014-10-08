@@ -30,15 +30,9 @@ def _setup_config_opts():
     _register_opts(action_sensor_opts, group='action_sensor')
 
     ssh_runner_opts = [
-        cfg.StrOpt('user',
-                   default='stanley',
-                   help='User for running remote tasks via the FabricRunner.'),
-        cfg.StrOpt('ssh_key_file',
-                   default='/home/vagrant/.ssh/stanley_rsa',
-                   help='SSH private key for running remote tasks via the FabricRunner.'),
         cfg.StrOpt('remote_dir',
                    default='/tmp',
-                   help='Location of the script on the remote filesystem.'),
+                   help='Location of the script on the remote filesystem.')
     ]
     _register_opts(ssh_runner_opts, group='ssh_runner')
 
@@ -47,6 +41,21 @@ def _setup_config_opts():
         cfg.IntOpt('port', default=9101, help='ST2 API server port.')
     ]
     _register_opts(api_opts, group='api')
+
+    system_user_opts = [
+        cfg.StrOpt('user',
+                   default='stanley',
+                   help='Default system user.'),
+        cfg.StrOpt('ssh_key_file',
+                   default='/home/vagrant/.ssh/stanley_rsa',
+                   help='SSH private key for the system user.')
+    ]
+    _register_opts(system_user_opts, 'system_user')
+
+    auth_opts = [
+        cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.')
+    ]
+    _register_opts(auth_opts, group='auth')
 
 
 def parse_args():

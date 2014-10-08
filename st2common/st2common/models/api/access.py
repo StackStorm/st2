@@ -1,5 +1,6 @@
 import datetime
 
+from oslo.config import cfg
 from st2common.models.base import BaseAPI
 from st2common.models.db.access import UserDB, TokenDB
 from st2common import log as logging
@@ -8,7 +9,8 @@ from st2common import log as logging
 LOG = logging.getLogger(__name__)
 
 
-SYSTEM_USERNAME = 'system'
+def get_system_username():
+    return cfg.CONF.system_user.user
 
 
 class UserAPI(BaseAPI):

@@ -1,9 +1,11 @@
+
 import importlib
 
 from st2common import log as logging
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.api.action import (ACTIONEXEC_STATUS_SUCCEEDED,
                                          ACTIONEXEC_STATUS_FAILED)
+from st2common.services import access
 from st2common.util.action_db import (get_action_by_dict, get_runnertype_by_name)
 from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
 
@@ -81,13 +83,21 @@ class RunnerContainer(object):
         runner.callback = getattr(actionexec_db, 'callback', dict())
         runner.libs_dir_path = self._get_action_libs_abs_path(action_db.content_pack,
                                                               action_db.entry_point)
+        runner.auth_token = self._create_auth_token(runner.context)
 
-        LOG.debug('Performing pre-run for runner: %s', runner)
-        runner.pre_run()
+        try:
+            LOG.debug('Performing pre-run for runner: %s', runner)
+            runner.pre_run()
 
-        LOG.debug('Performing run for runner: %s', runner)
-        run_result = runner.run(action_params)
-        LOG.debug('Result of run: %s', run_result)
+            LOG.debug('Performing run for runner: %s', runner)
+            run_result = runner.run(action_params)
+            LOG.debug('Result of run: %s', run_result)
+        finally:
+            # Always clean-up the auth_token
+            try:
+                self._delete_auth_token(runner.auth_token)
+            except:
+                LOG.warn('Unable to clean-up auth_token.')
 
         # Re-load Action Execution from DB:
         actionexec_db = get_actionexec_by_id(actionexec_db.id)
@@ -129,6 +139,18 @@ class RunnerContainer(object):
     def _get_action_libs_abs_path(self, pack, entry_point):
         return RunnerContainerService.get_action_libs_abs_path(pack=pack,
                                                                entry_point=entry_point)
+
+    def _create_auth_token(self, context):
+        if not context:
+            return None
+        user = context.get('user', None)
+        if not user:
+            return None
+        return access.create_token(user)
+
+    def _delete_auth_token(self, auth_token):
+        if auth_token:
+            access.delete_token(auth_token.token)
 
 
 def get_runner_container():

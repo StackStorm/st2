@@ -44,12 +44,6 @@ def register_runner_types():
                     'type': 'boolean',
                     'default': False
                 },
-                'user': {
-                    'description': 'The user who is executing this command. '
-                                   'This is for audit purposes only. The '
-                                   'command will always execute as the user stanley.',
-                    'type': 'string'
-                },
                 'dir': {
                     'description': 'The working directory where the command will be '
                                    'executed on the host.',
@@ -85,12 +79,6 @@ def register_runner_types():
                     'description': 'The command will be executed with sudo.',
                     'type': 'boolean',
                     'default': False
-                },
-                'user': {
-                    'description': 'The user who is executing this command. '
-                                   'This is for audit purposes only. The '
-                                   'command will always execute as the user stanley.',
-                    'type': 'string'
                 },
                 'dir': {
                     'description': 'The working directory where the command will be '
@@ -131,12 +119,6 @@ def register_runner_types():
                     'description': 'The remote command will be executed with sudo.',
                     'type': 'boolean'
                 },
-                'user': {
-                    'description': 'The user who is executing this remote command. '
-                                   'This is for audit purposes only. The remote '
-                                   'command will always execute as the user stanley.',
-                    'type': 'string'
-                },
                 'dir': {
                     'description': 'The working directory where the command will be '
                                    'executed on the remote host.',
@@ -171,12 +153,6 @@ def register_runner_types():
                 'sudo': {
                     'description': 'The remote command will be executed with sudo.',
                     'type': 'boolean'
-                },
-                'user': {
-                    'description': 'The user who is executing this remote command. '
-                                   'This is for audit purposes only. The remote '
-                                   'command will always execute as the user stanley.',
-                    'type': 'string'
                 },
                 'dir': {
                     'description': 'The working directory where the command will be '
