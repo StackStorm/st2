@@ -10,7 +10,7 @@ from st2common.models.base import jsexpose
 from st2common.persistence.reactor import Rule
 from st2common.util import reference
 
-from st2api.service import triggers as TriggerService
+from st2common.services import triggers as TriggerService
 
 http_client = six.moves.http_client
 
