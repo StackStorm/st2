@@ -90,7 +90,4 @@ class TestParametersView(FunctionalTest):
         action_id = post_resp.json['id']
         get_resp = self.app.get('/actions/views/parameters/%s' % action_id)
         self.assertEqual(get_resp.status_int, 200)
-        self.assertTrue(get_resp.json['parameters']['required'] is not None, get_resp.json)
-        self.assertTrue(get_resp.json['parameters']['optional'] is not None, get_resp.json)
-        self.assertTrue(get_resp.json['parameters']['immutable'] is not None, get_resp.json)
         self.app.delete('/actions/%s' % action_id)

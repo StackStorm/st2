@@ -62,15 +62,10 @@ class ParametersViewController(RestController):
         LOG.info('Found action: %s, runner: %s', action_db, action_db.runner_type['name'])
         runner_db = LookupUtils._get_runner_by_name(action_db.runner_type['name'])
 
-        required, optional, immutable = param_utils.get_params_view(
-            action_db=action_db, runner_db=runner_db, merged_only=False)
+        all_params = param_utils.get_params_view(
+            action_db=action_db, runner_db=runner_db, merged_only=True)
 
-        param_types = {}
-        param_types['required'] = required
-        param_types['optional'] = optional
-        param_types['immutable'] = immutable
-
-        return {'parameters': param_types}
+        return {'parameters': all_params}
 
 
 class OverviewController(RestController):

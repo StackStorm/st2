@@ -46,11 +46,15 @@ def get_params_view(action_db=None, runner_db=None, merged_only=False):
         merged_params[param] = _merge_param_meta_values(action_meta=action_params.get(param),
                                                         runner_meta=runner_params.get(param))
 
-    if merged_only:
-        return merged_params
-
     required = set((getattr(runner_db, 'required_parameters', list()) +
                     getattr(action_db, 'required_parameters', list())))
+
+    for param in merged_params:
+        if param in required:
+            merged_params[param]['required'] = True
+
+    if merged_only:
+        return merged_params
 
     def is_immutable(param_meta):
         return param_meta.get('immutable', False)
