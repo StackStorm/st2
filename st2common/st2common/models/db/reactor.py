@@ -12,7 +12,7 @@ class TriggerTypeDB(StormBaseDB):
         payload_info: Meta information of the expected payload.
     """
     payload_schema = me.DictField()
-    parameters_schema = me.DictField()
+    parameters_schema = me.DictField(default={})
 
 
 class TriggerDB(StormBaseDB):
