@@ -5,9 +5,10 @@ from oslo.config import cfg
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
+from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 
 LOG = logging.getLogger(__name__)
-
+SUCCESS_STATUS_CODES = [code for code in range(200, 207)]
 
 # Lookup constants for runner params
 RUNNER_ON_BEHALF_USER = 'user'
@@ -51,11 +52,10 @@ class HttpRunner(ActionRunner):
     def run(self, action_parameters):
         client = self._get_http_client(action_parameters)
         LOG.debug('action_parameters = %s', action_parameters)
-        try:
-            output = client.run()
-        except Exception:
-            raise
+        output = client.run()
         self.container_service.report_result(output)
+        self.container_service.report_status(HttpRunner._get_result_status(output.get('status_code',
+                                                                                      None)))
         return output is not None
 
     def _get_http_client(self, action_parameters):
@@ -69,6 +69,11 @@ class HttpRunner(ActionRunner):
                           headers=self._headers, cookies=self._cookies, auth=auth,
                           timeout=timeout, allow_redirects=self._redirects,
                           proxies=self._proxies)
+
+    @staticmethod
+    def _get_result_status(status_code):
+        return ACTIONEXEC_STATUS_SUCCEEDED if status_code in SUCCESS_STATUS_CODES \
+            else ACTIONEXEC_STATUS_FAILED
 
 
 class HTTPClient(object):
@@ -92,6 +97,7 @@ class HTTPClient(object):
 
     def run(self):
         results = {}
+        resp = None
         try:
             resp = requests.request(
                 self.method,
@@ -113,4 +119,5 @@ class HTTPClient(object):
             LOG.exception('Exception making request to remote URL: %s, %s', self.url, e)
             raise
         finally:
-            resp.close()
+            if resp:
+                resp.close()
