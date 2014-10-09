@@ -3,8 +3,10 @@ TOX_DIR := .tox
 VIRTUALENV_DIR ?= virtualenv
 STORMBOT_DIR := stormbot
 
-DOXYGEN_CONFIG := Doxyfile
-DOC_DIR := docs
+# Sphinx docs options
+SPHINXBUILD := sphinx-build
+DOC_SOURCE_DIR := docs/source
+DOC_BUILD_DIR := docs/build
 
 BINARIES := bin
 
@@ -51,7 +53,9 @@ docs:
 	@echo
 	@echo "====================docs===================="
 	@echo
-	doxygen $(DOXYGEN_CONFIG)
+	$(SPHINXBUILD) -b html $(DOC_SOURCE_DIR) $(DOC_BUILD_DIR)/html
+	@echo
+	@echo "Build finished. The HTML pages are in $(DOC_BUILD_DIR)/html."
 
 .PHONY: pylint
 pylint: requirements .pylint
@@ -89,7 +93,7 @@ clean: .cleanpycs .cleandocs
 .PHONY: .cleandocs
 .cleandocs:
 	@echo "Removing generated documentation"
-	rm -rf $(DOC_DIR)/html $(DOC_DIR)/latex $(DOC_DIR)/rtf
+	rm -rf $(DOC_BUILD_DIR)
 
 .PHONY: distclean
 distclean: clean

@@ -7,3 +7,4 @@ nosexcover
 pylint
 tabulate
 unittest2
+sphinx
