@@ -1,5 +1,6 @@
-
 import importlib
+import sys
+import traceback
 
 from st2common import log as logging
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
@@ -94,9 +95,12 @@ class RunnerContainer(object):
             LOG.debug('Result of run: %s', run_result)
         except:
             LOG.exception('Failed to run action.')
+            _, ex, tb = sys.exc_info()
             # mark execution as failed.
             runner.container_service.report_status(ACTIONEXEC_STATUS_FAILED)
-            runner.container_service.report_result({})
+            # include the error message and traceback to try and provide some hints.
+            runner.container_service.report_result(
+                {'message': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))})
         finally:
             # Always clean-up the auth_token
             try:
