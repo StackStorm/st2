@@ -9,6 +9,7 @@ from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.exceptions.actionrunner import (ActionRunnerPreRunError, ActionRunnerException)
 from st2common.exceptions.fabricrunner import FabricExecutionFailureException
+from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.models.system.action import (FabricRemoteAction, FabricRemoteScriptAction)
 import st2common.util.action_db as action_utils
 
@@ -76,13 +77,12 @@ class FabricRunner(ActionRunner):
             if self.entry_point is None or len(self.entry_point) < 1 \
             else self._get_fabric_remote_script_action(action_parameters)
         LOG.debug('Will execute remote_action : %s.', str(remote_action))
-        try:
-            result = self._run(remote_action)
-        except ActionRunnerException as e:
-            LOG.exception('    Failed to run remote_action : %s.', e.message)
-            raise
+        result = self._run(remote_action)
         LOG.debug('Executed remote_action : %s. Result is : %s.', remote_action, result)
+        self.container_service.report_status(FabricRunner._get_result_status(
+            result, cfg.CONF.ssh_runner.allow_partial_failure))
         self.container_service.report_result(result)
+
         # TODO (manas) : figure out the right boolean representation.
         return result is not None
 
@@ -148,6 +148,20 @@ class FabricRunner(ActionRunner):
 
     def _get_env_vars(self):
         return {'st2_auth_token': self.auth_token.token} if self.auth_token else {}
+
+    @staticmethod
+    def _get_result_status(result, allow_partial_failure):
+        success = not allow_partial_failure
+        for r in six.itervalues(result):
+            if allow_partial_failure:
+                success |= r.get('succeeded', False)
+                if success:
+                    return ACTIONEXEC_STATUS_SUCCEEDED
+            else:
+                success &= r.get('succeeded', False)
+                if not success:
+                    return ACTIONEXEC_STATUS_FAILED
+        return ACTIONEXEC_STATUS_SUCCEEDED if success else ACTIONEXEC_STATUS_FAILED
 
 
 # XXX: Write proper tests.

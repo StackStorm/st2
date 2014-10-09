@@ -92,6 +92,11 @@ class RunnerContainer(object):
             LOG.debug('Performing run for runner: %s', runner)
             run_result = runner.run(action_params)
             LOG.debug('Result of run: %s', run_result)
+        except:
+            LOG.exception('Failed to run action.')
+            # mark execution as failed.
+            runner.container_service.report_status(ACTIONEXEC_STATUS_FAILED)
+            runner.container_service.report_result({})
         finally:
             # Always clean-up the auth_token
             try:
