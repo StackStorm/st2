@@ -55,7 +55,7 @@ docs:
 	@echo
 	$(SPHINXBUILD) -b html $(DOC_SOURCE_DIR) $(DOC_BUILD_DIR)/html
 	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+	@echo "Build finished. The HTML pages are in $(DOC_BUILD_DIR)/html."
 
 .PHONY: pylint
 pylint: requirements .pylint
