@@ -102,6 +102,42 @@ class ParamsUtilsTest(TestCase):
         for k in action_params:
             self.assertTrue(k not in runner_params, 'Param ' + k + ' is a runner param.')
 
+    def test_get_finalized_params(self):
+        params = {
+            'actionstr': 'foo',
+            'some_key_that_aint_exist_in_action_or_runner': 'bar',
+            'runnerint': 555,
+            'runnerimmutable': 'failed_override',
+            'actionimmutable': 'failed_override'
+        }
+        actionexec_db = self._get_action_exec_db_model(params)
+
+        runner_params, action_params = param_utils.get_finalized_params(
+            ParamsUtilsTest.runnertype_db.runner_parameters,
+            ParamsUtilsTest.action_db.parameters,
+            actionexec_db.parameters)
+
+        # Asserts for runner params.
+        # Assert that default values for runner params are resolved.
+        self.assertEqual(runner_params.get('runnerstr'), 'defaultfoo')
+        # Assert that a runner param from action exec is picked up.
+        self.assertEqual(runner_params.get('runnerint'), 555)
+        # Assert that a runner param can be overriden by action param default.
+        self.assertEqual(runner_params.get('runnerdummy'), 'actiondummy')
+        # Assert that an immutable param cannot be overriden by action param or execution param.
+        self.assertEqual(runner_params.get('runnerimmutable'), 'runnerimmutable')
+
+        # Asserts for action params.
+        self.assertEqual(action_params.get('actionstr'), 'foo')
+        # Assert that a param that is provided in action exec that isn't in action or runner params
+        # isn't in resolved params.
+        self.assertEqual(action_params.get('some_key_that_aint_exist_in_action_or_runner'), None)
+        # Assert that an immutable param cannot be overriden by execution param.
+        self.assertEqual(action_params.get('actionimmutable'), 'actionimmutable')
+        # Assert that none of runner params are present in action_params.
+        for k in action_params:
+            self.assertTrue(k not in runner_params, 'Param ' + k + ' is a runner param.')
+
     def test_get_resolved_params_action_immutable(self):
         params = {
             'actionstr': 'foo',
