@@ -25,7 +25,7 @@ class RunnerContainerTest(DbTestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(DbTestCase, cls).setUpClass()
+        super(RunnerContainerTest, cls).setUpClass()
         RunnerContainerTest._setup_test_models()
 
     def test_get_runner_module(self):
@@ -59,6 +59,19 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(result.get('action_params').get('actionint') == 10)
         self.assertTrue(result.get('action_params').get('actionstr') == 'bar')
 
+    def test_dispatch_runner_failure(self):
+        runner_container = get_runner_container()
+        params = {
+            'actionstr': 'bar'
+        }
+        actionexec_db = self._get_failingaction_exec_db_model(params)
+        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+        self.assertTrue(runner_container.dispatch(actionexec_db))
+        # pickup updated actionexec_db
+        actionexec_db = ActionExecution.get_by_id(actionexec_db.id)
+        self.assertTrue('message' in actionexec_db.result)
+        self.assertTrue('traceback' in actionexec_db.result)
+
     def test_dispatch_override_default_action_params(self):
         runner_container = get_runner_container()
         params = {
@@ -69,7 +82,8 @@ class RunnerContainerTest(DbTestCase):
         actionexec_db = ActionExecution.add_or_update(actionexec_db)
 
         # Assert that execution ran successfully.
-        self.assertTrue(runner_container.dispatch(actionexec_db))
+        result = runner_container.dispatch(actionexec_db)
+        self.assertTrue(result)
         actionexec_db = ActionExecution.get_by_id(actionexec_db.id)
         result = actionexec_db.result
         self.assertTrue(result.get('action_params').get('actionint') == 20)
@@ -80,6 +94,15 @@ class RunnerContainerTest(DbTestCase):
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
         actionexec_db.action = {'name': RunnerContainerTest.action_db.name}
+        actionexec_db.parameters = params
+        actionexec_db.context = {'user': cfg.CONF.system_user.user}
+        return actionexec_db
+
+    def _get_failingaction_exec_db_model(self, params):
+        actionexec_db = ActionExecutionDB()
+        actionexec_db.status = 'initializing'
+        actionexec_db.start_timestamp = datetime.datetime.now()
+        actionexec_db.action = {'name': RunnerContainerTest.failingaction_db.name}
         actionexec_db.parameters = params
         actionexec_db.context = {'user': cfg.CONF.system_user.user}
         return actionexec_db
@@ -122,6 +145,23 @@ class RunnerContainerTest(DbTestCase):
         runnertype_api = RunnerTypeAPI(**test_runner)
         RunnerContainerTest.runnertype_db = RunnerType.add_or_update(
             RunnerTypeAPI.to_model(runnertype_api))
+        test_failingrunner = {
+            'name': 'test-failingrunner',
+            'description': 'A failing test runner.',
+            'enabled': True,
+            'runner_parameters': {
+                'raise': {
+                    'description': 'Foo str param.',
+                    'type': 'boolean',
+                    'default': True,
+                    'immutable': True
+                }
+            },
+            'runner_module': 'tests.test_runner'
+        }
+        runnertype_api = RunnerTypeAPI(**test_failingrunner)
+        RunnerContainerTest.runnertype_db = RunnerType.add_or_update(
+            RunnerTypeAPI.to_model(runnertype_api))
 
     @classmethod
     def setup_action_models(cls):
@@ -141,3 +181,14 @@ class RunnerContainerTest(DbTestCase):
         }
         action_db.required_parameters = ['actionstr']
         RunnerContainerTest.action_db = Action.add_or_update(action_db)
+
+        action_db = ActionDB()
+        action_db.name = 'action-2'
+        action_db.description = 'awesomeness'
+        action_db.enabled = True
+        action_db.content_pack = 'wolfpack'
+        action_db.entry_point = ''
+        action_db.runner_type = {'name': 'test-failingrunner'}
+        action_db.parameters = {}
+        action_db.required_parameters = []
+        RunnerContainerTest.failingaction_db = Action.add_or_update(action_db)
