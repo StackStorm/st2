@@ -1,16 +1,15 @@
-.. StackStorm documentation 
 Welcome to StackStorm's documentation!
 ======================================
 
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   overview
-   install/index
-   guides/index
-   reference/index
+    overview
+    install/index
+    guides/index
+    reference/index
 
 Indices and tables
 ==================
