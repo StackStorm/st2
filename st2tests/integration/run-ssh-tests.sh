@@ -85,7 +85,8 @@ function sshtest(){
             echo "Test failed. Output: $output"
             exit 1
         fi
-        # XXX: For scripts, we need to grep return_code and validate that it is 0. 
+        ret=$(echo "$output" | grep -Po '"return_code":.*?[^\\]",')
+        echo "Return code for script: ${ret}"
         echo $output
         echo "Success. $stdout"
     done
@@ -100,6 +101,10 @@ function sshtest(){
     ## Stop st2.
     echo "Stopping st2..."
     ST2_CONF=${ST2_CONF} ${ST2_REPO}/tools/launchdev.sh stop
+
+    ## Cleanup core and default packs.
+    rm -rf $ST2_REPO/st2tests/testpacks/core
+    rm -rf $ST2_REPO/st2tests/testpacks/default
 }
 
 sshtest
