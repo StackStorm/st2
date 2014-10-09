@@ -7,7 +7,7 @@ from st2common import log as logging
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.base import jsexpose
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance
-from st2api.service import triggers as TriggerService
+from st2common.services import triggers as TriggerService
 
 http_client = six.moves.http_client
 

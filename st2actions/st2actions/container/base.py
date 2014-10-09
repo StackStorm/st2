@@ -57,7 +57,7 @@ class RunnerContainer(object):
         LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Invoke pre_run, run, post_run cycle.
-        result = self._do_run(runner, runnertype_db, action_db, actionexec_db)
+        result, actionexec_db = self._do_run(runner, runnertype_db, action_db, actionexec_db)
         LOG.debug('runner do_run result: %s', result)
 
         actionsensor.post_trigger(actionexec_db)
@@ -124,13 +124,14 @@ class RunnerContainer(object):
                 runner.container_service.report_status(actionexec_status)
 
         # Push result data and updated status to ActionExecution DB
-        update_actionexecution_status(actionexec_status, actionexec_db=actionexec_db)
+        actionexec_db = update_actionexecution_status(actionexec_status,
+                                                      actionexec_db=actionexec_db)
 
         LOG.debug('Performing post_run for runner: %s', runner)
         runner.post_run()
         runner.container_service = None
 
-        return result
+        return result, actionexec_db
 
     def _get_entry_point_abs_path(self, pack, entry_point):
         return RunnerContainerService.get_entry_point_abs_path(pack=pack,

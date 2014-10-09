@@ -4,11 +4,11 @@ import json
 from oslo.config import cfg
 import six
 
-from st2api.service import triggers as TriggerService
 from st2common import log as logging
 from st2common.content.loader import ContentPackLoader
 from st2common.models.api.reactor import RuleAPI, TriggerAPI
 from st2common.persistence.reactor import Rule
+from st2common.services import triggers as TriggerService
 from st2common.util import reference
 
 LOG = logging.getLogger(__name__)

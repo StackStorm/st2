@@ -3,10 +3,10 @@ import datetime
 import mock
 from mongoengine import NotUniqueError
 
-from st2api.service import triggers as TriggerService
 from st2common.models.db.reactor import (TriggerDB, TriggerTypeDB)
 from st2common.models.api.reactor import (RuleAPI, TriggerAPI)
 from st2common.persistence.reactor import (TriggerType, Trigger, Rule)
+from st2common.services import triggers as TriggerService
 from st2common.util import reference
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.enforcer import RuleEnforcer

@@ -73,7 +73,7 @@ def post_trigger(action_execution):
         return
     try:
         payload = json.dumps({
-            'type': ACTION_TRIGGER_TYPE['name'],
+            'name': ACTION_TRIGGER_TYPE['name'],
             'payload': {
                 'execution_id': str(action_execution.id),
                 'status': action_execution.status,
@@ -83,7 +83,8 @@ def post_trigger(action_execution):
                 'result': action_execution.result
             }
         })
-        LOG.debug('POSTing %s for %s.', ACTION_TRIGGER_TYPE['name'], action_execution.id)
+        LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
+                  action_execution.id, payload)
         r = requests.post(TRIGGER_INSTANCE_ENDPOINT,
                           data=payload,
                           headers=HTTP_POST_HEADER,
