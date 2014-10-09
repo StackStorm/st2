@@ -21,15 +21,15 @@ def print_load_avg(args):
     try:
         fh = open(cpuinfo_file, 'r')
         for line in fh:
-            if "processor" in line:
+            if 'processor' in line:
                 cpus += 1
         fh.close()
     except:
-        sys.stderr.write("Error opeing %s\n" % cpuinfo_file)
+        sys.stderr.write('Error opeing %s\n' % cpuinfo_file)
 
-    one_min = "1 min load/core: %s " % str(float(load[0])/cpus)
-    five_min = "5 min load/core: %s " % str(float(load[1])/cpus)
-    fifteen_min = "15 min load/core: %s " % str(float(load[2])/cpus)
+    one_min = '1 min load/core: %s' % str(float(load[0]) / cpus)
+    five_min = '5 min load/core: %s' % str(float(load[1]) / cpus)
+    fifteen_min = '15 min load/core: %s' % str(float(load[2]) / cpus)
 
     if period == '1' or period == 'one':
         print(one_min)
