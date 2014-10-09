@@ -32,6 +32,9 @@ function sshtest(){
         exit 1
     fi
 
+    ## Setup config file
+
+    # Use test SSH keys.
     ORIG_SSH_KEY_FILE=$(grep 'ssh_key_file' ${ST2_CONF} | awk 'BEGIN {FS=" = "}; {print $2}')
 
     # RISK. RISK. RISK. This key is avilable publicly. DO NOT CHANGE THIS AND USE A SECURE KEY.
@@ -39,7 +42,16 @@ function sshtest(){
     SSH_KEY_FILE=$ST2_REPO/st2tests/conf/vagrant.privkey.insecure
     echo "Swapping out SSH key: ${ORIG_SSH_KEY_FILE} with key: ${SSH_KEY_FILE}"
     sed -i "s|$ORIG_SSH_KEY_FILE|$SSH_KEY_FILE|g" ${ST2_CONF}
+
+    # Use content packs in st2tests.
+    ORIG_CONTENT_PACK_BASE_DIR=$(grep 'content_packs_base_path' ${ST2_CONF} | awk 'BEGIN {FS=" = "}; {print $2}')
+    CONTENT_PACK_BASE_DIR=$ST2_REPO/st2tests/testpacks/
+    echo "Swapping out content_packs_base_path: ${ORIG_CONTENT_PACK_BASE_DIR} with dir: ${CONTENT_PACK_BASE_DIR}"
+    sed -i "s|$ORIG_CONTENT_PACK_BASE_DIR|$CONTENT_PACK_BASE_DIR|g" ${ST2_CONF}
+
     # cat $ST2_CONF
+
+    ## Run st2 now...
     echo "Running st2..."
     ST2_CONF=${ST2_CONF} ${ST2_REPO}/tools/launchdev.sh startclean
     echo
@@ -48,6 +60,8 @@ function sshtest(){
     echo "Activating virtual environment..."
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate
+
+    # Run SSH commands test.
     for i in `seq 1 ${loop_count}`; do
         echo "Running test: $i"
         output=`st2 run local date --json`
@@ -60,8 +74,32 @@ function sshtest(){
         echo $output
         echo "Success. $stdout"
     done
+
+    # Run script test.
+    for i in `seq 1 ${loop_count}`; do
+        echo "Running test: $i"
+        output=`st2 run check.loadavg period=all hosts=localhost --json`
+        # altoutput=`st2 run local date --json | python -mjson.tool`
+        status=$(echo "$output" | grep -Po '"status":.*?[^\\]",' | awk '{print $2}' | cut -d ',' -f 1 | tr -d '"')
+        if [ $status != "succeeded" ]; then
+            echo "Test failed. Output: $output"
+            exit 1
+        fi
+        # XXX: For scripts, we need to grep return_code and validate that it is 0. 
+        echo $output
+        echo "Success. $stdout"
+    done
+
+    ## Revert config files.
     echo "Swapping out SSH key: ${SSH_KEY_FILE} with key: ${ORIG_SSH_KEY_FILE}"
     sed -i "s|$SSH_KEY_FILE|$ORIG_SSH_KEY_FILE|g" $ST2_CONF
+
+    echo "Swapping out content_packs_base_path: ${CONTENT_PACK_BASE_DIR} with ${ORIG_CONTENT_PACK_BASE_DIR}"
+    sed -i "s|$CONTENT_PACK_BASE_DIR|$ORIG_CONTENT_PACK_BASE_DIR|g" $ST2_CONF
+
+    ## Stop st2.
+    echo "Stopping st2..."
+    ST2_CONF=${ST2_CONF} ${ST2_REPO}/tools/launchdev.sh stop
 }
 
 sshtest
