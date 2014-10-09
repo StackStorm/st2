@@ -78,7 +78,7 @@ class RunnerContainerTest(DbTestCase):
     def _get_action_exec_db_model(self, params):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
-        actionexec_db.start_timestamp = datetime.datetime.now()
+        actionexec_db.start_timestamp = datetime.datetime.utcnow()
         actionexec_db.action = {'name': RunnerContainerTest.action_db.name}
         actionexec_db.parameters = params
         actionexec_db.context = {'user': cfg.CONF.system_user.user}

@@ -59,7 +59,7 @@ class AuthMiddleware(object):
             LOG.audit('Token is not found in header.')
             raise exceptions.TokenNotProvidedError('Token is not provided.')
         token = Token.get(env['HTTP_X_AUTH_TOKEN'])
-        if token.expiry <= datetime.datetime.now():
+        if token.expiry <= datetime.datetime.utcnow():
             LOG.audit('Token "%s" has expired.' % env['HTTP_X_AUTH_TOKEN'])
             raise exceptions.TokenExpiredError('Token has expired.')
         LOG.audit('Token "%s" is validated.' % env['HTTP_X_AUTH_TOKEN'])

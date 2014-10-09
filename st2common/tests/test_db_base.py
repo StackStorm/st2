@@ -18,7 +18,7 @@ class TestBaseModel(DbTestCase):
 
     def test_print(self):
         instance = FakeModel(name='seesaw', boolean_field=True,
-                             datetime_field=datetime.datetime.now(),
+                             datetime_field=datetime.datetime.utcnow(),
                              description=u'fun!', dict_field={'a': 1},
                              integer_field=68, list_field=['abc'])
 

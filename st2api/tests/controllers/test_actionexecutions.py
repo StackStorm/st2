@@ -265,7 +265,7 @@ class TestActionExecutionController(FunctionalTest):
         return self.app.post_json('/actionexecutions', actionexecution, *args, **kwargs)
 
 
-EXPIRY = datetime.datetime.now() + datetime.timedelta(seconds=300)
+EXPIRY = datetime.datetime.utcnow() + datetime.timedelta(seconds=300)
 SYS_TOKEN = TokenDB(id=bson.ObjectId(), user='system', token=uuid.uuid4().hex, expiry=EXPIRY)
 USR_TOKEN = TokenDB(id=bson.ObjectId(), user='stanley', token=uuid.uuid4().hex, expiry=EXPIRY)
 

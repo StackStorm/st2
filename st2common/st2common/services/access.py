@@ -24,7 +24,7 @@ def create_token(username, ttl=None):
         LOG.audit('Access granted to user "%s".' % username)
 
     token = uuid.uuid4().hex
-    expiry = datetime.datetime.now() + datetime.timedelta(seconds=ttl)
+    expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
     token = TokenAPI(user=username, token=token, expiry=expiry)
     Token.add_or_update(TokenAPI.to_model(token))
     LOG.audit('Access granted to %s with the token set to expire at "%s".' %

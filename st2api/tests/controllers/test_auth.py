@@ -13,8 +13,8 @@ from st2common.exceptions.access import TokenNotFoundError
 OBJ_ID = bson.ObjectId()
 USER = 'stanley'
 TOKEN = uuid.uuid4().hex
-FUTURE = datetime.datetime.now() + datetime.timedelta(seconds=300)
-PAST = datetime.datetime.now() + datetime.timedelta(seconds=-300)
+FUTURE = datetime.datetime.utcnow() + datetime.timedelta(seconds=300)
+PAST = datetime.datetime.utcnow() + datetime.timedelta(seconds=-300)
 
 
 class TestTokenValidation(AuthMiddlewareTest):
