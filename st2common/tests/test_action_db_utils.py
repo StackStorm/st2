@@ -83,7 +83,7 @@ class ActionDBUtilsTestCase(DbTestCase):
     def test_update_actionexecution_status(self):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
-        actionexec_db.start_timestamp = datetime.datetime.now()
+        actionexec_db.start_timestamp = datetime.datetime.utcnow()
         actionexec_db.action = {'name': ActionDBUtilsTestCase.action_db.name}
         params = {
             'actionstr': 'foo',
@@ -104,7 +104,7 @@ class ActionDBUtilsTestCase(DbTestCase):
     def test_update_actionexecution_status_invalid(self):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
-        actionexec_db.start_timestamp = datetime.datetime.now()
+        actionexec_db.start_timestamp = datetime.datetime.utcnow()
         actionexec_db.action = {'name': ActionDBUtilsTestCase.action_db.name}
         params = {
             'actionstr': 'foo',
@@ -183,7 +183,7 @@ class ActionDBUtilsTestCase(DbTestCase):
 
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
-        actionexec_db.start_timestamp = datetime.datetime.now()
+        actionexec_db.start_timestamp = datetime.datetime.utcnow()
         actionexec_db.action = {'name': ActionDBUtilsTestCase.action_db.name}
         params = {
             'actionstr': 'foo',

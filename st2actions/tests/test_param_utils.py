@@ -255,7 +255,7 @@ class ParamsUtilsTest(TestCase):
     def _get_action_exec_db_model(self, params):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
-        actionexec_db.start_timestamp = datetime.datetime.now()
+        actionexec_db.start_timestamp = datetime.datetime.utcnow()
         actionexec_db.action = {'name': ParamsUtilsTest.action_db.name}
         actionexec_db.parameters = params
         return actionexec_db

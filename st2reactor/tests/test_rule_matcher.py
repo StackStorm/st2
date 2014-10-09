@@ -15,7 +15,7 @@ class RuleMatcherTest(DbTestCase):
     def test_get_matching_rules(self):
         self._setup_sample_triggers('st2.test.trigger1')
         trigger_instance = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.now()
+            {'name': 'st2.test.trigger1'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.utcnow()
         )
         rules = self._get_sample_rules()
         rules_matcher = RulesMatcher(trigger_instance, rules)

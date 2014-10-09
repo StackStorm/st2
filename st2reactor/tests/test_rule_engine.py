@@ -24,16 +24,16 @@ class RuleEngineTest(DbTestCase):
     @mock.patch.object(RuleEnforcer, 'enforce', mock.MagicMock(return_value=True))
     def test_handle_trigger_instances(self):
         trigger_instance_1 = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.now()
+            {'name': 'st2.test.trigger1'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.utcnow()
         )
 
         trigger_instance_2 = container_utils.create_trigger_instance(
             {'name': 'st2.test.trigger1'}, {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'},
-            datetime.datetime.now())
+            datetime.datetime.utcnow())
 
         trigger_instance_3 = container_utils.create_trigger_instance(
             {'name': 'st2.test.trigger2'}, {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'},
-            datetime.datetime.now())
+            datetime.datetime.utcnow())
         instances = [trigger_instance_1, trigger_instance_2, trigger_instance_3]
         rules_engine = RulesEngine()
         for instance in instances:
@@ -41,7 +41,7 @@ class RuleEngineTest(DbTestCase):
 
     def test_get_matching_rules_filters_disabled_rules(self):
         trigger_instance = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.now()
+            {'name': 'st2.test.trigger1'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.utcnow()
         )
         rules_engine = RulesEngine()
         matching_rules = rules_engine.get_matching_rules_for_trigger(trigger_instance)
@@ -51,7 +51,7 @@ class RuleEngineTest(DbTestCase):
 
     def test_handle_trigger_instance_no_rules(self):
         trigger_instance = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger3'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.now()
+            {'name': 'st2.test.trigger3'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.utcnow()
         )
         rules_engine = RulesEngine()
         rules_engine.handle_trigger_instance(trigger_instance)  # should not throw.

@@ -120,7 +120,7 @@ class ActionExecutionsController(RestController):
 
     @jsexpose(str, body=ActionExecutionAPI)
     def put(self, id, actionexecution):
-        actionexecution.start_timestamp = datetime.datetime.now()
+        actionexecution.start_timestamp = datetime.datetime.utcnow()
         actionexec_db = ActionExecutionsController.__get_by_id(id)
         new_actionexec_db = ActionExecutionAPI.to_model(actionexecution)
         if actionexec_db.status != new_actionexec_db.status:

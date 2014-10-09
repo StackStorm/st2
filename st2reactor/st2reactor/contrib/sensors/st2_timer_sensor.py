@@ -221,10 +221,10 @@ class St2TimerSensor(object):
                             trigger['parameters'], e, exc_info=True)
 
     def _emit_trigger_instance(self, trigger):
-        self._log.info('Timer fired at: %s. Trigger: %s', str(datetime.now()), trigger)
+        self._log.info('Timer fired at: %s. Trigger: %s', str(datetime.utcnow()), trigger)
 
         payload = {
-            'executed_at': str(datetime.now()),
+            'executed_at': str(datetime.utcnow()),
             'schedule': trigger['parameters'].get('time')
         }
         self._container_service.dispatch(trigger, payload)
