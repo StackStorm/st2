@@ -1,0 +1,30 @@
+{
+    "name": "reboot_vm",
+    "runner_type": "run-local-script",
+    "description": "Reboot a running VM.",
+    "enabled": true,
+    "entry_point": "reboot_vm.py",
+    "parameters": {
+        "provider": {
+            "type": "string",
+            "description": "Name of the provider to use (as defined in the config)."
+        },
+        "vm-id": {
+            "type": "string",
+            "description": "ID of a VM to reboot."
+        },
+        "user": {
+            "immutable": true
+        },
+        "dir": {
+            "immutable": true
+        },
+        "sudo": {
+            "immutable": true
+        },
+        "parallel": {
+            "immutable": true
+        }
+    },
+    "required_parameters": ["provider", "vm-id"]
+}

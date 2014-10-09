@@ -1,0 +1,38 @@
+{
+    "name": "create_vm",
+    "runner_type": "run-local-script",
+    "description": "Create a new VM.",
+    "enabled": true,
+    "entry_point": "create_vm.py",
+    "parameters": {
+        "provider": {
+            "type": "string",
+            "description": "Name of the provider to use (as defined in the config)."
+        },
+        "name": {
+            "type": "string",
+            "description": "Name fo a new VM"
+        },
+        "size-id": {
+            "type": "string",
+            "description": "ID of a size to use"
+        },
+        "image-id": {
+            "type": "string",
+            "description": "ID of an image to use"
+        },
+        "user": {
+            "immutable": true
+        },
+        "dir": {
+            "immutable": true
+        },
+        "sudo": {
+            "immutable": true
+        },
+        "parallel": {
+            "immutable": true
+        }
+    },
+    "required_parameters": ["provider", "name", "size-id", "image-id"]
+}
