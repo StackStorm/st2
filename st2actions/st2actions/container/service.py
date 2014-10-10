@@ -12,7 +12,7 @@ STDOUT = 'stdout'
 STDERR = 'stderr'
 
 
-class RunnerContainerService():
+class RunnerContainerService(object):
     """
         The RunnerContainerService class implements the interface
         that ActionRunner implementations use to access services
