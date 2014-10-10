@@ -18,7 +18,7 @@ class TriggerDispatcher(object):
         trigger_instance = container_utils.create_trigger_instance(
             trigger,
             payload or {},
-            datetime.datetime.now())
+            datetime.datetime.utcnow())
 
         if trigger_instance:
             self.rules_engine.handle_trigger_instance(trigger_instance)

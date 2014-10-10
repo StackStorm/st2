@@ -21,7 +21,7 @@ class MistralRunner(ActionRunner):
 
     def __init__(self, id):
         super(MistralRunner, self).__init__()
-        self._on_behalf_user = cfg.CONF.ssh_runner.user
+        self._on_behalf_user = cfg.CONF.system_user.user
 
     def pre_run(self):
         pass

@@ -32,7 +32,10 @@ def _setup_config_opts():
     ssh_runner_opts = [
         cfg.StrOpt('remote_dir',
                    default='/tmp',
-                   help='Location of the script on the remote filesystem.')
+                   help='Location of the script on the remote filesystem.'),
+        cfg.BoolOpt('allow_partial_failure',
+                    default=False,
+                    help='How partial success of actions run on multiple nodes should be treated.')
     ]
     _register_opts(ssh_runner_opts, group='ssh_runner')
 

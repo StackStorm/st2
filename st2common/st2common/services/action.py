@@ -54,7 +54,7 @@ def schedule(execution):
                          % str(overridden_immutables))
     # Write to database and send to message queue.
     execution.status = ACTIONEXEC_STATUS_SCHEDULED
-    execution.start_timestamp = datetime.datetime.now()
+    execution.start_timestamp = datetime.datetime.utcnow()
     executiondb = ActionExecutionAPI.to_model(execution)
     executiondb = ActionExecution.add_or_update(executiondb)
     LOG.audit('Action execution scheduled. ActionExecution=%s.', executiondb)

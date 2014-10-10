@@ -200,7 +200,7 @@ class ReactorModelTest(DbTestCase):
         created = TriggerInstanceDB()
         created.trigger = reference.get_ref_from_model(trigger)
         created.payload = {}
-        created.occurrence_time = datetime.datetime.now()
+        created.occurrence_time = datetime.datetime.utcnow()
         return TriggerInstance.add_or_update(created)
 
     @staticmethod

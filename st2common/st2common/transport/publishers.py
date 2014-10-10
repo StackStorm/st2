@@ -15,7 +15,7 @@ class PoolPublisher(object):
         self.pool = Connection(url).Pool(limit=10)
 
     def errback(self, exc, interval):
-        LOG.error('Rabbitmq connection error: %r', exc, exc_info=True)
+        LOG.error('Rabbitmq connection error: %s', exc.message, exc_info=False)
 
     def publish(self, payload, exchange, routing_key=''):
         # pickling the payload for now. Better serialization mechanism is essential.
