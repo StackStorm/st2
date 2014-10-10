@@ -1,5 +1,5 @@
 {
-    "providers": {
+    "credentials": {
         "ec2_prod": {
             "api_key": "username",
             "api_secret": "password",

@@ -33,7 +33,7 @@ class BaseAction(object):
 
     def get_parser(self):
         parser = argparse.ArgumentParser(description=self.description)
-        parser.add_argument('--provider', help='Name of the provider (as defined in the config) to operate on',
+        parser.add_argument('--credentials', help='Name of the credentials (as defined in the config) to use',
                             required=True)
 
         return parser
@@ -50,19 +50,19 @@ class BaseAction(object):
         config = json.loads(content)
         return config
 
-    def _get_driver_for_provider(self, provider):
+    def _get_driver_for_credentials(self, credentials):
         """
-        Retrieve Libcloud provider driver instance for a particular provider
-        defined in the config.
+        Retrieve Libcloud provider driver instance for a particular credentials
+        set defined in the config.
 
-        :type provider: ``str``
+        :type credentials: ``str``
         """
-        provider_config = self.config['providers'].get(provider, None)
+        provider_config = self.config['credentials'].get(credentials, None)
 
         if not provider_config:
-            raise ValueError(('Invalid provider name "%s". Please make sure'
-                              ' that provider with this name is declared in'
-                              ' the config' % (provider)))
+            raise ValueError(('Invalid credentials set name "%s". Please make'
+                              ' sure that credentials set with this name is'
+                              ' defined in the config' % (credentials)))
 
         cls = get_driver(provider_config['provider'])
 
@@ -82,13 +82,13 @@ class BaseAction(object):
         driver = cls(*driver_args, **driver_kwargs)
         return driver
 
-    def _get_driver_for_active_provider(self):
+    def _get_driver_for_active_credentials(self):
         """
-        Return Libcloud driver instance for the selected provider.
+        Return Libcloud driver instance for the selected credentials set.
         """
         arguments = self.get_arguments()
-        provider = arguments.provider
-        driver = self._get_driver_for_provider(provider=provider)
+        credentials = arguments.credentials
+        driver = self._get_driver_for_credentials(credentials=credentials)
         return driver
 
 
@@ -117,7 +117,7 @@ class StartVMAction(SingleVMAction):
     def run(self):
         arguments = self.get_arguments()
 
-        driver = self._get_driver_for_active_provider()
+        driver = self._get_driver_for_active_credentials()
         node = self._get_node_for_id(node_id=arguments.vm_id, driver=driver)
 
         sys.stderr.write('Starting node: %s' % (node))
@@ -137,7 +137,7 @@ class StopVMAction(SingleVMAction):
     def run(self):
         arguments = self.get_arguments()
 
-        driver = self._get_driver_for_active_provider()
+        driver = self._get_driver_for_active_credentials()
         node = self._get_node_for_id(node_id=arguments.vm_id, driver=driver)
 
         sys.stderr.write('Stopping node: %s' % (node))
@@ -157,7 +157,7 @@ class RebootVMAction(SingleVMAction):
     def run(self):
         arguments = self.get_arguments()
 
-        driver = self._get_driver_for_active_provider()
+        driver = self._get_driver_for_active_credentials()
         node = self._get_node_for_id(node_id=arguments.vm_id, driver=driver)
 
         sys.stderr.write('Rebooting node: %s' % (node))
@@ -177,7 +177,7 @@ class DestroyVMAction(SingleVMAction):
     def run(self):
         arguments = self.get_arguments()
 
-        driver = self._get_driver_for_active_provider()
+        driver = self._get_driver_for_active_credentials()
         node = self._get_node_for_id(node_id=arguments.vm_id, driver=driver)
 
         sys.stderr.write('Destroy node: %s' % (node))
@@ -214,7 +214,7 @@ class CreateVMAction(BaseAction):
     def run(self):
         arguments = self.get_arguments()
 
-        driver = self._get_driver_for_active_provider()
+        driver = self._get_driver_for_active_credentials()
         name = arguments['name']
         size = NodeSize(id=arguments.size_id, name=None,
                         ram=None, disk=None, bandwidth=None,
