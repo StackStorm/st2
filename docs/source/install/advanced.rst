@@ -1,2 +1,2 @@
-Detailed Installation Instructiosn
+Advanced Installation
 ===================================

@@ -7,5 +7,6 @@ Installation
     Ubuntu / Debian <deb>
     RedHat / Fedora <rpm>
     Vagrant <vagrant>
-    Custom <details>
+    advanced
+    deploy
     sources
