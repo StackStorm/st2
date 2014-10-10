@@ -135,6 +135,9 @@ class ActionRunCommand(resource.ResourceCommand):
 
     @staticmethod
     def print_param(name, schema):
+        if not schema:
+            raise ValueError('Missing schema for parameter "%s"' % (name))
+
         wrapper = textwrap.TextWrapper(width=78)
         wrapper.initial_indent = ' ' * 4
         wrapper.subsequent_indent = wrapper.initial_indent
