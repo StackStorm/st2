@@ -5,9 +5,9 @@
     "enabled": true,
     "entry_point": "stop_vm.py",
     "parameters": {
-        "provider": {
+        "credentials": {
             "type": "string",
-            "description": "Name of the provider to use (as defined in the config)."
+            "description": "Name of the credentials set (as defined in the config) to use."
         },
         "vm-id": {
             "type": "string",
@@ -26,5 +26,5 @@
             "immutable": true
         }
     },
-    "required_parameters": ["provider", "vm-id"]
+    "required_parameters": ["credentials", "vm-id"]
 }

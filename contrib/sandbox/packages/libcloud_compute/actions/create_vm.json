@@ -5,9 +5,9 @@
     "enabled": true,
     "entry_point": "create_vm.py",
     "parameters": {
-        "provider": {
+        "credentials": {
             "type": "string",
-            "description": "Name of the provider to use (as defined in the config)."
+            "description": "Name of the credentials set (as defined in the config) to use."
         },
         "name": {
             "type": "string",
@@ -34,5 +34,5 @@
             "immutable": true
         }
     },
-    "required_parameters": ["provider", "name", "size-id", "image-id"]
+    "required_parameters": ["credentials", "name", "size-id", "image-id"]
 }
