@@ -26,7 +26,7 @@ class RulesEngine(object):
         return rules
 
     def get_matching_rules_for_trigger(self, trigger_instance):
-        rules = self.get_rules_for_trigger(trigger_instance.trigger)  # Saves some queries to db.
+        rules = self.get_rules_for_trigger(trigger_instance.trigger)
         matcher = RulesMatcher(trigger_instance, rules)
 
         matching_rules = matcher.get_matching_rules()

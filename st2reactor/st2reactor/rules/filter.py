@@ -25,11 +25,17 @@ class RuleFilter(object):
 
         transform = get_transformer(self.trigger_instance.payload)
 
+        LOG.debug('Trigger payload: %s', self.trigger_instance.payload)
         for criterion_k in criteria.keys():
             criterion_v = criteria[criterion_k]
             is_rule_applicable = self._check_criterion(criterion_k, criterion_v, transform)
             if not is_rule_applicable:
                 break
+
+        if not is_rule_applicable:
+            LOG.debug('Rule %s not applicable for %s.', self.rule.id,
+                      self.trigger_instance.trigger['name'])
+
         return is_rule_applicable
 
     def _check_criterion(self, criterion_k, criterion_v, transform):
@@ -37,7 +43,12 @@ class RuleFilter(object):
         if 'pattern' not in criterion_v or criterion_v['pattern'] is None:
             return False
 
-        payload_value = transform({'result': '{{' + criterion_k + '}}'})
+        try:
+            payload_value = transform({'result': '{{' + criterion_k + '}}'})
+        except:
+            LOG.exception('Failed transforming criteria key %s', criterion_k)
+            return False
+
         criteria_operator = ''
         criteria_pattern = criterion_v['pattern']
         if 'type' in criterion_v:
