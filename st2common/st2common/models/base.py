@@ -64,8 +64,10 @@ class BaseAPI(object):
 
 
 def jsexpose(*argtypes, **opts):
+    content_type = opts.get('content_type', 'application/json')
+
     pecan_json_decorate = pecan.expose(
-        content_type='application/json',
+        content_type=content_type,
         generic=False)
 
     def decorate(f):
@@ -114,7 +116,10 @@ def jsexpose(*argtypes, **opts):
                     result = f(*args, **kwargs)
                     if status_code:
                         pecan.response.status = status_code
-                    return pecan.jsonify.encode(result)
+                    if content_type == 'application/json':
+                        return pecan.jsonify.encode(result)
+                    else:
+                        return result
                 except exc.HTTPException as e:
                     pecan.response.status = e.wsgi_response.status
                     error = {'faultstring': str(e)}
