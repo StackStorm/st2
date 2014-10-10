@@ -4,6 +4,8 @@ from pecan.rest import RestController
 import six
 
 import st2actions.utils.param_utils as param_utils
+from st2actions.container.service import RunnerContainerService
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
 from st2common.models.api.action import ActionAPI
 from st2common.models.base import jsexpose
@@ -103,6 +105,35 @@ class OverviewController(RestController):
         return action_api
 
 
+class EntryPointController(RestController):
+
+    @jsexpose(str, content_type='text/plain', status_code=http_client.OK)
+    def get_one(self, action_id):
+        """
+            Outputs the file associated with action entry_point
+
+            Handles requests:
+                GET /actions/views/entry_point/1
+        """
+        LOG.info('GET /actions/views/overview with id=%s', action_id)
+        action_db = LookupUtils._get_action_by_id(action_id)
+
+        pack = getattr(action_db, 'content_pack', None)
+        entry_point = getattr(action_db, 'entry_point', None)
+
+        abs_path = RunnerContainerService.get_entry_point_abs_path(pack, entry_point)
+
+        if not abs_path:
+            raise StackStormDBObjectNotFoundError('Action id=%s has no entry_point to output'
+                                                  % action_id)
+
+        with open(abs_path) as file:
+            content = file.read()
+
+        return content
+
+
 class ActionViewsController(RestController):
     parameters = ParametersViewController()
     overview = OverviewController()
+    entry_point = EntryPointController()

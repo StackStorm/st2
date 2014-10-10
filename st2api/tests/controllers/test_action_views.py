@@ -1,5 +1,6 @@
 import mock
 
+from st2actions.container.service import RunnerContainerService
 import st2common.validators.api.action as action_validator
 from tests import FunctionalTest
 
@@ -89,5 +90,19 @@ class TestParametersView(FunctionalTest):
         post_resp = self.app.post_json('/actions', ACTION_1)
         action_id = post_resp.json['id']
         get_resp = self.app.get('/actions/views/parameters/%s' % action_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.app.delete('/actions/%s' % action_id)
+
+
+class TestEntryPointView(FunctionalTest):
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(RunnerContainerService, 'get_entry_point_abs_path', mock.MagicMock(
+        return_value='/path/to/file'))
+    @mock.patch('__builtin__.open', mock.mock_open(read_data='file content'), create=True)
+    def test_get_one(self):
+        post_resp = self.app.post_json('/actions', ACTION_1)
+        action_id = post_resp.json['id']
+        get_resp = self.app.get('/actions/views/entry_point/%s' % action_id)
         self.assertEqual(get_resp.status_int, 200)
         self.app.delete('/actions/%s' % action_id)
