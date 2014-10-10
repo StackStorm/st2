@@ -14,6 +14,7 @@ from libcloud.compute.providers import get_driver
 from libcloud.compute.base import Node
 from libcloud.compute.base import NodeSize
 from libcloud.compute.base import NodeImage
+from libcloud.compute.base import NodeLocation
 
 __all__ = [
     'StartVMAction',
@@ -208,6 +209,8 @@ class CreateVMAction(BaseAction):
                             required=True)
         parser.add_argument('--image-id', help='ID of the image to use',
                             required=True)
+        parser.add_argument('--location-id', help='ID of the location to use',
+                            required=False)
 
         return parser
 
@@ -215,15 +218,23 @@ class CreateVMAction(BaseAction):
         arguments = self.get_arguments()
 
         driver = self._get_driver_for_active_credentials()
-        name = arguments['name']
+        name = arguments.name
         size = NodeSize(id=arguments.size_id, name=None,
                         ram=None, disk=None, bandwidth=None,
                         price=None, driver=driver)
         image = NodeImage(id=arguments.image_id, name=None,
                           driver=driver)
+        location = NodeLocation(id=arguments.location_id, name=None,
+                                country=None, driver=driver)
 
         sys.stderr.write('Creating node...')
-        node = driver.create_node(name=name, size=size, image=image)
+
+        kwargs = {'name': name, 'size': size, 'image': image}
+
+        if arguments.location_id:
+            kwargs['location'] = location
+
+        node = driver.create_node(**kwargs)
 
         sys.stderr.write('Node successfully created: %s' % (node))
         return node
