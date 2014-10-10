@@ -225,6 +225,13 @@ def register_runner_types():
             'enabled': True,
             'runner_parameters': {},
             'runner_module': 'st2actions.runners.actionchainrunner'
+        },
+        {
+            'name': 'run-python',
+            'description': 'A runner for launching python actions.',
+            'enabled': True,
+            'runner_parameters': {},
+            'runner_module': 'st2actions.runners.pythonrunner'
         }
     ]
 
