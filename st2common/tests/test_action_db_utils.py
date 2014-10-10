@@ -20,7 +20,7 @@ class ActionDBUtilsTestCase(DbTestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(DbTestCase, cls).setUpClass()
+        super(ActionDBUtilsTestCase, cls).setUpClass()
         ActionDBUtilsTestCase._setup_test_models()
 
     def test_get_runnertype_nonexisting(self):
