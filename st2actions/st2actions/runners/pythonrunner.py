@@ -1,4 +1,5 @@
 import abc
+import eventlet
 import six
 import sys
 import traceback
@@ -68,8 +69,11 @@ class PythonRunner(ActionRunner):
         action_wrapper = ActionWrapper(self.entry_point, action_parameters)
         parent_conn, child_conn = Pipe()
         p = Process(target=action_wrapper.run, args=(child_conn,))
+        p.daemon = True
         try:
             p.start()
+            # Without this sleep paren_conn.recv raises [ERRNO 11] Resource temporarily unavailable.
+            eventlet.sleep(0.1)
             output = parent_conn.recv()
             p.join()
             exit_code = p.exitcode
