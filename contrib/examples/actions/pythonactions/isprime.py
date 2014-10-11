@@ -3,10 +3,7 @@ import math
 
 class PrimeChecker(object):
 
-    def run(self, **kwargs):
-        return self._is_prime(**kwargs)
-
-    def _is_prime(self, value=0):
+    def run(self, value=0):
         if math.floor(value) != value:
             raise ValueError('%s should be an integer.' % value)
         if value < 2:
