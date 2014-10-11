@@ -8,5 +8,5 @@ class PascalRowAction(object):
 
     @staticmethod
     def _compute_pascal_row(row_index=0):
-        return [math.factorial(row_index)/(math.factorial(i)*math.factorial(row_index-i))
-                for i in range(row_index+1)]
+        return [math.factorial(row_index) / (math.factorial(i) * math.factorial(row_index - i))
+                for i in range(row_index + 1)]
