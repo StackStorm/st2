@@ -20,7 +20,9 @@ __all__ = [
     'StartVMAction',
     'StopVMAction',
     'RebootVMAction',
-    'DestroyVMAction'
+    'DestroyVMAction',
+    'CreateVMAction',
+    'ImportPublicSSHKeyAction'
 ]
 
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
@@ -238,3 +240,23 @@ class CreateVMAction(BaseAction):
 
         sys.stderr.write('Node successfully created: %s' % (node))
         return node
+
+
+class ImportPublicSSHKeyAction(BaseAction):
+    description = 'Import public SSH key'
+
+    def get_parser(self):
+        parser = super(ImportPublicSSHKeyAction, self).get_parser()
+        parser.add_argument('--name', help='Name for the imported key pair',
+                            required=True)
+        parser.add_argument('--key-material', help='Public SSH key material',
+                            required=True)
+
+        return parser
+
+    def run(self):
+        arguments = self.get_arguments()
+
+        driver = self._get_driver_for_active_credentials()
+        return driver.import_key_pair_from_string(name=arguments.name,
+                                                  key_material=arguments.key_material)

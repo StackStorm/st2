@@ -1,0 +1,34 @@
+{
+    "name": "import_public_ssh_key",
+    "runner_type": "run-local-script",
+    "description": "Import an existing public SSH key.",
+    "enabled": true,
+    "entry_point": "import_ssh_key.py",
+    "parameters": {
+        "credentials": {
+            "type": "string",
+            "description": "Name of the credentials set (as defined in the config) to use."
+        },
+        "name": {
+            "type": "string",
+            "description": "Name for the imported key pair"
+        },
+        "key-material": {
+            "type": "string",
+            "description": "Public SSH key material"
+        },
+        "user": {
+            "immutable": true
+        },
+        "dir": {
+            "immutable": true
+        },
+        "sudo": {
+            "immutable": true
+        },
+        "parallel": {
+            "immutable": true
+        }
+    },
+    "required_parameters": ["credentials", "name", "key-material"]
+}
