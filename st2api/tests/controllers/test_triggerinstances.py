@@ -116,7 +116,7 @@ class TestTriggerController(FunctionalTest):
         trigger_instance = TriggerInstanceDB()
         trigger_instance.trigger = trigger_ref
         trigger_instance.payload = payload
-        trigger_instance.occurrence_time = datetime.datetime.now()
+        trigger_instance.occurrence_time = datetime.datetime.utcnow()
         created = TriggerInstance.add_or_update(trigger_instance)
         cls.triggerinstance_count += 1
         return created

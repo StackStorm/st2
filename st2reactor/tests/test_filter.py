@@ -18,7 +18,7 @@ MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
 MOCK_TRIGGER_INSTANCE.id = bson.ObjectId()
 MOCK_TRIGGER_INSTANCE.trigger = reference.get_ref_from_model(MOCK_TRIGGER)
 MOCK_TRIGGER_INSTANCE.payload = {'p1': 'v1'}
-MOCK_TRIGGER_INSTANCE.occurrence_time = datetime.datetime.now()
+MOCK_TRIGGER_INSTANCE.occurrence_time = datetime.datetime.utcnow()
 
 MOCK_ACTION = ActionDB()
 MOCK_ACTION.id = bson.ObjectId()

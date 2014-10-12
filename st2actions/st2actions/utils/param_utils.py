@@ -71,8 +71,9 @@ def get_params_view(action_db=None, runner_db=None, merged_only=False):
 
 
 def _split_params(runner_parameters, action_parameters, mixed_params):
-    pf = lambda params: {k: v for k, v in six.iteritems(mixed_params) if k in params}
-    return (pf(runner_parameters), pf(action_parameters))
+    pf = lambda params, skips: {k: v for k, v in six.iteritems(mixed_params)
+                                if k in params and k not in skips}
+    return (pf(runner_parameters, {}), pf(action_parameters, runner_parameters))
 
 
 def _get_resolved_runner_params(runner_parameters, action_parameters,

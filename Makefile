@@ -44,7 +44,7 @@ check: requirements flake8 checklogs
 .PHONY: checklogs
 checklogs:
 	@echo
-	@echo "==================LOG WATCHER===================="
+	@echo "================== LOG WATCHER ===================="
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; ./tools/log_watcher.py 10
 
@@ -78,7 +78,7 @@ flake8: requirements .flake8
 .PHONY: .flake8
 .flake8:
 	@echo
-	@echo "====================flake===================="
+	@echo "==================== flake ===================="
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS)
 
@@ -98,7 +98,7 @@ clean: .cleanpycs .cleandocs
 .PHONY: distclean
 distclean: clean
 	@echo
-	@echo "====================distclean===================="
+	@echo "==================== distclean ===================="
 	@echo
 	rm -rf $(VIRTUALENV_DIR)
 	rm -rf $(STORMBOT_DIR)/node_modules/
@@ -106,7 +106,7 @@ distclean: clean
 .PHONY: requirements
 requirements: virtualenv $(REQUIREMENTS)
 	@echo
-	@echo "====================requirements===================="
+	@echo "==================== requirements ===================="
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate && pip install -U $(foreach req,$(REQUIREMENTS),-r $(req))
 
@@ -114,7 +114,7 @@ requirements: virtualenv $(REQUIREMENTS)
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
 $(VIRTUALENV_DIR)/bin/activate:
 	@echo
-	@echo "====================virtualenv===================="
+	@echo "==================== virtualenv ===================="
 	@echo
 	test -d $(VIRTUALENV_DIR) || virtualenv --no-site-packages $(VIRTUALENV_DIR)
 
@@ -153,7 +153,7 @@ pytests: requirements .flake8 .pytests-coverage
 .PHONY: .pytests
 .pytests: clean
 	@echo
-	@echo "====================tests===================="
+	@echo "==================== tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
@@ -167,7 +167,7 @@ pytests: requirements .flake8 .pytests-coverage
 .PHONY: .pytests-coverage
 .pytests-coverage: clean
 	@echo
-	@echo "====================tests with coverage===================="
+	@echo "==================== tests with coverage ===================="
 	@echo
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -183,7 +183,7 @@ bottests: botrqmnts
 .PHONY: install
 install:
 	@echo
-	@echo "====================install===================="
+	@echo "==================== install ===================="
 	@echo
 	pip install -r requirements.txt
 	cp -R st2*/st2* /usr/lib/python2.7/site-packages/
@@ -195,7 +195,7 @@ install:
 .PHONY: rpms
 rpms:
 	@echo
-	@echo "====================rpm===================="
+	@echo "==================== rpm ===================="
 	@echo
 	rm -Rf ~/rpmbuild
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make rpm; popd;)
@@ -204,7 +204,7 @@ rpms:
 .PHONY: debs
 debs:
 	@echo
-	@echo "====================deb===================="
+	@echo "==================== deb ===================="
 	@echo
 	rm -Rf ~/debbuild
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make deb; popd;)

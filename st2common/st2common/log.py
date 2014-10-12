@@ -13,7 +13,7 @@ logging.addLevelName(logging.AUDIT, 'AUDIT')
 class FormatNamedFileHandler(logging.FileHandler):
     def __init__(self, filename, mode='a', encoding=None, delay=False):
         # Include timestamp in the name.
-        filename = filename.format(ts=str(datetime.datetime.now()).replace(' ', '_'),
+        filename = filename.format(ts=str(datetime.datetime.utcnow()).replace(' ', '_'),
                                    pid=os.getpid())
         super(FormatNamedFileHandler, self).__init__(filename, mode, encoding, delay)
 
