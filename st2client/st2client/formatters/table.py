@@ -47,7 +47,7 @@ class MultiColumnTable(formatters.Formatter):
                     field_names = field_name.split('.')
                     value = getattr(entry, field_names.pop(0), {})
                     for name in field_names:
-                        value = MultiColumnTable._get_field_value(value, name)
+                        value = cls._get_field_value(value, name)
                         if type(value) is str:
                             break
                     values.append(value)
@@ -88,7 +88,7 @@ class PropertyValueTable(formatters.Formatter):
         table.align = 'l'
         table.valign = 't'
         for attribute in attributes:
-            value = PropertyValueTable._get_attribute_value(subject, attribute)
+            value = cls._get_attribute_value(subject, attribute)
             if type(value) is dict or type(value) is list:
                 value = json.dumps(value, indent=4)
             table.add_row([attribute, value])
