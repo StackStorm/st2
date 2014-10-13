@@ -1,11 +1,11 @@
-import datetime
-
 import jsonschema
 
+from st2common.util import isotime
 from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.base import BaseAPI
 from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB)
+
 
 __all__ = ['ActionAPI',
            'ActionExecutionAPI',
@@ -215,7 +215,7 @@ class ActionExecutionAPI(BaseAPI):
             "start_timestamp": {
                 "description": "The start time when the action is executed.",
                 "type": "string",
-                "pattern": "^\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}:\d{2}.\d{6}$"
+                "pattern": isotime.ISO8601_UTC_REGEX
             },
             "action": {
                 "description": "The action to be executed.",
@@ -266,21 +266,20 @@ class ActionExecutionAPI(BaseAPI):
         "additionalProperties": False
     }
 
-    def __init__(self, **kw):
-        start_timestamp = kw.pop('start_timestamp') if 'start_timestamp' in kw else None
-        super(ActionExecutionAPI, self).__init__(**kw)
-        if start_timestamp and not isinstance(start_timestamp, datetime.datetime):
-            start_timestamp = datetime.datetime.strptime(start_timestamp,
-                                                         '%Y-%m-%d %H:%M:%S.%f')
-        if start_timestamp:
-            self.start_timestamp = start_timestamp
+    @classmethod
+    def from_model(cls, model):
+        doc = super(cls, cls)._from_model(model)
+        if model.start_timestamp:
+            doc['start_timestamp'] = isotime.format(model.start_timestamp, offset=False)
+        return cls(**doc)
 
     @classmethod
     def to_model(cls, execution):
         model = super(cls, cls).to_model(execution)
-        model.status = str(execution.status)
-        model.start_timestamp = getattr(execution, 'start_timestamp')
         model.action = execution.action
+        if getattr(execution, 'start_timestamp', None):
+            model.start_timestamp = isotime.parse(execution.start_timestamp)
+        model.status = getattr(execution, 'status', None)
         model.parameters = getattr(execution, 'parameters', dict())
         model.context = getattr(execution, 'context', dict())
         model.callback = getattr(execution, 'callback', dict())

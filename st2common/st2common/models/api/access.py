@@ -1,6 +1,5 @@
-import datetime
-
 from oslo.config import cfg
+from st2common.util import isotime
 from st2common.models.base import BaseAPI
 from st2common.models.db.access import UserDB, TokenDB
 from st2common import log as logging
@@ -51,17 +50,17 @@ class TokenAPI(BaseAPI):
             },
             "expiry": {
                 "type": ["string", "null"],
-                "pattern": "^\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}:\d{2}.\d{6}$"
+                "pattern": isotime.ISO8601_UTC_REGEX
             }
         },
         "additionalProperties": False
     }
 
-    def __init__(self, **kw):
-        expiry = kw.pop('expiry') if 'expiry' in kw else None
-        super(TokenAPI, self).__init__(**kw)
-        self.expiry = (datetime.datetime.strptime(expiry, '%Y-%m-%d %H:%M:%S.%f')
-                       if expiry and not isinstance(expiry, datetime.datetime) else expiry)
+    @classmethod
+    def from_model(cls, model):
+        doc = super(cls, cls)._from_model(model)
+        doc['expiry'] = isotime.format(model.expiry, offset=False) if model.expiry else None
+        return cls(**doc)
 
     @classmethod
     def to_model(cls, token):
@@ -69,5 +68,5 @@ class TokenAPI(BaseAPI):
         model.user = str(token.user) if token.user else None
         model.token = str(token.token) if token.token else None
         model.ttl = getattr(token, 'ttl', None)
-        model.expiry = token.expiry
+        model.expiry = isotime.parse(token.expiry) if token.expiry else None
         return model

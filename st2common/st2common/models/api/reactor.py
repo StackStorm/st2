@@ -1,6 +1,6 @@
 import uuid
-import datetime
 
+from st2common.util import isotime
 from st2common.models.base import BaseAPI
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB
 from st2common.models.db.reactor import TriggerTypeDB, TriggerDB, TriggerInstanceDB
@@ -103,7 +103,7 @@ class TriggerInstanceAPI(BaseAPI):
             },
             'occurrence_time': {
                 'type': 'string',
-                'format': 'date-time'
+                'pattern': isotime.ISO8601_UTC_REGEX
             },
             'payload': {
                 'type': 'object'
@@ -120,7 +120,7 @@ class TriggerInstanceAPI(BaseAPI):
     @classmethod
     def from_model(cls, model):
         instance = cls._from_model(model)
-        instance['occurrence_time'] = instance['occurrence_time'].isoformat()
+        instance['occurrence_time'] = isotime.format(instance['occurrence_time'], offset=False)
         if 'trigger' in instance:
             instance['trigger'] = str(instance['trigger'].get('name', ''))
         return cls(**instance)
@@ -131,7 +131,7 @@ class TriggerInstanceAPI(BaseAPI):
         trigger = Trigger.get_by_name(instance.trigger)
         model.trigger = {'id': str(trigger.id), 'name': trigger.name}
         model.payload = instance.payload
-        model.occurrence_time = datetime.datetime.strptime(instance.occurrence_time, DATE_FORMAT)
+        model.occurrence_time = isotime.parse(instance.occurrence_time)
         return model
 
 
