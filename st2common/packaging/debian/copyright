@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: st2common
-Source: https://github.com/StackStorm/stanley
+Source: https://github.com/StackStorm/st2
 
 Files: *
 Copyright: 2014 StackStorm Engineering <opsadmin@stackstorm.com>

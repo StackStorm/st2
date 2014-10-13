@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ -d /etc/stanley ]; then
-  sed -i -r "s~(st2.*)/conf~/etc/\1~g" /etc/stanley/stanley.conf
-  sed -i "s~vagrant~/home/stanley~g" /etc/stanley/stanley.conf
-  sed -i "/content_packs_base_path/a system_path = /usr/lib/python2.7/dist-packages/st2reactor/contrib/sensors" /etc/stanley/stanley.conf
+if [ -d /etc/st2 ]; then
+  sed -i -r "s~(st2.*)/conf~/etc/\1~g" /etc/st2/st2.conf
+  sed -i "s~vagrant~/home/st2~g" /etc/st2/st2.conf
+  sed -i "/content_packs_base_path/a system_path = /usr/lib/python2.7/dist-packages/st2reactor/contrib/sensors" /etc/st2/st2.conf
 fi
