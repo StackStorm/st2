@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import sys
-
 from libcloud.compute.base import NodeSize
 from libcloud.compute.base import NodeImage
 from libcloud.compute.base import NodeLocation
@@ -26,7 +24,7 @@ class CreateVMAction(BaseAction):
         location = NodeLocation(id=location_id, name=None,
                                 country=None, driver=driver)
 
-        sys.stderr.write('Creating node...')
+        self.logger.info('Creating node...')
 
         kwargs = {'name': name, 'size': size, 'image': image}
 
@@ -35,5 +33,5 @@ class CreateVMAction(BaseAction):
 
         node = driver.create_node(**kwargs)
 
-        sys.stderr.write('Node successfully created: %s' % (node))
+        self.logger.info('Node successfully created: %s' % (node))
         return node

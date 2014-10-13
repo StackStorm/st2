@@ -26,6 +26,7 @@ class BaseAction(Action):
     description = None
 
     def __init__(self):
+        super(BaseAction, self).__init__()
         self.config = self._parse_config()
 
     def _parse_config(self):

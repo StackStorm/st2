@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import sys
-
 from lib.actions import BaseAction
 
 __all__ = [

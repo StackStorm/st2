@@ -4,6 +4,7 @@ import six
 import sys
 import traceback
 import uuid
+import logging as stdlib_logging
 
 from multiprocessing import Process, Pipe
 from st2actions.runners import ActionRunner
@@ -24,11 +25,32 @@ class Action(object):
     """
     """
 
+    def __init__(self):
+        self.logger = self._set_up_logger()
+
     @abc.abstractmethod
     def run(self, **kwargs):
         """
         """
         pass
+
+    def _set_up_logger(self):
+        """
+        Set up a logger which logs all the messages with level DEBUG
+        and above to stderr.
+        """
+        logger_name = 'actions.python.%s' % (self.__class__.__name__)
+        logger = logging.getLogger(logger_name)
+
+        console = stdlib_logging.StreamHandler()
+        console.setLevel(stdlib_logging.DEBUG)
+
+        formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        console.setFormatter(formatter)
+        logger.addHandler(console)
+        logger.setLevel(stdlib_logging.DEBUG)
+
+        return logger
 
 
 class ActionWrapper(object):

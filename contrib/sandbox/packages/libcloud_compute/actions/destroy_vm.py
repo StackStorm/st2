@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import sys
-
 from lib.actions import SingleVMAction
 
 __all__ = [
@@ -16,12 +14,12 @@ class DestroyVMAction(SingleVMAction):
         driver = self._get_driver_for_credentials(credentials=credentials)
         node = self._get_node_for_id(node_id=vm_id, driver=driver)
 
-        sys.stderr.write('Destroy node: %s' % (node))
+        self.logger('Destroying node: %s...' % (node))
         status = driver.destroy_node(node=node)
 
         if status is True:
-            sys.stderr.write('Successfully destroyed node "%s"' % (node))
+            self.logger.info('Successfully destroyed node "%s"' % (node))
         else:
-            sys.stderr.write('Failed to destroy node "%s"' % (node))
+            self.logger.error('Failed to destroy node "%s"' % (node))
 
         return status
