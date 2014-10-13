@@ -4,5 +4,5 @@
         "foo": "bar",
         "name": "Joe"
     },
-    "occurrence_time": "2014-09-01 00:00:01.000000"
+    "occurrence_time": "2014-09-01T00:00:01.000000Z"
 }

@@ -3,6 +3,7 @@ import datetime
 
 from oslo.config import cfg
 
+from st2common.util import isotime
 from st2common.models.api.access import TokenAPI, UserAPI
 from st2common.persistence.access import Token, User
 from st2common import log as logging
@@ -25,7 +26,8 @@ def create_token(username, ttl=None):
 
     token = uuid.uuid4().hex
     expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
-    token = TokenAPI(user=username, token=token, expiry=expiry)
+    expiry = isotime.add_utc_tz(expiry)
+    token = TokenAPI(user=username, token=token, expiry=isotime.format(expiry))
     Token.add_or_update(TokenAPI.to_model(token))
     LOG.audit('Access granted to %s with the token set to expire at "%s".' %
               ('user "%s"' % username if username else "an anonymous user", str(expiry)))
