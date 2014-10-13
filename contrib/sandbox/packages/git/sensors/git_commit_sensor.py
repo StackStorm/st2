@@ -21,7 +21,7 @@ class GitCommitSensor(object):
     def __init__(self, container_service):
         self._config_file = CONFIG_FILE
         self._container_service = container_service
-        self._poll_interval = 5  # seconds.
+        self._poll_interval = 1  # seconds.
         self._logger = self._container_service.get_logger(__name__)
         self._old_head = None
         self._remote = None
@@ -45,6 +45,7 @@ class GitCommitSensor(object):
                 self._logger.exception('Unable to clone remote repo from %s',
                                        self._url)
                 raise
+
         self._remote = self._repo.remote('origin')
 
     def start(self):
@@ -120,7 +121,7 @@ class GitCommitSensor(object):
         payload['committer_email'] = commit.committer.email
         payload['committed_date'] = self._to_date(commit.committed_date)
         payload['committer_tz_offset'] = commit.committer_tz_offset
-        self._logger.info('Found new commit. Dispatching trigger: %s', payload)
+        self._logger.debug('Found new commit. Dispatching trigger: %s', payload)
         self._container_service.dispatch(trigger, payload)
 
     def _get_config(self):
