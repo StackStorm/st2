@@ -1,4 +1,5 @@
 #!/bin/bash
 
-mkdir -p /var/log/stanley
-
+set -e
+mkdir -p /var/log/st2
+mkdir -p /etc/st2

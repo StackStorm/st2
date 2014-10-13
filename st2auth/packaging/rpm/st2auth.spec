@@ -1,14 +1,14 @@
-Summary: Stanley Authentication
+Summary: ST2 Authentication
 Name: st2auth
 Version: 0.4.0
 Release: 1
 License: Apache
 Group: Applications/Engineering
 BuildArch: noarch
-Source: /opt/git/stanley/st2auth.tar.gz
-URL: https://github.com/StackStorm/stanley
+Source: /opt/git/st2/st2auth.tar.gz
+URL: https://github.com/StackStorm/st2
 Vendor: StackStorm
-Packager: Stormin Stanley <stanley@stackstorm.com>
+Packager: Estee Tew <st2@stackstorm.com>
 Requires:       st2common
 
 %description
@@ -18,7 +18,7 @@ An automation plaform that needs a much better description than this.
 %setup
 
 %build
-sed -i -r "s~logs~/var/log/stanley~g" conf/logging.conf
+sed -i -r "s~logs~/var/log/st2~g" conf/logging.conf
 
 %install
 
