@@ -2,7 +2,7 @@ import Queue
 import threading
 import time
 
-from st2reactor.container.containerservice import ContainerService
+from st2reactor.container.service import ContainerService
 from st2reactor.container.triggerdispatcher import TriggerDispatcher
 from st2tests import EventletTestCase
 

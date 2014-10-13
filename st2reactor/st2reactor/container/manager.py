@@ -6,7 +6,7 @@ from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import Trigger
 from st2reactor.container.base import SensorContainer
-from st2reactor.container.containerservice import ContainerService
+from st2reactor.container.service import ContainerService
 from st2reactor.container.triggerwatcher import TriggerWatcher
 import st2reactor.container.utils as container_utils
 import six
