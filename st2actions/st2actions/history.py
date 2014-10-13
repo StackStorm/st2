@@ -87,7 +87,6 @@ class Historian(ConsumerMixin):
             history = ActionExecutionHistory.add_or_update(history)
         except:
             LOG.exception('An unexpected error occurred while recording the action execution.')
-            raise
 
 
 def work():
