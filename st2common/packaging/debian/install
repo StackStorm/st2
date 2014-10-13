@@ -4,4 +4,4 @@ contrib/sandbox usr/share/doc/st2/
 docs usr/share/doc/st2/
 st2common usr/lib/python2.7/dist-packages/
 bin usr/lib/python2.7/dist-packages/st2common/
-st2/st2.conf etc/st2/
+st2/st2.conf etc/st2
