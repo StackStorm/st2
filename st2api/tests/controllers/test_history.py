@@ -159,7 +159,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertListEqual(sorted(retrieved), sorted(self.refs.keys()))
 
     def test_datetime_range(self):
-        dt_range = '20141225T000010..20141225T000019'
+        dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'
         response = self.app.get('/history/executions?timestamp=%s' % dt_range)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
@@ -168,7 +168,7 @@ class TestActionExecutionHistory(FunctionalTest):
         dt2 = response.json[9]['execution']['start_timestamp']
         self.assertLess(isotime.parse(dt1), isotime.parse(dt2))
 
-        dt_range = '20141225T000019..20141225T000010'
+        dt_range = '2014-12-25T00:00:19Z..2014-12-25T00:00:10Z'
         response = self.app.get('/history/executions?timestamp=%s' % dt_range)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)

@@ -198,11 +198,11 @@ class TestActionExecutionHistoryModel(DbTestCase):
             obj = ActionExecutionHistoryAPI(**doc)
             ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
 
-        dt_range = '20141225T000010..20141225T000019'
+        dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'
         objs = ActionExecutionHistory.query(execution__start_timestamp=dt_range)
         self.assertEqual(len(objs), 10)
 
-        dt_range = '20141225T000019..20141225T000010'
+        dt_range = '2014-12-25T00:00:19Z..2014-12-25T00:00:10Z'
         objs = ActionExecutionHistory.query(execution__start_timestamp=dt_range)
         self.assertEqual(len(objs), 10)
 
@@ -216,12 +216,12 @@ class TestActionExecutionHistoryModel(DbTestCase):
             obj = ActionExecutionHistoryAPI(**doc)
             ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
 
-        dt_range = '20141225T000010..20141225T000019'
+        dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'
         objs = ActionExecutionHistory.query(execution__start_timestamp=dt_range,
                                             order_by=['execution__start_timestamp'])
         self.assertLess(objs[0].execution['start_timestamp'], objs[9].execution['start_timestamp'])
 
-        dt_range = '20141225T000019..20141225T000010'
+        dt_range = '2014-12-25T00:00:19Z..2014-12-25T00:00:10Z'
         objs = ActionExecutionHistory.query(execution__start_timestamp=dt_range,
                                             order_by=['-execution__start_timestamp'])
         self.assertLess(objs[9].execution['start_timestamp'], objs[0].execution['start_timestamp'])
