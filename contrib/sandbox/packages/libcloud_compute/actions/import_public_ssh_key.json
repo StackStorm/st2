@@ -13,22 +13,10 @@
             "type": "string",
             "description": "Name for the imported key pair"
         },
-        "key-material": {
+        "key_material": {
             "type": "string",
             "description": "Public SSH key material"
-        },
-        "user": {
-            "immutable": true
-        },
-        "dir": {
-            "immutable": true
-        },
-        "sudo": {
-            "immutable": true
-        },
-        "parallel": {
-            "immutable": true
         }
     },
-    "required_parameters": ["credentials", "name", "key-material"]
+    "required_parameters": ["credentials", "name", "key_material"]
 }

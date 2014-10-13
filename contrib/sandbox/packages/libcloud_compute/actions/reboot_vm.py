@@ -23,3 +23,8 @@ class RebootVMAction(SingleVMAction):
             self.logger.error('Failed to reboot node "%s"' % (node))
 
         return status
+
+if __name__ == '__main__':
+    print 'cc'
+    RebootVMAction()
+    pass

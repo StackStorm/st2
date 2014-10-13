@@ -12,19 +12,7 @@
         "vm-id": {
             "type": "string",
             "description": "ID of a VM to destroy."
-        },
-        "user": {
-            "immutable": true
-        },
-        "dir": {
-            "immutable": true
-        },
-        "sudo": {
-            "immutable": true
-        },
-        "parallel": {
-            "immutable": true
         }
     },
-    "required_parameters": ["credentials", "vm-id"]
+    "required_parameters": ["credentials", "vm_id"]
 }

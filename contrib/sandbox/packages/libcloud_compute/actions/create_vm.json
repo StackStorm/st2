@@ -13,30 +13,18 @@
             "type": "string",
             "description": "Name fo a new VM"
         },
-        "size-id": {
+        "size_id": {
             "type": "string",
             "description": "ID of a size to use"
         },
-        "image-id": {
+        "image_id": {
             "type": "string",
             "description": "ID of an image to use"
         },
-        "location-id": {
+        "location_id": {
             "type": "string",
             "description": "ID of a location to use"
-        },
-        "user": {
-            "immutable": true
-        },
-        "dir": {
-            "immutable": true
-        },
-        "sudo": {
-            "immutable": true
-        },
-        "parallel": {
-            "immutable": true
         }
     },
-    "required_parameters": ["credentials", "name", "size-id", "image-id"]
+    "required_parameters": ["credentials", "name", "size_id", "image_id"]
 }

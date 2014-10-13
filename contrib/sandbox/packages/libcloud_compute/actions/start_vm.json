@@ -9,22 +9,10 @@
             "type": "string",
             "description": "Name of the credentials set (as defined in the config) to use."
         },
-        "vm-id": {
+        "vm_id": {
             "type": "string",
             "description": "ID of a VM to start."
-        },
-        "user": {
-            "immutable": true
-        },
-        "dir": {
-            "immutable": true
-        },
-        "sudo": {
-            "immutable": true
-        },
-        "parallel": {
-            "immutable": true
         }
     },
-    "required_parameters": ["credentials", "vm-id"]
+    "required_parameters": ["credentials", "vm_id"]
 }
