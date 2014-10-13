@@ -5,7 +5,6 @@ import six
 import sys
 import traceback
 import uuid
-import json
 import inspect
 import argparse
 import logging as stdlib_logging
@@ -64,8 +63,7 @@ class Action(object):
         for parameter_name, parameter_options in parameters.items():
             name = parameter_name.replace('_', '-')
             description = parameter_options['description']
-            type = parameter_options['type']
-            required = parameter_name in  required_parameters
+            required = parameter_name in required_parameters
 
             # TODO: Support types
             parser.add_argument('--%s' % (name), help=description,
