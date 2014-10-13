@@ -277,8 +277,8 @@ class ActionExecutionAPI(BaseAPI):
     def to_model(cls, execution):
         model = super(cls, cls).to_model(execution)
         model.action = execution.action
-        if hasattr(execution, 'start_timestamp'):
-            model.start_timestamp = isotime.parse(getattr(execution, 'start_timestamp'))
+        if getattr(execution, 'start_timestamp', None):
+            model.start_timestamp = isotime.parse(execution.start_timestamp)
         model.status = getattr(execution, 'status', None)
         model.parameters = getattr(execution, 'parameters', dict())
         model.context = getattr(execution, 'context', dict())
