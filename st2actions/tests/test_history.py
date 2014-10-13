@@ -13,7 +13,6 @@ from st2actions.runners.fabricrunner import FabricRunner
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2common.util import reference
 from st2common.transport.publishers import CUDPublisher
-from st2common.services import action as action_service
 from st2common.models.db.action import ActionExecutionDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI, RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
@@ -53,6 +52,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         action_chain.entry_point = fixture.PATH + '/chain.json'
         Action.add_or_update(ActionAPI.to_model(action_chain))
 
+    """
     def test_basic_execution(self):
         request = ActionExecutionAPI(action={'name': 'local'}, parameters={'cmd': 'uname -a'})
         request = action_service.schedule(request)
@@ -88,6 +88,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
             self.assertEqual(record.parent, str(history.id))
             self.assertEqual(record.action['name'], 'local')
             self.assertEqual(record.runner['name'], 'run-local')
+    """
 
     def test_triggered_execution(self):
         docs = {

@@ -4,11 +4,9 @@ import datetime
 
 from tests.fixtures import history as fixture
 from st2tests import DbTestCase
+from st2common.util import isotime
 from st2common.persistence.history import ActionExecutionHistory
 from st2common.models.api.history import ActionExecutionHistoryAPI
-
-
-DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 
 
 class TestActionExecutionHistoryModel(DbTestCase):
@@ -73,7 +71,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.action, self.fake_history_workflow['action'])
         self.assertDictEqual(model.runner, self.fake_history_workflow['runner'])
         doc = copy.deepcopy(self.fake_history_workflow['execution'])
-        doc['start_timestamp'] = datetime.datetime.strptime(doc['start_timestamp'], DATE_FORMAT)
+        doc['start_timestamp'] = isotime.parse(doc['start_timestamp'])
         self.assertDictEqual(model.execution, doc)
         self.assertIsNone(getattr(model, 'parent', None))
         self.assertListEqual(model.children, self.fake_history_workflow['children'])
@@ -104,7 +102,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.action, self.fake_history_workflow['action'])
         self.assertDictEqual(model.runner, self.fake_history_workflow['runner'])
         doc = copy.deepcopy(self.fake_history_workflow['execution'])
-        doc['start_timestamp'] = datetime.datetime.strptime(doc['start_timestamp'], DATE_FORMAT)
+        doc['start_timestamp'] = isotime.parse(doc['start_timestamp'])
         self.assertDictEqual(model.execution, doc)
         self.assertIsNone(getattr(model, 'parent', None))
         self.assertListEqual(model.children, self.fake_history_workflow['children'])
@@ -143,7 +141,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.action, self.fake_history_subtasks[0]['action'])
         self.assertDictEqual(model.runner, self.fake_history_subtasks[0]['runner'])
         doc = copy.deepcopy(self.fake_history_subtasks[0]['execution'])
-        doc['start_timestamp'] = datetime.datetime.strptime(doc['start_timestamp'], DATE_FORMAT)
+        doc['start_timestamp'] = isotime.parse(doc['start_timestamp'])
         self.assertDictEqual(model.execution, doc)
         self.assertEqual(model.parent, self.fake_history_subtasks[0]['parent'])
         self.assertListEqual(model.children, [])
@@ -174,7 +172,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.action, self.fake_history_subtasks[0]['action'])
         self.assertDictEqual(model.runner, self.fake_history_subtasks[0]['runner'])
         doc = copy.deepcopy(self.fake_history_subtasks[0]['execution'])
-        doc['start_timestamp'] = datetime.datetime.strptime(doc['start_timestamp'], DATE_FORMAT)
+        doc['start_timestamp'] = isotime.parse(doc['start_timestamp'])
         self.assertDictEqual(model.execution, doc)
         self.assertEqual(model.parent, self.fake_history_subtasks[0]['parent'])
         self.assertListEqual(model.children, [])
@@ -191,12 +189,12 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertRaises(ValueError, ActionExecutionHistory.get_by_id, obj.id)
 
     def test_datetime_range(self):
-        base = datetime.datetime(2014, 12, 25, 0, 0, 0)
+        base = isotime.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(60):
             timestamp = base + datetime.timedelta(seconds=i)
             doc = copy.deepcopy(self.fake_history_subtasks[0])
             doc['id'] = str(bson.ObjectId())
-            doc['execution']['start_timestamp'] = timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')
+            doc['execution']['start_timestamp'] = isotime.format(timestamp)
             obj = ActionExecutionHistoryAPI(**doc)
             ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
 
@@ -209,12 +207,12 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertEqual(len(objs), 10)
 
     def test_sort_by_start_timestamp(self):
-        base = datetime.datetime(2014, 12, 25, 0, 0, 0)
+        base = isotime.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(60):
             timestamp = base + datetime.timedelta(seconds=i)
             doc = copy.deepcopy(self.fake_history_subtasks[0])
             doc['id'] = str(bson.ObjectId())
-            doc['execution']['start_timestamp'] = timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')
+            doc['execution']['start_timestamp'] = isotime.format(timestamp)
             obj = ActionExecutionHistoryAPI(**doc)
             ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
 
