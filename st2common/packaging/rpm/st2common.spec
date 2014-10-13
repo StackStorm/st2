@@ -47,3 +47,4 @@ install st2/st2.conf %{buildroot}/etc/st2/st2.conf
 /usr/share/doc/st2/*
 /etc/st2/*
 /opt/stackstorm/*
+/var/log/st2
