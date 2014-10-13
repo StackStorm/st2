@@ -28,9 +28,10 @@ mkdir -p %{buildroot}/usr/bin
 cp -R st2actions %{buildroot}%{python2_sitelib}/
 cp -R conf/* %{buildroot}/etc/st2actions
 install -m755 bin/actionrunner %{buildroot}/usr/bin/actionrunner
-
+install -m755 bin/history %{buildroot}/usr/bin/history
 %files
 
 /usr/lib/python2.7/site-packages/st2actions*
 /usr/bin/actionrunner
+/usr/bin/history
 /etc/st2actions*
