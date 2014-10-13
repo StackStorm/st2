@@ -21,9 +21,10 @@ class GitCommitSensor(object):
     def __init__(self, container_service):
         self._config_file = CONFIG_FILE
         self._container_service = container_service
-        self._poll_interval = 5  # seconds.
+        self._poll_interval = 1  # seconds.
         self._logger = self._container_service.get_logger(__name__)
         self._old_head = None
+        self._remote = None
 
     def setup(self):
         git_opts = self._get_config()
@@ -31,7 +32,6 @@ class GitCommitSensor(object):
         if git_opts['url'] is None:
             raise Exception('Remote git URL not set.')
         self._url = git_opts['url']
-        self._branch = git_opts.get('branch', 'master')
         default_clone_dir = os.path.join(os.path.dirname(__file__), 'clones')
         self._local_path = git_opts.get('local_clone_path', default_clone_dir)
         self._poll_interval = git_opts.get('poll_interval', self._poll_interval)
@@ -46,9 +46,10 @@ class GitCommitSensor(object):
                                        self._url)
                 raise
 
+        self._remote = self._repo.remote('origin')
+
     def start(self):
         while True:
-            # head = self._repo.commit_info(start=0, end=1)[0]
             head = self._repo.commit()
             head_sha = head.hexsha
 
@@ -67,6 +68,11 @@ class GitCommitSensor(object):
                     self._old_head = head_sha
 
             time.sleep(self._poll_interval)
+            try:
+                pulled = self._remote.pull()
+                self._logger.debug('Pulled info from remote repo. %s', pulled[0].commit)
+            except:
+                self._logger.exception('Failed git pull from remote repo.')
 
     def stop(self):
         pass
@@ -86,7 +92,8 @@ class GitCommitSensor(object):
                     'committer_email': {'type': 'string'},
                     'committed_date': {'type': 'string'},
                     'committer_tz_offset': {'type': 'string'},
-                    'revision': {'type': 'string'}
+                    'revision': {'type': 'string'},
+                    'branch': {'type': 'string'}
                 }
             }
         }]
@@ -104,6 +111,7 @@ class GitCommitSensor(object):
         trigger = {}
         trigger['name'] = 'st2.git.head_sha_monitor'
         payload = {}
+        payload['branch'] = self._repo.active_branch.name
         payload['revision'] = str(commit)
         payload['author'] = commit.author.name
         payload['author_email'] = commit.author.email
@@ -113,6 +121,7 @@ class GitCommitSensor(object):
         payload['committer_email'] = commit.committer.email
         payload['committed_date'] = self._to_date(commit.committed_date)
         payload['committer_tz_offset'] = commit.committer_tz_offset
+        self._logger.debug('Found new commit. Dispatching trigger: %s', payload)
         self._container_service.dispatch(trigger, payload)
 
     def _get_config(self):
