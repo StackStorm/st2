@@ -67,6 +67,7 @@ class Action(object):
             type = parameter_options['type']
             required = parameter_name in  required_parameters
 
+            # TODO: Support types
             parser.add_argument('--%s' % (name), help=description,
                                 required=required)
 
