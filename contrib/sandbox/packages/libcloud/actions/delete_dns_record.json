@@ -7,11 +7,13 @@
     "parameters": {
         "credentials": {
             "type": "string",
-            "description": "Name of the credentials set (as defined in the config) to use."
+            "description": "Name of the credentials set (as defined in the config) to use.",
+            "position": 0
         },
         "record_id": {
             "type": "string",
-            "description": "ID of a record to delete"
+            "description": "ID of a record to delete",
+            "position": 1
         }
     },
     "required_parameters": ["credentials", "record_id"]
