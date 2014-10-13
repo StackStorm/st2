@@ -1,6 +1,6 @@
 {
     "name": "reboot_vm",
-    "runner_type": "run-local-script",
+    "runner_type": "run-python",
     "description": "Reboot a running VM.",
     "enabled": true,
     "entry_point": "reboot_vm.py",

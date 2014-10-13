@@ -1,6 +1,6 @@
 {
     "name": "start_vm",
-    "runner_type": "run-local-script",
+    "runner_type": "run-python",
     "description": "Start a new VM.",
     "enabled": true,
     "entry_point": "start_vm.py",

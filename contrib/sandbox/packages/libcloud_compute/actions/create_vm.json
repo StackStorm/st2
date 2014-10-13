@@ -1,6 +1,6 @@
 {
     "name": "create_vm",
-    "runner_type": "run-local-script",
+    "runner_type": "run-python",
     "description": "Create a new VM.",
     "enabled": true,
     "entry_point": "create_vm.py",
@@ -20,6 +20,10 @@
         "image-id": {
             "type": "string",
             "description": "ID of an image to use"
+        },
+        "location-id": {
+            "type": "string",
+            "description": "ID of a location to use"
         },
         "user": {
             "immutable": true
