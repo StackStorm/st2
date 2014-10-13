@@ -5,6 +5,7 @@ import bson
 import mongoengine
 
 from st2tests import DbTestCase
+from st2common.util import isotime
 from st2common.models import db
 from st2common import persistence
 from st2common.models.db import stormbase
@@ -123,18 +124,18 @@ class TestPersistence(DbTestCase):
         self.assertIsNone(getattr(obj1, 'index', None))
 
     def test_datetime_range(self):
-        base = datetime.datetime(2014, 12, 25, 0, 0, 0)
+        base = isotime.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(60):
             timestamp = base + datetime.timedelta(seconds=i)
             obj = FakeModelDB(name=uuid.uuid4().hex, timestamp=timestamp)
             self.access.add_or_update(obj)
 
-        dt_range = '20141225T000010..20141225T000019'
+        dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'
         objs = self.access.query(timestamp=dt_range)
         self.assertEqual(len(objs), 10)
         self.assertLess(objs[0].timestamp, objs[9].timestamp)
 
-        dt_range = '20141225T000019..20141225T000010'
+        dt_range = '2014-12-25T00:00:19Z..2014-12-25T00:00:10Z'
         objs = self.access.query(timestamp=dt_range)
         self.assertEqual(len(objs), 10)
         self.assertLess(objs[9].timestamp, objs[0].timestamp)
@@ -165,7 +166,7 @@ class TestPersistence(DbTestCase):
 
     def test_sort_multiple(self):
         count = 60
-        base = datetime.datetime(2014, 12, 25, 0, 0, 0)
+        base = isotime.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(count):
             category = 'type1' if i % 2 else 'type2'
             timestamp = base + datetime.timedelta(seconds=i)

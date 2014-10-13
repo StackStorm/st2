@@ -1,7 +1,6 @@
-import datetime
-
 import mongoengine
 
+from st2common.util import isotime
 from st2common.models.db import stormbase
 from st2common import log as logging
 
@@ -31,13 +30,12 @@ def process_null_filter(func):
 
 def process_datetime_ranges(func):
     def decorate(*args, **kwargs):
-        pattern = '%Y%m%dT%H%M%S%f'
         ranges = {k: v for k, v in kwargs.iteritems()
                   if type(v) in [str, unicode] and '..' in v}
         for k, v in ranges.iteritems():
             values = v.split('..')
-            dt1 = datetime.datetime.strptime(values[0].ljust(21, '0'), pattern)
-            dt2 = datetime.datetime.strptime(values[1].ljust(21, '0'), pattern)
+            dt1 = isotime.parse(values[0])
+            dt2 = isotime.parse(values[1])
             order_by_list = kwargs.get('order_by', [])
             k__gte = '%s__gte' % k
             k__lte = '%s__lte' % k
