@@ -1,0 +1,40 @@
+{
+    "name": "create_dns_record",
+    "runner_type": "run-python",
+    "description": "Create a new DNS record.",
+    "enabled": true,
+    "entry_point": "create_dns_record.py",
+    "parameters": {
+        "credentials": {
+            "type": "string",
+            "description": "Name of the credentials set (as defined in the config) to use.",
+            "position": 0
+        },
+        "domain": {
+            "type": "string",
+            "description": "Name of the domain under which to create the record",
+            "position": 1
+        },
+        "name": {
+            "type": "string",
+            "description": "Record name",
+            "position": 2
+        },
+        "type": {
+            "type": "string",
+            "description": "Record type (e.g. A, AAAA, TXT, etc.)",
+            "position": 3
+        },
+        "data": {
+            "type": "string",
+            "description": "Record data (e.g. IPv4 for A record, etc.)",
+            "position": 4
+        },
+        "ttl": {
+            "type": "string",
+            "description": "Record TTL",
+            "position": 5
+        }
+    },
+    "required_parameters": ["credentials", "domain", "name", "type", "data"]
+}

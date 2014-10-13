@@ -1,0 +1,18 @@
+{
+    "name": "reboot_vm",
+    "runner_type": "run-python",
+    "description": "Reboot a running VM.",
+    "enabled": true,
+    "entry_point": "reboot_vm.py",
+    "parameters": {
+        "credentials": {
+            "type": "string",
+            "description": "Name of the credentials set (as defined in the config) to use."
+        },
+        "vm_id": {
+            "type": "string",
+            "description": "ID of a VM to reboot."
+        }
+    },
+    "required_parameters": ["credentials", "vm_id"]
+}

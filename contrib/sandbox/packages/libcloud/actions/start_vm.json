@@ -1,0 +1,18 @@
+{
+    "name": "start_vm",
+    "runner_type": "run-python",
+    "description": "Start a new VM.",
+    "enabled": true,
+    "entry_point": "start_vm.py",
+    "parameters": {
+        "credentials": {
+            "type": "string",
+            "description": "Name of the credentials set (as defined in the config) to use."
+        },
+        "vm_id": {
+            "type": "string",
+            "description": "ID of a VM to start."
+        }
+    },
+    "required_parameters": ["credentials", "vm_id"]
+}
