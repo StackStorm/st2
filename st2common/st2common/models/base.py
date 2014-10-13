@@ -52,7 +52,7 @@ class BaseAPI(object):
     @classmethod
     def from_model(cls, model):
         doc = cls._from_model(model)
-        attrs = {attr: value for attr, value in six.iteritems(doc) if value}
+        attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
         return cls(**attrs)
 
     @classmethod

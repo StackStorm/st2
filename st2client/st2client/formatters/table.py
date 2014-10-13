@@ -12,7 +12,7 @@ LOG = logging.getLogger(__name__)
 class MultiColumnTable(formatters.Formatter):
 
     @classmethod
-    def format(self, entries, *args, **kwargs):
+    def format(cls, entries, *args, **kwargs):
         attributes = kwargs.get('attributes', [])
         widths = kwargs.get('widths', [])
 
@@ -47,7 +47,7 @@ class MultiColumnTable(formatters.Formatter):
                     field_names = field_name.split('.')
                     value = getattr(entry, field_names.pop(0), {})
                     for name in field_names:
-                        value = value.get(name) if value.get(name) else ''
+                        value = cls._get_field_value(value, name)
                         if type(value) is str:
                             break
                     values.append(value)
@@ -56,11 +56,20 @@ class MultiColumnTable(formatters.Formatter):
             table.add_row(values)
         return table
 
+    @staticmethod
+    def _get_field_value(value, field_name):
+        r_val = value.get(field_name, None)
+        if r_val is None:
+            return ''
+        if isinstance(r_val, list) or isinstance(r_val, dict):
+            return r_val if len(r_val) > 0 else ''
+        return r_val
+
 
 class PropertyValueTable(formatters.Formatter):
 
     @classmethod
-    def format(self, subject, *args, **kwargs):
+    def format(cls, subject, *args, **kwargs):
         attributes = kwargs.get('attributes', None)
         display_order = kwargs.get('display_order',
                                    ['name', 'id', 'description'])
@@ -79,8 +88,17 @@ class PropertyValueTable(formatters.Formatter):
         table.align = 'l'
         table.valign = 't'
         for attribute in attributes:
-            value = getattr(subject, attribute) if getattr(subject, attribute, None) else ''
+            value = cls._get_attribute_value(subject, attribute)
             if type(value) is dict or type(value) is list:
                 value = json.dumps(value, indent=4)
             table.add_row([attribute, value])
         return table
+
+    @staticmethod
+    def _get_attribute_value(subject, attribute):
+        r_val = getattr(subject, attribute, None)
+        if r_val is None:
+            return ''
+        if isinstance(r_val, list) or isinstance(r_val, dict):
+            return r_val if len(r_val) > 0 else ''
+        return r_val
