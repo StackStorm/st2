@@ -1,6 +1,6 @@
 import os
 import abc
-import eventlet
+import json
 import six
 import sys
 import traceback
@@ -10,7 +10,9 @@ import inspect
 import argparse
 import logging as stdlib_logging
 
-from multiprocessing import Process, Pipe
+from eventlet import greenio
+
+from multiprocessing import Process
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
@@ -117,10 +119,14 @@ class ActionWrapper(object):
         try:
             action = self._load_action()
             output = action.run(**self.action_parameters)
-            conn.send(output)
-        except:
+            conn.write(str(output) + '\n')
+            conn.flush()
+        except Exception, e:
             _, e, tb = sys.exc_info()
-            conn.send({'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))})
+            data = {'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))}
+            data = json.dumps(data)
+            conn.write(data + '\n')
+            conn.flush()
             sys.exit(1)
         finally:
             conn.close()
@@ -144,21 +150,36 @@ class PythonRunner(ActionRunner):
 
     def run(self, action_parameters):
         action_wrapper = ActionWrapper(self.entry_point, action_parameters)
-        parent_conn, child_conn = Pipe()
+
+        # We manually create a non-duplex pipe since multiprocessing.Pipe
+        # doesn't play along nicely and work with eventlet
+        rfd, wfd = os.pipe()
+
+        parent_conn = greenio.GreenPipe(rfd, 'r')
+        child_conn = greenio.GreenPipe(wfd, 'w', 0)
+
         p = Process(target=action_wrapper.run, args=(child_conn,))
         p.daemon = True
+
         try:
             p.start()
-            # Without this sleep paren_conn.recv raises [ERRNO 11] Resource temporarily unavailable.
-            eventlet.sleep(0.1)
-            output = parent_conn.recv()
             p.join()
+            output = parent_conn.readline()
+
+            try:
+                output = json.loads(output)
+            except Exception:
+                pass
+
             exit_code = p.exitcode
         except:
             LOG.exception('Failed to run action.')
             _, e, tb = sys.exc_info()
             exit_code = 1
             output = {'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))}
+        finally:
+            parent_conn.close()
+
         status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
         self.container_service.report_result(output)
         self.container_service.report_status(status)
