@@ -15,7 +15,7 @@ def add_utc_tz(dt):
 
 
 def format(dt, usec=True, offset=True):
-    if type(dt) in [str, unicode]:
+    if isinstance(dt, basestring):
         dt = parse(dt)
     fmt = ISO8601_FORMAT_MICROSECOND if usec else ISO8601_FORMAT
     if offset:

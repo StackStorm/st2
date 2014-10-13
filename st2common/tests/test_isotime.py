@@ -52,12 +52,17 @@ class TestTimeUtil(unittest.TestCase):
 
     def test_format(self):
         dt = isotime.add_utc_tz(datetime.datetime(2000, 1, 1, 12))
-        self.assertEqual(
-            isotime.format(dt, usec=True, offset=True), '2000-01-01T12:00:00.000000+00:00')
-        self.assertEqual(
-            isotime.format(dt, usec=True, offset=False), '2000-01-01T12:00:00.000000Z')
-        self.assertEqual(isotime.format(dt, usec=False, offset=True), '2000-01-01T12:00:00+00:00')
-        self.assertEqual(isotime.format(dt, usec=False, offset=False), '2000-01-01T12:00:00Z')
+        dt_str_usec_offset = '2000-01-01T12:00:00.000000+00:00'
+        dt_str_usec = '2000-01-01T12:00:00.000000Z'
+        dt_str_offset = '2000-01-01T12:00:00+00:00'
+        dt_str = '2000-01-01T12:00:00Z'
+        dt_unicode = u'2000-01-01T12:00:00Z'
+        self.assertEqual(isotime.format(dt, usec=True, offset=True), dt_str_usec_offset)
+        self.assertEqual(isotime.format(dt, usec=True, offset=False), dt_str_usec)
+        self.assertEqual(isotime.format(dt, usec=False, offset=True), dt_str_offset)
+        self.assertEqual(isotime.format(dt, usec=False, offset=False), dt_str)
+        self.assertEqual(isotime.format(dt_str, usec=False, offset=False), dt_str)
+        self.assertEqual(isotime.format(dt_unicode, usec=False, offset=False), dt_unicode)
 
     def test_format_tz_naive(self):
         dt1 = datetime.datetime.utcnow()
