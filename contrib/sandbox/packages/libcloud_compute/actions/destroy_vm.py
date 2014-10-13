@@ -23,3 +23,8 @@ class DestroyVMAction(SingleVMAction):
             self.logger.error('Failed to destroy node "%s"' % (node))
 
         return status
+
+if __name__ == '__main__':
+    action = DestroyVMAction()
+    arguments = action.get_cli_arguments()
+    action.run(**arguments)

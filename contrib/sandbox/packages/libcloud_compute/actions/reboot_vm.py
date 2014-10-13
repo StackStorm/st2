@@ -25,6 +25,6 @@ class RebootVMAction(SingleVMAction):
         return status
 
 if __name__ == '__main__':
-    print 'cc'
-    RebootVMAction()
-    pass
+    action = RebootVMAction()
+    arguments = action.get_cli_arguments()
+    action.run(**arguments)
