@@ -5,6 +5,7 @@ import mock
 import jsonschema
 
 from st2tests import DbTestCase
+from st2common.util import isotime
 from st2common.transport.publishers import PoolPublisher
 from st2common.services import action as action_service
 from st2common.persistence.action import RunnerType, Action, ActionExecution
@@ -68,7 +69,7 @@ class TestActionExecutionService(DbTestCase):
         self.assertIsNotNone(execution.id)
         self.assertEqual(execution.context['user'], USERNAME)
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_SCHEDULED)
-        self.assertIsInstance(execution.start_timestamp, datetime.datetime)
+        self.assertTrue(isotime.validate(execution.start_timestamp))
         executiondb = ActionExecution.get_by_id(execution.id)
         self.assertIsNotNone(executiondb)
         self.assertEqual(executiondb.id, bson.ObjectId(execution.id))

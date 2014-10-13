@@ -1,7 +1,7 @@
 {
     "workflow": {
         "status": "succeeded",
-        "start_timestamp": "2014-09-01 00:00:01.000000",
+        "start_timestamp": "2014-09-01T00:00:01.000000Z",
         "parameters": {},
         "callback": {},
         "result": {},
@@ -14,7 +14,7 @@
     },
     "task1": {
         "status": "succeeded",
-        "start_timestamp": "2014-09-01 00:00:02.000000",
+        "start_timestamp": "2014-09-01T00:00:02.000000Z",
         "parameters": {
             "cmd": "echo \"{u\"foo\": u\"bar\"}\"",
             "hosts": "localhost",
@@ -40,7 +40,7 @@
     },
     "task2": {
         "status": "succeeded",
-        "start_timestamp": "2014-09-01 00:00:03.000000",
+        "start_timestamp": "2014-09-01T00:00:03.000000Z",
         "parameters": {
             "cmd": "echo \"{u\"name\": u\"Joe\"}\"",
             "hosts": "localhost",
