@@ -1,0 +1,34 @@
+{
+    "name": "create_dns_record",
+    "runner_type": "run-python",
+    "description": "Create a new DNS record.",
+    "enabled": true,
+    "entry_point": "create_vm.py",
+    "parameters": {
+        "credentials": {
+            "type": "string",
+            "description": "Name of the credentials set (as defined in the config) to use."
+        },
+        "domain": {
+            "type": "string",
+            "description": "Name of the domain under which to create the record"
+        },
+        "name": {
+            "type": "string",
+            "description": "Record name"
+        },
+        "type": {
+            "type": "string",
+            "description": "Record type (e.g. A, AAAA, TXT, etc.)"
+        },
+        "data": {
+            "type": "string",
+            "description": "Record data (e.g. IPv4 for A record, etc.)"
+        },
+        "ttl": {
+            "type": "string",
+            "description": "Record TTL"
+        }
+    },
+    "required_parameters": ["credentials", "domain", "name", "type", "data"]
+}

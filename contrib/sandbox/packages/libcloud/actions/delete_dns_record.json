@@ -1,0 +1,18 @@
+{
+    "name": "delete_dns_record",
+    "runner_type": "run-python",
+    "description": "Delete an existing DNS record.",
+    "enabled": true,
+    "entry_point": "delete_dns_record.py",
+    "parameters": {
+        "credentials": {
+            "type": "string",
+            "description": "Name of the credentials set (as defined in the config) to use."
+        },
+        "record_id": {
+            "type": "string",
+            "description": "ID of a record to delete"
+        }
+    },
+    "required_parameters": ["credentials", "record_id"]
+}
