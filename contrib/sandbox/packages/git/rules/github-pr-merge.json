@@ -1,0 +1,31 @@
+{
+    "name": "st2.webhook.github.pulls.merge.sample",
+    "description": "Sample rule dumping webhook payload to a file.",
+
+    "trigger": {
+        "type": "st2.webhook",
+        "parameters": {
+            "url": "github/pulls/merge"
+        }
+    },
+
+    "criteria": {
+        "trigger.body.action": {
+            "pattern": "closed",
+            "type": "equals"
+        },
+        "trigger.body.pull_request.merged": {
+            "pattern": "True",
+            "type": "equals"
+        }
+    },
+
+    "action": {
+        "name": "local",
+        "parameters": {
+            "cmd": "echo \"{{trigger}}\" >> /tmp/st2.webhook-sample.out"
+        }
+    },
+
+    "enabled": true
+}

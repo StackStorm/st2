@@ -51,6 +51,9 @@ class St2GenericWebhooksSensor(object):
         @self._app.route(urljoin(BASE_URL, '<path:url>'), methods=['POST'])
         def _handle_webhook(url):
             webhook_body = request.get_json()
+            payload = {}
+            payload['headers'] = self._get_headers_as_dict(request.headers)
+            payload['body'] = webhook_body
             try:
                 trigger = self._hooks[url]
             except KeyError:
@@ -59,7 +62,8 @@ class St2GenericWebhooksSensor(object):
                 return '', http_client.NOT_FOUND
 
             try:
-                self._container_service.dispatch(trigger, webhook_body)
+                self._log.debug('Dispatching payload: %s', payload)
+                self._container_service.dispatch(trigger, payload)
             except Exception as e:
                 self._log.exception('Exception %s handling webhook', e)
                 return jsonify({'error': str(e)}), http_client.INTERNAL_SERVER_ERROR
@@ -104,3 +108,9 @@ class St2GenericWebhooksSensor(object):
             'payload_schema': PAYLOAD_SCHEMA,
             'parameters_schema': PARAMETERS_SCHEMA
         }]
+
+    def _get_headers_as_dict(self, headers):
+        headers_dict = {}
+        for key, value in headers:
+            headers_dict[key] = value
+        return headers_dict
