@@ -121,7 +121,7 @@ class Action(object):
         file_path = inspect.getfile(self.__class__)
         dir_name = os.path.dirname(file_path)
 
-        config_file_path = os.path.join(dir_name, '..', 'config.json')
+        config_file_path = os.path.join(dir_name, 'config.json')
         config_file_path = os.path.abspath(config_file_path)
 
         if (os.path.exists(config_file_path) and
