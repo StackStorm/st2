@@ -47,3 +47,8 @@ class ContainerServiceTest(EventletTestCase):
         self.assertEqual(dispatcher.triggers_queue.qsize(), 5,
                          'output queue size is not 5.')
         container_service.shutdown()
+
+    def test_get_logger(self):
+        container_service = ContainerService()
+        logger = container_service.get_logger('foo')
+        self.assertTrue(logger is not None)
