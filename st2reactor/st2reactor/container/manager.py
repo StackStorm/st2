@@ -1,3 +1,7 @@
+try:
+    import simplejson as json
+except ImportError:
+    import json
 import os
 import sys
 
@@ -31,7 +35,9 @@ class SensorContainerManager(object):
         for filename, sensors in six.iteritems(sensors_dict):
             for sensor_class in sensors:
                 try:
-                    sensor = sensor_class(container_service)
+                    config = self._get_config(filename)
+                    sensor = sensor_class(container_service, **config)
+                    setattr(sensor, 'config', config)
                 except Exception as e:
                     LOG.warning('Unable to create instance for sensor %s in file %s. Exception: %s',
                                 sensor_class, filename, e, exc_info=True)
@@ -107,6 +113,15 @@ class SensorContainerManager(object):
         name = trigger.type['name']
         self._trigger_sensors[name].remove_trigger(
             SensorContainerManager.sanitize_trigger(trigger))
+
+    def _get_config(self, sensor_path):
+        sensor_dir, sensor_filename = os.path.split(sensor_path)
+        config_filepath = os.path.join(sensor_dir, sensor_filename.replace('.py', '.json'))
+        if os.path.exists(config_filepath):
+            with open(config_filepath) as config_file:
+                return json.load(config_file)
+        else:
+            return {}
 
     @staticmethod
     def sanitize_trigger(trigger):
