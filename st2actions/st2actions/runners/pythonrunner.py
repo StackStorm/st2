@@ -28,7 +28,10 @@ def get_runner():
 @six.add_metaclass(abc.ABCMeta)
 class Action(object):
     """
+    Base action class other Python actions should inherit from.
     """
+
+    description = None
 
     def __init__(self):
         self.logger = self._set_up_logger()
@@ -59,7 +62,7 @@ class Action(object):
         parameters = metadata['parameters']
         required_parameters = metadata.get('required_parameters', [])
 
-        parser = argparse.ArgumentParser(description='')
+        parser = argparse.ArgumentParser(description=self.description)
 
         for parameter_name, parameter_options in parameters.items():
             name = parameter_name.replace('_', '-')
