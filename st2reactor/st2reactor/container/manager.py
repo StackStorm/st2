@@ -116,7 +116,7 @@ class SensorContainerManager(object):
 
     def _get_config(self, sensor_path):
         sensor_dir, sensor_filename = os.path.split(sensor_path)
-        config_filepath = os.path.join(sensor_dir, sensor_filename.replace('.py', '.json'))
+        config_filepath = os.path.join(sensor_dir, sensor_filename.replace('.py', '_config.json'))
         if os.path.exists(config_filepath):
             with open(config_filepath) as config_file:
                 return json.load(config_file)
