@@ -254,6 +254,22 @@ class TestActionExecutionController(FunctionalTest):
         self.assertIsNone(resp.json['context']['user'])
         self.assertDictEqual(resp.json['context'], context)
 
+    def test_update_execution(self):
+        response = self._do_post(ACTION_EXECUTION_1)
+        self.assertEqual(response.status_int, 201)
+        execution = copy.deepcopy(response.json)
+        execution.update({'status': 'succeeded', 'result': True})
+        response = self._do_put(execution['id'], execution)
+        self.assertEqual(response.status_int, 200)
+
+    def test_update_execution_with_minimum_data(self):
+        response = self._do_post(ACTION_EXECUTION_1)
+        self.assertEqual(response.status_int, 201)
+        execution = {'action': {'name': response.json['action']['name']},
+                     'status': 'succeeded', 'result': True}
+        response = self._do_put(response.json['id'], execution)
+        self.assertEqual(response.status_int, 200)
+
     @staticmethod
     def _get_actionexecution_id(resp):
         return resp.json['id']
@@ -263,6 +279,9 @@ class TestActionExecutionController(FunctionalTest):
 
     def _do_post(self, actionexecution, *args, **kwargs):
         return self.app.post_json('/actionexecutions', actionexecution, *args, **kwargs)
+
+    def _do_put(self, id, actionexecution, *args, **kwargs):
+        return self.app.put_json('/actionexecutions/%s' % id, actionexecution, *args, **kwargs)
 
 
 EXPIRY = datetime.datetime.utcnow() + datetime.timedelta(seconds=300)
