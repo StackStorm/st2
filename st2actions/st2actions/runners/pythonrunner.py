@@ -138,12 +138,12 @@ class Action(object):
 
         for file_path in [local_config_file_path, global_config_file_path]:
             if os.path.exists(file_path) and os.path.isfile(file_path):
-               self.logger.debug('Using config: %s' % (file_path))
+                self.logger.debug('Using config: %s' % (file_path))
 
-               with open(file_path, 'r') as fp:
-                   config = json.loads(fp.read())
+                with open(file_path, 'r') as fp:
+                    config = json.loads(fp.read())
 
-               return config
+                return config
 
         self.logger.debug('No config found')
         return {}
