@@ -1,5 +1,4 @@
 import os
-import json
 
 try:
     import libcloud
@@ -24,17 +23,6 @@ CONFIG_FILE_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 
 class BaseAction(Action):
     description = None
-
-    def __init__(self):
-        super(BaseAction, self).__init__()
-        self.config = self._parse_config()
-
-    def _parse_config(self):
-        with open(CONFIG_FILE_PATH, 'r') as fp:
-            content = fp.read()
-
-        config = json.loads(content)
-        return config
 
     def _get_driver_for_credentials(self, credentials):
         """

@@ -32,6 +32,7 @@ class Action(object):
 
     def __init__(self):
         self.logger = self._set_up_logger()
+        self.config = self._parse_config()
 
     @abc.abstractmethod
     def run(self, **kwargs):
@@ -110,6 +111,42 @@ class Action(object):
 
         metadata = json.loads(content)
         return metadata
+
+    def _parse_config(self):
+        """
+        Parse and return the action config.
+
+        Config files are discovered and parsed in the following order:
+
+        1. Local, action specific config (named <action>_config.json)
+        2. Global config which is specific to all the actions
+           inside the content pack (named config.json)
+
+        :rtype: ``dict``
+        """
+        file_path = inspect.getfile(self.__class__)
+        dir_name = os.path.dirname(file_path)
+
+        # Local config specific to a particular action
+        file_path = file_path[:-1] if file_path.endswith('.pyc') else file_path
+        local_config_file_path = file_path.replace('.py', '_config.json')
+        local_config_file_path = os.path.abspath(local_config_file_path)
+
+        # Global config for all the actions
+        global_config_file_path = os.path.join(dir_name, 'config.json')
+        global_config_file_path = os.path.abspath(global_config_file_path)
+
+        for file_path in [local_config_file_path, global_config_file_path]:
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+                self.logger.debug('Using config: %s' % (file_path))
+
+                with open(file_path, 'r') as fp:
+                    config = json.loads(fp.read())
+
+                return config
+
+        self.logger.debug('No config found')
+        return {}
 
     def _set_up_logger(self):
         """
