@@ -20,6 +20,9 @@ from st2common.util import loader as action_loader
 
 LOG = logging.getLogger(__name__)
 
+# Default timeout for actions executed by Python runner
+DEFAULT_ACTION_TIMEOUT = 10 * 60
+
 
 def get_runner():
     return PythonRunner(str(uuid.uuid4()))
@@ -201,7 +204,7 @@ class ActionWrapper(object):
 
 class PythonRunner(ActionRunner):
 
-    def __init__(self, _id, timeout=10*60):
+    def __init__(self, _id, timeout=DEFAULT_ACTION_TIMEOUT):
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``
