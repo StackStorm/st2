@@ -32,6 +32,7 @@ class Action(object):
 
     def __init__(self):
         self.logger = self._set_up_logger()
+        self.config = self._parse_config()
 
     @abc.abstractmethod
     def run(self, **kwargs):
@@ -110,6 +111,27 @@ class Action(object):
 
         metadata = json.loads(content)
         return metadata
+
+    def _parse_config(self):
+        """
+        Parse the action config file if one is available.
+
+        :rtype: ``dict``
+        """
+        file_path = inspect.getfile(self.__class__)
+        dir_name = os.path.dirname(file_path)
+
+        config_file_path = os.path.join(dir_name, '..', 'config.json')
+        config_file_path = os.path.abspath(config_file_path)
+
+        if (os.path.exists(config_file_path) and
+           os.path.isfile(config_file_path)):
+           with open(config_file_path, 'r') as fp:
+               config = json.loads(fp.read())
+        else:
+           config = {}
+
+        return config
 
     def _set_up_logger(self):
         """
