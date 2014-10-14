@@ -114,24 +114,38 @@ class Action(object):
 
     def _parse_config(self):
         """
-        Parse the action config file if one is available.
+        Parse and return the action config.
+
+        Config files are discovered and parsed in the following order:
+
+        1. Local, action specific config (named <action>_config.json)
+        2. Global config which is specific to all the actions
+           inside the content pack (named config.json)
 
         :rtype: ``dict``
         """
         file_path = inspect.getfile(self.__class__)
         dir_name = os.path.dirname(file_path)
 
-        config_file_path = os.path.join(dir_name, 'config.json')
-        config_file_path = os.path.abspath(config_file_path)
+        # Local config specific to a particular action
+        file_path = file_path[:-1] if file_path.endswith('.pyc') else file_path
+        local_config_file_path = file_path.replace('.py', '_config.json')
+        local_config_file_path = os.path.abspath(local_config_file_path)
 
-        if (os.path.exists(config_file_path) and
-           os.path.isfile(config_file_path)):
-           with open(config_file_path, 'r') as fp:
-               config = json.loads(fp.read())
-        else:
-           config = {}
+        # Global config for all the actions
+        global_config_file_path = os.path.join(dir_name, 'config.json')
+        global_config_file_path = os.path.abspath(global_config_file_path)
 
-        return config
+        for file_path in [local_config_file_path, global_config_file_path]:
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+               self.logger.debug('Using config: %s' % (file_path))
+
+               with open(file_path, 'r') as fp:
+                   config = json.loads(fp.read())
+
+               return config
+
+        return {}
 
     def _set_up_logger(self):
         """
