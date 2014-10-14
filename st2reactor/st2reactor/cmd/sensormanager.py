@@ -12,7 +12,7 @@ from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2reactor import config
 from st2reactor.sensor.loader import SensorLoader
-from st2reactor.container.containermanager import SensorContainerManager
+from st2reactor.container.manager import SensorContainerManager
 
 LOG = logging.getLogger('st2reactor.bin.sensors_manager')
 

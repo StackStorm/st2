@@ -2,7 +2,7 @@ import Queue
 import threading
 import time
 
-from st2reactor.container.containerservice import ContainerService
+from st2reactor.container.service import ContainerService
 from st2reactor.container.triggerdispatcher import TriggerDispatcher
 from st2tests import EventletTestCase
 
@@ -47,3 +47,8 @@ class ContainerServiceTest(EventletTestCase):
         self.assertEqual(dispatcher.triggers_queue.qsize(), 5,
                          'output queue size is not 5.')
         container_service.shutdown()
+
+    def test_get_logger(self):
+        container_service = ContainerService()
+        logger = container_service.get_logger('foo')
+        self.assertTrue(logger is not None)
