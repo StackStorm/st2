@@ -1,8 +1,8 @@
 import datetime
 
+from st2common.util import isotime
 from st2common.persistence.access import Token
 from st2common.exceptions import access as exceptions
-
 from st2common import log as logging
 
 
@@ -59,7 +59,7 @@ class AuthMiddleware(object):
             LOG.audit('Token is not found in header.')
             raise exceptions.TokenNotProvidedError('Token is not provided.')
         token = Token.get(env['HTTP_X_AUTH_TOKEN'])
-        if token.expiry <= datetime.datetime.utcnow():
+        if token.expiry <= isotime.add_utc_tz(datetime.datetime.utcnow()):
             LOG.audit('Token "%s" has expired.' % env['HTTP_X_AUTH_TOKEN'])
             raise exceptions.TokenExpiredError('Token has expired.')
         LOG.audit('Token "%s" is validated.' % env['HTTP_X_AUTH_TOKEN'])
@@ -73,5 +73,5 @@ class AuthMiddleware(object):
          * HTTP_X_USER_NAME: Name of confirmed user
 
         """
-        env['HTTP_X_AUTH_TOKEN_EXPIRY'] = str(token.expiry)
+        env['HTTP_X_AUTH_TOKEN_EXPIRY'] = isotime.format(token.expiry)
         env['HTTP_X_USER_NAME'] = str(token.user)

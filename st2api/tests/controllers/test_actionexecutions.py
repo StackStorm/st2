@@ -10,6 +10,7 @@ try:
 except ImportError:
     import json
 
+from st2common.util import isotime
 from st2common.models.db.access import TokenDB
 from st2common.persistence.access import Token
 from st2common.transport.publishers import PoolPublisher
@@ -284,7 +285,8 @@ class TestActionExecutionController(FunctionalTest):
         return self.app.put_json('/actionexecutions/%s' % id, actionexecution, *args, **kwargs)
 
 
-EXPIRY = datetime.datetime.utcnow() + datetime.timedelta(seconds=300)
+NOW = isotime.add_utc_tz(datetime.datetime.utcnow())
+EXPIRY = NOW + datetime.timedelta(seconds=300)
 SYS_TOKEN = TokenDB(id=bson.ObjectId(), user='system', token=uuid.uuid4().hex, expiry=EXPIRY)
 USR_TOKEN = TokenDB(id=bson.ObjectId(), user='stanley', token=uuid.uuid4().hex, expiry=EXPIRY)
 

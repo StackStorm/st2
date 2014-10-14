@@ -5,6 +5,7 @@ import bson
 import mock
 
 from tests import AuthMiddlewareTest
+from st2common.util import isotime
 from st2common.models.db.access import TokenDB
 from st2common.persistence.access import Token
 from st2common.exceptions.access import TokenNotFoundError
@@ -13,8 +14,9 @@ from st2common.exceptions.access import TokenNotFoundError
 OBJ_ID = bson.ObjectId()
 USER = 'stanley'
 TOKEN = uuid.uuid4().hex
-FUTURE = datetime.datetime.utcnow() + datetime.timedelta(seconds=300)
-PAST = datetime.datetime.utcnow() + datetime.timedelta(seconds=-300)
+NOW = isotime.add_utc_tz(datetime.datetime.utcnow())
+FUTURE = NOW + datetime.timedelta(seconds=300)
+PAST = NOW + datetime.timedelta(seconds=-300)
 
 
 class TestTokenValidation(AuthMiddlewareTest):
