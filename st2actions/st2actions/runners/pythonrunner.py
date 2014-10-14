@@ -145,6 +145,7 @@ class Action(object):
 
                return config
 
+        self.logger.debug('No config found')
         return {}
 
     def _set_up_logger(self):
