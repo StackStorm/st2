@@ -3,10 +3,11 @@ import jsonschema
 import six
 
 from st2common import log as logging
+from st2common.util import isotime
 from st2common.util import action_db as db
 from st2common.util import schema as util_schema
 from st2common.persistence.action import ActionExecution
-from st2common.models.api.action import ActionExecutionAPI, ACTIONEXEC_STATUS_SCHEDULED
+from st2common.models.api.action import ACTIONEXEC_STATUS_SCHEDULED
 
 
 LOG = logging.getLogger(__name__)
@@ -52,10 +53,10 @@ def schedule(execution):
     if len(overridden_immutables) > 0:
         raise ValueError('Override of immutable parameter(s) %s is unsupported.'
                          % str(overridden_immutables))
+
     # Write to database and send to message queue.
     execution.status = ACTIONEXEC_STATUS_SCHEDULED
-    execution.start_timestamp = datetime.datetime.utcnow()
-    executiondb = ActionExecutionAPI.to_model(execution)
-    executiondb = ActionExecution.add_or_update(executiondb)
-    LOG.audit('Action execution scheduled. ActionExecution=%s.', executiondb)
-    return ActionExecutionAPI.from_model(executiondb)
+    execution.start_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+    execution = ActionExecution.add_or_update(execution)
+    LOG.audit('Action execution scheduled. ActionExecution=%s.', execution)
+    return execution

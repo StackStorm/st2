@@ -107,7 +107,9 @@ class ActionExecutionsController(RestController):
                 execution.context.update(json.loads(context))
 
             # Schedule the action execution.
-            return action_service.schedule(execution)
+            executiondb = ActionExecutionAPI.to_model(execution)
+            executiondb = action_service.schedule(executiondb)
+            return ActionExecutionAPI.from_model(executiondb)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))

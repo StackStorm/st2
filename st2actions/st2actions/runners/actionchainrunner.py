@@ -8,7 +8,8 @@ import uuid
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.exceptions import actionrunner as runnerexceptions
-from st2common.models.api import action
+from st2common.models.db import action
+from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 
@@ -100,16 +101,16 @@ class ActionChainRunner(ActionRunner):
                 # for now append all successful results
                 results[action_node.name] = actionexec.result
             finally:
-                if not actionexec or actionexec.status == action.ACTIONEXEC_STATUS_FAILED:
+                if not actionexec or actionexec.status == ACTIONEXEC_STATUS_FAILED:
                     fail = True
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-failure')
-                elif actionexec.status == action.ACTIONEXEC_STATUS_SUCCEEDED:
+                elif actionexec.status == ACTIONEXEC_STATUS_SUCCEEDED:
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-success')
         self.container_service.report_result(results)
         if fail:
-            self.container_service.report_status(action.ACTIONEXEC_STATUS_FAILED)
+            self.container_service.report_status(ACTIONEXEC_STATUS_FAILED)
         else:
-            self.container_service.report_status(action.ACTIONEXEC_STATUS_SUCCEEDED)
+            self.container_service.report_status(ACTIONEXEC_STATUS_SUCCEEDED)
         return not fail
 
     @staticmethod
@@ -142,13 +143,13 @@ class ActionChainRunner(ActionRunner):
 
     @staticmethod
     def _run_action(action_name, parent_execution_id, params, wait_for_completion=True):
-        execution = action.ActionExecutionAPI(**{'action': {'name': action_name}})
+        execution = action.ActionExecutionDB(**{'action': {'name': action_name}})
         execution.parameters = ActionChainRunner._cast_params(action_name, params)
         execution.context = {'parent': str(parent_execution_id)}
         execution = action_service.schedule(execution)
         while (wait_for_completion and
-               execution.status != action.ACTIONEXEC_STATUS_SUCCEEDED and
-               execution.status != action.ACTIONEXEC_STATUS_FAILED):
+               execution.status != ACTIONEXEC_STATUS_SUCCEEDED and
+               execution.status != ACTIONEXEC_STATUS_FAILED):
             eventlet.sleep(1)
             execution = action_db_util.get_actionexec_by_id(execution.id)
         return execution
