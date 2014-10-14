@@ -108,7 +108,17 @@ class ActionRunCommand(resource.ResourceCommand):
             arg = args.parameters[idx]
             if '=' in arg:
                 k, v = arg.split('=')
-                execution.parameters[k] = normalize(k, v)
+                try:
+                    execution.parameters[k] = normalize(k, v)
+                except Exception as e:
+                    # TODO: Move transformers in a separate module and handle
+                    # exceptions there
+                    if 'malformed string' in str(e):
+                        message = ('Invalid value for boolean parameter. '
+                                   'Valid values are: true, false')
+                        raise ValueError(message)
+                    else:
+                        raise e
             else:
                 execution.parameters['cmd'] = ' '.join(args.parameters[idx:])
                 break
