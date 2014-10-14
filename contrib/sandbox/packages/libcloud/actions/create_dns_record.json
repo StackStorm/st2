@@ -31,9 +31,10 @@
             "position": 4
         },
         "ttl": {
-            "type": "string",
+            "type": "integer",
             "description": "Record TTL",
-            "position": 5
+            "position": 5,
+            "default": 500
         }
     },
     "required_parameters": ["credentials", "domain", "name", "type", "data"]

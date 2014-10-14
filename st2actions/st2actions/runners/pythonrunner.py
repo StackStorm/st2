@@ -56,18 +56,39 @@ class Action(object):
         """
         metadata = self._get_action_metadata()
         parameters = metadata['parameters']
-        required_parameters = metadata.get('required_parameters', None)
+        required_parameters = metadata.get('required_parameters', [])
 
         parser = argparse.ArgumentParser(description='')
 
         for parameter_name, parameter_options in parameters.items():
             name = parameter_name.replace('_', '-')
             description = parameter_options['description']
+            _type = parameter_options['type']
             required = parameter_name in required_parameters
+            default_value = parameter_options.get('default', None)
+            immutable = parameter_options.get('immutable', False)
 
-            # TODO: Support types
-            parser.add_argument('--%s' % (name), help=description,
-                                required=required)
+            # Immutable arguments can't be controlled by the user
+            if immutable:
+                continue
+
+            args = ['--%s' % (name)]
+            kwargs = {'help': description, 'required': required}
+
+            if default_value is not None:
+                kwargs['default'] = default_value
+
+            if _type == 'string':
+                kwargs['type'] = str
+            elif _type == 'integer':
+                kwargs['type'] = int
+            elif _type == 'boolean':
+                if default_value is False:
+                    kwargs['action'] = 'store_false'
+                else:
+                    kwargs['action'] = 'store_true'
+
+            parser.add_argument(*args, **kwargs)
 
         return parser
 
