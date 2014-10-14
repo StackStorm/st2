@@ -1,5 +1,4 @@
-# Requirements
-# pip install jira
+# See ./requirements.txt for requirements.
 import os
 import time
 
