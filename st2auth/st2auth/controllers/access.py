@@ -21,4 +21,6 @@ class TokenController(rest.RestController):
             LOG.audit('Access denied to anonymous user.')
             pecan.abort(http_client.UNAUTHORIZED)
 
-        return create_token(pecan.request.remote_user, getattr(request, 'ttl', None))
+        tokendb = create_token(pecan.request.remote_user, getattr(request, 'ttl', None))
+
+        return TokenAPI.from_model(tokendb)
