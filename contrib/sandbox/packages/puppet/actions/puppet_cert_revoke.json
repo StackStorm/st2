@@ -1,0 +1,15 @@
+{
+    "name": "puppet_cert_revoke",
+    "runner_type": "run-remote-script",
+    "description": "Revoke the certificate of a client.",
+    "enabled": true,
+    "entry_point": "puppet_cert_revoke.py",
+    "parameters": {
+        "cert_sn_or_host": {
+            "type": "string",
+            "description": "Serial number of a host of certificate to revoke.",
+            "position": 0
+        }
+    },
+    "required_parameters": ["cert_sn_or_host"]
+}

@@ -1,0 +1,21 @@
+{
+    "name": "puppet_cert_clean",
+    "runner_type": "run-remote-script",
+    "description": "Revoke a host's certificate (if applicable) and remove all files related to that host from puppet cert's storage.",
+    "enabled": true,
+    "entry_point": "puppet_cert_clean.py",
+    "parameters": {
+        "host": {
+            "type": "string",
+            "description": "Host to use.",
+            "position": 0
+        },
+        "all": {
+            "type": "boolean",
+            "description": "Operate on all the items.",
+            "default": true
+            "position": 1
+        }
+    },
+    "required_parameters": ["host"]
+}
