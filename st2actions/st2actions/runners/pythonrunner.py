@@ -201,9 +201,14 @@ class ActionWrapper(object):
 
 class PythonRunner(ActionRunner):
 
-    def __init__(self, _id):
+    def __init__(self, _id, timeout=10*60):
+        """
+        :param timeout: Action execution timeout in seconds.
+        :type timeout: ``int``
+        """
         super(PythonRunner, self).__init__()
         self._id = _id
+        self._timeout = timeout
 
     def pre_run(self):
         pass
@@ -223,7 +228,14 @@ class PythonRunner(ActionRunner):
 
         try:
             p.start()
-            p.join()
+            p.join(self._timeout)
+
+            if p.is_alive():
+                # Process is still alive meaning the timeout has been reached
+                p.terminate()
+                message = 'Action failed to complete in %s seconds' % (self._timeout)
+                raise Exception(message)
+
             output = parent_conn.readline()
 
             try:
