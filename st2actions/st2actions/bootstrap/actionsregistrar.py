@@ -17,7 +17,11 @@ LOG = logging.getLogger(__name__)
 
 class ActionsRegistrar(object):
     def _get_actions_from_pack(self, pack):
-        return glob.glob(pack + '/*.json')
+        actions = glob.glob(pack + '/*.json')
+        # Exclude global actions configuration file
+        actions = [file_path for file_path in actions if
+                   'actions/config.json' not in file_path]
+        return actions
 
     def _register_action(self, pack, action):
         with open(action, 'r') as fd:
