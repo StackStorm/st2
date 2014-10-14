@@ -82,6 +82,9 @@ flake8: requirements .flake8
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS)
 
+.PHONY: lint
+lint: requirements .flake8 .pylint
+
 .PHONY: clean
 clean: .cleanpycs .cleandocs
 

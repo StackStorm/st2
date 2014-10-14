@@ -21,6 +21,10 @@ The list of prerequisites:
  
         make tests
 
+* To run lint tasks (flake8, pylint):
+
+        make lint
+
 * To drop virtualenv
 
         make distclean
