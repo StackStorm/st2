@@ -81,29 +81,17 @@ class SensorContainerManager(object):
 
     def _create_handler(self, trigger):
         name = trigger.type['name']
-        parameters = trigger.parameters
-
         self._trigger_names[str(trigger.id)] = trigger
-        try:
-            self._trigger_sensors[name].add_trigger(
-                SensorContainerManager.sanitize_trigger(trigger))
-        except KeyError as e:
-            if parameters:
-                LOG.warning('Unable to create a trigger %s with parameters %s.'
-                            + ' Exception: %s', name, parameters, e, exc_info=True)
+        sensor = self._trigger_sensors.get(name, None)
+        if sensor:
+            sensor.add_trigger(SensorContainerManager.sanitize_trigger(trigger))
 
     def _update_handler(self, trigger):
         name = trigger.type['name']
-        parameters = trigger.parameters
-
         self._trigger_names[str(trigger.id)] = trigger
-        try:
-            self._trigger_sensors[name].update_trigger(
-                SensorContainerManager.sanitize_trigger(trigger))
-        except KeyError as e:
-            if parameters:
-                LOG.warning('Unable to update a trigger %s with parameters %s.'
-                            + ' Exception: %s', name, parameters, e, exc_info=True)
+        sensor = self._trigger_sensors.get(name, None)
+        if sensor:
+            sensor.update_trigger(SensorContainerManager.sanitize_trigger(trigger))
 
     def _delete_handler(self, trigger):
         triggerid = str(trigger.id)
@@ -111,8 +99,9 @@ class SensorContainerManager(object):
             return
         del self._trigger_names[triggerid]
         name = trigger.type['name']
-        self._trigger_sensors[name].remove_trigger(
-            SensorContainerManager.sanitize_trigger(trigger))
+        sensor = self._trigger_sensors.get(name, None)
+        if sensor:
+            sensor.remove_trigger(SensorContainerManager.sanitize_trigger(trigger))
 
     def _get_config(self, sensor_path):
         sensor_dir, sensor_filename = os.path.split(sensor_path)
