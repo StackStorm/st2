@@ -1,10 +1,21 @@
-# Libcloud compute content pack
+# Libcloud Content Pack
 
-This content pack allows you to integrate with Libcloud compute API and
-perform basic VM life-cycle actions such as:
+This content pack allows you to integrate with
+[Apache Libcloud](http://libcloud.apache.org/).
 
-* create a new VM
-* reboot a VM
-* stop a VM
-* start a VM
-* destroy a VM
+## Actions
+
+Currently, the following actions listed bellow are supported
+
+### Virtual Machines / Servers
+
+* Create a new VM
+* Reboot a VM
+* Stop a VM
+* Start a VM
+* Destroy a VM
+
+### DNS
+
+* Create a new DNS record
+* Delete an existing DNS record
