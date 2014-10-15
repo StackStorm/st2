@@ -18,19 +18,19 @@
         "daemonize": {
             "type": "boolean",
             "description": "Send the process into the background.",
-            "default": false
+            "default": false,
             "position": 2
         },
         "onetime": {
             "type": "boolean",
             "description": "Run the configuration once. Runs a single (normally daemonized) Puppet run.",
-            "default": true
+            "default": true,
             "position": 3
-        }
+        },
         "debug": {
             "type": "boolean",
             "description": "Enable full debugging.",
-            "default": false
+            "default": false,
             "position": 4
         }
     },
