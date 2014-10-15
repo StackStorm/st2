@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from lib.actions import BaseAction
 
 __all__ = [
@@ -26,8 +24,3 @@ class CreateDNSRecordAction(BaseAction):
 
         self.logger.info('Successfully created record "%s"' % (record.name))
         return record
-
-if __name__ == '__main__':
-    action = CreateDNSRecordAction()
-    arguments = action.get_cli_arguments()
-    action.run(**arguments)

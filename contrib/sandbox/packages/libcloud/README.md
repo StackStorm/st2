@@ -5,7 +5,7 @@ This content pack allows you to integrate with
 
 ## Actions
 
-Currently, the following actions listed bellow are supported
+Currently, the following actions listed bellow are supported:
 
 ### Virtual Machines / Servers
 

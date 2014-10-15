@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from lib.actions import SingleVMAction
 
 __all__ = [
@@ -23,8 +21,3 @@ class RebootVMAction(SingleVMAction):
             self.logger.error('Failed to reboot node "%s"' % (node))
 
         return status
-
-if __name__ == '__main__':
-    action = RebootVMAction()
-    arguments = action.get_cli_arguments()
-    action.run(**arguments)

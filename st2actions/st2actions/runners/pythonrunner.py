@@ -6,7 +6,6 @@ import sys
 import traceback
 import uuid
 import inspect
-import argparse
 import logging as stdlib_logging
 
 from eventlet import greenio
@@ -45,78 +44,6 @@ class Action(object):
         """
         """
         pass
-
-    def get_cli_arguments(self):
-        """
-        Retrieve parsed command line arguments as a dictionary.
-
-        :rtype: ``dict``
-        """
-        parser = self.get_argument_parser()
-        args = vars(parser.parse_args())
-        return args
-
-    def get_argument_parser(self):
-        """
-        Generate argument parser for this action based on the JSON definition
-        file.
-        """
-        metadata = self._get_action_metadata()
-        parameters = metadata['parameters']
-        required_parameters = metadata.get('required_parameters', [])
-
-        parser = argparse.ArgumentParser(description=self.description)
-
-        for parameter_name, parameter_options in parameters.items():
-            name = parameter_name.replace('_', '-')
-            description = parameter_options['description']
-            _type = parameter_options['type']
-            required = parameter_name in required_parameters
-            default_value = parameter_options.get('default', None)
-            immutable = parameter_options.get('immutable', False)
-
-            # Immutable arguments can't be controlled by the user
-            if immutable:
-                continue
-
-            args = ['--%s' % (name)]
-            kwargs = {'help': description, 'required': required}
-
-            if default_value is not None:
-                kwargs['default'] = default_value
-
-            if _type == 'string':
-                kwargs['type'] = str
-            elif _type == 'integer':
-                kwargs['type'] = int
-            elif _type == 'boolean':
-                if default_value is False:
-                    kwargs['action'] = 'store_false'
-                else:
-                    kwargs['action'] = 'store_true'
-
-            parser.add_argument(*args, **kwargs)
-
-        return parser
-
-    def _get_action_metadata(self):
-        """
-        Retrieve metadata for this action.
-
-        :rtype: ``dict``
-        """
-        file_path = inspect.getfile(self.__class__)
-        file_name = os.path.basename(file_path)
-        dir_name = os.path.dirname(file_path)
-
-        metadata_file_name = file_name.replace('.py', '.json')
-        metadata_file_path = os.path.join(dir_name, metadata_file_name)
-
-        with open(metadata_file_path, 'r') as fp:
-            content = fp.read()
-
-        metadata = json.loads(content)
-        return metadata
 
     def _parse_config(self):
         """

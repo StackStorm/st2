@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from libcloud.dns.base import Record
 
 from lib.actions import BaseAction
@@ -25,8 +23,3 @@ class DeleteDNSRecordAction(BaseAction):
             self.logger.error('Failed to delete a record')
 
         return status
-
-if __name__ == '__main__':
-    action = DeleteDNSRecordAction()
-    arguments = action.get_cli_arguments()
-    action.run(**arguments)

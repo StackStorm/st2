@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from libcloud.compute.base import NodeSize
 from libcloud.compute.base import NodeImage
 from libcloud.compute.base import NodeLocation
@@ -35,8 +33,3 @@ class CreateVMAction(BaseAction):
 
         self.logger.info('Node successfully created: %s' % (node))
         return node
-
-if __name__ == '__main__':
-    action = CreateVMAction()
-    arguments = action.get_cli_arguments()
-    action.run(**arguments)

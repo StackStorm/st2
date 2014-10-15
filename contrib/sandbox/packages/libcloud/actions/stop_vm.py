@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from lib.actions import SingleVMAction
 
 __all__ = [
@@ -23,8 +21,3 @@ class StopVMAction(SingleVMAction):
             self.logger.error('Failed to stop node "%s"' % (node))
 
         return status
-
-if __name__ == '__main__':
-    action = StopVMAction()
-    arguments = action.get_cli_arguments()
-    action.run(**arguments)
