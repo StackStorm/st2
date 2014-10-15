@@ -1,0 +1,13 @@
+{
+    "name": "installpacks",
+    "runner_type": "action-chain",
+    "description": "Installs packs from st2-contrib.",
+    "enabled": true,
+    "entry_point":"pack_mgmt/installpacks.json",
+    "parameters": {
+        "packs": {
+            "type": "array",
+            "items": {"type": "string"}
+        }
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "chain": [
+        {
+            "name": "download",
+            "action": "downloadpacks",
+            "params": {"packs": "{{packs}}"},
+            "on-success": "reload"
+        },
+        {
+            "name": "reload",
+            "action": "reload-st2-content",
+            "params": {},
+            "on-success": "restart-sensor-container"
+        },
+        {
+            "name": "restart-sensor-container",
+            "action": "restart-st2-component",
+            "params": {"servicename": "sensor_container"}
+        }
+    ],
+    "default": "download"
+}
