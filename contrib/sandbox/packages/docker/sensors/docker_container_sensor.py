@@ -17,7 +17,7 @@ CONFIG_FILE = './docker_config.json'
 
 
 class DockerSensor(object):
-    def __init__(self, container_service):
+    def __init__(self, container_service, config=None):
         self._config_file = CONFIG_FILE
         self._running_containers = {}
         self._container_service = container_service

@@ -18,7 +18,7 @@ CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'git_config.json')
 
 
 class GitCommitSensor(object):
-    def __init__(self, container_service):
+    def __init__(self, container_service, config=None):
         self._config_file = CONFIG_FILE
         self._container_service = container_service
         self._poll_interval = 1  # seconds.
