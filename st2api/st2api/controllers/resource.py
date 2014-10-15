@@ -1,6 +1,7 @@
 import abc
 import copy
 
+from mongoengine import ValidationError
 import pecan
 from pecan import rest
 import six
@@ -48,7 +49,12 @@ class ResourceController(rest.RestController):
 
     @jsexpose(str)
     def get_one(self, id):
-        instance = self.access.get(id=id)
+        instance = None
+        try:
+            instance = self.access.get(id=id)
+        except ValidationError:
+            instance = None  # Someone supplied a mongo non-comformant id.
+
         if not instance:
             msg = 'Unable to identify resource with id "%s".' % id
             pecan.abort(http_client.NOT_FOUND, msg)
