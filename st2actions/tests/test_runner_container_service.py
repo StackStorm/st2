@@ -12,7 +12,25 @@ from st2actions.constants import LIBS_DIR as ACTION_LIBS_DIR
 from st2actions.container.service import RunnerContainerService
 
 
+
 class RunnerContainerServiceTest(unittest2.TestCase):
+    def test_get_content_pack_base_path(self):
+        orig_path = cfg.CONF.content.content_packs_base_path
+        cfg.CONF.content.content_packs_base_path = '/tests/packs'
+
+        names = [
+            'test_pack_1',
+            'test_pack_2',
+            'ma_pack'
+        ]
+
+        for name in names:
+            actual = RunnerContainerService().get_content_pack_base_path(pack_name=name)
+            expected = os.path.join(cfg.CONF.content.content_packs_base_path,
+                                    name)
+            self.assertEqual(actual, expected)
+
+        cfg.CONF.content.content_packs_base_path = orig_path
 
     def test_get_entry_point_absolute_path(self):
         service = RunnerContainerService()

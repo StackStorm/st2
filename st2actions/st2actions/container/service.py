@@ -51,6 +51,21 @@ class RunnerContainerService(object):
         return cfg.CONF.content.content_packs_base_path
 
     @staticmethod
+    def get_content_pack_base_path(pack_name):
+        """
+        Return full absolute base path to the content pack directory.
+
+        :param pack_name: Content pack name.
+        :type pack_name: ``str``
+
+        :rtype: ``str``
+        """
+        packs_base_path = RunnerContainerService.get_content_packs_base_path()
+        pack_base_path = os.path.join(packs_base_path, pipes.quote(pack_name))
+        pack_base_path = os.path.abspath(pack_base_path)
+        return pack_base_path
+
+    @staticmethod
     def get_entry_point_abs_path(pack=None, entry_point=None):
         if entry_point is not None and len(entry_point) > 0:
             if os.path.isabs(entry_point):

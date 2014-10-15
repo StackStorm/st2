@@ -4,16 +4,16 @@ except ImportError:
     import json
 import os
 import sys
-
+import six
 
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import Trigger
+from st2common.util.config_parser import ContentPackConfigParser
 from st2reactor.container.base import SensorContainer
 from st2reactor.container.service import ContainerService
 from st2reactor.container.triggerwatcher import TriggerWatcher
 import st2reactor.container.utils as container_utils
-import six
 
 LOG = logging.getLogger(__name__)
 
@@ -34,10 +34,21 @@ class SensorContainerManager(object):
         sensors_to_run = []
         for filename, sensors in six.iteritems(sensors_dict):
             for sensor_class in sensors:
+                sensor_class_kwargs = {}
+
+                # System sensors which are not located inside a content pack
+                # don't and can't have custom config associated with them
+                content_pack = getattr(sensor_class, 'content_pack', None)
+                if content_pack:
+                    # TODO: Don't parse the same config multiple times when we
+                    # are referring to sensors from the same pack
+                    config_parser = ContentPackConfigParser(content_pack_name=content_pack)
+                    config = config_parser.get_sensor_config(sensor_file_path=filename)
+                    sensor_class_kwargs['config'] = config
+
                 try:
-                    config = self._get_config(filename)
-                    sensor = sensor_class(container_service, **config)
-                    setattr(sensor, 'config', config)
+                    sensor = sensor_class(container_service=container_service,
+                                          **sensor_class_kwargs)
                 except Exception as e:
                     LOG.warning('Unable to create instance for sensor %s in file %s. Exception: %s',
                                 sensor_class, filename, e, exc_info=True)
@@ -102,15 +113,6 @@ class SensorContainerManager(object):
         sensor = self._trigger_sensors.get(name, None)
         if sensor:
             sensor.remove_trigger(SensorContainerManager.sanitize_trigger(trigger))
-
-    def _get_config(self, sensor_path):
-        sensor_dir, sensor_filename = os.path.split(sensor_path)
-        config_filepath = os.path.join(sensor_dir, sensor_filename.replace('.py', '_config.json'))
-        if os.path.exists(config_filepath):
-            with open(config_filepath) as config_file:
-                return json.load(config_file)
-        else:
-            return {}
 
     @staticmethod
     def sanitize_trigger(trigger):
