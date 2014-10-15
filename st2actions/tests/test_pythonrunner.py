@@ -49,22 +49,3 @@ class PythonRunnerTestCase(TestCase):
         result = runner.run({})
         self.assertTrue(result)
         self.assertEqual(runner.container_service.get_status(), ACTIONEXEC_STATUS_FAILED)
-
-    def test_config_parsing(self):
-        # Local (action specific) config
-        action = ActionWithLocalConfig()
-        config = action._parse_config()
-
-        self.assertEqual(config, {'local': 'yes', 'name': 'with_local_config'})
-
-        # Global (content pack) config
-        action = ActionNoLocalConfig()
-        config = action._parse_config()
-
-        self.assertEqual(config, {'global': 'yes', 'ponies': 'bar'})
-
-        # No config
-        action = ActionNoConfig()
-        config = action._parse_config()
-
-        self.assertEqual(config, {})
