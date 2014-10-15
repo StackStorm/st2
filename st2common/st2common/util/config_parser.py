@@ -4,7 +4,8 @@ import json
 from st2actions.container.service import RunnerContainerService
 
 __all__ = [
-    'ContentPackConfigParser'
+    'ContentPackConfigParser',
+    'ContentPackConfig'
 ]
 
 
@@ -27,7 +28,7 @@ class ContentPackConfigParser(object):
         :param action_file_path: Full absolute path to the action file.
         :type action_file_path: ``str``
 
-        :rtype: ``dict``
+        :rtype: :class:`.ContentPackConfig` or ``None``
         """
         local_config_path = self._get_action_local_config_path(action_file_path=action_file_path)
         global_config_path = self._get_global_config_path()
@@ -43,7 +44,7 @@ class ContentPackConfigParser(object):
         :param sensor_file_path: Full absolute path to the sensor file.
         :type sensor_file_path: ``str``
 
-        :rtype: ``dict``
+        :rtype: :class:`.ContentPackConfig` or ``None``
         """
         local_config_path = self._get_sensor_local_config_path(sensor_file_path=sensor_file_path)
         global_config_path = self._get_global_config_path()
@@ -58,9 +59,9 @@ class ContentPackConfigParser(object):
                 with open(file_path, 'r') as fp:
                     config = json.loads(fp.read())
 
-                return config
+                return ContentPackConfig(file_path=file_path, config=config)
 
-        return {}
+        return None
 
     def _get_sensor_local_config_path(self, sensor_file_path):
         """
@@ -93,3 +94,12 @@ class ContentPackConfigParser(object):
         global_config_path = os.path.join(self.content_pack_path,
                                           self.GLOBAL_CONFIG_NAME)
         return global_config_path
+
+
+class ContentPackConfig(object):
+    def __init__(self, file_path, config):
+        self.file_path = file_path
+        self.config = config
+
+    def __repr__(self):
+        return ('<ContentPackConfig file_path=%s>' % (self.file_path))

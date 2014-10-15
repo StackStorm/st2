@@ -108,7 +108,14 @@ class ActionWrapper(object):
 
         config_parser = ContentPackConfigParser(content_pack_name=self.content_pack)
         config = config_parser.get_action_config(action_file_path=self.entry_point)
-        return action_kls(config=config)
+
+        if config:
+            LOG.info('Using config "%s" for action "%s"' % (config.file_name,
+                                                            self.entry_point))
+
+            return action_kls(config=config.config)
+        else:
+            return actions_kls(config={})
 
 
 class PythonRunner(ActionRunner):

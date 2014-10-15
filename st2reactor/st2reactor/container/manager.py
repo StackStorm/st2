@@ -44,7 +44,11 @@ class SensorContainerManager(object):
                     # are referring to sensors from the same pack
                     config_parser = ContentPackConfigParser(content_pack_name=content_pack)
                     config = config_parser.get_sensor_config(sensor_file_path=filename)
-                    sensor_class_kwargs['config'] = config
+
+                    if config:
+                        sensor_class_kwargs['config'] = config.config
+                        class_name = sensor_class.__name__
+                        LOG.info('Using config "%s" for sensor "%s"' % (config.file_path, class_name))
 
                 try:
                     sensor = sensor_class(container_service=container_service,
