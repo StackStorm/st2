@@ -1,30 +1,10 @@
-#!/usr/bin/env python
+from lib.python_actions import PuppetBasePythonAction
 
-import argparse
-
-from lib.actions import PuppetBaseAction
-
-
-class PuppetCertCleanAction(PuppetBaseAction):
-    def run(self, host, all=False):
-        args = ['cert', 'clean']
-
-        if all:
-            args += ['--all']
-
-        args += [host]
-
-        cmd = self._get_full_command(args=args)
-        self._run_command(cmd=cmd)
+__all__ = [
+    'PuppetCertCleanAction'
+]
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Sign an outstanding certificate request')
-    parser.add_argument('--host', help='Hostname to use',
-                        required=True)
-    parser.add_argument('--all', help='Operate on all the items',
-                        action='store_true', required=False)
-    args = vars(parser.parse_args())
-
-    action = PuppetCertCleanAction()
-    action.run(**args)
+class PuppetCertCleanAction(PuppetBasePythonAction):
+    def run(self, environment, host):
+        success = self.client.cert_clean(environment=environment, host=host)

@@ -7,14 +7,14 @@
     "parameters": {
         "host": {
             "type": "string",
-            "description": "Host to use.",
-            "position": 0
+            "description": "Host to clean the certificate for",
+            "position": 4
         },
         "all": {
             "type": "boolean",
             "description": "Operate on all the items.",
             "default": true
-            "position": 1
+            "position": 5
         }
     },
     "required_parameters": ["host"]

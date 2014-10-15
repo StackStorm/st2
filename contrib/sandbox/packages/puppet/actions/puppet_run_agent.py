@@ -2,7 +2,7 @@
 
 import argparse
 
-from lib.actions import PuppetBaseAction
+from lib.remote_actions import PuppetBaseAction
 
 __all__ = [
     'PuppetRunAgentAction'

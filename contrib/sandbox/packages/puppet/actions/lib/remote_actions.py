@@ -2,7 +2,10 @@ import sys
 import pipes
 import subprocess
 
-from st2actions.runners.pythonrunner import Action
+__all__ = [
+    'PuppetBaseAction'
+]
+
 
 
 class PuppetBaseAction(object):
@@ -38,4 +41,3 @@ class PuppetBaseAction(object):
             error = '\n'.join(error)
             sys.stderr.write('Command exited with an error: %s\n' % (error))
         sys.exit(exit_code)
-
