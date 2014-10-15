@@ -1,5 +1,6 @@
 import os
-import json
+
+import yaml
 
 from st2actions.container.service import RunnerContainerService
 
@@ -14,8 +15,8 @@ class ContentPackConfigParser(object):
     Class responsible for obtaining and parsing content pack configs.
     """
 
-    GLOBAL_CONFIG_NAME = 'config.json'
-    LOCAL_CONFIG_SUFFIX = '_config.json'
+    GLOBAL_CONFIG_NAME = 'config.yml'
+    LOCAL_CONFIG_SUFFIX = '_config.yml'
 
     def __init__(self, content_pack_name):
         self.content_pack_name = content_pack_name
@@ -58,7 +59,7 @@ class ContentPackConfigParser(object):
         for file_path in [local_config_path, global_config_path]:
             if os.path.exists(file_path) and os.path.isfile(file_path):
                 with open(file_path, 'r') as fp:
-                    config = json.loads(fp.read())
+                    config = yaml.load(fp.read())
 
                 return ContentPackConfig(file_path=file_path, config=config)
 
@@ -71,7 +72,7 @@ class ContentPackConfigParser(object):
         :rtype: ``str``
         """
         dir_name, file_name = os.path.split(sensor_file_path)
-        config_name = file_name.replace('.py', '_config.json')
+        config_name = file_name.replace('.py', self.LOCAL_CONFIG_SUFFIX)
         local_config_path = os.path.join(dir_name, config_name)
         return local_config_path
 
@@ -87,7 +88,7 @@ class ContentPackConfigParser(object):
             raise ValueError('Only Python actions are supported')
 
         dir_name, file_name = os.path.split(action_file_path)
-        config_name = file_name.replace('.py', '_config.json')
+        config_name = file_name.replace('.py', self.LOCAL_CONFIG_SUFFIX)
         local_config_path = os.path.join(dir_name, config_name)
         return local_config_path
 
