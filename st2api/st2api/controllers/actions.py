@@ -1,12 +1,13 @@
 from mongoengine import ValidationError, NotUniqueError
 
 from pecan import abort
-from pecan.rest import RestController
 import six
 
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
 #       that bubble up to this layer should be core Python exceptions or
 #       StackStorm defined exceptions.
+
+from st2api.controllers import resource
 from st2api.controllers.actionviews import ActionViewsController
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -20,12 +21,23 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class ActionsController(RestController):
+class ActionsController(resource.ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Actions in the system.
     """
     views = ActionViewsController()
+
+    model = ActionAPI
+    access = Action
+    supported_filters = {
+        'name': 'name',
+        'pack': 'content_pack'
+    }
+
+    options = {
+        'sort': ['content_pack', 'name']
+    }
 
     @staticmethod
     def _get_by_id(action_id):
@@ -44,35 +56,6 @@ class ActionsController(RestController):
         except Exception as e:
             LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
             return []
-
-    @jsexpose(str)
-    def get_one(self, action_id):
-        """
-            List action by action_id.
-
-            Handle:
-                GET /actions/1
-        """
-
-        LOG.info('GET /actions/ with id=%s', action_id)
-        action_db = ActionsController._get_by_id(action_id)
-        action_api = ActionAPI.from_model(action_db)
-        LOG.debug('GET /actions/ with id=%s, client_result=%s', action_id, action_api)
-        return action_api
-
-    @jsexpose(str)
-    def get_all(self, **kw):
-        """
-            List all actions.
-
-            Handles requests:
-                GET /actions/
-        """
-        LOG.info('GET all /actions/ with filters=%s', kw)
-        action_dbs = Action.get_all(**kw)
-        action_apis = [ActionAPI.from_model(action_db) for action_db in action_dbs]
-        LOG.debug('GET all /actions/ client_result=%s', action_apis)
-        return action_apis
 
     @staticmethod
     def _validate_action_parameters(action, runnertype_db):
