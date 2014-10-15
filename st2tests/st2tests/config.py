@@ -13,9 +13,9 @@ def parse_args():
 
 
 def _setup_config_opts():
-    # XXX: Oslo registration requires us to register overrides first.
-    _override_config_opts()
+    cfg.CONF.reset()
     _register_config_opts()
+    _override_config_opts()
 
 
 def _override_config_opts():
@@ -30,15 +30,7 @@ def _register_config_opts():
 
 
 def _override_db_opts():
-    try:
-        db_opts = [
-            cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
-            cfg.IntOpt('port', default=27017, help='port of db server'),
-            cfg.StrOpt('db_name', default='st2-test', help='name of database')
-        ]
-        _register_opts(db_opts, group='database')
-    except cfg.DuplicateOptError:
-        LOG.exception('Will skip registration.')
+    CONF.set_override(name='db_name', override='st2-test', group='database')
 
 
 def _register_common_opts():
@@ -49,11 +41,6 @@ def _register_common_opts():
 
 
 def _register_api_opts():
-    auth_opts = [
-        cfg.BoolOpt('enable', default=False, help='Enable authentication middleware.')
-    ]
-    _register_opts(auth_opts, group='auth')
-
     api_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='action API server host'),
         cfg.IntOpt('port', default=9101, help='action API server port')
@@ -123,7 +110,4 @@ def _register_action_sensor_opts():
 
 
 def _register_opts(opts, group=None):
-    try:
-        CONF.register_opts(opts, group)
-    except cfg.DuplicateOptError:
-        LOG.exception('Will skip registration of [%s] %s.', group, opts)
+    CONF.register_opts(opts, group)
