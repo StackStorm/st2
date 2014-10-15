@@ -5,7 +5,6 @@ import six
 import sys
 import traceback
 import uuid
-import inspect
 import logging as stdlib_logging
 
 from eventlet import greenio

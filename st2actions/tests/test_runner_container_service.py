@@ -12,7 +12,6 @@ from st2actions.constants import LIBS_DIR as ACTION_LIBS_DIR
 from st2actions.container.service import RunnerContainerService
 
 
-
 class RunnerContainerServiceTest(unittest2.TestCase):
     def test_get_content_pack_base_path(self):
         orig_path = cfg.CONF.content.content_packs_base_path

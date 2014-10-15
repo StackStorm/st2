@@ -19,7 +19,8 @@ class ContentPackConfigParser(object):
 
     def __init__(self, content_pack_name):
         self.content_pack_name = content_pack_name
-        self.content_pack_path = RunnerContainerService().get_content_pack_base_path(pack_name=content_pack_name)
+        self.content_pack_path = RunnerContainerService() \
+            .get_content_pack_base_path(pack_name=content_pack_name)
 
     def get_action_config(self, action_file_path):
         """

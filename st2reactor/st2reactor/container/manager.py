@@ -1,7 +1,3 @@
-try:
-    import simplejson as json
-except ImportError:
-    import json
 import os
 import sys
 import six
@@ -48,7 +44,8 @@ class SensorContainerManager(object):
                     if config:
                         sensor_class_kwargs['config'] = config.config
                         class_name = sensor_class.__name__
-                        LOG.info('Using config "%s" for sensor "%s"' % (config.file_path, class_name))
+                        LOG.info('Using config "%s" for sensor "%s"' % (config.file_path,
+                                                                        class_name))
 
                 try:
                     sensor = sensor_class(container_service=container_service,
