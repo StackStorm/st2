@@ -1,6 +1,3 @@
-import tests.config
-tests.config.parse_args()
-
 import json
 import mock
 import os
@@ -14,6 +11,7 @@ from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.api import action
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
+import st2tests.config as tests_config
 
 
 class DummyActionExecution(object):
@@ -73,6 +71,10 @@ with open(ACTION_2_PATH, 'r') as fd:
 
 
 class TestActionChain(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        tests_config.parse_args()
 
     def test_chain_creation_basic(self):
         action_chain = acr.ActionChain(CHAIN_1)

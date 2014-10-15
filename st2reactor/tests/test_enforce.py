@@ -1,12 +1,15 @@
 import datetime
+
 import mock
 import unittest2
+
 from st2common.persistence.reactor import RuleEnforcement
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
     RuleDB, ActionExecutionSpecDB
 from st2common.models.db.action import ActionDB, ActionExecutionDB
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
+import st2tests.config as tests_config
 
 MOCK_TRIGGER = TriggerDB()
 MOCK_TRIGGER.id = 'trigger-test.id'
@@ -44,6 +47,10 @@ MOCK_RULE_2.enabled = True
 
 
 class EnforceTest(unittest2.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        tests_config.parse_args()
 
     @mock.patch.object(RuleEnforcement, 'add_or_update')
     @mock.patch.object(RuleEnforcer, '_invoke_action', mock.MagicMock(

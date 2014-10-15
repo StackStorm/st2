@@ -1,9 +1,11 @@
-import tests.config
-tests.config.parse_args()
+# XXX: FabricRunner import depends on config being setup.
+import st2tests.config as tests_config
+tests_config.parse_args()
+
+from unittest2 import TestCase
 
 from st2actions.runners.fabricrunner import FabricRunner
 from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
-from unittest2 import TestCase
 
 
 class TestFabricRunnerResultStatus(TestCase):

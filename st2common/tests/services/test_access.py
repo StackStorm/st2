@@ -1,5 +1,4 @@
 import datetime
-import tests.config
 
 from oslo.config import cfg
 from st2tests.base import DbTestCase
@@ -7,6 +6,7 @@ from st2common.util import isotime
 from st2common.exceptions.access import TokenNotFoundError
 from st2common.persistence.access import Token
 from st2common.services import access
+import st2tests.config as tests_config
 
 
 class AccessServiceTest(DbTestCase):
@@ -14,7 +14,7 @@ class AccessServiceTest(DbTestCase):
     @classmethod
     def setUpClass(cls):
         super(AccessServiceTest, cls).setUpClass()
-        tests.config.parse_args()
+        tests_config.parse_args()
 
     def test_create_token(self):
         token = access.create_token('manas')
