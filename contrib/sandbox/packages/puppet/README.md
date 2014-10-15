@@ -33,9 +33,12 @@ work by executing puppet CLI commands on the desired remote host.
 For the Python runner actions to work, you need to configure the following
 items in the config:
 
-* master.hostname - hostname of the puppet master
-* master.port - port of the puppet master
+* `master.hostname` - hostname of the puppet master
+* `master.port` - port of the puppet master
 
-* auth.client_cert_path - path to the client certificate file used for authentication
-* auth.client_cert_key_path - path to the private key file for the client certificate
-* auth.ca_cert_path - path to the CA cert file
+* `auth.client_cert_path` - path to the client certificate file used for authentication
+* `auth.client_cert_key_path` - path to the private key file for the client certificate
+* `auth.ca_cert_path` - path to the CA cert file
+
+Remote actions require no configuration. You simply need to specify server to
+run the action on when running the action (same as with other remote actions).
