@@ -1,0 +1,33 @@
+{
+    "name": "heyheyhey",
+    "runner_type": "mistral-v1",
+    "description": "Say hi to friend!",
+    "enabled": true,
+    "entry_point":"heyheyhey.yaml",
+    "parameters": {
+        "workbook": {
+            "type": "string",
+            "default": "heyheyhey",
+            "immutable": true
+        },
+        "task": {
+            "type": "string",
+            "default": "say-greeting",
+            "immutable": true
+        },
+        "context": {
+            "description": "Context for the startup task.", 
+            "type": "object",
+            "default": {},
+            "immutable": true
+        },
+        "count": {
+            "type": "string",
+            "default": "3"
+        },
+        "friend": {
+            "type": "string"
+        }
+    },
+    "required_parameters": ["friend"]
+}

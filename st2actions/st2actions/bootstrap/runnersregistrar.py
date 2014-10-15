@@ -199,7 +199,7 @@ def register_runner_types():
             'runner_module': 'st2actions.runners.httprunner'
         },
         {
-            'name': 'workflow',
+            'name': 'mistral-v1',
             'description': 'A runner for launching workflow actions.',
             'enabled': True,
             'runner_parameters': {
@@ -217,7 +217,7 @@ def register_runner_types():
                     'default': {}
                 }
             },
-            'runner_module': 'st2actions.runners.mistral'
+            'runner_module': 'st2actions.runners.mistral.v1'
         },
         {
             'name': 'action-chain',
