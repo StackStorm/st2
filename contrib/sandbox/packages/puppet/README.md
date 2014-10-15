@@ -2,9 +2,6 @@
 
 This content pack allows for integration with [Puppet](http://puppetlabs.com/).
 
-Note: Puppet actions are executed using a remote runner which means they
-run on the remote hosts.
-
 ## Actions
 
 Currently, the following actions listed bellow are supported:
@@ -20,3 +17,9 @@ Currently, the following actions listed bellow are supported:
 * Certificate signing - `puppet_cert_sign`
 * Certificate revocation - `puppet_cert_revoke`
 * Certificate cleaning - `puppet_cert_clean`
+
+## How it works
+
+All the actions except `puppet_apply` are Python actios which are executed
+on the node where Stanley is running and work by talking to the puppet master
+via the REST HTTP API.
