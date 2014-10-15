@@ -57,7 +57,7 @@ class ContentPackConfigParser(object):
 
     def _get_config(self, local_config_path, global_config_path):
         for file_path in [local_config_path, global_config_path]:
-            if os.path.exists(file_path) and os.path.isfile(file_path):
+            if file_path and os.path.exists(file_path) and os.path.isfile(file_path):
                 with open(file_path, 'r') as fp:
                     config = yaml.load(fp.read())
 
@@ -93,6 +93,9 @@ class ContentPackConfigParser(object):
         return local_config_path
 
     def _get_global_config_path(self):
+        if not self.content_pack_path:
+            return None
+
         global_config_path = os.path.join(self.content_pack_path,
                                           self.GLOBAL_CONFIG_NAME)
         return global_config_path

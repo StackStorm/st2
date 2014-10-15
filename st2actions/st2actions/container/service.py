@@ -60,6 +60,9 @@ class RunnerContainerService(object):
 
         :rtype: ``str``
         """
+        if not pack_name:
+            return None
+
         packs_base_path = RunnerContainerService.get_content_packs_base_path()
         pack_base_path = os.path.join(packs_base_path, pipes.quote(pack_name))
         pack_base_path = os.path.abspath(pack_base_path)

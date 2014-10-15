@@ -114,7 +114,7 @@ class ActionWrapper(object):
 
             return action_kls(config=config.config)
         else:
-            return actions_kls(config={})
+            return action_kls(config={})
 
 
 class PythonRunner(ActionRunner):
@@ -132,7 +132,8 @@ class PythonRunner(ActionRunner):
         pass
 
     def run(self, action_parameters):
-        action_wrapper = ActionWrapper(content_pack=self.action.content_pack,
+        content_pack = self.action.content_pack if self.action else None
+        action_wrapper = ActionWrapper(content_pack=content_pack,
                                        entry_point=self.entry_point,
                                        action_parameters=action_parameters)
 
