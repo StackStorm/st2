@@ -24,7 +24,6 @@ function st2start(){
     fi
 
     # Change working directory to the root of the repo.
-    ST2_REPO=`realpath ${ST2_REPO}`
     echo "Changing working directory to ${ST2_REPO}..."
     cd ${ST2_REPO}
 
@@ -81,6 +80,7 @@ function st2start(){
     for i in $(seq 1 $runner_count)
     do
         # a screen for every runner
+        echo '    starting runner ' $i '...'
         screen -S st2-actionrunner -X screen -t runner-$i ./virtualenv/bin/python \
             ./st2actions/bin/actionrunner \
             --config-file $ST2_CONF
@@ -128,7 +128,7 @@ function st2stop(){
     screen -ls | grep st2 &> /dev/null
     if [ $? == 0 ]; then
         echo 'Killing existing st2 screen sessions...'
-        screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs kill
+        screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -P
     fi
 }
 

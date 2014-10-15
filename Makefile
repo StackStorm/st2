@@ -111,7 +111,7 @@ requirements: virtualenv $(REQUIREMENTS)
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate && pip install -U $(foreach req,$(REQUIREMENTS),-r $(req))
+	. $(VIRTUALENV_DIR)/bin/activate && pip install -U -q $(foreach req,$(REQUIREMENTS),-r $(req))
 
 .PHONY: virtualenv
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
@@ -182,18 +182,6 @@ pytests: requirements .flake8 .pytests-coverage
 .PHONY: bottests
 bottests: botrqmnts
 	npm test ../$(STORMBOT_DIR)
-
-.PHONY: install
-install:
-	@echo
-	@echo "==================== install ===================="
-	@echo
-	pip install -r requirements.txt
-	cp -R st2*/st2* /usr/lib/python2.7/site-packages/
-	mkdir -p /etc/stanley && cp conf/stanley.conf /etc/stanley/
-	$(foreach COM,$(filter-out st2common,$(COMPONENTS)),mkdir -p /etc/$(COM) && cp $(COM)/conf/* /etc/$(COM)/ && cp $(COM)/bin/* /usr/bin/;)
-	mkdir -p /etc/st2reactor/sensor/samples
-	cp st2reactor/st2reactor/sensor/samples/* /etc/st2reactor/sensor/samples/
 
 .PHONY: rpms
 rpms:
