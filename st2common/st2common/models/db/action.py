@@ -41,7 +41,7 @@ class RunnerTypeDB(StormBaseDB):
         help_text='The list of parameters required by the action runner.')
 
 
-class ActionDB(StormBaseDB):
+class ActionDB(StormFoundationDB):
     """
     The system entity that represents a Stack Action/Automation in the system.
 
@@ -52,7 +52,8 @@ class ActionDB(StormBaseDB):
         parameters: The specification for parameters for the action.
         required_parameters: The list of parameters required by the action.
     """
-
+    name = me.StringField(required=True)
+    description = me.StringField()
     enabled = me.BooleanField(
         required=True, default=True,
         help_text='A flag indicating whether the action is enabled.')
@@ -61,7 +62,8 @@ class ActionDB(StormBaseDB):
         help_text='The entry point to the action.')
     content_pack = me.StringField(
         required=True,
-        help_text='Name of the content pack.')
+        help_text='Name of the content pack.',
+        unique_with='name')
     runner_type = me.DictField(
         required=True, default={},
         help_text='The action runner to use for executing the action.')
