@@ -3,6 +3,9 @@ import shutil
 from git.repo import Repo
 
 
+ALL_PACKS = '*'
+
+
 class InstallGitRepoAction(object):
 
     def run(self, repo_url=None, abs_repo_base=None, packs=None):
@@ -25,7 +28,9 @@ class InstallGitRepoAction(object):
     def _move_packs(abs_repo_base, packs, abs_local_path):
         for fp in os.listdir(abs_local_path):
             abs_fp = os.path.join(abs_local_path, fp)
-            if fp in packs and os.path.isdir(abs_fp):
+            if not os.path.isdir(abs_fp):
+                continue
+            if ALL_PACKS in packs or fp in packs:
                 shutil.move(abs_fp, os.path.join(abs_repo_base, fp))
 
     @staticmethod
