@@ -48,9 +48,6 @@ class ContentPackConfigParser(object):
         local_config_path = self._get_sensor_local_config_path(sensor_file_path=sensor_file_path)
         global_config_path = self._get_global_config_path()
 
-        print local_config_path
-        print global_config_path
-
         result = self._get_config(local_config_path=local_config_path,
                                   global_config_path=global_config_path)
         return result
