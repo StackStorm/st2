@@ -1,4 +1,4 @@
-Triggers And Sensors
+Triggers and Sensors
 =====================
 
 What?
@@ -14,7 +14,7 @@ How? (a.k.a writing your own sensor)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For a simple sensor, review
-`contrib/examples/sensors/sample\_sensor.py <../contrib/examples/sensors/sample_sensor.py>`__.
+`contrib/examples/sensors/sample\_sensor.py`.
 It shows a bare minimum version of how a sensor would look like. Your
 sensor should generate triggers of the form (python dict):
 
@@ -75,7 +75,7 @@ Advanced examples
 
 There are some common use cases that we identified and stanley comes
 bundled with some default sensors. For example, the two triggers in
-`triggers <>`__ section are implemented as sensors.
+this section are implemented as sensors.
 
 Timer sensor
 ^^^^^^^^^^^^

@@ -1,7 +1,7 @@
 Quick Start
 =================
 
-Installed st2? Enjoyed the video while it was being installed? Time go play: let's get  your first automation going. But first some terms. 
+Installed st2? Enjoyed the video while it was being installed? Time go play: let's get  your first automation going. But first some terms.
 
 
 

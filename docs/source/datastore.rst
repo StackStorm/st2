@@ -1,4 +1,4 @@
-Datastore (aka Key Value Store)
+Datastore
 ===============================
 
 The goal of the datastore service is to allow users to store common

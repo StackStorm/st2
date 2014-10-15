@@ -105,7 +105,7 @@ Action Definition
 +------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Example
-'''''''
+~~~~~~~~
 
 The following is the action definition and a table describing the
 attributes.
@@ -136,7 +136,7 @@ attributes.
     }
 
 Action Parameters
-'''''''''''''''''
+~~~~~~~~~~~~~~~~~~
 
 Parameter definition for the action uses jsonschema. The basic data type
 that is supported are boolean, integer, number, object (json), and

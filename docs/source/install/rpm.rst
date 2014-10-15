@@ -29,7 +29,7 @@ by simply passing in the version number:
 
 This will download the latest build of Stanley version 0.5.0.
 
---------------
+---------------
 
 Prerequisites
 ^^^^^^^^^^^^^
@@ -147,8 +147,7 @@ The command to start and or stop stanley is 'st2run'.
 
     sudo st2run start|stop|restart|status
 
-Content
-^^^^^^^
 
-Refer to the Terminology, Running Actions, Defining Rules, & Storing
-Resuable Parameters sections in `README.md <>`__
+.. rubric:: Continue:
+
+    TODO: What's next?
