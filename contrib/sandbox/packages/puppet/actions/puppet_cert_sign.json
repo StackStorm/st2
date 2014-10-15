@@ -1,0 +1,20 @@
+{
+    "name": "puppet_cert_sign",
+    "runner_type": "run-python",
+    "description": "Sign an outstanding certificate request.",
+    "enabled": true,
+    "entry_point": "puppet_cert_sign.py",
+    "parameters": {
+        "environment": {
+            "type": "string",
+            "description": "Environment to use.",
+            "position": 0
+        },
+        "host": {
+            "type": "string",
+            "description": "Host to sign the certificate for",
+            "position": 1
+        }
+    },
+    "required_parameters": ["environment", "host"]
+}

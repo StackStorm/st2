@@ -1,0 +1,38 @@
+{
+    "name": "puppet_run_agent",
+    "runner_type": "run-remote-script",
+    "description": "Run puppet agent.",
+    "enabled": true,
+    "entry_point": "puppet_run_agent.py",
+    "parameters": {
+        "server": {
+            "type": "string",
+            "description": "Name of the puppet master server.",
+            "position": 0
+        },
+        "certname": {
+            "type": "string",
+            "description": "Certname (unique ID) of the client.",
+            "position": 1
+        },
+        "daemonize": {
+            "type": "boolean",
+            "description": "Send the process into the background.",
+            "default": false,
+            "position": 2
+        },
+        "onetime": {
+            "type": "boolean",
+            "description": "Run the configuration once. Runs a single (normally daemonized) Puppet run.",
+            "default": true,
+            "position": 3
+        },
+        "debug": {
+            "type": "boolean",
+            "description": "Enable full debugging.",
+            "default": false,
+            "position": 4
+        }
+    },
+    "required_parameters": []
+}

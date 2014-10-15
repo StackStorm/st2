@@ -1,0 +1,26 @@
+{
+    "name": "puppet_apply",
+    "runner_type": "run-remote-script",
+    "description": "Apply a standalone puppet manifest to a local system.",
+    "enabled": true,
+    "entry_point": "puppet_apply.py",
+    "parameters": {
+        "file": {
+            "type": "string",
+            "description": "Path to the puppet module file",
+            "position": 0
+        },
+        "execute": {
+            "type": "boolean",
+            "description": "Execute a specific piece of Puppet code",
+            "default": false,
+            "position": 1
+        },
+        "catalog": {
+            "type": "string",
+            "description": "Specific JSON catalog file to use",
+            "position": 2
+        }
+    },
+    "required_parameters": ["file"]
+}
