@@ -140,14 +140,3 @@ class PuppetHTTPAPIClient(object):
                                     headers=request_headers, data=data,
                                     cert=cert, verify=verify)
         return response
-
-
-if __name__ == '__main__':
-    client = PuppetHTTPAPIClient(master_hostname='localhost', master_port=8140,
-                                 client_cert_path='/home/vagrant/.puppet/ssl/certs/localhost.pem',
-                                 client_cert_key_path='/home/vagrant/.puppet/ssl/private_keys/localhost.pem',
-                                 ca_cert_path='/home/vagrant/.puppet/ssl/ca/ca_crt.pem')
-    r = client.cert_sign(environment='production', host='localhost')
-    print r.status_code
-    print r.content
-
