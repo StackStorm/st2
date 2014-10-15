@@ -3,10 +3,11 @@ from pecan.testing import load_test_app
 from oslo.config import cfg
 from webtest import TestApp
 
-import tests.config
-from st2tests import DbTestCase
+
 import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2common.middleware import auth
+from st2tests import DbTestCase
+import st2tests.config as tests_config
 
 
 class FunctionalTest(DbTestCase):
@@ -15,7 +16,7 @@ class FunctionalTest(DbTestCase):
     def setUpClass(cls):
         super(FunctionalTest, cls).setUpClass()
 
-        tests.config.parse_args()
+        tests_config.parse_args()
         cfg.CONF.set_default('enable', False, group='auth')
 
         opts = cfg.CONF.api_pecan
@@ -42,7 +43,7 @@ class AuthMiddlewareTest(DbTestCase):
     @classmethod
     def setUpClass(cls):
         super(AuthMiddlewareTest, cls).setUpClass()
-        tests.config.parse_args()
+        tests_config.parse_args()
 
         opts = cfg.CONF.api_pecan
         cfg_dict = {

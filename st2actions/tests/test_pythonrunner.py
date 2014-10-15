@@ -1,23 +1,27 @@
-import tests.config
-tests.config.parse_args()
-
 import os
+
+from unittest2 import TestCase
 
 from st2actions.runners import pythonrunner
 from st2actions.container import service
 from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
-from unittest2 import TestCase
+import st2tests.config as tests_config
 
 from fixtures.dummy_content_pack.actions.action_with_local_config import ActionWithLocalConfig
 from fixtures.dummy_content_pack.actions.action_no_local_config import ActionNoLocalConfig
 from fixtures.dummy_content_pack_2.actions.action_no_config import ActionNoConfig
 
 
-PACAL_ROW_ACTION_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    'fixtures/pythonactions/pascal_row.py')
+PACAL_ROW_ACTION_PATH = os.path.join(os.path.dirname(
+    os.path.realpath(__file__)), 'fixtures/pythonactions/pascal_row.py')
 
 
 class PythonRunnerTestCase(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        tests_config.parse_args()
+
     def test_runner_creation(self):
         runner = pythonrunner.get_runner()
         self.assertTrue(runner is not None, 'Creation failed. No instance.')
