@@ -69,8 +69,18 @@ def _get_user_sensors():
         try:
             LOG.info('Loading sensors from pack: %s, dir: %s', pack, sensor_dir)
             if _is_requirements_ok(sensor_dir):
-                sensors_dict.update(sensor_loader.get_sensors(
-                    base_dir=os.path.realpath(sensor_dir)))
+                base_dir = os.path.realpath(sensor_dir)
+                pack_sensors = sensor_loader.get_sensors(base_dir=base_dir)
+
+                # Include content pack name on the sensor class
+                # TODO: This is nasty
+                pack_sensors_augmented = defaultdict(list)
+                for filename, sensors in pack_sensors.iteritems():
+                    for sensor in sensors:
+                        sensor.content_pack = pack
+                        pack_sensors_augmented[filename].append(sensor)
+
+                sensors_dict.update(pack_sensors_augmented)
             else:
                 LOG.warning('Not registering sensors in sensor_dir: %s.', sensor_dir)
         except:

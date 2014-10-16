@@ -1,8 +1,10 @@
 import math
 
 
-class PascalRowAction(object):
+from st2actions.runners.pythonrunner import Action
 
+
+class PascalRowAction(Action):
     def run(self, **kwargs):
         return PascalRowAction._compute_pascal_row(**kwargs)
 

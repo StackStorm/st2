@@ -1,5 +1,5 @@
 class SimpleSensor(object):
-    def __init__(self, container_service):
+    def __init__(self, container_service, config=None):
         self._container_service = container_service
         # container_service provides utilities like
         # get_logger() for writing to logs.

@@ -10,8 +10,9 @@ class JIRASensor(object):
     Sensor will monitor for any new projects created in JIRA and
     emit trigger instance when one is created.
     '''
-    def __init__(self, container_service, **kwargs):
+    def __init__(self, container_service, config=None):
         self._container_service = container_service
+        self._config = config
         self._jira_url = None
         # The Consumer Key created while setting up the "Incoming Authentication" in
         # JIRA for the Application Link.
@@ -26,25 +27,21 @@ class JIRASensor(object):
         self._issues_in_project = None
         self._jql_query = None
 
-        # self.config contains the config dict set
-        # by the sensor container. (file: jira_sensor_config.py.)
-        # kwargs also contains the config parameters specified in jira_sensor_config.py
-
     def _read_cert(self, file_path):
         with open(file_path) as f:
             return f.read()
 
     def setup(self):
-        self._jira_url = self.config['url']
-        rsa_cert_file = self.config['rsa_cert_file']
+        self._jira_url = self._config['url']
+        rsa_cert_file = self._config['rsa_cert_file']
         if not os.path.exists(rsa_cert_file):
             raise Exception('Cert file for JIRA OAuth not found at %s.' % rsa_cert_file)
         self._rsa_key = self._read_cert(rsa_cert_file)
-        self._poll_interval = self.config.get('poll_interval', self._poll_interval)
+        self._poll_interval = self._config.get('poll_interval', self._poll_interval)
         oauth_creds = {
-            'access_token': self.config['oauth_token'],
-            'access_token_secret': self.config['oauth_secret'],
-            'consumer_key': self.config['consumer_key'],
+            'access_token': self._config['oauth_token'],
+            'access_token_secret': self._config['oauth_secret'],
+            'consumer_key': self._config['consumer_key'],
             'key_cert': self._rsa_key
         }
 
@@ -54,7 +51,7 @@ class JIRASensor(object):
             self._projects_available = set()
             for proj in self._jira_client.projects():
                 self._projects_available.add(proj.key)
-        self._project = self.config.get('project', None)
+        self._project = self._config.get('project', None)
         if not self._project or self._project not in self._projects_available:
             raise Exception('Invalid project (%s) to track.' % self._project)
         self._jql_query = 'project=%s' % self._project

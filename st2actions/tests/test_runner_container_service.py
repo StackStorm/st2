@@ -14,6 +14,23 @@ import st2tests.config as tests_config
 
 
 class RunnerContainerServiceTest(unittest2.TestCase):
+    def test_get_content_pack_base_path(self):
+        orig_path = cfg.CONF.content.content_packs_base_path
+        cfg.CONF.content.content_packs_base_path = '/tests/packs'
+
+        names = [
+            'test_pack_1',
+            'test_pack_2',
+            'ma_pack'
+        ]
+
+        for name in names:
+            actual = RunnerContainerService().get_content_pack_base_path(pack_name=name)
+            expected = os.path.join(cfg.CONF.content.content_packs_base_path,
+                                    name)
+            self.assertEqual(actual, expected)
+
+        cfg.CONF.content.content_packs_base_path = orig_path
 
     @classmethod
     def setUpClass(cls):

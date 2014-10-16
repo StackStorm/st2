@@ -1,0 +1,24 @@
+---
+  credentials:
+    ec2_prod:
+      api_key: "username"
+      api_secret: "password"
+      type: "compute"
+      provider: "ec2_us_east"
+      region: "us-west-1"
+    rax_dev:
+      api_key: "username"
+      api_secret: "password"
+      type: "compute"
+      provider: "rackspace"
+      region: "iad"
+    do_dev:
+      api_key: "username"
+      api_secret: "password"
+      type: "compute"
+      provider: "digitalocean"
+    zerigo_dev:
+      api_key: "username"
+      api_secret: "password"
+      type: "dns"
+      provider: "zerigo"

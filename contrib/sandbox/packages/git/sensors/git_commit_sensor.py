@@ -14,23 +14,22 @@ import time
 
 from git.repo import Repo
 
-CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'git_config.json')
-
 
 class GitCommitSensor(object):
-    def __init__(self, container_service):
-        self._config_file = CONFIG_FILE
+    def __init__(self, container_service, config=None):
         self._container_service = container_service
+        self._config = config
         self._poll_interval = 1  # seconds.
         self._logger = self._container_service.get_logger(__name__)
         self._old_head = None
         self._remote = None
 
     def setup(self):
-        git_opts = self._get_config()
+        git_opts = self._config
 
         if git_opts['url'] is None:
             raise Exception('Remote git URL not set.')
+
         self._url = git_opts['url']
         default_clone_dir = os.path.join(os.path.dirname(__file__), 'clones')
         self._local_path = git_opts.get('local_clone_path', default_clone_dir)
@@ -123,12 +122,6 @@ class GitCommitSensor(object):
         payload['committer_tz_offset'] = commit.committer_tz_offset
         self._logger.debug('Found new commit. Dispatching trigger: %s', payload)
         self._container_service.dispatch(trigger, payload)
-
-    def _get_config(self):
-        if not os.path.exists(self._config_file):
-            raise Exception('Config file not found at %s.' % self._config_file)
-        with open(self._config_file) as f:
-            return json.load(f)
 
     def _to_date(self, ts_epoch):
         return datetime.datetime.fromtimestamp(ts_epoch).strftime('%Y-%m-%dT%H:%M:%SZ')

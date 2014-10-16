@@ -1,6 +1,6 @@
 from st2actions.runners.pythonrunner import Action
 
 
-class ActionWithLocalConfig(Action):
+class MyAction(Action):
     def run():
         pass
