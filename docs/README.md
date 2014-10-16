@@ -2,6 +2,11 @@
 
 Hints and notes on how to work with Sphinx.
 
+Install sphinx, build the docs. 
+
+	pip install sphinx
+	sphinx-build -b html docs/source docs/build/html
+
 ## pandoc	
 
 pandoc - a super-tool to convert between formats. Sample for markdown conversion:
@@ -21,5 +26,5 @@ Use sphinxcontrib.pecanwsme.rest and wsmeext.sphinxext plugins to generate API d
 
 [auto-loader](https://pypi.python.org/pypi/sphinx-autobuild/0.2.3) - rules for convenient doc writing - rebuilds the docs on changes and serves them up. Run and go to http://localhost:8000 
 
-  pip install sphinx-autobuild
+  	pip install sphinx-autobuild
 	sphinx-autobuild docs/source docs/build/html
