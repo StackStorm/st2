@@ -1,7 +1,7 @@
 {
     "name": "downloadpacks",
     "runner_type": "run-python",
-    "description": "Downloads packs and puts them in the right location.",
+    "description": "Downloads packs and places it in the local content repository.",
     "enabled": true,
     "entry_point": "pack_mgmt/downloadpacks.py",
     "parameters": {
