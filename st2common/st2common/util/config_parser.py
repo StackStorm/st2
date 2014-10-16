@@ -32,12 +32,10 @@ class ContentPackConfigParser(object):
 
         :rtype: :class:`.ContentPackConfig` or ``None``
         """
-        local_config_path = self._get_action_local_config_path(action_file_path=action_file_path)
         global_config_path = self._get_global_config_path()
+        config = self._get_and_parse_config(config_path=global_config_path)
 
-        result = self._get_config(local_config_path=local_config_path,
-                                  global_config_path=global_config_path)
-        return result
+        return config
 
     def get_sensor_config(self, sensor_file_path):
         """
@@ -48,20 +46,29 @@ class ContentPackConfigParser(object):
 
         :rtype: :class:`.ContentPackConfig` or ``None``
         """
-        local_config_path = self._get_sensor_local_config_path(sensor_file_path=sensor_file_path)
         global_config_path = self._get_global_config_path()
+        config = self._get_and_parse_config(config_path=global_config_path)
 
-        result = self._get_config(local_config_path=local_config_path,
-                                  global_config_path=global_config_path)
-        return result
+        return config
+
+    def _get_and_parse_config(self, config_path):
+        if not config_path:
+            return None
+
+        if os.path.exists(config_path) and os.path.isfile(config_path):
+                with open(config_path, 'r') as fp:
+                    config = yaml.load(fp.read())
+
+                return ContentPackConfig(file_path=config_path, config=config)
+
+        return None
 
     def _get_config(self, local_config_path, global_config_path):
         for file_path in [local_config_path, global_config_path]:
-            if file_path and os.path.exists(file_path) and os.path.isfile(file_path):
-                with open(file_path, 'r') as fp:
-                    config = yaml.load(fp.read())
+            config = self._get_and_parse_config(config_path=file_path)
 
-                return ContentPackConfig(file_path=file_path, config=config)
+            if config:
+                return config
 
         return None
 
