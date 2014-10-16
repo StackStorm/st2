@@ -8,10 +8,6 @@ from st2actions.container import service
 from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from unittest2 import TestCase
 
-from fixtures.dummy_content_pack.actions.action_with_local_config import ActionWithLocalConfig
-from fixtures.dummy_content_pack.actions.action_no_local_config import ActionNoLocalConfig
-from fixtures.dummy_content_pack_2.actions.action_no_config import ActionNoConfig
-
 
 PACAL_ROW_ACTION_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
     'fixtures/pythonactions/pascal_row.py')
