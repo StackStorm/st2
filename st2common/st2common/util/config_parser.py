@@ -30,6 +30,7 @@ class ContentPackConfigParser(object):
         :param action_file_path: Full absolute path to the action file.
         :type action_file_path: ``str``
 
+        :return: Config object if config is found, ``None`` otherwise.
         :rtype: :class:`.ContentPackConfig` or ``None``
         """
         global_config_path = self._get_global_config_path()
@@ -44,6 +45,7 @@ class ContentPackConfigParser(object):
         :param sensor_file_path: Full absolute path to the sensor file.
         :type sensor_file_path: ``str``
 
+        :return: Config object if config is found, ``None`` otherwise.
         :rtype: :class:`.ContentPackConfig` or ``None``
         """
         global_config_path = self._get_global_config_path()
