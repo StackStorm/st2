@@ -1,0 +1,173 @@
+#!/bin/bash
+LOGFILE="/tmp/st2_startup.log"
+COMPONENTS="actionrunner st2api sensor_container"
+STANCONF="/etc/st2/st2.conf"
+PYTHON=`which python`
+if [ -z "$AR" ];
+ then
+   AR=10
+fi
+
+DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
+
+if [[ "$DEBTEST" == "Ubuntu" ]]; then
+  TYPE="debs"
+  PYTHONPACK="/usr/lib/python2.7/dist-packages"
+elif [[ -f "/etc/redhat-release" ]]; then
+  TYPE="rpms"
+  PYTHONPACK="/usr/lib/python2.7/site-packages"
+else
+  echo "Unknown Operating System"
+  exit 2
+fi
+
+function st2start(){
+  for i in `seq 1 ${AR}`
+  do
+    actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
+  done
+  st2api --config-file ${STANCONF} &>> ${LOGFILE} &
+  sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
+  /opt/openstack/mistral/.venv/bin/mistral-server &>> /tmp/mistral.log &
+}
+
+function st2stop(){
+  for COM in $COMPONENTS
+  do
+    PID=`ps ax | grep -v grep | grep ${COM} | awk '{print $1}'`
+    if [[ ! -z $PID ]]
+    then
+      for p in $PID
+      do
+        echo "Killing ${COM} PID: ${p}"
+        kill $p
+      done
+    else
+      echo "${COM} is not running"
+    fi
+  done
+
+  MISTRALPID=`pgrep mistral`
+  if [[ ! -z $MISTRALPID ]]
+  then
+    echo "Killing mistral PID: ${MISTRALPID}"
+    kill $MISTRALPID
+  else
+    echo "mistral is not running"
+  fi
+}
+
+function restart_component() {
+  COM=${1}
+  if [[ ! -z $COM ]]
+  then
+    if [[ "${COM}" == "actionrunner" ]]
+    then
+      PROC_COUNT=${AR}
+    else
+      PROC_COUNT=1
+    fi
+    echo "restarting service ${COM} with ${PROC_COUNT} process(es)."
+    PID=`ps ax | grep -v grep | grep -v st2ctl | grep ${COM} | awk '{print $1}'`
+    if [[ ! -z $PID ]]
+    then
+      for p in $PID
+      do
+        echo "Killing ${COM} PID: ${p}"
+        kill $p
+      done
+      for i in `seq 1 ${PROC_COUNT}`
+      do
+        ${COM} --config-file ${STANCONF} &>> ${LOGFILE} &
+      done
+    else
+      echo "${COM} is not running"
+    fi
+  else
+    echo "No component specified to restart."
+  fi
+}
+
+function register_content() {
+  echo "Registering all content..."
+  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF} 
+}
+
+clean_db() {
+  echo "Dropping Database..."
+  mongo st2 --eval "db.dropDatabase();"
+}
+
+clean_logs() {
+  echo "Cleaning Logs..."
+  rm -Rf /var/log/stanley/*
+}
+
+function getpids(){
+  for COM in $COMPONENTS
+  do
+    PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
+    if [[ ! -z $PID ]]
+    then
+      for p in $PID
+      do
+        echo "${COM} PID: ${p}"
+      done
+    else
+      echo "${COM} is not running"
+    fi
+  done
+
+  MISTRALPID=`pgrep mistral`
+  if [[ ! -z $MISTRALPID ]]
+  then
+    echo "mistral PID: ${MISTRALPID}"
+  else
+    echo "mistral is not running"
+  fi
+}
+
+case ${1} in
+  start)
+    st2start
+    getpids
+    ;;
+  stop)
+    st2stop
+    ;;
+  restart)
+    st2stop
+    sleep 1
+    st2start
+    getpids
+    ;;
+  restart-component)
+    restart_component ${2}
+    sleep 1
+    getpids
+    ;;
+  reload)
+    register_content
+    getpids
+    ;;
+  clean)
+    echo "This will drop the database and delete all logs.  Are you sure [y/n]?"
+    read verify
+    if [[ "$verify" == "y" ]]; then
+      st2stop
+      clean_db
+      clean_logs
+      register_content
+      st2start
+      getpids
+    else
+      exit
+    fi
+    ;;
+  status)
+    getpids
+    ;;
+  *)
+    echo "Valid actions: start|stop|restart|restart-component|reload|clean|status"
+    ;;
+esac
