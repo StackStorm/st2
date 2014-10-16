@@ -1,6 +1,7 @@
 import mongoengine as me
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
+from st2common.models.db.action import ActionCompoundKey
 
 
 class TriggerTypeDB(StormBaseDB):
@@ -33,7 +34,7 @@ class TriggerInstanceDB(StormFoundationDB):
 
 
 class ActionExecutionSpecDB(me.EmbeddedDocument):
-    name = me.StringField(required=True)
+    name = me.EmbeddedDocumentField()
     parameters = me.DictField()
 
     def __str__(self):
@@ -58,7 +59,7 @@ class RuleDB(StormBaseDB):
     """
     trigger = me.DictField()
     criteria = me.DictField()
-    action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
+    action = me.EmbeddedDocumentField(ActionCompoundKey)
     enabled = me.BooleanField(required=True, default=True,
                               help_text=u'Flag indicating whether the rule is enabled.')
 

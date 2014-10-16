@@ -8,7 +8,7 @@ import uuid
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.exceptions import actionrunner as runnerexceptions
-from st2common.models.db import action
+from st2common.models.db.action import ActionCompoundKey, ActionExecutionDB
 from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
@@ -22,9 +22,9 @@ class ActionChain(object):
 
     class Node(object):
 
-        def __init__(self, name, action_name, params):
+        def __init__(self, name, action, params):
             self.name = name
-            self.action_name = action_name
+            self.action = action
             self.params = params
 
     class Link(object):
@@ -92,7 +92,7 @@ class ActionChainRunner(ActionRunner):
             try:
                 resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
                                                                     results)
-                actionexec = ActionChainRunner._run_action(action_node.action_name,
+                actionexec = ActionChainRunner._run_action(action_node.action,
                                                            self.action_execution_id,
                                                            resolved_params)
             except:
@@ -142,9 +142,11 @@ class ActionChainRunner(ActionRunner):
         return rendered_params
 
     @staticmethod
-    def _run_action(action_name, parent_execution_id, params, wait_for_completion=True):
-        execution = action.ActionExecutionDB(**{'action': {'name': action_name}})
-        execution.parameters = ActionChainRunner._cast_params(action_name, params)
+    def _run_action(action, parent_execution_id, params, wait_for_completion=True):
+        action_key = ActionCompoundKey(name=action['name'],
+                                       content_pack=action['content_pack'])
+        execution = ActionExecutionDB(action=action_key)
+        execution.parameters = ActionChainRunner._cast_params(action['name'], params)
         execution.context = {'parent': str(parent_execution_id)}
         execution = action_service.schedule(execution)
         while (wait_for_completion and

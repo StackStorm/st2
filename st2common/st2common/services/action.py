@@ -29,12 +29,11 @@ def schedule(execution):
         execution.context['user'] = getattr(parent, 'context', dict()).get('user')
 
     # Validate action.
-    (action_db, action_dict) = db.get_action_by_dict(execution.action)
+    (action_db, action_dict) = db.get_action_by_dict({'name': execution.action.name})
     if not action_db:
         raise ValueError('Action "%s" cannot be found.' % execution.action)
     if not action_db.enabled:
         raise ValueError('Unable to execute. Action "%s" is disabled.' % execution.action)
-    execution.action = action_dict
 
     runnertype_db = db.get_runnertype_by_name(action_db.runner_type['name'])
 

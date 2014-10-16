@@ -73,6 +73,11 @@ class ActionDB(StormFoundationDB):
         help_text='The list of parameters required by the action.')
 
 
+class ActionCompoundKey(me.EmbeddedDocument):
+    content_pack = me.StringField(required=True)
+    name = me.StringField(required=True)
+
+
 class ActionExecutionDB(StormFoundationDB):
     """
         The databse entity that represents a Stack Action/Automation in
@@ -92,7 +97,8 @@ class ActionExecutionDB(StormFoundationDB):
     start_timestamp = me.DateTimeField(
         default=datetime.datetime.utcnow,
         help_text='The timestamp when the ActionExecution was created.')
-    action = me.DictField(
+    action = me.EmbeddedDocumentField(
+        ActionCompoundKey,
         required=True,
         help_text='The action executed by this instance.')
     parameters = me.DictField(
