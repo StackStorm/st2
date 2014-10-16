@@ -109,11 +109,12 @@ class ActionWrapper(object):
         config = config_parser.get_action_config(action_file_path=self.entry_point)
 
         if config:
-            LOG.info('Using config "%s" for action "%s"' % (config.file_name,
+            LOG.info('Using config "%s" for action "%s"' % (config.file_path,
                                                             self.entry_point))
 
             return action_kls(config=config.config)
         else:
+            LOG.info('No config found for action "%s"' % (self.entry_point))
             return action_kls(config={})
 
 
