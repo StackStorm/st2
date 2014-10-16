@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Requirements
-# pip install jira
+# pip install docker
 
 try:
     import simplejson as json

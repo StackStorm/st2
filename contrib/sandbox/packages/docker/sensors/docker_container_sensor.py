@@ -13,19 +13,18 @@ import time
 import docker
 import six
 
-CONFIG_FILE = './docker_config.json'
-
 
 class DockerSensor(object):
     def __init__(self, container_service, config=None):
-        self._config_file = CONFIG_FILE
         self._running_containers = {}
         self._container_service = container_service
+        self._config = config
         self._ps_opts = None
         self._poll_interval = 5  # seconds.
 
     def setup(self):
-        docker_opts = self._get_config()
+        docker_opts = self._config
+
         # Assign sane defaults.
         if docker_opts['version'] is None:
             docker_opts['version'] = '1.13'
@@ -102,12 +101,6 @@ class DockerSensor(object):
                                              since=opts['since'], before=opts['before'],
                                              limit=opts['limit'])
         return self._to_dict(containers)
-
-    def _get_config(self):
-        if not os.path.exists(self._config_file):
-            raise Exception('Config file not found at %s.' % self._config_file)
-        with open(self._config_file) as f:
-            return json.load(f)
 
     def _to_dict(self, containers):
         container_tuples = [(container['Id'], container) for container in containers]

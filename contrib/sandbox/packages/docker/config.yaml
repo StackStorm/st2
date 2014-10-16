@@ -1,0 +1,13 @@
+---
+  url: "unix://var/run/docker.sock"
+  version: "1.13"
+  timeout: 10
+  ps_options:
+    quiet: false
+    all: true
+    trunc: true
+    latest: false
+    since: null
+    before: null
+    limit: -1
+  poll_interval: 5
