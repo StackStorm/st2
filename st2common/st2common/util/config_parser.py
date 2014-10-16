@@ -15,8 +15,8 @@ class ContentPackConfigParser(object):
     Class responsible for obtaining and parsing content pack configs.
     """
 
-    GLOBAL_CONFIG_NAME = 'config.yml'
-    LOCAL_CONFIG_SUFFIX = '_config.yml'
+    GLOBAL_CONFIG_NAME = 'config.yaml'
+    LOCAL_CONFIG_SUFFIX = '_config.yaml'
 
     def __init__(self, content_pack_name):
         self.content_pack_name = content_pack_name
