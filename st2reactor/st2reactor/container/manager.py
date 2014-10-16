@@ -46,7 +46,8 @@ class SensorContainerManager(object):
                         class_name = sensor_class.__name__
                         LOG.info('Using config "%s" for sensor "%s"' % (config.file_path,
                                                                         class_name))
-
+                    else:
+                        sensor_class_kwargs['config'] = {}
                 try:
                     sensor = sensor_class(container_service=container_service,
                                           **sensor_class_kwargs)
