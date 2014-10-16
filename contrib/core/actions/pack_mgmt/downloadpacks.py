@@ -50,10 +50,3 @@ class InstallGitRepoAction(object):
     def _cleanup_repo(abs_local_path):
         # basic lock checking etc?
         shutil.rmtree(abs_local_path)
-
-
-if __name__ == '__main__':
-    action = InstallGitRepoAction()
-    action.run('git@github.com:StackStorm/st2-contrib.git',
-               '/home/manas/repo_base',
-               ['fabric'])
