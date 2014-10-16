@@ -82,7 +82,7 @@ class ActionRunCommand(resource.ResourceCommand):
                                                  % (action.runner_type, action.name))
 
         transformer = {
-            'array': list,
+            'array': (lambda cs_x: [v.strip() for v in cs_x.split(',')]),
             'boolean': (lambda x: ast.literal_eval(x.capitalize())),
             'integer': int,
             'number': float,

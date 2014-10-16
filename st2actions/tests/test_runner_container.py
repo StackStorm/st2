@@ -8,9 +8,9 @@ from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.action import (Action, ActionExecution, RunnerType)
 from st2common.transport.publishers import PoolPublisher
 from st2tests.base import DbTestCase
-
-import tests.config as tests_config
+import st2tests.config as tests_config
 tests_config.parse_args()
+
 
 # XXX: There is dependency on config being setup before importing
 # RunnerContainer. Do not move this until you fix config

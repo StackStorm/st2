@@ -10,6 +10,7 @@ import unittest2
 
 from st2actions.constants import LIBS_DIR as ACTION_LIBS_DIR
 from st2actions.container.service import RunnerContainerService
+import st2tests.config as tests_config
 
 
 class RunnerContainerServiceTest(unittest2.TestCase):
@@ -30,6 +31,10 @@ class RunnerContainerServiceTest(unittest2.TestCase):
             self.assertEqual(actual, expected)
 
         cfg.CONF.content.content_packs_base_path = orig_path
+
+    @classmethod
+    def setUpClass(cls):
+        tests_config.parse_args()
 
     def test_get_entry_point_absolute_path(self):
         service = RunnerContainerService()

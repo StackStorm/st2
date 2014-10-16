@@ -2,8 +2,9 @@ import copy
 
 import mock
 
-from tests import config
-config.parse_args()
+# XXX: actionsensor import depends on config being setup.
+import st2tests.config as tests_config
+tests_config.parse_args()
 
 from tests.fixtures import history as fixture
 from st2tests import DbTestCase
