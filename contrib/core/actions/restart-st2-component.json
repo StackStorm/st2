@@ -1,0 +1,20 @@
+{
+    "name": "restart-st2-component",
+    "runner_type": "run-local",
+    "description": "Action that restarts st2 service.",
+    "enabled": true,
+    "entry_point": "",
+    "parameters": {
+        "sudo": {
+            "immutable": true
+        },
+        "cmd": {
+            "immutable": true,
+            "default": "st2ctl restart-component {{servicename}}"
+        },
+        "servicename": {
+            "type": "string"
+        }
+    },
+    "required_parameters": ["servicename"]
+}
