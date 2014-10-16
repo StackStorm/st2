@@ -29,7 +29,8 @@ def schedule(execution):
         execution.context['user'] = getattr(parent, 'context', dict()).get('user')
 
     # Validate action.
-    (action_db, action_dict) = db.get_action_by_dict({'name': execution.action.name})
+    (action_db, action_dict) = db.get_action_by_dict(
+        {'name': execution.action.name, 'content_pack': execution.action.content_pack})
     if not action_db:
         raise ValueError('Action "%s" cannot be found.' % execution.action)
     if not action_db.enabled:

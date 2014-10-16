@@ -7,7 +7,7 @@ from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import (RunnerType, Action, ActionExecution)
 from st2common.models.api.action import (ACTIONEXEC_STATUSES,
-                                         ACTION_ID, ACTION_NAME
+                                         ACTION_ID, ACTION_NAME, ACTION_PACK
                                          )
 
 LOG = logging.getLogger(__name__)
@@ -142,6 +142,8 @@ def get_action_by_dict(action_dict):
             return (action, action_dict)
 
     if ACTION_NAME in action_dict:
+        if ACTION_PACK not in action_dict:
+            return (None, {})
         action_name = action_dict[ACTION_NAME]
         try:
             action = get_action_by_name(action_name)

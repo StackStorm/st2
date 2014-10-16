@@ -4,7 +4,8 @@ from st2common.util import isotime
 from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.base import BaseAPI
-from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB)
+from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB,
+                                        ActionCompoundKey)
 
 
 __all__ = ['ActionAPI',
@@ -190,6 +191,7 @@ ACTIONEXEC_STATUSES = [ACTIONEXEC_STATUS_SCHEDULED,
 
 ACTION_NAME = 'name'
 ACTION_ID = 'id'
+ACTION_PACK = 'content_pack'
 
 
 class ActionExecutionAPI(BaseAPI):
@@ -227,6 +229,10 @@ class ActionExecutionAPI(BaseAPI):
                     },
                     "name": {
                         "description": "The name of the action.",
+                        "type": "string"
+                    },
+                    "content_pack": {
+                        "description": "The content pack action belongs to.",
                         "type": "string"
                     }
                 }
@@ -276,7 +282,8 @@ class ActionExecutionAPI(BaseAPI):
     @classmethod
     def to_model(cls, execution):
         model = super(cls, cls).to_model(execution)
-        model.action = execution.action
+        model.action = ActionCompoundKey(name=execution.action['name'],
+                                         content_pack=execution.action['content_pack'])
         if getattr(execution, 'start_timestamp', None):
             model.start_timestamp = isotime.parse(execution.start_timestamp)
         model.status = getattr(execution, 'status', None)

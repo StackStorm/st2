@@ -13,6 +13,7 @@
         }
     },
     "action": {
+        "content_pack": "history",
         "name": "local",
         "parameters": {
             "cmd": "echo \"{{trigger}}\" >> /tmp/st2.persons.out"

@@ -142,6 +142,9 @@ class ActionSpec(BaseAPI):
             'name': {
                 'type': 'string'
             },
+            'content_pack': {
+                'type': 'string'
+            },
             'parameters': {
                 'type': 'object'
             }
@@ -245,6 +248,7 @@ class RuleAPI(BaseAPI):
         validator.validate_criteria(model.criteria)
         model.action = ActionExecutionSpecDB()
         model.action.name = rule.action['name']
+        model.action.content_pack = rule.action['content_pack']
         model.action.parameters = rule.action['parameters']
         model.enabled = rule.enabled
         return model

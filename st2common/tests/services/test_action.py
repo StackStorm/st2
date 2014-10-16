@@ -6,7 +6,7 @@ from st2common.util import isotime
 from st2common.transport.publishers import PoolPublisher
 from st2common.services import action as action_service
 from st2common.persistence.action import RunnerType, Action, ActionExecution
-from st2common.models.db.action import ActionExecutionDB
+from st2common.models.db.action import ActionExecutionDB, ActionCompoundKey
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.models.api.action import ACTIONEXEC_STATUS_SCHEDULED
 
@@ -37,7 +37,7 @@ ACTION = {
     }
 }
 
-ACTION_REF = {'name': 'my.action'}
+ACTION_REF = ActionCompoundKey(name='my.action', content_pack='default')
 USERNAME = 'stanley'
 
 
@@ -66,8 +66,11 @@ class TestActionExecutionService(DbTestCase):
         execution = ActionExecution.get_by_id(str(request.id))
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
-        action = {'id': str(self.actiondb.id), 'name': self.actiondb.name}
-        self.assertDictEqual(execution.action, action)
+        action = {'name': self.actiondb.name,
+                  'content_pack': self.actiondb.content_pack}
+        actual_action = {'name': execution.action.name,
+                         'content_pack': execution.action.content_pack}
+        self.assertDictEqual(actual_action, action)
         self.assertEqual(execution.context['user'], request.context['user'])
         self.assertDictEqual(execution.parameters, request.parameters)
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_SCHEDULED)
@@ -82,7 +85,8 @@ class TestActionExecutionService(DbTestCase):
 
     def test_schedule_nonexistent_action(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        execution = ActionExecutionDB(action={'name': 'i.action'}, parameters=parameters)
+        action_key = ActionCompoundKey(name='i.action', content_pack='default')
+        execution = ActionExecutionDB(action=action_key, parameters=parameters)
         self.assertRaises(ValueError, action_service.schedule, execution)
 
     def test_schedule_disabled_action(self):

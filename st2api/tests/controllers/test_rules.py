@@ -45,6 +45,7 @@ RULE_1 = {
     },
     'action': {
         'name': 'st2.test.action',
+        'content_pack': 'sixpack',
         'parameters': {
             'ip2': '{{rule.k1}}',
             'ip1': '{{trigger.t1_p}}'

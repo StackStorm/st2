@@ -2,7 +2,10 @@
     "chain": [
         {
             "name": "c1",
-            "action": "a2",
+            "action": {
+                "content_pack": "wolfpack",
+                "name": "a2"
+            },
             "params": {"inttype": "{{s1}}",
                        "strtype": "{{s2}}",
                        "numbertype": "{{s3}}",

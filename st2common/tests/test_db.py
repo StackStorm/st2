@@ -213,6 +213,7 @@ class ReactorModelTest(DbTestCase):
         created.criteria = {}
         created.action = ActionExecutionSpecDB()
         created.action.name = action.name
+        created.action.content_pack = action.content_pack
         created.action.parameters = {}
         return Rule.add_or_update(created)
 

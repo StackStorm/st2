@@ -2,7 +2,10 @@
     "chain": [
         {
             "name": "c1",
-            "action": "a1",
+            "action": {
+                "content_pack": "wolfpack",
+                "name": "a1"
+            },
             "params": {"p1": "{{s1}}"}
         }
     ],
