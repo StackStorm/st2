@@ -13,13 +13,13 @@
         "trigger.name": {
             "pattern": "Joe",
             "type": "equals"
-         }
+        }
     },
 
     "action": {
         "name": "local",
         "parameters": {
-            "cmd": "echo \"{{trigger}}\" >> /tmp/st2.persons.out"
+            "cmd": "echo \"{{trigger}} from {{rule.trigger.type}}\" >> /tmp/st2.persons.out"
         }
     },
 

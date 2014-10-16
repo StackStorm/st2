@@ -18,7 +18,7 @@ class RuleEnforcer(object):
     def __init__(self, trigger_instance, rule):
         self.trigger_instance = trigger_instance
         self.rule = rule
-        self.data_transformer = get_transformer(trigger_instance.payload)
+        self.data_transformer = get_transformer(trigger_instance.payload, self.rule)
 
     def enforce(self):
         rule_enforcement = RuleEnforcementDB()
