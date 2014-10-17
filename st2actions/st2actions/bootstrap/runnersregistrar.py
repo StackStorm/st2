@@ -200,7 +200,7 @@ def register_runner_types():
         },
         {
             'name': 'mistral-v1',
-            'description': 'A runner for launching workflow actions.',
+            'description': 'A runner for executing mistral v1 workflow.',
             'enabled': True,
             'runner_parameters': {
                 'workbook': {
@@ -218,6 +218,23 @@ def register_runner_types():
                 }
             },
             'runner_module': 'st2actions.runners.mistral.v1'
+        },
+        {
+            'name': 'mistral-v2',
+            'description': 'A runner for executing mistral v2 workflow.',
+            'enabled': True,
+            'runner_parameters': {
+                'workflow': {
+                    'description': 'The name of the workflow.',
+                    'type': 'string'
+                },
+                'context': {
+                    'description': 'Context for the startup task.',
+                    'type': 'object',
+                    'default': {}
+                }
+            },
+            'runner_module': 'st2actions.runners.mistral.v2'
         },
         {
             'name': 'action-chain',

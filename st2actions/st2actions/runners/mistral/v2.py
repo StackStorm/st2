@@ -27,33 +27,28 @@ class MistralRunner(ActionRunner):
         pass
 
     def run(self, action_parameters):
-        client = mistral.client(mistral_url='%s/v1' % self.url)
+        client = mistral.client(mistral_url='%s/v2' % self.url)
 
         # Update workbook definition.
-        workbook = next((w for w in client.workbooks.list() if w.name == self.action.name), None)
-        if not workbook:
-            client.workbooks.create(self.action.name, description=self.action.description)
-        workbook_file = self.entry_point
-        with open(workbook_file, 'r') as workbook_spec:
-            definition = workbook_spec.read()
+        with open(self.entry_point, 'r') as wbkfile:
+            definition = wbkfile.read()
             try:
-                old_definition = client.workbooks.get_definition(self.action.name)
+                wbk = client.workbooks.get(self.action.name)
+                if wbk.definition != definition:
+                    client.workbooks.update(definition)
             except:
-                old_definition = None
-            if definition != old_definition:
-                client.workbooks.upload_definition(self.action.name, definition)
+                client.workbooks.create(definition)
 
         # Setup context for the workflow execution.
         context = self.runner_parameters.get('context', dict())
-        endpoint = 'http://%s:%s/actionexecutions' % (cfg.CONF.api.host, cfg.CONF.api.port)
-        context['st2_api_url'] = endpoint
-        context['st2_parent'] = self.action_execution_id
         context.update(action_parameters)
+        endpoint = 'http://%s:%s/actionexecutions' % (cfg.CONF.api.host, cfg.CONF.api.port)
+        params = {'st2_api_url': endpoint,
+                  'st2_parent': self.action_execution_id}
 
         # Execute the workflow.
-        execution = client.executions.create(self.runner_parameters.get('workbook'),
-                                             self.runner_parameters.get('task'),
-                                             context=context)
+        execution = client.executions.create(self.runner_parameters.get('workflow'),
+                                             workflow_input=context, **params)
 
         # Return status and output.
         output = {
