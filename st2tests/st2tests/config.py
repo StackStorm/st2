@@ -27,6 +27,7 @@ def _register_config_opts():
     _register_api_opts()
     _register_auth_opts()
     _register_action_sensor_opts()
+    _register_workflow_opts()
 
 
 def _override_db_opts():
@@ -107,6 +108,13 @@ def _register_action_sensor_opts():
                    help='Amount of time to wait prior to retrying a request.')
     ]
     _register_opts(action_sensor_opts, group='action_sensor')
+
+
+def _register_workflow_opts():
+    workflow_opts = [
+        cfg.StrOpt('url', default='http://localhost:8989', help='Mistral API server root endpoint.')
+    ]
+    _register_opts(workflow_opts, group='workflow')
 
 
 def _register_opts(opts, group=None):
