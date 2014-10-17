@@ -89,8 +89,8 @@ function restart_component() {
 }
 
 function register_content() {
-  echo "Registering all content..."
-  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF} 
+  echo "Registering content..."
+  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF} ${1}
 }
 
 clean_db() {
@@ -147,7 +147,7 @@ case ${1} in
     getpids
     ;;
   reload)
-    register_content
+    register_content ${2}
     getpids
     ;;
   clean)
@@ -157,7 +157,7 @@ case ${1} in
       st2stop
       clean_db
       clean_logs
-      register_content
+      register_content ${2}
       st2start
       getpids
     else
