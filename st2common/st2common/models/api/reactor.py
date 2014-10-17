@@ -23,6 +23,10 @@ class TriggerTypeAPI(BaseAPI):
                 'default': None
             },
             'name': {
+                'description': 'The content pack this trigger belongs to.',
+                'type': 'string'
+            },
+            'content_pack': {
                 'type': 'string'
             },
             'description': {
