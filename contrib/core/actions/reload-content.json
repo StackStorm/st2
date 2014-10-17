@@ -1,5 +1,5 @@
 {
-    "name": "reload-st2-content",
+    "name": "reload-content",
     "runner_type": "run-local",
     "description": "Action that reloads all st2 content.",
     "enabled": true,

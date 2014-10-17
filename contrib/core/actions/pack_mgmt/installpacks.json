@@ -8,13 +8,13 @@
         },
         {
             "name": "reload",
-            "action": "reload-st2-content",
+            "action": "reload-content",
             "params": {},
             "on-success": "restart-sensor-container"
         },
         {
             "name": "restart-sensor-container",
-            "action": "restart-st2-component",
+            "action": "restart-component",
             "params": {"servicename": "sensor_container"}
         }
     ],

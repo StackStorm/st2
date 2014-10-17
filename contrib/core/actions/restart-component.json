@@ -1,5 +1,5 @@
 {
-    "name": "restart-st2-component",
+    "name": "restart-component",
     "runner_type": "run-local",
     "description": "Action that restarts st2 service.",
     "enabled": true,
