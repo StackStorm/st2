@@ -63,7 +63,9 @@ class SensorContainerManager(object):
                         LOG.warning('No trigger type registered by sensor %s in file %s',
                                     sensor_class, filename)
                     else:
-                        container_utils.add_trigger_models(trigger_types)
+                        assert isinstance(trigger_types, (list, tuple))
+                        container_utils.add_trigger_models(content_pack=content_pack,
+                                                           trigger_types=trigger_types)
                 except TriggerTypeRegistrationException as e:
                     LOG.warning('Unable to register trigger type for sensor %s in file %s.'
                                 + ' Exception: %s', sensor_class, filename, e, exc_info=True)

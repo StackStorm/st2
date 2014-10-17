@@ -20,8 +20,8 @@ def create_trigger_instance(trigger, payload, occurrence_time):
     return TriggerInstance.add_or_update(trigger_instance)
 
 
-def _create_trigger_type(name, description=None, payload_schema=None, parameters_schema=None):
-    triggertypes = TriggerType.query(name=name)
+def _create_trigger_type(content_pack, name, description=None, payload_schema=None, parameters_schema=None):
+    triggertypes = TriggerType.query(content_pack=content_pack, name=name)
     is_update = False
     if len(triggertypes) > 0:
         trigger_type = triggertypes[0]
@@ -30,6 +30,8 @@ def _create_trigger_type(name, description=None, payload_schema=None, parameters
         is_update = True
     else:
         trigger_type = TriggerTypeDB()
+
+    trigger_type.content_pack = content_pack
     trigger_type.name = name
     trigger_type.description = description
     trigger_type.payload_schema = payload_schema
@@ -76,18 +78,36 @@ def _create_trigger(trigger_type):
         return None
 
 
-def _add_trigger_models(trigger_type):
+def _add_trigger_models(content_pack, trigger_type):
     trigger_type = _create_trigger_type(
-        trigger_type['name'],
-        trigger_type['description'] if 'description' in trigger_type else '',
-        trigger_type['payload_schema'] if 'payload_schema' in trigger_type else {},
-        trigger_type['parameters_schema'] if 'parameters_schema' in trigger_type else {})
+        content_pack=content_pack,
+        name=trigger_type['name'],
+        description=trigger_type['description'] if 'description' in trigger_type else '',
+        payload_schema=trigger_type['payload_schema'] if 'payload_schema' in trigger_type else {},
+        parameters_schema=trigger_type['parameters_schema'] if 'parameters_schema' in trigger_type else {})
     trigger = _create_trigger(trigger_type)
     return (trigger_type, trigger)
 
 
-def add_trigger_models(trigger_types):
+def add_trigger_models(content_pack, trigger_types):
+    """
+    Register trigger types.
+
+    :param content_pack: Content pack those triggers belong to.
+    :type content_pack: ``str``
+
+    :param trigger_types: A list of triggers to register.
+    :type trigger_types: ``list`` of ``dict``
+    """
     [r for r in (_validate_trigger_type(trigger_type)
      for trigger_type in trigger_types) if r is not None]
-    return [r for r in (_add_trigger_models(trigger_type)
-            for trigger_type in trigger_types) if r is not None]
+
+    result = []
+    for trigger_type in trigger_types:
+        item = _add_trigger_models(content_pack=content_pack,
+                                   trigger_type=trigger_type)
+
+        if item:
+            result.append(item)
+
+    return result
