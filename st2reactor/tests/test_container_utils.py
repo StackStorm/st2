@@ -27,7 +27,8 @@ class ContainerUtilsTest(DbTestCase):
     @mock.patch.object(TriggerType, 'add_or_update')
     def test_add_trigger(self, mock_add_handler):
         mock_add_handler.return_value = MOCK_TRIGGER_TYPE
-        container_utils.add_trigger_models([MOCK_TRIGGER_TYPE])
+        container_utils.add_trigger_models(content_pack=None,
+                                           trigger_types=[MOCK_TRIGGER_TYPE])
         self.assertTrue(mock_add_handler.called, 'trigger not added.')
 
     def test_add_trigger_type(self):
@@ -69,9 +70,12 @@ class ContainerUtilsTest(DbTestCase):
             'parameters_schema': {},
             'payload_schema': {}
         }
-        trigtype_dbs = container_utils.add_trigger_models([trig_type])
+        trigtype_dbs = container_utils.add_trigger_models(content_pack='my_pack_1',
+                                                          trigger_types=[trig_type])
         trigger_type, trigger = trigtype_dbs[0]
+
         trigtype_db = TriggerType.get_by_id(trigger_type.id)
+        self.assertEqual(trigtype_db.content_pack, 'my_pack_1')
         self.assertEqual(trigtype_db.name, trig_type.get('name'))
         self.assertTrue(trigger is not None)
         self.assertEqual(trigger.name, trigtype_db.name)
@@ -92,8 +96,11 @@ class ContainerUtilsTest(DbTestCase):
             'parameters_schema': PARAMETERS_SCHEMA,
             'payload_schema': {}
         }
-        trigtype_dbs = container_utils.add_trigger_models([trig_type])
+        trigtype_dbs = container_utils.add_trigger_models(content_pack='my_pack_1',
+                                                          trigger_types=[trig_type])
         trigger_type, trigger = trigtype_dbs[0]
+
         trigtype_db = TriggerType.get_by_id(trigger_type.id)
+        self.assertEqual(trigtype_db.content_pack, 'my_pack_1')
         self.assertEqual(trigtype_db.name, trig_type.get('name'))
         self.assertEqual(trigger, None)
