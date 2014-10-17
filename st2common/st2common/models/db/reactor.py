@@ -4,13 +4,15 @@ from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
 
 
 class TriggerTypeDB(StormBaseDB):
-    """Description of a specific kind/type of a trigger. The name is expected
-       uniquely identify a trigger in the namespace of all triggers provided
-       by a specific trigger_source.
+    """Description of a specific kind/type of a trigger. The
+       (content_pack, name) tuple is expected uniquely identify a trigger in
+       the namespace of all triggers provided by a specific trigger_source.
     Attribute:
+        content_pack - Name of the content pack this trigger belongs to.
         trigger_source: Source that owns this trigger type.
         payload_info: Meta information of the expected payload.
     """
+    content_pack = me.StringField(required=True, unique_with='name')
     payload_schema = me.DictField()
     parameters_schema = me.DictField(default={})
 
