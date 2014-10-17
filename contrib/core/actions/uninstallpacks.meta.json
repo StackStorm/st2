@@ -9,5 +9,6 @@
             "type": "array",
             "items": {"type": "string"}
         }
-    }
+    },
+    "required_parameters": ["packs"]
 }

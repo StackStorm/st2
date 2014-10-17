@@ -14,5 +14,6 @@
             "default": "/opt/stackstorm",
             "immutable": true
         }
-    }
+    },
+    "required_parameters": ["packs"]
 }
