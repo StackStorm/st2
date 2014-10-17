@@ -9,7 +9,8 @@
             "user": "system"
         },
         "action": {
-            "name": "chain"
+            "name": "chain",
+            "content_pack": "core"
         }
     },
     "task1": {
@@ -35,7 +36,8 @@
             "user": "system"
         },
         "action": {
-            "name": "local"
+            "name": "local",
+            "content_pack": "core"
         }
     },
     "task2": {
@@ -61,7 +63,8 @@
             "user": "system"
         },
         "action": {
-            "name": "local"
+            "name": "local",
+            "content_pack": "core"
         }
     }
 }

@@ -14,7 +14,8 @@ class ActionExecutionController(resource.ResourceController):
     access = ActionExecutionHistory
 
     supported_filters = {
-        'action': 'action__name',
+        'action_name': 'action__name',
+        'action_pack': 'action__content_pack',
         'parent': 'parent',
         'rule': 'rule__name',
         'runner': 'runner__name',

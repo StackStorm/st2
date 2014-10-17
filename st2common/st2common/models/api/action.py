@@ -275,6 +275,9 @@ class ActionExecutionAPI(BaseAPI):
     @classmethod
     def from_model(cls, model):
         doc = super(cls, cls)._from_model(model)
+        # XXX: action part of the whole document could contain id. If it does, cast to string.
+        if doc['action'].get('id', None):
+            doc['action']['id'] = str(doc['action']['id'])
         if model.start_timestamp:
             doc['start_timestamp'] = isotime.format(model.start_timestamp, offset=False)
         return cls(**doc)
@@ -283,7 +286,8 @@ class ActionExecutionAPI(BaseAPI):
     def to_model(cls, execution):
         model = super(cls, cls).to_model(execution)
         model.action = ActionCompoundKey(name=execution.action['name'],
-                                         content_pack=execution.action['content_pack'])
+                                         content_pack=execution.action['content_pack'],
+                                         id=execution.action.get('id', None))
         if getattr(execution, 'start_timestamp', None):
             model.start_timestamp = isotime.parse(execution.start_timestamp)
         model.status = getattr(execution, 'status', None)

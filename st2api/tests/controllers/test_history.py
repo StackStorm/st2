@@ -90,7 +90,8 @@ class TestActionExecutionHistory(FunctionalTest):
     def test_limit(self):
         limit = 10
         refs = [k for k, v in six.iteritems(self.refs) if v.action['name'] == 'chain']
-        response = self.app.get('/history/executions?action=chain&limit=%s' % limit)
+        response = self.app.get('/history/executions?action_name=chain&action_pack=core&limit=%s' %
+                                limit)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), limit)
@@ -99,7 +100,7 @@ class TestActionExecutionHistory(FunctionalTest):
 
     def test_query(self):
         refs = [k for k, v in six.iteritems(self.refs) if v.action['name'] == 'chain']
-        response = self.app.get('/history/executions?action=chain')
+        response = self.app.get('/history/executions?action_name=chain&action_pack=core')
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), len(refs))

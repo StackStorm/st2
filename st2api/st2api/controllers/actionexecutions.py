@@ -3,15 +3,15 @@ import json
 import jsonschema
 import pecan
 from pecan import abort
-from pecan.rest import RestController
 from six.moves import http_client
 
+from st2api.controllers.resource import ResourceController
 from st2common import log as logging
-from st2common.models.base import jsexpose
-from st2common.services import action as action_service
-from st2common.persistence.action import ActionExecution
 from st2common.models.api.action import ActionExecutionAPI
-
+from st2common.models.base import jsexpose
+from st2common.persistence.action import ActionExecution
+from st2common.services import action as action_service
+from st2common.util import action_db as action_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -20,67 +20,64 @@ MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
 
 
-class ActionExecutionsController(RestController):
+class ActionExecutionsController(ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of ActionExecutions in the system.
     """
+    model = ActionExecutionAPI
+    access = ActionExecution
+
+    supported_filters = {
+        'action_name': 'action__name',
+        'action_pack': 'action__content_pack',
+        'action_id': 'action__id'
+    }
+
+    options = {
+        'sort': ['action_pack', 'action_name']
+    }
 
     @staticmethod
-    def __get_by_id(id):
-        try:
-            return ActionExecution.get_by_id(id)
-        except Exception as e:
-            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e)
-            LOG.exception(msg)
-            abort(http_client.NOT_FOUND, msg)
+    def _get_action_executions(**kw):
+        action_id = kw.get('action_id', None)
+        action_name = kw.get('action_name', None)
+        action_pack = kw.get('action_pack', None)
+        limit = int(kw.get('limit', 50))
 
-    @staticmethod
-    def _get_action_executions(action_id, action_name, limit=None, **kw):
         if action_id is not None:
             LOG.debug('Using action_id=%s to get action executions', action_id)
             # action__id <- this queries action.id
             return ActionExecution.query(action__id=action_id,
                                          order_by=['-start_timestamp'],
-                                         limit=limit, **kw)
+                                         limit=limit)
         elif action_name is not None:
-            LOG.debug('Using action_name=%s to get action executions', action_name)
-            # action__name <- this queries against action.name
-            return ActionExecution.query(action__name=action_name,
-                                         order_by=['-start_timestamp'],
-                                         limit=limit, **kw)
+            if not action_pack:
+                msg = 'Action has to be referred by id or a name + pack combination. Only name ' + \
+                      'provided.'
+                abort(http_client.BAD_REQUEST, msg)
+            LOG.debug('Using action_name=%s and action_pack=%s to get action executions',
+                      action_name, action_pack)
+            results = ActionExecution.query(action__name=action_name,
+                                            action__content_pack=action_pack,
+                                            order_by=['-start_timestamp'],
+                                            limit=limit)
+            return results
         LOG.debug('Retrieving all action executions')
         return ActionExecution.get_all(order_by=['-start_timestamp'],
-                                       limit=limit, **kw)
+                                       limit=limit)
 
-    @jsexpose(str)
-    def get_one(self, id):
-        """
-            List actionexecution by id.
-
-            Handle:
-                GET /actionexecutions/1
-        """
-        LOG.info('GET /actionexecutions/ with id=%s', id)
-        actionexec_db = ActionExecutionsController.__get_by_id(id)
-        actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
-        LOG.debug('GET /actionexecutions/ with id=%s, client_result=%s', id, actionexec_api)
-        return actionexec_api
-
-    @jsexpose(str, str, str)
-    def get_all(self, action_id=None, action_name=None, limit='50', **kw):
+    @jsexpose()
+    def get_all(self, **kw):
         """
             List all actionexecutions.
 
             Handles requests:
                 GET /actionexecutions/
         """
+        LOG.info('GET all /actionexecutions/ with filters=%s', kw)
 
-        LOG.info('GET all /actionexecutions/ with action_name=%s, '
-                 'action_id=%s, and limit=%s', action_name, action_id, limit)
-
-        actionexec_dbs = ActionExecutionsController._get_action_executions(
-            action_id, action_name, limit=int(limit), **kw)
+        actionexec_dbs = ActionExecutionsController._get_action_executions(**kw)
         actionexec_apis = [ActionExecutionAPI.from_model(actionexec_db)
                            for actionexec_db
                            in sorted(actionexec_dbs,
@@ -105,6 +102,12 @@ class ActionExecutionsController(RestController):
                 context = pecan.request.headers['st2-context'].replace("'", "\"")
                 execution.context.update(json.loads(context))
 
+            if not execution.action.get('id', None):
+                action_db, _ = action_utils.get_action_by_dict({
+                    'name': execution.action['name'],
+                    'content_pack': execution.action['content_pack']})
+                execution.action['id'] = str(action_db.id)
+
             # Schedule the action execution.
             executiondb = ActionExecutionAPI.to_model(execution)
             executiondb = action_service.schedule(executiondb)
@@ -121,7 +124,11 @@ class ActionExecutionsController(RestController):
 
     @jsexpose(str, body=ActionExecutionAPI)
     def put(self, id, actionexecution):
-        actionexec_db = ActionExecutionsController.__get_by_id(id)
+        try:
+            actionexec_db = ActionExecution.get_by_id(id)
+        except:
+            msg = 'ActionExecution by id: %s not found.' % id
+            pecan.abort(http_client, msg)
         new_actionexec_db = ActionExecutionAPI.to_model(actionexecution)
         if actionexec_db.status != new_actionexec_db.status:
             actionexec_db.status = new_actionexec_db.status

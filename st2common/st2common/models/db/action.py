@@ -74,6 +74,7 @@ class ActionDB(StormFoundationDB):
 
 
 class ActionCompoundKey(me.EmbeddedDocument):
+    id = me.ObjectIdField(required=False)
     content_pack = me.StringField(required=True)
     name = me.StringField(required=True)
 
