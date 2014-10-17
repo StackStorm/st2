@@ -4,6 +4,8 @@ from git.repo import Repo
 
 
 ALL_PACKS = '*'
+PACK_REPO_ROOT = 'packs'
+MANIFEST_FILE = 'st2.yaml'
 
 
 class InstallGitRepoAction(object):
@@ -11,7 +13,9 @@ class InstallGitRepoAction(object):
     def run(self, repo_url=None, abs_repo_base=None, packs=None):
         abs_local_path = self._clone_repo(repo_url)
         try:
-            self._move_packs(abs_repo_base, packs, abs_local_path)
+            # st2-contrib repo has a top-level packs folder that actually contains the
+            pack_abs_local_path = os.path.join(abs_local_path, PACK_REPO_ROOT)
+            self._move_packs(abs_repo_base, packs, pack_abs_local_path)
         finally:
             self._cleanup_repo(abs_local_path)
 
@@ -28,19 +32,21 @@ class InstallGitRepoAction(object):
     def _move_packs(abs_repo_base, packs, abs_local_path):
         for fp in os.listdir(abs_local_path):
             abs_fp = os.path.join(abs_local_path, fp)
-            if not os.path.isdir(abs_fp):
-                continue
-            if ALL_PACKS in packs or fp in packs:
+            if InstallGitRepoAction._is_desired_pack(abs_fp, fp, packs):
                 shutil.move(abs_fp, os.path.join(abs_repo_base, fp))
+
+    @staticmethod
+    def _is_desired_pack(abs_fp, pack_name, packs):
+        # Must be a dir.
+        if not os.path.isdir(abs_fp):
+            return False
+        # must contain a manifest file. Empty is ok.
+        if not os.path.isfile(os.path.join(abs_fp, MANIFEST_FILE)):
+            return False
+        # Check if it is a desired pack.
+        return ALL_PACKS in packs or pack_name in packs
 
     @staticmethod
     def _cleanup_repo(abs_local_path):
         # basic lock checking etc?
         shutil.rmtree(abs_local_path)
-
-
-if __name__ == '__main__':
-    action = InstallGitRepoAction()
-    action.run('git@github.com:StackStorm/st2-contrib.git',
-               '/home/manas/repo_base',
-               ['fabric'])
