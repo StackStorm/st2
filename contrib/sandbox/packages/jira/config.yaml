@@ -1,8 +1,0 @@
----
-  url: "https://company.atlassian.net"
-  rsa_cert_file: "/home/vagrant/jira.pem"
-  oauth_token: ""
-  oauth_secret: ""
-  consumer_key: ""
-  poll_interval: 30
-  project: "MY_PROJECT"

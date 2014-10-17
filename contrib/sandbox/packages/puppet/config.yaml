@@ -1,8 +1,0 @@
----
-  master:
-    hostname: "localhost"
-    port: 8140
-  auth:
-    client_cert_path: "/home/vagrant/.puppet/ssl/certs/host.pem"
-    client_cert_key_path: "/home/vagrant/.puppet/ssl/private_keys/host.pem"
-    ca_cert_path: "/home/vagrant/.puppet/ssl/ca/ca_crt.pem"
