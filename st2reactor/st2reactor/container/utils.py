@@ -20,7 +20,8 @@ def create_trigger_instance(trigger, payload, occurrence_time):
     return TriggerInstance.add_or_update(trigger_instance)
 
 
-def _create_trigger_type(content_pack, name, description=None, payload_schema=None, parameters_schema=None):
+def _create_trigger_type(content_pack, name, description=None, payload_schema=None,
+                         parameters_schema=None):
     triggertypes = TriggerType.query(content_pack=content_pack, name=name)
     is_update = False
     if len(triggertypes) > 0:
@@ -82,9 +83,10 @@ def _add_trigger_models(content_pack, trigger_type):
     trigger_type = _create_trigger_type(
         content_pack=content_pack,
         name=trigger_type['name'],
-        description=trigger_type['description'] if 'description' in trigger_type else '',
-        payload_schema=trigger_type['payload_schema'] if 'payload_schema' in trigger_type else {},
-        parameters_schema=trigger_type['parameters_schema'] if 'parameters_schema' in trigger_type else {})
+        description=trigger_type.get('description', ''),
+        payload_schema=trigger_type.get('payload_schema', {}),
+        parameters_schema=trigger_type.get('parameters_schema', {})
+    )
     trigger = _create_trigger(trigger_type)
     return (trigger_type, trigger)
 
