@@ -6,7 +6,7 @@ import mock
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.transport.publishers import PoolPublisher
 from st2common.models.api.action import RunnerTypeAPI
-from st2common.models.db.action import (ActionDB, ActionExecutionDB, ActionCompoundKey)
+from st2common.models.db.action import (ActionDB, ActionExecutionDB, ActionReference)
 from st2common.persistence.action import (Action, ActionExecution, RunnerType)
 import st2common.util.action_db as action_db_utils
 from st2tests.base import DbTestCase
@@ -88,9 +88,9 @@ class ActionDBUtilsTestCase(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = ActionCompoundKey(
+        actionexec_db.ref = ActionReference(
             name=ActionDBUtilsTestCase.action_db.name,
-            content_pack=ActionDBUtilsTestCase.action_db.content_pack)
+            pack=ActionDBUtilsTestCase.action_db.content_pack).ref
         params = {
             'actionstr': 'foo',
             'some_key_that_aint_exist_in_action_or_runner': 'bar',
@@ -111,9 +111,9 @@ class ActionDBUtilsTestCase(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = ActionCompoundKey(
+        actionexec_db.ref = ActionReference(
             name=ActionDBUtilsTestCase.action_db.name,
-            content_pack=ActionDBUtilsTestCase.action_db.content_pack)
+            pack=ActionDBUtilsTestCase.action_db.content_pack).ref
         params = {
             'actionstr': 'foo',
             'some_key_that_aint_exist_in_action_or_runner': 'bar',
@@ -192,9 +192,9 @@ class ActionDBUtilsTestCase(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = ActionCompoundKey(
+        actionexec_db.ref = ActionReference(
             name=ActionDBUtilsTestCase.action_db.name,
-            content_pack=ActionDBUtilsTestCase.action_db.content_pack)
+            pack=ActionDBUtilsTestCase.action_db.content_pack).ref
         params = {
             'actionstr': 'foo',
             'some_key_that_aint_exist_in_action_or_runner': 'bar',

@@ -11,7 +11,6 @@ from st2common.models.api.action import ActionExecutionAPI
 from st2common.models.base import jsexpose
 from st2common.persistence.action import ActionExecution
 from st2common.services import action as action_service
-from st2common.util import action_db as action_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -101,12 +100,6 @@ class ActionExecutionsController(ResourceController):
             if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
                 context = pecan.request.headers['st2-context'].replace("'", "\"")
                 execution.context.update(json.loads(context))
-
-            if not execution.action.get('id', None):
-                action_db, _ = action_utils.get_action_by_dict({
-                    'name': execution.action['name'],
-                    'content_pack': execution.action['content_pack']})
-                execution.action['id'] = str(action_db.id)
 
             # Schedule the action execution.
             executiondb = ActionExecutionAPI.to_model(execution)

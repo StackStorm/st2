@@ -9,6 +9,7 @@ from st2common.persistence.action import (RunnerType, Action, ActionExecution)
 from st2common.models.api.action import (ACTIONEXEC_STATUSES,
                                          ACTION_ID, ACTION_NAME, ACTION_PACK
                                          )
+from st2common.models.db.action import ActionReference
 
 LOG = logging.getLogger(__name__)
 
@@ -75,7 +76,7 @@ def get_action_by_id(action_id):
     return action
 
 
-def get_action_by_name(action_name):
+def _get_action_by_pack_and_name(pack=None, name=None):
     """
         Get Action by name.
 
@@ -84,12 +85,12 @@ def get_action_by_name(action_name):
     action = None
 
     try:
-        action = Action.get_by_name(action_name)
+        action = Action.query(name=name, content_pack=pack).first()
     except (ValueError, ValidationError) as e:
-        LOG.warning('Database lookup for action with name="%s" resulted in '
-                    'exception: %s', action_name, e)
+        LOG.warning('Database lookup for action with name="%s", pack="%s" resulted in '
+                    'exception: %s', name, pack, e)
         raise StackStormDBObjectNotFoundError('Unable to find action with '
-                                              'name="%s"' % action_name)
+                                              'name="%s", pack="%s"' % (name, pack))
 
     return action
 
@@ -144,9 +145,11 @@ def get_action_by_dict(action_dict):
     if ACTION_NAME in action_dict:
         if ACTION_PACK not in action_dict:
             return (None, {})
-        action_name = action_dict[ACTION_NAME]
+        name = action_dict[ACTION_NAME]
+        pack = action_dict[ACTION_PACK]
+
         try:
-            action = get_action_by_name(action_name)
+            action = _get_action_by_pack_and_name(pack=pack, name=name)
             action_dict[ACTION_ID] = str(getattr(action, ACTION_ID))
         except StackStormDBObjectNotFoundError:
             LOG.info('Action not found by name.')
@@ -155,6 +158,17 @@ def get_action_by_dict(action_dict):
 
     # No action found by identifiers in action_dict.
     return (None, {})
+
+
+def get_action_by_ref(action_ref):
+    if (not isinstance(action_ref, str) and not isinstance(action_ref, unicode)
+            and not isinstance(action_ref, ActionReference)):
+        raise Exception('Action reference has to be either str or ActionReference.')
+
+    if isinstance(action_ref, str) or isinstance(action_ref, unicode):
+        action_ref = ActionReference(ref=action_ref)
+
+    return _get_action_by_pack_and_name(name=action_ref.name, pack=action_ref.pack)
 
 
 def update_actionexecution_status(new_status, actionexec_id=None, actionexec_db=None):

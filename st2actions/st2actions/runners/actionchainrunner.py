@@ -8,7 +8,7 @@ import uuid
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.exceptions import actionrunner as runnerexceptions
-from st2common.models.db.action import ActionCompoundKey, ActionExecutionDB
+from st2common.models.db.action import ActionExecutionDB, ActionReference
 from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
@@ -22,9 +22,9 @@ class ActionChain(object):
 
     class Node(object):
 
-        def __init__(self, name, action, params):
+        def __init__(self, name, action_ref, params):
             self.name = name
-            self.action = action
+            self.ref = action_ref
             self.params = params
 
     class Link(object):
@@ -42,7 +42,7 @@ class ActionChain(object):
         for node in chain:
             node_name = node['name']
             self.nodes[node_name] = ActionChain.Node(
-                node_name, node['action'], node['params'])
+                node_name, node['ref'], node['params'])
             self.links[node_name] = []
             on_success = node.get('on-success', None)
             if on_success:
@@ -92,7 +92,7 @@ class ActionChainRunner(ActionRunner):
             try:
                 resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
                                                                     results)
-                actionexec = ActionChainRunner._run_action(action_node.action,
+                actionexec = ActionChainRunner._run_action(action_node.ref,
                                                            self.action_execution_id,
                                                            resolved_params)
             except:
@@ -142,11 +142,9 @@ class ActionChainRunner(ActionRunner):
         return rendered_params
 
     @staticmethod
-    def _run_action(action, parent_execution_id, params, wait_for_completion=True):
-        action_key = ActionCompoundKey(name=action['name'],
-                                       content_pack=action['content_pack'])
-        execution = ActionExecutionDB(action=action_key)
-        execution.parameters = ActionChainRunner._cast_params(action['name'], params)
+    def _run_action(action_ref, parent_execution_id, params, wait_for_completion=True):
+        execution = ActionExecutionDB(ref=action_ref)
+        execution.parameters = ActionChainRunner._cast_params(action_ref, params)
         execution.context = {'parent': str(parent_execution_id)}
         execution = action_service.schedule(execution)
         while (wait_for_completion and
@@ -157,7 +155,7 @@ class ActionChainRunner(ActionRunner):
         return execution
 
     @staticmethod
-    def _cast_params(action_name, params):
+    def _cast_params(action_ref, params):
         casts = {
             'array': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
                       else x),
@@ -170,7 +168,7 @@ class ActionChainRunner(ActionRunner):
             'string': str
         }
 
-        action_db = action_db_util.get_action_by_name(action_name)
+        action_db = action_db_util.get_action_by_ref(ActionReference(ref=action_ref))
         action_parameters_schema = action_db.parameters
         runnertype_db = action_db_util.get_runnertype_by_name(action_db.runner_type['name'])
         runner_parameters_schema = runnertype_db.runner_parameters

@@ -4,8 +4,7 @@ from st2common.util import isotime
 from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.base import BaseAPI
-from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB,
-                                        ActionCompoundKey)
+from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB)
 
 
 __all__ = ['ActionAPI',
@@ -219,23 +218,9 @@ class ActionExecutionAPI(BaseAPI):
                 "type": "string",
                 "pattern": isotime.ISO8601_UTC_REGEX
             },
-            "action": {
-                "description": "The action to be executed.",
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "description": "The unique identifier for the action.",
-                        "type": "string"
-                    },
-                    "name": {
-                        "description": "The name of the action.",
-                        "type": "string"
-                    },
-                    "content_pack": {
-                        "description": "The content pack action belongs to.",
-                        "type": "string"
-                    }
-                }
+            "ref": {
+                "description": "Reference to the action to be executed.",
+                "type": "string"
             },
             "parameters": {
                 "description": "Input parameters for the action.",
@@ -268,16 +253,13 @@ class ActionExecutionAPI(BaseAPI):
                 "type": "object"
             }
         },
-        "required": ["action"],
+        "required": ["ref"],
         "additionalProperties": False
     }
 
     @classmethod
     def from_model(cls, model):
         doc = super(cls, cls)._from_model(model)
-        # XXX: action part of the whole document could contain id. If it does, cast to string.
-        if doc['action'].get('id', None):
-            doc['action']['id'] = str(doc['action']['id'])
         if model.start_timestamp:
             doc['start_timestamp'] = isotime.format(model.start_timestamp, offset=False)
         return cls(**doc)
@@ -285,9 +267,7 @@ class ActionExecutionAPI(BaseAPI):
     @classmethod
     def to_model(cls, execution):
         model = super(cls, cls).to_model(execution)
-        model.action = ActionCompoundKey(name=execution.action['name'],
-                                         content_pack=execution.action['content_pack'],
-                                         id=execution.action.get('id', None))
+        model.ref = execution.ref
         if getattr(execution, 'start_timestamp', None):
             model.start_timestamp = isotime.parse(execution.start_timestamp)
         model.status = getattr(execution, 'status', None)

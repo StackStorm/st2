@@ -13,6 +13,8 @@ __all__ = ['RunnerTypeDB',
 
 LOG = logging.getLogger(__name__)
 
+PACK_SEPARATOR = '.'
+
 
 class RunnerTypeDB(StormBaseDB):
     """
@@ -73,10 +75,36 @@ class ActionDB(StormFoundationDB):
         help_text='The list of parameters required by the action.')
 
 
-class ActionCompoundKey(me.EmbeddedDocument):
-    id = me.ObjectIdField(required=False)
-    content_pack = me.StringField(required=True)
-    name = me.StringField(required=True)
+class ActionReference(object):
+    def __init__(self, pack=None, name=None, ref=None):
+        self.ref = ref
+        self.name = name
+        self.pack = pack
+
+        if ref is not None:
+            self.ref = ref
+            self.pack = self.get_pack(self.ref)
+            self.name = self.get_name(self.ref)
+        else:
+            self.ref = self.reference(pack=pack, name=name)
+
+    @staticmethod
+    def reference(pack=None, name=None):
+        if pack and name:
+            if PACK_SEPARATOR in pack:
+                raise Exception('Pack name should not contain "%s"', PACK_SEPARATOR)
+            return PACK_SEPARATOR.join([pack, name])
+        else:
+            raise Exception('Both pack and name needed for building ref. pack=%s, name=%s', pack,
+                            name)
+
+    @staticmethod
+    def get_pack(ref):
+        return ref.split(PACK_SEPARATOR, 1)[0]
+
+    @staticmethod
+    def get_name(ref):
+        return ref.split(PACK_SEPARATOR, 1)[1]
 
 
 class ActionExecutionDB(StormFoundationDB):
@@ -98,10 +126,9 @@ class ActionExecutionDB(StormFoundationDB):
     start_timestamp = me.DateTimeField(
         default=datetime.datetime.utcnow,
         help_text='The timestamp when the ActionExecution was created.')
-    action = me.EmbeddedDocumentField(
-        ActionCompoundKey,
+    ref = me.StringField(
         required=True,
-        help_text='The action executed by this instance.')
+        help_text='Reference to the action that has to be executed.')
     parameters = me.DictField(
         default={},
         help_text='The key-value pairs passed as to the action runner &  execution.')

@@ -4,7 +4,7 @@ import mock
 
 import st2actions.utils.param_utils as param_utils
 from st2common.exceptions import actionrunner
-from st2common.models.db.action import ActionDB, ActionExecutionDB
+from st2common.models.db.action import (ActionDB, ActionExecutionDB, ActionReference)
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.transport.publishers import PoolPublisher
 from unittest2 import TestCase
@@ -256,7 +256,8 @@ class ParamsUtilsTest(TestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = {'name': ParamsUtilsTest.action_db.name}
+        actionexec_db.ref = ActionReference(name=ParamsUtilsTest.action_db.name,
+                                            pack=ParamsUtilsTest.action_db.content_pack).ref
         actionexec_db.parameters = params
         return actionexec_db
 

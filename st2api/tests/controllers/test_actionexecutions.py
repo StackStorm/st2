@@ -79,7 +79,7 @@ ACTION_3 = {
 }
 
 ACTION_EXECUTION_1 = {
-    'action': {'name': 'st2.dummy.action1', 'content_pack': 'sixpack'},
+    'ref': 'sixpack.st2.dummy.action1',
     'parameters': {
         'hosts': 'localhost',
         'cmd': 'uname -a'
@@ -87,7 +87,7 @@ ACTION_EXECUTION_1 = {
 }
 
 ACTION_EXECUTION_2 = {
-    'action': {'name': 'st2.dummy.action2', 'content_pack': 'familypack'},
+    'ref': 'familypack.st2.dummy.action2',
     'parameters': {
         'hosts': 'localhost',
         'cmd': 'ls -l'
@@ -95,7 +95,7 @@ ACTION_EXECUTION_2 = {
 }
 
 ACTION_EXECUTION_3 = {
-    'action': {'name': 'st2.dummy.action3', 'content_pack': 'wolfpack'},
+    'ref': 'wolfpack.st2.dummy.action3',
     'parameters': {
         'hosts': 'localhost',
         'cmd': 'ls -l',
@@ -162,20 +162,10 @@ class TestActionExecutionController(FunctionalTest):
 
     def test_get_query(self):
         actionexecution_1_id = self._get_actionexecution_id(self._do_post(ACTION_EXECUTION_1))
-        actionexecution_2_id = self._get_actionexecution_id(self._do_post(ACTION_EXECUTION_2))
 
-        resp = self.app.get('/actionexecutions?action_name=%s&action_pack=%s' %
-                            (ACTION_EXECUTION_1['action']['name'],
-                             ACTION_EXECUTION_1['action']['content_pack']))
+        resp = self.app.get('/actionexecutions?action=%s' % ACTION_EXECUTION_1['ref'])
         self.assertEqual(resp.status_int, 200)
         matching_execution = filter(lambda ae: ae['id'] == actionexecution_1_id, resp.json)
-        self.assertEqual(len(list(matching_execution)), 1,
-                         '/actionexecutions did not return correct actionexecution.')
-
-        resp = self.app.get('/actionexecutions?action_id=%s' %
-                            self.action2['id'])
-        self.assertEqual(resp.status_int, 200)
-        matching_execution = filter(lambda ae: ae['id'] == actionexecution_2_id, resp.json)
         self.assertEqual(len(list(matching_execution)), 1,
                          '/actionexecutions did not return correct actionexecution.')
 
@@ -195,21 +185,17 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
-        resp = self.app.get('/actionexecutions?action_name=%s&action_pack=%s' %
-                            (ACTION_EXECUTION_1['action']['name'],
-                             ACTION_EXECUTION_1['action']['content_pack']))
+        resp = self.app.get('/actionexecutions?action=%s' % ACTION_EXECUTION_1['ref'])
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
-        resp = self.app.get('/actionexecutions?action_name=%s&action_pack=%s&limit=1' %
-                            (ACTION_EXECUTION_1['action']['name'],
-                             ACTION_EXECUTION_1['action']['content_pack']))
+        resp = self.app.get('/actionexecutions?action=%s&limit=1' %
+                            ACTION_EXECUTION_1['ref'])
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1)
 
-        resp = self.app.get('/actionexecutions?action_name=%s&action_pack=%s&limit=0' %
-                            (ACTION_EXECUTION_1['action']['name'],
-                             ACTION_EXECUTION_1['action']['content_pack']))
+        resp = self.app.get('/actionexecutions?action=%s&limit=0' %
+                            ACTION_EXECUTION_1['ref'])
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
@@ -270,11 +256,7 @@ class TestActionExecutionController(FunctionalTest):
     def test_update_execution_with_minimum_data(self):
         response = self._do_post(ACTION_EXECUTION_1)
         self.assertEqual(response.status_int, 201)
-        execution = {'action':
-                     {
-                         'name': response.json['action']['name'],
-                         'content_pack': response.json['action']['content_pack']
-                     },
+        execution = {'ref': response.json['ref'],
                      'status': 'succeeded', 'result': True}
         response = self._do_put(response.json['id'], execution)
         self.assertEqual(response.status_int, 200)

@@ -15,10 +15,11 @@ from st2reactor.rules.enforcer import RuleEnforcer
 from st2common.util import reference
 from st2common.transport.publishers import CUDPublisher
 from st2common.services import action as action_service
-from st2common.models.db.action import ActionCompoundKey, ActionExecutionDB
+from st2common.models.db.action import ActionExecutionDB, ActionReference
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI, RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
 from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED
+import st2common.util.action_db as action_utils
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 from st2common.persistence.action import RunnerType, Action, ActionExecution
 from st2common.persistence.history import ActionExecutionHistory
@@ -55,8 +56,8 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         Action.add_or_update(ActionAPI.to_model(action_chain))
 
     def test_basic_execution(self):
-        action = ActionCompoundKey(name='local', content_pack='default')
-        execution = ActionExecutionDB(action=action, parameters={'cmd': 'uname -a'})
+        action_ref = ActionReference(name='local', pack='core')
+        execution = ActionExecutionDB(ref=action_ref.ref, parameters={'cmd': 'uname -a'})
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_SUCCEEDED)
@@ -65,7 +66,9 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(history.trigger_type, {})
         self.assertDictEqual(history.trigger_instance, {})
         self.assertDictEqual(history.rule, {})
-        action = Action.get_by_name(execution.action['name'])
+        action, _ = action_utils.get_action_by_dict({
+            'name': action_ref.name, 'content_pack': action_ref.pack
+            })
         self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))
@@ -73,13 +76,15 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(history.execution, vars(ActionExecutionAPI.from_model(execution)))
 
     def test_chained_executions(self):
-        action = ActionCompoundKey(name='chain', content_pack='default')
-        execution = ActionExecutionDB(action=action)
+        action_ref = ActionReference(name='chain', pack='core')
+        execution = ActionExecutionDB(ref=action_ref.ref)
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_SUCCEEDED)
         history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
-        action = Action.get_by_name(execution.action['name'])
+        action, _ = action_utils.get_action_by_dict({
+            'name': action_ref.name, 'content_pack': action_ref.pack
+            })
         self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))
@@ -122,7 +127,10 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(history.trigger_instance,
                              vars(TriggerInstanceAPI.from_model(trigger_instance)))
         self.assertDictEqual(history.rule, vars(RuleAPI.from_model(rule)))
-        action = Action.get_by_name(execution.action.name)
+        action_ref = ActionReference(ref=execution.ref)
+        action, _ = action_utils.get_action_by_dict({
+            'name': action_ref.name, 'content_pack': action_ref.pack
+            })
         self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))

@@ -8,10 +8,7 @@
         "context": {
             "user": "system"
         },
-        "action": {
-            "name": "chain",
-            "content_pack": "core"
-        }
+        "ref": "core.chain"
     },
     "task1": {
         "status": "succeeded",
@@ -35,10 +32,7 @@
         "context": {
             "user": "system"
         },
-        "action": {
-            "name": "local",
-            "content_pack": "core"
-        }
+        "ref": "core.local"
     },
     "task2": {
         "status": "succeeded",
@@ -62,9 +56,6 @@
         "context": {
             "user": "system"
         },
-        "action": {
-            "name": "local",
-            "content_pack": "core"
-        }
+        "ref": "core.local"
     }
 }

@@ -42,30 +42,30 @@ class DummyRunner(object):
 
 
 CHAIN_1_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    'fixtures/actionchains/chain1.json')
+                            'fixtures/actionchains/chain1.json')
 with open(CHAIN_1_PATH, 'r') as fd:
     CHAIN_1 = json.load(fd)
 CHAIN_STR_TEMP_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    'fixtures/actionchains/chain_str_template.json')
+                                   'fixtures/actionchains/chain_str_template.json')
 CHAIN_LIST_TEMP_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    'fixtures/actionchains/chain_list_template.json')
+                                    'fixtures/actionchains/chain_list_template.json')
 CHAIN_DICT_TEMP_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    'fixtures/actionchains/chain_dict_template.json')
+                                    'fixtures/actionchains/chain_dict_template.json')
 CHAIN_DEP_INPUT = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    'fixtures/actionchains/chain_dependent_input.json')
+                               'fixtures/actionchains/chain_dependent_input.json')
 CHAIN_DEP_RESULTS_INPUT = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    'fixtures/actionchains/chain_dep_result_input.json')
+                                       'fixtures/actionchains/chain_dep_result_input.json')
 MALFORMED_CHAIN_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    'fixtures/actionchains/malformedchain.json')
+                                    'fixtures/actionchains/malformedchain.json')
 CHAIN_TYPED_PARAMS = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    'fixtures/actionchains/chain_typed_params.json')
+                                  'fixtures/actionchains/chain_typed_params.json')
 CHAIN_EMPTY = {}
 ACTION_1_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    'fixtures/actionchains/a1.json')
+                             'fixtures/actionchains/a1.json')
 with open(ACTION_1_PATH, 'r') as fd:
     ACTION_1 = DummyAction.from_dict(**json.load(fd))
 ACTION_2_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    'fixtures/actionchains/a2.json')
+                             'fixtures/actionchains/a2.json')
 with open(ACTION_2_PATH, 'r') as fd:
     ACTION_2 = DummyAction.from_dict(**json.load(fd))
 
@@ -120,7 +120,7 @@ class TestActionChain(TestCase):
 
 
 @mock.patch.object(action_db_util, 'get_runnertype_by_name',
-    mock.MagicMock(return_value=DummyRunner()))
+                   mock.MagicMock(return_value=DummyRunner()))
 class TestActionChainRunner(TestCase):
 
     def test_runner_creation(self):
@@ -139,7 +139,8 @@ class TestActionChainRunner(TestCase):
         except runnerexceptions.ActionRunnerPreRunError:
             self.assertTrue(True)
 
-    @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+                       mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_success_path(self, schedule):
         chain_runner = acr.get_runner()
@@ -155,9 +156,10 @@ class TestActionChainRunner(TestCase):
     @mock.patch('eventlet.sleep', mock.MagicMock())
     @mock.patch.object(action_db_util, 'get_actionexec_by_id', mock.MagicMock(
         return_value=DummyActionExecution()))
-    @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+                       mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
-        return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_RUNNING))
+                       return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_RUNNING))
     def test_chain_runner_success_path_with_wait(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
@@ -169,9 +171,10 @@ class TestActionChainRunner(TestCase):
         # based on the chain the callcount is known to be 3. Not great but works.
         self.assertEqual(schedule.call_count, 3)
 
-    @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+                       mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
-        return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_FAILED))
+                       return_value=DummyActionExecution(status=action.ACTIONEXEC_STATUS_FAILED))
     def test_chain_runner_failure_path(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
@@ -186,7 +189,8 @@ class TestActionChainRunner(TestCase):
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEqual(schedule.call_count, 2)
 
-    @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+                       mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', side_effect=RuntimeError('Test Failure.'))
     def test_chain_runner_action_exception(self, schedule):
         chain_runner = acr.get_runner()
@@ -199,7 +203,8 @@ class TestActionChainRunner(TestCase):
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEqual(schedule.call_count, 2)
 
-    @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+                       mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_str_param_temp(self, schedule):
         chain_runner = acr.get_runner()
@@ -212,7 +217,8 @@ class TestActionChainRunner(TestCase):
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, {"p1": "1"})
 
-    @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+                       mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_list_param_temp(self, schedule):
         chain_runner = acr.get_runner()
@@ -225,7 +231,8 @@ class TestActionChainRunner(TestCase):
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, {"p1": "[2, 3, 4]"})
 
-    @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+                       mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_dict_param_temp(self, schedule):
         chain_runner = acr.get_runner()
@@ -239,9 +246,10 @@ class TestActionChainRunner(TestCase):
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
 
-    @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+                       mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
-        return_value=DummyActionExecution(result={'o1': '1'}))
+                       return_value=DummyActionExecution(result={'o1': '1'}))
     def test_chain_runner_dependent_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DEP_INPUT
@@ -259,9 +267,10 @@ class TestActionChainRunner(TestCase):
             expected_values.remove(call_args[0][0].parameters)
         self.assertEqual(len(expected_values), 0, 'Not all expected values received.')
 
-    @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+                       mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
-        return_value=DummyActionExecution(result={'o1': '1'}))
+                       return_value=DummyActionExecution(result={'o1': '1'}))
     def test_chain_runner_dependent_results_param(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DEP_RESULTS_INPUT
@@ -280,7 +289,8 @@ class TestActionChainRunner(TestCase):
             expected_values.remove(call_args[0][0].parameters)
         self.assertEqual(len(expected_values), 0, 'Not all expected values received.')
 
-    @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+                       mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_missing_param_temp(self, schedule):
         chain_runner = acr.get_runner()
@@ -291,7 +301,8 @@ class TestActionChainRunner(TestCase):
         chain_runner.run({})
         self.assertEqual(schedule.call_count, 0, 'No call expected.')
 
-    @mock.patch.object(action_db_util, 'get_action_by_name', mock.MagicMock(return_value=ACTION_2))
+    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+                       mock.MagicMock(return_value=ACTION_2))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_typed_params(self, schedule):
         chain_runner = acr.get_runner()
