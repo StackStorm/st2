@@ -48,6 +48,7 @@ class TriggerTypeAPI(BaseAPI):
     @classmethod
     def to_model(cls, triggertype):
         model = super(cls, cls).to_model(triggertype)
+        model.content_pack = getattr(triggertype, 'content_pack', None)
         model.payload_schema = getattr(triggertype, 'payload_schema', {})
         model.parameters_schema = getattr(triggertype, 'parameters_schema', {})
         return model

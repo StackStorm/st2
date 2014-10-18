@@ -13,7 +13,7 @@ from st2tests.base import DbTestCase
 class RuleMatcherTest(DbTestCase):
 
     def test_get_matching_rules(self):
-        self._setup_sample_triggers('st2.test.trigger1')
+        self._setup_sample_trigger('st2.test.trigger1')
         trigger_instance = container_utils.create_trigger_instance(
             {'name': 'st2.test.trigger1'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.utcnow()
         )
@@ -23,8 +23,9 @@ class RuleMatcherTest(DbTestCase):
         self.assertTrue(matching_rules is not None)
         self.assertEqual(len(matching_rules), 1)
 
-    def _setup_sample_triggers(self, name):
+    def _setup_sample_trigger(self, name):
         trigtype = TriggerTypeDB()
+        trigtype.content_pack = 'dummy_pack_1'
         trigtype.name = name
         trigtype.description = ''
         trigtype.payload_schema = {}

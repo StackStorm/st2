@@ -69,6 +69,7 @@ class RuleEngineTest(DbTestCase):
             trigtype = None
             try:
                 trigtype = TriggerTypeDB()
+                trigtype.content_pack = 'dummy_pack_1'
                 trigtype.name = name
                 trigtype.description = ''
                 trigtype.payload_schema = {}

@@ -80,12 +80,17 @@ def _create_trigger(trigger_type):
 
 
 def _add_trigger_models(content_pack, trigger_type):
+    description = trigger_type['description'] if 'description' in trigger_type else ''
+    payload_schema = trigger_type['payload_schema'] if 'payload_schema' in trigger_type else {}
+    parameters_schema = trigger_type['parameters_schema'] \
+        if 'parameters_schema' in trigger_type else {}
+
     trigger_type = _create_trigger_type(
         content_pack=content_pack,
         name=trigger_type['name'],
-        description=trigger_type.get('description', ''),
-        payload_schema=trigger_type.get('payload_schema', {}),
-        parameters_schema=trigger_type.get('parameters_schema', {})
+        description=description,
+        payload_schema=payload_schema,
+        parameters_schema=parameters_schema
     )
     trigger = _create_trigger(trigger_type)
     return (trigger_type, trigger)
