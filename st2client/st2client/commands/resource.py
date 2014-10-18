@@ -123,7 +123,7 @@ class ResourceCommand(commands.Command):
 
 class ResourceListCommand(ResourceCommand):
 
-    display_attributes = ['id', 'name', 'description']
+    display_attributes = ['id', 'content_pack', 'name', 'description']
 
     def __init__(self, resource, *args, **kwargs):
         super(ResourceListCommand, self).__init__(resource, 'list',
