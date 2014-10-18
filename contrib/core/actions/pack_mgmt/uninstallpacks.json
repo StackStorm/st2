@@ -1,23 +1,23 @@
 {
     "chain": [
         {
+            "name": "unregister",
+            "action": "unregisterpacks",
+            "params": {"packs": "{{packs}}"},
+            "on-success": "delete"
+        },
+        {
             "name": "delete",
             "action": "deletepacks",
             "params": {"packs": "{{packs}}"},
-            "on-success": "reload"
-        },
-        {
-            "name": "reload",
-            "action": "reload-st2-content",
-            "params": {},
             "on-success": "restart-sensor-container"
         },
         {
             "name": "restart-sensor-container",
-            "action": "restart-st2-component",
+            "action": "restart-component",
             "params": {"servicename": "sensor_container"}
         }
     ],
-    "default": "delete"
+    "default": "unregister"
 }
 
