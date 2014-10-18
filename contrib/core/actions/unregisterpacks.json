@@ -1,0 +1,14 @@
+{
+    "name": "unregisterpacks",
+    "runner_type": "run-python",
+    "description": "Unregisters all content from a pack.",
+    "enabled": true,
+    "entry_point": "pack_mgmt/unregisterpacks.py",
+    "parameters": {
+        "packs": {
+            "type": "array",
+            "items": {"type": "string"}
+        }
+    },
+    "required_parameters": ["packs"]
+}
