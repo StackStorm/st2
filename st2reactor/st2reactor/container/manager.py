@@ -28,9 +28,13 @@ class SensorContainerManager(object):
         LOG.info('Setting up container to run %d sensors.', len(sensors_dict))
         container_service = ContainerService()
         sensors_to_run = []
+        # TODO: Once the API registration is in place, query DB for available
+        # sensors here
+        # TODO: Use trigger_types and description from sensors metadata
         for filename, sensors in six.iteritems(sensors_dict):
             for sensor_class in sensors:
                 sensor_class_kwargs = {}
+                class_name = sensor_class.__name__
 
                 # System sensors which are not located inside a content pack
                 # don't and can't have custom config associated with them
@@ -40,7 +44,6 @@ class SensorContainerManager(object):
                     # are referring to sensors from the same pack
                     config_parser = ContentPackConfigParser(content_pack_name=content_pack)
                     config = config_parser.get_sensor_config(sensor_file_path=filename)
-                    class_name = sensor_class.__name__
 
                     if config:
                         sensor_class_kwargs['config'] = config.config
@@ -49,6 +52,10 @@ class SensorContainerManager(object):
                     else:
                         LOG.info('No config found for sensor "%s"' % (class_name))
                         sensor_class_kwargs['config'] = {}
+                else:
+                    # TODO: use a constant, blacklist this value
+                    content_pack = 'system'
+
                 try:
                     sensor = sensor_class(container_service=container_service,
                                           **sensor_class_kwargs)
@@ -74,6 +81,17 @@ class SensorContainerManager(object):
                 for t in trigger_types:
                     self._trigger_sensors[t['name']] = sensor
 
+                # Register sensor type in the DB
+                sensor_obj = {
+                    'filename': os.path.abspath(filename),
+                    'name': class_name,
+                    'class_name': class_name,
+                    'trigger_types': trigger_types
+                }
+                container_utils.add_sensor_model(content_pack=content_pack,
+                                                 sensor=sensor_obj)
+
+                # Add good sensor to the run list
                 sensors_to_run.append(sensor)
 
         for trigger in Trigger.get_all():

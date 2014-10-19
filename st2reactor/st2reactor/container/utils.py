@@ -1,7 +1,9 @@
+import os
+
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
-from st2common.persistence.reactor import TriggerType, TriggerInstance
-from st2common.models.db.reactor import TriggerTypeDB, TriggerInstanceDB
+from st2common.persistence.reactor import SensorType, TriggerType, TriggerInstance
+from st2common.models.db.reactor import SensorTypeDB, TriggerTypeDB, TriggerInstanceDB
 from st2common.services import triggers as TriggerService
 from st2common.util import reference
 
@@ -118,3 +120,68 @@ def add_trigger_models(content_pack, trigger_types):
             result.append(item)
 
     return result
+
+
+def _create_sensor_type(content_pack, name, description, artifact_uri, entry_point,
+                        trigger_types=None):
+    sensor_types = SensorType.query(content_pack=content_pack, name=name)
+    is_update = False
+
+    if len(sensor_types) >= 1:
+        sensor_type = sensor_types[0]
+        LOG.debug('Found existing sensor id:%s with name:%s. Will update it.',
+                  sensor_type.id, name)
+        is_update = True
+    else:
+        sensor_type = SensorTypeDB()
+
+    sensor_type.content_pack = content_pack
+    sensor_type.name = name
+    sensor_type.description = description
+    sensor_type.artifact_uri = artifact_uri
+    sensor_type.entry_point = entry_point
+    sensor_type.trigger_types = trigger_types
+
+    sensor_type_db = SensorType.add_or_update(sensor_type)
+
+    if is_update:
+        LOG.audit('SensorType updated. SensorType=%s', sensor_type_db)
+    else:
+        LOG.audit('SensorType created. SensorType=%s', sensor_type_db)
+    return sensor_type_db
+
+
+def _add_sensor_model(content_pack, sensor):
+    name = sensor['name']
+    filename = sensor['filename']
+    artifact_uri = 'file://%s' % (filename)
+    module_name = filename.replace(os.path.sep, '.')
+    class_name = sensor['class_name']
+    entry_point = '%s.%s' % (module_name, class_name)
+    trigger_types = sensor['trigger_types'] or []
+
+    obj = _create_sensor_type(content_pack=content_pack,
+                              name=name,
+                              description=None,
+                              artifact_uri=artifact_uri,
+                              entry_point=entry_point,
+                              trigger_types=trigger_types)
+    return obj
+
+
+def add_sensor_model(content_pack, sensor):
+    """
+    Register sensor type.
+
+    :param content_pack: Content pack the sensor belongs to.
+    :type content_pack: ``str``
+
+    :param sensor: Sensors to register.
+    :type sensor: ``dict``
+
+    :return: DB object of a registered sensor.
+    """
+
+    item = _add_sensor_model(content_pack=content_pack,
+                             sensor=sensor)
+    return item
