@@ -3,7 +3,7 @@ import uuid
 from st2common.util import isotime
 from st2common.models.base import BaseAPI
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB
-from st2common.models.db.reactor import TriggerTypeDB, TriggerDB, TriggerInstanceDB
+from st2common.models.db.reactor import SensorTypeDB, TriggerTypeDB, TriggerDB, TriggerInstanceDB
 from st2common.persistence.reactor import Trigger
 from st2common.util import reference
 import st2common.validators.api.reactor as validator
@@ -11,6 +11,41 @@ import six
 
 
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
+
+
+class SensorTypeAPI(BaseAPI):
+    model = SensorTypeDB
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'default': None
+            },
+            'name': {
+                'type': 'string'
+            },
+            'content_pack': {
+                'description': 'The content pack this sensor belongs to.',
+                'type': 'string'
+            },
+            'description': {
+                'type': 'string'
+            },
+            'artifact_uri': {
+                'type': 'string',
+            },
+            'entry_point': {
+                'type': 'string',
+            },
+            'trigger_types': {
+                'type': 'array',
+                'default': []
+            }
+        },
+        'required': ['name'],
+        'additionalProperties': False
+    }
 
 
 class TriggerTypeAPI(BaseAPI):
