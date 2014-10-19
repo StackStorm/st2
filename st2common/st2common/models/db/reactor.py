@@ -3,6 +3,23 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
 
 
+class SensorTypeDB(StormBaseDB):
+    """
+    Description of a specific type of a sensor (think of it as a sensor
+    template).
+
+    Attribute:
+        content_pack - Name of the content pack this sensor belongs to.
+        artifact_uri - URI to the artifact file.
+        entry_point - Full path to the sensor entry point (e.g. module.foo.ClassSensor).
+        trigger_type - A list of trigger types exposed by this sensor.
+    """
+    content_pack = me.StringField(required=True, unique_with='name')
+    artifact_uri = me.StringField()
+    entry_point = me.StringField()
+    trigger_type = me.ListField()
+
+
 class TriggerTypeDB(StormBaseDB):
     """Description of a specific kind/type of a trigger. The
        (content_pack, name) tuple is expected uniquely identify a trigger in
@@ -86,11 +103,12 @@ class RuleEnforcementDB(StormFoundationDB):
 
 
 # specialized access objects
+sensor_type_access = MongoDBAccess(SensorTypeDB)
 triggertype_access = MongoDBAccess(TriggerTypeDB)
 trigger_access = MongoDBAccess(TriggerDB)
 triggerinstance_access = MongoDBAccess(TriggerInstanceDB)
 rule_access = MongoDBAccess(RuleDB)
 ruleenforcement_access = MongoDBAccess(RuleEnforcementDB)
 
-MODELS = [TriggerTypeDB, TriggerDB, TriggerInstanceDB, RuleDB,
+MODELS = [SensorTypeDB, TriggerTypeDB, TriggerDB, TriggerInstanceDB, RuleDB,
           RuleEnforcementDB]

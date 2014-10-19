@@ -1,8 +1,17 @@
 from oslo.config import cfg
 from st2common import transport
 from st2common.persistence import Access
+from st2common.models.db.reactor import sensor_type_access
 from st2common.models.db.reactor import triggertype_access, trigger_access, triggerinstance_access,\
     rule_access, ruleenforcement_access
+
+
+class SensorType(Access):
+    impl = sensor_type_access
+
+    @classmethod
+    def _get_impl(kls):
+        return kls.impl
 
 
 class TriggerType(Access):
