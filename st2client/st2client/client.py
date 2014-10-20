@@ -47,6 +47,8 @@ class Client(object):
             models.ActionExecution, self.endpoints['api'], cacert=self.cacert)
         self.managers['Rule'] = models.ResourceManager(
             models.Rule, self.endpoints['api'], cacert=self.cacert)
+        self.managers['Sensor'] = models.ResourceManager(
+            models.Sensor, self.endpoints['api'], cacert=self.cacert)
         self.managers['Trigger'] = models.ResourceManager(
             models.Trigger, self.endpoints['api'], cacert=self.cacert)
         self.managers['KeyValuePair'] = models.ResourceManager(
