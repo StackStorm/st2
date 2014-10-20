@@ -10,6 +10,7 @@ import pecan.jsonify
 
 from st2common.util import mongoescape as util_mongodb
 from st2common.util import schema as util_schema
+from st2common.util.jsonify import json_encode
 from st2common import log as logging
 
 
@@ -110,24 +111,24 @@ def jsexpose(*argtypes, **opts):
 
                 if status_code and status_code in noop_codes:
                     pecan.response.status = status_code
-                    return pecan.jsonify.encode(None)
+                    return json_encode(None)
 
                 try:
                     result = f(*args, **kwargs)
                     if status_code:
                         pecan.response.status = status_code
                     if content_type == 'application/json':
-                        return pecan.jsonify.encode(result)
+                        return json_encode(result)
                     else:
                         return result
                 except exc.HTTPException as e:
                     pecan.response.status = e.wsgi_response.status
                     error = {'faultstring': str(e)}
-                    return pecan.jsonify.encode(error)
+                    return json_encode(error)
                 except Exception as e:
                     pecan.response.status = http_client.INTERNAL_SERVER_ERROR
                     error = {'faultstring': str(e)}
-                    return pecan.jsonify.encode(error)
+                    return json_encode(error)
 
             except Exception as e:
                 LOG.error(e)
