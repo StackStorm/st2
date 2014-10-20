@@ -17,6 +17,9 @@ var formatCommand = function(command) {
     name: command.name,
     description: command.description,
     params: _.map(command.parameters, function (v, k) {
+      if (v.immutable) {
+        return ''
+      }
       if (v.default) {
         return '[' + k + '=' + v.default + ']';
       }
@@ -69,7 +72,7 @@ module.exports = function(robot) {
   // Figure out format. Since we're not going to change adapter at runtime, we can pick proper
   // format once during initialization and use it throughout the livetime of the script.
   var baseFormat = function (execution) {
-    var template = [
+    var template_structured = [
       'STATUS: ${status}',
       '<% _.forEach(result, function(host, hostname) { %>',
       'Results for ${hostname}',
@@ -79,15 +82,29 @@ module.exports = function(robot) {
       '<% }); %>'
     ].join('\n');
 
-    var result = '';
+    var template_basic = [
+      'STATUS: ${status}',
+      'RESULT: ${result}'
+    ].join('\n');
 
-    try {
-      result = JSON.parse(execution.result);
-    } catch(e) {}
+    var template = template_basic;
+    // Assume it is necessary to stringify the result.
+    var stringify = true
+    for(var k in execution.result) {
+      if (execution.result[k].hasOwnProperty('stdout')) {
+        template = template_structured;
+        // JSON/structured result can be handled so no stringify for you.
+        stringify = false
+        break;
+      }
+    }
+    if (stringify) {
+      execution.result = JSON.stringify(execution.result)
+    }
 
     return _.template(template, {
       status: execution.status,
-      result: result
+      result: execution.result
     });
   };
 
@@ -197,7 +214,7 @@ module.exports = function(robot) {
               .then(function (execution) {
                 // Fetches the results for execution
 
-                if (execution.body.status !== 'error' && execution.body.status !== 'complete') {
+                if (execution.body.status !== 'failed' && execution.body.status !== 'succeeded') {
                   if (retries) {
                     process.stdout.write('.');
                     return retry(--retries);
@@ -239,7 +256,7 @@ module.exports = function(robot) {
       if (msg = JSON.parse(data.msg)) {
         for (var k in msg) {
           message = message + "    " + k.toUpperCase() + ":" + msg[k] + "\n";
-        }  
+        }
       } else {
         message = message + data.msg
       }
