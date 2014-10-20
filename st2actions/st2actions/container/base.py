@@ -47,8 +47,7 @@ class RunnerContainer(object):
     def dispatch(self, actionexec_db):
         action_ref = ActionReference(ref=actionexec_db.ref)
         (action_db, _) = get_action_by_dict(
-            {'name': action_ref.name, 'content_pack': action_ref.pack}
-            )
+            {'name': action_ref.name, 'content_pack': action_ref.pack})
         runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
         runner_type = runnertype_db.name
 
