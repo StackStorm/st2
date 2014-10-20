@@ -6,7 +6,7 @@ from fabric.api import (put, run, sudo)
 from fabric.context_managers import shell_env
 from fabric.tasks import WrappedCallableTask
 
-from st2actions.constants import LIBS_DIR as ACTION_LIBS_DIR
+from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common import log as logging
 
 

@@ -7,7 +7,8 @@ import time
 import six
 import sys
 
-from st2common.models.api import action as act
+from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
+from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
 
 from st2client import models
 from st2client.commands import resource
@@ -127,8 +128,8 @@ class ActionRunCommand(resource.ResourceCommand):
         execution = action_exec_mgr.create(execution, **kwargs)
 
         if not args.async:
-            while execution.status == act.ACTIONEXEC_STATUS_SCHEDULED \
-                    or execution.status == act.ACTIONEXEC_STATUS_RUNNING:
+            while execution.status == ACTIONEXEC_STATUS_SCHEDULED \
+                    or execution.status == ACTIONEXEC_STATUS_RUNNING:
                 time.sleep(1)
                 if not args.json:
                     sys.stdout.write('.')
