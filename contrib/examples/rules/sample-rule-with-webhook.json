@@ -12,12 +12,12 @@
     "criteria": {
         "trigger.name": {
             "pattern": "Joe",
-            "type": "equals" 
+            "type": "equals"
          }
     },
 
     "action": {
-        "name": "local",
+        "ref": "core.local",
         "parameters": {
             "cmd": "echo \"{{trigger}}\" >> /tmp/st2.webhook-sample.out"
         }
