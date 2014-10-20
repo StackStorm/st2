@@ -7,7 +7,7 @@ from st2common.models.db.reactor import RuleEnforcementDB
 from st2common.persistence.reactor import RuleEnforcement
 from st2common.services import action as action_service
 from st2common.models.db.action import ActionExecutionDB
-from st2common.models.api.action import ACTIONEXEC_STATUS_SCHEDULED
+from st2common.models.api.constants import ACTIONEXEC_STATUS_SCHEDULED
 from st2common.models.api.access import get_system_username
 
 

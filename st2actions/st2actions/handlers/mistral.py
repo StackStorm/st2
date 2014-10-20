@@ -1,7 +1,7 @@
 import json
 import requests
 
-from st2common.models.api import action
+from st2common.models.api import constants
 from st2actions import handlers
 from st2common import log as logging
 
@@ -10,10 +10,10 @@ LOG = logging.getLogger(__name__)
 
 
 STATUS_MAP = dict()
-STATUS_MAP[action.ACTIONEXEC_STATUS_SCHEDULED] = 'RUNNING'
-STATUS_MAP[action.ACTIONEXEC_STATUS_RUNNING] = 'RUNNING'
-STATUS_MAP[action.ACTIONEXEC_STATUS_SUCCEEDED] = 'SUCCESS'
-STATUS_MAP[action.ACTIONEXEC_STATUS_FAILED] = 'ERROR'
+STATUS_MAP[constants.ACTIONEXEC_STATUS_SCHEDULED] = 'RUNNING'
+STATUS_MAP[constants.ACTIONEXEC_STATUS_RUNNING] = 'RUNNING'
+STATUS_MAP[constants.ACTIONEXEC_STATUS_SUCCEEDED] = 'SUCCESS'
+STATUS_MAP[constants.ACTIONEXEC_STATUS_FAILED] = 'ERROR'
 
 
 def get_handler():

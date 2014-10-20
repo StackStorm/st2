@@ -22,8 +22,8 @@ from st2actions.runners.fabricrunner import FabricRunner
 from st2common.transport.publishers import CUDPublisher
 from st2common.services import action as action_service
 from st2common.models.db.action import ActionExecutionDB
+from st2common.models.api.constants import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_RUNNING
 from st2common.models.api.action import ActionAPI
-from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_RUNNING
 from st2common.persistence.action import Action, ActionExecution
 
 

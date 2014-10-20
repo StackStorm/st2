@@ -21,7 +21,6 @@ LOG = logging.getLogger(__name__)
 class Shell(object):
 
     def __init__(self):
-
         # Set up of endpoints is delayed until program is run.
         self.client = None
 

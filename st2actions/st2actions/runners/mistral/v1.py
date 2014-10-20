@@ -3,7 +3,7 @@ import uuid
 from oslo.config import cfg
 from mistralclient.api import client as mistral
 
-from st2common.models.api.action import ACTIONEXEC_STATUS_RUNNING
+from st2common.models.api.constants import ACTIONEXEC_STATUS_RUNNING
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 
