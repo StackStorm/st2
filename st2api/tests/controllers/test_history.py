@@ -8,6 +8,7 @@ from six.moves import http_client
 
 from tests import FunctionalTest
 from tests.fixtures import history as fixture
+from tests.fixtures import history_views
 from st2common.util import isotime
 from st2api.controllers.history import ActionExecutionController
 from st2common.persistence.history import ActionExecutionHistory
@@ -116,7 +117,7 @@ class TestActionExecutionHistory(FunctionalTest):
             if param in excludes:
                 continue
             value = self.fake_types[0]
-            for item in field.split('__'):
+            for item in field.split('.'):
                 value = value[item]
             response = self.app.get('/history/executions?%s=%s' % (param, value))
             self.assertEqual(response.status_int, 200)
@@ -195,3 +196,10 @@ class TestActionExecutionHistory(FunctionalTest):
         dt1 = response.json[0]['execution']['start_timestamp']
         dt2 = response.json[len(response.json) - 1]['execution']['start_timestamp']
         self.assertLess(isotime.parse(dt2), isotime.parse(dt1))
+
+    def test_filters_view(self):
+        response = self.app.get('/history/executions/views/filters')
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, dict)
+        for key, value in six.iteritems(history_views.ARTIFACTS['filters']):
+            self.assertEqual(set(response.json[key]), set(value))
