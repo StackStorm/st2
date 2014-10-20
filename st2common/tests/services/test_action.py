@@ -66,11 +66,9 @@ class TestActionExecutionService(DbTestCase):
         execution = ActionExecution.get_by_id(str(request.id))
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
-        action = {'name': self.actiondb.name,
-                  'content_pack': self.actiondb.content_pack}
-        actual_action = {'name': execution.action.name,
-                         'content_pack': execution.action.content_pack}
-        self.assertDictEqual(actual_action, action)
+        action = '.'.join([self.actiondb.content_pack, self.actiondb.name])
+        actual_action = execution.ref
+        self.assertEqual(actual_action, action)
         self.assertEqual(execution.context['user'], request.context['user'])
         self.assertDictEqual(execution.parameters, request.parameters)
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_SCHEDULED)

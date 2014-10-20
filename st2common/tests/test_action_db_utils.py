@@ -43,16 +43,18 @@ class ActionDBUtilsTestCase(DbTestCase):
         # By id.
         self.assertRaises(StackStormDBObjectNotFoundError, action_db_utils.get_action_by_id,
                           'somedummyactionid')
-        # By name.
-        self.assertRaises(StackStormDBObjectNotFoundError, action_db_utils.get_action_by_name,
-                          'somedummyactionname')
+        # By ref.
+        action = action_db_utils.get_action_by_ref('packaintexist.somedummyactionname')
+        self.assertTrue(action is None)
 
     def test_get_action_existing(self):
         # Lookup by id and verify name equals
         action = action_db_utils.get_action_by_id(ActionDBUtilsTestCase.action_db.id)
         self.assertEqual(action.name, ActionDBUtilsTestCase.action_db.name)
-        # Lookup by name and verify id equals
-        action = action_db_utils.get_action_by_name(ActionDBUtilsTestCase.action_db.name)
+        # Lookup by reference as string.
+        action_ref = '.'.join([ActionDBUtilsTestCase.action_db.content_pack,
+                               ActionDBUtilsTestCase.action_db.name])
+        action = action_db_utils.get_action_by_ref(action_ref)
         self.assertEqual(action.id, ActionDBUtilsTestCase.action_db.id)
         # Lookup by action dict.
         # Dict contains name.

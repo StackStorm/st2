@@ -78,21 +78,11 @@ def get_action_by_id(action_id):
 
 def _get_action_by_pack_and_name(pack=None, name=None):
     """
-        Get Action by name.
+        Get Action by name and pack.
 
-        On error, raise StackStormDBObjectNotFoundError
+        Query doesn't raise an exception.
     """
-    action = None
-
-    try:
-        action = Action.query(name=name, content_pack=pack).first()
-    except (ValueError, ValidationError) as e:
-        LOG.warning('Database lookup for action with name="%s", pack="%s" resulted in '
-                    'exception: %s', name, pack, e)
-        raise StackStormDBObjectNotFoundError('Unable to find action with '
-                                              'name="%s", pack="%s"' % (name, pack))
-
-    return action
+    return Action.query(name=name, content_pack=pack).first()
 
 
 def get_actionexec_by_id(actionexec_id):
@@ -148,12 +138,10 @@ def get_action_by_dict(action_dict):
         name = action_dict[ACTION_NAME]
         pack = action_dict[ACTION_PACK]
 
-        try:
-            action = _get_action_by_pack_and_name(pack=pack, name=name)
+        action = _get_action_by_pack_and_name(pack=pack, name=name)
+
+        if action:
             action_dict[ACTION_ID] = str(getattr(action, ACTION_ID))
-        except StackStormDBObjectNotFoundError:
-            LOG.info('Action not found by name.')
-        else:
             return (action, action_dict)
 
     # No action found by identifiers in action_dict.
