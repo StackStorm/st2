@@ -147,8 +147,11 @@ class TriggerTypeController(RestController):
     @staticmethod
     def _create_shadow_trigger(triggertype_db):
         try:
-            trigger = {'type': triggertype_db.name,
-                       'name': triggertype_db.name,
+            trigger = {'name': triggertype_db.name,
+                       'type': {
+                          'name': triggertype_db.name,
+                          'content_pack': triggertype_db.content_pack,
+                       },
                        'parameters': {}}
             trigger_db = TriggerService.create_trigger_db(trigger)
             LOG.audit('Trigger created for parameter-less TriggerType. Trigger=%s',

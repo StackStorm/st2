@@ -102,7 +102,15 @@ class TriggerAPI(BaseAPI):
                 'type': 'string'
             },
             'type': {
-                'type': 'string'
+                'type': 'object',
+                'properties': {
+                    'name': {
+                         'type': 'string'
+                    },
+                    'content_pack': {
+                        'type': 'string'
+                     }
+                }
             },
             'parameters': {
                 'type': 'object'
@@ -118,8 +126,6 @@ class TriggerAPI(BaseAPI):
     @classmethod
     def from_model(cls, model):
         trigger = cls._from_model(model)
-        if 'type' in trigger:
-            trigger['type'] = str(trigger['type'].get('name', ''))
         return cls(**trigger)
 
     @classmethod
@@ -128,7 +134,6 @@ class TriggerAPI(BaseAPI):
         # assign a name if none is provided.
         model.name = trigger.name if hasattr(trigger, 'name') and trigger.name else \
             str(uuid.uuid4())
-        model.type = {'name': getattr(trigger, 'type', None)}
         model.parameters = getattr(trigger, 'parameters', None)
         return model
 

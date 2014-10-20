@@ -34,8 +34,14 @@ class TriggerTypeDB(StormBaseDB):
     parameters_schema = me.DictField(default={})
 
 
+class TriggerTypeCompoundKey(me.EmbeddedDocument):
+    id = me.ObjectIdField(required=False)
+    content_pack = me.StringField(required=True)
+    name = me.StringField(required=True)
+
+
 class TriggerDB(StormBaseDB):
-    type = me.DictField()
+    type = me.EmbeddedDocumentField(TriggerTypeCompoundKey)
     parameters = me.DictField()
 
 
