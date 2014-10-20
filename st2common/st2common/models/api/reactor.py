@@ -139,17 +139,14 @@ class ActionSpec(BaseAPI):
     schema = {
         'type': 'object',
         'properties': {
-            'name': {
-                'type': 'string'
-            },
-            'content_pack': {
+            'ref': {
                 'type': 'string'
             },
             'parameters': {
                 'type': 'object'
             }
         },
-        'required': ['name'],
+        'required': ['ref'],
         'additionalProperties': False
     }
 
@@ -247,8 +244,7 @@ class RuleAPI(BaseAPI):
                 del model.criteria[oldkey]
         validator.validate_criteria(model.criteria)
         model.action = ActionExecutionSpecDB()
-        model.action.name = rule.action['name']
-        model.action.content_pack = rule.action['content_pack']
+        model.action.ref = rule.action['ref']
         model.action.parameters = rule.action['parameters']
         model.enabled = rule.enabled
         return model

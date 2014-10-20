@@ -6,7 +6,7 @@ from st2reactor.rules.datatransform import get_transformer
 from st2common.models.db.reactor import RuleEnforcementDB
 from st2common.persistence.reactor import RuleEnforcement
 from st2common.services import action as action_service
-from st2common.models.db.action import ActionExecutionDB, ActionReference
+from st2common.models.db.action import ActionExecutionDB
 from st2common.models.api.action import ACTIONEXEC_STATUS_SCHEDULED
 from st2common.models.api.access import get_system_username
 
@@ -26,7 +26,7 @@ class RuleEnforcer(object):
         rule_enforcement.rule = reference.get_ref_from_model(self.rule)
         data = self.data_transformer(self.rule.action.parameters)
         LOG.info('Invoking action %s for trigger_instance %s with data %s.',
-                 self.rule.action.name, self.trigger_instance.id,
+                 self.rule.action.ref, self.trigger_instance.id,
                  json.dumps(data))
         context = {'trigger_instance': reference.get_ref_from_model(self.trigger_instance),
                    'rule': reference.get_ref_from_model(self.rule),
@@ -45,7 +45,7 @@ class RuleEnforcer(object):
 
     @staticmethod
     def _invoke_action(action, action_args, context=None):
-        action_ref = ActionReference(name=action.name, pack=action.content_pack).ref
+        action_ref = action['ref']
         execution = ActionExecutionDB(ref=action_ref, context=context, parameters=action_args)
         execution = action_service.schedule(execution)
         return ({'id': str(execution.id)}

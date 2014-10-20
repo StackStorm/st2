@@ -13,8 +13,7 @@
         }
     },
     "action": {
-        "content_pack": "core",
-        "name": "local",
+        "ref": "core.local",
         "parameters": {
             "cmd": "echo \"{{trigger}}\" >> /tmp/st2.persons.out"
         }
