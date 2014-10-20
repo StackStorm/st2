@@ -50,7 +50,12 @@ class ResourceController(rest.RestController):
             limit = self.max_limit
         eop = offset + int(limit) if limit else None
 
-        filters = {v: kwargs[k] for k, v in six.iteritems(self.supported_filters) if kwargs.get(k)}
+        filters = {}
+
+        for k, v in six.iteritems(self.supported_filters):
+            if kwargs.get(k):
+                filters['__'.join(v.split('.'))] = kwargs[k]
+
         instances = self.access.query(**filters)
 
         if limit:
