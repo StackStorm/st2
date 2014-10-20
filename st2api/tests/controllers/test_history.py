@@ -68,6 +68,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), self.num_records)
+        self.assertEqual(response.headers['X-Total-Count'], str(self.num_records))
         ids = [item['id'] for item in response.json]
         self.assertListEqual(sorted(ids), sorted(self.refs.keys()))
 
@@ -94,6 +95,8 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), limit)
+        self.assertEqual(response.headers['X-Limit'], str(limit))
+        self.assertEqual(response.headers['X-Total-Count'], str(len(refs)))
         ids = [item['id'] for item in response.json]
         self.assertListEqual(list(set(ids) - set(refs)), [])
 
@@ -103,6 +106,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), len(refs))
+        self.assertEqual(response.headers['X-Total-Count'], str(len(refs)))
         ids = [item['id'] for item in response.json]
         self.assertListEqual(sorted(ids), sorted(refs))
 
@@ -118,6 +122,7 @@ class TestActionExecutionHistory(FunctionalTest):
             self.assertEqual(response.status_int, 200)
             self.assertIsInstance(response.json, list)
             self.assertGreater(len(response.json), 0)
+            self.assertGreater(int(response.headers['X-Total-Count']), 0)
 
     def test_parent(self):
         refs = [v for k, v in six.iteritems(self.refs)
@@ -128,6 +133,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), len(ref.children))
+        self.assertEqual(response.headers['X-Total-Count'], str(len(ref.children)))
         ids = [item['id'] for item in response.json]
         self.assertListEqual(sorted(ids), sorted(ref.children))
 
@@ -139,6 +145,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), len(refs))
+        self.assertEqual(response.headers['X-Total-Count'], str(len(refs)))
         ids = [item['id'] for item in response.json]
         self.assertListEqual(sorted(ids), sorted(refs.keys()))
 
@@ -152,6 +159,8 @@ class TestActionExecutionHistory(FunctionalTest):
             self.assertEqual(response.status_int, 200)
             self.assertIsInstance(response.json, list)
             self.assertEqual(len(response.json), page_size)
+            self.assertEqual(response.headers['X-Limit'], str(page_size))
+            self.assertEqual(response.headers['X-Total-Count'], str(self.num_records))
             ids = [item['id'] for item in response.json]
             self.assertListEqual(list(set(ids) - set(self.refs.keys())), [])
             self.assertListEqual(sorted(list(set(ids) - set(retrieved))), sorted(ids))
@@ -164,6 +173,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), 10)
+        self.assertEqual(response.headers['X-Total-Count'], '10')
         dt1 = response.json[0]['execution']['start_timestamp']
         dt2 = response.json[9]['execution']['start_timestamp']
         self.assertLess(isotime.parse(dt1), isotime.parse(dt2))
@@ -173,6 +183,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), 10)
+        self.assertEqual(response.headers['X-Total-Count'], '10')
         dt1 = response.json[0]['execution']['start_timestamp']
         dt2 = response.json[9]['execution']['start_timestamp']
         self.assertLess(isotime.parse(dt2), isotime.parse(dt1))
