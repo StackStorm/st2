@@ -13,12 +13,29 @@ LOG = logging.getLogger(__name__)
 class CorsHook(PecanHook):
 
     def after(self, state):
-        # TODO: Figure out proper CORS rules
-        state.response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-        state.response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-        state.response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-        if not state.response.headers['Content-Length']:
-            state.response.headers['Content-Length'] = str(len(state.response.body))
+        headers = state.response.headers
+
+        origin = state.request.headers.get('Origin')
+        origins = cfg.CONF.api.allow_origin
+        if origin:
+            if '*' in origins:
+                origin_allowed = '*'
+            else:
+                # See http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
+                origin_allowed = origin if origin in origins else 'null'
+        else:
+            origin_allowed = origins[0] if len(origins) > 0 else 'http://localhost:3000'
+
+        methods_allowed = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+        request_headers_allowed = ['Content-Type']
+        response_headers_allowed = ['Content-Type', 'X-Limit', 'X-Total-Count']
+
+        headers['Access-Control-Allow-Origin'] = origin_allowed
+        headers['Access-Control-Allow-Methods'] = ','.join(methods_allowed)
+        headers['Access-Control-Allow-Headers'] = ','.join(request_headers_allowed)
+        headers['Access-Control-Expose-Headers'] = ','.join(response_headers_allowed)
+        if not headers['Content-Length']:
+            headers['Content-Length'] = str(len(state.response.body))
 
 
 def __get_pecan_config():
