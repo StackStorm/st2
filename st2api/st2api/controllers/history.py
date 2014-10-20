@@ -28,7 +28,7 @@ class ActionExecutionHistoryController(resource.ResourceController):
         'user': 'execution__context__user'
     }
 
-    options = {
+    query_options = {
         'sort': ['-execution__start_timestamp']
     }
 

@@ -31,26 +31,16 @@ class ActionExecutionsController(ResourceController):
         'action': 'ref'
     }
 
-    options = {
+    query_options = {
         'sort': ['ref']
     }
 
-    @staticmethod
-    def _get_action_executions(**kw):
-        action_ref = kw.get('action', None)
-        limit = int(kw.get('limit', 50))
+    def _get_action_executions(self, **kw):
+        kw['limit'] = int(kw.get('limit', 50))
+        kw['order_by'] = kw.get('order_by', '-start_timestamp')
 
-        if action_ref is not None:
-            LOG.debug('Using action_ref=%s to get action executions',
-                      action_ref)
-            results = ActionExecution.query(ref=action_ref,
-                                            order_by=['-start_timestamp'],
-                                            limit=limit)
-            return results
-
-        LOG.debug('Retrieving all action executions')
-        return ActionExecution.get_all(order_by=['-start_timestamp'],
-                                       limit=limit)
+        LOG.debug('Retrieving all action executions with filters=%s', kw)
+        return super(ActionExecutionsController, self)._get_all(**kw)
 
     @jsexpose()
     def get_all(self, **kw):
@@ -61,16 +51,7 @@ class ActionExecutionsController(ResourceController):
                 GET /actionexecutions/
         """
         LOG.info('GET all /actionexecutions/ with filters=%s', kw)
-
-        actionexec_dbs = ActionExecutionsController._get_action_executions(**kw)
-        actionexec_apis = [ActionExecutionAPI.from_model(actionexec_db)
-                           for actionexec_db
-                           in sorted(actionexec_dbs,
-                                     key=lambda x: x.start_timestamp)]
-
-        # TODO: unpack list in log message
-        LOG.debug('GET all /actionexecutions/ client_result=%s', actionexec_apis)
-        return actionexec_apis
+        return self._get_action_executions(**kw)
 
     @jsexpose(body=ActionExecutionAPI, status_code=http_client.CREATED)
     def post(self, execution):

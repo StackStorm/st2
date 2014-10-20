@@ -27,7 +27,8 @@ class ResourceController(rest.RestController):
     model = abc.abstractproperty
     access = abc.abstractproperty
     supported_filters = abc.abstractproperty
-    options = {
+
+    query_options = {   # Do not use options.
         'sort': []
     }
 
@@ -41,7 +42,7 @@ class ResourceController(rest.RestController):
             sort.pop(i)
             direction = '-' if sort[i].startswith('-') else ''
             sort.insert(i, direction + self.supported_filters[sort[i]])
-        kwargs['sort'] = sort if sort else copy.copy(self.options.get('sort'))
+        kwargs['sort'] = sort if sort else copy.copy(self.query_options.get('sort'))
         filters = {v: kwargs[k] for k, v in six.iteritems(self.supported_filters) if kwargs.get(k)}
         instances = self.access.query(**filters)
         return [self.model.from_model(instance) for instance in instances]
