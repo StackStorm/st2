@@ -35,8 +35,7 @@ class ResourceController(rest.RestController):
         self.supported_filters = copy.deepcopy(self.__class__.supported_filters)
         self.supported_filters.update(RESERVED_QUERY_PARAMS)
 
-    @jsexpose()
-    def get_all(self, **kwargs):
+    def _get_all(self, **kwargs):
         sort = kwargs.get('sort').split(',') if kwargs.get('sort') else []
         for i in range(len(sort)):
             sort.pop(i)
@@ -46,6 +45,10 @@ class ResourceController(rest.RestController):
         filters = {v: kwargs[k] for k, v in six.iteritems(self.supported_filters) if kwargs.get(k)}
         instances = self.access.query(**filters)
         return [self.model.from_model(instance) for instance in instances]
+
+    @jsexpose()
+    def get_all(self, **kwargs):
+        return self._get_all(**kwargs)
 
     @jsexpose(str)
     def get_one(self, id):

@@ -28,40 +28,26 @@ class ActionExecutionsController(ResourceController):
     access = ActionExecution
 
     supported_filters = {
-        'action_name': 'action__name',
-        'action_pack': 'action__content_pack',
-        'action_id': 'action__id'
+        'action': 'ref'
     }
 
     options = {
-        'sort': ['action_pack', 'action_name']
+        'sort': ['ref']
     }
 
     @staticmethod
     def _get_action_executions(**kw):
-        action_id = kw.get('action_id', None)
-        action_name = kw.get('action_name', None)
-        action_pack = kw.get('action_pack', None)
+        action_ref = kw.get('action', None)
         limit = int(kw.get('limit', 50))
 
-        if action_id is not None:
-            LOG.debug('Using action_id=%s to get action executions', action_id)
-            # action__id <- this queries action.id
-            return ActionExecution.query(action__id=action_id,
-                                         order_by=['-start_timestamp'],
-                                         limit=limit)
-        elif action_name is not None:
-            if not action_pack:
-                msg = 'Action has to be referred by id or a name + pack combination. Only name ' + \
-                      'provided.'
-                abort(http_client.BAD_REQUEST, msg)
-            LOG.debug('Using action_name=%s and action_pack=%s to get action executions',
-                      action_name, action_pack)
-            results = ActionExecution.query(action__name=action_name,
-                                            action__content_pack=action_pack,
+        if action_ref is not None:
+            LOG.debug('Using action_ref=%s to get action executions',
+                      action_ref)
+            results = ActionExecution.query(ref=action_ref,
                                             order_by=['-start_timestamp'],
                                             limit=limit)
             return results
+
         LOG.debug('Retrieving all action executions')
         return ActionExecution.get_all(order_by=['-start_timestamp'],
                                        limit=limit)
