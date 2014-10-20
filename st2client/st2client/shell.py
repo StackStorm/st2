@@ -12,6 +12,7 @@ from st2client.client import Client
 from st2client.commands import resource
 from st2client.commands import access
 from st2client.commands import action
+from st2client.commands import trigger
 from st2client.commands import datastore
 
 
@@ -81,8 +82,7 @@ class Shell(object):
             'for reuse in sensors, actions, and rules.',
             self, self.subparsers)
 
-        self.commands['trigger'] = resource.ResourceBranch(
-            models.Trigger,
+        self.commands['trigger'] = trigger.TriggerBranch(
             'An external event that is mapped to a stanley input. It is the '
             'stanley invocation point.',
             self, self.subparsers)
