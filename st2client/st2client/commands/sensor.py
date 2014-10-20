@@ -7,6 +7,7 @@ class SensorBranch(resource.ResourceBranch):
         super(SensorBranch, self).__init__(
             Sensor, description, app, subparsers,
             parent_parser=parent_parser,
+            read_only=True,
             commands={
                 'list': SensorListCommand
             })
