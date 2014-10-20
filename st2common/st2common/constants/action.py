@@ -2,6 +2,8 @@ __all__ = [
     'ACTION_NAME',
     'ACTION_ID',
 
+    'LIBS_DIR',
+
     'ACTIONEXEC_STATUS_SCHEDULED',
     'ACTIONEXEC_STATUS_RUNNING',
     'ACTIONEXEC_STATUS_SUCCEEDED',
@@ -13,6 +15,8 @@ __all__ = [
 
 ACTION_NAME = 'name'
 ACTION_ID = 'id'
+
+LIBS_DIR = 'lib'
 
 ACTIONEXEC_STATUS_SCHEDULED = 'scheduled'
 ACTIONEXEC_STATUS_RUNNING = 'running'

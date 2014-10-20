@@ -5,7 +5,7 @@ from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.base import BaseAPI
 from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB)
-from st2common.models.api.constants import ACTIONEXEC_STATUSES
+from st2common.constants.action import ACTIONEXEC_STATUSES
 
 
 __all__ = ['ActionAPI',

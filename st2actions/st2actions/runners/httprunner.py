@@ -5,7 +5,7 @@ from oslo.config import cfg
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
-from st2common.models.api.constants import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 
 LOG = logging.getLogger(__name__)
 SUCCESS_STATUS_CODES = [code for code in range(200, 207)]

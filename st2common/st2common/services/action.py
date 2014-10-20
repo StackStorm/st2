@@ -7,7 +7,7 @@ from st2common.util import isotime
 from st2common.util import action_db as db
 from st2common.util import schema as util_schema
 from st2common.persistence.action import ActionExecution
-from st2common.models.api.constants import ACTIONEXEC_STATUS_SCHEDULED
+from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
 
 
 LOG = logging.getLogger(__name__)

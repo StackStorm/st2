@@ -5,7 +5,7 @@ tests_config.parse_args()
 from unittest2 import TestCase
 
 from st2actions.runners.fabricrunner import FabricRunner
-from st2common.models.api.constants import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 
 
 class TestFabricRunnerResultStatus(TestCase):

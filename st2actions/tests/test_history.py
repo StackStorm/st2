@@ -18,7 +18,7 @@ from st2common.services import action as action_service
 from st2common.models.db.action import ActionExecutionDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI, RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
-from st2common.models.api.constants import ACTIONEXEC_STATUS_SUCCEEDED
+from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 from st2common.persistence.action import RunnerType, Action, ActionExecution
 from st2common.persistence.history import ActionExecutionHistory

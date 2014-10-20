@@ -9,7 +9,7 @@ from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
 from st2common.exceptions.fabricrunner import FabricExecutionFailureException
-from st2common.models.api.constants import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.models.system.action import (FabricRemoteAction, FabricRemoteScriptAction)
 import st2common.util.action_db as action_utils
 

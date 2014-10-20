@@ -8,7 +8,7 @@ import os
 from oslo.config import cfg
 import unittest2
 
-from st2actions.constants import LIBS_DIR as ACTION_LIBS_DIR
+from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2actions.container.service import RunnerContainerService
 import st2tests.config as tests_config
 

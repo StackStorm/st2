@@ -6,8 +6,8 @@ import six
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import (RunnerType, Action, ActionExecution)
-from st2common.models.api.constants import (ACTIONEXEC_STATUSES,
-                                            ACTION_ID, ACTION_NAME)
+from st2common.constants.action import (ACTIONEXEC_STATUSES,
+                                        ACTION_ID, ACTION_NAME)
 
 LOG = logging.getLogger(__name__)
 
