@@ -105,11 +105,11 @@ class TriggerAPI(BaseAPI):
                 'type': 'object',
                 'properties': {
                     'name': {
-                         'type': 'string'
+                        'type': 'string'
                     },
                     'content_pack': {
                         'type': 'string'
-                     }
+                    }
                 }
             },
             'parameters': {

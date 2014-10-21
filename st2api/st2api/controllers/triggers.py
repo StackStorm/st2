@@ -149,8 +149,8 @@ class TriggerTypeController(RestController):
         try:
             trigger = {'name': triggertype_db.name,
                        'type': {
-                          'name': triggertype_db.name,
-                          'content_pack': triggertype_db.content_pack,
+                           'name': triggertype_db.name,
+                           'content_pack': triggertype_db.content_pack,
                        },
                        'parameters': {}}
             trigger_db = TriggerService.create_trigger_db(trigger)
