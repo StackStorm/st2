@@ -88,7 +88,7 @@ class ActionRunCommand(resource.ResourceCommand):
         action = self.get_resource(args.ref_or_id, **kwargs)
         if not action:
             raise resource.ResourceNotFoundError('Action "%s" cannot be found.'
-                                                 % args.name_or_id)
+                                                 % args.ref_or_id)
 
         runner_mgr = self.app.client.managers['RunnerType']
         runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
@@ -211,9 +211,9 @@ class ActionRunCommand(resource.ResourceCommand):
     def print_help(self, args, **kwargs):
         # Print appropriate help message if the help option is given.
         if args.help:
-            if args.name_or_id:
+            if args.ref_or_id:
                 try:
-                    action = self.get_resource(args.name_or_id, **kwargs)
+                    action = self.get_resource(args.ref_or_id, **kwargs)
                     runner_mgr = self.app.client.managers['RunnerType']
                     runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
                     parameters, required, optional, immutable = self._get_params_types(runner,
@@ -243,10 +243,10 @@ class ActionRunCommand(resource.ResourceCommand):
                         [self.print_param(name, parameters.get(name))
                             for name in immutable]
                 except resource.ResourceNotFoundError:
-                    print('Action "%s" is not found.' % args.name_or_id)
+                    print('Action "%s" is not found.' % args.ref_or_id)
                 except Exception as e:
                     print('ERROR: Unable to print help for action "%s". %s' %
-                          (args.name_or_id, e))
+                          (args.ref_or_id, e))
             else:
                 self.parser.print_help()
             return True
