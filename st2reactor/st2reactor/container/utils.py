@@ -5,7 +5,6 @@ from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import SensorType, TriggerType, TriggerInstance
 from st2common.models.db.reactor import SensorTypeDB, TriggerTypeDB, TriggerInstanceDB
 from st2common.services import triggers as TriggerService
-from st2common.util import reference
 
 LOG = logging.getLogger('st2reactor.sensor.container_utils')
 
@@ -75,7 +74,9 @@ def _validate_trigger_type(trigger_type):
 
 def _create_trigger(content_pack, trigger_type):
     if hasattr(trigger_type, 'parameters_schema') and not trigger_type['parameters_schema']:
-        trigger_db = TriggerService.get_trigger_db(trigger_type.name)
+        trigger_db = TriggerService.get_trigger_db({'content_pack': content_pack,
+                                                    'name': trigger_type.name})
+
         if trigger_db is None:
             trigger_dict = {
                 'name': trigger_type.name,
