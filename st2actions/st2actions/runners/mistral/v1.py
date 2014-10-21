@@ -3,7 +3,7 @@ import uuid
 from oslo.config import cfg
 from mistralclient.api import client as mistral
 
-from st2common.models.api.action import ACTIONEXEC_STATUS_RUNNING
+from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 
@@ -27,7 +27,7 @@ class MistralRunner(ActionRunner):
         pass
 
     def run(self, action_parameters):
-        client = mistral.client(mistral_url=self.url)
+        client = mistral.client(mistral_url='%s/v1' % self.url)
 
         # Update workbook definition.
         workbook = next((w for w in client.workbooks.list() if w.name == self.action.name), None)
@@ -45,9 +45,9 @@ class MistralRunner(ActionRunner):
 
         # Setup context for the workflow execution.
         context = self.runner_parameters.get('context', dict())
-        context['st2_parent_exec_id'] = self.action_execution_id
-        context['st2_action_exec_url'] = ('http://%s:%s/actionexecutions' % (
-                                          cfg.CONF.api.host, cfg.CONF.api.port))
+        endpoint = 'http://%s:%s/actionexecutions' % (cfg.CONF.api.host, cfg.CONF.api.port)
+        context['st2_api_url'] = endpoint
+        context['st2_parent'] = self.action_execution_id
         context.update(action_parameters)
 
         # Execute the workflow.

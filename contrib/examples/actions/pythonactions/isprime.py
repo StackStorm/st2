@@ -3,6 +3,9 @@ import math
 
 class PrimeChecker(object):
 
+    def __init__(self, config=None):
+        pass
+
     def run(self, value=0):
         if math.floor(value) != value:
             raise ValueError('%s should be an integer.' % value)

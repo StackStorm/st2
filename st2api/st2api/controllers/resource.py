@@ -16,9 +16,7 @@ LOG = logging.getLogger(__name__)
 RESERVED_QUERY_PARAMS = {
     'id': 'id',
     'name': 'name',
-    'sort': 'order_by',
-    'offset': 'offset',
-    'limit': 'limit'
+    'sort': 'order_by'
 }
 
 
@@ -31,6 +29,7 @@ class ResourceController(rest.RestController):
     query_options = {   # Do not use options.
         'sort': []
     }
+    max_limit = 100
 
     def __init__(self):
         self.supported_filters = copy.deepcopy(self.__class__.supported_filters)
@@ -43,9 +42,27 @@ class ResourceController(rest.RestController):
             direction = '-' if sort[i].startswith('-') else ''
             sort.insert(i, direction + self.supported_filters[sort[i]])
         kwargs['sort'] = sort if sort else copy.copy(self.query_options.get('sort'))
-        filters = {v: kwargs[k] for k, v in six.iteritems(self.supported_filters) if kwargs.get(k)}
+
+        # TODO: To protect us from DoS, we need to make max_limit mandatory
+        offset = int(kwargs.pop('offset', 0))
+        limit = kwargs.pop('limit', None)
+        if limit and int(limit) > self.max_limit:
+            limit = self.max_limit
+        eop = offset + int(limit) if limit else None
+
+        filters = {}
+
+        for k, v in six.iteritems(self.supported_filters):
+            if kwargs.get(k):
+                filters['__'.join(v.split('.'))] = kwargs[k]
+
         instances = self.access.query(**filters)
-        return [self.model.from_model(instance) for instance in instances]
+
+        if limit:
+            pecan.response.headers['X-Limit'] = str(limit)
+        pecan.response.headers['X-Total-Count'] = str(len(instances))
+
+        return [self.model.from_model(instance) for instance in instances[offset:eop]]
 
     @jsexpose()
     def get_all(self, **kwargs):

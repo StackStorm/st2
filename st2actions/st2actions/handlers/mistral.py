@@ -1,9 +1,9 @@
 import json
 import requests
 
-from st2common.models.api import action
-from st2actions import handlers
+from st2common.constants import action
 from st2common import log as logging
+from st2actions import handlers
 
 
 LOG = logging.getLogger(__name__)
@@ -27,7 +27,8 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
         try:
             method = 'PUT'
             output = json.dumps(result) if isinstance(result, dict) else str(result)
-            data = {'state': STATUS_MAP[status], 'output': output}
+            v1 = 'v1' in url
+            data = {'state': STATUS_MAP[status], 'output': output} if v1 else {'result': output}
             headers = {'content-type': 'application/json'}
             response = requests.request(method, url, data=json.dumps(data), headers=headers)
             if response.status_code != 200:

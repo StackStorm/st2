@@ -4,7 +4,7 @@ import pipes
 
 from oslo.config import cfg
 
-from st2actions.constants import LIBS_DIR as ACTION_LIBS_DIR
+from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common import log as logging
 
 LOG = logging.getLogger(__name__)
@@ -49,6 +49,24 @@ class RunnerContainerService(object):
     @staticmethod
     def get_content_packs_base_path():
         return cfg.CONF.content.content_packs_base_path
+
+    @staticmethod
+    def get_content_pack_base_path(pack_name):
+        """
+        Return full absolute base path to the content pack directory.
+
+        :param pack_name: Content pack name.
+        :type pack_name: ``str``
+
+        :rtype: ``str``
+        """
+        if not pack_name:
+            return None
+
+        packs_base_path = RunnerContainerService.get_content_packs_base_path()
+        pack_base_path = os.path.join(packs_base_path, pipes.quote(pack_name))
+        pack_base_path = os.path.abspath(pack_base_path)
+        return pack_base_path
 
     @staticmethod
     def get_entry_point_abs_path(pack=None, entry_point=None):

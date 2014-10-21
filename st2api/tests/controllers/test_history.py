@@ -8,6 +8,7 @@ from six.moves import http_client
 
 from tests import FunctionalTest
 from tests.fixtures import history as fixture
+from tests.fixtures import history_views
 from st2common.util import isotime
 from st2api.controllers.history import ActionExecutionHistoryController
 from st2common.persistence.history import ActionExecutionHistory
@@ -68,6 +69,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), self.num_records)
+        self.assertEqual(response.headers['X-Total-Count'], str(self.num_records))
         ids = [item['id'] for item in response.json]
         self.assertListEqual(sorted(ids), sorted(self.refs.keys()))
 
@@ -95,6 +97,8 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), limit)
+        self.assertEqual(response.headers['X-Limit'], str(limit))
+        self.assertEqual(response.headers['X-Total-Count'], str(len(refs)))
         ids = [item['id'] for item in response.json]
         self.assertListEqual(list(set(ids) - set(refs)), [])
 
@@ -104,6 +108,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), len(refs))
+        self.assertEqual(response.headers['X-Total-Count'], str(len(refs)))
         ids = [item['id'] for item in response.json]
         self.assertListEqual(sorted(ids), sorted(refs))
 
@@ -113,12 +118,13 @@ class TestActionExecutionHistory(FunctionalTest):
             if param in excludes:
                 continue
             value = self.fake_types[0]
-            for item in field.split('__'):
+            for item in field.split('.'):
                 value = value[item]
             response = self.app.get('/history/executions?%s=%s' % (param, value))
             self.assertEqual(response.status_int, 200)
             self.assertIsInstance(response.json, list)
             self.assertGreater(len(response.json), 0)
+            self.assertGreater(int(response.headers['X-Total-Count']), 0)
 
     def test_parent(self):
         refs = [v for k, v in six.iteritems(self.refs)
@@ -129,6 +135,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), len(ref.children))
+        self.assertEqual(response.headers['X-Total-Count'], str(len(ref.children)))
         ids = [item['id'] for item in response.json]
         self.assertListEqual(sorted(ids), sorted(ref.children))
 
@@ -140,6 +147,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), len(refs))
+        self.assertEqual(response.headers['X-Total-Count'], str(len(refs)))
         ids = [item['id'] for item in response.json]
         self.assertListEqual(sorted(ids), sorted(refs.keys()))
 
@@ -153,6 +161,8 @@ class TestActionExecutionHistory(FunctionalTest):
             self.assertEqual(response.status_int, 200)
             self.assertIsInstance(response.json, list)
             self.assertEqual(len(response.json), page_size)
+            self.assertEqual(response.headers['X-Limit'], str(page_size))
+            self.assertEqual(response.headers['X-Total-Count'], str(self.num_records))
             ids = [item['id'] for item in response.json]
             self.assertListEqual(list(set(ids) - set(self.refs.keys())), [])
             self.assertListEqual(sorted(list(set(ids) - set(retrieved))), sorted(ids))
@@ -165,6 +175,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), 10)
+        self.assertEqual(response.headers['X-Total-Count'], '10')
         dt1 = response.json[0]['execution']['start_timestamp']
         dt2 = response.json[9]['execution']['start_timestamp']
         self.assertLess(isotime.parse(dt1), isotime.parse(dt2))
@@ -174,6 +185,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), 10)
+        self.assertEqual(response.headers['X-Total-Count'], '10')
         dt1 = response.json[0]['execution']['start_timestamp']
         dt2 = response.json[9]['execution']['start_timestamp']
         self.assertLess(isotime.parse(dt2), isotime.parse(dt1))
@@ -185,3 +197,10 @@ class TestActionExecutionHistory(FunctionalTest):
         dt1 = response.json[0]['execution']['start_timestamp']
         dt2 = response.json[len(response.json) - 1]['execution']['start_timestamp']
         self.assertLess(isotime.parse(dt2), isotime.parse(dt1))
+
+    def test_filters_view(self):
+        response = self.app.get('/history/executions/views/filters')
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, dict)
+        for key, value in six.iteritems(history_views.ARTIFACTS['filters']):
+            self.assertEqual(set(response.json[key]), set(value))

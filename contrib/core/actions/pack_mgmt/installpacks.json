@@ -1,0 +1,22 @@
+{
+    "chain": [
+        {
+            "name": "download",
+            "action": "downloadpacks",
+            "params": {"packs": "{{packs}}"},
+            "on-success": "reload"
+        },
+        {
+            "name": "reload",
+            "action": "reload-content",
+            "params": {},
+            "on-success": "restart-sensor-container"
+        },
+        {
+            "name": "restart-sensor-container",
+            "action": "restart-component",
+            "params": {"servicename": "sensor_container"}
+        }
+    ],
+    "default": "download"
+}

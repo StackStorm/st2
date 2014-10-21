@@ -9,7 +9,7 @@ from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.db.action import ActionExecutionDB, ActionReference
-from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 
@@ -157,7 +157,7 @@ class ActionChainRunner(ActionRunner):
     @staticmethod
     def _cast_params(action_ref, params):
         casts = {
-            'array': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
+            'array': (lambda x: ast.literal_eval(x) if isinstance(x, str) or isinstance(x, unicode)
                       else x),
             'boolean': (lambda x: ast.literal_eval(x.capitalize())
                         if isinstance(x, str) or isinstance(x, unicode) else x),

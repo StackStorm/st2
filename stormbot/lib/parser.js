@@ -12,13 +12,16 @@ module.exports = function (argstr, spec) {
   var defaults = _.reduce(spec, function (result, value, key) {
     var defaults = value.default;
 
+    if (value.immutable) {
+      return result
+    }
+
     if (defaults) {
       result[key] = defaults;
     }
 
     return result;
   }, {});
-
 
   // Iterate through the list of arguments to get an object of argument pairs
   var actual = {}
@@ -54,10 +57,8 @@ module.exports = function (argstr, spec) {
 
   });
 
-
   // Merge two objects together
   _.defaults(actual, defaults);
-
 
   return actual;
 };

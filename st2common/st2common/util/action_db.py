@@ -4,12 +4,11 @@ from mongoengine import ValidationError
 import six
 
 from st2common import log as logging
+from st2common.constants.action import (ACTIONEXEC_STATUSES,
+                                        ACTION_ID, ACTION_NAME, ACTION_PACK)
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.persistence.action import (RunnerType, Action, ActionExecution)
-from st2common.models.api.action import (ACTIONEXEC_STATUSES,
-                                         ACTION_ID, ACTION_NAME, ACTION_PACK
-                                         )
 from st2common.models.db.action import ActionReference
+from st2common.persistence.action import (RunnerType, Action, ActionExecution)
 
 LOG = logging.getLogger(__name__)
 

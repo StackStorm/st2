@@ -38,11 +38,7 @@ class ActionsRegistrar(object):
             model.name = content['name']
             model.description = content['description']
             model.enabled = content['enabled']
-            pack_name = content.get('content_pack', None)
-            if not pack_name or pack_name == '':
-                pack_name = pack
-                LOG.warning('Pack name missing. Using: %s', pack_name)
-            model.content_pack = pack_name
+            model.content_pack = pack
             model.entry_point = content['entry_point']
             model.parameters = content.get('parameters', {})
             model.required_parameters = content.get('required_parameters', [])

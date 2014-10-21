@@ -1,2 +1,0 @@
-Detailed Installation Instructiosn
-===================================

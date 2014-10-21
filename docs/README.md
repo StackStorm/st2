@@ -2,6 +2,11 @@
 
 Hints and notes on how to work with Sphinx.
 
+Install sphinx, build the docs. 
+
+	pip install sphinx
+	sphinx-build -b html docs/source docs/build/html
+
 ## pandoc	
 
 pandoc - a super-tool to convert between formats. Sample for markdown conversion:
@@ -12,12 +17,14 @@ pandoc - a super-tool to convert between formats. Sample for markdown conversion
 
 ## autodoc
 
-Use sphinxcontrib.pecanwsme.rest and wsmeext.sphinxext plugins
+Use sphinxcontrib.pecanwsme.rest and wsmeext.sphinxext plugins to generate API docs
 
 	TODO: why REST URL is not generated with parameters?
+  TODO: now that we use jsexpose how will it work? 
 
 ## Running sphinx-audobuild
 
-[auto-loader](https://pypi.python.org/pypi/sphinx-autobuild/0.2.3) - rules for convenient doc writing. See https://pypi.python.org/pypi/sphinx-autobuild/0.2.3. install, and run: 
+[auto-loader](https://pypi.python.org/pypi/sphinx-autobuild/0.2.3) - rules for convenient doc writing - rebuilds the docs on changes and serves them up. Run and go to http://localhost:8000 
 
-	sphinx-autobuild docs/source docs/build
+  	pip install sphinx-autobuild
+	sphinx-autobuild docs/source docs/build/html

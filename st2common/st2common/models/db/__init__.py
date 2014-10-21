@@ -92,6 +92,10 @@ class MongoDBAccess(object):
         order_by = kwargs.pop('order_by', [])
         return self.model.objects(**kwargs).order_by(*order_by)[offset:eop]
 
+    def distinct(self, *args, **kwargs):
+        field = kwargs.pop('field')
+        return self.model.objects(**kwargs).distinct(field)
+
     @staticmethod
     def add_or_update(instance):
         instance.save()

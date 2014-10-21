@@ -10,7 +10,7 @@
     },
 
     "criteria": {
-        "trigger.name": {
+        "trigger.body.name": {
             "pattern": "Joe",
             "type": "equals"
          }

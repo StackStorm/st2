@@ -5,6 +5,7 @@ from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.base import BaseAPI
 from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB)
+from st2common.constants.action import ACTIONEXEC_STATUSES
 
 
 __all__ = ['ActionAPI',
@@ -178,19 +179,6 @@ class ActionAPI(BaseAPI):
         model.parameters = getattr(action, 'parameters', dict())
         model.required_parameters = getattr(action, 'required_parameters', list())
         return model
-
-ACTIONEXEC_STATUS_SCHEDULED = 'scheduled'
-ACTIONEXEC_STATUS_RUNNING = 'running'
-ACTIONEXEC_STATUS_SUCCEEDED = 'succeeded'
-ACTIONEXEC_STATUS_FAILED = 'failed'
-
-ACTIONEXEC_STATUSES = [ACTIONEXEC_STATUS_SCHEDULED,
-                       ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_SUCCEEDED,
-                       ACTIONEXEC_STATUS_FAILED]
-
-ACTION_NAME = 'name'
-ACTION_ID = 'id'
-ACTION_PACK = 'content_pack'
 
 
 class ActionExecutionAPI(BaseAPI):

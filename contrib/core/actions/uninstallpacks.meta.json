@@ -1,0 +1,14 @@
+{
+    "name": "uninstallpacks",
+    "runner_type": "action-chain",
+    "description": "Uninstalls packs from local content repository. Removes pack and content from st2. Note that uninstall require reboot of some st2 services.",
+    "enabled": true,
+    "entry_point":"pack_mgmt/uninstallpacks.json",
+    "parameters": {
+        "packs": {
+            "type": "array",
+            "items": {"type": "string"}
+        }
+    },
+    "required_parameters": ["packs"]
+}

@@ -8,7 +8,7 @@ from st2common.services import action as action_service
 from st2common.persistence.action import RunnerType, Action, ActionExecution
 from st2common.models.db.action import ActionExecutionDB, ActionReference
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
-from st2common.models.api.action import ACTIONEXEC_STATUS_SCHEDULED
+from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
 
 
 RUNNER = {
