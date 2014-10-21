@@ -81,6 +81,9 @@ class SensorContainerManager(object):
                 for t in trigger_types:
                     self._trigger_sensors[t['name']] = sensor
 
+                # TODO: Once we agree on references, only store a list of
+                # primary keys to trigger type objects in trigger_types
+
                 # Register sensor type in the DB
                 sensor_obj = {
                     'filename': os.path.abspath(filename),
