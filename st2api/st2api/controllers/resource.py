@@ -56,6 +56,8 @@ class ResourceController(rest.RestController):
             if kwargs.get(k):
                 filters['__'.join(v.split('.'))] = kwargs[k]
 
+        LOG.info('GET all %s with filters=%s', pecan.request.path, filters)
+
         instances = self.access.query(**filters)
 
         if limit:
@@ -66,6 +68,8 @@ class ResourceController(rest.RestController):
 
     @jsexpose(str)
     def get_one(self, id):
+        LOG.info('GET %s with id=%s', pecan.request.path, id)
+
         instance = None
         try:
             instance = self.access.get(id=id)
@@ -75,4 +79,8 @@ class ResourceController(rest.RestController):
         if not instance:
             msg = 'Unable to identify resource with id "%s".' % id
             pecan.abort(http_client.NOT_FOUND, msg)
-        return self.model.from_model(instance)
+
+        result = self.model.from_model(instance)
+        LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
+
+        return result
