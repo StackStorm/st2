@@ -181,6 +181,55 @@ class ResourceGetCommand(ResourceCommand):
             self.print_not_found(args.name_or_id)
 
 
+class ContentPackResourceGetCommand(ResourceGetCommand):
+    """
+    Command for retrieving a single resource which belongs to a content pack.
+
+    Note: All the resources which belong to the content pack can either be
+    retrieved by a reference or by an id.
+    """
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceGetCommand, self).__init__(resource, 'get',
+            'Get individual %s.' % resource.get_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('ref_or_id',
+                                 metavar='ref-or-id',
+                                 help=('Reference or ID of the %s.' %
+                                       resource.get_display_name().lower()))
+        self.parser.add_argument('-a', '--attr', nargs='+',
+                                 default=self.display_attributes,
+                                 help=('List of attributes to include in the '
+                                       'output. "all" or unspecified will '
+                                       'return all attributes.'))
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        return self.get_resource(ref_or_id=args.ref_or_id, **kwargs)
+
+    def run_and_print(self, args, **kwargs):
+        try:
+            instance = self.run(args, **kwargs)
+            self.print_output(instance, table.PropertyValueTable,
+                              attributes=args.attr, json=args.json)
+        except ResourceNotFoundError:
+            self.print_not_found(args.ref_or_id)
+
+    def get_resource(self, ref_or_id, **kwargs):
+        query_params = {'ref': ref_or_id}
+        instance = self.manager.query(**query_params)[0]
+        if not instance:
+            try:
+                instance = self.manager.get_by_id(ref_or_id, **kwargs)
+            except:
+                pass
+        if not instance:
+            message = ('Resource with id or name "%s" doesn\'t exist.' %
+                       (ref_or_id))
+            raise resource.ResourceNotFoundError(message)
+        return instance
+
+
 class ResourceCreateCommand(ResourceCommand):
 
     def __init__(self, resource, *args, **kwargs):
