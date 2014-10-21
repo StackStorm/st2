@@ -185,6 +185,21 @@ class TestActionController(FunctionalTest):
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
+    def test_query(self):
+        action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
+        action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
+        resp = self.app.get('/actions?name=%s' % ACTION_1['name'])
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')
+        ref = '.'.join([ACTION_1['content_pack'], ACTION_1['name']])
+        resp = self.app.get('/actions?ref=%s' % ref)
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')
+        self.__do_delete(action_1_id)
+        self.__do_delete(action_2_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
     def test_get_one_fail(self):
         resp = self.app.get('/actions/1', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
