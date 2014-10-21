@@ -199,16 +199,15 @@ class TriggerController(RestController):
         return trigger_api
 
     @jsexpose(str)
-    def get_all(self, name=None, **kw):
+    def get_all(self, **kw):
         """
             List all triggers.
 
             Handles requests:
                 GET /triggers/
         """
-        LOG.info('GET all /triggers/ and name=%s', name)
-        trigger_dbs = Trigger.get_all(**kw) if name is None \
-            else TriggerController.__get_by_name(name)
+        LOG.info('GET all /triggers/ with filters=%s', kw)
+        trigger_dbs = Trigger.get_all(**kw)
         trigger_apis = [TriggerAPI.from_model(trigger_db) for trigger_db in trigger_dbs]
         return trigger_apis
 
