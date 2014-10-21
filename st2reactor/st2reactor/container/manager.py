@@ -6,6 +6,7 @@ from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import Trigger
 from st2common.util.config_parser import ContentPackConfigParser
+from st2common.constants.content_pack import SYSTEM_PACK_NAME
 from st2reactor.container.base import SensorContainer
 from st2reactor.container.service import ContainerService
 from st2reactor.container.triggerwatcher import TriggerWatcher
@@ -53,8 +54,7 @@ class SensorContainerManager(object):
                         LOG.info('No config found for sensor "%s"' % (class_name))
                         sensor_class_kwargs['config'] = {}
                 else:
-                    # TODO: use a constant, blacklist this value
-                    content_pack = 'system'
+                    content_pack = SYSTEM_PACK_NAME
 
                 try:
                     sensor = sensor_class(container_service=container_service,
