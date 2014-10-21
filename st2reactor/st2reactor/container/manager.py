@@ -5,6 +5,7 @@ import six
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import Trigger
+from st2common.persistence.reactor import TriggerType
 from st2common.util.config_parser import ContentPackConfigParser
 from st2common.content.validators import validate_content_pack_name
 from st2common.constants.content_pack import SYSTEM_PACK_NAME
@@ -81,13 +82,13 @@ class SensorContainerManager(object):
                                 + ' Exception: %s', sensor_class, filename, e, exc_info=True)
                     continue
 
-                for t in trigger_types:
-                    self._trigger_sensors[t['name']] = sensor
-
+                # Populate sensors dict
                 trigger_type_refs = []
                 for trigger_type_db, _ in trigger_type_dbs:
                     ref_obj = trigger_type_db.get_reference()
-                    trigger_type_refs.append(ref_obj.ref)
+                    trigger_type_ref = ref_obj.ref
+                    self._trigger_sensors[trigger_type_ref] = sensor
+                    trigger_type_refs.append(trigger_type_ref)
 
                 # Register sensor type in the DB
                 sensor_obj = {
@@ -103,7 +104,7 @@ class SensorContainerManager(object):
                 sensors_to_run.append(sensor)
 
         for trigger in Trigger.get_all():
-            self._create_handler(trigger)
+            self._create_handler(trigger=trigger)
 
         self._trigger_watcher.start()
         LOG.info('Watcher started.')
@@ -122,16 +123,16 @@ class SensorContainerManager(object):
             self._trigger_watcher.stop()
 
     def _create_handler(self, trigger):
-        name = trigger.type['name']
+        trigger_type_ref = trigger.type
         self._trigger_names[str(trigger.id)] = trigger
-        sensor = self._trigger_sensors.get(name, None)
+        sensor = self._trigger_sensors.get(trigger_type_ref, None)
         if sensor:
             sensor.add_trigger(SensorContainerManager.sanitize_trigger(trigger))
 
     def _update_handler(self, trigger):
-        name = trigger.type['name']
+        trigger_type_ref = trigger.type
         self._trigger_names[str(trigger.id)] = trigger
-        sensor = self._trigger_sensors.get(name, None)
+        sensor = self._trigger_sensors.get(trigger_type_ref, None)
         if sensor:
             sensor.update_trigger(SensorContainerManager.sanitize_trigger(trigger))
 
@@ -140,8 +141,8 @@ class SensorContainerManager(object):
         if triggerid not in self._trigger_names:
             return
         del self._trigger_names[triggerid]
-        name = trigger.type['name']
-        sensor = self._trigger_sensors.get(name, None)
+        trigger_type_ref = trigger.type
+        sensor = self._trigger_sensors.get(trigger_type_ref, None)
         if sensor:
             sensor.remove_trigger(SensorContainerManager.sanitize_trigger(trigger))
 

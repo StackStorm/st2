@@ -125,6 +125,7 @@ class TriggerAPI(BaseAPI):
     def to_model(cls, trigger):
         model = super(cls, cls).to_model(trigger)
         model.content_pack = getattr(trigger, 'content_pack', None)
+        model.type = getattr(trigger, 'type', None)
         model.parameters = getattr(trigger, 'parameters', None)
         return model
 
