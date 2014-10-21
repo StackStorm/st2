@@ -106,7 +106,7 @@ def add_trigger_models(content_pack, trigger_types):
     :type content_pack: ``str``
 
     :param trigger_types: A list of triggers to register.
-    :type trigger_types: ``list`` of ``dict``
+    :type trigger_types: ``list`` of ``tuple`` (trigger_type, trigger)
     """
     [r for r in (_validate_trigger_type(trigger_type)
      for trigger_type in trigger_types) if r is not None]

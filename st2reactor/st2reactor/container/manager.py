@@ -73,8 +73,9 @@ class SensorContainerManager(object):
                                     sensor_class, filename)
                     else:
                         assert isinstance(trigger_types, (list, tuple))
-                        container_utils.add_trigger_models(content_pack=content_pack,
-                                                           trigger_types=trigger_types)
+                        trigger_type_dbs = container_utils.add_trigger_models(
+                                content_pack=content_pack,
+                                trigger_types=trigger_types)
                 except TriggerTypeRegistrationException as e:
                     LOG.warning('Unable to register trigger type for sensor %s in file %s.'
                                 + ' Exception: %s', sensor_class, filename, e, exc_info=True)
@@ -83,15 +84,17 @@ class SensorContainerManager(object):
                 for t in trigger_types:
                     self._trigger_sensors[t['name']] = sensor
 
-                # TODO: Once we agree on references, only store a list of
-                # primary keys to trigger type objects in trigger_types
+                trigger_type_refs = []
+                for trigger_type_db, _ in trigger_type_dbs:
+                    ref_obj = trigger_type_db.get_reference()
+                    trigger_type_refs.append(ref_obj.ref)
 
                 # Register sensor type in the DB
                 sensor_obj = {
                     'filename': os.path.abspath(filename),
                     'name': class_name,
                     'class_name': class_name,
-                    'trigger_types': trigger_types
+                    'trigger_types': trigger_type_refs
                 }
                 container_utils.add_sensor_model(content_pack=content_pack,
                                                  sensor=sensor_obj)

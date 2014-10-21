@@ -13,7 +13,7 @@ class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
         content_pack - Name of the content pack this sensor belongs to.
         artifact_uri - URI to the artifact file.
         entry_point - Full path to the sensor entry point (e.g. module.foo.ClassSensor).
-        trigger_type - A list of references to the TriggerTypeDB objects exposed by this sensor.
+        trigger_types - A list of references to the TriggerTypeDB objects exposed by this sensor.
     """
     content_pack = me.StringField(required=True, unique_with='name')
     artifact_uri = me.StringField()
