@@ -1,8 +1,17 @@
 __all__ = [
-    'ResourceReference'
+    'InvalidResourceReferenceError',
+    'ResourceReference',
 ]
 
 PACK_SEPARATOR = '.'
+
+
+class InvalidResourceReferenceError(ValueError):
+    def __init__(self, ref):
+        message = 'Invalid resource reference: %s' % (ref)
+        self.ref = ref
+        self.message = message
+        super(InvalidResourceReferenceError, self).__init__(message)
 
 
 class ResourceReference(object):
@@ -40,11 +49,17 @@ class ResourceReference(object):
 
     @staticmethod
     def get_pack(ref):
-        return ref.split(PACK_SEPARATOR, 1)[0]
+        try:
+            return ref.split(PACK_SEPARATOR, 1)[0]
+        except (IndexError, AttributeError):
+            raise InvalidResourceReferenceError(ref=ref)
 
     @staticmethod
     def get_name(ref):
-        return ref.split(PACK_SEPARATOR, 1)[1]
+        try:
+            return ref.split(PACK_SEPARATOR, 1)[1]
+        except (IndexError, AttributeError):
+            raise InvalidResourceReferenceError(ref=ref)
 
     def __repr__(self):
         return ('<ResourceReference pack=%s,name=%s,ref=%s>' %
