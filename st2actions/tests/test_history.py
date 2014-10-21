@@ -15,7 +15,8 @@ from st2reactor.rules.enforcer import RuleEnforcer
 from st2common.util import reference
 from st2common.transport.publishers import CUDPublisher
 from st2common.services import action as action_service
-from st2common.models.db.action import ActionExecutionDB, ActionReference
+from st2common.models.system.common import ResourceReference
+from st2common.models.db.action import ActionExecutionDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI, RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
 import st2common.util.action_db as action_utils
@@ -56,7 +57,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         Action.add_or_update(ActionAPI.to_model(action_chain))
 
     def test_basic_execution(self):
-        action_ref = ActionReference(name='local', pack='core')
+        action_ref = ResourceReference(name='local', pack='core')
         execution = ActionExecutionDB(ref=action_ref.ref, parameters={'cmd': 'uname -a'})
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
@@ -75,7 +76,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(history.execution, vars(ActionExecutionAPI.from_model(execution)))
 
     def test_chained_executions(self):
-        action_ref = ActionReference(name='chain', pack='core')
+        action_ref = ResourceReference(name='chain', pack='core')
         execution = ActionExecutionDB(ref=action_ref.ref)
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
@@ -125,7 +126,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(history.trigger_instance,
                              vars(TriggerInstanceAPI.from_model(trigger_instance)))
         self.assertDictEqual(history.rule, vars(RuleAPI.from_model(rule)))
-        action_ref = ActionReference(ref=execution.ref)
+        action_ref = ResourceReference.from_string_reference(ref=execution.ref)
         action, _ = action_utils.get_action_by_dict(
             {'name': action_ref.name, 'content_pack': action_ref.pack})
         self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))

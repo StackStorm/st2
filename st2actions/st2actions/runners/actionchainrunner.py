@@ -8,7 +8,8 @@ import uuid
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.exceptions import actionrunner as runnerexceptions
-from st2common.models.db.action import ActionExecutionDB, ActionReference
+from st2common.models.db.action import ActionExecutionDB
+from st2common.models.system.common import ResourceReference
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
@@ -168,7 +169,8 @@ class ActionChainRunner(ActionRunner):
             'string': str
         }
 
-        action_db = action_db_util.get_action_by_ref(ActionReference(ref=action_ref))
+        action_db = action_db_util.get_action_by_ref(
+            ResourceReference.from_string_reference(ref=action_ref))
         action_parameters_schema = action_db.parameters
         runnertype_db = action_db_util.get_runnertype_by_name(action_db.runner_type['name'])
         runner_parameters_schema = runnertype_db.runner_parameters

@@ -3,8 +3,8 @@ import mock
 
 from oslo.config import cfg
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
-from st2common.models.db.action import (ActionDB, ActionExecutionDB,
-                                        ActionReference, RunnerTypeDB)
+from st2common.models.system.common import ResourceReference
+from st2common.models.db.action import (ActionDB, ActionExecutionDB, RunnerTypeDB)
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.action import (Action, ActionExecution, RunnerType)
 from st2common.transport.publishers import PoolPublisher
@@ -94,7 +94,7 @@ class RunnerContainerTest(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.ref = ActionReference(
+        actionexec_db.ref = ResourceReference(
             name=RunnerContainerTest.action_db.name,
             pack=RunnerContainerTest.action_db.content_pack).ref
         actionexec_db.parameters = params
@@ -105,7 +105,7 @@ class RunnerContainerTest(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.now()
-        actionexec_db.ref = ActionReference(
+        actionexec_db.ref = ResourceReference(
             name=RunnerContainerTest.failingaction_db.name,
             pack=RunnerContainerTest.failingaction_db.content_pack).ref
         actionexec_db.parameters = params

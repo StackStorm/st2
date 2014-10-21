@@ -6,8 +6,9 @@ from st2common.util import isotime
 from st2common.transport.publishers import PoolPublisher
 from st2common.services import action as action_service
 from st2common.persistence.action import RunnerType, Action, ActionExecution
-from st2common.models.db.action import ActionExecutionDB, ActionReference
+from st2common.models.db.action import ActionExecutionDB
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
+from st2common.models.system.common import ResourceReference
 from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
 
 
@@ -37,7 +38,7 @@ ACTION = {
     }
 }
 
-ACTION_REF = ActionReference(name='my.action', pack='default').ref
+ACTION_REF = ResourceReference(name='my.action', pack='default').ref
 USERNAME = 'stanley'
 
 
@@ -83,7 +84,7 @@ class TestActionExecutionService(DbTestCase):
 
     def test_schedule_nonexistent_action(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        action_ref = ActionReference(name='i.action', pack='default').ref
+        action_ref = ResourceReference(name='i.action', pack='default').ref
         execution = ActionExecutionDB(ref=action_ref, parameters=parameters)
         self.assertRaises(ValueError, action_service.schedule, execution)
 

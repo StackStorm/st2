@@ -7,7 +7,7 @@ from st2common import log as logging
 from st2common.constants.action import (ACTIONEXEC_STATUSES,
                                         ACTION_ID, ACTION_NAME, ACTION_PACK)
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.db.action import ActionReference
+from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import (RunnerType, Action, ActionExecution)
 
 LOG = logging.getLogger(__name__)
@@ -149,11 +149,11 @@ def get_action_by_dict(action_dict):
 
 def get_action_by_ref(action_ref):
     if (not isinstance(action_ref, str) and not isinstance(action_ref, unicode)
-            and not isinstance(action_ref, ActionReference)):
-        raise Exception('Action reference has to be either str or ActionReference.')
+            and not isinstance(action_ref, ResourceReference)):
+        raise Exception('Action reference has to be either str or ResourceReference.')
 
     if isinstance(action_ref, str) or isinstance(action_ref, unicode):
-        action_ref = ActionReference(ref=action_ref)
+        action_ref = ResourceReference.from_string_reference(ref=action_ref)
 
     return _get_action_by_pack_and_name(name=action_ref.name, pack=action_ref.pack)
 

@@ -75,38 +75,6 @@ class ActionDB(StormFoundationDB):
         help_text='The list of parameters required by the action.')
 
 
-class ActionReference(object):
-    def __init__(self, pack=None, name=None, ref=None):
-        self.ref = ref
-        self.name = name
-        self.pack = pack
-
-        if ref is not None:
-            self.ref = ref
-            self.pack = self.get_pack(self.ref)
-            self.name = self.get_name(self.ref)
-        else:
-            self.ref = self.reference(pack=pack, name=name)
-
-    @staticmethod
-    def reference(pack=None, name=None):
-        if pack and name:
-            if PACK_SEPARATOR in pack:
-                raise Exception('Pack name should not contain "%s"', PACK_SEPARATOR)
-            return PACK_SEPARATOR.join([pack, name])
-        else:
-            raise Exception('Both pack and name needed for building ref. pack=%s, name=%s', pack,
-                            name)
-
-    @staticmethod
-    def get_pack(ref):
-        return ref.split(PACK_SEPARATOR, 1)[0]
-
-    @staticmethod
-    def get_name(ref):
-        return ref.split(PACK_SEPARATOR, 1)[1]
-
-
 class ActionExecutionDB(StormFoundationDB):
     """
         The databse entity that represents a Stack Action/Automation in

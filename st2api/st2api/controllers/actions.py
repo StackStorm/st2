@@ -14,7 +14,7 @@ from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
-from st2common.models.db.action import ActionReference
+from st2common.models.system.common import ResourceReference
 import st2common.validators.api.action as action_validator
 
 http_client = six.moves.http_client
@@ -53,8 +53,8 @@ class ActionsController(resource.ResourceController):
         action_ref = kw.get('ref', None)
 
         if action_ref:
-            kw['name'] = ActionReference.get_name(action_ref)
-            kw['content_pack'] = ActionReference.get_pack(action_ref)
+            kw['name'] = ResourceReference.get_name(action_ref)
+            kw['content_pack'] = ResourceReference.get_pack(action_ref)
             del kw['ref']
         return super(ActionsController, self)._get_all(**kw)
 

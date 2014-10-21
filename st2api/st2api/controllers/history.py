@@ -6,7 +6,7 @@ from st2api.controllers.historyviews import HistoryViewsController
 from st2common.persistence.history import ActionExecutionHistory
 from st2common.models.api.history import ActionExecutionHistoryAPI
 from st2common.models.base import jsexpose
-from st2common.models.db.action import ActionReference
+from st2common.models.system.common import ResourceReference
 from st2common import log as logging
 
 LOG = logging.getLogger(__name__)
@@ -27,8 +27,8 @@ class ActionExecutionHistoryController(resource.ResourceController):
         action_ref = kw.get('action', None)
 
         if action_ref:
-            action_name = ActionReference.get_name(action_ref)
-            action_pack = ActionReference.get_pack(action_ref)
+            action_name = ResourceReference.get_name(action_ref)
+            action_pack = ResourceReference.get_pack(action_ref)
             del kw['action']
             kw['action.name'] = action_name
             kw['action.pack'] = action_pack

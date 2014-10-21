@@ -6,7 +6,8 @@ import mock
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.transport.publishers import PoolPublisher
 from st2common.models.api.action import RunnerTypeAPI
-from st2common.models.db.action import (ActionDB, ActionExecutionDB, ActionReference)
+from st2common.models.db.action import (ActionDB, ActionExecutionDB)
+from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import (Action, ActionExecution, RunnerType)
 import st2common.util.action_db as action_db_utils
 from st2tests.base import DbTestCase
@@ -90,7 +91,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.ref = ActionReference(
+        actionexec_db.ref = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.content_pack).ref
         params = {
@@ -113,7 +114,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.ref = ActionReference(
+        actionexec_db.ref = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.content_pack).ref
         params = {
@@ -194,7 +195,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.ref = ActionReference(
+        actionexec_db.ref = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.content_pack).ref
         params = {
