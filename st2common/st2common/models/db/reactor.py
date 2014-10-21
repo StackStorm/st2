@@ -50,7 +50,7 @@ class TriggerDB(StormBaseDB, ContentPackResourceMixin):
 class TriggerInstanceDB(StormFoundationDB):
     """An instance or occurrence of a type of Trigger.
     Attribute:
-        trigger: Reference to the trigger type.
+        trigger: Reference to the Trigger object.
         payload (dict): payload specific to the occurrence.
         occurrence_time (datetime): time of occurrence of the trigger.
     """
