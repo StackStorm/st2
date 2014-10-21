@@ -74,8 +74,8 @@ class SensorContainerManager(object):
                     else:
                         assert isinstance(trigger_types, (list, tuple))
                         trigger_type_dbs = container_utils.add_trigger_models(
-                                content_pack=content_pack,
-                                trigger_types=trigger_types)
+                            content_pack=content_pack,
+                            trigger_types=trigger_types)
                 except TriggerTypeRegistrationException as e:
                     LOG.warning('Unable to register trigger type for sensor %s in file %s.'
                                 + ' Exception: %s', sensor_class, filename, e, exc_info=True)
