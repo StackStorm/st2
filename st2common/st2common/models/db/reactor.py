@@ -13,7 +13,7 @@ class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
         content_pack - Name of the content pack this sensor belongs to.
         artifact_uri - URI to the artifact file.
         entry_point - Full path to the sensor entry point (e.g. module.foo.ClassSensor).
-        trigger_types - A list of references to the TriggerTypeDB objects exposed by this sensor.
+        trigger_type - A list of references to the TriggerTypeDB objects exposed by this sensor.
     """
     content_pack = me.StringField(required=True, unique_with='name')
     artifact_uri = me.StringField()
@@ -35,14 +35,13 @@ class TriggerTypeDB(StormBaseDB, ContentPackResourceMixin):
     parameters_schema = me.DictField(default={})
 
 
-class TriggerTypeCompoundKey(me.EmbeddedDocument):
-    id = me.ObjectIdField(required=False)
-    content_pack = me.StringField(required=True)
-    name = me.StringField(required=True)
-
-
 class TriggerDB(StormBaseDB):
-    type = me.EmbeddedDocumentField(TriggerTypeCompoundKey)
+    """
+    Attribute:
+        type - Reference to the TriggerType object.
+        parameters - Trigger parameters.
+    """
+    type = me.StringField()
     parameters = me.DictField()
 
 

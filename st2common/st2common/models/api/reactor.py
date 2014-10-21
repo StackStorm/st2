@@ -102,15 +102,7 @@ class TriggerAPI(BaseAPI):
                 'type': 'string'
             },
             'type': {
-                'type': 'object',
-                'properties': {
-                    'name': {
-                        'type': 'string'
-                    },
-                    'content_pack': {
-                        'type': 'string'
-                    }
-                }
+                'type': 'string'
             },
             'parameters': {
                 'type': 'object'

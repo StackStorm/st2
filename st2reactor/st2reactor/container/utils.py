@@ -66,7 +66,11 @@ def _create_trigger(trigger_type):
     if hasattr(trigger_type, 'parameters_schema') and not trigger_type['parameters_schema']:
         trigger_db = TriggerService.get_trigger_db(trigger_type.name)
         if trigger_db is None:
-            trigger_dict = {'name': trigger_type.name, 'type': trigger_type.name}
+            trigger_dict = {
+                'name': trigger_type.name,
+                'type': trigger_type.get_reference().ref
+            }
+
             try:
                 trigger_db = TriggerService.create_trigger_db(trigger_dict)
             except:
