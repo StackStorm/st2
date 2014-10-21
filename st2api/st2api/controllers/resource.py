@@ -9,6 +9,7 @@ from six.moves import http_client
 
 from st2common.models.base import jsexpose
 from st2common import log as logging
+from st2common.models.system.common import InvalidResourceReferenceError
 from st2common.models.system.common import ResourceReference
 
 
@@ -99,7 +100,7 @@ class ContentPackResourceControler(ResourceController):
         if ref:
             try:
                 ref_obj = ResourceReference.from_string_reference(ref=ref)
-            except IndexError:
+            except InvalidResourceReferenceError:
                 # Invalid reference
                 return []
 
