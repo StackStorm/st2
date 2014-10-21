@@ -62,12 +62,13 @@ def _validate_trigger_type(trigger_type):
             raise TriggerTypeRegistrationException('Invalid trigger type. Missing field %s' % field)
 
 
-def _create_trigger(trigger_type):
+def _create_trigger(content_pack, trigger_type):
     if hasattr(trigger_type, 'parameters_schema') and not trigger_type['parameters_schema']:
         trigger_db = TriggerService.get_trigger_db(trigger_type.name)
         if trigger_db is None:
             trigger_dict = {
                 'name': trigger_type.name,
+                'content_pack': content_pack,
                 'type': trigger_type.get_reference().ref
             }
 
@@ -98,7 +99,8 @@ def _add_trigger_models(content_pack, trigger_type):
         payload_schema=payload_schema,
         parameters_schema=parameters_schema
     )
-    trigger = _create_trigger(trigger_type)
+    trigger = _create_trigger(content_pack=content_pack,
+                              trigger_type=trigger_type)
     return (trigger_type, trigger)
 
 

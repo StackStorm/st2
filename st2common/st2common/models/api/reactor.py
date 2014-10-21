@@ -26,7 +26,6 @@ class SensorTypeAPI(BaseAPI):
                 'type': 'string'
             },
             'content_pack': {
-                'description': 'The content pack this sensor belongs to.',
                 'type': 'string'
             },
             'description': {
@@ -61,7 +60,6 @@ class TriggerTypeAPI(BaseAPI):
                 'type': 'string'
             },
             'content_pack': {
-                'description': 'The content pack this sensor belongs to.',
                 'type': 'string'
             },
             'description': {
@@ -101,6 +99,9 @@ class TriggerAPI(BaseAPI):
             'name': {
                 'type': 'string'
             },
+            'content_pack': {
+                'type': 'string'
+            },
             'type': {
                 'type': 'string'
             },
@@ -123,9 +124,7 @@ class TriggerAPI(BaseAPI):
     @classmethod
     def to_model(cls, trigger):
         model = super(cls, cls).to_model(trigger)
-        # assign a name if none is provided.
-        model.name = trigger.name if hasattr(trigger, 'name') and trigger.name else \
-            str(uuid.uuid4())
+        model.content_pack = getattr(trigger, 'content_pack', None)
         model.parameters = getattr(trigger, 'parameters', None)
         return model
 

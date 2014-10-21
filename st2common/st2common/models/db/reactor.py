@@ -35,12 +35,14 @@ class TriggerTypeDB(StormBaseDB, ContentPackResourceMixin):
     parameters_schema = me.DictField(default={})
 
 
-class TriggerDB(StormBaseDB):
+class TriggerDB(StormBaseDB, ContentPackResourceMixin):
     """
     Attribute:
+        content_pack - Name of the content pack this trigger belongs to.
         type - Reference to the TriggerType object.
         parameters - Trigger parameters.
     """
+    content_pack = me.StringField(required=True, unique_with='name')
     type = me.StringField()
     parameters = me.DictField()
 
