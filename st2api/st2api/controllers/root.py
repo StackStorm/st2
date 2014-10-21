@@ -3,6 +3,7 @@ from pecan import expose
 from st2api.controllers.actions import ActionsController
 from st2api.controllers.actionexecutions import ActionExecutionsController
 from st2api.controllers.runnertypes import RunnerTypesController
+from st2api.controllers.sensors import SensorTypeController
 from st2api.controllers.triggers import TriggerTypeController, TriggerController, \
     TriggerInstanceController
 from st2api.controllers.rules import RuleController
@@ -14,6 +15,7 @@ class RootController(object):
     actions = ActionsController()
     actionexecutions = ActionExecutionsController()
     runnertypes = RunnerTypesController()
+    sensortypes = SensorTypeController()
     triggertypes = TriggerTypeController()
     triggers = TriggerController()
     triggerinstances = TriggerInstanceController()

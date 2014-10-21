@@ -13,10 +13,12 @@ from st2tests import DbTestCase
 MOCK_TRIGGER = TriggerDB()
 MOCK_TRIGGER.id = bson.ObjectId()
 MOCK_TRIGGER.name = 'trigger-test.name'
+MOCK_TRIGGER.content_pack = 'dummy_pack_1'
+MOCK_TRIGGER.type = 'system.test'
 
 MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
 MOCK_TRIGGER_INSTANCE.id = bson.ObjectId()
-MOCK_TRIGGER_INSTANCE.trigger = reference.get_ref_from_model(MOCK_TRIGGER)
+MOCK_TRIGGER_INSTANCE.trigger = MOCK_TRIGGER.get_reference().ref
 MOCK_TRIGGER_INSTANCE.payload = {'p1': 'v1'}
 MOCK_TRIGGER_INSTANCE.occurrence_time = datetime.datetime.utcnow()
 
@@ -44,7 +46,7 @@ class FilterTest(DbTestCase):
     def test_empty_criteria(self):
         rule = MOCK_RULE_1
         rule.criteria = {}
-        f = RuleFilter(MOCK_TRIGGER_INSTANCE, rule)
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), 'equals check should have failed.')
 
     def test_empty_payload(self):
@@ -52,7 +54,7 @@ class FilterTest(DbTestCase):
         rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': 'v1'}}
         trigger_instance = copy.deepcopy(MOCK_TRIGGER_INSTANCE)
         trigger_instance.payload = None
-        f = RuleFilter(trigger_instance, rule)
+        f = RuleFilter(trigger_instance, MOCK_TRIGGER, rule)
         self.assertFalse(f.filter(), 'equals check should have failed.')
 
     def test_empty_criteria_and_empty_payload(self):
@@ -60,29 +62,29 @@ class FilterTest(DbTestCase):
         rule.criteria = {}
         trigger_instance = copy.deepcopy(MOCK_TRIGGER_INSTANCE)
         trigger_instance.payload = None
-        f = RuleFilter(trigger_instance, rule)
+        f = RuleFilter(trigger_instance, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), 'equals check should have failed.')
 
     def test_matchregex_operator_pass_criteria(self):
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.p1': {'type': 'matchregex', 'pattern': 'v1$'}}
-        f = RuleFilter(MOCK_TRIGGER_INSTANCE, rule)
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), 'Failed to pass evaluation.')
 
     def test_matchregex_operator_fail_criteria(self):
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.p1': {'type': 'matchregex', 'pattern': 'v$'}}
-        f = RuleFilter(MOCK_TRIGGER_INSTANCE, rule)
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertFalse(f.filter(), 'regex check should have failed.')
 
     def test_equals_operator_pass_criteria(self):
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': 'v1'}}
-        f = RuleFilter(MOCK_TRIGGER_INSTANCE, rule)
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), 'regex check should have failed.')
 
     def test_equals_operator_fail_criteria(self):
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': 'v'}}
-        f = RuleFilter(MOCK_TRIGGER_INSTANCE, rule)
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertFalse(f.filter(), 'equals check should have failed.')

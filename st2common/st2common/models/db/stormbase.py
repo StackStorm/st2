@@ -3,6 +3,14 @@ import datetime
 import mongoengine as me
 
 from st2common.util import mongoescape
+from st2common.models.system.common import ResourceReference
+
+__all__ = [
+    'StormFoundationDB',
+    'StormBaseDB',
+    'EscapedDictField',
+    'ContentPackResourceMixin'
+]
 
 
 class StormFoundationDB(me.Document):
@@ -69,3 +77,20 @@ class EscapedDynamicField(me.DynamicField):
     def to_python(self, value):
         value = super(EscapedDynamicField, self).to_python(value)
         return mongoescape.unescape_chars(value)
+
+
+class ContentPackResourceMixin(object):
+    """
+    Mixin class which provides utility methods for models which contain
+    a "content_pack" attribute.
+    """
+
+    def get_reference(self):
+        """
+        Retrieve referene object for this model.
+
+        :rtype: :class:`ResourceReference`
+        """
+        ref = ResourceReference(pack=self.content_pack,
+                                name=self.name)
+        return ref

@@ -8,12 +8,13 @@ LOG = logging.getLogger('st2reactor.ruleenforcement.filter')
 
 
 class RuleFilter(object):
-    def __init__(self, trigger_instance, rule):
+    def __init__(self, trigger_instance, trigger, rule):
         self.trigger_instance = trigger_instance
+        self.trigger = trigger
         self.rule = rule
 
     def filter(self):
-        LOG.info('Validating rule %s for %s.', self.rule.id, self.trigger_instance.trigger['name'])
+        LOG.info('Validating rule %s for %s.', self.rule.id, self.trigger['name'])
         if not self.rule.enabled:
             return False
 
@@ -34,7 +35,7 @@ class RuleFilter(object):
 
         if not is_rule_applicable:
             LOG.debug('Rule %s not applicable for %s.', self.rule.id,
-                      self.trigger_instance.trigger['name'])
+                      self.trigger['name'])
 
         return is_rule_applicable
 

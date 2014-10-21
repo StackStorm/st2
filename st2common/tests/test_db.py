@@ -183,6 +183,7 @@ class ReactorModelTest(DbTestCase):
     @staticmethod
     def _create_save_triggertype():
         created = TriggerTypeDB()
+        created.content_pack = 'dummy_pack_1'
         created.name = 'triggertype-1'
         created.description = ''
         created.payload_schema = {}

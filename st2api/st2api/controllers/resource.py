@@ -9,6 +9,8 @@ from six.moves import http_client
 
 from st2common.models.base import jsexpose
 from st2common import log as logging
+from st2common.models.system.common import InvalidResourceReferenceError
+from st2common.models.system.common import ResourceReference
 
 
 LOG = logging.getLogger(__name__)
@@ -34,6 +36,29 @@ class ResourceController(rest.RestController):
     def __init__(self):
         self.supported_filters = copy.deepcopy(self.__class__.supported_filters)
         self.supported_filters.update(RESERVED_QUERY_PARAMS)
+
+    @jsexpose()
+    def get_all(self, **kwargs):
+        return self._get_all(**kwargs)
+
+    @jsexpose(str)
+    def get_one(self, id):
+        LOG.info('GET %s with id=%s', pecan.request.path, id)
+
+        instance = None
+        try:
+            instance = self.access.get(id=id)
+        except ValidationError:
+            instance = None  # Someone supplied a mongo non-comformant id.
+
+        if not instance:
+            msg = 'Unable to identify resource with id "%s".' % id
+            pecan.abort(http_client.NOT_FOUND, msg)
+
+        result = self.model.from_model(instance)
+        LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
+
+        return result
 
     def _get_all(self, **kwargs):
         sort = kwargs.get('sort').split(',') if kwargs.get('sort') else []
@@ -66,25 +91,22 @@ class ResourceController(rest.RestController):
 
         return [self.model.from_model(instance) for instance in instances[offset:eop]]
 
+
+class ContentPackResourceControler(ResourceController):
     @jsexpose()
     def get_all(self, **kwargs):
-        return self._get_all(**kwargs)
+        ref = kwargs.get('ref', None)
 
-    @jsexpose(str)
-    def get_one(self, id):
-        LOG.info('GET %s with id=%s', pecan.request.path, id)
 
-        instance = None
-        try:
-            instance = self.access.get(id=id)
-        except ValidationError:
-            instance = None  # Someone supplied a mongo non-comformant id.
+        if ref:
+            try:
+                ref_obj = ResourceReference.from_string_reference(ref=ref)
+            except InvalidResourceReferenceError:
+                # Invalid reference
+                return []
 
-        if not instance:
-            msg = 'Unable to identify resource with id "%s".' % id
-            pecan.abort(http_client.NOT_FOUND, msg)
+            kwargs['name'] = ref_obj.name
+            kwargs['content_pack'] = ref_obj.pack
+            del kwargs['ref']
 
-        result = self.model.from_model(instance)
-        LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
-
-        return result
+        return super(ContentPackResourceControler, self)._get_all(**kwargs)

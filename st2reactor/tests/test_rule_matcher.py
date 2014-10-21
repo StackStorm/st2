@@ -4,6 +4,7 @@ from st2common.models.db.reactor import (TriggerDB, TriggerTypeDB)
 from st2common.models.api.reactor import (RuleAPI, TriggerAPI)
 from st2common.persistence.reactor import (TriggerType, Trigger, Rule)
 from st2common.services import triggers as TriggerService
+from st2common.services.triggers import get_trigger_db
 from st2common.util import reference
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.matcher import RulesMatcher
@@ -13,19 +14,23 @@ from st2tests.base import DbTestCase
 class RuleMatcherTest(DbTestCase):
 
     def test_get_matching_rules(self):
-        self._setup_sample_triggers('st2.test.trigger1')
+        self._setup_sample_trigger('st2.test.trigger1')
         trigger_instance = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.utcnow()
+            {'name': 'st2.test.trigger1', 'content_pack': 'dummy_pack_1'},
+            {'k1': 't1_p_v', 'k2': 'v2'},
+            datetime.datetime.utcnow()
         )
+        trigger = get_trigger_db(trigger=trigger_instance.trigger)
         rules = self._get_sample_rules()
-        rules_matcher = RulesMatcher(trigger_instance, rules)
+        rules_matcher = RulesMatcher(trigger_instance, trigger, rules)
         matching_rules = rules_matcher.get_matching_rules()
         self.assertTrue(matching_rules is not None)
         self.assertEqual(len(matching_rules), 1)
 
-    def _setup_sample_triggers(self, name):
+    def _setup_sample_trigger(self, name):
         trigtype = TriggerTypeDB()
         trigtype.name = name
+        trigtype.content_pack = 'dummy_pack_1'
         trigtype.description = ''
         trigtype.payload_schema = {}
         trigtype.parameters_schema = {}
@@ -33,8 +38,9 @@ class RuleMatcherTest(DbTestCase):
 
         created = TriggerDB()
         created.name = name
+        created.content_pack = 'dummy_pack_1'
         created.description = ''
-        created.type = reference.get_ref_from_model(trigtype)
+        created.type = trigtype.get_reference().ref
         created.parameters = {}
         Trigger.add_or_update(created)
 
@@ -45,7 +51,7 @@ class RuleMatcherTest(DbTestCase):
             'enabled': True,
             'name': 'st2.test.rule1',
             'trigger': {
-                'type': 'st2.test.trigger1'
+                'type': 'dummy_pack_1.st2.test.trigger1'
             },
             'criteria': {
                 'k1': {                     # Missing prefix 'trigger'. This rule won't match.
@@ -76,7 +82,7 @@ class RuleMatcherTest(DbTestCase):
             'enabled': True,
             'name': 'st2.test.rule2',
             'trigger': {
-                'type': 'st2.test.trigger1'
+                'type': 'dummy_pack_1.st2.test.trigger1'
             },
             'criteria': {
                 'trigger.k1': {
@@ -104,7 +110,7 @@ class RuleMatcherTest(DbTestCase):
             'enabled': False,         # Disabled rule shouldn't match.
             'name': 'st2.test.rule3',
             'trigger': {
-                'type': 'st2.test.trigger1'
+                'type': 'dummy_pack_1.st2.test.trigger1'
             },
             'criteria': {
                 'trigger.k1': {
