@@ -9,9 +9,14 @@ class SensorBranch(resource.ResourceBranch):
             parent_parser=parent_parser,
             read_only=True,
             commands={
-                'list': SensorListCommand
+                'list': SensorListCommand,
+                'get': SensorGetCommand
             })
 
 
 class SensorListCommand(resource.ResourceListCommand):
     display_attributes = ['id', 'content_pack', 'name', 'description']
+
+
+class SensorGetCommand(resource.ContentPackResourceGetCommand):
+    display_attributes = ['all']
