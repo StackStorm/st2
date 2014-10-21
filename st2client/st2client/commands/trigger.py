@@ -8,9 +8,14 @@ class TriggerBranch(resource.ResourceBranch):
             Trigger, description, app, subparsers,
             parent_parser=parent_parser,
             commands={
-                'list': TriggerListCommand
+                'list': TriggerListCommand,
+                'get': TriggerGetCommand
             })
 
 
 class TriggerListCommand(resource.ResourceListCommand):
     display_attributes = ['id', 'content_pack', 'name', 'description']
+
+
+class TriggerGetCommand(resource.ContentPackResourceGetCommand):
+    display_attributes = ['all']

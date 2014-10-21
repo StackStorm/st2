@@ -8,45 +8,28 @@ from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInst
 from st2common.models.base import jsexpose
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance
 from st2common.services import triggers as TriggerService
+from st2api.controllers.resource import ContentPackResourceControler
 
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
 
-class TriggerTypeController(RestController):
+class TriggerTypeController(ContentPackResourceControler):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of TriggerTypes in the system.
     """
-    @jsexpose(str)
-    def get_one(self, triggertype_id):
+    model = TriggerTypeAPI
+    access = TriggerType
+    supported_filters = {
+        'name': 'name',
+        'content_pack': 'content_pack'
+    }
 
-        """
-            List triggertype by id.
-
-            Handle:
-                GET /triggertypes/1
-        """
-        LOG.info('GET /triggertypes/ with id=%s', id)
-        triggertype_db = TriggerTypeController.__get_by_id(triggertype_id)
-        triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
-        LOG.debug('GET /triggertypes/ with id=%s, client_result=%s', id, triggertype_api)
-        return triggertype_api
-
-    @jsexpose(str)
-    def get_all(self, **kw):
-        """
-            List all triggertypes.
-
-            Handles requests:
-                GET /triggertypes/
-        """
-        LOG.info('GET all /triggertypes/ with filters=%s', kw)
-        triggertype_dbs = TriggerType.get_all(**kw)
-        triggertype_apis = [TriggerTypeAPI.from_model(triggertype_db) for triggertype_db in
-                            triggertype_dbs]
-        return triggertype_apis
+    options = {
+        'sort': ['content_pack', 'name']
+    }
 
     @jsexpose(body=TriggerTypeAPI, status_code=http_client.CREATED)
     def post(self, triggertype):

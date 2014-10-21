@@ -95,8 +95,14 @@ class ContentPackResourceControler(ResourceController):
     def get_all(self, **kwargs):
         ref = kwargs.get('ref', None)
 
+
         if ref:
-            ref_obj = ResourceReference.from_string_reference(ref=ref)
+            try:
+                ref_obj = ResourceReference.from_string_reference(ref=ref)
+            except IndexError:
+                # Invalid reference
+                return []
+
             kwargs['name'] = ref_obj.name
             kwargs['content_pack'] = ref_obj.pack
             del kwargs['ref']

@@ -217,7 +217,12 @@ class ContentPackResourceGetCommand(ResourceGetCommand):
 
     def get_resource(self, ref_or_id, **kwargs):
         query_params = {'ref': ref_or_id}
-        instance = self.manager.query(**query_params)[0]
+
+        try:
+            instance = self.manager.query(**query_params)[0]
+        except IndexError:
+            instance = None
+
         if not instance:
             try:
                 instance = self.manager.get_by_id(ref_or_id, **kwargs)
@@ -226,7 +231,7 @@ class ContentPackResourceGetCommand(ResourceGetCommand):
         if not instance:
             message = ('Resource with id or name "%s" doesn\'t exist.' %
                        (ref_or_id))
-            raise resource.ResourceNotFoundError(message)
+            raise ResourceNotFoundError(message)
         return instance
 
 
