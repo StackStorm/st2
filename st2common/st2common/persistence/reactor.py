@@ -4,9 +4,21 @@ from st2common.persistence import Access
 from st2common.models.db.reactor import sensor_type_access
 from st2common.models.db.reactor import triggertype_access, trigger_access, triggerinstance_access,\
     rule_access, ruleenforcement_access
+from st2common.models.system.common import ResourceReference
 
 
-class SensorType(Access):
+class ContentPackResourceMixin():
+    def get_by_ref(cls, ref):
+        if not ref:
+            return None
+
+        ref_obj = ResourceReference.from_string_reference(ref=ref)
+        result = cls.query(name=ref_obj.name,
+                           content_pack=ref_obj.pack).first()
+        return result
+
+
+class SensorType(Access, ContentPackResourceMixin):
     impl = sensor_type_access
 
     @classmethod
@@ -14,7 +26,7 @@ class SensorType(Access):
         return kls.impl
 
 
-class TriggerType(Access):
+class TriggerType(Access, ContentPackResourceMixin):
     impl = triggertype_access
 
     @classmethod
@@ -22,7 +34,7 @@ class TriggerType(Access):
         return kls.impl
 
 
-class Trigger(Access):
+class Trigger(Access, ContentPackResourceMixin):
     impl = trigger_access
     publisher = None
 

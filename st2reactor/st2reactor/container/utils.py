@@ -11,12 +11,23 @@ LOG = logging.getLogger('st2reactor.sensor.container_utils')
 
 
 def create_trigger_instance(trigger, payload, occurrence_time):
+    """
+    :param trigger: Dictionary with trigger query filters.
+    :type trigger: ``dict``
+
+    :param payload: Trigger payload.
+    :type payload: ``dict``
+    """
+    # TODO: This is nasty, this should take a unique reference and not a dict
     trigger_db = TriggerService.get_trigger_db(trigger)
     if trigger_db is None:
         LOG.info('No trigger in db for %s', trigger)
         return None
+
+    trigger_ref = trigger_db.get_reference().ref
+
     trigger_instance = TriggerInstanceDB()
-    trigger_instance.trigger = reference.get_ref_from_model(trigger_db)
+    trigger_instance.trigger = trigger_ref
     trigger_instance.payload = payload
     trigger_instance.occurrence_time = occurrence_time
     return TriggerInstance.add_or_update(trigger_instance)
