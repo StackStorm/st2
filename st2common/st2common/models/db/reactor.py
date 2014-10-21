@@ -18,7 +18,7 @@ class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
     content_pack = me.StringField(required=True, unique_with='name')
     artifact_uri = me.StringField()
     entry_point = me.StringField()
-    trigger_types = me.ListField()
+    trigger_types = me.ListField(field=me.StringField())
 
 
 class TriggerTypeDB(StormBaseDB, ContentPackResourceMixin):
