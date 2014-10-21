@@ -1,9 +1,10 @@
 import mongoengine as me
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
+from st2common.models.db.stormbase import ContentPackResourceMixin
 
 
-class SensorTypeDB(StormBaseDB):
+class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
     """
     Description of a specific type of a sensor (think of it as a sensor
     template).
@@ -12,7 +13,7 @@ class SensorTypeDB(StormBaseDB):
         content_pack - Name of the content pack this sensor belongs to.
         artifact_uri - URI to the artifact file.
         entry_point - Full path to the sensor entry point (e.g. module.foo.ClassSensor).
-        trigger_type - A list of trigger types exposed by this sensor.
+        trigger_type - A list of references to the TriggerTypeDB objects exposed by this sensor.
     """
     content_pack = me.StringField(required=True, unique_with='name')
     artifact_uri = me.StringField()
@@ -20,7 +21,7 @@ class SensorTypeDB(StormBaseDB):
     trigger_types = me.ListField()
 
 
-class TriggerTypeDB(StormBaseDB):
+class TriggerTypeDB(StormBaseDB, ContentPackResourceMixin):
     """Description of a specific kind/type of a trigger. The
        (content_pack, name) tuple is expected uniquely identify a trigger in
        the namespace of all triggers provided by a specific trigger_source.
