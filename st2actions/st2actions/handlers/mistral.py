@@ -1,9 +1,9 @@
 import json
 import requests
 
-from st2common.models.api import action
-from st2actions import handlers
+from st2common.constants import action
 from st2common import log as logging
+from st2actions import handlers
 
 
 LOG = logging.getLogger(__name__)

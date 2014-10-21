@@ -9,7 +9,7 @@ mongoengine
 oslo.config
 paramiko
 pbr>=0.5.21,<1.0
-pecan
+pecan==0.7.0
 prettytable
 pymongo
 python-dateutil

@@ -4,7 +4,7 @@ from unittest2 import TestCase
 
 from st2actions.runners import pythonrunner
 from st2actions.container import service
-from st2common.models.api.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 import st2tests.config as tests_config
 
 

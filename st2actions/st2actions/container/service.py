@@ -4,7 +4,7 @@ import pipes
 
 from oslo.config import cfg
 
-from st2actions.constants import LIBS_DIR as ACTION_LIBS_DIR
+from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common import log as logging
 
 LOG = logging.getLogger(__name__)

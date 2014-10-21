@@ -1,11 +1,13 @@
 """
 Command-line interface to Stanley
 """
+
 from __future__ import print_function
 
 import sys
 import argparse
 import logging
+import traceback
 
 from st2client import models
 from st2client.client import Client
@@ -23,7 +25,6 @@ LOG = logging.getLogger(__name__)
 class Shell(object):
 
     def __init__(self):
-
         # Set up of endpoints is delayed until program is run.
         self.client = None
 
@@ -69,6 +70,14 @@ class Shell(object):
             help='Path to the CA cert bundle for the SSL endpoints. '
                  'Get ST2_CACERT from the environment variables by default. '
                  'If this is not provided, then SSL cert will not be verified.'
+        )
+
+        self.parser.add_argument(
+            '--debug',
+            action='store_true',
+            dest='debug',
+            default=False,
+            help='Enable debug mode'
         )
 
         # Set up list of commands and subcommands.
@@ -130,6 +139,11 @@ class Shell(object):
             return 0
         except Exception as e:
             print('ERROR: %s\n' % e)
+
+            debug = getattr(args, 'debug', False)
+            if debug:
+                traceback.print_exc()
+
             return 1
 
 
