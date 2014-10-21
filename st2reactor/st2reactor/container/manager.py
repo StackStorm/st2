@@ -6,6 +6,7 @@ from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import Trigger
 from st2common.util.config_parser import ContentPackConfigParser
+from st2common.content.validators import validate_content_pack_name
 from st2common.constants.content_pack import SYSTEM_PACK_NAME
 from st2reactor.container.base import SensorContainer
 from st2reactor.container.service import ContainerService
@@ -43,6 +44,7 @@ class SensorContainerManager(object):
                 if content_pack:
                     # TODO: Don't parse the same config multiple times when we
                     # are referring to sensors from the same pack
+                    content_pack = validate_content_pack_name(name=content_pack)
                     config_parser = ContentPackConfigParser(content_pack_name=content_pack)
                     config = config_parser.get_sensor_config(sensor_file_path=filename)
 
