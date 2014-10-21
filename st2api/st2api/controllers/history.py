@@ -30,8 +30,8 @@ class ActionExecutionHistoryController(resource.ResourceController):
             action_name = ActionReference.get_name(action_ref)
             action_pack = ActionReference.get_pack(action_ref)
             del kw['action']
-            kw['action_name'] = action_name
-            kw['action_pack'] = action_pack
+            kw['action.name'] = action_name
+            kw['action.pack'] = action_pack
 
         return super(ActionExecutionHistoryController, self)._get_all(**kw)
 

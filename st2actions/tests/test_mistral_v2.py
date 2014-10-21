@@ -63,8 +63,7 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=EXECUTION))
     def test_launch_workflow(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WORKFLOW_YAML)
-        execution = ActionExecutionDB(
-            action={'name': 'workflow-v2'}, parameters={'friend': 'Rocky'})
+        execution = ActionExecutionDB(ref='core.workflow-v2', parameters={'friend': 'Rocky'})
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
@@ -80,8 +79,7 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=EXECUTION))
     def test_launch_workflow_when_definition_changed(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WORKFLOW_YAML)
-        execution = ActionExecutionDB(
-            action={'name': 'workflow-v2'}, parameters={'friend': 'Rocky'})
+        execution = ActionExecutionDB(ref='core.workflow-v2', parameters={'friend': 'Rocky'})
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
@@ -96,8 +94,7 @@ class TestMistralRunner(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=EXECUTION))
     def test_launch_workflow_when_workbook_not_exists(self):
-        execution = ActionExecutionDB(
-            action={'name': 'workflow-v2'}, parameters={'friend': 'Rocky'})
+        execution = ActionExecutionDB(ref='core.workflow-v2', parameters={'friend': 'Rocky'})
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
@@ -107,7 +104,7 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
     def test_callback(self):
         execution = ActionExecutionDB(
-            action={'name': 'local'}, parameters={'cmd': 'uname -a'},
+            ref='core.local', parameters={'cmd': 'uname -a'},
             callback={'source': 'mistral', 'url': 'http://localhost:8989/v2/tasks/12345'})
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
