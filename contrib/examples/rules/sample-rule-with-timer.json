@@ -14,7 +14,7 @@
     "criteria": {},
 
     "action": {
-        "name": "local",
+        "ref": "core.local",
         "parameters": {
             "cmd": "echo \"{{trigger.executed_at}}\""
         }

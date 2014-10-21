@@ -15,6 +15,7 @@ __all__ = [
 
 ACTION_NAME = 'name'
 ACTION_ID = 'id'
+ACTION_PACK = 'content_pack'
 
 LIBS_DIR = 'lib'
 

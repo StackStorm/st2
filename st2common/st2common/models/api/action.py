@@ -206,19 +206,9 @@ class ActionExecutionAPI(BaseAPI):
                 "type": "string",
                 "pattern": isotime.ISO8601_UTC_REGEX
             },
-            "action": {
-                "description": "The action to be executed.",
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "description": "The unique identifier for the action.",
-                        "type": "string"
-                    },
-                    "name": {
-                        "description": "The name of the action.",
-                        "type": "string"
-                    }
-                }
+            "ref": {
+                "description": "Reference to the action to be executed.",
+                "type": "string"
             },
             "parameters": {
                 "description": "Input parameters for the action.",
@@ -251,7 +241,7 @@ class ActionExecutionAPI(BaseAPI):
                 "type": "object"
             }
         },
-        "required": ["action"],
+        "required": ["ref"],
         "additionalProperties": False
     }
 
@@ -265,7 +255,7 @@ class ActionExecutionAPI(BaseAPI):
     @classmethod
     def to_model(cls, execution):
         model = super(cls, cls).to_model(execution)
-        model.action = execution.action
+        model.ref = execution.ref
         if getattr(execution, 'start_timestamp', None):
             model.start_timestamp = isotime.parse(execution.start_timestamp)
         model.status = getattr(execution, 'status', None)

@@ -29,16 +29,14 @@ MOCK_RULE_1.id = bson.ObjectId()
 MOCK_RULE_1.name = "some1"
 MOCK_RULE_1.trigger = reference.get_ref_from_model(MOCK_TRIGGER)
 MOCK_RULE_1.criteria = {}
-MOCK_RULE_1.action = ActionExecutionSpecDB(name="some")
-MOCK_RULE_1.action.action = reference.get_ref_from_model(MOCK_ACTION)
+MOCK_RULE_1.action = ActionExecutionSpecDB(ref="somepack.someaction")
 
 MOCK_RULE_2 = RuleDB()
 MOCK_RULE_2.id = bson.ObjectId()
 MOCK_RULE_1.name = "some2"
 MOCK_RULE_2.trigger = reference.get_ref_from_model(MOCK_TRIGGER)
 MOCK_RULE_2.criteria = {}
-MOCK_RULE_2.action = ActionExecutionSpecDB(name="some")
-MOCK_RULE_2.action.action = reference.get_ref_from_model(MOCK_ACTION)
+MOCK_RULE_2.action = ActionExecutionSpecDB(name="somepack.someaction")
 
 
 @mock.patch.object(reference, 'get_model_from_ref', mock.MagicMock(return_value=MOCK_TRIGGER))

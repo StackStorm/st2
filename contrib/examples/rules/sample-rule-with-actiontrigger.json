@@ -20,7 +20,7 @@
     },
 
     "action": {
-        "name": "local",
+        "ref": "core.local",
         "parameters": {
             "cmd": "echo \"{{trigger.start_timestamp}}\""
         }

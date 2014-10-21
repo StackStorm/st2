@@ -14,6 +14,7 @@ from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
+from st2common.models.system.common import ResourceReference
 import st2common.validators.api.action as action_validator
 
 http_client = six.moves.http_client
@@ -35,7 +36,7 @@ class ActionsController(resource.ResourceController):
         'pack': 'content_pack'
     }
 
-    options = {
+    query_options = {
         'sort': ['content_pack', 'name']
     }
 
@@ -48,14 +49,25 @@ class ActionsController(resource.ResourceController):
             LOG.exception(msg)
             abort(http_client.NOT_FOUND, msg)
 
-    @staticmethod
-    def _get_by_name(name):
-        try:
-            action = Action.get_by_name(name)
-            return [action]
-        except Exception as e:
-            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
-            return []
+    def _get_actions(self, **kw):
+        action_ref = kw.get('ref', None)
+
+        if action_ref:
+            kw['name'] = ResourceReference.get_name(action_ref)
+            kw['content_pack'] = ResourceReference.get_pack(action_ref)
+            del kw['ref']
+        return super(ActionsController, self)._get_all(**kw)
+
+    @jsexpose()
+    def get_all(self, **kw):
+        """
+            List all actions.
+
+            Handles requests:
+                GET /actions
+        """
+        LOG.info('GET all /actions/ with filters=%s', kw)
+        return self._get_actions(**kw)
 
     @staticmethod
     def _validate_action_parameters(action, runnertype_db):

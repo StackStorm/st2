@@ -32,7 +32,8 @@ ACTION1 = {
     "parameters": {},
     "required_parameters": [],
     "enabled": True,
-    "entry_point": ""
+    "entry_point": "",
+    "content_pack": "mockety"
 }
 
 RUNNER2 = {
@@ -53,11 +54,12 @@ ACTION2 = {
     },
     "required_parameters": [],
     "enabled": True,
-    "entry_point": ""
+    "entry_point": "",
+    "content_pack": "mockety"
 }
 
 ACTION_EXECUTION = {
-    'action': {'name': 'mock'},
+    'ref': 'mockety.mock',
     'status': 'complete'
 }
 
@@ -65,12 +67,20 @@ ACTION_EXECUTION = {
 def get_by_name(name, **kwargs):
     if name == 'mock-runner1':
         return models.RunnerType(**RUNNER1)
-    if name == 'mock1':
-        return models.Action(**ACTION1)
     if name == 'mock-runner2':
         return models.RunnerType(**RUNNER2)
-    if name == 'mock2':
-        return models.Action(**ACTION2)
+
+
+def get_by_ref(**kwargs):
+    ref = kwargs.get('ref', None)
+
+    if not ref:
+        raise Exception('Actions must be referred to by "ref".')
+
+    if ref == 'mockety.mock1':
+        return [models.Action(**ACTION1)]
+    if ref == 'mockety.mock2':
+        return [models.Action(**ACTION2)]
 
 
 class TestShell(unittest2.TestCase):
@@ -92,16 +102,22 @@ class TestShell(unittest2.TestCase):
         sys.stderr = sys.__stderr__
 
     @mock.patch.object(
+        models.ResourceManager, 'query',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
         models.ResourceManager, 'get_by_name',
         mock.MagicMock(side_effect=get_by_name))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
     def test_runner_param_bool_conversion(self):
-        self.shell.run(['run', 'mock1', 'bool=false'])
-        expected = {'action': {'name': 'mock1'}, 'parameters': {'bool': False}}
+        self.shell.run(['run', 'mockety.mock1', 'bool=false'])
+        expected = {'ref': 'mockety.mock1', 'parameters': {'bool': False}}
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
+    @mock.patch.object(
+        models.ResourceManager, 'query',
+        mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
         mock.MagicMock(side_effect=get_by_name))
@@ -109,10 +125,13 @@ class TestShell(unittest2.TestCase):
         httpclient.HTTPClient, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
     def test_runner_param_integer_conversion(self):
-        self.shell.run(['run', 'mock1', 'int=30'])
-        expected = {'action': {'name': 'mock1'}, 'parameters': {'int': 30}}
+        self.shell.run(['run', 'mockety.mock1', 'int=30'])
+        expected = {'ref': 'mockety.mock1', 'parameters': {'int': 30}}
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
+    @mock.patch.object(
+        models.ResourceManager, 'query',
+        mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
         mock.MagicMock(side_effect=get_by_name))
@@ -120,10 +139,13 @@ class TestShell(unittest2.TestCase):
         httpclient.HTTPClient, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
     def test_runner_param_float_conversion(self):
-        self.shell.run(['run', 'mock1', 'float=3.01'])
-        expected = {'action': {'name': 'mock1'}, 'parameters': {'float': 3.01}}
+        self.shell.run(['run', 'mockety.mock1', 'float=3.01'])
+        expected = {'ref': 'mockety.mock1', 'parameters': {'float': 3.01}}
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
+    @mock.patch.object(
+        models.ResourceManager, 'query',
+        mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
         mock.MagicMock(side_effect=get_by_name))
@@ -131,10 +153,13 @@ class TestShell(unittest2.TestCase):
         httpclient.HTTPClient, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
     def test_runner_param_json_conversion(self):
-        self.shell.run(['run', 'mock1', 'json={"a":1}'])
-        expected = {'action': {'name': 'mock1'}, 'parameters': {'json': {'a': 1}}}
+        self.shell.run(['run', 'mockety.mock1', 'json={"a":1}'])
+        expected = {'ref': 'mockety.mock1', 'parameters': {'json': {'a': 1}}}
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
+    @mock.patch.object(
+        models.ResourceManager, 'query',
+        mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
         mock.MagicMock(side_effect=get_by_name))
@@ -142,10 +167,13 @@ class TestShell(unittest2.TestCase):
         httpclient.HTTPClient, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
     def test_param_bool_conversion(self):
-        self.shell.run(['run', 'mock2', 'bool=false'])
-        expected = {'action': {'name': 'mock2'}, 'parameters': {'bool': False}}
+        self.shell.run(['run', 'mockety.mock2', 'bool=false'])
+        expected = {'ref': 'mockety.mock2', 'parameters': {'bool': False}}
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
+    @mock.patch.object(
+        models.ResourceManager, 'query',
+        mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
         mock.MagicMock(side_effect=get_by_name))
@@ -153,10 +181,13 @@ class TestShell(unittest2.TestCase):
         httpclient.HTTPClient, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
     def test_param_integer_conversion(self):
-        self.shell.run(['run', 'mock2', 'int=30'])
-        expected = {'action': {'name': 'mock2'}, 'parameters': {'int': 30}}
+        self.shell.run(['run', 'mockety.mock2', 'int=30'])
+        expected = {'ref': 'mockety.mock2', 'parameters': {'int': 30}}
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
+    @mock.patch.object(
+        models.ResourceManager, 'query',
+        mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
         mock.MagicMock(side_effect=get_by_name))
@@ -164,10 +195,13 @@ class TestShell(unittest2.TestCase):
         httpclient.HTTPClient, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
     def test_param_float_conversion(self):
-        self.shell.run(['run', 'mock2', 'float=3.01'])
-        expected = {'action': {'name': 'mock2'}, 'parameters': {'float': 3.01}}
+        self.shell.run(['run', 'mockety.mock2', 'float=3.01'])
+        expected = {'ref': 'mockety.mock2', 'parameters': {'float': 3.01}}
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
+    @mock.patch.object(
+        models.ResourceManager, 'query',
+        mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
         mock.MagicMock(side_effect=get_by_name))
@@ -175,6 +209,6 @@ class TestShell(unittest2.TestCase):
         httpclient.HTTPClient, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
     def test_param_json_conversion(self):
-        self.shell.run(['run', 'mock2', 'json={"a":1}'])
-        expected = {'action': {'name': 'mock2'}, 'parameters': {'json': {'a': 1}}}
+        self.shell.run(['run', 'mockety.mock2', 'json={"a":1}'])
+        expected = {'ref': 'mockety.mock2', 'parameters': {'json': {'a': 1}}}
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)

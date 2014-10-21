@@ -4,10 +4,11 @@ from mongoengine import ValidationError
 import six
 
 from st2common import log as logging
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.persistence.action import (RunnerType, Action, ActionExecution)
 from st2common.constants.action import (ACTIONEXEC_STATUSES,
-                                        ACTION_ID, ACTION_NAME)
+                                        ACTION_ID, ACTION_NAME, ACTION_PACK)
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.models.system.common import ResourceReference
+from st2common.persistence.action import (RunnerType, Action, ActionExecution)
 
 LOG = logging.getLogger(__name__)
 
@@ -74,23 +75,13 @@ def get_action_by_id(action_id):
     return action
 
 
-def get_action_by_name(action_name):
+def _get_action_by_pack_and_name(pack=None, name=None):
     """
-        Get Action by name.
+        Get Action by name and pack.
 
-        On error, raise StackStormDBObjectNotFoundError
+        Query doesn't raise an exception.
     """
-    action = None
-
-    try:
-        action = Action.get_by_name(action_name)
-    except (ValueError, ValidationError) as e:
-        LOG.warning('Database lookup for action with name="%s" resulted in '
-                    'exception: %s', action_name, e)
-        raise StackStormDBObjectNotFoundError('Unable to find action with '
-                                              'name="%s"' % action_name)
-
-    return action
+    return Action.query(name=name, content_pack=pack).first()
 
 
 def get_actionexec_by_id(actionexec_id):
@@ -141,17 +132,30 @@ def get_action_by_dict(action_dict):
             return (action, action_dict)
 
     if ACTION_NAME in action_dict:
-        action_name = action_dict[ACTION_NAME]
-        try:
-            action = get_action_by_name(action_name)
+        if ACTION_PACK not in action_dict:
+            return (None, {})
+        name = action_dict[ACTION_NAME]
+        pack = action_dict[ACTION_PACK]
+
+        action = _get_action_by_pack_and_name(pack=pack, name=name)
+
+        if action:
             action_dict[ACTION_ID] = str(getattr(action, ACTION_ID))
-        except StackStormDBObjectNotFoundError:
-            LOG.info('Action not found by name.')
-        else:
             return (action, action_dict)
 
     # No action found by identifiers in action_dict.
     return (None, {})
+
+
+def get_action_by_ref(action_ref):
+    if (not isinstance(action_ref, str) and not isinstance(action_ref, unicode)
+            and not isinstance(action_ref, ResourceReference)):
+        raise Exception('Action reference has to be either str or ResourceReference.')
+
+    if isinstance(action_ref, str) or isinstance(action_ref, unicode):
+        action_ref = ResourceReference.from_string_reference(ref=action_ref)
+
+    return _get_action_by_pack_and_name(name=action_ref.name, pack=action_ref.pack)
 
 
 def update_actionexecution_status(new_status, actionexec_id=None, actionexec_db=None):

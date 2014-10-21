@@ -1,8 +1,11 @@
 import datetime
+
 import jsonschema
 import mock
 import mongoengine.connection
 from oslo.config import cfg
+
+from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import schema as util_schema
 from st2common.util import reference
@@ -212,7 +215,9 @@ class ReactorModelTest(DbTestCase):
         created.trigger = reference.get_ref_from_model(trigger)
         created.criteria = {}
         created.action = ActionExecutionSpecDB()
-        created.action.name = action.name
+        action_ref = ResourceReference(pack=action.content_pack, name=action.name).ref
+        created.action.ref = action_ref
+        created.action.content_pack = action.content_pack
         created.action.parameters = {}
         return Rule.add_or_update(created)
 

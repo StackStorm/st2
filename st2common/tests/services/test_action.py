@@ -8,6 +8,7 @@ from st2common.services import action as action_service
 from st2common.persistence.action import RunnerType, Action, ActionExecution
 from st2common.models.db.action import ActionExecutionDB
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
+from st2common.models.system.common import ResourceReference
 from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
 
 
@@ -37,7 +38,7 @@ ACTION = {
     }
 }
 
-ACTION_REF = {'name': 'my.action'}
+ACTION_REF = ResourceReference(name='my.action', pack='default').ref
 USERNAME = 'stanley'
 
 
@@ -61,13 +62,14 @@ class TestActionExecutionService(DbTestCase):
     def test_schedule(self):
         context = {'user': USERNAME}
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        request = ActionExecutionDB(action=ACTION_REF, context=context, parameters=parameters)
+        request = ActionExecutionDB(ref=ACTION_REF, context=context, parameters=parameters)
         request = action_service.schedule(request)
         execution = ActionExecution.get_by_id(str(request.id))
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
-        action = {'id': str(self.actiondb.id), 'name': self.actiondb.name}
-        self.assertDictEqual(execution.action, action)
+        action = '.'.join([self.actiondb.content_pack, self.actiondb.name])
+        actual_action = execution.ref
+        self.assertEqual(actual_action, action)
         self.assertEqual(execution.context['user'], request.context['user'])
         self.assertDictEqual(execution.parameters, request.parameters)
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_SCHEDULED)
@@ -77,19 +79,20 @@ class TestActionExecutionService(DbTestCase):
 
     def test_schedule_invalid_parameters(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'a': 123}
-        execution = ActionExecutionDB(action=ACTION_REF, parameters=parameters)
+        execution = ActionExecutionDB(ref=ACTION_REF, parameters=parameters)
         self.assertRaises(jsonschema.ValidationError, action_service.schedule, execution)
 
     def test_schedule_nonexistent_action(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        execution = ActionExecutionDB(action={'name': 'i.action'}, parameters=parameters)
+        action_ref = ResourceReference(name='i.action', pack='default').ref
+        execution = ActionExecutionDB(ref=action_ref, parameters=parameters)
         self.assertRaises(ValueError, action_service.schedule, execution)
 
     def test_schedule_disabled_action(self):
         self.actiondb.enabled = False
         Action.add_or_update(self.actiondb)
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        execution = ActionExecutionDB(action=ACTION_REF, parameters=parameters)
+        execution = ActionExecutionDB(ref=ACTION_REF, parameters=parameters)
         self.assertRaises(ValueError, action_service.schedule, execution)
         self.actiondb.enabled = True
         Action.add_or_update(self.actiondb)

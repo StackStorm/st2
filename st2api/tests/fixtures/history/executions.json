@@ -8,9 +8,7 @@
         "context": {
             "user": "system"
         },
-        "action": {
-            "name": "chain"
-        }
+        "ref": "core.chain"
     },
     "task1": {
         "status": "succeeded",
@@ -34,9 +32,7 @@
         "context": {
             "user": "system"
         },
-        "action": {
-            "name": "local"
-        }
+        "ref": "core.local"
     },
     "task2": {
         "status": "succeeded",
@@ -60,8 +56,6 @@
         "context": {
             "user": "system"
         },
-        "action": {
-            "name": "local"
-        }
+        "ref": "core.local"
     }
 }

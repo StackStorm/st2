@@ -48,9 +48,10 @@ class ActionRunCommand(resource.ResourceCommand):
             'A command to invoke an action manually.',
             *args, **kwargs)
 
-        self.parser.add_argument('name_or_id', nargs='?',
-                                 metavar='name-or-id',
-                                 help='Name or ID of the action.')
+        self.parser.add_argument('ref_or_id', nargs='?',
+                                 metavar='ref-or-id',
+                                 help='Fully qualified name (pack.action_name) ' +
+                                 'or ID of the action.')
         self.parser.add_argument('parameters', nargs='*',
                                  help='List of keyword args, positional args, '
                                       'and optional args for the action.')
@@ -66,15 +67,29 @@ class ActionRunCommand(resource.ResourceCommand):
         else:
             self.parser.set_defaults(async=True)
 
+    def get_resource(self, ref_or_id, **kwargs):
+        query_params = {'ref': ref_or_id}
+        instance = self.manager.query(**query_params)[0]
+        if not instance:
+            try:
+                instance = self.manager.get_by_id(ref_or_id, **kwargs)
+            except:
+                pass
+        if not instance:
+            message = ('Resource with id or name "%s" doesn\'t exist.' %
+                       (ref_or_id))
+            raise resource.ResourceNotFoundError(message)
+        return instance
+
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        if not args.name_or_id:
+        if not args.ref_or_id:
             self.parser.error('too few arguments')
 
-        action = self.get_resource(args.name_or_id, **kwargs)
+        action = self.get_resource(args.ref_or_id, **kwargs)
         if not action:
             raise resource.ResourceNotFoundError('Action "%s" cannot be found.'
-                                                 % args.name_or_id)
+                                                 % args.ref_or_id)
 
         runner_mgr = self.app.client.managers['RunnerType']
         runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
@@ -102,8 +117,9 @@ class ActionRunCommand(resource.ResourceCommand):
                     return transformer[param['type']](value)
             return value
 
+        action_ref = '.'.join([action.content_pack, action.name])
         execution = models.ActionExecution()
-        execution.action = {'name': action.name}
+        execution.ref = action_ref
         execution.parameters = dict()
         for idx in range(len(args.parameters)):
             arg = args.parameters[idx]
@@ -196,9 +212,9 @@ class ActionRunCommand(resource.ResourceCommand):
     def print_help(self, args, **kwargs):
         # Print appropriate help message if the help option is given.
         if args.help:
-            if args.name_or_id:
+            if args.ref_or_id:
                 try:
-                    action = self.get_resource(args.name_or_id, **kwargs)
+                    action = self.get_resource(args.ref_or_id, **kwargs)
                     runner_mgr = self.app.client.managers['RunnerType']
                     runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
                     parameters, required, optional, immutable = self._get_params_types(runner,
@@ -222,16 +238,16 @@ class ActionRunCommand(resource.ResourceCommand):
                             for name in optional]
                     if immutable:
                         immutable = self._sort_parameters(parameters=parameters,
-                                                         names=immutable)
+                                                          names=immutable)
 
                         print('Immutable parameters:')
                         [self.print_param(name, parameters.get(name))
                             for name in immutable]
                 except resource.ResourceNotFoundError:
-                    print('Action "%s" is not found.' % args.name_or_id)
+                    print('Action "%s" is not found.' % args.ref_or_id)
                 except Exception as e:
                     print('ERROR: Unable to print help for action "%s". %s' %
-                          (args.name_or_id, e))
+                          (args.ref_or_id, e))
             else:
                 self.parser.print_help()
             return True

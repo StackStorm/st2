@@ -2,7 +2,7 @@
     "chain": [
         {
             "name": "c1",
-            "action": "a2",
+            "ref": "wolfpack.a2",
             "params": {"inttype": "{{s1}}",
                        "strtype": "{{s2}}",
                        "numbertype": "{{s3}}",

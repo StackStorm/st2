@@ -134,6 +134,20 @@ ACTION_9 = {
     }
 }
 
+# Same name as ACTION_1. Different content_pack though.
+ACTION_10 = {
+    'name': 'st2.dummy.action1',
+    'description': 'test description',
+    'enabled': True,
+    'content_pack': 'wolfpack1',
+    'entry_point': '/tmp/test/action1.sh',
+    'runner_type': 'run-local',
+    'parameters': {
+        'a': {'type': 'string', 'default': 'A1'},
+        'b': {'type': 'string', 'default': 'B1'}
+    }
+}
+
 
 class TestActionController(FunctionalTest):
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
@@ -166,6 +180,21 @@ class TestActionController(FunctionalTest):
         resp = self.app.get('/actions')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 2, '/actions did not return all actions.')
+        self.__do_delete(action_1_id)
+        self.__do_delete(action_2_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_query(self):
+        action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
+        action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
+        resp = self.app.get('/actions?name=%s' % ACTION_1['name'])
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')
+        ref = '.'.join([ACTION_1['content_pack'], ACTION_1['name']])
+        resp = self.app.get('/actions?ref=%s' % ref)
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
 
@@ -232,7 +261,7 @@ class TestActionController(FunctionalTest):
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
-    def test_post_name_duplicate(self):
+    def test_post_duplicate(self):
         action_ids = []
 
         post_resp = self.__do_post(ACTION_1)
@@ -244,6 +273,11 @@ class TestActionController(FunctionalTest):
         post_resp = self.__do_post(ACTION_1, expect_errors=True)
         # Verify name conflict
         self.assertEqual(post_resp.status_int, 409)
+
+        post_resp = self.__do_post(ACTION_10)
+        action_ids.append(self.__get_action_id(post_resp))
+        # Verify action with same name but different pack is written.
+        self.assertEqual(post_resp.status_int, 201)
 
         for i in action_ids:
             self.__do_delete(i)
