@@ -7,7 +7,7 @@ import six
 
 from st2common import log as logging
 from st2common.content.loader import ContentPackLoader
-from st2common.content.requirementsvalidator import RequirementsValidator
+from st2common.content.validators import RequirementsValidator
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2reactor import config
