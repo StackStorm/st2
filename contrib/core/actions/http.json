@@ -20,7 +20,23 @@
             "type": "string"
         },
         "params": {
-            "type":"string"
+            "type": "string"
+        },
+        "file_path": {
+            "type": "string",
+            "description": "Path to the file to upload"
+        },
+        "file_name": {
+            "type": "string",
+            "description": "Magic attribute which is automatically populated when file_path is specified"
+        },
+        "file_content": {
+            "type": "string",
+            "description": "Magic attribute which is automatically populated when file_path is specified"
+        },
+        "file_content_type": {
+            "type": "string",
+            "description": "Optional content type for the uploaded file"
         }
     }
 }
