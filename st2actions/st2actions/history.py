@@ -69,10 +69,14 @@ class Historian(ConsumerMixin):
 
             if ('trigger_instance' in execution.context and
                     not getattr(history, 'trigger_instance', None)):
-                trigger_instance = reference.get_model_from_ref(
-                    TriggerInstance, execution.context.get('trigger_instance', {}))
-                trigger = Trigger.get_by_name(trigger_instance.trigger['name'])
-                trigger_type = TriggerType.get_by_name(trigger.type['name'])
+                trigger_instance_id = execution.context.get('trigger_instance', {})
+                trigger_instance_id = trigger_instance_id.get('id', None)
+
+                trigger_instance = TriggerInstance.get_by_id(trigger_instance_id)
+                trigger = reference.get_model_by_resource_ref(db_api=Trigger,
+                                                             ref=trigger_instance.trigger)
+                trigger_type = reference.get_model_by_resource_ref(db_api=TriggerType,
+                                                                   ref=trigger.type)
                 history.trigger_instance = vars(TriggerInstanceAPI.from_model(trigger_instance))
                 history.trigger = vars(TriggerAPI.from_model(trigger))
                 history.trigger_type = vars(TriggerTypeAPI.from_model(trigger_type))
