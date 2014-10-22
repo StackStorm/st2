@@ -7,7 +7,7 @@ from st2actions.runners.pythonrunner import Action
 
 ALL_PACKS = '*'
 PACK_REPO_ROOT = 'packs'
-MANIFEST_FILE = 'st2.yaml'
+MANIFEST_FILE = 'pack.yaml'
 PACK_RESERVE_CHARACTER = '.'
 
 
