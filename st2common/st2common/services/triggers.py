@@ -1,7 +1,7 @@
 from st2common import log as logging
 from st2common.models.api.reactor import TriggerAPI
-from st2common.persistence.reactor import Trigger
 from st2common.models.system.common import ResourceReference
+from st2common.persistence.reactor import Trigger
 
 LOG = logging.getLogger(__name__)
 
@@ -58,6 +58,21 @@ def get_trigger_db(trigger):
         raise Exception('Unrecognized object')
 
 
+def _get_trigger_api_given_rule(rule):
+    trigger = rule.trigger
+    triggertype_ref = ResourceReference.from_string_reference(trigger.get('type'))
+    trigger_dict = {}
+    trigger_name = trigger.get('name', None)
+    if trigger_name:
+        trigger_dict['name'] = trigger_name
+    trigger_dict['content_pack'] = triggertype_ref.pack
+    trigger_dict['type'] = triggertype_ref.ref
+    trigger_dict['parameters'] = rule.trigger.get('parameters', {})
+    trigger_api = TriggerAPI(**trigger_dict)
+
+    return trigger_api
+
+
 def create_trigger_db(trigger):
     trigger_api = trigger
     if isinstance(trigger, dict):
@@ -68,3 +83,8 @@ def create_trigger_db(trigger):
         LOG.debug('verified trigger and formulated TriggerDB=%s', trigger_db)
         trigger_db = Trigger.add_or_update(trigger_db)
     return trigger_db
+
+
+def create_trigger_db_from_rule(rule):
+    trigger_api = _get_trigger_api_given_rule(rule)
+    return create_trigger_db(trigger_api)

@@ -5,13 +5,9 @@ import six
 
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.models.api.reactor import RuleAPI, TriggerAPI
+from st2common.models.api.rule import RuleAPI
 from st2common.models.base import jsexpose
-from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import Rule
-from st2common.util import reference
-
-from st2common.services import triggers as TriggerService
 
 http_client = six.moves.http_client
 
@@ -63,10 +59,6 @@ class RuleController(RestController):
 
         try:
             rule_db = RuleAPI.to_model(rule)
-            trigger_api = self._get_trigger_api_from_rule(rule)
-            trigger_db = TriggerService.create_trigger_db(trigger_api)
-
-            rule_db.trigger = reference.get_str_resource_ref_from_model(trigger_db)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
             rule_db = Rule.add_or_update(rule_db)
         except (ValidationError, ValueError) as e:
@@ -102,12 +94,7 @@ class RuleController(RestController):
             old_rule_db = rule_db
             rule_db = RuleAPI.to_model(rule)
             rule_db.id = rule_id
-
-            trigger_db = TriggerService.create_trigger_db(TriggerAPI(**rule.trigger))
-            rule_db.trigger = reference.get_str_resource_ref_from_model(trigger_db)
-
             rule_db = Rule.add_or_update(rule_db)
-
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s', rule)
             abort(http_client.BAD_REQUEST, str(e))
@@ -138,20 +125,6 @@ class RuleController(RestController):
             return
 
         LOG.audit('Rule deleted. Rule=%s.', rule_db)
-
-    def _get_trigger_api_from_rule(self, rule):
-        trigger = rule.trigger
-        triggertype_ref = ResourceReference.from_string_reference(trigger.get('type'))
-        trigger_dict = {}
-        trigger_name = trigger.get('name', None)
-        if trigger_name:
-            trigger_dict['name'] = trigger_name
-        trigger_dict['content_pack'] = triggertype_ref.pack
-        trigger_dict['type'] = triggertype_ref.ref
-        trigger_dict['parameters'] = rule.trigger.get('parameters', {})
-        trigger_api = TriggerAPI(**trigger_dict)
-
-        return trigger_api
 
     @staticmethod
     def __get_by_id(rule_id):

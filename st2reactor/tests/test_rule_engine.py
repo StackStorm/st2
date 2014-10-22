@@ -4,7 +4,8 @@ import mock
 from mongoengine import NotUniqueError
 
 from st2common.models.db.reactor import (TriggerDB, TriggerTypeDB)
-from st2common.models.api.reactor import (RuleAPI, TriggerAPI)
+from st2common.models.api.reactor import TriggerAPI
+from st2common.models.api.rule import RuleAPI
 from st2common.persistence.reactor import (TriggerType, Trigger, Rule)
 from st2common.services import triggers as TriggerService
 from st2common.util import reference
