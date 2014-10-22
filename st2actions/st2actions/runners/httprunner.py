@@ -25,6 +25,9 @@ ACTION_BODY = 'body'
 ACTION_TIMEOUT = 'timeout'
 ACTION_METHOD = 'method'
 ACTION_QUERY_PARAMS = 'params'
+FILE_NAME = 'file_name'
+FILE_CONTENT = 'file_content'
+FILE_CONTENT_TYPE = 'file_content_type'
 
 
 def get_runner():
@@ -64,11 +67,26 @@ class HttpRunner(ActionRunner):
         timeout = float(action_parameters.get(ACTION_TIMEOUT, self._timeout))
         method = action_parameters.get(ACTION_METHOD, 'GET')
         params = action_parameters.get(ACTION_QUERY_PARAMS, None)
-        auth = action_parameters.get('ACTION_AUTH', {})
+        auth = action_parameters.get(ACTION_AUTH, {})
+
+        file_name = action_parameters.get(FILE_NAME, None)
+        file_content = action_parameters.get(FILE_CONTENT, None)
+        file_content_type = action_parameters.get(FILE_CONTENT_TYPE, None)
+
+        if file_name and file_content:
+            files = {}
+
+            if file_content_type:
+                value = (file_content, file_content_type)
+            else:
+                value = (file_content)
+
+            files[file_name] = value
+
         return HTTPClient(url=self._url, method=method, body=body, params=params,
                           headers=self._headers, cookies=self._cookies, auth=auth,
                           timeout=timeout, allow_redirects=self._redirects,
-                          proxies=self._proxies)
+                          proxies=self._proxies, files=files)
 
     @staticmethod
     def _get_result_status(status_code):
@@ -78,7 +96,8 @@ class HttpRunner(ActionRunner):
 
 class HTTPClient(object):
     def __init__(self, url=None, method=None, body='', params=None, headers=None, cookies=None,
-                 auth=None, timeout=60, allow_redirects=True, proxies=None):
+                 auth=None, timeout=60, allow_redirects=True, proxies=None,
+                 files=None):
         if url is None:
             raise Exception('URL must be specified.')
         self.url = url
@@ -94,6 +113,7 @@ class HTTPClient(object):
         self.timeout = timeout
         self.allow_redirects = allow_redirects
         self.proxies = proxies
+        self.files = files
 
     def run(self):
         results = {}
@@ -109,7 +129,8 @@ class HTTPClient(object):
                 auth=self.auth,
                 timeout=self.timeout,
                 allow_redirects=self.allow_redirects,
-                proxies=self.proxies
+                proxies=self.proxies,
+                files=self.files
             )
             results['status_code'] = resp.status_code
             results['body'] = resp.text
