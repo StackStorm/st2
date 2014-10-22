@@ -39,7 +39,7 @@ def _register_rules_from_pack(pack, rules):
                 except ValueError:
                     LOG.info('Rule %s not found. Creating new one.', rule)
 
-                rule_db.trigger = reference.get_ref_from_model(trigger_db)
+                rule_db.trigger = reference.get_str_resource_ref_from_model(trigger_db)
 
                 try:
                     rule_db = Rule.add_or_update(rule_db)

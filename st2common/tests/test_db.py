@@ -30,9 +30,8 @@ class DbConnectionTest(DbTestCase):
 
 
 from st2common.models.db.reactor import TriggerTypeDB, TriggerDB, TriggerInstanceDB, \
-    RuleEnforcementDB, RuleDB, ActionExecutionSpecDB
-from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, \
-    RuleEnforcement, Rule
+    RuleDB, ActionExecutionSpecDB
+from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
@@ -112,32 +111,13 @@ class ReactorModelTest(DbTestCase):
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
-    def test_ruleenforcement_crud(self):
-        triggertype = ReactorModelTest._create_save_triggertype()
-        trigger = ReactorModelTest._create_save_trigger(triggertype)
-        runnertype = ActionModelTest._create_save_runnertype()
-        action = ActionModelTest._create_save_action(runnertype)
-        triggerinstance = ReactorModelTest._create_save_triggerinstance(trigger)
-        rule = ReactorModelTest._create_save_rule(trigger, action)
-        saved = ReactorModelTest._create_save_ruleenforcement(triggerinstance,
-                                                              rule)
-        retrieved = RuleEnforcement.get_by_id(saved.id)
-        self.assertIsNotNone(retrieved, 'No ruleenforcement created.')
-        ReactorModelTest._delete([retrieved, rule, triggerinstance, trigger,
-                                  action, runnertype, triggertype])
-        try:
-            retrieved = RuleEnforcement.get_by_id(saved.id)
-        except ValueError:
-            retrieved = None
-        self.assertIsNone(retrieved, 'managed to retrieve after failure.')
-
     def test_rule_lookup(self):
         triggertype = ReactorModelTest._create_save_triggertype()
         trigger = ReactorModelTest._create_save_trigger(triggertype)
         runnertype = ActionModelTest._create_save_runnertype()
         action = ActionModelTest._create_save_action(runnertype)
         saved = ReactorModelTest._create_save_rule(trigger, action)
-        retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger))
+        retrievedrules = Rule.query(trigger=reference.get_str_resource_ref_from_model(trigger))
         self.assertEqual(1, len(retrievedrules), 'No rules found.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id, 'Incorrect rule returned.')
@@ -149,7 +129,7 @@ class ReactorModelTest(DbTestCase):
         runnertype = ActionModelTest._create_save_runnertype()
         action = ActionModelTest._create_save_action(runnertype)
         saved = ReactorModelTest._create_save_rule(trigger, action)
-        retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger),
+        retrievedrules = Rule.query(trigger=reference.get_str_resource_ref_from_model(trigger),
                                     enabled=True)
         self.assertEqual(1, len(retrievedrules), 'Error looking up enabled rules.')
         for retrievedrule in retrievedrules:
@@ -163,7 +143,7 @@ class ReactorModelTest(DbTestCase):
         runnertype = ActionModelTest._create_save_runnertype()
         action = ActionModelTest._create_save_action(runnertype)
         saved = ReactorModelTest._create_save_rule(trigger, action, False)
-        retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger),
+        retrievedrules = Rule.query(trigger=reference.get_str_resource_ref_from_model(trigger),
                                     enabled=False)
         self.assertEqual(1, len(retrievedrules), 'Error looking up enabled rules.')
         for retrievedrule in retrievedrules:
@@ -214,7 +194,7 @@ class ReactorModelTest(DbTestCase):
         created.name = 'rule-1'
         created.description = ''
         created.enabled = enabled
-        created.trigger = reference.get_ref_from_model(trigger)
+        created.trigger = reference.get_str_resource_ref_from_model(trigger)
         created.criteria = {}
         created.action = ActionExecutionSpecDB()
         action_ref = ResourceReference(pack=action.content_pack, name=action.name).ref
@@ -222,16 +202,6 @@ class ReactorModelTest(DbTestCase):
         created.action.content_pack = action.content_pack
         created.action.parameters = {}
         return Rule.add_or_update(created)
-
-    @staticmethod
-    def _create_save_ruleenforcement(triggerinstance, rule,
-                                     actionexecution=None):
-        created = RuleEnforcementDB()
-        created.rule = reference.get_ref_from_model(rule)
-        created.trigger_instance = reference.get_ref_from_model(triggerinstance)
-        created.action_execution = reference.get_ref_from_model(actionexecution) \
-            if actionexecution else None
-        return RuleEnforcement.add_or_update(created)
 
     @staticmethod
     def _delete(model_objects):

@@ -3,7 +3,7 @@ from st2common import transport
 from st2common.persistence import Access
 from st2common.models.db.reactor import sensor_type_access
 from st2common.models.db.reactor import triggertype_access, trigger_access, triggerinstance_access,\
-    rule_access, ruleenforcement_access
+    rule_access
 from st2common.models.system.common import ResourceReference
 
 
@@ -60,14 +60,6 @@ class TriggerInstance(Access):
 
 class Rule(Access):
     impl = rule_access
-
-    @classmethod
-    def _get_impl(kls):
-        return kls.impl
-
-
-class RuleEnforcement(Access):
-    impl = ruleenforcement_access
 
     @classmethod
     def _get_impl(kls):

@@ -124,7 +124,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
             TriggerTypeAPI.to_model(TriggerTypeAPI(**docs['trigger_type'])))
         trigger = Trigger.add_or_update(TriggerAPI.to_model(TriggerAPI(**docs['trigger'])))
         rule = RuleAPI.to_model(RuleAPI(**docs['rule']))
-        rule.trigger = reference.get_ref_from_model(trigger)
+        rule.trigger = reference.get_str_resource_ref_from_model(trigger)
         rule = Rule.add_or_update(rule)
         trigger_instance = TriggerInstance.add_or_update(
             TriggerInstanceAPI.to_model(TriggerInstanceAPI(**docs['trigger_instance'])))
