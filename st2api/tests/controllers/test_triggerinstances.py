@@ -49,17 +49,20 @@ class TestTriggerController(FunctionalTest):
     def _setupTriggerTypes(cls):
         TRIGGERTYPE_0 = {
             'name': 'st2.test.triggertype0',
+            'content_pack': 'dummy_pack_1',
             'description': 'test trigger',
             'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
             'parameters_schema': {}
         }
         TRIGGERTYPE_1 = {
             'name': 'st2.test.triggertype1',
+            'content_pack': 'dummy_pack_1',
             'description': 'test trigger',
             'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
         }
         TRIGGERTYPE_2 = {
             'name': 'st2.test.triggertype2',
+            'content_pack': 'dummy_pack_1',
             'description': 'test trigger',
             'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
             'parameters_schema': {'param1': {'type': 'object'}}
@@ -73,21 +76,30 @@ class TestTriggerController(FunctionalTest):
         TRIGGER_0 = {
             'name': 'st2.test.trigger0',
             'description': 'test trigger',
-            'type': 'st2.test.triggertype0',
+            'type': {
+                'name': 'st2.test.triggertype0',
+                'content_pack': 'dummy_pack_1'
+            },
             'parameters': {}
         }
 
         TRIGGER_1 = {
             'name': 'st2.test.trigger1',
             'description': 'test trigger',
-            'type': 'st2.test.triggertype1',
+            'type': {
+                'name': 'st2.test.triggertype1',
+                'content_pack': 'dummy_pack_1'
+            },
             'parameters': {}
         }
 
         TRIGGER_2 = {
             'name': 'st2.test.trigger2',
             'description': 'test trigger',
-            'type': 'st2.test.triggertype2',
+            'type': {
+                'name': 'st2.test.triggertype2',
+                'content_pack': 'dummy_pack_1'
+            },
             'parameters': {
                 'param1': {
                     'foo': 'bar'

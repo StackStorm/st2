@@ -7,7 +7,7 @@ import six
 
 from st2common import log as logging
 from st2common.content.loader import ContentPackLoader
-from st2common.content.requirementsvalidator import RequirementsValidator
+from st2common.content.validators import RequirementsValidator
 from st2common.persistence.action import Action
 from st2common.models.db.action import ActionDB
 from st2common.util.action_db import get_runnertype_by_name

@@ -1,33 +1,61 @@
 import mongoengine as me
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
+from st2common.models.db.stormbase import ContentPackResourceMixin
+from st2common.models.system.common import ResourceReference
 
 
-class TriggerTypeDB(StormBaseDB):
-    """Description of a specific kind/type of a trigger. The name is expected
-       uniquely identify a trigger in the namespace of all triggers provided
-       by a specific trigger_source.
+class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
+    """
+    Description of a specific type of a sensor (think of it as a sensor
+    template).
+
     Attribute:
+        content_pack - Name of the content pack this sensor belongs to.
+        artifact_uri - URI to the artifact file.
+        entry_point - Full path to the sensor entry point (e.g. module.foo.ClassSensor).
+        trigger_type - A list of references to the TriggerTypeDB objects exposed by this sensor.
+    """
+    content_pack = me.StringField(required=True, unique_with='name')
+    artifact_uri = me.StringField()
+    entry_point = me.StringField()
+    trigger_types = me.ListField(field=me.StringField())
+
+
+class TriggerTypeDB(StormBaseDB, ContentPackResourceMixin):
+    """Description of a specific kind/type of a trigger. The
+       (content_pack, name) tuple is expected uniquely identify a trigger in
+       the namespace of all triggers provided by a specific trigger_source.
+    Attribute:
+        content_pack - Name of the content pack this trigger belongs to.
         trigger_source: Source that owns this trigger type.
         payload_info: Meta information of the expected payload.
     """
+    content_pack = me.StringField(required=True, unique_with='name')
     payload_schema = me.DictField()
     parameters_schema = me.DictField(default={})
 
 
-class TriggerDB(StormBaseDB):
-    type = me.DictField()
+class TriggerDB(StormBaseDB, ContentPackResourceMixin):
+    """
+    Attribute:
+        content_pack - Name of the content pack this trigger belongs to.
+        type - Reference to the TriggerType object.
+        parameters - Trigger parameters.
+    """
+    content_pack = me.StringField(required=True, unique_with='name')
+    type = me.StringField()
     parameters = me.DictField()
 
 
 class TriggerInstanceDB(StormFoundationDB):
     """An instance or occurrence of a type of Trigger.
     Attribute:
-        trigger: Reference to the trigger type.
+        trigger: Reference to the Trigger object.
         payload (dict): payload specific to the occurrence.
         occurrence_time (datetime): time of occurrence of the trigger.
     """
-    trigger = me.DictField()
+    trigger = me.StringField()
     payload = me.DictField()
     occurrence_time = me.DateTimeField()
 
@@ -84,11 +112,12 @@ class RuleEnforcementDB(StormFoundationDB):
 
 
 # specialized access objects
+sensor_type_access = MongoDBAccess(SensorTypeDB)
 triggertype_access = MongoDBAccess(TriggerTypeDB)
 trigger_access = MongoDBAccess(TriggerDB)
 triggerinstance_access = MongoDBAccess(TriggerInstanceDB)
 rule_access = MongoDBAccess(RuleDB)
 ruleenforcement_access = MongoDBAccess(RuleEnforcementDB)
 
-MODELS = [TriggerTypeDB, TriggerDB, TriggerInstanceDB, RuleDB,
+MODELS = [SensorTypeDB, TriggerTypeDB, TriggerDB, TriggerInstanceDB, RuleDB,
           RuleEnforcementDB]

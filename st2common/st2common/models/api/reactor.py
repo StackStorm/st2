@@ -3,7 +3,7 @@ import uuid
 from st2common.util import isotime
 from st2common.models.base import BaseAPI
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB
-from st2common.models.db.reactor import TriggerTypeDB, TriggerDB, TriggerInstanceDB
+from st2common.models.db.reactor import SensorTypeDB, TriggerTypeDB, TriggerDB, TriggerInstanceDB
 from st2common.persistence.reactor import Trigger
 from st2common.util import reference
 import st2common.validators.api.reactor as validator
@@ -11,6 +11,40 @@ import six
 
 
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
+
+
+class SensorTypeAPI(BaseAPI):
+    model = SensorTypeDB
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'default': None
+            },
+            'name': {
+                'type': 'string'
+            },
+            'content_pack': {
+                'type': 'string'
+            },
+            'description': {
+                'type': 'string'
+            },
+            'artifact_uri': {
+                'type': 'string',
+            },
+            'entry_point': {
+                'type': 'string',
+            },
+            'trigger_types': {
+                'type': 'array',
+                'default': []
+            }
+        },
+        'required': ['name'],
+        'additionalProperties': False
+    }
 
 
 class TriggerTypeAPI(BaseAPI):
@@ -23,6 +57,9 @@ class TriggerTypeAPI(BaseAPI):
                 'default': None
             },
             'name': {
+                'type': 'string'
+            },
+            'content_pack': {
                 'type': 'string'
             },
             'description': {
@@ -44,6 +81,7 @@ class TriggerTypeAPI(BaseAPI):
     @classmethod
     def to_model(cls, triggertype):
         model = super(cls, cls).to_model(triggertype)
+        model.content_pack = getattr(triggertype, 'content_pack', None)
         model.payload_schema = getattr(triggertype, 'payload_schema', {})
         model.parameters_schema = getattr(triggertype, 'parameters_schema', {})
         return model
@@ -59,6 +97,9 @@ class TriggerAPI(BaseAPI):
                 'default': None
             },
             'name': {
+                'type': 'string'
+            },
+            'content_pack': {
                 'type': 'string'
             },
             'type': {
@@ -78,17 +119,13 @@ class TriggerAPI(BaseAPI):
     @classmethod
     def from_model(cls, model):
         trigger = cls._from_model(model)
-        if 'type' in trigger:
-            trigger['type'] = str(trigger['type'].get('name', ''))
         return cls(**trigger)
 
     @classmethod
     def to_model(cls, trigger):
         model = super(cls, cls).to_model(trigger)
-        # assign a name if none is provided.
-        model.name = trigger.name if hasattr(trigger, 'name') and trigger.name else \
-            str(uuid.uuid4())
-        model.type = {'name': getattr(trigger, 'type', None)}
+        model.content_pack = getattr(trigger, 'content_pack', None)
+        model.type = getattr(trigger, 'type', None)
         model.parameters = getattr(trigger, 'parameters', None)
         return model
 

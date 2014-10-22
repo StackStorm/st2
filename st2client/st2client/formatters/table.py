@@ -65,6 +65,14 @@ class MultiColumnTable(formatters.Formatter):
             return r_val if len(r_val) > 0 else ''
         return r_val
 
+    @staticmethod
+    def _get_friendly_column_name(name):
+        if not name:
+            return None
+
+        friendly_name = name.replace('_', ' ').replace('.', ' ').capitalize()
+        return friendly_name
+
 
 class PropertyValueTable(formatters.Formatter):
 

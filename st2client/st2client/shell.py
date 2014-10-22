@@ -13,6 +13,8 @@ from st2client import models
 from st2client.client import Client
 from st2client.commands import resource
 from st2client.commands import access
+from st2client.commands import sensor
+from st2client.commands import trigger
 from st2client.commands import action
 from st2client.commands import datastore
 
@@ -90,8 +92,11 @@ class Shell(object):
             'for reuse in sensors, actions, and rules.',
             self, self.subparsers)
 
-        self.commands['trigger'] = resource.ResourceBranch(
-            models.Trigger,
+        self.commands['sensor'] = sensor.SensorBranch(
+            'An adapter which allows you to integrate Stanley with external system ',
+            self, self.subparsers)
+
+        self.commands['trigger'] = trigger.TriggerBranch(
             'An external event that is mapped to a stanley input. It is the '
             'stanley invocation point.',
             self, self.subparsers)
