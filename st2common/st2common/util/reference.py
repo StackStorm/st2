@@ -1,4 +1,5 @@
 from st2common.exceptions import db
+from st2common.models.system.common import ResourceReference
 
 
 def get_ref_from_model(model):
@@ -22,3 +23,20 @@ def get_model_from_ref(db_api, reference):
     if model_name is None:
         raise db.StackStormDBObjectNotFoundError('Both name and id are None.')
     return db_api.get_by_name(model_name)
+
+
+def get_model_by_resource_ref(db_api, ref):
+    """
+    Retrieve a DB model based on the resource reference.
+
+    :param db_api: Class of the object to retrieve.
+    :type db_api: ``object``
+
+    :param ref: Resource reference.
+    :type ref: ``str``
+
+    :return: Retrieved object.
+    """
+    ref_obj = ResourceReference.from_string_reference(ref=ref)
+    result = db_api.query(name=ref_obj.name, content_pack=ref_obj.pack).first()
+    return result

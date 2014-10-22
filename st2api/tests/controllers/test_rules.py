@@ -27,6 +27,7 @@ ACTION.parameter_names = {'p1': None, 'p2': None, 'p3': None}
 
 TRIGGER = reactor.TriggerDB()
 TRIGGER.name = 'st2.test.trigger1'
+TRIGGER.content_pack = 'dummy_pack_1'
 TRIGGER.description = ''
 TRIGGER.payload_info = ['tp1', 'tp2', 'tp3']
 TRIGGER.trigger_source = None
@@ -35,7 +36,7 @@ RULE_1 = {
     'enabled': True,
     'name': 'st2.test.rule1',
     'trigger': {
-        'type': 'st2.test.trigger1'
+        'type': 'dummy_pack_1.st2.test.trigger1'
     },
     'criteria': {
         't1_p': {

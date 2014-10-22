@@ -62,7 +62,6 @@ class RuleController(RestController):
 
         try:
             rule_db = RuleAPI.to_model(rule)
-
             trigger_db = TriggerService.create_trigger_db(TriggerAPI(**rule.trigger))
 
             rule_db.trigger = reference.get_ref_from_model(trigger_db)

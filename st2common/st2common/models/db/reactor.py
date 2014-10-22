@@ -2,7 +2,6 @@ import mongoengine as me
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
 from st2common.models.db.stormbase import ContentPackResourceMixin
-from st2common.models.system.common import ResourceReference
 
 
 class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
@@ -16,6 +15,7 @@ class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
         entry_point - Full path to the sensor entry point (e.g. module.foo.ClassSensor).
         trigger_type - A list of references to the TriggerTypeDB objects exposed by this sensor.
     """
+    name = me.StringField(required=True)
     content_pack = me.StringField(required=True, unique_with='name')
     artifact_uri = me.StringField()
     entry_point = me.StringField()
@@ -31,6 +31,7 @@ class TriggerTypeDB(StormBaseDB, ContentPackResourceMixin):
         trigger_source: Source that owns this trigger type.
         payload_info: Meta information of the expected payload.
     """
+    name = me.StringField(required=True)
     content_pack = me.StringField(required=True, unique_with='name')
     payload_schema = me.DictField()
     parameters_schema = me.DictField(default={})
@@ -43,6 +44,7 @@ class TriggerDB(StormBaseDB, ContentPackResourceMixin):
         type - Reference to the TriggerType object.
         parameters - Trigger parameters.
     """
+    name = me.StringField(required=True)
     content_pack = me.StringField(required=True, unique_with='name')
     type = me.StringField()
     parameters = me.DictField()

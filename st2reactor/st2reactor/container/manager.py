@@ -5,7 +5,6 @@ import six
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import Trigger
-from st2common.persistence.reactor import TriggerType
 from st2common.util.config_parser import ContentPackConfigParser
 from st2common.content.validators import validate_content_pack_name
 from st2common.constants.content_pack import SYSTEM_PACK_NAME

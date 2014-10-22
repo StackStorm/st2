@@ -124,6 +124,11 @@ class TriggerAPI(BaseAPI):
     @classmethod
     def to_model(cls, trigger):
         model = super(cls, cls).to_model(trigger)
+        if hasattr(trigger, 'name') and trigger.name:
+            model.name = trigger.name
+        else:
+            # assign a name if none is provided.
+            model.name = str(uuid.uuid4())
         model.content_pack = getattr(trigger, 'content_pack', None)
         model.type = getattr(trigger, 'type', None)
         model.parameters = getattr(trigger, 'parameters', None)
@@ -158,15 +163,12 @@ class TriggerInstanceAPI(BaseAPI):
     def from_model(cls, model):
         instance = cls._from_model(model)
         instance['occurrence_time'] = isotime.format(instance['occurrence_time'], offset=False)
-        if 'trigger' in instance:
-            instance['trigger'] = str(instance['trigger'].get('name', ''))
         return cls(**instance)
 
     @classmethod
     def to_model(cls, instance):
         model = super(cls, cls).to_model(instance)
-        trigger = Trigger.get_by_name(instance.trigger)
-        model.trigger = {'id': str(trigger.id), 'name': trigger.name}
+        model.trigger = instance.trigger
         model.payload = instance.payload
         model.occurrence_time = isotime.parse(instance.occurrence_time)
         return model

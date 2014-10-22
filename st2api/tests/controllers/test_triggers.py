@@ -8,22 +8,25 @@ http_client = six.moves.http_client
 
 TRIGGER_0 = {
     'name': 'st2.test.trigger0',
+    'content_pack': 'dummy_pack_1',
     'description': 'test trigger',
-    'type': 'st2.test.triggertype0',
+    'type': 'dummy_pack_1.st2.test.triggertype0',
     'parameters': {}
 }
 
 TRIGGER_1 = {
     'name': 'st2.test.trigger1',
+    'content_pack': 'dummy_pack_1',
     'description': 'test trigger',
-    'type': 'st2.test.triggertype1',
+    'type': 'dummy_pack_1.st2.test.triggertype1',
     'parameters': {}
 }
 
 TRIGGER_2 = {
     'name': 'st2.test.trigger2',
+    'content_pack': 'dummy_pack_1',
     'description': 'test trigger',
-    'type': 'st2.test.triggertype2',
+    'type': 'dummy_pack_1.st2.test.triggertype2',
     'parameters': {
         'param1': {
             'foo': 'bar'

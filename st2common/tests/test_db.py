@@ -194,15 +194,16 @@ class ReactorModelTest(DbTestCase):
     def _create_save_trigger(triggertype):
         created = TriggerDB()
         created.name = 'trigger-1'
+        created.content_pack = 'dummy_pack_1'
         created.description = ''
-        created.type = reference.get_ref_from_model(triggertype)
+        created.type = triggertype.get_reference().ref
         created.parameters = {}
         return Trigger.add_or_update(created)
 
     @staticmethod
     def _create_save_triggerinstance(trigger):
         created = TriggerInstanceDB()
-        created.trigger = reference.get_ref_from_model(trigger)
+        created.trigger = trigger.get_reference().ref
         created.payload = {}
         created.occurrence_time = datetime.datetime.utcnow()
         return TriggerInstance.add_or_update(created)

@@ -8,6 +8,7 @@ from st2common.models.system.common import ResourceReference
 
 
 class ContentPackResourceMixin():
+    @classmethod
     def get_by_ref(cls, ref):
         if not ref:
             return None

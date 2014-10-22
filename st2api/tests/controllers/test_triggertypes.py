@@ -17,7 +17,7 @@ TRIGGER_1 = {
     'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
 }
 TRIGGER_2 = {
-    'name': 'st2.test.triggertype2',
+    'name': 'st2.test.triggertype3',
     'content_pack': 'dummy_pack_3',
     'description': 'test trigger',
     'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
