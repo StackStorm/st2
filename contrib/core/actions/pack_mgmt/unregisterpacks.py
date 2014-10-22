@@ -1,3 +1,4 @@
+from st2actions.runners.pythonrunner import Action
 import st2common.config as config
 from st2common.persistence import action
 from st2common import log as logging
@@ -5,7 +6,7 @@ from st2common import log as logging
 LOG = logging.getLogger(__name__)
 
 
-class UnregisterPackAction(object):
+class UnregisterPackAction(Action):
 
     def run(self, packs=None):
         self._setup()
