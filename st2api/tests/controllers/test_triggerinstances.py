@@ -75,31 +75,25 @@ class TestTriggerController(FunctionalTest):
     def _setupTriggers(cls):
         TRIGGER_0 = {
             'name': 'st2.test.trigger0',
+            'content_pack': 'dummy_pack_1',
             'description': 'test trigger',
-            'type': {
-                'name': 'st2.test.triggertype0',
-                'content_pack': 'dummy_pack_1'
-            },
+            'type': 'dummy_pack_1.st2.test.triggertype0',
             'parameters': {}
         }
 
         TRIGGER_1 = {
             'name': 'st2.test.trigger1',
+            'content_pack': 'dummy_pack_1',
             'description': 'test trigger',
-            'type': {
-                'name': 'st2.test.triggertype1',
-                'content_pack': 'dummy_pack_1'
-            },
+            'type': 'dummy_pack_1.st2.test.triggertype1',
             'parameters': {}
         }
 
         TRIGGER_2 = {
             'name': 'st2.test.trigger2',
+            'content_pack': 'dummy_pack_1',
             'description': 'test trigger',
-            'type': {
-                'name': 'st2.test.triggertype2',
-                'content_pack': 'dummy_pack_1'
-            },
+            'type': 'dummy_pack_1.st2.test.triggertype2',
             'parameters': {
                 'param1': {
                     'foo': 'bar'
@@ -114,13 +108,13 @@ class TestTriggerController(FunctionalTest):
     def _setupTriggerInstances(cls):
         cls.triggerinstance_count = 0
         cls.triggerinstance_1 = cls._create_trigger_instance(
-            {'name': 'st2.test.trigger0'},
+            'dummy_pack_1.st2.test.trigger0',
             {'tp1': 1, 'tp2': 2, 'tp3': 3})
         cls.triggerinstance_2 = cls._create_trigger_instance(
-            {'name': 'st2.test.trigger1'},
+            'dummy_pack_1.st2.test.trigger1',
             {'tp1': 'a', 'tp2': 'b', 'tp3': 'c'})
         cls.triggerinstance_3 = cls._create_trigger_instance(
-            {'name': 'st2.test.trigger2'},
+            'dummy_pack_1.st2.test.trigger2',
             {'tp1': None, 'tp2': None, 'tp3': None})
 
     @classmethod
