@@ -1,3 +1,4 @@
+import os
 import ast
 import copy
 import json
@@ -6,6 +7,8 @@ import textwrap
 import time
 import six
 import sys
+
+from os.path import join as pjoin
 
 from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
 from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
@@ -82,6 +85,18 @@ class ActionRunCommand(resource.ResourceCommand):
             raise resource.ResourceNotFoundError('Runner type "%s" for action "%s" cannot be found.'
                                                  % (action.runner_type, action.name))
 
+        def read_file(file_path):
+            if not os.path.exists(file_path):
+                raise ValueError('File "%s" doesn\'t exist' % (file_path))
+
+            if not os.path.isfile(file_path):
+                raise ValueError('"%s" is not a file' % (file_path))
+
+            with open(file_path, 'rb') as fp:
+                content = fp.read()
+
+            return content
+
         transformer = {
             'array': (lambda cs_x: [v.strip() for v in cs_x.split(',')]),
             'boolean': (lambda x: ast.literal_eval(x.capitalize())),
@@ -96,6 +111,7 @@ class ActionRunCommand(resource.ResourceCommand):
                 param = runner.runner_parameters[name]
                 if 'type' in param and param['type'] in transformer:
                     return transformer[param['type']](value)
+
             if name in action.parameters:
                 param = action.parameters[name]
                 if 'type' in param and param['type'] in transformer:
@@ -109,8 +125,25 @@ class ActionRunCommand(resource.ResourceCommand):
             arg = args.parameters[idx]
             if '=' in arg:
                 k, v = arg.split('=')
+
+                # Attribute for files are prefixed with "@"
+                if k.startswith('@'):
+                    k = k[1:]
+                    is_file = True
+                else:
+                    is_file = False
+
                 try:
-                    execution.parameters[k] = normalize(k, v)
+                    if is_file:
+                        # Files are handled a bit differently since we ship the content
+                        # over the wire
+                        file_path = os.path.normpath(pjoin(os.getcwd(), v))
+                        file_name = os.path.basename(file_path)
+                        content = read_file(file_path=file_path)
+                        execution.parameters['file_name'] = file_name
+                        execution.parameters['file_content'] = content
+                    else:
+                        execution.parameters[k] = normalize(k, v)
                 except Exception as e:
                     # TODO: Move transformers in a separate module and handle
                     # exceptions there
