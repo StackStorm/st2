@@ -25,18 +25,26 @@ from st2common.persistence.history import ActionExecutionHistory
 
 
 CHAMPION = worker.Worker(None)
-HISTORIAN = history.Historian(None)
+HISTORIAN = history.Historian(None, timeout=1, wait=1)
+MOCK_FAIL_HISTORY_CREATE = False
 
 
 def process_create(payload):
-    if isinstance(payload, ActionExecutionDB):
-        HISTORIAN.record_action_execution(payload)
-        CHAMPION.execute_action(payload)
+    try:
+        if isinstance(payload, ActionExecutionDB):
+            if not MOCK_FAIL_HISTORY_CREATE:
+                HISTORIAN.record_action_execution(payload)
+            CHAMPION.execute_action(payload)
+    except Exception as e:
+        print(e)
 
 
 def process_update(payload):
-    if isinstance(payload, ActionExecutionDB):
-        HISTORIAN.record_action_execution(payload)
+    try:
+        if isinstance(payload, ActionExecutionDB):
+            HISTORIAN.update_action_execution_history(payload)
+    except Exception as e:
+        print(e)
 
 
 @mock.patch.object(FabricRunner, '_run', mock.MagicMock(return_value={}))
@@ -54,6 +62,10 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         action_chain.entry_point = fixture.PATH + '/chain.json'
         Action.add_or_update(ActionAPI.to_model(action_chain))
 
+    def tearDown(self):
+        MOCK_FAIL_HISTORY_CREATE = False    # noqa
+        super(TestActionExecutionHistoryWorker, self).tearDown()
+
     def test_basic_execution(self):
         execution = ActionExecutionDB(action={'name': 'local'}, parameters={'cmd': 'uname -a'})
         execution = action_service.schedule(execution)
@@ -70,6 +82,10 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertDictEqual(history.execution, vars(ActionExecutionAPI.from_model(execution)))
+
+    def test_basic_execution_history_create_failed(self):
+        MOCK_FAIL_HISTORY_CREATE = True     # noqa
+        self.test_basic_execution()
 
     def test_chained_executions(self):
         execution = ActionExecutionDB(action={'name': 'chain'})
