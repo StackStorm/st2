@@ -71,18 +71,7 @@ class ActionRunCommand(resource.ResourceCommand):
             self.parser.set_defaults(async=True)
 
     def get_resource(self, ref_or_id, **kwargs):
-        query_params = {'ref': ref_or_id}
-        instance = self.manager.query(**query_params)[0]
-        if not instance:
-            try:
-                instance = self.manager.get_by_id(ref_or_id, **kwargs)
-            except:
-                pass
-        if not instance:
-            message = ('Resource with id or name "%s" doesn\'t exist.' %
-                       (ref_or_id))
-            raise resource.ResourceNotFoundError(message)
-        return instance
+        return self.get_resource_by_ref_or_id(ref_or_id=ref_or_id, **kwargs)
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):

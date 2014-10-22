@@ -100,6 +100,9 @@ class ResourceCommand(commands.Command):
                (self.resource.get_display_name(), name))
 
     def get_resource(self, name_or_id, **kwargs):
+        return self.get_resource_by_name_or_id(name_or_id=name_or_id, **kwargs)
+
+    def get_resource_by_name_or_id(self, name_or_id, **kwargs):
         instance = self.manager.get_by_name(name_or_id, **kwargs)
         if not instance:
             try:
@@ -109,6 +112,25 @@ class ResourceCommand(commands.Command):
         if not instance:
             message = ('Resource with id or name "%s" doesn\'t exist.' %
                        (name_or_id))
+            raise ResourceNotFoundError(message)
+        return instance
+
+    def get_resource_by_ref_or_id(self, ref_or_id, **kwargs):
+        query_params = {'ref': ref_or_id}
+
+        try:
+            instance = self.manager.query(**query_params)[0]
+        except IndexError:
+            instance = None
+
+        if not instance:
+            try:
+                instance = self.manager.get_by_id(ref_or_id, **kwargs)
+            except:
+                pass
+        if not instance:
+            message = ('Resource with id or name "%s" doesn\'t exist.' %
+                       (ref_or_id))
             raise ResourceNotFoundError(message)
         return instance
 
@@ -217,23 +239,7 @@ class ContentPackResourceGetCommand(ResourceGetCommand):
             self.print_not_found(args.ref_or_id)
 
     def get_resource(self, ref_or_id, **kwargs):
-        query_params = {'ref': ref_or_id}
-
-        try:
-            instance = self.manager.query(**query_params)[0]
-        except IndexError:
-            instance = None
-
-        if not instance:
-            try:
-                instance = self.manager.get_by_id(ref_or_id, **kwargs)
-            except:
-                pass
-        if not instance:
-            message = ('Resource with id or name "%s" doesn\'t exist.' %
-                       (ref_or_id))
-            raise ResourceNotFoundError(message)
-        return instance
+        return self.get_resource_by_ref_or_id(ref_or_id=ref_or_id, **kwargs)
 
 
 class ResourceCreateCommand(ResourceCommand):
