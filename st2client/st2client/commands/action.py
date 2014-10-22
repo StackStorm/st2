@@ -157,6 +157,9 @@ class ActionRunCommand(resource.ResourceCommand):
                 execution.parameters['cmd'] = ' '.join(args.parameters[idx:])
                 break
 
+        if 'file_name' in execution.parameters and 'method' not in execution.parameters:
+            execution.parameters['method'] = 'POST'
+
         action_exec_mgr = self.app.client.managers['ActionExecution']
         execution = action_exec_mgr.create(execution, **kwargs)
 
