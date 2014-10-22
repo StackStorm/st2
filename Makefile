@@ -28,7 +28,7 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
-all: requirements stormbot check tests
+all: requirements stormbot check tests docs
 
 # Target for debugging Makefile variable assembly
 .PHONY: play
@@ -49,6 +49,7 @@ checklogs:
 	. $(VIRTUALENV_DIR)/bin/activate; ./tools/log_watcher.py 10
 
 .PHONY: docs
+check: requirements
 docs:
 	@echo
 	@echo "====================docs===================="
@@ -57,6 +58,19 @@ docs:
 	@echo
 	@echo "Build finished. The HTML pages are in $(DOC_BUILD_DIR)/html."
 
+.PHONY: livedocs
+livedocs: docs .livedocs
+
+.PHONY: .livedocs
+.livedocs:
+	@echo
+	@echo "==========================================================="
+	@echo "                       RUNNING DOCS"
+	@echo "==========================================================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; sphinx-autobuild -b html $(DOC_SOURCE_DIR) $(DOC_BUILD_DIR)/html
+	@echo
+	
 .PHONY: pylint
 pylint: requirements .pylint
 

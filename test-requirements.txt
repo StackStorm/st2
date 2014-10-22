@@ -8,3 +8,4 @@ pylint
 tabulate
 unittest2
 sphinx
+sphinx-autobuild
