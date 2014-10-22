@@ -117,7 +117,7 @@ class ReactorModelTest(DbTestCase):
         runnertype = ActionModelTest._create_save_runnertype()
         action = ActionModelTest._create_save_action(runnertype)
         saved = ReactorModelTest._create_save_rule(trigger, action)
-        retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger))
+        retrievedrules = Rule.query(trigger=reference.get_str_resource_ref_from_model(trigger))
         self.assertEqual(1, len(retrievedrules), 'No rules found.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id, 'Incorrect rule returned.')
@@ -129,7 +129,7 @@ class ReactorModelTest(DbTestCase):
         runnertype = ActionModelTest._create_save_runnertype()
         action = ActionModelTest._create_save_action(runnertype)
         saved = ReactorModelTest._create_save_rule(trigger, action)
-        retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger),
+        retrievedrules = Rule.query(trigger=reference.get_str_resource_ref_from_model(trigger),
                                     enabled=True)
         self.assertEqual(1, len(retrievedrules), 'Error looking up enabled rules.')
         for retrievedrule in retrievedrules:
@@ -143,7 +143,7 @@ class ReactorModelTest(DbTestCase):
         runnertype = ActionModelTest._create_save_runnertype()
         action = ActionModelTest._create_save_action(runnertype)
         saved = ReactorModelTest._create_save_rule(trigger, action, False)
-        retrievedrules = Rule.query(trigger=reference.get_ref_from_model(trigger),
+        retrievedrules = Rule.query(trigger=reference.get_str_resource_ref_from_model(trigger),
                                     enabled=False)
         self.assertEqual(1, len(retrievedrules), 'Error looking up enabled rules.')
         for retrievedrule in retrievedrules:
@@ -194,7 +194,7 @@ class ReactorModelTest(DbTestCase):
         created.name = 'rule-1'
         created.description = ''
         created.enabled = enabled
-        created.trigger = reference.get_ref_from_model(trigger)
+        created.trigger = reference.get_str_resource_ref_from_model(trigger)
         created.criteria = {}
         created.action = ActionExecutionSpecDB()
         action_ref = ResourceReference(pack=action.content_pack, name=action.name).ref

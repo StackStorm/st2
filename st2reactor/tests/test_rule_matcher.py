@@ -73,7 +73,7 @@ class RuleMatcherTest(DbTestCase):
         rule_db = RuleAPI.to_model(rule_api)
         trigger_api = TriggerAPI(**rule_api.trigger)
         trigger_db = TriggerService.create_trigger_db(trigger_api)
-        trigger_ref = reference.get_ref_from_model(trigger_db)
+        trigger_ref = reference.get_str_resource_ref_from_model(trigger_db)
         rule_db.trigger = trigger_ref
         rule_db = Rule.add_or_update(rule_db)
         rules.append(rule_db)

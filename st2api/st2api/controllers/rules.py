@@ -66,7 +66,7 @@ class RuleController(RestController):
             trigger_api = self._get_trigger_api_from_rule(rule)
             trigger_db = TriggerService.create_trigger_db(trigger_api)
 
-            rule_db.trigger = reference.get_ref_from_model(trigger_db)
+            rule_db.trigger = reference.get_str_resource_ref_from_model(trigger_db)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
             rule_db = Rule.add_or_update(rule_db)
         except (ValidationError, ValueError) as e:
@@ -104,7 +104,7 @@ class RuleController(RestController):
             rule_db.id = rule_id
 
             trigger_db = TriggerService.create_trigger_db(TriggerAPI(**rule.trigger))
-            rule_db.trigger = reference.get_ref_from_model(trigger_db)
+            rule_db.trigger = reference.get_str_resource_ref_from_model(trigger_db)
 
             rule_db = Rule.add_or_update(rule_db)
 

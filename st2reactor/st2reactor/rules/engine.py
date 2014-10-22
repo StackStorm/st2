@@ -22,7 +22,7 @@ class RulesEngine(object):
         return self.get_rules_for_trigger_from_db(trigger)
 
     def get_rules_for_trigger_from_db(self, trigger):
-        rules = Rule.query(trigger__id=trigger['id'], enabled=True)
+        rules = Rule.query(trigger=trigger.type, enabled=True)
         LOG.info('Found %d rules defined for trigger %s', len(rules), trigger['name'])
         return rules
 
