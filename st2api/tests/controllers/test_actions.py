@@ -258,11 +258,15 @@ class TestActionController(FunctionalTest):
         body = json.loads(post_resp.body)
         action['id'] = body['id']
         action['description'] = 'some other test description'
+        content_pack = action['content_pack']
+        del action['content_pack']
+        self.assertNotIn('content_pack', action)
         put_resp = self.__do_put(action['id'], action)
         self.assertEqual(put_resp.status_int, 200)
         self.assertIn('description', put_resp.body)
         body = json.loads(put_resp.body)
         self.assertEqual(body['description'], action['description'])
+        self.assertEqual(body['content_pack'], content_pack)
         self.__do_delete(self.__get_action_id(post_resp))
 
     def test_post_invalid_runner_type(self):
