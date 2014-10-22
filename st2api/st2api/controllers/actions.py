@@ -14,6 +14,7 @@ from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
+from st2common.models.system.common import InvalidResourceReferenceError
 from st2common.models.system.common import ResourceReference
 import st2common.validators.api.action as action_validator
 
@@ -67,6 +68,12 @@ class ActionsController(resource.ResourceController):
                 GET /actions
         """
         LOG.info('GET all /actions/ with filters=%s', kw)
+        try:
+            result = self._get_actions(**kw)
+        except InvalidResourceReferenceError as e:
+            abort(http_client.BAD_REQUEST, str(e))
+            return
+
         return self._get_actions(**kw)
 
     @staticmethod
