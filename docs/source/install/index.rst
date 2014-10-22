@@ -7,14 +7,14 @@ download and run the deployment script.
 ::
 
     curl -q -k -O https://ops.stackstorm.net/releases/st2/scripts/st2_deploy.sh
+    chmod +x st2_deploy.sh
+    sudo ./st2_deploy.sh 0.5.1
 
-    sudo ./st2_deploy.sh
+This will download and install the latest release of StackStorm (currently |release|). Installation should take about 5 min. Grab a coffee and watch :doc:`/video` while it is being installed. 
 
-This will download and install the latest release of StackStorm (currently |release|).
+.. include:: on_complete.rst
 
-Installation should take about 5 min. Grab a coffee and watch :doc:`/video` while it is being installed. Than, follow :doc:`/start` to get you started.
-
-The details on installation for various systems:
+.. rubric:: More Installations
 
 .. toctree::
     :maxdepth: 1

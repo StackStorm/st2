@@ -7,7 +7,10 @@
         <br>
         <br>
 
+.. rubric:: What's Next?
 
-.. include:: /next.rst
+* Install StackStorm - follow :doc:`/install/index`
+* Get going with :doc:`/start`.
+
 
 
