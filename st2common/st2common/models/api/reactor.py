@@ -124,6 +124,11 @@ class TriggerAPI(BaseAPI):
     @classmethod
     def to_model(cls, trigger):
         model = super(cls, cls).to_model(trigger)
+        if hasattr(trigger, 'name') and trigger.name:
+            model.name = trigger.name
+        else:
+            # assign a name if none is provided.
+            model.name = str(uuid.uuid4())
         model.content_pack = getattr(trigger, 'content_pack', None)
         model.type = getattr(trigger, 'type', None)
         model.parameters = getattr(trigger, 'parameters', None)

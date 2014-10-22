@@ -96,7 +96,6 @@ class ContentPackResourceControler(ResourceController):
     def get_all(self, **kwargs):
         ref = kwargs.get('ref', None)
 
-
         if ref:
             try:
                 ref_obj = ResourceReference.from_string_reference(ref=ref)

@@ -203,6 +203,7 @@ class ContentPackResourceGetCommand(ResourceGetCommand):
                                  help=('List of attributes to include in the '
                                        'output. "all" or unspecified will '
                                        'return all attributes.'))
+
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.get_resource(ref_or_id=args.ref_or_id, **kwargs)

@@ -2,7 +2,6 @@ import mongoengine as me
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
 from st2common.models.db.stormbase import ContentPackResourceMixin
-from st2common.models.system.common import ResourceReference
 
 
 class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
