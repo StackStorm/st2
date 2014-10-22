@@ -140,7 +140,7 @@ class ActionRunCommand(resource.ResourceCommand):
                         file_path = os.path.normpath(pjoin(os.getcwd(), v))
                         file_name = os.path.basename(file_path)
                         content = read_file(file_path=file_path)
-                        execution.parameters['file_name'] = file_name
+                        execution.parameters['_file_name'] = file_name
                         execution.parameters['file_content'] = content
                     else:
                         execution.parameters[k] = normalize(k, v)
@@ -157,8 +157,16 @@ class ActionRunCommand(resource.ResourceCommand):
                 execution.parameters['cmd'] = ' '.join(args.parameters[idx:])
                 break
 
-        if 'file_name' in execution.parameters and 'method' not in execution.parameters:
-            execution.parameters['method'] = 'POST'
+        if 'file_content' in execution.parameters:
+            if 'method' not in execution.parameters:
+                # Default to POST if a method is not provided
+                execution.parameters['method'] = 'POST'
+
+            if 'file_name' not in execution.parameters:
+                # File name not provided, use default file name
+                execution.parameters['file_name'] = execution.parameters['_file_name']
+
+            del execution.parameters['_file_name']
 
         action_exec_mgr = self.app.client.managers['ActionExecution']
         execution = action_exec_mgr.create(execution, **kwargs)
