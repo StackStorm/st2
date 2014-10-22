@@ -260,8 +260,8 @@ class RuleAPI(BaseAPI):
     @classmethod
     def from_model(cls, model):
         rule = cls._from_model(model)
-        rule['trigger'] = vars(TriggerAPI.from_model(reference.get_model_from_ref(Trigger,
-                                                                                  model.trigger)))
+        trigger_db = reference.get_model_by_resource_ref(Trigger, model.trigger)
+        rule['trigger'] = vars(TriggerAPI.from_model(trigger_db))
         del rule['trigger']['id']
         del rule['trigger']['name']
         for oldkey, value in six.iteritems(rule['criteria']):

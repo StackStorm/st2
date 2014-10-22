@@ -86,7 +86,7 @@ class RuleDB(StormBaseDB):
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
-    trigger = me.DictField()
+    trigger = me.StringField()
     criteria = me.DictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
     enabled = me.BooleanField(required=True, default=True,

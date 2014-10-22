@@ -23,9 +23,11 @@ class RuleEnforcer(object):
         LOG.info('Invoking action %s for trigger_instance %s with data %s.',
                  self.rule.action.ref, self.trigger_instance.id,
                  json.dumps(data))
-        context = {'trigger_instance': reference.get_ref_from_model(self.trigger_instance),
-                   'rule': reference.get_ref_from_model(self.rule),
-                   'user': get_system_username()}
+        context = {
+            'trigger_instance': reference.get_ref_from_model(self.trigger_instance),
+            'rule': reference.get_ref_from_model(self.rule),
+            'user': get_system_username()
+        }
 
         action_execution = RuleEnforcer._invoke_action(self.rule.action, data, context)
         if not action_execution:
