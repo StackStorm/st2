@@ -132,6 +132,7 @@ class TriggerTypeController(ContentPackResourceControler):
         try:
             trigger_type_ref = triggertype_db.get_reference().ref
             trigger = {'name': triggertype_db.name,
+                       'content_pack': triggertype_db.content_pack,
                        'type': trigger_type_ref,
                        'parameters': {}}
             trigger_db = TriggerService.create_trigger_db(trigger)
