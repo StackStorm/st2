@@ -34,11 +34,11 @@ class ActionsController(resource.ResourceController):
     access = Action
     supported_filters = {
         'name': 'name',
-        'pack': 'content_pack'
+        'pack': 'pack'
     }
 
     query_options = {
-        'sort': ['content_pack', 'name']
+        'sort': ['pack', 'name']
     }
 
     @staticmethod
@@ -55,7 +55,7 @@ class ActionsController(resource.ResourceController):
 
         if action_ref:
             kw['name'] = ResourceReference.get_name(action_ref)
-            kw['content_pack'] = ResourceReference.get_pack(action_ref)
+            kw['pack'] = ResourceReference.get_pack(action_ref)
             del kw['ref']
         return super(ActionsController, self)._get_all(**kw)
 
@@ -104,8 +104,8 @@ class ActionsController(resource.ResourceController):
         else:
             action.enabled = bool(action.enabled)
 
-        if not hasattr(action, 'content_pack'):
-            setattr(action, 'content_pack', 'default')
+        if not hasattr(action, 'pack'):
+            setattr(action, 'pack', 'default')
 
         try:
             action_validator.validate_action(action)

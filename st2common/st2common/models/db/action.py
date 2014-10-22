@@ -62,7 +62,7 @@ class ActionDB(StormFoundationDB):
     entry_point = me.StringField(
         required=True,
         help_text='The entry point to the action.')
-    content_pack = me.StringField(
+    pack = me.StringField(
         required=True,
         help_text='Name of the content pack.',
         unique_with='name')

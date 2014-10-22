@@ -63,7 +63,7 @@ def _get_user_sensors():
     sensors_dict = defaultdict(list)
     pack_loader = ContentPackLoader()
     sensor_loader = SensorLoader()
-    packs = pack_loader.get_content(base_dir=cfg.CONF.content.content_packs_base_path,
+    packs = pack_loader.get_content(base_dir=cfg.CONF.content.packs_base_path,
                                     content_type='sensors')
     for pack, sensor_dir in six.iteritems(packs):
         try:
@@ -77,7 +77,7 @@ def _get_user_sensors():
                 pack_sensors_augmented = defaultdict(list)
                 for filename, sensors in pack_sensors.iteritems():
                     for sensor in sensors:
-                        sensor.content_pack = pack
+                        sensor.pack = pack
                         pack_sensors_augmented[filename].append(sensor)
 
                 sensors_dict.update(pack_sensors_augmented)

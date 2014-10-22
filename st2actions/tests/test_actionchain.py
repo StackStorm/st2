@@ -25,7 +25,7 @@ class DummyActionExecution(object):
 
 class DummyAction(object):
     def __init__(self):
-        self.content_pack = None
+        self.pack = None
         self.entry_point = None
         self.parameters = None
         self.runner_type = {'name': None}

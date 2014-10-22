@@ -25,19 +25,19 @@ class RuleEngineTest(DbTestCase):
     @mock.patch.object(RuleEnforcer, 'enforce', mock.MagicMock(return_value=True))
     def test_handle_trigger_instances(self):
         trigger_instance_1 = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1', 'content_pack': 'dummy_pack_1'},
+            {'name': 'st2.test.trigger1', 'pack': 'dummy_pack_1'},
             {'k1': 't1_p_v', 'k2': 'v2'},
             datetime.datetime.utcnow()
         )
 
         trigger_instance_2 = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1', 'content_pack': 'dummy_pack_1'},
+            {'name': 'st2.test.trigger1', 'pack': 'dummy_pack_1'},
             {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'},
             datetime.datetime.utcnow()
         )
 
         trigger_instance_3 = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger2', 'content_pack': 'dummy_pack_1'},
+            {'name': 'st2.test.trigger2', 'pack': 'dummy_pack_1'},
             {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'},
             datetime.datetime.utcnow()
         )
@@ -48,7 +48,7 @@ class RuleEngineTest(DbTestCase):
 
     def test_get_matching_rules_filters_disabled_rules(self):
         trigger_instance = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1', 'content_pack': 'dummy_pack_1'},
+            {'name': 'st2.test.trigger1', 'pack': 'dummy_pack_1'},
             {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.utcnow()
         )
         rules_engine = RulesEngine()
@@ -59,7 +59,7 @@ class RuleEngineTest(DbTestCase):
 
     def test_handle_trigger_instance_no_rules(self):
         trigger_instance = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger3', 'content_pack': 'dummy_pack_1'},
+            {'name': 'st2.test.trigger3', 'pack': 'dummy_pack_1'},
             {'k1': 't1_p_v', 'k2': 'v2'},
             datetime.datetime.utcnow()
         )
@@ -79,7 +79,7 @@ class RuleEngineTest(DbTestCase):
             trigtype = None
             try:
                 trigtype = TriggerTypeDB()
-                trigtype.content_pack = 'dummy_pack_1'
+                trigtype.pack = 'dummy_pack_1'
                 trigtype.name = name
                 trigtype.description = ''
                 trigtype.payload_schema = {}
@@ -93,7 +93,7 @@ class RuleEngineTest(DbTestCase):
 
             created = TriggerDB()
             created.name = name
-            created.content_pack = 'dummy_pack_1'
+            created.pack = 'dummy_pack_1'
             created.description = ''
             created.type = trigtype.get_reference().ref
             created.parameters = {}

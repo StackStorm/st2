@@ -17,7 +17,7 @@ class RuleMatcherTest(DbTestCase):
     def test_get_matching_rules(self):
         self._setup_sample_trigger('st2.test.trigger1')
         trigger_instance = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1', 'content_pack': 'dummy_pack_1'},
+            {'name': 'st2.test.trigger1', 'pack': 'dummy_pack_1'},
             {'k1': 't1_p_v', 'k2': 'v2'},
             datetime.datetime.utcnow()
         )
@@ -31,7 +31,7 @@ class RuleMatcherTest(DbTestCase):
     def _setup_sample_trigger(self, name):
         trigtype = TriggerTypeDB()
         trigtype.name = name
-        trigtype.content_pack = 'dummy_pack_1'
+        trigtype.pack = 'dummy_pack_1'
         trigtype.description = ''
         trigtype.payload_schema = {}
         trigtype.parameters_schema = {}
@@ -39,7 +39,7 @@ class RuleMatcherTest(DbTestCase):
 
         created = TriggerDB()
         created.name = name
-        created.content_pack = 'dummy_pack_1'
+        created.pack = 'dummy_pack_1'
         created.description = ''
         created.type = trigtype.get_reference().ref
         created.parameters = {}

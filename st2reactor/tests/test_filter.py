@@ -13,7 +13,7 @@ from st2tests import DbTestCase
 MOCK_TRIGGER = TriggerDB()
 MOCK_TRIGGER.id = bson.ObjectId()
 MOCK_TRIGGER.name = 'trigger-test.name'
-MOCK_TRIGGER.content_pack = 'dummy_pack_1'
+MOCK_TRIGGER.pack = 'dummy_pack_1'
 MOCK_TRIGGER.type = 'system.test'
 
 MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()

@@ -33,7 +33,7 @@ ACTION1 = {
     "required_parameters": [],
     "enabled": True,
     "entry_point": "",
-    "content_pack": "mockety"
+    "pack": "mockety"
 }
 
 RUNNER2 = {
@@ -55,7 +55,7 @@ ACTION2 = {
     "required_parameters": [],
     "enabled": True,
     "entry_point": "",
-    "content_pack": "mockety"
+    "pack": "mockety"
 }
 
 ACTION_EXECUTION = {

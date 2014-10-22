@@ -10,13 +10,13 @@ class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
     template).
 
     Attribute:
-        content_pack - Name of the content pack this sensor belongs to.
+        pack - Name of the content pack this sensor belongs to.
         artifact_uri - URI to the artifact file.
         entry_point - Full path to the sensor entry point (e.g. module.foo.ClassSensor).
         trigger_type - A list of references to the TriggerTypeDB objects exposed by this sensor.
     """
     name = me.StringField(required=True)
-    content_pack = me.StringField(required=True, unique_with='name')
+    pack = me.StringField(required=True, unique_with='name')
     artifact_uri = me.StringField()
     entry_point = me.StringField()
     trigger_types = me.ListField(field=me.StringField())
@@ -24,15 +24,15 @@ class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
 
 class TriggerTypeDB(StormBaseDB, ContentPackResourceMixin):
     """Description of a specific kind/type of a trigger. The
-       (content_pack, name) tuple is expected uniquely identify a trigger in
+       (pack, name) tuple is expected uniquely identify a trigger in
        the namespace of all triggers provided by a specific trigger_source.
     Attribute:
-        content_pack - Name of the content pack this trigger belongs to.
+        pack - Name of the content pack this trigger belongs to.
         trigger_source: Source that owns this trigger type.
         payload_info: Meta information of the expected payload.
     """
     name = me.StringField(required=True)
-    content_pack = me.StringField(required=True, unique_with='name')
+    pack = me.StringField(required=True, unique_with='name')
     payload_schema = me.DictField()
     parameters_schema = me.DictField(default={})
 
@@ -40,12 +40,12 @@ class TriggerTypeDB(StormBaseDB, ContentPackResourceMixin):
 class TriggerDB(StormBaseDB, ContentPackResourceMixin):
     """
     Attribute:
-        content_pack - Name of the content pack this trigger belongs to.
+        pack - Name of the content pack this trigger belongs to.
         type - Reference to the TriggerType object.
         parameters - Trigger parameters.
     """
     name = me.StringField(required=True)
-    content_pack = me.StringField(required=True, unique_with='name')
+    pack = me.StringField(required=True, unique_with='name')
     type = me.StringField()
     parameters = me.DictField()
 

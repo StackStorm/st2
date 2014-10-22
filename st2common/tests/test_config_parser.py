@@ -14,18 +14,18 @@ class ContentPackConfigParserTestCase(TestCase):
         super(ContentPackConfigParserTestCase, self).setUp()
         tests_config.parse_args()
 
-        # Mock the content_packs_base_path
+        # Mock the packs_base_path
         mock_path = os.path.join(DIRNAME, 'fixtures/')
-        cfg.CONF.content.content_packs_base_path = mock_path
+        cfg.CONF.content.packs_base_path = mock_path
 
     def test_get_action_config_inexistent_pack(self):
-        parser = ContentPackConfigParser(content_pack_name='inexistent')
+        parser = ContentPackConfigParser(pack_name='inexistent')
         config = parser.get_action_config(action_file_path='test.py')
         self.assertEqual(config, None)
 
     def test_get_action_and_sensor_config_no_config(self):
-        content_pack_name = 'dummy_content_pack_1'
-        parser = ContentPackConfigParser(content_pack_name=content_pack_name)
+        pack_name = 'dummy_pack_1'
+        parser = ContentPackConfigParser(pack_name=pack_name)
 
         config = parser.get_action_config(action_file_path='my_action.py')
         self.assertEqual(config, None)
@@ -34,8 +34,8 @@ class ContentPackConfigParserTestCase(TestCase):
         self.assertEqual(config, None)
 
     def test_get_action_and_sensor_config_existing_config(self):
-        content_pack_name = 'dummy_content_pack_2'
-        parser = ContentPackConfigParser(content_pack_name=content_pack_name)
+        pack_name = 'dummy_pack_2'
+        parser = ContentPackConfigParser(pack_name=pack_name)
 
         config = parser.get_action_config(action_file_path='my_action.py')
         self.assertEqual(config.config['section1']['key1'], 'value1')

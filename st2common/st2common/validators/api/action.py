@@ -21,11 +21,11 @@ def validate_action(action_api):
         msg = 'RunnerType %s is not found.' % action_api.runner_type
         raise ValueValidationException(msg)
 
-    # Check if content_pack is valid.
-    if not _is_valid_content_pack(action_api.content_pack):
+    # Check if pack is valid.
+    if not _is_valid_pack(action_api.pack):
         msg = 'Content pack %s does not exist in %s.' % (
-            action_api.content_pack,
-            cfg.CONF.content.content_packs_base_path)
+            action_api.pack,
+            cfg.CONF.content.packs_base_path)
         raise ValueValidationException(msg)
 
     # Check if parameters defined are valid.
@@ -39,9 +39,9 @@ def validate_action(action_api):
             raise ValueValidationException(msg)
 
 
-def _is_valid_content_pack(content_pack):
-    base_path = cfg.CONF.content.content_packs_base_path
-    return os.path.exists(os.path.join(base_path, content_pack, 'actions'))
+def _is_valid_pack(pack):
+    base_path = cfg.CONF.content.packs_base_path
+    return os.path.exists(os.path.join(base_path, pack, 'actions'))
 
 
 def _validate_parameters(action_params=None, runner_params=None):

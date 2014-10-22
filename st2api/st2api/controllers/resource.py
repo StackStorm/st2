@@ -105,7 +105,7 @@ class ContentPackResourceControler(ResourceController):
                 return []
 
             kwargs['name'] = ref_obj.name
-            kwargs['content_pack'] = ref_obj.pack
+            kwargs['pack'] = ref_obj.pack
             del kwargs['ref']
 
         return super(ContentPackResourceControler, self)._get_all(**kwargs)

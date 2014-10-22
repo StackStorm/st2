@@ -63,7 +63,7 @@ class Historian(ConsumerMixin):
             action_ref = ResourceReference.from_string_reference(ref=execution.ref)
             action_db, _ = action_utils.get_action_by_dict(
                 {'name': action_ref.name,
-                 'content_pack': action_ref.pack})
+                 'pack': action_ref.pack})
             runner = RunnerType.get_by_name(action_db.runner_type['name'])
 
             attrs = {

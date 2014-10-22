@@ -24,11 +24,11 @@ class TriggerTypeController(ContentPackResourceControler):
     access = TriggerType
     supported_filters = {
         'name': 'name',
-        'content_pack': 'content_pack'
+        'pack': 'pack'
     }
 
     options = {
-        'sort': ['content_pack', 'name']
+        'sort': ['pack', 'name']
     }
 
     @jsexpose(body=TriggerTypeAPI, status_code=http_client.CREATED)
@@ -132,7 +132,7 @@ class TriggerTypeController(ContentPackResourceControler):
         try:
             trigger_type_ref = triggertype_db.get_reference().ref
             trigger = {'name': triggertype_db.name,
-                       'content_pack': triggertype_db.content_pack,
+                       'pack': triggertype_db.pack,
                        'type': trigger_type_ref,
                        'parameters': {}}
             trigger_db = TriggerService.create_trigger_db(trigger)

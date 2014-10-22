@@ -47,11 +47,11 @@ class RunnerContainerService(object):
         logging.getLogger(__name__ + '.' + name)
 
     @staticmethod
-    def get_content_packs_base_path():
-        return cfg.CONF.content.content_packs_base_path
+    def get_packs_base_path():
+        return cfg.CONF.content.packs_base_path
 
     @staticmethod
-    def get_content_pack_base_path(pack_name):
+    def get_pack_base_path(pack_name):
         """
         Return full absolute base path to the content pack directory.
 
@@ -63,7 +63,7 @@ class RunnerContainerService(object):
         if not pack_name:
             return None
 
-        packs_base_path = RunnerContainerService.get_content_packs_base_path()
+        packs_base_path = RunnerContainerService.get_packs_base_path()
         pack_base_path = os.path.join(packs_base_path, pipes.quote(pack_name))
         pack_base_path = os.path.abspath(pack_base_path)
         return pack_base_path
@@ -73,7 +73,7 @@ class RunnerContainerService(object):
         if entry_point is not None and len(entry_point) > 0:
             if os.path.isabs(entry_point):
                 return entry_point
-            return os.path.join(RunnerContainerService.get_content_packs_base_path(),
+            return os.path.join(RunnerContainerService.get_packs_base_path(),
                                 pipes.quote(pack), 'actions', pipes.quote(entry_point))
         else:
             return None

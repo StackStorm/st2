@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 SUPPORTED_FILTERS = {
     'action': 'action.name',  # XXX: Hack to declare a filter that has no direct data mapping.
     'action.name': 'action.name',
-    'action.pack': 'action.content_pack',
+    'action.pack': 'action.pack',
     'parent': 'parent',
     'rule': 'rule.name',
     'runner': 'runner.name',

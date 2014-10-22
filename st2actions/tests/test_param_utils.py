@@ -258,7 +258,7 @@ class ParamsUtilsTest(TestCase):
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
         actionexec_db.ref = ResourceReference(name=ParamsUtilsTest.action_db.name,
-                                              pack=ParamsUtilsTest.action_db.content_pack).ref
+                                              pack=ParamsUtilsTest.action_db.pack).ref
         actionexec_db.parameters = params
         return actionexec_db
 
@@ -306,7 +306,7 @@ class ParamsUtilsTest(TestCase):
         action_db.name = 'action-1'
         action_db.description = 'awesomeness'
         action_db.enabled = True
-        action_db.content_pack = 'wolfpack'
+        action_db.pack = 'wolfpack'
         action_db.entry_point = ''
         action_db.runner_type = {'name': 'test-runner'}
         action_db.parameters = {

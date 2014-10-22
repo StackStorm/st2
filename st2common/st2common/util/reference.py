@@ -38,7 +38,7 @@ def get_model_by_resource_ref(db_api, ref):
     :return: Retrieved object.
     """
     ref_obj = ResourceReference.from_string_reference(ref=ref)
-    result = db_api.query(name=ref_obj.name, content_pack=ref_obj.pack).first()
+    result = db_api.query(name=ref_obj.name, pack=ref_obj.pack).first()
     return result
 
 
@@ -46,14 +46,14 @@ def get_resource_ref_from_model(model):
     """
     Return a ResourceReference given db_model.
 
-    :param model: DB model that contains name and content_pack.
+    :param model: DB model that contains name and pack.
     :type model: ``object``
 
     :return: ResourceReference.
     """
     try:
         name = model.name
-        pack = model.content_pack
+        pack = model.pack
     except AttributeError:
         raise Exception('Cannot build ResourceReference for model: %s. Name or pack missing.',
                         model)
@@ -64,7 +64,7 @@ def get_str_resource_ref_from_model(model):
     """
     Return a resource reference as string given db_model.
 
-    :param model: DB model that contains name and content_pack.
+    :param model: DB model that contains name and pack.
     :type model: ``object``
 
     :return: String representation of ResourceReference.

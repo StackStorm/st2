@@ -14,9 +14,9 @@ class SensorTypeController(ContentPackResourceControler):
     access = SensorType
     supported_filters = {
         'name': 'name',
-        'content_pack': 'content_pack'
+        'pack': 'pack'
     }
 
     options = {
-        'sort': ['content_pack', 'name']
+        'sort': ['pack', 'name']
     }

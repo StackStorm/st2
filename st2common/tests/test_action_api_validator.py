@@ -25,7 +25,7 @@ class TestActionAPIValidator(DbTestCase):
 
         RunnerType.add_or_update(runner_model)
 
-    @mock.patch.object(action_validator, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(
         return_value=True))
     def test_validate_runner_type_happy_case(self):
         action_api_dict = fixture.ARTIFACTS['actions']['local']
@@ -35,7 +35,7 @@ class TestActionAPIValidator(DbTestCase):
         except:
             self.fail('Exception validating action: %s' % json.dumps(action_api_dict))
 
-    @mock.patch.object(action_validator, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(
         return_value=True))
     def test_validate_runner_type_invalid_runner(self):
         action_api_dict = fixture.ARTIFACTS['actions']['action-with-invalid-runner']
@@ -46,7 +46,7 @@ class TestActionAPIValidator(DbTestCase):
         except ValueValidationException:
             pass
 
-    @mock.patch.object(action_validator, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(
         return_value=True))
     def test_validate_override_immutable_runner_param(self):
         action_api_dict = fixture.ARTIFACTS['actions']['local-override-runner-immutable']
@@ -57,7 +57,7 @@ class TestActionAPIValidator(DbTestCase):
         except ValueValidationException as e:
             self.assertTrue('Cannot override in action.' in e.message)
 
-    @mock.patch.object(action_validator, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(
         return_value=True))
     def test_validate_action_param_immutable(self):
         action_api_dict = fixture.ARTIFACTS['actions']['action-immutable-param-no-default']
@@ -68,7 +68,7 @@ class TestActionAPIValidator(DbTestCase):
         except ValueValidationException as e:
             self.assertTrue('requires a default value.' in e.message)
 
-    @mock.patch.object(action_validator, '_is_valid_content_pack', mock.MagicMock(
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(
         return_value=True))
     def test_validate_action_param_required_missing_definition(self):
         action_api_dict = fixture.ARTIFACTS['actions']['action-missing-param-required']

@@ -38,7 +38,7 @@ class UnregisterPackAction(object):
 
     @staticmethod
     def _unregister_actions(pack):
-        action_dbs = action.Action.get_all(content_pack=pack)
+        action_dbs = action.Action.get_all(pack=pack)
         for action_db in action_dbs:
             try:
                 action.Action.delete(action_db)
