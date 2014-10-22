@@ -74,7 +74,7 @@ class ActionsController(resource.ResourceController):
             abort(http_client.BAD_REQUEST, str(e))
             return
 
-        return self._get_actions(**kw)
+        return result
 
     @staticmethod
     def _validate_action_parameters(action, runnertype_db):
