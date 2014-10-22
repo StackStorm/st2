@@ -2,6 +2,7 @@ import abc
 import functools
 import inspect
 
+import jsonschema
 import six
 from six.moves import http_client
 from webob import exc
@@ -98,7 +99,16 @@ def jsexpose(*argtypes, **opts):
 
                 body_cls = opts.get('body')
                 if body_cls and pecan.request.body:
-                    obj = body_cls(**pecan.request.json)
+                    try:
+                        obj = body_cls(**pecan.request.json)
+                    except jsonschema.exceptions.ValidationError as e:
+                        pecan.response.status = http_client.BAD_REQUEST
+                        error = {'faultstring': e.message}
+                        return json_encode(error)
+                    except Exception as e:
+                        pecan.response.status = http_client.INTERNAL_SERVER_ERROR
+                        error = {'faultstring': str(e)}
+                        return json_encode(error)
                     more.append(obj)
 
                 args = tuple(more) + tuple(args)
