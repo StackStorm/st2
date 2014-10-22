@@ -12,7 +12,8 @@ from st2common.persistence.history import ActionExecutionHistory
 from st2common.persistence.action import RunnerType, ActionExecution
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
-from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI, RuleAPI
+from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
+from st2common.models.api.rule import RuleAPI
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.history import ActionExecutionHistoryDB
 from st2common import log as logging

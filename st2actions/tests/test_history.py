@@ -17,7 +17,8 @@ from st2common.transport.publishers import CUDPublisher
 from st2common.services import action as action_service
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.action import ActionExecutionDB
-from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI, RuleAPI
+from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
+from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
 import st2common.util.action_db as action_utils
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
