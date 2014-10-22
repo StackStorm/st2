@@ -92,34 +92,11 @@ class RuleDB(StormBaseDB):
     enabled = me.BooleanField(required=True, default=True,
                               help_text=u'Flag indicating whether the rule is enabled.')
 
-
-class RuleEnforcementDB(StormFoundationDB):
-    """A record of when an enabled rule was enforced.
-    Attribute:
-        rule (Reference): Rule that was enforced.
-        trigger_instance (Reference): TriggerInstance leading to tripping of
-        the rule.
-        action_execution (Reference): The ActionExecution that was
-        created to record execution of a action as part of this enforcement.
-    """
-    rule = me.DictField()
-    trigger_instance = me.DictField()
-    action_execution = me.DictField()
-
-    meta = {
-        'indexes': [
-            {'fields': ['action_execution.id']}
-        ]
-    }
-
-
 # specialized access objects
 sensor_type_access = MongoDBAccess(SensorTypeDB)
 triggertype_access = MongoDBAccess(TriggerTypeDB)
 trigger_access = MongoDBAccess(TriggerDB)
 triggerinstance_access = MongoDBAccess(TriggerInstanceDB)
 rule_access = MongoDBAccess(RuleDB)
-ruleenforcement_access = MongoDBAccess(RuleEnforcementDB)
 
-MODELS = [SensorTypeDB, TriggerTypeDB, TriggerDB, TriggerInstanceDB, RuleDB,
-          RuleEnforcementDB]
+MODELS = [SensorTypeDB, TriggerTypeDB, TriggerDB, TriggerInstanceDB, RuleDB]

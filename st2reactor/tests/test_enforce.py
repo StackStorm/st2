@@ -3,10 +3,10 @@ import datetime
 import mock
 import unittest2
 
-from st2common.persistence.reactor import RuleEnforcement
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
     RuleDB, ActionExecutionSpecDB
 from st2common.models.db.action import ActionDB, ActionExecutionDB
+import st2common.services.action as action_service
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
 import st2tests.config as tests_config
@@ -28,6 +28,7 @@ MOCK_ACTION.name = 'action-test-1.name'
 MOCK_ACTION_EXECUTION = ActionExecutionDB()
 MOCK_ACTION_EXECUTION.id = 'actionexec-test-1.id'
 MOCK_ACTION_EXECUTION.name = 'actionexec-test-1.name'
+MOCK_ACTION_EXECUTION.status = 'scheduled'
 
 MOCK_RULE_1 = RuleDB()
 MOCK_RULE_1.id = 'rule-test-1'
@@ -52,11 +53,9 @@ class EnforceTest(unittest2.TestCase):
     def setUpClass(cls):
         tests_config.parse_args()
 
-    @mock.patch.object(RuleEnforcement, 'add_or_update')
-    @mock.patch.object(RuleEnforcer, '_invoke_action', mock.MagicMock(
-        return_value=reference.get_ref_from_model(MOCK_ACTION_EXECUTION)))
-    def test_ruleenforcement_creation(self, mock_ruleenforcement_add):
+    @mock.patch.object(action_service, 'schedule', mock.MagicMock(
+        return_value=MOCK_ACTION_EXECUTION))
+    def test_ruleenforcement_occurs(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, MOCK_RULE_1)
-        enforcer.enforce()
-        self.assertEqual(mock_ruleenforcement_add.call_count, 1,
-                         'Expected RuleEnforcement(s) not added.')
+        execution_id = enforcer.enforce()
+        self.assertTrue(execution_id is not None)
