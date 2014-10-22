@@ -1,3 +1,5 @@
+import bson
+import eventlet
 from kombu import Connection
 from kombu.mixins import ConsumerMixin
 from oslo.config import cfg
@@ -17,14 +19,16 @@ from st2common import log as logging
 LOG = logging.getLogger(__name__)
 
 QUEUES = {
-    'create': actionexecution.get_queue('st2.hist.exec', routing_key=publishers.CREATE_RK),
-    'update': actionexecution.get_queue('st2.hist.exec', routing_key=publishers.UPDATE_RK)
+    'create': actionexecution.get_queue('st2.hist.exec.create', routing_key=publishers.CREATE_RK),
+    'update': actionexecution.get_queue('st2.hist.exec.update', routing_key=publishers.UPDATE_RK)
 }
 
 
 class Historian(ConsumerMixin):
 
-    def __init__(self, connection):
+    def __init__(self, connection, timeout=60, wait=3):
+        self.wait = wait
+        self.timeout = timeout
         self.connection = connection
         self._dispatcher = BufferedDispatcher()
 
@@ -32,61 +36,84 @@ class Historian(ConsumerMixin):
         self._dispatcher.shutdown()
 
     def get_consumers(self, Consumer, channel):
-        consumers = [Consumer(queues=QUEUES.values(), accept=['pickle'],
-                              callbacks=[self.process_action_execution])]
+        return [Consumer(queues=[QUEUES['create']], accept=['pickle'],
+                         callbacks=[self.process_create]),
+                Consumer(queues=[QUEUES['update']], accept=['pickle'],
+                         callbacks=[self.process_update])]
 
-        # use prefetch_count=1 for fair dispatch. This way workers that finish an item get the next
-        # task and the work does not get queued behind any single large item.
-        for consumer in consumers:
-            consumer.qos(prefetch_count=1)
-
-        return consumers
-
-    def process_action_execution(self, body, message):
+    def process_create(self, body, message):
         try:
             self._dispatcher.dispatch(self.record_action_execution, body)
         finally:
             message.ack()
 
+    def process_update(self, body, message):
+        try:
+            self._dispatcher.dispatch(self.update_action_execution_history, body)
+        finally:
+            message.ack()
+
     def record_action_execution(self, body):
         try:
+            history_id = bson.ObjectId()
             execution = ActionExecution.get_by_id(str(body.id))
-            history = ActionExecutionHistory.get(execution__id=str(body.id))
-            if history:
-                history.execution = vars(ActionExecutionAPI.from_model(execution))
-            else:
-                action = Action.get_by_name(execution.action['name'])
-                runner = RunnerType.get_by_name(action.runner_type['name'])
-                history = ActionExecutionHistoryDB(
-                    action=vars(ActionAPI.from_model(action)),
-                    runner=vars(RunnerTypeAPI.from_model(runner)),
-                    execution=vars(ActionExecutionAPI.from_model(execution)))
-                history = ActionExecutionHistory.add_or_update(history)
+            action = Action.get_by_name(execution.action['name'])
+            runner = RunnerType.get_by_name(action.runner_type['name'])
 
-            if 'rule' in execution.context and not getattr(history, 'rule', None):
+            attrs = {
+                'id': history_id,
+                'action': vars(ActionAPI.from_model(action)),
+                'runner': vars(RunnerTypeAPI.from_model(runner)),
+                'execution': vars(ActionExecutionAPI.from_model(execution))
+            }
+
+            if 'rule' in execution.context:
                 rule = reference.get_model_from_ref(Rule, execution.context.get('rule', {}))
-                history.rule = vars(RuleAPI.from_model(rule))
+                attrs['rule'] = vars(RuleAPI.from_model(rule))
 
-            if ('trigger_instance' in execution.context and
-                    not getattr(history, 'trigger_instance', None)):
+            if 'trigger_instance' in execution.context:
                 trigger_instance = reference.get_model_from_ref(
                     TriggerInstance, execution.context.get('trigger_instance', {}))
                 trigger = Trigger.get_by_name(trigger_instance.trigger['name'])
                 trigger_type = TriggerType.get_by_name(trigger.type['name'])
-                history.trigger_instance = vars(TriggerInstanceAPI.from_model(trigger_instance))
-                history.trigger = vars(TriggerAPI.from_model(trigger))
-                history.trigger_type = vars(TriggerTypeAPI.from_model(trigger_type))
+                attrs['trigger_instance'] = vars(TriggerInstanceAPI.from_model(trigger_instance))
+                attrs['trigger'] = vars(TriggerAPI.from_model(trigger))
+                attrs['trigger_type'] = vars(TriggerTypeAPI.from_model(trigger_type))
 
             parent = ActionExecutionHistory.get(execution__id=execution.context.get('parent', ''))
-            if parent and not getattr(history, 'parent', None):
-                history.parent = str(parent.id)
-                if str(history.id) not in parent.children:
-                    parent.children.append(str(history.id))
+            if parent:
+                attrs['parent'] = str(parent.id)
+                if str(history_id) not in parent.children:
+                    parent.children.append(str(history_id))
                     ActionExecutionHistory.add_or_update(parent)
 
+            history = ActionExecutionHistoryDB(**attrs)
             history = ActionExecutionHistory.add_or_update(history)
         except:
-            LOG.exception('An unexpected error occurred while recording the action execution.')
+            LOG.exception('An unexpected error occurred while creating the '
+                          'action execution history.')
+            raise
+
+    def update_action_execution_history(self, body):
+        try:
+            count = self.timeout / self.wait
+            # Allow up to 1 minute for the post event to create the history record.
+            for i in range(count):
+                history = ActionExecutionHistory.get(execution__id=str(body.id))
+                if history:
+                    execution = ActionExecution.get_by_id(str(body.id))
+                    history.execution = vars(ActionExecutionAPI.from_model(execution))
+                    history = ActionExecutionHistory.add_or_update(history)
+                    return
+                if i >= count:
+                    # If wait failed, create the history record regardless.
+                    self.record_action_execution(body)
+                    return
+                eventlet.sleep(self.wait)
+        except:
+            LOG.exception('An unexpected error occurred while updating the '
+                          'action execution history.')
+            raise
 
 
 def work():
