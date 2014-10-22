@@ -9,14 +9,14 @@ from st2tests.base import DbTestCase
 MOCK_TRIGGER_TYPE = TriggerTypeDB()
 MOCK_TRIGGER_TYPE.id = 'trigger-type-test.id'
 MOCK_TRIGGER_TYPE.name = 'trigger-type-test.name'
-MOCK_TRIGGER_TYPE.content_pack = 'dummy_pack_1'
+MOCK_TRIGGER_TYPE.pack = 'dummy_pack_1'
 MOCK_TRIGGER_TYPE.parameters_schema = {}
 MOCK_TRIGGER_TYPE.payload_info = {}
 
 MOCK_TRIGGER = TriggerDB()
 MOCK_TRIGGER.id = 'trigger-test.id'
 MOCK_TRIGGER.name = 'trigger-test.name'
-MOCK_TRIGGER.content_pack = 'dummy_pack_1'
+MOCK_TRIGGER.pack = 'dummy_pack_1'
 MOCK_TRIGGER.parameters = {}
 MOCK_TRIGGER.type = 'dummy_pack_1.trigger-type-test.name'
 
@@ -29,7 +29,7 @@ class ContainerUtilsTest(DbTestCase):
     @mock.patch.object(TriggerType, 'add_or_update')
     def test_add_trigger(self, mock_add_handler):
         mock_add_handler.return_value = MOCK_TRIGGER_TYPE
-        container_utils.add_trigger_models(content_pack='dummy_pack_1',
+        container_utils.add_trigger_models(pack='dummy_pack_1',
                                            trigger_types=[MOCK_TRIGGER_TYPE])
         self.assertTrue(mock_add_handler.called, 'trigger not added.')
 
@@ -61,7 +61,7 @@ class ContainerUtilsTest(DbTestCase):
             self.assertTrue(True)
 
     def test_create_trigger_instance_invalid_trigger(self):
-        trigger_instance = {'name': 'footrigger', 'content_pack': 'dummy_pack'}
+        trigger_instance = {'name': 'footrigger', 'pack': 'dummy_pack'}
         instance = container_utils.create_trigger_instance(trigger_instance, {}, None)
         self.assertTrue(instance is None)
 
@@ -69,17 +69,17 @@ class ContainerUtilsTest(DbTestCase):
         # Trigger type with no params should create a trigger with same name as trigger type.
         trig_type = {
             'name': 'myawesometriggertype',
-            'content_pack': 'dummy_pack_1',
+            'pack': 'dummy_pack_1',
             'description': 'Words cannot describe how awesome I am.',
             'parameters_schema': {},
             'payload_schema': {}
         }
-        trigtype_dbs = container_utils.add_trigger_models(content_pack='my_pack_1',
+        trigtype_dbs = container_utils.add_trigger_models(pack='my_pack_1',
                                                           trigger_types=[trig_type])
         trigger_type, trigger = trigtype_dbs[0]
 
         trigtype_db = TriggerType.get_by_id(trigger_type.id)
-        self.assertEqual(trigtype_db.content_pack, 'my_pack_1')
+        self.assertEqual(trigtype_db.pack, 'my_pack_1')
         self.assertEqual(trigtype_db.name, trig_type.get('name'))
         self.assertTrue(trigger is not None)
         self.assertEqual(trigger.name, trigtype_db.name)
@@ -97,16 +97,16 @@ class ContainerUtilsTest(DbTestCase):
         }
         trig_type = {
             'name': 'myawesometriggertype2',
-            'content_pack': 'dummy_pack_1',
+            'pack': 'dummy_pack_1',
             'description': 'Words cannot describe how awesome I am.',
             'parameters_schema': PARAMETERS_SCHEMA,
             'payload_schema': {}
         }
-        trigtype_dbs = container_utils.add_trigger_models(content_pack='my_pack_1',
+        trigtype_dbs = container_utils.add_trigger_models(pack='my_pack_1',
                                                           trigger_types=[trig_type])
         trigger_type, trigger = trigtype_dbs[0]
 
         trigtype_db = TriggerType.get_by_id(trigger_type.id)
-        self.assertEqual(trigtype_db.content_pack, 'my_pack_1')
+        self.assertEqual(trigtype_db.pack, 'my_pack_1')
         self.assertEqual(trigtype_db.name, trig_type.get('name'))
         self.assertEqual(trigger, None)

@@ -18,7 +18,7 @@ def _get_trigger_db(type=None, parameters=None):
 
 def _get_trigger_db_by_name_and_pack(name, pack):
     try:
-        return Trigger.query(name=name, content_pack=pack).first()
+        return Trigger.query(name=name, pack=pack).first()
     except ValueError as e:
         LOG.debug('Database lookup for name="%s",pack="%s" resulted ' +
                   'in exception : %s.', name, pack, e, exc_info=True)
@@ -34,22 +34,22 @@ def get_trigger_db(trigger):
                                                 pack=ref_obj.pack)
     if isinstance(trigger, dict):
         name = trigger.get('name', None)
-        content_pack = trigger.get('content_pack', None)
+        pack = trigger.get('pack', None)
 
-        if name and content_pack:
-            return _get_trigger_db_by_name_and_pack(name=name, pack=content_pack)
+        if name and pack:
+            return _get_trigger_db_by_name_and_pack(name=name, pack=pack)
 
         return _get_trigger_db(type=trigger['type'],
                                parameters=trigger.get('parameters', {}))
 
     if isinstance(trigger, object):
         name = getattr(trigger, 'name', None)
-        content_pack = getattr(trigger, 'content_pack', None)
+        pack = getattr(trigger, 'pack', None)
         parameters = getattr(trigger, 'parameters', {})
 
         trigger_db = None
-        if name and content_pack:
-            trigger_db = _get_trigger_db_by_name_and_pack(name=name, pack=content_pack)
+        if name and pack:
+            trigger_db = _get_trigger_db_by_name_and_pack(name=name, pack=pack)
         else:
             trigger_db = _get_trigger_db(type=trigger.type,
                                          parameters=parameters)
@@ -65,7 +65,7 @@ def _get_trigger_api_given_rule(rule):
     trigger_name = trigger.get('name', None)
     if trigger_name:
         trigger_dict['name'] = trigger_name
-    trigger_dict['content_pack'] = triggertype_ref.pack
+    trigger_dict['pack'] = triggertype_ref.pack
     trigger_dict['type'] = triggertype_ref.ref
     trigger_dict['parameters'] = rule.trigger.get('parameters', {})
     trigger_api = TriggerAPI(**trigger_dict)

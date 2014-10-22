@@ -39,7 +39,7 @@ class ActionBranch(resource.ResourceBranch):
 
 
 class ActionListCommand(resource.ResourceListCommand):
-    display_attributes = ['id', 'content_pack', 'name', 'description']
+    display_attributes = ['id', 'pack', 'name', 'description']
 
 
 class ActionRunCommand(resource.ResourceCommand):
@@ -122,7 +122,7 @@ class ActionRunCommand(resource.ResourceCommand):
                     return transformer[param['type']](value)
             return value
 
-        action_ref = '.'.join([action.content_pack, action.name])
+        action_ref = '.'.join([action.pack, action.name])
         execution = models.ActionExecution()
         execution.ref = action_ref
         execution.parameters = dict()

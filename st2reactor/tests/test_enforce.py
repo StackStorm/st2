@@ -14,7 +14,7 @@ import st2tests.config as tests_config
 MOCK_TRIGGER = TriggerDB()
 MOCK_TRIGGER.id = 'trigger-test.id'
 MOCK_TRIGGER.name = 'trigger-test.name'
-MOCK_TRIGGER.content_pack = 'dummypack1'
+MOCK_TRIGGER.pack = 'dummypack1'
 
 MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
 MOCK_TRIGGER_INSTANCE.id = 'triggerinstance-test'

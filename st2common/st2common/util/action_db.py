@@ -81,7 +81,7 @@ def _get_action_by_pack_and_name(pack=None, name=None):
 
         Query doesn't raise an exception.
     """
-    return Action.query(name=name, content_pack=pack).first()
+    return Action.query(name=name, pack=pack).first()
 
 
 def get_actionexec_by_id(actionexec_id):

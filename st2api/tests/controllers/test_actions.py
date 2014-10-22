@@ -15,7 +15,7 @@ ACTION_1 = {
     'name': 'st2.dummy.action1',
     'description': 'test description',
     'enabled': True,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -41,7 +41,7 @@ ACTION_2 = {
 ACTION_3 = {
     'name': 'st2.dummy.action3',
     'description': 'test description',
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -55,7 +55,7 @@ ACTION_4 = {
     'name': 'st2.dummy.action4',
     'description': 'test description',
     'enabled': False,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -69,7 +69,7 @@ ACTION_5 = {
     'name': 'st2.dummy.action5',
     'description': 'test description',
     'enabled': False,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'xyzxyz',
     'parameters': {
@@ -82,7 +82,7 @@ ACTION_5 = {
 ACTION_6 = {
     'name': 'st2.dummy.action6',
     'enabled': False,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -97,7 +97,7 @@ ACTION_7 = {
     'name': 'st2.dummy.action7',
     'description': 'test description',
     'enabled': False,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -111,7 +111,7 @@ ACTION_8 = {
     'name': 'st2.dummy.action8',
     'description': 'test description',
     'enabled': True,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -125,7 +125,7 @@ ACTION_9 = {
     'name': 'st2.dummy.action9',
     'description': 'test description',
     'enabled': True,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -134,12 +134,12 @@ ACTION_9 = {
     }
 }
 
-# Same name as ACTION_1. Different content_pack though.
+# Same name as ACTION_1. Different pack though.
 ACTION_10 = {
     'name': 'st2.dummy.action1',
     'description': 'test description',
     'enabled': True,
-    'content_pack': 'wolfpack1',
+    'pack': 'wolfpack1',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -191,7 +191,7 @@ class TestActionController(FunctionalTest):
         resp = self.app.get('/actions?name=%s' % ACTION_1['name'])
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')
-        ref = '.'.join([ACTION_1['content_pack'], ACTION_1['name']])
+        ref = '.'.join([ACTION_1['pack'], ACTION_1['name']])
         resp = self.app.get('/actions?ref=%s' % ref)
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')

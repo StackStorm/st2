@@ -35,7 +35,7 @@ def register_opts(ignore_errors=False):
     _do_register_opts(schema_opts, 'schema', ignore_errors)
 
     content_opts = [
-        cfg.StrOpt('content_packs_base_path', default='/opt/stackstorm/',
+        cfg.StrOpt('packs_base_path', default='/opt/stackstorm/',
                    help='path to load sensor modules from'),
         cfg.StrOpt('system_path', default='st2reactor/st2reactor/contrib/sensors',
                    help='path to load system sensor modules from')

@@ -19,7 +19,7 @@ class SensorTypeAPI(BaseAPI):
             'name': {
                 'type': 'string'
             },
-            'content_pack': {
+            'pack': {
                 'type': 'string'
             },
             'description': {
@@ -53,7 +53,7 @@ class TriggerTypeAPI(BaseAPI):
             'name': {
                 'type': 'string'
             },
-            'content_pack': {
+            'pack': {
                 'type': 'string'
             },
             'description': {
@@ -75,7 +75,7 @@ class TriggerTypeAPI(BaseAPI):
     @classmethod
     def to_model(cls, triggertype):
         model = super(cls, cls).to_model(triggertype)
-        model.content_pack = getattr(triggertype, 'content_pack', None)
+        model.pack = getattr(triggertype, 'pack', None)
         model.payload_schema = getattr(triggertype, 'payload_schema', {})
         model.parameters_schema = getattr(triggertype, 'parameters_schema', {})
         return model
@@ -93,7 +93,7 @@ class TriggerAPI(BaseAPI):
             'name': {
                 'type': 'string'
             },
-            'content_pack': {
+            'pack': {
                 'type': 'string'
             },
             'type': {
@@ -123,7 +123,7 @@ class TriggerAPI(BaseAPI):
         else:
             # assign a name if none is provided.
             model.name = str(uuid.uuid4())
-        model.content_pack = getattr(trigger, 'content_pack', None)
+        model.pack = getattr(trigger, 'pack', None)
         model.type = getattr(trigger, 'type', None)
         model.parameters = getattr(trigger, 'parameters', None)
         return model

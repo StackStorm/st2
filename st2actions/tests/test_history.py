@@ -81,7 +81,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(history.trigger_instance, {})
         self.assertDictEqual(history.rule, {})
         action, _ = action_utils.get_action_by_dict(
-            {'name': action_ref.name, 'content_pack': action_ref.pack})
+            {'name': action_ref.name, 'pack': action_ref.pack})
         self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))
@@ -100,7 +100,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_SUCCEEDED)
         history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
         action, _ = action_utils.get_action_by_dict(
-            {'name': action_ref.name, 'content_pack': action_ref.pack})
+            {'name': action_ref.name, 'pack': action_ref.pack})
         self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))
@@ -145,7 +145,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(history.rule, vars(RuleAPI.from_model(rule)))
         action_ref = ResourceReference.from_string_reference(ref=execution.ref)
         action, _ = action_utils.get_action_by_dict(
-            {'name': action_ref.name, 'content_pack': action_ref.pack})
+            {'name': action_ref.name, 'pack': action_ref.pack})
         self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))

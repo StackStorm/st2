@@ -15,7 +15,7 @@ class ContentPackResourceMixin():
 
         ref_obj = ResourceReference.from_string_reference(ref=ref)
         result = cls.query(name=ref_obj.name,
-                           content_pack=ref_obj.pack).first()
+                           pack=ref_obj.pack).first()
         return result
 
 

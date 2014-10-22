@@ -32,9 +32,9 @@ def create_trigger_instance(trigger, payload, occurrence_time):
     return TriggerInstance.add_or_update(trigger_instance)
 
 
-def _create_trigger_type(content_pack, name, description=None, payload_schema=None,
+def _create_trigger_type(pack, name, description=None, payload_schema=None,
                          parameters_schema=None):
-    triggertypes = TriggerType.query(content_pack=content_pack, name=name)
+    triggertypes = TriggerType.query(pack=pack, name=name)
     is_update = False
     if len(triggertypes) > 0:
         trigger_type = triggertypes[0]
@@ -44,7 +44,7 @@ def _create_trigger_type(content_pack, name, description=None, payload_schema=No
     else:
         trigger_type = TriggerTypeDB()
 
-    trigger_type.content_pack = content_pack
+    trigger_type.pack = pack
     trigger_type.name = name
     trigger_type.description = description
     trigger_type.payload_schema = payload_schema
@@ -72,15 +72,15 @@ def _validate_trigger_type(trigger_type):
             raise TriggerTypeRegistrationException('Invalid trigger type. Missing field %s' % field)
 
 
-def _create_trigger(content_pack, trigger_type):
+def _create_trigger(pack, trigger_type):
     if hasattr(trigger_type, 'parameters_schema') and not trigger_type['parameters_schema']:
-        trigger_db = TriggerService.get_trigger_db({'content_pack': content_pack,
+        trigger_db = TriggerService.get_trigger_db({'pack': pack,
                                                     'name': trigger_type.name})
 
         if trigger_db is None:
             trigger_dict = {
                 'name': trigger_type.name,
-                'content_pack': content_pack,
+                'pack': pack,
                 'type': trigger_type.get_reference().ref
             }
 
@@ -98,30 +98,30 @@ def _create_trigger(content_pack, trigger_type):
         return None
 
 
-def _add_trigger_models(content_pack, trigger_type):
+def _add_trigger_models(pack, trigger_type):
     description = trigger_type['description'] if 'description' in trigger_type else ''
     payload_schema = trigger_type['payload_schema'] if 'payload_schema' in trigger_type else {}
     parameters_schema = trigger_type['parameters_schema'] \
         if 'parameters_schema' in trigger_type else {}
 
     trigger_type = _create_trigger_type(
-        content_pack=content_pack,
+        pack=pack,
         name=trigger_type['name'],
         description=description,
         payload_schema=payload_schema,
         parameters_schema=parameters_schema
     )
-    trigger = _create_trigger(content_pack=content_pack,
+    trigger = _create_trigger(pack=pack,
                               trigger_type=trigger_type)
     return (trigger_type, trigger)
 
 
-def add_trigger_models(content_pack, trigger_types):
+def add_trigger_models(pack, trigger_types):
     """
     Register trigger types.
 
-    :param content_pack: Content pack those triggers belong to.
-    :type content_pack: ``str``
+    :param pack: Content pack those triggers belong to.
+    :type pack: ``str``
 
     :param trigger_types: A list of triggers to register.
     :type trigger_types: ``list`` of ``tuple`` (trigger_type, trigger)
@@ -131,7 +131,7 @@ def add_trigger_models(content_pack, trigger_types):
 
     result = []
     for trigger_type in trigger_types:
-        item = _add_trigger_models(content_pack=content_pack,
+        item = _add_trigger_models(pack=pack,
                                    trigger_type=trigger_type)
 
         if item:
@@ -140,9 +140,9 @@ def add_trigger_models(content_pack, trigger_types):
     return result
 
 
-def _create_sensor_type(content_pack, name, description, artifact_uri, entry_point,
+def _create_sensor_type(pack, name, description, artifact_uri, entry_point,
                         trigger_types=None):
-    sensor_types = SensorType.query(content_pack=content_pack, name=name)
+    sensor_types = SensorType.query(pack=pack, name=name)
     is_update = False
 
     if len(sensor_types) >= 1:
@@ -153,7 +153,7 @@ def _create_sensor_type(content_pack, name, description, artifact_uri, entry_poi
     else:
         sensor_type = SensorTypeDB()
 
-    sensor_type.content_pack = content_pack
+    sensor_type.pack = pack
     sensor_type.name = name
     sensor_type.description = description
     sensor_type.artifact_uri = artifact_uri
@@ -169,7 +169,7 @@ def _create_sensor_type(content_pack, name, description, artifact_uri, entry_poi
     return sensor_type_db
 
 
-def _add_sensor_model(content_pack, sensor):
+def _add_sensor_model(pack, sensor):
     name = sensor['name']
     filename = sensor['filename']
     artifact_uri = 'file://%s' % (filename)
@@ -178,7 +178,7 @@ def _add_sensor_model(content_pack, sensor):
     entry_point = '%s.%s' % (module_name, class_name)
     trigger_types = sensor['trigger_types'] or []
 
-    obj = _create_sensor_type(content_pack=content_pack,
+    obj = _create_sensor_type(pack=pack,
                               name=name,
                               description=None,
                               artifact_uri=artifact_uri,
@@ -187,12 +187,12 @@ def _add_sensor_model(content_pack, sensor):
     return obj
 
 
-def add_sensor_model(content_pack, sensor):
+def add_sensor_model(pack, sensor):
     """
     Register sensor type.
 
-    :param content_pack: Content pack the sensor belongs to.
-    :type content_pack: ``str``
+    :param pack: Content pack the sensor belongs to.
+    :type pack: ``str``
 
     :param sensor: Sensors to register.
     :type sensor: ``dict``
@@ -200,6 +200,6 @@ def add_sensor_model(content_pack, sensor):
     :return: DB object of a registered sensor.
     """
 
-    item = _add_sensor_model(content_pack=content_pack,
+    item = _add_sensor_model(pack=pack,
                              sensor=sensor)
     return item

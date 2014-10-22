@@ -1,11 +1,11 @@
 import os
 from pkg_resources import get_distribution
 
-from st2common.constants.content_pack import USER_PACK_NAME_BLACKLIST
+from st2common.constants.pack import USER_PACK_NAME_BLACKLIST
 
 __all__ = [
     'RequirementsValidator',
-    'validate_content_pack_name'
+    'validate_pack_name'
 ]
 
 
@@ -26,7 +26,7 @@ class RequirementsValidator(object):
         return missing
 
 
-def validate_content_pack_name(name):
+def validate_pack_name(name):
     """
     Validate the content pack name.
 

@@ -22,7 +22,7 @@ class ReferenceTest(DbTestCase):
         super(ReferenceTest, cls).setUpClass()
         trigger = TriggerDB()
         trigger.name = 'trigger-1'
-        trigger.content_pack = 'dummy_pack_1'
+        trigger.pack = 'dummy_pack_1'
         cls.__model = Trigger.add_or_update(trigger)
         cls.__ref = {'id': str(cls.__model.id),
                      'name': cls.__model.name}

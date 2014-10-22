@@ -9,7 +9,7 @@ ACTION_1 = {
     'name': 'st2.dummy.action1',
     'description': 'test description',
     'enabled': True,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {

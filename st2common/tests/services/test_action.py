@@ -28,7 +28,7 @@ ACTION = {
     'description': 'my test',
     'enabled': True,
     'entry_point': '/tmp/test/action.sh',
-    'content_pack': 'default',
+    'pack': 'default',
     'runner_type': 'run-local',
     'parameters': {
         'a': {
@@ -67,7 +67,7 @@ class TestActionExecutionService(DbTestCase):
         execution = ActionExecution.get_by_id(str(request.id))
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
-        action = '.'.join([self.actiondb.content_pack, self.actiondb.name])
+        action = '.'.join([self.actiondb.pack, self.actiondb.name])
         actual_action = execution.ref
         self.assertEqual(actual_action, action)
         self.assertEqual(execution.context['user'], request.context['user'])

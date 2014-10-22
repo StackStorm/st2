@@ -8,8 +8,6 @@ from st2common import log as logging
 from st2common.content.loader import ContentPackLoader
 from st2common.models.api.rule import RuleAPI
 from st2common.persistence.reactor import Rule
-from st2common.services import triggers as TriggerService
-from st2common.util import reference
 
 LOG = logging.getLogger(__name__)
 
@@ -56,7 +54,7 @@ def _register_rules_from_packs(base_dir):
             LOG.exception('Failed registering all rules from pack: %s', rules_dir)
 
 
-def register_rules(content_packs_base_path=None):
-    if not content_packs_base_path:
-        content_packs_base_path = cfg.CONF.content.content_packs_base_path
-    return _register_rules_from_packs(content_packs_base_path)
+def register_rules(packs_base_path=None):
+    if not packs_base_path:
+        packs_base_path = cfg.CONF.content.packs_base_path
+    return _register_rules_from_packs(packs_base_path)

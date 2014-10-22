@@ -8,12 +8,12 @@
             }
         }, 
         "enabled": true,
-        "content_pack": "core",
+        "pack": "core",
         "entry_point": ""
     },
     "workflow-v1": {
         "name": "workflow-v1",
-        "content_pack": "core",
+        "pack": "core",
         "runner_type": "mistral-v1",
         "description": "Say hi to friend!",
         "enabled": true,
@@ -47,7 +47,7 @@
     },
     "workflow-v2": {
         "name": "workflow-v2",
-        "content_pack": "core",
+        "pack": "core",
         "runner_type": "mistral-v2",
         "description": "Say hi to friend!",
         "enabled": true,

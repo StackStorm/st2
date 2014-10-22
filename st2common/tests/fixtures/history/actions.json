@@ -3,19 +3,19 @@
         "runner_type": "run-local",
         "name": "local",
         "enabled": true,
-        "content_pack": "core"
+        "pack": "core"
     },
     "chain": {
         "runner_type": "action-chain",
         "name": "chain",
         "enabled": true,
-        "content_pack": "core"
+        "pack": "core"
     },
     "local-override-runner-immutable": {
         "runner_type": "run-local",
         "name": "local-override-runner-immutable",
         "enabled": true,
-        "content_pack": "core",
+        "pack": "core",
         "parameters": {
             "hosts": {
                 "immutable": false
@@ -26,7 +26,7 @@
         "runner_type": "invalid-runner",
         "name": "action-with-invalid-runner",
         "enabled": true,
-        "content_pack": "core",
+        "pack": "core",
         "parameters": {
             "hosts": {
                 "immutable": false
@@ -37,7 +37,7 @@
         "runner_type": "run-local",
         "name": "action-immutable-param-no-default",
         "enabled": true,
-        "content_pack": "core",
+        "pack": "core",
         "parameters": {
             "foo": {
                 "immutable": true
@@ -48,7 +48,7 @@
         "runner_type": "run-local",
         "name": "action-missing-param-required",
         "enabled": true,
-        "content_pack": "core",
+        "pack": "core",
         "parameters": {
             "foo": {
                 "immutable": true,

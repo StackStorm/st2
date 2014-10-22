@@ -82,7 +82,7 @@ class EscapedDynamicField(me.DynamicField):
 class ContentPackResourceMixin(object):
     """
     Mixin class which provides utility methods for models which contain
-    a "content_pack" attribute.
+    a "pack" attribute.
     """
 
     def get_reference(self):
@@ -91,6 +91,6 @@ class ContentPackResourceMixin(object):
 
         :rtype: :class:`ResourceReference`
         """
-        ref = ResourceReference(pack=self.content_pack,
+        ref = ResourceReference(pack=self.pack,
                                 name=self.name)
         return ref

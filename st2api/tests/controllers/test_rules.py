@@ -21,13 +21,13 @@ ACTION.description = ''
 ACTION.enabled = True
 ACTION.artifact_path = '/tmp/action.py'
 ACTION.entry_point = ''
-ACTION.content_pack = 'sixpack'
+ACTION.pack = 'sixpack'
 ACTION.runner_type = None
 ACTION.parameter_names = {'p1': None, 'p2': None, 'p3': None}
 
 TRIGGER = reactor.TriggerDB()
 TRIGGER.name = 'st2.test.trigger1'
-TRIGGER.content_pack = 'dummy_pack_1'
+TRIGGER.pack = 'dummy_pack_1'
 TRIGGER.description = ''
 TRIGGER.payload_info = ['tp1', 'tp2', 'tp3']
 TRIGGER.trigger_source = None

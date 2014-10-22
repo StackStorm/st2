@@ -163,7 +163,7 @@ class ReactorModelTest(DbTestCase):
     @staticmethod
     def _create_save_triggertype():
         created = TriggerTypeDB()
-        created.content_pack = 'dummy_pack_1'
+        created.pack = 'dummy_pack_1'
         created.name = 'triggertype-1'
         created.description = ''
         created.payload_schema = {}
@@ -174,7 +174,7 @@ class ReactorModelTest(DbTestCase):
     def _create_save_trigger(triggertype):
         created = TriggerDB()
         created.name = 'trigger-1'
-        created.content_pack = 'dummy_pack_1'
+        created.pack = 'dummy_pack_1'
         created.description = ''
         created.type = triggertype.get_reference().ref
         created.parameters = {}
@@ -197,9 +197,9 @@ class ReactorModelTest(DbTestCase):
         created.trigger = reference.get_str_resource_ref_from_model(trigger)
         created.criteria = {}
         created.action = ActionExecutionSpecDB()
-        action_ref = ResourceReference(pack=action.content_pack, name=action.name).ref
+        action_ref = ResourceReference(pack=action.pack, name=action.name).ref
         created.action.ref = action_ref
-        created.action.content_pack = action.content_pack
+        created.action.pack = action.pack
         created.action.parameters = {}
         return Rule.add_or_update(created)
 
@@ -333,7 +333,7 @@ class ActionModelTest(DbTestCase):
         created.description = 'awesomeness'
         created.enabled = True
         created.entry_point = '/tmp/action.py'
-        created.content_pack = 'wolfpack'
+        created.pack = 'wolfpack'
         created.runner_type = {'name': runnertype.name}
         if not metadata:
             created.parameters = {'p1': None, 'p2': None, 'p3': None}

@@ -18,10 +18,10 @@ class ContentPackConfigParser(object):
     GLOBAL_CONFIG_NAME = 'config.yaml'
     LOCAL_CONFIG_SUFFIX = '_config.yaml'
 
-    def __init__(self, content_pack_name):
-        self.content_pack_name = content_pack_name
-        self.content_pack_path = RunnerContainerService() \
-            .get_content_pack_base_path(pack_name=content_pack_name)
+    def __init__(self, pack_name):
+        self.pack_name = pack_name
+        self.pack_path = RunnerContainerService() \
+            .get_pack_base_path(pack_name=pack_name)
 
     def get_action_config(self, action_file_path):
         """
@@ -102,10 +102,10 @@ class ContentPackConfigParser(object):
         return local_config_path
 
     def _get_global_config_path(self):
-        if not self.content_pack_path:
+        if not self.pack_path:
             return None
 
-        global_config_path = os.path.join(self.content_pack_path,
+        global_config_path = os.path.join(self.pack_path,
                                           self.GLOBAL_CONFIG_NAME)
         return global_config_path
 

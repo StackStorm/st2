@@ -8,14 +8,14 @@
             }
         }, 
         "enabled": true,
-        "content_pack": "core",
+        "pack": "core",
         "entry_point": ""
     },
     "chain": {
         "runner_type": "action-chain",
         "name": "chain",
         "enabled": true,
-        "content_pack": "core",
+        "pack": "core",
         "entry_point": ""
     }
 }

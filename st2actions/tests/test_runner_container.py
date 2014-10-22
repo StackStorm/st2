@@ -96,7 +96,7 @@ class RunnerContainerTest(DbTestCase):
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
         actionexec_db.ref = ResourceReference(
             name=RunnerContainerTest.action_db.name,
-            pack=RunnerContainerTest.action_db.content_pack).ref
+            pack=RunnerContainerTest.action_db.pack).ref
         actionexec_db.parameters = params
         actionexec_db.context = {'user': cfg.CONF.system_user.user}
         return actionexec_db
@@ -107,7 +107,7 @@ class RunnerContainerTest(DbTestCase):
         actionexec_db.start_timestamp = datetime.datetime.now()
         actionexec_db.ref = ResourceReference(
             name=RunnerContainerTest.failingaction_db.name,
-            pack=RunnerContainerTest.failingaction_db.content_pack).ref
+            pack=RunnerContainerTest.failingaction_db.pack).ref
         actionexec_db.parameters = params
         actionexec_db.context = {'user': cfg.CONF.system_user.user}
         return actionexec_db
@@ -174,7 +174,7 @@ class RunnerContainerTest(DbTestCase):
         action_db.name = 'action-1'
         action_db.description = 'awesomeness'
         action_db.enabled = True
-        action_db.content_pack = 'wolfpack'
+        action_db.pack = 'wolfpack'
         action_db.entry_point = ''
         action_db.runner_type = {'name': 'test-runner'}
         action_db.parameters = {
@@ -191,7 +191,7 @@ class RunnerContainerTest(DbTestCase):
         action_db.name = 'action-2'
         action_db.description = 'awesomeness'
         action_db.enabled = True
-        action_db.content_pack = 'wolfpack'
+        action_db.pack = 'wolfpack'
         action_db.entry_point = ''
         action_db.runner_type = {'name': 'test-failingrunner'}
         action_db.parameters = {}

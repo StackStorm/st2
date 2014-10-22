@@ -118,7 +118,7 @@ class EntryPointController(RestController):
         LOG.info('GET /actions/views/overview with id=%s', action_id)
         action_db = LookupUtils._get_action_by_id(action_id)
 
-        pack = getattr(action_db, 'content_pack', None)
+        pack = getattr(action_db, 'pack', None)
         entry_point = getattr(action_db, 'entry_point', None)
 
         abs_path = RunnerContainerService.get_entry_point_abs_path(pack, entry_point)

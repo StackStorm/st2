@@ -14,9 +14,9 @@ import st2tests.config as tests_config
 
 
 class RunnerContainerServiceTest(unittest2.TestCase):
-    def test_get_content_pack_base_path(self):
-        orig_path = cfg.CONF.content.content_packs_base_path
-        cfg.CONF.content.content_packs_base_path = '/tests/packs'
+    def test_get_pack_base_path(self):
+        orig_path = cfg.CONF.content.packs_base_path
+        cfg.CONF.content.packs_base_path = '/tests/packs'
 
         names = [
             'test_pack_1',
@@ -25,12 +25,12 @@ class RunnerContainerServiceTest(unittest2.TestCase):
         ]
 
         for name in names:
-            actual = RunnerContainerService().get_content_pack_base_path(pack_name=name)
-            expected = os.path.join(cfg.CONF.content.content_packs_base_path,
+            actual = RunnerContainerService().get_pack_base_path(pack_name=name)
+            expected = os.path.join(cfg.CONF.content.packs_base_path,
                                     name)
             self.assertEqual(actual, expected)
 
-        cfg.CONF.content.content_packs_base_path = orig_path
+        cfg.CONF.content.packs_base_path = orig_path
 
     @classmethod
     def setUpClass(cls):
@@ -38,40 +38,40 @@ class RunnerContainerServiceTest(unittest2.TestCase):
 
     def test_get_entry_point_absolute_path(self):
         service = RunnerContainerService()
-        orig_path = cfg.CONF.content.content_packs_base_path
-        cfg.CONF.content.content_packs_base_path = '/tests/packs'
+        orig_path = cfg.CONF.content.packs_base_path
+        cfg.CONF.content.packs_base_path = '/tests/packs'
         acutal_path = service.get_entry_point_abs_path(pack='foo', entry_point='/foo/bar.py')
         self.assertEqual(acutal_path, '/foo/bar.py', 'Entry point path doesn\'t match.')
-        cfg.CONF.content.content_packs_base_path = orig_path
+        cfg.CONF.content.packs_base_path = orig_path
 
     def test_get_entry_point_absolute_path_empty(self):
         service = RunnerContainerService()
-        orig_path = cfg.CONF.content.content_packs_base_path
-        cfg.CONF.content.content_packs_base_path = '/tests/packs'
+        orig_path = cfg.CONF.content.packs_base_path
+        cfg.CONF.content.packs_base_path = '/tests/packs'
         acutal_path = service.get_entry_point_abs_path(pack='foo', entry_point=None)
         self.assertEqual(acutal_path, None, 'Entry point path doesn\'t match.')
         acutal_path = service.get_entry_point_abs_path(pack='foo', entry_point='')
         self.assertEqual(acutal_path, None, 'Entry point path doesn\'t match.')
-        cfg.CONF.content.content_packs_base_path = orig_path
+        cfg.CONF.content.packs_base_path = orig_path
 
     def test_get_entry_point_relative_path(self):
         service = RunnerContainerService()
-        orig_path = cfg.CONF.content.content_packs_base_path
-        cfg.CONF.content.content_packs_base_path = '/tests/packs'
+        orig_path = cfg.CONF.content.packs_base_path
+        cfg.CONF.content.packs_base_path = '/tests/packs'
         acutal_path = service.get_entry_point_abs_path(pack='foo', entry_point='foo/bar.py')
-        expected_path = os.path.join(cfg.CONF.content.content_packs_base_path, 'foo', 'actions',
+        expected_path = os.path.join(cfg.CONF.content.packs_base_path, 'foo', 'actions',
                                      'foo/bar.py')
         self.assertEqual(acutal_path, expected_path, 'Entry point path doesn\'t match.')
-        cfg.CONF.content.content_packs_base_path = orig_path
+        cfg.CONF.content.packs_base_path = orig_path
 
     def test_get_action_libs_abs_path(self):
         service = RunnerContainerService()
-        orig_path = cfg.CONF.content.content_packs_base_path
-        cfg.CONF.content.content_packs_base_path = '/tests/packs'
+        orig_path = cfg.CONF.content.packs_base_path
+        cfg.CONF.content.packs_base_path = '/tests/packs'
 
         # entry point relative.
         acutal_path = service.get_action_libs_abs_path(pack='foo', entry_point='foo/bar.py')
-        expected_path = os.path.join(cfg.CONF.content.content_packs_base_path, 'foo', 'actions',
+        expected_path = os.path.join(cfg.CONF.content.packs_base_path, 'foo', 'actions',
                                      os.path.join('foo', ACTION_LIBS_DIR))
         self.assertEqual(acutal_path, expected_path, 'Action libs path doesn\'t match.')
 
@@ -79,7 +79,7 @@ class RunnerContainerServiceTest(unittest2.TestCase):
         acutal_path = service.get_action_libs_abs_path(pack='foo', entry_point='/tmp/foo.py')
         expected_path = os.path.join('/tmp', ACTION_LIBS_DIR)
         self.assertEqual(acutal_path, expected_path, 'Action libs path doesn\'t match.')
-        cfg.CONF.content.content_packs_base_path = orig_path
+        cfg.CONF.content.packs_base_path = orig_path
 
     def test_report_result_json(self):
         service = RunnerContainerService()
