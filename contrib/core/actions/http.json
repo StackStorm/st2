@@ -6,7 +6,7 @@
     "entry_point":"",
     "parameters": {
         "method": {
-            "enum": ["GET", "POST", "PUT", "DELETE"],
+            "enum": ["HEAD", "GET", "POST", "PUT", "DELETE"],
             "description": "HTTP method to use."
         },
         "timeout": {
