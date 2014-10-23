@@ -4,7 +4,7 @@ __all__ = [
 ]
 
 # Name used for system content pack
-SYSTEM_PACK_NAME = 'system'
+SYSTEM_PACK_NAME = 'core'
 
 # A list of pack names which can't be used by user-supplied content packs
 USER_PACK_NAME_BLACKLIST = [
