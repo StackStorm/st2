@@ -2,6 +2,7 @@ import abc
 import functools
 import inspect
 
+import jsonschema
 import six
 from six.moves import http_client
 from webob import exc
@@ -64,6 +65,13 @@ class BaseAPI(object):
         return model
 
 
+def _handle_error(status, exception):
+    LOG.error(exception)
+    pecan.response.status = status
+    error = {'faultstring': exception.message}
+    return json_encode(error)
+
+
 def jsexpose(*argtypes, **opts):
     content_type = opts.get('content_type', 'application/json')
 
@@ -98,7 +106,10 @@ def jsexpose(*argtypes, **opts):
 
                 body_cls = opts.get('body')
                 if body_cls and pecan.request.body:
-                    obj = body_cls(**pecan.request.json)
+                    try:
+                        obj = body_cls(**pecan.request.json)
+                    except jsonschema.exceptions.ValidationError as e:
+                        return _handle_error(http_client.BAD_REQUEST, e)
                     more.append(obj)
 
                 args = tuple(more) + tuple(args)
@@ -122,17 +133,10 @@ def jsexpose(*argtypes, **opts):
                     else:
                         return result
                 except exc.HTTPException as e:
-                    pecan.response.status = e.wsgi_response.status
-                    error = {'faultstring': str(e)}
-                    return json_encode(error)
-                except Exception as e:
-                    pecan.response.status = http_client.INTERNAL_SERVER_ERROR
-                    error = {'faultstring': str(e)}
-                    return json_encode(error)
+                    return _handle_error(e.wsgi_response.status, e)
 
             except Exception as e:
-                LOG.error(e)
-                pecan.abort(http_client.BAD_REQUEST, str(e))
+                return _handle_error(http_client.INTERNAL_SERVER_ERROR, e)
 
         pecan_json_decorate(callfunction)
 

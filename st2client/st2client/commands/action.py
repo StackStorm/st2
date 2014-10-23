@@ -129,7 +129,7 @@ class ActionRunCommand(resource.ResourceCommand):
         for idx in range(len(args.parameters)):
             arg = args.parameters[idx]
             if '=' in arg:
-                k, v = arg.split('=')
+                k, v = arg.split('=', 1)
 
                 # Attribute for files are prefixed with "@"
                 if k.startswith('@'):

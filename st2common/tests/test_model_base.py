@@ -1,8 +1,22 @@
+import json
+
 import mock
 import pecan
 import unittest
 
 from st2common.models import base
+
+
+class FakeModel(base.BaseAPI):
+    model = None
+    schema = {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type": "object",
+        "properties": {
+            "a": {"type": "string"}
+        },
+        "additionalProperties": False
+    }
 
 
 @mock.patch.object(pecan, 'request', mock.MagicMock(json={'a': 'b'}))
@@ -148,3 +162,18 @@ class TestModelBase(unittest.TestCase):
 
         APIModelMock.assert_called_once_with(a='b')
         self.f.assert_called_once_with(self, APIModelMock(), 11, (), {})
+
+    @mock.patch.object(pecan, 'response', mock.MagicMock(status=200))
+    def test_expose_schema_validation_failed(self):
+
+        @base.jsexpose(body=FakeModel)
+        def f(self, body, *args, **kwargs):
+            self.f(self, body, *args, **kwargs)
+
+        pecan.request.json = {'a': '123'}
+        rtn_val = f(self)
+        self.assertEqual(rtn_val, 'null')
+        pecan.request.json = {'a': '123', 'b': '456'}
+        rtn_val = json.loads(f(self))
+        self.assertIn('faultstring', rtn_val)
+        self.assertIn("'b' was unexpected", rtn_val['faultstring'])

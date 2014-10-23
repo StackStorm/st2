@@ -6,21 +6,29 @@
     "entry_point":"",
     "parameters": {
         "method": {
-            "enum": ["GET", "POST", "PUT", "DELETE"],
-            "default": "GET"
+            "enum": ["HEAD", "GET", "POST", "PUT", "DELETE"],
+            "description": "HTTP method to use."
         },
         "timeout": {
             "type": "integer",
-            "default": 60
+            "default": 60,
+            "description": "Timeout for the HTTP request."
         },
         "auth": {
-            "type": "string"
+            "type": "string",
+            "description": "Auth string to be used. This can be like 'x-auth-token=XYZ'."
         },
         "headers": {
-            "type": "string"
+            "type": "string",
+            "description": "HTTP headers to use with the request. Example: 'content-type=application/json&x-foo=bar'."
         },
         "params": {
-            "type": "string"
+            "type": "string",
+            "description": "Query params to be used with the HTTP request. This can be of the form 'foo=bar&baz=1'."
+        },
+        "body": {
+            "type": "string",
+            "description": "Body to send with the request"
         },
         "file_path": {
             "type": "string",

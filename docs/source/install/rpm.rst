@@ -1,6 +1,8 @@
 RedHat / Fedora
 ================
 
+.. todo:: (phool) review, likely rewrite completely. 
+
 St2 RPMs have been tested and precompiled for Fedora 20. In order to
 download them from the StackStorm release server you need to contact us
 to obtain login credentials.
@@ -147,7 +149,4 @@ The command to start and or stop stanley is 'st2run'.
 
     sudo st2run start|stop|restart|status
 
-
-.. rubric:: Continue:
-
-    TODO: What's next?
+.. include:: on_complete.rst

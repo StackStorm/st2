@@ -15,12 +15,10 @@ pandoc - a super-tool to convert between formats. Sample for markdown conversion
 	pandoc --from=markdown --to=rst --output=README.rst README.md
 
 
-## autodoc
+## autodoc and sphinx
 
-Use sphinxcontrib.pecanwsme.rest and wsmeext.sphinxext plugins to generate API docs
-
-	TODO: why REST URL is not generated with parameters?
-  TODO: now that we use jsexpose how will it work? 
+Use sphinxcontrib.pecanwsme.rest and wsmeext.sphinxext plugins to generate API docs. But once we replaced WSME with jsexpose, pecanwsme is not working (some hacks needed).
+	
 
 ## Running sphinx-audobuild
 
@@ -28,3 +26,14 @@ Use sphinxcontrib.pecanwsme.rest and wsmeext.sphinxext plugins to generate API d
 
   	pip install sphinx-autobuild
 	sphinx-autobuild docs/source docs/build/html
+
+DZ: I added sphinx-autobuild to main st2 Makefile, use  `make autodocs`.
+
+## Cheatsheet
+
+Use [source/cheatsheet.rst](./source/cheatsheet.rst) for: 
+
+1. Compiled TODO from all the docs site (full docs rebuild recommended)
+1. .rst samples
+
+

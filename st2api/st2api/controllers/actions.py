@@ -142,6 +142,8 @@ class ActionsController(resource.ResourceController):
     @jsexpose(str, body=ActionAPI)
     def put(self, action_id, action):
         action_db = ActionsController._get_by_id(action_id)
+        if not getattr(action, 'content_pack', None):
+            action.content_pack = action_db.content_pack
 
         try:
             action_validator.validate_action(action)
