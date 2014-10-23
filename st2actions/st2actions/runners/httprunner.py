@@ -95,6 +95,9 @@ class HttpRunner(ActionRunner):
                           proxies=self._proxies, files=files)
 
     def _params_to_dict(self, params):
+        if not params:
+            return {}
+
         if isinstance(params, dict):
             return params
 
