@@ -341,7 +341,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
 class ActionExecutionListCommand(resource.ResourceCommand):
 
-    display_attributes = ['id', 'action.name', 'context.user', 'status', 'start_timestamp']
+    display_attributes = ['id', 'ref', 'context.user', 'status', 'start_timestamp']
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionListCommand, self).__init__(
