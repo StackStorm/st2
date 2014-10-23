@@ -1,5 +1,6 @@
 import requests
 import uuid
+import urlparse
 
 from oslo.config import cfg
 
@@ -47,6 +48,8 @@ class HttpRunner(ActionRunner):
                                                           self._on_behalf_user)
         self._url = self.runner_parameters.get(RUNNER_URL, None)
         self._headers = self.runner_parameters.get(RUNNER_HEADERS, {})
+        self._headers = self._params_to_dict(self._headers)
+
         self._cookies = self.runner_parameters.get(RUNNER_COOKIES, None)
         self._redirects = self.runner_parameters.get(RUNNER_ALLOW_REDIRECTS, False)
         self._proxies = self.runner_parameters.get(RUNNER_PROXIES, None)
@@ -67,6 +70,7 @@ class HttpRunner(ActionRunner):
         timeout = float(action_parameters.get(ACTION_TIMEOUT, self._timeout))
         method = action_parameters.get(ACTION_METHOD, 'GET')
         params = action_parameters.get(ACTION_QUERY_PARAMS, None)
+        params = self._params_to_dict(params)
         auth = action_parameters.get(ACTION_AUTH, {})
 
         file_name = action_parameters.get(FILE_NAME, None)
@@ -87,6 +91,12 @@ class HttpRunner(ActionRunner):
                           headers=self._headers, cookies=self._cookies, auth=auth,
                           timeout=timeout, allow_redirects=self._redirects,
                           proxies=self._proxies, files=files)
+
+    def _params_to_dict(self, params):
+        if isinstance(params, dict):
+            return params
+
+        return dict(urlparse.parse_qsl(params, keep_blank_values=True, strict_parsing=True))
 
     @staticmethod
     def _get_result_status(status_code):

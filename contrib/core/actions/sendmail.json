@@ -1,7 +1,0 @@
-{ "name": "send_mail"
-, "runner_type": "run-local"
-, "description": "This sends an email"
-, "enabled": true
-, "entry_point": "send_mail/send_mail"
-, "parameters": {}
-}
