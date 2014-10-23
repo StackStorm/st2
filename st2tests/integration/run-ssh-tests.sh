@@ -44,9 +44,9 @@ function sshtest(){
     sed -i "s|$ORIG_SSH_KEY_FILE|$SSH_KEY_FILE|g" ${ST2_CONF}
 
     # Use content packs in st2tests.
-    ORIG_CONTENT_PACK_BASE_DIR=$(grep 'content_packs_base_path' ${ST2_CONF} | awk 'BEGIN {FS=" = "}; {print $2}')
+    ORIG_CONTENT_PACK_BASE_DIR=$(grep 'packs_base_path' ${ST2_CONF} | awk 'BEGIN {FS=" = "}; {print $2}')
     CONTENT_PACK_BASE_DIR=$ST2_REPO/st2tests/testpacks/
-    echo "Swapping out content_packs_base_path: ${ORIG_CONTENT_PACK_BASE_DIR} with dir: ${CONTENT_PACK_BASE_DIR}"
+    echo "Swapping out packs_base_path: ${ORIG_CONTENT_PACK_BASE_DIR} with dir: ${CONTENT_PACK_BASE_DIR}"
     sed -i "s|$ORIG_CONTENT_PACK_BASE_DIR|$CONTENT_PACK_BASE_DIR|g" ${ST2_CONF}
 
     # cat $ST2_CONF
@@ -95,7 +95,7 @@ function sshtest(){
     echo "Swapping out SSH key: ${SSH_KEY_FILE} with key: ${ORIG_SSH_KEY_FILE}"
     sed -i "s|$SSH_KEY_FILE|$ORIG_SSH_KEY_FILE|g" $ST2_CONF
 
-    echo "Swapping out content_packs_base_path: ${CONTENT_PACK_BASE_DIR} with ${ORIG_CONTENT_PACK_BASE_DIR}"
+    echo "Swapping out packs_base_path: ${CONTENT_PACK_BASE_DIR} with ${ORIG_CONTENT_PACK_BASE_DIR}"
     sed -i "s|$CONTENT_PACK_BASE_DIR|$ORIG_CONTENT_PACK_BASE_DIR|g" $ST2_CONF
 
     ## Stop st2.
