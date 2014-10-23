@@ -1,7 +1,8 @@
-import requests
+import copy
 import uuid
 import urlparse
 
+import requests
 from oslo.config import cfg
 
 from st2actions.runners import ActionRunner
@@ -65,7 +66,6 @@ class HttpRunner(ActionRunner):
         return output is not None
 
     def _get_http_client(self, action_parameters):
-        # XXX: Action context should be passed in and we need to add x-headers here.
         body = action_parameters.get(ACTION_BODY, None)
         timeout = float(action_parameters.get(ACTION_TIMEOUT, self._timeout))
         method = action_parameters.get(ACTION_METHOD, None)
@@ -76,6 +76,11 @@ class HttpRunner(ActionRunner):
         file_name = action_parameters.get(FILE_NAME, None)
         file_content = action_parameters.get(FILE_CONTENT, None)
         file_content_type = action_parameters.get(FILE_CONTENT_TYPE, None)
+
+        # Include our user agent and action name so requests can be tracked back
+        headers = copy.deepcopy(self._headers) if self._headers else {}
+        headers['User-Agent'] = 'st2/v0.5.0'  # TODO: use __version__ when available
+        headers['X-Stanley-Action'] = self.action_name
 
         if file_name and file_content:
             files = {}
@@ -90,7 +95,7 @@ class HttpRunner(ActionRunner):
             files = None
 
         return HTTPClient(url=self._url, method=method, body=body, params=params,
-                          headers=self._headers, cookies=self._cookies, auth=auth,
+                          headers=headers, cookies=self._cookies, auth=auth,
                           timeout=timeout, allow_redirects=self._redirects,
                           proxies=self._proxies, files=files)
 
@@ -123,7 +128,8 @@ class HTTPClient(object):
                 method = 'GET'
 
         headers = headers or {}
-        if body and not 'Content-Length' in headers:
+        normalized_headers = self._normalize_headers(headers=headers)
+        if body and 'content-length' not in normalized_headers:
             headers['Content-Length'] = len(body)
 
         self.url = url
@@ -166,3 +172,13 @@ class HTTPClient(object):
         finally:
             if resp:
                 resp.close()
+
+    def _normalize_headers(self, headers):
+        """
+        Normalize the header keys by lowercasing all the keys.
+        """
+        result = {}
+        for key, value in headers.items():
+            result[key.lower()] = value
+
+        return result
