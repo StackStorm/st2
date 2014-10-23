@@ -214,13 +214,16 @@ class ActionCommandTestCase(unittest2.TestCase):
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
     @mock.patch.object(
+        models.ResourceManager, 'query',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
         models.ResourceManager, 'get_by_name',
         mock.MagicMock(side_effect=get_by_name))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
     def test_param_value_with_equal_sign(self):
-        self.shell.run(['run', 'mock2', 'key=foo=bar&ponies=unicorns'])
-        expected = {'action': {'name': 'mock2'},
+        self.shell.run(['run', 'mockety.mock2', 'key=foo=bar&ponies=unicorns'])
+        expected = {'ref': 'mockety.mock2',
                     'parameters': {'key': 'foo=bar&ponies=unicorns'}}
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
