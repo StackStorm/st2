@@ -1,76 +1,74 @@
 Quick Start
 =================
 
-Installed st2? Enjoyed the video while it was being installed? 
+Got StackStorm :doc:`Installed </install/index>`? Enjoyed :doc:`the intro video <video>`? Let's go get your first automation going. But first, some terminology:
 
+.. ref:: people 
 
-First let's sure it works: 
+* **Trigger** An external event that is mapped to a st2 input. It is the st2 invocation point. 
+* **Sensor:** An adapter to convert an external event to a form st2 understands. This is usually a piece of python code.
+* **Action:** An activity that user can run manually or use up in a rule as a response to the external event.
+* **Rule:** A specification to invoke an "action" on a "trigger", selectively based on some criteria.
+* **Workflow:** A chain of actions, with transitions and conditions, declaratively defined via workflow definition. Workflow *is* an action, and can be operated as such.
 
+.. todo:: (dzimine) Refine terms. 
 
-Time go play: let's get  your first automation going. But first some terms.
-
-
-
-Terminology
------------
-
-+-----------+---------------------------------------------------------------------------------------------------+
-| Term      | Description                                                                                       |
-+===========+===================================================================================================+
-| Sensor    | An adapter to convert an external event to a form st2 understands.                                |
-|           | This is usually a piece of python code...                                                         |
-+-----------+---------------------------------------------------------------------------------------------------+
-| Trigger   | An external event that is mapped to a st2 input. It is the st2 invocation point.                  |
-+-----------+---------------------------------------------------------------------------------------------------+
-| Rule      | A specification to invoke an "action" on a "trigger" selectively based on some criteria.          |
-+-----------+---------------------------------------------------------------------------------------------------+
-| Action    | An activity that user can run manually or use up in a rule as a response to the external event.   |
-+-----------+---------------------------------------------------------------------------------------------------+
 
 CLI Usage Examples
 ------------------
 
-::
+.. code-block:: bash
 
     st2 -h
     st2 action list
     st2 trigger list
     st2 rule list
-    st2 run local -- ls -l
+    st2 run local -- uname -a
     st2 run remote host='host.1, host.2' user='myuser' -- ls -l
 
 For details on using the CLI, please check the :doc:`/reference/cli` section.
 
-Running Actions
----------------
+Working with Actions
+---------------------
 
 Actions from action library can be invoked from st2 CLI, REST API, or
-used in the rules.
+used in the rules. Lits the avaialbe actions: ::  
 
-Lits the avaialbe actions by ``st2 action list``. To introspect an
-action, do ``st2 action <actionname> get``, or,
+    st2 action list 
+
+To introspect an action, do ``st2 action <actionname> get``, or,
 ``st2 run <actionname> --h ( --help)`` This shows action parameters so
-that you know how to call them or refer them in the rules. To run the
-action from cli, do ``st2 run <actionname> -- key=value positional arguments``. 
+that you know how to run it from CLI or use it in the rules. 
+
+.. code-block:: bash
+
+    st2 action get http
+    st2 run http --help 
+
+To run the action from cli, do ``st2 run <actionname> -- key=value positional arguments``. 
 Some examples of using out-of-box actions:
 
-::
+.. code-block:: bash
 
-    st2 run http url="http://localhost:9101/actions" method="GET"
+    st2 run -j http url="http://localhost:9101/actions" method="GET"
 
     st2 run local -- uname -a
 
-    # Assuming SSH access is configured for the hosts
+Use ``remote`` action to run linux command on multiple hosts over ssh. This assumes that passwordless SSH access is configured for the hosts, as described in :doc:`/install/ssh`.
+
+.. code-block:: bash
+
     st2 run remote host='abc.example.com, cde.example.com' user='mysshuser' -- ls -l
 
-Note: for 'local' and 'remote' actions, we use ``--`` to separate action
+**Note:** for ``local`` and ``remote`` actions, we use ``--`` to separate action
 parameters to ensure that options keys, like ``-l`` or ``-a`` are
-properly passed to the action. You can Use the the ``cmd`` parameter to
-pass crasily complex commands.
+properly passed to the action. Alternatively, ``local`` and ``remote`` actions take 
+the ``cmd`` parameter to pass crasily complex commands: ::
 
-::
+    st2 run remote hosts='localhost' cmd="for u in bob phill luke; do echo \"Logins by $u per day:\"; grep $u /var/log/secure | grep opened |awk '{print $1 \"-\" $2}' | uniq -c | sort; done;"
 
-    st2 run remote host='myhost' cmd="for u in bob phill luke; do echo \"Logins by $u per day:\"; grep $u /var/log/secure | grep opened |awk '{print $1 \"-\" $2}' | uniq -c | sort; done"
+**How to get more actions?** Learn about installing and configuring integration packs in :doc:`/packs`. 
+Convert your exisint scripts into st2 actions by adding metadata, or write custom actions: see :doc:`/actions` for details.
 
 Defining Rules
 --------------
@@ -205,6 +203,8 @@ configurations), refer them in a rule by ``{{system.my_parameter}}``, or
 use in custom sensors and actions. Please refer to the
 `datastore <datastore.md>`__ section for usage.
 
+-------------------------------
+
 Defining Custom Actions
 -----------------------
 
@@ -218,3 +218,14 @@ To introduce a custom trigger, you need to write a sensor - a code that
 does the job of transferring the external event into Stanley trigger.
 See `sensors.md <sensors.md>`__ for more details on how to write
 sensors.
+
+-------------------------------
+
+.. rubric:: What's Next?
+
+* Connect your monitoring - 
+* Install and configure integration packs - 
+* Configure SSH for `remote` action 
+* Consume your existign scripts as st2 actions - 
+
+.. include:: engage.rst

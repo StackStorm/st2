@@ -1,8 +1,3 @@
-TODOs
-=========
-    .. todolist::
-
-
 Cheat Sheet
 ============
 
@@ -13,5 +8,6 @@ Cheat Sheet
 `External link <http://webchat.freenode.net/?channels=stackstorm>`_ 
 
 .. include:: /engage.rst
+
 
 
