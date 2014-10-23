@@ -1,5 +1,5 @@
 {
-    "name": "send_mail_script",
+    "name": "sendmail",
     "runner_type": "run-local-script",
     "description": "This sends an email",
     "enabled": true,
