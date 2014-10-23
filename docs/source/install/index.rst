@@ -24,6 +24,7 @@ This will download and install the latest release of StackStorm (currently |rele
     Vagrant <vagrant>
     docker
     deploy
+    ssh
     sources
 
 
