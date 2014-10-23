@@ -86,6 +86,8 @@ class HttpRunner(ActionRunner):
                 value = (file_content)
 
             files[file_name] = value
+        else:
+            files = None
 
         return HTTPClient(url=self._url, method=method, body=body, params=params,
                           headers=self._headers, cookies=self._cookies, auth=auth,
