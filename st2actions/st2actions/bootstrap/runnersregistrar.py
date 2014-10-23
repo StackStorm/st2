@@ -180,7 +180,7 @@ def register_runner_types():
                 },
                 'headers': {
                     'description': 'HTTP headers for the request.',
-                    'type': 'object'
+                    'type': 'string'
                 },
                 'cookies': {
                     'description': 'TODO: Description for cookies.',

@@ -1,6 +1,8 @@
-import requests
+import copy
 import uuid
+import urlparse
 
+import requests
 from oslo.config import cfg
 
 from st2actions.runners import ActionRunner
@@ -47,6 +49,8 @@ class HttpRunner(ActionRunner):
                                                           self._on_behalf_user)
         self._url = self.runner_parameters.get(RUNNER_URL, None)
         self._headers = self.runner_parameters.get(RUNNER_HEADERS, {})
+        self._headers = self._params_to_dict(self._headers)
+
         self._cookies = self.runner_parameters.get(RUNNER_COOKIES, None)
         self._redirects = self.runner_parameters.get(RUNNER_ALLOW_REDIRECTS, False)
         self._proxies = self.runner_parameters.get(RUNNER_PROXIES, None)
@@ -62,16 +66,21 @@ class HttpRunner(ActionRunner):
         return output is not None
 
     def _get_http_client(self, action_parameters):
-        # XXX: Action context should be passed in and we need to add x-headers here.
         body = action_parameters.get(ACTION_BODY, None)
         timeout = float(action_parameters.get(ACTION_TIMEOUT, self._timeout))
-        method = action_parameters.get(ACTION_METHOD, 'GET')
+        method = action_parameters.get(ACTION_METHOD, None)
         params = action_parameters.get(ACTION_QUERY_PARAMS, None)
+        params = self._params_to_dict(params)
         auth = action_parameters.get(ACTION_AUTH, {})
 
         file_name = action_parameters.get(FILE_NAME, None)
         file_content = action_parameters.get(FILE_CONTENT, None)
         file_content_type = action_parameters.get(FILE_CONTENT_TYPE, None)
+
+        # Include our user agent and action name so requests can be tracked back
+        headers = copy.deepcopy(self._headers) if self._headers else {}
+        headers['User-Agent'] = 'st2/v0.5.0'  # TODO: use __version__ when available
+        headers['X-Stanley-Action'] = self.action_name
 
         if file_name and file_content:
             files = {}
@@ -82,11 +91,22 @@ class HttpRunner(ActionRunner):
                 value = (file_content)
 
             files[file_name] = value
+        else:
+            files = None
 
         return HTTPClient(url=self._url, method=method, body=body, params=params,
-                          headers=self._headers, cookies=self._cookies, auth=auth,
+                          headers=headers, cookies=self._cookies, auth=auth,
                           timeout=timeout, allow_redirects=self._redirects,
                           proxies=self._proxies, files=files)
+
+    def _params_to_dict(self, params):
+        if not params:
+            return {}
+
+        if isinstance(params, dict):
+            return params
+
+        return dict(urlparse.parse_qsl(params, keep_blank_values=True, strict_parsing=True))
 
     @staticmethod
     def _get_result_status(status_code):
@@ -100,9 +120,19 @@ class HTTPClient(object):
                  files=None):
         if url is None:
             raise Exception('URL must be specified.')
-        self.url = url
+
         if method is None:
-            method = 'GET'
+            if files or body:
+                method = 'POST'
+            else:
+                method = 'GET'
+
+        headers = headers or {}
+        normalized_headers = self._normalize_headers(headers=headers)
+        if body and 'content-length' not in normalized_headers:
+            headers['Content-Length'] = len(body)
+
+        self.url = url
         self.method = method
         self.headers = headers
         self.body = body
@@ -142,3 +172,13 @@ class HTTPClient(object):
         finally:
             if resp:
                 resp.close()
+
+    def _normalize_headers(self, headers):
+        """
+        Normalize the header keys by lowercasing all the keys.
+        """
+        result = {}
+        for key, value in headers.items():
+            result[key.lower()] = value
+
+        return result
