@@ -4,7 +4,7 @@
     "description": "Some test rule.",
 
     "trigger": {
-        "type": "st2.IntervalTimer",
+        "type": "core.st2.IntervalTimer",
         "parameters": {
             "delta": 5,
             "unit": "seconds"
