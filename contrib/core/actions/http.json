@@ -27,6 +27,10 @@
             "type": "string",
             "description": "Query params to be used with the HTTP request. This can be of the form 'foo=bar&baz=1'."
         },
+        "body": {
+            "type": "string",
+            "description": "Body to send with the request"
+        },
         "file_path": {
             "type": "string",
             "description": "Path to the file to upload"
