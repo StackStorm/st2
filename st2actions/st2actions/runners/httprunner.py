@@ -115,9 +115,15 @@ class HTTPClient(object):
                  files=None):
         if url is None:
             raise Exception('URL must be specified.')
-        self.url = url
+
         if method is None:
             method = 'GET'
+
+        headers = headers or {}
+        if body and not 'Content-Length' in headers:
+            headers['Content-Length'] = len(body)
+
+        self.url = url
         self.method = method
         self.headers = headers
         self.body = body
