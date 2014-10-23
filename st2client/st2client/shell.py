@@ -9,6 +9,7 @@ import argparse
 import logging
 import traceback
 
+from st2client import __version__
 from st2client import models
 from st2client.client import Client
 from st2client.commands import resource
@@ -32,6 +33,11 @@ class Shell(object):
                         'StackStorm. http://stackstorm.com')
 
         # Set up general program options.
+        self.parser.add_argument(
+            '--version',
+            action='version',
+            version='%(prog)s {version}'.format(version=__version__))
+
         self.parser.add_argument(
             '--url',
             action='store',

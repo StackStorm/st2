@@ -11,6 +11,4 @@ Homepage: http://www.stackstorm.com
 Package: st2client
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: ST2 Client
- This is a description that should be much better before we ship this.
-
+Description: Command line interface and python client library for the StackStorm (St2) automation platform.
