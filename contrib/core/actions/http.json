@@ -7,7 +7,6 @@
     "parameters": {
         "method": {
             "enum": ["GET", "POST", "PUT", "DELETE"],
-            "default": "GET",
             "description": "HTTP method to use."
         },
         "timeout": {

@@ -68,7 +68,7 @@ class HttpRunner(ActionRunner):
         # XXX: Action context should be passed in and we need to add x-headers here.
         body = action_parameters.get(ACTION_BODY, None)
         timeout = float(action_parameters.get(ACTION_TIMEOUT, self._timeout))
-        method = action_parameters.get(ACTION_METHOD, 'GET')
+        method = action_parameters.get(ACTION_METHOD, None)
         params = action_parameters.get(ACTION_QUERY_PARAMS, None)
         params = self._params_to_dict(params)
         auth = action_parameters.get(ACTION_AUTH, {})
@@ -117,7 +117,10 @@ class HTTPClient(object):
             raise Exception('URL must be specified.')
 
         if method is None:
-            method = 'GET'
+            if files or body:
+                method = 'POST'
+            else:
+                method = 'GET'
 
         headers = headers or {}
         if body and not 'Content-Length' in headers:
