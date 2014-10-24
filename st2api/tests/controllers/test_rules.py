@@ -45,7 +45,7 @@ RULE_1 = {
         }
     },
     'action': {
-        'action': 'sixpack.st2.test.action',
+        'ref': 'sixpack.st2.test.action',
         'parameters': {
             'ip2': '{{rule.k1}}',
             'ip1': '{{trigger.t1_p}}'
