@@ -45,10 +45,11 @@ class ActionListCommand(resource.ResourceListCommand):
 
 class ActionGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
-    attribute_sort_order = ['id', 'pack', 'name', 'ref']
 
 
 class ActionRunCommand(resource.ResourceCommand):
+    attribute_display_order = ['id', 'ref', 'context', 'parameters', 'status',
+                               'start_timestamp', 'result']
 
     def __init__(self, resource, *args, **kwargs):
 
@@ -296,7 +297,8 @@ class ActionRunCommand(resource.ResourceCommand):
         # Execute the action.
         instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
-                          attributes=['all'], json=args.json)
+                          attributes=['all'], json=args.json,
+                          attribute_display_order=self.attribute_display_order)
         if args.async:
             self.print_output('To get the results, execute: \n'
                               '    $ st2 execution get %s' % instance.id,
