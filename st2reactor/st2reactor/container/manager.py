@@ -69,6 +69,7 @@ class SensorContainerManager(object):
                 try:
                     trigger_types = sensor.get_trigger_types()
                     if not trigger_types:
+                        trigger_type_dbs = []
                         LOG.warning('No trigger type registered by sensor %s in file %s',
                                     sensor_class, filename)
                     else:
