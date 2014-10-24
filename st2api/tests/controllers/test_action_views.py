@@ -51,6 +51,10 @@ class TestActionViews(FunctionalTest):
         resp = self.app.get('/actions/views/overview')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 2, '/actions/views/overview did not return all actions.')
+        ref = '.'.join([ACTION_1['pack'], ACTION_1['name']])
+        resp = self.app.get('/actions/views/overview?ref=%s' % ref)
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')
         self._do_delete(action_1_id)
         self._do_delete(action_2_id)
 

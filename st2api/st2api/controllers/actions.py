@@ -21,7 +21,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class ActionsController(resource.ContentPackResourceControler):
+class ActionsController(resource.ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Actions in the system.
@@ -57,6 +57,11 @@ class ActionsController(resource.ContentPackResourceControler):
                   (str(conflicts), action.runner_type)
             LOG.error(msg)
             abort(http_client.CONFLICT, msg)
+
+    @jsexpose()
+    @resource.referenced
+    def get_all(self, **kwargs):
+        return super(ActionsController, self)._get_all(**kwargs)
 
     @jsexpose(body=ActionAPI, status_code=http_client.CREATED)
     def post(self, action):
