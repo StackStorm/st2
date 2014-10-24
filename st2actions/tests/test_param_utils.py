@@ -257,8 +257,8 @@ class ParamsUtilsTest(TestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.ref = ResourceReference(name=ParamsUtilsTest.action_db.name,
-                                              pack=ParamsUtilsTest.action_db.pack).ref
+        actionexec_db.action = ResourceReference(name=ParamsUtilsTest.action_db.name,
+                                                 pack=ParamsUtilsTest.action_db.pack).ref
         actionexec_db.parameters = params
         return actionexec_db
 

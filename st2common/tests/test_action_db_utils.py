@@ -91,7 +91,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.ref = ResourceReference(
+        actionexec_db.action = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.pack).ref
         params = {
@@ -114,7 +114,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.ref = ResourceReference(
+        actionexec_db.action = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.pack).ref
         params = {
@@ -195,7 +195,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.ref = ResourceReference(
+        actionexec_db.action = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.pack).ref
         params = {

@@ -71,7 +71,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
 
     def test_basic_execution(self):
         action_ref = ResourceReference(name='local', pack='core')
-        execution = ActionExecutionDB(ref=action_ref.ref, parameters={'cmd': 'uname -a'})
+        execution = ActionExecutionDB(action=action_ref.ref, parameters={'cmd': 'uname -a'})
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_SUCCEEDED)
@@ -94,7 +94,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
 
     def test_chained_executions(self):
         action_ref = ResourceReference(name='chain', pack='core')
-        execution = ActionExecutionDB(ref=action_ref.ref)
+        execution = ActionExecutionDB(action=action_ref.ref)
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_SUCCEEDED)
@@ -143,7 +143,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(history.trigger_instance,
                              vars(TriggerInstanceAPI.from_model(trigger_instance)))
         self.assertDictEqual(history.rule, vars(RuleAPI.from_model(rule)))
-        action_ref = ResourceReference.from_string_reference(ref=execution.ref)
+        action_ref = ResourceReference.from_string_reference(ref=execution.action)
         action, _ = action_utils.get_action_by_dict(
             {'name': action_ref.name, 'pack': action_ref.pack})
         self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))

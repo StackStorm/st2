@@ -62,13 +62,13 @@ class TestActionExecutionService(DbTestCase):
     def test_schedule(self):
         context = {'user': USERNAME}
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        request = ActionExecutionDB(ref=ACTION_REF, context=context, parameters=parameters)
+        request = ActionExecutionDB(action=ACTION_REF, context=context, parameters=parameters)
         request = action_service.schedule(request)
         execution = ActionExecution.get_by_id(str(request.id))
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
         action = '.'.join([self.actiondb.pack, self.actiondb.name])
-        actual_action = execution.ref
+        actual_action = execution.action
         self.assertEqual(actual_action, action)
         self.assertEqual(execution.context['user'], request.context['user'])
         self.assertDictEqual(execution.parameters, request.parameters)
@@ -79,20 +79,20 @@ class TestActionExecutionService(DbTestCase):
 
     def test_schedule_invalid_parameters(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'a': 123}
-        execution = ActionExecutionDB(ref=ACTION_REF, parameters=parameters)
+        execution = ActionExecutionDB(action=ACTION_REF, parameters=parameters)
         self.assertRaises(jsonschema.ValidationError, action_service.schedule, execution)
 
     def test_schedule_nonexistent_action(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
         action_ref = ResourceReference(name='i.action', pack='default').ref
-        execution = ActionExecutionDB(ref=action_ref, parameters=parameters)
+        execution = ActionExecutionDB(action=action_ref, parameters=parameters)
         self.assertRaises(ValueError, action_service.schedule, execution)
 
     def test_schedule_disabled_action(self):
         self.actiondb.enabled = False
         Action.add_or_update(self.actiondb)
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        execution = ActionExecutionDB(ref=ACTION_REF, parameters=parameters)
+        execution = ActionExecutionDB(action=ACTION_REF, parameters=parameters)
         self.assertRaises(ValueError, action_service.schedule, execution)
         self.actiondb.enabled = True
         Action.add_or_update(self.actiondb)

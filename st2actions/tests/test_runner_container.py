@@ -94,7 +94,7 @@ class RunnerContainerTest(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.ref = ResourceReference(
+        actionexec_db.action = ResourceReference(
             name=RunnerContainerTest.action_db.name,
             pack=RunnerContainerTest.action_db.pack).ref
         actionexec_db.parameters = params
@@ -105,7 +105,7 @@ class RunnerContainerTest(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.now()
-        actionexec_db.ref = ResourceReference(
+        actionexec_db.action = ResourceReference(
             name=RunnerContainerTest.failingaction_db.name,
             pack=RunnerContainerTest.failingaction_db.pack).ref
         actionexec_db.parameters = params

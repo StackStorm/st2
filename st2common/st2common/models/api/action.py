@@ -206,7 +206,7 @@ class ActionExecutionAPI(BaseAPI):
                 "type": "string",
                 "pattern": isotime.ISO8601_UTC_REGEX
             },
-            "ref": {
+            "action": {
                 "description": "Reference to the action to be executed.",
                 "type": "string"
             },
@@ -241,7 +241,7 @@ class ActionExecutionAPI(BaseAPI):
                 "type": "object"
             }
         },
-        "required": ["ref"],
+        "required": ["action"],
         "additionalProperties": False
     }
 
@@ -255,7 +255,7 @@ class ActionExecutionAPI(BaseAPI):
     @classmethod
     def to_model(cls, execution):
         model = super(cls, cls).to_model(execution)
-        model.ref = execution.ref
+        model.action = execution.action
         if getattr(execution, 'start_timestamp', None):
             model.start_timestamp = isotime.parse(execution.start_timestamp)
         model.status = getattr(execution, 'status', None)
