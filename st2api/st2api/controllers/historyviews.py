@@ -1,3 +1,4 @@
+from itertools import chain
 from pecan.rest import RestController
 import six
 
@@ -8,7 +9,7 @@ from st2common.persistence.history import ActionExecutionHistory
 LOG = logging.getLogger(__name__)
 
 SUPPORTED_FILTERS = {
-    'action': 'action.name',  # XXX: Hack to declare a filter that has no direct data mapping.
+    'action': ('action.pack', 'action.name'),  # XXX: Compound filter. For aggregation only.
     'action.name': 'action.name',
     'action.pack': 'action.pack',
     'parent': 'parent',
@@ -38,7 +39,20 @@ class FiltersController(RestController):
 
         for name, field in six.iteritems(SUPPORTED_FILTERS):
             if name not in IGNORE_FILTERS:
-                filters[name] = ActionExecutionHistory.distinct(field=field)
+                if isinstance(field, six.string_types):
+                    query = '$' + field
+                else:
+                    dot_notation = list(chain.from_iterable(
+                        ('$' + item, '.') for item in field
+                    ))
+                    dot_notation.pop(-1)
+                    query = {'$concat': dot_notation}
+
+                aggregate = ActionExecutionHistory.aggregate([
+                    {'$group': {'_id': query}}
+                ])
+
+                filters[name] = [res['_id'] for res in aggregate['result'] if res['_id']]
 
         return filters
 
