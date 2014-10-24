@@ -8,9 +8,12 @@ from st2common import log as logging
 LOG = logging.getLogger(__name__)
 
 
-def db_setup(db_name, db_host, db_port):
-    LOG.info('Connecting to database "%s" @ "%s:%s"' % (db_name, db_host, db_port))
-    return mongoengine.connection.connect(db_name, host=db_host, port=db_port, tz_aware=True)
+def db_setup(db_name, db_host, db_port, username=None, password=None):
+    LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".' %
+             (db_name, db_host, db_port, str(username)))
+    return mongoengine.connection.connect(db_name, host=db_host,
+                                          port=db_port, tz_aware=True,
+                                          username=username, password=password)
 
 
 def db_teardown():
