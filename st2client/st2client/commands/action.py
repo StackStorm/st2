@@ -10,9 +10,6 @@ import sys
 
 from os.path import join as pjoin
 
-from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
-from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
-
 from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
@@ -20,6 +17,9 @@ from st2client.formatters import table
 
 
 LOG = logging.getLogger(__name__)
+
+ACTIONEXEC_STATUS_SCHEDULED = 'scheduled'
+ACTIONEXEC_STATUS_RUNNING = 'running'
 
 
 class ActionBranch(resource.ResourceBranch):
