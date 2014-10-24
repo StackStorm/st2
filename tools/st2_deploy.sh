@@ -197,7 +197,7 @@ register_content
 echo "########## Starting St2 Services ##########"
 st2ctl restart 
 sleep 20 
-st2 run local date -a
+st2 run core.local date -a
 
 if [ ! "$?" == 0 ]
 then
