@@ -199,10 +199,21 @@ st2ctl restart
 sleep 20 
 st2 run local date -a
 
+echo "=============================="
+echo ""
+
 if [ ! "$?" == 0 ]
 then
-  echo "ERROR: st2 failed to start"
+  echo "ERROR!" 
+  echo "Something went wrong, st2 failed to start"
   exit 2
 else
-  echo "OK: st2 successfully installed and started"
+  echo "      _   ___     ____  _  __ "
+  echo "     | | |__ \   / __ \| |/ / "
+  echo "  ___| |_   ) | | |  | | ' /  "
+  echo " / __| __| / /  | |  | |  <   "
+  echo " \__ \ |_ / /_  | |__| | . \  "
+  echo " |___/\__|____|  \____/|_|\_\ "
+  echo ""
+  echo "  st2 is installed and ready  "
 fi
