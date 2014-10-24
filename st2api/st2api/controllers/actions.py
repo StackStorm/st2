@@ -14,8 +14,6 @@ from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
-from st2common.models.system.common import InvalidResourceReferenceError
-from st2common.models.system.common import ResourceReference
 import st2common.validators.api.action as action_validator
 
 http_client = six.moves.http_client
@@ -23,7 +21,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class ActionsController(resource.ResourceController):
+class ActionsController(resource.ContentPackResourceControler):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Actions in the system.
@@ -49,32 +47,6 @@ class ActionsController(resource.ResourceController):
             msg = 'Database lookup for id="%s" resulted in exception. %s' % (action_id, e)
             LOG.exception(msg)
             abort(http_client.NOT_FOUND, msg)
-
-    def _get_actions(self, **kw):
-        action_ref = kw.get('ref', None)
-
-        if action_ref:
-            kw['name'] = ResourceReference.get_name(action_ref)
-            kw['pack'] = ResourceReference.get_pack(action_ref)
-            del kw['ref']
-        return super(ActionsController, self)._get_all(**kw)
-
-    @jsexpose()
-    def get_all(self, **kw):
-        """
-            List all actions.
-
-            Handles requests:
-                GET /actions
-        """
-        LOG.info('GET all /actions/ with filters=%s', kw)
-        try:
-            result = self._get_actions(**kw)
-        except InvalidResourceReferenceError as e:
-            abort(http_client.BAD_REQUEST, str(e))
-            return
-
-        return result
 
     @staticmethod
     def _validate_action_parameters(action, runnertype_db):

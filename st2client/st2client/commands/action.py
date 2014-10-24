@@ -29,7 +29,8 @@ class ActionBranch(resource.ResourceBranch):
             models.Action, description, app, subparsers,
             parent_parser=parent_parser,
             commands={
-                'list': ActionListCommand
+                'list': ActionListCommand,
+                'get': ActionGetCommand
             })
 
         # Registers extended commands
@@ -40,6 +41,10 @@ class ActionBranch(resource.ResourceBranch):
 
 class ActionListCommand(resource.ResourceListCommand):
     display_attributes = ['id', 'pack', 'name', 'description']
+
+
+class ActionGetCommand(resource.ContentPackResourceGetCommand):
+    display_attributes = ['all']
 
 
 class ActionRunCommand(resource.ResourceCommand):
