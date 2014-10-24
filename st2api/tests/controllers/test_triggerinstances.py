@@ -49,17 +49,20 @@ class TestTriggerController(FunctionalTest):
     def _setupTriggerTypes(cls):
         TRIGGERTYPE_0 = {
             'name': 'st2.test.triggertype0',
+            'pack': 'dummy_pack_1',
             'description': 'test trigger',
             'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
             'parameters_schema': {}
         }
         TRIGGERTYPE_1 = {
             'name': 'st2.test.triggertype1',
+            'pack': 'dummy_pack_1',
             'description': 'test trigger',
             'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
         }
         TRIGGERTYPE_2 = {
             'name': 'st2.test.triggertype2',
+            'pack': 'dummy_pack_1',
             'description': 'test trigger',
             'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
             'parameters_schema': {'param1': {'type': 'object'}}
@@ -72,22 +75,25 @@ class TestTriggerController(FunctionalTest):
     def _setupTriggers(cls):
         TRIGGER_0 = {
             'name': 'st2.test.trigger0',
+            'pack': 'dummy_pack_1',
             'description': 'test trigger',
-            'type': 'st2.test.triggertype0',
+            'type': 'dummy_pack_1.st2.test.triggertype0',
             'parameters': {}
         }
 
         TRIGGER_1 = {
             'name': 'st2.test.trigger1',
+            'pack': 'dummy_pack_1',
             'description': 'test trigger',
-            'type': 'st2.test.triggertype1',
+            'type': 'dummy_pack_1.st2.test.triggertype1',
             'parameters': {}
         }
 
         TRIGGER_2 = {
             'name': 'st2.test.trigger2',
+            'pack': 'dummy_pack_1',
             'description': 'test trigger',
-            'type': 'st2.test.triggertype2',
+            'type': 'dummy_pack_1.st2.test.triggertype2',
             'parameters': {
                 'param1': {
                     'foo': 'bar'
@@ -102,13 +108,13 @@ class TestTriggerController(FunctionalTest):
     def _setupTriggerInstances(cls):
         cls.triggerinstance_count = 0
         cls.triggerinstance_1 = cls._create_trigger_instance(
-            {'name': 'st2.test.trigger0'},
+            'dummy_pack_1.st2.test.trigger0',
             {'tp1': 1, 'tp2': 2, 'tp3': 3})
         cls.triggerinstance_2 = cls._create_trigger_instance(
-            {'name': 'st2.test.trigger1'},
+            'dummy_pack_1.st2.test.trigger1',
             {'tp1': 'a', 'tp2': 'b', 'tp3': 'c'})
         cls.triggerinstance_3 = cls._create_trigger_instance(
-            {'name': 'st2.test.trigger2'},
+            'dummy_pack_1.st2.test.trigger2',
             {'tp1': None, 'tp2': None, 'tp3': None})
 
     @classmethod

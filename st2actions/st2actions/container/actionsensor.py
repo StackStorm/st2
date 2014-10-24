@@ -5,6 +5,7 @@ import requests.exceptions
 
 from oslo.config import cfg
 from st2common import log as logging
+from st2common.constants.pack import SYSTEM_PACK_NAME
 
 ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
 TRIGGER_TYPE_ENDPOINT = cfg.CONF.action_sensor.triggers_base_url
@@ -18,6 +19,7 @@ LOG = logging.getLogger(__name__)
 
 ACTION_TRIGGER_TYPE = {
     'name': 'st2.generic.actiontrigger',
+    'pack': SYSTEM_PACK_NAME,
     'description': 'Trigger encapsulating the completion of an action execution.',
     'payload_schema': {
         'type': 'object',
@@ -74,11 +76,13 @@ def post_trigger(action_execution):
     try:
         payload = json.dumps({
             'name': ACTION_TRIGGER_TYPE['name'],
+            'pack': ACTION_TRIGGER_TYPE['pack'],
+            'type': '{}.{}'.format(ACTION_TRIGGER_TYPE['pack'], ACTION_TRIGGER_TYPE['name']),
             'payload': {
                 'execution_id': str(action_execution.id),
                 'status': action_execution.status,
                 'start_timestamp': str(action_execution.start_timestamp),
-                'action_name': action_execution.action['name'],
+                'action_name': action_execution.ref,
                 'parameters': action_execution.parameters,
                 'result': action_execution.result
             }

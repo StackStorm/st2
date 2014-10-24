@@ -2,13 +2,13 @@
     "chain": [
         {
             "name": "a1",
-            "action": "local",
+            "ref": "core.local",
             "params": {"cmd": "uname -a"},
             "on-success": "a2"
         },
         {
             "name": "a2",
-            "action": "local",
+            "ref": "core.local",
             "params": {"cmd": "pwd"}
         }
     ],

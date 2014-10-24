@@ -37,24 +37,24 @@ function st2start(){
         exit 1
     fi
 
-    CONTENT_PACKS_BASE_DIR=$(grep 'content_packs_base_path' ${ST2_CONF} \
+    PACKS_BASE_DIR=$(grep 'packs_base_path' ${ST2_CONF} \
         | awk 'BEGIN {FS=" = "}; {print $2}')
-    if [ -z $CONTENT_PACKS_BASE_DIR ]; then
-        CONTENT_PACKS_BASE_DIR="/opt/stackstorm"
+    if [ -z $PACKS_BASE_DIR ]; then
+        PACKS_BASE_DIR="/opt/stackstorm"
     fi
-    echo "Using conent packs base dir: $CONTENT_PACKS_BASE_DIR"
+    echo "Using conent packs base dir: $PACKS_BASE_DIR"
 
     # Copy and overwrite the action contents
     if [ ! -d "/opt/stackstorm" ]; then
         echo "/opt/stackstorm doesn't exist. Creating..."
-        sudo mkdir -p $CONTENT_PACKS_BASE_DIR
+        sudo mkdir -p $PACKS_BASE_DIR
     fi
 
-    sudo mkdir -p $CONTENT_PACKS_BASE_DIR/default/sensors/
-    sudo mkdir -p $CONTENT_PACKS_BASE_DIR/default/actions/
-    sudo mkdir -p $CONTENT_PACKS_BASE_DIR/default/rules/
-    sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $CONTENT_PACKS_BASE_DIR
-    cp -Rp ./contrib/core/ $CONTENT_PACKS_BASE_DIR
+    sudo mkdir -p $PACKS_BASE_DIR/default/sensors/
+    sudo mkdir -p $PACKS_BASE_DIR/default/actions/
+    sudo mkdir -p $PACKS_BASE_DIR/default/rules/
+    sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
+    cp -Rp ./contrib/core/ $PACKS_BASE_DIR
 
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate

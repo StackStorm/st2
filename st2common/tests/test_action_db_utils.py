@@ -7,6 +7,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.transport.publishers import PoolPublisher
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.models.db.action import (ActionDB, ActionExecutionDB)
+from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import (Action, ActionExecution, RunnerType)
 import st2common.util.action_db as action_db_utils
 from st2tests.base import DbTestCase
@@ -43,25 +44,31 @@ class ActionDBUtilsTestCase(DbTestCase):
         # By id.
         self.assertRaises(StackStormDBObjectNotFoundError, action_db_utils.get_action_by_id,
                           'somedummyactionid')
-        # By name.
-        self.assertRaises(StackStormDBObjectNotFoundError, action_db_utils.get_action_by_name,
-                          'somedummyactionname')
+        # By ref.
+        action = action_db_utils.get_action_by_ref('packaintexist.somedummyactionname')
+        self.assertTrue(action is None)
 
     def test_get_action_existing(self):
         # Lookup by id and verify name equals
         action = action_db_utils.get_action_by_id(ActionDBUtilsTestCase.action_db.id)
         self.assertEqual(action.name, ActionDBUtilsTestCase.action_db.name)
-        # Lookup by name and verify id equals
-        action = action_db_utils.get_action_by_name(ActionDBUtilsTestCase.action_db.name)
+        # Lookup by reference as string.
+        action_ref = '.'.join([ActionDBUtilsTestCase.action_db.pack,
+                               ActionDBUtilsTestCase.action_db.name])
+        action = action_db_utils.get_action_by_ref(action_ref)
         self.assertEqual(action.id, ActionDBUtilsTestCase.action_db.id)
         # Lookup by action dict.
         # Dict contains name.
-        lookup_action_dict = {'name': ActionDBUtilsTestCase.action_db.name}
-        action, _ = action_db_utils.get_action_by_dict(lookup_action_dict)
-        self.assertEqual(action.id, ActionDBUtilsTestCase.action_db.id)
-        # Dict contains both name and id, id invalid.
         lookup_action_dict = {
             'name': ActionDBUtilsTestCase.action_db.name,
+            'pack': ActionDBUtilsTestCase.action_db.pack
+        }
+        action, _ = action_db_utils.get_action_by_dict(lookup_action_dict)
+        self.assertEqual(action.id, ActionDBUtilsTestCase.action_db.id)
+        # Dict contains both name + pack and id, id invalid.
+        lookup_action_dict = {
+            'name': ActionDBUtilsTestCase.action_db.name,
+            'pack': ActionDBUtilsTestCase.action_db.pack,
             'id': 'haha'
         }
         action, _ = action_db_utils.get_action_by_dict(lookup_action_dict)
@@ -84,7 +91,9 @@ class ActionDBUtilsTestCase(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = {'name': ActionDBUtilsTestCase.action_db.name}
+        actionexec_db.ref = ResourceReference(
+            name=ActionDBUtilsTestCase.action_db.name,
+            pack=ActionDBUtilsTestCase.action_db.pack).ref
         params = {
             'actionstr': 'foo',
             'some_key_that_aint_exist_in_action_or_runner': 'bar',
@@ -105,7 +114,9 @@ class ActionDBUtilsTestCase(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = {'name': ActionDBUtilsTestCase.action_db.name}
+        actionexec_db.ref = ResourceReference(
+            name=ActionDBUtilsTestCase.action_db.name,
+            pack=ActionDBUtilsTestCase.action_db.pack).ref
         params = {
             'actionstr': 'foo',
             'some_key_that_aint_exist_in_action_or_runner': 'bar',
@@ -170,7 +181,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         action_db.name = 'action-1'
         action_db.description = 'awesomeness'
         action_db.enabled = True
-        action_db.content_pack = 'wolfpack'
+        action_db.pack = 'wolfpack'
         action_db.entry_point = ''
         action_db.runner_type = {'name': 'test-runner'}
         action_db.parameters = {
@@ -184,7 +195,9 @@ class ActionDBUtilsTestCase(DbTestCase):
         actionexec_db = ActionExecutionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = {'name': ActionDBUtilsTestCase.action_db.name}
+        actionexec_db.ref = ResourceReference(
+            name=ActionDBUtilsTestCase.action_db.name,
+            pack=ActionDBUtilsTestCase.action_db.pack).ref
         params = {
             'actionstr': 'foo',
             'some_key_that_aint_exist_in_action_or_runner': 'bar',

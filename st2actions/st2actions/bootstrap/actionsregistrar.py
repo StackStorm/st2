@@ -7,7 +7,7 @@ import six
 
 from st2common import log as logging
 from st2common.content.loader import ContentPackLoader
-from st2common.content.requirementsvalidator import RequirementsValidator
+from st2common.content.validators import RequirementsValidator
 from st2common.persistence.action import Action
 from st2common.models.db.action import ActionDB
 from st2common.util.action_db import get_runnertype_by_name
@@ -38,7 +38,7 @@ class ActionsRegistrar(object):
             model.name = content['name']
             model.description = content['description']
             model.enabled = content['enabled']
-            model.content_pack = pack
+            model.pack = pack
             model.entry_point = content['entry_point']
             model.parameters = content.get('parameters', {})
             model.required_parameters = content.get('required_parameters', [])
@@ -98,7 +98,7 @@ class ActionsRegistrar(object):
                 LOG.exception('Failed registering all actions from pack: %s', actions_dir)
 
 
-def register_actions(content_packs_base_path=None):
-    if not content_packs_base_path:
-        content_packs_base_path = cfg.CONF.content.content_packs_base_path
-    return ActionsRegistrar().register_actions_from_packs(content_packs_base_path)
+def register_actions(packs_base_path=None):
+    if not packs_base_path:
+        packs_base_path = cfg.CONF.content.packs_base_path
+    return ActionsRegistrar().register_actions_from_packs(packs_base_path)

@@ -5,7 +5,8 @@ import six
 from st2common.util import isotime
 from st2common.models.base import BaseAPI
 from st2common.models.db.history import ActionExecutionHistoryDB
-from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI, RuleAPI
+from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
+from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
 from st2common import log as logging
 

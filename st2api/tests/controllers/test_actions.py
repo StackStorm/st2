@@ -15,7 +15,7 @@ ACTION_1 = {
     'name': 'st2.dummy.action1',
     'description': 'test description',
     'enabled': True,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -41,7 +41,7 @@ ACTION_2 = {
 ACTION_3 = {
     'name': 'st2.dummy.action3',
     'description': 'test description',
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -55,7 +55,7 @@ ACTION_4 = {
     'name': 'st2.dummy.action4',
     'description': 'test description',
     'enabled': False,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -69,7 +69,7 @@ ACTION_5 = {
     'name': 'st2.dummy.action5',
     'description': 'test description',
     'enabled': False,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'xyzxyz',
     'parameters': {
@@ -82,7 +82,7 @@ ACTION_5 = {
 ACTION_6 = {
     'name': 'st2.dummy.action6',
     'enabled': False,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -97,7 +97,7 @@ ACTION_7 = {
     'name': 'st2.dummy.action7',
     'description': 'test description',
     'enabled': False,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -111,7 +111,7 @@ ACTION_8 = {
     'name': 'st2.dummy.action8',
     'description': 'test description',
     'enabled': True,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
@@ -125,11 +125,25 @@ ACTION_9 = {
     'name': 'st2.dummy.action9',
     'description': 'test description',
     'enabled': True,
-    'content_pack': 'wolfpack',
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
     'runner_type': 'run-local',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1', 'dummyfield': True},  # dummyfield is invalid.
+        'b': {'type': 'string', 'default': 'B1'}
+    }
+}
+
+# Same name as ACTION_1. Different pack though.
+ACTION_10 = {
+    'name': 'st2.dummy.action1',
+    'description': 'test description',
+    'enabled': True,
+    'pack': 'wolfpack1',
+    'entry_point': '/tmp/test/action1.sh',
+    'runner_type': 'run-local',
+    'parameters': {
+        'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
     }
 }
@@ -166,6 +180,21 @@ class TestActionController(FunctionalTest):
         resp = self.app.get('/actions')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 2, '/actions did not return all actions.')
+        self.__do_delete(action_1_id)
+        self.__do_delete(action_2_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_query(self):
+        action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
+        action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
+        resp = self.app.get('/actions?name=%s' % ACTION_1['name'])
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')
+        ref = '.'.join([ACTION_1['pack'], ACTION_1['name']])
+        resp = self.app.get('/actions?ref=%s' % ref)
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
 
@@ -232,7 +261,7 @@ class TestActionController(FunctionalTest):
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
-    def test_post_name_duplicate(self):
+    def test_post_duplicate(self):
         action_ids = []
 
         post_resp = self.__do_post(ACTION_1)
@@ -244,6 +273,11 @@ class TestActionController(FunctionalTest):
         post_resp = self.__do_post(ACTION_1, expect_errors=True)
         # Verify name conflict
         self.assertEqual(post_resp.status_int, 409)
+
+        post_resp = self.__do_post(ACTION_10)
+        action_ids.append(self.__get_action_id(post_resp))
+        # Verify action with same name but different pack is written.
+        self.assertEqual(post_resp.status_int, 201)
 
         for i in action_ids:
             self.__do_delete(i)
@@ -258,15 +292,15 @@ class TestActionController(FunctionalTest):
         body = json.loads(post_resp.body)
         action['id'] = body['id']
         action['description'] = 'some other test description'
-        content_pack = action['content_pack']
-        del action['content_pack']
-        self.assertNotIn('content_pack', action)
+        pack = action['pack']
+        del action['pack']
+        self.assertNotIn('pack', action)
         put_resp = self.__do_put(action['id'], action)
         self.assertEqual(put_resp.status_int, 200)
         self.assertIn('description', put_resp.body)
         body = json.loads(put_resp.body)
         self.assertEqual(body['description'], action['description'])
-        self.assertEqual(body['content_pack'], content_pack)
+        self.assertEqual(body['pack'], pack)
         self.__do_delete(self.__get_action_id(post_resp))
 
     def test_post_invalid_runner_type(self):

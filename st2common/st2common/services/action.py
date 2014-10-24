@@ -4,11 +4,10 @@ import six
 
 from st2common import log as logging
 from st2common.util import isotime
-from st2common.util import action_db as db
+from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
 from st2common.persistence.action import ActionExecution
 from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
-
 
 LOG = logging.getLogger(__name__)
 
@@ -29,14 +28,13 @@ def schedule(execution):
         execution.context['user'] = getattr(parent, 'context', dict()).get('user')
 
     # Validate action.
-    (action_db, action_dict) = db.get_action_by_dict(execution.action)
+    action_db = action_utils.get_action_by_ref(execution.ref)
     if not action_db:
-        raise ValueError('Action "%s" cannot be found.' % execution.action)
+        raise ValueError('Action "%s" cannot be found.' % execution.ref)
     if not action_db.enabled:
-        raise ValueError('Unable to execute. Action "%s" is disabled.' % execution.action)
-    execution.action = action_dict
+        raise ValueError('Unable to execute. Action "%s" is disabled.' % execution.ref)
 
-    runnertype_db = db.get_runnertype_by_name(action_db.runner_type['name'])
+    runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
     if not hasattr(execution, 'parameters'):
         execution.parameters = dict()

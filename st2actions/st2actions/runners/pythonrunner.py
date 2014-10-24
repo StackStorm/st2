@@ -67,10 +67,10 @@ class Action(object):
 
 
 class ActionWrapper(object):
-    def __init__(self, content_pack, entry_point, action_parameters):
+    def __init__(self, pack, entry_point, action_parameters):
         """
-        :param content_pack: Name of the content pack this action is located in.
-        :type content_pack: ``str``
+        :param pack: Name of the content pack this action is located in.
+        :type pack: ``str``
 
         :param entry_point: Full path to the action script file.
         :type entry_point: ``str``
@@ -78,7 +78,7 @@ class ActionWrapper(object):
         :param action_parameters: Action parameters.
         :type action_parameters: ``dict``
         """
-        self.content_pack = content_pack
+        self.pack = pack
         self.entry_point = entry_point
         self.action_parameters = action_parameters
 
@@ -105,7 +105,7 @@ class ActionWrapper(object):
         if not action_kls:
             raise Exception('%s has no action.' % self.entry_point)
 
-        config_parser = ContentPackConfigParser(content_pack_name=self.content_pack)
+        config_parser = ContentPackConfigParser(pack_name=self.pack)
         config = config_parser.get_action_config(action_file_path=self.entry_point)
 
         if config:
@@ -133,8 +133,8 @@ class PythonRunner(ActionRunner):
         pass
 
     def run(self, action_parameters):
-        content_pack = self.action.content_pack if self.action else None
-        action_wrapper = ActionWrapper(content_pack=content_pack,
+        pack = self.action.pack if self.action else None
+        action_wrapper = ActionWrapper(pack=pack,
                                        entry_point=self.entry_point,
                                        action_parameters=action_parameters)
 

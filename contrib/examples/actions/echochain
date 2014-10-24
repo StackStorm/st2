@@ -2,27 +2,27 @@
     "chain": [
         {
             "name": "c1",
-            "action": "local",
+            "ref": "core.local",
             "params": {"cmd":"echo c1"},
             "on-success": "c2",
             "on-failure": "c4"
         },
         {
             "name": "c2",
-            "action": "local",
+            "ref": "core.local",
             "params": {"cmd":"echo c2"},
             "on-success": "c3",
             "on-failure": "c4"
         },
         {
             "name": "c3",
-            "action": "local",
+            "ref": "core.local",
             "params": {"cmd":"echo c3"},
             "on-failure": "c4"
         },
         {
             "name": "c4",
-            "action": "local",
+            "ref": "core.local",
             "params": {"cmd":"echo fail c4"}
         }
     ],

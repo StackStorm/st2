@@ -4,7 +4,8 @@ import mock
 from mongoengine import NotUniqueError
 
 from st2common.models.db.reactor import (TriggerDB, TriggerTypeDB)
-from st2common.models.api.reactor import (RuleAPI, TriggerAPI)
+from st2common.models.api.reactor import TriggerAPI
+from st2common.models.api.rule import RuleAPI
 from st2common.persistence.reactor import (TriggerType, Trigger, Rule)
 from st2common.services import triggers as TriggerService
 from st2common.util import reference
@@ -24,16 +25,22 @@ class RuleEngineTest(DbTestCase):
     @mock.patch.object(RuleEnforcer, 'enforce', mock.MagicMock(return_value=True))
     def test_handle_trigger_instances(self):
         trigger_instance_1 = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.utcnow()
+            {'name': 'st2.test.trigger1', 'pack': 'dummy_pack_1'},
+            {'k1': 't1_p_v', 'k2': 'v2'},
+            datetime.datetime.utcnow()
         )
 
         trigger_instance_2 = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1'}, {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'},
-            datetime.datetime.utcnow())
+            {'name': 'st2.test.trigger1', 'pack': 'dummy_pack_1'},
+            {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'},
+            datetime.datetime.utcnow()
+        )
 
         trigger_instance_3 = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger2'}, {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'},
-            datetime.datetime.utcnow())
+            {'name': 'st2.test.trigger2', 'pack': 'dummy_pack_1'},
+            {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'},
+            datetime.datetime.utcnow()
+        )
         instances = [trigger_instance_1, trigger_instance_2, trigger_instance_3]
         rules_engine = RulesEngine()
         for instance in instances:
@@ -41,7 +48,8 @@ class RuleEngineTest(DbTestCase):
 
     def test_get_matching_rules_filters_disabled_rules(self):
         trigger_instance = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.utcnow()
+            {'name': 'st2.test.trigger1', 'pack': 'dummy_pack_1'},
+            {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.utcnow()
         )
         rules_engine = RulesEngine()
         matching_rules = rules_engine.get_matching_rules_for_trigger(trigger_instance)
@@ -51,7 +59,9 @@ class RuleEngineTest(DbTestCase):
 
     def test_handle_trigger_instance_no_rules(self):
         trigger_instance = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger3'}, {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.utcnow()
+            {'name': 'st2.test.trigger3', 'pack': 'dummy_pack_1'},
+            {'k1': 't1_p_v', 'k2': 'v2'},
+            datetime.datetime.utcnow()
         )
         rules_engine = RulesEngine()
         rules_engine.handle_trigger_instance(trigger_instance)  # should not throw.
@@ -69,6 +79,7 @@ class RuleEngineTest(DbTestCase):
             trigtype = None
             try:
                 trigtype = TriggerTypeDB()
+                trigtype.pack = 'dummy_pack_1'
                 trigtype.name = name
                 trigtype.description = ''
                 trigtype.payload_schema = {}
@@ -82,8 +93,9 @@ class RuleEngineTest(DbTestCase):
 
             created = TriggerDB()
             created.name = name
+            created.pack = 'dummy_pack_1'
             created.description = ''
-            created.type = reference.get_ref_from_model(trigtype)
+            created.type = trigtype.get_reference().ref
             created.parameters = {}
             created = Trigger.add_or_update(created)
             trigger_dbs.append(created)
@@ -99,7 +111,7 @@ class RuleEngineTest(DbTestCase):
             'enabled': True,
             'name': 'st2.test.rule1',
             'trigger': {
-                'type': 'st2.test.trigger1'
+                'type': 'dummy_pack_1.st2.test.trigger1'
             },
             'criteria': {
                 'k1': {                     # Missing prefix 'trigger'. This rule won't match.
@@ -108,7 +120,7 @@ class RuleEngineTest(DbTestCase):
                 }
             },
             'action': {
-                'name': 'st2.test.action',
+                'ref': 'sixpack.st2.test.action',
                 'parameters': {
                     'ip2': '{{rule.k1}}',
                     'ip1': '{{trigger.t1_p}}'
@@ -121,7 +133,7 @@ class RuleEngineTest(DbTestCase):
         rule_db = RuleAPI.to_model(rule_api)
         trigger_api = TriggerAPI(**rule_api.trigger)
         trigger_db = TriggerService.create_trigger_db(trigger_api)
-        trigger_ref = reference.get_ref_from_model(trigger_db)
+        trigger_ref = reference.get_str_resource_ref_from_model(trigger_db)
         rule_db.trigger = trigger_ref
         rule_db = Rule.add_or_update(rule_db)
         rules.append(rule_db)
@@ -130,7 +142,7 @@ class RuleEngineTest(DbTestCase):
             'enabled': True,
             'name': 'st2.test.rule2',
             'trigger': {
-                'type': 'st2.test.trigger1'
+                'type': 'dummy_pack_1.st2.test.trigger1'
             },
             'criteria': {
                 'trigger.k1': {
@@ -139,7 +151,7 @@ class RuleEngineTest(DbTestCase):
                 }
             },
             'action': {
-                'name': 'st2.test.action',
+                'ref': 'sixpack.st2.test.action',
                 'parameters': {
                     'ip2': '{{rule.k1}}',
                     'ip1': '{{trigger.t1_p}}'
@@ -158,7 +170,7 @@ class RuleEngineTest(DbTestCase):
             'enabled': False,         # Disabled rule shouldn't match.
             'name': 'st2.test.rule3',
             'trigger': {
-                'type': 'st2.test.trigger1'
+                'type': 'dummy_pack_1.st2.test.trigger1'
             },
             'criteria': {
                 'trigger.k1': {
@@ -167,7 +179,7 @@ class RuleEngineTest(DbTestCase):
                 }
             },
             'action': {
-                'name': 'st2.test.action',
+                'ref': 'sixpack.st2.test.action',
                 'parameters': {
                     'ip2': '{{rule.k1}}',
                     'ip1': '{{trigger.t1_p}}'
@@ -187,7 +199,7 @@ class RuleEngineTest(DbTestCase):
             'enabled': True,
             'name': 'st2.test.rule4',
             'trigger': {
-                'type': 'st2.test.trigger2'
+                'type': 'dummy_pack_1.st2.test.trigger2'
             },
             'criteria': {
                 'trigger.k1': {
@@ -196,7 +208,7 @@ class RuleEngineTest(DbTestCase):
                 }
             },
             'action': {
-                'name': 'st2.test.action',
+                'ref': 'sixpack.st2.test.action',
                 'parameters': {
                     'ip2': '{{rule.k1}}',
                     'ip1': '{{trigger.t1_p}}'
@@ -209,7 +221,7 @@ class RuleEngineTest(DbTestCase):
         rule_db = RuleAPI.to_model(rule_api)
         trigger_api = TriggerAPI(**rule_api.trigger)
         trigger_db = TriggerService.create_trigger_db(trigger_api)
-        trigger_ref = reference.get_ref_from_model(trigger_db)
+        trigger_ref = reference.get_str_resource_ref_from_model(trigger_db)
         rule_db.trigger = trigger_ref
         rule_db = Rule.add_or_update(rule_db)
         rules.append(rule_db)

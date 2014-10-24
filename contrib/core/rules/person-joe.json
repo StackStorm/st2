@@ -3,7 +3,7 @@
     "description": "Sample rule dumping webhook payload to a file.",
 
     "trigger": {
-        "type": "st2.webhook",
+        "type": "core.st2.webhook",
         "parameters": {
             "url": "person"
         }
@@ -17,7 +17,7 @@
     },
 
     "action": {
-        "name": "local",
+        "ref": "core.local",
         "parameters": {
             "cmd": "echo \"{{trigger}}\" >> /tmp/st2.persons.out"
         }

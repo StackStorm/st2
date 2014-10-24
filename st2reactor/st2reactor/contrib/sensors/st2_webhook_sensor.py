@@ -101,8 +101,7 @@ class St2WebhookSensor(object):
     def _to_trigger(self, body):
         return {
             'name': body.get('name', ''),
-            'type': {
-                'name': body.get('type', '')
-            },
+            'pack': body.get('pack', ''),
+            'type': body.get('type', ''),
             'parameters': {}
         }, body['payload']

@@ -6,6 +6,7 @@ from st2common import log as logging
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED,
                                         ACTIONEXEC_STATUS_FAILED)
+from st2common.models.system.common import ResourceReference
 from st2common.services import access
 from st2common.util.action_db import (get_action_by_dict, get_runnertype_by_name)
 from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
@@ -44,7 +45,9 @@ class RunnerContainer(object):
         return runner
 
     def dispatch(self, actionexec_db):
-        (action_db, _) = get_action_by_dict(actionexec_db.action)
+        action_ref = ResourceReference.from_string_reference(ref=actionexec_db.ref)
+        (action_db, _) = get_action_by_dict(
+            {'name': action_ref.name, 'pack': action_ref.pack})
         runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
         runner_type = runnertype_db.name
 
@@ -72,7 +75,7 @@ class RunnerContainer(object):
         runner_params, action_params = param_utils.get_finalized_params(
             runnertype_db.runner_parameters, action_db.parameters, actionexec_db.parameters)
 
-        resolved_entry_point = self._get_entry_point_abs_path(action_db.content_pack,
+        resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
                                                               action_db.entry_point)
         runner.container_service = RunnerContainerService()
         runner.action = action_db
@@ -82,7 +85,7 @@ class RunnerContainer(object):
         runner.runner_parameters = runner_params
         runner.context = getattr(actionexec_db, 'context', dict())
         runner.callback = getattr(actionexec_db, 'callback', dict())
-        runner.libs_dir_path = self._get_action_libs_abs_path(action_db.content_pack,
+        runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
                                                               action_db.entry_point)
         runner.auth_token = self._create_auth_token(runner.context)
 

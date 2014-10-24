@@ -3,6 +3,7 @@ import shutil
 import six
 from git.repo import Repo
 
+from st2actions.runners.pythonrunner import Action
 
 ALL_PACKS = '*'
 PACK_REPO_ROOT = 'packs'
@@ -10,7 +11,7 @@ MANIFEST_FILE = 'pack.yaml'
 PACK_RESERVE_CHARACTER = '.'
 
 
-class InstallGitRepoAction(object):
+class InstallGitRepoAction(Action):
 
     def run(self, repo_url=None, abs_repo_base=None, packs=None):
         abs_local_path = self._clone_repo(repo_url)

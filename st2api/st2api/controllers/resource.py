@@ -9,6 +9,8 @@ from six.moves import http_client
 
 from st2common.models.base import jsexpose
 from st2common import log as logging
+from st2common.models.system.common import InvalidResourceReferenceError
+from st2common.models.system.common import ResourceReference
 
 
 LOG = logging.getLogger(__name__)
@@ -25,7 +27,8 @@ class ResourceController(rest.RestController):
     model = abc.abstractproperty
     access = abc.abstractproperty
     supported_filters = abc.abstractproperty
-    options = {
+
+    query_options = {   # Do not use options.
         'sort': []
     }
     max_limit = 100
@@ -36,12 +39,34 @@ class ResourceController(rest.RestController):
 
     @jsexpose()
     def get_all(self, **kwargs):
+        return self._get_all(**kwargs)
+
+    @jsexpose(str)
+    def get_one(self, id):
+        LOG.info('GET %s with id=%s', pecan.request.path, id)
+
+        instance = None
+        try:
+            instance = self.access.get(id=id)
+        except ValidationError:
+            instance = None  # Someone supplied a mongo non-comformant id.
+
+        if not instance:
+            msg = 'Unable to identify resource with id "%s".' % id
+            pecan.abort(http_client.NOT_FOUND, msg)
+
+        result = self.model.from_model(instance)
+        LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
+
+        return result
+
+    def _get_all(self, **kwargs):
         sort = kwargs.get('sort').split(',') if kwargs.get('sort') else []
         for i in range(len(sort)):
             sort.pop(i)
             direction = '-' if sort[i].startswith('-') else ''
             sort.insert(i, direction + self.supported_filters[sort[i]])
-        kwargs['sort'] = sort if sort else copy.copy(self.options.get('sort'))
+        kwargs['sort'] = sort if sort else copy.copy(self.query_options.get('sort'))
 
         # TODO: To protect us from DoS, we need to make max_limit mandatory
         offset = int(kwargs.pop('offset', 0))
@@ -66,21 +91,21 @@ class ResourceController(rest.RestController):
 
         return [self.model.from_model(instance) for instance in instances[offset:eop]]
 
-    @jsexpose(str)
-    def get_one(self, id):
-        LOG.info('GET %s with id=%s', pecan.request.path, id)
 
-        instance = None
-        try:
-            instance = self.access.get(id=id)
-        except ValidationError:
-            instance = None  # Someone supplied a mongo non-comformant id.
+class ContentPackResourceControler(ResourceController):
+    @jsexpose()
+    def get_all(self, **kwargs):
+        ref = kwargs.get('ref', None)
 
-        if not instance:
-            msg = 'Unable to identify resource with id "%s".' % id
-            pecan.abort(http_client.NOT_FOUND, msg)
+        if ref:
+            try:
+                ref_obj = ResourceReference.from_string_reference(ref=ref)
+            except InvalidResourceReferenceError:
+                # Invalid reference
+                return []
 
-        result = self.model.from_model(instance)
-        LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
+            kwargs['name'] = ref_obj.name
+            kwargs['pack'] = ref_obj.pack
+            del kwargs['ref']
 
-        return result
+        return super(ContentPackResourceControler, self)._get_all(**kwargs)

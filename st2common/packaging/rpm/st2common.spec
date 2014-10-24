@@ -22,7 +22,7 @@ An automation plaform that needs a much better description than this.
 
 %build
 sed -i -r "s~(st2.*)/conf~/etc/\1~g" st2/st2.conf
-sed -i "/content_packs_base_path/a system_path = %{python2_sitelib}/st2reactor/contrib/sensors" st2/st2.conf
+sed -i "/packs_base_path/a system_path = %{python2_sitelib}/st2reactor/contrib/sensors" st2/st2.conf
 sed -i "s~vagrant~/home/stanley~g" st2/st2.conf
 
 %install

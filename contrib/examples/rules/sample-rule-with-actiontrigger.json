@@ -4,7 +4,7 @@
     "description": "Some test rule.",
 
     "trigger": {
-        "type": "st2.generic.actiontrigger",
+        "type": "core.st2.generic.actiontrigger",
         "parameters": {}
     },
 
@@ -20,7 +20,7 @@
     },
 
     "action": {
-        "name": "local",
+        "ref": "core.local",
         "parameters": {
             "cmd": "echo \"{{trigger.start_timestamp}}\""
         }

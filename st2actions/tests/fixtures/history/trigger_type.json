@@ -14,5 +14,6 @@
             }
         }
     },
+    "pack": "dummy_pack_1",
     "name": "st2.webhook"
 }

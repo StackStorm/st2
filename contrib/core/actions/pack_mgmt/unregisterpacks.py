@@ -1,3 +1,4 @@
+from st2actions.runners.pythonrunner import Action
 import st2common.config as config
 from st2common.persistence import action
 from st2common import log as logging
@@ -5,7 +6,7 @@ from st2common import log as logging
 LOG = logging.getLogger(__name__)
 
 
-class UnregisterPackAction(object):
+class UnregisterPackAction(Action):
 
     def run(self, packs=None):
         self._setup()
@@ -38,7 +39,7 @@ class UnregisterPackAction(object):
 
     @staticmethod
     def _unregister_actions(pack):
-        action_dbs = action.Action.get_all(content_pack=pack)
+        action_dbs = action.Action.get_all(pack=pack)
         for action_db in action_dbs:
             try:
                 action.Action.delete(action_db)

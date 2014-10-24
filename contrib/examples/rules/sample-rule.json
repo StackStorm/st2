@@ -15,7 +15,7 @@
     },
 
     "action": {
-        "name": "st2.test.action",
+        "ref": "core.st2.test.action",
         "parameters": {
             "args": "{{trigger.result}}"
         }

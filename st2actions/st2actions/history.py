@@ -5,13 +5,16 @@ from kombu.mixins import ConsumerMixin
 from oslo.config import cfg
 
 from st2common.util import reference
+import st2common.util.action_db as action_utils
 from st2common.transport import actionexecution, publishers
 from st2common.util.greenpooldispatch import BufferedDispatcher
 from st2common.persistence.history import ActionExecutionHistory
-from st2common.persistence.action import RunnerType, Action, ActionExecution
+from st2common.persistence.action import RunnerType, ActionExecution
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
-from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI, RuleAPI
+from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
+from st2common.models.api.rule import RuleAPI
+from st2common.models.system.common import ResourceReference
 from st2common.models.db.history import ActionExecutionHistoryDB
 from st2common import log as logging
 
@@ -57,12 +60,15 @@ class Historian(ConsumerMixin):
         try:
             history_id = bson.ObjectId()
             execution = ActionExecution.get_by_id(str(body.id))
-            action = Action.get_by_name(execution.action['name'])
-            runner = RunnerType.get_by_name(action.runner_type['name'])
+            action_ref = ResourceReference.from_string_reference(ref=execution.ref)
+            action_db, _ = action_utils.get_action_by_dict(
+                {'name': action_ref.name,
+                 'pack': action_ref.pack})
+            runner = RunnerType.get_by_name(action_db.runner_type['name'])
 
             attrs = {
                 'id': history_id,
-                'action': vars(ActionAPI.from_model(action)),
+                'action': vars(ActionAPI.from_model(action_db)),
                 'runner': vars(RunnerTypeAPI.from_model(runner)),
                 'execution': vars(ActionExecutionAPI.from_model(execution))
             }
@@ -72,10 +78,15 @@ class Historian(ConsumerMixin):
                 attrs['rule'] = vars(RuleAPI.from_model(rule))
 
             if 'trigger_instance' in execution.context:
+                trigger_instance_id = execution.context.get('trigger_instance', {})
+                trigger_instance_id = trigger_instance_id.get('id', None)
+                trigger_instance = TriggerInstance.get_by_id(trigger_instance_id)
+                trigger = reference.get_model_by_resource_ref(db_api=Trigger,
+                                                              ref=trigger_instance.trigger)
+                trigger_type = reference.get_model_by_resource_ref(db_api=TriggerType,
+                                                                   ref=trigger.type)
                 trigger_instance = reference.get_model_from_ref(
                     TriggerInstance, execution.context.get('trigger_instance', {}))
-                trigger = Trigger.get_by_name(trigger_instance.trigger['name'])
-                trigger_type = TriggerType.get_by_name(trigger.type['name'])
                 attrs['trigger_instance'] = vars(TriggerInstanceAPI.from_model(trigger_instance))
                 attrs['trigger'] = vars(TriggerAPI.from_model(trigger))
                 attrs['trigger_type'] = vars(TriggerTypeAPI.from_model(trigger_type))

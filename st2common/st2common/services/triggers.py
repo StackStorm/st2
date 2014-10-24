@@ -1,46 +1,76 @@
 from st2common import log as logging
 from st2common.models.api.reactor import TriggerAPI
+from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import Trigger
 
 LOG = logging.getLogger(__name__)
 
 
-def _get_trigger_db(type_name=None, parameters=None):
+def _get_trigger_db(type=None, parameters=None):
     try:
-        return Trigger.query(type__name=type_name,
+        return Trigger.query(type=type,
                              parameters=parameters).first()
     except ValueError as e:
-        LOG.debug('Database lookup for type[\'name\']="%s" parameters="%s" resulted ' +
-                  'in exception : %s.', type_name, parameters, e, exc_info=True)
+        LOG.debug('Database lookup for type="%s" parameters="%s" resulted ' +
+                  'in exception : %s.', type, parameters, e, exc_info=True)
         return None
 
 
-def _get_trigger_db_by_name(name):
+def _get_trigger_db_by_name_and_pack(name, pack):
     try:
-        return Trigger.get_by_name(name)
+        return Trigger.query(name=name, pack=pack).first()
     except ValueError as e:
-        LOG.debug('Database lookup for name="%s" resulted ' +
-                  'in exception : %s.', name, e, exc_info=True)
+        LOG.debug('Database lookup for name="%s",pack="%s" resulted ' +
+                  'in exception : %s.', name, pack, e, exc_info=True)
         return None
 
 
 def get_trigger_db(trigger):
+    # TODO: This method should die in a fire
     if isinstance(trigger, str) or isinstance(trigger, unicode):
-        return _get_trigger_db_by_name(trigger)
+        # Assume reference was passed in
+        ref_obj = ResourceReference.from_string_reference(ref=trigger)
+        return _get_trigger_db_by_name_and_pack(name=ref_obj.name,
+                                                pack=ref_obj.pack)
     if isinstance(trigger, dict):
         name = trigger.get('name', None)
-        if name:
-            return _get_trigger_db_by_name(name)
-        return _get_trigger_db(type_name=trigger['type']['name'],
+        pack = trigger.get('pack', None)
+
+        if name and pack:
+            return _get_trigger_db_by_name_and_pack(name=name, pack=pack)
+
+        return _get_trigger_db(type=trigger['type'],
                                parameters=trigger.get('parameters', {}))
+
     if isinstance(trigger, object):
+        name = getattr(trigger, 'name', None)
+        pack = getattr(trigger, 'pack', None)
+        parameters = getattr(trigger, 'parameters', {})
+
         trigger_db = None
-        if hasattr(trigger, 'name') and trigger.name:
-            trigger_db = _get_trigger_db_by_name(trigger.name)
+        if name and pack:
+            trigger_db = _get_trigger_db_by_name_and_pack(name=name, pack=pack)
         else:
-            trigger_db = _get_trigger_db(type_name=trigger.type,
-                                         parameters=getattr(trigger, 'parameters', {}))
+            trigger_db = _get_trigger_db(type=trigger.type,
+                                         parameters=parameters)
         return trigger_db
+    else:
+        raise Exception('Unrecognized object')
+
+
+def _get_trigger_api_given_rule(rule):
+    trigger = rule.trigger
+    triggertype_ref = ResourceReference.from_string_reference(trigger.get('type'))
+    trigger_dict = {}
+    trigger_name = trigger.get('name', None)
+    if trigger_name:
+        trigger_dict['name'] = trigger_name
+    trigger_dict['pack'] = triggertype_ref.pack
+    trigger_dict['type'] = triggertype_ref.ref
+    trigger_dict['parameters'] = rule.trigger.get('parameters', {})
+    trigger_api = TriggerAPI(**trigger_dict)
+
+    return trigger_api
 
 
 def create_trigger_db(trigger):
@@ -53,3 +83,8 @@ def create_trigger_db(trigger):
         LOG.debug('verified trigger and formulated TriggerDB=%s', trigger_db)
         trigger_db = Trigger.add_or_update(trigger_db)
     return trigger_db
+
+
+def create_trigger_db_from_rule(rule):
+    trigger_api = _get_trigger_api_given_rule(rule)
+    return create_trigger_db(trigger_api)

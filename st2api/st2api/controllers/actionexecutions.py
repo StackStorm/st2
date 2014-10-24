@@ -3,15 +3,14 @@ import json
 import jsonschema
 import pecan
 from pecan import abort
-from pecan.rest import RestController
 from six.moves import http_client
 
+from st2api.controllers.resource import ResourceController
 from st2common import log as logging
-from st2common.models.base import jsexpose
-from st2common.services import action as action_service
-from st2common.persistence.action import ActionExecution
 from st2common.models.api.action import ActionExecutionAPI
-
+from st2common.models.base import jsexpose
+from st2common.persistence.action import ActionExecution
+from st2common.services import action as action_service
 
 LOG = logging.getLogger(__name__)
 
@@ -20,75 +19,39 @@ MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
 
 
-class ActionExecutionsController(RestController):
+class ActionExecutionsController(ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of ActionExecutions in the system.
     """
+    model = ActionExecutionAPI
+    access = ActionExecution
 
-    @staticmethod
-    def __get_by_id(id):
-        try:
-            return ActionExecution.get_by_id(id)
-        except Exception as e:
-            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e)
-            LOG.exception(msg)
-            abort(http_client.NOT_FOUND, msg)
+    supported_filters = {
+        'action': 'ref'
+    }
 
-    @staticmethod
-    def _get_action_executions(action_id, action_name, limit=None, **kw):
-        if action_id is not None:
-            LOG.debug('Using action_id=%s to get action executions', action_id)
-            # action__id <- this queries action.id
-            return ActionExecution.query(action__id=action_id,
-                                         order_by=['-start_timestamp'],
-                                         limit=limit, **kw)
-        elif action_name is not None:
-            LOG.debug('Using action_name=%s to get action executions', action_name)
-            # action__name <- this queries against action.name
-            return ActionExecution.query(action__name=action_name,
-                                         order_by=['-start_timestamp'],
-                                         limit=limit, **kw)
-        LOG.debug('Retrieving all action executions')
-        return ActionExecution.get_all(order_by=['-start_timestamp'],
-                                       limit=limit, **kw)
+    query_options = {
+        'sort': ['ref']
+    }
 
-    @jsexpose(str)
-    def get_one(self, id):
-        """
-            List actionexecution by id.
+    def _get_action_executions(self, **kw):
+        kw['limit'] = int(kw.get('limit', 50))
+        kw['order_by'] = kw.get('order_by', '-start_timestamp')
 
-            Handle:
-                GET /actionexecutions/1
-        """
-        LOG.info('GET /actionexecutions/ with id=%s', id)
-        actionexec_db = ActionExecutionsController.__get_by_id(id)
-        actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
-        LOG.debug('GET /actionexecutions/ with id=%s, client_result=%s', id, actionexec_api)
-        return actionexec_api
+        LOG.debug('Retrieving all action executions with filters=%s', kw)
+        return super(ActionExecutionsController, self)._get_all(**kw)
 
-    @jsexpose(str, str, str)
-    def get_all(self, action_id=None, action_name=None, limit='50', **kw):
+    @jsexpose()
+    def get_all(self, **kw):
         """
             List all actionexecutions.
 
             Handles requests:
                 GET /actionexecutions/
         """
-
-        LOG.info('GET all /actionexecutions/ with action_name=%s, '
-                 'action_id=%s, and limit=%s', action_name, action_id, limit)
-
-        actionexec_dbs = ActionExecutionsController._get_action_executions(
-            action_id, action_name, limit=int(limit), **kw)
-        actionexec_apis = [ActionExecutionAPI.from_model(actionexec_db)
-                           for actionexec_db
-                           in sorted(actionexec_dbs,
-                                     key=lambda x: x.start_timestamp)]
-
-        # TODO: unpack list in log message
-        LOG.debug('GET all /actionexecutions/ client_result=%s', actionexec_apis)
-        return actionexec_apis
+        LOG.info('GET all /actionexecutions/ with filters=%s', kw)
+        return self._get_action_executions(**kw)
 
     @jsexpose(body=ActionExecutionAPI, status_code=http_client.CREATED)
     def post(self, execution):
@@ -121,7 +84,11 @@ class ActionExecutionsController(RestController):
 
     @jsexpose(str, body=ActionExecutionAPI)
     def put(self, id, actionexecution):
-        actionexec_db = ActionExecutionsController.__get_by_id(id)
+        try:
+            actionexec_db = ActionExecution.get_by_id(id)
+        except:
+            msg = 'ActionExecution by id: %s not found.' % id
+            pecan.abort(http_client, msg)
         new_actionexec_db = ActionExecutionAPI.to_model(actionexecution)
         if actionexec_db.status != new_actionexec_db.status:
             actionexec_db.status = new_actionexec_db.status

@@ -6,6 +6,8 @@ from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import Trigger
 from st2common.util.config_parser import ContentPackConfigParser
+from st2common.content.validators import validate_pack_name
+from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2reactor.container.base import SensorContainer
 from st2reactor.container.service import ContainerService
 from st2reactor.container.triggerwatcher import TriggerWatcher
@@ -28,19 +30,23 @@ class SensorContainerManager(object):
         LOG.info('Setting up container to run %d sensors.', len(sensors_dict))
         container_service = ContainerService()
         sensors_to_run = []
+        # TODO: Once the API registration is in place, query DB for available
+        # sensors here
+        # TODO: Use trigger_types and description from sensors metadata
         for filename, sensors in six.iteritems(sensors_dict):
             for sensor_class in sensors:
                 sensor_class_kwargs = {}
+                class_name = sensor_class.__name__
 
                 # System sensors which are not located inside a content pack
                 # don't and can't have custom config associated with them
-                content_pack = getattr(sensor_class, 'content_pack', None)
-                if content_pack:
+                pack = getattr(sensor_class, 'pack', None)
+                if pack:
                     # TODO: Don't parse the same config multiple times when we
                     # are referring to sensors from the same pack
-                    config_parser = ContentPackConfigParser(content_pack_name=content_pack)
+                    pack = validate_pack_name(name=pack)
+                    config_parser = ContentPackConfigParser(pack_name=pack)
                     config = config_parser.get_sensor_config(sensor_file_path=filename)
-                    class_name = sensor_class.__name__
 
                     if config:
                         sensor_class_kwargs['config'] = config.config
@@ -49,6 +55,9 @@ class SensorContainerManager(object):
                     else:
                         LOG.info('No config found for sensor "%s"' % (class_name))
                         sensor_class_kwargs['config'] = {}
+                else:
+                    pack = SYSTEM_PACK_NAME
+
                 try:
                     sensor = sensor_class(container_service=container_service,
                                           **sensor_class_kwargs)
@@ -63,19 +72,38 @@ class SensorContainerManager(object):
                         LOG.warning('No trigger type registered by sensor %s in file %s',
                                     sensor_class, filename)
                     else:
-                        container_utils.add_trigger_models(trigger_types)
+                        assert isinstance(trigger_types, (list, tuple))
+                        trigger_type_dbs = container_utils.add_trigger_models(
+                            pack=pack,
+                            trigger_types=trigger_types)
                 except TriggerTypeRegistrationException as e:
                     LOG.warning('Unable to register trigger type for sensor %s in file %s.'
                                 + ' Exception: %s', sensor_class, filename, e, exc_info=True)
                     continue
 
-                for t in trigger_types:
-                    self._trigger_sensors[t['name']] = sensor
+                # Populate sensors dict
+                trigger_type_refs = []
+                for trigger_type_db, _ in trigger_type_dbs:
+                    ref_obj = trigger_type_db.get_reference()
+                    trigger_type_ref = ref_obj.ref
+                    self._trigger_sensors[trigger_type_ref] = sensor
+                    trigger_type_refs.append(trigger_type_ref)
 
+                # Register sensor type in the DB
+                sensor_obj = {
+                    'filename': os.path.abspath(filename),
+                    'name': class_name,
+                    'class_name': class_name,
+                    'trigger_types': trigger_type_refs
+                }
+                container_utils.add_sensor_model(pack=pack,
+                                                 sensor=sensor_obj)
+
+                # Add good sensor to the run list
                 sensors_to_run.append(sensor)
 
         for trigger in Trigger.get_all():
-            self._create_handler(trigger)
+            self._create_handler(trigger=trigger)
 
         self._trigger_watcher.start()
         LOG.info('Watcher started.')
@@ -94,16 +122,16 @@ class SensorContainerManager(object):
             self._trigger_watcher.stop()
 
     def _create_handler(self, trigger):
-        name = trigger.type['name']
+        trigger_type_ref = trigger.type
         self._trigger_names[str(trigger.id)] = trigger
-        sensor = self._trigger_sensors.get(name, None)
+        sensor = self._trigger_sensors.get(trigger_type_ref, None)
         if sensor:
             sensor.add_trigger(SensorContainerManager.sanitize_trigger(trigger))
 
     def _update_handler(self, trigger):
-        name = trigger.type['name']
+        trigger_type_ref = trigger.type
         self._trigger_names[str(trigger.id)] = trigger
-        sensor = self._trigger_sensors.get(name, None)
+        sensor = self._trigger_sensors.get(trigger_type_ref, None)
         if sensor:
             sensor.update_trigger(SensorContainerManager.sanitize_trigger(trigger))
 
@@ -112,8 +140,8 @@ class SensorContainerManager(object):
         if triggerid not in self._trigger_names:
             return
         del self._trigger_names[triggerid]
-        name = trigger.type['name']
-        sensor = self._trigger_sensors.get(name, None)
+        trigger_type_ref = trigger.type
+        sensor = self._trigger_sensors.get(trigger_type_ref, None)
         if sensor:
             sensor.remove_trigger(SensorContainerManager.sanitize_trigger(trigger))
 

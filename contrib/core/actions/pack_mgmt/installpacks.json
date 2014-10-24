@@ -2,19 +2,19 @@
     "chain": [
         {
             "name": "download",
-            "action": "downloadpacks",
+            "ref": "core.downloadpacks",
             "params": {"packs": "{{packs}}"},
             "on-success": "reload"
         },
         {
             "name": "reload",
-            "action": "reload-content",
+            "ref": "core.reload-content",
             "params": {},
             "on-success": "restart-sensor-container"
         },
         {
             "name": "restart-sensor-container",
-            "action": "restart-component",
+            "ref": "core.restart-component",
             "params": {"servicename": "sensor_container"}
         }
     ],

@@ -15,12 +15,12 @@ LOG = logging.getLogger(__name__)
 class TokenController(rest.RestController):
 
     @jsexpose(body=TokenAPI, status_code=http_client.CREATED)
-    def post(self, request=None):
-
+    def post(self, request, **kwargs):
         if not pecan.request.remote_user:
             LOG.audit('Access denied to anonymous user.')
             pecan.abort(http_client.UNAUTHORIZED)
 
-        tokendb = create_token(pecan.request.remote_user, getattr(request, 'ttl', None))
+        ttl = getattr(request, 'ttl', None)
+        tokendb = create_token(pecan.request.remote_user, ttl)
 
         return TokenAPI.from_model(tokendb)

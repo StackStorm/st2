@@ -21,7 +21,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class ActionsController(resource.ResourceController):
+class ActionsController(resource.ContentPackResourceControler):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Actions in the system.
@@ -32,11 +32,11 @@ class ActionsController(resource.ResourceController):
     access = Action
     supported_filters = {
         'name': 'name',
-        'pack': 'content_pack'
+        'pack': 'pack'
     }
 
-    options = {
-        'sort': ['content_pack', 'name']
+    query_options = {
+        'sort': ['pack', 'name']
     }
 
     @staticmethod
@@ -47,15 +47,6 @@ class ActionsController(resource.ResourceController):
             msg = 'Database lookup for id="%s" resulted in exception. %s' % (action_id, e)
             LOG.exception(msg)
             abort(http_client.NOT_FOUND, msg)
-
-    @staticmethod
-    def _get_by_name(name):
-        try:
-            action = Action.get_by_name(name)
-            return [action]
-        except Exception as e:
-            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
-            return []
 
     @staticmethod
     def _validate_action_parameters(action, runnertype_db):
@@ -85,8 +76,8 @@ class ActionsController(resource.ResourceController):
         else:
             action.enabled = bool(action.enabled)
 
-        if not hasattr(action, 'content_pack'):
-            setattr(action, 'content_pack', 'default')
+        if not hasattr(action, 'pack'):
+            setattr(action, 'pack', 'default')
 
         try:
             action_validator.validate_action(action)
@@ -123,8 +114,8 @@ class ActionsController(resource.ResourceController):
     @jsexpose(str, body=ActionAPI)
     def put(self, action_id, action):
         action_db = ActionsController._get_by_id(action_id)
-        if not getattr(action, 'content_pack', None):
-            action.content_pack = action_db.content_pack
+        if not getattr(action, 'pack', None):
+            action.pack = action_db.pack
 
         try:
             action_validator.validate_action(action)

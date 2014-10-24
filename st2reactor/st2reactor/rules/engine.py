@@ -1,5 +1,6 @@
 from st2common import log as logging
 from st2common.persistence.reactor import Rule
+from st2common.services.triggers import get_trigger_db
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.matcher import RulesMatcher
 
@@ -17,21 +18,16 @@ class RulesEngine(object):
         # Enforce the rules.
         self.enforce_rules(enforcers)
 
-    def get_rules_for_trigger(self, trigger):
-        return self.get_rules_for_trigger_from_db(trigger)
-
-    def get_rules_for_trigger_from_db(self, trigger):
-        rules = Rule.query(trigger__id=trigger['id'], enabled=True)
-        LOG.info('Found %d rules defined for trigger %s', len(rules), trigger['name'])
-        return rules
-
     def get_matching_rules_for_trigger(self, trigger_instance):
-        rules = self.get_rules_for_trigger(trigger_instance.trigger)
-        matcher = RulesMatcher(trigger_instance, rules)
+        trigger = get_trigger_db(trigger=trigger_instance.trigger)
+        rules = Rule.query(trigger=trigger_instance.trigger, enabled=True)
+        LOG.info('Found %d rules defined for trigger %s', len(rules), trigger['name'])
+        matcher = RulesMatcher(trigger_instance=trigger_instance,
+                               trigger=trigger, rules=rules)
 
         matching_rules = matcher.get_matching_rules()
         LOG.info('Matched %s rule(s) for trigger_instance %s.', len(matching_rules),
-                 trigger_instance.trigger['name'])
+                 trigger['name'])
         return matching_rules
 
     def create_rule_enforcers(self, trigger_instance, matching_rules):
