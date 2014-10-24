@@ -172,8 +172,8 @@ class ResourceListCommand(ResourceCommand):
 
 
 class ResourceGetCommand(ResourceCommand):
-
     display_attributes = ['all']
+    attribute_display_order = ['id', 'name', 'description']
 
     def __init__(self, resource, *args, **kwargs):
         super(ResourceGetCommand, self).__init__(resource, 'get',
@@ -198,7 +198,8 @@ class ResourceGetCommand(ResourceCommand):
         try:
             instance = self.run(args, **kwargs)
             self.print_output(instance, table.PropertyValueTable,
-                              attributes=args.attr, json=args.json)
+                              attributes=args.attr, json=args.json,
+                              attribute_display_order=self.attribute_display_order)
         except ResourceNotFoundError:
             self.print_not_found(args.name_or_id)
 
@@ -210,6 +211,8 @@ class ContentPackResourceGetCommand(ResourceGetCommand):
     Note: All the resources which belong to the content pack can either be
     retrieved by a reference or by an id.
     """
+
+    attribute_display_order = ['id', 'pack', 'name', 'description']
 
     def __init__(self, resource, *args, **kwargs):
         super(ResourceGetCommand, self).__init__(resource, 'get',
@@ -234,7 +237,8 @@ class ContentPackResourceGetCommand(ResourceGetCommand):
         try:
             instance = self.run(args, **kwargs)
             self.print_output(instance, table.PropertyValueTable,
-                              attributes=args.attr, json=args.json)
+                              attributes=args.attr, json=args.json,
+                              attribute_display_order=self.attribute_display_order)
         except ResourceNotFoundError:
             self.print_not_found(args.ref_or_id)
 

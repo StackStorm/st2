@@ -45,6 +45,7 @@ class ActionListCommand(resource.ResourceListCommand):
 
 class ActionGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
+    attribute_sort_order = ['id', 'pack', 'name', 'ref']
 
 
 class ActionRunCommand(resource.ResourceCommand):

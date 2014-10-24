@@ -7,6 +7,7 @@ from six.moves import zip
 
 
 LOG = logging.getLogger(__name__)
+DEFAULT_ATTRIBUTE_DISPLAY_ORDER = ['id', 'name', 'pack', 'description']
 
 
 class MultiColumnTable(formatters.Formatter):
@@ -79,12 +80,14 @@ class PropertyValueTable(formatters.Formatter):
     @classmethod
     def format(cls, subject, *args, **kwargs):
         attributes = kwargs.get('attributes', None)
-        display_order = kwargs.get('display_order',
-                                   ['name', 'id', 'description'])
+        attribute_display_order = kwargs.get('attribute_display_order',
+                                             DEFAULT_ATTRIBUTE_DISPLAY_ORDER)
+
         if not attributes or 'all' in attributes:
             attributes = sorted([attr for attr in subject.__dict__
                                  if not attr.startswith('_')])
-        for attr in display_order[::-1]:
+
+        for attr in attribute_display_order[::-1]:
             if attr in attributes:
                 attributes.remove(attr)
                 attributes = [attr] + attributes
