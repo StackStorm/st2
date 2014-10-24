@@ -199,6 +199,9 @@ st2ctl restart
 sleep 20 
 st2 run core.local date -a
 
+echo "=============================="
+echo ""
+
 if [ ! "$?" == 0 ]
 then
   echo "ERROR!" 
