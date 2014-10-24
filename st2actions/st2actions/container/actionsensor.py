@@ -76,6 +76,8 @@ def post_trigger(action_execution):
     try:
         payload = json.dumps({
             'name': ACTION_TRIGGER_TYPE['name'],
+            'pack': ACTION_TRIGGER_TYPE['pack'],
+            'type': '{}.{}'.format(ACTION_TRIGGER_TYPE['pack'], ACTION_TRIGGER_TYPE['name']),
             'payload': {
                 'execution_id': str(action_execution.id),
                 'status': action_execution.status,
