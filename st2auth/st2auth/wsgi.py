@@ -7,9 +7,10 @@ from st2common.models import db
 
 cfg.CONF(args=['--config-file', '/etc/stanley/stanley.conf'])
 
-db.db_setup(cfg.CONF.database.db_name,
-            cfg.CONF.database.host,
-            cfg.CONF.database.port)
+username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
+password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
+db.db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
+            username=username, password=password)
 
 pecan_config = {
     'app': {

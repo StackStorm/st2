@@ -50,8 +50,11 @@ class DbTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         st2tests.config.parse_args()
-        DbTestCase.db_connection = db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
-                                            cfg.CONF.database.port)
+        username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
+        password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
+        DbTestCase.db_connection = db_setup(
+            cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
+            username=username, password=password)
         cls.drop_collections()
         DbTestCase.db_connection.drop_database(cfg.CONF.database.db_name)
 

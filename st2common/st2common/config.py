@@ -45,7 +45,9 @@ def register_opts(ignore_errors=False):
     db_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
         cfg.IntOpt('port', default=27017, help='port of db server'),
-        cfg.StrOpt('db_name', default='st2', help='name of database')
+        cfg.StrOpt('db_name', default='st2', help='name of database'),
+        cfg.StrOpt('username', help='username for db login'),
+        cfg.StrOpt('password', help='password for db login'),
     ]
     _do_register_opts(db_opts, 'database', ignore_errors)
 

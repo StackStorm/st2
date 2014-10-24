@@ -29,8 +29,10 @@ def _setup():
     logging.setup(cfg.CONF.actionrunner.logging)
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
-    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host,
-             cfg.CONF.database.port)
+    username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
+    password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
+    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
+             username=username, password=password)
 
 
 def _run_worker():
