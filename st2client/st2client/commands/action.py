@@ -338,10 +338,10 @@ class ActionRunCommand(resource.ResourceCommand):
         if not isinstance(result, dict):
             return False
 
-        if not 'message' in result:
+        if 'message' not in result:
             return False
 
-        if not 'traceback' in result:
+        if 'traceback' not in result:
             return False
 
         return True
