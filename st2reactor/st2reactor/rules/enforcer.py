@@ -21,7 +21,7 @@ class RuleEnforcer(object):
     def enforce(self):
         data = self.data_transformer(self.rule.action.parameters)
         LOG.info('Invoking action %s for trigger_instance %s with data %s.',
-                 self.rule.action.action, self.trigger_instance.id,
+                 self.rule.action.ref, self.trigger_instance.id,
                  json.dumps(data))
         context = {
             'trigger_instance': reference.get_ref_from_model(self.trigger_instance),
@@ -44,7 +44,7 @@ class RuleEnforcer(object):
 
     @staticmethod
     def _invoke_action(action, action_args, context=None):
-        action_ref = action['action']
+        action_ref = action['ref']
         execution = ActionExecutionDB(action=action_ref, context=context, parameters=action_args)
         execution = action_service.schedule(execution)
         return ({'id': str(execution.id)}

@@ -36,7 +36,7 @@ MOCK_RULE_1.id = 'rule-test-1'
 MOCK_RULE_1.trigger = reference.get_str_resource_ref_from_model(MOCK_TRIGGER)
 MOCK_RULE_1.criteria = {}
 MOCK_RULE_1.action = ActionExecutionSpecDB()
-MOCK_RULE_1.action.action = reference.get_ref_from_model(MOCK_ACTION)
+MOCK_RULE_1.action.ref = reference.get_ref_from_model(MOCK_ACTION)
 MOCK_RULE_1.enabled = True
 
 MOCK_RULE_2 = RuleDB()
@@ -44,7 +44,7 @@ MOCK_RULE_2.id = 'rule-test-2'
 MOCK_RULE_2.trigger = reference.get_str_resource_ref_from_model(MOCK_TRIGGER)
 MOCK_RULE_2.criteria = {}
 MOCK_RULE_2.action = ActionExecutionSpecDB()
-MOCK_RULE_2.action.action = reference.get_ref_from_model(MOCK_ACTION)
+MOCK_RULE_2.action.ref = reference.get_ref_from_model(MOCK_ACTION)
 MOCK_RULE_2.enabled = True
 
 
