@@ -255,8 +255,8 @@ class ActionRunCommand(resource.ResourceCommand):
                     action = self.get_resource(args.ref_or_id, **kwargs)
                     runner_mgr = self.app.client.managers['RunnerType']
                     runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
-                    parameters, required, optional, immutable = self._get_params_types(runner,
-                                                                                       action)
+                    parameters, required, optional, _ = self._get_params_types(runner,
+                                                                               action)
                     print('')
                     print(textwrap.fill(action.description))
                     print('')
@@ -274,13 +274,6 @@ class ActionRunCommand(resource.ResourceCommand):
                         print('Optional Parameters:')
                         [self.print_param(name, parameters.get(name))
                             for name in optional]
-                    if immutable:
-                        immutable = self._sort_parameters(parameters=parameters,
-                                                          names=immutable)
-
-                        print('Immutable parameters:')
-                        [self.print_param(name, parameters.get(name))
-                            for name in immutable]
                 except resource.ResourceNotFoundError:
                     print('Action "%s" is not found.' % args.ref_or_id)
                 except Exception as e:
