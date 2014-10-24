@@ -197,12 +197,14 @@ register_content
 echo "########## Starting St2 Services ##########"
 st2ctl restart 
 sleep 20 
-st2 run core.local date -a
+##This is a hack around a weird issue with actions getting stuck in scheduled state
+st2 run core.local date -a &> /dev/null && st2ctl restart &> /dev/null
+ACTIONEXIT=$?
 
 echo "=============================="
 echo ""
 
-if [ ! "$?" == 0 ]
+if [ ! "${ACTIONEXIT}" == 0 ]
 then
   echo "ERROR!" 
   echo "Something went wrong, st2 failed to start"
