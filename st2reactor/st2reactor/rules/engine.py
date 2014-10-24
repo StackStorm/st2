@@ -18,17 +18,10 @@ class RulesEngine(object):
         # Enforce the rules.
         self.enforce_rules(enforcers)
 
-    def get_rules_for_trigger(self, trigger):
-        return self.get_rules_for_trigger_from_db(trigger)
-
-    def get_rules_for_trigger_from_db(self, trigger):
-        rules = Rule.query(trigger=trigger.type, enabled=True)
-        LOG.info('Found %d rules defined for trigger %s', len(rules), trigger['name'])
-        return rules
-
     def get_matching_rules_for_trigger(self, trigger_instance):
         trigger = get_trigger_db(trigger=trigger_instance.trigger)
-        rules = self.get_rules_for_trigger(trigger=trigger)
+        rules = Rule.query(trigger=trigger_instance.trigger, enabled=True)
+        LOG.info('Found %d rules defined for trigger %s', len(rules), trigger['name'])
         matcher = RulesMatcher(trigger_instance=trigger_instance,
                                trigger=trigger, rules=rules)
 
