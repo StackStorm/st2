@@ -144,7 +144,7 @@ class ActionChainRunner(ActionRunner):
 
     @staticmethod
     def _run_action(action_ref, parent_execution_id, params, wait_for_completion=True):
-        execution = ActionExecutionDB(ref=action_ref)
+        execution = ActionExecutionDB(action=action_ref)
         execution.parameters = ActionChainRunner._cast_params(action_ref, params)
         execution.context = {'parent': str(parent_execution_id)}
         execution = action_service.schedule(execution)

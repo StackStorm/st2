@@ -63,14 +63,14 @@ class TriggerInstanceDB(StormFoundationDB):
 
 
 class ActionExecutionSpecDB(me.EmbeddedDocument):
-    ref = me.StringField(required=True, unique=False)
+    action = me.StringField(required=True, unique=False)
     parameters = me.DictField()
 
     def __str__(self):
         result = []
         result.append('ActionExecutionSpecDB@')
         result.append(str(id(self)))
-        result.append('(ref="%s", ' % self.ref)
+        result.append('(action="%s", ' % self.action)
         result.append('parameters="%s")' % self.parameters)
         return ''.join(result)
 

@@ -28,11 +28,11 @@ class ActionExecutionsController(ResourceController):
     access = ActionExecution
 
     supported_filters = {
-        'action': 'ref'
+        'action': 'action'
     }
 
     query_options = {
-        'sort': ['ref']
+        'sort': ['action']
     }
 
     def _get_action_executions(self, **kw):

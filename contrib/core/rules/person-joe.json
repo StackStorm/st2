@@ -17,7 +17,7 @@
     },
 
     "action": {
-        "ref": "core.local",
+        "action": "core.local",
         "parameters": {
             "cmd": "echo \"{{trigger}}\" >> /tmp/st2.persons.out"
         }

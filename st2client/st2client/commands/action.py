@@ -131,7 +131,7 @@ class ActionRunCommand(resource.ResourceCommand):
 
         action_ref = '.'.join([action.pack, action.name])
         execution = models.ActionExecution()
-        execution.ref = action_ref
+        execution.action = action_ref
         execution.parameters = dict()
         for idx in range(len(args.parameters)):
             arg = args.parameters[idx]
