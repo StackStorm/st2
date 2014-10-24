@@ -2,7 +2,7 @@ SHELL := /bin/bash
 RPM_ROOT=~/rpmbuild
 RPM_SOURCES_DIR := $(RPM_ROOT)/SOURCES/
 RPM_SPECS_DIR := $(RPM_ROOT)/SPECS/
-VER=0.4.0
+VER := $(shell cat ./st2client/__init__.py | sed -e 's/.*__version__ = (\d+).*/$1/g' | sed 's/__version__ = //g' | sed "s/'//g")
 RELEASE=1
 COMPONENTS := st2client
 
@@ -21,5 +21,5 @@ deb:
 	python setup.py install --user
 	cp -R ~/.local/bin ./
 	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf ~/$(COMPONENTS).tar.gz bin $(COMPONENTS) packaging/debian
-	pushd ~ && tar -xzf $(COMPONENTS).tar.gz && cd $(COMPONENTS)-$(VER) && cp -Rf packaging/debian ./ && dpkg-buildpackage -us -uc -b && popd
+	pushd ~ && tar -xzf $(COMPONENTS).tar.gz && cd $(COMPONENTS)-$(VER) && cp -Rf packaging/debian ./ && sed -i 's/VERSION-BUILD/$(VER)-$(RELEASE)/g' ./debian/changelog && sed -i 's/VERSION-BUILD/$(VER)-$(RELEASE)/g' ./packaging/debian/changelog && dpkg-buildpackage -us -uc -b && popd
 	cp -f ~/$(COMPONENT)*.deb ~/debbuild

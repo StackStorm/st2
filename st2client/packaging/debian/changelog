@@ -1,4 +1,4 @@
-st2client (0.4.0-1) unstable; urgency=low
+st2client (VERSION-BUILD) unstable; urgency=low
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
 
