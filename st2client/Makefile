@@ -2,7 +2,7 @@ SHELL := /bin/bash
 RPM_ROOT=~/rpmbuild
 RPM_SOURCES_DIR := $(RPM_ROOT)/SOURCES/
 RPM_SPECS_DIR := $(RPM_ROOT)/SPECS/
-VER := $(shell cat ./st2client/__init__.py | sed -e 's/.*__version__ = (\d+).*/$1/g' | sed 's/__version__ = //g' | sed "s/'//g")
+VER := $(shell cat ./st2client/__init__.py | grep -Po "__version__ = '\K[^']*")
 RELEASE=1
 COMPONENTS := st2client
 
