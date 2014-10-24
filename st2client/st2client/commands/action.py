@@ -192,10 +192,8 @@ class ActionRunCommand(resource.ResourceCommand):
 
             sys.stdout.write('\n')
 
-            try:
-                execution.result = json.loads(execution.result)
-            except:
-                pass
+            if self._is_error_result(result=execution.result):
+                execution.result = self._format_error_result(execution.result)
 
         return execution
 
@@ -333,6 +331,23 @@ class ActionRunCommand(resource.ResourceCommand):
 
         sort_value = parameter.get('position', name)
         return sort_value
+
+    def _is_error_result(self, result):
+        if not isinstance(result, dict):
+            return False
+
+        if not 'message' in result:
+            return False
+
+        if not 'traceback' in result:
+            return False
+
+        return True
+
+    def _format_error_result(self, result):
+        result = 'Message: %s\nTraceback: %s' % (result['message'],
+                result['traceback'])
+        return result
 
 
 class ActionExecutionBranch(resource.ResourceBranch):
