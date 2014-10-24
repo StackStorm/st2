@@ -60,7 +60,7 @@ class Historian(ConsumerMixin):
         try:
             history_id = bson.ObjectId()
             execution = ActionExecution.get_by_id(str(body.id))
-            action_ref = ResourceReference.from_string_reference(ref=execution.ref)
+            action_ref = ResourceReference.from_string_reference(ref=execution.action)
             action_db, _ = action_utils.get_action_by_dict(
                 {'name': action_ref.name,
                  'pack': action_ref.pack})

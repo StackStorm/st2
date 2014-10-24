@@ -31,7 +31,7 @@ MOCK_RULE_1.id = bson.ObjectId()
 MOCK_RULE_1.name = "some1"
 MOCK_RULE_1.trigger = reference.get_str_resource_ref_from_model(MOCK_TRIGGER)
 MOCK_RULE_1.criteria = {}
-MOCK_RULE_1.action = ActionExecutionSpecDB(ref="somepack.someaction")
+MOCK_RULE_1.action = ActionExecutionSpecDB(action="somepack.someaction")
 
 MOCK_RULE_2 = RuleDB()
 MOCK_RULE_2.id = bson.ObjectId()

@@ -198,7 +198,7 @@ class ReactorModelTest(DbTestCase):
         created.criteria = {}
         created.action = ActionExecutionSpecDB()
         action_ref = ResourceReference(pack=action.pack, name=action.name).ref
-        created.action.ref = action_ref
+        created.action.action = action_ref
         created.action.pack = action.pack
         created.action.parameters = {}
         return Rule.add_or_update(created)

@@ -82,7 +82,7 @@ def post_trigger(action_execution):
                 'execution_id': str(action_execution.id),
                 'status': action_execution.status,
                 'start_timestamp': str(action_execution.start_timestamp),
-                'action_name': action_execution.ref,
+                'action_name': action_execution.action,
                 'parameters': action_execution.parameters,
                 'result': action_execution.result
             }
