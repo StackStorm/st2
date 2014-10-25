@@ -1,7 +1,6 @@
 {
-    "id": "53df5e5a0f6d4087dea24414",
-    "name": "st2.rule2",
-    "description": "Some test rule.",
+    "name": "sample.on_actiontrigger",
+    "description": "Sample rule firing on action completion.",
 
     "trigger": {
         "type": "core.st2.generic.actiontrigger",
