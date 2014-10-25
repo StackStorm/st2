@@ -40,7 +40,7 @@ cp -R docs/* %{buildroot}/usr/share/doc/st2/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 cp -R bin %{buildroot}/%{python2_sitelib}/st2common/
 install st2/st2.conf %{buildroot}/etc/st2/st2.conf
-
+install -m755 tools/st2ctl %{buildroot}/usr/bin/st2ctl
 
 %files
 %{python2_sitelib}/st2common*
@@ -48,3 +48,4 @@ install st2/st2.conf %{buildroot}/etc/st2/st2.conf
 /etc/st2/*
 /opt/stackstorm/*
 /var/log/st2
+/usr/bin/st2ctl

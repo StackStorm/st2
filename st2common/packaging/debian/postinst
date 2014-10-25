@@ -5,3 +5,5 @@ if [ -d /etc/st2 ]; then
   sed -i "s~vagrant~/home/stanley~g" /etc/st2/st2.conf
   sed -i "/packs_base_path/a system_path = /usr/lib/python2.7/dist-packages/st2reactor/contrib/sensors" /etc/st2/st2.conf
 fi
+
+chmod 755 /usr/bin/st2ctl
