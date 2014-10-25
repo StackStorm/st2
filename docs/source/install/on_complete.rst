@@ -3,7 +3,7 @@ Check that st2 installation works OK: ::
     st2ctl status
 
     st2 --help
-    st2 action core.list
+    st2 action list
     st2 run core.local uname
 
 Use the supervisor script manage st2 services: ::
