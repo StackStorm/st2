@@ -5,7 +5,7 @@ from st2auth import config  # noqa
 from st2common.models import db
 
 
-cfg.CONF(args=['--config-file', '/etc/stanley/stanley.conf'])
+cfg.CONF(args=['--config-file', '/etc/st2/st2.conf'])
 
 username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
 password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None

@@ -100,7 +100,7 @@ class St2GenericWebhooksSensor(object):
         del self._hooks[url]
 
     def get_trigger_types(self):
-        sampleurl = 'http://<stanley-host>:%s%s.' % (str(self._port), BASE_URL)
+        sampleurl = 'http://<st2-host>:%s%s.' % (str(self._port), BASE_URL)
         return [{
             'name': 'st2.webhook',
             'description': 'Relays a Trigger POSTed to the supplied URL. The supplied url is used '

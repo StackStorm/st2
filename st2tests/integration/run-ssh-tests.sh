@@ -24,7 +24,7 @@ function sshtest(){
     cd ${ST2_REPO}
 
     if [ -z "$ST2_CONF" ]; then
-        ST2_CONF=${ST2_REPO}/st2tests/conf/stanley.conf
+        ST2_CONF=${ST2_REPO}/st2tests/conf/st2.conf
     fi
     echo "Using st2 config file: $ST2_CONF"
     if [ ! -f "$ST2_CONF" ]; then

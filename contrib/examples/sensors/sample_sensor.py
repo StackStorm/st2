@@ -28,7 +28,7 @@ class SimpleSensor(object):
         pass
 
     def stop(self):
-        # This is called when the stanley system goes down. You can perform cleanup operations like
+        # This is called when the st2 system goes down. You can perform cleanup operations like
         # closing the connections to external system here.
         pass
 
