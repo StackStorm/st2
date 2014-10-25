@@ -1,6 +1,6 @@
 #!/bin/bash
 LOGFILE="/tmp/st2_startup.log"
-COMPONENTS="actionrunner st2api sensor_container"
+COMPONENTS="actionrunner st2api st2auth sensor_container history"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
 if [ -z "$AR" ];
@@ -27,7 +27,9 @@ function st2start(){
     actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
   done
   st2api --config-file ${STANCONF} &>> ${LOGFILE} &
+  st2auth --config-file ${STANCONF} &>> ${LOGFILE} &
   sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
+  /usr/bin/history --config-file ${STANCONF} &>> ${LOGFILE} &
   /opt/openstack/mistral/.venv/bin/mistral-server &>> /tmp/mistral.log &
 }
 

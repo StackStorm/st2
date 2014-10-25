@@ -189,10 +189,6 @@ elif [[ "$TYPE" == "rpms" ]]; then
   deploy_rpm
 fi
 
-echo "########## Downloading st2ctl ##########"
-curl -sS -k -o /usr/bin/st2ctl https://ops.stackstorm.net/releases/st2/scripts/st2ctl
-chmod +x /usr/bin/st2ctl
-
 register_content
 echo "########## Starting St2 Services ##########"
 st2ctl restart 
