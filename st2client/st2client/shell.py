@@ -103,8 +103,8 @@ class Shell(object):
             self, self.subparsers)
 
         self.commands['trigger'] = trigger.TriggerBranch(
-            'An external event that is mapped to a stanley input. It is the '
-            'stanley invocation point.',
+            'An external event that is mapped to a st2 input. It is the '
+            'st2 invocation point.',
             self, self.subparsers)
 
         self.commands['rule'] = resource.ResourceBranch(

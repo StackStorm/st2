@@ -12,7 +12,7 @@ Install Apache and other dependencies.
     sudo mkdir -p /etc/apache2/ssl
     sudo openssl req -x509 -nodes -newkey rsa:2048 -subj "/C=US/ST=California/L=Palo Alto/O=Example/CN=example.com" -keyout /etc/apache2/ssl/mycert.key -out /etc/apache2/ssl/mycert.crt
 
-Install st2auth.  The configuration file for st2auth should be located at /etc/stanley/stanley.conf.
+Install st2auth.  The configuration file for st2auth should be located at /etc/st2/st2.conf.
 
 Follow the example below and create /etc/apache2/sites-available/st2-auth.conf. The following configures st2auth to authenticate users who belong to the st2ops group, with PAM via apache. 
 
@@ -73,7 +73,7 @@ Run the following curl commands to test.
 
 ###Usage
 
-Once st2auth is setup, to enable st2api for authentication, change enable to True in the auth section at stanley.conf and restart the st2api service.
+Once st2auth is setup, to enable st2api for authentication, change enable to True in the auth section at st2.conf and restart the st2api service.
 
     [auth]
     enable = True
@@ -114,7 +114,7 @@ Communications from mistral to st2 uses the REST API. Therefore, a token is requ
     # Connect to the database.
     from oslo.config import cfg
     from st2auth import config
-    cfg.CONF(args=['--config-file', '/etc/stanley/stanley.conf'])
+    cfg.CONF(args=['--config-file', '/etc/st2/st2.conf'])
     from st2common.models import db
     db.db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port)
 

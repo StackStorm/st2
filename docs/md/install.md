@@ -104,7 +104,7 @@ By default, the username is Stanley, and the private key is located at /home/sta
 
 These options can be changed in the Stanley configuration file:
 
-    /etc/stanley/stanley.conf
+    /etc/st2/st2.conf
 
 #### Starting and Stopping
 

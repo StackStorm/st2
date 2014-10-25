@@ -141,7 +141,7 @@ Parameters provided by this runner are as follows:
 
 The remote runner expects a user to be specified under which to run an action remotely on the system. As of now the user must be supplied as a system-wide configuration and should be present on all the boxes that run the action.
 
-The 'ssh_runner' section in [STANLEY/conf/stanley.conf](../conf/stanley.conf) which gets copied over into etc/stanley/stanley.conf carries the config parameters.
+The 'ssh_runner' section in [STANLEY/conf/st2.conf](../conf/st2.conf) which gets copied over into etc/st2/st2.conf carries the config parameters.
 
 1. user : name of the user; defaults to 'stanley'
 2. ssh_key_file : location of the ssh private key whose corresponding public key is available on the remote boxes. If this is not provided than the local ssh agent must have the key for the specified user to exist.
@@ -157,7 +157,7 @@ remote : This action allows execution of arbitrary *nix/shell commands on a set 
 
     st2 run remote cmd='ls -l' host='host1, host2' user='user1'
 
-http : This action allows execution of http requests. Think curl executed from the stanley box.
+http : This action allows execution of http requests. Think curl executed from the st2 box.
 
     st2 run http url="http://localhost:9101/actions" method="GET"
 

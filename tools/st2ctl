@@ -100,7 +100,7 @@ clean_db() {
 
 clean_logs() {
   echo "Cleaning Logs..."
-  rm -Rf /var/log/stanley/*
+  rm -Rf /var/log/st2/*
 }
 
 function getpids(){

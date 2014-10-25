@@ -8,8 +8,8 @@ fi
 function st2start(){
     echo "Starting all st2 servers..."
 
-    # Determine where the stanley repo is located. Some assumption is made here
-    # that this script is located under stanley/tools.
+    # Determine where the st2 repo is located. Some assumption is made here
+    # that this script is located under st2/tools.
 
     COMMAND_PATH=${0%/*}
     CURRENT_DIR=`pwd`
@@ -28,7 +28,7 @@ function st2start(){
     cd ${ST2_REPO}
 
     if [ -z "$ST2_CONF" ]; then
-        ST2_CONF=${ST2_REPO}/conf/stanley.conf
+        ST2_CONF=${ST2_REPO}/conf/st2.conf
     fi
     echo "Using st2 config file: $ST2_CONF"
 

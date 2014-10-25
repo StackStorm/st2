@@ -57,7 +57,7 @@ Create the directory /opt/stackstorm and change ownership to the user that will 
     sudo mkdir -p /opt/stackstorm
     sudo chown -R OWNER:GROUP /opt/stackstorm   # Change ownership to appropriate user
 
-Specify a user for running local and remote SSH actions: in conf/stanley.conf:
+Specify a user for running local and remote SSH actions: in conf/st2.conf:
 
     [ssh_runner]
     user = stanley
