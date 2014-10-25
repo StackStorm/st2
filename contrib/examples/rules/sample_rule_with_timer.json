@@ -1,7 +1,6 @@
 {
-    "id": "53df5e5a0f6d4087dea24414",
-    "name": "st2.rule1",
-    "description": "Some test rule.",
+    "name": "sample.with_timer",
+    "description": "Sample rule using an Interval Timer.",
 
     "trigger": {
         "type": "core.st2.IntervalTimer",
