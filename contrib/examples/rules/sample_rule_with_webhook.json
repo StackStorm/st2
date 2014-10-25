@@ -1,25 +1,25 @@
 {
-    "name": "st2.webhook-sample",
+    "name": "examples.webhook_file",
     "description": "Sample rule dumping webhook payload to a file.",
 
     "trigger": {
-        "type": "st2.webhook",
+        "type": "core.st2.webhook",
         "parameters": {
             "url": "sample"
         }
     },
 
     "criteria": {
-        "trigger.name": {
-            "pattern": "Joe",
+        "trigger.body.name": {
+            "pattern": "st2",
             "type": "equals" 
          }
     },
 
     "action": {
-        "name": "local",
+        "ref": "core.local",
         "parameters": {
-            "cmd": "echo \"{{trigger}}\" >> /tmp/st2.webhook-sample.out"
+            "cmd": "echo \"{{trigger.body}}\" >> /tmp/st2.webhook_sample.out"
         }
     },
 
