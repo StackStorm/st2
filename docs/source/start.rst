@@ -22,9 +22,9 @@ CLI Usage Examples
     st2 action list
     st2 trigger list
     st2 rule list
-    st2 run local -- uname -a
+    st2 run core.local -- uname -a
     st2 execution list 
-    st2 run remote host='host.1, host.2' user='myuser' -- ls -l
+    st2 run core.remote host='host.1, host.2' user='myuser' -- ls -l
 
 For details on using the CLI, please check the :doc:`/reference/cli` section.
 
@@ -38,7 +38,7 @@ used in the rules. Lits the avaialbe actions: ::
 
 To introspect an action, do ``st2 action <action> get``, or,
 ``st2 run <action> --h ( --help)`` This shows action parameters so
-that you know how to run it from CLI or use it in the rules. 
+that you know how to run it from CLI or use it in the rules. Action is referenced as ``pack.action_name`` (e.g. ``core.local``)
 
 .. code-block:: bash
 
