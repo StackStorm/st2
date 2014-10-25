@@ -55,7 +55,7 @@ class RunnerTypeAPI(BaseAPI):
                 "description": "Input parameters for the action runner.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_draft_schema()
+                    "^\w+$": util_schema.get_action_params_schema()
                 }
             },
             "required_parameters": {
@@ -139,7 +139,7 @@ class ActionAPI(BaseAPI):
                 "description": "Input parameters for the action.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_draft_schema()
+                    "^\w+$": util_schema.get_action_params_schema()
                 }
             },
             "required_parameters": {
