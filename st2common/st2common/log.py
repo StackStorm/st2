@@ -1,6 +1,7 @@
 import datetime
 import logging
 import logging.config
+import logging.handlers
 import os
 import six
 import sys
@@ -20,7 +21,7 @@ class FormatNamedFileHandler(logging.FileHandler):
         super(FormatNamedFileHandler, self).__init__(filename, mode, encoding, delay)
 
 
-class ConfigurableSyslogHandler(logging.SysLogHandler):
+class ConfigurableSyslogHandler(logging.handlers.SysLogHandler):
     def __init__(self, address=None, facility=None, socktype=None):
         if not address:
             address = (cfg.CONF.syslog.host, cfg.CONF.syslog.port)
