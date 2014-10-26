@@ -125,12 +125,28 @@ structure and a listing of the required and optional elements.
             "enabled": true                            # required
     }
 
+Criteria in the rule is expressed as:
+
+::
+
+    criteria: {
+         "trigger.payload_parameter_name": {
+            "pattern" : "value",
+            "type": "matchregex"
+          }
+          ...
+    }
+
+Current criteria types are: ``matchregex``, ``eq`` (or ``equals``), ``lt`` (or ``lessthan``), ``gt`` (or ``greaterthan``), ``td_lt`` (or ``timediff_lt``), ``td_gt`` (or ``timediff_gt``).  **For Developers:** The criterion are defined in :github_st2:`st2/st2common/st2common/operators.py </st2common/st2common/operators.py>`,
+if you miss some criteria - welcome to code it up and submit a patch :)
+
 Let's take a simple example. The rule defined in `sample-rule-with-webhook.json` 
 takes a webhook and appends a payload to the file, but only if the ``name``
 field matches:
 
-.. literalinclude:: /../../contrib/examples/rules/sample-rule-with-webhook.json
+.. literalinclude:: /../../contrib/examples/rules/sample_rule_with_webhook.json
     :language: json
+
 
 To refer trigger payload in criteria or in action, use ``{{trigger}}``. If trigger
 payload is valid JSON, refer the parameters with
@@ -155,22 +171,6 @@ the file and see that it appends the payload if the name=Joe.
     # Check that the rule worked
     tail /tmp/st2.webhook_sample.out
 
-Criteria in the rule is expressed as:
-
-::
-
-    criteria: {
-         "trigger.payload_parameter_name": {
-            "pattern" : "value",
-            "type": "matchregex"
-          }
-          ...
-    }
-
-Current criteria types are: ``matchregex``, ``eq`` (or ``equals``), ``lt`` (or ``lessthan``), ``gt`` (or ``greaterthan``), ``td_lt`` (or ``timediff_lt``), ``td_gt`` (or ``timediff_gt``). **DEV NOTE:** The criterion are defined in
-`st2common/st2common/operators.py <../st2common/st2common/operators.py>`__,
-if you miss some criteria - welcome to code it up and submit a patch :)
-
 Basic examples of rules, along with sample actions and sensors are deployed to ``/opt/stacstorm/examples``. 
 For more content examples checkout `st2contrib <http://www.github.com/stackstorm/st2contrib>`__ community repo on GitHub. 
 
@@ -193,12 +193,9 @@ use in custom sensors and actions. Please refer to the
 Basic Trobuleshooting
 ----------------------
 
-* Logs are in ``/opt/var/st2``. st2api 
-* Service contril script is ``st2ctl`` - status, bounce off the system...
-* List recent executions ``st2 execution list``
-* Talk to developers :)
-
-.. todo:: Refnie basic troubleshooting
+* Check recent executions: ``st2 execution list``
+* Look at the logs in ``/opt/var/st2``. API calls logged in `st2api.log`, triggers and rules in `st2reactor.log`; for action executions see most recently updated `st2actionrunner*.log`. Logstash and Syslog configurations are coming soon to simplify it. 
+* Use service control ``st2ctl`` to check service status, reboot the system, or clean the db.
 
 -------------------------------
 
