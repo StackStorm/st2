@@ -7,13 +7,13 @@
     "parameters": {
         "packs": {
             "type": "array",
-            "items": {"type": "string"}
+            "items": {"type": "string"},
+            "required": true
         },
         "abs_repo_base": {
             "type": "string",
             "default": "/opt/stackstorm",
             "immutable": true
         }
-    },
-    "required_parameters": ["packs"]
+    }
 }

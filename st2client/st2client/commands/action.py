@@ -225,8 +225,7 @@ class ActionRunCommand(resource.ResourceCommand):
         action_params = action.parameters
         parameters = copy.copy(runner_params)
         parameters.update(copy.copy(action_params))
-        required = set((getattr(runner, 'required_parameters', list()) +
-                        getattr(action, 'required_parameters', list())))
+        required = set([k for k, v in six.iteritems(parameters) if v.get('required')])
 
         def is_immutable(runner_param_meta, action_param_meta):
             # If runner sets a param as immutable, action cannot override that.

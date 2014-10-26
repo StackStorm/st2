@@ -185,11 +185,10 @@ class ActionDBUtilsTestCase(DbTestCase):
         action_db.entry_point = ''
         action_db.runner_type = {'name': 'test-runner'}
         action_db.parameters = {
-            'actionstr': {'type': 'string', 'position': 1},
+            'actionstr': {'type': 'string', 'position': 1, 'required': True},
             'actionint': {'type': 'number', 'default': 10, 'position': 0},
             'runnerdummy': {'type': 'string', 'default': 'actiondummy'}
         }
-        action_db.required_parameters = ['actionstr']
         ActionDBUtilsTestCase.action_db = Action.add_or_update(action_db)
 
         actionexec_db = ActionExecutionDB()

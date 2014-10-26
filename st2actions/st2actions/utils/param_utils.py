@@ -28,7 +28,7 @@ def _merge_param_meta_values(action_meta=None, runner_meta=None):
         elif key in runner_meta_keys and key not in action_meta_keys:
             merged_meta[key] = runner_meta[key]
         else:
-            if key == 'immutable':
+            if key in ['immutable', 'required']:
                 merged_meta[key] = runner_meta.get(key, False) or action_meta.get(key, False)
             else:
                 merged_meta[key] = action_meta.get(key)
@@ -46,20 +46,17 @@ def get_params_view(action_db=None, runner_db=None, merged_only=False):
         merged_params[param] = _merge_param_meta_values(action_meta=action_params.get(param),
                                                         runner_meta=runner_params.get(param))
 
-    required = set((getattr(runner_db, 'required_parameters', list()) +
-                    getattr(action_db, 'required_parameters', list())))
-
-    for param in merged_params:
-        if param in required:
-            merged_params[param]['required'] = True
-
     if merged_only:
         return merged_params
+
+    def is_required(param_meta):
+        return param_meta.get('required', False)
 
     def is_immutable(param_meta):
         return param_meta.get('immutable', False)
 
     immutable = {param for param in parameters if is_immutable(merged_params.get(param))}
+    required = {param for param in parameters if is_required(merged_params.get(param))}
     required = required - immutable
     optional = parameters - required - immutable
 

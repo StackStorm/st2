@@ -14,13 +14,14 @@ class KeyValuePairAPI(BaseAPI):
                 'type': 'string'
             },
             'name': {
-                'type': 'string'
+                'type': 'string',
+                'required': True
             },
             'value': {
-                'type': 'string'
+                'type': 'string',
+                'required': True
             }
         },
-        'required': ['name', 'value'],
         'additionalProperties': False
     }
 

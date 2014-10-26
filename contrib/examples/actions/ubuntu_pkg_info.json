@@ -8,6 +8,7 @@
         "pkgname": {
             "type": "string",
             "description": "Name of the package for which info is needed.",
+            "required": true,
             "position": 0
         },
         "user": {
@@ -22,6 +23,5 @@
         "parallel": {
             "immutable": true
         }
-    },
-    "required_parameters": ["pkgname"]
+    }
 }

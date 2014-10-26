@@ -7,8 +7,8 @@
     "parameters": {
         "packs": {
             "type": "array",
-            "items": {"type": "string"}
+            "items": {"type": "string"},
+            "required": true
         }
-    },
-    "required_parameters": ["packs"]
+    }
 }

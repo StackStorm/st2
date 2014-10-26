@@ -15,15 +15,14 @@ def get_system_username():
 class UserAPI(BaseAPI):
     model = UserDB
     schema = {
-        "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "User",
         "type": "object",
         "properties": {
             "name": {
-                "type": "string"
+                "type": "string",
+                "required": True
             }
         },
-        "required": ["name"],
         "additionalProperties": False
     }
 
@@ -31,7 +30,6 @@ class UserAPI(BaseAPI):
 class TokenAPI(BaseAPI):
     model = TokenDB
     schema = {
-        "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "Token",
         "type": "object",
         "properties": {

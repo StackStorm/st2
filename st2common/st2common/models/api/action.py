@@ -23,7 +23,6 @@ class RunnerTypeAPI(BaseAPI):
     """
     model = RunnerTypeDB
     schema = {
-        "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "Runner",
         "description": "A handler for a specific type of actions.",
         "type": "object",
@@ -35,7 +34,8 @@ class RunnerTypeAPI(BaseAPI):
             },
             "name": {
                 "description": "The name of the action runner.",
-                "type": "string"
+                "type": "string",
+                "required": True
             },
             "description": {
                 "description": "The description of the action runner.",
@@ -50,23 +50,16 @@ class RunnerTypeAPI(BaseAPI):
                 "description": "The python module that implements the "
                                "action runner for this type.",
                 "type": "string",
+                "required": True
             },
             "runner_parameters": {
                 "description": "Input parameters for the action runner.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_params_schema()
-                }
-            },
-            "required_parameters": {
-                "description": "List of required parameters.",
-                "type": "array",
-                "items": {
-                    "type": "string"
+                    "^\w+$": util_schema.get_draft_schema()
                 }
             }
         },
-        "required": ["name", "runner_module"],
         "additionalProperties": False
     }
 
@@ -78,13 +71,11 @@ class RunnerTypeAPI(BaseAPI):
         # default values from draft schema, but, either because of a bug or some weird intention, it
         # has continued to resolve $ref'erenced properties against the initial draft schema, not the
         # modified one
-        jsonschema.validate(kw, self.schema)
+        jsonschema.validate(kw, self.schema, util_schema.get_validator())
         for key, value in kw.items():
             setattr(self, key, value)
         if not hasattr(self, 'runner_parameters'):
             setattr(self, 'runner_parameters', dict())
-        if not hasattr(self, 'required_parameters'):
-            setattr(self, 'required_parameters', list())
 
     @classmethod
     def to_model(cls, runnertype):
@@ -92,7 +83,6 @@ class RunnerTypeAPI(BaseAPI):
         model.enabled = bool(runnertype.enabled)
         model.runner_module = str(runnertype.runner_module)
         model.runner_parameters = getattr(runnertype, 'runner_parameters', dict())
-        model.required_parameters = getattr(runnertype, 'required_parameters', list())
         return model
 
 
@@ -101,7 +91,6 @@ class ActionAPI(BaseAPI):
 
     model = ActionDB
     schema = {
-        "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "Action",
         "description": "An activity that happens as a response to the external event.",
         "type": "object",
@@ -112,7 +101,8 @@ class ActionAPI(BaseAPI):
             },
             "name": {
                 "description": "The name of the action.",
-                "type": "string"
+                "type": "string",
+                "required": True
             },
             "description": {
                 "description": "The description of the action.",
@@ -126,6 +116,7 @@ class ActionAPI(BaseAPI):
             "runner_type": {
                 "description": "The type of runner that executes the action.",
                 "type": "string",
+                "required": True
             },
             "entry_point": {
                 "description": "The entry point for the action.",
@@ -139,29 +130,19 @@ class ActionAPI(BaseAPI):
                 "description": "Input parameters for the action.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_params_schema()
-                }
-            },
-            "required_parameters": {
-                "description": "List of required parameters.",
-                "type": "array",
-                "items": {
-                    "type": "string"
+                    "^\w+$": util_schema.get_draft_schema()
                 }
             }
         },
-        "required": ["name", "runner_type"],
         "additionalProperties": False
     }
 
     def __init__(self, **kw):
-        jsonschema.validate(kw, self.schema)
+        jsonschema.validate(kw, self.schema, util_schema.get_validator())
         for key, value in kw.items():
             setattr(self, key, value)
         if not hasattr(self, 'parameters'):
             setattr(self, 'parameters', dict())
-        if not hasattr(self, 'required_parameters'):
-            setattr(self, 'required_parameters', list())
 
     @classmethod
     def from_model(cls, model):
@@ -177,7 +158,6 @@ class ActionAPI(BaseAPI):
         model.pack = str(action.pack)
         model.runner_type = {'name': str(action.runner_type)}
         model.parameters = getattr(action, 'parameters', dict())
-        model.required_parameters = getattr(action, 'required_parameters', list())
         return model
 
 
@@ -188,7 +168,6 @@ class ActionExecutionAPI(BaseAPI):
 
     model = ActionExecutionDB
     schema = {
-        "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "ActionExecution",
         "description": "An execution of an action.",
         "type": "object",
@@ -208,7 +187,8 @@ class ActionExecutionAPI(BaseAPI):
             },
             "action": {
                 "description": "Reference to the action to be executed.",
-                "type": "string"
+                "type": "string",
+                "required": True
             },
             "parameters": {
                 "description": "Input parameters for the action.",
@@ -241,7 +221,6 @@ class ActionExecutionAPI(BaseAPI):
                 "type": "object"
             }
         },
-        "required": ["action"],
         "additionalProperties": False
     }
 

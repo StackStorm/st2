@@ -217,7 +217,6 @@ from st2common.persistence.action import Action, RunnerType
 
 
 PARAM_SCHEMA = {
-    "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "action-1",
     "description": "awesomeness",
     "type": "object",
@@ -231,10 +230,12 @@ PARAM_SCHEMA = {
             }
         },
         "r2": {
-            "type": "string"
+            "type": "string",
+            "required": True
         },
         "p1": {
-            "type": "string"
+            "type": "string",
+            "required": True
         },
         "p2": {
             "type": "number",
@@ -245,7 +246,6 @@ PARAM_SCHEMA = {
             "default": False
         }
     },
-    "required": ["p1", "r2"],
     "additionalProperties": False
 }
 
@@ -292,14 +292,14 @@ class ActionModelTest(DbTestCase):
         validator.check_schema(schema)
 
         # use schema to validate parameters
-        jsonschema.validate({"r2": "abc", "p1": "def"}, schema)
-        jsonschema.validate({"r2": "abc", "p1": "def", "r1": {"r1a": "ghi"}}, schema)
+        jsonschema.validate({"r2": "abc", "p1": "def"}, schema, validator)
+        jsonschema.validate({"r2": "abc", "p1": "def", "r1": {"r1a": "ghi"}}, schema, validator)
         self.assertRaises(jsonschema.ValidationError, jsonschema.validate,
-                          '{"r2": "abc", "p1": "def"}', schema)
+                          '{"r2": "abc", "p1": "def"}', schema, validator)
         self.assertRaises(jsonschema.ValidationError, jsonschema.validate,
-                          {"r2": "abc"}, schema)
+                          {"r2": "abc"}, schema, validator)
         self.assertRaises(jsonschema.ValidationError, jsonschema.validate,
-                          {"r2": "abc", "p1": "def", "r1": 123}, schema)
+                          {"r2": "abc", "p1": "def", "r1": 123}, schema, validator)
 
         # cleanup
         self._delete([retrieved])
@@ -320,9 +320,8 @@ class ActionModelTest(DbTestCase):
         else:
             created.runner_parameters = {
                 'r1': {'type': 'object', 'properties': {'r1a': {'type': 'string'}}},
-                'r2': {'type': 'string'}
+                'r2': {'type': 'string', 'required': True}
             }
-            created.required_parameters = ['r2']
         created.runner_module = 'nomodule'
         return RunnerType.add_or_update(created)
 
@@ -339,11 +338,10 @@ class ActionModelTest(DbTestCase):
             created.parameters = {'p1': None, 'p2': None, 'p3': None}
         else:
             created.parameters = {
-                'p1': {'type': 'string'},
+                'p1': {'type': 'string', 'required': True},
                 'p2': {'type': 'number', 'default': 2868},
                 'p3': {'type': 'boolean', 'default': False}
             }
-            created.required_parameters = ['p1']
         return Action.add_or_update(created)
 
     @staticmethod

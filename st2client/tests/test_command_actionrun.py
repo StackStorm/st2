@@ -11,7 +11,7 @@ class ActionRunCommandTest(unittest2.TestCase):
     def test_get_params_types(self):
         runner = RunnerType()
         runner_params = {
-            'foo': {'immutable': True},
+            'foo': {'immutable': True, 'required': True},
             'bar': {'description': 'Some param.', 'type': 'string'}
         }
         runner.runner_parameters = runner_params
@@ -20,13 +20,9 @@ class ActionRunCommandTest(unittest2.TestCase):
         action = Action()
         action.parameters = {
             'foo': {'immutable': False},  # Should not be allowed by API.
-            'stuff': {'description': 'Some param.', 'type': 'string'}
+            'stuff': {'description': 'Some param.', 'type': 'string', 'required': True}
         }
         orig_action_params = copy.deepcopy(action.parameters)
-
-        # Simulating the worst case where required param is also immutable.
-        runner.required_parameters = ['foo']
-        action.required_parameters = ['stuff']
 
         params, rqd, opt, imm = ActionRunCommand._get_params_types(runner, action)
         self.assertEqual(len(params.keys()), 3)

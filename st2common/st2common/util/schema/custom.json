@@ -89,7 +89,10 @@
         },
         "maxProperties": { "$ref": "#/definitions/positiveInteger" },
         "minProperties": { "$ref": "#/definitions/positiveIntegerDefault0" },
-        "required": { "$ref": "#/definitions/stringArray" },
+        "required": {
+            "type": "boolean",
+            "default": false
+        },
         "additionalProperties": {
             "anyOf": [
                 { "type": "boolean" },
