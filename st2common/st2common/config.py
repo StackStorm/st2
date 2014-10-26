@@ -57,6 +57,16 @@ def register_opts(ignore_errors=False):
     ]
     _do_register_opts(messaging_opts, 'messaging', ignore_errors)
 
+    syslog_opts = [
+        cfg.StrOpt('host', default='localhost',
+                   help='Host for the syslog server.'),
+        cfg.IntOpt('port', default=514,
+                   help='Port for the syslog server.'),
+        cfg.StrOpt('facility', default='local7',
+                   help='Syslog facility level.')
+    ]
+    _do_register_opts(syslog_opts, 'syslog', ignore_errors)
+
     use_debugger = cfg.BoolOpt(
         'use-debugger', default=True,
         help='Enables debugger. Note that using this option changes how the '
