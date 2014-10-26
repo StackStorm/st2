@@ -59,7 +59,9 @@ class St2GenericWebhooksSensor(object):
             except KeyError:
                 self._log.info('Got request for a hook that have not been registered yet: %s',
                                url)
-                return '', http_client.NOT_FOUND
+                body = {'error': 'Path /%s not found' % (url)}
+                body = jsonify(body)
+                return body, http_client.NOT_FOUND
 
             try:
                 self._log.debug('Dispatching payload: %s', payload)
