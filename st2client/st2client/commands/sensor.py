@@ -15,7 +15,7 @@ class SensorBranch(resource.ResourceBranch):
 
 
 class SensorListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['id', 'pack', 'name']
+    display_attributes = ['ref', 'pack', 'name']
 
 
 class SensorGetCommand(resource.ContentPackResourceGetCommand):

@@ -14,7 +14,7 @@ class TriggerBranch(resource.ResourceBranch):
 
 
 class TriggerListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['id', 'pack', 'name', 'description']
+    display_attributes = ['ref', 'pack', 'name', 'description']
 
 
 class TriggerGetCommand(resource.ContentPackResourceGetCommand):
