@@ -6,6 +6,7 @@ import logging
 
 from st2client import commands
 from st2client.formatters import table
+from st2client.utils.terminal import get_terminal_size
 
 
 LOG = logging.getLogger(__name__)
@@ -157,7 +158,7 @@ class ResourceListCommand(ResourceCommand):
                                        'output. "all" will return all '
                                        'attributes.'))
         self.parser.add_argument('-w', '--width', nargs='+', type=int,
-                                 default=[28],
+                                 default=None,
                                  help=('Set the width of columns in output.'))
 
     @add_auth_token_to_kwargs_from_cli

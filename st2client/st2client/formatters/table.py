@@ -1,12 +1,19 @@
 import json
+import math
 import logging
+
 from prettytable import PrettyTable
+from six.moves import zip
 
 from st2client import formatters
-from six.moves import zip
+from st2client.utils.terminal import get_terminal_size
 
 
 LOG = logging.getLogger(__name__)
+
+# Minimum width for the ID to make sure the ID column doesn't wrap across
+# multiple lines
+MIN_ID_COL_WIDTH = 24
 DEFAULT_ATTRIBUTE_DISPLAY_ORDER = ['id', 'name', 'pack', 'description']
 
 
@@ -15,7 +22,27 @@ class MultiColumnTable(formatters.Formatter):
     @classmethod
     def format(cls, entries, *args, **kwargs):
         attributes = kwargs.get('attributes', [])
-        widths = kwargs.get('widths', [])
+        widths = kwargs.get('widths', None)
+
+        if not widths:
+            # Dynamically calculate column size based on the terminal size
+            lines, cols = get_terminal_size()
+
+            if attributes[0] == 'id':
+                # first column contains id, make sure it's not broken up
+                cols = (cols - MIN_ID_COL_WIDTH)
+                col_width = int(math.floor((cols / len(attributes))))
+                first_col_width = MIN_ID_COL_WIDTH
+            else:
+                col_width = int(math.floor((cols / len(attributes))))
+                first_col_width = col_width
+
+            widths = []
+            for index in range(0, len(attributes)):
+                if index == 0:
+                    widths.append(first_col_width)
+                else:
+                    widths.append(col_width)
 
         if not attributes or 'all' in attributes:
             attributes = sorted([attr for attr in entries[0].__dict__
