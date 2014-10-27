@@ -106,20 +106,22 @@ class TestAuthToken(unittest2.TestCase):
 
         # Test without token.
         self.shell.run(['rule', 'list'])
-        kwargs = {}
+        kwargs = {'params': {}}
         requests.get.assert_called_with(url, **kwargs)
 
         # Test with token from  cli.
         token = uuid.uuid4().hex
         self.shell.run(['rule', 'list', '-t', token])
-        kwargs = {'headers': {'X-Auth-Token': token}}
+        kwargs = {'headers': {'X-Auth-Token': token},
+                  'params': {}}
         requests.get.assert_called_with(url, **kwargs)
 
         # Test with token from env.
         token = uuid.uuid4().hex
         os.environ['ST2_AUTH_TOKEN'] = token
         self.shell.run(['rule', 'list'])
-        kwargs = {'headers': {'X-Auth-Token': token}}
+        kwargs = {'headers': {'X-Auth-Token': token},
+                  'params': {}}
         requests.get.assert_called_with(url, **kwargs)
 
     @mock.patch.object(

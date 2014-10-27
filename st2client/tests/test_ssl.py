@@ -86,7 +86,7 @@ class TestHttps(unittest2.TestCase):
         mock.MagicMock(return_value=base.FakeResponse(json.dumps([]), 200, 'OK')))
     def test_decorate_http_without_cacert(self):
         self.shell.run(['rule', 'list'])
-        kwargs = {}
+        kwargs = {'params': {}}
         requests.get.assert_called_with(GET_RULES_URL, **kwargs)
 
     @mock.patch.object(
@@ -94,7 +94,7 @@ class TestHttps(unittest2.TestCase):
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
     def test_decorate_http_with_cacert_from_cli(self):
         self.shell.run(['--cacert', self.cacert_path, 'rule', 'list'])
-        kwargs = {}
+        kwargs = {'params': {}}
         requests.get.assert_called_with(GET_RULES_URL, **kwargs)
 
     @mock.patch.object(
@@ -103,5 +103,5 @@ class TestHttps(unittest2.TestCase):
     def test_decorate_http_with_cacert_from_env(self):
         os.environ['ST2_CACERT'] = self.cacert_path
         self.shell.run(['rule', 'list'])
-        kwargs = {}
+        kwargs = {'params': {}}
         requests.get.assert_called_with(GET_RULES_URL, **kwargs)
