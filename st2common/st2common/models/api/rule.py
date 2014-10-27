@@ -1,3 +1,5 @@
+import copy
+
 import six
 
 from st2common.models.base import BaseAPI
@@ -14,15 +16,23 @@ class ActionSpec(BaseAPI):
         'type': 'object',
         'properties': {
             'ref': {
-                'type': 'string'
+                'type': 'string',
+                'required': True
             },
             'parameters': {
                 'type': 'object'
             }
         },
-        'required': ['ref'],
         'additionalProperties': False
     }
+
+
+REQUIRED_ATTR_SCHEMAS = {
+    'action': copy.deepcopy(ActionSpec.schema)
+}
+
+for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
+    v.update({'required': True})
 
 
 class RuleAPI(BaseAPI):
@@ -60,36 +70,37 @@ class RuleAPI(BaseAPI):
                 'default': None
             },
             'name': {
-                'type': 'string'
+                'type': 'string',
+                'required': True
             },
             'description': {
                 'type': 'string'
             },
             'trigger': {
                 'type': 'object',
+                'required': True,
                 'properties': {
                     'type': {
-                        'type': 'string'
+                        'type': 'string',
+                        'required': True
                     },
                     'parameters': {
                         'type': 'object',
                         'default': {}
                     }
                 },
-                'required': ['type'],
                 'additionalProperties': True
             },
             'criteria': {
                 'type': 'object',
                 'default': {}
             },
-            'action': ActionSpec.schema,
+            'action': REQUIRED_ATTR_SCHEMAS['action'],
             'enabled': {
                 'type': 'boolean',
                 'default': True
             }
         },
-        'required': ['name', 'trigger', 'action'],
         'additionalProperties': False
     }
 

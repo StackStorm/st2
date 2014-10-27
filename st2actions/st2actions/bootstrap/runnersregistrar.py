@@ -103,7 +103,8 @@ def register_runner_types():
                 'hosts': {
                     'description': 'A comma delimited string of a list of hosts '
                                    'where the remote command will be executed.',
-                    'type': 'string'
+                    'type': 'string',
+                    'required': True
                 },
                 'cmd': {
                     'description': 'Arbitrary Linux command to be executed on the '
@@ -131,7 +132,6 @@ def register_runner_types():
                     'default': '--'
                 }
             },
-            'required_parameters': ['hosts'],
             'runner_module': 'st2actions.runners.fabricrunner'
         },
         {
@@ -143,7 +143,8 @@ def register_runner_types():
                 'hosts': {
                     'description': 'A comma delimited string of a list of hosts '
                                    'where the remote command will be executed.',
-                    'type': 'string'
+                    'type': 'string',
+                    'required': True
                 },
                 'parallel': {
                     'description': 'If true, the command will be executed on all the '
@@ -166,7 +167,6 @@ def register_runner_types():
                     'default': '--'
                 }
             },
-            'required_parameters': ['hosts'],
             'runner_module': 'st2actions.runners.fabricrunner'
         },
         {
@@ -176,7 +176,8 @@ def register_runner_types():
             'runner_parameters': {
                 'url': {
                     'description': 'URL to the HTTP endpoint.',
-                    'type': 'string'
+                    'type': 'string',
+                    'required': True
                 },
                 'headers': {
                     'description': 'HTTP headers for the request.',
@@ -195,7 +196,6 @@ def register_runner_types():
                     'type': 'string'
                 },
             },
-            'required_parameters': ['url'],
             'runner_module': 'st2actions.runners.httprunner'
         },
         {
@@ -205,11 +205,13 @@ def register_runner_types():
             'runner_parameters': {
                 'workbook': {
                     'description': 'The name of the workbook.',
-                    'type': 'string'
+                    'type': 'string',
+                    'required': True
                 },
                 'task': {
                     'description': 'The startup task in the workbook to execute.',
-                    'type': 'string'
+                    'type': 'string',
+                    'required': True
                 },
                 'context': {
                     'description': 'Context for the startup task.',
@@ -226,7 +228,8 @@ def register_runner_types():
             'runner_parameters': {
                 'workflow': {
                     'description': 'The name of the workflow.',
-                    'type': 'string'
+                    'type': 'string',
+                    'required': True
                 },
                 'context': {
                     'description': 'Context for the startup task.',

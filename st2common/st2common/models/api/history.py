@@ -13,23 +13,34 @@ from st2common import log as logging
 
 LOG = logging.getLogger(__name__)
 
+REQUIRED_ATTR_SCHEMAS = {
+    "action": copy.deepcopy(ActionAPI.schema),
+    "runner": copy.deepcopy(RunnerTypeAPI.schema),
+    "execution": copy.deepcopy(ActionExecutionAPI.schema),
+}
+
+for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
+    v.update({"required": True})
+
 
 class ActionExecutionHistoryAPI(BaseAPI):
     model = ActionExecutionHistoryDB
     schema = {
-        "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "ActionExecutionHistory",
         "description": "History record for action execution.",
         "type": "object",
         "properties": {
-            "id": {"type": "string"},
+            "id": {
+                "type": "string",
+                "required": True
+            },
             "trigger": TriggerAPI.schema,
             "trigger_type": TriggerTypeAPI.schema,
             "trigger_instance": TriggerInstanceAPI.schema,
             "rule": RuleAPI.schema,
-            "action": ActionAPI.schema,
-            "runner": RunnerTypeAPI.schema,
-            "execution": ActionExecutionAPI.schema,
+            "action": REQUIRED_ATTR_SCHEMAS['action'],
+            "runner": REQUIRED_ATTR_SCHEMAS['runner'],
+            "execution": REQUIRED_ATTR_SCHEMAS['execution'],
             "parent": {"type": "string"},
             "children": {
                 "type": "array",
@@ -37,10 +48,6 @@ class ActionExecutionHistoryAPI(BaseAPI):
                 "uniqueItems": True
             }
         },
-        "required": ["id",
-                     "action",
-                     "runner",
-                     "execution"],
         "additionalProperties": False
     }
 

@@ -17,7 +17,8 @@ class SensorTypeAPI(BaseAPI):
                 'default': None
             },
             'name': {
-                'type': 'string'
+                'type': 'string',
+                'required': True
             },
             'pack': {
                 'type': 'string'
@@ -36,7 +37,6 @@ class SensorTypeAPI(BaseAPI):
                 'default': []
             }
         },
-        'required': ['name'],
         'additionalProperties': False
     }
 
@@ -51,7 +51,8 @@ class TriggerTypeAPI(BaseAPI):
                 'default': None
             },
             'name': {
-                'type': 'string'
+                'type': 'string',
+                'required': True
             },
             'pack': {
                 'type': 'string'
@@ -68,7 +69,6 @@ class TriggerTypeAPI(BaseAPI):
                 'default': {}
             }
         },
-        'required': ['name'],
         'additionalProperties': False
     }
 
@@ -97,7 +97,8 @@ class TriggerAPI(BaseAPI):
                 'type': 'string'
             },
             'type': {
-                'type': 'string'
+                'type': 'string',
+                'required': True
             },
             'parameters': {
                 'type': 'object'
@@ -106,7 +107,6 @@ class TriggerAPI(BaseAPI):
                 'type': 'string'
             }
         },
-        'required': ['type'],
         'additionalProperties': False
     }
 
@@ -146,10 +146,10 @@ class TriggerInstanceAPI(BaseAPI):
             },
             'trigger': {
                 'type': 'string',
-                'default': None
+                'default': None,
+                'required': True
             }
         },
-        'required': ['trigger'],
         'additionalProperties': False
     }
 

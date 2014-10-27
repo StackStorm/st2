@@ -67,14 +67,3 @@ class TestActionAPIValidator(DbTestCase):
             self.fail('Action validation should not have passed. %s' % json.dumps(action_api_dict))
         except ValueValidationException as e:
             self.assertTrue('requires a default value.' in e.message)
-
-    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(
-        return_value=True))
-    def test_validate_action_param_required_missing_definition(self):
-        action_api_dict = fixture.ARTIFACTS['actions']['action-missing-param-required']
-        action_api = ActionAPI(**action_api_dict)
-        try:
-            action_validator.validate_action(action_api)
-            self.fail('Action validation should not have passed. %s' % json.dumps(action_api_dict))
-        except ValueValidationException as e:
-            self.assertTrue('does not have a definition' in e.message)

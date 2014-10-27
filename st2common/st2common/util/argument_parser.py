@@ -17,7 +17,6 @@ def generate_argument_parser_for_metadata(metadata):
     :rtype: :class:`argparse.ArgumentParser`
     """
     parameters = metadata['parameters']
-    required_parameters = metadata.get('required_parameters', [])
 
     parser = argparse.ArgumentParser(description=metadata['description'])
 
@@ -25,7 +24,7 @@ def generate_argument_parser_for_metadata(metadata):
         name = parameter_name.replace('_', '-')
         description = parameter_options['description']
         _type = parameter_options['type']
-        required = parameter_name in required_parameters
+        required = parameter_options.get('required', False)
         default_value = parameter_options.get('default', None)
         immutable = parameter_options.get('immutable', False)
 

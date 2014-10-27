@@ -178,13 +178,12 @@ class RunnerContainerTest(DbTestCase):
         action_db.entry_point = ''
         action_db.runner_type = {'name': 'test-runner'}
         action_db.parameters = {
-            'actionstr': {'type': 'string'},
+            'actionstr': {'type': 'string', 'required': True},
             'actionint': {'type': 'number', 'default': 10},
             'runnerdummy': {'type': 'string', 'default': 'actiondummy'},
             'runnerimmutable': {'type': 'string', 'default': 'failed_override'},
             'actionimmutable': {'type': 'string', 'default': 'actionimmutable', 'immutable': True}
         }
-        action_db.required_parameters = ['actionstr']
         RunnerContainerTest.action_db = Action.add_or_update(action_db)
 
         action_db = ActionDB()
@@ -195,5 +194,4 @@ class RunnerContainerTest(DbTestCase):
         action_db.entry_point = ''
         action_db.runner_type = {'name': 'test-failingrunner'}
         action_db.parameters = {}
-        action_db.required_parameters = []
         RunnerContainerTest.failingaction_db = Action.add_or_update(action_db)

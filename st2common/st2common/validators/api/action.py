@@ -31,13 +31,6 @@ def validate_action(action_api):
     # Check if parameters defined are valid.
     _validate_parameters(action_api.parameters, runner_db.runner_parameters)
 
-    # Check if required parameters are all defined.
-    required = action_api.required_parameters
-    for item in required:
-        if item not in action_api.parameters and item not in runner_db.runner_parameters:
-            msg = 'Required parameter %s does not have a definition in either action or runner.'
-            raise ValueValidationException(msg)
-
 
 def _is_valid_pack(pack):
     base_path = cfg.CONF.content.packs_base_path

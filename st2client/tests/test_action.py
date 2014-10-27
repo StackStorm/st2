@@ -27,7 +27,6 @@ ACTION1 = {
     "runner_type": "mock-runner1",
     "name": "mock1",
     "parameters": {},
-    "required_parameters": [],
     "enabled": True,
     "entry_point": "",
     "pack": "mockety"
@@ -49,7 +48,6 @@ ACTION2 = {
         "json": {"type": "object"},
         "str": {"type": "string"}
     },
-    "required_parameters": [],
     "enabled": True,
     "entry_point": "",
     "pack": "mockety"

@@ -28,7 +28,6 @@ class RunnerTypeDB(StormBaseDB):
         enabled: A flag indicating whether the runner for this type is enabled.
         runner_module: The python module that implements the action runner for this type.
         runner_parameters: The specification for parameters for the action runner.
-        required_parameters: The list of parameters required by the action runner.
     """
 
     enabled = me.BooleanField(
@@ -39,8 +38,6 @@ class RunnerTypeDB(StormBaseDB):
         help_text='The python module that implements the action runner for this type.')
     runner_parameters = me.DictField(
         help_text='The specification for parameters for the action runner.')
-    required_parameters = me.ListField(
-        help_text='The list of parameters required by the action runner.')
 
 
 class ActionDB(StormFoundationDB):
@@ -52,7 +49,6 @@ class ActionDB(StormFoundationDB):
         entry_point: The entry point to the action.
         runner_type: The actionrunner is used to execute the action.
         parameters: The specification for parameters for the action.
-        required_parameters: The list of parameters required by the action.
     """
     name = me.StringField(required=True)
     description = me.StringField()
@@ -71,8 +67,6 @@ class ActionDB(StormFoundationDB):
         help_text='The action runner to use for executing the action.')
     parameters = me.DictField(
         help_text='The specification for parameters for the action.')
-    required_parameters = me.ListField(
-        help_text='The list of parameters required by the action.')
 
 
 class ActionExecutionDB(StormFoundationDB):

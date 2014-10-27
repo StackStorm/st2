@@ -8,16 +8,19 @@
         "to": {
             "type": "string",
             "description": "Recipient email address.",
+            "required": true,
             "position": 0
         },
         "subject": {
             "type": "string",
             "description": "Subject of the email.",
+            "required": true,
             "position": 1
         },
         "body": {
             "type": "string",
             "description": "Body of the email.",
+            "required": true,
             "position": 2
         },
         "user": {
@@ -32,6 +35,5 @@
         "parallel": {
             "immutable": true
         }
-    },
-    "required_parameters": ["to", "subject", "body"]
+    }
 }

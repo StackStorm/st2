@@ -43,18 +43,5 @@
                 "immutable": true
             }
         }
-    },
-    "action-missing-param-required": {
-        "runner_type": "run-local",
-        "name": "action-missing-param-required",
-        "enabled": true,
-        "pack": "core",
-        "parameters": {
-            "foo": {
-                "immutable": true,
-                "default": "bar"
-            }
-        },
-        "required_parameters": ["bar"]
     }
 }

@@ -41,7 +41,6 @@ class ActionsRegistrar(object):
             model.pack = pack
             model.entry_point = content['entry_point']
             model.parameters = content.get('parameters', {})
-            model.required_parameters = content.get('required_parameters', [])
             runner_type = str(content['runner_type'])
             valid_runner_type, runner_type_db = self._has_valid_runner_type(runner_type)
             if valid_runner_type:

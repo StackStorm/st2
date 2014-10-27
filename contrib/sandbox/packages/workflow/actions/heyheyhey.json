@@ -26,8 +26,8 @@
             "default": "3"
         },
         "friend": {
-            "type": "string"
+            "type": "string",
+            "required": true
         }
-    },
-    "required_parameters": ["friend"]
+    }
 }

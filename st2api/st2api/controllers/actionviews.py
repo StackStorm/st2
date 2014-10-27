@@ -107,7 +107,6 @@ class OverviewController(resource.ContentPackResourceControler):
     def _transform_action_api(self, action_api):
         action_id = action_api.id
         action_api.parameters = ParametersViewController._get_one(action_id).get('parameters')
-        del action_api.required_parameters
         return action_api
 
 

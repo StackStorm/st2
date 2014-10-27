@@ -41,7 +41,8 @@ def schedule(execution):
 
     # Validate action parameters.
     schema = util_schema.get_parameter_schema(action_db)
-    jsonschema.validate(execution.parameters, schema)
+    validator = util_schema.get_validator()
+    jsonschema.validate(execution.parameters, schema, validator)
 
     # validate that no immutable params are being overriden. Although possible to
     # ignore the override it is safer to inform the user to avoid surprises.

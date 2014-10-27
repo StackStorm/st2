@@ -13,8 +13,8 @@
             "default": "st2ctl restart-component {{servicename}}"
         },
         "servicename": {
-            "type": "string"
+            "type": "string",
+            "required": true
         }
-    },
-    "required_parameters": ["servicename"]
+    }
 }

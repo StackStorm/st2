@@ -310,11 +310,10 @@ class ParamsUtilsTest(TestCase):
         action_db.entry_point = ''
         action_db.runner_type = {'name': 'test-runner'}
         action_db.parameters = {
-            'actionstr': {'type': 'string'},
+            'actionstr': {'type': 'string', 'required': True},
             'actionint': {'type': 'number', 'default': 10},
             'runnerdummy': {'type': 'string', 'default': 'actiondummy', 'immutable': True},
             'runnerimmutable': {'type': 'string', 'default': 'failed_override'},
             'actionimmutable': {'type': 'string', 'default': 'actionimmutable', 'immutable': True}
         }
-        action_db.required_parameters = ['actionstr']
         ParamsUtilsTest.action_db = action_db
