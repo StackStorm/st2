@@ -49,6 +49,10 @@ class Access(object):
         return kls._get_impl().distinct(*args, **kwargs)
 
     @classmethod
+    def aggregate(kls, *args, **kwargs):
+        return kls._get_impl().aggregate(*args, **kwargs)
+
+    @classmethod
     def add_or_update(kls, model_object, publish=True):
         pre_persist_id = model_object.id
         model_object = kls._get_impl().add_or_update(model_object)
