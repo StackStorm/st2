@@ -48,6 +48,8 @@ class ActionGetCommand(resource.ContentPackResourceGetCommand):
 
 
 class ActionRunCommand(resource.ResourceCommand):
+    attribute_display_order = ['id', 'ref', 'context', 'parameters', 'status',
+                               'start_timestamp', 'result']
 
     def __init__(self, resource, *args, **kwargs):
 
@@ -191,10 +193,8 @@ class ActionRunCommand(resource.ResourceCommand):
 
             sys.stdout.write('\n')
 
-            try:
-                execution.result = json.loads(execution.result)
-            except:
-                pass
+            if self._is_error_result(result=execution.result):
+                execution.result = self._format_error_result(execution.result)
 
         return execution
 
@@ -290,7 +290,8 @@ class ActionRunCommand(resource.ResourceCommand):
         # Execute the action.
         instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
-                          attributes=['all'], json=args.json)
+                          attributes=['all'], json=args.json,
+                          attribute_display_order=self.attribute_display_order)
         if args.async:
             self.print_output('To get the results, execute: \n'
                               '    $ st2 execution get %s' % instance.id,
@@ -325,6 +326,23 @@ class ActionRunCommand(resource.ResourceCommand):
 
         sort_value = parameter.get('position', name)
         return sort_value
+
+    def _is_error_result(self, result):
+        if not isinstance(result, dict):
+            return False
+
+        if 'message' not in result:
+            return False
+
+        if 'traceback' not in result:
+            return False
+
+        return True
+
+    def _format_error_result(self, result):
+        result = 'Message: %s\nTraceback: %s' % (result['message'],
+                result['traceback'])
+        return result
 
 
 class ActionExecutionBranch(resource.ResourceBranch):
