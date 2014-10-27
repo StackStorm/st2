@@ -29,8 +29,8 @@ class TestShell(unittest2.TestCase):
         # Redirect standard output and error to null. If not, then
         # some of the print output from shell commands will pollute
         # the test output.
-        sys.stdout = open(os.devnull, 'w')
-        sys.stderr = open(os.devnull, 'w')
+        #sys.stdout = open(os.devnull, 'w')
+        #sys.stderr = open(os.devnull, 'w')
 
     def tearDown(self):
         # Reset to original stdout and stderr.
