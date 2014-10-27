@@ -1,10 +1,13 @@
 import datetime
 import logging
 import logging.config
+import logging.handlers
 import os
 import six
 import sys
 import traceback
+
+from oslo.config import cfg
 
 logging.AUDIT = logging.CRITICAL + 10
 logging.addLevelName(logging.AUDIT, 'AUDIT')
@@ -16,6 +19,18 @@ class FormatNamedFileHandler(logging.FileHandler):
         filename = filename.format(ts=str(datetime.datetime.utcnow()).replace(' ', '_'),
                                    pid=os.getpid())
         super(FormatNamedFileHandler, self).__init__(filename, mode, encoding, delay)
+
+
+class ConfigurableSyslogHandler(logging.handlers.SysLogHandler):
+    def __init__(self, address=None, facility=None, socktype=None):
+        if not address:
+            address = (cfg.CONF.syslog.host, cfg.CONF.syslog.port)
+        if not facility:
+            facility = cfg.CONF.syslog.facility
+        if socktype:
+            super(ConfigurableSyslogHandler, self).__init__(address, facility, socktype)
+        else:
+            super(ConfigurableSyslogHandler, self).__init__(address, facility)
 
 
 def _audit(logger, msg, *args, **kwargs):

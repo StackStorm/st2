@@ -5,6 +5,7 @@ import six
 
 import st2actions.utils.param_utils as param_utils
 from st2actions.container.service import RunnerContainerService
+from st2api.controllers import resource
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
 from st2common.models.api.action import ActionAPI
@@ -86,6 +87,7 @@ class OverviewController(RestController):
         return self._transform_action_api(action_api)
 
     @jsexpose(str)
+    @resource.referenced
     def get_all(self, **kw):
         """
             List all actions.

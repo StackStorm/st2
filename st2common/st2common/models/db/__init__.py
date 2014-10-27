@@ -99,6 +99,9 @@ class MongoDBAccess(object):
         field = kwargs.pop('field')
         return self.model.objects(**kwargs).distinct(field)
 
+    def aggregate(self, *args, **kwargs):
+        return self.model.objects(**kwargs)._collection.aggregate(*args, **kwargs)
+
     @staticmethod
     def add_or_update(instance):
         instance.save()
