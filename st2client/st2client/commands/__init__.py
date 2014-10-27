@@ -66,5 +66,4 @@ class Command(object):
             output = self.format_output(subject, formatter, *args, **kwargs)
             print(output)
         else:
-            print('None')
-        print()
+            print('No matching items found')
