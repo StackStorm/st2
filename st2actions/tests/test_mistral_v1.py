@@ -30,7 +30,7 @@ from st2common.persistence.action import Action, ActionExecution
 CHAMPION = worker.Worker(None)
 WORKFLOW_YAML = [f for f in fixture.WORKFLOW_YAMLS if 'workflow-v1.yaml' in f][0]
 WORKBOOK_SPEC = fixture.ARTIFACTS['workflows']['workflow-v1']
-WORKBOOK = workbooks.Workbook(None, {'name': 'workflow-v1'})
+WORKBOOK = workbooks.Workbook(None, {'name': 'core.workflow-v1'})
 EXECUTION = executions.Execution(None, {'id': str(uuid.uuid4()), 'state': 'RUNNING'})
 
 

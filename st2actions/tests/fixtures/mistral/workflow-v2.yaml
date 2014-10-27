@@ -12,7 +12,7 @@ workflows:
       say-greeting:
         action: st2.action
         input:
-          name: "hey"
+          name: "core.hey"
           parameters:
             cmd: $.count
         publish:
@@ -24,7 +24,7 @@ workflows:
       say-friend:
         action: st2.action
         input:
-          name: "friend"
+          name: "core.friend"
           parameters:
             cmd: $.friend
         publish:

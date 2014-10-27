@@ -30,18 +30,19 @@ class MistralRunner(ActionRunner):
         client = mistral.client(mistral_url='%s/v1' % self.url)
 
         # Update workbook definition.
-        workbook = next((w for w in client.workbooks.list() if w.name == self.action.name), None)
+        workbook_name = self.action.pack + '.' + self.action.name
+        workbook = next((w for w in client.workbooks.list() if w.name == workbook_name), None)
         if not workbook:
-            client.workbooks.create(self.action.name, description=self.action.description)
+            client.workbooks.create(workbook_name, description=self.action.description)
         workbook_file = self.entry_point
         with open(workbook_file, 'r') as workbook_spec:
             definition = workbook_spec.read()
             try:
-                old_definition = client.workbooks.get_definition(self.action.name)
+                old_definition = client.workbooks.get_definition(workbook_name)
             except:
                 old_definition = None
             if definition != old_definition:
-                client.workbooks.upload_definition(self.action.name, definition)
+                client.workbooks.upload_definition(workbook_name, definition)
 
         # Setup context for the workflow execution.
         context = self.runner_parameters.get('context', dict())

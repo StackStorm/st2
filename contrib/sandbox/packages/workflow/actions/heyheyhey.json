@@ -1,5 +1,6 @@
 {
     "name": "heyheyhey",
+    "pack": "default",
     "runner_type": "mistral-v1",
     "description": "Say hi to friend!",
     "enabled": true,
@@ -7,7 +8,7 @@
     "parameters": {
         "workbook": {
             "type": "string",
-            "default": "heyheyhey",
+            "default": "default.heyheyhey",
             "immutable": true
         },
         "task": {
@@ -23,6 +24,7 @@
         },
         "count": {
             "type": "string",
+            "required": true,
             "default": "3"
         },
         "friend": {

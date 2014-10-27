@@ -1,5 +1,6 @@
 {
     "name": "heyheyhey2",
+    "pack": "default",
     "runner_type": "mistral-v2",
     "description": "Say hi to friend!",
     "enabled": true,
@@ -7,7 +8,7 @@
     "parameters": {
         "workflow": {
             "type": "string",
-            "default": "heyheyhey.heyheyhey",
+            "default": "default.heyheyhey.heyheyhey",
             "immutable": true
         },
         "context": {
@@ -18,6 +19,7 @@
         },
         "count": {
             "type": "string",
+            "required": true,
             "default": "3"
         },
         "friend": {
