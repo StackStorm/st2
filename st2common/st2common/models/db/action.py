@@ -71,8 +71,8 @@ class ActionDB(StormFoundationDB):
         help_text='The action runner to use for executing the action.')
     parameters = me.DictField(
         help_text='The specification for parameters for the action.')
-    required_parameters = me.ListField(
-        help_text='The list of parameters required by the action.')
+    # required_parameters = me.ListField(
+    #    help_text='The list of parameters required by the action.')
 
 
 class ActionExecutionDB(StormFoundationDB):

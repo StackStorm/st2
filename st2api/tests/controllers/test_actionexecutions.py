@@ -28,7 +28,8 @@ ACTION_1 = {
     'parameters': {
         'a': {
             'type': 'string',
-            'default': 'abc'
+            'default': 'abc',
+            'optional': False
         },
         'b': {
             'type': 'number',
@@ -128,6 +129,7 @@ class TestActionExecutionController(FunctionalTest):
     def setUpClass(cls):
         super(TestActionExecutionController, cls).setUpClass()
         cls.action1 = copy.deepcopy(ACTION_1)
+        print(cls.action1)
         post_resp = cls.app.post_json('/actions', cls.action1)
         cls.action1['id'] = post_resp.json['id']
         cls.action2 = copy.deepcopy(ACTION_2)
