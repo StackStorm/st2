@@ -22,9 +22,10 @@ class MultiColumnTable(formatters.Formatter):
     @classmethod
     def format(cls, entries, *args, **kwargs):
         attributes = kwargs.get('attributes', [])
-        widths = kwargs.get('widths', None)
+        widths = kwargs.get('widths', [])
+        widths = widths or []
 
-        if not widths:
+        if not widths and attributes:
             # Dynamically calculate column size based on the terminal size
             lines, cols = get_terminal_size()
 
