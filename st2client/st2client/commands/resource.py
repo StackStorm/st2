@@ -129,7 +129,7 @@ class ResourceCommand(commands.Command):
             except:
                 pass
         if not instance:
-            message = ('Resource with id or name "%s" doesn\'t exist.' %
+            message = ('Resource with id or reference "%s" doesn\'t exist.' %
                        (ref_or_id))
             raise ResourceNotFoundError(message)
         return instance
