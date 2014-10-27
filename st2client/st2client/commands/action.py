@@ -39,7 +39,7 @@ class ActionBranch(resource.ResourceBranch):
             add_help=False)
 
 
-class ActionListCommand(resource.ResourceListCommand):
+class ActionListCommand(resource.ContentPackResourceListCommand):
     display_attributes = ['id', 'pack', 'name', 'description']
 
 

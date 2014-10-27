@@ -171,6 +171,24 @@ class ResourceListCommand(ResourceCommand):
                           json=args.json)
 
 
+class ContentPackResourceListCommand(ResourceListCommand):
+    """
+    Base command class for use with resources which belong to a content pack.
+    """
+    def __init__(self, resource, *args, **kwargs):
+        super(ContentPackResourceListCommand, self).__init__(resource,
+                                                             *args, **kwargs)
+
+        self.parser.add_argument('-p', '--pack', type=str,
+                                 help=('Only return resources belonging to the'
+                                       ' provided pack'))
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        filters = {'pack': args.pack}
+        return self.manager.get_all(**filters)
+
+
 class ResourceGetCommand(ResourceCommand):
     display_attributes = ['all']
     attribute_display_order = ['id', 'name', 'description']

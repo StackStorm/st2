@@ -13,7 +13,7 @@ class TriggerBranch(resource.ResourceBranch):
             })
 
 
-class TriggerListCommand(resource.ResourceListCommand):
+class TriggerListCommand(resource.ContentPackResourceListCommand):
     display_attributes = ['id', 'pack', 'name', 'description']
 
 

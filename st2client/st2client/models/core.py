@@ -2,8 +2,9 @@ import os
 import json
 import logging
 
-from st2client.utils import httpclient
 import six
+
+from st2client.utils import httpclient
 
 
 LOG = logging.getLogger(__name__)
@@ -90,13 +91,21 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def get_all(self, **kwargs):
+        # TODO: This is ugly, stop abusing kwargs
         url = '/%s' % self.resource.get_plural_name().lower()
         limit = kwargs.pop('limit', None)
+        pack = kwargs.pop('pack', None)
+
+        params = {}
         if limit and limit <= 0:
             limit = None
         if limit:
-            url += '/?limit=%s' % limit
-        response = self.client.get(url, **kwargs)
+            params['limit'] = limit
+
+        if pack:
+            params['pack'] = pack
+
+        response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
         return [self.resource.deserialize(item)
