@@ -8,14 +8,14 @@ from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInst
 from st2common.models.base import jsexpose
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance
 from st2common.services import triggers as TriggerService
-from st2api.controllers.resource import ContentPackResourceControler
+from st2api.controllers import resource
 
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
 
-class TriggerTypeController(ContentPackResourceControler):
+class TriggerTypeController(resource.ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of TriggerTypes in the system.
@@ -30,6 +30,11 @@ class TriggerTypeController(ContentPackResourceControler):
     options = {
         'sort': ['pack', 'name']
     }
+
+    @jsexpose()
+    @resource.referenced
+    def get_all(self, **kwargs):
+        return super(TriggerTypeController, self)._get_all(**kwargs)
 
     @jsexpose(body=TriggerTypeAPI, status_code=http_client.CREATED)
     def post(self, triggertype):

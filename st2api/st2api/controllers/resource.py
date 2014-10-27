@@ -92,9 +92,8 @@ class ResourceController(rest.RestController):
         return [self.model.from_model(instance) for instance in instances[offset:eop]]
 
 
-class ContentPackResourceControler(ResourceController):
-    @jsexpose()
-    def get_all(self, **kwargs):
+def referenced(f):
+    def decorate(*args, **kwargs):
         ref = kwargs.get('ref', None)
 
         if ref:
@@ -108,4 +107,6 @@ class ContentPackResourceControler(ResourceController):
             kwargs['pack'] = ref_obj.pack
             del kwargs['ref']
 
-        return super(ContentPackResourceControler, self)._get_all(**kwargs)
+        return f(*args, **kwargs)
+
+    return decorate
