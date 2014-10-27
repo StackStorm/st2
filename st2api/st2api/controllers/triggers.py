@@ -31,6 +31,8 @@ class TriggerTypeController(resource.ContentPackResourceControler):
         'sort': ['pack', 'name']
     }
 
+    include_reference = True
+
     @jsexpose(body=TriggerTypeAPI, status_code=http_client.CREATED)
     def post(self, triggertype):
         """

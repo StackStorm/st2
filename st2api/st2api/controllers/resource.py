@@ -93,9 +93,21 @@ class ResourceController(rest.RestController):
 
 
 class ContentPackResourceControler(ResourceController):
+    include_reference = False
+
     @jsexpose()
     def get_all(self, **kwargs):
-        return self._get_all(**kwargs)
+        result = self._get_all(**kwargs)
+        result = result or []
+
+        if self.include_reference:
+            for item in result:
+                pack = getattr(item, 'pack', None)
+                name = getattr(item, 'name', None)
+
+                item.ref = ResourceReference(pack=pack, name=name).ref
+
+        return result
 
     def _get_all(self, **kwargs):
         kwargs = self._get_filters(**kwargs)

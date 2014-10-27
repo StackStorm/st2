@@ -39,6 +39,8 @@ class ActionsController(resource.ContentPackResourceControler):
         'sort': ['pack', 'name']
     }
 
+    include_reference = True
+
     @staticmethod
     def _get_by_id(action_id):
         try:

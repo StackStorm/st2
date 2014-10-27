@@ -20,3 +20,5 @@ class SensorTypeController(resource.ContentPackResourceControler):
     options = {
         'sort': ['pack', 'name']
     }
+
+    include_reference = True
