@@ -6,7 +6,6 @@ import logging
 
 from st2client import commands
 from st2client.formatters import table
-from st2client.utils.terminal import get_terminal_size
 
 
 LOG = logging.getLogger(__name__)
