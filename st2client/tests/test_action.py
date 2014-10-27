@@ -1,9 +1,6 @@
-import os
-import sys
 import json
 import mock
 import logging
-import unittest2
 
 from tests import base
 
@@ -83,23 +80,11 @@ def get_by_ref(**kwargs):
         return [models.Action(**ACTION2)]
 
 
-class ActionCommandTestCase(unittest2.TestCase):
+class ActionCommandTestCase(base.BaseCLITestCase):
 
     def __init__(self, *args, **kwargs):
         super(ActionCommandTestCase, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
-
-    def setUp(self):
-        # Redirect standard output and error to null. If not, then
-        # some of the print output from shell commands will pollute
-        # the test output.
-        sys.stdout = open(os.devnull, 'w')
-        sys.stderr = open(os.devnull, 'w')
-
-    def tearDown(self):
-        # Reset to original stdout and stderr.
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
 
     @mock.patch.object(
         models.ResourceManager, 'query',

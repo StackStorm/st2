@@ -1,9 +1,7 @@
 import os
-import sys
 import json
 import mock
 import logging
-import unittest2
 
 from tests import base
 
@@ -14,28 +12,19 @@ from st2client.utils import httpclient
 LOG = logging.getLogger(__name__)
 
 
-class TestShell(unittest2.TestCase):
+class TestShell(base.BaseCLITestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestShell, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
 
     def setUp(self):
+        super(TestShell, self).setUp()
+
         # Setup environment.
         for var in ['ST2_BASE_URL', 'ST2_AUTH_URL', 'ST2_API_URL']:
             if var in os.environ:
                 del os.environ[var]
-
-        # Redirect standard output and error to null. If not, then
-        # some of the print output from shell commands will pollute
-        # the test output.
-        # sys.stdout = open(os.devnull, 'w')
-        # sys.stderr = open(os.devnull, 'w')
-
-    def tearDown(self):
-        # Reset to original stdout and stderr.
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
 
     def test_endpoints_default(self):
         base_url = 'http://localhost'

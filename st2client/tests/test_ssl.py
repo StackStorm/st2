@@ -1,11 +1,9 @@
 import os
-import sys
 import json
 import mock
 import tempfile
 import requests
 import logging
-import unittest2
 
 from tests import base
 from st2client import shell
@@ -20,13 +18,15 @@ AUTH_URL = 'https://localhost:9100/tokens'
 GET_RULES_URL = 'http://localhost:9101/rules'
 
 
-class TestHttps(unittest2.TestCase):
+class TestHttps(base.BaseCLITestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestHttps, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
 
     def setUp(self):
+        super(TestHttps, self).setUp()
+
         # Setup environment.
         os.environ['ST2_BASE_URL'] = 'http://localhost'
         if 'ST2_CACERT' in os.environ:
@@ -35,13 +35,9 @@ class TestHttps(unittest2.TestCase):
         # Create a temp file to mock a cert file.
         self.cacert_fd, self.cacert_path = tempfile.mkstemp()
 
-        # Redirect standard output and error to null. If not, then
-        # some of the print output from shell commands will pollute
-        # the test output.
-        sys.stdout = open(os.devnull, 'w')
-        sys.stderr = open(os.devnull, 'w')
-
     def tearDown(self):
+        super(TestHttps, self).tearDown()
+
         # Clean up environment.
         if 'ST2_CACERT' in os.environ:
             del os.environ['ST2_CACERT']
@@ -51,10 +47,6 @@ class TestHttps(unittest2.TestCase):
         # Clean up temp files.
         os.close(self.cacert_fd)
         os.unlink(self.cacert_path)
-
-        # Reset to original stdout and stderr.
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
 
     @mock.patch.object(
         requests, 'post',

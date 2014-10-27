@@ -1,5 +1,4 @@
 import os
-import sys
 import uuid
 import json
 import mock
@@ -7,7 +6,6 @@ import tempfile
 import requests
 import argparse
 import logging
-import unittest2
 
 from tests import base
 from st2client import shell
@@ -25,7 +23,7 @@ RULE = {
 }
 
 
-class TestAuthToken(unittest2.TestCase):
+class TestAuthToken(base.BaseCLITestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestAuthToken, self).__init__(*args, **kwargs)
@@ -34,27 +32,21 @@ class TestAuthToken(unittest2.TestCase):
         self.shell = shell.Shell()
 
     def setUp(self):
+        super(TestAuthToken, self).setUp()
+
         # Setup environment.
         os.environ['ST2_BASE_URL'] = 'http://localhost'
         if 'ST2_AUTH_TOKEN' in os.environ:
             del os.environ['ST2_AUTH_TOKEN']
 
-        # Redirect standard output and error to null. If not, then
-        # some of the print output from shell commands will pollute
-        # the test output.
-        sys.stdout = open(os.devnull, 'w')
-        sys.stderr = open(os.devnull, 'w')
-
     def tearDown(self):
+        super(TestAuthToken, self).tearDown()
+
         # Clean up environment.
         if 'ST2_AUTH_TOKEN' in os.environ:
             del os.environ['ST2_AUTH_TOKEN']
         if 'ST2_BASE_URL' in os.environ:
             del os.environ['ST2_BASE_URL']
-
-        # Reset to original stdout and stderr.
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
 
     @add_auth_token_to_kwargs_from_cli
     @add_auth_token_to_kwargs_from_env

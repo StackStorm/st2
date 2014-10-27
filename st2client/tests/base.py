@@ -1,5 +1,8 @@
+import os
+import sys
 import json
 import logging
+import unittest2
 
 from st2client import models
 
@@ -39,7 +42,6 @@ class FakeResponse(object):
 
 
 class FakeClient(object):
-
     def __init__(self):
         self.managers = {
             'FakeResource': models.ResourceManager(FakeResource,
@@ -48,6 +50,27 @@ class FakeClient(object):
 
 
 class FakeApp(object):
-
     def __init__(self):
         self.client = FakeClient()
+
+
+class BaseCLITestCase(unittest2.TestCase):
+    hide_output = False  # if True, stdout and stderr will be redirected to /dev/null
+
+    def setUp(self):
+        super(BaseCLITestCase, self).setUp()
+
+        if self.hide_output:
+            # Redirect standard output and error to null. If not, then
+            # some of the print output from shell commands will pollute
+            # the test output.
+            sys.stdout = open(os.devnull, 'w')
+            sys.stderr = open(os.devnull, 'w')
+
+    def tearDown(self):
+        super(BaseCLITestCase, self).tearDown()
+
+        if self.hide_output:
+            # Reset to original stdout and stderr.
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
