@@ -71,7 +71,11 @@ class ParametersViewController(RestController):
         return {'parameters': all_params}
 
 
-class OverviewController(RestController):
+class OverviewController(resource.ContentPackResourceControler):
+    model = None
+    access = None
+    supported_filters = {}
+
     @jsexpose(str)
     def get_one(self, action_id):
         """
@@ -87,16 +91,16 @@ class OverviewController(RestController):
         return self._transform_action_api(action_api)
 
     @jsexpose(str)
-    @resource.referenced
-    def get_all(self, **kw):
+    def get_all(self, **kwargs):
         """
             List all actions.
 
             Handles requests:
                 GET /actions/views/overview
         """
-        LOG.info('GET all /actions/views/overview with filters=%s', kw)
-        action_dbs = Action.get_all(**kw)
+        LOG.info('GET all /actions/views/overview with filters=%s', kwargs)
+        kwargs = self._get_filters(**kwargs)
+        action_dbs = Action.get_all(**kwargs)
         action_apis = [ActionAPI.from_model(action_db) for action_db in action_dbs]
         return map(self._transform_action_api, action_apis)
 

@@ -15,7 +15,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class TriggerTypeController(resource.ResourceController):
+class TriggerTypeController(resource.ContentPackResourceControler):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of TriggerTypes in the system.
@@ -30,11 +30,6 @@ class TriggerTypeController(resource.ResourceController):
     options = {
         'sort': ['pack', 'name']
     }
-
-    @jsexpose()
-    @resource.referenced
-    def get_all(self, **kwargs):
-        return super(TriggerTypeController, self)._get_all(**kwargs)
 
     @jsexpose(body=TriggerTypeAPI, status_code=http_client.CREATED)
     def post(self, triggertype):

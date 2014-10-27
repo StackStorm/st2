@@ -92,9 +92,19 @@ class ResourceController(rest.RestController):
         return [self.model.from_model(instance) for instance in instances[offset:eop]]
 
 
-def referenced(f):
-    def decorate(*args, **kwargs):
-        ref = kwargs.get('ref', None)
+class ContentPackResourceControler(ResourceController):
+    @jsexpose()
+    def get_all(self, **kwargs):
+        return self._get_all(**kwargs)
+
+    def _get_all(self, **kwargs):
+        kwargs = self._get_filters(**kwargs)
+        return super(ContentPackResourceControler, self)._get_all(**kwargs)
+
+    def _get_filters(self, **kwargs):
+        filters = copy.deepcopy(kwargs)
+
+        ref = filters.get('ref', None)
 
         if ref:
             try:
@@ -103,10 +113,8 @@ def referenced(f):
                 # Invalid reference
                 return []
 
-            kwargs['name'] = ref_obj.name
-            kwargs['pack'] = ref_obj.pack
-            del kwargs['ref']
+            filters['name'] = ref_obj.name
+            filters['pack'] = ref_obj.pack
+            del filters['ref']
 
-        return f(*args, **kwargs)
-
-    return decorate
+        return filters
