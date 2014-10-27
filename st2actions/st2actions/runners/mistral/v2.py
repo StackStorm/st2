@@ -30,10 +30,11 @@ class MistralRunner(ActionRunner):
         client = mistral.client(mistral_url='%s/v2' % self.url)
 
         # Update workbook definition.
+        workbook_name = self.action.pack + '.' + self.action.name
         with open(self.entry_point, 'r') as wbkfile:
             definition = wbkfile.read()
             try:
-                wbk = client.workbooks.get(self.action.name)
+                wbk = client.workbooks.get(workbook_name)
                 if wbk.definition != definition:
                     client.workbooks.update(definition)
             except:
