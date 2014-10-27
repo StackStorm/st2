@@ -80,7 +80,8 @@ class RuleAPI(BaseAPI):
                 'additionalProperties': True
             },
             'criteria': {
-                'type': 'object'
+                'type': 'object',
+                'default': {}
             },
             'action': ActionSpec.schema,
             'enabled': {
@@ -88,7 +89,7 @@ class RuleAPI(BaseAPI):
                 'default': True
             }
         },
-        'required': ['name', 'trigger', 'criteria', 'action'],
+        'required': ['name', 'trigger', 'action'],
         'additionalProperties': False
     }
 
@@ -111,7 +112,7 @@ class RuleAPI(BaseAPI):
         model = super(cls, cls).to_model(rule)
         trigger_db = TriggerService.create_trigger_db_from_rule(rule)
         model.trigger = reference.get_str_resource_ref_from_model(trigger_db)
-        model.criteria = dict(rule.criteria)
+        model.criteria = dict(getattr(rule, 'criteria', {}))
         for oldkey, value in six.iteritems(model.criteria):
             newkey = oldkey.replace('.', u'\u2024')
             if oldkey != newkey:
