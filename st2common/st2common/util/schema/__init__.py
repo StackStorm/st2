@@ -11,6 +11,9 @@ from st2common.util import jsonify
 
 # https://github.com/json-schema/json-schema/blob/master/draft-04/schema
 # The source material is licensed under the AFL or BSD license.
+# Both draft 4 and custom schema has additionalProperties set to false by default.
+# The custom schema differs from draft 4 with the extension of position, immutable,
+# and draft 3 version of required.
 PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)))
 SCHEMAS = {
     'draft4': jsonify.load_file('%s/draft4.json' % PATH),
