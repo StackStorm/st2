@@ -28,7 +28,8 @@ if ssh_key_file:
 if ssh_key_file and os.path.exists(ssh_key_file):
     env.key_filename = ssh_key_file
 
-env.timeout = 60  # Timeout for commands. 1 minute.
+env.timeout = 10  # Timeout for connections (in seconds)
+env.command_timeout = 60 # timeout for commands (in seconds)
 env.combine_stderr = False
 env.group = 'staff'
 env.abort_exception = FabricExecutionFailureException
