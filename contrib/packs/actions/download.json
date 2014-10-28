@@ -11,8 +11,7 @@
         },
         "repo_url": {
             "type": "string",
-            "default": "https://github.com/StackStorm/st2contrib.git",
-            "immutable": true
+            "default": "https://github.com/StackStorm/st2contrib.git"
         },
         "abs_repo_base": {
             "type": "string",
