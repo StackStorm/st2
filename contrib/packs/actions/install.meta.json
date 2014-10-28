@@ -1,14 +1,18 @@
 {
-    "name": "installpacks",
+    "name": "install",
     "runner_type": "action-chain",
     "description": "Installs packs from st2-contrib into local content repository. Will download pack, load the actions, sensors and rules from the pack. Note that install require reboot of some st2 services.",
     "enabled": true,
-    "entry_point":"pack_mgmt/installpacks.json",
+    "entry_point":"pack_mgmt/install.json",
     "parameters": {
         "packs": {
             "type": "array",
             "items": {"type": "string"},
             "default": ["*"]
+        },
+        "repo_url": {
+            "type": "string",
+            "default": "https://github.com/StackStorm/st2contrib.git"
         },
         "register": {
             "type": "string",

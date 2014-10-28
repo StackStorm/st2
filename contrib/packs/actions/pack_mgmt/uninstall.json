@@ -2,19 +2,19 @@
     "chain": [
         {
             "name": "unregister",
-            "ref": "core.unregisterpacks",
+            "ref": "packs.unload",
             "params": {"packs": "{{packs}}"},
             "on-success": "delete"
         },
         {
             "name": "delete",
-            "ref": "core.deletepacks",
+            "ref": "packs.delete",
             "params": {"packs": "{{packs}}"},
             "on-success": "restart-sensor-container"
         },
         {
             "name": "restart-sensor-container",
-            "ref": "core.restart-component",
+            "ref": "packs.restart_component",
             "params": {"servicename": "sensor_containesr"}
         }
     ],

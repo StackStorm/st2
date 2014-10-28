@@ -42,7 +42,7 @@ function st2start(){
     if [ -z $PACKS_BASE_DIR ]; then
         PACKS_BASE_DIR="/opt/stackstorm"
     fi
-    echo "Using conent packs base dir: $PACKS_BASE_DIR"
+    echo "Using content packs base dir: $PACKS_BASE_DIR"
 
     # Copy and overwrite the action contents
     if [ ! -d "/opt/stackstorm" ]; then
@@ -55,6 +55,7 @@ function st2start(){
     sudo mkdir -p $PACKS_BASE_DIR/default/rules/
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
+    cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
 
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate

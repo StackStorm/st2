@@ -34,6 +34,7 @@ mkdir -p %{buildroot}/etc/st2
 mkdir -p %{buildroot}/opt/stackstorm
 mkdir -p %{buildroot}/usr/share/doc/st2
 cp -R contrib/core %{buildroot}/opt/stackstorm/
+cp -R contrib/packs %{buildroot}/opt/stackstorm/
 cp -R contrib/examples %{buildroot}/usr/share/doc/st2/
 cp -R contrib/sandbox %{buildroot}/usr/share/doc/st2/
 cp -R docs/* %{buildroot}/usr/share/doc/st2/
