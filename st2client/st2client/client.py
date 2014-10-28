@@ -75,6 +75,10 @@ class Client(object):
         return self.managers['Rule']
 
     @property
+    def sensors(self):
+        return self.managers['Sensor']
+
+    @property
     def triggers(self):
         return self.managers['Trigger']
 
