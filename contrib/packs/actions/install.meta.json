@@ -10,6 +10,10 @@
             "items": {"type": "string"},
             "default": ["*"]
         },
+        "repo_url": {
+            "type": "string",
+            "default": "https://github.com/StackStorm/st2contrib.git"
+        },
         "register": {
             "type": "string",
             "default": "norules",
