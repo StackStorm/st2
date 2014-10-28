@@ -5,9 +5,12 @@ except ImportError:
     import json
 
 import mock
+import unittest2
 
 from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
+from st2common.constants.pack import SYSTEM_PACK_NAME
+
 from tests import FunctionalTest
 
 # ACTION_1: Good action definition.
@@ -145,6 +148,20 @@ ACTION_10 = {
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
+    }
+}
+
+# Good action with a system pack
+ACTION_11 = {
+    'name': 'st2.dummy.action11',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'test description',
+    'enabled': True,
+    'entry_point': '/tmp/test/action2.py',
+    'runner_type': 'run-local',
+    'parameters': {
+        'c': {'type': 'string', 'default': 'C1', 'position': 0},
+        'd': {'type': 'string', 'default': 'D1', 'immutable': True}
     }
 }
 
@@ -313,6 +330,23 @@ class TestActionController(FunctionalTest):
         post_resp = self.__do_post(ACTION_1)
         del_resp = self.__do_delete(self.__get_action_id(post_resp))
         self.assertEqual(del_resp.status_int, 204)
+
+    # TODO: Re-enable those tests after we ensure DB is flushed in setUp
+    # and each test starts in a clean state
+
+    @unittest2.skip('Skip because of test polution')
+    def test_update_action_belonging_to_system_pack(self):
+        post_resp = self.__do_post(ACTION_11)
+        action_id = self.__get_action_id(post_resp)
+        put_resp = self.__do_put(action_id, ACTION_11, expect_errors=True)
+        self.assertEqual(put_resp.status_int, 400)
+
+    @unittest2.skip('Skip because of test polution')
+    def test_delete_action_belonging_to_system_pack(self):
+        post_resp = self.__do_post(ACTION_11)
+        action_id = self.__get_action_id(post_resp)
+        del_resp = self.__do_delete(action_id, expect_errors=True)
+        self.assertEqual(del_resp.status_int, 400)
 
     @staticmethod
     def __get_action_id(resp):
