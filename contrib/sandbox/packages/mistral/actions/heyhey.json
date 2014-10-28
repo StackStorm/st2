@@ -1,19 +1,14 @@
 {
-    "name": "heyheyhey",
+    "name": "heyhey",
     "pack": "default",
-    "runner_type": "mistral-v1",
+    "runner_type": "mistral-v2",
     "description": "Say hi to friend!",
     "enabled": true,
-    "entry_point":"heyheyhey.yaml",
+    "entry_point":"heyhey.yaml",
     "parameters": {
-        "workbook": {
+        "workflow": {
             "type": "string",
-            "default": "default.heyheyhey",
-            "immutable": true
-        },
-        "task": {
-            "type": "string",
-            "default": "say-greeting",
+            "default": "default.heyhey.heyhey",
             "immutable": true
         },
         "context": {

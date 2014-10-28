@@ -3,7 +3,7 @@ Workflow:
     say-greeting:
       action: st2.action
       parameters:
-        ref: "default.hey"
+        ref: "default.greet"
         parameters:
           cmd: $.count
       publish:

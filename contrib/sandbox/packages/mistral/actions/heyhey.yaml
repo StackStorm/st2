@@ -1,9 +1,9 @@
-ref: 'default.heyheyhey'
+name: 'default.heyhey'
 version: '2.0'
 
 workflows:
 
-  heyheyhey:
+  heyhey:
     type: direct
     input:
       - count
@@ -12,7 +12,7 @@ workflows:
       say-greeting:
         action: st2.action
         input:
-          ref: "default.hey"
+          ref: "default.greet"
           parameters:
             cmd: $.count
         publish:
