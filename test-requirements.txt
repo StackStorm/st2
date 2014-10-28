@@ -8,4 +8,4 @@ pylint
 tabulate
 unittest2
 sphinx
-sphinx-autobuild
+git+https://github.com/StackStorm/sphinx-autobuild.git@develop
