@@ -49,8 +49,10 @@ checklogs:
 	. $(VIRTUALENV_DIR)/bin/activate; ./tools/log_watcher.py 10
 
 .PHONY: docs
-check: requirements
-docs:
+docs: requirements .docs
+
+.PHONY: .docs
+.docs:
 	@echo
 	@echo "====================docs===================="
 	@echo
@@ -70,7 +72,7 @@ livedocs: docs .livedocs
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; sphinx-autobuild -b html $(DOC_SOURCE_DIR) $(DOC_BUILD_DIR)/html
 	@echo
-	
+
 .PHONY: pylint
 pylint: requirements .pylint
 
