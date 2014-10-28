@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+from os.path import join as pjoin
 
 from st2client.models import datastore
 from st2client.commands import resource
@@ -97,9 +98,15 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
+        file_path = os.path.normpath(pjoin(os.getcwd(), args.file))
+
+        if not os.path.exists(args.file):
+            raise ValueError('File "%s" doesn\'t exist' % (file_path))
+
         if not os.path.isfile(args.file):
-            raise Exception('File "%s" does not exist.' % args.file)
-        with open(args.file, 'r') as f:
+            raise ValueError('"%s" is not a file' % (file_path))
+
+        with open(file_path, 'r') as f:
             instances = []
             kvps = json.loads(f.read())
             for k, v in six.iteritems(kvps):
