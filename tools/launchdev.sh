@@ -55,6 +55,7 @@ function st2start(){
     sudo mkdir -p $PACKS_BASE_DIR/default/rules/
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
+    cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
 
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate
