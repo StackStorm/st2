@@ -350,4 +350,4 @@ class ResourceDeleteCommand(ResourceCommand):
         try:
             self.run(args, **kwargs)
         except ResourceNotFoundError:
-            self.print_not_found(args.name)
+            self.print_not_found(args.name_or_id)
