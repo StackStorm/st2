@@ -1,4 +1,5 @@
 contrib/core opt/stackstorm/
+contrib/packs opt/stackstorm/
 contrib/examples usr/share/doc/st2/
 contrib/sandbox usr/share/doc/st2/
 docs usr/share/doc/st2/
