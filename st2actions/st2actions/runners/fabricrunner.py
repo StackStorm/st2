@@ -21,8 +21,13 @@ LOG = logging.getLogger(__name__)
 env.parallel = True # By default, execute things in parallel. Uses multiprocessing under the hood.
 env.user = cfg.CONF.system_user.user
 ssh_key_file = cfg.CONF.system_user.ssh_key_file
-if ssh_key_file is not None and os.path.exists(ssh_key_file):
+
+if ssh_key_file:
+    ssh_key_file = os.path.expanduser(ssh_key_file)
+
+if ssh_key_file and os.path.exists(ssh_key_file):
     env.key_filename = ssh_key_file
+
 env.timeout = 60  # Timeout for commands. 1 minute.
 env.combine_stderr = False
 env.group = 'staff'
