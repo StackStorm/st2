@@ -1,0 +1,6 @@
+---
+name : core
+description : st2 content pack containing basic actions. 
+version : 0.1
+author : st2-dev
+email : info@stackstorm.com
