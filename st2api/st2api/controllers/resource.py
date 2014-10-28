@@ -112,8 +112,9 @@ class ContentPackResourceControler(ResourceController):
     def _get_all(self, **kwargs):
         try:
             kwargs = self._get_filters(**kwargs)
-        except InvalidResourceReferenceError as e:
-            pecan.abort(http_client.NOT_FOUND, e.message)
+        except InvalidResourceReferenceError:
+            msg = 'Unable to find resource by ref: %s' % kwargs.get('ref', '')
+            pecan.abort(http_client.NOT_FOUND, msg)
         except Exception as e:
             pecan.abort(http_client.BAD_REQUEST, e.message)
 
@@ -127,8 +128,7 @@ class ContentPackResourceControler(ResourceController):
             try:
                 ref_obj = ResourceReference.from_string_reference(ref=ref)
             except InvalidResourceReferenceError:
-                msg = 'Unable to find resource by ref: %s' % kwargs.get('ref')
-                raise InvalidResourceReferenceError(msg)
+                raise
 
             filters['name'] = ref_obj.name
             filters['pack'] = ref_obj.pack
