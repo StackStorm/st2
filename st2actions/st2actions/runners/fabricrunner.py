@@ -18,7 +18,7 @@ LOG = logging.getLogger(__name__)
 
 # Fabric environment level settings.
 # XXX: Note fabric env is a global singleton.
-env.parallel = True # By default, execute things in parallel. Uses multiprocessing under the hood.
+env.parallel = True  # By default, execute things in parallel. Uses multiprocessing under the hood.
 env.user = cfg.CONF.system_user.user
 ssh_key_file = cfg.CONF.system_user.ssh_key_file
 
@@ -29,7 +29,7 @@ if ssh_key_file and os.path.exists(ssh_key_file):
     env.key_filename = ssh_key_file
 
 env.timeout = 10  # Timeout for connections (in seconds)
-env.command_timeout = 60 # timeout for commands (in seconds)
+env.command_timeout = 60  # timeout for commands (in seconds)
 env.combine_stderr = False
 env.group = 'staff'
 env.abort_exception = FabricExecutionFailureException
