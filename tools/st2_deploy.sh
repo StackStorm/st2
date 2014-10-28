@@ -76,14 +76,16 @@ install_apt(){
     sudo apt-key add ${RABBIT_PUBLIC_KEY}
     rm ${RABBIT_PUBLIC_KEY}
   fi
+  export DEBIAN_FRONTEND=noninteractive
   apt-get update
   # Install packages
-  aptlist='rabbitmq-server make python-virtualenv python-dev realpath python-pip mongodb mongodb-server gcc git'
+  aptlist='rabbitmq-server make python-virtualenv python-dev realpath python-pip mongodb mongodb-server gcc git mysql-server'
   echo "Installing ${aptlist}"
   apt-get install -y ${aptlist}
   setup_rabbitmq
   setup_mongo
   install_pip
+  setup_mistral
 }
 
 install_yum() {
@@ -91,12 +93,13 @@ install_yum() {
   rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc 
   curl -sS -k -o /tmp/rabbitmq-server.rpm http://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
   yum localinstall -y /tmp/rabbitmq-server.rpm
-  yumlist='python-pip python-virtualenv python-devel gcc-c++ git-all mongodb mongodb-server'
+  yumlist='python-pip python-virtualenv python-devel gcc-c++ git-all mongodb mongodb-server mysql-server'
   echo "Installing ${yumlist}"
   yum install -y ${yumlist}
   setup_rabbitmq
   setup_mongo
   install_pip
+  setup_mistral
 }
 
 setup_rabbitmq() {
@@ -133,6 +136,131 @@ setup_mongo() {
   sleep 10
   # Initiate replication set
   mongo --eval "rs.initiate()"
+}
+
+setup_mysql() {
+  if [[ "$TYPE" == "debs" ]]; then
+    service mysql start
+  elif [[ "$TYPE" == "rpms" ]]; then
+    service mysqld start
+  fi
+  mysqladmin -u root password StackStorm
+  mysql -uroot -pStackStorm -e "DROP DATABASE IF EXISTS mistral"
+  mysql -uroot -pStackStorm -e "CREATE DATABASE mistral"
+  mysql -uroot -pStackStorm -e "GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'localhost' IDENTIFIED BY 'StackStorm'"
+  mysql -uroot -pStackStorm -e "FLUSH PRIVILEGES"
+}
+
+setup_mistral_config()
+{
+config=/etc/mistral/mistral.conf
+if [ -e "$config" ]; then
+    rm $config
+fi
+touch $config
+cat <<mistral_config >$config
+[database]
+connection=mysql://mistral:StackStorm@localhost/mistral
+
+[pecan]
+auth_enable=false
+mistral_config
+}
+
+setup_mistral_upstart()
+{
+upstart=/etc/init/mistral.conf
+if [ -e "$upstart" ]; then
+    rm $upstart
+fi
+touch $upstart
+cat <<mistral_upstart >$upstart
+description "OpenStack Workflow Service"
+start on runlevel [2345]
+stop on runlevel [016]
+respawn
+script
+    /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf
+end script
+mistral_upstart
+}
+
+setup_mistral_systemd()
+{
+systemd=/etc/systemd/system/mistral.service
+if [ -e "$systemd" ]; then
+    rm $systemd
+fi
+touch $systemd
+cat <<mistral_systemd >$systemd
+[Unit]
+Description=Mistral Workflow Service
+ 
+[Service]
+ExecStart=/opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf
+Restart=on-abort
+ 
+[Install]
+WantedBy=multi-user.target
+mistral_systemd
+systemctl enable mistral
+}
+
+setup_mistral() {
+  echo "########## Setting up Mistral ##########"
+
+  # Install prerequisites.
+  if [[ "$TYPE" == "debs" ]]; then
+    apt-get -y install libssl-dev libyaml-dev libffi-dev libxml2-dev libxslt1-dev python-dev libmysqlclient-dev
+  elif [[ "$TYPE" == "rpms" ]]; then
+    yum -y install openssl-devel libyaml-devel libffi-devel libxml2-devel libxslt-devel python-devel mysql-devel 
+  fi
+
+  # Clone mistral from github.
+  mkdir -p /opt/openstack
+  cd /opt/openstack
+  if [ -d "/opt/openstack/mistral" ]; then
+    rm -r /opt/openstack/mistral
+  fi
+  git clone -b st2-0.5.1 https://github.com/StackStorm/mistral.git
+
+  # Setup virtualenv for running mistral.
+  cd /opt/openstack/mistral
+  virtualenv --no-site-packages .venv
+  . /opt/openstack/mistral/.venv/bin/activate
+  pip install -r requirements.txt
+  pip install -q mysql-python
+  python setup.py develop
+
+  # Setup plugins for actions.
+  mkdir -p /etc/mistral/actions
+  if [ -d "/etc/mistral/actions/st2mistral" ]; then
+    rm -r /etc/mistral/actions/st2mistral
+  fi
+  cd /etc/mistral/actions
+  git clone -b st2-0.5.1 https://github.com/StackStorm/st2mistral.git
+  cd /etc/mistral/actions/st2mistral
+  python setup.py develop
+
+  # Create configuration files.
+  mkdir -p /etc/mistral
+  setup_mistral_config
+
+  # Setup database.
+  cd /opt/openstack/mistral
+  setup_mysql
+  python ./tools/sync_db.py --config-file /etc/mistral/mistral.conf
+
+  # Setup service.
+  if [[ "$TYPE" == "debs" ]]; then
+    setup_mistral_upstart
+  elif [[ "$TYPE" == "rpms" ]]; then
+    setup_mistral_systemd
+  fi
+  service mistral start
+
+  # Setup mistral client.
+  pip install -U git+https://github.com/stackforge/python-mistralclient.git
 }
 
 download_pkgs() {
