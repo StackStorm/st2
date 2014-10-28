@@ -102,19 +102,5 @@ variable name with "system" (i.e.
 below. Please refer to the documentation section for Rules on rule
 related syntax.
 
-::
-
-    {
-        "name": "daily_clean_up_rule",
-        "trigger": {
-            "name": "st2.timer.daily"
-        },
-        "enabled": true,
-        "action": {
-            "name": "daily_clean_up_action",
-            "parameters": {
-                "os_keystone_endpoint": "{{system.os_keystone_endpoint}}"
-            }
-        }
-    }
-
+.. literalinclude:: /examples/datastore/rule_with_system_variable_reference.json
+    :language: javascript
