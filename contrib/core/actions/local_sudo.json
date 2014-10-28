@@ -1,5 +1,5 @@
 {
-    "name": "local-sudo",
+    "name": "local_sudo",
     "runner_type": "run-local",
     "description": "Action that executes an arbitrary Linux command on the localhost.",
     "enabled": true,
