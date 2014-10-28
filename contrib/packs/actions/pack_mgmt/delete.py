@@ -1,11 +1,12 @@
 import os
 import shutil
 
+from st2actions.runners.pythonrunner import Action
 
 BLOCKED_PACKS = frozenset(['core'])
 
 
-class UninstallPackAction(object):
+class UninstallPackAction(Action):
 
     def run(self, abs_repo_base=None, packs=None):
         intersection = BLOCKED_PACKS & frozenset(packs)
