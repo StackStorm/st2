@@ -1,5 +1,5 @@
 {
-    "name": "installpacks",
+    "name": "install",
     "runner_type": "action-chain",
     "description": "Installs packs from st2-contrib into local content repository. Will download pack, load the actions, sensors and rules from the pack. Note that install require reboot of some st2 services.",
     "enabled": true,
