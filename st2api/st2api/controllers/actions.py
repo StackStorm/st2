@@ -14,6 +14,7 @@ from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
+from st2common.validators.api.misc import validate_not_part_of_system_pack
 import st2common.validators.api.action as action_validator
 
 http_client = six.moves.http_client
@@ -116,6 +117,12 @@ class ActionsController(resource.ContentPackResourceControler):
     @jsexpose(str, body=ActionAPI)
     def put(self, action_id, action):
         action_db = ActionsController._get_by_id(action_id)
+
+        try:
+            validate_not_part_of_system_pack(action_db)
+        except ValueValidationException as e:
+            abort(http_client.BAD_REQUEST, str(e))
+
         if not getattr(action, 'pack', None):
             action.pack = action_db.pack
 
@@ -151,6 +158,11 @@ class ActionsController(resource.ContentPackResourceControler):
 
         LOG.info('DELETE /actions/ with id="%s"', action_id)
         action_db = ActionsController._get_by_id(action_id)
+
+        try:
+            validate_not_part_of_system_pack(action_db)
+        except ValueValidationException as e:
+            abort(http_client.BAD_REQUEST, str(e))
 
         LOG.debug('DELETE /actions/ lookup with id=%s found object: %s', action_id, action_db)
 

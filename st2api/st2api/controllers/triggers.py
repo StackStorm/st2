@@ -9,6 +9,8 @@ from st2common.models.base import jsexpose
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance
 from st2common.services import triggers as TriggerService
 from st2api.controllers import resource
+from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.validators.api.misc import validate_not_part_of_system_pack
 
 http_client = six.moves.http_client
 
@@ -69,6 +71,12 @@ class TriggerTypeController(resource.ContentPackResourceControler):
         LOG.info('PUT /triggertypes/ with triggertype id=%s and data=%s', triggertype_id,
                  triggertype)
         triggertype_db = TriggerTypeController.__get_by_id(triggertype_id)
+
+        try:
+            validate_not_part_of_system_pack(triggertype_db)
+        except ValueValidationException as e:
+            abort(http_client.BAD_REQUEST, str(e))
+
         try:
             triggertype_db = TriggerTypeAPI.to_model(triggertype)
             if triggertype.id is not None and len(triggertype.id) > 0 and \
@@ -100,6 +108,12 @@ class TriggerTypeController(resource.ContentPackResourceControler):
         """
         LOG.info('DELETE /triggertypes/ with id=%s', triggertype_id)
         triggertype_db = TriggerTypeController.__get_by_id(triggertype_id)
+
+        try:
+            validate_not_part_of_system_pack(triggertype_db)
+        except ValueValidationException as e:
+            abort(http_client.BAD_REQUEST, str(e))
+
         try:
             TriggerType.delete(triggertype_db)
         except Exception as e:
