@@ -1,5 +1,5 @@
 {
-    "name": "remote-sudo",
+    "name": "remote_sudo",
     "runner_type": "run-remote",
     "description": "Action to execute arbitrary linux command remotely.",
     "enabled": true,
