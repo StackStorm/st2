@@ -110,20 +110,25 @@ class ContentPackResourceControler(ResourceController):
         return result
 
     def _get_all(self, **kwargs):
-        kwargs = self._get_filters(**kwargs)
+        try:
+            kwargs = self._get_filters(**kwargs)
+        except InvalidResourceReferenceError as e:
+            pecan.abort(http_client.NOT_FOUND, e.message)
+        except Exception as e:
+            pecan.abort(http_client.BAD_REQUEST, e.message)
+
         return super(ContentPackResourceControler, self)._get_all(**kwargs)
 
     def _get_filters(self, **kwargs):
         filters = copy.deepcopy(kwargs)
-
         ref = filters.get('ref', None)
 
         if ref:
             try:
                 ref_obj = ResourceReference.from_string_reference(ref=ref)
             except InvalidResourceReferenceError:
-                # Invalid reference
-                return []
+                msg = 'Unable to find resource by ref: %s' % kwargs.get('ref')
+                raise InvalidResourceReferenceError(msg)
 
             filters['name'] = ref_obj.name
             filters['pack'] = ref_obj.pack
