@@ -42,7 +42,7 @@ function st2start(){
     if [ -z $PACKS_BASE_DIR ]; then
         PACKS_BASE_DIR="/opt/stackstorm"
     fi
-    echo "Using conent packs base dir: $PACKS_BASE_DIR"
+    echo "Using content packs base dir: $PACKS_BASE_DIR"
 
     # Copy and overwrite the action contents
     if [ ! -d "/opt/stackstorm" ]; then
