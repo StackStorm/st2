@@ -200,6 +200,13 @@ class TestActionController(FunctionalTest):
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
+    def test_get_by_ref_not_found(self):
+        resp = self.app.get('/actions?ref=doesntexist')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [])
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
     def test_get_one_fail(self):
         resp = self.app.get('/actions/1', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
