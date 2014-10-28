@@ -15,7 +15,7 @@
         "register": {
             "type": "string",
             "default": "norules",
-            "description": "Possible options are all, noall, actions, noactions, rules, norules."
+            "description": "Possible options are all, actions, rules."
         }
     }
 }
