@@ -15,6 +15,7 @@ class RunnerType(core.Resource):
 
 class Action(core.Resource):
     _plural = 'Actions'
+    _repr_attributes = ['name', 'pack', 'enabled', 'runner_type']
 
 
 class ActionExecution(core.Resource):

@@ -11,3 +11,4 @@ class KeyValuePair(core.Resource):
     _display_name = 'Key Value Pair'
     _plural = 'Keys'
     _plural_display_name = 'Key Value Pairs'
+    _repr_attributes = ['name', 'value']

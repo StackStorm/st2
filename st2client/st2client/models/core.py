@@ -34,6 +34,9 @@ class Resource(object):
     # Plural form of the resource display name.
     _plural_display_name = None
 
+    # A list of class attributes which will be included in __repr__ return value
+    _repr_attributes = []
+
     def __init__(self, *args, **kwargs):
         for k, v in six.iteritems(kwargs):
             setattr(self, k, v)
@@ -69,6 +72,23 @@ class Resource(object):
         if type(doc) is not dict:
             doc = json.loads(doc)
         return cls(**doc)
+
+    def __str__(self):
+        return str(self.__repr__())
+
+    def __repr__(self):
+        if not self._repr_attributes:
+            return super(Resource, self).__repr__()
+
+        attributes = []
+        for attribute in self._repr_attributes:
+            value = getattr(self, attribute, None)
+            attributes.append('%s=%s' % (attribute, value))
+
+        attributes = ','.join(attributes)
+        class_name = self.__class__.__name__
+        result = '<%s %s>' % (class_name, attributes)
+        return result
 
 
 class ResourceManager(object):
