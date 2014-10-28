@@ -21,10 +21,10 @@ This will download and install the latest release of StackStorm (currently |rele
 
     Ubuntu / Debian <deb>
     RedHat / Fedora <rpm>
+    config
     Vagrant <vagrant>
     docker
     deploy
-    ssh
     sources
 
 

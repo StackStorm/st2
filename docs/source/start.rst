@@ -140,7 +140,7 @@ Criteria in the rule is expressed as:
 Current criteria types are: ``matchregex``, ``eq`` (or ``equals``), ``lt`` (or ``lessthan``), ``gt`` (or ``greaterthan``), ``td_lt`` (or ``timediff_lt``), ``td_gt`` (or ``timediff_gt``).  **For Developers:** The criterion are defined in :github_st2:`st2/st2common/st2common/operators.py </st2common/st2common/operators.py>`,
 if you miss some criteria - welcome to code it up and submit a patch :)
 
-Let's take a simple example. The rule defined in `sample-rule-with-webhook.json` 
+Let's take a simple example. The rule defined in  :github_st2:`sample-rule-with-webhook.json </contrib/examples/rules/sample-rule-with-webhook.json>` 
 takes a webhook and appends a payload to the file, but only if the ``name``
 field matches:
 
