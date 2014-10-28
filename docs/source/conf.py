@@ -31,6 +31,7 @@ import os
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
+    'sphinx.ext.extlinks',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -57,6 +58,13 @@ copyright = u'2014, StackStorm Inc'
 version = '0.5'
 # The full version, including alpha/beta/rc tags.
 release = '0.5.1'
+
+# extlink configurator sphinx.ext.extlinks
+extlinks = {
+    'github_st2': ('https://github.com/StackStorm/st2/blob/master/%s', None),
+    'github_contrib': 
+        ('https://github.com/StackStorm/st2contrib/blob/master/%s', None),
+}
 
 # Inserted at the bottom of all rst files.
 # Use for variables substitutions
