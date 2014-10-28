@@ -1,4 +1,4 @@
-name: 'default.heyheyhey'
+ref: 'default.heyheyhey'
 version: '2.0'
 
 workflows:
@@ -12,7 +12,7 @@ workflows:
       say-greeting:
         action: st2.action
         input:
-          name: "default.hey"
+          ref: "default.hey"
           parameters:
             cmd: $.count
         publish:
@@ -24,7 +24,7 @@ workflows:
       say-friend:
         action: st2.action
         input:
-          name: "default.friend"
+          ref: "default.friend"
           parameters:
             cmd: $.friend
         publish:
