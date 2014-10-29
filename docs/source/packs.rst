@@ -10,7 +10,7 @@ Pack is the unit of deployment for integrations and automations in order to exte
 * `Rules </rules>`__
 * `Sensors </sensors>`__
 
-Its is best to view a pack as the means to extend st2 and allow it to integrate with external systems. See `next section </packs.html#getting-a-pack>`__ to learn more about pack management.
+It is best to view a pack as the means to extend st2 and allow it to integrate with external systems. See `next section </packs.html#getting-a-pack>`__ to learn more about pack management.
 
 Getting a pack
 --------------
