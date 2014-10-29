@@ -14,8 +14,14 @@
         },
         "register": {
             "type": "string",
-            "default": "norules",
+            "default": "actions",
             "description": "Possible options are all, actions, rules."
+        },
+        "kwarg_op": {
+            "immutable": true
+        },
+        "dir": {
+            "immutable": true
         }
     }
 }
