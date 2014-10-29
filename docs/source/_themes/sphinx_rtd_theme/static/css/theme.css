@@ -4466,6 +4466,13 @@ nav.stickynav {
   max-width: 100%;
   height: auto !important;
 }
+.rst-content a.reference.external:after {
+    font-family: FontAwesome;
+    content: " \f08e ";
+    color: #b3b3b3;
+    vertical-align: super;
+    font-size: 60%;
+}
 .rst-content div.figure {
   margin-bottom: 24px;
 }
