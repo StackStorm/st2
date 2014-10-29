@@ -1,6 +1,6 @@
 #!/bin/bash
 LOGFILE="/tmp/st2_startup.log"
-COMPONENTS="actionrunner st2api st2auth sensor_container history"
+COMPONENTS="actionrunner st2api st2auth sensor_container history mistral"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
 if [ -z "$AR" ];
@@ -30,33 +30,39 @@ function st2start(){
   st2auth --config-file ${STANCONF} &>> ${LOGFILE} &
   sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
   /usr/bin/history --config-file ${STANCONF} &>> ${LOGFILE} &
-  service mistral restart
+  service mistral start
 }
 
 function st2stop(){
   for COM in $COMPONENTS
   do
-    PID=`ps ax | grep -v grep | grep ${COM} | awk '{print $1}'`
-    if [[ ! -z $PID ]]
+    if [[ "${COM}" == "mistral" ]]
     then
-      for p in $PID
-      do
-        echo "Killing ${COM} PID: ${p}"
-        kill $p
-      done
+      PID=`ps ax | grep -v grep | grep ${COM} | awk '{print $1}'`
+      if [[ ! -z $PID ]]
+      then
+        for p in $PID
+        do
+           echo "Killing ${COM} PID: ${p}"
+        done
+        service mistral stop
+      else
+        echo "${COM} is not running"
+      fi
     else
-      echo "${COM} is not running"
+      PID=`ps ax | grep -v grep | grep ${COM} | awk '{print $1}'`
+      if [[ ! -z $PID ]]
+      then
+        for p in $PID
+        do
+          echo "Killing ${COM} PID: ${p}"
+          kill $p
+        done
+      else
+        echo "${COM} is not running"
+      fi
     fi
   done
-
-  MISTRALPID=`pgrep mistral`
-  if [[ ! -z $MISTRALPID ]]
-  then
-    echo "Killing mistral PID: ${MISTRALPID}"
-    service mistral stop
-  else
-    echo "mistral is not running"
-  fi
 }
 
 function restart_component() {
@@ -124,14 +130,6 @@ function getpids(){
       echo "${COM} is not running"
     fi
   done
-
-  MISTRALPID=`pgrep mistral`
-  if [[ ! -z $MISTRALPID ]]
-  then
-    echo "mistral PID: ${MISTRALPID}"
-  else
-    echo "mistral is not running"
-  fi
 }
 
 case ${1} in
