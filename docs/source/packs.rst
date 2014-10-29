@@ -16,8 +16,8 @@ Pack is the unit of deployment for integrations and automations in order to exte
 Its is best to view a pack as the means to extend st2 and allow it to integrate with external systems.
 
 
-Getting the pack
------------------
+Getting a pack
+--------------
 Pack management is done by st2 actions from `packs` pack, pun intended. Run ``st2 action list --pack packs`` for a list of pack management actions.
 
 Some packs can be installed and run "as is" without any configurations.
