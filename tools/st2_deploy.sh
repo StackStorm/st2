@@ -140,9 +140,9 @@ setup_mongo() {
 
 setup_mysql() {
   if [[ "$TYPE" == "debs" ]]; then
-    service mysql start
+    service mysql restart
   elif [[ "$TYPE" == "rpms" ]]; then
-    service mysqld start
+    service mysqld restart
   fi
   mysqladmin -u root password StackStorm
   mysql -uroot -pStackStorm -e "DROP DATABASE IF EXISTS mistral"
