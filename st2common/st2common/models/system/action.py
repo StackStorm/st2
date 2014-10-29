@@ -149,8 +149,16 @@ class FabricRemoteAction(RemoteAction):
     def get_fabric_task(self):
         action_method = self._get_action_method()
         LOG.info('action_method is %s' % action_method)
-        return WrappedCallableTask(action_method, name=self.name, alias=self.id,
+        task = WrappedCallableTask(action_method, name=self.name, alias=self.id,
                                    parallel=self.parallel, sudo=self.sudo)
+
+        # We need to explicitly set that since WrappedCallableTask abuses kwargs
+        # and doesn't do anything with "parallel" and "serial" kwarg.
+        # We also need to explicitly set serial since we default to
+        # parallel=True in the environment so just "parallel" won't do.
+        task.parallel = self.parallel
+        task.serial = not self.parallel
+        return task
 
     def _get_action_method(self):
         if (self.sudo):
@@ -195,8 +203,11 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         return self._get_script_action_method()
 
     def _get_script_action_method(self):
-        return WrappedCallableTask(self._run_script, name=self.name, alias=self.id,
+        task = WrappedCallableTask(self._run_script, name=self.name, alias=self.id,
                                    parallel=self.parallel, sudo=self.sudo)
+        task.parallel = self.parallel
+        task.serial = not self.parallel
+        return task
 
     def _run_script(self):
         try:

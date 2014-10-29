@@ -21,9 +21,15 @@ LOG = logging.getLogger(__name__)
 env.parallel = True  # By default, execute things in parallel. Uses multiprocessing under the hood.
 env.user = cfg.CONF.system_user.user
 ssh_key_file = cfg.CONF.system_user.ssh_key_file
-if ssh_key_file is not None and os.path.exists(ssh_key_file):
+
+if ssh_key_file:
+    ssh_key_file = os.path.expanduser(ssh_key_file)
+
+if ssh_key_file and os.path.exists(ssh_key_file):
     env.key_filename = ssh_key_file
-env.timeout = 60  # Timeout for commands. 1 minute.
+
+env.timeout = 10  # Timeout for connections (in seconds)
+env.command_timeout = 60  # timeout for commands (in seconds)
 env.combine_stderr = False
 env.group = 'staff'
 env.abort_exception = FabricExecutionFailureException
@@ -64,6 +70,7 @@ class FabricRunner(ActionRunner):
                                           self.action_execution_id)
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
+        self._sudo = self._sudo if self._sudo else False
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, env.user)
         self._user = cfg.CONF.system_user.user
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
@@ -89,9 +96,11 @@ class FabricRunner(ActionRunner):
     def _run(self, remote_action):
         LOG.info('Executing action via FabricRunner :%s for user: %s.',
                  self._runner_id, remote_action.get_on_behalf_user())
-        LOG.info('[Action info] name: %s, Id: %s, command: %s, on behalf user: %s, actual user: %s',
+        LOG.info(('[Action info] name: %s, Id: %s, command: %s, on behalf user: %s, '
+                  'actual user: %s, sudo: %s'),
                  remote_action.name, remote_action.id, remote_action.get_command(),
-                 remote_action.get_on_behalf_user(), remote_action.get_user())
+                 remote_action.get_on_behalf_user(), remote_action.get_user(),
+                 remote_action.is_sudo())
         results = execute(remote_action.get_fabric_task(), hosts=remote_action.hosts)
         return results
 
