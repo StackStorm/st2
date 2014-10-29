@@ -12,6 +12,7 @@ SUPPORTED_FILTERS = {
     'action': ('action.pack', 'action.name'),  # XXX: Compound filter. For aggregation only.
     'action.name': 'action.name',
     'action.pack': 'action.pack',
+    'execution': 'execution.id',
     'parent': 'parent',
     'rule': 'rule.name',
     'runner': 'runner.name',
@@ -21,7 +22,9 @@ SUPPORTED_FILTERS = {
     'user': 'execution.context.user'
 }
 
-IGNORE_FILTERS = ['parent', 'timestamp']  # Both are too broad. We should threat them differently.
+# List of filters that are too broad to distinct by them and are very likely to represent 1 to 1
+# relation between filter and particular history record.
+IGNORE_FILTERS = ['parent', 'timestamp', 'execution']
 
 
 class FiltersController(RestController):

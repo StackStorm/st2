@@ -113,7 +113,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertListEqual(sorted(ids), sorted(refs))
 
     def test_filters(self):
-        excludes = ['parent', 'timestamp', 'action']
+        excludes = ['parent', 'timestamp', 'action', 'execution']
         for param, field in six.iteritems(ActionExecutionHistoryController.supported_filters):
             if param in excludes:
                 continue
