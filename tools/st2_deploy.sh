@@ -70,7 +70,7 @@ install_pip() {
 install_apt(){
   echo "########## Installing packages via apt-get ##########"
 
-  if [ ! $(grep 'rabbitmq' /etc/apt/sources.list &> /dev/null; echo $?) == 0 ]
+  if [ $(grep 'rabbitmq' /etc/apt/sources.list &> /dev/null; echo $?) != 0 ]
   then
     # add rabbitmq APT repo
     echo "########## Adding rabbitmq to sources.list ##########"
@@ -146,7 +146,10 @@ setup_mysql() {
   elif [[ "$TYPE" == "rpms" ]]; then
     service mysqld restart
   fi
-  mysqladmin -u root password StackStorm
+  if [ $(mysql -uroot -e 'show databases' &> /dev/null; echo $?) == 0 ]
+  then
+    mysqladmin -u root password StackStorm
+  fi
   mysql -uroot -pStackStorm -e "DROP DATABASE IF EXISTS mistral"
   mysql -uroot -pStackStorm -e "CREATE DATABASE mistral"
   mysql -uroot -pStackStorm -e "GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'localhost' IDENTIFIED BY 'StackStorm'"
