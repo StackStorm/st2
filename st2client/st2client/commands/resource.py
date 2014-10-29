@@ -193,13 +193,15 @@ class ResourceGetCommand(ResourceCommand):
     display_attributes = ['all']
     attribute_display_order = ['id', 'name', 'description']
 
+    pk_argument_name = 'name_or_id'  # name of the attribute which stores resource PK
+
     def __init__(self, resource, *args, **kwargs):
         super(ResourceGetCommand, self).__init__(resource, 'get',
             'Get individual %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('name_or_id',
-                                 metavar='name-or-id',
+        self.parser.add_argument(self.pk_argument_name,
+                                 metavar=self.pk_argument_name.replace('_', '-'),
                                  help=('Name or ID of the %s.' %
                                        resource.get_display_name().lower()))
         self.parser.add_argument('-a', '--attr', nargs='+',
@@ -210,7 +212,8 @@ class ResourceGetCommand(ResourceCommand):
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.get_resource(args.name_or_id, **kwargs)
+        resource_id = getattr(args, self.pk_argument_name, None)
+        return self.get_resource(resource_id, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         try:
@@ -219,7 +222,8 @@ class ResourceGetCommand(ResourceCommand):
                               attributes=args.attr, json=args.json,
                               attribute_display_order=self.attribute_display_order)
         except ResourceNotFoundError:
-            self.print_not_found(args.name_or_id)
+            resource_id = getattr(args, self.pk_argument_name, None)
+            self.print_not_found(resource_id)
 
 
 class ContentPackResourceGetCommand(ResourceGetCommand):
@@ -232,33 +236,7 @@ class ContentPackResourceGetCommand(ResourceGetCommand):
 
     attribute_display_order = ['id', 'pack', 'name', 'description']
 
-    def __init__(self, resource, *args, **kwargs):
-        super(ResourceGetCommand, self).__init__(resource, 'get',
-            'Get individual %s.' % resource.get_display_name().lower(),
-            *args, **kwargs)
-
-        self.parser.add_argument('ref_or_id',
-                                 metavar='ref-or-id',
-                                 help=('Reference or ID of the %s.' %
-                                       resource.get_display_name().lower()))
-        self.parser.add_argument('-a', '--attr', nargs='+',
-                                 default=self.display_attributes,
-                                 help=('List of attributes to include in the '
-                                       'output. "all" or unspecified will '
-                                       'return all attributes.'))
-
-    @add_auth_token_to_kwargs_from_cli
-    def run(self, args, **kwargs):
-        return self.get_resource(ref_or_id=args.ref_or_id, **kwargs)
-
-    def run_and_print(self, args, **kwargs):
-        try:
-            instance = self.run(args, **kwargs)
-            self.print_output(instance, table.PropertyValueTable,
-                              attributes=args.attr, json=args.json,
-                              attribute_display_order=self.attribute_display_order)
-        except ResourceNotFoundError:
-            self.print_not_found(args.ref_or_id)
+    pk_argument_name = 'ref_or_id'
 
     def get_resource(self, ref_or_id, **kwargs):
         return self.get_resource_by_ref_or_id(ref_or_id=ref_or_id, **kwargs)
