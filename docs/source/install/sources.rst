@@ -34,34 +34,34 @@ To setup the development environment via Vagrant:
 
 ::
 
-    git clone https://github.com/StorminStanley/devenv.git
+    git clone https://github.com/StackStorm/devenv.git
     cd devenv
     ./configure.sh dev
     vagrant up
     vagrant ssh
 
 Refer to the
-`README <https://github.com/StorminStanley/devenv/README.md>`__ under
-https://github.com/StorminStanley/devenv for additional details.
+`README <https://github.com/StackStorm/devenv/README.md>`__ under
+https://github.com/StackStorm/devenv for additional details.
 
 Project Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~
 
 Once the environment is setup, clone the git repo, and make the project.
-This will create the python virtual environment under stanley, download
+This will create the python virtual environment under st2, download
 and install required dependencies, and run tests.
 
 ::
 
-    git clone https://github.com/StorminStanley/stanley.git
-    cd stanley
+    git clone https://github.com/StackStorm/st2.git
+    cd st2
     make all
 
-Running Stanley From Source
+Running st2 From Source
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create the directory /opt/stackstorm and change ownership to the user
-that will run the Stanley services.
+that will run the st2 services.
 
 ::
 
@@ -69,13 +69,13 @@ that will run the Stanley services.
     sudo chown -R OWNER:GROUP /opt/stackstorm   # Change ownership to appropriate user
 
 Specify a user for running local and remote SSH actions: in
-conf/stanley.conf:
+conf/st2.conf:
 
 ::
 
     [ssh_runner]
     user = stanley
-    ssh_key_file = /home/vagrant/.ssh/stanley_rsa
+    ssh_key_file = /home/stanley/.ssh/stanley_rsa
     remote_dir = /tmp
 
 In case you don't have a user for this purpose (as in case of devenv),
@@ -94,7 +94,7 @@ to work with fabric\_runner:
 
        sudo mkdir -p /home/stanley/.ssh
 
-3. Generate keypair for the user running Stanley services
+3. Generate keypair for the user running st2 services
 
    ::
 
@@ -112,7 +112,7 @@ to work with fabric\_runner:
 
        sudo chown -R stanley:stanley /home/stanley/.ssh/
 
-To run Stanley from source, it's assumed that python virtual environment
+To run st2 from source, it's assumed that python virtual environment
 is activated and in use.
 
 ::
@@ -127,7 +127,7 @@ output.
 ::
 
     Starting all st2 servers...
-    Changing working directory to /home/dzimine/share/stanley...
+    Changing working directory to /home/stanley/st2...
     Starting screen session st2-actionrunner...
     Starting screen session st2-api...
     Starting screen session st2-reactor...
@@ -136,7 +136,7 @@ output.
         28158.st2-reactor   (09/25/2014 12:36:43 AM)    (Detached)
         28154.st2-api   (09/25/2014 12:36:43 AM)    (Detached)
         28143.st2-actionrunner  (09/25/2014 12:36:43 AM)    (Detached)
-    3 Sockets in /var/run/screen/S-stanley.
+    3 Sockets in /var/run/screen/S-st2.
 
     Registering actions and rules...
     2014-09-25 00:36:44,670 INFO [-] Database details - dbname:st2, host:0.0.0.0, port:27017
@@ -150,7 +150,7 @@ output.
     ...
     ...
 
-Stanley can now be operated using the REST API, st2 CLI, and the
+st2 can now be operated using the REST API, st2 CLI, and the
 st2client python client library. Hubot/Chat integration is also
 provided.
 
@@ -162,7 +162,7 @@ virtualenv:
 
 ::
 
-    cd stanley/st2client
+    cd st2/st2client
     python setup.py install
 
 Next
