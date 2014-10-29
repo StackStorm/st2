@@ -15,7 +15,6 @@ Pack is the unit of deployment for integrations and automations in order to exte
 
 Its is best to view a pack as the means to extend st2 and allow it to integrate with external systems.
 
-
 Getting a pack
 --------------
 Pack management is done by st2 actions from `packs` pack, pun intended. Run ``st2 action list --pack packs`` for a list of pack management actions.
@@ -69,9 +68,8 @@ Packs may contain automations - rules and workflows. Rules are not loaded by def
 
 .. note:: Pack management is implemented as a pack of st2 actions. Explore :github_st2:`/opt/stackstorm/packs </contrib/packs>` for example of defining actions and workflows.
 
-
-Creating a Pack
-----------------
+Anatomy of a pack
+-----------------
 
 .. todo:: (Manas) Describe pack structure, what it contains, conventions, naming, file structure, what goes there.
 
