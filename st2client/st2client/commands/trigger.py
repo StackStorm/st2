@@ -9,7 +9,9 @@ class TriggerBranch(resource.ResourceBranch):
             parent_parser=parent_parser,
             commands={
                 'list': TriggerListCommand,
-                'get': TriggerGetCommand
+                'get': TriggerGetCommand,
+                'update': TriggerUpdateCommand,
+                'delete': TriggerDeleteCommand
             })
 
 
@@ -19,3 +21,11 @@ class TriggerListCommand(resource.ContentPackResourceListCommand):
 
 class TriggerGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
+
+
+class TriggerUpdateCommand(resource.ContentPackResourceUpdateCommand):
+    pass
+
+
+class TriggerDeleteCommand(resource.ContentPackResourceDeleteCommand):
+    pass

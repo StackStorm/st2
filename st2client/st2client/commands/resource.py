@@ -269,14 +269,15 @@ class ResourceCreateCommand(ResourceCommand):
 
 
 class ResourceUpdateCommand(ResourceCommand):
+    pk_argument_name = 'name_or_id'
 
     def __init__(self, resource, *args, **kwargs):
         super(ResourceUpdateCommand, self).__init__(resource, 'update',
             'Updating an existing %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('name_or_id',
-                                 metavar='name-or-id',
+        self.parser.add_argument(self.pk_argument_name,
+                                 metavar=self.pk_argument_name.replace('_', '-'),
                                  help=('Name or ID of the %s to be updated.' %
                                        resource.get_display_name().lower()))
         self.parser.add_argument('file',
@@ -287,7 +288,10 @@ class ResourceUpdateCommand(ResourceCommand):
     def run(self, args, **kwargs):
         if not os.path.isfile(args.file):
             raise Exception('File "%s" does not exist.' % args.file)
-        instance = self.get_resource(args.name_or_id, **kwargs)
+
+        resource_id = getattr(args, self.pk_argument_name, None)
+        instance = self.get_resource(resource_id, **kwargs)
+
         with open(args.file, 'r') as f:
             data = json.loads(f.read())
             modified_instance = self.resource.deserialize(data)
@@ -307,25 +311,40 @@ class ResourceUpdateCommand(ResourceCommand):
                           attributes=['all'], json=args.json)
 
 
+class ContentPackResourceUpdateCommand(ResourceUpdateCommand):
+    pk_argument_name = 'ref_or_id'
+
+
 class ResourceDeleteCommand(ResourceCommand):
+    pk_argument_name = 'name_or_id'
 
     def __init__(self, resource, *args, **kwargs):
         super(ResourceDeleteCommand, self).__init__(resource, 'delete',
             'Delete an existing %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('name_or_id',
-                                 metavar='name-or-id',
+        self.parser.add_argument(self.pk_argument_name,
+                                 metavar=self.pk_argument_name.replace('_', '-'),
                                  help=('Name or ID of the %s.' %
                                        resource.get_display_name().lower()))
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        instance = self.get_resource(args.name_or_id, **kwargs)
+        resource_id = getattr(args, self.pk_argument_name, None)
+        instance = self.get_resource(resource_id, **kwargs)
         self.manager.delete(instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         try:
             self.run(args, **kwargs)
         except ResourceNotFoundError:
-            self.print_not_found(args.name_or_id)
+            resource_id = getattr(args, self.pk_argument_name, None)
+            self.print_not_found(resource_id)
+
+
+class ContentPackResourceDeleteCommand(ResourceDeleteCommand):
+    """
+    Base command class for deleting a resource which belongs to a content pack.
+    """
+
+    pk_argument_name = 'ref_or_id'
