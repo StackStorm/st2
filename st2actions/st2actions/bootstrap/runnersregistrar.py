@@ -114,6 +114,8 @@ def register_runner_types():
                 'parallel': {
                     'description': 'If true, the command will be executed on all the '
                                    'hosts in parallel.',
+                    'default': False,
+                    'immutable': True,
                     'type': 'boolean'
                 },
                 'sudo': {
