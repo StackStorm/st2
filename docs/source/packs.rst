@@ -122,6 +122,149 @@ The ``rules`` folder contains rules. See `Rules </rules>`__ for specifics on wri
 
 The ``sensors`` folder contains sensors. See `Sensors </Sensors>`__ for specifics on writing sensors and registering TriggerTypes.
 
+My first pack
+~~~~~~~~~~~~~
+If you would like to create a pack yourself then follow these *simple* steps.
+
+1. Create a pack folder and its internal structure
+
+.. code-block:: bash
+
+   # Name of folder is name of the pack. Therefore, this is the 'hello-st2' pack.
+   mkdir hello-st2
+   cd hello-st2
+   mkdir actions
+   mkdir rules
+   mkdir sensors
+   mkdir etc
+
+Note that all folders are optional. If a folder is present it is introspected for content i.e. it is safe to skip a folder or keep it empty.
+
+2. Now create the pack description files.
+
+.. code-block:: bash
+
+   # Name of folder is name of the pack. Therefore, this is the 'hello-st2' pack.
+   touch pack.yaml
+   touch config.yaml
+
+Lets leave these empty for now and fill them in as per requirement.
+
+3. Add an action
+
+.. code-block:: bash
+
+   touch actions/hello.json
+   touch actions/hello.sh
+
+   # Content of hello.sh
+   #!/usr/bin/env bash
+   echo "Hello st2!"
+
+   # Content of hello.json
+   {
+       "name": "hello",
+       "runner_type": "run-local",
+       "description": "Hello st2 action.",
+       "enabled": true,
+       "entry_point": "hello.sh",
+       "parameters": {
+       }
+   }
+
+
+4. Add a sensor
+
+.. code-block:: bash
+
+    touch sensors/sensor1.py
+
+    # content of sensor1.py
+    import eventlet
+
+    class HelloSensor(object):
+        def __init__(self, container_service, config=None):
+            self._container_service = container_service
+            self._stop = False
+
+        def setup(self):
+            pass
+
+        def start(self):
+            eventlet.spawn_after(self._on_time, 10)
+
+        def stop(self):
+            self._stop = True
+
+        def get_trigger_types(self):
+            return [{
+                'name': 'event1',
+                'payload_schema': {
+                    'type': 'object'
+                }
+            }]
+
+        def _on_time(self):
+            if self._stop:
+                return
+            self._do_post_trigger()
+            eventlet.spawn_after(self._on_time, 10)
+
+        def _do_post_trigger(self):
+            trigger = {'trigger': 'hello-st2.event1'}
+            self._container_service.dispatch(trigger, {})
+
+
+    # Methods required for programmable sensors.
+    def add_trigger(self, trigger):
+        pass
+
+    def update_trigger(self, trigger):
+        pass
+
+    def remove_trigger(self, trigger):
+        pass
+
+5. Add a rule
+
+.. code-block:: bash
+
+   touch rules/rule1.json
+
+   # Content of rule1.json
+   {
+      "name": "on_event1",
+      "description": "Sample rule firing on hello-st2.event1.",
+
+      "trigger": {
+         "type": "hello-st2.event1"
+      },
+
+      "action": {
+          "ref": "hello-st2.hello",
+      },
+
+      "enabled": true
+   }
+
+6. Deploy pack manually
+
+.. code-block:: bash
+
+   # Assuming that hello-st2 is on the same machine as the st2 content-repo.
+   cp -R ./hello-st2 /opt/stackstork/
+
+   # Reloads the content
+   st2 run packs.load register=all
+
+   # To pick up sensors, need to bounce the sensor_container.
+   # Note: live update coming soon and this won't be needed.
+   st2 run packs.restart_component servicename=sensor_container
+
+
+Once you follow steps 1-6 you will have created your first pack. Commands like ``st2 action list``, ``st2 rule list`` and ``st2 trigger list`` will show you the loaded content.
+
+
 Pushing a Pack to the Community
 -------------------------------
 
