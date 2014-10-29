@@ -1,3 +1,5 @@
+ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
 SHELL := /bin/bash
 TOX_DIR := .tox
 VIRTUALENV_DIR ?= virtualenv
@@ -28,7 +30,7 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
-all: requirements stormbot check tests docs
+all: requirements stormbot check tests check-docs-examples docs
 
 # Target for debugging Makefile variable assembly
 .PHONY: play
@@ -40,6 +42,16 @@ play:
 
 .PHONY: check
 check: requirements flake8 checklogs
+
+.PHONY: check-docs-examples
+check-docs-examples: check-docs-json-examples
+
+.PHONY: check-docs-json-examples
+check-docs-json-examples:
+	@echo
+	@echo "==================== json.tool ===================="
+	@echo
+	find ${ROOT_DIR}/docs/source/examples/ -name "*.json" -print0 | xargs -0 -I FILENAME python -mjson.tool FILENAME
 
 .PHONY: checklogs
 checklogs:

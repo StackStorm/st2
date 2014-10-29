@@ -103,13 +103,8 @@ at the sensor implementation
 `here <..//st2reactor/st2reactor/contrib/sensors/st2_webhook_sensor.py>`__.
 The payload format is
 
-.. code:: json
-
-        {
-            "name": "some user identifiable name.",
-            "type": "name of the trigger registered with system"
-            "payload": {"key1" "value1", "key2": "value2", "key3": "value3"}       
-        }
+.. literalinclude:: /examples/sensors/sample_webhook_payload_format.json
+    :language: javascript
 
 More sensor examples are in
 `contrib/sandbox/packages <../contrib/sandbox/packages/>`__.
