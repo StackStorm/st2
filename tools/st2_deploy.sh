@@ -180,7 +180,7 @@ start on runlevel [2345]
 stop on runlevel [016]
 respawn
 script
-    /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf
+    /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /tmp/mistral.log
 end script
 mistral_upstart
 }
@@ -197,7 +197,7 @@ cat <<mistral_systemd >$systemd
 Description=Mistral Workflow Service
  
 [Service]
-ExecStart=/opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf
+ExecStart=/opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /tmp/mistral.log
 Restart=on-abort
  
 [Install]
