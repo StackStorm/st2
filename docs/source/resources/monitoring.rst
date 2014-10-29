@@ -9,6 +9,8 @@ Prerequisites
 
  - A box with sensu and st2 up and running. `st2express <https://github.com/StackStorm/st2express>`_ comes with st2 and sensu installed. We are going to use that box as the example throughout this article.
 
+ - If you are using your own box, please see :doc:`./../install/index` section for st2 installation instructions. Sensu installation instructions are available `here <http://sensuapp.org/docs/latest/guide>`_.
+
 Instructions
 ^^^^^^^^^^^^
 1. Install `st2 sensu integration pack <https://github.com/StackStorm/st2contrib/tree/master/packs/sensu>`_. If you have already installed all the packs, skip this step.
@@ -17,48 +19,17 @@ Instructions
 
     st2 run packs.install packs=sensu
 
-2. Now create a rule in /opt/stackstorm/sensu/rules like so:
+2. A sample sensu rule is shown below.
+Copy the sample rule to /opt/stackstorm/sensu/rules/sensu_action_runners_rule.json.
+
+.. literalinclude:: /../../contrib/examples/rules/sensu_action_runners_rule.json
+    :language: json
+
+3. Now create the rule.
 
 ::
 
-    sudo mkdir /opt/stackstorm/sensu/rules
-    cat /opt/stackstorm/sensu/rules/st2-sensu-rule.json
-    {
-        "name": "sensu.action-runners-rule",
-        "description": "Sample rule that dogfoods st2.",
-
-        "trigger": {
-            "type": "sensu.event_handler",
-            "parameters": {
-            }
-        },
-
-        "criteria": {
-            "trigger.check.name": {
-                "pattern": "cron_check",
-                "type": "equals"
-            },
-            "trigger.check.output": {
-                "pattern": "CheckProcs CRITICAL*",
-                "type": "matchregex"
-            }
-        },
-
-        "action": {
-            "ref": "core.local",
-            "parameters": {
-                "cmd": "echo \"{{trigger}}\" >> /tmp/sensu.webhook-sample.out"
-            }
-        },
-
-        "enabled": true
-    }
-
-3. Now register the rule.
-
-::
-
-    sudo st2ctl reload --register-all
+    st2 rule create /opt/stackstorm/sensu/rules/sensu_action_runners_rule.json
 
 4. Check if rule is listed.
 
@@ -129,7 +100,7 @@ You should see sensu.action-runners-rule listed.
         }
     }
 
-8. Now copy the `st2_handler.py<https://github.com/StackStorm/st2contrib/blob/master/packs/sensu/etc/st2_handler.py>`_ from sensu pack to the sensu handlers dir.
+8. Now copy the `st2_handler.py <https://github.com/StackStorm/st2contrib/blob/master/packs/sensu/etc/st2_handler.py>`_ from sensu pack to the sensu handlers dir.
 
 ::
 
@@ -143,7 +114,7 @@ You should see sensu.action-runners-rule listed.
     sudo service sensu-server restart
     sudo service sensu-client restart
 
-10. Create a sensu event by killing a runner process.
+11. Create a sensu event by killing a runner process.
 
 ::
 
@@ -171,20 +142,27 @@ You'll see something like
 
 ::
 
-    st2 trigget list
+    st2 trigger list
 
 You should see sensu.event_handler in the output.
 
-13. Now to verify whether an action has been invoked, cat the output file.
+13. You can see the list of sensu checks by invoking the st2 check_list action.
+
+::
+
+    st2 run sensu.check_list
+
+14. Now to verify whether an action has been invoked, cat the output file.
 
 ::
 
     cat /tmp/sensu.webhook-sample.out
     {u'action': u'create', u'check': {u'status': 2, u'executed': 1414603271, u'name': u'cron_check', u'handlers': [u'default', u'st2'], u'issued': 1414603271, u'interval': 60, u'command': u'/etc/sensu/plugins/check-procs.rb -p actionrunner -C 10 ', u'subscribers': [u'webservers'], u'duration': 0.046, u'output': u'CheckProcs CRITICAL: Found 9 matching processes; cmd /actionrunner/\n', u'history': [u'0', u'0', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2']}, u'client': {u'timestamp': 1414603261, u'version': u'0.14.0', u'name': u'st2express', u'subscriptions': [u'all', u'webservers'], u'address': u'172.168.90.50'}, u'occurrences': 1, u'id': u'e056509c-9728-48cd-95cc-c41a4b62ae0e'}
 
-14. Reset st2.
+15. Reset st2 so you can bring back all the runners.
 
 ::
 
     sudo st2ctl restart
 
+The instructions showed you how to invoke a very simple action when there is a sensu alert. In production environment, an action is a remediation action which would spin up an action runner. Look at :doc:`./../actions` section.
