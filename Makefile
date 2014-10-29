@@ -70,7 +70,7 @@ livedocs: docs .livedocs
 	@echo "                       RUNNING DOCS"
 	@echo "==========================================================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; sphinx-autobuild -b html $(DOC_SOURCE_DIR) $(DOC_BUILD_DIR)/html
+	. $(VIRTUALENV_DIR)/bin/activate; sphinx-autobuild -H 0.0.0.0 -b html $(DOC_SOURCE_DIR) $(DOC_BUILD_DIR)/html
 	@echo
 
 .PHONY: pylint
