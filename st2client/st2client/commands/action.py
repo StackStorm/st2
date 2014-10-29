@@ -365,8 +365,7 @@ class ActionExecutionListCommand(resource.ResourceCommand):
             *args, **kwargs)
 
         self.group = self.parser.add_mutually_exclusive_group()
-        self.group.add_argument('--action-name', help='Action name to filter the list.')
-        self.group.add_argument('--action-id', help='Action id to filter the list.')
+        self.group.add_argument('--action', help='Action reference to filter the list.')
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=50,
                                  help=('List N most recent %s; '
@@ -383,10 +382,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        if args.action_name:
-            kwargs['action_name'] = args.action_name
-        elif args.action_id:
-            kwargs['action_id'] = args.action_id
+        if args.action:
+            kwargs['action'] = args.action
         return self.manager.query(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
