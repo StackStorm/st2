@@ -1,9 +1,6 @@
 Integration Packs
 ===================
 
-.. todo::
-    Say that we have package management.
-
 What is a pack?
 ---------------
 Pack is the unit of deployment for integrations and automations in order to extend st2. Typically a pack is organized along service or product boundaries e.g. AWS, Docker, Sensu etc. A pack can contain the following artifacts.
@@ -13,7 +10,7 @@ Pack is the unit of deployment for integrations and automations in order to exte
 * `Rules </rules>`__
 * `Sensors </sensors>`__
 
-Its is best to view a pack as the means to extend st2 and allow it to integrate with external systems.
+Its is best to view a pack as the means to extend st2 and allow it to integrate with external systems. See `next section </packs.html#getting-a-pack>`__ to learn more about pack management.
 
 Getting a pack
 --------------
@@ -68,10 +65,62 @@ Packs may contain automations - rules and workflows. Rules are not loaded by def
 
 .. note:: Pack management is implemented as a pack of st2 actions. Explore :github_st2:`/opt/stackstorm/packs </contrib/packs>` for example of defining actions and workflows.
 
-Anatomy of a pack
------------------
+Create a pack
+-------------
+Packs have a defined structure that is prescribed by st2. It is required to follow this structure while creating your own pack and is also helpful to know while debugging issues with packs.
 
-.. todo:: (Manas) Describe pack structure, what it contains, conventions, naming, file structure, what goes there.
+Anatomy
+~~~~~~~
+Canonical pack as laid out on the file system.
+
+.. code-block:: bash
+
+   # contents a pack folder
+   actions/
+   rules/
+   sensors/
+   etc/
+   config.yaml
+   pack.yaml
+
+At the topmost level are the main folders ``actions``, ``rules`` and ``sensors`` as well as some shared files.
+
+* ``etc`` - A folder to place bootstrap, dependency listings (like requirements.txt) etc. This folder is opaque to st2.
+* ``pack.yaml`` - Manifest file which for now is only a sentinel file to identify the folder as a pack.
+* ``config.yaml`` - Shared config file that is provided to both actions and sensors.
+
+.. code-block:: bash
+
+   # contents of actions/
+   actions/
+      lib/
+      action1.json
+      action1.py
+      action2.json
+      action1.sh
+      workflow1.json
+      workflow1.yaml
+
+The ``actions`` folder contains action script files and action metadata files. See `Actions </actions>`__ and `Workflows </workflows>`__ for specifics on writing actions. Note that the ``lib`` sub-folder is always available for access for an action script.
+
+.. code-block:: bash
+
+   # contents of rules/
+   rules/
+      rule1.json
+      rule2.json
+
+The ``rules`` folder contains rules. See `Rules </rules>`__ for specifics on writing rules.
+
+.. code-block:: bash
+
+   # contents of sensors/
+   sensors/
+      common/
+      sensor1.py
+      sensor2.py
+
+The ``sensors`` folder contains sensors. See `Sensors </Sensors>`__ for specifics on writing sensors and registering TriggerTypes.
 
 Pushing a Pack to the Community
 -------------------------------
