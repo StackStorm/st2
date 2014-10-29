@@ -30,7 +30,7 @@ function st2start(){
   st2auth --config-file ${STANCONF} &>> ${LOGFILE} &
   sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
   /usr/bin/history --config-file ${STANCONF} &>> ${LOGFILE} &
-  /opt/openstack/mistral/.venv/bin/mistral-server &>> /tmp/mistral.log &
+  service mistral restart
 }
 
 function st2stop(){
@@ -53,7 +53,7 @@ function st2stop(){
   if [[ ! -z $MISTRALPID ]]
   then
     echo "Killing mistral PID: ${MISTRALPID}"
-    kill $MISTRALPID
+    service mistral stop
   else
     echo "mistral is not running"
   fi
@@ -70,20 +70,25 @@ function restart_component() {
       PROC_COUNT=1
     fi
     echo "restarting service ${COM} with ${PROC_COUNT} process(es)."
-    PID=`ps ax | grep -v grep | grep -v st2ctl | grep ${COM} | awk '{print $1}'`
-    if [[ ! -z $PID ]]
+    if [[ "${COM}" == "mistral" ]]
     then
-      for p in $PID
-      do
-        echo "Killing ${COM} PID: ${p}"
-        kill $p
-      done
-      for i in `seq 1 ${PROC_COUNT}`
-      do
-        ${COM} --config-file ${STANCONF} &>> ${LOGFILE} &
-      done
+      service mistral restart
     else
-      echo "${COM} is not running"
+      PID=`ps ax | grep -v grep | grep -v st2ctl | grep ${COM} | awk '{print $1}'`
+      if [[ ! -z $PID ]]
+      then
+        for p in $PID
+        do
+          echo "Killing ${COM} PID: ${p}"
+          kill $p
+        done
+        for i in `seq 1 ${PROC_COUNT}`
+        do
+          ${COM} --config-file ${STANCONF} &>> ${LOGFILE} &
+        done
+      else
+        echo "${COM} is not running"
+      fi
     fi
   else
     echo "No component specified to restart."
