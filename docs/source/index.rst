@@ -10,12 +10,12 @@ Contents:
     install/index
     video
     start
+    packs
     actions
     rules
     sensors
     datastore
     workflows
-    packs
     history
     resources/index
     reference/index
