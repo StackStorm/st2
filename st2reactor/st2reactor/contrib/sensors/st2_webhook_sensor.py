@@ -5,9 +5,12 @@ import six
 from flask import (jsonify, request, Flask)
 import flask_jsonschema
 from oslo.config import cfg
+from st2common import log as logging
+from st2common.models.system.common import ResourceReference, InvalidResourceReferenceError
 
 http_client = six.moves.http_client
 
+LOG = logging.getLogger(__name__)
 HOST = cfg.CONF.st2_webhook_sensor.host
 PORT = cfg.CONF.st2_webhook_sensor.port
 BASE_URL = cfg.CONF.st2_webhook_sensor.url
@@ -99,9 +102,16 @@ class St2WebhookSensor(object):
                                            methods=['POST'])
 
     def _to_trigger(self, body):
+        trigger = body.get('trigger', '')
+        trigger_ref = None
+        try:
+            trigger_ref = ResourceReference.from_string_reference(ref=trigger)
+        except InvalidResourceReferenceError:
+            LOG.debug('Unable to parse reference.', exc_info=True)
+
         return {
-            'name': body.get('name', ''),
-            'pack': body.get('pack', ''),
+            'name': trigger_ref.name if trigger_ref else None,
+            'pack': trigger_ref.pack if trigger_ref else None,
             'type': body.get('type', ''),
             'parameters': {}
         }, body['payload']

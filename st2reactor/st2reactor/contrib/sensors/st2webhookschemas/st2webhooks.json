@@ -2,8 +2,8 @@
     "create": {
         "type": "object",
         "properties": {
-            "name": {
-                "description": "Name of the Trigger. Can use name of a parameter-less TriggerType.",
+            "trigger": {
+                "description": "Reference to the Trigger. Can use reference to a parameter-less TriggerType.",
                 "type": "string"
             },
             "type": {
@@ -16,6 +16,6 @@
                 "type": "object"
             }
         },
-        "required": ["name", "payload"]
+        "required": ["payload"]
     }
 }
