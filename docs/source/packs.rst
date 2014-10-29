@@ -264,11 +264,12 @@ Lets leave these empty for now and fill them in as per requirement.
 
 Once you follow steps 1-6 you will have created your first pack. Commands like ``st2 action list``, ``st2 rule list`` and ``st2 trigger list`` will show you the loaded content.
 
+Next steps would be to create an integration pack for you favorite tool or service that you would like to use with st2. Happy hacking!
+
 
 Pushing a Pack to the Community
 -------------------------------
 
-.. todo:: Describe the process of contribution. Clone the "sample" repo? Or clone the st2contrib, submit a pull request. Or if you prefer to keep it separate, just let us know and we will reference it from the community site.
 
 .. rubric:: What's Next?
 
