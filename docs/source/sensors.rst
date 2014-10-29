@@ -4,10 +4,10 @@ Triggers and Sensors
 What?
 ~~~~~
 
-Sensors are essentially adapters that are a way to integrate stanley
-with an external system so that triggers can be injected into stanley
+Sensors are essentially adapters that are a way to integrate st2
+with an external system so that triggers can be injected into st2
 before rule matching results in potential actions. Sensors are a piece
-of Python code and have to follow the stanley defined sensor interface
+of Python code and have to follow the st2 defined sensor interface
 requirements to be successfully run.
 
 How? (a.k.a writing your own sensor)
@@ -44,7 +44,7 @@ Once you write your own sensor, you can test it stand alone like so:
 
 ::
 
-    st2reactor/bin/sensor_container --config-file=conf/stanley.conf --sensor-path /path/to/sensor/file
+    st2reactor/bin/sensor_container --config-file=conf/st2.conf --sensor-path /path/to/sensor/file
 
 [Note: You should have setup the virtualenv and activated it before the
 previous command can work.]
@@ -56,7 +56,7 @@ it, place your sensor in /opt/stackstorm/sensors/.
 
     $cp /path/to/sensor/${sensorfile}.py /opt/stackstorm/sensors/
 
-Note: If stanley reactor component is already running on the box, you'll
+Note: If st2 reactor component is already running on the box, you'll
 have to restart it to pick up the new sensor.
 
 Examples
@@ -73,7 +73,7 @@ triggers.
 Advanced examples
 ~~~~~~~~~~~~~~~~~
 
-There are some common use cases that we identified and stanley comes
+There are some common use cases that we identified and st2 comes
 bundled with some default sensors. For example, the two triggers in
 this section are implemented as sensors.
 
@@ -93,12 +93,12 @@ Look at the generic webhooks sensor implementation
 The payload here can have arbitray structure. The webhook sensor uses
 `Flask <http://flask.pocoo.org/>`__ to spin up restful endpoints.
 
-Stanley webhook sensor
+st2 webhook sensor
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Stanley defines it's own webhook format if you want a REST interface to
+st2 defines it's own webhook format if you want a REST interface to
 inject triggers from curl or other plugins. Unlike the generic webhooks,
-the payload for this endpoint should be in a form stanley expects. Look
+the payload for this endpoint should be in a form st2 expects. Look
 at the sensor implementation
 `here <..//st2reactor/st2reactor/contrib/sensors/st2_webhook_sensor.py>`__.
 The payload format is

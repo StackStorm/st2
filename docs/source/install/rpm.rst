@@ -1,7 +1,7 @@
 RedHat / Fedora
 ================
 
-.. todo:: (phool) review, likely rewrite completely. 
+.. todo:: (phool) review, likely rewrite completely.
 
 St2 RPMs have been tested and precompiled for Fedora 20. In order to
 download them from the StackStorm release server you need to contact us
@@ -11,7 +11,7 @@ Deployment Script Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once you have your credentials you can download our deployment script
-and use it to install all the prerequisites and the Stanley packages.
+and use it to install all the prerequisites and the st2 packages.
 After downloading and running this script, you can jump straight to the
 Configuration section.
 
@@ -20,16 +20,16 @@ match the credentials you received from StackStorm.
 
 ::
 
-    curl -q -k -O https://<USERNAME>:<PASSWORD>@ops.stackstorm.net/releases/stanley/scripts/deploy_stan.sh
+    curl -q -k -O https://<USERNAME>:<PASSWORD>@ops.stackstorm.net/releases/st2/scripts/deploy_stan.sh
 
-You can then run the script to download and install the Stanley packages
+You can then run the script to download and install the st2 packages
 by simply passing in the version number:
 
 ::
 
     sudo ./deploy_stan.sh 0.5.0
 
-This will download the latest build of Stanley version 0.5.0.
+This will download the latest build of st2 version 0.5.0.
 
 ---------------
 
@@ -50,7 +50,7 @@ Yum
 Pip
 '''
 
-The following packages are required by Stanley to run but will be
+The following packages are required by st2 to run but will be
 installed by the deploy\_stan.sh script if it is used.
 
 -  pbr>=0.5.21,<1.0
@@ -80,7 +80,7 @@ Once you have the credentials you can download the packages from:
 
 ::
 
-    https://ops.stackstorm.net/releases/stanley/<VERSION>/rpms/current/
+    https://ops.stackstorm.net/releases/st2/<VERSION>/rpms/current/
 
 The required packages are listed below:
 
@@ -102,7 +102,7 @@ Configuration
 MongoDB
 '''''''
 
-Stanley requires replication to be enabled in MongoDB. Add these lines
+st2 requires replication to be enabled in MongoDB. Add these lines
 to your mongo.conf file:
 
 ::
@@ -131,19 +131,19 @@ In order to run commands on remote you will need to setup a ssh keypair
 and place the private key in a location accessible by the user that the
 processes are running as.
 
-By default, the username is Stanley, and the private key is located at
+By default, the username is stanley, and the private key is located at
 /home/stanley/.ssh/stanley\_rsa
 
-These options can be changed in the Stanley configuration file:
+These options can be changed in the st2 configuration file:
 
 ::
 
-    /etc/stanley/stanley.conf
+    /etc/st2/st2.conf
 
 Starting and Stopping
 ^^^^^^^^^^^^^^^^^^^^^
 
-The command to start and or stop stanley is 'st2run'.
+The command to start and or stop st2 is 'st2run'.
 
 ::
 

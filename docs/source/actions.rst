@@ -1,8 +1,8 @@
 Actions
 =======
 
-To execute actions via Stanley requires the action to be registered
-within Stanley. Stanley actions are composed of following:
+To execute actions via st2 requires the action to be registered
+within st2. st2 actions are composed of following:
 
 1. Action Runner.
 2. Action script.
@@ -12,7 +12,7 @@ Action Runner
 ^^^^^^^^^^^^^
 
 An action runner is the execution environment for user-implemented
-actions. For now Stanley comes with pre-canned Action runners like a
+actions. For now st2 comes with pre-canned Action runners like a
 remote runner and shell runner which provide for user-implemented
 actions to be run remotely (via SSH) and locally. The objective is to
 allow the Action author to concentrate only on the implementation of the
@@ -23,12 +23,12 @@ Action Script
 
 Action Script are user supplied content to operate against external
 systems. Scripts can be shell or python and can be written assuming they
-can execute on remote systems or the box/machine local to Stanley.
+can execute on remote systems or the box/machine local to st2.
 
 Action registration
 ^^^^^^^^^^^^^^^^^^^
 
-Actions must be registered with Stanley in order for them to be made
+Actions must be registered with st2 in order for them to be made
 available. Registration involves providing script location information
 and metadata to help operate an action via various clients and API.
 
@@ -36,18 +36,18 @@ Writing an action
 ~~~~~~~~~~~~~~~~~
 
 See
-`STANLEY/contrib/examples/actions/bash\_exit\_code/bash\_exit\_code.sh <../contrib/examples/actions/bash_exit_code/bash_exit_code.sh>`__
+`st2/contrib/examples/actions/bash\_exit\_code/bash\_exit\_code.sh <../contrib/examples/actions/bash_exit_code/bash_exit_code.sh>`__
 and
-`STANLEY/contrib/examples/actions/python\_fibonacci/fibonacci.py <../contrib/examples/actions/python_fibonacci/fibonacci.py>`__
+`st2/contrib/examples/actions/python\_fibonacci/fibonacci.py <../contrib/examples/actions/python_fibonacci/fibonacci.py>`__
 to see examples of shell and python script actions respectively.
 
 Script interpreter
 ^^^^^^^^^^^^^^^^^^
 
-Action content is delivered as a script to the Stanley system. Action
+Action content is delivered as a script to the st2 system. Action
 scripts expect the '#!' line to identify the interpreter to run.
-Currently, the Stanley system has been experimented with bash scripts
-and python scripts but Stanley itself is agnostic of the interpreter so
+Currently, the st2 system has been experimented with bash scripts
+and python scripts but st2 itself is agnostic of the interpreter so
 other interpreters should work just as well. It is important to note
 that all dependencies must be present on the system on which the action
 is expected to execute.
@@ -63,7 +63,7 @@ Storing the Script
 ^^^^^^^^^^^^^^^^^^
 
 All actions are stored in '/opt/stackstorm/actions' on the box where
-Stanley components execute. It is recommended to use the following
+st2 components execute. It is recommended to use the following
 structure :
 
 ::
@@ -78,7 +78,7 @@ Registering an action
 ~~~~~~~~~~~~~~~~~~~~~
 
 Action registration can be provided as a json file stored in
-'/opt/stackstorm/actions' folder on the box where Stanley components
+'/opt/stackstorm/actions' folder on the box where st2 components
 execute.
 
 ::
@@ -211,7 +211,7 @@ run-local runner
 ^^^^^^^^^^^^^^^^
 
 The shell runner is identified by the literal 'shell'. It always
-executes the action locally i.e. on the box that runs the Stanley
+executes the action locally i.e. on the box that runs the st2
 components under the user that runs the components.
 
 Parameters provided by this runner are as follows:
@@ -246,8 +246,8 @@ system-wide configuration and should be present on all the boxes that
 run the action.
 
 The 'ssh\_runner' section in
-`STANLEY/conf/stanley.conf <../conf/stanley.conf>`__ which gets copied
-over into etc/stanley/stanley.conf carries the config parameters.
+`st2/conf/st2.conf <../conf/st2.conf>`__ which gets copied
+over into etc/st2/st2.conf carries the config parameters.
 
 1. user : name of the user; defaults to 'stanley'
 2. ssh\_key\_file : location of the ssh private key whose corresponding
@@ -258,7 +258,7 @@ over into etc/stanley/stanley.conf carries the config parameters.
 Pre-define actions
 ~~~~~~~~~~~~~~~~~~
 
-There are a few predefined actions that come out of the box when Stanley
+There are a few predefined actions that come out of the box when st2
 is run via RPMs.
 
 local : This action allows execution of arbitrary \*nix/shell commands
@@ -276,7 +276,7 @@ on a set of boxes. Via the CLI executing this command would be -
     st2 run remote cmd='ls -l' host='host1, host2' user='user1'
 
 http : This action allows execution of http requests. Think curl
-executed from the stanley box.
+executed from the st2 box.
 
 ::
 
@@ -328,6 +328,6 @@ from the "run-local" runner.
 
         user
             The user who is executing this command. This is for audit purposes
-            only. The command will always execute as the user stanley.
+            only. The command will always execute as the user st2.
             Type: string
 

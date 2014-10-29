@@ -1,14 +1,14 @@
-Configure SSH 
+Configure SSH
 =================================
 
-To run actions on remote hosts, StackStorm uses `Fabric <http://www.fabfile.org/>`_. 
+To run actions on remote hosts, StackStorm uses `Fabric <http://www.fabfile.org/>`_.
 
-Configure passwordless SSH to run actions on remote hosts.  
+Configure passwordless SSH to run actions on remote hosts.
 
-StackStorm ssh user and a path to SSH key are set in ``/etc/st2/st2.conf``. During installation, ``st2_deploy.sh`` script configures ssh on the local box for a user ``stanley``. 
+StackStorm ssh user and a path to SSH key are set in ``/etc/st2/st2.conf``. During installation, ``st2_deploy.sh`` script configures ssh on the local box for a user ``st2``.
 
 .. todo:: (phool, lakshmi?) Describe ssh configurations on the remote boxes. Add "verification" section, with something like 'be sure that `ssh -t hostname uname -a` works'.
-   
+
 Troubleshooting
 -----------------
 
