@@ -6,6 +6,7 @@ import requests.exceptions
 from oslo.config import cfg
 from st2common import log as logging
 from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.models.system.common import ResourceReference
 
 ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
 TRIGGER_TYPE_ENDPOINT = cfg.CONF.action_sensor.triggers_base_url
@@ -75,9 +76,8 @@ def post_trigger(action_execution):
         return
     try:
         payload = json.dumps({
-            'name': ACTION_TRIGGER_TYPE['name'],
-            'pack': ACTION_TRIGGER_TYPE['pack'],
-            'type': '{}.{}'.format(ACTION_TRIGGER_TYPE['pack'], ACTION_TRIGGER_TYPE['name']),
+            'trigger': ResourceReference.to_string_reference(
+                pack=ACTION_TRIGGER_TYPE['pack'], name=ACTION_TRIGGER_TYPE['name']),
             'payload': {
                 'execution_id': str(action_execution.id),
                 'status': action_execution.status,
