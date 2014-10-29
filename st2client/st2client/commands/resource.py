@@ -116,18 +116,8 @@ class ResourceCommand(commands.Command):
         return instance
 
     def get_resource_by_ref_or_id(self, ref_or_id, **kwargs):
-        query_params = {'ref': ref_or_id}
+        instance = self.manager.get_by_ref_or_id(ref_or_id=ref_or_id, **kwargs)
 
-        try:
-            instance = self.manager.query(**query_params)[0]
-        except IndexError:
-            instance = None
-
-        if not instance:
-            try:
-                instance = self.manager.get_by_id(ref_or_id, **kwargs)
-            except:
-                pass
         if not instance:
             message = ('Resource with id or reference "%s" doesn\'t exist.' %
                        (ref_or_id))

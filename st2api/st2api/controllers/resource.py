@@ -95,28 +95,25 @@ class ResourceController(rest.RestController):
 class ContentPackResourceControler(ResourceController):
     include_reference = False
 
-    @jsexpose()
-    def get_all(self, **kwargs):
-        result = self._get_all(**kwargs)
-        result = result or []
+    @jsexpose(str)
+    def get_one(self, ref_or_id):
+        LOG.info('GET %s with ref_or_idid=%s', pecan.request.path, ref_or_id)
 
-        if self.include_reference:
-            for item in result:
-                pack = getattr(item, 'pack', None)
-                name = getattr(item, 'name', None)
+        try:
+            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+        except Exception as e:
+            LOG.exception(e.message)
+            pecan.abort(http_client.NOT_FOUND, e.message)
+            return
 
-                item.ref = ResourceReference(pack=pack, name=name).ref
+        result = self.model.from_model(instance)
+        LOG.debug('GET %s with ref_or_id=%s, client_result=%s',
+                  pecan.request.path, ref_or_id, result)
 
         return result
 
-    def _get_all(self, **kwargs):
-        try:
-            kwargs = self._get_filters(**kwargs)
-        except InvalidResourceReferenceError:
-            return []
-        except Exception as e:
-            pecan.abort(http_client.BAD_REQUEST, e.message)
-
+    @jsexpose()
+    def get_all(self, **kwargs):
         return super(ContentPackResourceControler, self)._get_all(**kwargs)
 
     def _get_by_ref_or_id(self, ref_or_id):

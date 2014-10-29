@@ -169,10 +169,20 @@ ACTION_11 = {
 class TestActionController(FunctionalTest):
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
-    def test_get_one(self):
+    def test_get_one_using_id(self):
         post_resp = self.__do_post(ACTION_1)
         action_id = self.__get_action_id(post_resp)
         get_resp = self.__do_get_one(action_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self.__get_action_id(get_resp), action_id)
+        self.__do_delete(action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_one_using_ref(self):
+        ref = '.'.join([ACTION_1['pack'], ACTION_1['name']])
+        action_id = self.__get_action_id(self.__do_post(ACTION_1))
+        get_resp = self.__do_get_one(ref)
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(self.__get_action_id(get_resp), action_id)
         self.__do_delete(action_id)
@@ -208,19 +218,8 @@ class TestActionController(FunctionalTest):
         resp = self.app.get('/actions?name=%s' % ACTION_1['name'])
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')
-        ref = '.'.join([ACTION_1['pack'], ACTION_1['name']])
-        resp = self.app.get('/actions?ref=%s' % ref)
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
-
-    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
-        return_value=True))
-    def test_get_by_ref_not_found(self):
-        resp = self.app.get('/actions?ref=doesntexist')
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, [])
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
