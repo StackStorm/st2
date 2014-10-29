@@ -85,7 +85,6 @@ install_apt(){
   setup_rabbitmq
   setup_mongo
   install_pip
-  setup_mistral
 }
 
 install_yum() {
@@ -99,7 +98,6 @@ install_yum() {
   setup_rabbitmq
   setup_mongo
   install_pip
-  setup_mistral
 }
 
 setup_rabbitmq() {
@@ -257,7 +255,9 @@ setup_mistral() {
   elif [[ "$TYPE" == "rpms" ]]; then
     setup_mistral_systemd
   fi
-  service mistral start
+
+  # Deactivate venv.
+  deactivate
 
   # Setup mistral client.
   pip install -U git+https://github.com/stackforge/python-mistralclient.git
@@ -312,9 +312,11 @@ download_pkgs
 if [[ "$TYPE" == "debs" ]]; then
   install_apt
   deploy_deb
+  setup_mistral
 elif [[ "$TYPE" == "rpms" ]]; then
   install_yum
   deploy_rpm
+  setup_mistral
 fi
 
 register_content
