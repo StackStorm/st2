@@ -2,13 +2,18 @@ Integration Packs
 ===================
 
 .. todo::
-    describe what is pack (a unit of deployment),
-    what it contains (st2 content, integrations - actions and sensors,
-    and automations - workflows and ruls). Say that we have package management.
+    Say that we have package management.
 
 What is a pack?
 ---------------
+Pack is the unit of deployment for integrations and automations in order to extend st2. Typically a pack is organized along service or product boundaries e.g. AWS, Docker, Sensu etc. A pack can contain the following artifacts.
 
+* `Actions </actions>`__
+* `Workflows </workflows>`__
+* `Rules </rules>`__
+* `Sensors </sensors>`__
+
+Its is best to view a pack as the means to extend st2 and allow it to integrate with external systems.
 
 
 Getting the pack
