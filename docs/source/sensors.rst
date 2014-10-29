@@ -1,28 +1,36 @@
 Triggers and Sensors
 =====================
 
-What?
-~~~~~
+Sensors
+~~~~~~~~
 
 Sensors are essentially adapters that are a way to integrate st2
 with an external system so that triggers can be injected into st2
-before rule matching results in potential actions. Sensors are a piece
+before rule matching results in potential actions. Sensors are pieces
 of Python code and have to follow the st2 defined sensor interface
 requirements to be successfully run.
 
-How? (a.k.a writing your own sensor)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Triggers
+~~~~~~~~
 
-For a simple sensor, review
-`contrib/examples/sensors/sample\_sensor.py`.
+Triggers are st2 constructs that identify the incoming events to st2.
+A trigger is a tuple of type (string) and optional parameters (object). Rules are written to work with triggers. Sensors typically register triggers though this is not strictly the case. For example, webhook triggers are just registered independently. You don't have to write a sensor.
+
+Authoring a sensor
+~~~~~~~~~~~~~~~~~~
+
+A simple sensor implementation is shown below.
+
+.. literalinclude:: ../../contrib/examples/sensors/sample_sensor.py
+
 It shows a bare minimum version of how a sensor would look like. Your
 sensor should generate triggers of the form (python dict):
 
 ::
 
     {
-        'name': 'name of the trigger you register in get_trigger_types() method. required.'
-        'event_id': 'optional event_id field to associate this to an external event'
+        'name': 'name of the trigger you register in get_trigger_types() method. required.',
+        'pack': 'pack that contains this sensor',
         'payload' : { # required field. contents can be empty.
             'foo': 'bar',
             'baz': 1,
@@ -49,12 +57,11 @@ Once you write your own sensor, you can test it stand alone like so:
 [Note: You should have setup the virtualenv and activated it before the
 previous command can work.]
 
-If you are happy about your sensor and you want the system to always run
-it, place your sensor in /opt/stackstorm/sensors/.
+If you are happy about your sensor and you want the system to always run it, place your sensor in a pack you choose /opt/stackstorm/sensors/${pack_name}/sensors/.
 
 ::
 
-    $cp /path/to/sensor/${sensorfile}.py /opt/stackstorm/sensors/
+    $cp /path/to/sensor/${sensorfile}.py /opt/stackstorm/${pack_name}/sensors/${sensorfile}.py
 
 Note: If st2 reactor component is already running on the box, you'll
 have to restart it to pick up the new sensor.
@@ -62,11 +69,11 @@ have to restart it to pick up the new sensor.
 Examples
 ~~~~~~~~
 
-EC2 health check sensor:
-^^^^^^^^^^^^^^^^^^^^^^^^
+EC2 health check sensor
+^^^^^^^^^^^^^^^^^^^^^^^
 
 This `EC2
-sensor <../contrib/sandbox/packages/aws/sensors/ec2sensor.py>`__ uses
+sensor <https://github.com/StackStorm/st2contrib/blob/master/packs/aws/sensors/ec2instancestatussensor.py>`_ uses
 boto library to talk to AWS and emits the health of instances as
 triggers.
 
@@ -81,7 +88,7 @@ Timer sensor
 ^^^^^^^^^^^^
 
 Look at the timer sensor implementation
-`here <../st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.py>`__.
+`here <https://github.com/StackStorm/st2/blob/master/st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.py>`__.
 Timer uses `APScheduler <http://apscheduler.readthedocs.org/en/3.0/>`__
 as the scheduling engine.
 
@@ -89,7 +96,7 @@ Generic Webhook sensor
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Look at the generic webhooks sensor implementation
-`here <../st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.py>`__.
+`here <https://github.com/StackStorm/st2/blob/master/st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.py>`__.
 The payload here can have arbitray structure. The webhook sensor uses
 `Flask <http://flask.pocoo.org/>`__ to spin up restful endpoints.
 
@@ -100,16 +107,16 @@ st2 defines it's own webhook format if you want a REST interface to
 inject triggers from curl or other plugins. Unlike the generic webhooks,
 the payload for this endpoint should be in a form st2 expects. Look
 at the sensor implementation
-`here <..//st2reactor/st2reactor/contrib/sensors/st2_webhook_sensor.py>`__.
+`here <https://github.com/StackStorm/st2/blob/master/st2reactor/st2reactor/contrib/sensors/st2_webhook_sensor.py>`__.
 The payload format is
 
 .. code:: json
 
         {
-            "name": "some user identifiable name.",
+            "trigger": "pack_name.trigger_name",
             "type": "name of the trigger registered with system"
-            "payload": {"key1" "value1", "key2": "value2", "key3": "value3"}       
+            "payload": {"key1" "value1", "key2": "value2", "key3": "value3"}
         }
 
 More sensor examples are in
-`contrib/sandbox/packages <../contrib/sandbox/packages/>`__.
+`st2contrib repo <https://github.com/StackStorm/st2contrib/tree/master/packs>`__.
