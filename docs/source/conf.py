@@ -205,7 +205,7 @@ htmlhelp_basename = 'StackStormDoc'
 html_context = {
   'github_repo': 'StackStorm/stanley',
   'github_version': 'master',
-  'github_version': 'docs/source/',
+  'conf_py_path': '/docs/source/',
   'display_github': True,
   'source_suffix': source_suffix, 
 }
