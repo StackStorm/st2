@@ -4,9 +4,9 @@ Writing Custom Actions
 Action scripts are user supplied content written in arbitrary programming
 language to operate against external system. Depending on the runner type,
 those scripts are either executed on a remote host or on a local system where
-Stanley action runner is running.
+st2 action runner is running.
 
-This section describes how to extend Stanley functionality by writing custom
+This section describes how to extend st2 functionality by writing custom
 actions. It also includes information such as best practices and other things
 to keep in mind when writing custom actions.
 
