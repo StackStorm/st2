@@ -120,27 +120,39 @@ class ContentPackResourceControler(ResourceController):
         """
         Retrieve resource object by an id of a reference.
         """
-        msg = 'Resource with a reference of id "%s" not found' % (ref_or_id)
 
-        # 1. Try the ID first
-        try:
-            resource_db = self.access.get_by_id(ref_or_id)
-        except Exception:
-            resource_db = None
+        if '.' in ref_or_id:
+            # references always contain a dot and id's can't contain it
+            is_reference = True
         else:
-            return resource_db
+            is_reference = False
 
-        # 2. Try by reference
-        try:
-            ref = ResourceReference.from_string_reference(ref=ref_or_id)
-        except Exception:
-            raise Exception(msg)
-
-        resource_db = self.access.query(name=ref.name, pack=ref.pack).first()
+        if is_reference:
+            resource_db = self._get_by_ref(resource_ref=ref_or_id)
+        else:
+            resource_db = self._get_by_id(resource_id=ref_or_id)
 
         if not resource_db:
+            msg = 'Resource with a reference of id "%s" not found' % (ref_or_id)
             raise Exception(msg)
 
+        return resource_db
+
+    def _get_by_id(self, resource_id):
+        try:
+            resource_db = self.access.get_by_id(resource_id)
+        except Exception:
+            resource_db = None
+
+        return resource_db
+
+    def _get_by_ref(self, resource_ref):
+        try:
+            ref = ResourceReference.from_string_reference(ref=resource_ref)
+        except Exception:
+            return None
+
+        resource_db = self.access.query(name=ref.name, pack=ref.pack).first()
         return resource_db
 
     def _get_filters(self, **kwargs):
