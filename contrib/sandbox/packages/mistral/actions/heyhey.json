@@ -19,7 +19,6 @@
         },
         "count": {
             "type": "string",
-            "required": true,
             "default": "3"
         },
         "friend": {
