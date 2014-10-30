@@ -8,3 +8,4 @@ Contents:
 
    cli
    api
+   packs
