@@ -282,6 +282,12 @@ executed from the st2 box.
 
     st2 run core.http url="http://localhost:9101/actions" method="GET"
 
+To see all the available predefined actions, run the command bellow.
+
+::
+
+    st2 action list --pack=core
+
 Action Usage
 ~~~~~~~~~~~~
 
