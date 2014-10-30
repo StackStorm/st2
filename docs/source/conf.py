@@ -70,6 +70,7 @@ extlinks = {
 # Use for variables substitutions
 rst_epilog = """
 .. |st2| replace:: StackStorm
+.. _st2contrib: http://www.github.com/stackstorm/st2contrib
 """
 
 # Show or hide TODOs. See http://sphinx-doc.org/ext/todo.html

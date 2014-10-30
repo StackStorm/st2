@@ -1,52 +1,61 @@
 Quick Start
 =================
 
-Got StackStorm :doc:`Installed </install/index>`? Enjoyed :doc:`the intro video <video>`? Let's go get your first automation going. But first, some terminology:
-
-* **Trigger** An external event that is mapped to a st2 input. It is the st2 invocation point. 
-* **Sensor:** An adapter to convert an external event to a form st2 understands. This is usually a piece of python code.
-* **Action:** An activity that user can run manually or use up in a rule as a response to the external event.
-* **Rule:** A specification to invoke an "action" on a "trigger", selectively based on some criteria.
-* **Workflow:** A chain of actions, with transitions and conditions, declaratively defined via workflow definition. Workflow *is* an action, and can be operated as such.
-
-.. todo:: (dzimine) Refine terms. 
+Now that you have StackStorm :doc:`installed </install/index>`, and hopefully
+enjoyed :doc:`the intro video <video>`, let's build a first automation.
+This guide will walk you through StackStorm basics and help you build and run
+an automation: a rule that triggers an action on external event.
 
 
-CLI Usage Examples
-------------------
+Explore StackStorm with CLI
+----------------------------
+The best way to explore StackStorm is to use CLI. Start by firing few commands:
 
 .. code-block:: bash
 
     st2 --version 
+    # Get help. It's a lot. Explore.
     st2 -h
-    st2 action list
+    # List the actions from a 'core' pack
+    st2 action list --pack=core
     st2 trigger list
     st2 rule list
+    # Run a local shell command 
     st2 run core.local -- uname -a
+    # See the execution results
     st2 execution list 
+    # Fire a shell comand on remote hosts. Requires passwordless SSH configured.
     st2 run core.remote host='host.1, host.2' user='myuser' -- ls -l
 
-For details on using the CLI, please check the :doc:`/reference/cli` section.
+The default “all-in-one” installation deploys CLI along with the StackStorm
+services. CLI can be used to access StackStorm service remotely. All StackStorm
+operations are also available via REST API and Python bindings.
+Check the :doc:`CLI and Python Client </reference/cli>` reference for details.
 
-Working with Actions
+Work with Actions
 ---------------------
 
-Actions from action library can be invoked from st2 CLI, REST API, or
-used in the rules. Lits the avaialbe actions: ::  
+Out of the box, StackStorm’s Action library contains few generic actions.
+It can be easily extended by getting actions from the community or consuming
+your existing scripts - `more on that later`. Browse Action Library with 
+``st2 action list``. Action is called by `ref` as ``pack.action_name``
+(e.g. ``core.local``). Learn more about an aciont by doing
+``st2 action <action> get``, or, ``st2 run <action> --h ( --help)``: it shows
+description along with action parameters so that you know how to run it 
+from CLI or use it in rules and workflows. 
 
-    st2 action list 
-
-To introspect an action, do ``st2 action <action> get``, or,
-``st2 run <action> --h ( --help)`` This shows action parameters so
-that you know how to run it from CLI or use it in the rules. Action is referenced as ``pack.action_name`` (e.g. ``core.local``)
 
 .. code-block:: bash
 
+    # List all the actions in the library
+    st2 action list 
+    # Get action metadata
     st2 action get core.http
+    # Display action details and parameters.
     st2 run core.http --help 
 
-To run the action from cli, do ``st2 run <action> -- key=value positional arguments``. 
-Some examples of using out-of-box actions:
+To run the action from cli, do
+``st2 run <action> -- key=value positional arguments``. 
 
 .. code-block:: bash
 
@@ -56,7 +65,9 @@ Some examples of using out-of-box actions:
     # HTTP REST call to st2 action endpoint
     st2 run -j core.http url="http://localhost:9101/actions" method="GET"
 
-Use ``remote`` action to run linux command on multiple hosts over ssh. This assumes that passwordless SSH access is configured for the hosts, as described in :doc:`/install/ssh`.
+Use ``remote`` action to run linux command on multiple hosts over ssh. 
+This assumes that passwordless SSH access is configured for the hosts,
+as described in `Configure SSH </install/config.rst#configure-ssh>`__ section.
 
 .. code-block:: bash
 
@@ -76,81 +87,62 @@ Check the action execution history and details of action executions with ``st2 e
     st2 execution list
     st2 execution get <execution_id>
 
-**How to get more actions?** Learn about installing and configuring integration packs in :doc:`/packs`. 
-Convert your exisint scripts into st2 actions by adding metadata, or write custom actions: see :doc:`/actions` for details.
-
-Defining Rules
---------------
-
-A rule maps a trigger to an action: if THIS triggers, run THAT action.
-It takes trigger parameters, sets matching criteria, and maps trigger
-output parameters to action input parameters.
-
-To see a list of available triggers: ``st2 trigger list``. The most
-generic ones are timer triggers, webhook trigger ``core.st2.webhook``, and
-``core.st2.generic.actiontrigger`` that is fired on each action completion.
-Use ``st2 trigger get <trigger>`` to introspect trigger input parameters and payload structure: 
-
-.. code-block:: bash
-    
-    st2 trigger list
-    st2 trigger get core.st2.IntervalTimer
-    st2 trigger get core.st2.webhook
+That's it. You have learned to use StackStorm's action library. Let's proceed to automations.
 
 
-Rule is defined as JSON. The following is a sample rule definition
-structure and a listing of the required and optional elements.
+Define and deploy a Rule
+-------------------------
 
-.. code-block:: json
+StackStorm uses rules to fire actions or workflows when events happen.
+Events are typically monitored by sensors. When sensor catches an event,
+it fires a trigger. Trigger trips the rule, the rule checks the criteria
+and if it matches, it runs an action. Easy enough. Let’s look at an example.
 
-    {
-            "name": "rule_name",                       # required
-            "description": "Rule description",         # optional
-
-            "trigger": {                               # required
-                "name": "trigger_name"
-            },
-
-            "criteria": {                              # optional
-                ...
-            },
-
-            "action": {                                # required
-                "ref": "action_name",
-                "parameters": {                        # optional
-                        ...
-                }
-            },
-
-            "enabled": true                            # required
-    }
-
-Criteria in the rule is expressed as:
-
-::
-
-    criteria: {
-         "trigger.payload_parameter_name": {
-            "pattern" : "value",
-            "type": "matchregex"
-          }
-          ...
-    }
-
-Current criteria types are: ``matchregex``, ``eq`` (or ``equals``), ``lt`` (or ``lessthan``), ``gt`` (or ``greaterthan``), ``td_lt`` (or ``timediff_lt``), ``td_gt`` (or ``timediff_gt``).  **For Developers:** The criterion are defined in :github_st2:`st2/st2common/st2common/operators.py </st2common/st2common/operators.py>`,
-if you miss some criteria - welcome to code it up and submit a patch :)
-
-Let's take a simple example. The rule defined in  :github_st2:`sample-rule-with-webhook.json </contrib/examples/rules/sample-rule-with-webhook.json>` 
-takes a webhook and appends a payload to the file, but only if the ``name``
-field matches:
+Sample rule: :github_st2:`sample-rule-with-webhook.json 
+</contrib/examples/rules/sample-rule-with-webhook.json>` : 
 
 .. literalinclude:: /../../contrib/examples/rules/sample_rule_with_webhook.json
     :language: json
 
 
-To refer trigger payload in criteria or in action, use ``{{trigger}}``. If trigger
-payload is valid JSON, refer the parameters with
-``{{trigger.path.to.parameter}}`` in trigger. Trigger input and output parameters can be introspected by calling ``st2 trigger get <trigger>``. 
+The rule definition is a JSON spec with thee sections: trigger, criteria, and action.
+It configures the wehbook trigger with url, applies filtering criteria based trigger
+parameters. This one configures a webhook wiht ``sample`` sub-url so it listens
+on ``http://{host}:6001/webhooks/generic/sample``.
+When it fires, it appends a payload to the file, only if the ``name``
+value in payload is ``st2``. See :doc:`rules` for detailed rule anatomy. 
+
+What are the other availabe triggers to use in rules? Just like with ations,
+use CLI to browse triggers, learn what the trigger does, 
+how to configure it, and what is it’s payload structure: 
+
+.. code-block:: bash
+
+    # List all available triggers
+    st2 trigger list
+
+    # Check details on Interval Timer trigger
+    st2 trigger get core.st2.IntervalTimer
+
+    # Check details on the Webhook trigger 
+    st2 trigger get core.st2.webhook
+
+Jinga syntax is used to refer variables in criteria or in action. Trigger
+payload is referred with ``{{trigger}}``. If trigger payload is valid JSON,
+it is parsed and can be accessed like ``{{trigger.path.to.parameter}}``.
+
+While the most data are retrieved as needed by StackStorm, you may need to
+store and share some common variables. Use st2 datastore service to store
+the values and reference them in rules and workflows
+as ``{{system.my_parameter}}``. 
+
+
+.. code-block:: bash
+    st2 key create name=user value=stanley
+    st2 key list
+
+The rule is ready. StackStorm can be configured to auto-load the rules,
+or they are deployed with API or CLI: 
 
 .. code-block:: bash
     
@@ -171,40 +163,36 @@ the file and see that it appends the payload if the name=Joe.
     # Check that the rule worked
     tail /tmp/st2.webhook_sample.out
 
-Basic examples of rules, along with sample actions and sensors are deployed to ``/opt/stacstorm/examples``. 
-For more content examples checkout `st2contrib <http://www.github.com/stackstorm/st2contrib>`__ community repo on GitHub. 
+Congratulations, your first StackStorm rule is up and running!
 
-Storing Reusable Parameters
----------------------------
-
-The datastore service allow users to store common parameters and their
-values as key value pairs within Stanley for reuse in sensors, actions,
-and rules. It is handy to store some system or user variables (e.g.
-configurations), refer them in a rule by ``{{system.my_parameter}}``, or
-use in custom sensors and actions. Please refer to the
-`datastore <datastore.md>`__ section for usage.
-
-:: 
-
-    st2 key create name=user value=stanley
-    st2 key list
+Basic examples of rules, along with sample actions and sensors can be
+found at ``/usr/share/doc/st2/examples/``. To get them deployed, copy them
+to /opt/stackstorm/ and reload the content by running ``st2 run packs.load``.
+For more content examples checkout `st2contrib`_ community repo on GitHub. 
 
 
 Basic Trobuleshooting
 ----------------------
+If something goes wrong: 
 
 * Check recent executions: ``st2 execution list``
-* Look at the logs in ``/opt/var/st2``. API calls logged in `st2api.log`, triggers and rules in `st2reactor.log`; for action executions see most recently updated `st2actionrunner*.log`. Logstash and Syslog configurations are coming soon to simplify it. 
-* Use service control ``st2ctl`` to check service status, reboot the system, or clean the db.
+* Check the logs at ``/var/log/st2.`` 
+* Use service control st2ctl to check service status, reboot the system, or clean the db.
+* Engage with developers
+
 
 -------------------------------
 
 .. rubric:: What's Next?
 
-* Connect your monitoring - TBD, article
-* Install and configure integration packs - :doc:`/packs`
-* Configure SSH for `remote` action  - :doc:`/install/ssh`
-* Consume your existign scripts as st2 actions - 
-* Learn how to write custom sensors and actions - 
+* Get more actions, triggers, rules:
+
+    * Install and configure integration packs from `st2contrib`_  - :doc:`/packs`
+    * Convert your exisint scripts into st2 actions by adding metadata, or write custom actions: see :doc:`/actions` for details.
+* Connect with your monitoring system: - :doc:`resources/monitoring`
+* Configure SSH for `remote` actions  - :ref:`configure-ssh`
+* Use worklows to stitch actions into higher level automations - :doc:`/workflows`.
+
 
 .. include:: engage.rst
+

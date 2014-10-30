@@ -9,6 +9,8 @@ SUDO Access
 
 .. todo:: (Manas) please describe 1) we run st2 as a user, it's in config file, it needs sudo.
 
+.. _configure-ssh:
+
 Configure SSH 
 ----------------
 
