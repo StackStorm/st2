@@ -254,6 +254,63 @@ over into etc/st2/st2.conf carries the config parameters.
    than the local ssh agent must have the key for the specified user to
    exist.
 
+run-python runner
+^^^^^^^^^^^^^^^^^
+
+The Python runner executes actions which are written as Python classes with a
+``run`` method.
+
+Those actions are always executed locally and run on the same machine when
+st2 components are running.
+
+Writing custom Python actions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the simplest form, Python action is a module which exposes a class which
+inherits from :class:`st2actions.runners.pythonrunner.Action` and implements
+a ``run`` method.
+
+Configuration file
+------------------
+
+.. note::
+
+    Configuration file should be used to store "static" configuration options
+    which don't change between the action runs (e.g. service credentials,
+    different constants, etc.).
+
+    For options / parameters which are user defined or change often, you should
+    use action parameters which are defined in the metadata file.
+
+Python actions can store arbitrary configuration in the configuration file
+which is global to the whole pack. The configuration file is called
+``config.yaml``  and stored in a root directory of the pack.
+
+Configuration file format is YAML. Configuration is automatically parsed and
+passed to the action constructor via the ``config`` argument.
+
+Logging
+-------
+
+All the logging inside the action should be performed via the logger which
+is specific to this action and available via ``self.logger`` class attribute.
+
+This logger is a standard Python logger from the ``logging`` module so all the
+logger methods work as expected (e.g. ``logger.debug``, ``logger.info``, etc).
+
+For example:
+
+.. sourcecode:: python
+
+    def run(self):
+        ...
+        success = call_some_method()
+
+        if success:
+            self.logger.info('Action successfully completed')
+        else:
+            self.logger.error('Action failed...')
+
 Pre-defined actions
 ~~~~~~~~~~~~~~~~~~~
 
