@@ -34,9 +34,9 @@ def register_runner_types():
                     'type': 'string'
                 },
                 'parallel': {
-                    'description': 'Parallel execution is unsupported.',
+                    'description': 'Default to parallel execution.',
                     'type': 'boolean',
-                    'default': False,
+                    'default': True,
                     'immutable': True
                 },
                 'sudo': {
@@ -70,9 +70,9 @@ def register_runner_types():
                     'immutable': True
                 },
                 'parallel': {
-                    'description': 'Parallel execution is unsupported.',
+                    'description': 'Default to parallel execution.',
                     'type': 'boolean',
-                    'default': False,
+                    'default': True,
                     'immutable': True
                 },
                 'sudo': {
@@ -112,11 +112,10 @@ def register_runner_types():
                     'type': 'string'
                 },
                 'parallel': {
-                    'description': 'If true, the command will be executed on all the '
-                                   'hosts in parallel.',
-                    'default': False,
-                    'immutable': True,
-                    'type': 'boolean'
+                    'description': 'Default to parallel execution.',
+                    'type': 'boolean',
+                    'default': True,
+                    'immutable': True
                 },
                 'sudo': {
                     'description': 'The remote command will be executed with sudo.',
@@ -149,9 +148,10 @@ def register_runner_types():
                     'required': True
                 },
                 'parallel': {
-                    'description': 'If true, the command will be executed on all the '
-                                   'hosts in parallel.',
-                    'type': 'boolean'
+                    'description': 'Default to parallel execution.',
+                    'type': 'boolean',
+                    'default': True,
+                    'immutable': True
                 },
                 'sudo': {
                     'description': 'The remote command will be executed with sudo.',
