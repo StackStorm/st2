@@ -10,7 +10,7 @@ Pack is the unit of deployment for integrations and automations in order to exte
 * `Rules </rules>`__
 * `Sensors </sensors>`__
 
-It is best to view a pack as the means to extend st2 and allow it to integrate with external systems. See `next section </packs.html#getting-a-pack>`__ to learn more about pack management.
+It is best to view a pack as the means to extend st2 and allow st2 to integrate with an external systems. See `next section </packs.html#getting-a-pack>`__ to learn more about pack management.
 
 Getting a pack
 --------------
@@ -23,17 +23,17 @@ Some packs can be installed and run "as is" without any configurations.
     st2 run packs.install packs=docker,sensu repo_url=https://github.com/StackStorm/st2contrib.git
 
 
-This download the Sensu and Docker packs from the `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__ on GitHub, places it into local content under ``/opt/stackstorm``, registers with st2 and loads the content.
+This downloads the Sensu and Docker packs from the `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__ on GitHub, places them as local content under ``/opt/stackstorm``, registers with st2 and loads the content.
 
-By default they are installed from StackStorm community repo. Use ``repo_url`` parameter to install a pack from a fork of st2contrib, or from a custom repo. The repo is expected to have a top level ``packs`` directory.
+By default packs are installed from the StackStorm community repo. Use ``repo_url`` parameter to install a pack from a fork of st2contrib, or from a custom repo. If using a custom repo make sure to place packs a top level ``packs`` directory.
 
 To uninstall packs: ``st2 run packs.uninstall packs=docker,sensu``. This unloads and unregisters the content and deletes the packs from the disk.
 
-The integration packs often require configurations to adjust to the environment. You will need to specify SMTP server for email, a puppet master URL for Puppet, or a Keystone endpoint and tenatn credentials for OpenStack. The installation process is:
+The integration packs often require configurations to adjust to the environment. e.g. you will need to specify SMTP server for email, a puppet master URL for Puppet, or a Keystone endpoint and tenant credentials for OpenStack. The installation process is:
 
 1. Download the pack with ``packs.dowload``
-2. Check out the `REAMDE.md`. Adjust configurations to your environment, install dependencies if needed.
-3. Load the pack to StackStorm with ``pack.load``. Sometimes components may need a restart with ``pack.restart_component`` (live reload without restart is coming soon ).
+2. Check out the `REAMDE.md`. Adjust configurations per your environment, install dependencies if needed.
+3. Load the pack into st2 with ``pack.load``. Sometimes components may need a restart with ``pack.restart_component`` (live reload without restart is coming soon).
 
 Let's intall the Docker pack:
 
@@ -55,7 +55,7 @@ Let's intall the Docker pack:
     # Note: live update coming soon and this won't be needed.
     st2 run packs.restart_component servicename=sensor_container
 
-    # Check that the docker got installed
+    # Verify that the docker pack was installed
     st2 action list --pack=docker
     st2 trigger list --pack=docker
 
@@ -63,7 +63,7 @@ The docker pack is now installed and ready to use.
 
 Packs may contain automations - rules and workflows. Rules are not loaded by default - you may want to review and adjust them before loading. Pass ``register=rules`` option to ``packs.install`` and ``packs.load`` actions to get the rules loaded.
 
-.. note:: Pack management is implemented as a pack of st2 actions. Explore :github_st2:`/opt/stackstorm/packs </contrib/packs>` for example of defining actions and workflows.
+.. note:: Pack management is implemented as a pack of st2 actions. Explore :github_st2:`/opt/stackstorm/packs </contrib/packs>` for examples of defining actions and workflows.
 
 .. rubric:: What's Next?
 
