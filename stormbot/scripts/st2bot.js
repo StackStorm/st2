@@ -14,7 +14,7 @@ var formatCommand = function(command) {
   var template = 'hubot run ${name} ${params} - ${description}';
 
   return _.template(template, {
-    name: command.name,
+    name: command.ref,
     description: command.description,
     params: _.map(command.parameters, function (v, k) {
       if (v.immutable) {
@@ -156,7 +156,7 @@ module.exports = function(robot) {
       // Looks for the action requested
 
       var action = _.find(data.body, function (e) {
-        return e.name === command;
+        return e.ref === command;
       });
 
       if (!action) {
