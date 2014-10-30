@@ -107,6 +107,11 @@ class ContentPackResourceControler(ResourceController):
             return
 
         result = self.model.from_model(instance)
+        if result and self.include_reference:
+                pack = getattr(result, 'pack', None)
+                name = getattr(result, 'name', None)
+                result.ref = ResourceReference(pack=pack, name=name).ref
+
         LOG.debug('GET %s with ref_or_id=%s, client_result=%s',
                   pecan.request.path, ref_or_id, result)
 
@@ -114,7 +119,15 @@ class ContentPackResourceControler(ResourceController):
 
     @jsexpose()
     def get_all(self, **kwargs):
-        return super(ContentPackResourceControler, self)._get_all(**kwargs)
+        result = super(ContentPackResourceControler, self)._get_all(**kwargs)
+
+        if self.include_reference:
+            for item in result:
+                pack = getattr(item, 'pack', None)
+                name = getattr(item, 'name', None)
+                item.ref = ResourceReference(pack=pack, name=name).ref
+
+        return result
 
     def _get_by_ref_or_id(self, ref_or_id):
         """
