@@ -10,7 +10,6 @@ Requirements:
 -  python, pip, virtualenv, tox
 -  MongoDB (http://docs.mongodb.org/manual/installation)
 -  RabbitMQ (http://www.rabbitmq.com/download.html)
--  NodeJS and NPM (http://nodejs.org/)
 
 To setup the development environment from a vanilla Fedora image:
 
@@ -25,9 +24,6 @@ To setup the development environment from a vanilla Fedora image:
     yum install rabbitmq-server
     systemctl enable rabbitmq-server
     systemctl restart rabbitmq-server
-
-    yum install npm
-    npm install -g bower gulp
 
 Mistral workflow engine also has its own requirements to the environment. For more information, please refer to :doc:`/mistral`.
 

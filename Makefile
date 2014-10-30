@@ -1,7 +1,6 @@
 SHELL := /bin/bash
 TOX_DIR := .tox
 VIRTUALENV_DIR ?= virtualenv
-STORMBOT_DIR := stormbot
 
 # Sphinx docs options
 SPHINXBUILD := sphinx-build
@@ -28,7 +27,7 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := requirements.txt test-requirements.txt
 
 .PHONY: all
-all: requirements stormbot check tests docs
+all: requirements check tests docs
 
 # Target for debugging Makefile variable assembly
 .PHONY: play
@@ -120,7 +119,6 @@ distclean: clean
 	@echo "==================== distclean ===================="
 	@echo
 	rm -rf $(VIRTUALENV_DIR)
-	rm -rf $(STORMBOT_DIR)/node_modules/
 
 .PHONY: requirements
 requirements: virtualenv $(REQUIREMENTS)
@@ -159,12 +157,8 @@ $(VIRTUALENV_DIR)/bin/activate:
 	echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	touch $(VIRTUALENV_DIR)/bin/activate.fish
 
-.PHONY: botrqmnts
-botrqmnts:
-	npm install --prefix $(STORMBOT_DIR)
-
 .PHONY: tests
-tests: pytests bottests
+tests: pytests
 
 .PHONY: pytests
 pytests: requirements .flake8 .pytests-coverage
@@ -194,10 +188,6 @@ pytests: requirements .flake8 .pytests-coverage
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-xcoverage --xcoverage-file=coverage-$$component.xml --cover-package=$$component $$component/tests || exit 1; \
 	done
-
-.PHONY: bottests
-bottests: botrqmnts
-	npm test ../$(STORMBOT_DIR)
 
 .PHONY: rpms
 rpms:

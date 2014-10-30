@@ -9,7 +9,6 @@ To setup the development environment with all the prerequisites installed via Va
 The list of prerequisites:
 * MongoDB -http://docs.mongodb.org/manual/installation
 * Python, pip, virtualenv, tox
-* nodejs and npm - http://nodejs.org/ (for stormbot)
 
 
 ### Using make for typical tasks
