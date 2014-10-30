@@ -174,9 +174,21 @@ module.exports = function(robot) {
 
           client.query('name');
 
+          var updated_runner_params = _.reduce(type.body[0].runner_parameters,
+                                               function (result, value, key) {
+            result[key] = value;
+            if (!action.parameters.hasOwnProperty(key)) {
+              return result
+            }
+            for (var prop in action.parameters[key]) {
+              result[key][prop] = action.parameters[key][prop]
+            }
+            return result
+          }, {});
+
           action.parameters = _({})
-            .assign(type.body[0].runner_parameters)
             .assign(action.parameters)
+            .assign(updated_runner_params)
             .value();
 
           return action;
