@@ -185,6 +185,7 @@ class TestActionController(FunctionalTest):
         get_resp = self.__do_get_one(ref)
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(self.__get_action_id(get_resp), action_id)
+        self.assertEqual(get_resp.json['ref'], ref)
         self.__do_delete(action_id)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
@@ -202,11 +203,16 @@ class TestActionController(FunctionalTest):
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_all(self):
+        action_1_ref = '.'.join([ACTION_1['pack'], ACTION_1['name']])
         action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
         action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
         resp = self.app.get('/actions')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 2, '/actions did not return all actions.')
+
+        item = [i for i in resp.json if i['id'] == action_1_id][0]
+        self.assertEqual(item['ref'], action_1_ref)
+
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
 
