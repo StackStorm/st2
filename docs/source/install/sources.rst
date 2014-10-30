@@ -7,28 +7,29 @@ Environment Prerequisites
 Requirements:
 
 -  git
--  Python, pip, virtualenv, tox
--  MongoDB - http://docs.mongodb.org/manual/installation - with oplog
-   enabled
--  nodejs and npm - http://nodejs.org/
+-  python, pip, virtualenv, tox
+-  MongoDB (http://docs.mongodb.org/manual/installation)
+-  RabbitMQ (http://www.rabbitmq.com/download.html)
+-  NodeJS and NPM (http://nodejs.org/)
 
 To setup the development environment from a vanilla Fedora image:
 
 ::
 
     yum install python-pip python-virtualenv python-tox gcc-c++ git-all screen icu libicu libicu-devel
+
     yum install mongodb mongodb-server
-    # setup oplog for mongodb:
-    echo "replSet = rs0" >> /etc/mongodb.conf
-    echo "oplogSize = 100" >> /etc/mongodb.conf
     systemctl enable mongod
     systemctl restart mongod
-    # give it few moments to spin up then initiate replication set
-    sleep 10
-    mongo --eval "rs.initiate()"
+
+    yum install rabbitmq-server
+    systemctl enable rabbitmq-server
+    systemctl restart rabbitmq-server
+
     yum install npm
-    npm install -g bower
-    npm install -g gulp
+    npm install -g bower gulp
+
+Mistral workflow engine also has its own requirements to the environment. For more information, please refer to :doc:`/mistral`.
 
 To setup the development environment via Vagrant:
 
@@ -57,16 +58,8 @@ and install required dependencies, and run tests.
     cd st2
     make all
 
-Running st2 From Source
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Create the directory /opt/stackstorm and change ownership to the user
-that will run the st2 services.
-
-::
-
-    sudo mkdir -p /opt/stackstorm
-    sudo chown -R OWNER:GROUP /opt/stackstorm   # Change ownership to appropriate user
+Configuration
+~~~~~~~~~~~~~
 
 Specify a user for running local and remote SSH actions: in
 conf/st2.conf:
@@ -75,8 +68,7 @@ conf/st2.conf:
 
     [ssh_runner]
     user = stanley
-    ssh_key_file = /home/stanley/.ssh/stanley_rsa
-    remote_dir = /tmp
+    ssh_key_file = /home/[current user]/.ssh/stanley_rsa
 
 In case you don't have a user for this purpose (as in case of devenv),
 there is number of steps you need to perform to create one and setup it
@@ -88,7 +80,7 @@ to work with fabric\_runner:
 
        sudo adduser stanley
 
-2. Create an ``.ssh`` folder inside stanley's home folder
+2. Create an ``.ssh`` folder inside his home folder
 
    ::
 
@@ -100,7 +92,7 @@ to work with fabric\_runner:
 
        ssh-keygen -f ~/.ssh/stanley_rsa
 
-4. Add service user public key to stanley's authorized\_keys
+4. Add service user public key to user's authorized\_keys
 
    ::
 
@@ -111,6 +103,11 @@ to work with fabric\_runner:
    ::
 
        sudo chown -R stanley:stanley /home/stanley/.ssh/
+
+For more information on config parameters see :doc:`/install/config`.
+
+Running st2 From Source
+~~~~~~~~~~~~~~~~~~~~~~~
 
 To run st2 from source, it's assumed that python virtual environment
 is activated and in use.
@@ -165,5 +162,19 @@ virtualenv:
     cd st2/st2client
     python setup.py install
 
-Next
-~~~~
+Testing
+~~~~~~~
+
+To make sure all the components were installed correctly:
+
+::
+
+    st2 --help
+    st2 action list
+    st2 run core.local uname
+
+.. rubric:: What's Next?
+
+* **Get going with** :doc:`/start`.
+
+.. include:: /engage.rst
