@@ -305,7 +305,7 @@ from the "run-local" runner.
 
 ::
 
-    ~/ $ st2 run local -h
+    ~/ $ st2 run core.local -h
 
     Action that executes an arbitrary Linux command on the localhost.
 
