@@ -187,7 +187,7 @@ module.exports = function(robot) {
       // Prepares payload for ActionExecution
 
       var payload = {
-        action: { 'name': action.name },
+        action: action.ref,
         parameters: parse(args, action.parameters)
       };
 
