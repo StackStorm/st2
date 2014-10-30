@@ -243,12 +243,15 @@ class TestActionExecutionController(FunctionalTest):
     def test_post_with_st2_context_in_headers(self):
         resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1))
         self.assertEqual(resp.status_int, 201)
-        context = {'parent': str(resp.json['id']), 'user': None}
+        parent_user = resp.json['context']['user']
+        parent_exec_id = str(resp.json['id'])
+        context = {'parent': parent_exec_id, 'user': None}
         headers = {'content-type': 'application/json', 'st2-context': json.dumps(context)}
         resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
-        self.assertIsNone(resp.json['context']['user'])
-        self.assertDictEqual(resp.json['context'], context)
+        self.assertEqual(resp.json['context']['user'], parent_user, 'Should use parent\'s user.')
+        expected = {'parent': parent_exec_id, 'user': parent_user}
+        self.assertDictEqual(resp.json['context'], expected)
 
     def test_update_execution(self):
         response = self._do_post(ACTION_EXECUTION_1)

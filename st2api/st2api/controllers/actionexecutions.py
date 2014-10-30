@@ -1,6 +1,7 @@
 import json
 
 import jsonschema
+from oslo.config import cfg
 import pecan
 from pecan import abort
 from six.moves import http_client
@@ -60,7 +61,10 @@ class ActionExecutionsController(ResourceController):
                 execution.context = dict()
 
             # Retrieve user context from the request header.
-            execution.context['user'] = pecan.request.headers.get('X-User-Name')
+            user = pecan.request.headers.get('X-User-Name')
+            if not user:
+                user = cfg.CONF.system_user.user
+            execution.context['user'] = user
 
             # Retrieve other st2 context from request header.
             if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
