@@ -23,8 +23,11 @@ class SimpleSensor(object):
         #   # into a standard python dictionary. This should follow the payload schema
         #   # registered for the trigger.
         #   self._container_service.dispatch(trigger, payload)
-        #   # You can refer to the trigger as dict { "name": ${trigger_name} }
-        #   # or just simply by name as string. i.e. dispatch(${trigger_name}, payload)
+        #   # You can refer to the trigger as dict
+        #   # { "name": ${trigger_name}, "pack": ${trigger_pack} }
+        #   # or just simply by reference as string.
+        #   # i.e. dispatch(${trigger_pack}.${trigger_name}, payload)
+        #   # E.g.: dispatch('examples.foo_sensor', {'k1': 'stuff', 'k2': 'foo'})
         pass
 
     def stop(self):
@@ -38,7 +41,8 @@ class SimpleSensor(object):
         # Payload fields are the ones on which you'd write criteria on.
         # Note you can register multiple trigger types.
         return [{
-            'name': 'st2.foo.sensor',
+            'name': 'foo_sensor',
+            'pack': 'examples',
             'payload_schema': {
                 'type': 'object',
                 'properties': {
