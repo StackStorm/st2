@@ -161,7 +161,7 @@ set is as follows.
 
 ::
 
-    st2 run myaction simple1=hi simple2=3
+    st2 run mypack.myaction simple1=hi simple2=3
 
 Complex object is also supported by jsonschema. The following example
 defines an input parameter that takes a JSON as input.
@@ -182,7 +182,7 @@ action with this parameter set is as follows.
 
 ::
 
-    st2 run myaction complex1='{"simple1": "hi", "simple2": 3}'
+    st2 run mypack.myaction complex1='{"simple1": "hi", "simple2": 3}'
 
 Please note that an action runner may have additional parameters and how
 a particular action runner handles positional args and keyword args are
@@ -255,8 +255,8 @@ over into etc/st2/st2.conf carries the config parameters.
    than the local ssh agent must have the key for the specified user to
    exist.
 
-Pre-define actions
-~~~~~~~~~~~~~~~~~~
+Pre-defined actions
+~~~~~~~~~~~~~~~~~~~
 
 There are a few predefined actions that come out of the box when st2
 is run via RPMs.
@@ -266,21 +266,21 @@ locally. Via the CLI executing this command would be -
 
 ::
 
-    st2 run local cmd='ls -l'
+    st2 run core.local cmd='ls -l'
 
 remote : This action allows execution of arbitrary \*nix/shell commands
 on a set of boxes. Via the CLI executing this command would be -
 
 ::
 
-    st2 run remote cmd='ls -l' host='host1, host2' user='user1'
+    st2 run core.remote cmd='ls -l' host='host1, host2' user='user1'
 
 http : This action allows execution of http requests. Think curl
 executed from the st2 box.
 
 ::
 
-    st2 run http url="http://localhost:9101/actions" method="GET"
+    st2 run core.http url="http://localhost:9101/actions" method="GET"
 
 Action Usage
 ~~~~~~~~~~~~
@@ -291,7 +291,7 @@ runner.
 
 ::
 
-    st2 run <action> -h
+    st2 run <action reference> -h
 
 The following is an example usage information for the included "local"
 action. The list of required and optional parameters also includes those
@@ -330,4 +330,3 @@ from the "run-local" runner.
             The user who is executing this command. This is for audit purposes
             only. The command will always execute as the user st2.
             Type: string
-
