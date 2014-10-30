@@ -194,9 +194,10 @@ Picking an action runner
 The environment in which the action runs is specified by the runner.
 Currently the system provides the following runners:
 
-1. run-local : This is the local runner.
-2. run-remote : This is a remote runner.
-3. http-runner : This is a http runner.
+1. ``run-local`` : This is the local runner.
+2. ``run-remote`` : This is a remote runner.
+3. ``run-python`` : This is a Python runner.
+4. ``http-runner`` : This is a http runner.
 
 Runners come with their own set of input parameters and when an action
 picks a runner\_type it also inherits the runner parameters.
@@ -216,9 +217,9 @@ components under the user that runs the components.
 
 Parameters provided by this runner are as follows:
 
-1. 'shell' : Default value is '/usr/bin/bash' and can be overridden by
+1. ``shell`` : Default value is '/usr/bin/bash' and can be overridden by
    the user when executing the action.
-2. 'cmd' : All the positional arguments to be passed into the script or
+2. ``cmd`` : All the positional arguments to be passed into the script or
    command.
 
 run-remote runner
@@ -229,15 +230,13 @@ executes the actions on the boxes as defined in the host property.
 
 Parameters provided by this runner are as follows:
 
-1. 'hosts': Comma-separated list of hosts.
-2. 'parallel': If the action should be executed in parallel on all
-   hosts.
-3. 'sudo': If the action should be run under sudo assuming user has
+1. ``hosts``: Comma-separated list of hosts.
+2. ``sudo``: If the action should be run under sudo assuming user has
    privileges.
-4. 'user': The user that runs the action. This is only used for audit
+3. ``user``: The user that runs the action. This is only used for audit
    purposes for now.
-5. 'cmd': The positional args or command to be put on the shell.
-6. 'remotedir': Location on the remote system where the action script
+4. ``cmd``: The positional args or command to be put on the shell.
+5. ``remotedir``: Location on the remote system where the action script
    must be copied prior to execution.
 
 The remote runner expects a user to be specified under which to run an
@@ -249,8 +248,8 @@ The 'ssh\_runner' section in
 `st2/conf/st2.conf <../conf/st2.conf>`__ which gets copied
 over into etc/st2/st2.conf carries the config parameters.
 
-1. user : name of the user; defaults to 'stanley'
-2. ssh\_key\_file : location of the ssh private key whose corresponding
+1. ``user`` : name of the user; defaults to 'stanley'
+2. ``ssh_key_file`` : location of the ssh private key whose corresponding
    public key is available on the remote boxes. If this is not provided
    than the local ssh agent must have the key for the specified user to
    exist.
