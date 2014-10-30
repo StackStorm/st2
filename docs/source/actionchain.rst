@@ -6,10 +6,10 @@ ActionChain is a no-frills linear workflow. On completion of a constituent actio
 Authoring an ActionChain
 ------------------------
 
-ActionChain's are described in json and placed inside a pack similar to other script or python actions. Similar to all actions an ActionChain must be associated with a metadata file that allows it to be registered as an Action by st2.
+ActionChain's are described in json and placed inside a pack similar to other script or python actions. An ActionChain must also be associated with a metadata file that allows it to be registered as an Action by st2. This metadata contains name and parameter description of an action.
 
-ActionChain meta
-~~~~~~~~~~~~~~~~
+ActionChain metadata
+~~~~~~~~~~~~~~~~~~~~
 
 Following is sample metadata for an ActionChain named ``echochain``
 
