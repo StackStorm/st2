@@ -32,12 +32,11 @@ class ActionExecutionsController(ResourceController):
     }
 
     query_options = {
-        'sort': ['action']
+        'sort': ['-start_timestamp', 'action']
     }
 
     def _get_action_executions(self, **kw):
         kw['limit'] = int(kw.get('limit', 50))
-        kw['order_by'] = kw.get('order_by', '-start_timestamp')
 
         LOG.debug('Retrieving all action executions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(**kw)
