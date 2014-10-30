@@ -67,10 +67,18 @@ class TriggerTypeController(resource.ContentPackResourceControler):
         return triggertype_api
 
     @jsexpose(str, body=TriggerTypeAPI)
-    def put(self, triggertype_id, triggertype):
-        LOG.info('PUT /triggertypes/ with triggertype id=%s and data=%s', triggertype_id,
-                 triggertype)
-        triggertype_db = TriggerTypeController.__get_by_id(triggertype_id)
+    def put(self, triggertype_ref_or_id, triggertype):
+        LOG.info('PUT /triggertypes/ with triggertype ref_or_id=%s and data=%s',
+                 triggertype_ref_or_id, triggertype)
+
+        try:
+            triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
+        except Exception as e:
+            LOG.exception(e.message)
+            abort(http_client.NOT_FOUND, e.message)
+            return
+
+        triggertype_id = triggertype_db.id
 
         try:
             validate_not_part_of_system_pack(triggertype_db)
@@ -99,15 +107,25 @@ class TriggerTypeController(resource.ContentPackResourceControler):
         return triggertype_api
 
     @jsexpose(str, status_code=http_client.NO_CONTENT)
-    def delete(self, triggertype_id):
+    def delete(self, triggertype_ref_or_id):
         """
             Delete a triggertype.
 
             Handles requests:
                 DELETE /triggertypes/1
+                DELETE /triggertypes/pack.name
         """
-        LOG.info('DELETE /triggertypes/ with id=%s', triggertype_id)
-        triggertype_db = TriggerTypeController.__get_by_id(triggertype_id)
+        LOG.info('DELETE /triggertypes/ with ref_or_id=%s',
+                triggertype_ref_or_id)
+
+        try:
+            triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
+        except Exception as e:
+            LOG.exception(e.message)
+            abort(http_client.NOT_FOUND, e.message)
+            return
+
+        triggertype_id = triggertype_db.id
 
         try:
             validate_not_part_of_system_pack(triggertype_db)
@@ -125,23 +143,6 @@ class TriggerTypeController(resource.ContentPackResourceControler):
             LOG.audit('TriggerType deleted. TriggerType=%s', triggertype_db)
             if not triggertype_db.parameters_schema:
                 TriggerTypeController._delete_shadow_trigger(triggertype_db)
-
-    @staticmethod
-    def __get_by_id(triggertype_id):
-        try:
-            return TriggerType.get_by_id(triggertype_id)
-        except (ValueError, ValidationError):
-            LOG.exception('Database lookup for id="%s" resulted in exception.', triggertype_id)
-            abort(http_client.NOT_FOUND)
-
-    @staticmethod
-    def __get_by_name(triggertype_name):
-        try:
-            return [TriggerType.get_by_name(triggertype_name)]
-        except ValueError as e:
-            LOG.debug('Database lookup for name="%s" resulted in exception : %s.',
-                      triggertype_name, e)
-            return []
 
     @staticmethod
     def _create_shadow_trigger(triggertype_db):

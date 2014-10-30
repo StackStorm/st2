@@ -95,29 +95,65 @@ class ResourceController(rest.RestController):
 class ContentPackResourceControler(ResourceController):
     include_reference = False
 
-    @jsexpose()
-    def get_all(self, **kwargs):
-        result = self._get_all(**kwargs)
-        result = result or []
+    @jsexpose(str)
+    def get_one(self, ref_or_id):
+        LOG.info('GET %s with ref_or_idid=%s', pecan.request.path, ref_or_id)
 
-        if self.include_reference:
-            for item in result:
-                pack = getattr(item, 'pack', None)
-                name = getattr(item, 'name', None)
+        try:
+            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+        except Exception as e:
+            LOG.exception(e.message)
+            pecan.abort(http_client.NOT_FOUND, e.message)
+            return
 
-                item.ref = ResourceReference(pack=pack, name=name).ref
+        result = self.model.from_model(instance)
+        LOG.debug('GET %s with ref_or_id=%s, client_result=%s',
+                  pecan.request.path, ref_or_id, result)
 
         return result
 
-    def _get_all(self, **kwargs):
-        try:
-            kwargs = self._get_filters(**kwargs)
-        except InvalidResourceReferenceError:
-            return []
-        except Exception as e:
-            pecan.abort(http_client.BAD_REQUEST, e.message)
-
+    @jsexpose()
+    def get_all(self, **kwargs):
         return super(ContentPackResourceControler, self)._get_all(**kwargs)
+
+    def _get_by_ref_or_id(self, ref_or_id):
+        """
+        Retrieve resource object by an id of a reference.
+        """
+
+        if '.' in ref_or_id:
+            # references always contain a dot and id's can't contain it
+            is_reference = True
+        else:
+            is_reference = False
+
+        if is_reference:
+            resource_db = self._get_by_ref(resource_ref=ref_or_id)
+        else:
+            resource_db = self._get_by_id(resource_id=ref_or_id)
+
+        if not resource_db:
+            msg = 'Resource with a reference of id "%s" not found' % (ref_or_id)
+            raise Exception(msg)
+
+        return resource_db
+
+    def _get_by_id(self, resource_id):
+        try:
+            resource_db = self.access.get_by_id(resource_id)
+        except Exception:
+            resource_db = None
+
+        return resource_db
+
+    def _get_by_ref(self, resource_ref):
+        try:
+            ref = ResourceReference.from_string_reference(ref=resource_ref)
+        except Exception:
+            return None
+
+        resource_db = self.access.query(name=ref.name, pack=ref.pack).first()
+        return resource_db
 
     def _get_filters(self, **kwargs):
         filters = copy.deepcopy(kwargs)

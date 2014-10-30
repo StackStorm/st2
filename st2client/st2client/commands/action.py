@@ -30,7 +30,9 @@ class ActionBranch(resource.ResourceBranch):
             parent_parser=parent_parser,
             commands={
                 'list': ActionListCommand,
-                'get': ActionGetCommand
+                'get': ActionGetCommand,
+                'update': ActionUpdateCommand,
+                'delete': ActionDeleteCommand
             })
 
         # Registers extended commands
@@ -45,6 +47,14 @@ class ActionListCommand(resource.ContentPackResourceListCommand):
 
 class ActionGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
+
+
+class ActionUpdateCommand(resource.ContentPackResourceUpdateCommand):
+    pass
+
+
+class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
+    pass
 
 
 class ActionRunCommand(resource.ResourceCommand):

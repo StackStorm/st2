@@ -67,15 +67,15 @@ def get_by_name(name, **kwargs):
 
 
 def get_by_ref(**kwargs):
-    ref = kwargs.get('ref', None)
+    ref = kwargs.get('ref_or_id', None)
 
     if not ref:
         raise Exception('Actions must be referred to by "ref".')
 
     if ref == 'mockety.mock1':
-        return [models.Action(**ACTION1)]
+        return models.Action(**ACTION1)
     if ref == 'mockety.mock2':
-        return [models.Action(**ACTION2)]
+        return models.Action(**ACTION2)
 
 
 class ActionCommandTestCase(base.BaseCLITestCase):
@@ -85,7 +85,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         self.shell = shell.Shell()
 
     @mock.patch.object(
-        models.ResourceManager, 'query',
+        models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
@@ -99,7 +99,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
     @mock.patch.object(
-        models.ResourceManager, 'query',
+        models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
@@ -113,7 +113,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
     @mock.patch.object(
-        models.ResourceManager, 'query',
+        models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
@@ -127,7 +127,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
     @mock.patch.object(
-        models.ResourceManager, 'query',
+        models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
@@ -141,7 +141,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
     @mock.patch.object(
-        models.ResourceManager, 'query',
+        models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
@@ -155,7 +155,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
     @mock.patch.object(
-        models.ResourceManager, 'query',
+        models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
@@ -169,7 +169,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
     @mock.patch.object(
-        models.ResourceManager, 'query',
+        models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
@@ -183,7 +183,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
     @mock.patch.object(
-        models.ResourceManager, 'query',
+        models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',
@@ -197,7 +197,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         httpclient.HTTPClient.post.assert_called_with('/actionexecutions', expected)
 
     @mock.patch.object(
-        models.ResourceManager, 'query',
+        models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(side_effect=get_by_ref))
     @mock.patch.object(
         models.ResourceManager, 'get_by_name',

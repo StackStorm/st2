@@ -43,15 +43,6 @@ class ActionsController(resource.ContentPackResourceControler):
     include_reference = True
 
     @staticmethod
-    def _get_by_id(action_id):
-        try:
-            return Action.get_by_id(action_id)
-        except Exception as e:
-            msg = 'Database lookup for id="%s" resulted in exception. %s' % (action_id, e)
-            LOG.exception(msg)
-            abort(http_client.NOT_FOUND, msg)
-
-    @staticmethod
     def _validate_action_parameters(action, runnertype_db):
         # check if action parameters conflict with those from the supplied runner_type.
         conflicts = [p for p in action.parameters.keys() if p in runnertype_db.runner_parameters]
@@ -115,8 +106,15 @@ class ActionsController(resource.ContentPackResourceControler):
         return action_api
 
     @jsexpose(str, body=ActionAPI)
-    def put(self, action_id, action):
-        action_db = ActionsController._get_by_id(action_id)
+    def put(self, action_ref_or_id, action):
+        try:
+            action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
+        except Exception as e:
+            LOG.exception(e.message)
+            abort(http_client.NOT_FOUND, e.message)
+            return
+
+        action_id = action_db.id
 
         try:
             validate_not_part_of_system_pack(action_db)
@@ -147,24 +145,34 @@ class ActionsController(resource.ContentPackResourceControler):
         return action_api
 
     @jsexpose(str, status_code=http_client.NO_CONTENT)
-    def delete(self, action_id):
+    def delete(self, action_ref_or_id):
         """
             Delete an action.
 
             Handles requests:
                 POST /actions/1?_method=delete
                 DELETE /actions/1
+                DELETE /actions/mypack.myaction
         """
 
-        LOG.info('DELETE /actions/ with id="%s"', action_id)
-        action_db = ActionsController._get_by_id(action_id)
+        LOG.info('DELETE /actions/ with ref_or_id="%s"', action_ref_or_id)
+
+        try:
+            action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
+        except Exception as e:
+            LOG.exception(e.message)
+            abort(http_client.NOT_FOUND, e.message)
+            return
+
+        action_id = action_db.id
 
         try:
             validate_not_part_of_system_pack(action_db)
         except ValueValidationException as e:
             abort(http_client.BAD_REQUEST, str(e))
 
-        LOG.debug('DELETE /actions/ lookup with id=%s found object: %s', action_id, action_db)
+        LOG.debug('DELETE /actions/ lookup with ref_or_id=%s found object: %s',
+                  action_ref_or_id, action_db)
 
         try:
             Action.delete(action_db)
@@ -175,5 +183,6 @@ class ActionsController(resource.ContentPackResourceControler):
             return
 
         LOG.audit('Action deleted. Action=%s', action_db)
-        LOG.info('DELETE /actions/ with id="%s" completed', action_id)
+        LOG.info('DELETE /actions/ with ref_or_id="%s" completed',
+                action_ref_or_id)
         return None

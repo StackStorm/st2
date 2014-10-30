@@ -142,6 +142,10 @@ class ResourceManager(object):
         return self.resource.deserialize(response.json())
 
     @add_auth_token_to_kwargs_from_env
+    def get_by_ref_or_id(self, ref_or_id, **kwargs):
+        return self.get_by_id(id=ref_or_id, **kwargs)
+
+    @add_auth_token_to_kwargs_from_env
     def query(self, **kwargs):
         if not kwargs:
             raise Exception('Query parameter is not provided.')
