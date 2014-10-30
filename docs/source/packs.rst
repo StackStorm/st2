@@ -65,10 +65,9 @@ Packs may contain automations - rules and workflows. Rules are not loaded by def
 
 .. note:: Pack management is implemented as a pack of st2 actions. Explore :github_st2:`/opt/stackstorm/packs </contrib/packs>` for example of defining actions and workflows.
 
-
-
 .. rubric:: What's Next?
 
+* Learn how to write a pack and contribute to community `here </reference/packs>`__.
 * Connect your monitoring - install Sensu or Nagios pack
 * Learn how to write custom sensors and actions - TBD
 
