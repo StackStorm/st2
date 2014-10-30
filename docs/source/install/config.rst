@@ -7,7 +7,7 @@ StackStorm configuration file is at :github_st2:`/etc/st2/st2.conf </conf/st2.co
 SUDO Access
 -------------------------
 
-All actions run by st2 are performed by a single user. Typically, this user is named ``stanley`` and that is configurable via `st2.conf </conf/st2.conf>`__.
+All actions run by st2 are performed by a single user. Typically, this user is named ``stanley`` and that is configurable via :github_st2:`st2.conf </conf/st2.conf>`.
 
 .. note:: `stanley` user requires the following access -
 
