@@ -264,14 +264,14 @@ Those actions are always executed locally and run on the same machine when
 st2 components are running.
 
 Writing custom Python actions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In the simplest form, Python action is a module which exposes a class which
 inherits from :class:`st2actions.runners.pythonrunner.Action` and implements
 a ``run`` method.
 
 Configuration file
-------------------
+~~~~~~~~~~~~~~~~~~
 
 .. note::
 
@@ -290,7 +290,7 @@ Configuration file format is YAML. Configuration is automatically parsed and
 passed to the action constructor via the ``config`` argument.
 
 Logging
--------
+~~~~~~~
 
 All the logging inside the action should be performed via the logger which
 is specific to this action and available via ``self.logger`` class attribute.
@@ -312,26 +312,26 @@ For example:
             self.logger.error('Action failed...')
 
 Pre-defined actions
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 There are a few predefined actions that come out of the box when st2
 is run via RPMs.
 
-local : This action allows execution of arbitrary \*nix/shell commands
+``core.local`` : This action allows execution of arbitrary \*nix/shell commands
 locally. Via the CLI executing this command would be -
 
 ::
 
     st2 run core.local cmd='ls -l'
 
-remote : This action allows execution of arbitrary \*nix/shell commands
+``core.remote`` : This action allows execution of arbitrary \*nix/shell commands
 on a set of boxes. Via the CLI executing this command would be -
 
 ::
 
     st2 run core.remote cmd='ls -l' host='host1, host2' user='user1'
 
-http : This action allows execution of http requests. Think curl
+``core.http`` : This action allows execution of http requests. Think curl
 executed from the st2 box.
 
 ::
