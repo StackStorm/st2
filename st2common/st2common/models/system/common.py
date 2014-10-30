@@ -25,6 +25,17 @@ class ResourceReference(object):
         self.ref = self.to_string_reference(pack=pack, name=name)
 
     @staticmethod
+    def is_resource_reference(ref):
+        """
+        This method uses a very naive approach to determine if the provided
+        string is a resource reference - it only checks if this string contains
+        a separator.
+
+        :rtype ref: ``str``
+        """
+        return PACK_SEPARATOR in ref
+
+    @staticmethod
     def from_string_reference(ref):
         pack = ResourceReference.get_pack(ref)
         name = ResourceReference.get_name(ref)

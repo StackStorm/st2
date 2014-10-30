@@ -121,7 +121,7 @@ class ContentPackResourceControler(ResourceController):
         Retrieve resource object by an id of a reference.
         """
 
-        if '.' in ref_or_id:
+        if ResourceReference.is_resource_reference(ref_or_id):
             # references always contain a dot and id's can't contain it
             is_reference = True
         else:

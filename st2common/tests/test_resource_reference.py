@@ -43,3 +43,8 @@ class ResourceReferenceTestCase(unittest2.TestCase):
         expected_msg = 'Both pack and name needed for building'
         self.assertRaisesRegexp(ValueError, expected_msg, ResourceReference.to_string_reference,
                                 pack=None, name='name')
+
+    def test_is_resource_reference(self):
+        self.assertTrue(ResourceReference.is_resource_reference('foo.bar'))
+        self.assertTrue(ResourceReference.is_resource_reference('foo.bar.ponies'))
+        self.assertFalse(ResourceReference.is_resource_reference('foo'))
