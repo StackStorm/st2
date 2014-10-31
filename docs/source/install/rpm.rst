@@ -95,29 +95,6 @@ You will also want to download the rabbitmqadmin script to make troubleshooting 
     curl -sS -o /usr/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
     chmod 755 /usr/bin/rabbitmqadmin
 
-MongoDB Setup
-'''''''''''''
-
-For MongoDB you will need to enable the oplog (operations log).  To enable oplog, make sure these two configuration items are set in /etc/mongodb.conf
-
-::
-
-    replSet = rs0
-    oplogSize = 100
-
-Next verify that the hostname is set for 127.0.0.1 in /etc/hosts
-
-::
-
-    echo -e '127.0.0.1'\\t`hostname` >> /etc/hosts
-
-After verifying those settings, you will want to restart mongodb and initate the replicate set.
-
-::
-
-    service mongod restart && sleep 10
-    mongo --eval "rs.initiate()"
-
 
 Manual Installation
 ^^^^^^^^^^^^^^^^^^^
