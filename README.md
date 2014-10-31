@@ -2,10 +2,10 @@ StackStorm
 ============
 ![StackStorm](https://github.com/stackstorm/st2/raw/master/stackstorm_logo.png)
 
-**StackStorm** is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product)
+**StackStorm** is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product).
 
 ## Documentation
-Please refer to [StackStorm Docs](http://docs.stackstorm.com)
+Please refer to [StackStorm Docs](http://docs.stackstorm.com).
 
 ## Hacking
 To set up dev environment and run StackStorm from sources, follow [these instructions](docs/source/install/sources.rst).
