@@ -4,16 +4,16 @@ Triggers and Sensors
 Sensors
 ~~~~~~~~
 
-Sensors are essentially adapters that are a way to integrate st2
-with an external system so that triggers can be injected into st2
+Sensors are essentially adapters that are a way to integrate |st2|
+with an external system so that triggers can be injected into |st2|
 before rule matching results in potential actions. Sensors are pieces
-of Python code and have to follow the st2 defined sensor interface
+of Python code and have to follow the |st2| defined sensor interface
 requirements to be successfully run.
 
 Triggers
 ~~~~~~~~
 
-Triggers are st2 constructs that identify the incoming events to st2.
+Triggers are |st2| constructs that identify the incoming events to |st2|.
 A trigger is a tuple of type (string) and optional parameters (object). Rules are written to work with triggers. Sensors typically register triggers though this is not strictly the case. For example, webhook triggers are just registered independently. You don't have to write a sensor.
 
 .. _ref-sensors-authoring-a-sensor:
@@ -65,7 +65,7 @@ If you are happy about your sensor and you want the system to always run it, pla
 
     $cp /path/to/sensor/${sensorfile}.py /opt/stackstorm/${pack_name}/sensors/${sensorfile}.py
 
-Note: If st2 reactor component is already running on the box, you'll
+Note: If |st2| reactor component is already running on the box, you'll
 have to restart it to pick up the new sensor.
 
 Examples
@@ -82,7 +82,7 @@ triggers.
 Advanced examples
 ~~~~~~~~~~~~~~~~~
 
-There are some common use cases that we identified and st2 comes
+There are some common use cases that we identified and |st2| comes
 bundled with some default sensors. For example, the two triggers in
 this section are implemented as sensors.
 
@@ -102,12 +102,12 @@ Look at the generic webhooks sensor implementation
 The payload here can have arbitray structure. The webhook sensor uses
 `Flask <http://flask.pocoo.org/>`__ to spin up restful endpoints.
 
-st2 webhook sensor
+|st2| webhook sensor
 ^^^^^^^^^^^^^^^^^^^^^^
 
-st2 defines it's own webhook format if you want a REST interface to
+|st2| defines it's own webhook format if you want a REST interface to
 inject triggers from curl or other plugins. Unlike the generic webhooks,
-the payload for this endpoint should be in a form st2 expects. Look
+the payload for this endpoint should be in a form |st2| expects. Look
 at the sensor implementation
 `here <https://github.com/StackStorm/st2/blob/master/st2reactor/st2reactor/contrib/sensors/st2_webhook_sensor.py>`__.
 The payload format is

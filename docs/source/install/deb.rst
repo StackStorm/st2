@@ -87,7 +87,7 @@ See  :doc:`/install/config` for more information on setting up SSH access for a 
 Starting and Stopping
 ^^^^^^^^^^^^^^^^^^^^^
 
-The command to start and or stop st2 is 'st2ctl'.
+The command to start and or stop |st2| is 'st2ctl'.
 
 ::
 

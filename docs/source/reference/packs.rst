@@ -1,7 +1,7 @@
 Create and Contribute a Pack
 =============================
 
-Packs have a defined structure that is prescribed by st2. It is required to follow this structure while creating your own pack and is also helpful to know while debugging issues with packs.
+Packs have a defined structure that is prescribed by |st2|. It is required to follow this structure while creating your own pack and is also helpful to know while debugging issues with packs.
 
 Anatomy
 -------
@@ -19,7 +19,7 @@ Canonical pack as laid out on the file system.
 
 At the topmost level are the main folders ``actions``, ``rules`` and ``sensors`` as well as some shared files.
 
-* ``etc`` - A folder to place bootstrap, dependency listings (like requirements.txt) etc. This folder is opaque to st2.
+* ``etc`` - A folder to place bootstrap, dependency listings (like requirements.txt) etc. This folder is opaque to |st2| .
 * ``pack.yaml`` - Manifest file which for now is only a sentinel file to identify the folder as a pack.
 * ``config.yaml`` - Shared config file that is provided to both actions and sensors.
 
@@ -64,7 +64,7 @@ If you would like to create a pack yourself then follow these *simple* steps.
 
 .. code-block:: bash
 
-   # Name of folder is name of the pack. Therefore, this is the 'hello-st2' pack.
+   # Name of folder is name of the pack. Therefore, this is the 'hello-|st2|' pack.
    mkdir hello-st2
    cd hello-st2
    mkdir actions
@@ -185,7 +185,7 @@ Lets leave these empty for now and fill them in as per requirement.
 
 .. code-block:: bash
 
-   # Assuming that hello-st2 is on the same machine as the st2 content-repo.
+   # Assuming that hello-st2 is on the same machine as the |st2| content-repo.
    cp -R ./hello-st2 /opt/stackstork/
 
    # Reloads the content
@@ -198,13 +198,13 @@ Lets leave these empty for now and fill them in as per requirement.
 
 Once you follow steps 1-6 you will have created your first pack. Commands like ``st2 action list``, ``st2 rule list`` and ``st2 trigger list`` will show you the loaded content.
 
-Next steps would be to create an integration pack for you favorite tool or service that you would like to use with st2. Happy hacking!
+Next steps would be to create an integration pack for you favorite tool or service that you would like to use with |st2| . Happy hacking!
 
 
 Pushing a Pack to the Community
 -------------------------------
 
-"What's better than getting to use your mega-awesome st2 pack?" Why publishing it to the community and sharing your awesomeness with others. For this purpose we have created the `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__ where you can share and pull other content packs. Submit a pull request! Here are the steps:
+"What's better than getting to use your mega-awesome |st2| pack?" Why publishing it to the community and sharing your awesomeness with others. For this purpose we have created the `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__ where you can share and pull other content packs. Submit a pull request! Here are the steps:
 
 1. Clone the StackStorm community repo locally
 

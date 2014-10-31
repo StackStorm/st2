@@ -1,22 +1,22 @@
 Mistral
 =======
-`Mistral <https://wiki.openstack.org/wiki/Mistral>`_ is an OpenStack project that manages and executes workflows as a service. Mistral is installed as a separate service named "mistral" along with st2. A Mistral workflow can be defined as an st2 action in a Mistral workbook using the `DSL v2 <https://wiki.openstack.org/wiki/Mistral/DSLv2>`_. On action execution, st2 writes the workbook to Mistral and executes the workflow in the workbook. The workflow can invoke other st2 actions as subtasks. There're custom actions in Mistral responsible for handling calls and context for st2. Subtasks in the workflow that are st2 actions are tracked under the parent workflow in st2. On completion of the workflow, Mistral will communicate the status of the workflow execution back to st2.
+`Mistral <https://wiki.openstack.org/wiki/Mistral>`_ is an OpenStack project that manages and executes workflows as a service. Mistral is installed as a separate service named "mistral" along with |st2|. A Mistral workflow can be defined as an |st2| action in a Mistral workbook using the `DSL v2 <https://wiki.openstack.org/wiki/Mistral/DSLv2>`_. On action execution, |st2| writes the workbook to Mistral and executes the workflow in the workbook. The workflow can invoke other |st2| actions as subtasks. There're custom actions in Mistral responsible for handling calls and context for |st2|. Subtasks in the workflow that are |st2| actions are tracked under the parent workflow in |st2|. On completion of the workflow, Mistral will communicate the status of the workflow execution back to |st2|.
 
 Custom Mistral Actions
 ++++++++++++++++++++++
-StackStorm introduces two custom actions in Mistral: **st2.action** and **st2.callback**. These custom actions are used for a unit of work or subtask in a workflow. **st2.action** should be used to schedule a st2 action and **st2.callback** should be used to update the status of the parent action execution in st2 on workflow completion in Mistral.
+StackStorm introduces two custom actions in Mistral: **st2.action** and **st2.callback**. These custom actions are used for a unit of work or subtask in a workflow. **st2.action** should be used to schedule a st2 action and **st2.callback** should be used to update the status of the parent action execution in |st2| on workflow completion in Mistral.
 
 Basic Workflow
 ++++++++++++++
-Let's start with a very basic workflow that calls a st2 action and notifies st2 when the workflow is done. The files used in this example is also located under /usr/share/doc/st2/examples if st2 is already installed. The first task is named **http-get** that does a HTTP GET on the given URL. A st2.action takes two input arguments: ref (or name) of the st2 action and a list of input parameters for the st2 action. In this case, the http-get task is calling **core.http** and passing the URL as input. On success, the task **callback-on-success** returns the body of the HTTP response to st2. On error, the task **callback-on-error** notifies st2 an error has occurred. Let's save this as mistral-basic.yaml at /opt/stackstorm/examples/actions where st2 is installed.
+Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under /usr/share/doc/st2/examples if |st2| is already installed. The first task is named **http-get** that does a HTTP GET on the given URL. A st2.action takes two input arguments: ref (or name) of the |st2| action and a list of input parameters for the |st2| action. In this case, the http-get task is calling **core.http** and passing the URL as input. On success, the task **callback-on-success** returns the body of the HTTP response to |st2|. On error, the task **callback-on-error** notifies |st2| an error has occurred. Let's save this as mistral-basic.yaml at /opt/stackstorm/examples/actions where |st2| is installed.
 
 .. literalinclude:: /../../contrib/examples/actions/mistral-basic.yaml
 
-The following is the corresponding st2 action metadata for example above. The st2 pack for this workflow action is named "examples". Please note that the workbook is named fully qualified as "<pack>.<action>" in the workbook definition above. The st2 action runner is "mistral-v2". The entry point for the st2 action refers to the YAML file of the workbook definition. Under the parameters section, we added an immutable parameter that specifies which workflow in the workbook to execute and a second parameter that takes the URL to GET. Let's save this metadata as mistral-basic.json at /opt/stackstorm/examples/actions.
+The following is the corresponding |st2| action metadata for example above. The |st2| pack for this workflow action is named "examples". Please note that the workbook is named fully qualified as "<pack>.<action>" in the workbook definition above. The |st2| action runner is "mistral-v2". The entry point for the |st2| action refers to the YAML file of the workbook definition. Under the parameters section, we added an immutable parameter that specifies which workflow in the workbook to execute and a second parameter that takes the URL to GET. Let's save this metadata as mistral-basic.json at /opt/stackstorm/examples/actions.
 
 .. literalinclude:: /../../contrib/examples/actions/mistral-basic.json
 
-Next, run the following st2 command to create this workflow action. This will register the workflow as examples.mistral-basic in st2. ::
+Next, run the following |st2| command to create this workflow action. This will register the workflow as examples.mistral-basic in |st2|. ::
 
     st2 action create /opt/stackstorm/examples/actions/mistral-basic.json
 
@@ -24,7 +24,7 @@ To execute the workflow, run the following command where -a tells the command to
 
     st2 run examples.mistral-basic url=http://www.google.com -a
 
-If the workflow completed successfully, both the workflow **examples.mistral-basic** and the action **core.http** would have a **succeeded** status in the st2 action execution list. ::
+If the workflow completed successfully, both the workflow **examples.mistral-basic** and the action **core.http** would have a **succeeded** status in the |st2| action execution list. ::
 
     +--------------------------+------------------------+--------------+-----------+-----------------------------+
     | id                       | action                 | context.user | status    | start_timestamp             |

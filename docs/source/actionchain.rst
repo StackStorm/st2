@@ -1,12 +1,12 @@
 ActionChain
 ============
 
-ActionChain is a no-frills linear workflow. On completion of a constituent action the choice between on-success and on-failure is evaluated to pick the next action. This implementation allows for passing of data between actions and finally publishes the result of each of the constituent action elements. From perspective of st2 an ActionChain is itself an action therefore all the features of an action like execution from cli, usage in Rules etc. are automatically supported.
+ActionChain is a no-frills linear workflow. On completion of a constituent action the choice between on-success and on-failure is evaluated to pick the next action. This implementation allows for passing of data between actions and finally publishes the result of each of the constituent action elements. From perspective of |st2|  an ActionChain is itself an action therefore all the features of an action like execution from cli, usage in Rules etc. are automatically supported.
 
 Authoring an ActionChain
 ------------------------
 
-ActionChain's are described in json and placed inside a pack similar to other script or python actions. An ActionChain must also be associated with a metadata file that allows it to be registered as an Action by st2. This metadata contains name and parameter description of an action.
+ActionChain's are described in json and placed inside a pack similar to other script or python actions. An ActionChain must also be associated with a metadata file that allows it to be registered as an Action by |st2| . This metadata contains name and parameter description of an action.
 
 ActionChain metadata
 ~~~~~~~~~~~~~~~~~~~~
@@ -32,7 +32,7 @@ Note:
 
 * `chain` is the array property that contains action elements.
 * Action elements are named action execution specifications. The name is scoped to an ActionChain and is used as a reference to an action element.
-* `ref` property of an action element points to an Action registered in st2.
+* `ref` property of an action element points to an Action registered in |st2| .
 * `on-success` is the link to action element to invoke next on a successful execution. If not provided the ActionChain will terminate with status set to success.
 * `on-failure` is the link to action element to invoke next on a failed execution. If not provided the ActionChain will terminate with the status set to error.
 * `default` is the top level property that specifies start of an ActionChain.

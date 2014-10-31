@@ -1,7 +1,7 @@
 Installation
 =================
 
-To install and run StackStorm st2 on Ubuntu/Debian or RedHat/Fedora with all dependencies,
+To install and run StackStorm |st2| on Ubuntu/Debian or RedHat/Fedora with all dependencies,
 download and run the deployment script.
 
 ::

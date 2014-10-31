@@ -4,7 +4,7 @@ CLI and Python Client
 Install from Source
 -------------------
 
-Git clone the st2 repo locally, change directory to st2client, then
+Git clone the |st2| repo locally, change directory to st2client, then
 run "python setup.py" or "python setup.py develop".
 
 Endpoint Configuration
@@ -14,7 +14,7 @@ By default, both the python client and the CLI will retrieve endpoint
 configuration from the environment. If no configuration is provided, the
 client will assume localhost and default ports.
 
--  ST2\_BASE\_URL - Base URL for the st2 API server endpoints (i.e.
+-  ST2\_BASE\_URL - Base URL for the |st2| API server endpoints (i.e.
    http://localhost). If only the base URL is provided, the client will
    assume default ports for the API servers are used. If any of the API
    server URL is provided, it will override the base URL and default
@@ -24,7 +24,7 @@ client will assume localhost and default ports.
    rules and reusable configuration data.
 
 The default endpoint configuration can be explicitly specified at the
-st2 CLI and the python client. For st2 CLI, the endpoints are provided
+|st2| CLI and the python client. For |st2| CLI, the endpoints are provided
 via optional parameters (i.e. --url for base URL, --action-url,
 --reactor-url, and --datastore-url). For the python client, the
 endpoints are provided via the Client init as kwargs (i.e. base\_url,

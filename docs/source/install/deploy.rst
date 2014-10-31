@@ -1,6 +1,6 @@
 Authentication
 ==============
-st2 is included with an auth service that authenicates user and generates a token. Once auth is enabled, all st2 REST APIs require a valid token for access.
+|st2| is included with an auth service that authenicates user and generates a token. Once auth is enabled, all |st2| REST APIs require a valid token for access.
 
 Setup
 +++++
@@ -50,14 +50,14 @@ Run the following curl commands to test. ::
 
 Usage
 +++++
-Once st2auth is setup, to enable st2api for authentication, change enable to True in the auth section at st2.conf and restart the st2api service. ::
+Once st2auth is setup, to enable st2api for authentication, change enable to True in the auth section at :github_st2:`st2.conf <conf/st2.conf>` and restart the st2api service. ::
 
     [auth]
     enable = True
 
 Once auth is enabled for st2api, API calls require token to be pass via the headers and CLI calls requires the token to be included as CLI argument or be stored in the environment.
 
-To acquire a new token via the CLI, run the st2 auth command.  If password is not provided, then st2 auth will prompt for the password.  If successful, a token is returned in the response. ::
+To acquire a new token via the CLI, run the ``st2 auth`` command.  If password is not provided, then ``st2 auth`` will prompt for the password.  If successful, a token is returned in the response. ::
 
     # with password
     st2 auth yourusername -p yourpassword

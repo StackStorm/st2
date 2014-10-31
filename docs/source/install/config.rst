@@ -7,7 +7,7 @@ StackStorm configuration file is at :github_st2:`/etc/st2/st2.conf </conf/st2.co
 SUDO Access
 -------------------------
 
-All actions run by st2 are performed by a single user. Typically, this user is named ``stanley`` and that is configurable via :github_st2:`st2.conf </conf/st2.conf>`.
+All actions run by |st2| are performed by a single user. Typically, this user is named ``stanley`` and that is configurable via :github_st2:`st2.conf </conf/st2.conf>`.
 
 .. note:: `stanley` user requires the following access -
 
@@ -36,7 +36,7 @@ Follow these steps on a remote box to setup `stanley` user on remote boxes.
     useradd stanley
     mkdir -p /home/stanley/.ssh
     chmod 0700 /home/stanley/.ssh
-    # generate ssh keys on st2 box and copy over public key into remote box.
+    # generate ssh keys on |st2| box and copy over public key into remote box.
     # ssh-keygen -f /home/stanley/.ssh/stanley_rsa -P ""
     cp ${KEY_LOCATION}/stanley_rsa.pub /home/stanley/.ssh/stanley_rsa.pub
     # authorize key-base acces.
@@ -45,7 +45,7 @@ Follow these steps on a remote box to setup `stanley` user on remote boxes.
     chown -R stanley:stanley /home/stanley
     echo "stanley    ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/st2
 
-To verify do the following from the st2 box
+To verify do the following from the |st2| box
 
 .. code-block:: bash
 

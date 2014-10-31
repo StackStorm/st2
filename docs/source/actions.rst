@@ -24,7 +24,7 @@ Action runner
 ^^^^^^^^^^^^^
 
 An action runner is the execution environment for user-implemented
-actions. For now st2 comes with pre-canned action runners like a
+actions. For now |st2|  comes with pre-canned action runners like a
 remote runner and shell runner which provide for user-implemented
 actions to be run remotely (via SSH) and locally. The objective is to
 allow the Action author to concentrate only on the implementation of the
@@ -37,13 +37,13 @@ The environment in which the action runs is specified by the runner.
 Currently the system provides the following runners:
 
 1. ``run-local`` - This is the local runner. Actions are implemented as
-   scripts. They are executed on the same hosts where st2 components are
+   scripts. They are executed on the same hosts where |st2|  components are
    running.
 2. ``run-remote`` - This is a remote runner. Actions are implemented as scripts.
    They run on one or more remote hosts provided by the user.
 3. ``run-python`` - This is a Python runner. Actions are implemented as Python
    classes with a ``run`` method. They run locally on the same machine where
-   st2 components are running.
+   |st2|  components are running.
 
 Runners come with their own set of input parameters and when an action
 picks a runner\_type it also inherits the runner parameters.
@@ -130,7 +130,7 @@ You just need to follow the steps described bellow:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You should make sure that the script exits with a zero status code on success
-and non-zero on error. This is important since the exit code is used by st2 to
+and non-zero on error. This is important since the exit code is used by |st2|  to
 determine if the script has finished successfully.
 
 2. Add metadata file
@@ -320,7 +320,7 @@ For example:
 Pre-defined actions
 ^^^^^^^^^^^^^^^^^^^
 
-There are a few predefined actions that come out of the box when st2
+There are a few predefined actions that come out of the box when |st2|
 is run via RPMs.
 
 ``core.local`` : This action allows execution of arbitrary \*nix/shell commands
@@ -338,7 +338,7 @@ on a set of boxes. Via the CLI executing this command would be -
     st2 run core.remote cmd='ls -l' host='host1,host2' user='user1'
 
 ``core.http`` : This action allows execution of http requests. Think curl
-executed from the st2 box.
+executed from the |st2|  box.
 
 ::
 
@@ -354,4 +354,4 @@ Community contributed actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 More packs and actions contributed by the StackStorm developers and
-community can be found in the `st2 contrib repo on Github <https://github.com/StackStorm/st2contrib/>`_.
+community can be found in the `|st2|  contrib repo on Github <https://github.com/StackStorm/st2contrib/>`_.

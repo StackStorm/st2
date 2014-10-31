@@ -8,16 +8,15 @@ Pack is the unit of deployment for integrations and automations in order to exte
 
 It is best to view a pack as the means to extend |st2| and allow it to integrate with an external systems. See `next section` to learn more about pack management.
 
-Getting a Pack
+Getting a pack
 --------------
-Pack management is done by st2 actions from `packs` pack, pun intended. Run ``st2 action list --pack packs`` for a list of pack management actions.
+Pack management is done by |st2| actions from `packs` pack, pun intended. Run ``st2 action list --pack packs`` for a list of pack management actions.
 
 Some packs can be installed and run "as is" without any configurations.
 
 .. code-block:: bash
 
     st2 run packs.install packs=docker,sensu repo_url=https://github.com/StackStorm/st2contrib.git
-
 
 This downloads the Sensu and Docker packs from the `StackStorm community repo on GitHub <https://github.com/StackStorm/st2contrib>`__ , places them as local content under ``/opt/stackstorm``, registers with st2 and loads the content.
 
@@ -29,7 +28,7 @@ The integration packs often require configurations to adjust to the environment.
 
 1. Download the pack with ``packs.dowload``
 2. Check out the `REAMDE.md`. Adjust configurations per your environment, install dependencies if needed.
-3. Load the pack into st2 with ``pack.load``. Sometimes components may need a restart with ``pack.restart_component`` (live reload without restart is coming soon).
+3. Load the pack into |st2| with ``pack.load``. Sometimes components may need a restart with ``pack.restart_component`` (live reload without restart is coming soon).
 
 Let's install the Docker pack:
 

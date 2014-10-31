@@ -45,7 +45,7 @@ Project Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~
 
 Once the environment is setup, clone the git repo, and make the project.
-This will create the python virtual environment under st2, download
+This will create the python virtual environment under |st2|, download
 and install required dependencies, and run tests.
 
 ::
@@ -73,14 +73,14 @@ need to perform to create and setup one that works with fabric\_runner. For more
 Running
 ~~~~~~~
 
-To run st2 from source, it's assumed that python virtual environment
+To run |st2| from source, it's assumed that python virtual environment
 is activated and in use.
 
 ::
 
     source virtualenv/bin/activate  # Activates the python virtual environment
-    tools/lauchdev.sh start         # Launches all st2 services in screen sessions
-    tools/lauchdev.sh stop          # Stops all st2 screen sessions and services
+    tools/lauchdev.sh start         # Launches all |st2| services in screen sessions
+    tools/lauchdev.sh stop          # Stops all |st2| screen sessions and services
 
 If the services are started successfully, you will see the following
 output.
@@ -111,10 +111,10 @@ output.
     ...
     ...
 
-st2 can now be operated using the REST API, st2 CLI, and the
+|st2| can now be operated using the REST API, |st2| CLI, and the
 st2client python client library.
 
-Setup st2 CLI
+Setup |st2| CLI
 ~~~~~~~~~~~~~
 
 If installed from source, the CLI client needs to be installed into the

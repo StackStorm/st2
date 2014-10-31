@@ -1,26 +1,26 @@
 RedHat / Fedora
 ================
 
-St2 RPMs have been tested and precompiled for Fedora 20.
+|st2| RPMs have been tested and precompiled for Fedora 20.
 
 Deployment Script Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-You can download and install the St2 components, core content, and the accompanying control script by using our one step installer script.  You can download that script from our downloads site with the following command.
+You can download and install the |st2| components, core content, and the accompanying control script by using our one step installer script.  You can download that script from our downloads site with the following command.
 
 ::
 
     curl -q -k -O https://ops.stackstorm.net/releases/st2/scripts/st2_deploy.sh
 
-You can then run the script to download and install the st2 packages
+You can then run the script to download and install the |st2| packages
 by simply passing in the version number. If no version number is given, it will default to the latest stable version.
 
 ::
 
     sudo ./st2_deploy.sh
 
-This will download the latest stable build of St2.
+This will download the latest stable build of |st2|.
 
 ---------------
 
@@ -41,7 +41,7 @@ Yum
 Pip
 '''
 
-The following packages are required by st2 to run but will be
+The following packages are required by |st2| to run but will be
 installed by the st2_deploy.sh script if it is used.
 
  - apscheduler>=3.0.0rc1
@@ -132,7 +132,7 @@ See  :doc:`/install/config` for more information on setting up SSH access for a 
 Starting and Stopping
 ^^^^^^^^^^^^^^^^^^^^^
 
-The command to start and or stop st2 is 'st2ctl'.
+The command to start and or stop |st2| is 'st2ctl'.
 
 ::
 
