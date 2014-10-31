@@ -1,6 +1,6 @@
 Configuration
 ==============
-.. note:: If you are using "all in one" installation, all configuration is already setup.
+.. note:: If you are using the "all in one" :doc:`/install/index`, all configurations are already setup.
 
 StackStorm configuration file is at :github_st2:`/etc/st2/st2.conf </conf/st2.conf>`
 
