@@ -48,6 +48,8 @@ Currently the system provides the following runners:
 Runners come with their own set of input parameters and when an action
 picks a runner\_type it also inherits the runner parameters.
 
+.. _ref-actions-writing-custom:
+
 Writing custom actions
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -112,6 +114,8 @@ This action is using a Python runner (``run-python``), the class which
 implements a ``run`` method is contained in a file called ``send_sms.py`` which
 is located in the same directory as the metadata file and the action takes three
 parameters (from_number, to_number, body).
+
+.. _ref-actions-converting-scripts:
 
 Converting existing scripts into actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
