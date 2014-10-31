@@ -1,35 +1,26 @@
 RedHat / Fedora
 ================
 
-.. todo:: (phool) review, likely rewrite completely.
-
-St2 RPMs have been tested and precompiled for Fedora 20. In order to
-download them from the StackStorm release server you need to contact us
-to obtain login credentials.
+St2 RPMs have been tested and precompiled for Fedora 20.
 
 Deployment Script Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Once you have your credentials you can download our deployment script
-and use it to install all the prerequisites and the st2 packages.
-After downloading and running this script, you can jump straight to the
-Configuration section.
 
-Download the following script, and edit the USER and PASS variables to
-match the credentials you received from StackStorm.
+You can download and install the St2 components, core content, and the accompanying control script by using our one step installer script.  You can download that script from our downloads site with the following command.
 
 ::
 
-    curl -q -k -O https://<USERNAME>:<PASSWORD>@ops.stackstorm.net/releases/st2/scripts/deploy_stan.sh
+    curl -q -k -O https://ops.stackstorm.net/releases/st2/scripts/st2_deploy.sh
 
 You can then run the script to download and install the st2 packages
-by simply passing in the version number:
+by simply passing in the version number. If no version number is given, it will default to the latest stable version.
 
 ::
 
-    sudo ./deploy_stan.sh 0.5.0
+    sudo ./st2_deploy.sh
 
-This will download the latest build of st2 version 0.5.0.
+This will download the latest stable build of St2.
 
 ---------------
 
@@ -51,78 +42,106 @@ Pip
 '''
 
 The following packages are required by st2 to run but will be
-installed by the deploy\_stan.sh script if it is used.
+installed by the st2_deploy.sh script if it is used.
 
--  pbr>=0.5.21,<1.0
--  pymongo
--  mongoengine
--  oslo.config
--  six
--  eventlet>=0.13.0
--  pecan
--  WSME
--  jinja2
--  requests
--  flask
--  flask-jsonschema
--  prettytable
--  pyyaml
--  apscheduler>=3.0.0rc1
--  python-dateutil
--  paramiko
--  git+https://github.com/StackStorm/fabric.git@stanley-patched
--  jsonschema>=2.3.0
+ - apscheduler>=3.0.0rc1
+ - eventlet>=0.13.0
+ - flask
+ - flask-jsonschema
+ - jinja2
+ - jsonschema>=2.3.0
+ - kombu
+ - mongoengine
+ - oslo.config
+ - paramiko
+ - pecan==0.7.0
+ - prettytable
+ - pymongo
+ - python-dateutil
+ - pyyaml
+ - requests
+ - setuptools
+ - six
+ - git+https://github.com/stackforge/python-mistralclient.git
+ - git+https://github.com/StackStorm/fabric.git@stanley-patched
+ - gitpython==0.3.2RC1
+
+The easiest way to install these is to use the requirements.txt file from the StackStorm downloads server.  This is kept up to date for the version specified in the path.
+
+::
+
+    https://ops.stackstorm.net/releases/st2/<VERSION>/requirements.txt
+
+RabbitMQ
+''''''''
+
+In order to get the latest version of RabbitMQ, you will want to follow the directions on their site to do the installation.
+
+::
+
+    http://www.rabbitmq.com/install-rpm.html
+
+Once you have RabbitMQ installed, you will need to run the following commands to enable certain plugins.
+
+::
+
+    rabbitmq-plugins enable rabbitmq_management
+    service rabbitmq-server restart
+
+You will also want to download the rabbitmqadmin script to make troubleshooting and management easier.
+
+::
+
+    curl -sS -o /usr/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
+    chmod 755 /usr/bin/rabbitmqadmin
+
+MongoDB Setup
+'''''''''''''
+
+For MongoDB you will need to enable the oplog (operations log).  To enable oplog, make sure these two configuration items are set in /etc/mongodb.conf
+
+::
+
+    replSet = rs0
+    oplogSize = 100
+
+Next verify that the hostname is set for 127.0.0.1 in /etc/hosts
+
+::
+
+    echo -e '127.0.0.1'\\t`hostname` >> /etc/hosts
+
+After verifying those settings, you will want to restart mongodb and initate the replicate set.
+
+::
+
+    service mongod restart && sleep 10
+    mongo --eval "rs.initiate()"
+
 
 Manual Installation
 ^^^^^^^^^^^^^^^^^^^
 
-Once you have the credentials you can download the packages from:
+You will need to download the following packages:
 
+ - st2reactor
+ - st2common
+ - st2client
+ - st2auth
+ - st2api
+ - st2actions
+
+The format of the RPM packages is like this: <component>-<version>-<build>.noarch.rpm
+
+You can download the packages from this URL:
 ::
 
-    https://ops.stackstorm.net/releases/st2/<VERSION>/rpms/current/
-
-The required packages are listed below:
-
-::
-
-    st2actioncontroller-<VERSION>-<BUILD>.noarch.rpm
-    st2actionrunnercontroller-<VERSION>-<BUILD>.noarch.rpm
-    st2common-<VERSION>-<BUILD>.noarch.rpm
-    st2client-<VERSION>-<BUILD>.noarch.rpm
-    st2datastore-<VERSION>-<BUILD>.noarch.rpm
-    st2reactor-<VERSION>-<BUILD>.noarch.rpm
-    st2reactorcontroller-<VERSION>-<BUILD>.noarch.rpm
+    https://ops.stackstorm.net/releases/st2/0.5.1/rpms/current/
 
 --------------
 
 Configuration
 ^^^^^^^^^^^^^
-
-MongoDB
-'''''''
-
-st2 requires replication to be enabled in MongoDB. Add these lines
-to your mongo.conf file:
-
-::
-
-    echo "replSet = rs0" >> /etc/mongodb.conf
-    echo "oplogSize = 100" >> /etc/mongodb.conf
-    echo -e '127.0.0.1'\\t`hostname` >> /etc/hosts
-
-MongoDB will need to be started and enabled by default.
-
-::
-
-    sudo systemctl restart mongod.service
-    sudo systemctl enable mongod.service
-
-Initiate the replica set
-
-::
-
-    mongo --eval "rs.initiate()"
 
 SSH
 '''
@@ -131,22 +150,16 @@ In order to run commands on remote you will need to setup a ssh keypair
 and place the private key in a location accessible by the user that the
 processes are running as.
 
-By default, the username is stanley, and the private key is located at
-/home/stanley/.ssh/stanley\_rsa
-
-These options can be changed in the st2 configuration file:
-
-::
-
-    /etc/st2/st2.conf
+See  :doc:`/install/config` for more information on setting up SSH access for a user.
 
 Starting and Stopping
 ^^^^^^^^^^^^^^^^^^^^^
 
-The command to start and or stop st2 is 'st2run'.
+The command to start and or stop st2 is 'st2ctl'.
 
 ::
 
-    sudo st2run start|stop|restart|status
+    vagrant@st2:~$ st2ctl
+    Valid actions: start|stop|restart|restart-component|reload|clean|status
 
 .. include:: on_complete.rst
