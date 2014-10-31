@@ -1,64 +1,21 @@
-Stanley
-======
+StackStorm
+===========
 
-Integrate and automate your cloud operations.
+StackStorm is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product)
 
-### Prerequisites 
-To setup the development environment with all the prerequisites installed via Vagrant, please refer to the README under https://github.com/StackStorm/devenv.
+![StackStorm](https://raw.github.com/stackstorm/st2/master/stackstorm_logo.png)
 
-The list of prerequisites:
-* MongoDB -http://docs.mongodb.org/manual/installation
-* Python, pip, virtualenv, tox
+## Documentation
+Please refer to [StackStorm Docs](http://docs.stackstorm.com)
 
+## Hacking
+To set up dev environment and run StackStorm from sources, follow [these instructions](docs/source/install/sources.rst).
 
-### Using make for typical tasks
-* To create virtualenv, install dependencies, and run tests
- 
-        make all
-
-* To run all tests
- 
-        make tests
-
-* To run lint tasks (flake8, pylint):
-
-        make lint
-
-* To drop virtualenv
-
-        make distclean
-
-* To install updated requirements
- 
-        make requirements
-
-* To just create virtualenv:
-
-        make virtualenv
-
-### Using nosetests to execute specific tests
-Activate the virtual environment.
-* To run tests in a specific project
-
-        nosetests -v {project_name}/tests
-
-* To run tests in a specific test file
-
-        nosetests -v {project_name}/tests/{path_to_test_file}/{test_file}.py
-
-* To run tests in a specific class
-
-        nosetests -v {project_name}/tests/{path_to_test_file}/{test_file}.py:{Classname} 
-
-* To run a specific test method
-
-        nosetests -v {project_name}/tests/{path_to_test_file}/{test_file}.py:{Classname}.{method_name}
-
-## Copyright and license
+## Copyright, License, and Contributors Agreement
 <br>Copyright 2014 StackStorm, Inc.
 
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License. You may obtain a copy of the License in the LICENSE file, or at:
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License. You may obtain a copy of the License in the [LICENSE](LICENSE) file, or at:
 
 [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+By contributing you agree that these contributions are your own (or approved by your employer) and you grant a full, complete, irrevocable copyright license to all users and developers of the project, present and future, pursuant to the license of the project.
