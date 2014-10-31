@@ -1,7 +1,9 @@
 History and Audit
 =================
 
-These are records maintained by st2 of past action executions. This information is stored in two forms
+These are records maintained by StackStorm of past action executions.  These records include information about what events triggered what rules and then what actions; common uses for this information includes root cause analysis reporting as well as operational control as well as collaboration.
+
+This information is stored in two forms
 
 * Database (accessible via CLI)
 * Audit log (/var/log/st2/st2*.audit.log)
@@ -62,4 +64,4 @@ Check out LogStash configuration and Kibana dashboard for pretty logging and aud
 Coming soon
 -----------
 
-We are working on a pretty GUI that provides details audit records which answers questions like `what?`, `when?`, `who?` etc. Watch out for the announcement!
+We are working on analytics for system operations, which may include analysis based upon underlying logs as well as enhancements to our GUI for this purpose.
