@@ -110,5 +110,5 @@ class TestMistralRunner(DbTestCase):
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_SUCCEEDED)
         requests.request.assert_called_with('PUT', execution.callback['url'],
-                                            data=json.dumps({'result': '{}'}),
+                                            data=json.dumps({'state': 'SUCCESS', 'result': '{}'}),
                                             headers={'content-type': 'application/json'})
