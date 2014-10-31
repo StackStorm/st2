@@ -19,6 +19,7 @@ Contents:
     history
     resources/index
     reference/index
+    roadmap
 
 Indices and tables
 ==================

@@ -1,4 +1,4 @@
-Developer Reference
+Reference
 =====================
 
 Contents:

@@ -1,5 +1,5 @@
-Creating and Contributing a pack
-=================================
+Create and Contribute a Pack
+=============================
 
 Packs have a defined structure that is prescribed by st2. It is required to follow this structure while creating your own pack and is also helpful to know while debugging issues with packs.
 
@@ -204,7 +204,7 @@ Next steps would be to create an integration pack for you favorite tool or servi
 Pushing a Pack to the Community
 -------------------------------
 
-"What's better than getting to use your mega-awesome st2 pack?" Why publishing it to the community and sharing your awesomness with others. For this purpose we have created the `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__ where you can share and pull other content packs. Follow these few simple steps -
+"What's better than getting to use your mega-awesome st2 pack?" Why publishing it to the community and sharing your awesomeness with others. For this purpose we have created the `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__ where you can share and pull other content packs. Submit a pull request! Here are the steps:
 
 1. Clone the StackStorm community repo locally
 
@@ -235,4 +235,12 @@ Pushing a Pack to the Community
     * Fill in details describing the pack. Click the ``Create pull request`` button.
     * Github will notify us of a new pull request(PR) and we shall review the code, make sure everything looks pristine and merge it in to make your pack publicly available via st2contrib.
 
-In case this is your first time using git there are lots of tutorials that you can find online. `Here </https://try.github.io/levels/1/challenges/1>`__ is an excellent interactive learning resource.
+.. hint:: If you are new to git/GitHub, `here </https://try.github.io/levels/1/challenges/1>`__ is an excellent interactive learning resource.
+
+Contributors License Agreement
+--------------------------------
+By contributing you agree that these contributions are your own (or approved by your employer) and you grant a full, complete, irrevocable copyright license to all users and developers of the project, present and future, pursuant to the license of the project.
+
+-------------
+
+.. include:: engage.rst

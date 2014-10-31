@@ -16,6 +16,8 @@ Triggers
 Triggers are st2 constructs that identify the incoming events to st2.
 A trigger is a tuple of type (string) and optional parameters (object). Rules are written to work with triggers. Sensors typically register triggers though this is not strictly the case. For example, webhook triggers are just registered independently. You don't have to write a sensor.
 
+.. _ref-sensors-authoring-a-sensor:
+
 Authoring a sensor
 ~~~~~~~~~~~~~~~~~~
 

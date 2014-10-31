@@ -192,9 +192,8 @@ If something goes wrong:
 
 * Check recent executions: ``st2 execution list``
 * Check the logs at ``/var/log/st2.`` 
-* Use service control st2ctl to check service status, restart services, 
-or clean the db.
-* Engage with developers
+* Use service control st2ctl to check service status, restart services, or clean the db.
+* `Engage with developers <http://webchat.freenode.net/?channels=stackstorm>`__
 
 
 -------------------------------
@@ -203,8 +202,9 @@ or clean the db.
 
 * Get more actions, triggers, rules:
 
-    * Install integration packs from `st2contrib_`  - follow :doc:`/packs`.
-    * Convert your scripts into st2 actions by adding metadata, or write custom actions: learn :doc:`/actions`.
+    * Install integration packs from `st2contrib`_  - follow guide on :doc:`/packs`.
+    * :ref:`Convert your scripts into StackStorm actions :<ref-actions-converting-scripts>`
+    * Learn how to :ref:`write custom actions <ref-actions-writing-custom>`.
 * Connect with your monitoring system: - :doc:`resources/monitoring`.
 * Configure SSH for `remote` actions  - :ref:`config-configure-ssh`.
 * Use worklows to stitch actions into higher level automations - :doc:`/workflows`.
