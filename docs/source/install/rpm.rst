@@ -149,14 +149,7 @@ In order to run commands on remote you will need to setup a ssh keypair
 and place the private key in a location accessible by the user that the
 processes are running as.
 
-By default, the username is stanley, and the private key is located at
-/home/stanley/.ssh/stanley\_rsa
-
-These options can be changed in the st2 configuration file:
-
-::
-
-    /etc/st2/st2.conf
+See  :doc:`/install/config` for more information on setting up SSH access for a user.
 
 Starting and Stopping
 ^^^^^^^^^^^^^^^^^^^^^
