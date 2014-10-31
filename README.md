@@ -1,9 +1,8 @@
 StackStorm
-===========
+============
+![StackStorm](https://github.com/stackstorm/st2/raw/master/stackstorm_logo.png)
 
-StackStorm is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product)
-
-![StackStorm](https://raw.github.com/stackstorm/st2/master/stackstorm_logo.png)
+**StackStorm** is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product)
 
 ## Documentation
 Please refer to [StackStorm Docs](http://docs.stackstorm.com)
