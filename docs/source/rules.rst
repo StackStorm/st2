@@ -2,10 +2,10 @@ Rules
 ======================================
 
 StackStorm uses rules and worfklows to capture operational patterns as automations.
-Rules map triggers to actions (or workflows), applying matching criteria and
-mapping trigger payload to action inputs.
+Rules map triggers to actions (or workflows), apply matching criteria and
+map trigger payload to action inputs.
 
-Rule spec is defined as JSON. The following is a sample rule definition
+Rule spec is defined in JSON. The following is a sample rule definition
 structure and a listing of the required and optional elements.
 
 .. code-block:: json
