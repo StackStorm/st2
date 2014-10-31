@@ -12,7 +12,7 @@ Requirements:
 -  RabbitMQ (http://www.rabbitmq.com/download.html)
 -  NodeJS and NPM (http://nodejs.org/)
 
-To setup the development environment from a vanilla Fedora image:
+To setup the development environment starting from a vanilla Fedora image:
 
 ::
 
