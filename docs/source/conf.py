@@ -62,6 +62,7 @@ release = '0.5.1'
 # extlink configurator sphinx.ext.extlinks
 extlinks = {
     'github_st2': ('https://github.com/StackStorm/st2/blob/master/%s', None),
+    'github_mistral': ('https://github.com/StackStorm/mistral/blob/master/%s', None),
     'github_contrib':
         ('https://github.com/StackStorm/st2contrib/blob/master/%s', None),
     'github_devenv': ('https://github.com/StackStorm/devenv/blob/master/%s', None)

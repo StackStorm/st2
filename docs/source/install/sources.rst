@@ -25,7 +25,8 @@ To setup the development environment starting from a vanilla Fedora image:
     systemctl enable rabbitmq-server
     systemctl restart rabbitmq-server
 
-Mistral workflow engine also has its own requirements to the environment. For more information, please refer to :doc:`/mistral`.
+Mistral workflow engine also has its own requirements to the environment. For more information,
+please refer to :github_mistral:`Mistral README <README.rst>`.
 
 To setup the development environment via Vagrant:
 
@@ -37,7 +38,8 @@ To setup the development environment via Vagrant:
     vagrant up
     vagrant ssh
 
-Refer to the :github_devenv:`README </README.md>` under `StackStorm devenv <http://github.com/StackStorm/devenv>`__ for additional details.
+Refer to the :github_devenv:`README <README.md>` under
+`StackStorm devenv <http://github.com/StackStorm/devenv>`__ for additional details.
 
 Project Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~
@@ -55,8 +57,8 @@ and install required dependencies, and run tests.
 Configuration
 ~~~~~~~~~~~~~
 
-Specify a user for running local and remote SSH actions: in
-conf/st2.conf:
+Specify a user for running local and remote SSH actions. In conf/st2.conf, change ``ssh_key_file``
+to point to the user's key file:
 
 ::
 
@@ -64,43 +66,12 @@ conf/st2.conf:
     user = stanley
     ssh_key_file = /home/[current user]/.ssh/stanley_rsa
 
-In case you don't have a user for this purpose (as in case of devenv),
-there are a number of steps you need to perform to create and setup one
-that works with fabric\_runner:
+If you don't have a user for this purpose (as in case of devenv), there are a number of steps you
+need to perform to create and setup one that works with fabric\_runner. For more information, see
+:ref:`config-configure-ssh`.
 
-1. Create new user
-
-   ::
-
-       sudo adduser stanley
-
-2. Create an ``.ssh`` folder inside user home folder
-
-   ::
-
-       sudo mkdir -p /home/stanley/.ssh
-
-3. Generate keypair for the user running st2 services
-
-   ::
-
-       ssh-keygen -f ~/.ssh/stanley_rsa
-
-4. Add service user public key to user's authorized\_keys
-
-   ::
-
-       sudo sh -c 'cat ~/.ssh/stanley_rsa.pub >> /home/stanley/.ssh/authorized_keys'
-
-5. Fix permissions
-
-   ::
-
-       sudo chown -R stanley:stanley /home/stanley/.ssh/
-
-
-Running st2 From Source
-~~~~~~~~~~~~~~~~~~~~~~~
+Running
+~~~~~~~
 
 To run st2 from source, it's assumed that python virtual environment
 is activated and in use.
@@ -141,8 +112,7 @@ output.
     ...
 
 st2 can now be operated using the REST API, st2 CLI, and the
-st2client python client library. Hubot/Chat integration is also
-provided.
+st2client python client library.
 
 Setup st2 CLI
 ~~~~~~~~~~~~~
@@ -155,8 +125,8 @@ virtualenv:
     cd st2/st2client
     python setup.py install
 
-Testing
-~~~~~~~
+Verify Installation
+~~~~~~~~~~~~~~~~~~~
 
 To make sure all the components were installed correctly:
 
@@ -165,6 +135,35 @@ To make sure all the components were installed correctly:
     st2 --help
     st2 action list
     st2 run core.local uname
+
+
+Additional Makefile targets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ - ``make all`` creates virtualenv, installs dependencies, and runs tests
+ - ``make tests`` runs all the tests
+ - ``make lint`` runs lint tasks (flake8, pylint)
+ - ``make docs`` compiles this documentation
+ - ``make clean`` clears .pyc's and docs
+ - ``make distclean`` runs `make clean` target and also drops virtualenv
+ - ``make requirements`` installs python requirements
+ - ``make virtualenv`` creates an empty virtual environment
+
+Manual Testing
+~~~~~~~~~~~~~~
+
+In case you only need to test specific module, it might be reasonable to call `nosetests` directly.
+Make sure your virtualenv is active then run:
+
+::
+
+    nosetests -v {project_name}/tests
+
+or if you only want to run a test for specific file or even class or method, run:
+
+::
+
+    nosetests -v {project_name}/tests/{path_to_test_file}/{test_file}.py:{Classname}.{method_name}
 
 .. rubric:: What's Next?
 
