@@ -20,6 +20,7 @@ One option of setting up passwordless sudo is perform the below operation on eac
 
     echo "stanley    ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/st2
 
+.. _config-configure-ssh:
 
 Configure SSH
 ----------------
