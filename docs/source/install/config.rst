@@ -1,13 +1,13 @@
 Configuration
 ==============
-.. note:: If you are using "all in one" installation, all configuration is already setup.
+.. note:: If you are using the "all in one" :doc:`/install/index`, all configurations are already setup.
 
 StackStorm configuration file is at :github_st2:`/etc/st2/st2.conf </conf/st2.conf>`
 
 SUDO Access
 -------------------------
 
-All actions run by st2 are performed by a single user. Typically, this user is named ``stanley`` and that is configurable via `st2.conf </conf/st2.conf>`__.
+All actions run by st2 are performed by a single user. Typically, this user is named ``stanley`` and that is configurable via :github_st2:`st2.conf </conf/st2.conf>`.
 
 .. note:: `stanley` user requires the following access -
 

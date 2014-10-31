@@ -12,18 +12,18 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
-import os
+# import sys
+# import os
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+# sys.path.insert(0, os.path.abspath('.'))
 
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-#needs_sphinx = '1.0'
+# needs_sphinx = '1.0'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -41,7 +41,7 @@ templates_path = ['_templates']
 source_suffix = '.rst'
 
 # The encoding of source files.
-#source_encoding = 'utf-8-sig'
+# source_encoding = 'utf-8-sig'
 
 # The master toctree document.
 master_doc = 'index'
@@ -62,8 +62,9 @@ release = '0.5.1'
 # extlink configurator sphinx.ext.extlinks
 extlinks = {
     'github_st2': ('https://github.com/StackStorm/st2/blob/master/%s', None),
-    'github_contrib': 
+    'github_contrib':
         ('https://github.com/StackStorm/st2contrib/blob/master/%s', None),
+    'github_devenv': ('https://github.com/StackStorm/devenv/blob/master/%s', None)
 }
 
 # Inserted at the bottom of all rst files.
@@ -82,14 +83,14 @@ todo_include_todos = True
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
-#today = ''
+# today = ''
 # Else, today_fmt is used as the format for a strftime call.
 # today_fmt = '%B %d, %Y'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # dzimine: '**/._*' exclues files my Sublime creates on NFS mount.
-exclude_patterns = ['**/._*',]
+exclude_patterns = ['**/._*', ]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -204,11 +205,11 @@ htmlhelp_basename = 'StackStormDoc'
 
 # Variables to be used by templates
 html_context = {
-  'github_repo': 'StackStorm/stanley',
-  'github_version': 'master',
-  'conf_py_path': '/docs/source/',
-  'display_github': True,
-  'source_suffix': source_suffix, 
+    'github_repo': 'StackStorm/stanley',
+    'github_version': 'master',
+    'conf_py_path': '/docs/source/',
+    'display_github': True,
+    'source_suffix': source_suffix,
 }
 
 
@@ -231,9 +232,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'StackStorm', u'StackStorm Documentation',
-   u'StackStorm team', 'StackStorm', 'One line description of project.',
-   'Miscellaneous'),
+    ('index', 'StackStorm', u'StackStorm Documentation',
+     u'StackStorm team', 'StackStorm', 'One line description of project.',
+     'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.
@@ -247,4 +248,3 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 # texinfo_no_detailmenu = False
-

@@ -12,7 +12,7 @@ Requirements:
 -  RabbitMQ (http://www.rabbitmq.com/download.html)
 -  NodeJS and NPM (http://nodejs.org/)
 
-To setup the development environment from a vanilla Fedora image:
+To setup the development environment starting from a vanilla Fedora image:
 
 ::
 
@@ -41,9 +41,7 @@ To setup the development environment via Vagrant:
     vagrant up
     vagrant ssh
 
-Refer to the
-`README <https://github.com/StackStorm/devenv/README.md>`__ under
-https://github.com/StackStorm/devenv for additional details.
+Refer to the :github_devenv:`README </README.md>` under `StackStorm devenv <http://github.com/StackStorm/devenv>`__ for additional details.
 
 Project Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~
@@ -71,8 +69,8 @@ conf/st2.conf:
     ssh_key_file = /home/[current user]/.ssh/stanley_rsa
 
 In case you don't have a user for this purpose (as in case of devenv),
-there is number of steps you need to perform to create one and setup it
-to work with fabric\_runner:
+there are a number of steps you need to perform to create and setup one
+that works with fabric\_runner:
 
 1. Create new user
 
@@ -80,7 +78,7 @@ to work with fabric\_runner:
 
        sudo adduser stanley
 
-2. Create an ``.ssh`` folder inside his home folder
+2. Create an ``.ssh`` folder inside user home folder
 
    ::
 
@@ -104,7 +102,6 @@ to work with fabric\_runner:
 
        sudo chown -R stanley:stanley /home/stanley/.ssh/
 
-For more information on config parameters see :doc:`/install/config`.
 
 Running st2 From Source
 ~~~~~~~~~~~~~~~~~~~~~~~
