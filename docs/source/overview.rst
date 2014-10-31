@@ -36,7 +36,15 @@ StackStorm plugs into the environment via the extensible set of adapters: sensor
 
 StackStorm is a service with modular architecture. It comprises loosely coupled  service components that communicate over the message bus, and scales horizontally to deliver automation at scale. StackStorm has a full REST API, CLI client for admins and users to operate it locally or remotely, and Python client bindings for developer’s convenience. Web UI is coming soon. 
 
-Roadmap
----------
+StackStorm is new and under active development. We are opening it early to engage community, get feedback, and refine directions, and welcome contributions. 
 
-.. todo:: Post roadmap
+What's Next?
+-------------------------------
+* Install and run - follow :doc:`/install/index`
+* Learn how to use StackStorm - watch :doc:`/video`
+* Build a simple automation - follow :doc:`/start` Guide
+* Help us with directions - comment on the :doc:`/roadmap`
+* Explore the `StackStorm community <http:://www.stackstorm.com/community/>`__
+
+
+.. include:: engage.rst

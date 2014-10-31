@@ -1,7 +1,7 @@
-Articles
+Resources
 =================
 
-Articles and How To Guides go here...
+Articles, How To Guides, and other resources to help with |st2|
 
 .. toctree::
    :glob:
