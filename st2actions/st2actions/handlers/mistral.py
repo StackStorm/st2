@@ -28,7 +28,8 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
             method = 'PUT'
             output = json.dumps(result) if isinstance(result, dict) else str(result)
             v1 = 'v1' in url
-            data = {'state': STATUS_MAP[status], 'output': output} if v1 else {'result': output}
+            output_key = 'output' if v1 else 'result'
+            data = {'state': STATUS_MAP[status], output_key: output}
             headers = {'content-type': 'application/json'}
             response = requests.request(method, url, data=json.dumps(data), headers=headers)
             if response.status_code != 200:
