@@ -1,17 +1,17 @@
 History and Audit
 =================
 
-These are records maintained by st2 of past action execution records. This information is stored in two forms
+These are records maintained by st2 of past action executions. This information is stored in two forms
 
 * Database (accessible via CLI)
 * Audit log (/var/log/st2/st2*.audit.log)
 
-We have a couple of options to access these records.
+There are a couple of options to access history and audit records.
 
 CLI
 ---
 
-All execution records are accessible via ``st2 execution *`` command family.
+All execution records are accessible by the ``st2 execution *`` command family.
 
 .. code-block:: bash
 
@@ -27,7 +27,7 @@ All execution records are accessible via ``st2 execution *`` command family.
     | 5452ed3d0640fd6b59e75904 | core.sendmail | stanley      | succeeded | 2014-10-31T02:00:29.356000Z |
     +--------------------------+---------------+--------------+-----------+-----------------------------+
 
-    # To see out put of a specific execution. The -j switch prints out json.
+    # To see the output of a specific execution. The -j switch prints out the result in json.
     $ st2 execution get 5452ed4e0640fd6b59e75908 -j
     {
         "status": "succeeded",
@@ -46,7 +46,9 @@ All execution records are accessible via ``st2 execution *`` command family.
         "id": "5452ed4e0640fd6b59e75908"
     }
 
-Use ``st2 execution list -h`` and ``st2 execution get -h`` to explore options available with each of these commands. Executions history grows unless specifics caps are provided in the database, owing to this the ``st2 execution list --action ${action_reference} -n 10`` is particularly useful to see the last n execution of an action.
+Use ``st2 execution list -h`` and ``st2 execution get -h`` to explore options available with each of these commands.
+
+Owing to the fact that execution history can contain many records a command like ``st2 execution list --action ${action_reference} -n 10`` is particularly useful, it provides the last 10 execution of a specified action.
 
 
 Logstash
@@ -60,4 +62,4 @@ Check out LogStash configuration and Kibana dashboard for pretty logging and aud
 Coming soon
 -----------
 
-We are working on a pretty GUI that provides a complete audit records that answers questions like `what?`, `when?`, `who?` etc. Watch out for the announcement!
+We are working on a pretty GUI that provides details audit records which answers questions like `what?`, `when?`, `who?` etc. Watch out for the announcement!
