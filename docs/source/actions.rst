@@ -4,18 +4,21 @@ Actions
 Actions are pieces of code written in arbitrary programming language which can
 perform arbitrary automation or remediation tasks in your environment.
 
-Here is a short list of tasks which can be implemented and modeled as
-StackStorm actions:
+To give you a better idea, here is a short list of tasks which can be
+implemented as actions:
 
-* restarting a service on a server
-* starting a new server
-* acknowledging a Nagios / PagerDuty alert
-* sending a notification or alert via email or sms
-* sending a notification to an IRC channel
-* starting a docker container
+* restart a service on a server
+* create a new cloud server
+* acknowledge a Nagios / PagerDuty alert
+* send a notification or alert via email or sms
+* send a notification to an IRC channel
+* send a message to Slack
+* start a docker container
+* snapshot a VM
+* run nagios check
 
 Action is executed when a rule with a matching criteria is found. For more
-information about the rules, please see the rules section.
+information about the rules, please see the :doc:`rules </rules>` section.
 
 Action runner
 ^^^^^^^^^^^^^
@@ -39,7 +42,8 @@ Currently the system provides the following runners:
 2. ``run-remote`` - This is a remote runner. Actions are implemented as scripts.
    They run on one or more remote hosts provided by the user.
 3. ``run-python`` - This is a Python runner. Actions are implemented as Python
-   classes with a run method. They run locally on the same machine where
+   classes with a ``run`` method. They run locally on the same machine where
+   st2 components are running.
 
 Runners come with their own set of input parameters and when an action
 picks a runner\_type it also inherits the runner parameters.
@@ -55,7 +59,8 @@ Action is composed from two parts:
 As noted above, action script can be written in an arbitrary programming
 language, as long as it follows some simple conventions described bellow:
 
-1. Script should exit with ``0`` status code on success and ``1`` on error
+1. Script should exit with ``0`` status code on success and non-zero on error
+   (e.g. ``1``)
 2. All the log messages should be printed to standard error
 
 Action metadata
@@ -64,7 +69,7 @@ Action metadata
 Action metadata is used to describe the action and is defined as JSON. A list
 of attributes which can be present in the metadata file is included bellow.
 
-* ``name`` - Name of the action
+* ``name`` - Name of the action.
 * ``runner_type`` - The type of runner to execute the action.
 * ``enabled`` - Action cannot be invoked when disabled.
 * ``entry_point`` - Location of the action launch script relative to the /opt/stackstorm/actions.
@@ -103,6 +108,11 @@ the Twilio web service.
         }
     }
 
+This action is using a Python runner (``run-python``), the class which
+implements a ``run`` method is contained in a file called ``send_sms.py`` which
+is located in the same directory as the metadata file and the action takes three
+parameters (from_number, to_number, body).
+
 Converting existing scripts into actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -115,16 +125,11 @@ You just need to follow the steps described bellow:
 1. Make sure the script comforms to the conventions described above
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You should make sure that the script exists with a zero status code on success
-and non-zero on error. This is important since script exit code is used to
+You should make sure that the script exits with a zero status code on success
+and non-zero on error. This is important since the exit code is used by st2 to
 determine if the script has finished successfully.
 
-2. Update argument parsing in the script
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-TODO: Document how arguments are passed to the script, add examples.
-
-3. Add metadata file
+2. Add metadata file
 ~~~~~~~~~~~~~~~~~~~~
 
 You need to add a metadata file which describes the script name, description,
@@ -132,6 +137,88 @@ entry point, which runner to use and script parameters (if any).
 
 When converting an existing script, you will want to either use ``run-local``
 or ``run-remote`` runner.
+
+2. Update argument parsing in the script
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+    If your script doesn't take any arguments, you can skip this step.
+
+Local and remote script runners recognize two types of parameters:
+
+1. ``named`` - those parameters don't include ``position`` attribute
+2. ``positional`` - those parameters include ``position`` attribute
+
+All of the parameters are passed to the script via the command-line arguments.
+
+Named argument are passed to the script in the following format:
+
+::
+
+    script.sh param1=value param2=value param3=value
+
+And positional argument are passed to the script ordered by the ``position``
+value in the following format:
+
+::
+
+    script.sh value2 value1 value3
+
+If your script only uses positional arguments (which is usually the case for
+a lot of scripts out there), you simply need to declare parameters with correct
+value for the ``position`` attribute in the metadata file.
+
+Example 1 - existing bash script with positional arguments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Let's say we have a simple bash script named ``send_to_syslog.sh`` which
+writes a message provided via the command line argument to syslog.
+
+The script takes two arguments:
+
+1. Argument #1 is the address of the syslog server
+2. Argument #2 is the message to write
+
+.. sourcecode:: bash
+
+    #!/usr/bin/env bash
+
+    SERVER=$1
+    MESSAGE=$2
+    logger -n ${SERVER} ${MESSAGE}
+
+Since this script is only using positional arguments, you only need to define
+them in the metadata file:
+
+.. code-block:: json
+
+    {
+        "name": "send_to_syslog.log",
+        "runner_type": "run-remote",
+        "description": "Send a message to a provided syslog server.",
+        "enabled": true,
+        "entry_point": "send_to_syslog.sh",
+        "parameters": {
+            "server": {
+                "type": "string",
+                "description": "Address of the syslog server",
+                "required": true,
+                "position": 0
+            },
+            "message": {
+                "type": "string",
+                "description": "Message to write",
+                "required": true,
+                "position": 1
+            }
+        }
+    }
+
+As you can see above, we declare two parameters - ``server`` and ``message``.
+Both of them declare a ``position`` attribute (0 for server and 1 for message),
+which means they will be passed to the action script as positional arguments so
+your script doesn't require any changes.
 
 Writing custom Python actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
