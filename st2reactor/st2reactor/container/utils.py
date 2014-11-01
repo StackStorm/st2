@@ -5,6 +5,7 @@ from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import SensorType, TriggerType, TriggerInstance
 from st2common.models.db.reactor import SensorTypeDB, TriggerTypeDB, TriggerInstanceDB
 from st2common.services import triggers as TriggerService
+from st2common.constants.pack import SYSTEM_PACK_NAME
 
 LOG = logging.getLogger('st2reactor.sensor.container_utils')
 
@@ -169,13 +170,27 @@ def _create_sensor_type(pack, name, description, artifact_uri, entry_point,
     return sensor_type_db
 
 
+def get_sensor_entry_point(pack, sensor):
+    filename = sensor['filename']
+    class_name = sensor['class_name']
+
+    if pack == SYSTEM_PACK_NAME:
+        # Special case for sensors which come included with the default installation
+        entry_point = class_name
+    else:
+        module_path = filename.split('/%s/' % (pack))[1]
+        module_path = module_path.replace(os.path.sep, '.')
+        module_path = module_path.replace('.py', '')
+        entry_point = '%s.%s' % (module_path, class_name)
+
+    return entry_point
+
+
 def _add_sensor_model(pack, sensor):
     name = sensor['name']
     filename = sensor['filename']
     artifact_uri = 'file://%s' % (filename)
-    module_name = filename.replace(os.path.sep, '.')
-    class_name = sensor['class_name']
-    entry_point = '%s.%s' % (module_name, class_name)
+    entry_point = get_sensor_entry_point(pack=pack, sensor=sensor)
     trigger_types = sensor['trigger_types'] or []
 
     obj = _create_sensor_type(pack=pack,
