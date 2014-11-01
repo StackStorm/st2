@@ -1,7 +1,7 @@
 Adding Monitoring - Sensu
 ============================
 
-`Sensu <http://www.sensuapp.org/>`_ is a popular monitoring tool. In this article, a sample sensu check will be setup and integrated with |st2| . Sensu check will emit an event as a webhook trigger to |st2| . A |st2| rule then matches the trigger based on some criteria and an action is
+`Sensu <http://www.sensuapp.org/>`_ is a popular monitoring tool. In this article, a sample sensu check will be setup and integrated with |st2|. Sensu check will emit an event as a webhook trigger to |st2|. A |st2| rule then matches the trigger based on some criteria and an action is
 invoked.
 
 Prerequisites
@@ -82,7 +82,7 @@ You should see sensu.action-runners-rule listed.
       }
     }
 
-7. Create a sensu handler so we can integrate sensu with |st2| .
+7. Create a sensu handler so we can integrate sensu with |st2|.
 
 ::
 
@@ -136,9 +136,9 @@ You'll see something like
 
 ::
 
-    {"timestamp":"2014-10-29T17:21:11.941081+0000","level":"info","message":"handler output","handler":{"type":"pipe","command":"/etc/sensu/handlers/st2_handler.py","name":"st2"},"output":"Sent sensu event to |st2| . HTTP_CODE: 202\n"}
+    {"timestamp":"2014-10-29T17:21:11.941081+0000","level":"info","message":"handler output","handler":{"type":"pipe","command":"/etc/sensu/handlers/st2_handler.py","name":"st2"},"output":"Sent sensu event to |st2|. HTTP_CODE: 202\n"}
 
-12. You can also check whether a trigger was registered by the handler with |st2| .
+12. You can also check whether a trigger was registered by the handler with |st2|.
 
 ::
 

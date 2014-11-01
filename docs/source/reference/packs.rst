@@ -19,7 +19,7 @@ Canonical pack as laid out on the file system.
 
 At the topmost level are the main folders ``actions``, ``rules`` and ``sensors`` as well as some shared files.
 
-* ``etc`` - A folder to place bootstrap, dependency listings (like requirements.txt) etc. This folder is opaque to |st2| .
+* ``etc`` - A folder to place bootstrap, dependency listings (like requirements.txt) etc. This folder is opaque to |st2|.
 * ``pack.yaml`` - Manifest file which for now is only a sentinel file to identify the folder as a pack.
 * ``config.yaml`` - Shared config file that is provided to both actions and sensors.
 
@@ -198,7 +198,7 @@ Lets leave these empty for now and fill them in as per requirement.
 
 Once you follow steps 1-6 you will have created your first pack. Commands like ``st2 action list``, ``st2 rule list`` and ``st2 trigger list`` will show you the loaded content.
 
-Next steps would be to create an integration pack for you favorite tool or service that you would like to use with |st2| . Happy hacking!
+Next steps would be to create an integration pack for you favorite tool or service that you would like to use with |st2|. Happy hacking!
 
 
 Pushing a Pack to the Community
