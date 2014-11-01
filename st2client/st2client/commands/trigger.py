@@ -21,6 +21,8 @@ class TriggerListCommand(resource.ContentPackResourceListCommand):
 
 class TriggerGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
+    attribute_display_order = ['id', 'ref', 'pack', 'name', 'description',
+                               'parameters_schema', 'payload_schema']
 
 
 class TriggerUpdateCommand(resource.ContentPackResourceUpdateCommand):
