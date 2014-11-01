@@ -4120,7 +4120,6 @@ div[class^='highlight'] pre {
   font-weight: bold;
   display: inline-block;
   padding: 4px 6px;
-  margin-bottom: 0.809em;
 }
 .wy-side-nav-search > a:hover, .wy-side-nav-search .wy-dropdown > a:hover {
   background: rgba(255, 255, 255, 0.1);
@@ -4162,6 +4161,15 @@ div[class^='highlight'] pre {
   opacity: 0;
 }
 
+.logo {
+  display: block;
+  width: 150px;
+
+  margin: 5px;
+
+  fill: #fff;
+}
+
 .wy-body-for-nav {
   background: left repeat-y #4d585a;
   background-size: 300px 1px;
@@ -4175,7 +4183,7 @@ div[class^='highlight'] pre {
 
 .wy-nav-side {
   position: absolute;
-  top:-98px;
+  top: 0;
   left: 0;
   width: 300px;
   overflow: hidden;
@@ -4218,6 +4226,7 @@ div[class^='highlight'] pre {
   font-size: 30px;
   float: left;
   cursor: pointer;
+  margin-top: 10px;
 }
 
 .wy-nav-content-wrap {
