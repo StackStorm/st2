@@ -60,13 +60,13 @@ dfn {
 }
 
 ins {
-  background: #ff9;
+  background: #fcd531;
   color: #000;
   text-decoration: none;
 }
 
 mark {
-  background: #ff0;
+  background: #fcd531;
   color: #000;
   font-style: italic;
   font-weight: bold;
@@ -2419,7 +2419,7 @@ a .fa, a .rst-content .admonition-title, .rst-content a .admonition-title, a .rs
   padding: 12px;
   line-height: 24px;
   margin-bottom: 24px;
-  background: #e7f2fa;
+  background: #a9a9a9;
 }
 
 .wy-alert-title, .rst-content .admonition-title {
@@ -2427,31 +2427,31 @@ a .fa, a .rst-content .admonition-title, .rst-content a .admonition-title, a .rs
   font-weight: bold;
   display: block;
   color: #fff;
-  background: #6ab0de;
+  background: #23c7fa;
   margin: -12px;
   padding: 6px 12px;
   margin-bottom: 12px;
 }
 
 .wy-alert.wy-alert-danger, .rst-content .wy-alert-danger.note, .rst-content .wy-alert-danger.attention, .rst-content .wy-alert-danger.caution, .rst-content .danger, .rst-content .error, .rst-content .wy-alert-danger.hint, .rst-content .wy-alert-danger.important, .rst-content .wy-alert-danger.tip, .rst-content .wy-alert-danger.warning, .rst-content .wy-alert-danger.seealso, .rst-content .wy-alert-danger.admonition-todo {
-  background: #fdf3f2;
+  background: #fcd531;
 }
 .wy-alert.wy-alert-danger .wy-alert-title, .rst-content .wy-alert-danger.note .wy-alert-title, .rst-content .wy-alert-danger.attention .wy-alert-title, .rst-content .wy-alert-danger.caution .wy-alert-title, .rst-content .danger .wy-alert-title, .rst-content .error .wy-alert-title, .rst-content .wy-alert-danger.hint .wy-alert-title, .rst-content .wy-alert-danger.important .wy-alert-title, .rst-content .wy-alert-danger.tip .wy-alert-title, .rst-content .wy-alert-danger.warning .wy-alert-title, .rst-content .wy-alert-danger.seealso .wy-alert-title, .rst-content .wy-alert-danger.admonition-todo .wy-alert-title, .wy-alert.wy-alert-danger .rst-content .admonition-title, .rst-content .wy-alert.wy-alert-danger .admonition-title, .rst-content .wy-alert-danger.note .admonition-title, .rst-content .wy-alert-danger.attention .admonition-title, .rst-content .wy-alert-danger.caution .admonition-title, .rst-content .danger .admonition-title, .rst-content .error .admonition-title, .rst-content .wy-alert-danger.hint .admonition-title, .rst-content .wy-alert-danger.important .admonition-title, .rst-content .wy-alert-danger.tip .admonition-title, .rst-content .wy-alert-danger.warning .admonition-title, .rst-content .wy-alert-danger.seealso .admonition-title, .rst-content .wy-alert-danger.admonition-todo .admonition-title {
-  background: #f29f97;
+  background: #fb8225;
 }
 
 .wy-alert.wy-alert-warning, .rst-content .wy-alert-warning.note, .rst-content .attention, .rst-content .caution, .rst-content .wy-alert-warning.danger, .rst-content .wy-alert-warning.error, .rst-content .wy-alert-warning.hint, .rst-content .wy-alert-warning.important, .rst-content .wy-alert-warning.tip, .rst-content .warning, .rst-content .wy-alert-warning.seealso, .rst-content .admonition-todo {
-  background: #ffedcc;
+  background: #f9e389;
 }
 .wy-alert.wy-alert-warning .wy-alert-title, .rst-content .wy-alert-warning.note .wy-alert-title, .rst-content .attention .wy-alert-title, .rst-content .caution .wy-alert-title, .rst-content .wy-alert-warning.danger .wy-alert-title, .rst-content .wy-alert-warning.error .wy-alert-title, .rst-content .wy-alert-warning.hint .wy-alert-title, .rst-content .wy-alert-warning.important .wy-alert-title, .rst-content .wy-alert-warning.tip .wy-alert-title, .rst-content .warning .wy-alert-title, .rst-content .wy-alert-warning.seealso .wy-alert-title, .rst-content .admonition-todo .wy-alert-title, .wy-alert.wy-alert-warning .rst-content .admonition-title, .rst-content .wy-alert.wy-alert-warning .admonition-title, .rst-content .wy-alert-warning.note .admonition-title, .rst-content .attention .admonition-title, .rst-content .caution .admonition-title, .rst-content .wy-alert-warning.danger .admonition-title, .rst-content .wy-alert-warning.error .admonition-title, .rst-content .wy-alert-warning.hint .admonition-title, .rst-content .wy-alert-warning.important .admonition-title, .rst-content .wy-alert-warning.tip .admonition-title, .rst-content .warning .admonition-title, .rst-content .wy-alert-warning.seealso .admonition-title, .rst-content .admonition-todo .admonition-title {
-  background: #f0b37e;
+  background: #fb8225;
 }
 
 .wy-alert.wy-alert-info, .rst-content .note, .rst-content .wy-alert-info.attention, .rst-content .wy-alert-info.caution, .rst-content .wy-alert-info.danger, .rst-content .wy-alert-info.error, .rst-content .wy-alert-info.hint, .rst-content .wy-alert-info.important, .rst-content .wy-alert-info.tip, .rst-content .wy-alert-info.warning, .rst-content .seealso, .rst-content .wy-alert-info.admonition-todo {
-  background: #e7f2fa;
+  background: #acebff;
 }
 .wy-alert.wy-alert-info .wy-alert-title, .rst-content .note .wy-alert-title, .rst-content .wy-alert-info.attention .wy-alert-title, .rst-content .wy-alert-info.caution .wy-alert-title, .rst-content .wy-alert-info.danger .wy-alert-title, .rst-content .wy-alert-info.error .wy-alert-title, .rst-content .wy-alert-info.hint .wy-alert-title, .rst-content .wy-alert-info.important .wy-alert-title, .rst-content .wy-alert-info.tip .wy-alert-title, .rst-content .wy-alert-info.warning .wy-alert-title, .rst-content .seealso .wy-alert-title, .rst-content .wy-alert-info.admonition-todo .wy-alert-title, .wy-alert.wy-alert-info .rst-content .admonition-title, .rst-content .wy-alert.wy-alert-info .admonition-title, .rst-content .note .admonition-title, .rst-content .wy-alert-info.attention .admonition-title, .rst-content .wy-alert-info.caution .admonition-title, .rst-content .wy-alert-info.danger .admonition-title, .rst-content .wy-alert-info.error .admonition-title, .rst-content .wy-alert-info.hint .admonition-title, .rst-content .wy-alert-info.important .admonition-title, .rst-content .wy-alert-info.tip .admonition-title, .rst-content .wy-alert-info.warning .admonition-title, .rst-content .seealso .admonition-title, .rst-content .wy-alert-info.admonition-todo .admonition-title {
-  background: #6ab0de;
+  background: #23c7fa;
 }
 
 .wy-alert.wy-alert-success, .rst-content .wy-alert-success.note, .rst-content .wy-alert-success.attention, .rst-content .wy-alert-success.caution, .rst-content .wy-alert-success.danger, .rst-content .wy-alert-success.error, .rst-content .hint, .rst-content .important, .rst-content .tip, .rst-content .wy-alert-success.warning, .rst-content .wy-alert-success.seealso, .rst-content .wy-alert-success.admonition-todo {
@@ -2465,7 +2465,7 @@ a .fa, a .rst-content .admonition-title, .rst-content a .admonition-title, a .rs
   background: #f3f6f6;
 }
 .wy-alert.wy-alert-neutral .wy-alert-title, .rst-content .wy-alert-neutral.note .wy-alert-title, .rst-content .wy-alert-neutral.attention .wy-alert-title, .rst-content .wy-alert-neutral.caution .wy-alert-title, .rst-content .wy-alert-neutral.danger .wy-alert-title, .rst-content .wy-alert-neutral.error .wy-alert-title, .rst-content .wy-alert-neutral.hint .wy-alert-title, .rst-content .wy-alert-neutral.important .wy-alert-title, .rst-content .wy-alert-neutral.tip .wy-alert-title, .rst-content .wy-alert-neutral.warning .wy-alert-title, .rst-content .wy-alert-neutral.seealso .wy-alert-title, .rst-content .wy-alert-neutral.admonition-todo .wy-alert-title, .wy-alert.wy-alert-neutral .rst-content .admonition-title, .rst-content .wy-alert.wy-alert-neutral .admonition-title, .rst-content .wy-alert-neutral.note .admonition-title, .rst-content .wy-alert-neutral.attention .admonition-title, .rst-content .wy-alert-neutral.caution .admonition-title, .rst-content .wy-alert-neutral.danger .admonition-title, .rst-content .wy-alert-neutral.error .admonition-title, .rst-content .wy-alert-neutral.hint .admonition-title, .rst-content .wy-alert-neutral.important .admonition-title, .rst-content .wy-alert-neutral.tip .admonition-title, .rst-content .wy-alert-neutral.warning .admonition-title, .rst-content .wy-alert-neutral.seealso .admonition-title, .rst-content .wy-alert-neutral.admonition-todo .admonition-title {
-  color: #404040;
+  color: #4d585a;
   background: #e1e4e5;
 }
 .wy-alert.wy-alert-neutral a, .rst-content .wy-alert-neutral.note a, .rst-content .wy-alert-neutral.attention a, .rst-content .wy-alert-neutral.caution a, .rst-content .wy-alert-neutral.danger a, .rst-content .wy-alert-neutral.error a, .rst-content .wy-alert-neutral.hint a, .rst-content .wy-alert-neutral.important a, .rst-content .wy-alert-neutral.tip a, .rst-content .wy-alert-neutral.warning a, .rst-content .wy-alert-neutral.seealso a, .rst-content .wy-alert-neutral.admonition-todo a {
@@ -2641,14 +2641,14 @@ button[disabled] {
 
 .btn-neutral {
   background-color: #f3f6f6 !important;
-  color: #404040 !important;
+  color: #4d585a !important;
 }
 .btn-neutral:hover {
   background-color: #e5ebeb !important;
-  color: #404040;
+  color: #4d585a;
 }
 .btn-neutral:visited {
-  color: #404040 !important;
+  color: #4d585a !important;
 }
 
 .btn-success {
@@ -2687,16 +2687,16 @@ button[disabled] {
 }
 .btn-link:hover {
   background-color: transparent !important;
-  color: #409ad5 !important;
+  color: #23c7fa !important;
   box-shadow: none;
 }
 .btn-link:active {
   background-color: transparent !important;
-  color: #409ad5 !important;
+  color: #23c7fa !important;
   box-shadow: none;
 }
 .btn-link:visited {
-  color: #9B59B6;
+  color: #0b84aa;
 }
 
 .wy-btn-group .btn, .wy-control .btn {
@@ -2736,7 +2736,7 @@ button[disabled] {
 .wy-dropdown-menu > dd > a {
   display: block;
   clear: both;
-  color: #404040;
+  color: #4d585a;
   white-space: nowrap;
   font-size: 90%;
   padding: 0 12px;
@@ -3100,7 +3100,7 @@ select[disabled], textarea[disabled], input[readonly], select[readonly], textare
 
 .wy-checkbox, .wy-radio {
   margin: 6px 0;
-  color: #404040;
+  color: #4d585a;
   display: block;
 }
 .wy-checkbox input, .wy-radio input {
@@ -3403,7 +3403,7 @@ a:hover {
   color: #3091d1;
 }
 a:visited {
-  color: #9B59B6;
+  color: #0b84aa;
 }
 
 html {
@@ -3414,7 +3414,7 @@ html {
 body {
   font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
   font-weight: normal;
-  color: #404040;
+  color: #4d585a;
   min-height: 100%;
   overflow-x: hidden;
   background: #edf0f2;
@@ -3461,7 +3461,7 @@ a.wy-text-warning:hover {
 }
 
 a.wy-text-info:hover {
-  color: #409ad5 !important;
+  color: #23c7fa !important;
 }
 
 .wy-text-success {
@@ -3481,7 +3481,7 @@ a.wy-text-danger:hover {
 }
 
 .wy-text-neutral {
-  color: #404040 !important;
+  color: #4d585a !important;
 }
 
 a.wy-text-neutral:hover {
@@ -3607,7 +3607,7 @@ code.code-large, .rst-content tt.code-large {
   position: absolute;
   top: 0px;
   left: 0px;
-  background: #9B59B6;
+  background: #0b84aa;
   color: white;
   padding: 6px 12px;
 }
@@ -3652,7 +3652,7 @@ div[class^='highlight'] pre {
   line-height: 1.5;
   display: block;
   overflow: auto;
-  color: #404040;
+  color: #4d585a;
 }
 
 @media print {
@@ -3993,10 +3993,10 @@ div[class^='highlight'] pre {
   background: rgba(255, 255, 255, 0.1);
 }
 .wy-menu-horiz li.divide-left {
-  border-left: solid 1px #404040;
+  border-left: solid 1px #4d585a;
 }
 .wy-menu-horiz li.divide-right {
-  border-right: solid 1px #404040;
+  border-right: solid 1px #4d585a;
 }
 .wy-menu-horiz a {
   height: 32px;
@@ -4021,10 +4021,10 @@ div[class^='highlight'] pre {
   margin-bottom: 0;
 }
 .wy-menu-vertical li.divide-top {
-  border-top: solid 1px #404040;
+  border-top: solid 1px #4d585a;
 }
 .wy-menu-vertical li.divide-bottom {
-  border-bottom: solid 1px #404040;
+  border-bottom: solid 1px #4d585a;
 }
 .wy-menu-vertical li.current {
   background: #e3e3e3;
@@ -4035,10 +4035,11 @@ div[class^='highlight'] pre {
   padding: 0.4045em 2.427em;
 }
 .wy-menu-vertical li.current a:hover {
-  background: #d6d6d6;
+  background: #fb8225;
+  color:#FFF;
 }
 .wy-menu-vertical li.on a, .wy-menu-vertical li.current > a {
-  color: #404040;
+  color: #4d585a;
   padding: 0.4045em 1.618em;
   font-weight: bold;
   position: relative;
@@ -4052,7 +4053,7 @@ div[class^='highlight'] pre {
   background: #fcfcfc;
 }
 .wy-menu-vertical li.toctree-l2.current > a {
-  background: #c9c9c9;
+  background: #fcd531;
   padding: 0.4045em 2.427em;
 }
 .wy-menu-vertical li.current ul {
@@ -4080,18 +4081,18 @@ div[class^='highlight'] pre {
   color: #b3b3b3;
 }
 .wy-menu-vertical a:hover {
-  background-color: #4e4a4a;
+  background-color: #4d585a;
   cursor: pointer;
 }
 .wy-menu-vertical a:active {
-  background-color: #2980B9;
+  background-color: #23c7fa;
   cursor: pointer;
   color: #fff;
 }
 
 .wy-side-nav-search {
   z-index: 200;
-  background-color: #2980B9;
+  background-color: #fb8225;
   text-align: center;
   padding: 0.809em;
   display: block;
@@ -4102,7 +4103,7 @@ div[class^='highlight'] pre {
   width: 100%;
   border-radius: 50px;
   padding: 6px 12px;
-  border-color: #2472a4;
+  border-color: #fcd531;
 }
 .wy-side-nav-search img {
   display: block;
@@ -4132,7 +4133,7 @@ div[class^='highlight'] pre {
   color: #b3b3b3;
 }
 .wy-nav .wy-menu-vertical a:hover {
-  background-color: #2980B9;
+  background-color: #23c7fa;
   color: #fff;
 }
 
@@ -4162,8 +4163,7 @@ div[class^='highlight'] pre {
 }
 
 .wy-body-for-nav {
-  background: left repeat-y #fcfcfc;
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoTWFjaW50b3NoKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDoxOERBMTRGRDBFMUUxMUUzODUwMkJCOThDMEVFNURFMCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDoxOERBMTRGRTBFMUUxMUUzODUwMkJCOThDMEVFNURFMCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjE4REExNEZCMEUxRTExRTM4NTAyQkI5OEMwRUU1REUwIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjE4REExNEZDMEUxRTExRTM4NTAyQkI5OEMwRUU1REUwIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+EwrlwAAAAA5JREFUeNpiMDU0BAgwAAE2AJgB9BnaAAAAAElFTkSuQmCC);
+  background: left repeat-y #4d585a;
   background-size: 300px 1px;
 }
 
@@ -4175,18 +4175,18 @@ div[class^='highlight'] pre {
 
 .wy-nav-side {
   position: absolute;
-  top: 0;
+  top:-98px;
   left: 0;
   width: 300px;
   overflow: hidden;
   min-height: 100%;
-  background: #343131;
+  background: #4d585a;
   z-index: 200;
 }
 
 .wy-nav-top {
   display: none;
-  background: #2980B9;
+  background: #4d585a;
   color: #fff;
   padding: 0.4045em 0.809em;
   position: relative;
@@ -4247,6 +4247,8 @@ div[class^='highlight'] pre {
 
 footer {
   color: #999;
+  /*color: #FFF;
+  background:#4d585a;*/
 }
 footer p {
   margin-bottom: 12px;
@@ -4345,7 +4347,7 @@ nav.stickynav {
   width: 300px;
   color: #fcfcfc;
   background: #1f1d1d;
-  border-top: solid 10px #343131;
+  border-top: solid 10px #4d585a;
   font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
   z-index: 400;
 }
@@ -4466,13 +4468,6 @@ nav.stickynav {
   max-width: 100%;
   height: auto !important;
 }
-.rst-content a.reference.external:after {
-    font-family: FontAwesome;
-    content: " \f08e ";
-    color: #b3b3b3;
-    vertical-align: super;
-    font-size: 60%;
-}
 .rst-content div.figure {
   margin-bottom: 24px;
 }
@@ -4517,7 +4512,7 @@ nav.stickynav {
   margin-bottom: 12px;
 }
 .rst-content .toc-backref {
-  color: #404040;
+  color: #4d585a;
 }
 .rst-content .align-right {
   float: right;
@@ -4648,17 +4643,17 @@ nav.stickynav {
   margin: 6px 0;
   font-size: 90%;
   line-height: normal;
-  background: #e7f2fa;
+  background: #acebff;
   color: #2980B9;
-  border-top: solid 3px #6ab0de;
+  border-top: solid 3px #23c7fa;
   padding: 6px;
   position: relative;
 }
 .rst-content dl:not(.docutils) dt:before {
-  color: #6ab0de;
+  color: #23c7fa;
 }
 .rst-content dl:not(.docutils) dt .headerlink {
-  color: #404040;
+  color: #4d585a;
   font-size: 100% !important;
 }
 .rst-content dl:not(.docutils) dl dt {
@@ -4669,7 +4664,7 @@ nav.stickynav {
   color: gray;
 }
 .rst-content dl:not(.docutils) dl dt .headerlink {
-  color: #404040;
+  color: #4d585a;
   font-size: 100% !important;
 }
 .rst-content dl:not(.docutils) dt:first-child {
@@ -4718,7 +4713,7 @@ nav.stickynav {
   }
 }
 span[id*='MathJax-Span'] {
-  color: #404040;
+  color: #4d585a;
 }
 
 .math {
