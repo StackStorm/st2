@@ -1,7 +1,7 @@
 Installation
 =================
 
-To install and run |st2| |st2| on Ubuntu/Debian or RedHat/Fedora with all dependencies,
+To install and run |st2| on Ubuntu/Debian or RedHat/Fedora with all dependencies,
 download and run the deployment script.
 
 ::
