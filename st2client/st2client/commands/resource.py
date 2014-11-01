@@ -132,6 +132,19 @@ class ResourceCommand(commands.Command):
     def run_and_print(self, args, **kwargs):
         raise NotImplementedError
 
+    def _get_metavar_for_argument(self, argument):
+        return argument.replace('_', '-')
+
+    def _get_help_for_argument(self, resource, argument):
+        resource_display_name = resource.get_display_name().lower()
+
+        if 'ref' in argument:
+            result = ('Reference or ID of the %s.' % resource_display_name)
+        else:
+            result = ('Name or ID of the %s.' % resource_display_name)
+
+        return result
+
 
 class ResourceListCommand(ResourceCommand):
     display_attributes = ['id', 'name', 'description']
@@ -190,10 +203,14 @@ class ResourceGetCommand(ResourceCommand):
             'Get individual %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument(self.pk_argument_name,
-                                 metavar=self.pk_argument_name.replace('_', '-'),
-                                 help=('Name or ID of the %s.' %
-                                       resource.get_display_name().lower()))
+        argument = self.pk_argument_name
+        metavar = self._get_metavar_for_argument(argument=self.pk_argument_name)
+        help = self._get_help_for_argument(resource=resource,
+                                           argument=self.pk_argument_name)
+
+        self.parser.add_argument(argument,
+                                 metavar=metavar,
+                                 help=help)
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=self.display_attributes,
                                  help=('List of attributes to include in the '
@@ -266,10 +283,14 @@ class ResourceUpdateCommand(ResourceCommand):
             'Updating an existing %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument(self.pk_argument_name,
-                                 metavar=self.pk_argument_name.replace('_', '-'),
-                                 help=('Name or ID of the %s to be updated.' %
-                                       resource.get_display_name().lower()))
+        argument = self.pk_argument_name
+        metavar = self._get_metavar_for_argument(argument=self.pk_argument_name)
+        help = self._get_help_for_argument(resource=resource,
+                                           argument=self.pk_argument_name)
+
+        self.parser.add_argument(argument,
+                                 metavar=metavar,
+                                 help=help)
         self.parser.add_argument('file',
                                  help=('JSON file containing the %s to update.'
                                        % resource.get_display_name().lower()))
@@ -313,10 +334,14 @@ class ResourceDeleteCommand(ResourceCommand):
             'Delete an existing %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument(self.pk_argument_name,
-                                 metavar=self.pk_argument_name.replace('_', '-'),
-                                 help=('Name or ID of the %s.' %
-                                       resource.get_display_name().lower()))
+        argument = self.pk_argument_name
+        metavar = self._get_metavar_for_argument(argument=self.pk_argument_name)
+        help = self._get_help_for_argument(resource=resource,
+                                           argument=self.pk_argument_name)
+
+        self.parser.add_argument(argument,
+                                 metavar=metavar,
+                                 help=help)
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
