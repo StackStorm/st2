@@ -110,3 +110,27 @@ class ContainerUtilsTest(DbTestCase):
         self.assertEqual(trigtype_db.pack, 'my_pack_1')
         self.assertEqual(trigtype_db.name, trig_type.get('name'))
         self.assertEqual(trigger, None)
+
+    def test_get_sensor_entry_point(self):
+        # System packs
+        filename = '/data/st/st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.py'
+        class_name = 'St2GenericWebhooksSensor'
+        sensor = {'filename': filename, 'class_name': class_name}
+
+        entry_point = container_utils.get_sensor_entry_point(pack='core', sensor=sensor)
+        self.assertEqual(entry_point, class_name)
+
+        # Non system packs
+        filename = '/data/st2contrib/packs/jira/sensors/jira_sensor.py'
+        class_name = 'JIRASensor'
+        sensor = {'filename': filename, 'class_name': class_name}
+
+        entry_point = container_utils.get_sensor_entry_point(pack='jira', sensor=sensor)
+        self.assertEqual(entry_point, 'sensors.jira_sensor.JIRASensor')
+
+        filename = '/data/st2contrib/packs/docker/sensors/docker_container_sensor.py'
+        class_name = 'DockerSensor'
+        sensor = {'filename': filename, 'class_name': class_name}
+
+        entry_point = container_utils.get_sensor_entry_point(pack='docker', sensor=sensor)
+        self.assertEqual(entry_point, 'sensors.docker_container_sensor.DockerSensor')
