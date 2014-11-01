@@ -2,11 +2,11 @@ Datastore
 ===============================
 
 The goal of the datastore service is to allow users to store common
-parameters and their values within st2 for reuse in the definition
+parameters and their values within |st2| for reuse in the definition
 of sensors, actions, and rules. The datastore service store the data as
-a key value pair and they can be get/set using the st2 CLI or the st2
+a key value pair and they can be get/set using the |st2| CLI or the |st2|
 python client. From the sensor and action plugins, since they are
-implemented in python, the key value pairs are accessed from the st2
+implemented in python, the key value pairs are accessed from the |st2|
 python client. For rule definitions in JSON, the key value pairs are
 referenced with a specific string substitution syntax and the references
 are resolved on rule evaluation.
@@ -56,7 +56,7 @@ Delete an existing key value pair.
 Storing and Retrieving from Python Client
 -----------------------------------------
 
-Create new key value pairs. The st2 API endpoint is set either via
+Create new key value pairs. The |st2| API endpoint is set either via
 the Client init (base\_url) or from environment variable
 (ST2\_BASE\_URL). The default ports for the API servers are assumed.
 

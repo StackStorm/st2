@@ -1,7 +1,7 @@
 Ubuntu / Debian
 =================
 
-StackStorm debian packages have been tested and precompiled for Ubuntu 14.04.
+|st2| debian packages have been tested and precompiled for Ubuntu 14.04.
 
 --------------
 
@@ -19,7 +19,7 @@ APT
 Pip
 '''
 
-The easiest way to install these is to use the requirements.txt file from the StackStorm downloads server.  This is kept up to date for the version specified in the path.
+The easiest way to install these is to use the requirements.txt file from the |st2| downloads server.  This is kept up to date for the version specified in the path.
 
 ::
 
@@ -87,7 +87,7 @@ See  :doc:`/install/config` for more information on setting up SSH access for a 
 Starting and Stopping
 ^^^^^^^^^^^^^^^^^^^^^
 
-The command to start and or stop st2 is 'st2ctl'.
+The command to start and or stop |st2| is 'st2ctl'.
 
 ::
 

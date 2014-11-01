@@ -1,7 +1,7 @@
 Installation
 =================
 
-To install and run StackStorm st2 on Ubuntu/Debian or RedHat/Fedora with all dependencies,
+To install and run |st2| on Ubuntu/Debian or RedHat/Fedora with all dependencies,
 download and run the deployment script.
 
 ::
@@ -10,7 +10,7 @@ download and run the deployment script.
     chmod +x st2_deploy.sh
     sudo ./st2_deploy.sh
 
-This will download and install the latest release of StackStorm (currently |release|). Installation should take about 5 min. Grab a coffee and watch :doc:`/video` while it is being installed.
+This will download and install the latest release of |st2| (currently |release|). Installation should take about 5 min. Grab a coffee and watch :doc:`/video` while it is being installed.
 
 .. include:: on_complete.rst
 

@@ -1,4 +1,4 @@
-Welcome to StackStorm's documentation!
+Welcome to |st2|'s documentation!
 ======================================
 
 Contents:

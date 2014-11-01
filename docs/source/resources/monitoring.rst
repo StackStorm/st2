@@ -1,19 +1,19 @@
 Adding Monitoring - Sensu
 ============================
 
-`Sensu <http://www.sensuapp.org/>`_ is a popular monitoring tool. In this article, a sample sensu check will be setup and integrated with st2. Sensu check will emit an event as a webhook trigger to st2. A st2 rule then matches the trigger based on some criteria and an action is
+`Sensu <http://www.sensuapp.org/>`_ is a popular monitoring tool. In this article, a sample sensu check will be setup and integrated with |st2|. Sensu check will emit an event as a webhook trigger to |st2|. A |st2| rule then matches the trigger based on some criteria and an action is
 invoked.
 
 Prerequisites
 ^^^^^^^^^^^^^
 
- - A box with sensu and st2 up and running. `st2express <https://github.com/StackStorm/st2express>`_ comes with st2 and sensu installed. We are going to use that box as the example throughout this article.
+ - A box with sensu and st2 up and running. `st2express <https://github.com/StackStorm/st2express>`_ comes with |st2| and sensu installed. We are going to use that box as the example throughout this article.
 
- - If you are using your own box, please see :doc:`./../install/index` section for st2 installation instructions. Sensu installation instructions are available `here <http://sensuapp.org/docs/latest/guide>`_.
+ - If you are using your own box, please see :doc:`./../install/index` section for |st2| installation instructions. Sensu installation instructions are available `here <http://sensuapp.org/docs/latest/guide>`_.
 
 Instructions
 ^^^^^^^^^^^^
-1. Install `st2 sensu integration pack <https://github.com/StackStorm/st2contrib/tree/master/packs/sensu>`_. If you have already installed all the packs, skip this step.
+1. Install `StackStorm sensu integration pack <https://github.com/StackStorm/st2contrib/tree/master/packs/sensu>`_. If you have already installed all the packs, skip this step.
 
 ::
 
@@ -53,7 +53,7 @@ You should see sensu.action-runners-rule listed.
     +--------------------------+--------------------------------+--------------------------------+
 
 5. Create a sensu check json like below in the exact path specified.
-(The sensu check monitors for exactly 10 st2 actionrunners and alerts if the number of runners is less than 10.)
+(The sensu check monitors for exactly 10 |st2| actionrunners and alerts if the number of runners is less than 10.)
 
 ::
 
@@ -61,7 +61,7 @@ You should see sensu.action-runners-rule listed.
     {
       "checks": {
         "cron_check": {
-          "handlers": ["default", "st2"],
+          "handlers": ["default", "|st2| "],
           "command": "/etc/sensu/plugins/check-procs.rb -p actionrunner -C 10 ",
           "interval": 60,
           "subscribers": [ "webservers" ]
@@ -82,7 +82,7 @@ You should see sensu.action-runners-rule listed.
       }
     }
 
-7. Create a sensu handler so we can integrate sensu with st2.
+7. Create a sensu handler so we can integrate sensu with |st2|.
 
 ::
 
@@ -136,9 +136,9 @@ You'll see something like
 
 ::
 
-    {"timestamp":"2014-10-29T17:21:11.941081+0000","level":"info","message":"handler output","handler":{"type":"pipe","command":"/etc/sensu/handlers/st2_handler.py","name":"st2"},"output":"Sent sensu event to st2. HTTP_CODE: 202\n"}
+    {"timestamp":"2014-10-29T17:21:11.941081+0000","level":"info","message":"handler output","handler":{"type":"pipe","command":"/etc/sensu/handlers/st2_handler.py","name":"st2"},"output":"Sent sensu event to |st2|. HTTP_CODE: 202\n"}
 
-12. You can also check whether a trigger was registered by the handler with st2.
+12. You can also check whether a trigger was registered by the handler with |st2|.
 
 ::
 
@@ -146,7 +146,7 @@ You'll see something like
 
 You should see sensu.event_handler in the output.
 
-13. You can see the list of sensu checks by invoking the st2 check_list action.
+13. You can see the list of sensu checks by invoking the |st2| check_list action.
 
 ::
 
@@ -159,7 +159,7 @@ You should see sensu.event_handler in the output.
     cat /tmp/sensu.webhook-sample.out
     {u'action': u'create', u'check': {u'status': 2, u'executed': 1414603271, u'name': u'cron_check', u'handlers': [u'default', u'st2'], u'issued': 1414603271, u'interval': 60, u'command': u'/etc/sensu/plugins/check-procs.rb -p actionrunner -C 10 ', u'subscribers': [u'webservers'], u'duration': 0.046, u'output': u'CheckProcs CRITICAL: Found 9 matching processes; cmd /actionrunner/\n', u'history': [u'0', u'0', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2']}, u'client': {u'timestamp': 1414603261, u'version': u'0.14.0', u'name': u'st2express', u'subscriptions': [u'all', u'webservers'], u'address': u'172.168.90.50'}, u'occurrences': 1, u'id': u'e056509c-9728-48cd-95cc-c41a4b62ae0e'}
 
-15. Reset st2 so you can bring back all the runners.
+15. Reset |st2| so you can bring back all the runners.
 
 ::
 

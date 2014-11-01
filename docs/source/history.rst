@@ -1,7 +1,7 @@
 History and Audit
 =================
 
-These are records maintained by StackStorm of past action executions.  These records include information about what events triggered what rules and then what actions; common uses for this information includes root cause analysis reporting as well as operational control as well as collaboration.
+These are records maintained by |st2| of past action executions.  These records include information about what events triggered what rules and then what actions; common uses for this information includes root cause analysis reporting as well as operational control as well as collaboration.
 
 This information is stored in two forms
 
