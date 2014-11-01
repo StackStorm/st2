@@ -1,7 +1,7 @@
 ActionChain
 ============
 
-ActionChain is a no-frills linear workflow. On completion of a constituent action the choice between on-success and on-failure is evaluated to pick the next action. This implementation allows for passing of data between actions and finally publishes the result of each of the constituent action elements. From perspective of |st2|  an ActionChain is itself an action therefore all the features of an action like execution from cli, usage in Rules etc. are automatically supported.
+ActionChain is a no-frills linear workflow. On completion of a constituent action the choice between on-success and on-failure is evaluated to pick the next action. This implementation allows for passing of data between actions and finally publishes the result of each of the constituent action elements. From perspective of |st2| an ActionChain is itself an action therefore all the features of an action like execution from cli, usage in Rules etc. are automatically supported.
 
 Authoring an ActionChain
 ------------------------
