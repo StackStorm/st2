@@ -2561,7 +2561,7 @@ button[disabled] {
   background-color: #27AE60;
   text-decoration: none;
   font-weight: normal;
-  font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Arial, sans-serif;
   box-shadow: 0px 1px 2px -1px rgba(255, 255, 255, 0.5) inset, 0px -2px 0px 0px rgba(0, 0, 0, 0.1) inset;
   outline-none: false;
   vertical-align: middle;
@@ -2986,7 +2986,7 @@ input {
 input[type="button"], input[type="reset"], input[type="submit"] {
   -webkit-appearance: button;
   cursor: pointer;
-  font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Arial, sans-serif;
   *overflow: visible;
 }
 input[type="text"], input[type="password"], input[type="email"], input[type="url"], input[type="date"], input[type="month"], input[type="time"], input[type="datetime"], input[type="datetime-local"], input[type="week"], input[type="number"], input[type="search"], input[type="tel"], input[type="color"] {
@@ -2995,7 +2995,7 @@ input[type="text"], input[type="password"], input[type="email"], input[type="url
   display: inline-block;
   border: 1px solid #ccc;
   font-size: 80%;
-  font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Arial, sans-serif;
   box-shadow: inset 0 1px 3px #ddd;
   border-radius: 0;
   -webkit-transition: border 0.3s linear;
@@ -3065,7 +3065,7 @@ textarea {
   overflow: auto;
   vertical-align: top;
   width: 100%;
-  font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Arial, sans-serif;
 }
 
 select, textarea {
@@ -3412,7 +3412,7 @@ html {
 }
 
 body {
-  font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Arial, sans-serif;
   font-weight: normal;
   color: #4d585a;
   min-height: 100%;
@@ -3491,7 +3491,7 @@ a.wy-text-neutral:hover {
 h1, h2, h3, h4, h5, h6, legend {
   margin-top: 0;
   font-weight: 700;
-  font-family: "Roboto Slab", "ff-tisa-web-pro", "Georgia", Arial, sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Arial, sans-serif;
 }
 
 p {
@@ -4247,8 +4247,6 @@ div[class^='highlight'] pre {
 
 footer {
   color: #999;
-  /*color: #FFF;
-  background:#4d585a;*/
 }
 footer p {
   margin-bottom: 12px;
@@ -4348,7 +4346,7 @@ nav.stickynav {
   color: #fcfcfc;
   background: #1f1d1d;
   border-top: solid 10px #4d585a;
-  font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Arial, sans-serif;
   z-index: 400;
 }
 .rst-versions a {
@@ -4557,7 +4555,7 @@ nav.stickynav {
 }
 .rst-content .sidebar .sidebar-title {
   display: block;
-  font-family: "Roboto Slab", "ff-tisa-web-pro", "Georgia", Arial, sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Arial, sans-serif;
   font-weight: bold;
   background: #e1e4e5;
   padding: 6px 12px;
