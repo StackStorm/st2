@@ -353,5 +353,5 @@ To see other available predefined actions, run the command bellow.
 Community contributed actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-More packs and actions contributed by the StackStorm developers and
+More packs and actions contributed by the |st2| developers and
 community can be found in the `|st2|  contrib repo on Github <https://github.com/StackStorm/st2contrib/>`_.

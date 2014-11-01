@@ -1,7 +1,7 @@
 Rules
 ======================================
 
-StackStorm uses rules and worfklows to capture operational patterns as automations.
+|st2| uses rules and worfklows to capture operational patterns as automations.
 Rules map triggers to actions (or workflows), apply matching criteria and
 map trigger payload to action inputs.
 
@@ -55,7 +55,7 @@ To deploy a rule, use CLI:
     st2 rule list
     st2 rule get examples.webhook_file
 
-By default, StackStorm doesn't load the rules deployed under ``/opt/stackstorm/``. However you can force
+By default, |st2| doesn't load the rules deployed under ``/opt/stackstorm/``. However you can force
 load them with ``st2 run packs.load register=rules``
 
 Rule location

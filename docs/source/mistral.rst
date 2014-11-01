@@ -4,7 +4,7 @@ Mistral
 
 Custom Mistral Actions
 ++++++++++++++++++++++
-StackStorm introduces two custom actions in Mistral: **st2.action** and **st2.callback**. These custom actions are used for a unit of work or subtask in a workflow. **st2.action** should be used to schedule a st2 action and **st2.callback** should be used to update the status of the parent action execution in |st2| on workflow completion in Mistral.
+|st2| introduces two custom actions in Mistral: **st2.action** and **st2.callback**. These custom actions are used for a unit of work or subtask in a workflow. **st2.action** should be used to schedule a st2 action and **st2.callback** should be used to update the status of the parent action execution in |st2| on workflow completion in Mistral.
 
 Basic Workflow
 ++++++++++++++

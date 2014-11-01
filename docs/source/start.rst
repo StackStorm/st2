@@ -1,15 +1,15 @@
 Quick Start
 =================
 
-Got StackStorm :doc:`installed </install/index>`? Enjoyed
+Got |st2| :doc:`installed </install/index>`? Enjoyed
 :doc:`the intro video <video>`? Let's give it a try.
-This guide will walk you through StackStorm basics and help you build and run
+This guide will walk you through |st2| basics and help you build and run
 a simple automation: a rule that triggers an action on external event.
 
 
-Explore StackStorm with CLI
+Explore |st2| with CLI
 ----------------------------
-The best way to explore StackStorm is to use CLI. Start by firing a few commands:
+The best way to explore |st2| is to use CLI. Start by firing a few commands:
 
 .. code-block:: bash
 
@@ -27,15 +27,15 @@ The best way to explore StackStorm is to use CLI. Start by firing a few commands
     # Fire a shell comand on remote hosts. Requires passwordless SSH configured.
     st2 run core.remote hosts='localhost' -- uname -a
 
-The default “all-in-one” installation deploys the CLI along with the StackStorm
-services. CLI can be used to access StackStorm service remotely. All StackStorm
+The default “all-in-one” installation deploys the CLI along with the |st2|
+services. CLI can be used to access |st2| service remotely. All |st2|
 operations are also available via REST API and Python bindings.
 Check the :doc:`CLI and Python Client </reference/cli>` reference for details.
 
 Work with Actions
 ---------------------
 
-StackStorm comes with a several generic actions out of the box.
+|st2| comes with a several generic actions out of the box.
 Action Library can be easily extended by getting actions from the community or consuming
 your existing scripts (`more on that later`). Browse Action Library with
 ``st2 action list``. Action is called by `ref` as ``pack.action_name``
@@ -98,13 +98,13 @@ Check the action execution history and details of action executions with ``st2 e
     # Get the output of just the last execution
     st2 execution list -n 1
 
-That's it. You have learned to use StackStorm's action library. Let's proceed to automations.
+That's it. You have learned to use |st2|'s action library. Let's proceed to automations.
 
 
 Define a Rule
 -------------------------
 
-StackStorm uses rules to fire actions or workflows when events happen.
+|st2| uses rules to fire actions or workflows when events happen.
 Events are typically monitored by sensors. When a sensor catches an event,
 it fires a trigger. Trigger trips the rule, the rule checks the criteria
 and if it matches, it runs an action. Easy enough. Let’s look at an example.
@@ -127,7 +127,7 @@ Trigger payload is referred with ``{{trigger}}``. If trigger payload is valid JS
 it is parsed and can be accessed like ``{{trigger.path.to.parameter}}`` (it's
 `Jinga template syntax <http://jinja.pocoo.org/docs/dev/templates/>`__).
 
-While the most data are retrieved as needed by StackStorm, you may need to
+While the most data are retrieved as needed by |st2|, you may need to
 store and share some common variables. Use |st2| datastore service to store
 the values and reference them in rules and workflows
 as ``{{system.my_parameter}}``.
@@ -156,7 +156,7 @@ how to configure it, and what is it’s payload structure:
 Deploy a Rule
 -------------------------
 
-StackStorm can be configured to auto-load the rules,
+|st2| can be configured to auto-load the rules,
 or they are deployed with API or CLI:
 
 .. code-block:: bash
@@ -178,7 +178,7 @@ the file and see that it appends the payload if the name=Joe.
     # Check that the rule worked
     tail /tmp/st2.webhook_sample.out
 
-Congratulations, your first StackStorm rule is up and running!
+Congratulations, your first |st2| rule is up and running!
 
 Basic examples of rules, along with sample actions and sensors can be
 found at ``/usr/share/doc/st2/examples/``. To get them deployed, copy them

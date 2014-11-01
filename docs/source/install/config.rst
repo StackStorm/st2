@@ -2,7 +2,7 @@ Configuration
 ==============
 .. note:: If you are using the "all in one" :doc:`/install/index`, all configurations are already setup.
 
-StackStorm configuration file is at :github_st2:`/etc/st2/st2.conf </conf/st2.conf>`
+|st2| configuration file is at :github_st2:`/etc/st2/st2.conf </conf/st2.conf>`
 
 SUDO Access
 -------------------------
@@ -25,9 +25,9 @@ One option of setting up passwordless sudo is perform the below operation on eac
 Configure SSH
 ----------------
 
-To run actions on remote hosts, StackStorm uses `Fabric <http://www.fabfile.org/>`_. It is required to configure identity file based SSH access on all remote hosts.
+To run actions on remote hosts, |st2| uses `Fabric <http://www.fabfile.org/>`_. It is required to configure identity file based SSH access on all remote hosts.
 
-StackStorm ssh user and a path to SSH key are set in ``/etc/st2/st2.conf``. During installation, ``st2_deploy.sh`` script configures ssh on the local box for a user `stanley`.
+|st2| ssh user and a path to SSH key are set in ``/etc/st2/st2.conf``. During installation, ``st2_deploy.sh`` script configures ssh on the local box for a user `stanley`.
 
 Follow these steps on a remote box to setup `stanley` user on remote boxes.
 

@@ -66,7 +66,7 @@ installed by the st2_deploy.sh script if it is used.
  - git+https://github.com/StackStorm/fabric.git@stanley-patched
  - gitpython==0.3.2RC1
 
-The easiest way to install these is to use the requirements.txt file from the StackStorm downloads server.  This is kept up to date for the version specified in the path.
+The easiest way to install these is to use the requirements.txt file from the |st2| downloads server.  This is kept up to date for the version specified in the path.
 
 ::
 

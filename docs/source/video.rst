@@ -9,7 +9,7 @@
 
 .. rubric:: What's Next?
 
-* Install StackStorm - follow :doc:`/install/index`
+* Install |st2| - follow :doc:`/install/index`
 * Get going with :doc:`/start`.
 
 
