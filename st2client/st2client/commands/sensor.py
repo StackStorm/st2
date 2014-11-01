@@ -20,3 +20,5 @@ class SensorListCommand(resource.ContentPackResourceListCommand):
 
 class SensorGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
+    attribute_display_order = ['id', 'ref', 'pack', 'name', 'entry_point',
+                               'artifact_uri', 'trigger_types']
