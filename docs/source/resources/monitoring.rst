@@ -13,7 +13,7 @@ Prerequisites
 
 Instructions
 ^^^^^^^^^^^^
-1. Install `|st2| sensu integration pack <https://github.com/StackStorm/st2contrib/tree/master/packs/sensu>`_. If you have already installed all the packs, skip this step.
+1. Install `StackStorm sensu integration pack <https://github.com/StackStorm/st2contrib/tree/master/packs/sensu>`_. If you have already installed all the packs, skip this step.
 
 ::
 

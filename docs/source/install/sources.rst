@@ -39,7 +39,7 @@ To setup the development environment via Vagrant:
     vagrant ssh
 
 Refer to the :github_devenv:`README <README.md>` under
-`|st2| devenv <http://github.com/StackStorm/devenv>`__ for additional details.
+`StackStorm devenv <http://github.com/StackStorm/devenv>`__ for additional details.
 
 Project Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~

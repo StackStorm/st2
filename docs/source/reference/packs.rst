@@ -204,7 +204,7 @@ Next steps would be to create an integration pack for you favorite tool or servi
 Pushing a Pack to the Community
 -------------------------------
 
-"What's better than getting to use your mega-awesome |st2| pack?" Why publishing it to the community and sharing your awesomeness with others. For this purpose we have created the `|st2| community repo <https://github.com/StackStorm/st2contrib>`__ where you can share and pull other content packs. Submit a pull request! Here are the steps:
+"What's better than getting to use your mega-awesome |st2| pack?" Why publishing it to the community and sharing your awesomeness with others. For this purpose we have created the `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__ where you can share and pull other content packs. Submit a pull request! Here are the steps:
 
 
 1. Clone the |st2| community repo locally
@@ -232,7 +232,7 @@ Pushing a Pack to the Community
 
 4. Create pull request
 
-    * Goto `|st2| community repo <https://github.com/StackStorm/st2contrib>`__. You will see a yellow banner with a button ``Compare & Pull request``. Click the button.
+    * Goto `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__. You will see a yellow banner with a button ``Compare & Pull request``. Click the button.
     * Fill in details describing the pack. Click the ``Create pull request`` button.
     * Github will notify us of a new pull request(PR) and we shall review the code, make sure everything looks pristine and merge it in to make your pack publicly available via st2contrib.
 

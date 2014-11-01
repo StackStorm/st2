@@ -354,4 +354,4 @@ Community contributed actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 More packs and actions contributed by the |st2| developers and
-community can be found in the `|st2| contrib repo on Github <https://github.com/StackStorm/st2contrib/>`_.
+community can be found in the `StackStorm contrib repo on Github <https://github.com/StackStorm/st2contrib/>`_.
