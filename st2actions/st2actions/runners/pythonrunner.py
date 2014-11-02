@@ -83,19 +83,25 @@ class ActionWrapper(object):
         self.action_parameters = action_parameters
 
     def run(self, conn):
+        data_written = False
+
         try:
             action = self._load_action()
             output = action.run(**self.action_parameters)
             conn.write(str(output) + '\n')
             conn.flush()
+            data_written = True
         except Exception, e:
             _, e, tb = sys.exc_info()
             data = {'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))}
             data = json.dumps(data)
             conn.write(data + '\n')
             conn.flush()
+            data_written = True
             sys.exit(1)
         finally:
+            if not data_written:
+                conn.write('\n')
             conn.close()
 
     def _load_action(self):
@@ -157,7 +163,6 @@ class PythonRunner(ActionRunner):
                 p.terminate()
                 message = 'Action failed to complete in %s seconds' % (self._timeout)
                 raise Exception(message)
-
             output = parent_conn.readline()
 
             try:
