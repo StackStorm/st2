@@ -109,7 +109,7 @@ class RemoteScriptAction(RemoteAction):
         if self.command and len(self.command) > 0:
             command_parts.append(self.command)
         command_parts.append(self.remote_script)
-        # add all named_args in the format name=value
+        # add all named_args in the format <kwarg_op>name=value (e.g. --name=value)
         if self.named_args is not None:
             for (arg, value) in six.iteritems(self.named_args):
                 if value is None or (isinstance(value, (str, unicode)) and len(value) < 1):
