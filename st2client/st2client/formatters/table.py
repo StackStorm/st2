@@ -81,15 +81,34 @@ class MultiColumnTable(formatters.Formatter):
                             break
                     values.append(value)
                 else:
-                    values.append(getattr(entry, field_name, ''))
+                    value = cls._get_simple_field_value(entry, field_name)
+                    values.append(value)
             table.add_row(values)
         return table
+
+    @staticmethod
+    def _get_simple_field_value(entry, field_name):
+        """
+        Format a value for a simple field.
+        """
+        value = getattr(entry, field_name, '')
+
+        if isinstance(value, (list, tuple)):
+            if len(value) == 0:
+                value = ''
+            elif isinstance(value[0], (str, unicode)):
+                # List contains simple string values, format it as comma
+                # separated string
+                value = ', '.join(value)
+
+        return value
 
     @staticmethod
     def _get_field_value(value, field_name):
         r_val = value.get(field_name, None)
         if r_val is None:
             return ''
+
         if isinstance(r_val, list) or isinstance(r_val, dict):
             return r_val if len(r_val) > 0 else ''
         return r_val
