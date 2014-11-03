@@ -61,10 +61,10 @@ Packs may contain automations - rules and workflows. Rules are not loaded by def
 .. note:: Pack management is implemented as a pack of st2 actions. Check out :github_st2:`/opt/stackstorm/packs </contrib/packs>` for examples of defining actions and workflows.
 
 Creating a Pack
-----------------
+---------------
+
 See :doc:`/reference/packs` for details on how to pack your integrations and automations in a pack, how to publish it, and how to contribute it to the StackStorm community.
 
-----------------
 .. rubric:: What's Next?
 
 * Learn how to write a pack and contribute to community  - :doc:`/reference/packs`
