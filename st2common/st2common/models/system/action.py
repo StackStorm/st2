@@ -229,8 +229,10 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             result = action_method()
 
             # Cleanup.
-            self._execute_remote_command('rm %s' % self.remote_script)
-            self._execute_remote_command('rm -rf %s' % self.remote_dir)
+            cmd1 = self._get_command_string(cmd='rm', args=[self.remote_script])
+            cmd2 = self._get_command_string(cmd='rm -rf', args=[self.remote_dir])
+            self._execute_remote_command(cmd1)
+            self._execute_remote_command(cmd2)
         except Exception as e:
             LOG.exception('Failed executing remote action.')
             result = {}
@@ -239,6 +241,22 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             result.exception = str(e)
         finally:
             return result
+
+    def _get_command_string(self, cmd, args):
+        """
+        Escape the command arguments and form a command string.
+
+        :type cmd: ``str``
+        :type args: ``list``
+
+        :rtype: ``str``
+        """
+        assert isinstance(args, (list, tuple))
+
+        args = [pipes.quote(arg) for arg in args]
+        args = ' '.join(args)
+        result = '%s %s' % (cmd, args)
+        return result
 
     def _execute_remote_command(self, command):
         action_method = sudo if self.sudo else run
