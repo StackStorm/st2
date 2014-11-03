@@ -71,5 +71,4 @@ See :doc:`/reference/packs` for details on how to pack your integrations and aut
 * Learn how to write :ref:`custom sensors <ref-sensors-authoring-a-sensor>` and :ref:`custom actions <ref-actions-writing-custom>`
 * Explore the `StackStorm community <http:://www.stackstorm.com/community/>`__
 
-.. include:: engage.rst
-
+.. include:: /engage.rst
