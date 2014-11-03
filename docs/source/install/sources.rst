@@ -115,7 +115,7 @@ output.
 st2client python client library.
 
 Setup |st2| CLI
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 If installed from source, the CLI client needs to be installed into the
 virtualenv:

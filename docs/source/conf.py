@@ -91,7 +91,12 @@ todo_include_todos = True
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # dzimine: '**/._*' exclues files my Sublime creates on NFS mount.
-exclude_patterns = ['**/._*', ]
+exclude_patterns = [
+    '**/._*',
+    'engage.rst',  # included file
+    'install/on_complete.rst',  # included file
+    'todo.rst',  # included file
+]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
