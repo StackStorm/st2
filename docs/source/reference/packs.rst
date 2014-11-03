@@ -236,7 +236,7 @@ Pushing a Pack to the Community
     * Fill in details describing the pack. Click the ``Create pull request`` button.
     * Github will notify us of a new pull request(PR) and we shall review the code, make sure everything looks pristine and merge it in to make your pack publicly available via st2contrib.
 
-.. hint:: If you are new to git/GitHub, `here </https://try.github.io/levels/1/challenges/1>`__ is an excellent interactive learning resource.
+.. hint:: If you are new to git/GitHub, `here <https://try.github.io/levels/1/challenges/1>`__ is an excellent interactive learning resource.
 
 Contributors License Agreement
 --------------------------------
