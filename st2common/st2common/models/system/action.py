@@ -124,13 +124,18 @@ class RemoteScriptAction(RemoteAction):
         if self.command and len(self.command) > 0:
             command_parts.append(self.command)
         command_parts.append(self.remote_script)
-        # add all named_args in the format name=value
+        # add all named_args in the format <kwarg_op>name=value (e.g. --name=value)
         if self.named_args is not None:
             for (arg, value) in six.iteritems(self.named_args):
-                if value is None or len(value) < 1:
+                if value is None or (isinstance(value, (str, unicode)) and len(value) < 1):
                     LOG.debug('Ignoring arg %s as its value is %s.', arg, value)
                     continue
-                command_parts.append('%s=%s' % (arg, pipes.quote(value)))
+
+                if isinstance(value, bool):
+                    if value is True:
+                        command_parts.append(arg)
+                else:
+                    command_parts.append('%s=%s' % (arg, pipes.quote(str(value))))
         # add the positional args
         if self.positional_args:
             command_parts.append(self.positional_args)
@@ -229,7 +234,8 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             self._execute_remote_command('mkdir %s' % self.remote_dir)
 
             # Copy script.
-            output_put = self._put(self.script_local_path_abs)
+            output_put = self._put(self.script_local_path_abs,
+                                   mirror_local_mode=False, mode=0744)
             if output_put.get('failed'):
                 return output_put
 
@@ -244,8 +250,10 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             result = action_method()
 
             # Cleanup.
-            self._execute_remote_command('rm %s' % self.remote_script)
-            self._execute_remote_command('rm -rf %s' % self.remote_dir)
+            cmd1 = self._get_command_string(cmd='rm', args=[self.remote_script])
+            cmd2 = self._get_command_string(cmd='rm -rf', args=[self.remote_dir])
+            self._execute_remote_command(cmd1)
+            self._execute_remote_command(cmd2)
         except Exception as e:
             LOG.exception('Failed executing remote action.')
             result = {}
@@ -254,6 +262,22 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             result.exception = str(e)
         finally:
             return result
+
+    def _get_command_string(self, cmd, args):
+        """
+        Escape the command arguments and form a command string.
+
+        :type cmd: ``str``
+        :type args: ``list``
+
+        :rtype: ``str``
+        """
+        assert isinstance(args, (list, tuple))
+
+        args = [pipes.quote(arg) for arg in args]
+        args = ' '.join(args)
+        result = '%s %s' % (cmd, args)
+        return result
 
     def _execute_remote_command(self, command):
         action_method = sudo if self.sudo else run
@@ -267,9 +291,9 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         LOG.debug('Remote command %s succeeded.', command)
         return True
 
-    def _put(self, file_or_dir):
+    def _put(self, file_or_dir, mirror_local_mode=True, mode=None):
         output = put(file_or_dir, self.remote_dir, use_sudo=self.sudo,
-                     mirror_local_mode=True)
+                     mirror_local_mode=mirror_local_mode, mode=mode)
 
         result = {
             'succeeded': output.succeeded,
