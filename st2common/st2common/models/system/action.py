@@ -214,7 +214,8 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             self._execute_remote_command('mkdir %s' % self.remote_dir)
 
             # Copy script.
-            output_put = self._put(self.script_local_path_abs)
+            output_put = self._put(self.script_local_path_abs,
+                                   mirror_local_mode=False, mode=0744)
             if output_put.get('failed'):
                 return output_put
 
@@ -270,9 +271,9 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         LOG.debug('Remote command %s succeeded.', command)
         return True
 
-    def _put(self, file_or_dir):
+    def _put(self, file_or_dir, mirror_local_mode=True, mode=None):
         output = put(file_or_dir, self.remote_dir, use_sudo=self.sudo,
-                     mirror_local_mode=True)
+                     mirror_local_mode=mirror_local_mode, mode=mode)
 
         result = {
             'succeeded': output.succeeded,
