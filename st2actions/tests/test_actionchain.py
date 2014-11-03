@@ -28,6 +28,7 @@ from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
 from st2common.constants.action import ACTIONEXEC_STATUS_FAILED
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
+import st2tests.base as tests_base
 import st2tests.config as tests_config
 
 
@@ -58,31 +59,31 @@ class DummyRunner(object):
         self.runner_parameters = {}
 
 
-CHAIN_1_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                            'fixtures/actionchains/chain1.json')
+CHAIN_1_PATH = os.path.join(tests_base.get_fixtures_path(),
+                            'actionchains/chain1.json')
 with open(CHAIN_1_PATH, 'r') as fd:
     CHAIN_1 = json.load(fd)
-CHAIN_STR_TEMP_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                   'fixtures/actionchains/chain_str_template.json')
-CHAIN_LIST_TEMP_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                    'fixtures/actionchains/chain_list_template.json')
-CHAIN_DICT_TEMP_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                    'fixtures/actionchains/chain_dict_template.json')
-CHAIN_DEP_INPUT = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                               'fixtures/actionchains/chain_dependent_input.json')
-CHAIN_DEP_RESULTS_INPUT = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                       'fixtures/actionchains/chain_dep_result_input.json')
-MALFORMED_CHAIN_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                    'fixtures/actionchains/malformedchain.json')
-CHAIN_TYPED_PARAMS = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                  'fixtures/actionchains/chain_typed_params.json')
+CHAIN_STR_TEMP_PATH = os.path.join(tests_base.get_fixtures_path(),
+                                   'actionchains/chain_str_template.json')
+CHAIN_LIST_TEMP_PATH = os.path.join(tests_base.get_fixtures_path(),
+                                    'actionchains/chain_list_template.json')
+CHAIN_DICT_TEMP_PATH = os.path.join(tests_base.get_fixtures_path(),
+                                    'actionchains/chain_dict_template.json')
+CHAIN_DEP_INPUT = os.path.join(tests_base.get_fixtures_path(),
+                               'actionchains/chain_dependent_input.json')
+CHAIN_DEP_RESULTS_INPUT = os.path.join(tests_base.get_fixtures_path(),
+                                       'actionchains/chain_dep_result_input.json')
+MALFORMED_CHAIN_PATH = os.path.join(tests_base.get_fixtures_path(),
+                                    'actionchains/malformedchain.json')
+CHAIN_TYPED_PARAMS = os.path.join(tests_base.get_fixtures_path(),
+                                  'actionchains/chain_typed_params.json')
 CHAIN_EMPTY = {}
-ACTION_1_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                             'fixtures/actionchains/a1.json')
+ACTION_1_PATH = os.path.join(tests_base.get_fixtures_path(),
+                             'actionchains/a1.json')
 with open(ACTION_1_PATH, 'r') as fd:
     ACTION_1 = DummyAction.from_dict(**json.load(fd))
-ACTION_2_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                             'fixtures/actionchains/a2.json')
+ACTION_2_PATH = os.path.join(tests_base.get_fixtures_path(),
+                             'actionchains/a2.json')
 with open(ACTION_2_PATH, 'r') as fd:
     ACTION_2 = DummyAction.from_dict(**json.load(fd))
 

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
 import eventlet
 import st2tests.config
@@ -90,3 +91,11 @@ class DbTestCase(TestCase):
         global ALL_MODELS
         for model in ALL_MODELS:
             model.drop_collection()
+
+
+def get_fixtures_path():
+    return os.path.join(os.path.dirname(__file__), 'fixtures')
+
+
+def get_resources_path():
+    return os.path.join(os.path.dirname(__file__), 'resources')

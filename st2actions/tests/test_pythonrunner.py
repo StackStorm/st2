@@ -20,11 +20,11 @@ from unittest2 import TestCase
 from st2actions.runners import pythonrunner
 from st2actions.container import service
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+import st2tests.base as tests_base
 import st2tests.config as tests_config
 
 
-PACAL_ROW_ACTION_PATH = os.path.join(os.path.dirname(
-    os.path.realpath(__file__)), 'fixtures/pythonactions/pascal_row.py')
+PACAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'pythonactions/pascal_row.py')
 
 
 class PythonRunnerTestCase(TestCase):

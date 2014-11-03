@@ -27,7 +27,7 @@ from mistralclient.api.v1 import executions
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from tests.fixtures import mistral as fixture
+from st2tests.fixtures import mistral as fixture
 from st2tests import http
 from st2tests import DbTestCase
 import st2actions.bootstrap.runnersregistrar as runners_registrar

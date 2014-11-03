@@ -17,7 +17,7 @@ import copy
 import bson
 import datetime
 
-from tests.fixtures import history as fixture
+from st2tests.fixtures import history2 as fixture
 from st2tests import DbTestCase
 from st2common.util import isotime
 from st2common.persistence.history import ActionExecutionHistory
