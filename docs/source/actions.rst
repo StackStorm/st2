@@ -160,7 +160,7 @@ Named argument are passed to the script in the following format:
 
 ::
 
-    script.sh param1=value param2=value param3=value
+    script.sh --param1=value --param2=value --param3=value
 
 And positional argument are passed to the script ordered by the ``position``
 value in the following format:
