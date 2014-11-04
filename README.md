@@ -5,13 +5,20 @@
 **StackStorm** is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product).
 
 ## Documentation
+
 Please refer to [StackStorm Docs](http://docs.stackstorm.com).
 
 ## Hacking
+
 To set up dev environment and run StackStorm from sources, follow [these instructions](docs/source/install/sources.rst).
 
+## Build Status
+
+[![Build Status](https://travis-ci.org/StackStorm/st2.svg)](https://travis-ci.org/StackStorm/st2)
+
 ## Copyright, License, and Contributors Agreement
-<br>Copyright 2014 StackStorm, Inc.
+
+Copyright 2014 StackStorm, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License. You may obtain a copy of the License in the [LICENSE](LICENSE) file, or at:
 
