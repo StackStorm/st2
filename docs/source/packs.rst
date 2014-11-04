@@ -26,7 +26,7 @@ To uninstall packs: ``st2 run packs.uninstall packs=docker,sensu``. This unloads
 
 The integration packs often require configurations to adjust to the environment. e.g. you will need to specify SMTP server for email, a puppet master URL for Puppet, or a Keystone endpoint and tenant credentials for OpenStack. The installation process is:
 
-1. Download the pack with ``packs.dowload``
+1. Download the pack with ``packs.download``
 2. Check out the `REAMDE.md`. Adjust configurations per your environment, install dependencies if needed.
 3. Load the pack into |st2| with ``pack.load``. Sometimes components may need a restart with ``pack.restart_component`` (live reload without restart is coming soon).
 
