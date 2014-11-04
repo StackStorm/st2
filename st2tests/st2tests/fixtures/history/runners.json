@@ -6,7 +6,8 @@
         "runner_parameters": {
             "hosts": {
                 "type": "string",
-                "default": "localhost"
+                "default": "localhost",
+                "immutable": true
             },
             "cmd": {
                 "type": "string"
