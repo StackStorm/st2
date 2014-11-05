@@ -33,9 +33,3 @@ class UninstallPackAction(Action):
                 self.logger.debug('Deleting virtualenv "%s" for pack "%s"' %
                                   (virtualenv_path, pack_name))
                 shutil.rmtree(virtualenv_path)
-
-
-if __name__ == '__main__':
-    action = UninstallPackAction()
-    action.run('/home/manas/repo_base',
-               ['fabric'])
