@@ -19,6 +19,7 @@ import os
 
 from oslo.config import cfg
 import six
+import yaml
 
 from st2common import log as logging
 from st2common.content.loader import ContentPackLoader
@@ -31,19 +32,38 @@ LOG = logging.getLogger(__name__)
 
 
 class ActionsRegistrar(object):
-    def _get_actions_from_pack(self, pack):
+    def _get_json_actions_from_pack(self, pack):
         actions = glob.glob(pack + '/*.json')
         # Exclude global actions configuration file
         actions = [file_path for file_path in actions if
                    'actions/config.json' not in file_path]
         return actions
 
+    def _get_yaml_actions_from_pack(self, pack):
+        actions = glob.glob(pack + '/*.yaml')
+        # Exclude global actions configuration file
+        actions = [file_path for file_path in actions if
+                   'actions/config.yaml' not in file_path]
+        actions_yml = glob.glob(pack + '/*.yml')
+        # Exclude global actions configuration file
+        actions_yml = [file_path for file_path in actions if
+                       'actions/config.yml' not in file_path]
+        return actions.extend(actions_yml)
+
+    def _get_actions_from_pack(self, pack):
+        actions = self._get_json_actions_from_pack(pack) or []
+        actions.extend(self._get_yaml_actions_from_pack(pack) or [])
+        return actions
+
     def _register_action(self, pack, action):
         with open(action, 'r') as fd:
             try:
-                content = json.load(fd)
+                content = yaml.safe_load(fd)
             except ValueError:
-                LOG.exception('Failed loading action json from %s.', action)
+                try:
+                    content = json.load(fd)
+                except ValueError:
+                    LOG.exception('Failed loading action from %s.', action)
                 raise
 
             try:
