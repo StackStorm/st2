@@ -87,7 +87,6 @@ install_apt(){
   echo "Installing ${aptlist}"
   apt-get install -y ${aptlist}
   setup_rabbitmq
-  setup_mongo
   install_pip
 }
 
@@ -100,7 +99,6 @@ install_yum() {
   echo "Installing ${yumlist}"
   yum install -y ${yumlist}
   setup_rabbitmq
-  setup_mongo
   install_pip
 }
 
@@ -115,29 +113,6 @@ setup_rabbitmq() {
   # rabbitmaadmin is useful to inspect exchanges, queues etc.
   curl -sS -o /usr/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
   chmod 755 /usr/bin/rabbitmqadmin
-}
-
-setup_mongo() {
-  if [[ "$TYPE" == "debs" ]]; then
-    MONGO="mongodb"
-  elif [[ "$TYPE" == "rpms" ]]; then
-    MONGO="mongod"
-  fi
-  echo "########## Setting up MongoDB ##########"
-  if [ ! $(grep 'replSet' /etc/mongodb.conf &> /dev/null; echo $?) == 0 ]
-  then
-    echo "replSet = rs0" >> /etc/mongodb.conf
-    echo "oplogSize = 100" >> /etc/mongodb.conf
-  fi
-  sleep 10
-  # Make mongodb start now
-  service ${MONGO} restart
-  # Add hostname to /etc/hosts
-  echo -e '127.0.0.1'\\t`hostname` >> /etc/hosts
-  # Wait for mongo to spin up
-  sleep 10
-  # Initiate replication set
-  mongo --eval "rs.initiate()"
 }
 
 setup_mysql() {
