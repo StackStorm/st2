@@ -13,15 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 from unittest2 import TestCase
 
 from oslo.config import cfg
 
 from st2common.util.config_parser import ContentPackConfigParser
+import st2tests.base as tests_base
 import st2tests.config as tests_config
-
-DIRNAME = os.path.dirname(os.path.realpath(__file__))
 
 
 class ContentPackConfigParserTestCase(TestCase):
@@ -30,7 +28,7 @@ class ContentPackConfigParserTestCase(TestCase):
         tests_config.parse_args()
 
         # Mock the packs_base_path
-        mock_path = os.path.join(DIRNAME, 'fixtures/')
+        mock_path = tests_base.get_fixtures_path()
         cfg.CONF.content.packs_base_path = mock_path
 
     def test_get_action_config_inexistent_pack(self):

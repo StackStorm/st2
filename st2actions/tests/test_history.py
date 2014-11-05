@@ -21,7 +21,7 @@ import mock
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from tests.fixtures import history as fixture
+from st2tests.fixtures import history as fixture
 from st2tests import DbTestCase
 import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2actions import worker, history

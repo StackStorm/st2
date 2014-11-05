@@ -135,7 +135,8 @@ class ActionAPI(BaseAPI):
             },
             "entry_point": {
                 "description": "The entry point for the action.",
-                "type": "string"
+                "type": "string",
+                "default": ""
             },
             "pack": {
                 "description": "The content pack this action belongs to.",
@@ -158,6 +159,8 @@ class ActionAPI(BaseAPI):
             setattr(self, key, value)
         if not hasattr(self, 'parameters'):
             setattr(self, 'parameters', dict())
+        if not hasattr(self, 'entry_point'):
+            setattr(self, 'entry_point', '')
 
     @classmethod
     def from_model(cls, model):

@@ -4,7 +4,7 @@ import bson
 import glob
 
 
-PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)))
+PATH = os.path.dirname(os.path.realpath(__file__))
 FILES = glob.glob('%s/*.json' % PATH)
 ARTIFACTS = {}
 

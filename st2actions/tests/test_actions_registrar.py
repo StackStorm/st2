@@ -24,20 +24,19 @@ import mock
 import st2actions.bootstrap.actionsregistrar as actions_registrar
 from st2common.persistence.action import Action
 from st2common.models.db.action import RunnerTypeDB
-from st2tests.base import DbTestCase
+import st2tests.base as tests_base
 
 MOCK_RUNNER_TYPE_DB = RunnerTypeDB()
 MOCK_RUNNER_TYPE_DB.name = 'run-local'
 MOCK_RUNNER_TYPE_DB.runner_module = 'st2.runners.local'
 
 
-class ActionsRegistrarTest(DbTestCase):
+class ActionsRegistrarTest(tests_base.DbTestCase):
     @mock.patch.object(actions_registrar.ActionsRegistrar, '_has_valid_runner_type',
                        mock.MagicMock(return_value=(True, MOCK_RUNNER_TYPE_DB)))
     def test_register_all_actions(self):
         try:
-            packs_base_path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)), 'fixtures/packs/')
+            packs_base_path = os.path.join(tests_base.get_fixtures_path())
             all_actions_in_db = Action.get_all()
             actions_registrar.register_actions(packs_base_path=packs_base_path)
             all_actions_in_db = Action.get_all()
@@ -47,8 +46,7 @@ class ActionsRegistrarTest(DbTestCase):
             self.fail('All actions must be registered without exceptions.')
 
     def test_register_actions_from_bad_pack(self):
-        packs_base_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), 'fixtures/badpacks/')
+        packs_base_path = tests_base.get_fixtures_path()
         try:
             actions_registrar.register_actions(packs_base_path=packs_base_path)
             self.fail('Should have thrown.')
@@ -59,9 +57,8 @@ class ActionsRegistrarTest(DbTestCase):
                        mock.MagicMock(return_value=(True, MOCK_RUNNER_TYPE_DB)))
     def test_pack_name_missing(self):
         registrar = actions_registrar.ActionsRegistrar()
-        action_file = os.path.join(os.path.dirname(
-            os.path.realpath(__file__)),
-            'fixtures/packs/wolfpack/actions/action_3_pack_missing.json')
+        action_file = os.path.join(tests_base.get_fixtures_path(),
+                                   'wolfpack/actions/action_3_pack_missing.json')
         registrar._register_action('dummy', action_file)
         action_name = None
         with open(action_file, 'r') as fd:

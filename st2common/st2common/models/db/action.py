@@ -74,7 +74,7 @@ class ActionDB(StormFoundationDB):
         required=True,
         help_text='The entry point to the action.')
     pack = me.StringField(
-        required=True,
+        required=False,
         help_text='Name of the content pack.',
         unique_with='name')
     runner_type = me.DictField(
