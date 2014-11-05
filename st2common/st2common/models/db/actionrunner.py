@@ -17,8 +17,9 @@ from st2common import log as logging
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import StormFoundationDB
 
-
-__all__ = ['ActionRunnerDB']
+__all__ = [
+    'ActionRunnerDB'
+]
 
 
 LOG = logging.getLogger(__name__)

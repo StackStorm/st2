@@ -18,6 +18,15 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
 from st2common.models.db.stormbase import ContentPackResourceMixin
 
+__all__ = [
+    'SensorTypeDB',
+    'TriggerTypeDB',
+    'TriggerDB',
+    'TriggerInstanceDB',
+    'ActionExecutionSpecDB',
+    'RuleDB'
+]
+
 
 class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
     """

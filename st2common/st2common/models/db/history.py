@@ -18,6 +18,10 @@ import mongoengine as me
 from st2common.models.db import stormbase
 from st2common import log as logging
 
+__all__ = [
+    'ActionExecutionHistoryDB'
+]
+
 
 LOG = logging.getLogger(__name__)
 
