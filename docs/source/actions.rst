@@ -47,9 +47,9 @@ Currently the system provides the following runners:
 4. ``action-chain`` - This runner supports executing simple linear work-flows.
    For more information, please refer to the :doc:`Workflows </workflows>`
    and :doc:`ActionChain </actionchain>` section of documentation.
-5. ``mistral-basic`` - This runner is built on top of the Mistral OpenStack
-   project and supports executing complex work-flows. For more information,
-   please refer to the :doc:`Workflows </workflows>` and
+5. ``mistral-v1``, ``mistral-v2`` - Those runners are built on top of the
+   Mistral OpenStack project and support executing complex work-flows. For more
+   information, please refer to the :doc:`Workflows </workflows>` and
    :doc:`Mistral </mistral>` section of documentation.
 
 Runners come with their own set of input parameters and when an action
