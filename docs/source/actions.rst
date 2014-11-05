@@ -44,6 +44,13 @@ Currently the system provides the following runners:
 3. ``run-python`` - This is a Python runner. Actions are implemented as Python
    classes with a ``run`` method. They run locally on the same machine where
    |st2| components are running.
+4. ``action-chain`` - This runner supports executing simple linear work-flows.
+   For more information, please refer to the :doc:`Workflows </workflows>`
+   and :doc:`ActionChain </actionchain>` section of documentation.
+5. ``mistral-v1``, ``mistral-v2`` - Those runners are built on top of the
+   Mistral OpenStack project and support executing complex work-flows. For more
+   information, please refer to the :doc:`Workflows </workflows>` and
+   :doc:`Mistral </mistral>` section of documentation.
 
 Runners come with their own set of input parameters and when an action
 picks a runner\_type it also inherits the runner parameters.
