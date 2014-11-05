@@ -3,8 +3,9 @@ import pipes
 import shutil
 
 from st2actions.runners.pythonrunner import Action
+from st2common.constants.pack import SYSTEM_PACK_NAME
 
-BLOCKED_PACKS = frozenset(['core'])
+BLOCKED_PACKS = frozenset([SYSTEM_PACK_NAME])
 
 # TODO: Use config base path + virtualenv suffix
 VIRTUALENVS_PATH = '/opt/stackstorm/virtualenvs/'
