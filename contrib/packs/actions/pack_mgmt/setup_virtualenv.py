@@ -3,13 +3,10 @@ import re
 import pipes
 import subprocess
 
+from oslo.config import cfg
+
+import st2common.config as config
 from st2actions.runners.pythonrunner import Action
-
-# TODO: Use config base path + virtualenv suffix
-VIRTUALENVS_PATH = '/opt/stackstorm/virtualenvs/'
-
-# TODO: Read from config
-BASE_PACKS_PATH = '/opt/stackstorm'
 
 # TODO: Move into utils, also enforce in other places
 PACK_NAME_WHITELIST = r'^[A-Za-z0-9_-]+'
@@ -33,6 +30,21 @@ class SetupVirtualEnvironmentAction(Action):
     3. Install pack-specific requirements (if any)
     """
 
+    def __init__(self, config=None):
+        super(SetupVirtualEnvironmentAction, self).__init__(config=config)
+        self.initialize()
+
+        self._base_packs_path = cfg.CONF.content.packs_base_path
+        # TODO: Use config base path + virtualenv suffix
+        self._base_virtualenvs_path = os.path.join(cfg.CONF.content.packs_base_path,
+                                                   'virtualenvs/')
+
+    def initialize(self):
+        try:
+            config.parse_args()
+        except:
+            pass
+
     def run(self, packs):
         """
         :param packs: A list of packs to create the environment for.
@@ -54,14 +66,15 @@ class SetupVirtualEnvironmentAction(Action):
         self.logger.debug('Setting up virtualenv for pack "%s"' % (pack_name))
 
         pack_name = pipes.quote(pack_name)
-        pack_path = os.path.join(BASE_PACKS_PATH, pack_name)
-        virtualenv_path = os.path.join(VIRTUALENVS_PATH, pack_name)
+        pack_path = os.path.join(self._base_packs_path, pack_name)
+        virtualenv_path = os.path.join(self._base_virtualenvs_path, pack_name)
 
+        # Ensure virtualenvs directory exists
         if not os.path.isdir(pack_path):
             raise Exception('Pack "%s" is not installed' % (pack_name))
 
-        if not os.path.exists(VIRTUALENVS_PATH):
-            os.makedirs(VIRTUALENVS_PATH)
+        if not os.path.exists(self._base_virtualenvs_path):
+            os.makedirs(self._base_virtualenvs_path)
 
         # 1. Create virtual environment
         self.logger.debug('Creating virtualenv for pack "%s" in "%s"' %
