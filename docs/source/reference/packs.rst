@@ -35,7 +35,7 @@ At the topmost level are the main folders ``actions``, ``rules`` and ``sensors``
       workflow1.json
       workflow1.yaml
 
-The ``actions`` folder contains action script files and action metadata files. See `Actions </actions>`__ and `Workflows </workflows>`__ for specifics on writing actions. Note that the ``lib`` sub-folder is always available for access for an action script.
+The ``actions`` folder contains action script files and action metadata files. See :doc:`Actions </actions>` and :doc:`Workflows </workflows>` for specifics on writing actions. Note that the ``lib`` sub-folder is always available for access for an action script.
 
 .. code-block:: bash
 
@@ -44,7 +44,7 @@ The ``actions`` folder contains action script files and action metadata files. S
       rule1.json
       rule2.json
 
-The ``rules`` folder contains rules. See `Rules </rules>`__ for specifics on writing rules.
+The ``rules`` folder contains rules. See :doc:`Rules </rules>` for specifics on writing rules.
 
 .. code-block:: bash
 
@@ -54,7 +54,7 @@ The ``rules`` folder contains rules. See `Rules </rules>`__ for specifics on wri
       sensor1.py
       sensor2.py
 
-The ``sensors`` folder contains sensors. See `Sensors </Sensors>`__ for specifics on writing sensors and registering TriggerTypes.
+The ``sensors`` folder contains sensors. See :doc:`Sensors </Sensors>` for specifics on writing sensors and registering TriggerTypes.
 
 My first pack
 -------------
