@@ -54,7 +54,7 @@ The ``rules`` folder contains rules. See :doc:`Rules </rules>` for specifics on 
       sensor1.py
       sensor2.py
 
-The ``sensors`` folder contains sensors. See :doc:`Sensors </Sensors>` for specifics on writing sensors and registering TriggerTypes.
+The ``sensors`` folder contains sensors. See :doc:`Sensors </sensors>` for specifics on writing sensors and registering TriggerTypes.
 
 My first pack
 -------------
