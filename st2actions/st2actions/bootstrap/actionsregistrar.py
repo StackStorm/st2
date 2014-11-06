@@ -14,15 +14,13 @@
 # limitations under the License.
 
 import glob
-import json
 import os
 
 from oslo.config import cfg
 import six
-import yaml
 
 from st2common import log as logging
-from st2common.content.loader import ContentPackLoader
+from st2common.content.loader import (ContentPackLoader, MetaLoader)
 from st2common.content.validators import RequirementsValidator
 from st2common.persistence.action import Action
 from st2common.models.db.action import ActionDB
@@ -32,6 +30,9 @@ LOG = logging.getLogger(__name__)
 
 
 class ActionsRegistrar(object):
+    def __init__(self):
+        self._meta_loader = MetaLoader()
+
     def _get_json_actions_from_pack(self, pack):
         actions = glob.glob(pack + '/*.json')
         # Exclude global actions configuration file
@@ -56,40 +57,31 @@ class ActionsRegistrar(object):
         return actions
 
     def _register_action(self, pack, action):
-        with open(action, 'r') as fd:
-            try:
-                content = yaml.safe_load(fd)
-            except ValueError:
-                try:
-                    content = json.load(fd)
-                except ValueError:
-                    LOG.exception('Failed loading action from %s.', action)
-                raise
+        content = self._meta_loader.load(action)
+        try:
+            model = Action.get_by_name(str(content['name']))
+        except ValueError:
+            model = ActionDB()
+        model.name = content['name']
+        model.description = content['description']
+        model.enabled = content['enabled']
+        model.pack = pack
+        model.entry_point = content['entry_point']
+        model.parameters = content.get('parameters', {})
+        runner_type = str(content['runner_type'])
+        valid_runner_type, runner_type_db = self._has_valid_runner_type(runner_type)
+        if valid_runner_type:
+            model.runner_type = {'name': runner_type_db.name}
+        else:
+            LOG.exception('Runner type %s doesn\'t exist.')
+            raise
 
-            try:
-                model = Action.get_by_name(str(content['name']))
-            except ValueError:
-                model = ActionDB()
-            model.name = content['name']
-            model.description = content['description']
-            model.enabled = content['enabled']
-            model.pack = pack
-            model.entry_point = content['entry_point']
-            model.parameters = content.get('parameters', {})
-            runner_type = str(content['runner_type'])
-            valid_runner_type, runner_type_db = self._has_valid_runner_type(runner_type)
-            if valid_runner_type:
-                model.runner_type = {'name': runner_type_db.name}
-            else:
-                LOG.exception('Runner type %s doesn\'t exist.')
-                raise
-
-            try:
-                model = Action.add_or_update(model)
-                LOG.audit('Action created. Action %s from %s.', model, action)
-            except Exception:
-                LOG.exception('Failed to write action to db %s.', model.name)
-                raise
+        try:
+            model = Action.add_or_update(model)
+            LOG.audit('Action created. Action %s from %s.', model, action)
+        except Exception:
+            LOG.exception('Failed to write action to db %s.', model.name)
+            raise
 
     def _has_valid_runner_type(self, runner_type):
         try:
