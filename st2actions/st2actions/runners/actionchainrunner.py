@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import uuid
+
 import ast
 import eventlet
 import jinja2
 import json
 import six
-import uuid
+import yaml
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
@@ -92,7 +94,10 @@ class ActionChainRunner(ActionRunner):
                   self.action)
         try:
             with open(chainspec_file, 'r') as fd:
-                chainspec = json.load(fd)
+                try:
+                    chainspec = json.load(fd)
+                except ValueError:
+                    chainspec = yaml.safe_load(fd)
                 self.action_chain = ActionChain(chainspec)
         except Exception as e:
             LOG.exception('Failed to instantiate ActionChain.')
