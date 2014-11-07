@@ -21,4 +21,4 @@ except ImportError:
 import yaml
 
 ALLOWED_EXTS = ['.json', '.yaml', '.yml']
-PARSERS = {'.json': json, '.yml': yaml, '.yaml': yaml}
+PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}

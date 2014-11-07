@@ -15,7 +15,7 @@
 
 import os
 
-from st2common.constants.meta import (ALLOWED_EXTS, PARSERS)
+from st2common.constants.meta import (ALLOWED_EXTS, PARSER_FUNCS)
 from st2common import log as logging
 
 LOG = logging.getLogger(__name__)
@@ -89,12 +89,15 @@ class MetaLoader(object):
             raise Exception('Unsupported meta type %s, file %s. Allowed: %s' %
                             (file_ext, file_path, ALLOWED_EXTS))
 
-        return self._load(PARSERS[file_ext], file_path)
+        return self._load(PARSER_FUNCS[file_ext], file_path)
 
-    def _load(self, parser, file_path):
+    def _load(self, parser_func, file_path):
         with open(file_path, 'r') as fd:
             try:
-                return parser.load(fd)
+                return parser_func(fd)
             except ValueError:
+                LOG.exception('Failed loading content from %s.', file_path)
+                raise
+            except:
                 LOG.exception('Failed loading content from %s.', file_path)
                 raise
