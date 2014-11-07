@@ -17,6 +17,7 @@ import os
 
 from st2common.constants.meta import (ALLOWED_EXTS, PARSER_FUNCS)
 from st2common import log as logging
+from yaml.parser import ParserError
 
 LOG = logging.getLogger(__name__)
 
@@ -98,6 +99,6 @@ class MetaLoader(object):
             except ValueError:
                 LOG.exception('Failed loading content from %s.', file_path)
                 raise
-            except:
+            except ParserError:
                 LOG.exception('Failed loading content from %s.', file_path)
                 raise
