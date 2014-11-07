@@ -30,17 +30,17 @@ class RulesRegistrar(object):
     def __init__(self):
         self._meta_loader = MetaLoader()
 
-    def _get_json_actions_from_pack(self, pack):
-        return glob.glob(pack + '/*.json')
+    def _get_json_rules_from_pack(self, rules_dir):
+        return glob.glob(rules_dir + '/*.json')
 
-    def _get_yaml_rules_from_pack(self, pack):
-        rules = glob.glob(pack + '/*.yaml')
-        rules.extend(glob.glob(pack + '*.yml'))
+    def _get_yaml_rules_from_pack(self, rules_dir):
+        rules = glob.glob(rules_dir + '/*.yaml')
+        rules.extend(glob.glob(rules_dir + '*.yml'))
         return rules
 
-    def _get_rules_from_pack(self, pack):
-        rules = self._get_json_actions_from_pack(pack) or []
-        rules.extend(self._get_yaml_rules_from_pack(pack) or [])
+    def _get_rules_from_pack(self, rules_dir):
+        rules = self._get_json_rules_from_pack(rules_dir) or []
+        rules.extend(self._get_yaml_rules_from_pack(rules_dir) or [])
         return rules
 
     def _register_rules_from_pack(self, pack, rules):

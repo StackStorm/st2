@@ -33,27 +33,27 @@ class ActionsRegistrar(object):
     def __init__(self):
         self._meta_loader = MetaLoader()
 
-    def _get_json_actions_from_pack(self, pack):
-        actions = glob.glob(pack + '/*.json')
+    def _get_json_actions_from_pack(self, actions_dir):
+        actions = glob.glob(actions_dir + '/*.json')
         # Exclude global actions configuration file
         actions = [file_path for file_path in actions if
                    'actions/config.json' not in file_path]
         return actions
 
-    def _get_yaml_actions_from_pack(self, pack):
-        actions = glob.glob(pack + '/*.yaml')
+    def _get_yaml_actions_from_pack(self, actions_dir):
+        actions = glob.glob(actions_dir + '/*.yaml')
         # Exclude global actions configuration file
         actions = [file_path for file_path in actions if
                    'actions/config.yaml' not in file_path]
-        actions_yml = glob.glob(pack + '/*.yml')
+        actions_yml = glob.glob(actions_dir + '/*.yml')
         # Exclude global actions configuration file
         actions_yml = [file_path for file_path in actions if
                        'actions/config.yml' not in file_path]
         return actions.extend(actions_yml)
 
-    def _get_actions_from_pack(self, pack):
-        actions = self._get_json_actions_from_pack(pack) or []
-        actions.extend(self._get_yaml_actions_from_pack(pack) or [])
+    def _get_actions_from_pack(self, actions_dir):
+        actions = self._get_json_actions_from_pack(actions_dir) or []
+        actions.extend(self._get_yaml_actions_from_pack(actions_dir) or [])
         return actions
 
     def _register_action(self, pack, action):
