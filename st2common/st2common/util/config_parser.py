@@ -83,7 +83,7 @@ class ContentPackConfigParser(object):
 
         if os.path.exists(config_path) and os.path.isfile(config_path):
                 with open(config_path, 'r') as fp:
-                    config = yaml.load(fp.read())
+                    config = yaml.safe_load(fp.read())
 
                 return ContentPackConfig(file_path=config_path, config=config)
 
