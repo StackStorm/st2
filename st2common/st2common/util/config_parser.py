@@ -49,7 +49,7 @@ class ContentPackConfigParser(object):
         :rtype: :class:`.ContentPackConfig` or ``None``
         """
         global_config_path = self.get_global_config_path()
-        config = self._get_and_parse_config(config_path=global_config_path)
+        config = self.get_and_parse_config(config_path=global_config_path)
 
         return config
 
@@ -64,7 +64,7 @@ class ContentPackConfigParser(object):
         :rtype: :class:`.ContentPackConfig` or ``None``
         """
         global_config_path = self.get_global_config_path()
-        config = self._get_and_parse_config(config_path=global_config_path)
+        config = self.get_and_parse_config(config_path=global_config_path)
 
         return config
 
@@ -76,7 +76,8 @@ class ContentPackConfigParser(object):
                                           self.GLOBAL_CONFIG_NAME)
         return global_config_path
 
-    def _get_and_parse_config(self, config_path):
+    @classmethod
+    def get_and_parse_config(cls, config_path):
         if not config_path:
             return None
 
@@ -90,7 +91,7 @@ class ContentPackConfigParser(object):
 
     def _get_config(self, local_config_path, global_config_path):
         for file_path in [local_config_path, global_config_path]:
-            config = self._get_and_parse_config(config_path=file_path)
+            config = self.get_and_parse_config(config_path=file_path)
 
             if config:
                 return config
