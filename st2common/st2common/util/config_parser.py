@@ -48,7 +48,7 @@ class ContentPackConfigParser(object):
         :return: Config object if config is found, ``None`` otherwise.
         :rtype: :class:`.ContentPackConfig` or ``None``
         """
-        global_config_path = self._get_global_config_path()
+        global_config_path = self.get_global_config_path()
         config = self._get_and_parse_config(config_path=global_config_path)
 
         return config
@@ -63,10 +63,18 @@ class ContentPackConfigParser(object):
         :return: Config object if config is found, ``None`` otherwise.
         :rtype: :class:`.ContentPackConfig` or ``None``
         """
-        global_config_path = self._get_global_config_path()
+        global_config_path = self.get_global_config_path()
         config = self._get_and_parse_config(config_path=global_config_path)
 
         return config
+
+    def get_global_config_path(self):
+        if not self.pack_path:
+            return None
+
+        global_config_path = os.path.join(self.pack_path,
+                                          self.GLOBAL_CONFIG_NAME)
+        return global_config_path
 
     def _get_and_parse_config(self, config_path):
         if not config_path:
@@ -116,14 +124,6 @@ class ContentPackConfigParser(object):
         local_config_path = os.path.join(dir_name, config_name)
         return local_config_path
 
-    def _get_global_config_path(self):
-        if not self.pack_path:
-            return None
-
-        global_config_path = os.path.join(self.pack_path,
-                                          self.GLOBAL_CONFIG_NAME)
-        return global_config_path
-
 
 class ContentPackConfig(object):
     def __init__(self, file_path, config):
@@ -131,4 +131,4 @@ class ContentPackConfig(object):
         self.config = config
 
     def __repr__(self):
-        return ('<ContentPackConfig file_path=%s>' % (self.file_path))
+        return ('<ContentPackConfig file_path="%s">' % (self.file_path))
