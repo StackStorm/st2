@@ -13,19 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import uuid
+
 import ast
 import eventlet
 import jinja2
 import json
 import six
-import uuid
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
+from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED)
+from st2common.content.loader import MetaLoader
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.db.action import ActionExecutionDB
 from st2common.models.system.common import ResourceReference
-from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 
@@ -85,15 +87,15 @@ class ActionChainRunner(ActionRunner):
         super(ActionChainRunner, self).__init__()
         self.id = id
         self.action_chain = None
+        self._meta_loader = MetaLoader()
 
     def pre_run(self):
         chainspec_file = self.entry_point
         LOG.debug('Reading action chain from %s for action %s.', chainspec_file,
                   self.action)
         try:
-            with open(chainspec_file, 'r') as fd:
-                chainspec = json.load(fd)
-                self.action_chain = ActionChain(chainspec)
+            chainspec = self._meta_loader.load(chainspec_file)
+            self.action_chain = ActionChain(chainspec)
         except Exception as e:
             LOG.exception('Failed to instantiate ActionChain.')
             raise runnerexceptions.ActionRunnerPreRunError(e.message)
