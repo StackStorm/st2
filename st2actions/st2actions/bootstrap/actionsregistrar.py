@@ -73,7 +73,7 @@ class ActionsRegistrar(object):
         if valid_runner_type:
             model.runner_type = {'name': runner_type_db.name}
         else:
-            LOG.exception('Runner type %s doesn\'t exist.')
+            LOG.exception('Runner type %s doesn\'t exist.', runner_type)
             raise
 
         try:
