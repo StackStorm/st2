@@ -23,7 +23,6 @@ from st2common.persistence.reactor import Trigger
 from st2common.util.config_parser import ContentPackConfigParser
 from st2common.content.validators import validate_pack_name
 from st2common.constants.pack import SYSTEM_PACK_NAME
-from st2reactor.container.base import SensorContainer
 from st2reactor.container.process_container import MultiProcessSensorContainer
 from st2reactor.container.triggerwatcher import TriggerWatcher
 import st2reactor.container.utils as container_utils
@@ -103,9 +102,18 @@ class SensorContainerManager(object):
                     self._trigger_sensors[trigger_type_ref] = sensor_id
                     trigger_type_refs.append(trigger_type_ref)
 
+                file_path = os.path.abspath(filename)
+
+                # TODO: Update once lakshmi's PR is merged
+                # cfg.CONF.content.packs_base_path
+                packs_base_path = '/opt/stackstorm'
+                virtualenv_path = os.path.join(packs_base_path,
+                                               'virtualenvs/',
+                                               pack)
+
                 # Register sensor type in the DB
                 sensor_obj = {
-                    'file_path': os.path.abspath(filename),
+                    'file_path': file_path,
                     'name': class_name,
                     'class_name': class_name,
                     'trigger_types': trigger_type_refs
@@ -115,9 +123,10 @@ class SensorContainerManager(object):
 
                 # Add good sensor to the run list
                 sensor_obj = {
-                    'file_path': os.path.abspath(filename),
+                    'file_path': file_path,
                     'class_name': class_name,
                     'config_path': config_path,
+                    'virtualenv_path': virtualenv_path,
                     'trigger_types': trigger_type_refs
                 }
                 sensors_to_run.append(sensor_obj)
