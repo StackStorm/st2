@@ -76,12 +76,30 @@ class ResourceController(rest.RestController):
         return result
 
     def _get_all(self, **kwargs):
+        # TODO: Why do we use comma delimited string, user can just specify
+        # multiple values using ?sort=foo&sort=bar and we get a list back
         sort = kwargs.get('sort').split(',') if kwargs.get('sort') else []
-        for i in range(len(sort)):
-            sort.pop(i)
-            direction = '-' if sort[i].startswith('-') else ''
-            sort.insert(i, direction + self.supported_filters[sort[i]])
-        kwargs['sort'] = sort if sort else copy.copy(self.query_options.get('sort'))
+
+        db_sort_values = []
+        for sort_key in sort:
+            if sort_key.startswith('-'):
+                direction = '-'
+                sort_key = sort_key[1:]
+            elif sort_key.startswith('+'):
+                direction = '+'
+                sort_key = sort_key[1:]
+            else:
+                direction = ''
+
+            if sort_key not in self.supported_filters:
+                # Skip unsupported sort key
+                continue
+
+            sort_value = direction + self.supported_filters[sort_key]
+            db_sort_values.append(sort_value)
+
+        default_sort_values = copy.copy(self.query_options.get('sort'))
+        kwargs['sort'] = db_sort_values if db_sort_values else default_sort_values
 
         # TODO: To protect us from DoS, we need to make max_limit mandatory
         offset = int(kwargs.pop('offset', 0))
