@@ -106,7 +106,7 @@ class SensorRunnerWrapper(object):
         return sensor_instance
 
     def _get_sensor_config(self):
-        if not self._sensor_config_path:
+        if not self._sensor_config_path or not os.path.isfile(self._sensor_config_path):
             return {}
 
         config_path = self._sensor_config_path
