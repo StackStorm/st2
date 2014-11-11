@@ -1,11 +1,11 @@
 import os
 import re
 import pipes
-import subprocess
 
 from oslo.config import cfg
 
 import st2common.config as config
+from st2common.util.shell import run_command
 from st2actions.runners.pythonrunner import Action
 
 # TODO: Move into utils, also enforce in other places
@@ -105,7 +105,7 @@ class SetupVirtualEnvironmentAction(Action):
         self.logger.debug('Creating virtualenv in "%s"' % (virtualenv_path))
 
         cmd = ['virtualenv', virtualenv_path]
-        exit_code, _, stderr = self._run_command(cmd=cmd)
+        exit_code, _, stderr = run_command(cmd=cmd)
 
         if exit_code != 0:
             raise Exception('Failed to create virtualenv in "%s": %s' %
@@ -119,7 +119,7 @@ class SetupVirtualEnvironmentAction(Action):
         """
         pip_path = os.path.join(virtualenv_path, 'bin/pip')
         cmd = [pip_path, 'install', '-r', requirements_file_path]
-        exit_code, stdout, stderr = self._run_command(cmd=cmd)
+        exit_code, stdout, stderr = run_command(cmd=cmd)
 
         if exit_code != 0:
             raise Exception('Failed to install requirements from "%s": %s' %
@@ -133,18 +133,10 @@ class SetupVirtualEnvironmentAction(Action):
         """
         pip_path = os.path.join(virtualenv_path, 'bin/pip')
         cmd = [pip_path, 'install', requirement]
-        exit_code, stdout, stderr = self._run_command(cmd=cmd)
+        exit_code, stdout, stderr = run_command(cmd=cmd)
 
         if exit_code != 0:
             raise Exception('Failed to install requirement "%s": %s' %
                             (requirement, stdout))
 
         return True
-
-    def _run_command(self, cmd):
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        exit_code = process.returncode
-
-        return (exit_code, stdout, stderr)
