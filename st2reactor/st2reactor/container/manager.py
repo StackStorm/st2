@@ -107,7 +107,7 @@ class SensorContainerManager(object):
 
                 # Register sensor type in the DB
                 sensor_obj = {
-                    'filename': os.path.abspath(filename),
+                    'file_path': os.path.abspath(filename),
                     'name': class_name,
                     'class_name': class_name,
                     'trigger_types': trigger_type_refs

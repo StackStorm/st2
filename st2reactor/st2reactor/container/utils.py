@@ -186,14 +186,14 @@ def _create_sensor_type(pack, name, description, artifact_uri, entry_point,
 
 
 def get_sensor_entry_point(pack, sensor):
-    filename = sensor['filename']
+    file_path = sensor['file_path']
     class_name = sensor['class_name']
 
     if pack == SYSTEM_PACK_NAME:
         # Special case for sensors which come included with the default installation
         entry_point = class_name
     else:
-        module_path = filename.split('/%s/' % (pack))[1]
+        module_path = file_path.split('/%s/' % (pack))[1]
         module_path = module_path.replace(os.path.sep, '.')
         module_path = module_path.replace('.py', '')
         entry_point = '%s.%s' % (module_path, class_name)
@@ -203,8 +203,8 @@ def get_sensor_entry_point(pack, sensor):
 
 def _add_sensor_model(pack, sensor):
     name = sensor['name']
-    filename = sensor['filename']
-    artifact_uri = 'file://%s' % (filename)
+    file_path = sensor['file_path']
+    artifact_uri = 'file://%s' % (file_path)
     entry_point = get_sensor_entry_point(pack=pack, sensor=sensor)
     trigger_types = sensor['trigger_types'] or []
 
