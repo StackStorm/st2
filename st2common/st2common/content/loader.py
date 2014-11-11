@@ -15,6 +15,12 @@
 
 import os
 
+from st2common.constants.meta import (ALLOWED_EXTS, PARSER_FUNCS)
+from st2common import log as logging
+from yaml.parser import ParserError
+
+LOG = logging.getLogger(__name__)
+
 
 class ContentPackLoader(object):
     def __init__(self):
@@ -62,3 +68,37 @@ class ContentPackLoader(object):
         if 'rules' not in os.listdir(pack):
             raise Exception('No rules found.')
         return os.path.join(pack, 'rules')
+
+
+class MetaLoader(object):
+    def load(self, file_path):
+        """
+        Loads content from file_path if file_path's extension
+        is one of allowed ones (See ALLOWED_EXTS).
+
+        Throws UnsupportedMetaException on disallowed filetypes.
+        Throws ValueError on malformed meta.
+
+        :param file_path: Absolute path to the file to load content from.
+        :type file_path: ``str``
+
+        :rtype: ``dict``
+        """
+        file_name, file_ext = os.path.splitext(file_path)
+
+        if file_ext not in ALLOWED_EXTS:
+            raise Exception('Unsupported meta type %s, file %s. Allowed: %s' %
+                            (file_ext, file_path, ALLOWED_EXTS))
+
+        return self._load(PARSER_FUNCS[file_ext], file_path)
+
+    def _load(self, parser_func, file_path):
+        with open(file_path, 'r') as fd:
+            try:
+                return parser_func(fd)
+            except ValueError:
+                LOG.exception('Failed loading content from %s.', file_path)
+                raise
+            except ParserError:
+                LOG.exception('Failed loading content from %s.', file_path)
+                raise

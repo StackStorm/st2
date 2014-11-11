@@ -4,16 +4,17 @@ workflows:
     demo:
         type: direct
         input:
-            - url
+            - cmd
         tasks:
-            http-get:
+            run-cmd:
                 action: st2.action
                 input:
-                    ref: core.http
+                    ref: core.local
                     parameters:
-                        url: $.url
+                        cmd: $.cmd
                 publish:
-                    html: $.body
+                    stdout: $.localhost.stdout
+                    stderr: $.localhost.stderr
                 on-error:
                     - callback-on-error
                 on-success:
@@ -22,9 +23,9 @@ workflows:
                 action: st2.callback
                 input:
                     state: "ERROR"
-                    result: $.message
+                    result: $.stderr
             callback-on-success:
                 action: st2.callback
                 input:
                     state: "SUCCESS"
-                    result: $.html
+                    result: $.stdout

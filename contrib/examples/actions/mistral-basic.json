@@ -2,7 +2,7 @@
     "name": "mistral-basic",
     "pack": "examples",
     "runner_type": "mistral-v2",
-    "description": "Run HTTP GET",
+    "description": "Run a local linux command",
     "enabled": true,
     "entry_point":"mistral-basic.yaml",
     "parameters": {
@@ -11,7 +11,7 @@
             "default": "examples.mistral-basic.demo",
             "immutable": true
         },
-        "url": {
+        "cmd": {
             "type": "string",
             "required": true
         }
