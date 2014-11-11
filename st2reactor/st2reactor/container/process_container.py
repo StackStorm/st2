@@ -127,9 +127,22 @@ class MultiProcessSensorContainer(object):
         return True
 
     def _run_all_sensors(self):
-        for sensor_id, sensor_obj in six.iteritems(self._sensors):
+        sensor_ids = self._sensors.keys()
+
+        for sensor_id in sensor_ids:
+            sensor_obj = self._sensors[sensor_id]
             LOG.info('Running sensor %s' % sensor_id)
-            self._spawn_sensor_process(sensor=sensor_obj)
+
+            try:
+                self._spawn_sensor_process(sensor=sensor_obj)
+            except Exception as e:
+                LOG.warn(e.message)
+
+                # Disable sensor which we are unable to start
+                del self._sensors[sensor_id]
+                continue
+
+            LOG.info('Sensor %s started' % sensor_id)
 
     def _spawn_sensor_process(self, sensor):
         """
@@ -138,6 +151,7 @@ class MultiProcessSensorContainer(object):
         New process uses isolated Python binary from a virtual environment
         belonging to the sensor pack.
         """
+        sensor_id = self._get_sensor_id(sensor=sensor)
         python_path = os.path.join(sensor['virtualenv_path'], 'bin/python')
 
         args = [
@@ -149,9 +163,15 @@ class MultiProcessSensorContainer(object):
         ]
 
         # TODO: Intercept stdout and stderr for aggregated logging purposes
-        process = subprocess.Popen(args=args, stdin=None, stdout=None,
-                                   stderr=None, shell=False)
-        sensor_id = self._get_sensor_id(sensor=sensor)
+        try:
+            process = subprocess.Popen(args=args, stdin=None, stdout=None,
+                                       stderr=None, shell=False)
+        except Exception as e:
+            cmd = ' '.join(args)
+            message = ('Failed to spawn process for sensor %s ("%s"): %s' %
+                       (sensor_id, cmd, str(e)))
+            raise Exception(message)
+
         self._processes[sensor_id] = process
         return process
 
