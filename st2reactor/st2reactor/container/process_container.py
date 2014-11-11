@@ -143,7 +143,7 @@ class MultiProcessSensorContainer(object):
         args = [
             python_path,
             WRAPPER_SCRIPT_PATH,
-            '--sensor-file-path=%s' % (sensor['filename']),
+            '--sensor-file-path=%s' % (sensor['file_path']),
             '--sensor-class-name=%s' % (sensor['class_name']),
             '--sensor-config-path=%s' % (sensor['config_path'])
         ]
