@@ -88,7 +88,8 @@ class St2WebhookSensor(object):
     def remove_trigger(self, trigger):
         pass
 
-    def get_trigger_types(self):
+    @classmethod
+    def get_trigger_types(cls):
         return []
 
     @validate_json

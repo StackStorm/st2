@@ -195,7 +195,8 @@ class St2TimerSensor(object):
 
         self._scheduler.remove_job(job_id)
 
-    def get_trigger_types(self):
+    @classmethod
+    def get_trigger_types(cls):
         return [trigger_type for trigger_type in six.itervalues(TRIGGER_TYPES)]
 
     def _get_trigger_type(self, ref):

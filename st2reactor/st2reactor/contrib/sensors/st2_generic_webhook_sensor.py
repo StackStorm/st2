@@ -116,8 +116,9 @@ class St2GenericWebhooksSensor(object):
         self._log.info('Stop listening to endpoint: %s', urljoin(BASE_URL, url))
         del self._hooks[url]
 
-    def get_trigger_types(self):
-        sampleurl = 'http://<st2-host>:%s%s.' % (str(self._port), BASE_URL)
+    @classmethod
+    def get_trigger_types(cls):
+        sampleurl = 'http://<st2-host>:%s%s.' % (str(PORT), BASE_URL)
         return [{
             'name': 'st2.webhook',
             'description': 'Relays a Trigger POSTed to the supplied URL. The supplied url is used '
