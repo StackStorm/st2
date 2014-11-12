@@ -13,29 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common import log as logging
-from st2common.models.db import MongoDBAccess
-from st2common.models.db.stormbase import StormFoundationDB
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
-__all__ = [
-    'ActionRunnerDB'
-]
+import yaml
 
-
-LOG = logging.getLogger(__name__)
-
-
-class ActionRunnerDB(StormFoundationDB):
-    """
-        The system entity that represents an ActionRunner environment in the system.
-        This entity is used internally to manage and scale-out the StackStorm services.
-        the system.
-
-        Attributes:
-    """
-    pass
-
-
-actionrunner_access = MongoDBAccess(ActionRunnerDB)
-
-MODELS = [ActionRunnerDB]
+ALLOWED_EXTS = ['.json', '.yaml', '.yml']
+PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}

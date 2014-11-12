@@ -1,3 +1,5 @@
+import importlib
+
 import mongoengine
 
 from st2common.util import isotime
@@ -7,13 +9,48 @@ from st2common import log as logging
 
 LOG = logging.getLogger(__name__)
 
+MODEL_MODULE_NAMES = [
+    'st2common.models.db.access',
+    'st2common.models.db.action',
+    'st2common.models.db.actionrunner',
+    'st2common.models.db.datastore',
+    'st2common.models.db.history',
+    'st2common.models.db.reactor'
+]
+
 
 def db_setup(db_name, db_host, db_port, username=None, password=None):
     LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".' %
              (db_name, db_host, db_port, str(username)))
-    return mongoengine.connection.connect(db_name, host=db_host,
-                                          port=db_port, tz_aware=True,
-                                          username=username, password=password)
+    connection = mongoengine.connection.connect(db_name, host=db_host,
+                                                port=db_port, tz_aware=True,
+                                                username=username, password=password)
+
+    # Create all the indexes upfront to prevent race-conditions caused by
+    # lazy index creation
+    db_ensure_indexes()
+
+    return connection
+
+
+def db_ensure_indexes():
+    """
+    This function ensures that indexes for all the models have been created.
+
+    Note #1: When calling this method database connection already needs to be
+    established.
+
+    Note #2: This method blocks until all the index have been created (indexes
+    are created in real-time and not in background).
+    """
+    LOG.debug('Ensuring database indexes...')
+
+    for module_name in MODEL_MODULE_NAMES:
+        module = importlib.import_module(module_name)
+        model_classes = getattr(module, 'MODELS', [])
+        for cls in model_classes:
+            LOG.debug('Ensuring indexes for model "%s"...' % (cls.__name__))
+            cls.ensure_indexes()
 
 
 def db_teardown():

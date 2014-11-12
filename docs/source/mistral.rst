@@ -8,11 +8,11 @@ Custom Mistral Actions
 
 Basic Workflow
 ++++++++++++++
-Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under /usr/share/doc/st2/examples if |st2| is already installed. The first task is named **http-get** that does a HTTP GET on the given URL. A st2.action takes two input arguments: ref (or name) of the |st2| action and a list of input parameters for the |st2| action. In this case, the http-get task is calling **core.http** and passing the URL as input. On success, the task **callback-on-success** returns the body of the HTTP response to |st2|. On error, the task **callback-on-error** notifies |st2| an error has occurred. Let's save this as mistral-basic.yaml at /opt/stackstorm/packs/examples/actions where |st2| is installed.
+Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under /usr/share/doc/st2/examples if |st2| is already installed. The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. A st2.action takes two input arguments: ref (or name) of the |st2| action and a list of input parameters for the |st2| action. In this case, the run-cmd task is calling **core.local** and passing the cmd as input. On success, the task **callback-on-success** returns the stdout of the shell to |st2|. On error, the task **callback-on-error** notifies |st2| an error has occurred. Let's save this as mistral-basic.yaml at /opt/stackstorm/packs/examples/actions/ where |st2| is installed.
 
 .. literalinclude:: /../../contrib/examples/actions/mistral-basic.yaml
 
-The following is the corresponding |st2| action metadata for example above. The |st2| pack for this workflow action is named "examples". Please note that the workbook is named fully qualified as "<pack>.<action>" in the workbook definition above. The |st2| action runner is "mistral-v2". The entry point for the |st2| action refers to the YAML file of the workbook definition. Under the parameters section, we added an immutable parameter that specifies which workflow in the workbook to execute and a second parameter that takes the URL to GET. Let's save this metadata as mistral-basic.json at /opt/stackstorm/packs/examples/actions.
+The following is the corresponding |st2| action metadata for example above. The |st2| pack for this workflow action is named "examples". Please note that the workbook is named fully qualified as "<pack>.<action>" in the workbook definition above. The |st2| action runner is "mistral-v2". The entry point for the |st2| action refers to the YAML file of the workbook definition. Under the parameters section, we added an immutable parameter that specifies which workflow in the workbook to execute and a second parameter that takes the command to execute. Let's save this metadata as mistral-basic.json at /opt/stackstorm/packs/examples/actions/.
 
 .. literalinclude:: /../../contrib/examples/actions/mistral-basic.json
 
@@ -22,7 +22,7 @@ Next, run the following |st2| command to create this workflow action. This will 
 
 To execute the workflow, run the following command where -a tells the command to return and not wait for the workflow to complete. ::
 
-    st2 run examples.mistral-basic url=http://www.google.com -a
+    st2 run examples.mistral-basic cmd=date -a
 
 If the workflow completed successfully, both the workflow **examples.mistral-basic** and the action **core.http** would have a **succeeded** status in the |st2| action execution list. ::
 
@@ -30,7 +30,7 @@ If the workflow completed successfully, both the workflow **examples.mistral-bas
     | id                       | action                 | context.user | status    | start_timestamp             |
     +--------------------------+------------------------+--------------+-----------+-----------------------------+
     | 545169bf9c99383e585e2934 | examples.mistral-basic |              | succeeded | 2014-11-03T10:00:11.808000Z |
-    | 545169c09c99383e585e2935 | core.http              |              | succeeded | 2014-11-03T10:00:12.084000Z |
+    | 545169c09c99383e585e2935 | core.local             |              | succeeded | 2014-11-03T10:00:12.084000Z |
     +--------------------------+------------------------+--------------+-----------+-----------------------------+
 
 Stitching a more Complex Workflow

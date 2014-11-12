@@ -40,7 +40,7 @@ Action Library can be easily extended by getting actions from the community or c
 your existing scripts (`more on that later`). Browse Action Library with
 ``st2 action list``. Action is called by `ref` as ``pack.action_name``
 (e.g. ``core.local``). Learn about an action by doing
-``st2 action <action> get``, or, ``st2 run <action> --h ( --help)``: it shows
+``st2 action get <action>``, or, ``st2 run <action> --h ( --help)``: it shows
 description along with action parameters so that you know how to run it
 from the CLI or use it in rules and workflows.
 

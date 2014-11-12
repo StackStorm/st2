@@ -1,8 +1,8 @@
-# StackStorm
-
 [![StackStorm](https://github.com/stackstorm/st2/raw/master/stackstorm_logo.png)](http://www.stackstorm.com)
 
 **StackStorm** is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product).
+
+[![Build Status](https://travis-ci.org/StackStorm/st2.svg)](https://travis-ci.org/StackStorm/st2)
 
 ## Documentation
 
@@ -11,10 +11,6 @@ Please refer to [StackStorm Docs](http://docs.stackstorm.com).
 ## Hacking
 
 To set up dev environment and run StackStorm from sources, follow [these instructions](docs/source/install/sources.rst).
-
-## Build Status
-
-[![Build Status](https://travis-ci.org/StackStorm/st2.svg)](https://travis-ci.org/StackStorm/st2)
 
 ## Copyright, License, and Contributors Agreement
 

@@ -20,10 +20,11 @@ from st2common import log as logging
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import StormFoundationDB, StormBaseDB, EscapedDynamicField
 
-
-__all__ = ['RunnerTypeDB',
-           'ActionDB',
-           'ActionExecutionDB']
+__all__ = [
+    'RunnerTypeDB',
+    'ActionDB',
+    'ActionExecutionDB'
+]
 
 
 LOG = logging.getLogger(__name__)
