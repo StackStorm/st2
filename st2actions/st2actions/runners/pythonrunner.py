@@ -195,6 +195,16 @@ class PythonRunner(ActionRunner):
         # TODO: Support timeout
         process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=False, env=env)
+
+        try:
+            exit_code = process.wait(timeout=self._timeout)
+        except subprocess.TimeoutExpired:
+            # Action has timed out, kill the process and propagate the exception
+            process.kill()
+            stdout, stderr = process.communicate()
+            message = 'Action failed to complete in %s seconds' % (self._timeout)
+            raise Exception(message)
+
         stdout, stderr = process.communicate()
 
         exit_code = process.returncode
