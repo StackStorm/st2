@@ -27,7 +27,6 @@ function st2start(){
     actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
   done
   st2api --config-file ${STANCONF} &>> ${LOGFILE} &
-  st2auth --config-file ${STANCONF} &>> ${LOGFILE} &
   sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
   /usr/bin/history --config-file ${STANCONF} &>> ${LOGFILE} &
   service mistral start
