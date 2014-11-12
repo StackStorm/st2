@@ -20,6 +20,7 @@ import six
 import sys
 import uuid
 import logging as stdlib_logging
+from distutils.sysconfig import get_python_lib
 
 from eventlet.green import subprocess
 
@@ -121,7 +122,8 @@ class PythonRunner(ActionRunner):
         # current virtualenv to path (for devenv only)
         # TODO: There must be a less hack way to do this
         if hasattr(sys, 'real_prefix'):
-            site_packages_dir = os.path.join(sys.prefix, 'lib/python2.7/site-packages/')
+            site_packages_dir = get_python_lib()
+            assert sys.prefix in site_packages_dir
             python_path += ':%s' % (site_packages_dir)
 
         env = os.environ.copy()
