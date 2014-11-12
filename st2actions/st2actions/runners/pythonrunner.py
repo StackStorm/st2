@@ -20,6 +20,7 @@ import six
 import sys
 import traceback
 import uuid
+import subprocess
 import logging as stdlib_logging
 
 from eventlet import greenio
@@ -36,6 +37,10 @@ LOG = logging.getLogger(__name__)
 
 # Default timeout for actions executed by Python runner
 DEFAULT_ACTION_TIMEOUT = 10 * 60
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
+WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 
 
 def get_runner():
@@ -155,44 +160,43 @@ class PythonRunner(ActionRunner):
 
     def run(self, action_parameters):
         pack = self.action.pack if self.action else None
-        action_wrapper = ActionWrapper(pack=pack,
-                                       entry_point=self.entry_point,
-                                       action_parameters=action_parameters)
+        serialized_parameters = json.dumps(action_parameters) if action_parameters else ''
 
-        # We manually create a non-duplex pipe since multiprocessing.Pipe
-        # doesn't play along nicely and work with eventlet
-        rfd, wfd = os.pipe()
+        # TODO: Update once lakshmi's PR is merged
+        # cfg.CONF.content.packs_base_path
+        packs_base_path = '/opt/stackstorm'
+        virtualenv_path = os.path.join(packs_base_path, 'virtualenvs/', pack)
+        python_path = os.path.join(virtualenv_path, 'bin/python')
 
-        parent_conn = greenio.GreenPipe(rfd, 'r')
-        child_conn = greenio.GreenPipe(wfd, 'w', 0)
+        args = [
+            python_path,
+            WRAPPER_SCRIPT_PATH,
+            '--pack=%s' % (pack),
+            '--file-path=%s' % (self.entry_point),
+            '--parameters=%s' % (serialized_parameters)
+        ]
 
-        p = Process(target=action_wrapper.run, args=(child_conn,))
-        p.daemon = True
+        # We need to ensure all the st2 dependencies are also available to the
+        # subprocess
+        python_path = os.environ.get('PYTHONPATH', '')
 
-        try:
-            p.start()
-            p.join(self._timeout)
+        # Detect if we are running inside virtualenv and if we are, also add
+        # current virtualenv to path (for devenv only)
+        if hasattr(sys, 'real_prefix'):
+            site_packages_dir = os.path.join(sys.prefix, 'lib/python2.7/site-packages/')
+            python_path += ':%s' % (site_packages_dir)
 
-            if p.is_alive():
-                # Process is still alive meaning the timeout has been reached
-                p.terminate()
-                message = 'Action failed to complete in %s seconds' % (self._timeout)
-                raise Exception(message)
-            output = parent_conn.readline()
+        env = os.environ.copy()
+        env['PYTHONPATH'] = python_path
 
-            try:
-                output = json.loads(output)
-            except Exception:
-                pass
+        # TODO: Support timeout
+        # TODO: Use Green pipe and poll so it doesn't block
+        process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, shell=False, env=env)
+        stdout, stderr = process.communicate()
 
-            exit_code = p.exitcode
-        except:
-            LOG.exception('Failed to run action.')
-            _, e, tb = sys.exc_info()
-            exit_code = 1
-            output = {'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))}
-        finally:
-            parent_conn.close()
+        exit_code = process.returncode
+        output = stdout + stderr
 
         status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
         self.container_service.report_result(output)
