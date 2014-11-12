@@ -20,10 +20,9 @@ import six
 import sys
 import traceback
 import uuid
-import subprocess
 import logging as stdlib_logging
 
-from eventlet import greenio
+from eventlet.green import subprocess
 
 from multiprocessing import Process
 from st2actions.runners import ActionRunner
@@ -182,6 +181,7 @@ class PythonRunner(ActionRunner):
 
         # Detect if we are running inside virtualenv and if we are, also add
         # current virtualenv to path (for devenv only)
+        # TODO: There must be a less hack way to do this
         if hasattr(sys, 'real_prefix'):
             site_packages_dir = os.path.join(sys.prefix, 'lib/python2.7/site-packages/')
             python_path += ':%s' % (site_packages_dir)
@@ -189,8 +189,10 @@ class PythonRunner(ActionRunner):
         env = os.environ.copy()
         env['PYTHONPATH'] = python_path
 
+        # Note: We are using eventlet friendly implementation of subprocess
+        # which uses GreenPipe so it doesn't block
+
         # TODO: Support timeout
-        # TODO: Use Green pipe and poll so it doesn't block
         process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=False, env=env)
         stdout, stderr = process.communicate()
