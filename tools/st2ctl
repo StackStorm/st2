@@ -1,6 +1,6 @@
 #!/bin/bash
 LOGFILE="/tmp/st2_startup.log"
-COMPONENTS="actionrunner st2api st2auth sensor_container history mistral"
+COMPONENTS="actionrunner st2api sensor_container history mistral"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
 if [ -z "$AR" ];
@@ -27,10 +27,14 @@ function st2start(){
     actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
   done
   st2api --config-file ${STANCONF} &>> ${LOGFILE} &
-  st2auth --config-file ${STANCONF} &>> ${LOGFILE} &
   sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
   /usr/bin/history --config-file ${STANCONF} &>> ${LOGFILE} &
-  service mistral start
+  if [[ "${CONTAINER}" == "DOCKER" ]]
+  then
+    /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
+  else
+    service mistral start
+  fi
 }
 
 function st2stop(){
@@ -45,7 +49,12 @@ function st2stop(){
         do
            echo "Killing ${COM} PID: ${p}"
         done
-        service mistral stop
+        if [[ "${CONTAINER}" == "DOCKER" ]]
+        then
+          kill $p
+        else
+          service mistral stop
+        fi
       else
         echo "${COM} is not running"
       fi
@@ -78,7 +87,14 @@ function restart_component() {
     echo "restarting service ${COM} with ${PROC_COUNT} process(es)."
     if [[ "${COM}" == "mistral" ]]
     then
-      service mistral restart
+      if [[ "${CONTAINER}" == "DOCKER" ]]
+      then
+        kill $p
+        sleep 1
+        /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
+      else
+        service mistral restart
+      fi
     else
       PID=`ps ax | grep -v grep | grep -v st2ctl | grep ${COM} | awk '{print $1}'`
       if [[ ! -z $PID ]]
