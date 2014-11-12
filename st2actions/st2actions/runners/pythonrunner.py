@@ -18,18 +18,14 @@ import abc
 import json
 import six
 import sys
-import traceback
 import uuid
 import logging as stdlib_logging
 
 from eventlet.green import subprocess
 
-from multiprocessing import Process
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
-from st2common.util import loader as action_loader
-from st2common.util.config_parser import ContentPackConfigParser
 
 
 LOG = logging.getLogger(__name__)
@@ -83,64 +79,6 @@ class Action(object):
         logger.setLevel(stdlib_logging.DEBUG)
 
         return logger
-
-
-class ActionWrapper(object):
-    def __init__(self, pack, entry_point, action_parameters):
-        """
-        :param pack: Name of the content pack this action is located in.
-        :type pack: ``str``
-
-        :param entry_point: Full path to the action script file.
-        :type entry_point: ``str``
-
-        :param action_parameters: Action parameters.
-        :type action_parameters: ``dict``
-        """
-        self.pack = pack
-        self.entry_point = entry_point
-        self.action_parameters = action_parameters
-
-    def run(self, conn):
-        data_written = False
-
-        try:
-            action = self._load_action()
-            output = action.run(**self.action_parameters)
-            conn.write(str(output) + '\n')
-            conn.flush()
-            data_written = True
-        except Exception, e:
-            _, e, tb = sys.exc_info()
-            data = {'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))}
-            data = json.dumps(data)
-            conn.write(data + '\n')
-            conn.flush()
-            data_written = True
-            sys.exit(1)
-        finally:
-            if not data_written:
-                conn.write('\n')
-            conn.close()
-
-    def _load_action(self):
-        actions_kls = action_loader.register_plugin(Action, self.entry_point)
-        action_kls = actions_kls[0] if actions_kls and len(actions_kls) > 0 else None
-
-        if not action_kls:
-            raise Exception('%s has no action.' % self.entry_point)
-
-        config_parser = ContentPackConfigParser(pack_name=self.pack)
-        config = config_parser.get_action_config(action_file_path=self.entry_point)
-
-        if config:
-            LOG.info('Using config "%s" for action "%s"' % (config.file_path,
-                                                            self.entry_point))
-
-            return action_kls(config=config.config)
-        else:
-            LOG.info('No config found for action "%s"' % (self.entry_point))
-            return action_kls(config={})
 
 
 class PythonRunner(ActionRunner):
