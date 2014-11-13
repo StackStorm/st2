@@ -30,6 +30,7 @@ from st2common import config
 from st2common import log as logging
 from st2common.util.config_parser import ContentPackConfigParser
 from st2reactor.container.triggerwatcher import TriggerWatcher
+from st2common.constants.pack import SYSTEM_PACK_NAMES
 
 __all__ = [
     'SensorWrapper'
@@ -192,9 +193,15 @@ class SensorWrapper(object):
             raise ValueError('Sensor module is missing a class with name "%s"' %
                              (self._class_name))
 
+        sensor_class_kwargs = {
+            'container_service': self
+        }
         sensor_config = self._get_sensor_config()
-        sensor_instance = sensor_class(container_service=self,
-                                       config=sensor_config)
+
+        if pack not in SYSTEM_PACK_NAMES:
+            sensor_class_kwargs['config'] = sensor_config
+
+        sensor_instance = sensor_class(**kwargs)
 
         return sensor_instance
 
