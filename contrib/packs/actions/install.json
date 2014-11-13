@@ -3,7 +3,18 @@
         {
             "name": "download",
             "ref": "packs.download",
-            "params": {"repo_url": "{{repo_url}}", "packs": "{{packs}}"},
+            "params": {
+                "repo_url": "{{repo_url}}",
+                "packs": "{{packs}}"
+            },
+            "on-success": "setup_virtualenv"
+        },
+        {
+            "name": "setup_virtualenv",
+            "ref": "packs.setup_virtualenv",
+            "params": {
+                "packs": "{{packs}}"
+            },
             "on-success": "reload"
         },
         {

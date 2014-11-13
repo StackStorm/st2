@@ -50,12 +50,12 @@ class Action(object):
 
     description = None
 
-    def __init__(self, config):
+    def __init__(self, config=None):
         """
         :param config: Action config.
         :type config: ``dict``
         """
-        self.config = config
+        self.config = config or {}
         self.logger = self._set_up_logger()
 
     @abc.abstractmethod
