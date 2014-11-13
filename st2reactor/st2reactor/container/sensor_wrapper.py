@@ -56,6 +56,7 @@ class SensorWrapper(object):
         self._sensor_class_name = sensor_class_name
         self._sensor_config_path = sensor_config_path
         self._trigger_types = trigger_types or []
+        self._trigger_names = {}
 
         # TODO: Inherit args from the parent
         config.parse_args(args={})
@@ -137,6 +138,8 @@ class SensorWrapper(object):
             # This trigger doesn't belong to this sensor
             return
 
+        self._trigger_names[str(trigger.id)] = trigger
+
         trigger = self._sanitize_trigger(trigger=trigger)
         self._sensor_instance.add_trigger(trigger=trigger)
 
@@ -145,6 +148,8 @@ class SensorWrapper(object):
         if trigger_type_ref not in self._trigger_type_refs:
             # This trigger doesn't belong to this sensor
             return
+
+        self._trigger_names[str(trigger.id)] = trigger
 
         trigger = self._sanitize_trigger(trigger=trigger)
         self._sensor_instance.update_trigger(trigger=trigger)
@@ -155,7 +160,11 @@ class SensorWrapper(object):
             # This trigger doesn't belong to this sensor
             return
 
-        self._trigger_type_refs.remove(trigger_type_ref)
+        trigger_id = str(trigger.id)
+        if trigger_id not in self._trigger_names:
+            return
+
+        del self._trigger_names[trigger_id]
 
         trigger = self._sanitize_trigger(trigger=trigger)
         self._sensor_instance.remove_trigger(trigger=trigger)
