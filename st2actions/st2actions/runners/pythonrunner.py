@@ -15,16 +15,18 @@
 
 import os
 import abc
+import sys
 import json
-import six
 import uuid
 import logging as stdlib_logging
 
+import six
 from eventlet.green import subprocess
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.util.sandboxing import get_sandbox_python_path
 
 
@@ -103,7 +105,12 @@ class PythonRunner(ActionRunner):
         # cfg.CONF.content.packs_base_path
         packs_base_path = '/opt/stackstorm'
         virtualenv_path = os.path.join(packs_base_path, 'virtualenvs/', pack)
-        python_path = os.path.join(virtualenv_path, 'bin/python')
+
+        if pack in SYSTEM_PACK_NAMES:
+            # Use system python for "packs" and "core" actions
+            python_path = sys.executable
+        else:
+            python_path = os.path.join(virtualenv_path, 'bin/python')
 
         args = [
             python_path,

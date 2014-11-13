@@ -16,6 +16,7 @@
 __all__ = [
     'SYSTEM_PACK_NAME',
     'PACKS_PACK_NAME',
+    'SYSTEM_PACK_NAMES',
     'USER_PACK_NAME_BLACKLIST'
 ]
 
@@ -24,6 +25,12 @@ SYSTEM_PACK_NAME = 'core'
 
 # Named used for pack management pack
 PACKS_PACK_NAME = 'packs'
+
+# A list of system pack names
+SYSTEM_PACK_NAMES = [
+    SYSTEM_PACK_NAME,
+    PACKS_PACK_NAME,
+]
 
 # A list of pack names which can't be used by user-supplied packs
 USER_PACK_NAME_BLACKLIST = [
