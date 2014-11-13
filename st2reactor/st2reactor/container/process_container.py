@@ -155,12 +155,16 @@ class MultiProcessSensorContainer(object):
         sensor_id = self._get_sensor_id(sensor=sensor)
         python_path = os.path.join(sensor['virtualenv_path'], 'bin/python')
 
+        trigger_type_refs = sensor['trigger_types'] or []
+        trigger_type_refs = ','.join(trigger_type_refs)
+
         args = [
             python_path,
             WRAPPER_SCRIPT_PATH,
             '--sensor-file-path=%s' % (sensor['file_path']),
             '--sensor-class-name=%s' % (sensor['class_name']),
-            '--sensor-config-path=%s' % (sensor['config_path'])
+            '--sensor-config-path=%s' % (sensor['config_path']),
+            '--trigger-type-refs=%s' % (trigger_type_refs)
         ]
 
         # TODO: Intercept stdout and stderr for aggregated logging purposes

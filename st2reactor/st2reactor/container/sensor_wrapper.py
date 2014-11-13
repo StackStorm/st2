@@ -40,11 +40,22 @@ __all__ = [
 
 class SensorWrapper(object):
     def __init__(self, sensor_file_path, sensor_class_name, sensor_config_path,
-                 api_endpoint):
+                 trigger_types):
+        """
+        :param sensor_file_path: Path to the sensor module file.
+        :type sensor_file_path: ``str``
+
+        :param sensor_class_name: Sensor class name.
+        :type sensor_class_name: ``str``
+
+        :param trigger_types: A list of references to trigger types which
+                                  belong to this sensor.
+        :type trigger_types: ``list`` of ``str``
+        """
         self._sensor_file_path = sensor_file_path
         self._sensor_class_name = sensor_class_name
         self._sensor_config_path = sensor_config_path
-        self._api_endpoint = api_endpoint
+        self._trigger_types = trigger_types or []
 
         # TODO: Inherit args from the parent
         config.parse_args(args={})
@@ -185,13 +196,15 @@ if __name__ == '__main__':
                         help='Name of the sensor class')
     parser.add_argument('--sensor-config-path', required=False,
                         help='Path to the pack config')
-    parser.add_argument('--api-endpoint', required=True,
-                        help='URL to the API endpoint where the triggers should be published')
-
+    parser.add_argument('--trigger-type-refs', required=False,
+                        help='Comma delimited string of trigger type references')
     args = parser.parse_args()
+
+    trigger_types = args.trigger_types
+    trigger_types = trigger_types.split(',') if trigger_types else []
 
     obj = SensorWrapper(sensor_file_path=args.sensor_file_path,
                         sensor_class_name=args.sensor_class_name,
                         sensor_config_path=args.sensor_config_path,
-                        api_endpoint=args.api_endpoint)
+                        trigger_types=trigger_types)
     obj.run()
