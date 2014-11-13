@@ -61,7 +61,7 @@ class Trigger(Access, ContentPackResourceMixin):
     @classmethod
     def _get_publisher(kls):
         if not kls.publisher:
-            kls.publisher = transport.reactor.TriggerPublisher(cfg.CONF.messaging.url)
+            kls.publisher = transport.reactor.TriggerCUDPublisher(cfg.CONF.messaging.url)
         return kls.publisher
 
 

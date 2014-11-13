@@ -18,15 +18,18 @@
 from kombu import Exchange, Queue
 from st2common.transport import publishers
 
-TRIGGER_XCHG = Exchange('st2.trigger',
-                        type='topic')
+# Exchange for Trigger CUD events
+TRIGGER_CUD_XCHG = Exchange('st2.trigger', type='topic')
 
 
-class TriggerPublisher(publishers.CUDPublisher):
+class TriggerCUDPublisher(publishers.CUDPublisher):
+    """
+    Publisher responsible for publishing Trigger model CUD events.
+    """
 
     def __init__(self, url):
-        super(TriggerPublisher, self).__init__(url, TRIGGER_XCHG)
+        super(TriggerCUDPublisher, self).__init__(url, TRIGGER_CUD_XCHG)
 
 
-def get_trigger_queue(name, routing_key):
-    return Queue(name, TRIGGER_XCHG, routing_key=routing_key)
+def get_trigger_cud_queue(name, routing_key):
+    return Queue(name, TRIGGER_CUD_XCHG, routing_key=routing_key)

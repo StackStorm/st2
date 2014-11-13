@@ -26,8 +26,8 @@ LOG = logging.getLogger(__name__)
 
 class TriggerWatcher(ConsumerMixin):
 
-    TRIGGER_WATCH_Q = reactor.get_trigger_queue('st2.trigger.watch',
-                                            routing_key='#')
+    TRIGGER_WATCH_Q = reactor.get_trigger_cud_queue('st2.trigger.watch',
+                                                    routing_key='#')
 
     def __init__(self, create_handler, update_handler, delete_handler):
         self._handlers = {
