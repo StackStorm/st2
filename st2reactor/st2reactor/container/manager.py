@@ -87,7 +87,6 @@ class SensorContainerManager(object):
                     trigger_type_refs.append(trigger_type_ref)
 
                 file_path = os.path.abspath(filename)
-                print trigger_type_refs
 
                 # TODO: Update once lakshmi's PR is merged
                 # cfg.CONF.content.packs_base_path
@@ -108,6 +107,7 @@ class SensorContainerManager(object):
 
                 # Add good sensor to the run list
                 sensor_obj = {
+                    'pack': pack,
                     'file_path': file_path,
                     'class_name': class_name,
                     'config_path': config_path,

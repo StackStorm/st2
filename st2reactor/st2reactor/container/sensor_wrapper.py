@@ -39,22 +39,24 @@ __all__ = [
 
 
 class SensorWrapper(object):
-    def __init__(self, sensor_file_path, sensor_class_name, sensor_config_path,
-                 trigger_types):
+    def __init__(self, pack, file_path, class_name, trigger_types):
         """
-        :param sensor_file_path: Path to the sensor module file.
-        :type sensor_file_path: ``str``
+        :param pack: Name of the pack this sensor belongs to.
+        :type pack: ``str``
 
-        :param sensor_class_name: Sensor class name.
-        :type sensor_class_name: ``str``
+        :param file_path: Path to the sensor module file.
+        :type file_path: ``str``
+
+        :param class_name: Sensor class name.
+        :type class_name: ``str``
 
         :param trigger_types: A list of references to trigger types which
                                   belong to this sensor.
         :type trigger_types: ``list`` of ``str``
         """
-        self._sensor_file_path = sensor_file_path
-        self._sensor_class_name = sensor_class_name
-        self._sensor_config_path = sensor_config_path
+        self._pack = pack
+        self._file_path = file_path
+        self._class_name = class_name
         self._trigger_types = trigger_types or []
         self._trigger_names = {}
 
@@ -67,9 +69,9 @@ class SensorWrapper(object):
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger)
 
-        self._sensor_instance = self._get_sensor_instance()
         self._logger = logging.getLogger('SensorWrapper.%s' %
-                                         (self._sensor_class_name))
+                                         (self._class_name))
+        self._sensor_instance = self._get_sensor_instance()
         self._logger.setLevel(slogging.DEBUG)
         ch = slogging.StreamHandler(sys.stdout)
         ch.setLevel(slogging.DEBUG)
@@ -180,15 +182,15 @@ class SensorWrapper(object):
         """
         Retrieve instance of a sensor class.
         """
-        _, filename = os.path.split(self._sensor_file_path)
+        _, filename = os.path.split(self._file_path)
         module_name, _ = os.path.splitext(filename)
 
-        sensor_module = imp.load_source(module_name, self._sensor_file_path)
-        sensor_class = getattr(sensor_module, self._sensor_class_name, None)
+        sensor_module = imp.load_source(module_name, self._file_path)
+        sensor_class = getattr(sensor_module, self._class_name, None)
 
         if not sensor_class:
             raise ValueError('Sensor module is missing a class with name "%s"' %
-                             (self._sensor_class_name))
+                             (self._class_name))
 
         sensor_config = self._get_sensor_config()
         sensor_instance = sensor_class(container_service=self,
@@ -197,15 +199,15 @@ class SensorWrapper(object):
         return sensor_instance
 
     def _get_sensor_config(self):
-        if not self._sensor_config_path or not os.path.isfile(self._sensor_config_path):
-            return {}
-
-        config_path = self._sensor_config_path
-        config = ContentPackConfigParser.get_and_parse_config(config_path=config_path)
+        config_parser = ContentPackConfigParser(pack_name=self._pack)
+        config = config_parser.get_sensor_config(sensor_file_path=self._file_path)
 
         if config:
+            self._logger.info('Using config "%s" for sensor "%s"' % (config.file_path,
+                                                                     self._class_name))
             return config.config
         else:
+            self._logger.info('No config found for sensor "%s"' % (self._class_name))
             return {}
 
     def _sanitize_trigger(self, trigger):
@@ -218,21 +220,21 @@ class SensorWrapper(object):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Sensor runner wrapper')
-    parser.add_argument('--sensor-file-path', required=True,
+    parser.add_argument('--pack', required=True,
+                        help='Name of the pack this sensor belongs to')
+    parser.add_argument('--file-path', required=True,
                         help='Path to the sensor module')
-    parser.add_argument('--sensor-class-name', required=True,
+    parser.add_argument('--class-name', required=True,
                         help='Name of the sensor class')
-    parser.add_argument('--sensor-config-path', required=False,
-                        help='Path to the pack config')
     parser.add_argument('--trigger-type-refs', required=False,
                         help='Comma delimited string of trigger type references')
     args = parser.parse_args()
 
-    trigger_types = args.trigger_types
+    trigger_types = args.trigger_type_refs
     trigger_types = trigger_types.split(',') if trigger_types else []
 
-    obj = SensorWrapper(sensor_file_path=args.sensor_file_path,
-                        sensor_class_name=args.sensor_class_name,
-                        sensor_config_path=args.sensor_config_path,
+    obj = SensorWrapper(pack=args.pack,
+                        file_path=args.file_path,
+                        class_name=args.class_name,
                         trigger_types=trigger_types)
     obj.run()
