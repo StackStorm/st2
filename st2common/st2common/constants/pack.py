@@ -15,13 +15,18 @@
 
 __all__ = [
     'SYSTEM_PACK_NAME',
+    'PACKS_PACK_NAME',
     'USER_PACK_NAME_BLACKLIST'
 ]
 
-# Name used for system content pack
+# Name used for system pack
 SYSTEM_PACK_NAME = 'core'
 
-# A list of pack names which can't be used by user-supplied content packs
+# Named used for pack management pack
+PACKS_PACK_NAME = 'packs'
+
+# A list of pack names which can't be used by user-supplied packs
 USER_PACK_NAME_BLACKLIST = [
-    SYSTEM_PACK_NAME
+    SYSTEM_PACK_NAME,
+    PACKS_PACK_NAME
 ]
