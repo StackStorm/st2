@@ -131,8 +131,6 @@ class PythonRunner(ActionRunner):
 
         # Note: We are using eventlet friendly implementation of subprocess
         # which uses GreenPipe so it doesn't block
-
-        # TODO: Support timeout
         process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=False, env=env)
 
