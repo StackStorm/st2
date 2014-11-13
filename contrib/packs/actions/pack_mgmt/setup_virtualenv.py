@@ -13,7 +13,6 @@ PACK_NAME_WHITELIST = r'^[A-Za-z0-9_-]+'
 
 # Requirements which are common to all the packs
 BASE_PACK_REQUIREMENTS = [
-    'requests>=2.4.3,<2.5'
 ]
 
 

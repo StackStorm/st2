@@ -22,8 +22,6 @@ import httplib
 import argparse
 import json
 
-import requests
-
 import logging as slogging
 
 from st2common import config
@@ -96,8 +94,6 @@ class SensorWrapper(object):
 
         self._logger.debug('Dispatching trigger (trigger=%s,payload=%s)', trigger, payload)
         data = json.dumps(payload)
-        # TODO: Send trigger via API
-        response = requests.post(url=self._api_endpoint, data=data)
 
         if response.status_code == httplib.OK:
             self._logger.debug('Sucessfully sent trigger to the API')
