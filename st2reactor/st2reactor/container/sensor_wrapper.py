@@ -17,15 +17,23 @@ import os
 import atexit
 import imp
 import sys
+import logging
 import httplib
 import argparse
-
 import json
 
 import requests
 
+import logging as slogging
+
+from st2common import config
 from st2common import log as logging
 from st2common.util.config_parser import ContentPackConfigParser
+from st2reactor.container.triggerwatcher import TriggerWatcher
+
+__all__ = [
+    'SensorWrapper'
+]
 
 # TODO: Implement trigger API endpoint authentication with per-sensor secret key
 
@@ -38,9 +46,45 @@ class SensorWrapper(object):
         self._sensor_config_path = sensor_config_path
         self._api_endpoint = api_endpoint
 
+        # TODO: Inherit args from the parent
+        config.parse_args(args={})
+
+        # TODO: Use per sensor queue so we don't only get events for this
+        # particular sensor
+        self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
+                                               update_handler=self._handle_update_trigger,
+                                               delete_handler=self._handle_delete_trigger)
+
         self._sensor_instance = self._get_sensor_instance()
-        self._logger = logging.getLogger('SensorRunnerWrapper.%s' %
+        self._logger = logging.getLogger('SensorWrapper.%s' %
                                          (self._sensor_class_name))
+        self._logger.setLevel(slogging.DEBUG)
+        ch = slogging.StreamHandler(sys.stdout)
+        ch.setLevel(slogging.DEBUG)
+        formatter = slogging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+        self._logger.addHandler(ch)
+
+    ##############################################
+    # Event handler methods for the trigger events
+    ##############################################
+
+    def _handle_create_trigger(self, trigger):
+        # TODO: Only handle it if the trigger refers to the current sensor
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self._sensor_instance.add_trigger(trigger=trigger)
+        pass
+
+    def _handle_update_trigger(self, trigger):
+        # TODO: Only handle it if the trigger refers to the current sensor
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self._sensor_instance.update_trigger(trigger=trigger)
+        pass
+
+    def _handle_delete_trigger(self, trigger):
+        # TODO: Only handle it if the trigger refers to the current sensor
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self._sensor_instance.remove_trigger(trigger=trigger)
 
     def dispatch(self, trigger, payload=None):
         """
@@ -73,6 +117,9 @@ class SensorWrapper(object):
         self._logger.debug('Running sensor initialization code')
         self._sensor_instance.setup()
 
+        self._trigger_watcher.start()
+        self._logger.debug('Watcher started')
+
         self._logger.debug('Running sensor')
 
         try:
@@ -82,6 +129,11 @@ class SensorWrapper(object):
             sys.exit(1)
 
     def stop(self):
+        # Stop watcher
+        self._logger.debug('Stopping trigger watcher')
+        self._trigger_watcher.start()
+
+        # Run sensor cleanup code
         self._logger.debug('Invoking cleanup on sensor')
         self._sensor_instance.stop()
 
@@ -116,6 +168,13 @@ class SensorWrapper(object):
             return config.config
         else:
             return {}
+
+    def _sanitize_trigger(self, trigger):
+        sanitized = trigger._data
+        if 'id' in sanitized:
+            # Friendly objectid rather than the MongoEngine representation.
+            sanitized['id'] = str(sanitized['id'])
+        return sanitized
 
 
 if __name__ == '__main__':
