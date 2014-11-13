@@ -17,10 +17,8 @@ import os
 import abc
 import json
 import six
-import sys
 import uuid
 import logging as stdlib_logging
-from distutils.sysconfig import get_python_lib
 
 from eventlet.green import subprocess
 
