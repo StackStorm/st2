@@ -137,16 +137,27 @@ class PythonRunner(ActionRunner):
         try:
             exit_code = process.wait(timeout=self._timeout)
         except subprocess.TimeoutExpired:
-            # Action has timed out, kill the process and propagate the exception
+            # Action has timed out, kill the process and propagate the error
+            # Note: process.kill() will set the returncode to -9 so we don't
+            # need to explicitly set it to some non-zero value
             process.kill()
-            stdout, stderr = process.communicate()
-            message = 'Action failed to complete in %s seconds' % (self._timeout)
-            raise Exception(message)
+            error = 'Action failed to complete in %s seconds' % (self._timeout)
+        else:
+            error = None
 
         stdout, stderr = process.communicate()
-
         exit_code = process.returncode
-        output = stdout + stderr
+
+        output = {
+            'stdout': stdout,
+            'stderr': stderr,
+            'exit_code': exit_code
+        }
+
+        if error:
+            output['error'] = error
+
+        output = json.dumps(output)
 
         status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
         self.container_service.report_result(output)
