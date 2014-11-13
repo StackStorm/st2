@@ -4,10 +4,20 @@ import unittest
 
 import mock
 
+from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.util.sandboxing import get_sandbox_python_path
+from st2common.util.sandboxing import get_sandbox_python_binary_path
 
 
 class SandboxingUtilsTestCase(unittest.TestCase):
+    def test_get_sandbox_python_binary_path(self):
+        # Non-system content pack, should use pack specific virtualenv binary
+        result = get_sandbox_python_binary_path(pack='mapack')
+        self.assertEqual(result, '/opt/stackstorm/virtualenvs/mapack/bin/python')
+
+        # Non-system content pack, should use current process (system) python binary
+        result = get_sandbox_python_binary_path(pack=SYSTEM_PACK_NAMES[0])
+        self.assertEqual(result, sys.executable)
 
     @mock.patch('st2common.util.sandboxing.get_python_lib')
     def test_get_sandbox_python_path(self, mock_get_python_lib):

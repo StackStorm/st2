@@ -28,6 +28,7 @@ from st2common import log as logging
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.util.sandboxing import get_sandbox_python_path
+from st2common.util.sandboxing import get_sandbox_python_binary_path
 
 
 LOG = logging.getLogger(__name__)
@@ -100,17 +101,7 @@ class PythonRunner(ActionRunner):
     def run(self, action_parameters):
         pack = self.action.pack if self.action else None
         serialized_parameters = json.dumps(action_parameters) if action_parameters else ''
-
-        # TODO: Update once lakshmi's PR is merged
-        # cfg.CONF.content.packs_base_path
-        packs_base_path = '/opt/stackstorm'
-        virtualenv_path = os.path.join(packs_base_path, 'virtualenvs/', pack)
-
-        if pack in SYSTEM_PACK_NAMES:
-            # Use system python for "packs" and "core" actions
-            python_path = sys.executable
-        else:
-            python_path = os.path.join(virtualenv_path, 'bin/python')
+        python_path = get_sandbox_python_binary_path(pack=pack)
 
         args = [
             python_path,
