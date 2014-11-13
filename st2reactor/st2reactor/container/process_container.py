@@ -168,9 +168,11 @@ class MultiProcessSensorContainer(object):
         ]
 
         # TODO: Intercept stdout and stderr for aggregated logging purposes
+        env = os.environ.copy()
+
         try:
             process = subprocess.Popen(args=args, stdin=None, stdout=None,
-                                       stderr=None, shell=False)
+                                       stderr=None, shell=False, env=env)
         except Exception as e:
             cmd = ' '.join(args)
             message = ('Failed to spawn process for sensor %s ("%s"): %s' %
