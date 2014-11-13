@@ -76,27 +76,6 @@ class SensorWrapper(object):
         ch.setFormatter(formatter)
         self._logger.addHandler(ch)
 
-    ##############################################
-    # Event handler methods for the trigger events
-    ##############################################
-
-    def _handle_create_trigger(self, trigger):
-        # TODO: Only handle it if the trigger refers to the current sensor
-        trigger = self._sanitize_trigger(trigger=trigger)
-        self._sensor_instance.add_trigger(trigger=trigger)
-        pass
-
-    def _handle_update_trigger(self, trigger):
-        # TODO: Only handle it if the trigger refers to the current sensor
-        trigger = self._sanitize_trigger(trigger=trigger)
-        self._sensor_instance.update_trigger(trigger=trigger)
-        pass
-
-    def _handle_delete_trigger(self, trigger):
-        # TODO: Only handle it if the trigger refers to the current sensor
-        trigger = self._sanitize_trigger(trigger=trigger)
-        self._sensor_instance.remove_trigger(trigger=trigger)
-
     def dispatch(self, trigger, payload=None):
         """
         Method which sends trigger to the API and is called by the sensor
@@ -147,6 +126,46 @@ class SensorWrapper(object):
         # Run sensor cleanup code
         self._logger.debug('Invoking cleanup on sensor')
         self._sensor_instance.stop()
+
+    ##############################################
+    # Event handler methods for the trigger events
+    ##############################################
+
+    def _handle_create_trigger(self, trigger):
+        trigger_type_ref = trigger.type
+        if trigger_type_ref not in self._trigger_type_refs:
+            # This trigger doesn't belong to this sensor
+            return
+
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self._sensor_instance.add_trigger(trigger=trigger)
+
+    def _handle_update_trigger(self, trigger):
+        trigger_type_ref = trigger.type
+        if trigger_type_ref not in self._trigger_type_refs:
+            # This trigger doesn't belong to this sensor
+            return
+
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self._sensor_instance.update_trigger(trigger=trigger)
+
+    def _handle_delete_trigger(self, trigger):
+        trigger_type_ref = trigger.type
+        if trigger_type_ref not in self._trigger_type_refs:
+            # This trigger doesn't belong to this sensor
+            return
+
+        self._trigger_type_refs.remove(trigger_type_ref)
+
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self._sensor_instance.remove_trigger(trigger=trigger)
+
+    def _call_sensor_method(self, method_name, args, kwargs):
+        """
+        Call the provided sensor method (if exists) with the provided args and
+        kwargs.
+        """
+        pass
 
     def _get_sensor_instance(self):
         """
