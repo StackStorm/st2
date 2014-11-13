@@ -20,6 +20,7 @@ import subprocess
 import six
 
 from st2common import log as logging
+from st2common.util.sandboxing import get_sandbox_python_path
 
 __all__ = [
     'MultiProcessSensorContainer'
@@ -167,9 +168,11 @@ class MultiProcessSensorContainer(object):
             '--trigger-type-refs=%s' % (trigger_type_refs)
         ]
 
-        # TODO: Intercept stdout and stderr for aggregated logging purposes
         env = os.environ.copy()
+        env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
+                                                    inherit_parent_virtualenv=True)
 
+        # TODO: Intercept stdout and stderr for aggregated logging purposes
         try:
             process = subprocess.Popen(args=args, stdin=None, stdout=None,
                                        stderr=None, shell=False, env=env)
