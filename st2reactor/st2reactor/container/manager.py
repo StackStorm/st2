@@ -20,11 +20,9 @@ import six
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import Trigger
-from st2common.util.config_parser import ContentPackConfigParser
 from st2common.content.validators import validate_pack_name
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2reactor.container.process_container import MultiProcessSensorContainer
-from st2reactor.container.triggerwatcher import TriggerWatcher
 import st2reactor.container.utils as container_utils
 
 LOG = logging.getLogger(__name__)
@@ -44,7 +42,6 @@ class SensorContainerManager(object):
         for filename, sensors in six.iteritems(sensors_dict):
             for sensor_class in sensors:
                 class_name = sensor_class.__name__
-                sensor_id = class_name
 
                 # System sensors which are not located inside a content pack
                 # don't and can't have custom config associated with them
@@ -52,16 +49,8 @@ class SensorContainerManager(object):
 
                 if pack:
                     pack = validate_pack_name(name=pack)
-                    config_parser = ContentPackConfigParser(pack_name=pack)
-                    config_path = config_parser.get_global_config_path()
-
-                    if os.path.isfile(config_path):
-                        LOG.info('Using config "%s" for sensor "%s"' % (config_path, class_name))
-                    else:
-                        LOG.info('No config found for sensor "%s"' % (class_name))
                 else:
                     pack = SYSTEM_PACK_NAME
-                    config_path = None
 
                 try:
                     trigger_types = sensor_class.get_trigger_types()
@@ -88,13 +77,6 @@ class SensorContainerManager(object):
 
                 file_path = os.path.abspath(filename)
 
-                # TODO: Update once lakshmi's PR is merged
-                # cfg.CONF.content.packs_base_path
-                packs_base_path = '/opt/stackstorm'
-                virtualenv_path = os.path.join(packs_base_path,
-                                               'virtualenvs/',
-                                               pack)
-
                 # Register sensor type in the DB
                 sensor_obj = {
                     'file_path': file_path,
@@ -110,13 +92,9 @@ class SensorContainerManager(object):
                     'pack': pack,
                     'file_path': file_path,
                     'class_name': class_name,
-                    'config_path': config_path,
-                    'virtualenv_path': virtualenv_path,
                     'trigger_types': trigger_type_refs
                 }
 
-                if pack == 'core':
-                    continue
                 sensors_to_run.append(sensor_obj)
 
         for trigger in Trigger.get_all():

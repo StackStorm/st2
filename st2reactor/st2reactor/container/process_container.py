@@ -17,10 +17,9 @@ import os
 import time
 import subprocess
 
-import six
-
 from st2common import log as logging
 from st2common.util.sandboxing import get_sandbox_python_path
+from st2common.util.sandboxing import get_sandbox_python_binary_path
 
 __all__ = [
     'MultiProcessSensorContainer'
@@ -154,7 +153,7 @@ class MultiProcessSensorContainer(object):
         belonging to the sensor pack.
         """
         sensor_id = self._get_sensor_id(sensor=sensor)
-        python_path = os.path.join(sensor['virtualenv_path'], 'bin/python')
+        python_path = get_sandbox_python_binary_path(pack=sensor['pack'])
 
         trigger_type_refs = sensor['trigger_types'] or []
         trigger_type_refs = ','.join(trigger_type_refs)
