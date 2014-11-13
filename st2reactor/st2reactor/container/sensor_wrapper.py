@@ -194,10 +194,10 @@ class SensorWrapper(object):
         }
         sensor_config = self._get_sensor_config()
 
-        if pack not in SYSTEM_PACK_NAMES:
+        if self._pack not in SYSTEM_PACK_NAMES:
             sensor_class_kwargs['config'] = sensor_config
 
-        sensor_instance = sensor_class(**kwargs)
+        sensor_instance = sensor_class(**sensor_class_kwargs)
 
         return sensor_instance
 
