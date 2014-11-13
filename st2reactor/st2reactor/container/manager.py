@@ -34,11 +34,6 @@ class SensorContainerManager(object):
     # TODO: Load balancing for sensors.
     def __init__(self, max_containers=10):
         self._max_containers = max_containers
-        self._trigger_names = {}
-        self._trigger_sensors = {}
-        self._trigger_watcher = TriggerWatcher(self._create_handler,
-                                               self._update_handler,
-                                               self._delete_handler)
 
     def run_sensors(self, sensors_dict):
         LOG.info('Setting up container to run %d sensors.', len(sensors_dict))
@@ -68,16 +63,6 @@ class SensorContainerManager(object):
                     pack = SYSTEM_PACK_NAME
                     config_path = None
 
-                """
-                try:
-                    sensor = sensor_class(container_service=container_service,
-                                          **sensor_class_kwargs)
-                except Exception as e:
-                    LOG.warning('Unable to create instance for sensor %s in file %s. Exception: %s',
-                                sensor_class, filename, e, exc_info=True)
-                    continue
-                """
-
                 try:
                     trigger_types = sensor_class.get_trigger_types()
                     if not trigger_types:
@@ -94,15 +79,15 @@ class SensorContainerManager(object):
                                 + ' Exception: %s', sensor_class, filename, e, exc_info=True)
                     continue
 
-                # Populate sensors dict
+                # Populate a list of references belonging to this sensor
                 trigger_type_refs = []
                 for trigger_type_db, _ in trigger_type_dbs:
                     ref_obj = trigger_type_db.get_reference()
                     trigger_type_ref = ref_obj.ref
-                    self._trigger_sensors[trigger_type_ref] = sensor_id
                     trigger_type_refs.append(trigger_type_ref)
 
                 file_path = os.path.abspath(filename)
+                print trigger_type_refs
 
                 # TODO: Update once lakshmi's PR is merged
                 # cfg.CONF.content.packs_base_path
@@ -129,13 +114,15 @@ class SensorContainerManager(object):
                     'virtualenv_path': virtualenv_path,
                     'trigger_types': trigger_type_refs
                 }
+
+                if pack == 'core':
+                    continue
                 sensors_to_run.append(sensor_obj)
 
         for trigger in Trigger.get_all():
-            self._create_handler(trigger=trigger)
-
-        self._trigger_watcher.start()
-        LOG.info('Watcher started.')
+            # TODO: Dispatch event to be consumed by the wrapper
+            #self._create_handler(trigger=trigger)
+            pass
 
         LOG.info('(PID:%s) SensorContainer started.', os.getpid())
         sensor_container = MultiProcessSensorContainer(sensors=sensors_to_run)
@@ -147,43 +134,3 @@ class SensorContainerManager(object):
             LOG.info('(PID:%s) SensorContainer stopped. Reason - %s', os.getpid(),
                      sys.exc_info()[0].__name__)
             return 0
-        finally:
-            self._trigger_watcher.stop()
-
-    def _create_handler(self, trigger):
-        # TODO
-        return
-        trigger_type_ref = trigger.type
-        self._trigger_names[str(trigger.id)] = trigger
-        sensor = self._trigger_sensors.get(trigger_type_ref, None)
-        if sensor:
-            sensor.add_trigger(SensorContainerManager.sanitize_trigger(trigger))
-
-    def _update_handler(self, trigger):
-        # TODO
-        return
-        trigger_type_ref = trigger.type
-        self._trigger_names[str(trigger.id)] = trigger
-        sensor = self._trigger_sensors.get(trigger_type_ref, None)
-        if sensor:
-            sensor.update_trigger(SensorContainerManager.sanitize_trigger(trigger))
-
-    def _delete_handler(self, trigger):
-        # TODO
-        return
-        triggerid = str(trigger.id)
-        if triggerid not in self._trigger_names:
-            return
-        del self._trigger_names[triggerid]
-        trigger_type_ref = trigger.type
-        sensor = self._trigger_sensors.get(trigger_type_ref, None)
-        if sensor:
-            sensor.remove_trigger(SensorContainerManager.sanitize_trigger(trigger))
-
-    @staticmethod
-    def sanitize_trigger(trigger):
-        sanitized = trigger._data
-        if 'id' in sanitized:
-            # Friendly objectid rather than the MongoEngine representation.
-            sanitized['id'] = str(sanitized['id'])
-        return sanitized
