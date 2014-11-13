@@ -27,6 +27,7 @@ from eventlet.green import subprocess
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.util.sandboxing import get_sandbox_python_path
 
 
 LOG = logging.getLogger(__name__)
@@ -116,18 +117,9 @@ class PythonRunner(ActionRunner):
 
         # We need to ensure all the st2 dependencies are also available to the
         # subprocess
-        python_path = os.environ.get('PYTHONPATH', '')
-
-        # Detect if we are running inside virtualenv and if we are, also add
-        # current virtualenv to path (for devenv only)
-        # TODO: There must be a less hack way to do this
-        if hasattr(sys, 'real_prefix'):
-            site_packages_dir = get_python_lib()
-            assert sys.prefix in site_packages_dir
-            python_path += ':%s' % (site_packages_dir)
-
         env = os.environ.copy()
-        env['PYTHONPATH'] = python_path
+        env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
+                                                    inherit_parent_virtualenv=True)
 
         # Note: We are using eventlet friendly implementation of subprocess
         # which uses GreenPipe so it doesn't block
