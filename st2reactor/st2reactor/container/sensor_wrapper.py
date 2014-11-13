@@ -30,7 +30,7 @@ from st2common.util.config_parser import ContentPackConfigParser
 # TODO: Implement trigger API endpoint authentication with per-sensor secret key
 
 
-class SensorRunnerWrapper(object):
+class SensorWrapper(object):
     def __init__(self, sensor_file_path, sensor_class_name, sensor_config_path,
                  api_endpoint):
         self._sensor_file_path = sensor_file_path
@@ -131,8 +131,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    obj = SensorRunnerWrapper(sensor_file_path=args.sensor_file_path,
-                              sensor_class_name=args.sensor_class_name,
-                              sensor_config_path=args.sensor_config_path,
-                              api_endpoint=args.api_endpoint)
+    obj = SensorWrapper(sensor_file_path=args.sensor_file_path,
+                        sensor_class_name=args.sensor_class_name,
+                        sensor_config_path=args.sensor_config_path,
+                        api_endpoint=args.api_endpoint)
     obj.run()

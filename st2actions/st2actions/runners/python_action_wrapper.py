@@ -24,13 +24,13 @@ from st2common.util import loader as action_loader
 from st2common.util.config_parser import ContentPackConfigParser
 
 __all__ = [
-    'PythonActionRunnerWrapper'
+    'PythonActionWrapper'
 ]
 
 LOG = logging.getLogger(__name__)
 
 
-class PythonActionRunnerWrapper(object):
+class PythonActionWrapper(object):
     def __init__(self, pack, file_path, parameters=None):
         """
         :param pack: Name of the pack this action belongs to.
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     parameters = args.parameters
     parameters = json.loads(parameters) if parameters else {}
 
-    obj = PythonActionRunnerWrapper(pack=args.pack,
-                                    file_path=args.file_path,
-                                    parameters=parameters)
+    obj = PythonActionWrapper(pack=args.pack,
+                              file_path=args.file_path,
+                              parameters=parameters)
     obj.run()
