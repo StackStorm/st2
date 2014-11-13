@@ -70,7 +70,8 @@ class MultiProcessSensorContainer(object):
 
                 if status is not None:
                     # Dead process detected
-                    LOG.debug('Process for sensor %s has exited', sensor_id)
+                    LOG.info('Process for sensor %s has exited with code %s',
+                             sensor_id, status)
 
                     del self._processes[sensor_id]
                     del self._sensors[sensor_id]
