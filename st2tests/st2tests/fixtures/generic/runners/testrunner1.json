@@ -1,0 +1,28 @@
+{
+    "name": "test-runner-1",
+    "description": "A test runner.",
+    "enabled": true,
+    "runner_parameters": {
+        "runnerstr": {
+            "description": "Foo str param.",
+            "type": "string",
+            "default": "defaultfoo"
+        },
+        "runnerint": {
+            "description": "Foo int param.",
+            "type": "number"
+        },
+        "runnerdummy": {
+            "description": "Dummy param.",
+            "type": "string",
+            "default": "runnerdummy"
+        },
+        "runnerimmutable": {
+            "description": "Immutable param.",
+            "type": "string",
+            "default": "runnerimmutable",
+            "immutable": true
+        }
+    },
+    "runner_module": "tests.test_runner"
+}
