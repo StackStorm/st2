@@ -18,6 +18,7 @@ import sys
 
 from oslo.config import cfg
 
+import st2reactor.bootstrap.sensorsregistrar as sensors_registrar
 import st2actions.bootstrap.actionsregistrar as actions_registrar
 import st2actions.bootstrap.runnersregistrar as runners_registrar
 import st2common.config as config
@@ -31,7 +32,8 @@ LOG = logging.getLogger('st2common.content.bootstrap')
 
 def register_opts():
     content_opts = [
-        cfg.BoolOpt('all', default=False, help='Register actions and rules.'),
+        cfg.BoolOpt('all', default=False, help='Register sensors, actions and rules.'),
+        cfg.BoolOpt('sensors', default=True, help='Register sensors.'),
         cfg.BoolOpt('actions', default=True, help='Register actions.'),
         cfg.BoolOpt('rules', default=False, help='Register rules.')
     ]
@@ -40,6 +42,13 @@ def register_opts():
     except:
         sys.stderr.write('Failed registering opts.\n')
 register_opts()
+
+
+def register_sensors():
+    try:
+        sensors_registrar.register_sensors()
+    except Exception as e:
+        LOG.warning('Failed to register sensors: %s', e, exc_info=True)
 
 
 def register_actions():
@@ -66,17 +75,22 @@ def register_rules():
 
 
 def register_content():
-    if cfg.CONF.register.rules:
+    if cfg.CONF.register.all:
+        register_sensors()
+        register_actions()
         register_rules()
         return
 
-    if cfg.CONF.register.all:
-        register_actions()
-        register_rules()
+    if cfg.CONF.register.sensors:
+        register_sensors()
         return
 
     if cfg.CONF.register.actions:
         register_actions()
+        return
+
+    if cfg.CONF.register.rules:
+        register_rules()
         return
 
 

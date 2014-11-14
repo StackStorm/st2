@@ -203,6 +203,7 @@ def get_sensor_entry_point(pack, sensor):
 
 def _add_sensor_model(pack, sensor):
     name = sensor['name']
+    description = sensor['description']
     file_path = sensor['file_path']
     artifact_uri = 'file://%s' % (file_path)
     entry_point = get_sensor_entry_point(pack=pack, sensor=sensor)
