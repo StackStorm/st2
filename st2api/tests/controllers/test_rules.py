@@ -19,82 +19,52 @@ from st2common.persistence.action import Action, RunnerType
 from st2common.persistence.reactor import Trigger
 from st2common.models.db import action, reactor
 from st2common.transport.publishers import PoolPublisher
+from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
 
 http_client = six.moves.http_client
 
-RUNNER_TYPE = action.RunnerTypeDB()
-RUNNER_TYPE.name = 'python'
-RUNNER_TYPE.description = ''
-RUNNER_TYPE.enabled = True
-RUNNER_TYPE.runner_parameters = {'r1': None, 'r2': None}
-RUNNER_TYPE.runner_module = 'nomodule'
-
-ACTION = action.ActionDB()
-ACTION.name = 'st2.test.action1'
-ACTION.description = ''
-ACTION.enabled = True
-ACTION.artifact_path = '/tmp/action.py'
-ACTION.entry_point = ''
-ACTION.pack = 'sixpack'
-ACTION.runner_type = None
-ACTION.parameter_names = {'p1': None, 'p2': None, 'p3': None}
-
-TRIGGER = reactor.TriggerDB()
-TRIGGER.name = 'st2.test.trigger1'
-TRIGGER.pack = 'dummy_pack_1'
-TRIGGER.description = ''
-TRIGGER.payload_info = ['tp1', 'tp2', 'tp3']
-TRIGGER.trigger_source = None
-
-RULE_1 = {
-    'enabled': True,
-    'name': 'st2.test.rule1',
-    'trigger': {
-        'type': 'dummy_pack_1.st2.test.trigger1'
-    },
-    'criteria': {
-        't1_p': {
-            'pattern': 't1_p_v',
-            'type': 'equals'
-        }
-    },
-    'action': {
-        'ref': 'sixpack.st2.test.action',
-        'parameters': {
-            'ip2': '{{rule.k1}}',
-            'ip1': '{{trigger.t1_p}}'
-        }
-    },
-    'id': '23',
-    'description': ''
+TEST_FIXTURES = {
+    'runners': ['testrunner1.json'],
+    'actions': ['action1.json'],
+    'triggers': ['trigger1.json'],
+    'triggertypes': ['triggertype1.json']
 }
 
+FIXTURES_PACK = 'generic'
 
+
+@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class TestRuleController(FunctionalTest):
 
-    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-    def setUp(self):
-        RUNNER_TYPE.id = None
-        RunnerType.add_or_update(RUNNER_TYPE)
-        ACTION.id = None
-        ACTION.runner_type = {'name': RUNNER_TYPE.name}
-        Action.add_or_update(ACTION)
-        TRIGGER.id = None
-        Trigger.add_or_update(TRIGGER)
+    fixtures_loader = FixturesLoader()
 
-    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-    def tearDown(self):
-        Action.delete(ACTION)
-        RunnerType.delete(RUNNER_TYPE)
-        Trigger.delete(TRIGGER)
+    @classmethod
+    def setUpClass(cls):
+        super(TestRuleController, cls).setUpClass()
+        models = TestRuleController.fixtures_loader.save_fixtures_to_db(
+            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
+        TestRuleController.RUNNER_TYPE = models['runners']['testrunner1.json']
+        TestRuleController.ACTION = models['actions']['action1.json']
+        TestRuleController.TRIGGER = models['triggers']['trigger1.json']
+
+        # Don't load rule into DB as that is what is being tested.
+        TestRuleController.RULE_1 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': ['rule1.json']})['rules']['rule1.json']
+
+    @classmethod
+    def tearDownClass(cls):
+        TestRuleController.fixtures_loader.delete_fixtures_from_db(
+            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
+        super(TestRuleController, cls).setUpClass()
 
     def test_get_all(self):
         resp = self.app.get('/rules')
         self.assertEqual(resp.status_int, http_client.OK)
 
     def test_get_one(self):
-        post_resp = self.__do_post(RULE_1)
+        post_resp = self.__do_post(TestRuleController.RULE_1)
         rule_id = self.__get_rule_id(post_resp)
         get_resp = self.__do_get_one(rule_id)
         self.assertEqual(get_resp.status_int, http_client.OK)
@@ -106,19 +76,19 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(resp.status_int, http_client.NOT_FOUND)
 
     def test_post(self):
-        post_resp = self.__do_post(RULE_1)
+        post_resp = self.__do_post(TestRuleController.RULE_1)
         self.assertEqual(post_resp.status_int, http_client.CREATED)
         self.__do_delete(self.__get_rule_id(post_resp))
 
     def test_post_duplicate(self):
-        post_resp = self.__do_post(RULE_1)
+        post_resp = self.__do_post(TestRuleController.RULE_1)
         self.assertEqual(post_resp.status_int, http_client.CREATED)
-        post_resp_2 = self.__do_post(RULE_1)
+        post_resp_2 = self.__do_post(TestRuleController.RULE_1)
         self.assertEqual(post_resp_2.status_int, http_client.CONFLICT)
         self.__do_delete(self.__get_rule_id(post_resp))
 
     def test_put(self):
-        post_resp = self.__do_post(RULE_1)
+        post_resp = self.__do_post(TestRuleController.RULE_1)
         update_input = post_resp.json
         update_input['enabled'] = not update_input['enabled']
         put_resp = self.__do_put(self.__get_rule_id(post_resp), update_input)
@@ -126,7 +96,7 @@ class TestRuleController(FunctionalTest):
         self.__do_delete(self.__get_rule_id(put_resp))
 
     def test_put_fail(self):
-        post_resp = self.__do_post(RULE_1)
+        post_resp = self.__do_post(TestRuleController.RULE_1)
         update_input = post_resp.json
         # If the id in the URL is incorrect the update will fail since id in the body is ignored.
         put_resp = self.__do_put(1, update_input)
@@ -134,7 +104,7 @@ class TestRuleController(FunctionalTest):
         self.__do_delete(self.__get_rule_id(post_resp))
 
     def test_delete(self):
-        post_resp = self.__do_post(RULE_1)
+        post_resp = self.__do_post(TestRuleController.RULE_1)
         del_resp = self.__do_delete(self.__get_rule_id(post_resp))
         self.assertEqual(del_resp.status_int, http_client.NO_CONTENT)
 
