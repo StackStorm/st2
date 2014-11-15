@@ -50,9 +50,18 @@ def _register_reactor_opts():
     CONF.register_opts(generic_webhook_opts, group='generic_webhook_sensor')
 
 
+def _register_rules_engine_opts():
+    logging_opts = [
+        cfg.StrOpt('logging', default='conf/logging.rulesengine.conf',
+                   help='Location of the logging configuration file.')
+    ]
+    CONF.register_opts(logging_opts, group='rulesengine')
+
+
 def register_opts():
     _register_common_opts()
     _register_reactor_opts()
+    _register_rules_engine_opts()
 
 
 register_opts()
