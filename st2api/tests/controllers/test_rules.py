@@ -15,9 +15,6 @@
 
 import mock
 import six
-from st2common.persistence.action import Action, RunnerType
-from st2common.persistence.reactor import Trigger
-from st2common.models.db import action, reactor
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
