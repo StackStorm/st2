@@ -21,6 +21,7 @@ from st2common.persistence.reactor import SensorType, TriggerType, TriggerInstan
 from st2common.models.db.reactor import SensorTypeDB, TriggerTypeDB, TriggerInstanceDB
 from st2common.services import triggers as TriggerService
 from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.constants.sensors import MINIMUM_POLL_INTERVAL
 
 LOG = logging.getLogger('st2reactor.sensor.container_utils')
 
@@ -160,6 +161,10 @@ def _create_sensor_type(pack, name, description, artifact_uri, entry_point,
                         trigger_types=None, poll_interval=10):
     sensor_types = SensorType.query(pack=pack, name=name)
     is_update = False
+
+    if poll_interval < MINIMUM_POLL_INTERVAL:
+        raise ValueError('Minimum possible poll_interval is %s seconds' %
+                         (MINIMUM_POLL_INTERVAL))
 
     if len(sensor_types) >= 1:
         sensor_type = sensor_types[0]
