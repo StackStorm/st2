@@ -45,7 +45,8 @@ class SensorContainerManager(object):
                 'pack': sensor.pack,
                 'file_path': file_path,
                 'class_name': class_name,
-                'trigger_types': sensor.trigger_types
+                'trigger_types': sensor.trigger_types,
+                'poll_interval': sensor.poll_interval
             }
             sensors_to_run.append(sensor_obj)
 
