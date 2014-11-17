@@ -1,6 +1,6 @@
 #!/bin/bash
 LOGFILE="/tmp/st2_startup.log"
-COMPONENTS="actionrunner st2api st2auth sensor_container history mistral"
+COMPONENTS="actionrunner st2api st2auth sensor_container history rules_engine mistral"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
 if [ -z "$AR" ];
@@ -30,6 +30,7 @@ function st2start(){
   st2auth --config-file ${STANCONF} &>> ${LOGFILE} &
   sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
   /usr/bin/history --config-file ${STANCONF} &>> ${LOGFILE} &
+  rules_engine --config-file ${STANCONF} &>> ${LOGFILE} &
   service mistral start
 }
 
