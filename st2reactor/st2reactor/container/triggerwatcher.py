@@ -14,10 +14,10 @@
 # limitations under the License.
 
 import eventlet
-
 from kombu.mixins import ConsumerMixin
 from kombu import Connection
 from oslo.config import cfg
+
 from st2common import log as logging
 from st2common.transport import reactor, publishers
 
@@ -28,6 +28,7 @@ class TriggerWatcher(ConsumerMixin):
 
     TRIGGER_WATCH_Q = reactor.get_trigger_cud_queue('st2.trigger.watch',
                                                     routing_key='#')
+    sleep_interval = 4  # how long to sleep after processing each message
 
     def __init__(self, create_handler, update_handler, delete_handler):
         self._handlers = {
@@ -50,15 +51,19 @@ class TriggerWatcher(ConsumerMixin):
         LOG.debug('     message.delivery_info: %s', message.delivery_info)
         routing_key = message.delivery_info.get('routing_key', '')
         handler = self._handlers.get(routing_key, None)
+
         if not handler:
             LOG.debug('Skipping message %s as no handler was found.')
             return
+
         try:
             handler(body)
         except:
             LOG.exception('handling failed. Message body : %s', body)
         finally:
             message.ack()
+
+        eventlet.sleep(self.sleep_interval)
 
     def start(self):
         try:
@@ -73,3 +78,16 @@ class TriggerWatcher(ConsumerMixin):
             self._thread = eventlet.kill(self._thread)
         finally:
             self.connection.release()
+
+    # Note: We sleep after we consume a message so we give a chance to other
+    # green threads to run. If we don't do that, ConsumerMixin will block on
+    # waiting for a message on the queue.
+
+    def on_consume_end(self, connection, channel):
+        super(TriggerWatcher, self).on_consume_end(connection=connection,
+                                                   channel=channel)
+        eventlet.sleep(seconds=self.sleep_interval)
+
+    def on_iteration(self):
+        super(TriggerWatcher, self).on_iteration()
+        eventlet.sleep(seconds=self.sleep_interval)
