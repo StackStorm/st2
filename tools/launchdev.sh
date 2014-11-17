@@ -99,12 +99,19 @@ function st2start(){
         ./st2reactor/bin/sensor_container \
         --config-file $ST2_CONF
 
+    # Run the reactor server
+    echo 'Starting screen session st2-rulesengine...'
+    screen -d -m -S st2-rulesengine ./virtualenv/bin/python \
+        ./st2reactor/bin/rules_engine \
+        --config-file $ST2_CONF
+
     # Check whether screen sessions are started
     screens=(
         "st2-api"
         "st2-history"
         "st2-actionrunner"
         "st2-reactor"
+        "st2-rulesengine"
     )
 
     echo
