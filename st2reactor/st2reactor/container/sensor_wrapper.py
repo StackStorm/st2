@@ -36,6 +36,34 @@ __all__ = [
 ]
 
 
+class Dispatcher(object):
+    """
+    This class is passed to the sensor instance and exposes "public" methods
+    which can be called by the sensor.
+    """
+    # TODO: Better name
+
+    def __init__(self, sensor_wrapper):
+        self._sensor_wrapper = sensor_wrapper
+        self._logger = self._sensor_wrapper._logger
+
+    def dispatch(self, trigger, payload=None):
+        """
+        Method which dispatches the trigger.
+
+        :param trigger: Full name / reference of the trigger.
+        :type trigger: ``str``
+
+        :param payload: Trigger payload.
+        :type payload: ``dict``
+        """
+        assert(isinstance(trigger, (str, unicode)))
+        assert(isinstance(payload, (type(None), dict)))
+
+        self._logger.debug('Dispatching trigger (trigger=%s,payload=%s)', trigger, payload)
+        # TODO: Dispatch event via queue
+
+
 class SensorWrapper(object):
     def __init__(self, pack, file_path, class_name, trigger_types,
                  poll_interval=5):
@@ -81,23 +109,6 @@ class SensorWrapper(object):
         formatter = slogging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         ch.setFormatter(formatter)
         self._logger.addHandler(ch)
-
-    def dispatch(self, trigger, payload=None):
-        """
-        Method which sends trigger to the API and is called by the sensor
-        class.
-
-        :param trigger: Full name / reference of the trigger.
-        :type trigger: ``str``
-
-        :param payload: Trigger payload.
-        :type payload: ``dict``
-        """
-        assert(isinstance(trigger, (str, unicode)))
-        assert(isinstance(payload, (type(None), dict)))
-
-        self._logger.debug('Dispatching trigger (trigger=%s,payload=%s)', trigger, payload)
-        # TODO: Dispatch event via queue
 
     def run(self):
         atexit.register(self.stop)
@@ -168,13 +179,6 @@ class SensorWrapper(object):
         trigger = self._sanitize_trigger(trigger=trigger)
         self._sensor_instance.remove_trigger(trigger=trigger)
 
-    def _call_sensor_method(self, method_name, args, kwargs):
-        """
-        Call the provided sensor method (if exists) with the provided args and
-        kwargs.
-        """
-        pass
-
     def _get_sensor_instance(self):
         """
         Retrieve instance of a sensor class.
@@ -185,19 +189,21 @@ class SensorWrapper(object):
         sensor_module = imp.load_source(module_name, self._file_path)
         sensor_class = getattr(sensor_module, self._class_name, None)
 
+        sensor_class_kwargs = {}
+
         if not sensor_class:
             raise ValueError('Sensor module is missing a class with name "%s"' %
                              (self._class_name))
 
-        sensor_class_kwargs = {
-            'container_service': self
-        }
+        # TODO: container_service -> dispatcher inside the sensors
+        args = [Dispatcher(sensor_wrapper=self)]
+
         sensor_config = self._get_sensor_config()
 
         if self._pack not in SYSTEM_PACK_NAMES:
             sensor_class_kwargs['config'] = sensor_config
 
-        sensor_instance = sensor_class(**sensor_class_kwargs)
+        sensor_instance = sensor_class(*args, **sensor_class_kwargs)
 
         return sensor_instance
 
