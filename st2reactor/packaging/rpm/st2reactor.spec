@@ -28,6 +28,7 @@ mkdir -p %{buildroot}/usr/bin/
 cp -R st2reactor %{buildroot}%{python2_sitelib}/
 cp -R conf/* %{buildroot}/etc/st2reactor
 install -m755 bin/sensor_container %{buildroot}/usr/bin/sensor_container
+install -m755 bin/rules_engine %{buildroot}/usr/bin/rules_engine
 
 %files
 
