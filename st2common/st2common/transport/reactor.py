@@ -13,13 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# All Exchanges and Queues related to ActionExecution.
-
 from kombu import Exchange, Queue
+
 from st2common.transport import publishers
+
+__all__ = [
+    'TriggerCUDPublisher',
+    'TriggerPublisher',
+
+    'get_trigger_cud_queue',
+    'get_trigger_queue'
+]
 
 # Exchange for Trigger CUD events
 TRIGGER_CUD_XCHG = Exchange('st2.trigger', type='topic')
+
+# Exchange for Trigger events
+TRIGGER_XCHG = Exchange('st2.trigger_dispatch', type='topic')
 
 
 class TriggerCUDPublisher(publishers.CUDPublisher):
@@ -31,5 +41,18 @@ class TriggerCUDPublisher(publishers.CUDPublisher):
         super(TriggerCUDPublisher, self).__init__(url, TRIGGER_CUD_XCHG)
 
 
+class TriggerPublisher(object):
+    def __init__(self, url):
+        self._publisher = publishers.PoolPublisher(url=url)
+
+    def publish_trigger(self, payload, routing_key):
+        # TODO: We could use trigger reference as a routing key
+        self._publisher.publish(payload, TRIGGER_XCHG, routing_key)
+
+
 def get_trigger_cud_queue(name, routing_key):
     return Queue(name, TRIGGER_CUD_XCHG, routing_key=routing_key)
+
+
+def get_trigger_queue(name, routing_key):
+    return Queue(name, TRIGGER_XCHG, routing_key=routing_key)

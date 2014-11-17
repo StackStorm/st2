@@ -18,15 +18,15 @@ import atexit
 import imp
 import sys
 import logging
-import httplib
 import argparse
-import json
 
 import eventlet
 import logging as slogging
+from oslo.config import cfg
 
 from st2common import config
 from st2common import log as logging
+from st2common.transport.reactor import TriggerPublisher
 from st2common.util.config_parser import ContentPackConfigParser
 from st2reactor.container.triggerwatcher import TriggerWatcher
 from st2common.constants.pack import SYSTEM_PACK_NAMES
@@ -45,6 +45,7 @@ class Dispatcher(object):
 
     def __init__(self, sensor_wrapper):
         self._sensor_wrapper = sensor_wrapper
+        self._publisher = TriggerPublisher(url=cfg.CONF.messaging.url)
         self._logger = self._sensor_wrapper._logger
 
     def dispatch(self, trigger, payload=None):
@@ -60,8 +61,14 @@ class Dispatcher(object):
         assert(isinstance(trigger, (str, unicode)))
         assert(isinstance(payload, (type(None), dict)))
 
+        payload = {
+            'trigger': trigger,
+            'payload': payload
+        }
+        routing_key = trigger
+
         self._logger.debug('Dispatching trigger (trigger=%s,payload=%s)', trigger, payload)
-        # TODO: Dispatch event via queue
+        self._publisher.publish_trigger(payload=payload, routing_key=routing_key)
 
 
 class SensorWrapper(object):
