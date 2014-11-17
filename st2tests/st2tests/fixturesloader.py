@@ -103,7 +103,7 @@ class FixturesLoader(object):
         :rtype: ``dict``
         """
         fixtures_pack_path = self._validate_fixtures_pack(fixtures_pack)
-        self._validate_fixture_dict(fixtures_dict)
+        self._validate_fixture_dict(fixtures_dict, allowed=ALLOWED_DB_FIXTURES)
 
         db_models = {}
         for fixture_type, fixtures in six.iteritems(fixtures_dict):
@@ -155,6 +155,46 @@ class FixturesLoader(object):
                     self._get_fixture_file_path_abs(fixtures_pack_path, fixture_type, fixture))
                 loaded_fixtures[fixture] = fixture_dict
             all_fixtures[fixture_type] = loaded_fixtures
+
+        return all_fixtures
+
+    def load_models(self, fixtures_pack=None, fixtures_dict={}):
+        """
+        Loads fixtures specified in fixtures_dict as db models. This method must be
+        used for fixtures that have associated DB models. We simply want to load the
+        meta as DB models but don't want to save them to db.
+
+        fixtures_dict should be of the form:
+        {
+            'actions': ['action-1.json', 'action-2.json'],
+            'rules': ['rule-1.json'],
+            'executions': ['execution-1.json']
+        }
+
+        :param fixtures_pack: Name of the pack to load fixtures from.
+        :type fixtures_pack: ``str``
+
+        :param fixtures_dict: Dictionary specifying the fixtures to load for each type.
+        :type fixtures_dict: ``dict``
+
+        :rtype: ``dict``
+        """
+        fixtures_pack_path = self._validate_fixtures_pack(fixtures_pack)
+        self._validate_fixture_dict(fixtures_dict, allowed=ALLOWED_DB_FIXTURES)
+
+        all_fixtures = {}
+        for fixture_type, fixtures in six.iteritems(fixtures_dict):
+
+            API_MODEL = FIXTURE_API_MODEL.get(fixture_type, None)
+
+            loaded_models = {}
+            for fixture in fixtures:
+                fixture_dict = self.meta_loader.load(
+                    self._get_fixture_file_path_abs(fixtures_pack_path, fixture_type, fixture))
+                api_model = API_MODEL(**fixture_dict)
+                db_model = API_MODEL.to_model(api_model)
+                loaded_models[fixture] = db_model
+            all_fixtures[fixture_type] = loaded_models
 
         return all_fixtures
 
@@ -232,10 +272,10 @@ class FixturesLoader(object):
                             'in fixtures path %s.' % get_fixtures_base_path())
         return fixtures_pack_path
 
-    def _validate_fixture_dict(self, fixtures_dict):
+    def _validate_fixture_dict(self, fixtures_dict, allowed=ALLOWED_FIXTURES):
         fixture_types = fixtures_dict.keys()
         for fixture_type in fixture_types:
-            if fixture_type not in ALLOWED_DB_FIXTURES:
+            if fixture_type not in allowed:
                 raise Exception('Disallowed fixture type: %s' % fixture_type)
 
     def _is_fixture_pack_exists(self, fixtures_pack_path):
@@ -246,3 +286,6 @@ class FixturesLoader(object):
 
     def _get_fixtures_pack_path(self, fixtures_pack_name):
         return os.path.join(get_fixtures_base_path(), fixtures_pack_name)
+
+    def get_fixture_file_path_abs(self, fixtures_pack, fixtures_type, fixture_name):
+        return os.path.join(get_fixtures_base_path(), fixtures_type, fixture_name)

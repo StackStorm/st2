@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import mock
-import os
 import six
 
 from unittest2 import TestCase
@@ -28,8 +26,8 @@ from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
 from st2common.constants.action import ACTIONEXEC_STATUS_FAILED
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
-import st2tests.base as tests_base
 import st2tests.config as tests_config
+from st2tests.fixturesloader import FixturesLoader
 
 
 class DummyActionExecution(object):
@@ -39,53 +37,45 @@ class DummyActionExecution(object):
         self.result = result
 
 
-class DummyAction(object):
-    def __init__(self):
-        self.pack = None
-        self.entry_point = None
-        self.parameters = None
-        self.runner_type = {'name': None}
+FIXTURES_PACK = 'generic'
 
-    @staticmethod
-    def from_dict(**kw):
-        inst = DummyAction()
-        for k, v in kw.items():
-            setattr(inst, k, v)
-        return inst
+TEST_FIXTURES = {
+    'actionchains': ['chain1.json']
+}
 
+TEST_MODELS = {
+    'actions': ['a1.json', 'a2.json'],
+    'runners': ['testrunner1.json']
+}
 
-class DummyRunner(object):
-    def __init__(self):
-        self.runner_parameters = {}
+FIXTURES = FixturesLoader().load_fixtures(fixtures_pack=FIXTURES_PACK,
+                                          fixtures_dict=TEST_FIXTURES)
+CHAIN_1 = FIXTURES['actionchains']['chain1.json']
 
+MODELS = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
+                                      fixtures_dict=TEST_MODELS)
+ACTION_1 = MODELS['actions']['a1.json']
+ACTION_2 = MODELS['actions']['a2.json']
+RUNNER = MODELS['runners']['testrunner1.json']
 
-CHAIN_1_PATH = os.path.join(tests_base.get_fixtures_path(),
-                            'actionchains/chain1.json')
-with open(CHAIN_1_PATH, 'r') as fd:
-    CHAIN_1 = json.load(fd)
-CHAIN_STR_TEMP_PATH = os.path.join(tests_base.get_fixtures_path(),
-                                   'actionchains/chain_str_template.json')
-CHAIN_LIST_TEMP_PATH = os.path.join(tests_base.get_fixtures_path(),
-                                    'actionchains/chain_list_template.json')
-CHAIN_DICT_TEMP_PATH = os.path.join(tests_base.get_fixtures_path(),
-                                    'actionchains/chain_dict_template.json')
-CHAIN_DEP_INPUT = os.path.join(tests_base.get_fixtures_path(),
-                               'actionchains/chain_dependent_input.json')
-CHAIN_DEP_RESULTS_INPUT = os.path.join(tests_base.get_fixtures_path(),
-                                       'actionchains/chain_dep_result_input.json')
-MALFORMED_CHAIN_PATH = os.path.join(tests_base.get_fixtures_path(),
-                                    'actionchains/malformedchain.json')
-CHAIN_TYPED_PARAMS = os.path.join(tests_base.get_fixtures_path(),
-                                  'actionchains/chain_typed_params.json')
+CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain1.json')
+CHAIN_STR_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_str_template.json')
+CHAIN_LIST_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_list_template.json')
+CHAIN_DICT_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_dict_template.json')
+CHAIN_DEP_INPUT = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_dependent_input.json')
+CHAIN_DEP_RESULTS_INPUT = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_dep_result_input.json')
+MALFORMED_CHAIN_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'malformedchain.json')
+CHAIN_TYPED_PARAMS = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_typed_params.json')
+
 CHAIN_EMPTY = {}
-ACTION_1_PATH = os.path.join(tests_base.get_fixtures_path(),
-                             'actionchains/a1.json')
-with open(ACTION_1_PATH, 'r') as fd:
-    ACTION_1 = DummyAction.from_dict(**json.load(fd))
-ACTION_2_PATH = os.path.join(tests_base.get_fixtures_path(),
-                             'actionchains/a2.json')
-with open(ACTION_2_PATH, 'r') as fd:
-    ACTION_2 = DummyAction.from_dict(**json.load(fd))
 
 
 class TestActionChain(TestCase):
@@ -138,8 +128,12 @@ class TestActionChain(TestCase):
 
 
 @mock.patch.object(action_db_util, 'get_runnertype_by_name',
-                   mock.MagicMock(return_value=DummyRunner()))
+                   mock.MagicMock(return_value=RUNNER))
 class TestActionChainRunner(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        tests_config.parse_args()
 
     def test_runner_creation(self):
         runner = acr.get_runner()
@@ -150,7 +144,7 @@ class TestActionChainRunner(TestCase):
         try:
             chain_runner = acr.get_runner()
             chain_runner.entry_point = MALFORMED_CHAIN_PATH
-            chain_runner.action = DummyAction()
+            chain_runner.action = ACTION_1
             chain_runner.container_service = RunnerContainerService()
             chain_runner.pre_run()
             self.assertTrue(False, 'Expected pre_run to fail.')
@@ -163,7 +157,7 @@ class TestActionChainRunner(TestCase):
     def test_chain_runner_success_path(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
-        chain_runner.action = DummyAction()
+        chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
@@ -181,7 +175,7 @@ class TestActionChainRunner(TestCase):
     def test_chain_runner_success_path_with_wait(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
-        chain_runner.action = DummyAction()
+        chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
@@ -196,7 +190,7 @@ class TestActionChainRunner(TestCase):
     def test_chain_runner_failure_path(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
-        chain_runner.action = DummyAction()
+        chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         success = chain_runner.run({})
@@ -213,7 +207,7 @@ class TestActionChainRunner(TestCase):
     def test_chain_runner_action_exception(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
-        chain_runner.action = DummyAction()
+        chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
@@ -227,7 +221,7 @@ class TestActionChainRunner(TestCase):
     def test_chain_runner_str_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_STR_TEMP_PATH
-        chain_runner.action = DummyAction()
+        chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
@@ -241,7 +235,7 @@ class TestActionChainRunner(TestCase):
     def test_chain_runner_list_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_LIST_TEMP_PATH
-        chain_runner.action = DummyAction()
+        chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
@@ -255,7 +249,7 @@ class TestActionChainRunner(TestCase):
     def test_chain_runner_dict_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DICT_TEMP_PATH
-        chain_runner.action = DummyAction()
+        chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
@@ -271,7 +265,7 @@ class TestActionChainRunner(TestCase):
     def test_chain_runner_dependent_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DEP_INPUT
-        chain_runner.action = DummyAction()
+        chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
@@ -292,7 +286,7 @@ class TestActionChainRunner(TestCase):
     def test_chain_runner_dependent_results_param(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DEP_RESULTS_INPUT
-        chain_runner.action = DummyAction()
+        chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1})
@@ -313,7 +307,7 @@ class TestActionChainRunner(TestCase):
     def test_chain_runner_missing_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_STR_TEMP_PATH
-        chain_runner.action = DummyAction()
+        chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
@@ -325,7 +319,7 @@ class TestActionChainRunner(TestCase):
     def test_chain_runner_typed_params(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_TYPED_PARAMS
-        chain_runner.action = DummyAction()
+        chain_runner.action = ACTION_2
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 'two', 's3': 3.14})
@@ -339,3 +333,7 @@ class TestActionChainRunner(TestCase):
                                       'k1': '1'}}
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
+
+    @classmethod
+    def tearDownClass(cls):
+        FixturesLoader().delete_models_from_db(MODELS)
