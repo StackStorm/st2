@@ -22,6 +22,7 @@ import httplib
 import argparse
 import json
 
+import eventlet
 import logging as slogging
 
 from st2common import config
@@ -34,11 +35,10 @@ __all__ = [
     'SensorWrapper'
 ]
 
-# TODO: Implement trigger API endpoint authentication with per-sensor secret key
-
 
 class SensorWrapper(object):
-    def __init__(self, pack, file_path, class_name, trigger_types):
+    def __init__(self, pack, file_path, class_name, trigger_types,
+                 poll_interval=5):
         """
         :param pack: Name of the pack this sensor belongs to.
         :type pack: ``str``
@@ -52,11 +52,15 @@ class SensorWrapper(object):
         :param trigger_types: A list of references to trigger types which
                                   belong to this sensor.
         :type trigger_types: ``list`` of ``str``
+
+        :param poll_interval: Sensor poll interval (in seconds).
+        :type poll_interval: ``int``
         """
         self._pack = pack
         self._file_path = file_path
         self._class_name = class_name
         self._trigger_types = trigger_types or []
+        self._poll_interval = poll_interval
         self._trigger_names = {}
 
         # TODO: Inherit args from the parent
@@ -93,13 +97,7 @@ class SensorWrapper(object):
         assert(isinstance(payload, (type(None), dict)))
 
         self._logger.debug('Dispatching trigger (trigger=%s,payload=%s)', trigger, payload)
-        data = json.dumps(payload)
-
-        if response.status_code == httplib.OK:
-            self._logger.debug('Sucessfully sent trigger to the API')
-        else:
-            self._logger.debug('Failed to send trigger to the API: %s',
-                               response.text)
+        # TODO: Dispatch event via queue
 
     def run(self):
         atexit.register(self.stop)
@@ -110,13 +108,15 @@ class SensorWrapper(object):
         self._trigger_watcher.start()
         self._logger.debug('Watcher started')
 
-        self._logger.debug('Running sensor')
+        self._logger.debug('Starting sensor poll loop (interval=%s)',
+                           self._poll_interval)
 
-        try:
-            self._sensor_instance.start()
-        except Exception as e:
-            self._logger.exception('Failed to start the sensor: %s' % (str(e)))
-            sys.exit(1)
+        while True:
+            try:
+                self._sensor_instance.poll()
+            except Exception as e:
+                self._logger.exception('Sensor raised an exception during poll: %s', (str(e)))
+            eventlet.sleep(self._poll_interval)
 
     def stop(self):
         # Stop watcher
@@ -231,6 +231,8 @@ if __name__ == '__main__':
                         help='Name of the sensor class')
     parser.add_argument('--trigger-type-refs', required=False,
                         help='Comma delimited string of trigger type references')
+    parser.add_argument('--poll-interval', type=int, default=10, required=False,
+                        help='Sensor poll interval')
     args = parser.parse_args()
 
     trigger_types = args.trigger_type_refs
@@ -239,5 +241,6 @@ if __name__ == '__main__':
     obj = SensorWrapper(pack=args.pack,
                         file_path=args.file_path,
                         class_name=args.class_name,
-                        trigger_types=trigger_types)
+                        trigger_types=trigger_types,
+                        poll_interval=args.poll_interval)
     obj.run()
