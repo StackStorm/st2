@@ -11,6 +11,7 @@ rpm:
 	python setup.py bdist_rpm
 	mkdir -p $(RPM_ROOT)/RPMS/noarch
 	cp dist/$(COMPONENTS)-$(VER)*noarch.rpm $(RPM_ROOT)/RPMS/noarch/$(COMPONENTS)-$(VER)-$(RELEASE).noarch.rpm
+	mkdir -p $(RPM_ROOT)/SRPMS
 	cp dist/*src.rpm $(RPM_ROOT)/SRPMS/$(COMPONENTS)-$(VER)-$(RELEASE).src.rpm
 	rm -Rf dist pbr-0.8.2-py2.7.egg st2client.egg-info ChangeLog AUTHORS build
 
