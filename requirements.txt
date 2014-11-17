@@ -9,7 +9,6 @@ mongoengine
 oslo.config
 paramiko
 pecan==0.7.0
-prettytable
 pymongo
 python-dateutil
 pyyaml
