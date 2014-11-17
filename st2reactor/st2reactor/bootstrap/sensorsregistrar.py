@@ -30,6 +30,10 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
+PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)))
+SYSTEM_SENSORS_PATH = os.path.join(PATH, '../contrib/sensors')
+SYSTEM_SENSORS_PATH = os.path.abspath(SYSTEM_SENSORS_PATH)
+
 
 class SensorsRegistrar(object):
     def __init__(self):
@@ -87,10 +91,12 @@ class SensorsRegistrar(object):
         container_utils.add_sensor_model(pack=pack, sensor=sensor_obj)
 
     def register_sensors_from_packs(self, base_dir):
-        # TODO: Handle system sensor
         pack_loader = ContentPackLoader()
-        dirs = pack_loader.get_content(base_dir=base_dir,
-                                       content_type='sensors')
+        dirs = pack_loader.get_content(base_dir=base_dir, content_type='sensors')
+
+        # Add system sensors to the core pack
+        dirs['core'] = {}
+        dirs['core'] = SYSTEM_SENSORS_PATH
 
         for pack, sensors_dir in six.iteritems(dirs):
             try:
