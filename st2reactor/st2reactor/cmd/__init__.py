@@ -1,3 +1,3 @@
-from st2reactor.cmd import sensormanager
+from st2reactor.cmd import sensormanager, rulesengine
 
-__all__ = ['sensormanager']
+__all__ = ['sensormanager', 'rulesengine']
