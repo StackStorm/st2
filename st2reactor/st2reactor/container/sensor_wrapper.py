@@ -17,7 +17,6 @@ import os
 import atexit
 import imp
 import sys
-import logging
 import argparse
 
 import eventlet
@@ -139,7 +138,7 @@ class SensorWrapper(object):
     def stop(self):
         # Stop watcher
         self._logger.debug('Stopping trigger watcher')
-        self._trigger_watcher.start()
+        self._trigger_watcher.stop()
 
         # Run sensor cleanup code
         self._logger.debug('Invoking cleanup on sensor')

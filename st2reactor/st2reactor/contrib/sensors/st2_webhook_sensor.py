@@ -65,12 +65,22 @@ class St2WebhookSensor(object):
         self._log = self._container_service.get_logger(self.__class__.__name__)
         self._host = HOST
         self._port = PORT
+        self._started = False
 
     def setup(self):
         self._setup_flask_app()
 
     def start(self):
-        St2WebhookSensor._app.run(port=self._port, host=self._host)
+        """
+        Note: This method is only needed for StackStorm v0.5. Newer versions of
+        StackStorm, only require sensor to implement "poll" method and the
+        actual poll schedueling is handled outside of the sensor class.
+        """
+        self.poll()
+
+    def poll(self):
+        if not self._started:
+            St2WebhookSensor._app.run(port=self._port, host=self._host)
 
     def stop(self):
         # If Flask is using the default Werkzeug server, then call shutdown on it.
@@ -78,6 +88,7 @@ class St2WebhookSensor(object):
         if func is None:
             raise RuntimeError('Not running with the Werkzeug Server')
         func()
+        self._started = False
 
     def add_trigger(self, trigger):
         pass
@@ -90,6 +101,10 @@ class St2WebhookSensor(object):
 
     @classmethod
     def get_trigger_types(cls):
+        """
+        Note: This method is only needed for StackStorm v0.5. In newer versions,
+        trigger_types are defined in the sensor metadata file.
+        """
         return []
 
     @validate_json

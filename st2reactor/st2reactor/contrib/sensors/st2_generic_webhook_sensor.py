@@ -61,6 +61,7 @@ class St2GenericWebhooksSensor(object):
         self._port = PORT
         self._app = Flask(__name__)
         self._hooks = {}
+        self._started = False
 
     def setup(self):
         @self._app.route(urljoin(BASE_URL, '<path:url>'), methods=['POST'])
@@ -94,7 +95,16 @@ class St2GenericWebhooksSensor(object):
             return jsonify({}), http_client.ACCEPTED
 
     def start(self):
-        self._app.run(port=self._port, host=self._host)
+        """
+        Note: This method is only needed for StackStorm v0.5. Newer versions of
+        StackStorm, only require sensor to implement "poll" method and the
+        actual poll schedueling is handled outside of the sensor class.
+        """
+        self.poll()
+
+    def poll(self):
+        if not self._started:
+            self._app.run(port=self._port, host=self._host)
 
     def stop(self):
         # If Flask is using the default Werkzeug server, then call shutdown on it.
@@ -102,6 +112,7 @@ class St2GenericWebhooksSensor(object):
         if func is None:
             raise RuntimeError('Not running with the Werkzeug Server')
         func()
+        self._started = False
 
     def add_trigger(self, trigger):
         url = trigger['parameters']['url']
@@ -118,6 +129,10 @@ class St2GenericWebhooksSensor(object):
 
     @classmethod
     def get_trigger_types(cls):
+        """
+        Note: This method is only needed for StackStorm v0.5. In newer versions,
+        trigger_types are defined in the sensor metadata file.
+        """
         sampleurl = 'http://<st2-host>:%s%s.' % (str(PORT), BASE_URL)
         return [{
             'name': 'st2.webhook',

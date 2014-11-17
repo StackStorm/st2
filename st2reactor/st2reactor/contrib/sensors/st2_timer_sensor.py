@@ -172,7 +172,16 @@ class St2TimerSensor(object):
         pass
 
     def start(self):
-        self._scheduler.start()
+        """
+        Note: This method is only needed for StackStorm v0.5. Newer versions of
+        StackStorm, only require sensor to implement "poll" method and the
+        actual poll schedueling is handled outside of the sensor class.
+        """
+        self.poll()
+
+    def poll(self):
+        if not self._scheduler.running:
+            self._scheduler.start()
 
     def stop(self):
         self._scheduler.shutdown(wait=True)
@@ -197,6 +206,10 @@ class St2TimerSensor(object):
 
     @classmethod
     def get_trigger_types(cls):
+        """
+        Note: This method is only needed for StackStorm v0.5. In newer versions,
+        trigger_types are defined in the sensor metadata file.
+        """
         return [trigger_type for trigger_type in six.itervalues(TRIGGER_TYPES)]
 
     def _get_trigger_type(self, ref):
