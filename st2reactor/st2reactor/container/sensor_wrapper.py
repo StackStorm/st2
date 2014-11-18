@@ -159,6 +159,7 @@ class SensorWrapper(object):
             # This trigger doesn't belong to this sensor
             return
 
+        self._logger.debug('Calling sensor "add_trigger" method')
         self._trigger_names[str(trigger.id)] = trigger
 
         trigger = self._sanitize_trigger(trigger=trigger)
@@ -170,6 +171,7 @@ class SensorWrapper(object):
             # This trigger doesn't belong to this sensor
             return
 
+        self._logger.debug('Calling sensor "update_trigger" method')
         self._trigger_names[str(trigger.id)] = trigger
 
         trigger = self._sanitize_trigger(trigger=trigger)
@@ -185,6 +187,7 @@ class SensorWrapper(object):
         if trigger_id not in self._trigger_names:
             return
 
+        self._logger.debug('Calling sensor "remove_trigger" method')
         del self._trigger_names[trigger_id]
 
         trigger = self._sanitize_trigger(trigger=trigger)
