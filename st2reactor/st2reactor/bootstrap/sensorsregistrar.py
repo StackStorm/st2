@@ -63,7 +63,7 @@ class SensorsRegistrar(object):
         entry_point = metadata['entry_point']
         description = metadata.get('description', None)
         trigger_types = metadata.get('trigger_types', [])
-        poll_interval = int(metadata.get('poll_interval', 10))
+        poll_interval = metadata.get('poll_interval', None)
 
         sensors_dir = os.path.dirname(sensor_metadata_file_path)
         sensor_file_path = os.path.join(sensors_dir, entry_point)

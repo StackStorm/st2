@@ -164,9 +164,11 @@ class MultiProcessSensorContainer(object):
             '--pack=%s' % (sensor['pack']),
             '--file-path=%s' % (sensor['file_path']),
             '--class-name=%s' % (sensor['class_name']),
-            '--trigger-type-refs=%s' % (trigger_type_refs),
-            '--poll-interval=%s' % (sensor['poll_interval'])
+            '--trigger-type-refs=%s' % (trigger_type_refs)
         ]
+
+        if sensor['poll_interval']:
+            args.append('--poll-interval=%s' % (sensor['poll_interval']))
 
         env = os.environ.copy()
         env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,

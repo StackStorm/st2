@@ -162,7 +162,7 @@ def _create_sensor_type(pack, name, description, artifact_uri, entry_point,
     sensor_types = SensorType.query(pack=pack, name=name)
     is_update = False
 
-    if poll_interval < MINIMUM_POLL_INTERVAL:
+    if poll_interval and (poll_interval < MINIMUM_POLL_INTERVAL):
         raise ValueError('Minimum possible poll_interval is %s seconds' %
                          (MINIMUM_POLL_INTERVAL))
 
