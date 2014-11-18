@@ -73,7 +73,7 @@ class Dispatcher(object):
 
 class SensorWrapper(object):
     def __init__(self, pack, file_path, class_name, trigger_types,
-                 poll_interval=5):
+                 poll_interval=None):
         """
         :param pack: Name of the pack this sensor belongs to.
         :type pack: ``str``
@@ -89,7 +89,7 @@ class SensorWrapper(object):
         :type trigger_types: ``list`` of ``str``
 
         :param poll_interval: Sensor poll interval (in seconds).
-        :type poll_interval: ``int``
+        :type poll_interval: ``int`` or ``None``
         """
         self._pack = pack
         self._file_path = file_path
@@ -123,18 +123,14 @@ class SensorWrapper(object):
         self._logger.debug('Running sensor initialization code')
         self._sensor_instance.setup()
 
-        self._trigger_watcher.start()
-        self._logger.debug('Watcher started')
+        if self._poll_interval:
+            message = ('Running sensor in active mode (poll interval=%ss)' %
+                       (self._poll_interval))
+        else:
+            message = 'Running sensor in passive mode'
 
-        self._logger.debug('Starting sensor poll loop (interval=%s)',
-                           self._poll_interval)
-
-        while True:
-            try:
-                self._sensor_instance.poll()
-            except Exception as e:
-                self._logger.exception('Sensor raised an exception during poll: %s', (str(e)))
-            eventlet.sleep(self._poll_interval)
+        self._logger.debug(message)
+        self._sensor_instance.run()
 
     def stop(self):
         # Stop watcher
@@ -143,7 +139,7 @@ class SensorWrapper(object):
 
         # Run sensor cleanup code
         self._logger.debug('Invoking cleanup on sensor')
-        self._sensor_instance.stop()
+        self._sensor_instance.cleanup()
 
     ##############################################
     # Event handler methods for the trigger events
@@ -196,21 +192,22 @@ class SensorWrapper(object):
         sensor_module = imp.load_source(module_name, self._file_path)
         sensor_class = getattr(sensor_module, self._class_name, None)
 
-        sensor_class_kwargs = {}
-
         if not sensor_class:
             raise ValueError('Sensor module is missing a class with name "%s"' %
                              (self._class_name))
 
-        # TODO: container_service -> dispatcher inside the sensors
-        args = [Dispatcher(sensor_wrapper=self)]
+        sensor_class_kwargs = {}
+        sensor_class_kwargs['dispatcher'] = Dispatcher(sensor_wrapper=self)
 
         sensor_config = self._get_sensor_config()
 
         if self._pack not in SYSTEM_PACK_NAMES:
             sensor_class_kwargs['config'] = sensor_config
 
-        sensor_instance = sensor_class(*args, **sensor_class_kwargs)
+        if self._poll_interval:
+            sensor_class_kwargs['poll_interval'] = self._poll_interval
+
+        sensor_instance = sensor_class(**sensor_class_kwargs)
 
         return sensor_instance
 
@@ -244,7 +241,7 @@ if __name__ == '__main__':
                         help='Name of the sensor class')
     parser.add_argument('--trigger-type-refs', required=False,
                         help='Comma delimited string of trigger type references')
-    parser.add_argument('--poll-interval', type=int, default=10, required=False,
+    parser.add_argument('--poll-interval', type=int, default=None, required=False,
                         help='Sensor poll interval')
     args = parser.parse_args()
 
