@@ -63,7 +63,8 @@ class PythonActionWrapper(object):
         action_cls = actions_cls[0] if actions_cls and len(actions_cls) > 0 else None
 
         if not action_cls:
-            raise Exception('%s has no action.' % (self.file_path))
+            raise Exception('File "%s" has no action or the file doesn\'t exist.' %
+                            (self._file_path))
 
         config_parser = ContentPackConfigParser(pack_name=self._pack)
         config = config_parser.get_action_config(action_file_path=self._file_path)
