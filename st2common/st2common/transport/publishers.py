@@ -41,8 +41,9 @@ class PoolPublisher(object):
                                                 max_retries=3)
                     publish(payload, exchange=exchange, routing_key=routing_key,
                             serializer='pickle')
-                except:
-                    LOG.exception('Connections to rabbitmq cannot be re-established.')
+                except Exception as e:
+                    LOG.exception('Connections to rabbitmq cannot be re-established: %s',
+                                  e.message, exc_info=False)
 
 
 class CUDPublisher(object):
