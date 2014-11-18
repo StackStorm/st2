@@ -29,7 +29,7 @@ from oslo.config import cfg
 from st2common import config
 
 
-class QueueWatcher(ConsumerMixin):
+class QueueConsumer(ConsumerMixin):
     def __init__(self, connection, queue):
         self.connection = connection
         self.queue = queue
@@ -58,13 +58,13 @@ def main(queue, exchange, routing_key='#'):
     queue = Queue(name=queue, exchange=exchange, routing_key=routing_key)
 
     with Connection(cfg.CONF.messaging.url) as connection:
-        watcher = QueueWatcher(connection=connection, queue=queue)
+        watcher = QueueConsumer(connection=connection, queue=queue)
         watcher.run()
 
 
 if __name__ == '__main__':
     config.parse_args(args={})
-    parser = argparse.ArgumentParser(description='Queue watcher')
+    parser = argparse.ArgumentParser(description='Queue consumer')
     parser.add_argument('--exchange', required=True,
                         help='Exchange to listen on')
     parser.add_argument('--routing-key', default='#', required=True,
