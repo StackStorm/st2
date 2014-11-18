@@ -58,8 +58,9 @@ class TriggerWatcher(ConsumerMixin):
 
         try:
             handler(body)
-        except:
-            LOG.exception('handling failed. Message body : %s', body)
+        except Exception as e:
+            LOG.exception('Handling failed. Message body: %s. Exception: %s',
+                          body, e.message)
         finally:
             message.ack()
 
