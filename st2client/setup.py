@@ -20,9 +20,14 @@ import sys
 from setuptools import setup, find_packages
 
 
+PKG_ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+PKG_REQ_FILE = '%s/requirements.txt' % PKG_ROOT_DIR
+os.chdir(PKG_ROOT_DIR)
+
+
 def get_version_string():
     version = None
-    sys.path.insert(0, os.path.join(os.getcwd()))
+    sys.path.insert(0, PKG_ROOT_DIR)
     from st2client import __version__
     version = __version__
     sys.path.pop(0)
@@ -30,7 +35,7 @@ def get_version_string():
 
 
 def get_requirements():
-    with open('requirements.txt') as f:
+    with open(PKG_REQ_FILE) as f:
         required = f.read().splitlines()
     return required
 
@@ -42,7 +47,7 @@ setup(
     author='StackStorm',
     author_email='info@stackstorm.com',
     url='http://www.stackstorm.com',
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests']),
     install_requires=get_requirements(),
     license='Apache License (2.0)',
     classifiers=[
