@@ -120,11 +120,11 @@ class SensorWrapper(object):
     def run(self):
         atexit.register(self.stop)
 
-        self._logger.debug('Running sensor initialization code')
-        self._sensor_instance.setup()
-
         self._trigger_watcher.start()
         self._logger.debug('Watcher started')
+
+        self._logger.debug('Running sensor initialization code')
+        self._sensor_instance.setup()
 
         if self._poll_interval:
             message = ('Running sensor in active mode (poll interval=%ss)' %
