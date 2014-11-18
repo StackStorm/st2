@@ -6,14 +6,14 @@ ActionChain is a no-frills linear workflow. On completion of a constituent actio
 Authoring an ActionChain
 ------------------------
 
-ActionChain's are described in json and placed inside a pack similar to other script or python actions. An ActionChain must also be associated with a metadata file that allows it to be registered as an Action by |st2|. This metadata contains name and parameter description of an action.
+ActionChain's are described in YAML (JSON supported for backward compatibiltiy) and placed inside a pack similar to other script or python actions. An ActionChain must also be associated with a metadata file that allows it to be registered as an Action by |st2|. This metadata contains name and parameter description of an action.
 
 ActionChain metadata
 ~~~~~~~~~~~~~~~~~~~~
 
 Following is sample metadata for an ActionChain named ``echochain``
 
-.. literalinclude:: /../../contrib/examples/actions/echochain.meta.json
+.. literalinclude:: /../../contrib/examples/actions/echochain.meta.yaml
 
 Note:
 
@@ -44,30 +44,27 @@ For a user to provide input to an ActionChain the input parameters must be defin
 
 ::
 
-   {
-      ...
-      "parameters": {
-         "input1": {
-            "type": "string",
-            "required": true
-         }
-      }
-   }
+   ---
+      # ...
+      parameters:
+      input1:
+         type: "string"
+         required: true
+      # ...
 
 The input parameter `input1` can now be referenced in the parameters field of an action element.
 
 ::
 
-   {
-      ...
-      "chain": [{
-         "name": "action1",
-         "ref": "core.local",
-         "parameters": {
-            "action1_input": "{{input1}}"
-         }
-      }]
-   }
+   ---
+      # ...
+      chain:
+         -
+            name: "action1"
+            ref: "core.local"
+            parameters:
+               action1_input: "{{input1}}"
+      # ...
 
 `action1_input` has value `{{input1}}`. This syntax is variable referencing as supported by Jinja2 templating. Similar constructs are also used in `Rule </rules>`__ criteria and action fields.
 
