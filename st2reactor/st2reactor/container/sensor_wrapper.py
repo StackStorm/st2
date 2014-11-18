@@ -20,7 +20,6 @@ import sys
 import logging
 import argparse
 
-import eventlet
 import logging as slogging
 from oslo.config import cfg
 
@@ -221,7 +220,7 @@ class SensorWrapper(object):
         try:
             sensor_instance = sensor_class(**sensor_class_kwargs)
         except Exception as e:
-            raise Exception('Failed to instantiate "%s" sensor class: %s'  %
+            raise Exception('Failed to instantiate "%s" sensor class: %s' %
                             (self._class_name, str(e)))
 
         return sensor_instance

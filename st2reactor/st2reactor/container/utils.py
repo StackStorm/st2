@@ -218,7 +218,7 @@ def _add_sensor_model(pack, sensor):
 
     obj = _create_sensor_type(pack=pack,
                               name=name,
-                              description=None,
+                              description=description,
                               artifact_uri=artifact_uri,
                               entry_point=entry_point,
                               trigger_types=trigger_types,
