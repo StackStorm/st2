@@ -35,7 +35,6 @@ class SandboxingUtilsTestCase(unittest.TestCase):
                                               inherit_parent_virtualenv=False)
         self.assertEqual(python_path, ':/data/test1:/data/test2')
 
-
         # Inherit from current process and from virtualenv (not running inside virtualenv)
         old_real_prefix = sys.real_prefix
         del sys.real_prefix
