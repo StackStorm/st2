@@ -1,15 +1,11 @@
 import abc
-import time
 
 import six
 import eventlet
 
 __all__ = [
     'Sensor',
-    'PollingSensor',
-
-    'SensorV05Mixin',
-    'PollingSensorV05Mixin'
+    'PollingSensor'
 ]
 
 
@@ -94,51 +90,5 @@ class PollingSensor(BaseSensor):
     def poll(self):
         """
         Poll 3rd party system for new information.
-        """
-        pass
-
-
-class SensorV05Mixin(object):
-    def start(self):
-        self.run()
-
-    def stop(self):
-        self.cleanup()
-
-    @abc.abstractmethod
-    def get_trigger_types(self):
-        """
-        Return a list of available triggers exposed by this sensor.
-
-        Note: This method has been deprecated and is only needed by sensors
-        running under StackStorm v0.5.
-        """
-        pass
-
-
-class PollingSensorV05Mixin(object):
-    """
-    Mixin class which should be added to polling sensor classes which still
-    need to work with StackStorm v0.5.
-
-    This class implements all the methods which are still needed by StackStorm
-    v0.5.
-    """
-
-    def start(self):
-        while True:
-            self.poll()
-            time.sleep(self._poll_interval)
-
-    def stop(self):
-        self.cleanup()
-
-    @abc.abstractmethod
-    def get_trigger_types(self):
-        """
-        Return a list of available triggers exposed by this sensor.
-
-        Note: This method has been deprecated and is only needed by sensors
-        running under StackStorm v0.5.
         """
         pass
