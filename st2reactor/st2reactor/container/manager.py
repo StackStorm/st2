@@ -16,8 +16,11 @@
 import os
 import sys
 
+from oslo.config import cfg
+
 from st2common import log as logging
 from st2common.persistence.reactor import Trigger
+from st2common.transport.reactor import TriggerCUDPublisher
 from st2reactor.container.process_container import ProcessSensorContainer
 
 LOG = logging.getLogger(__name__)
@@ -50,10 +53,11 @@ class SensorContainerManager(object):
             }
             sensors_to_run.append(sensor_obj)
 
+        trigger_cud_publisher = TriggerCUDPublisher(url=cfg.CONF.messaging.url)
         for trigger in Trigger.get_all():
-            # TODO: Dispatch event to be consumed by the wrapper
-            #self._create_handler(trigger=trigger)
-            pass
+            # Dispatch create Trigger CUD events for all the existing Triggers
+            # in the DB. Those events are consumer by the sensor wrapper
+            trigger_cud_publisher.publish_create(payload=trigger)
 
         LOG.info('(PID:%s) SensorContainer started.', os.getpid())
         sensor_container = ProcessSensorContainer(sensors=sensors_to_run)
