@@ -22,6 +22,7 @@ from st2common import config
 from st2actions.runners.pythonrunner import Action
 from st2common.util import loader as action_loader
 from st2common.util.config_parser import ContentPackConfigParser
+from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 
 __all__ = [
     'PythonActionWrapper'
@@ -53,7 +54,9 @@ class PythonActionWrapper(object):
         output = action.run(**self._parameters)
 
         # Print output to stdout so the parent can capture it
+        sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
         sys.stdout.write(str(output) + '\n')
+        sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
 
     def _get_action_instance(self):
         actions_cls = action_loader.register_plugin(Action, self._file_path)

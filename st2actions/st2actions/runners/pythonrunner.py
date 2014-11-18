@@ -15,7 +15,6 @@
 
 import os
 import abc
-import sys
 import json
 import uuid
 import logging as stdlib_logging
@@ -25,8 +24,8 @@ from eventlet.green import subprocess
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
+from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
-from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 
@@ -136,10 +135,19 @@ class PythonRunner(ActionRunner):
         stdout, stderr = process.communicate()
         exit_code = process.returncode
 
+        if ACTION_OUTPUT_RESULT_DELIMITER in stdout:
+            split = stdout.split(ACTION_OUTPUT_RESULT_DELIMITER)
+            assert len(split) == 3
+            result = split[1].strip()
+            stdout = split[0] = split[2]
+        else:
+            result = None
+
         output = {
             'stdout': stdout,
             'stderr': stderr,
-            'exit_code': exit_code
+            'exit_code': exit_code,
+            'result': result
         }
 
         if error:
