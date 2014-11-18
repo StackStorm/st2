@@ -130,7 +130,12 @@ class SensorWrapper(object):
             message = 'Running sensor in passive mode'
 
         self._logger.debug(message)
-        self._sensor_instance.run()
+
+        try:
+            self._sensor_instance.run()
+        except Exception as e:
+            raise Exception('Sensor "%s" run method raised an exception: %s' %
+                            (self._class_name, str(e)))
 
     def stop(self):
         # Stop watcher
@@ -207,7 +212,11 @@ class SensorWrapper(object):
         if self._poll_interval:
             sensor_class_kwargs['poll_interval'] = self._poll_interval
 
-        sensor_instance = sensor_class(**sensor_class_kwargs)
+        try:
+            sensor_instance = sensor_class(**sensor_class_kwargs)
+        except Exception as e:
+            raise Exception('Failed to instantiate "%s" sensor class: %s'  %
+                            (self._class_name, str(e)))
 
         return sensor_instance
 
