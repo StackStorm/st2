@@ -9,7 +9,8 @@ else
 fi
 
 RABBIT_PUBLIC_KEY="rabbitmq-signing-key-public.asc"
-PACKAGES="st2common st2reactor st2actions st2client st2api st2auth"
+PACKAGES="st2common st2reactor st2actions st2api st2auth"
+CLI_PACKAGE="st2client"
 PYTHON=`which python`
 BUILD="current"
 DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
@@ -63,7 +64,7 @@ create_user() {
 install_pip() {
 
   echo "########## Installing packages via pip ##########"
-  curl -sS -k -o /tmp/requirements.txt https://ops.stackstorm.net/releases/st2/${VER}/requirements.txt
+  curl -sS -k -o /tmp/requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/requirements.txt
   pip install -U -r /tmp/requirements.txt
 }
 
@@ -249,7 +250,7 @@ download_pkgs() {
   echo "########## Downloading ${TYPE} packages ##########"
   echo "ST2 Packages: ${PACKAGES}"
   pushd ${STAN}
-  for pkg in ${PACKAGES}
+  for pkg in `echo ${PACKAGES} ${CLI_PACKAGE}`
   do
     if [[ "$TYPE" == "debs" ]]; then
       PACKAGE="${pkg}_${VER}-${RELEASE}_amd64.deb"
@@ -301,6 +302,23 @@ elif [[ "$TYPE" == "rpms" ]]; then
   setup_mistral
 fi
 
+install_st2client() {
+  pushd ${STAN}
+  echo "########## Installing st2client requirements via pip ##########"
+  curl -sS -k -o /tmp/st2client-requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/st2client/requirements.txt
+  pip install -U -r /tmp/st2client-requirements.txt
+  if [[ "$TYPE" == "debs" ]]; then
+    echo "########## Removing st2client ##########"
+    dpkg --purge st2client
+    echo "########## Installing st2client ${VER} ##########"
+    dpkg -i st2client*
+  elif [[ "$TYPE" == "rpms" ]]; then
+    yum localinstall -y st2client-${VER}-${RELEASE}.noarch.rpm
+  fi
+  popd
+}
+
+install_st2client
 register_content
 echo "########## Starting St2 Services ##########"
 st2ctl restart 

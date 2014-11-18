@@ -24,7 +24,7 @@ COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),
 
 PYTHON_TARGET := 2.7
 
-REQUIREMENTS := requirements.txt test-requirements.txt
+REQUIREMENTS := requirements.txt test-requirements.txt st2client/requirements.txt
 
 .PHONY: all
 all: requirements check tests docs
@@ -125,7 +125,10 @@ requirements: virtualenv $(REQUIREMENTS)
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate && pip install -U -q $(foreach req,$(REQUIREMENTS),-r $(req))
+	for req in $(REQUIREMENTS); do \
+		echo "Installing $$req..." ; \
+		. $(VIRTUALENV_DIR)/bin/activate && pip install -U -q -r $$req ; \
+	done
 
 .PHONY: virtualenv
 virtualenv: $(VIRTUALENV_DIR)/bin/activate

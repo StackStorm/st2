@@ -19,13 +19,13 @@ import mock
 from oslo.config import cfg
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.system.common import ResourceReference
-from st2common.models.db.action import (ActionDB, ActionExecutionDB, RunnerTypeDB)
-from st2common.models.api.action import RunnerTypeAPI
-from st2common.persistence.action import (Action, ActionExecution, RunnerType)
+from st2common.models.db.action import (ActionExecutionDB, RunnerTypeDB)
+from st2common.persistence.action import (ActionExecution)
 from st2common.transport.publishers import PoolPublisher
 from st2tests.base import DbTestCase
 import st2tests.config as tests_config
 tests_config.parse_args()
+from st2tests.fixturesloader import FixturesLoader
 
 
 # XXX: There is dependency on config being setup before importing
@@ -33,16 +33,29 @@ tests_config.parse_args()
 # dependencies.
 from st2actions.container.base import RunnerContainer, get_runner_container
 
+TEST_FIXTURES = {
+    'runners': ['testrunner1.json', 'testfailingrunner1.json'],
+    'actions': ['action1.json', 'action-invalid-runner.json']
+}
+
+FIXTURES_PACK = 'generic'
+
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class RunnerContainerTest(DbTestCase):
     action_db = None
+    failingaction_db = None
     runnertype_db = None
+    fixtures_loader = FixturesLoader()
 
     @classmethod
     def setUpClass(cls):
         super(RunnerContainerTest, cls).setUpClass()
-        RunnerContainerTest._setup_test_models()
+        models = RunnerContainerTest.fixtures_loader.save_fixtures_to_db(
+            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
+        RunnerContainerTest.runnertype_db = models['runners']['testrunner1.json']
+        RunnerContainerTest.action_db = models['actions']['action1.json']
+        RunnerContainerTest.failingaction_db = models['actions']['action-invalid-runner.json']
 
     def test_get_runner_module(self):
         runnertype_db = RunnerContainerTest.runnertype_db
@@ -128,85 +141,7 @@ class RunnerContainerTest(DbTestCase):
         return actionexec_db
 
     @classmethod
-    def _setup_test_models(cls):
-        RunnerContainerTest.setup_runner()
-        RunnerContainerTest.setup_action_models()
-
-    @classmethod
-    def setup_runner(cls):
-        test_runner = {
-            'name': 'test-runner',
-            'description': 'A test runner.',
-            'enabled': True,
-            'runner_parameters': {
-                'runnerstr': {
-                    'description': 'Foo str param.',
-                    'type': 'string',
-                    'default': 'defaultfoo'
-                },
-                'runnerint': {
-                    'description': 'Foo int param.',
-                    'type': 'number'
-                },
-                'runnerdummy': {
-                    'description': 'Dummy param.',
-                    'type': 'string',
-                    'default': 'runnerdummy'
-                },
-                'runnerimmutable': {
-                    'description': 'Immutable param.',
-                    'type': 'string',
-                    'default': 'runnerimmutable',
-                    'immutable': True
-                }
-            },
-            'runner_module': 'tests.test_runner'
-        }
-        runnertype_api = RunnerTypeAPI(**test_runner)
-        RunnerContainerTest.runnertype_db = RunnerType.add_or_update(
-            RunnerTypeAPI.to_model(runnertype_api))
-        test_failingrunner = {
-            'name': 'test-failingrunner',
-            'description': 'A failing test runner.',
-            'enabled': True,
-            'runner_parameters': {
-                'raise': {
-                    'description': 'Foo str param.',
-                    'type': 'boolean',
-                    'default': True,
-                    'immutable': True
-                }
-            },
-            'runner_module': 'tests.test_runner'
-        }
-        runnertype_api = RunnerTypeAPI(**test_failingrunner)
-        RunnerContainerTest.runnertype_db = RunnerType.add_or_update(
-            RunnerTypeAPI.to_model(runnertype_api))
-
-    @classmethod
-    def setup_action_models(cls):
-        action_db = ActionDB()
-        action_db.name = 'action-1'
-        action_db.description = 'awesomeness'
-        action_db.enabled = True
-        action_db.pack = 'wolfpack'
-        action_db.entry_point = ''
-        action_db.runner_type = {'name': 'test-runner'}
-        action_db.parameters = {
-            'actionstr': {'type': 'string', 'required': True},
-            'actionint': {'type': 'number', 'default': 10},
-            'runnerdummy': {'type': 'string', 'default': 'actiondummy'},
-            'runnerimmutable': {'type': 'string', 'default': 'failed_override'},
-            'actionimmutable': {'type': 'string', 'default': 'actionimmutable', 'immutable': True}
-        }
-        RunnerContainerTest.action_db = Action.add_or_update(action_db)
-
-        action_db = ActionDB()
-        action_db.name = 'action-2'
-        action_db.description = 'awesomeness'
-        action_db.enabled = True
-        action_db.pack = 'wolfpack'
-        action_db.entry_point = ''
-        action_db.runner_type = {'name': 'test-failingrunner'}
-        action_db.parameters = {}
-        RunnerContainerTest.failingaction_db = Action.add_or_update(action_db)
+    def tearDownClass(cls):
+        RunnerContainerTest.fixtures_loader.delete_fixtures_from_db(
+            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
+        super(RunnerContainerTest, cls).tearDownClass()
