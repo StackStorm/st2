@@ -22,7 +22,7 @@ from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 
 __all__ = [
-    'MultiProcessSensorContainer'
+    'ProcessSensorContainer'
 ]
 
 LOG = logging.getLogger('st2reactor.multi_process_sensor_container')
@@ -39,7 +39,7 @@ WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 # method to the sensor class
 
 
-class MultiProcessSensorContainer(object):
+class ProcessSensorContainer(object):
     """
     Sensor container which runs sensors in a separate process.
     """

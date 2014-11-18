@@ -18,7 +18,7 @@ import sys
 
 from st2common import log as logging
 from st2common.persistence.reactor import Trigger
-from st2reactor.container.process_container import MultiProcessSensorContainer
+from st2reactor.container.process_container import ProcessSensorContainer
 
 LOG = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ class SensorContainerManager(object):
             pass
 
         LOG.info('(PID:%s) SensorContainer started.', os.getpid())
-        sensor_container = MultiProcessSensorContainer(sensors=sensors_to_run)
+        sensor_container = ProcessSensorContainer(sensors=sensors_to_run)
         try:
             exit_code = sensor_container.run()
             LOG.info('(PID:%s) SensorContainer stopped. Reason - run ended.', os.getpid())
