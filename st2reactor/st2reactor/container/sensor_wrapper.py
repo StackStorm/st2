@@ -155,7 +155,7 @@ class SensorWrapper(object):
 
     def _handle_create_trigger(self, trigger):
         trigger_type_ref = trigger.type
-        if trigger_type_ref not in self._trigger_type_refs:
+        if trigger_type_ref not in self._trigger_types:
             # This trigger doesn't belong to this sensor
             return
 
@@ -166,7 +166,7 @@ class SensorWrapper(object):
 
     def _handle_update_trigger(self, trigger):
         trigger_type_ref = trigger.type
-        if trigger_type_ref not in self._trigger_type_refs:
+        if trigger_type_ref not in self._trigger_types:
             # This trigger doesn't belong to this sensor
             return
 
@@ -177,7 +177,7 @@ class SensorWrapper(object):
 
     def _handle_delete_trigger(self, trigger):
         trigger_type_ref = trigger.type
-        if trigger_type_ref not in self._trigger_type_refs:
+        if trigger_type_ref not in self._trigger_types:
             # This trigger doesn't belong to this sensor
             return
 
