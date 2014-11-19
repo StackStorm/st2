@@ -55,7 +55,8 @@ class QueueConsumer(ConsumerMixin):
 
 def main(queue, exchange, routing_key='#'):
     exchange = Exchange(exchange, type='topic')
-    queue = Queue(name=queue, exchange=exchange, routing_key=routing_key)
+    queue = Queue(name=queue, exchange=exchange, routing_key=routing_key,
+                  auto_delete=True)
 
     with Connection(cfg.CONF.messaging.url) as connection:
         watcher = QueueConsumer(connection=connection, queue=queue)
