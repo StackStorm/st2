@@ -68,7 +68,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Queue consumer')
     parser.add_argument('--exchange', required=True,
                         help='Exchange to listen on')
-    parser.add_argument('--routing-key', default='#', required=True,
+    parser.add_argument('--routing-key', default='#',
                         help='Routing key')
     args = parser.parse_args()
 
