@@ -46,17 +46,18 @@ To deploy a rule, use CLI:
 
 .. code-block:: bash
 
+    st2 rule create /opt/stackstorm/packs/examples/rules/sample_rule_with_webhook.yaml
     st2 rule create /opt/stackstorm/examples/rules/sample_rule_with_webhook.yaml
     st2 rule list
     st2 rule get examples.webhook_file
 
-By default, |st2| doesn't load the rules deployed under ``/opt/stackstorm/``. However you can force
+By default, |st2| doesn't load the rules deployed under ``/opt/stackstorm/packs/${pack_name}/rules/``. However you can force
 load them with ``st2 run packs.load register=rules``
 
 Rule location
 -------------
 
-Custom rules can be placed in ``/opt/stackstorm/default/rules`` and registered using ``st2 rule create ${PATH_TO_RULE}``. Placing the rule files in alternate locations is acceptable. Note that the ``st2 rule create`` command will read rule from the filesystem local to itself.
+Custom rules can be placed in ``/opt/stackstorm/packs/default/rules`` and registered using ``st2 rule create ${PATH_TO_RULE}``. Placing the rule files in alternate locations is acceptable. Note that the ``st2 rule create`` command will read rule from the filesystem local to itself.
 
 .. rubric:: What's Next?
 

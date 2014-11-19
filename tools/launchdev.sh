@@ -40,7 +40,7 @@ function st2start(){
     PACKS_BASE_DIR=$(grep 'packs_base_path' ${ST2_CONF} \
         | awk 'BEGIN {FS=" = "}; {print $2}')
     if [ -z $PACKS_BASE_DIR ]; then
-        PACKS_BASE_DIR="/opt/stackstorm"
+        PACKS_BASE_DIR="/opt/stackstorm/packs"
     fi
     echo "Using content packs base dir: $PACKS_BASE_DIR"
 

@@ -8,17 +8,17 @@ Custom Mistral Actions
 
 Basic Workflow
 ++++++++++++++
-Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under /usr/share/doc/st2/examples if |st2| is already installed. The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. A st2.action takes two input arguments: ref (or name) of the |st2| action and a list of input parameters for the |st2| action. In this case, the run-cmd task is calling **core.local** and passing the cmd as input. On success, the task **callback-on-success** returns the stdout of the shell to |st2|. On error, the task **callback-on-error** notifies |st2| an error has occurred. Let's save this as mistral-basic.yaml at /opt/stackstorm/examples/actions where |st2| is installed.
+Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under /usr/share/doc/st2/examples if |st2| is already installed. The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. A st2.action takes two input arguments: ref (or name) of the |st2| action and a list of input parameters for the |st2| action. In this case, the run-cmd task is calling **core.local** and passing the cmd as input. On success, the task **callback-on-success** returns the stdout of the shell to |st2|. On error, the task **callback-on-error** notifies |st2| an error has occurred. Let's save this as mistral-basic.yaml at /opt/stackstorm/packs/examples/actions/ where |st2| is installed.
 
 .. literalinclude:: /../../contrib/examples/actions/mistral-basic.yaml
 
-The following is the corresponding |st2| action metadata for example above. The |st2| pack for this workflow action is named "examples". Please note that the workbook is named fully qualified as "<pack>.<action>" in the workbook definition above. The |st2| action runner is "mistral-v2". The entry point for the |st2| action refers to the YAML file of the workbook definition. Under the parameters section, we added an immutable parameter that specifies which workflow in the workbook to execute and a second parameter that takes the command to execute. Let's save this metadata as mistral-basic.json at /opt/stackstorm/examples/actions.
+The following is the corresponding |st2| action metadata for example above. The |st2| pack for this workflow action is named "examples". Please note that the workbook is named fully qualified as "<pack>.<action>" in the workbook definition above. The |st2| action runner is "mistral-v2". The entry point for the |st2| action refers to the YAML file of the workbook definition. Under the parameters section, we added an immutable parameter that specifies which workflow in the workbook to execute and a second parameter that takes the command to execute. Let's save this metadata as mistral-basic.json at /opt/stackstorm/packs/examples/actions/.
 
 .. literalinclude:: /../../contrib/examples/actions/mistral-basic.json
 
 Next, run the following |st2| command to create this workflow action. This will register the workflow as examples.mistral-basic in |st2|. ::
 
-    st2 action create /opt/stackstorm/examples/actions/mistral-basic.json
+    st2 action create /opt/stackstorm/packs/examples/actions/mistral-basic.json
 
 To execute the workflow, run the following command where -a tells the command to return and not wait for the workflow to complete. ::
 

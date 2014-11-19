@@ -20,7 +20,7 @@ Instructions
     st2 run packs.install packs=sensu
 
 2. A sample sensu rule is shown below.
-Copy the sample rule to /opt/stackstorm/sensu/rules/sensu_action_runners_rule.json.
+Copy the sample rule to /opt/stackstorm/packs/sensu/rules/sensu_action_runners_rule.json.
 
 .. literalinclude:: /../../contrib/examples/rules/sensu_action_runners_rule.json
     :language: json
@@ -29,7 +29,7 @@ Copy the sample rule to /opt/stackstorm/sensu/rules/sensu_action_runners_rule.js
 
 ::
 
-    st2 rule create /opt/stackstorm/sensu/rules/sensu_action_runners_rule.json
+    st2 rule create /opt/stackstorm/packs/sensu/rules/sensu_action_runners_rule.json
 
 4. Check if rule is listed.
 
@@ -104,7 +104,7 @@ You should see sensu.action-runners-rule listed.
 
 ::
 
-    sudo cp /opt/stackstorm/sensu/etc/st2_handler.py /etc/sensu/handlers/st2_handler.py
+    sudo cp /opt/stackstorm/packs/sensu/etc/st2_handler.py /etc/sensu/handlers/st2_handler.py
     sudo chmod +x /etc/sensu/handlers/st2_handler.py
 
 9. Now restart sensu server and client.
