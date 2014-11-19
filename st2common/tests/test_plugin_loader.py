@@ -91,3 +91,23 @@ class LoaderTest(unittest2.TestCase):
         except ImportError:
             pass
         self.assertEqual(old_sys_path, sys.path, 'Should be equal.')
+
+    def test_register_plugin_class_class_doesnt_exist(self):
+        file_path = os.path.join(SRC_ROOT, 'plugin/sampleplugin3.py')
+
+        expected_msg = 'doesn\'t expose class named "SamplePluginNotExists"'
+        self.assertRaisesRegexp(Exception, expected_msg,
+                                plugin_loader.register_plugin_class,
+                                base_class=LoaderTest.DummyPlugin,
+                                file_path=file_path,
+                                class_name='SamplePluginNotExists')
+
+    def test_register_plugin_class_abstract_method_not_implemented(self):
+        file_path = os.path.join(SRC_ROOT, 'plugin/sampleplugin3.py')
+
+        expected_msg = 'doesn\'t implement required "do_work" method from the base class'
+        self.assertRaisesRegexp(plugin_loader.IncompatiblePluginException, expected_msg,
+                                plugin_loader.register_plugin_class,
+                                base_class=LoaderTest.DummyPlugin,
+                                file_path=file_path,
+                                class_name='SamplePlugin')
