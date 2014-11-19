@@ -5,7 +5,7 @@ from oslo.config import cfg
 from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-from st2reactor import config
+from st2reactor.rules import config
 from st2reactor.rules import worker
 
 LOG = logging.getLogger('st2reactor.bin.rulesengine')

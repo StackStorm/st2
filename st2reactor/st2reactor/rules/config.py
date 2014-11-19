@@ -25,31 +25,6 @@ def _register_common_opts():
     common_config.register_opts()
 
 
-def _register_reactor_opts():
-    logging_opts = [
-        cfg.StrOpt('logging', default='etc/logging.conf',
-                   help='location of the logging.conf file')
-    ]
-    CONF.register_opts(logging_opts, group='reactor')
-
-    sensor_test_opt = cfg.StrOpt('sensor-name', help='Only run sensor with the provided name.')
-    CONF.register_cli_opt(sensor_test_opt)
-
-    st2_webhook_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='Host for the st2 webhook endpoint.'),
-        cfg.IntOpt('port', default='6000', help='Port for the st2 webhook endpoint.'),
-        cfg.StrOpt('url', default='/webhooks/st2/', help='URL of the st2 webhook endpoint.')
-    ]
-    CONF.register_opts(st2_webhook_opts, group='st2_webhook_sensor')
-
-    generic_webhook_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='Host for the generic webhook endpoint.'),
-        cfg.IntOpt('port', default='6001', help='Port for the generic webhook endpoint.'),
-        cfg.StrOpt('url', default='/webhooks/generic/', help='URL of the st2 webhook endpoint.')
-    ]
-    CONF.register_opts(generic_webhook_opts, group='generic_webhook_sensor')
-
-
 def _register_rules_engine_opts():
     logging_opts = [
         cfg.StrOpt('logging', default='conf/logging.rulesengine.conf',
@@ -60,7 +35,6 @@ def _register_rules_engine_opts():
 
 def register_opts():
     _register_common_opts()
-    _register_reactor_opts()
     _register_rules_engine_opts()
 
 

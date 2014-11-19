@@ -5,7 +5,7 @@
 #
 import os
 import sys
-from st2reactor import cmd
+from st2reactor.cmd import sensormanager
 
 DEVEL = True
 
@@ -18,4 +18,4 @@ if DEVEL:
     sys.path.append(python_lib_dir)
 
 if __name__ == '__main__':
-    cmd.sensormanager.main()
+    sensormanager.main()

@@ -3,7 +3,7 @@
 #
 #   st2 rules_engine
 #
-from st2reactor import cmd
+from st2reactor.cmd import rulesengine
 
 if __name__ == '__main__':
-    cmd.rulesengine.main()
+    rulesengine.main()

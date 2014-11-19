@@ -1,12 +1,10 @@
 import os
-import sys
-
 from oslo.config import cfg
 
 from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-from st2reactor import config
+from st2reactor.sensor import config
 from st2common.persistence.reactor import SensorType
 from st2reactor.container.manager import SensorContainerManager
 
@@ -18,7 +16,7 @@ def _setup():
     config.parse_args()
 
     # 2. setup logging.
-    logging.setup(cfg.CONF.reactor.logging)
+    logging.setup(cfg.CONF.sensorcontainer.logging)
 
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
@@ -47,7 +45,7 @@ def main():
         if cfg.CONF.sensor_name:
             # Only run a single sensor
             sensors = [sensor for sensor in sensors if
-                      sensor.name == cfg.CONF.sensor_name]
+                       sensor.name == cfg.CONF.sensor_name]
         return container_manager.run_sensors(sensors=sensors)
     except:
         LOG.exception('(PID:%s) SensorContainer quit due to exception.', os.getpid())
