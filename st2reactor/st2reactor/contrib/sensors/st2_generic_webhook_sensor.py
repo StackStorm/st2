@@ -56,9 +56,9 @@ def validate_json(f):
 
 
 class St2GenericWebhooksSensor(Sensor):
-    def __init__(self, container_service):
-        self._container_service = container_service
-        self._log = self._container_service.get_logger(self.__class__.__name__)
+    def __init__(self, dispatcher):
+        self._dispatcher = dispatcher
+        self._log = self._dispatcher.get_logger(self.__class__.__name__)
         self._host = HOST
         self._port = PORT
         self._app = Flask(__name__)
@@ -82,7 +82,7 @@ class St2GenericWebhooksSensor(Sensor):
 
             try:
                 self._log.debug('Dispatching payload: %s', payload)
-                self._container_service.dispatch(trigger, payload)
+                self._dispatcher.dispatch(trigger, payload)
             except Exception as e:
                 self._log.exception('Exception %s handling webhook', e)
                 return jsonify({'error': str(e)}), http_client.INTERNAL_SERVER_ERROR

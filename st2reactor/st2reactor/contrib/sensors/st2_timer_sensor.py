@@ -163,10 +163,10 @@ class St2TimerSensor(Sensor):
     '''
     A timer sensor that uses APScheduler 3.0.
     '''
-    def __init__(self, container_service):
+    def __init__(self, dispatcher):
         self._timezone = 'America/Los_Angeles'  # Whatever TZ local box runs in.
-        self._container_service = container_service
-        self._log = self._container_service.get_logger(self.__class__.__name__)
+        self._dispatcher = dispatcher
+        self._log = self._dispatcher.get_logger(self.__class__.__name__)
         self._scheduler = BlockingScheduler(timezone=self._timezone)
         self._jobs = {}
 
@@ -255,4 +255,4 @@ class St2TimerSensor(Sensor):
             'executed_at': str(datetime.utcnow()),
             'schedule': trigger['parameters'].get('time')
         }
-        self._container_service.dispatch(trigger, payload)
+        self._dispatcher.dispatch(trigger, payload)

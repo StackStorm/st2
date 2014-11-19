@@ -62,9 +62,9 @@ class St2WebhookSensor(Sensor):
         js = jsonify(data)
         return js, http_client.BAD_REQUEST
 
-    def __init__(self, container_service):
-        self._container_service = container_service
-        self._log = self._container_service.get_logger(self.__class__.__name__)
+    def __init__(self, dispatcher):
+        self._dispatcher = dispatcher
+        self._log = self._dispatcher.get_logger(self.__class__.__name__)
         self._host = HOST
         self._port = PORT
 
@@ -102,7 +102,7 @@ class St2WebhookSensor(Sensor):
             return jsonify({'invalid': str(e)}), http_client.BAD_REQUEST
 
         try:
-            self._container_service.dispatch(trigger, payload)
+            self._dispatcher.dispatch(trigger, payload)
         except Exception as e:
             self._log.exception('Exception %s handling webhook', e)
             status = http_client.INTERNAL_SERVER_ERROR
