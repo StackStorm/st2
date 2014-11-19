@@ -54,7 +54,27 @@ def _get_plugin_classes(module_name):
 
 
 def _get_plugin_methods(plugin_klass):
-    return [name for name, method in inspect.getmembers(plugin_klass, inspect.ismethod)]
+    """
+    Return a list of names of all the methods in the provided class.
+
+    Note: Abstract methods which are not implemented are excluded from the
+    list.
+
+    :rtype: ``list`` of ``str``
+    """
+    methods = inspect.getmembers(plugin_klass, inspect.ismethod)
+
+    # Exclude inherited abstract methods from the parent class
+    method_names = []
+    for name, method in methods:
+        method_properties = method.__dict__
+        is_abstract = method_properties.get('__isabstractmethod__', False)
+
+        if is_abstract:
+            continue
+
+        method_names.append(name)
+    return method_names
 
 
 def _validate_methods(plugin_base_class, plugin_klass):
