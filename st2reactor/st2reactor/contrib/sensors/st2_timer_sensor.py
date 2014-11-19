@@ -13,18 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import apscheduler.util as aps_utils
-import dateutil.parser as date_parser
-import jsonschema
-import six
+from datetime import datetime
+
 from apscheduler.schedulers.background import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-from datetime import datetime
+import apscheduler.util as aps_utils
 from dateutil.tz import tzutc
+import dateutil.parser as date_parser
+import jsonschema
+
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.models.system.common import ResourceReference
+from st2reactor.sensor.base import Sensor
 
 
 INTERVAL_PARAMETERS_SCHEMA = {
@@ -157,7 +159,7 @@ TRIGGER_TYPES = {
 }
 
 
-class St2TimerSensor(object):
+class St2TimerSensor(Sensor):
     '''
     A timer sensor that uses APScheduler 3.0.
     '''
@@ -171,19 +173,10 @@ class St2TimerSensor(object):
     def setup(self):
         pass
 
-    def start(self):
-        """
-        Note: This method is only needed for StackStorm v0.5. Newer versions of
-        StackStorm, only require sensor to implement "poll" method and the
-        actual poll schedueling is handled outside of the sensor class.
-        """
-        self.poll()
+    def run(self):
+        self._scheduler.start()
 
-    def poll(self):
-        if not self._scheduler.running:
-            self._scheduler.start()
-
-    def stop(self):
+    def cleanup(self):
         self._scheduler.shutdown(wait=True)
 
     def add_trigger(self, trigger):
@@ -203,14 +196,6 @@ class St2TimerSensor(object):
             return
 
         self._scheduler.remove_job(job_id)
-
-    @classmethod
-    def get_trigger_types(cls):
-        """
-        Note: This method is only needed for StackStorm v0.5. In newer versions,
-        trigger_types are defined in the sensor metadata file.
-        """
-        return [trigger_type for trigger_type in six.itervalues(TRIGGER_TYPES)]
 
     def _get_trigger_type(self, ref):
         pass
