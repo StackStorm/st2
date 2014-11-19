@@ -14,11 +14,13 @@
 # limitations under the License.
 
 from functools import wraps
-import six
-from urlparse import urljoin
-from oslo.config import cfg
 
 from flask import (jsonify, request, Flask)
+from oslo.config import cfg
+import six
+from urlparse import urljoin
+
+from st2reactor.sensor.base import Sensor
 
 http_client = six.moves.http_client
 
@@ -53,7 +55,7 @@ def validate_json(f):
     return wrapper
 
 
-class St2GenericWebhooksSensor(object):
+class St2GenericWebhooksSensor(Sensor):
     def __init__(self, container_service):
         self._container_service = container_service
         self._log = self._container_service.get_logger(self.__class__.__name__)
@@ -93,10 +95,10 @@ class St2GenericWebhooksSensor(object):
             # reference for the actionexecution that have been created during that call.
             return jsonify({}), http_client.ACCEPTED
 
-    def start(self):
+    def run(self):
         self._app.run(port=self._port, host=self._host)
 
-    def stop(self):
+    def cleanup(self):
         # If Flask is using the default Werkzeug server, then call shutdown on it.
         func = request.environ.get('werkzeug.server.shutdown')
         if func is None:
@@ -115,17 +117,6 @@ class St2GenericWebhooksSensor(object):
         url = trigger['parameters']['url']
         self._log.info('Stop listening to endpoint: %s', urljoin(BASE_URL, url))
         del self._hooks[url]
-
-    @classmethod
-    def get_trigger_types(cls):
-        sampleurl = 'http://<st2-host>:%s%s.' % (str(PORT), BASE_URL)
-        return [{
-            'name': 'st2.webhook',
-            'description': 'Relays a Trigger POSTed to the supplied URL. The supplied url is used '
-                           'as a suffix of %s.' % sampleurl,
-            'payload_schema': PAYLOAD_SCHEMA,
-            'parameters_schema': PARAMETERS_SCHEMA
-        }]
 
     def _get_headers_as_dict(self, headers):
         headers_dict = {}

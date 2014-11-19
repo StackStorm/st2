@@ -16,7 +16,6 @@
 import os
 import atexit
 import sys
-import logging
 import argparse
 
 import logging as slogging

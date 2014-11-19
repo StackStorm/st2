@@ -20,8 +20,10 @@ import six
 from flask import (jsonify, request, Flask)
 import flask_jsonschema
 from oslo.config import cfg
+
 from st2common import log as logging
 from st2common.models.system.common import ResourceReference, InvalidResourceReferenceError
+from st2reactor.sensor.base import Sensor
 
 http_client = six.moves.http_client
 
@@ -44,7 +46,7 @@ def validate_json(f):
     return wrapper
 
 
-class St2WebhookSensor(object):
+class St2WebhookSensor(Sensor):
     '''
     A webhook sensor using a micro-framework Flask.
     '''
@@ -69,10 +71,10 @@ class St2WebhookSensor(object):
     def setup(self):
         self._setup_flask_app()
 
-    def start(self):
+    def run(self):
         St2WebhookSensor._app.run(port=self._port, host=self._host)
 
-    def stop(self):
+    def cleanup(self):
         # If Flask is using the default Werkzeug server, then call shutdown on it.
         func = request.environ.get('werkzeug.server.shutdown')
         if func is None:
@@ -87,10 +89,6 @@ class St2WebhookSensor(object):
 
     def remove_trigger(self, trigger):
         pass
-
-    @classmethod
-    def get_trigger_types(cls):
-        return []
 
     @validate_json
     @flask_jsonschema.validate('st2webhooks', 'create')
