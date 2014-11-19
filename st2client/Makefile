@@ -13,14 +13,11 @@ rpm:
 	cp dist/$(COMPONENTS)-$(VER)*noarch.rpm $(RPM_ROOT)/RPMS/noarch/$(COMPONENTS)-$(VER)-$(RELEASE).noarch.rpm
 	mkdir -p $(RPM_ROOT)/SRPMS
 	cp dist/*src.rpm $(RPM_ROOT)/SRPMS/$(COMPONENTS)-$(VER)-$(RELEASE).src.rpm
-	rm -Rf dist pbr-0.8.2-py2.7.egg st2client.egg-info ChangeLog AUTHORS build
+	rm -Rf dist pbr-0.8.2-py2.7.egg $(COMPONENTS).egg-info ChangeLog AUTHORS build
 
 .PHONY: deb
 deb:
+	python setup.py --command-packages=stdeb.command bdist_deb
 	mkdir -p ~/debbuild
-	rm -Rf ~/.local
-	python setup.py install --user
-	cp -R ~/.local/bin ./
-	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf ~/$(COMPONENTS).tar.gz bin $(COMPONENTS) packaging/debian
-	pushd ~ && tar -xzf $(COMPONENTS).tar.gz && cd $(COMPONENTS)-$(VER) && cp -Rf packaging/debian ./ && sed -i 's/VERSION-BUILD/$(VER)-$(RELEASE)/g' ./debian/changelog && sed -i 's/VERSION-BUILD/$(VER)-$(RELEASE)/g' ./packaging/debian/changelog && dpkg-buildpackage -us -uc -b && popd
-	cp -f ~/$(COMPONENT)*.deb ~/debbuild
+	cp deb_dist/python-$(COMPONENTS)_$(VER)-$(RELEASE)_all.deb ~/debbuild/$(COMPONENTS)_$(VER)-$(RELEASE)_all.deb
+	rm -Rf dist deb_dist $(COMPONENTS)-$(VER).tar.gz $(COMPONENTS).egg-info ChangeLog AUTHORS build
