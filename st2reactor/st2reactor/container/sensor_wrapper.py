@@ -107,7 +107,10 @@ class SensorWrapper(object):
         self._trigger_names = {}
 
         # TODO: Inherit args from the parent
-        config.parse_args(args=[])
+        try:
+            config.parse_args(args=[])
+        except Exception:
+            pass
 
         # TODO: Use routing key specific to this sensor we can only listen to
         # the events we are interested in

@@ -47,7 +47,10 @@ class PythonActionWrapper(object):
         self._file_path = file_path
         self._parameters = parameters or {}
 
-        config.parse_args(args=[])
+        try:
+            config.parse_args(args=[])
+        except Exception:
+            pass
 
     def run(self):
         action = self._get_action_instance()
