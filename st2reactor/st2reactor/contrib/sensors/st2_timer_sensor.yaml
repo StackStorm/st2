@@ -2,7 +2,6 @@
   class_name: "St2TimerSensor"
   entry_point: "st2_timer_sensor.py"
   description: "Sensor which emits triggers based on the user-defined schedule or interval"
-  poll_interval: 5
   trigger_types:
     -
       name: "st2.IntervalTimer"
