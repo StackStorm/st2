@@ -5,6 +5,7 @@
 [![Build Status](https://travis-ci.org/StackStorm/st2.svg)](https://travis-ci.org/StackStorm/st2)
 
 ## Documentation
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/StackStorm/st2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Please refer to [StackStorm Docs](http://docs.stackstorm.com).
 
