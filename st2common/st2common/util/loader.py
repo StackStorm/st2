@@ -21,6 +21,11 @@ import sys
 from st2common.exceptions.plugins import IncompatiblePluginException
 from st2common import log as logging
 
+__all__ = [
+    'register_plugin',
+    'register_plugin_class'
+]
+
 
 LOG = logging.getLogger(__name__)
 PYTHON_EXTENSIONS = ('.py')
