@@ -15,7 +15,6 @@
 
 import os
 import atexit
-import imp
 import sys
 import logging
 import argparse
@@ -26,8 +25,10 @@ from oslo.config import cfg
 from st2common import config
 from st2common import log as logging
 from st2common.transport.reactor import TriggerPublisher
+from st2common.util import loader
 from st2common.util.config_parser import ContentPackConfigParser
 from st2reactor.container.triggerwatcher import TriggerWatcher
+from st2reactor.sensor.base import Sensor
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 
 __all__ = [
@@ -199,8 +200,9 @@ class SensorWrapper(object):
         _, filename = os.path.split(self._file_path)
         module_name, _ = os.path.splitext(filename)
 
-        sensor_module = imp.load_source(module_name, self._file_path)
-        sensor_class = getattr(sensor_module, self._class_name, None)
+        sensor_class = loader.register_plugin_class(base_class=Sensor,
+                                                    file_path=self._file_path,
+                                                    class_name=self._class_name)
 
         if not sensor_class:
             raise ValueError('Sensor module is missing a class with name "%s"' %
