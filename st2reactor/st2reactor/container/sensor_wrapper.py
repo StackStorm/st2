@@ -109,8 +109,8 @@ class SensorWrapper(object):
         # TODO: Inherit args from the parent
         config.parse_args(args=[])
 
-        # TODO: Use per sensor queue so we don't only get events for this
-        # particular sensor
+        # TODO: Use routing key specific to this sensor we can only listen to
+        # the events we are interested in
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger)
