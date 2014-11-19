@@ -32,18 +32,6 @@ def _teardown():
     db_teardown()
 
 
-def _is_single_sensor_mode():
-    sensor_to_test = cfg.CONF.sensor_path
-
-    if sensor_to_test is not None:
-        LOG.info('Running in sensor testing mode.')
-        if not os.path.exists(sensor_to_test):
-            LOG.error('Unable to find sensor file %s', sensor_to_test)
-            sys.exit(-1)
-        else:
-            return True
-
-
 def _get_all_sensors():
     sensors = SensorType.get_all()
     LOG.info('Found %d sensors.', len(sensors))
@@ -55,6 +43,11 @@ def main():
         _setup()
         container_manager = SensorContainerManager()
         sensors = _get_all_sensors()
+
+        if cfg.CONF.sensor_name:
+            # Only run a single sensor
+            sensors = [sensor for sensor in sensors if
+                      sensor.name == cfg.CONF.sensor_name]
         return container_manager.run_sensors(sensors=sensors)
     except:
         LOG.exception('(PID:%s) SensorContainer quit due to exception.', os.getpid())

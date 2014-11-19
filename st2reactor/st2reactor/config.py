@@ -32,7 +32,7 @@ def _register_reactor_opts():
     ]
     CONF.register_opts(logging_opts, group='reactor')
 
-    sensor_test_opt = cfg.StrOpt('sensor-path', help='Path to the sensor to test.')
+    sensor_test_opt = cfg.StrOpt('sensor-name', help='Only run sensor with the provided name.')
     CONF.register_cli_opt(sensor_test_opt)
 
     st2_webhook_opts = [
