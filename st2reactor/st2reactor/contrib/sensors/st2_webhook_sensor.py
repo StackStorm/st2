@@ -67,7 +67,6 @@ class St2WebhookSensor(Sensor):
         self._log = self._container_service.get_logger(self.__class__.__name__)
         self._host = HOST
         self._port = PORT
-        self._started = False
 
     def setup(self):
         self._setup_flask_app()
@@ -81,7 +80,6 @@ class St2WebhookSensor(Sensor):
         if func is None:
             raise RuntimeError('Not running with the Werkzeug Server')
         func()
-        self._started = False
 
     def add_trigger(self, trigger):
         pass

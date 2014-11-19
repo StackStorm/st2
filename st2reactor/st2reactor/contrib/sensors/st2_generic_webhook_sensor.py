@@ -63,7 +63,6 @@ class St2GenericWebhooksSensor(Sensor):
         self._port = PORT
         self._app = Flask(__name__)
         self._hooks = {}
-        self._started = False
 
     def setup(self):
         @self._app.route(urljoin(BASE_URL, '<path:url>'), methods=['POST'])
@@ -105,7 +104,6 @@ class St2GenericWebhooksSensor(Sensor):
         if func is None:
             raise RuntimeError('Not running with the Werkzeug Server')
         func()
-        self._started = False
 
     def add_trigger(self, trigger):
         url = trigger['parameters']['url']
