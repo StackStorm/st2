@@ -107,7 +107,7 @@ class SensorWrapper(object):
         self._trigger_names = {}
 
         # TODO: Inherit args from the parent
-        config.parse_args(args={})
+        config.parse_args(args=[])
 
         # TODO: Use per sensor queue so we don't only get events for this
         # particular sensor
