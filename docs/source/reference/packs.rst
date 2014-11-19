@@ -28,12 +28,12 @@ At the topmost level are the main folders ``actions``, ``rules`` and ``sensors``
    # contents of actions/
    actions/
       lib/
-      action1.json
+      action1.yaml
       action1.py
-      action2.json
+      action2.yaml
       action1.sh
-      workflow1.json
       workflow1.yaml
+      workflow2.yaml
 
 The ``actions`` folder contains action script files and action metadata files. See :doc:`Actions </actions>` and :doc:`Workflows </workflows>` for specifics on writing actions. Note that the ``lib`` sub-folder is always available for access for an action script.
 
@@ -41,8 +41,8 @@ The ``actions`` folder contains action script files and action metadata files. S
 
    # contents of rules/
    rules/
-      rule1.json
-      rule2.json
+      rule1.yaml
+      rule2.yaml
 
 The ``rules`` folder contains rules. See :doc:`Rules </rules>` for specifics on writing rules.
 
@@ -88,24 +88,21 @@ Lets leave these empty for now and fill them in as per requirement.
 
 .. code-block:: bash
 
-   touch actions/hello.json
+   touch actions/hello.yaml
    touch actions/hello.sh
 
    # Content of hello.sh
    #!/usr/bin/env bash
    echo "Hello st2!"
 
-   # Content of hello.json
-   {
-       "name": "hello",
-       "runner_type": "run-local",
-       "description": "Hello st2 action.",
-       "enabled": true,
-       "entry_point": "hello.sh",
-       "parameters": {
-       }
-   }
-
+   # Content of hello.yaml
+   ---
+       name: "hello"
+       runner_type: "run-local"
+       description: "Hello st2 action."
+       enabled: true
+       entry_point: "hello.sh"
+       parameters: {}
 
 4. Add a sensor
 
@@ -163,23 +160,21 @@ Lets leave these empty for now and fill them in as per requirement.
 
 .. code-block:: bash
 
-   touch rules/rule1.json
+   touch rules/rule1.yaml
 
-   # Content of rule1.json
-   {
-      "name": "on_event1",
-      "description": "Sample rule firing on hello-st2.event1.",
+   # Content of rule1.yaml
+   ---
+       name: "on_event1"
+       description: "Sample rule firing on hello-st2.event1."
 
-      "trigger": {
-         "type": "hello-st2.event1"
-      },
+       trigger:
+           type: "hello-st2.event1
 
-      "action": {
-          "ref": "hello-st2.hello",
-      },
+       action:
+           ref: "hello-st2.hello"
+           parameters: {}
 
-      "enabled": true
-   }
+       enabled: true
 
 6. Deploy pack manually
 

@@ -109,14 +109,14 @@ Events are typically monitored by sensors. When a sensor catches an event,
 it fires a trigger. Trigger trips the rule, the rule checks the criteria
 and if it matches, it runs an action. Easy enough. Let’s look at an example.
 
-Sample rule: :github_st2:`sample_rule_with_webhook.json
-<contrib/examples/rules/sample_rule_with_webhook.json>` :
+Sample rule: :github_st2:`sample_rule_with_webhook.yaml
+<contrib/examples/rules/sample_rule_with_webhook.yaml>` :
 
-.. literalinclude:: /../../contrib/examples/rules/sample_rule_with_webhook.json
-    :language: json
+.. literalinclude:: /../../contrib/examples/rules/sample_rule_with_webhook.yaml
+    :language: yaml
 
 
-The rule definition is a JSON spec with thee sections: trigger, criteria, and action.
+The rule definition is a YAML spec with thee sections: trigger, criteria, and action.
 It configures the webhook trigger with url, applies filtering criteria based trigger
 parameters. This one configures a webhook with ``sample`` sub-url so it listens
 on ``http://{host}:6001/webhooks/generic/sample``.
@@ -161,7 +161,7 @@ or they are deployed with API or CLI:
 
 .. code-block:: bash
 
-    st2 rule create /usr/share/doc/st2/examples/rules/sample_rule_with_webhook.json
+    st2 rule create /usr/share/doc/st2/examples/rules/sample_rule_with_webhook.yaml
     st2 rule list
     st2 rule get examples.webhook_file
 
