@@ -47,6 +47,15 @@ class Dispatcher(object):
         self._publisher = TriggerPublisher(url=cfg.CONF.messaging.url)
         self._logger = self._sensor_wrapper._logger
 
+    def get_logger(self, name):
+        """
+        Retrieve an instance of a logger to be used by the sensor class.
+        """
+        logger_name = '%s.%s' % (self._sensor_wrapper._logger.name, name)
+        logger = logging.getLogger(logger_name)
+        logger.propagate = True
+        return logger
+
     def dispatch(self, trigger, payload=None):
         """
         Method which dispatches the trigger.
