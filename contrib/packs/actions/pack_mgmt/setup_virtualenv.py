@@ -109,7 +109,7 @@ class SetupVirtualEnvironmentAction(Action):
     def _create_virtualenv(self, virtualenv_path):
         self.logger.debug('Creating virtualenv in "%s"' % (virtualenv_path))
 
-        cmd = ['virtualenv', virtualenv_path]
+        cmd = ['virtualenv', '--no-site-packages', virtualenv_path]
         exit_code, _, stderr = run_command(cmd=cmd)
 
         if exit_code != 0:
@@ -124,7 +124,8 @@ class SetupVirtualEnvironmentAction(Action):
         """
         pip_path = os.path.join(virtualenv_path, 'bin/pip')
         cmd = [pip_path, 'install', '-r', requirements_file_path]
-        exit_code, stdout, stderr = run_command(cmd=cmd)
+        env = self._get_env_for_subprocess_command()
+        exit_code, stdout, stderr = run_command(cmd=cmd, env=env)
 
         if exit_code != 0:
             raise Exception('Failed to install requirements from "%s": %s' %
@@ -138,10 +139,25 @@ class SetupVirtualEnvironmentAction(Action):
         """
         pip_path = os.path.join(virtualenv_path, 'bin/pip')
         cmd = [pip_path, 'install', requirement]
-        exit_code, stdout, stderr = run_command(cmd=cmd)
+        env = self._get_env_for_subprocess_command()
+        exit_code, stdout, stderr = run_command(cmd=cmd, env=env)
 
         if exit_code != 0:
             raise Exception('Failed to install requirement "%s": %s' %
                             (requirement, stdout))
 
         return True
+
+    def _get_env_for_subprocess_command(self):
+        """
+        Retrieve environment to be used with the subprocess command.
+
+        Note: We remove PYTHONPATH from the environment so the command works
+        correctly with the newely created virtualenv.
+        """
+        env = os.environ.copy()
+
+        if 'PYTHONPATH' in env:
+            del env['PYTHONPATH']
+
+        return env

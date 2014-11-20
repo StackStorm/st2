@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import subprocess
 
 __all__ = [
@@ -20,19 +21,26 @@ __all__ = [
 ]
 
 
-def run_command(cmd):
+def run_command(cmd, env=None):
     """
     Run the provided command in a subprocess and wait until it completes.
 
     :param cmd: Command to run.
     :type cmd: ``list``
 
+    :param env: Optional environment to use with the command. If not provided,
+                environment from the current process is inherited.
+    :type env: ``dict``
+
     :rtype: ``tuple`` (exit_code, stdout, stderr)
     """
     assert isinstance(cmd, (list, str, unicode))
 
+    if not env:
+        env = os.environ.copy()
+
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+                               stderr=subprocess.PIPE, env=env)
     stdout, stderr = process.communicate()
     exit_code = process.returncode
 
