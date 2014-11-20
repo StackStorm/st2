@@ -15,6 +15,19 @@ class UnregisterPackAction(Action):
         super(UnregisterPackAction, self).__init__(config=config)
         self.initialize()
 
+    def initialize(self):
+        # 1. Parse config
+        try:
+            config.parse_args()
+        except:
+            pass
+
+        # 2. Setup db connection
+        username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
+        password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
+        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
+                 username=username, password=password)
+
     def run(self, packs=None):
         intersection = BLOCKED_PACKS & frozenset(packs)
         if len(intersection) > 0:
@@ -29,19 +42,6 @@ class UnregisterPackAction(Action):
             self._unregister_actions(pack)
             self._unregister_rules(pack)
             self.logger.info('Removed pack %s.', pack)
-
-    def initialize(self):
-        # 1. Parse config
-        try:
-            config.parse_args()
-        except:
-            pass
-
-        # 2. Setup db connection
-        username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
-        password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-                 username=username, password=password)
 
     def _unregister_sensors(self, pack):
         return self._delete_pack_db_objects(pack=pack, model_cls=reactor.SensorType)
