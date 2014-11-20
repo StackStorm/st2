@@ -80,7 +80,7 @@ class Worker(ConsumerMixin):
         actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_RUNNING,
                                                       actionexec_db.id)
         # Launch action
-        LOG.audit('Launching Action command with actionexec_db="%s"', actionexec_db)
+        LOG.audit('Launching action execution.', actionexec=actionexec_db)
 
         try:
             result = self.container.dispatch(actionexec_db)
