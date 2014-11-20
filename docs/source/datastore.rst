@@ -7,7 +7,7 @@ of sensors, actions, and rules. The datastore service store the data as
 a key value pair and they can be get/set using the |st2| CLI or the |st2|
 python client. From the sensor and action plugins, since they are
 implemented in python, the key value pairs are accessed from the |st2|
-python client. For rule definitions in JSON, the key value pairs are
+python client. For rule definitions in YAML/JSON, the key value pairs are
 referenced with a specific string substitution syntax and the references
 are resolved on rule evaluation.
 
