@@ -23,7 +23,9 @@ import six
 from urlparse import urljoin
 
 from st2common import log as logging
+from st2common.constants.triggers import GENERIC_WEBHOOK_TRIGGER_REF
 from st2common.models.base import jsexpose
+from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
 
 http_client = six.moves.http_client
@@ -36,7 +38,14 @@ class WebhooksController(pecan.rest.RestController):
         super(WebhooksController, self).__init__(*args, **kwargs)
         self._hooks = {}
         self._base_url = '/webhooks'
-        self._dispatcher = TriggerDispatcher(LOG)
+        self._trigger_dispatcher = TriggerDispatcher(LOG)
+        # TODO: Use routing key specific to this sensor we can only listen to
+        # the events we are interested in
+        self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
+                                               update_handler=self._handle_update_trigger,
+                                               delete_handler=self._handle_delete_trigger)
+        self._trigger_watcher.start()
+        self._trigger_types = {GENERIC_WEBHOOK_TRIGGER_REF}
 
     @jsexpose(str, status_code=http_client.ACCEPTED)
     def post(self, hook, **kwargs):
@@ -46,8 +55,6 @@ class WebhooksController(pecan.rest.RestController):
             msg = 'Webhook %s not registered with st2' % hook
             return pecan.abort(http_client.NOT_FOUND, msg)
 
-        trigger = self._hooks[hook]
-
         body = pecan.request.body
         try:
             body = json.loads(body)
@@ -55,7 +62,8 @@ class WebhooksController(pecan.rest.RestController):
             msg = 'Invalid JSON body %s' % body
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
-        self._dispatcher.dispatch(trigger, body)
+        self._trigger_dispatcher.dispatch(GENERIC_WEBHOOK_TRIGGER_REF, payload=body)
+
         return body
 
     # Figure out how to call these. TriggerWatcher?
@@ -77,3 +85,53 @@ class WebhooksController(pecan.rest.RestController):
         for key, value in headers:
             headers_dict[key] = value
         return headers_dict
+
+    # TODO: Refactor so we can get callbacks for specific events we want.
+    ##############################################
+    # Event handler methods for the trigger events
+    ##############################################
+
+    def _handle_create_trigger(self, trigger):
+        trigger_type_ref = trigger.type
+        if trigger_type_ref not in self._trigger_types:
+            # This trigger doesn't belong to this sensor
+            return
+
+        self._logger.debug('Calling sensor "add_trigger" method (trigger.type=%s)' %
+                           (trigger_type_ref))
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self.add_trigger(trigger=trigger)
+
+    def _handle_update_trigger(self, trigger):
+        trigger_type_ref = trigger.type
+        if trigger_type_ref not in self._trigger_types:
+            # This trigger doesn't belong to this sensor
+            return
+
+        self._logger.debug('Calling sensor "update_trigger" method (trigger.type=%s)' %
+                           (trigger_type_ref))
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self.update_trigger(trigger=trigger)
+
+    def _handle_delete_trigger(self, trigger):
+        trigger_type_ref = trigger.type
+        if trigger_type_ref not in self._trigger_types:
+            # This trigger doesn't belong to this sensor
+            return
+
+        trigger_id = str(trigger.id)
+        if trigger_id not in self._trigger_names:
+            return
+
+        self._logger.debug('Calling sensor "remove_trigger" method (trigger.type=%s)' %
+                           (trigger_type_ref))
+
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self.remove_trigger(trigger=trigger)
+
+    def _sanitize_trigger(self, trigger):
+        sanitized = trigger._data
+        if 'id' in sanitized:
+            # Friendly objectid rather than the MongoEngine representation.
+            sanitized['id'] = str(sanitized['id'])
+        return sanitized
