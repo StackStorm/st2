@@ -7,9 +7,7 @@ from oslo.config import cfg
 import st2common.config as config
 from st2common.util.shell import run_command
 from st2actions.runners.pythonrunner import Action
-
-# TODO: Move into utils, also enforce in other places
-PACK_NAME_WHITELIST = r'^[A-Za-z0-9_-]+'
+from st2common.constants.pack import PACK_NAME_WHITELIST
 
 # Requirements which are common to all the packs
 BASE_PACK_REQUIREMENTS = [

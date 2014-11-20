@@ -14,11 +14,15 @@
 # limitations under the License.
 
 __all__ = [
+    'PACKS_PACK_NAME',
     'SYSTEM_PACK_NAME',
     'PACKS_PACK_NAME',
     'SYSTEM_PACK_NAMES',
     'USER_PACK_NAME_BLACKLIST'
 ]
+
+# A list of allowed characters for the pack name
+PACK_NAME_WHITELIST = r'^[A-Za-z0-9_-]+'
 
 # Name used for system pack
 SYSTEM_PACK_NAME = 'core'
