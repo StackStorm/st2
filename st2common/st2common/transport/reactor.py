@@ -25,7 +25,7 @@ __all__ = [
     'TriggerPublisher',
 
     'get_trigger_cud_queue',
-    'get_trigger_queue'
+    'get_trigger_instances_queue'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ LOG = logging.getLogger(__name__)
 TRIGGER_CUD_XCHG = Exchange('st2.trigger', type='topic')
 
 # Exchange for Trigger events
-TRIGGER_XCHG = Exchange('st2.trigger_dispatch', type='topic')
+TRIGGER_INSTANCES_XCHG = Exchange('st2.trigger_instances_dispatch', type='topic')
 
 
 class TriggerCUDPublisher(publishers.CUDPublisher):
@@ -52,7 +52,7 @@ class TriggerPublisher(object):
 
     def publish_trigger(self, payload, routing_key):
         # TODO: We could use trigger reference as a routing key
-        self._publisher.publish(payload, TRIGGER_XCHG, routing_key)
+        self._publisher.publish(payload, TRIGGER_INSTANCES_XCHG, routing_key)
 
 
 class TriggerDispatcher(object):
@@ -69,7 +69,7 @@ class TriggerDispatcher(object):
         Method which dispatches the trigger.
 
         :param trigger: Full name / reference of the trigger.
-        :type trigger: ``str``
+        :type trigger: ``str`` or ``object``
 
         :param payload: Trigger payload.
         :type payload: ``dict``
@@ -90,5 +90,5 @@ def get_trigger_cud_queue(name, routing_key):
     return Queue(name, TRIGGER_CUD_XCHG, routing_key=routing_key)
 
 
-def get_trigger_queue(name, routing_key):
-    return Queue(name, TRIGGER_XCHG, routing_key=routing_key)
+def get_trigger_instances_queue(name, routing_key):
+    return Queue(name, TRIGGER_INSTANCES_XCHG, routing_key=routing_key)
