@@ -16,8 +16,7 @@ class UninstallPackAction(Action):
         super(UninstallPackAction, self).__init__(config=config)
         self.initialize()
 
-        # TODO: Use config base path + virtualenv suffix
-        self._base_virtualenvs_path = os.path.join(cfg.CONF.content.packs_base_path,
+        self._base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path,
                                                    'virtualenvs/')
 
     def initialize(self):

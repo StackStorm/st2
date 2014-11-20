@@ -34,7 +34,7 @@ class SetupVirtualEnvironmentAction(Action):
         self.initialize()
 
         self._base_packs_path = cfg.CONF.content.packs_base_path
-        self._base_virtualenvs_path = os.path.join(cfg.CONF.content.packs_base_path,
+        self._base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path,
                                                    'virtualenvs/')
 
     def initialize(self):
