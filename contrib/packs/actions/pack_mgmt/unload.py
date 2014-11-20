@@ -5,12 +5,22 @@ from st2common.models.db import db_setup
 from st2actions.runners.pythonrunner import Action
 from st2common.persistence import reactor
 from st2common.persistence import action
+from st2common.constants.pack import SYSTEM_PACK_NAMES
+
+BLOCKED_PACKS = frozenset(SYSTEM_PACK_NAMES)
 
 
 class UnregisterPackAction(Action):
+    def __init__(self, config=None):
+        super(UnregisterPackAction, self).__init__(config=config)
+        self.initialize()
 
     def run(self, packs=None):
-        self._setup()
+        intersection = BLOCKED_PACKS & frozenset(packs)
+        if len(intersection) > 0:
+            names = ', '.join(list(intersection))
+            raise ValueError('Unregister includes an unregisterable pack - %s.' % (names))
+
         for pack in packs:
             self.logger.debug('Removing pack %s.', pack)
             self._unregister_sensors(pack)
@@ -20,7 +30,7 @@ class UnregisterPackAction(Action):
             self._unregister_rules(pack)
             self.logger.info('Removed pack %s.', pack)
 
-    def _setup(self):
+    def initialize(self):
         # 1. Parse config
         try:
             config.parse_args()
