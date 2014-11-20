@@ -62,6 +62,10 @@ class WebhooksController(pecan.rest.RestController):
             msg = 'Invalid JSON body %s' % body
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
+        payload = {}
+        payload['headers'] = self._get_headers_as_dict(pecan.request.headers)
+        payload['body'] = body
+
         self._trigger_dispatcher.dispatch(GENERIC_WEBHOOK_TRIGGER_REF, payload=body)
 
         return body
@@ -82,7 +86,7 @@ class WebhooksController(pecan.rest.RestController):
 
     def _get_headers_as_dict(self, headers):
         headers_dict = {}
-        for key, value in headers:
+        for key, value in headers.items():
             headers_dict[key] = value
         return headers_dict
 
