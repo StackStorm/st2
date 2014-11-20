@@ -15,6 +15,9 @@
 
 from kombu import Exchange, Queue
 
+from oslo.config import cfg
+
+from st2common import log as logging
 from st2common.transport import publishers
 
 __all__ = [
@@ -24,6 +27,8 @@ __all__ = [
     'get_trigger_cud_queue',
     'get_trigger_queue'
 ]
+
+LOG = logging.getLogger(__name__)
 
 # Exchange for Trigger CUD events
 TRIGGER_CUD_XCHG = Exchange('st2.trigger', type='topic')
@@ -48,6 +53,38 @@ class TriggerPublisher(object):
     def publish_trigger(self, payload, routing_key):
         # TODO: We could use trigger reference as a routing key
         self._publisher.publish(payload, TRIGGER_XCHG, routing_key)
+
+
+class TriggerDispatcher(object):
+    """
+    This trigger dispatcher dispatches trigger instances to a message queue (RabbitMQ).
+    """
+
+    def __init__(self, logger=LOG):
+        self._publisher = TriggerPublisher(url=cfg.CONF.messaging.url)
+        self._logger = logger
+
+    def dispatch(self, trigger, payload=None):
+        """
+        Method which dispatches the trigger.
+
+        :param trigger: Full name / reference of the trigger.
+        :type trigger: ``str``
+
+        :param payload: Trigger payload.
+        :type payload: ``dict``
+        """
+        assert(isinstance(trigger, (str, unicode)))
+        assert(isinstance(payload, (type(None), dict)))
+
+        payload = {
+            'trigger': trigger,
+            'payload': payload
+        }
+        routing_key = trigger
+
+        self._logger.debug('Dispatching trigger (trigger=%s,payload=%s)', trigger, payload)
+        self._publisher.publish_trigger(payload=payload, routing_key=routing_key)
 
 
 def get_trigger_cud_queue(name, routing_key):
