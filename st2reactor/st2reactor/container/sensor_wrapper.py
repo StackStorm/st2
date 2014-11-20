@@ -25,7 +25,7 @@ from st2common import log as logging
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
 from st2common.util.config_parser import ContentPackConfigParser
-from st2reactor.container.triggerwatcher import TriggerWatcher
+from st2common.services.triggerwatcher import TriggerWatcher
 from st2reactor.sensor.base import Sensor
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 
