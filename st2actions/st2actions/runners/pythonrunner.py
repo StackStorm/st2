@@ -26,6 +26,7 @@ from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 
@@ -98,7 +99,7 @@ class PythonRunner(ActionRunner):
         pass
 
     def run(self, action_parameters):
-        pack = self.action.pack if self.action else None
+        pack = self.action.pack if self.action else DEFAULT_PACK_NAME
         serialized_parameters = json.dumps(action_parameters) if action_parameters else ''
         python_path = get_sandbox_python_binary_path(pack=pack)
 

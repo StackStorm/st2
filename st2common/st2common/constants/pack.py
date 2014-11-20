@@ -23,8 +23,11 @@ __all__ = [
 # Name used for system pack
 SYSTEM_PACK_NAME = 'core'
 
-# Named used for pack management pack
+# Name used for pack management pack
 PACKS_PACK_NAME = 'packs'
+
+# Name of the default pack
+DEFAULT_PACK_NAME = 'default'
 
 # A list of system pack names
 SYSTEM_PACK_NAMES = [

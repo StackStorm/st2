@@ -22,6 +22,8 @@ import os
 import sys
 from distutils.sysconfig import get_python_lib
 
+from oslo.config import cfg
+
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 
 __all__ = [
@@ -30,17 +32,15 @@ __all__ = [
 ]
 
 
-def get_sandbox_python_binary_path(pack):
+def get_sandbox_python_binary_path(pack=None):
     """
     Return path to the Python binary for the provided pack.
 
     :param pack: Pack name.
     :type pack: ``str``
     """
-    # TODO: Update once lakshmi's PR is merged
-    # cfg.CONF.content.packs_base_path
-    packs_base_path = '/opt/stackstorm'
-    virtualenv_path = os.path.join(packs_base_path, 'virtualenvs/', pack)
+    packs_base_path = cfg.CONF.content.packs_base_path
+    virtualenv_path = os.path.join(packs_base_path, 'virtualenvs', pack)
 
     if pack in SYSTEM_PACK_NAMES:
         # Use system python for "packs" and "core" actions

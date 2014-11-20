@@ -26,7 +26,8 @@ import st2tests.base as tests_base
 import st2tests.config as tests_config
 
 
-PACAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'pythonactions/pascal_row.py')
+PACAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
+                                     'pythonactions/actions/pascal_row.py')
 
 
 class PythonRunnerTestCase(TestCase):
