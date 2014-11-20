@@ -25,7 +25,7 @@ __all__ = [
     'ProcessSensorContainer'
 ]
 
-LOG = logging.getLogger('st2reactor.multi_process_sensor_container')
+LOG = logging.getLogger('st2reactor.process_sensor_container')
 
 PROCESS_EXIT_TIMEOUT = 5  # how long to wait for process to exit after sending SIGKILL (in seconds)
 SUCCESS_EXIT_CODE = 0
@@ -173,6 +173,8 @@ class ProcessSensorContainer(object):
         env = os.environ.copy()
         env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
                                                     inherit_parent_virtualenv=True)
+
+        LOG.debug('Running sensor subprocess (cmd="%s")', ' '.join(args))
 
         # TODO: Intercept stdout and stderr for aggregated logging purposes
         try:
