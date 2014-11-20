@@ -51,6 +51,10 @@ class SetupVirtualEnvironmentAction(Action):
         for pack_name in packs:
             self._setup_pack_virtualenv(pack_name=pack_name)
 
+        message = ('Successfuly set up virtualenv for the following packs: %s' %
+                   (', '.join(packs)))
+        return message
+
     def _setup_pack_virtualenv(self, pack_name):
         """
         :param pack_name: Pack name.
