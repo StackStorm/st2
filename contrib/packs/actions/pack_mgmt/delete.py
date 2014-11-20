@@ -6,9 +6,9 @@ from oslo.config import cfg
 
 import st2common.config as config
 from st2actions.runners.pythonrunner import Action
-from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.constants.pack import SYSTEM_PACK_NAMES
 
-BLOCKED_PACKS = frozenset([SYSTEM_PACK_NAME])
+BLOCKED_PACKS = frozenset(SYSTEM_PACK_NAMES)
 
 
 class UninstallPackAction(Action):
@@ -28,7 +28,8 @@ class UninstallPackAction(Action):
     def run(self, abs_repo_base=None, packs=None):
         intersection = BLOCKED_PACKS & frozenset(packs)
         if len(intersection) > 0:
-            raise Exception('Uninstall includes an uninstallable pack - %s.' % list(intersection))
+            names = ', '.join(list(intersection))
+            raise ValueError('Uninstall includes an uninstallable pack - %s.' % (names))
 
         # 1. Delete pack content
         for fp in os.listdir(abs_repo_base):
