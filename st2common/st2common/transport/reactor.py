@@ -74,7 +74,6 @@ class TriggerDispatcher(object):
         :param payload: Trigger payload.
         :type payload: ``dict``
         """
-        assert(isinstance(trigger, (str, unicode)))
         assert(isinstance(payload, (type(None), dict)))
 
         payload = {
