@@ -218,7 +218,7 @@ class ProcessSensorContainer(object):
                 break
 
             timeout += sleep_delay
-            time.sleeps(sleep_delay)
+            time.sleep(sleep_delay)
 
         if status is None:
             # Process hasn't exited yet, forcefully kill it
