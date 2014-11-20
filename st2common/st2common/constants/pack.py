@@ -18,7 +18,8 @@ __all__ = [
     'SYSTEM_PACK_NAME',
     'PACKS_PACK_NAME',
     'SYSTEM_PACK_NAMES',
-    'USER_PACK_NAME_BLACKLIST'
+    'USER_PACK_NAME_BLACKLIST',
+    'BASE_PACK_REQUIREMENTS'
 ]
 
 # A list of allowed characters for the pack name
@@ -43,4 +44,11 @@ SYSTEM_PACK_NAMES = [
 USER_PACK_NAME_BLACKLIST = [
     SYSTEM_PACK_NAME,
     PACKS_PACK_NAME
+]
+
+# Requirements which are common to all the packs
+BASE_PACK_REQUIREMENTS = [
+    # Note: We don't currently handle .pth files corectly so los.config
+    # needs to be installed inside virtualenv
+    'oslo.config'
 ]

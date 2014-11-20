@@ -8,17 +8,9 @@ import st2common.config as config
 from st2common.util.shell import run_command
 from st2actions.runners.pythonrunner import Action
 from st2common.constants.pack import PACK_NAME_WHITELIST
-
-# Requirements which are common to all the packs
-BASE_PACK_REQUIREMENTS = [
-    # Note: We don't currently handle .pth files corectly so los.config
-    # needs to be installed inside virtualenv
-    'oslo.config'
-]
+from st2common.constants.pack import BASE_PACK_REQUIREMENTS
 
 
-# TODO: Should we only setup virtualenv for packs which at at least one
-# Python action and / or sensor?
 class SetupVirtualEnvironmentAction(Action):
     """
     Action which sets up virtual environment for the provided packs.
