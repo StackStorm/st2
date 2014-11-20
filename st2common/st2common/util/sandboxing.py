@@ -39,8 +39,8 @@ def get_sandbox_python_binary_path(pack=None):
     :param pack: Pack name.
     :type pack: ``str``
     """
-    packs_base_path = cfg.CONF.content.packs_base_path
-    virtualenv_path = os.path.join(packs_base_path, 'virtualenvs', pack)
+    system_base_path = cfg.CONF.system.base_path
+    virtualenv_path = os.path.join(system_base_path, 'virtualenvs', pack)
 
     if pack in SYSTEM_PACK_NAMES:
         # Use system python for "packs" and "core" actions
