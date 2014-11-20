@@ -24,6 +24,7 @@ from urlparse import urljoin
 
 from st2common import log as logging
 from st2common.models.base import jsexpose
+from st2common.transport.reactor import TriggerDispatcher
 
 http_client = six.moves.http_client
 
@@ -33,8 +34,9 @@ LOG = logging.getLogger(__name__)
 class WebhooksController(pecan.rest.RestController):
     def __init__(self, *args, **kwargs):
         super(WebhooksController, self).__init__(*args, **kwargs)
-        self._hooks = {'shit'}
+        self._hooks = {}
         self._base_url = '/webhooks'
+        self._dispatcher = TriggerDispatcher(LOG)
 
     @jsexpose(str, status_code=http_client.ACCEPTED)
     def post(self, hook, **kwargs):
@@ -44,6 +46,8 @@ class WebhooksController(pecan.rest.RestController):
             msg = 'Webhook %s not registered with st2' % hook
             return pecan.abort(http_client.NOT_FOUND, msg)
 
+        trigger = self._hooks[hook]
+
         body = pecan.request.body
         try:
             body = json.loads(body)
@@ -51,7 +55,7 @@ class WebhooksController(pecan.rest.RestController):
             msg = 'Invalid JSON body %s' % body
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
-        # TODO: Dispatch trigger and payload.
+        self._dispatcher.dispatch(trigger, body)
         return body
 
     # Figure out how to call these. TriggerWatcher?
