@@ -3,6 +3,7 @@ from oslo.config import cfg
 import st2common.config as config
 from st2common.models.db import db_setup
 from st2actions.runners.pythonrunner import Action
+from st2common.persistence import reactor
 from st2common.persistence import action
 
 
@@ -12,10 +13,11 @@ class UnregisterPackAction(Action):
         self._setup()
         for pack in packs:
             self.logger.debug('Removing pack %s.', pack)
-            self._unregister_rules(pack)
-            self._unregister_triggers(pack)
+            self._unregister_sensors(pack)
             self._unregister_trigger_types(pack)
+            self._unregister_triggers(pack)
             self._unregister_actions(pack)
+            self._unregister_rules(pack)
             self.logger.info('Removed pack %s.', pack)
 
     def _setup(self):
@@ -31,19 +33,26 @@ class UnregisterPackAction(Action):
         db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
                  username=username, password=password)
 
+    def _unregister_sensors(self, pack):
+        return self._delete_pack_db_objects(pack=pack, model_cls=reactor.SensorType)
+
+    def _unregister_trigger_types(self, pack):
+        return self._delete_pack_db_objects(pack=pack, model_cls=reactor.TriggerType)
+
+    def _unregister_triggers(self, pack):
+        return self._delete_pack_db_objects(pack=pack, model_cls=reactor.Trigger)
+
+    def _unregister_actions(self, pack):
+        return self._delete_pack_db_objects(pack=pack, model_cls=action.Action)
+
     def _unregister_rules(self, pack):
         pass
 
-    def _unregister_triggers(self, pack):
-        pass
+    def _delete_pack_db_objects(self, pack, model_cls):
+        db_objs = model_cls.get_all(pack=pack)
 
-    def _unregister_trigger_types(self, pack):
-        pass
-
-    def _unregister_actions(self, pack):
-        action_dbs = action.Action.get_all(pack=pack)
-        for action_db in action_dbs:
+        for db_obj in db_objs:
             try:
-                action.Action.delete(action_db)
+                model_cls.delete(db_obj)
             except:
-                self.logger.exception('Failed to remove action %s.', action_db)
+                self.logger.exception('Failed to remove DB object %s.', db_obj)
