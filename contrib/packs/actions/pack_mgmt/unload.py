@@ -28,7 +28,7 @@ class UnregisterPackAction(Action):
         db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
                  username=username, password=password)
 
-    def run(self, packs=None):
+    def run(self, packs):
         intersection = BLOCKED_PACKS & frozenset(packs)
         if len(intersection) > 0:
             names = ', '.join(list(intersection))

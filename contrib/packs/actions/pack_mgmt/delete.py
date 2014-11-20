@@ -25,7 +25,7 @@ class UninstallPackAction(Action):
         except:
             pass
 
-    def run(self, abs_repo_base=None, packs=None):
+    def run(self, packs, abs_repo_base):
         intersection = BLOCKED_PACKS & frozenset(packs)
         if len(intersection) > 0:
             names = ', '.join(list(intersection))
