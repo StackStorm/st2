@@ -62,11 +62,12 @@ class WebhooksController(pecan.rest.RestController):
             msg = 'Invalid JSON body %s' % body
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
+        trigger = self._hooks[hook]
         payload = {}
         payload['headers'] = self._get_headers_as_dict(pecan.request.headers)
         payload['body'] = body
 
-        self._trigger_dispatcher.dispatch(GENERIC_WEBHOOK_TRIGGER_REF, payload=body)
+        self._trigger_dispatcher.dispatch(trigger, payload=body)
 
         return body
 
