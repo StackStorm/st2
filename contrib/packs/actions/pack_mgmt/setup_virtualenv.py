@@ -13,6 +13,9 @@ PACK_NAME_WHITELIST = r'^[A-Za-z0-9_-]+'
 
 # Requirements which are common to all the packs
 BASE_PACK_REQUIREMENTS = [
+    # Note: We don't currently handle .pth files corectly so los.config
+    # needs to be installed inside virtualenv
+    'oslo.config'
 ]
 
 
