@@ -35,12 +35,11 @@ __all__ = [
 ]
 
 
-class Dispatcher(object):
+class SensorService(object):
     """
-    This class is passed to the sensor instance and exposes "public" methods
-    which can be called by the sensor.
+    Instance of this class is passed to the sensor instance and exposes "public"
+    methods which can be called by the sensor.
     """
-    # TODO: Better name
 
     def __init__(self, sensor_wrapper):
         self._sensor_wrapper = sensor_wrapper
@@ -223,7 +222,7 @@ class SensorWrapper(object):
                              (self._class_name))
 
         sensor_class_kwargs = {}
-        sensor_class_kwargs['dispatcher'] = Dispatcher(sensor_wrapper=self)
+        sensor_class_kwargs['sensor_service'] = SensorService(sensor_wrapper=self)
 
         sensor_config = self._get_sensor_config()
 

@@ -15,8 +15,8 @@ class BaseSensor(object):
     Base Sensor class - not to be instantiated directly.
     """
 
-    def __init__(self, dispatcher, config=None):
-        self._dispatcher = dispatcher
+    def __init__(self, sensor_service, config=None):
+        self._sensor_service = sensor_service
         self._config = config or {}
 
     @abc.abstractmethod
@@ -77,8 +77,8 @@ class PollingSensor(BaseSensor):
     for new information.
     """
 
-    def __init__(self, dispatcher, config, poll_interval=5):
-        super(PollingSensor, self).__init__(dispatcher=dispatcher, config=config)
+    def __init__(self, sensor_service, config, poll_interval=5):
+        super(PollingSensor, self).__init__(sensor_service=sensor_service, config=config)
         self._poll_interval = poll_interval
 
     def run(self):
