@@ -1,5 +1,5 @@
 StackStorm CLI and Python Client
-=========================
+================================
 
 Install from Source
 -------------------
