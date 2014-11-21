@@ -22,7 +22,7 @@ from st2common.transport import publishers
 
 __all__ = [
     'TriggerCUDPublisher',
-    'TriggerPublisher',
+    'TriggerInstancePublisher',
 
     'get_trigger_cud_queue',
     'get_trigger_instances_queue'
@@ -46,7 +46,7 @@ class TriggerCUDPublisher(publishers.CUDPublisher):
         super(TriggerCUDPublisher, self).__init__(url, TRIGGER_CUD_XCHG)
 
 
-class TriggerPublisher(object):
+class TriggerInstancePublisher(object):
     def __init__(self, url):
         self._publisher = publishers.PoolPublisher(url=url)
 
@@ -61,7 +61,7 @@ class TriggerDispatcher(object):
     """
 
     def __init__(self, logger=LOG):
-        self._publisher = TriggerPublisher(url=cfg.CONF.messaging.url)
+        self._publisher = TriggerInstancePublisher(url=cfg.CONF.messaging.url)
         self._logger = logger
 
     def dispatch(self, trigger, payload=None):
