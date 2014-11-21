@@ -14,7 +14,9 @@
 # limitations under the License.
 
 import os
+import sys
 import time
+import json
 import subprocess
 
 from st2common import log as logging
@@ -158,13 +160,16 @@ class ProcessSensorContainer(object):
         trigger_type_refs = sensor['trigger_types'] or []
         trigger_type_refs = ','.join(trigger_type_refs)
 
+        parent_args = json.dumps(sys.argv[1:])
+
         args = [
             python_path,
             WRAPPER_SCRIPT_PATH,
             '--pack=%s' % (sensor['pack']),
             '--file-path=%s' % (sensor['file_path']),
             '--class-name=%s' % (sensor['class_name']),
-            '--trigger-type-refs=%s' % (trigger_type_refs)
+            '--trigger-type-refs=%s' % (trigger_type_refs),
+            '--parent-args=%s' % (parent_args)
         ]
 
         if sensor['poll_interval']:

@@ -14,11 +14,12 @@
 # limitations under the License.
 
 import os
+import json
 import atexit
-import sys
 import argparse
 
 import logging as slogging
+from oslo.config import cfg
 
 from st2common import log as logging
 from st2common.transport.reactor import TriggerDispatcher
@@ -69,7 +70,7 @@ class SensorService(object):
 
 class SensorWrapper(object):
     def __init__(self, pack, file_path, class_name, trigger_types,
-                 poll_interval=None):
+                 poll_interval=None, parent_args=None):
         """
         :param pack: Name of the pack this sensor belongs to.
         :type pack: ``str``
@@ -86,18 +87,21 @@ class SensorWrapper(object):
 
         :param poll_interval: Sensor poll interval (in seconds).
         :type poll_interval: ``int`` or ``None``
+
+        :param parent_args: Command line arguments passed to the parent process.
+        :type parse_args: ``list``
         """
         self._pack = pack
         self._file_path = file_path
         self._class_name = class_name
         self._trigger_types = trigger_types or []
         self._poll_interval = poll_interval
+        self._parent_args = parent_args or []
         self._trigger_names = {}
 
-        # TODO: Inherit args from the parent
         try:
-            config.parse_args(args=[])
-        except Exception:
+            config.parse_args(args=self._parent_args)
+        except Exception as e:
             pass
 
         # TODO: Use routing key specific to this sensor we can only listen to
@@ -261,14 +265,18 @@ if __name__ == '__main__':
                         help='Comma delimited string of trigger type references')
     parser.add_argument('--poll-interval', type=int, default=None, required=False,
                         help='Sensor poll interval')
+    parser.add_argument('--parent-args', required=False,
+                        help='Command line arguments passed to the parent process')
     args = parser.parse_args()
 
     trigger_types = args.trigger_type_refs
     trigger_types = trigger_types.split(',') if trigger_types else []
+    parent_args = json.loads(args.parent_args) if args.parent_args else []
 
     obj = SensorWrapper(pack=args.pack,
                         file_path=args.file_path,
                         class_name=args.class_name,
                         trigger_types=trigger_types,
-                        poll_interval=args.poll_interval)
+                        poll_interval=args.poll_interval,
+                        parent_args=parent_args)
     obj.run()
