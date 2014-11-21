@@ -80,7 +80,8 @@ class RunnerContainer(object):
         LOG.debug('runner do_run result: %s', result)
 
         actionsensor.post_trigger(actionexec_db)
-        LOG.audit('ActionExecution complete.', actionexecution=actionexec_db)
+        LOG.audit('ActionExecution complete.',
+                  actionexecution=actionexec_db.to_serializable_dict())
 
         return result
 
