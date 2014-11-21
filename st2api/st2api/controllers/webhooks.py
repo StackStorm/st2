@@ -51,7 +51,7 @@ class WebhooksController(pecan.rest.RestController):
     def post(self, hook, **kwargs):
         LOG.info('POST /webhooks/ with hook=%s', hook)
 
-        if hook not in self._hooks:
+        if not self._is_valid_hook(hook):
             msg = 'Webhook %s not registered with st2' % hook
             return pecan.abort(http_client.NOT_FOUND, msg)
 
@@ -62,14 +62,20 @@ class WebhooksController(pecan.rest.RestController):
             msg = 'Invalid JSON body %s' % body
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
-        trigger = self._hooks[hook]
+        trigger = self._get_trigger_for_hook(hook)
         payload = {}
         payload['headers'] = self._get_headers_as_dict(pecan.request.headers)
         payload['body'] = body
-
         self._trigger_dispatcher.dispatch(trigger, payload=body)
 
         return body
+
+    def _is_valid_hook(self, hook):
+        # TODO: Validate hook payload with payload_schema.
+        return hook in self._hooks
+
+    def _get_trigger_for_hook(self, hook):
+        return self._hooks[hook]
 
     # Figure out how to call these. TriggerWatcher?
     def add_trigger(self, trigger):
