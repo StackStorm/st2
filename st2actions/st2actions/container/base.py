@@ -81,7 +81,7 @@ class RunnerContainer(object):
 
         actionsensor.post_trigger(actionexec_db)
         LOG.audit('ActionExecution complete.',
-                  actionexecution=actionexec_db.to_serializable_dict())
+                  extra={'actionexecution': actionexec_db.to_serializable_dict()})
 
         return result
 
