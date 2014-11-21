@@ -101,9 +101,8 @@ class SensorWrapper(object):
         # 1. Parse the config with inherited parent args
         try:
             config.parse_args(args=self._parent_args)
-        except Exception as e:
+        except Exception:
             pass
-
 
         # 2. Instantiate the watcher
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
@@ -269,6 +268,7 @@ if __name__ == '__main__':
     trigger_types = args.trigger_type_refs
     trigger_types = trigger_types.split(',') if trigger_types else []
     parent_args = json.loads(args.parent_args) if args.parent_args else []
+    assert isinstance(parent_args, list)
 
     obj = SensorWrapper(pack=args.pack,
                         file_path=args.file_path,
