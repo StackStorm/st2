@@ -80,7 +80,7 @@ class TriggerDispatcher(object):
             'trigger': trigger,
             'payload': payload
         }
-        routing_key = trigger
+        routing_key = 'trigger_instance'
 
         self._logger.debug('Dispatching trigger (trigger=%s,payload=%s)', trigger, payload)
         self._publisher.publish_trigger(payload=payload, routing_key=routing_key)
