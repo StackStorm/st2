@@ -18,7 +18,6 @@ import json
 import atexit
 import argparse
 
-import logging as slogging
 from oslo.config import cfg
 
 from st2common import log as logging
@@ -99,26 +98,24 @@ class SensorWrapper(object):
         self._parent_args = parent_args or []
         self._trigger_names = {}
 
+        # 1. Parse the config with inherited parent args
         try:
             config.parse_args(args=self._parent_args)
         except Exception as e:
             pass
 
-        # TODO: Use routing key specific to this sensor we can only listen to
-        # the events we are interested in
+
+        # 2. Instantiate the watcher
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger)
 
+        # 3. Set up logging
         self._logger = logging.getLogger('SensorWrapper.%s' %
                                          (self._class_name))
+        logging.setup(cfg.CONF.sensorcontainer.logging)
+
         self._sensor_instance = self._get_sensor_instance()
-        self._logger.setLevel(slogging.DEBUG)
-        ch = slogging.StreamHandler(sys.stdout)
-        ch.setLevel(slogging.DEBUG)
-        formatter = slogging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        ch.setFormatter(formatter)
-        self._logger.addHandler(ch)
 
     def run(self):
         atexit.register(self.stop)
