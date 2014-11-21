@@ -18,7 +18,7 @@ Some packs can be installed and run "as is" without any configurations.
 
     st2 run packs.install packs=docker,sensu repo_url=https://github.com/StackStorm/st2contrib.git
 
-This downloads the Sensu and Docker packs from the `StackStorm community repo on GitHub <https://github.com/StackStorm/st2contrib>`__ , places them as local content under ``/opt/stackstorm``, registers with |st2| and loads the content.
+This downloads the Sensu and Docker packs from the `StackStorm community repo on GitHub <https://github.com/StackStorm/st2contrib>`__ , places them as local content under ``/opt/stackstorm/packs``, registers with |st2| and loads the content.
 
 By default packs are installed from the |st2| community repo. Use ``repo_url`` parameter to install a pack from a fork of st2contrib, or from a custom repo. If using a custom repo make sure to place packs a top level ``packs`` directory.
 
@@ -38,7 +38,7 @@ Let's install the Docker pack:
     st2 run packs.download packs=docker
 
     # Check out README.md.
-    less /opt/stackstorm/docker/README.md
+    less /opt/stackstorm/packs/docker/README.md
 
     # Apparently the pack needs docker-py python library. Installing...
     sudo pip install docker-py

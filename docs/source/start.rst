@@ -182,7 +182,7 @@ Congratulations, your first |st2| rule is up and running!
 
 Basic examples of rules, along with sample actions and sensors can be
 found at ``/usr/share/doc/st2/examples/``. To get them deployed, copy them
-to /opt/stackstorm/ and reload the content by running ``st2 run packs.load``.
+to /opt/stackstorm/packs/ and reload the content by running ``st2 run packs.load``.
 For more content examples checkout `st2contrib`_ community repo on GitHub.
 
 

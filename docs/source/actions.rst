@@ -81,7 +81,7 @@ of attributes which can be present in the metadata file is included bellow.
 * ``name`` - Name of the action.
 * ``runner_type`` - The type of runner to execute the action.
 * ``enabled`` - Action cannot be invoked when disabled.
-* ``entry_point`` - Location of the action launch script relative to the /opt/stackstorm/actions.
+* ``entry_point`` - Location of the action launch script relative to the /opt/stackstorm/packs/${pack_name}/actions/.
 * ``parameters`` - A dictionary of parameters and optional metadata describing type and default. The metadata is structured data following the [jsonschema][1] specification draft 4. If metadata is provided, input args are validated on action execution. Otherwise, validation is skipped.
 
 Bellow you can find a sample metadata for a Python action which sends an SMS via

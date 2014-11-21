@@ -59,11 +59,11 @@ Once you write your own sensor, you can test it stand alone like so:
 [Note: You should have setup the virtualenv and activated it before the
 previous command can work.]
 
-If you are happy about your sensor and you want the system to always run it, place your sensor in a pack you choose /opt/stackstorm/sensors/${pack_name}/sensors/.
+If you are happy about your sensor and you want the system to always run it, place your sensor in a pack you choose /opt/stackstorm/packs/${pack_name}/sensors/.
 
 ::
 
-    $cp /path/to/sensor/${sensorfile}.py /opt/stackstorm/${pack_name}/sensors/${sensorfile}.py
+    $cp /path/to/sensor/${sensorfile}.py /opt/stackstorm/packs/${pack_name}/sensors/${sensorfile}.py
 
 Note: If |st2| reactor component is already running on the box, you'll
 have to restart it to pick up the new sensor.
