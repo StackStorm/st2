@@ -21,9 +21,16 @@ A trigger is a tuple of type (string) and optional parameters (object). Rules ar
 Authoring a sensor
 ~~~~~~~~~~~~~~~~~~
 
-A simple sensor implementation is shown below.
+Authoring a sensor involves authoring a python file and a yaml meta file
+that defines the sensor. An example meta file is shown below.
+
+.. literalinclude:: ../../contrib/examples/sensors/sample_sensor.yaml
+
+
+Corresponding simple sensor python implementation is shown below.
 
 .. literalinclude:: ../../contrib/examples/sensors/sample_sensor.py
+
 
 It shows a bare minimum version of how a sensor would look like. Your
 sensor should generate triggers of the form (python dict):
@@ -31,21 +38,24 @@ sensor should generate triggers of the form (python dict):
 ::
 
     {
-        'name': 'name of the trigger you register in get_trigger_types() method. required.',
-        'pack': 'pack that contains this sensor',
+        'name': 'name of the trigger you register in get_trigger_types() method. required.', # execution_trigger
+        'pack': 'pack that contains this sensor', # examples
         'payload' : { # required field. contents can be empty.
-            'foo': 'bar',
-            'baz': 1,
-            'time': '2014-08-01T00:00:00.000000Z'
+            'executed_at': '2014-08-01T00:00:00.000000Z'
         }
     }
 
-The sensor would inject such triggers by using the container\_service
+The sensor would inject such triggers by using the sensor\_service
 passed into the sensor on instantiation.
 
 .. code:: python
 
-    self._container_service.dispatch(trigger, payload)
+    self._sensor_service.dispatch(trigger, payload)
+
+If you want a sensor that polls an external system at regular intervals, you
+would use a PollingSensor instead of Sensor as the base class.
+
+.. literalinclude:: ../../contrib/examples/sensors/sample_polling_sensor.py
 
 For a complete implementation of a sensor that actually injects triggers
 into the system, look at the `examples <#Examples>`__ section.
@@ -93,32 +103,6 @@ Look at the timer sensor implementation
 `here <https://github.com/StackStorm/st2/blob/master/st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.py>`__.
 Timer uses `APScheduler <http://apscheduler.readthedocs.org/en/3.0/>`__
 as the scheduling engine.
-
-Generic Webhook sensor
-^^^^^^^^^^^^^^^^^^^^^^
-
-Look at the generic webhooks sensor implementation
-`here <https://github.com/StackStorm/st2/blob/master/st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.py>`__.
-The payload here can have arbitray structure. The webhook sensor uses
-`Flask <http://flask.pocoo.org/>`__ to spin up restful endpoints.
-
-|st2| webhook sensor
-^^^^^^^^^^^^^^^^^^^^^^
-
-|st2| defines it's own webhook format if you want a REST interface to
-inject triggers from curl or other plugins. Unlike the generic webhooks,
-the payload for this endpoint should be in a form |st2| expects. Look
-at the sensor implementation
-`here <https://github.com/StackStorm/st2/blob/master/st2reactor/st2reactor/contrib/sensors/st2_webhook_sensor.py>`__.
-The payload format is
-
-.. code:: json
-
-        {
-            "trigger": "pack_name.trigger_name",
-            "type": "name of the trigger registered with system"
-            "payload": {"key1" "value1", "key2": "value2", "key3": "value3"}
-        }
 
 More sensor examples are in
 `st2contrib repo <https://github.com/StackStorm/st2contrib/tree/master/packs>`__.
