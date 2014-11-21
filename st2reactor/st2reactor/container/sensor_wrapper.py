@@ -120,9 +120,9 @@ class SensorWrapper(object):
         atexit.register(self.stop)
 
         self._trigger_watcher.start()
-        self._logger.debug('Watcher started')
+        self._logger.info('Watcher started')
 
-        self._logger.debug('Running sensor initialization code')
+        self._logger.info('Running sensor initialization code')
         self._sensor_instance.setup()
 
         if self._poll_interval:
@@ -131,7 +131,7 @@ class SensorWrapper(object):
         else:
             message = 'Running sensor in passive mode'
 
-        self._logger.debug(message)
+        self._logger.info(message)
 
         try:
             self._sensor_instance.run()
@@ -141,11 +141,11 @@ class SensorWrapper(object):
 
     def stop(self):
         # Stop watcher
-        self._logger.debug('Stopping trigger watcher')
+        self._logger.info('Stopping trigger watcher')
         self._trigger_watcher.stop()
 
         # Run sensor cleanup code
-        self._logger.debug('Invoking cleanup on sensor')
+        self._logger.info('Invoking cleanup on sensor')
         self._sensor_instance.cleanup()
 
     ##############################################
