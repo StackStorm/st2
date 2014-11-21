@@ -6,14 +6,14 @@ from kombu.mixins import ConsumerMixin
 from oslo.config import cfg
 
 from st2common import log as logging
-from st2common.transport.reactor import get_trigger_queue
+from st2common.transport.reactor import get_trigger_instances_queue
 from st2common.util.greenpooldispatch import BufferedDispatcher
 from st2reactor.rules.engine import RulesEngine
 
 LOG = logging.getLogger(__name__)
 
-RULESENGINE_WORK_Q = get_trigger_queue(name='st2.trigger_dispatch.rules_engine',
-                                       routing_key='#')
+RULESENGINE_WORK_Q = get_trigger_instances_queue(
+    name='st2.trigger_instances_dispatch.rules_engine', routing_key='#')
 
 
 class Worker(ConsumerMixin):

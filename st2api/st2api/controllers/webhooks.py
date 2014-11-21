@@ -1,0 +1,148 @@
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
+import pecan
+import six
+from urlparse import urljoin
+
+from st2common import log as logging
+from st2common.constants.triggers import GENERIC_WEBHOOK_TRIGGER_REF
+from st2common.models.base import jsexpose
+from st2common.services.triggerwatcher import TriggerWatcher
+from st2common.transport.reactor import TriggerDispatcher
+
+http_client = six.moves.http_client
+
+LOG = logging.getLogger(__name__)
+
+
+class WebhooksController(pecan.rest.RestController):
+    def __init__(self, *args, **kwargs):
+        super(WebhooksController, self).__init__(*args, **kwargs)
+        self._hooks = {}
+        self._base_url = '/webhooks'
+        self._trigger_dispatcher = TriggerDispatcher(LOG)
+        # TODO: Use routing key specific to this sensor we can only listen to
+        # the events we are interested in
+        self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
+                                               update_handler=self._handle_update_trigger,
+                                               delete_handler=self._handle_delete_trigger)
+        self._trigger_watcher.start()
+        self._trigger_types = {GENERIC_WEBHOOK_TRIGGER_REF}
+
+    @jsexpose(str, status_code=http_client.ACCEPTED)
+    def post(self, hook, **kwargs):
+        LOG.info('POST /webhooks/ with hook=%s', hook)
+
+        if not self._is_valid_hook(hook):
+            msg = 'Webhook %s not registered with st2' % hook
+            return pecan.abort(http_client.NOT_FOUND, msg)
+
+        body = pecan.request.body
+        try:
+            body = json.loads(body)
+        except ValueError:
+            msg = 'Invalid JSON body %s' % body
+            return pecan.abort(http_client.BAD_REQUEST, msg)
+
+        trigger = self._get_trigger_for_hook(hook)
+        payload = {}
+        payload['headers'] = self._get_headers_as_dict(pecan.request.headers)
+        payload['body'] = body
+        self._trigger_dispatcher.dispatch(trigger, payload=body)
+
+        return body
+
+    def _is_valid_hook(self, hook):
+        # TODO: Validate hook payload with payload_schema.
+        return hook in self._hooks
+
+    def _get_trigger_for_hook(self, hook):
+        return self._hooks[hook]
+
+    # Figure out how to call these. TriggerWatcher?
+    def add_trigger(self, trigger):
+        url = trigger['parameters']['url']
+        self._log.info('Listening to endpoint: %s', urljoin(self._base_url, url))
+        self._hooks[url] = trigger
+
+    def update_trigger(self, trigger):
+        pass
+
+    def remove_trigger(self, trigger):
+        url = trigger['parameters']['url']
+        self._log.info('Stop listening to endpoint: %s', urljoin(self._base_url, url))
+        del self._hooks[url]
+
+    def _get_headers_as_dict(self, headers):
+        headers_dict = {}
+        for key, value in headers.items():
+            headers_dict[key] = value
+        return headers_dict
+
+    # TODO: Refactor so we can get callbacks for specific events we want.
+    ##############################################
+    # Event handler methods for the trigger events
+    ##############################################
+
+    def _handle_create_trigger(self, trigger):
+        trigger_type_ref = trigger.type
+        if trigger_type_ref not in self._trigger_types:
+            # This trigger doesn't belong to this sensor
+            return
+
+        self._logger.debug('Calling sensor "add_trigger" method (trigger.type=%s)' %
+                           (trigger_type_ref))
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self.add_trigger(trigger=trigger)
+
+    def _handle_update_trigger(self, trigger):
+        trigger_type_ref = trigger.type
+        if trigger_type_ref not in self._trigger_types:
+            # This trigger doesn't belong to this sensor
+            return
+
+        self._logger.debug('Calling sensor "update_trigger" method (trigger.type=%s)' %
+                           (trigger_type_ref))
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self.update_trigger(trigger=trigger)
+
+    def _handle_delete_trigger(self, trigger):
+        trigger_type_ref = trigger.type
+        if trigger_type_ref not in self._trigger_types:
+            # This trigger doesn't belong to this sensor
+            return
+
+        trigger_id = str(trigger.id)
+        if trigger_id not in self._trigger_names:
+            return
+
+        self._logger.debug('Calling sensor "remove_trigger" method (trigger.type=%s)' %
+                           (trigger_type_ref))
+
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self.remove_trigger(trigger=trigger)
+
+    def _sanitize_trigger(self, trigger):
+        sanitized = trigger._data
+        if 'id' in sanitized:
+            # Friendly objectid rather than the MongoEngine representation.
+            sanitized['id'] = str(sanitized['id'])
+        return sanitized

@@ -19,14 +19,13 @@ import sys
 import argparse
 
 import logging as slogging
-from oslo.config import cfg
 
 from st2common import config
 from st2common import log as logging
-from st2common.transport.reactor import TriggerPublisher
+from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
 from st2common.util.config_parser import ContentPackConfigParser
-from st2reactor.container.triggerwatcher import TriggerWatcher
+from st2common.services.triggerwatcher import TriggerWatcher
 from st2reactor.sensor.base import Sensor
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 
@@ -43,8 +42,8 @@ class SensorService(object):
 
     def __init__(self, sensor_wrapper):
         self._sensor_wrapper = sensor_wrapper
-        self._publisher = TriggerPublisher(url=cfg.CONF.messaging.url)
         self._logger = self._sensor_wrapper._logger
+        self._dispatcher = TriggerDispatcher(self._logger)
 
     def get_logger(self, name):
         """
@@ -65,17 +64,7 @@ class SensorService(object):
         :param payload: Trigger payload.
         :type payload: ``dict``
         """
-        assert(isinstance(trigger, (str, unicode)))
-        assert(isinstance(payload, (type(None), dict)))
-
-        payload = {
-            'trigger': trigger,
-            'payload': payload
-        }
-        routing_key = trigger
-
-        self._logger.debug('Dispatching trigger (trigger=%s,payload=%s)', trigger, payload)
-        self._publisher.publish_trigger(payload=payload, routing_key=routing_key)
+        self._dispatcher.dispatch(trigger, payload=payload)
 
 
 class SensorWrapper(object):
