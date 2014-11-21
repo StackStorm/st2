@@ -102,9 +102,9 @@ function st2start(){
             --config-file $ST2_CONF
     done
 
-    # Run the reactor server
-    echo 'Starting screen session st2-reactor...'
-    screen -d -m -S st2-reactor ./virtualenv/bin/python \
+    # Run the sensor container server
+    echo 'Starting screen session st2-sensorcontainer'
+    screen -d -m -S st2-sensorcontainer ./virtualenv/bin/python \
         ./st2reactor/bin/sensor_container \
         --config-file $ST2_CONF
 
@@ -119,7 +119,7 @@ function st2start(){
         "st2-api"
         "st2-history"
         "st2-actionrunner"
-        "st2-reactor"
+        "st2-sensorcontainer"
         "st2-rulesengine"
     )
 
