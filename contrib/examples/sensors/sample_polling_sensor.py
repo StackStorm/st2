@@ -1,12 +1,18 @@
-from st2reactor.sensor import PollingSensor
+from st2reactor.sensor.base import PollingSensor
 
 
 class SimplePollingSensor(PollingSensor):
-    def __init__(self, sensor_service=None, config=None, poll_interval=None):
-        self._service = sensor_service
-        # sensor_service provides utilities like
-        # get_logger() for writing to logs.
-        # dispatch() for dispatching triggers into the system.
+    """
+    * self._sensor_service
+        - provides utilities like
+            get_logger() for writing to logs.
+            dispatch() for dispatching triggers into the system.
+    * self._config
+        - contains configuration that was specified as
+          config.yml in the pack.
+    * self._poll_interval
+        - indicates the interval between two successive poll() calls.
+    """
 
     def setup(self):
         # Setup stuff goes here. For example, you might establish connections
@@ -15,7 +21,7 @@ class SimplePollingSensor(PollingSensor):
 
     def poll(self):
         # This is where the crux of the sensor work goes.
-        # This is called every poll_interval.
+        # This is called every self._poll_interval.
         # For example, let's assume you want to query ec2 and get
         # health information about your instances:
         #   some_data = aws_client.get('')

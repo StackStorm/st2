@@ -1,12 +1,16 @@
-from st2reactor.sensor import Sensor
+from st2reactor.sensor.base import Sensor
 
 
 class SimpleSensor(Sensor):
-    def __init__(self, sensor_service=None, config=None):
-        self._service = sensor_service
-        # sensor_service provides utilities like
-        # get_logger() for writing to logs.
-        # dispatch() for dispatching triggers into the system.
+    """
+    * self._sensor_service
+        - provides utilities like
+            get_logger() for writing to logs.
+            dispatch() for dispatching triggers into the system.
+    * self._config
+        - contains configuration that was specified as
+          config.yml in the pack.
+    """
 
     def setup(self):
         # Setup stuff goes here. For example, you might establish connections

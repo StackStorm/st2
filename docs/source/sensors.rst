@@ -21,7 +21,13 @@ A trigger is a tuple of type (string) and optional parameters (object). Rules ar
 Authoring a sensor
 ~~~~~~~~~~~~~~~~~~
 
-A simple sensor implementation is shown below.
+Authoring a sensor involves authoring a python file and a yaml meta file
+that defines the sensor. An example meta file is shown below.
+
+.. literalinclude:: ../../contrib/examples/sensors/sample_sensor.yaml
+
+
+Corresponding simple sensor python implementation is shown below.
 
 .. literalinclude:: ../../contrib/examples/sensors/sample_sensor.py
 
@@ -32,12 +38,10 @@ sensor should generate triggers of the form (python dict):
 ::
 
     {
-        'name': 'name of the trigger you register in get_trigger_types() method. required.',
-        'pack': 'pack that contains this sensor',
+        'name': 'name of the trigger you register in get_trigger_types() method. required.', # execution_trigger
+        'pack': 'pack that contains this sensor', # examples
         'payload' : { # required field. contents can be empty.
-            'foo': 'bar',
-            'baz': 1,
-            'time': '2014-08-01T00:00:00.000000Z'
+            'executed_at': '2014-08-01T00:00:00.000000Z'
         }
     }
 
@@ -46,7 +50,7 @@ passed into the sensor on instantiation.
 
 .. code:: python
 
-    self._service.dispatch(trigger, payload)
+    self._sensor_service.dispatch(trigger, payload)
 
 If you want a sensor that polls an external system at regular intervals, you
 would use a PollingSensor instead of Sensor as the base class.
