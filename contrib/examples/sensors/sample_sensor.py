@@ -24,7 +24,7 @@ class SimpleSensor(Sensor):
         # interacting with your external system, you'd inherit from PollingSensor.)
         # For example, let's consider a simple flask app. You'd run the flask app here.
         # You can dispatch triggers using sensor_service like so:
-        # self._service(trigger_type_ref, payload)
+        # self._sensor_service(trigger_type_ref, payload)
         pass
 
     def cleanup(self):

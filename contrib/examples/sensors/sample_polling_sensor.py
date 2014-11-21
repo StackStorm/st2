@@ -29,7 +29,7 @@ class SimplePollingSensor(PollingSensor):
         #   # _to_triggers is something you'd write to convert the data format you have
         #   # into a standard python dictionary. This should follow the payload schema
         #   # registered for the trigger.
-        #   self._container_service.dispatch(trigger, payload)
+        #   self._sensor_service.dispatch(trigger, payload)
         #   # You can refer to the trigger as dict
         #   # { "name": ${trigger_name}, "pack": ${trigger_pack} }
         #   # or just simply by reference as string.
