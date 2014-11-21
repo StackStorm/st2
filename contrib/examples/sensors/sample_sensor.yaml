@@ -1,7 +1,7 @@
 ---
-  class_name: "SampleSensor"
+  class_name: "SimpleSensor"
   entry_point: "sample_sensor.py"
-  description: "Sample sensor that emits triggers."
+  description: "Simple sensor that emits triggers."
   trigger_types:
     -
       name: "execution_trigger"
