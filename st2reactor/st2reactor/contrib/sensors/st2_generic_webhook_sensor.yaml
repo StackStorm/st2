@@ -1,7 +1,5 @@
 ---
-  class_name: "St2GenericWebhooksSensor"
-  entry_point: "st2_generic_webhook_sensor.py"
-  description: "Sensor which exposes an HTTP server and emits triggers for received webhooks"
+  description: "Trigger type for generic webhooks."
   trigger_types:
     -
       name: "st2.webhook"

@@ -59,14 +59,11 @@ class SensorsRegistrar(object):
         LOG.debug('Loading sensor from %s.', sensor_metadata_file_path)
         metadata = self._meta_loader.load(file_path=sensor_metadata_file_path)
 
-        class_name = metadata['class_name']
-        entry_point = metadata['entry_point']
+        class_name = metadata.get('class_name', None)
+        entry_point = metadata.get('entry_point', None)
         description = metadata.get('description', None)
         trigger_types = metadata.get('trigger_types', [])
         poll_interval = metadata.get('poll_interval', None)
-
-        sensors_dir = os.path.dirname(sensor_metadata_file_path)
-        sensor_file_path = os.path.join(sensors_dir, entry_point)
 
         # Add TrigerType models to the DB
         trigger_type_dbs = container_utils.add_trigger_models(pack=pack,
@@ -79,16 +76,19 @@ class SensorsRegistrar(object):
             trigger_type_ref = ref_obj.ref
             trigger_type_refs.append(trigger_type_ref)
 
-        # Add Sensor model to the DB
-        sensor_obj = {
-            'name': class_name,
-            'description': description,
-            'class_name': class_name,
-            'file_path': sensor_file_path,
-            'trigger_types': trigger_type_refs,
-            'poll_interval': poll_interval
-        }
-        container_utils.add_sensor_model(pack=pack, sensor=sensor_obj)
+        if entry_point and class_name:
+            sensors_dir = os.path.dirname(sensor_metadata_file_path)
+            sensor_file_path = os.path.join(sensors_dir, entry_point)
+            # Add Sensor model to the DB
+            sensor_obj = {
+                'name': class_name,
+                'description': description,
+                'class_name': class_name,
+                'file_path': sensor_file_path,
+                'trigger_types': trigger_type_refs,
+                'poll_interval': poll_interval
+            }
+            container_utils.add_sensor_model(pack=pack, sensor=sensor_obj)
 
     def register_sensors_from_packs(self, base_dir):
         pack_loader = ContentPackLoader()
