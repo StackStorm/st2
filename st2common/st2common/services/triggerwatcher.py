@@ -19,6 +19,7 @@ from kombu import Connection
 from oslo.config import cfg
 
 from st2common import log as logging
+from st2common.persistence.reactor import Trigger
 from st2common.transport import reactor, publishers
 
 LOG = logging.getLogger(__name__)
@@ -54,7 +55,8 @@ class TriggerWatcher(ConsumerMixin):
         self._trigger_types = trigger_types
 
         self.connection = None
-        self._thread = None
+        self._load_thread = None
+        self._updates_thread = None
 
         self._handlers = {
             publishers.CREATE_RK: create_handler,
@@ -99,14 +101,16 @@ class TriggerWatcher(ConsumerMixin):
     def start(self):
         try:
             self.connection = Connection(cfg.CONF.messaging.url)
-            self._thread = eventlet.spawn(self.run)
+            self._updates_thread = eventlet.spawn(self.run)
+            self._load_thread = eventlet.spawn(self._load_triggers_from_db)
         except:
             LOG.exception('Failed to start watcher.')
             self.connection.release()
 
     def stop(self):
         try:
-            self._thread = eventlet.kill(self._thread)
+            self._updates_thread = eventlet.kill(self._updates_thread)
+            self._load_thread = eventlet.kill(self._load_thread)
         finally:
             self.connection.release()
 
@@ -122,3 +126,9 @@ class TriggerWatcher(ConsumerMixin):
     def on_iteration(self):
         super(TriggerWatcher, self).on_iteration()
         eventlet.sleep(seconds=self.sleep_interval)
+
+    def _load_triggers_from_db(self):
+        for trigger_type in self._trigger_types:
+            for trigger in Trigger.query(type=trigger_type):
+                LOG.debug('Found existing trigger: %s in db.' % trigger)
+                self._handlers[publishers.CREATE_RK](trigger)

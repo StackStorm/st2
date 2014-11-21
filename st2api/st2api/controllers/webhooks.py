@@ -37,7 +37,7 @@ class WebhooksController(pecan.rest.RestController):
     def __init__(self, *args, **kwargs):
         super(WebhooksController, self).__init__(*args, **kwargs)
         self._hooks = {}
-        self._base_url = '/webhooks'
+        self._base_url = '/webhooks/'
         self._trigger_types = [GENERIC_WEBHOOK_TRIGGER_REF]
 
         self._trigger_dispatcher = TriggerDispatcher(LOG)
