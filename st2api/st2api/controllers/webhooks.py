@@ -38,14 +38,14 @@ class WebhooksController(pecan.rest.RestController):
         super(WebhooksController, self).__init__(*args, **kwargs)
         self._hooks = {}
         self._base_url = '/webhooks'
+        self._trigger_types = [GENERIC_WEBHOOK_TRIGGER_REF]
+
         self._trigger_dispatcher = TriggerDispatcher(LOG)
-        # TODO: Use routing key specific to this sensor we can only listen to
-        # the events we are interested in
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
-                                               delete_handler=self._handle_delete_trigger)
+                                               delete_handler=self._handle_delete_trigger,
+                                               trigger_types=self._trigger_types)
         self._trigger_watcher.start()
-        self._trigger_types = {GENERIC_WEBHOOK_TRIGGER_REF}
 
     @jsexpose(str, status_code=http_client.ACCEPTED)
     def post(self, hook, **kwargs):
@@ -98,38 +98,22 @@ class WebhooksController(pecan.rest.RestController):
             headers_dict[key] = value
         return headers_dict
 
-    # TODO: Refactor so we can get callbacks for specific events we want.
     ##############################################
     # Event handler methods for the trigger events
     ##############################################
 
     def _handle_create_trigger(self, trigger):
-        trigger_type_ref = trigger.type
-        if trigger_type_ref not in self._trigger_types:
-            # This trigger doesn't belong to this sensor
-            return
-
-        LOG.debug('Calling "add_trigger" method (trigger.type=%s)' % (trigger_type_ref))
+        LOG.debug('Calling "add_trigger" method (trigger.type=%s)' % (trigger.type))
         trigger = self._sanitize_trigger(trigger=trigger)
         self.add_trigger(trigger=trigger)
 
     def _handle_update_trigger(self, trigger):
-        trigger_type_ref = trigger.type
-        if trigger_type_ref not in self._trigger_types:
-            # This trigger doesn't belong to this sensor
-            return
-
-        LOG.debug('Calling "update_trigger" method (trigger.type=%s)' % (trigger_type_ref))
+        LOG.debug('Calling "update_trigger" method (trigger.type=%s)' % (trigger.type))
         trigger = self._sanitize_trigger(trigger=trigger)
         self.update_trigger(trigger=trigger)
 
     def _handle_delete_trigger(self, trigger):
-        trigger_type_ref = trigger.type
-        if trigger_type_ref not in self._trigger_types:
-            # This trigger doesn't belong to this sensor
-            return
-
-        LOG.debug('Calling "remove_trigger" method (trigger.type=%s)' % (trigger_type_ref))
+        LOG.debug('Calling "remove_trigger" method (trigger.type=%s)' % (trigger.type))
         trigger = self._sanitize_trigger(trigger=trigger)
         self.remove_trigger(trigger=trigger)
 
