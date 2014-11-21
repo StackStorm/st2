@@ -77,7 +77,6 @@ class WebhooksController(pecan.rest.RestController):
     def _get_trigger_for_hook(self, hook):
         return self._hooks[hook]
 
-    # Figure out how to call these. TriggerWatcher?
     def add_trigger(self, trigger):
         url = trigger['parameters']['url']
         LOG.info('Listening to endpoint: %s', urljoin(self._base_url, url))
@@ -88,8 +87,10 @@ class WebhooksController(pecan.rest.RestController):
 
     def remove_trigger(self, trigger):
         url = trigger['parameters']['url']
-        LOG.info('Stop listening to endpoint: %s', urljoin(self._base_url, url))
-        del self._hooks[url]
+
+        if url in self._hooks:
+            LOG.info('Stop listening to endpoint: %s', urljoin(self._base_url, url))
+            del self._hooks[url]
 
     def _get_headers_as_dict(self, headers):
         headers_dict = {}
@@ -126,10 +127,6 @@ class WebhooksController(pecan.rest.RestController):
         trigger_type_ref = trigger.type
         if trigger_type_ref not in self._trigger_types:
             # This trigger doesn't belong to this sensor
-            return
-
-        trigger_id = str(trigger.id)
-        if trigger_id not in self._trigger_names:
             return
 
         LOG.debug('Calling "remove_trigger" method (trigger.type=%s)' % (trigger_type_ref))
