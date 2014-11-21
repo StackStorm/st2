@@ -3,6 +3,7 @@ import unittest2
 
 import mock
 
+import st2tests.config as tests_config
 from st2reactor.container.sensor_wrapper import SensorWrapper
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -18,13 +19,20 @@ class Trigger(object):
 
 
 class SensorWrapperTestCase(unittest2.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(SensorWrapperTestCase, cls).setUpClass()
+        tests_config.parse_args()
+
     def test_trigger_cud_event_handlers(self):
         file_path = os.path.join(RESOURCES_DIR, 'test_sensor.py')
         trigger_types = ['trigger1', 'trigger2']
+        parent_args = ['--config-file', 'conf/st2.conf']
 
         wrapper = SensorWrapper(pack='core', file_path=file_path,
                                 class_name='TestSensor',
-                                trigger_types=trigger_types)
+                                trigger_types=trigger_types,
+                                parent_args=parent_args)
 
         self.assertEqual(wrapper._trigger_names, {})
 
@@ -32,13 +40,9 @@ class SensorWrapperTestCase(unittest2.TestCase):
         wrapper._sensor_instance.update_trigger = mock.Mock()
         wrapper._sensor_instance.remove_trigger = mock.Mock()
 
-        # Call create handler with trigger referring to a different sensor
-        trigger = Trigger(id='1', type='sometrigger')
-        wrapper._handle_create_trigger(trigger=trigger)
-        self.assertEqual(wrapper._trigger_names, {})
+        # Call create handler with a trigger which refers to this sensor
         self.assertEqual(wrapper._sensor_instance.add_trigger.call_count, 0)
 
-        # Call create handler with a trigger which refers to this sensor
         trigger = Trigger(id='2', type=trigger_types[0])
         wrapper._handle_create_trigger(trigger=trigger)
         self.assertEqual(wrapper._trigger_names, {'2': trigger})
