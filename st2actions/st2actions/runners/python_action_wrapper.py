@@ -18,7 +18,7 @@ import json
 import argparse
 
 from st2common import log as logging
-from st2common import config
+from st2actions import config
 from st2actions.runners.pythonrunner import Action
 from st2common.util import loader as action_loader
 from st2common.util.config_parser import ContentPackConfigParser
