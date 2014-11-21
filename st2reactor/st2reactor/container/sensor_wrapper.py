@@ -107,7 +107,8 @@ class SensorWrapper(object):
         # 2. Instantiate the watcher
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
-                                               delete_handler=self._handle_delete_trigger)
+                                               delete_handler=self._handle_delete_trigger,
+                                               trigger_types=self._trigger_types)
 
         # 3. Set up logging
         self._logger = logging.getLogger('SensorWrapper.%s' %
@@ -153,43 +154,28 @@ class SensorWrapper(object):
     ##############################################
 
     def _handle_create_trigger(self, trigger):
-        trigger_type_ref = trigger.type
-        if trigger_type_ref not in self._trigger_types:
-            # This trigger doesn't belong to this sensor
-            return
-
         self._logger.debug('Calling sensor "add_trigger" method (trigger.type=%s)' %
-                           (trigger_type_ref))
+                           (trigger.type))
         self._trigger_names[str(trigger.id)] = trigger
 
         trigger = self._sanitize_trigger(trigger=trigger)
         self._sensor_instance.add_trigger(trigger=trigger)
 
     def _handle_update_trigger(self, trigger):
-        trigger_type_ref = trigger.type
-        if trigger_type_ref not in self._trigger_types:
-            # This trigger doesn't belong to this sensor
-            return
-
         self._logger.debug('Calling sensor "update_trigger" method (trigger.type=%s)' %
-                           (trigger_type_ref))
+                           (trigger.type))
         self._trigger_names[str(trigger.id)] = trigger
 
         trigger = self._sanitize_trigger(trigger=trigger)
         self._sensor_instance.update_trigger(trigger=trigger)
 
     def _handle_delete_trigger(self, trigger):
-        trigger_type_ref = trigger.type
-        if trigger_type_ref not in self._trigger_types:
-            # This trigger doesn't belong to this sensor
-            return
-
         trigger_id = str(trigger.id)
         if trigger_id not in self._trigger_names:
             return
 
         self._logger.debug('Calling sensor "remove_trigger" method (trigger.type=%s)' %
-                           (trigger_type_ref))
+                           (trigger.type))
         del self._trigger_names[trigger_id]
 
         trigger = self._sanitize_trigger(trigger=trigger)

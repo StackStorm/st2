@@ -30,14 +30,37 @@ class TriggerWatcher(ConsumerMixin):
                                                     routing_key='#')
     sleep_interval = 4  # how long to sleep after processing each message
 
-    def __init__(self, create_handler, update_handler, delete_handler):
+    def __init__(self, create_handler, update_handler, delete_handler,
+                 trigger_types=None):
+        """
+        :param create_handler: Function which is called on TriggerDB create event.
+        :type create_handler: ``callable``
+
+        :param update_handler: Function which is called on TriggerDB update event.
+        :type update_handler: ``callable``
+
+        :param delete_handler: Function which is called on TriggerDB delete event.
+        :type delete_handler: ``callable``
+
+        :param trigger_types: If provided, handler function will only be called
+                              if the trigger in the message payload is included
+                              in this list.
+        :type trigger_types: ``list``
+        """
+        # TODO: Handle trigger type filtering using routing key
+        self._create_handler = create_handler
+        self._update_handler = update_handler
+        self._delete_handler = delete_handler
+        self._trigger_types = trigger_types
+
+        self.connection = None
+        self._thread = None
+
         self._handlers = {
             publishers.CREATE_RK: create_handler,
             publishers.UPDATE_RK: update_handler,
             publishers.DELETE_RK: delete_handler
         }
-        self.connection = None
-        self._thread = None
 
     def get_consumers(self, Consumer, channel):
         return [Consumer(queues=[self.TRIGGER_WATCH_Q],
@@ -49,11 +72,18 @@ class TriggerWatcher(ConsumerMixin):
         LOG.debug('     body: %s', body)
         LOG.debug('     message.properties: %s', message.properties)
         LOG.debug('     message.delivery_info: %s', message.delivery_info)
+
         routing_key = message.delivery_info.get('routing_key', '')
         handler = self._handlers.get(routing_key, None)
 
         if not handler:
-            LOG.debug('Skipping message %s as no handler was found.')
+            LOG.debug('Skipping message %s as no handler was found.', message)
+            return
+
+        trigger_type = getattr(body, 'type', None)
+        if self._trigger_types and trigger_type not in self._trigger_types:
+            LOG.debug('Skipping message %s since\'t trigger_type doesn\'t match (type=%s)',
+                      message, trigger_type)
             return
 
         try:
