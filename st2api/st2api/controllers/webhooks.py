@@ -59,7 +59,7 @@ class WebhooksController(pecan.rest.RestController):
         try:
             body = json.loads(body)
         except ValueError:
-            msg = 'Invalid JSON body %s' % body
+            msg = 'Invalid JSON body: %s' % (body)
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
         trigger = self._get_trigger_for_hook(hook)
@@ -80,7 +80,7 @@ class WebhooksController(pecan.rest.RestController):
     # Figure out how to call these. TriggerWatcher?
     def add_trigger(self, trigger):
         url = trigger['parameters']['url']
-        self._log.info('Listening to endpoint: %s', urljoin(self._base_url, url))
+        LOG.info('Listening to endpoint: %s', urljoin(self._base_url, url))
         self._hooks[url] = trigger
 
     def update_trigger(self, trigger):
@@ -88,7 +88,7 @@ class WebhooksController(pecan.rest.RestController):
 
     def remove_trigger(self, trigger):
         url = trigger['parameters']['url']
-        self._log.info('Stop listening to endpoint: %s', urljoin(self._base_url, url))
+        LOG.info('Stop listening to endpoint: %s', urljoin(self._base_url, url))
         del self._hooks[url]
 
     def _get_headers_as_dict(self, headers):
@@ -108,8 +108,7 @@ class WebhooksController(pecan.rest.RestController):
             # This trigger doesn't belong to this sensor
             return
 
-        self._logger.debug('Calling sensor "add_trigger" method (trigger.type=%s)' %
-                           (trigger_type_ref))
+        LOG.debug('Calling "add_trigger" method (trigger.type=%s)' % (trigger_type_ref))
         trigger = self._sanitize_trigger(trigger=trigger)
         self.add_trigger(trigger=trigger)
 
@@ -119,8 +118,7 @@ class WebhooksController(pecan.rest.RestController):
             # This trigger doesn't belong to this sensor
             return
 
-        self._logger.debug('Calling sensor "update_trigger" method (trigger.type=%s)' %
-                           (trigger_type_ref))
+        LOG.debug('Calling "update_trigger" method (trigger.type=%s)' % (trigger_type_ref))
         trigger = self._sanitize_trigger(trigger=trigger)
         self.update_trigger(trigger=trigger)
 
@@ -134,9 +132,7 @@ class WebhooksController(pecan.rest.RestController):
         if trigger_id not in self._trigger_names:
             return
 
-        self._logger.debug('Calling sensor "remove_trigger" method (trigger.type=%s)' %
-                           (trigger_type_ref))
-
+        LOG.debug('Calling "remove_trigger" method (trigger.type=%s)' % (trigger_type_ref))
         trigger = self._sanitize_trigger(trigger=trigger)
         self.remove_trigger(trigger=trigger)
 
