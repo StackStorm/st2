@@ -24,6 +24,8 @@ __all__ = [
     'TriggerCUDPublisher',
     'TriggerInstancePublisher',
 
+    'TriggerDispatcher',
+
     'get_trigger_cud_queue',
     'get_trigger_instances_queue'
 ]
@@ -33,7 +35,7 @@ LOG = logging.getLogger(__name__)
 # Exchange for Trigger CUD events
 TRIGGER_CUD_XCHG = Exchange('st2.trigger', type='topic')
 
-# Exchange for Trigger events
+# Exchange for TriggerInstance events
 TRIGGER_INSTANCES_XCHG = Exchange('st2.trigger_instances_dispatch', type='topic')
 
 
@@ -51,7 +53,7 @@ class TriggerInstancePublisher(object):
         self._publisher = publishers.PoolPublisher(url=url)
 
     def publish_trigger(self, payload, routing_key):
-        # TODO: We could use trigger reference as a routing key
+        # TODO: We should use trigger reference as a routing key
         self._publisher.publish(payload, TRIGGER_INSTANCES_XCHG, routing_key)
 
 
