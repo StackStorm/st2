@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ast
 import json
 import requests
 
@@ -41,7 +42,11 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
     def callback(url, context, status, result):
         try:
             method = 'PUT'
-            output = json.dumps(result) if isinstance(result, dict) else str(result)
+            if isinstance(result, basestring) and len(result) > 0 and result[0] in ['{', '[']:
+                value = ast.literal_eval(result)
+                if type(value) in [dict, list]:
+                    result = value
+            output = json.dumps(result) if type(result) in [dict, list] else str(result)
             v1 = 'v1' in url
             output_key = 'output' if v1 else 'result'
             data = {'state': STATUS_MAP[status], output_key: output}

@@ -34,6 +34,7 @@ import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2actions import worker
 from st2actions.runners.mistral.v2 import MistralRunner
 from st2actions.runners.fabricrunner import FabricRunner
+from st2actions.handlers.mistral import MistralCallbackHandler
 from st2common.transport.publishers import CUDPublisher
 from st2common.services import action as action_service
 from st2common.models.db.action import ActionExecutionDB
@@ -113,6 +114,43 @@ class TestMistralRunner(DbTestCase):
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+
+    @mock.patch.object(
+        requests, 'request',
+        mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
+    def test_callback_handler_with_result_as_text(self):
+        MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
+                                        ACTIONEXEC_STATUS_SUCCEEDED, '<html></html>')
+
+    @mock.patch.object(
+        requests, 'request',
+        mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
+    def test_callback_handler_with_result_as_dict(self):
+        MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
+                                        ACTIONEXEC_STATUS_SUCCEEDED, {'a': 1})
+
+    @mock.patch.object(
+        requests, 'request',
+        mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
+    def test_callback_handler_with_result_as_json_str(self):
+        MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
+                                        ACTIONEXEC_STATUS_SUCCEEDED, '{"a": 1}')
+        MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
+                                        ACTIONEXEC_STATUS_SUCCEEDED, "{'a': 1}")
+
+    @mock.patch.object(
+        requests, 'request',
+        mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
+    def test_callback_handler_with_result_as_list(self):
+        MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
+                                        ACTIONEXEC_STATUS_SUCCEEDED, ["a", "b", "c"])
+
+    @mock.patch.object(
+        requests, 'request',
+        mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
+    def test_callback_handler_with_result_as_list_str(self):
+        MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
+                                        ACTIONEXEC_STATUS_SUCCEEDED, '["a", "b", "c"]')
 
     @mock.patch.object(
         requests, 'request',
