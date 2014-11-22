@@ -52,7 +52,7 @@ class TriggerInstancePublisher(object):
     def __init__(self, url):
         self._publisher = publishers.PoolPublisher(url=url)
 
-    def publish_trigger(self, payload, routing_key):
+    def publish_trigger(self, payload=None, routing_key=None):
         # TODO: We should use trigger reference as a routing key
         self._publisher.publish(payload, TRIGGER_INSTANCES_XCHG, routing_key)
 
