@@ -48,7 +48,8 @@ class WebhooksController(pecan.rest.RestController):
         self._trigger_watcher.start()
 
     @jsexpose(str, status_code=http_client.ACCEPTED)
-    def post(self, hook, **kwargs):
+    def post(self, *args, **kwargs):
+        hook = '/'.join(args)  # TODO: There must be a better way to do this.
         LOG.info('POST /webhooks/ with hook=%s', hook)
 
         if not self._is_valid_hook(hook):
@@ -66,7 +67,7 @@ class WebhooksController(pecan.rest.RestController):
         payload = {}
         payload['headers'] = self._get_headers_as_dict(pecan.request.headers)
         payload['body'] = body
-        self._trigger_dispatcher.dispatch(trigger, payload=body)
+        self._trigger_dispatcher.dispatch(trigger, payload=payload)
 
         return body
 
