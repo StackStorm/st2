@@ -37,19 +37,22 @@ class ActionsRegistrar(object):
         actions = glob.glob(actions_dir + '/*.json')
         # Exclude global actions configuration file
         actions = [file_path for file_path in actions if
-                   'actions/config.json' not in file_path]
+                   'actions/config.json' not in file_path] or []
+        LOG.debug('Found JSON actions %s', actions)
         return actions
 
     def _get_yaml_actions_from_pack(self, actions_dir):
         actions = glob.glob(actions_dir + '/*.yaml')
         # Exclude global actions configuration file
         actions = [file_path for file_path in actions if
-                   'actions/config.yaml' not in file_path]
+                   'actions/config.yaml' not in file_path] or []
         actions_yml = glob.glob(actions_dir + '/*.yml')
         # Exclude global actions configuration file
-        actions_yml = [file_path for file_path in actions if
-                       'actions/config.yml' not in file_path]
-        return actions.extend(actions_yml)
+        actions_yml = [file_path for file_path in actions_yml if
+                       'actions/config.yml' not in file_path] or []
+        actions.extend(actions_yml)
+        LOG.debug('Found YAML actions %s', actions)
+        return actions
 
     def _get_actions_from_pack(self, actions_dir):
         actions = self._get_json_actions_from_pack(actions_dir) or []
@@ -118,6 +121,7 @@ class ActionsRegistrar(object):
                                        content_type='actions')
         for pack, actions_dir in six.iteritems(dirs):
             try:
+                LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
                 actions = self._get_actions_from_pack(actions_dir)
                 self._register_actions_from_pack(pack, actions)
             except:
