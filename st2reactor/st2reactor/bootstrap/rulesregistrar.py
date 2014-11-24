@@ -19,6 +19,7 @@ from oslo.config import cfg
 import six
 
 from st2common import log as logging
+from st2common.constants.meta import ALLOWED_EXTS
 from st2common.content.loader import (ContentPackLoader, MetaLoader)
 from st2common.models.api.rule import RuleAPI
 from st2common.persistence.reactor import Rule
@@ -30,17 +31,11 @@ class RulesRegistrar(object):
     def __init__(self):
         self._meta_loader = MetaLoader()
 
-    def _get_json_rules_from_pack(self, rules_dir):
-        return glob.glob(rules_dir + '/*.json')
-
-    def _get_yaml_rules_from_pack(self, rules_dir):
-        rules = glob.glob(rules_dir + '/*.yaml') or []
-        rules.extend(glob.glob(rules_dir + '*.yml') or [])
-        return rules
-
     def _get_rules_from_pack(self, rules_dir):
-        rules = self._get_json_rules_from_pack(rules_dir) or []
-        rules.extend(self._get_yaml_rules_from_pack(rules_dir) or [])
+        rules = []
+        for ext in ALLOWED_EXTS:
+            rules_ext = glob.glob(rules_dir + '/*' + ext)
+            rules.extend(rules_ext)
         return rules
 
     def _register_rules_from_pack(self, pack, rules):
