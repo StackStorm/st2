@@ -34,4 +34,5 @@ install -m755 bin/rules_engine %{buildroot}/usr/bin/rules_engine
 
 /usr/lib/python2.7/site-packages/st2reactor*
 /usr/bin/sensor_container
+/usr/bin/rules_engine
 /etc/st2reactor*
