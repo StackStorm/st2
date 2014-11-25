@@ -119,7 +119,7 @@ class TestResourceCommand(unittest2.TestCase):
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, 'OK')))
     def test_command_create(self):
         instance = base.FakeResource(name='abc')
-        fd, path = tempfile.mkstemp()
+        fd, path = tempfile.mkstemp(suffix='.json')
         try:
             with open(path, 'a') as f:
                 f.write(json.dumps(instance.serialize(), indent=4))
@@ -139,7 +139,7 @@ class TestResourceCommand(unittest2.TestCase):
         mock.MagicMock(return_value=base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
     def test_command_create_failed(self):
         instance = base.FakeResource(name='abc')
-        fd, path = tempfile.mkstemp()
+        fd, path = tempfile.mkstemp(suffix='.json')
         try:
             with open(path, 'a') as f:
                 f.write(json.dumps(instance.serialize(), indent=4))
@@ -159,7 +159,7 @@ class TestResourceCommand(unittest2.TestCase):
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, 'OK')))
     def test_command_update(self):
         instance = base.FakeResource(id='123', name='abc')
-        fd, path = tempfile.mkstemp()
+        fd, path = tempfile.mkstemp(suffix='.json')
         try:
             with open(path, 'a') as f:
                 f.write(json.dumps(instance.serialize(), indent=4))
@@ -183,7 +183,7 @@ class TestResourceCommand(unittest2.TestCase):
         mock.MagicMock(return_value=base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
     def test_command_update_failed(self):
         instance = base.FakeResource(id='123', name='abc')
-        fd, path = tempfile.mkstemp()
+        fd, path = tempfile.mkstemp(suffix='.json')
         try:
             with open(path, 'a') as f:
                 f.write(json.dumps(instance.serialize(), indent=4))
@@ -201,7 +201,7 @@ class TestResourceCommand(unittest2.TestCase):
         mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
     def test_command_update_id_mismatch(self):
         instance = base.FakeResource(id='789', name='abc')
-        fd, path = tempfile.mkstemp()
+        fd, path = tempfile.mkstemp(suffix='.json')
         try:
             with open(path, 'a') as f:
                 f.write(json.dumps(instance.serialize(), indent=4))
