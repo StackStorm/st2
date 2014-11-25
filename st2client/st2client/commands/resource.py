@@ -19,10 +19,13 @@ import six
 import json
 import logging
 
+import yaml
+
 from st2client import commands
 from st2client.formatters import table
 
-
+ALLOWED_EXTS = ['.json', '.yaml', '.yml']
+PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
 LOG = logging.getLogger(__name__)
 
 
@@ -272,17 +275,14 @@ class ResourceCreateCommand(ResourceCommand):
             *args, **kwargs)
 
         self.parser.add_argument('file',
-                                 help=('JSON file containing the %s to create.'
+                                 help=('JSON/YAML file containing the %s to create.'
                                        % resource.get_display_name().lower()))
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        if not os.path.isfile(args.file):
-            raise Exception('File "%s" does not exist.' % args.file)
-        with open(args.file, 'r') as f:
-            data = json.loads(f.read())
-            instance = self.resource.deserialize(data)
-            return self.manager.create(instance, **kwargs)
+        data = _load_meta_file(args.file)
+        instance = self.resource.deserialize(data)
+        return self.manager.create(instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
@@ -307,29 +307,25 @@ class ResourceUpdateCommand(ResourceCommand):
                                  metavar=metavar,
                                  help=help)
         self.parser.add_argument('file',
-                                 help=('JSON file containing the %s to update.'
+                                 help=('JSON/YAML file containing the %s to update.'
                                        % resource.get_display_name().lower()))
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        if not os.path.isfile(args.file):
-            raise Exception('File "%s" does not exist.' % args.file)
-
         resource_id = getattr(args, self.pk_argument_name, None)
         instance = self.get_resource(resource_id, **kwargs)
+        data = _load_meta_file(args.file)
+        modified_instance = self.resource.deserialize(data)
 
-        with open(args.file, 'r') as f:
-            data = json.loads(f.read())
-            modified_instance = self.resource.deserialize(data)
-            if not getattr(modified_instance, 'id', None):
-                modified_instance.id = instance.id
-            else:
-                if modified_instance.id != instance.id:
-                    raise Exception('The value for the %s id in the JSON file '
-                                    'does not match the ID provided in the '
-                                    'command line arguments.' %
-                                    self.resource.get_display_name().lower())
-            return self.manager.update(modified_instance, **kwargs)
+        if not getattr(modified_instance, 'id', None):
+            modified_instance.id = instance.id
+        else:
+            if modified_instance.id != instance.id:
+                raise Exception('The value for the %s id in the JSON/YAML file '
+                                'does not match the ID provided in the '
+                                'command line arguments.' %
+                                self.resource.get_display_name().lower())
+        return self.manager.update(modified_instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
@@ -378,3 +374,16 @@ class ContentPackResourceDeleteCommand(ResourceDeleteCommand):
     """
 
     pk_argument_name = 'ref_or_id'
+
+
+def _load_meta_file(file_path):
+    if not os.path.isfile(file_path):
+        raise Exception('File "%s" does not exist.' % file_path)
+
+    file_name, file_ext = os.path.splitext(file_path)
+    if file_ext not in ALLOWED_EXTS:
+        raise Exception('Unsupported meta type %s, file %s. Allowed: %s' %
+                        (file_ext, file_path, ALLOWED_EXTS))
+
+    with open(file_path, 'r') as f:
+        return PARSER_FUNCS[file_ext](f)

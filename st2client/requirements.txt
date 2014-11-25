@@ -1,3 +1,4 @@
 prettytable
+pyyaml
 requests
 six

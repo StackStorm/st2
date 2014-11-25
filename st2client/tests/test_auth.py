@@ -162,7 +162,7 @@ class TestAuthToken(base.BaseCLITestCase):
         url = 'http://localhost:9101/rules'
         data = {'name': RULE['name'], 'description': RULE['description']}
 
-        fd, path = tempfile.mkstemp()
+        fd, path = tempfile.mkstemp(suffix='.json')
         try:
             with open(path, 'a') as f:
                 f.write(json.dumps(data, indent=4))
@@ -199,7 +199,7 @@ class TestAuthToken(base.BaseCLITestCase):
         put_url = 'http://localhost:9101/rules/%s' % RULE['id']
         data = {'name': RULE['name'], 'description': RULE['description']}
 
-        fd, path = tempfile.mkstemp()
+        fd, path = tempfile.mkstemp(suffix='.json')
         try:
             with open(path, 'a') as f:
                 f.write(json.dumps(data, indent=4))
