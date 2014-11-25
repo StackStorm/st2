@@ -31,7 +31,7 @@ mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/var/log/st2
 mkdir -p %{buildroot}/etc/st2
-mkdir -p %{buildroot}/opt/stackstorm
+mkdir -p %{buildroot}/opt/stackstorm/packs
 mkdir -p %{buildroot}/usr/share/doc/st2
 cp -R contrib/core %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/packs %{buildroot}/opt/stackstorm/packs/
