@@ -46,6 +46,9 @@ register_opts()
 
 def register_sensors():
     try:
+        LOG.info('=========================================================')
+        LOG.info('############## Registering sensors ######################')
+        LOG.info('=========================================================')
         sensors_registrar.register_sensors()
     except Exception as e:
         LOG.warning('Failed to register sensors: %s', e, exc_info=True)
@@ -55,6 +58,9 @@ def register_actions():
     # Register runnertypes and actions. The order is important because actions require action
     # types to be present in the system.
     try:
+        LOG.info('=========================================================')
+        LOG.info('############## Registering actions ######################')
+        LOG.info('=========================================================')
         runners_registrar.register_runner_types()
     except Exception as e:
         LOG.warning('Failed to register action types: %s', e, exc_info=True)
@@ -67,8 +73,11 @@ def register_actions():
 
 
 def register_rules():
-    # 6. register rules
+    # Register rules.
     try:
+        LOG.info('=========================================================')
+        LOG.info('############## Registering rules ######################')
+        LOG.info('=========================================================')
         rules_registrar.register_rules()
     except Exception as e:
         LOG.warning('Failed to register rules: %s', e, exc_info=True)
@@ -83,15 +92,12 @@ def register_content():
 
     if cfg.CONF.register.sensors:
         register_sensors()
-        return
 
     if cfg.CONF.register.actions:
         register_actions()
-        return
 
     if cfg.CONF.register.rules:
         register_rules()
-        return
 
 
 def _setup():
