@@ -13,20 +13,84 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# All Exchanges and Queues related to ActionExecution.
-
 from kombu import Exchange, Queue
+
+from oslo.config import cfg
+
+from st2common import log as logging
 from st2common.transport import publishers
 
-TRIGGER_XCHG = Exchange('st2.trigger',
-                        type='topic')
+__all__ = [
+    'TriggerCUDPublisher',
+    'TriggerInstancePublisher',
+
+    'TriggerDispatcher',
+
+    'get_trigger_cud_queue',
+    'get_trigger_instances_queue'
+]
+
+LOG = logging.getLogger(__name__)
+
+# Exchange for Trigger CUD events
+TRIGGER_CUD_XCHG = Exchange('st2.trigger', type='topic')
+
+# Exchange for TriggerInstance events
+TRIGGER_INSTANCES_XCHG = Exchange('st2.trigger_instances_dispatch', type='topic')
 
 
-class TriggerPublisher(publishers.CUDPublisher):
+class TriggerCUDPublisher(publishers.CUDPublisher):
+    """
+    Publisher responsible for publishing Trigger model CUD events.
+    """
 
     def __init__(self, url):
-        super(TriggerPublisher, self).__init__(url, TRIGGER_XCHG)
+        super(TriggerCUDPublisher, self).__init__(url, TRIGGER_CUD_XCHG)
 
 
-def get_trigger_queue(name, routing_key):
-    return Queue(name, TRIGGER_XCHG, routing_key=routing_key)
+class TriggerInstancePublisher(object):
+    def __init__(self, url):
+        self._publisher = publishers.PoolPublisher(url=url)
+
+    def publish_trigger(self, payload=None, routing_key=None):
+        # TODO: We should use trigger reference as a routing key
+        self._publisher.publish(payload, TRIGGER_INSTANCES_XCHG, routing_key)
+
+
+class TriggerDispatcher(object):
+    """
+    This trigger dispatcher dispatches trigger instances to a message queue (RabbitMQ).
+    """
+
+    def __init__(self, logger=LOG):
+        self._publisher = TriggerInstancePublisher(url=cfg.CONF.messaging.url)
+        self._logger = logger
+
+    def dispatch(self, trigger, payload=None):
+        """
+        Method which dispatches the trigger.
+
+        :param trigger: Full name / reference of the trigger.
+        :type trigger: ``str`` or ``object``
+
+        :param payload: Trigger payload.
+        :type payload: ``dict``
+        """
+        assert(isinstance(payload, (type(None), dict)))
+
+        payload = {
+            'trigger': trigger,
+            'payload': payload
+        }
+        routing_key = 'trigger_instance'
+
+        self._logger.debug('Dispatching trigger (trigger=%s,payload=%s)', trigger, payload)
+        self._publisher.publish_trigger(payload=payload, routing_key=routing_key)
+
+
+def get_trigger_cud_queue(name, routing_key):
+    return Queue(name, TRIGGER_CUD_XCHG, routing_key=routing_key)
+
+
+def get_trigger_instances_queue(name, routing_key):
+    return Queue(name, TRIGGER_INSTANCES_XCHG, routing_key=routing_key)

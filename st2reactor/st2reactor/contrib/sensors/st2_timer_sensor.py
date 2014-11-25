@@ -13,18 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import apscheduler.util as aps_utils
-import dateutil.parser as date_parser
-import jsonschema
-import six
+from datetime import datetime
+
 from apscheduler.schedulers.background import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-from datetime import datetime
+import apscheduler.util as aps_utils
 from dateutil.tz import tzutc
+import dateutil.parser as date_parser
+import jsonschema
+
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.models.system.common import ResourceReference
+from st2reactor.sensor.base import Sensor
 
 
 INTERVAL_PARAMETERS_SCHEMA = {
@@ -157,24 +159,24 @@ TRIGGER_TYPES = {
 }
 
 
-class St2TimerSensor(object):
+class St2TimerSensor(Sensor):
     '''
     A timer sensor that uses APScheduler 3.0.
     '''
-    def __init__(self, container_service):
+    def __init__(self, sensor_service=None):
         self._timezone = 'America/Los_Angeles'  # Whatever TZ local box runs in.
-        self._container_service = container_service
-        self._log = self._container_service.get_logger(self.__class__.__name__)
+        self._sensor_service = sensor_service
+        self._log = self._sensor_service.get_logger(self.__class__.__name__)
         self._scheduler = BlockingScheduler(timezone=self._timezone)
         self._jobs = {}
 
     def setup(self):
         pass
 
-    def start(self):
+    def run(self):
         self._scheduler.start()
 
-    def stop(self):
+    def cleanup(self):
         self._scheduler.shutdown(wait=True)
 
     def add_trigger(self, trigger):
@@ -194,9 +196,6 @@ class St2TimerSensor(object):
             return
 
         self._scheduler.remove_job(job_id)
-
-    def get_trigger_types(self):
-        return [trigger_type for trigger_type in six.itervalues(TRIGGER_TYPES)]
 
     def _get_trigger_type(self, ref):
         pass
@@ -256,4 +255,4 @@ class St2TimerSensor(object):
             'executed_at': str(datetime.utcnow()),
             'schedule': trigger['parameters'].get('time')
         }
-        self._container_service.dispatch(trigger, payload)
+        self._sensor_service.dispatch(trigger, payload)

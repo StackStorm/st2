@@ -13,7 +13,7 @@ PACK_RESERVE_CHARACTER = '.'
 
 class InstallGitRepoAction(Action):
 
-    def run(self, repo_url=None, abs_repo_base=None, packs=None):
+    def run(self, packs, repo_url, abs_repo_base):
         abs_local_path = self._clone_repo(repo_url)
         try:
             # st2-contrib repo has a top-level packs folder that actually contains the

@@ -1,6 +1,6 @@
 #!/bin/bash
 LOGFILE="/tmp/st2_startup.log"
-COMPONENTS="actionrunner st2api sensor_container history mistral"
+COMPONENTS="actionrunner st2api sensor_container history rules_engine mistral"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
 if [ -z "$AR" ];
@@ -29,6 +29,7 @@ function st2start(){
   st2api --config-file ${STANCONF} &>> ${LOGFILE} &
   sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
   /usr/bin/history --config-file ${STANCONF} &>> ${LOGFILE} &
+  rules_engine --config-file ${STANCONF} &>> ${LOGFILE} &
   if [[ "${CONTAINER}" == "DOCKER" ]]
   then
     /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &

@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from oslo.config import cfg
 
 
@@ -49,9 +51,16 @@ def register_opts(ignore_errors=False):
     ]
     _do_register_opts(schema_opts, 'schema', ignore_errors)
 
+    system_opts = [
+        cfg.StrOpt('base_path', default='/opt/stackstorm/',
+                   help='Base path to all st2 artifacts.'),
+    ]
+    _do_register_opts(system_opts, 'system', ignore_errors)
+
+    packs_default_base = os.path.join(cfg.CONF.system.base_path, 'packs')
     content_opts = [
-        cfg.StrOpt('packs_base_path', default='/opt/stackstorm/',
-                   help='path to load sensor modules from'),
+        cfg.StrOpt('packs_base_path', default=packs_default_base,
+                   help='path to place content packs in.'),
         cfg.StrOpt('system_path', default='st2reactor/st2reactor/contrib/sensors',
                    help='path to load system sensor modules from')
     ]

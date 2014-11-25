@@ -40,7 +40,7 @@ function st2start(){
     PACKS_BASE_DIR=$(grep 'packs_base_path' ${ST2_CONF} \
         | awk 'BEGIN {FS=" = "}; {print $2}')
     if [ -z $PACKS_BASE_DIR ]; then
-        PACKS_BASE_DIR="/opt/stackstorm"
+        PACKS_BASE_DIR="/opt/stackstorm/packs"
     fi
     echo "Using content packs base dir: $PACKS_BASE_DIR"
 
@@ -67,6 +67,21 @@ function st2start(){
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs kill
     fi
 
+    # Run the st2 API server
+    echo 'Starting screen session st2-api...'
+    screen -d -m -S st2-api ./virtualenv/bin/python \
+        ./st2api/bin/st2api \
+        --config-file $ST2_CONF
+
+    # Register sensors, actions and rules
+    # Note: Sensor container pulls sensors from the DB so sensors need to be
+    # registered before sensor container can be started
+
+    echo 'Registering sensors, actions and rules...'
+    ./virtualenv/bin/python \
+        ./st2common/bin/registercontent.py \
+        --config-file $ST2_CONF --register-all
+
     # Run the history server
     echo 'Starting screen session st2-history...'
     screen -d -m -S st2-history ./virtualenv/bin/python \
@@ -87,16 +102,16 @@ function st2start(){
             --config-file $ST2_CONF
     done
 
-    # Run the st2 API server
-    echo 'Starting screen session st2-api...'
-    screen -d -m -S st2-api ./virtualenv/bin/python \
-        ./st2api/bin/st2api \
+    # Run the sensor container server
+    echo 'Starting screen session st2-sensorcontainer'
+    screen -d -m -S st2-sensorcontainer ./virtualenv/bin/python \
+        ./st2reactor/bin/sensor_container \
         --config-file $ST2_CONF
 
-    # Run the reactor server
-    echo 'Starting screen session st2-reactor...'
-    screen -d -m -S st2-reactor ./virtualenv/bin/python \
-        ./st2reactor/bin/sensor_container \
+    # Run the rules engine server
+    echo 'Starting screen session st2-rulesengine...'
+    screen -d -m -S st2-rulesengine ./virtualenv/bin/python \
+        ./st2reactor/bin/rules_engine \
         --config-file $ST2_CONF
 
     # Check whether screen sessions are started
@@ -104,7 +119,8 @@ function st2start(){
         "st2-api"
         "st2-history"
         "st2-actionrunner"
-        "st2-reactor"
+        "st2-sensorcontainer"
+        "st2-rulesengine"
     )
 
     echo
@@ -118,11 +134,6 @@ function st2start(){
 
     # List screen sessions
     screen -ls
-
-    echo 'Registering actions and rules...'
-    ./virtualenv/bin/python \
-        ./st2common/bin/registercontent.py \
-        --config-file $ST2_CONF --register-all
 }
 
 function st2stop(){

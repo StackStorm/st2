@@ -14,17 +14,20 @@
 # limitations under the License.
 
 import os
-
 from unittest2 import TestCase
+
+import mock
 
 from st2actions.runners import pythonrunner
 from st2actions.container import service
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.pack import SYSTEM_PACK_NAME
 import st2tests.base as tests_base
 import st2tests.config as tests_config
 
 
-PACAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'pythonactions/pascal_row.py')
+PACAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
+                                     'pythonactions/actions/pascal_row.py')
 
 
 class PythonRunnerTestCase(TestCase):
@@ -40,27 +43,38 @@ class PythonRunnerTestCase(TestCase):
 
     def test_simple_action(self):
         runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
         runner.entry_point = PACAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         result = runner.run({'row_index': 4})
         self.assertTrue(result)
         self.assertEqual(runner.container_service.get_status(), ACTIONEXEC_STATUS_SUCCEEDED)
-        self.assertEqual(runner.container_service.get_result(), [1, 4, 6, 4, 1])
+        self.assertEqual(runner.container_service.get_result()['result'], '[1, 4, 6, 4, 1]')
 
     def test_simple_action_fail(self):
         runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
         runner.entry_point = PACAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         result = runner.run({'row_index': '4'})
         self.assertTrue(result)
         self.assertEqual(runner.container_service.get_status(), ACTIONEXEC_STATUS_FAILED)
-        import json
-        print '\n', json.dumps(runner.container_service.get_result(), indent=4, sort_keys=True)
 
     def test_simple_action_no_file(self):
         runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
         runner.entry_point = ''
         runner.container_service = service.RunnerContainerService()
         result = runner.run({})
         self.assertTrue(result)
         self.assertEqual(runner.container_service.get_status(), ACTIONEXEC_STATUS_FAILED)
+
+    def _get_mock_action_obj(self):
+        """
+        Return mock action object.
+
+        Pack gets set to the system pack so the action doesn't require a separate virtualenv.
+        """
+        action = mock.Mock()
+        action.pack = SYSTEM_PACK_NAME
+        return action

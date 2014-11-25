@@ -50,6 +50,9 @@ class SensorTypeAPI(BaseAPI):
             'trigger_types': {
                 'type': 'array',
                 'default': []
+            },
+            'poll_interval': {
+                'type': 'number'
             }
         },
         'additionalProperties': False

@@ -15,7 +15,7 @@
         },
         "abs_repo_base": {
             "type": "string",
-            "default": "/opt/stackstorm",
+            "default": "/opt/stackstorm/packs/",
             "immutable": true
         }
     }

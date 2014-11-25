@@ -3,7 +3,7 @@
     "runner_type": "action-chain",
     "description": "Installs packs from st2-contrib into local content repository. Will download pack, load the actions, sensors and rules from the pack. Note that install require reboot of some st2 services.",
     "enabled": true,
-    "entry_point":"pack_mgmt/install.json",
+    "entry_point":"install.json",
     "parameters": {
         "packs": {
             "type": "array",
@@ -17,7 +17,7 @@
         "register": {
             "type": "string",
             "default": "actions",
-            "description": "Possible options are all, actions, rules."
+            "description": "Possible options are all, sensors, actions, rules."
         }
     }
 }

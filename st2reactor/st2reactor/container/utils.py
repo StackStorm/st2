@@ -21,6 +21,7 @@ from st2common.persistence.reactor import SensorType, TriggerType, TriggerInstan
 from st2common.models.db.reactor import SensorTypeDB, TriggerTypeDB, TriggerInstanceDB
 from st2common.services import triggers as TriggerService
 from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.constants.sensors import MINIMUM_POLL_INTERVAL
 
 LOG = logging.getLogger('st2reactor.sensor.container_utils')
 
@@ -157,9 +158,13 @@ def add_trigger_models(pack, trigger_types):
 
 
 def _create_sensor_type(pack, name, description, artifact_uri, entry_point,
-                        trigger_types=None):
+                        trigger_types=None, poll_interval=10):
     sensor_types = SensorType.query(pack=pack, name=name)
     is_update = False
+
+    if poll_interval and (poll_interval < MINIMUM_POLL_INTERVAL):
+        raise ValueError('Minimum possible poll_interval is %s seconds' %
+                         (MINIMUM_POLL_INTERVAL))
 
     if len(sensor_types) >= 1:
         sensor_type = sensor_types[0]
@@ -175,6 +180,7 @@ def _create_sensor_type(pack, name, description, artifact_uri, entry_point,
     sensor_type.artifact_uri = artifact_uri
     sensor_type.entry_point = entry_point
     sensor_type.trigger_types = trigger_types
+    sensor_type.poll_interval = poll_interval
 
     sensor_type_db = SensorType.add_or_update(sensor_type)
 
@@ -186,14 +192,14 @@ def _create_sensor_type(pack, name, description, artifact_uri, entry_point,
 
 
 def get_sensor_entry_point(pack, sensor):
-    filename = sensor['filename']
+    file_path = sensor['file_path']
     class_name = sensor['class_name']
 
     if pack == SYSTEM_PACK_NAME:
         # Special case for sensors which come included with the default installation
         entry_point = class_name
     else:
-        module_path = filename.split('/%s/' % (pack))[1]
+        module_path = file_path.split('/%s/' % (pack))[1]
         module_path = module_path.replace(os.path.sep, '.')
         module_path = module_path.replace('.py', '')
         entry_point = '%s.%s' % (module_path, class_name)
@@ -203,17 +209,20 @@ def get_sensor_entry_point(pack, sensor):
 
 def _add_sensor_model(pack, sensor):
     name = sensor['name']
-    filename = sensor['filename']
-    artifact_uri = 'file://%s' % (filename)
+    description = sensor['description']
+    file_path = sensor['file_path']
+    artifact_uri = 'file://%s' % (file_path)
     entry_point = get_sensor_entry_point(pack=pack, sensor=sensor)
     trigger_types = sensor['trigger_types'] or []
+    poll_interval = sensor['poll_interval']
 
     obj = _create_sensor_type(pack=pack,
                               name=name,
-                              description=None,
+                              description=description,
                               artifact_uri=artifact_uri,
                               entry_point=entry_point,
-                              trigger_types=trigger_types)
+                              trigger_types=trigger_types,
+                              poll_interval=poll_interval)
     return obj
 
 

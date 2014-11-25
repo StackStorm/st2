@@ -25,6 +25,7 @@ import six
 from st2api.controllers import resource
 from st2api.controllers.actionviews import ActionViewsController
 from st2common import log as logging
+from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.base import jsexpose
 from st2common.persistence.action import Action
@@ -86,7 +87,7 @@ class ActionsController(resource.ContentPackResourceControler):
             action.enabled = bool(action.enabled)
 
         if not hasattr(action, 'pack'):
-            setattr(action, 'pack', 'default')
+            setattr(action, 'pack', DEFAULT_PACK_NAME)
 
         try:
             action_validator.validate_action(action)
@@ -199,5 +200,5 @@ class ActionsController(resource.ContentPackResourceControler):
 
         LOG.audit('Action deleted. Action=%s', action_db)
         LOG.info('DELETE /actions/ with ref_or_id="%s" completed',
-                action_ref_or_id)
+                 action_ref_or_id)
         return None

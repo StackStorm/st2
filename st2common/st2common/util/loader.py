@@ -21,6 +21,11 @@ import sys
 from st2common.exceptions.plugins import IncompatiblePluginException
 from st2common import log as logging
 
+__all__ = [
+    'register_plugin',
+    'register_plugin_class'
+]
+
 
 LOG = logging.getLogger(__name__)
 PYTHON_EXTENSIONS = ('.py')
@@ -46,7 +51,7 @@ def _get_plugin_module(plugin_file_path):
 
 def _get_classes_in_module(module):
     return [kls for name, kls in inspect.getmembers(module,
-        lambda member: inspect.isclass(member) and member.__module__ == module.__name__)]
+            lambda member: inspect.isclass(member) and member.__module__ == module.__name__)]
 
 
 def _get_plugin_classes(module_name):
@@ -54,7 +59,27 @@ def _get_plugin_classes(module_name):
 
 
 def _get_plugin_methods(plugin_klass):
-    return [name for name, method in inspect.getmembers(plugin_klass, inspect.ismethod)]
+    """
+    Return a list of names of all the methods in the provided class.
+
+    Note: Abstract methods which are not implemented are excluded from the
+    list.
+
+    :rtype: ``list`` of ``str``
+    """
+    methods = inspect.getmembers(plugin_klass, inspect.ismethod)
+
+    # Exclude inherited abstract methods from the parent class
+    method_names = []
+    for name, method in methods:
+        method_properties = method.__dict__
+        is_abstract = method_properties.get('__isabstractmethod__', False)
+
+        if is_abstract:
+            continue
+
+        method_names.append(name)
+    return method_names
 
 
 def _validate_methods(plugin_base_class, plugin_klass):
@@ -67,13 +92,47 @@ def _validate_methods(plugin_base_class, plugin_klass):
     plugin_methods = _get_plugin_methods(plugin_klass)
     for method in expected_methods:
         if method not in plugin_methods:
-            raise IncompatiblePluginException('Class %s does not implement method %s in base class.'
-                            % (plugin_klass, method))
+            message = 'Class "%s" doesn\'t implement required "%s" method from the base class'
+            raise IncompatiblePluginException(message % (plugin_klass.__name__, method))
 
 
 def _register_plugin(plugin_base_class, plugin_impl):
     _validate_methods(plugin_base_class, plugin_impl)
     plugin_base_class.register(plugin_impl)
+
+
+def register_plugin_class(base_class, file_path, class_name):
+    """
+    Retrieve a register plugin class from the provided file.
+
+    This method also validate that the class implements all the abstract methods
+    from the base plugin class.
+
+    :param base_class: Base plugin class.
+    :param base_class: ``class``
+
+    :param file_path: File absolute path to the plugin module file.
+    :type file_path: ``str``
+
+    :param class_name: Class name of a plugin.
+    :type class_name: ``str``
+    """
+    plugin_dir = os.path.dirname(os.path.realpath(file_path))
+    _register_plugin_path(plugin_dir)
+    module_name = _get_plugin_module(file_path)
+
+    if module_name is None:
+        return None
+
+    module = importlib.import_module(module_name)
+    klass = getattr(module, class_name, None)
+
+    if not klass:
+        raise Exception('Plugin file "%s" doesn\'t expose class named "%s"' %
+                        (file_path, class_name))
+
+    _register_plugin(base_class, klass)
+    return klass
 
 
 def register_plugin(plugin_base_class, plugin_abs_file_path):

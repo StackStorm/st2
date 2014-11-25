@@ -14,14 +14,41 @@
 # limitations under the License.
 
 __all__ = [
+    'PACKS_PACK_NAME',
     'SYSTEM_PACK_NAME',
-    'USER_PACK_NAME_BLACKLIST'
+    'PACKS_PACK_NAME',
+    'SYSTEM_PACK_NAMES',
+    'USER_PACK_NAME_BLACKLIST',
+    'BASE_PACK_REQUIREMENTS'
 ]
 
-# Name used for system content pack
+# A list of allowed characters for the pack name
+PACK_NAME_WHITELIST = r'^[A-Za-z0-9_-]+'
+
+# Name used for system pack
 SYSTEM_PACK_NAME = 'core'
 
-# A list of pack names which can't be used by user-supplied content packs
+# Name used for pack management pack
+PACKS_PACK_NAME = 'packs'
+
+# Name of the default pack
+DEFAULT_PACK_NAME = 'default'
+
+# A list of system pack names
+SYSTEM_PACK_NAMES = [
+    SYSTEM_PACK_NAME,
+    PACKS_PACK_NAME,
+]
+
+# A list of pack names which can't be used by user-supplied packs
 USER_PACK_NAME_BLACKLIST = [
-    SYSTEM_PACK_NAME
+    SYSTEM_PACK_NAME,
+    PACKS_PACK_NAME
+]
+
+# Requirements which are common to all the packs
+BASE_PACK_REQUIREMENTS = [
+    # Note: We don't currently handle .pth files corectly so los.config
+    # needs to be installed inside virtualenv
+    'oslo.config'
 ]

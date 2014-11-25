@@ -25,14 +25,14 @@ def _register_common_opts():
     common_config.register_opts()
 
 
-def _register_reactor_opts():
+def _register_sensor_container_opts():
     logging_opts = [
-        cfg.StrOpt('logging', default='etc/logging.conf',
+        cfg.StrOpt('logging', default='conf/logging.sensorcontainer.conf',
                    help='location of the logging.conf file')
     ]
-    CONF.register_opts(logging_opts, group='reactor')
+    CONF.register_opts(logging_opts, group='sensorcontainer')
 
-    sensor_test_opt = cfg.StrOpt('sensor-path', help='Path to the sensor to test.')
+    sensor_test_opt = cfg.StrOpt('sensor-name', help='Only run sensor with the provided name.')
     CONF.register_cli_opt(sensor_test_opt)
 
     st2_webhook_opts = [
@@ -52,7 +52,7 @@ def _register_reactor_opts():
 
 def register_opts():
     _register_common_opts()
-    _register_reactor_opts()
+    _register_sensor_container_opts()
 
 
 register_opts()

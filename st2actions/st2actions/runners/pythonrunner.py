@@ -16,26 +16,29 @@
 import os
 import abc
 import json
-import six
-import sys
-import traceback
 import uuid
 import logging as stdlib_logging
 
-from eventlet import greenio
+import six
+from eventlet.green import subprocess
 
-from multiprocessing import Process
 from st2actions.runners import ActionRunner
 from st2common import log as logging
+from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
-from st2common.util import loader as action_loader
-from st2common.util.config_parser import ContentPackConfigParser
+from st2common.constants.pack import DEFAULT_PACK_NAME
+from st2common.util.sandboxing import get_sandbox_python_path
+from st2common.util.sandboxing import get_sandbox_python_binary_path
 
 
 LOG = logging.getLogger(__name__)
 
 # Default timeout for actions executed by Python runner
 DEFAULT_ACTION_TIMEOUT = 10 * 60
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
+WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 
 
 def get_runner():
@@ -50,12 +53,12 @@ class Action(object):
 
     description = None
 
-    def __init__(self, config):
+    def __init__(self, config=None):
         """
         :param config: Action config.
         :type config: ``dict``
         """
-        self.config = config
+        self.config = config or {}
         self.logger = self._set_up_logger()
 
     @abc.abstractmethod
@@ -81,64 +84,6 @@ class Action(object):
         return logger
 
 
-class ActionWrapper(object):
-    def __init__(self, pack, entry_point, action_parameters):
-        """
-        :param pack: Name of the content pack this action is located in.
-        :type pack: ``str``
-
-        :param entry_point: Full path to the action script file.
-        :type entry_point: ``str``
-
-        :param action_parameters: Action parameters.
-        :type action_parameters: ``dict``
-        """
-        self.pack = pack
-        self.entry_point = entry_point
-        self.action_parameters = action_parameters
-
-    def run(self, conn):
-        data_written = False
-
-        try:
-            action = self._load_action()
-            output = action.run(**self.action_parameters)
-            conn.write(str(output) + '\n')
-            conn.flush()
-            data_written = True
-        except Exception, e:
-            _, e, tb = sys.exc_info()
-            data = {'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))}
-            data = json.dumps(data)
-            conn.write(data + '\n')
-            conn.flush()
-            data_written = True
-            sys.exit(1)
-        finally:
-            if not data_written:
-                conn.write('\n')
-            conn.close()
-
-    def _load_action(self):
-        actions_kls = action_loader.register_plugin(Action, self.entry_point)
-        action_kls = actions_kls[0] if actions_kls and len(actions_kls) > 0 else None
-
-        if not action_kls:
-            raise Exception('%s has no action.' % self.entry_point)
-
-        config_parser = ContentPackConfigParser(pack_name=self.pack)
-        config = config_parser.get_action_config(action_file_path=self.entry_point)
-
-        if config:
-            LOG.info('Using config "%s" for action "%s"' % (config.file_path,
-                                                            self.entry_point))
-
-            return action_kls(config=config.config)
-        else:
-            LOG.info('No config found for action "%s"' % (self.entry_point))
-            return action_kls(config={})
-
-
 class PythonRunner(ActionRunner):
 
     def __init__(self, _id, timeout=DEFAULT_ACTION_TIMEOUT):
@@ -154,45 +99,62 @@ class PythonRunner(ActionRunner):
         pass
 
     def run(self, action_parameters):
-        pack = self.action.pack if self.action else None
-        action_wrapper = ActionWrapper(pack=pack,
-                                       entry_point=self.entry_point,
-                                       action_parameters=action_parameters)
+        pack = self.action.pack if self.action else DEFAULT_PACK_NAME
+        serialized_parameters = json.dumps(action_parameters) if action_parameters else ''
+        python_path = get_sandbox_python_binary_path(pack=pack)
 
-        # We manually create a non-duplex pipe since multiprocessing.Pipe
-        # doesn't play along nicely and work with eventlet
-        rfd, wfd = os.pipe()
+        args = [
+            python_path,
+            WRAPPER_SCRIPT_PATH,
+            '--pack=%s' % (pack),
+            '--file-path=%s' % (self.entry_point),
+            '--parameters=%s' % (serialized_parameters)
+        ]
 
-        parent_conn = greenio.GreenPipe(rfd, 'r')
-        child_conn = greenio.GreenPipe(wfd, 'w', 0)
+        # We need to ensure all the st2 dependencies are also available to the
+        # subprocess
+        env = os.environ.copy()
+        env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
+                                                    inherit_parent_virtualenv=True)
 
-        p = Process(target=action_wrapper.run, args=(child_conn,))
-        p.daemon = True
+        # Note: We are using eventlet friendly implementation of subprocess
+        # which uses GreenPipe so it doesn't block
+        process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, shell=False, env=env)
 
         try:
-            p.start()
-            p.join(self._timeout)
+            exit_code = process.wait(timeout=self._timeout)
+        except subprocess.TimeoutExpired:
+            # Action has timed out, kill the process and propagate the error
+            # Note: process.kill() will set the returncode to -9 so we don't
+            # need to explicitly set it to some non-zero value
+            process.kill()
+            error = 'Action failed to complete in %s seconds' % (self._timeout)
+        else:
+            error = None
 
-            if p.is_alive():
-                # Process is still alive meaning the timeout has been reached
-                p.terminate()
-                message = 'Action failed to complete in %s seconds' % (self._timeout)
-                raise Exception(message)
-            output = parent_conn.readline()
+        stdout, stderr = process.communicate()
+        exit_code = process.returncode
 
-            try:
-                output = json.loads(output)
-            except Exception:
-                pass
+        if ACTION_OUTPUT_RESULT_DELIMITER in stdout:
+            split = stdout.split(ACTION_OUTPUT_RESULT_DELIMITER)
+            assert len(split) == 3
+            result = split[1].strip()
+            stdout = split[0] = split[2]
+        else:
+            result = None
 
-            exit_code = p.exitcode
-        except:
-            LOG.exception('Failed to run action.')
-            _, e, tb = sys.exc_info()
-            exit_code = 1
-            output = {'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))}
-        finally:
-            parent_conn.close()
+        output = {
+            'stdout': stdout,
+            'stderr': stderr,
+            'exit_code': exit_code,
+            'result': result
+        }
+
+        if error:
+            output['error'] = error
+
+        output = json.dumps(output)
 
         status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
         self.container_service.report_result(output)

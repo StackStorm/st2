@@ -38,12 +38,14 @@ class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
         artifact_uri - URI to the artifact file.
         entry_point - Full path to the sensor entry point (e.g. module.foo.ClassSensor).
         trigger_type - A list of references to the TriggerTypeDB objects exposed by this sensor.
+        poll_interval - Poll interval for this sensor.
     """
     name = me.StringField(required=True)
     pack = me.StringField(required=True, unique_with='name')
     artifact_uri = me.StringField()
     entry_point = me.StringField()
     trigger_types = me.ListField(field=me.StringField())
+    poll_interval = me.IntField()
 
 
 class TriggerTypeDB(StormBaseDB, ContentPackResourceMixin):

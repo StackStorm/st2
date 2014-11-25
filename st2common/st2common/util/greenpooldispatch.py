@@ -47,5 +47,5 @@ class BufferedDispatcher(object):
         if self._dispatcher_pool.free() <= 0:
             return
         while not self._work_buffer.empty() and self._dispatcher_pool.free() > 0:
-            handler, args = self._work_buffer.get_nowait()
+            (handler, args) = self._work_buffer.get_nowait()
             self._dispatcher_pool.spawn(handler, *args)

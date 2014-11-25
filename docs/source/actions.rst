@@ -63,7 +63,7 @@ Writing custom actions
 Action is composed from two parts:
 
 1. A script file which implements the action logic
-2. A JSON metadata file which describes the action
+2. A YAML metadata file which describes the action
 
 As noted above, action script can be written in an arbitrary programming
 language, as long as it follows some simple conventions described bellow:
@@ -75,47 +75,44 @@ language, as long as it follows some simple conventions described bellow:
 Action metadata
 ~~~~~~~~~~~~~~~
 
-Action metadata is used to describe the action and is defined as JSON. A list
+Action metadata is used to describe the action and is defined as YAML (JSON is supported for backward
+compatibility). A list
 of attributes which can be present in the metadata file is included bellow.
 
 * ``name`` - Name of the action.
 * ``runner_type`` - The type of runner to execute the action.
 * ``enabled`` - Action cannot be invoked when disabled.
-* ``entry_point`` - Location of the action launch script relative to the /opt/stackstorm/actions.
+* ``entry_point`` - Location of the action launch script relative to the /opt/stackstorm/packs/${pack_name}/actions/.
 * ``parameters`` - A dictionary of parameters and optional metadata describing type and default. The metadata is structured data following the [jsonschema][1] specification draft 4. If metadata is provided, input args are validated on action execution. Otherwise, validation is skipped.
 
 Bellow you can find a sample metadata for a Python action which sends an SMS via
 the Twilio web service.
 
-.. code-block:: json
+.. code-block:: yaml
 
-    {
-        "name": "send_sms",
-        "runner_type": "run-python",
-        "description": "This sends a SMS using twilio.",
-        "enabled": true,
-        "entry_point": "send_sms.py",
-        "parameters": {
-            "from_number": {
-                "type": "string",
-                "description": "Your twilio 'from' number in E.164 format. Example +14151234567.",
-                "required": true,
-                "position": 0
-            },
-            "to_number": {
-                "type": "string",
-                "description": "Recipient number in E.164 format. Example +14151234567.",
-                "required": true,
-                "position": 1
-            },
-            "body": {
-                "type": "string",
-                "description": "Body of the message.",
-                "required": true,
-                "position": 2
-            }
-        }
-    }
+    ---
+        name: "send_sms"
+        runner_type: "run-python"
+        description: "This sends a SMS using twilio."
+        enabled: true
+        entry_point: "send_sms.py"
+        parameters:
+            from_number:
+                type: "string"
+                description: "Your twilio 'from' number in E.164 format. Example +14151234567."
+                required: true
+                position: 0
+            to_number:
+                type: "string"
+                description: "Recipient number in E.164 format. Example +14151234567."
+                required: true
+                position: 1
+            body:
+                type: "string"
+                description: "Body of the message."
+                required: true
+                position: 2
+
 
 This action is using a Python runner (``run-python``), the class which
 implements a ``run`` method is contained in a file called ``send_sms.py`` which
@@ -202,29 +199,25 @@ The script takes two arguments:
 Since this script is only using positional arguments, you only need to define
 them in the metadata file:
 
-.. code-block:: json
+.. code-block:: yaml
 
-    {
-        "name": "send_to_syslog.log",
-        "runner_type": "run-remote",
-        "description": "Send a message to a provided syslog server.",
-        "enabled": true,
-        "entry_point": "send_to_syslog.sh",
-        "parameters": {
-            "server": {
-                "type": "string",
-                "description": "Address of the syslog server",
-                "required": true,
-                "position": 0
-            },
-            "message": {
-                "type": "string",
-                "description": "Message to write",
-                "required": true,
-                "position": 1
-            }
-        }
-    }
+    ---
+        name: "send_to_syslog.log"
+        runner_type: "run-remote"
+        description: "Send a message to a provided syslog server."
+        enabled: true
+        entry_point: "send_to_syslog.sh"
+        parameters:
+            server:
+                type: "string"
+                description: "Address of the syslog server"
+                required: true
+                position: 0
+          message:
+                type: "string"
+                description: "Message to write"
+                required: true
+                position: 1
 
 As you can see above, we declare two parameters - ``server`` and ``message``.
 Both of them declare a ``position`` attribute (0 for server and 1 for message),
@@ -244,25 +237,23 @@ Sample Python action
 Bellow is an example of a Python action which prints text provided via the
 ``message`` parameter to the standard output.
 
-Metadata file (``my_echo_action.json``):
+Metadata file (``my_echo_action.yaml``):
 
-.. code-block:: json
+.. code-block:: yaml
 
-    {
-        "name": "echo_action",
-        "runner_type": "run-python",
-        "description": "Print message to standard output.",
-        "enabled": true,
-        "entry_point": "my_echo_action.py",
-        "parameters": {
-            "message": {
-                "type": "string",
-                "description": "Message to print.",
-                "required": true,
-                "position": 0
-            }
-        }
-    }
+    ---
+        name: "echo_action"
+        runner_type: "run-python"
+        description: "Print message to standard output."
+        enabled: true
+        entry_point: "my_echo_action.py"
+        parameters:
+            message:
+              type: "string"
+              description: "Message to print."
+              required: true
+              position: 0
+
 
 Action script file (``my_echo_action.py``):
 
