@@ -47,6 +47,8 @@ class ConfigurableSyslogHandler(logging.handlers.SysLogHandler):
         else:
             super(ConfigurableSyslogHandler, self).__init__(address, facility)
 
+ignore_kwargs = ['extra', 'exc_info']
+
 
 def _audit(logger, msg, *args, **kwargs):
     if logger.isEnabledFor(logging.AUDIT):
