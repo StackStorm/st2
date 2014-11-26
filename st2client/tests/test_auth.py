@@ -109,7 +109,7 @@ class TestAuthToken(base.BaseCLITestCase):
         requests, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
     def test_decorate_resource_list(self):
-        url = 'http://localhost:9101/rules'
+        url = 'http://localhost:9101/v1/rules'
 
         # Test without token.
         self.shell.run(['rule', 'list'])
@@ -135,7 +135,7 @@ class TestAuthToken(base.BaseCLITestCase):
         requests, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps([RULE]), 200, 'OK')))
     def test_decorate_resource_get(self):
-        url = 'http://localhost:9101/rules/?name=%s' % RULE['name']
+        url = 'http://localhost:9101/v1/rules/?name=%s' % RULE['name']
 
         # Test without token.
         self.shell.run(['rule', 'get', RULE['name']])
@@ -159,7 +159,7 @@ class TestAuthToken(base.BaseCLITestCase):
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
     def test_decorate_resource_post(self):
-        url = 'http://localhost:9101/rules'
+        url = 'http://localhost:9101/v1/rules'
         data = {'name': RULE['name'], 'description': RULE['description']}
 
         fd, path = tempfile.mkstemp(suffix='.json')
@@ -195,8 +195,8 @@ class TestAuthToken(base.BaseCLITestCase):
         requests, 'put',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
     def test_decorate_resource_put(self):
-        get_url = 'http://localhost:9101/rules/?name=%s' % RULE['name']
-        put_url = 'http://localhost:9101/rules/%s' % RULE['id']
+        get_url = 'http://localhost:9101/v1/rules/?name=%s' % RULE['name']
+        put_url = 'http://localhost:9101/v1/rules/%s' % RULE['id']
         data = {'name': RULE['name'], 'description': RULE['description']}
 
         fd, path = tempfile.mkstemp(suffix='.json')
@@ -238,8 +238,8 @@ class TestAuthToken(base.BaseCLITestCase):
         requests, 'delete',
         mock.MagicMock(return_value=base.FakeResponse('', 204, 'OK')))
     def test_decorate_resource_delete(self):
-        get_url = 'http://localhost:9101/rules/?name=%s' % RULE['name']
-        del_url = 'http://localhost:9101/rules/%s' % RULE['id']
+        get_url = 'http://localhost:9101/v1/rules/?name=%s' % RULE['name']
+        del_url = 'http://localhost:9101/v1/rules/%s' % RULE['id']
 
         # Test without token.
         self.shell.run(['rule', 'delete', RULE['name']])
