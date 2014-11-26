@@ -17,7 +17,7 @@ import mock
 import six
 from tests import FunctionalTest
 
-from st2api.controllers.webhooks import WebhooksController
+from st2api.controllers.v1.webhooks import WebhooksController
 from st2common.constants.triggers import GENERIC_WEBHOOK_TRIGGER_REF
 from st2common.models.db.reactor import TriggerDB
 from st2common.transport.reactor import TriggerInstancePublisher
@@ -54,4 +54,4 @@ class TestTriggerTypeController(FunctionalTest):
         self.assertEqual(post_resp.status_int, http_client.NOT_FOUND)
 
     def __do_post(self, hook, webhook, expect_errors=False):
-        return self.app.post_json('/webhooks/' + hook, webhook, expect_errors=expect_errors)
+        return self.app.post_json('/v1/webhooks/' + hook, webhook, expect_errors=expect_errors)

@@ -143,20 +143,20 @@ class TestActionExecutionController(FunctionalTest):
     def setUpClass(cls):
         super(TestActionExecutionController, cls).setUpClass()
         cls.action1 = copy.deepcopy(ACTION_1)
-        post_resp = cls.app.post_json('/actions', cls.action1)
+        post_resp = cls.app.post_json('/v1/actions', cls.action1)
         cls.action1['id'] = post_resp.json['id']
         cls.action2 = copy.deepcopy(ACTION_2)
-        post_resp = cls.app.post_json('/actions', cls.action2)
+        post_resp = cls.app.post_json('/v1/actions', cls.action2)
         cls.action2['id'] = post_resp.json['id']
         cls.action3 = copy.deepcopy(ACTION_3)
-        post_resp = cls.app.post_json('/actions', cls.action3)
+        post_resp = cls.app.post_json('/v1/actions', cls.action3)
         cls.action3['id'] = post_resp.json['id']
 
     @classmethod
     def tearDownClass(cls):
-        cls.app.delete('/actions/%s' % cls.action1['id'])
-        cls.app.delete('/actions/%s' % cls.action2['id'])
-        cls.app.delete('/actions/%s' % cls.action3['id'])
+        cls.app.delete('/v1/actions/%s' % cls.action1['id'])
+        cls.app.delete('/v1/actions/%s' % cls.action2['id'])
+        cls.app.delete('/v1/actions/%s' % cls.action3['id'])
         super(TestActionExecutionController, cls).tearDownClass()
 
     def test_get_one(self):
@@ -169,7 +169,7 @@ class TestActionExecutionController(FunctionalTest):
     def test_get_all(self):
         self._get_actionexecution_id(self._do_post(ACTION_EXECUTION_1))
         self._get_actionexecution_id(self._do_post(ACTION_EXECUTION_2))
-        resp = self.app.get('/actionexecutions')
+        resp = self.app.get('/v1/actionexecutions')
         body = resp.json
         # Assert executions are sorted by timestamp.
         for i in range(len(body) - 1):
@@ -177,50 +177,50 @@ class TestActionExecutionController(FunctionalTest):
                             isotime.parse(body[i + 1]['start_timestamp']))
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 2,
-                         '/actionexecutions did not return all '
+                         '/v1/actionexecutions did not return all '
                          'actionexecutions.')
 
     def test_get_query(self):
         actionexecution_1_id = self._get_actionexecution_id(self._do_post(ACTION_EXECUTION_1))
 
-        resp = self.app.get('/actionexecutions?action=%s' % ACTION_EXECUTION_1['action'])
+        resp = self.app.get('/v1/actionexecutions?action=%s' % ACTION_EXECUTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         matching_execution = filter(lambda ae: ae['id'] == actionexecution_1_id, resp.json)
         self.assertEqual(len(list(matching_execution)), 1,
-                         '/actionexecutions did not return correct actionexecution.')
+                         '/v1/actionexecutions did not return correct actionexecution.')
 
     def test_get_query_with_limit(self):
         self._get_actionexecution_id(self._do_post(ACTION_EXECUTION_1))
         self._get_actionexecution_id(self._do_post(ACTION_EXECUTION_1))
 
-        resp = self.app.get('/actionexecutions')
+        resp = self.app.get('/v1/actionexecutions')
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 0)
 
-        resp = self.app.get('/actionexecutions?limit=1')
+        resp = self.app.get('/v1/actionexecutions?limit=1')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1)
 
-        resp = self.app.get('/actionexecutions?limit=0')
+        resp = self.app.get('/v1/actionexecutions?limit=0')
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
-        resp = self.app.get('/actionexecutions?action=%s' % ACTION_EXECUTION_1['action'])
+        resp = self.app.get('/v1/actionexecutions?action=%s' % ACTION_EXECUTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
-        resp = self.app.get('/actionexecutions?action=%s&limit=1' %
+        resp = self.app.get('/v1/actionexecutions?action=%s&limit=1' %
                             ACTION_EXECUTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1)
 
-        resp = self.app.get('/actionexecutions?action=%s&limit=0' %
+        resp = self.app.get('/v1/actionexecutions?action=%s&limit=0' %
                             ACTION_EXECUTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
     def test_get_one_fail(self):
-        resp = self.app.get('/actionexecutions/100', expect_errors=True)
+        resp = self.app.get('/v1/actionexecutions/100', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
 
     def test_post_delete(self):
@@ -289,13 +289,13 @@ class TestActionExecutionController(FunctionalTest):
         return resp.json['id']
 
     def _do_get_one(self, actionexecution_id, *args, **kwargs):
-        return self.app.get('/actionexecutions/%s' % actionexecution_id, *args, **kwargs)
+        return self.app.get('/v1/actionexecutions/%s' % actionexecution_id, *args, **kwargs)
 
     def _do_post(self, actionexecution, *args, **kwargs):
-        return self.app.post_json('/actionexecutions', actionexecution, *args, **kwargs)
+        return self.app.post_json('/v1/actionexecutions', actionexecution, *args, **kwargs)
 
     def _do_put(self, id, actionexecution, *args, **kwargs):
-        return self.app.put_json('/actionexecutions/%s' % id, actionexecution, *args, **kwargs)
+        return self.app.put_json('/v1/actionexecutions/%s' % id, actionexecution, *args, **kwargs)
 
 
 NOW = isotime.add_utc_tz(datetime.datetime.utcnow())
@@ -323,7 +323,7 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
         super(TestActionExecutionControllerAuthEnabled, cls).setUpClass()
         cls.action = copy.deepcopy(ACTION_1)
         headers = {'content-type': 'application/json', 'X-Auth-Token': str(SYS_TOKEN.token)}
-        post_resp = cls.app.post_json('/actions', cls.action, headers=headers)
+        post_resp = cls.app.post_json('/v1/actions', cls.action, headers=headers)
         cls.action['id'] = post_resp.json['id']
 
     @classmethod
@@ -332,11 +332,11 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
         mock.MagicMock(side_effect=mock_get_token))
     def tearDownClass(cls):
         headers = {'content-type': 'application/json', 'X-Auth-Token': str(SYS_TOKEN.token)}
-        cls.app.delete('/actions/%s' % cls.action['id'], headers=headers)
+        cls.app.delete('/v1/actions/%s' % cls.action['id'], headers=headers)
         super(TestActionExecutionControllerAuthEnabled, cls).tearDownClass()
 
     def _do_post(self, actionexecution, *args, **kwargs):
-        return self.app.post_json('/actionexecutions', actionexecution, *args, **kwargs)
+        return self.app.post_json('/v1/actionexecutions', actionexecution, *args, **kwargs)
 
     @mock.patch.object(
         Token, 'get',
