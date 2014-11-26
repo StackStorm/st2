@@ -84,6 +84,15 @@ class Shell(object):
         )
 
         self.parser.add_argument(
+            '--api-version',
+            action='store',
+            dest='api_version',
+            default=None,
+            help='API version to sue. Get ST2_API_VERSION'
+                 'from the environment variables by default.'
+        )
+
+        self.parser.add_argument(
             '--cacert',
             action='store',
             dest='cacert',
@@ -142,7 +151,7 @@ class Shell(object):
             self, self.subparsers)
 
     def get_client(self, args):
-        options = ['base_url', 'auth_url', 'api_url', 'cacert']
+        options = ['base_url', 'auth_url', 'api_url', 'api_version', 'cacert']
         kwargs = {opt: getattr(args, opt) for opt in options}
         return Client(**kwargs)
 

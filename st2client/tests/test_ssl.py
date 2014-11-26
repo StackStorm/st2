@@ -30,7 +30,7 @@ USERNAME = 'stanley'
 PASSWORD = 'ShhhDontTell'
 HEADERS = {'content-type': 'application/json'}
 AUTH_URL = 'https://localhost:9100/tokens'
-GET_RULES_URL = 'http://localhost:9101/rules'
+GET_RULES_URL = 'http://localhost:9101/v1/rules'
 
 
 class TestHttps(base.BaseCLITestCase):
