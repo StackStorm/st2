@@ -23,7 +23,7 @@ import six
 #       StackStorm defined exceptions.
 
 from st2api.controllers import resource
-from st2api.controllers.actionviews import ActionViewsController
+from st2api.controllers.v1.actionviews import ActionViewsController
 from st2common import log as logging
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
