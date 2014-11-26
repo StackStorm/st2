@@ -99,7 +99,7 @@ class SetupVirtualEnvironmentAction(Action):
     def _create_virtualenv(self, virtualenv_path):
         self.logger.debug('Creating virtualenv in "%s"' % (virtualenv_path))
 
-        cmd = ['virtualenv', '--no-site-packages', virtualenv_path]
+        cmd = ['virtualenv', '--system-site-packages', virtualenv_path]
         exit_code, _, stderr = run_command(cmd=cmd)
 
         if exit_code != 0:
