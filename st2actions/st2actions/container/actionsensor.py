@@ -22,6 +22,7 @@ from oslo.config import cfg
 from st2common import log as logging
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.models.system.common import ResourceReference
+from st2common.transport.reactor import TriggerDispatcher
 
 ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
 TRIGGER_TYPE_ENDPOINT = cfg.CONF.action_sensor.triggers_base_url
@@ -32,6 +33,7 @@ RETRY_WAIT = cfg.CONF.action_sensor.retry_wait
 HTTP_POST_HEADER = {'content-type': 'application/json'}
 
 LOG = logging.getLogger(__name__)
+TRIGGER_DISPATCHER = TriggerDispatcher(LOG)
 
 ACTION_TRIGGER_TYPE = {
     'name': 'st2.generic.actiontrigger',
@@ -90,31 +92,18 @@ def post_trigger(action_execution):
     if not ACTION_SENSOR_ENABLED:
         return
     try:
-        payload = json.dumps({
-            'trigger': ResourceReference.to_string_reference(
-                pack=ACTION_TRIGGER_TYPE['pack'], name=ACTION_TRIGGER_TYPE['name']),
-            'payload': {
-                'execution_id': str(action_execution.id),
-                'status': action_execution.status,
-                'start_timestamp': str(action_execution.start_timestamp),
-                'action_name': action_execution.action,
-                'parameters': action_execution.parameters,
-                'result': action_execution.result
-            }
-        })
+        trigger = ResourceReference.to_string_reference(pack=ACTION_TRIGGER_TYPE['pack'],
+                                                        name=ACTION_TRIGGER_TYPE['name'])
+        payload = {'execution_id': str(action_execution.id),
+                   'status': action_execution.status,
+                   'start_timestamp': str(action_execution.start_timestamp),
+                   'action_name': action_execution.action,
+                   'parameters': action_execution.parameters,
+                   'result': action_execution.result}
         LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
                   action_execution.id, payload)
-        r = requests.post(TRIGGER_INSTANCE_ENDPOINT,
-                          data=payload,
-                          headers=HTTP_POST_HEADER,
-                          timeout=TIMEOUT)
+        TRIGGER_DISPATCHER.dispatch(trigger, payload=payload)
     except:
         LOG.exception('Failed to fire trigger for action_execution %s.', str(action_execution.id))
-    else:
-        if r.status_code in [200, 201, 202]:
-            LOG.debug('POSTed actionexecution %s as a trigger.', action_execution.id)
-        else:
-            LOG.warn('Seeing status code %s on an attempt to post triggerinstance for %s.',
-                     r.status_code, action_execution.id)
 
 register_trigger_type()
