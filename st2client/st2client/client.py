@@ -39,10 +39,12 @@ class Client(object):
             self.endpoints['auth'] = os.environ.get(
                 'ST2_AUTH_URL', '%s:%s' % (base_https_url, 9100))
 
+        api_version = kwargs.get('api_version') or os.environ.get('ST2_API_VERSION', 'v1')
+
         self.endpoints['api'] = kwargs.get('api_url')
         if not self.endpoints['api']:
             self.endpoints['api'] = os.environ.get(
-                'ST2_API_URL', '%s:%s' % (self.endpoints['base'], 9101))
+                'ST2_API_URL', '%s:%s/%s' % (self.endpoints['base'], 9101, api_version))
 
         self.cacert = kwargs.get('cacert')
         if not self.cacert:

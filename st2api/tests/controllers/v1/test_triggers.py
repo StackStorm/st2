@@ -63,7 +63,7 @@ class TestTriggerController(FunctionalTest):
         trigger_id_0 = self._get_trigger_id(post_resp)
         post_resp = self._do_post(TRIGGER_1)
         trigger_id_1 = self._get_trigger_id(post_resp)
-        resp = self.app.get('/triggers')
+        resp = self.app.get('/v1/triggers')
         self.assertEqual(resp.status_int, http_client.OK)
         # TriggerType without parameters will register a trigger
         # with same name. So here we see 4 instead of 2.
@@ -147,22 +147,22 @@ class TestTriggerController(FunctionalTest):
             'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
             'parameters_schema': {'param1': {'type': 'object'}}
         }
-        cls.app.post_json('/triggertypes', TRIGGERTYPE_0, expect_errors=False)
-        cls.app.post_json('/triggertypes', TRIGGERTYPE_1, expect_errors=False)
-        cls.app.post_json('/triggertypes', TRIGGERTYPE_2, expect_errors=False)
+        cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_0, expect_errors=False)
+        cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_1, expect_errors=False)
+        cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_2, expect_errors=False)
 
     @staticmethod
     def _get_trigger_id(resp):
         return resp.json['id']
 
     def _do_get_one(self, trigger_id):
-        return self.app.get('/triggers/%s' % trigger_id, expect_errors=True)
+        return self.app.get('/v1/triggers/%s' % trigger_id, expect_errors=True)
 
     def _do_post(self, trigger):
-        return self.app.post_json('/triggers', trigger, expect_errors=True)
+        return self.app.post_json('/v1/triggers', trigger, expect_errors=True)
 
     def _do_put(self, trigger_id, trigger):
-        return self.app.put_json('/triggers/%s' % trigger_id, trigger, expect_errors=True)
+        return self.app.put_json('/v1/triggers/%s' % trigger_id, trigger, expect_errors=True)
 
     def _do_delete(self, trigger_id):
-        return self.app.delete('/triggers/%s' % trigger_id)
+        return self.app.delete('/v1/triggers/%s' % trigger_id)

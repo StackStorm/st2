@@ -24,7 +24,7 @@ KVP = {
 class TestKeyValuePairController(FunctionalTest):
 
     def test_get_all(self):
-        resp = self.app.get('/keys')
+        resp = self.app.get('/v1/keys')
         self.assertEqual(resp.status_int, 200)
 
     def test_get_one(self):
@@ -36,7 +36,7 @@ class TestKeyValuePairController(FunctionalTest):
         self.__do_delete(kvp_id)
 
     def test_get_one_fail(self):
-        resp = self.app.get('/keys/1', expect_errors=True)
+        resp = self.app.get('/v1/keys/1', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
 
     def test_post_delete(self):
@@ -69,13 +69,13 @@ class TestKeyValuePairController(FunctionalTest):
         return resp.json['id']
 
     def __do_get_one(self, kvp_id, expect_errors=False):
-        return self.app.get('/keys/%s' % kvp_id, expect_errors=expect_errors)
+        return self.app.get('/v1/keys/%s' % kvp_id, expect_errors=expect_errors)
 
     def __do_post(self, kvp, expect_errors=False):
-        return self.app.post_json('/keys', kvp, expect_errors=expect_errors)
+        return self.app.post_json('/v1/keys', kvp, expect_errors=expect_errors)
 
     def __do_put(self, kvp_id, kvp, expect_errors=False):
-        return self.app.put_json('/keys/%s' % kvp_id, kvp, expect_errors=expect_errors)
+        return self.app.put_json('/v1/keys/%s' % kvp_id, kvp, expect_errors=expect_errors)
 
     def __do_delete(self, kvp_id, expect_errors=False):
-        return self.app.delete('/keys/%s' % kvp_id, expect_errors=expect_errors)
+        return self.app.delete('/v1/keys/%s' % kvp_id, expect_errors=expect_errors)

@@ -57,7 +57,7 @@ class TestRuleController(FunctionalTest):
         super(TestRuleController, cls).setUpClass()
 
     def test_get_all(self):
-        resp = self.app.get('/rules')
+        resp = self.app.get('/v1/rules')
         self.assertEqual(resp.status_int, http_client.OK)
 
     def test_get_one(self):
@@ -69,7 +69,7 @@ class TestRuleController(FunctionalTest):
         self.__do_delete(rule_id)
 
     def test_get_one_fail(self):
-        resp = self.app.get('/rules/1', expect_errors=True)
+        resp = self.app.get('/v1/rules/1', expect_errors=True)
         self.assertEqual(resp.status_int, http_client.NOT_FOUND)
 
     def test_post(self):
@@ -110,16 +110,16 @@ class TestRuleController(FunctionalTest):
         return resp.json['id']
 
     def __do_get_one(self, rule_id):
-        return self.app.get('/rules/%s' % rule_id, expect_errors=True)
+        return self.app.get('/v1/rules/%s' % rule_id, expect_errors=True)
 
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def __do_post(self, rule):
-        return self.app.post_json('/rules', rule, expect_errors=True)
+        return self.app.post_json('/v1/rules', rule, expect_errors=True)
 
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def __do_put(self, rule_id, rule):
-        return self.app.put_json('/rules/%s' % rule_id, rule, expect_errors=True)
+        return self.app.put_json('/v1/rules/%s' % rule_id, rule, expect_errors=True)
 
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def __do_delete(self, rule_id):
-        return self.app.delete('/rules/%s' % rule_id)
+        return self.app.delete('/v1/rules/%s' % rule_id)

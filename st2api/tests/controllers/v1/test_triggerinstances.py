@@ -36,7 +36,7 @@ class TestTriggerController(FunctionalTest):
         cls._setupTriggerInstances()
 
     def test_get_all(self):
-        resp = self.app.get('/triggerinstances')
+        resp = self.app.get('/v1/triggerinstances')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), self.triggerinstance_count, 'Get all failure.')
 
@@ -82,9 +82,9 @@ class TestTriggerController(FunctionalTest):
             'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
             'parameters_schema': {'param1': {'type': 'object'}}
         }
-        cls.app.post_json('/triggertypes', TRIGGERTYPE_0, expect_errors=False)
-        cls.app.post_json('/triggertypes', TRIGGERTYPE_1, expect_errors=False)
-        cls.app.post_json('/triggertypes', TRIGGERTYPE_2, expect_errors=False)
+        cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_0, expect_errors=False)
+        cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_1, expect_errors=False)
+        cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_2, expect_errors=False)
 
     @classmethod
     def _setupTriggers(cls):
@@ -115,9 +115,9 @@ class TestTriggerController(FunctionalTest):
                 }
             }
         }
-        cls.app.post_json('/triggers', TRIGGER_0, expect_errors=False)
-        cls.app.post_json('/triggers', TRIGGER_1, expect_errors=False)
-        cls.app.post_json('/triggers', TRIGGER_2, expect_errors=False)
+        cls.app.post_json('/v1/triggers', TRIGGER_0, expect_errors=False)
+        cls.app.post_json('/v1/triggers', TRIGGER_1, expect_errors=False)
+        cls.app.post_json('/v1/triggers', TRIGGER_2, expect_errors=False)
 
     @classmethod
     def _setupTriggerInstances(cls):
@@ -147,4 +147,4 @@ class TestTriggerController(FunctionalTest):
         return resp.json['id']
 
     def _do_get_one(self, triggerinstance_id):
-        return self.app.get('/triggerinstances/%s' % triggerinstance_id, expect_errors=True)
+        return self.app.get('/v1/triggerinstances/%s' % triggerinstance_id, expect_errors=True)

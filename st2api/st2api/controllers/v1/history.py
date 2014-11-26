@@ -16,8 +16,8 @@
 from pecan import rest
 
 from st2api.controllers import resource
-from st2api.controllers.historyviews import SUPPORTED_FILTERS
-from st2api.controllers.historyviews import HistoryViewsController
+from st2api.controllers.v1.historyviews import SUPPORTED_FILTERS
+from st2api.controllers.v1.historyviews import HistoryViewsController
 from st2common.persistence.history import ActionExecutionHistory
 from st2common.models.api.history import ActionExecutionHistoryAPI
 from st2common.models.base import jsexpose

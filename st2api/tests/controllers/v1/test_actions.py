@@ -221,9 +221,9 @@ class TestActionController(FunctionalTest):
         action_1_ref = '.'.join([ACTION_1['pack'], ACTION_1['name']])
         action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
         action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
-        resp = self.app.get('/actions')
+        resp = self.app.get('/v1/actions')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2, '/actions did not return all actions.')
+        self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
 
         item = [i for i in resp.json if i['id'] == action_1_id][0]
         self.assertEqual(item['ref'], action_1_ref)
@@ -236,16 +236,16 @@ class TestActionController(FunctionalTest):
     def test_query(self):
         action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
         action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
-        resp = self.app.get('/actions?name=%s' % ACTION_1['name'])
+        resp = self.app.get('/v1/actions?name=%s' % ACTION_1['name'])
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')
+        self.assertEqual(len(resp.json), 1, '/v1/actions did not return all actions.')
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_one_fail(self):
-        resp = self.app.get('/actions/1', expect_errors=True)
+        resp = self.app.get('/v1/actions/1', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
@@ -384,13 +384,13 @@ class TestActionController(FunctionalTest):
         return resp.json['name']
 
     def __do_get_one(self, action_id, expect_errors=False):
-        return self.app.get('/actions/%s' % action_id, expect_errors=expect_errors)
+        return self.app.get('/v1/actions/%s' % action_id, expect_errors=expect_errors)
 
     def __do_post(self, action, expect_errors=False):
-        return self.app.post_json('/actions', action, expect_errors=expect_errors)
+        return self.app.post_json('/v1/actions', action, expect_errors=expect_errors)
 
     def __do_put(self, action_id, action, expect_errors=False):
-        return self.app.put_json('/actions/%s' % action_id, action, expect_errors=expect_errors)
+        return self.app.put_json('/v1/actions/%s' % action_id, action, expect_errors=expect_errors)
 
     def __do_delete(self, action_id, expect_errors=False):
-        return self.app.delete('/actions/%s' % action_id, expect_errors=expect_errors)
+        return self.app.delete('/v1/actions/%s' % action_id, expect_errors=expect_errors)
