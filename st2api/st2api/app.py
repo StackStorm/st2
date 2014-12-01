@@ -18,7 +18,6 @@ import pecan
 
 from st2common import hooks
 from st2common import log as logging
-from st2common.middleware import auth
 from st2api.version import version_string
 
 
@@ -34,7 +33,7 @@ def __get_pecan_config():
             'static_root': opts.static_root,
             'template_path': opts.template_path,
             'modules': opts.modules,
-            'debug': opts.debug,
+            'debug': False,
             'auth_enable': opts.auth_enable,
             'errors': opts.errors
         }
@@ -52,14 +51,16 @@ def setup_app(config=None):
 
     app_conf = dict(config.app)
 
-    app = pecan.make_app(app_conf.pop('root'),
-                         logging=getattr(config, 'logging', {}),
-                         hooks=[hooks.CorsHook()],
-                         **app_conf
-                         )
+    active_hooks = [hooks.CorsHook()]
 
     if cfg.CONF.auth.enable:
-        app = auth.AuthMiddleware(app)
+        active_hooks.append(hooks.AuthHook())
+
+    app = pecan.make_app(app_conf.pop('root'),
+                         logging=getattr(config, 'logging', {}),
+                         hooks=active_hooks,
+                         **app_conf
+                         )
 
     LOG.info('%s app created.' % __name__)
 

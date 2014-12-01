@@ -13,10 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 from oslo.config import cfg
 from pecan.hooks import PecanHook
+import webob
 
 from st2common import log as logging
+from st2common.exceptions import access as exceptions
+from st2common.persistence.access import Token
+from st2common.util import isotime
+from st2common.util.jsonify import json_encode
 
 
 LOG = logging.getLogger(__name__)
@@ -48,3 +54,52 @@ class CorsHook(PecanHook):
         headers['Access-Control-Expose-Headers'] = ','.join(response_headers_allowed)
         if not headers['Content-Length']:
             headers['Content-Length'] = str(len(state.response.body))
+
+
+class AuthHook(PecanHook):
+
+    def before(self, state):
+        state.request.context['token'] = self._validate_token(state.request.headers)
+
+    def on_error(self, state, e):
+        if isinstance(e, exceptions.TokenNotProvidedError):
+            LOG.exception('Token is not provided.')
+            return self._abort_unauthorized()
+        if isinstance(e, exceptions.TokenNotFoundError):
+            LOG.exception('Token is not found.')
+            return self._abort_unauthorized()
+        if isinstance(e, exceptions.TokenExpiredError):
+            LOG.exception('Token has expired.')
+            return self._abort_unauthorized()
+
+        LOG.exception('Unexpected exception.')
+        return self._abort_other_errors()
+
+    @staticmethod
+    def _abort_unauthorized():
+        return webob.Response(json_encode({
+            'faultstring': 'Unauthorized'
+        }), status=401)
+
+    @staticmethod
+    def _abort_other_errors():
+        return webob.Response(json_encode({
+            'faultstring': 'Internal Server Error'
+        }), status=500)
+
+    @staticmethod
+    def _validate_token(headers):
+        """Validate token"""
+        if 'X_Auth_Token' not in headers:
+            LOG.audit('Token is not found in header.')
+            raise exceptions.TokenNotProvidedError('Token is not provided.')
+
+        token = Token.get(headers['X_Auth_Token'])
+
+        if token.expiry <= isotime.add_utc_tz(datetime.datetime.utcnow()):
+            LOG.audit('Token "%s" has expired.' % headers['X_Auth_Token'])
+            raise exceptions.TokenExpiredError('Token has expired.')
+
+        LOG.audit('Token "%s" is validated.' % headers['X_Auth_Token'])
+
+        return token
