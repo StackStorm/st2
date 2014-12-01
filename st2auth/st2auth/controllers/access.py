@@ -29,12 +29,6 @@ LOG = logging.getLogger(__name__)
 
 class TokenController(rest.RestController):
 
-    # Since the whole service only consists of the single post method, there is no other way for
-    # browser to get CORS headers except by making OPTIONS request.
-    @jsexpose()
-    def options(self):
-        return
-
     @jsexpose(body=TokenAPI, status_code=http_client.CREATED)
     def post(self, request, **kwargs):
         if not pecan.request.remote_user:

@@ -45,7 +45,7 @@ class CorsHook(PecanHook):
             origin_allowed = origins[0] if len(origins) > 0 else 'http://localhost:3000'
 
         methods_allowed = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-        request_headers_allowed = ['Content-Type', 'Authorization']
+        request_headers_allowed = ['Content-Type', 'Authorization', 'X-Auth-Token']
         response_headers_allowed = ['Content-Type', 'X-Limit', 'X-Total-Count']
 
         headers['Access-Control-Allow-Origin'] = origin_allowed
@@ -55,10 +55,18 @@ class CorsHook(PecanHook):
         if not headers['Content-Length']:
             headers['Content-Length'] = str(len(state.response.body))
 
+    def on_error(self, state, e):
+        if state.request.method == 'OPTIONS':
+            return webob.Response()
+
 
 class AuthHook(PecanHook):
 
     def before(self, state):
+        # OPTIONS requests doesn't need to be authenticated
+        if state.request.method == 'OPTIONS':
+            return
+
         state.request.context['token'] = self._validate_token(state.request.headers)
 
     def on_error(self, state, e):
@@ -71,9 +79,6 @@ class AuthHook(PecanHook):
         if isinstance(e, exceptions.TokenExpiredError):
             LOG.exception('Token has expired.')
             return self._abort_unauthorized()
-
-        LOG.exception('Unexpected exception.')
-        return self._abort_other_errors()
 
     @staticmethod
     def _abort_unauthorized():
