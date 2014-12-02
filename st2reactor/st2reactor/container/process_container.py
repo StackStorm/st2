@@ -20,8 +20,10 @@ import json
 import subprocess
 
 from st2common import log as logging
+from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
+from st2common.util.sandboxing import get_sandbox_virtualenv_path
 
 __all__ = [
     'ProcessSensorContainer'
@@ -155,7 +157,12 @@ class ProcessSensorContainer(object):
         belonging to the sensor pack.
         """
         sensor_id = self._get_sensor_id(sensor=sensor)
+        virtualenv_path = get_sandbox_virtualenv_path(pack=sensor['pack'])
         python_path = get_sandbox_python_binary_path(pack=sensor['pack'])
+
+        if virtualenv_path and not os.path.isdir(virtualenv_path):
+            msg = PACK_VIRTUALENV_DOESNT_EXIST % (sensor['pack'], sensor['pack'])
+            raise Exception(msg)
 
         trigger_type_refs = sensor['trigger_types'] or []
         trigger_type_refs = ','.join(trigger_type_refs)
