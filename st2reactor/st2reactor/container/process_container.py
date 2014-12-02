@@ -141,7 +141,7 @@ class ProcessSensorContainer(object):
 
         for sensor_id in sensor_ids:
             sensor_obj = self._sensors[sensor_id]
-            LOG.info('Running sensor %s' % sensor_id)
+            LOG.info('Running sensor %s', sensor_id)
 
             try:
                 self._spawn_sensor_process(sensor=sensor_obj)
