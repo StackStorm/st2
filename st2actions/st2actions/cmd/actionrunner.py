@@ -59,6 +59,8 @@ def main():
     try:
         _setup()
         return _run_worker()
+    except SystemExit as exit_code:
+        sys.exit(exit_code)
     except:
         LOG.exception('(PID=%s) Worker quit due to exception.', os.getpid())
         return 1

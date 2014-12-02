@@ -47,7 +47,7 @@ def _setup():
     config.parse_args()
 
     # 2. setup logging.
-    logging.setup(cfg.CONF.auth.logging)
+    logging.setup(cfg.CONF.auth.logging, disable_existing_loggers=True)
 
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
@@ -75,6 +75,8 @@ def main():
     try:
         _setup()
         return _run_server()
+    except SystemExit as exit_code:
+        sys.exit(exit_code)
     except:
         LOG.exception('(PID=%s) ST2 Auth API quit due to exception.', os.getpid())
         return 1

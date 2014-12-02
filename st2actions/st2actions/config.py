@@ -20,6 +20,7 @@ Configuration options registration and useful routines.
 from oslo.config import cfg
 
 import st2common.config as common_config
+from st2common.constants.system import VERSION_STRING
 common_config.register_opts()
 
 CONF = cfg.CONF
@@ -82,4 +83,4 @@ CONF.register_opts(history_opts, group='history')
 
 
 def parse_args(args=None):
-    CONF(args=args)
+    CONF(args=args, version=VERSION_STRING)

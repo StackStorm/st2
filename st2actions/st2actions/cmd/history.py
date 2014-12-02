@@ -50,7 +50,9 @@ def main():
         _setup()
         LOG.info('(PID=%s) Historian started.', os.getpid())
         history.work()
-    except (KeyboardInterrupt, SystemExit):
+    except SystemExit as exit_code:
+        sys.exit(exit_code)
+    except KeyboardInterrupt:
         LOG.info('(PID=%s) Historian stopped.', os.getpid())
         return 0
     except:

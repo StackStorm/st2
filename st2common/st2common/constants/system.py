@@ -13,4 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = '0.6.0-dev'
+from st2common import __version__
+
+__all__ = [
+    'VERSION_STRING'
+]
+
+VERSION_STRING = 'Running StackStorm v%s' % (__version__)

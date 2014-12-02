@@ -52,6 +52,8 @@ def main():
             sensors = [sensor for sensor in sensors if
                        sensor.name == cfg.CONF.sensor_name]
         return container_manager.run_sensors(sensors=sensors)
+    except SystemExit as exit_code:
+        sys.exit(exit_code)
     except:
         LOG.exception('(PID:%s) SensorContainer quit due to exception.', os.getpid())
         return 1
