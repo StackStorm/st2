@@ -1,4 +1,6 @@
 import os
+import sys
+
 from oslo.config import cfg
 
 from st2common import log as logging
