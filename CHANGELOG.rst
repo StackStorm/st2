@@ -7,7 +7,7 @@ in development
 v0.6.0 - TBD
 --------------
 
-Docs: http://docs.stackstorm.com/latest
+Docs: http://docs.stackstorm.com/0.6.0/
 
 * Separate virtualenv per pack. (Pythonic sensors and actions use them by default.)
 * Install pip requirements from requiremets.txt in packs by default.
@@ -20,6 +20,10 @@ Docs: http://docs.stackstorm.com/latest
 * Packs default path moves from /opt/stackstorm to /opt/stackstorm/packs/.
 * Webhooks are not part of a sensor. They are now part of core API. (Authentication may
   be required.)
+* API URLs are now versioned. All the existing paths have been prefixed with ``/v1``
+  (e.g. ``/v1/actions``).
+* Audit log messages are now saved in a structured format as JSON in
+  ``st2actionrunner.{pid}.audit.log`` log file.
 * Numerous bug fixes.
 
 
