@@ -13,14 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pecan import expose
-
+from st2common import __version__
+from st2common.models.base import jsexpose
 import st2api.controllers.v1.root as v1_root
 
 
 class RootController(object):
     v1 = v1_root.RootController()
 
-    @expose(generic=True, template='index.html')
+    @jsexpose(str)
     def index(self):
-        return dict()
+        data = {'version': __version__}
+        return data
