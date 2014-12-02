@@ -23,6 +23,7 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
+from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2auth import config
 from st2auth import app
 
@@ -38,6 +39,10 @@ LOG = logging.getLogger(__name__)
 
 
 def _setup():
+    # Set up logger which logs everything which happens during and before config
+    # parsing to sys.stdout
+    logging.setup(DEFAULT_LOGGING_CONF_PATH)
+
     # 1. parse args to setup config.
     config.parse_args()
 
