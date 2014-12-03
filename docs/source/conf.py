@@ -57,7 +57,7 @@ copyright = u'2014, StackStorm Inc'
 # The short X.Y version.
 version = '0.5'
 # The full version, including alpha/beta/rc tags.
-release = '0.5.1'
+release = '0.5.2'
 
 # extlink configurator sphinx.ext.extlinks
 extlinks = {
@@ -216,6 +216,12 @@ html_context = {
     'conf_py_path': '/docs/source/',
     'display_github': True,
     'source_suffix': source_suffix,
+    'versions': [
+            ( release, ''),
+            ('0.5.1','0.5.1'),
+            ('0.5.0','0.5.0'),        
+        ],
+    'current_version': release
 }
 
 
