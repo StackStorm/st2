@@ -213,7 +213,7 @@ htmlhelp_basename = 'StackStormDoc'
 
 # Variables to be used by templates
 html_context = {
-    'github_repo': 'StackStorm/stanley',
+    'github_repo': 'StackStorm/st2',
     'github_version': 'master',
     'conf_py_path': '/docs/source/',
     'display_github': True,
