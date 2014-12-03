@@ -57,7 +57,7 @@ copyright = u'2014, StackStorm Inc'
 # built documents.
 #
 # The short X.Y version.
-version = '0.5'
+version = '0.6'
 # The full version, including alpha/beta/rc tags.
 release = __version__
 
@@ -219,11 +219,10 @@ html_context = {
     'display_github': True,
     'source_suffix': source_suffix,
     'versions': [
-            (release, ''),
-            ('0.5.2','0.5.2'),
-            ('0.5.1','0.5.1'),
-            ('0.5.0','0.5.0')
-        ],
+        (release, ''),
+        ('0.6.0', '0.6.0'),
+        ('0.5.1', '0.5.1'),
+    ],
     'current_version': release
 }
 
