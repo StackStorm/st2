@@ -257,6 +257,13 @@ download_pkgs() {
     elif [[ "$TYPE" == "rpms" ]]; then
       PACKAGE="${pkg}-${VER}-${RELEASE}.noarch.rpm"
     fi
+
+    # Clean up a bit if older versions exist
+    old_package=$(ls *${pkg}* 2> /dev/null | wc -l)
+    if [ "${old_package}" != "0" ]; then
+      rm -f *${pkg}*
+    fi
+
     curl -sS -k -O https://ops.stackstorm.net/releases/st2/${VER}/${TYPE}/${BUILD}/${PACKAGE}
   done
   popd
