@@ -21,5 +21,5 @@ __all__ = [
 
 BASE_PATH = os.path.abspath(os.path.dirname(__file__))
 
-DEFAULT_LOGGING_CONF_PATH = os.path.join(BASE_PATH, '../../conf/base.logging.conf')
+DEFAULT_LOGGING_CONF_PATH = os.path.join(BASE_PATH, '../conf/base.logging.conf')
 DEFAULT_LOGGING_CONF_PATH = os.path.abspath(DEFAULT_LOGGING_CONF_PATH)
