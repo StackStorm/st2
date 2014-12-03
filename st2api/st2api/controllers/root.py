@@ -33,5 +33,4 @@ class RootController(object):
 
         data['version'] = __version__
         data['docs_url'] = docs_url
-        print data
         return data
