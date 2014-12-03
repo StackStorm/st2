@@ -73,7 +73,7 @@ Once you write your own sensor, the following steps can be used to run your sens
 1. Place the sensor python file and yaml metadata in the 'default' pack in
 /opt/stackstorm/packs/default/sensors/. Alternatively, you can create a
 custom pack in /opt/stackstorm/packs/
-with appropriate pack structure and place the sensor artifacts there.
+with appropriate pack structure (see :doc:`/reference/packs`) and place the sensor artifacts there.
 
 2. Register the sensor by using the st2ctl tool. Look out for any errors in sensor registration.
 
@@ -91,7 +91,7 @@ If there are errors in registration, fix the errors and re-register them using s
 
 Once you like your sensor, you can promote it to a pack (if required) by creating a pack in
 /opt/stackstorm/packs/${pack_name} and moving the sensor artifacts (yaml and py) to
-/opt/stackstorm/packs/${pack_name}/sensors/.
+/opt/stackstorm/packs/${pack_name}/sensors/. See :doc:`/reference/packs` for how to create a pack.
 
 Debugging a sensor from a pack
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
