@@ -63,21 +63,45 @@ would use a PollingSensor instead of Sensor as the base class.
 For a complete implementation of a sensor that actually injects triggers
 into the system, look at the `examples <#Examples>`__ section.
 
-Once you write your own sensor, you can test it stand alone like so:
+
+
+Running your first sensor
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once you write your own sensor, the following steps can be used to run your sensor for the first time.
+
+1. Place the sensor python file and yaml metadata in the 'default' pack in
+/opt/stackstorm/packs/default/sensors/. Alternatively, you can create a
+custom pack in /opt/stackstorm/packs/
+with appropriate pack structure and place the sensor artifacts there.
+
+2. Register the sensor by using the st2ctl tool. Look out for any errors in sensor registration.
+
+::
+
+    st2ctl reload
+
+If there are errors in registration, fix the errors and re-register them using st2ctl reload.
+
+3. If registration is successful, you can run the sensor by restarting st2.
+
+::
+
+    st2 restart
+
+Once you like your sensor, you can promote it to a pack (if required) by creating a pack in
+/opt/stackstorm/packs/${pack_name} and moving the sensor artifacts (yaml and py) to
+/opt/stackstorm/packs/${pack_name}/sensors/.
+
+Debugging a sensor from a pack
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you just want to run a single sensor from a pack and the sensor is already registered, you can
+use the sensor_container to run just that single sensor.
 
 ::
 
     sensor_container --config-file=conf/st2.conf --sensor-name /path/to/sensor/file
-
-If you are happy about your sensor and you want the system to always run it, place your sensor
-in a pack you choose /opt/stackstorm/packs/${pack_name}/sensors/.
-
-::
-
-    $cp /path/to/sensor/${sensorfile}.py /opt/stackstorm/packs/${pack_name}/sensors/${sensorfile}.py
-
-Note: If |st2| reactor component is already running on the box, you'll
-have to restart it to pick up the new sensor.
 
 Examples
 ~~~~~~~~
