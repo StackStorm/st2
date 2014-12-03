@@ -19,6 +19,7 @@ import logging
 
 import six
 
+from six.moves import urllib
 from st2client.utils import httpclient
 
 
@@ -167,10 +168,12 @@ class ResourceManager(object):
         if 'limit' in kwargs and kwargs.get('limit') <= 0:
             kwargs.pop('limit')
         token = kwargs.get('token', None)
-        url = '/%s/?' % self.resource.get_plural_name().lower()
+        params = {}
         for k, v in six.iteritems(kwargs):
             if k != 'token':
-                url += '%s%s=%s' % (('&' if url[-1] != '?' else ''), k, v)
+                params[k] = v
+        url = '/%s/?%s' % (self.resource.get_plural_name().lower(),
+                           urllib.parse.urlencode(params))
         response = self.client.get(url, token=token) if token else self.client.get(url)
         if response.status_code == 404:
             return []
