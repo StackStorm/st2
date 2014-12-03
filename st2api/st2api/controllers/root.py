@@ -13,15 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pecan import expose
+
 from st2common import __version__
-from st2common.models.base import jsexpose
 import st2api.controllers.v1.root as v1_root
 
 
 class RootController(object):
     v1 = v1_root.RootController()
 
-    @jsexpose(str)
+    @expose(generic=True, template='index.html')
     def index(self):
-        data = {'version': __version__}
+        data = {}
+
+        if '-dev' in __version__:
+            docs_url = 'http://docs.stackstorm.com/latest'
+        else:
+            docs_url = 'http://docs.stackstorm.com/%s' % (__version__)
+
+        data['version'] = __version__
+        data['docs_url'] = docs_url
+        print data
         return data
