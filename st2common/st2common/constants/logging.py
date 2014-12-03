@@ -13,4 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = '0.6.0-dev'
+import os
+
+__all__ = [
+    'DEFAULT_LOGGING_CONF_PATH'
+]
+
+BASE_PATH = os.path.abspath(os.path.dirname(__file__))
+
+DEFAULT_LOGGING_CONF_PATH = os.path.join(BASE_PATH, '../../conf/base.logging.conf')
+DEFAULT_LOGGING_CONF_PATH = os.path.abspath(DEFAULT_LOGGING_CONF_PATH)

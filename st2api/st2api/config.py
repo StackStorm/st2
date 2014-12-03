@@ -20,6 +20,7 @@ Configuration options registration and useful routines.
 from oslo.config import cfg
 
 import st2common.config as common_config
+from st2common.constants.system import VERSION_STRING
 
 CONF = cfg.CONF
 
@@ -43,7 +44,7 @@ def _register_app_opts():
                    help='Action root controller'),
         cfg.StrOpt('static_root', default='%(confdir)s/public'),
         cfg.StrOpt('template_path',
-                   default='%(confdir)s/st2api/templates'),
+                   default='%(confdir)s/st2api/st2api/templates'),
         cfg.ListOpt('modules', default=['st2api']),
         cfg.BoolOpt('debug', default=True),
         cfg.BoolOpt('auth_enable', default=True),
@@ -64,7 +65,7 @@ def regsiter_opts():
 
 
 def parse_args(args=None):
-    CONF(args=args)
+    CONF(args=args, version=VERSION_STRING)
 
 
 regsiter_opts()

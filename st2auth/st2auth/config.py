@@ -14,11 +14,13 @@
 # limitations under the License.
 
 from oslo.config import cfg
+
 from st2common import config as st2cfg
+from st2common.constants.system import VERSION_STRING
 
 
 def parse_args(args=None):
-    cfg.CONF(args=args)
+    cfg.CONF(args=args, version=VERSION_STRING)
 
 
 def _register_common_opts():

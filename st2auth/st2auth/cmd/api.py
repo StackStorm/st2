@@ -23,6 +23,7 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
+from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2auth import config
 from st2auth import app
 
@@ -38,11 +39,15 @@ LOG = logging.getLogger(__name__)
 
 
 def _setup():
+    # Set up logger which logs everything which happens during and before config
+    # parsing to sys.stdout
+    logging.setup(DEFAULT_LOGGING_CONF_PATH)
+
     # 1. parse args to setup config.
     config.parse_args()
 
     # 2. setup logging.
-    logging.setup(cfg.CONF.auth.logging)
+    logging.setup(cfg.CONF.auth.logging, disable_existing_loggers=True)
 
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
@@ -77,6 +82,8 @@ def main():
     try:
         _setup()
         return _run_server()
+    except SystemExit as exit_code:
+        sys.exit(exit_code)
     except:
         LOG.exception('(PID=%s) ST2 Auth API quit due to exception.', os.getpid())
         return 1

@@ -15,6 +15,7 @@
 
 from pecan import expose
 
+from st2common import __version__
 import st2api.controllers.v1.root as v1_root
 
 
@@ -23,4 +24,14 @@ class RootController(object):
 
     @expose(generic=True, template='index.html')
     def index(self):
-        return dict()
+        data = {}
+
+        if '-dev' in __version__:
+            docs_url = 'http://docs.stackstorm.com/latest'
+        else:
+            docs_url = 'http://docs.stackstorm.com/%s' % (__version__)
+
+        data['version'] = __version__
+        data['docs_url'] = docs_url
+        print data
+        return data

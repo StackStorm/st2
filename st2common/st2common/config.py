@@ -17,6 +17,8 @@ import os
 
 from oslo.config import cfg
 
+from st2common.constants.system import VERSION_STRING
+
 
 def _do_register_opts(opts, group, ignore_errors):
     try:
@@ -27,7 +29,6 @@ def _do_register_opts(opts, group, ignore_errors):
 
 
 def register_opts(ignore_errors=False):
-
     auth_opts = [
         cfg.BoolOpt('enable', default=True, help='Enable authentication middleware.'),
         cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.')
@@ -102,4 +103,4 @@ def register_opts(ignore_errors=False):
 
 def parse_args(args=None):
     register_opts()
-    cfg.CONF(args=args)
+    cfg.CONF(args=args, version=VERSION_STRING)
