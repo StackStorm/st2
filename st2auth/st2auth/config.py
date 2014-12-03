@@ -29,9 +29,17 @@ def _register_app_opts():
     auth_opts = [
         cfg.StrOpt('host', default='0.0.0.0'),
         cfg.IntOpt('port', default=9100),
+        cfg.StrOpt('cert', default='/etc/apache2/ssl/mycert.crt'),
+        cfg.StrOpt('key', default='/etc/apache2/ssl/mycert.key'),
         cfg.StrOpt('logging', default='conf/logging.conf'),
         cfg.BoolOpt('debug', default=False)]
     cfg.CONF.register_opts(auth_opts, group='auth')
+
+    api_opts = [
+        cfg.ListOpt('allow_origin', default=['http://localhost:3000'],
+            help='List of origins allowed'),
+    ]
+    cfg.CONF.register_opts(api_opts, group='api')
 
 
 def register_opts():

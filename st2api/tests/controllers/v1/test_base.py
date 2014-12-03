@@ -26,7 +26,7 @@ class TestBase(FunctionalTest):
         self.assertEqual(response.headers['Access-Control-Allow-Methods'],
                          'GET,POST,PUT,DELETE,OPTIONS')
         self.assertEqual(response.headers['Access-Control-Allow-Headers'],
-                         'Content-Type')
+                         'Content-Type,Authorization,X-Auth-Token')
         self.assertEqual(response.headers['Access-Control-Expose-Headers'],
                          'Content-Type,X-Limit,X-Total-Count')
 

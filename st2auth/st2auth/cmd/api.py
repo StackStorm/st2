@@ -56,9 +56,16 @@ def _run_server():
     host = cfg.CONF.auth.host
     port = cfg.CONF.auth.port
 
+    cert = cfg.CONF.auth.cert
+    key = cfg.CONF.auth.key
+
     LOG.info('(PID=%s) ST2 Auth API is serving on http://%s:%s.', os.getpid(), host, port)
 
-    wsgi.server(eventlet.listen((host, port)), app.setup_app())
+    wsgi.server(eventlet.wrap_ssl(eventlet.listen((host, port)),
+                                  certfile=cert,
+                                  keyfile=key,
+                                  server_side=True),
+                app.setup_app())
     return 0
 
 
