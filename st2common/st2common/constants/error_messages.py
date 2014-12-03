@@ -16,5 +16,5 @@
 PACK_VIRTUALENV_DOESNT_EXIST = '''
 Virtual environment for pack "%s" doesn\'t exist. If you haven\'t installed a pack using
 "packs.install" command, you can create a new virtual environment using
-"packs.setup_virtualenv --packs=%s" command'
+"st2 run packs.setup_virtualenv packs=%s" command'
 '''
