@@ -13,40 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
-from oslo.config import cfg
-
-from st2common import hooks
-from st2common import log as logging
-
-
-LOG = logging.getLogger(__name__)
-
-
-def _get_pecan_config():
-
-    config = {
-        'app': {
-            'root': 'st2auth.controllers.root.RootController',
-            'modules': ['st2auth'],
-            'debug': cfg.CONF.auth.debug,
-            'errors': {'__force_dict__': True}
-        }
-    }
-
-    return pecan.configuration.conf_from_dict(config)
-
-
-def setup_app(config=None):
-
-    if not config:
-        config = _get_pecan_config()
-
-    app_conf = dict(config.app)
-
-    return pecan.make_app(
-        app_conf.pop('root'),
-        logging=getattr(config, 'logging', {}),
-        hooks=[hooks.CorsHook()],
-        **app_conf
-    )
+PACK_VIRTUALENV_DOESNT_EXIST = '''
+Virtual environment for pack "%s" doesn\'t exist. If you haven\'t installed a pack using
+"packs.install" command, you can create a new virtual environment using
+"packs.setup_virtualenv --packs=%s" command'
+'''

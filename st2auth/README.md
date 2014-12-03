@@ -14,24 +14,22 @@ Install Apache and other dependencies.
 
 Install st2auth.  The configuration file for st2auth should be located at /etc/st2/st2.conf.
 
-Follow the example below and create /etc/apache2/sites-available/st2-auth.conf. The following configures st2auth to authenticate users who belong to the st2ops group, with PAM via apache. 
+Follow the example below and create /etc/apache2/sites-available/st2-auth.conf. The following configures st2auth to authenticate users who belong to the st2ops group, with PAM via apache.
 
     <VirtualHost *:9100>
-    
-        ServerName myhost.example.com:9100
-    
-        WSGIScriptAlias / /path/to/st2auth/st2auth/wsgi.py
-        WSGIDaemonProcess st2auth user=myuser group=mygroup processes=2 threads=25 python-path=/path/to/st2auth:/path/to/st2common:/path/to/virtualenv/local/lib/python2.7/site-packages
+
+        WSGIScriptAlias / /vagrant/code/stanley/st2auth/st2auth/wsgi.py
+        WSGIDaemonProcess st2auth user=stanley group=stanley processes=2 threads=25 python-path=/vagrant/code/stanley/st2auth:/vagrant/code/stanley/st2common:/vagrant/code/stanley/virtualenv/local/lib/python2.7/site-packages
         WSGIProcessGroup st2auth
-    
+
         SSLEngine on
         SSLCertificateFile /etc/apache2/ssl/mycert.crt
         SSLCertificateKeyFile /etc/apache2/ssl/mycert.key
-    
+
         AddExternalAuth pwauth /usr/sbin/pwauth
         SetExternalAuthMethod pwauth pipe
-    
-        <Directory /path/to/st2auth/st2auth>
+
+        <Directory /vagrant/code/stanley/st2auth/st2auth>
             <Files wsgi.py>
                 Order deny,allow
                 Allow from all
@@ -40,9 +38,11 @@ Follow the example below and create /etc/apache2/sites-available/st2-auth.conf. 
             AuthName "Restricted"
             AuthBasicProvider external
             AuthExternal pwauth
-            require unix-group st2ops
+            <LimitExcept OPTIONS>
+                require unix-group st2ops
+            </LimitExcept>
         </Directory>
-    
+
     </VirtualHost>
 
 Add the following line to /etc/apache2/ports.conf.
