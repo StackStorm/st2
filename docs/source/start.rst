@@ -166,13 +166,13 @@ or they are deployed with API or CLI:
     st2 rule get examples.webhook_file
 
 Once the rule is created, the webhook begins to listen on
-``http://{host}:6001/webhooks/generic/{url}``. Fire the post, check out
+``http://{host}:9101/webhooks/{url}``. Fire the post, check out
 the file and see that it appends the payload if the name=Joe.
 
 .. code-block:: bash
 
     # Post to the webhook
-    curl http://localhost:6001/webhooks/generic/sample -d '{"foo": "bar", "name": "st2"}' -H 'Content-Type: application/json'
+    curl http://localhost:9101/webhooks/sample -d '{"foo": "bar", "name": "st2"}' -H 'Content-Type: application/json'
     # Check if the action got executed
     st2 execution list
     # Check that the rule worked
