@@ -219,11 +219,11 @@ html_context = {
     'display_github': True,
     'source_suffix': source_suffix,
     'versions': [
-        (release, ''),
-        ('0.6.0', '0.6.0'),
-        ('0.5.1', '0.5.1'),
-    ],
-    'current_version': release
+            ('latest', 'http://docs.stackstorm.com/latest'),
+            ('0.6.0', 'http://docs.stackstorm.com/0.6.0'),
+            ('0.5.1', 'http://docs.stackstorm.com/0.5.1'),
+        ],
+    'current_version': "0.6.0"
 }
 
 
