@@ -14,7 +14,10 @@ Triggers
 ~~~~~~~~
 
 Triggers are |st2| constructs that identify the incoming events to |st2|.
-A trigger is a tuple of type (string) and optional parameters (object). Rules are written to work with triggers. Sensors typically register triggers though this is not strictly the case. For example, webhook triggers are just registered independently. You don't have to write a sensor.
+A trigger is a tuple of type (string) and optional parameters (object).
+Rules are written to work with triggers. Sensors typically register triggers
+though this is not strictly the case. For example, webhook triggers are just
+registered independently. You don't have to write a sensor.
 
 .. _ref-sensors-authoring-a-sensor:
 
@@ -64,12 +67,10 @@ Once you write your own sensor, you can test it stand alone like so:
 
 ::
 
-    st2reactor/bin/sensor_container --config-file=conf/st2.conf --sensor-path /path/to/sensor/file
+    sensor_container --config-file=conf/st2.conf --sensor-name /path/to/sensor/file
 
-[Note: You should have setup the virtualenv and activated it before the
-previous command can work.]
-
-If you are happy about your sensor and you want the system to always run it, place your sensor in a pack you choose /opt/stackstorm/packs/${pack_name}/sensors/.
+If you are happy about your sensor and you want the system to always run it, place your sensor
+in a pack you choose /opt/stackstorm/packs/${pack_name}/sensors/.
 
 ::
 
