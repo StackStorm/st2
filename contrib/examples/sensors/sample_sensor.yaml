@@ -4,7 +4,7 @@
   description: "Simple sensor that emits triggers."
   trigger_types:
     -
-      name: "execution_trigger"
+      name: "event"
       description: "An example trigger."
       payload_schema:
         type: "object"

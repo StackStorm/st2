@@ -5,7 +5,7 @@
   poll_interval: 10
   trigger_types:
     -
-      name: "execution_trigger"
+      name: "polling_event"
       description: "An example trigger."
       payload_schema:
         type: "object"
