@@ -63,7 +63,7 @@ To run the action from the CLI, do
     st2 run core.local -- uname -a
 
     # HTTP REST call to st2 action endpoint
-    st2 run -j core.http url="http://localhost:9101/actions" method="GET"
+    st2 run -j core.http url="http://localhost:9101/v1/ actions" method="GET"
 
 Use ``core.remote`` action to run linux command on multiple hosts over ssh.
 This assumes that passwordless SSH access is configured for the hosts,
