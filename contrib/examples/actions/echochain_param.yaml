@@ -4,14 +4,14 @@
             name: "c1"
             ref: "core.local"
             params:
-                cmd: "echo c1"
+                cmd: "echo c1, input {{input1}}" # Refers action input parameter
             on-success: "c2"
             on-failure: "c4"
         -
             name: "c2"
             ref: "core.local"
             params:
-                cmd: "echo c2 {{c1.localhost.stdout}}"
+                cmd: "echo c2 {{c1.localhost.stdout}}" # refers upsteram action parameter
             on-success: "c3"
             on-failure: "c4"
         -
