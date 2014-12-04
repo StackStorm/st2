@@ -282,16 +282,24 @@ def register_runner_types():
     for runnertype in RUNNER_TYPES:
         try:
             runnertype_db = get_runnertype_by_name(runnertype['name'])
-            if runnertype_db:
-                LOG.info('RunnerType name=%s exists.', runnertype['name'])
-                continue
+            update = True
         except StackStormDBObjectNotFoundError:
-            pass
+            runnertype_db = None
+            update = False
 
         runnertype_api = RunnerTypeAPI(**runnertype)
+        runner_type_model = RunnerTypeAPI.to_model(runnertype_api)
+
+        if runnertype_db:
+            runner_type_model.id = runnertype_db.id
+
         try:
-            runnertype_db = RunnerType.add_or_update(RunnerTypeAPI.to_model(runnertype_api))
-            LOG.audit('RunnerType created. RunnerType %s', runnertype_db)
+            runnertype_db = RunnerType.add_or_update(runner_type_model)
+
+            if update:
+                LOG.audit('RunnerType updated. RunnerType %s', runnertype_db)
+            else:
+                LOG.audit('RunnerType created. RunnerType %s', runnertype_db)
         except Exception:
             LOG.exception('Unable to register runner type %s.', runnertype['name'])
 
