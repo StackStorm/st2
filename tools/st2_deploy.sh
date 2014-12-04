@@ -243,7 +243,7 @@ setup_mistral() {
   deactivate
 
   # Setup mistral client.
-  pip install -U git+https://github.com/stackforge/python-mistralclient.git
+  pip install -U git+https://github.com/StackStorm/python-mistralclient.git@st2-0.5.1
 }
 
 download_pkgs() {
@@ -301,12 +301,12 @@ download_pkgs
 
 if [[ "$TYPE" == "debs" ]]; then
   install_apt
-  deploy_deb
   setup_mistral
+  deploy_deb
 elif [[ "$TYPE" == "rpms" ]]; then
   install_yum
-  deploy_rpm
   setup_mistral
+  deploy_rpm
 fi
 
 install_st2client() {
