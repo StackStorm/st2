@@ -11,7 +11,7 @@
       name: "setup_virtualenv"
       ref: "packs.setup_virtualenv"
       params:
-        packs: "{{packs}}"
+        packs_status: "{{download.result}}"
       on-success: "reload"
     -
       name: "reload"

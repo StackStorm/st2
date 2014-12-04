@@ -3,6 +3,7 @@ import re
 import pipes
 
 from oslo.config import cfg
+import six
 
 import st2common.config as config
 from st2common.util.shell import run_command
@@ -36,16 +37,17 @@ class SetupVirtualEnvironmentAction(Action):
         except:
             pass
 
-    def run(self, packs):
+    def run(self, packs_status):
         """
         :param packs: A list of packs to create the environment for.
         :type: packs: ``list``
         """
-        for pack_name in packs:
-            self._setup_pack_virtualenv(pack_name=pack_name)
+        for pack_name, status in six.iteritems(packs_status):
+            if status == 'Success':
+                self._setup_pack_virtualenv(pack_name=pack_name)
 
         message = ('Successfuly set up virtualenv for the following packs: %s' %
-                   (', '.join(packs)))
+                   (', '.join(packs_status.keys())))
         return message
 
     def _setup_pack_virtualenv(self, pack_name):
