@@ -41,31 +41,6 @@ Yum
 Pip
 '''
 
-The following packages are required by |st2| to run but will be
-installed by the st2_deploy.sh script if it is used.
-
- - apscheduler>=3.0.0rc1
- - eventlet>=0.13.0
- - flask
- - flask-jsonschema
- - jinja2
- - jsonschema>=2.3.0
- - kombu
- - mongoengine
- - oslo.config
- - paramiko
- - pecan==0.7.0
- - prettytable
- - pymongo
- - python-dateutil
- - pyyaml
- - requests
- - setuptools
- - six
- - git+https://github.com/stackforge/python-mistralclient.git
- - git+https://github.com/StackStorm/fabric.git@stanley-patched
- - gitpython==0.3.2RC1
-
 The easiest way to install these is to use the requirements.txt file from the |st2| downloads server.  This is kept up to date for the version specified in the path.
 
 ::
@@ -129,14 +104,7 @@ processes are running as.
 
 See  :doc:`/install/config` for more information on setting up SSH access for a user.
 
-Starting and Stopping
+Validating
 ^^^^^^^^^^^^^^^^^^^^^
-
-The command to start and or stop |st2| is 'st2ctl'.
-
-::
-
-    vagrant@st2:~$ st2ctl
-    Valid actions: start|stop|restart|restart-component|reload|clean|status
 
 .. include:: on_complete.rst
