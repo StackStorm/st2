@@ -63,7 +63,7 @@ To run the action from the CLI, do
     st2 run core.local -- uname -a
 
     # HTTP REST call to st2 action endpoint
-    st2 run -j core.http url="http://localhost:9101/v1/ actions" method="GET"
+    st2 run -j core.http url="http://localhost:9101/v1/actions" method="GET"
 
 Use ``core.remote`` action to run linux command on multiple hosts over ssh.
 This assumes that passwordless SSH access is configured for the hosts,
@@ -119,7 +119,7 @@ Sample rule: :github_st2:`sample_rule_with_webhook.yaml
 The rule definition is a YAML spec with thee sections: trigger, criteria, and action.
 It configures the webhook trigger with url, applies filtering criteria based trigger
 parameters. This one configures a webhook with ``sample`` sub-url so it listens
-on ``http://{host}:6001/webhooks/generic/sample``.
+on ``http://{host}:9101/v1/webhooks/sample``.
 When it fires, it appends a payload to the file, only if the ``name``
 value in payload is ``st2``. See :doc:`rules` for detailed rule anatomy.
 
@@ -130,11 +130,11 @@ it is parsed and can be accessed like ``{{trigger.path.to.parameter}}`` (it's
 While the most data are retrieved as needed by |st2|, you may need to
 store and share some common variables. Use |st2| datastore service to store
 the values and reference them in rules and workflows
-as ``{{system.my_parameter}}``.
+as ``{{system.my_parameter}}``. This creates ``user=stanley`` key-value pair:
 
 .. code-block:: bash
 
-    st2 key create name=user value=stanley
+    st2 key create user stanley
     st2 key list
 
 What are the triggers availabe to use in rules? Just like with actions,
@@ -173,9 +173,13 @@ the file and see that it appends the payload if the name=Joe.
 
     # Post to the webhook
     curl http://localhost:9101/v1/webhooks/sample -d '{"foo": "bar", "name": "st2"}' -H 'Content-Type: application/json'
-    # Check if the action got executed
-    st2 execution list
+    # Check if the action got executed (this shows last action)
+    st2 execution list -n 1
     # Check that the rule worked
+    tail /tmp/st2.webhook_sample.out
+    # And for fun, same post with |st2|
+    st2 run core.http method=POST body='{"you": "too", "name": "st2"}' url=http://localhost:9101/v1/webhooks/sample
+    # Check that the rule worked again
     tail /tmp/st2.webhook_sample.out
 
 Congratulations, your first |st2| rule is up and running!
@@ -192,7 +196,7 @@ If something goes wrong:
 
 * Check recent executions: ``st2 execution list``
 * Check the logs at ``/var/log/st2.``
-* Use service control st2ctl to check service status, restart services, or clean the db.
+* Use service control ``st2ctl`` to check service status, restart services, reload packs, or clean the db.
 * `Engage with developers <http://webchat.freenode.net/?channels=stackstorm>`__
 
 
@@ -204,7 +208,7 @@ If something goes wrong:
 
 
     * Install integration packs from `st2contrib`_  - follow guide on :doc:`/packs`.
-    * :ref:`Convert your scripts into StackStorm actions :<ref-actions-converting-scripts>`
+    * :ref:`Convert your scripts into StackStorm actions. <ref-actions-converting-scripts>`
     * Learn how to :ref:`write custom actions <ref-actions-writing-custom>`.
 
 * Connect with your monitoring system: - :doc:`resources/monitoring`.

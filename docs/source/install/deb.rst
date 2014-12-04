@@ -84,14 +84,7 @@ processes are running as.
 
 See  :doc:`/install/config` for more information on setting up SSH access for a user.
 
-Starting and Stopping
+Validating
 ^^^^^^^^^^^^^^^^^^^^^
-
-The command to start and or stop |st2| is 'st2ctl'.
-
-::
-
-    $ st2ctl
-    Valid actions: start|stop|restart|restart-component|reload|clean|status
 
 .. include:: on_complete.rst
