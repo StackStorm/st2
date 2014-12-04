@@ -1,0 +1,20 @@
+---
+  name: "restart_component"
+  runner_type: "run-local"
+  description: "Action that restarts st2 service."
+  enabled: true
+  entry_point: ""
+  parameters:
+    sudo:
+      default: true
+      immutable: true
+    cmd:
+      immutable: true
+      default: "st2ctl restart-component {{servicename}}"
+    servicename:
+      type: "string"
+      required: true
+    kwarg_op:
+      immutable: true
+    dir:
+      immutable: true

@@ -1,0 +1,20 @@
+---
+  chain:
+    -
+      name: "unregister"
+      ref: "packs.unload"
+      params:
+        packs: "{{packs}}"
+      on-success: "delete"
+    -
+      name: "delete"
+      ref: "packs.delete"
+      params:
+        packs: "{{packs}}"
+      on-success: "restart-sensor-container"
+    -
+      name: "restart-sensor-container"
+      ref: "packs.restart_component"
+      params:
+        servicename: "sensor_containesr"
+  default: "unregister"
