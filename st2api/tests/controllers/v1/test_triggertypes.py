@@ -47,7 +47,7 @@ class TestTriggerTypeController(FunctionalTest):
         trigger_id_0 = self.__get_trigger_id(post_resp)
         post_resp = self.__do_post(TRIGGER_1)
         trigger_id_1 = self.__get_trigger_id(post_resp)
-        resp = self.app.get('/triggertypes')
+        resp = self.app.get('/v1/triggertypes')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 2, 'Get all failure.')
         self.__do_delete(trigger_id_0)
@@ -108,13 +108,13 @@ class TestTriggerTypeController(FunctionalTest):
         return resp.json['id']
 
     def __do_get_one(self, trigger_id):
-        return self.app.get('/triggertypes/%s' % trigger_id, expect_errors=True)
+        return self.app.get('/v1/triggertypes/%s' % trigger_id, expect_errors=True)
 
     def __do_post(self, trigger):
-        return self.app.post_json('/triggertypes', trigger, expect_errors=True)
+        return self.app.post_json('/v1/triggertypes', trigger, expect_errors=True)
 
     def __do_put(self, trigger_id, trigger):
-        return self.app.put_json('/triggertypes/%s' % trigger_id, trigger, expect_errors=True)
+        return self.app.put_json('/v1/triggertypes/%s' % trigger_id, trigger, expect_errors=True)
 
     def __do_delete(self, trigger_id):
-        return self.app.delete('/triggertypes/%s' % trigger_id)
+        return self.app.delete('/v1/triggertypes/%s' % trigger_id)

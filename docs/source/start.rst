@@ -63,7 +63,7 @@ To run the action from the CLI, do
     st2 run core.local -- uname -a
 
     # HTTP REST call to st2 action endpoint
-    st2 run -j core.http url="http://localhost:9101/actions" method="GET"
+    st2 run -j core.http url="http://localhost:9101/v1/ actions" method="GET"
 
 Use ``core.remote`` action to run linux command on multiple hosts over ssh.
 This assumes that passwordless SSH access is configured for the hosts,
@@ -166,13 +166,13 @@ or they are deployed with API or CLI:
     st2 rule get examples.webhook_file
 
 Once the rule is created, the webhook begins to listen on
-``http://{host}:6001/webhooks/generic/{url}``. Fire the post, check out
+``http://{host}:9101/v1/webhooks/{url}``. Fire the post, check out
 the file and see that it appends the payload if the name=Joe.
 
 .. code-block:: bash
 
     # Post to the webhook
-    curl http://localhost:6001/webhooks/generic/sample -d '{"foo": "bar", "name": "st2"}' -H 'Content-Type: application/json'
+    curl http://localhost:9101/v1/webhooks/sample -d '{"foo": "bar", "name": "st2"}' -H 'Content-Type: application/json'
     # Check if the action got executed
     st2 execution list
     # Check that the rule worked

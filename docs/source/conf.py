@@ -12,13 +12,15 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-# import sys
-# import os
+import sys
+import os
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-# sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../st2common'))
+
+from st2common import __version__
 
 # -- General configuration ------------------------------------------------
 
@@ -55,9 +57,9 @@ copyright = u'2014, StackStorm Inc'
 # built documents.
 #
 # The short X.Y version.
-version = '0.5'
+version = '0.6'
 # The full version, including alpha/beta/rc tags.
-release = '0.5.1'
+release = __version__
 
 # extlink configurator sphinx.ext.extlinks
 extlinks = {
@@ -211,11 +213,17 @@ htmlhelp_basename = 'StackStormDoc'
 
 # Variables to be used by templates
 html_context = {
-    'github_repo': 'StackStorm/stanley',
+    'github_repo': 'StackStorm/st2',
     'github_version': 'master',
     'conf_py_path': '/docs/source/',
     'display_github': True,
     'source_suffix': source_suffix,
+    'versions': [
+            ('latest', 'http://docs.stackstorm.com/latest'),
+            ('0.6.0', 'http://docs.stackstorm.com/0.6.0'),
+            ('0.5.1', 'http://docs.stackstorm.com/0.5.1'),
+        ],
+    'current_version': "0.6.0"
 }
 
 

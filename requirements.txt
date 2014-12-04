@@ -18,3 +18,4 @@ six
 git+https://github.com/stackforge/python-mistralclient.git
 git+https://github.com/StackStorm/fabric.git@stanley-patched
 gitpython==0.3.2RC1
+python-json-logger

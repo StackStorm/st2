@@ -37,16 +37,16 @@ Testing
 Run the following curl commands to test. ::
 
     # The following will fail because SSL is required.
-    curl -X POST http://myhost.example.com:9100/tokens
+    curl -X POST http://myhost.example.com:9100/v1/tokens
 
     # The following will fail with 401 unauthorized.
-    curl -X POST https://myhost.example.com:9100/tokens
+    curl -X POST https://myhost.example.com:9100/v1/tokens
 
     # The following will succeed and return a valid token. Please note that this is executed without verifying the SSL cert.
-    curl -X POST -k -u yourusername:yourpassword https://myhost.example.com:9100/tokens
+    curl -X POST -k -u yourusername:yourpassword https://myhost.example.com:9100/v1/tokens
 
     # The following will verify the SSL cert.
-    curl -X POST --cacert /path/to/cacert.pem -u yourusername:yourpassword https://myhost.example.com:9100/tokens
+    curl -X POST --cacert /path/to/cacert.pem -u yourusername:yourpassword https://myhost.example.com:9100/v1/tokens
 
 Usage
 +++++
@@ -68,7 +68,7 @@ To acquire a new token via the CLI, run the ``st2 auth`` command.  If password i
 
 The following is a sample API call via curl using the token. ::
 
-    curl -H "X-Auth-Token: 4d76e023841a4a91a9c66aa4541156fe" http://myhost.example.com:9101/actions
+    curl -H "X-Auth-Token: 4d76e023841a4a91a9c66aa4541156fe" http://myhost.example.com:9101/v1/actions
 
 The following is the equivalent for CLI. ::
 

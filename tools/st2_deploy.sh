@@ -3,7 +3,7 @@ set -e
 
 if [ -z $1 ]
 then
-  VER='0.5.1'
+  VER='0.6.0'
 else
   VER=$1
 fi
@@ -93,7 +93,7 @@ install_apt(){
 
 install_yum() {
   echo "########## Installing packages via yum ##########"
-  rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc 
+  rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
   curl -sS -k -o /tmp/rabbitmq-server.rpm http://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
   yum localinstall -y /tmp/rabbitmq-server.rpm
   yumlist='python-pip python-virtualenv python-devel gcc-c++ git-all mongodb mongodb-server mysql-server'
@@ -176,11 +176,11 @@ touch $systemd
 cat <<mistral_systemd >$systemd
 [Unit]
 Description=Mistral Workflow Service
- 
+
 [Service]
 ExecStart=/opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log
 Restart=on-abort
- 
+
 [Install]
 WantedBy=multi-user.target
 mistral_systemd
@@ -194,7 +194,7 @@ setup_mistral() {
   if [[ "$TYPE" == "debs" ]]; then
     apt-get -y install libssl-dev libyaml-dev libffi-dev libxml2-dev libxslt1-dev python-dev libmysqlclient-dev
   elif [[ "$TYPE" == "rpms" ]]; then
-    yum -y install openssl-devel libyaml-devel libffi-devel libxml2-devel libxslt-devel python-devel mysql-devel 
+    yum -y install openssl-devel libyaml-devel libffi-devel libxml2-devel libxslt-devel python-devel mysql-devel
   fi
 
   # Clone mistral from github.
@@ -257,6 +257,13 @@ download_pkgs() {
     elif [[ "$TYPE" == "rpms" ]]; then
       PACKAGE="${pkg}-${VER}-${RELEASE}.noarch.rpm"
     fi
+
+    # Clean up a bit if older versions exist
+    old_package=$(ls *${pkg}* 2> /dev/null | wc -l)
+    if [ "${old_package}" != "0" ]; then
+      rm -f *${pkg}*
+    fi
+
     curl -sS -k -O https://ops.stackstorm.net/releases/st2/${VER}/${TYPE}/${BUILD}/${PACKAGE}
   done
   popd
@@ -286,7 +293,7 @@ deploy_deb() {
 
 register_content() {
   echo "########## Registering all content ##########"
-  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF} 
+  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF}
 }
 
 create_user
@@ -321,8 +328,8 @@ install_st2client() {
 install_st2client
 register_content
 echo "########## Starting St2 Services ##########"
-st2ctl restart 
-sleep 20 
+st2ctl restart
+sleep 20
 ##This is a hack around a weird issue with actions getting stuck in scheduled state
 st2 run core.local date -a &> /dev/null && st2ctl restart &> /dev/null
 ACTIONEXIT=$?
@@ -332,7 +339,7 @@ echo ""
 
 if [ ! "${ACTIONEXIT}" == 0 ]
 then
-  echo "ERROR!" 
+  echo "ERROR!"
   echo "Something went wrong, st2 failed to start"
   exit 2
 else

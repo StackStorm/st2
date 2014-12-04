@@ -63,13 +63,14 @@ class TestActionViews(FunctionalTest):
     def test_get_all(self):
         action_1_id = self._get_action_id(self._do_post(ACTION_1))
         action_2_id = self._get_action_id(self._do_post(ACTION_2))
-        resp = self.app.get('/actions/views/overview')
+        resp = self.app.get('/v1/actions/views/overview')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2, '/actions/views/overview did not return all actions.')
+        self.assertEqual(len(resp.json), 2,
+                         '/v1/actions/views/overview did not return all actions.')
         ref = '.'.join([ACTION_1['pack'], ACTION_1['name']])
-        resp = self.app.get('/actions/views/overview?ref=%s' % ref)
+        resp = self.app.get('/v1/actions/views/overview?ref=%s' % ref)
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 1, '/actions did not return all actions.')
+        self.assertEqual(len(resp.json), 1, '/v1/actions did not return all actions.')
         self._do_delete(action_1_id)
         self._do_delete(action_2_id)
 
@@ -78,7 +79,7 @@ class TestActionViews(FunctionalTest):
     def test_get_all_filter_by_name(self):
         action_1_id = self._get_action_id(self._do_post(ACTION_1))
         action_2_id = self._get_action_id(self._do_post(ACTION_2))
-        resp = self.app.get('/actions/views/overview?name=%s' % str('st2.dummy.action2'))
+        resp = self.app.get('/v1/actions/views/overview?name=%s' % str('st2.dummy.action2'))
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json[0]['id'], action_2_id, 'Filtering failed')
         self._do_delete(action_1_id)
@@ -93,24 +94,25 @@ class TestActionViews(FunctionalTest):
         return resp.json['name']
 
     def _do_get_one(self, action_id, expect_errors=False):
-        return self.app.get('/actions/views/overview/%s' % action_id, expect_errors=expect_errors)
+        return self.app.get('/v1/actions/views/overview/%s' % action_id,
+                            expect_errors=expect_errors)
 
     def _do_post(self, action, expect_errors=False):
-        return self.app.post_json('/actions', action, expect_errors=expect_errors)
+        return self.app.post_json('/v1/actions', action, expect_errors=expect_errors)
 
     def _do_delete(self, action_id, expect_errors=False):
-        return self.app.delete('/actions/%s' % action_id, expect_errors=expect_errors)
+        return self.app.delete('/v1/actions/%s' % action_id, expect_errors=expect_errors)
 
 
 class TestParametersView(FunctionalTest):
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_one(self):
-        post_resp = self.app.post_json('/actions', ACTION_1)
+        post_resp = self.app.post_json('/v1/actions', ACTION_1)
         action_id = post_resp.json['id']
-        get_resp = self.app.get('/actions/views/parameters/%s' % action_id)
+        get_resp = self.app.get('/v1/actions/views/parameters/%s' % action_id)
         self.assertEqual(get_resp.status_int, 200)
-        self.app.delete('/actions/%s' % action_id)
+        self.app.delete('/v1/actions/%s' % action_id)
 
 
 class TestEntryPointView(FunctionalTest):
@@ -120,8 +122,8 @@ class TestEntryPointView(FunctionalTest):
         return_value='/path/to/file'))
     @mock.patch('__builtin__.open', mock.mock_open(read_data='file content'), create=True)
     def test_get_one(self):
-        post_resp = self.app.post_json('/actions', ACTION_1)
+        post_resp = self.app.post_json('/v1/actions', ACTION_1)
         action_id = post_resp.json['id']
-        get_resp = self.app.get('/actions/views/entry_point/%s' % action_id)
+        get_resp = self.app.get('/v1/actions/views/entry_point/%s' % action_id)
         self.assertEqual(get_resp.status_int, 200)
-        self.app.delete('/actions/%s' % action_id)
+        self.app.delete('/v1/actions/%s' % action_id)

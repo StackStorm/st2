@@ -13,4 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = '0.6.0-dev'
+PACK_VIRTUALENV_DOESNT_EXIST = '''
+Virtual environment for pack "%s" doesn\'t exist. If you haven\'t installed a pack using
+"packs.install" command, you can create a new virtual environment using
+"st2 run packs.setup_virtualenv packs=%s" command'
+'''

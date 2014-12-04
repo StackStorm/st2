@@ -47,6 +47,8 @@ class ConfigurableSyslogHandler(logging.handlers.SysLogHandler):
         else:
             super(ConfigurableSyslogHandler, self).__init__(address, facility)
 
+ignore_kwargs = ['extra', 'exc_info']
+
 
 def _audit(logger, msg, *args, **kwargs):
     if logger.isEnabledFor(logging.AUDIT):
@@ -55,13 +57,13 @@ def _audit(logger, msg, *args, **kwargs):
 logging.Logger.audit = _audit
 
 
-def setup(config_file):
+def setup(config_file, disable_existing_loggers=False):
     """Configure logging from file.
     """
     try:
         logging.config.fileConfig(config_file,
                                   defaults=None,
-                                  disable_existing_loggers=False)
+                                  disable_existing_loggers=disable_existing_loggers)
     except Exception as exc:
         # No logger yet therefore write to stderr
         sys.stderr.write('ERROR: %s' % traceback.format_exc())

@@ -28,7 +28,8 @@ from st2common.constants.pack import SYSTEM_PACK_NAMES
 
 __all__ = [
     'get_sandbox_python_binary_path',
-    'get_sandbox_python_path'
+    'get_sandbox_python_path',
+    'get_sandbox_virtualenv_path'
 ]
 
 
@@ -86,3 +87,17 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
     sandbox_python_path = ':'.join(sandbox_python_path)
     sandbox_python_path = ':' + sandbox_python_path
     return sandbox_python_path
+
+
+def get_sandbox_virtualenv_path(pack):
+    """
+    Return a path to the virtual environment for the provided pack.
+    """
+
+    if pack in SYSTEM_PACK_NAMES:
+        virtualenv_path = None
+    else:
+        system_base_path = cfg.CONF.system.base_path
+        virtualenv_path = os.path.join(system_base_path, 'virtualenvs', pack)
+
+    return virtualenv_path

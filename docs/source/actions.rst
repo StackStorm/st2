@@ -340,7 +340,7 @@ executed from the |st2| box.
 
 ::
 
-    st2 run core.http url="http://localhost:9101/actions" method="GET"
+    st2 run core.http url="http://localhost:9101/v1/actions" method="GET"
 
 To see other available predefined actions, run the command bellow.
 

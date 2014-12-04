@@ -19,23 +19,23 @@ from tests import FunctionalTest
 class TestRunnerTypesController(FunctionalTest):
 
     def test_get_one(self):
-        resp = self.app.get('/runnertypes')
+        resp = self.app.get('/v1/runnertypes')
         self.assertEqual(resp.status_int, 200)
-        self.assertTrue(len(resp.json) > 0, '/runnertypes did not return correct runnertypes.')
+        self.assertTrue(len(resp.json) > 0, '/v1/runnertypes did not return correct runnertypes.')
         runnertype_id = TestRunnerTypesController.__get_runnertype_id(resp.json[0])
-        resp = self.app.get('/runnertypes/%s' % runnertype_id)
+        resp = self.app.get('/v1/runnertypes/%s' % runnertype_id)
         retrieved_id = TestRunnerTypesController.__get_runnertype_id(resp.json)
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(retrieved_id, runnertype_id,
-                         '/runnertypes returned incorrect runnertype.')
+                         '/v1/runnertypes returned incorrect runnertype.')
 
     def test_get_all(self):
-        resp = self.app.get('/runnertypes')
+        resp = self.app.get('/v1/runnertypes')
         self.assertEqual(resp.status_int, 200)
-        self.assertTrue(len(resp.json) > 0, '/runnertypes did not return correct runnertypes.')
+        self.assertTrue(len(resp.json) > 0, '/v1/runnertypes did not return correct runnertypes.')
 
     def test_get_one_fail(self):
-        resp = self.app.get('/runnertype/1', expect_errors=True)
+        resp = self.app.get('/v1/runnertype/1', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
 
     @staticmethod

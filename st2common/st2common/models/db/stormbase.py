@@ -14,8 +14,8 @@
 # limitations under the License.
 
 import datetime
-
 import mongoengine as me
+import six
 
 from st2common.util import mongoescape
 from st2common.models.system.common import ResourceReference
@@ -51,6 +51,14 @@ class StormFoundationDB(me.Document):
             v = '"%s"' % str(v) if type(v) in [str, unicode, datetime.datetime] else str(v)
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
+
+    def to_serializable_dict(self):
+        serializable_dict = {}
+        for k in sorted(six.iterkeys(self._fields)):
+            v = getattr(self, k)
+            v = str(v) if type(v) in [datetime.datetime] else v
+            serializable_dict[k] = v
+        return serializable_dict
 
 
 class StormBaseDB(StormFoundationDB):
