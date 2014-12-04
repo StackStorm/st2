@@ -130,7 +130,14 @@ class ContentPackResourceControler(ResourceController):
 
     @jsexpose(str)
     def get_one(self, ref_or_id):
-        LOG.info('GET %s with ref_or_idid=%s', pecan.request.path, ref_or_id)
+        return self._get_one(ref_or_id)
+
+    @jsexpose()
+    def get_all(self, **kwargs):
+        return self._get_all(**kwargs)
+
+    def _get_one(self, ref_or_id):
+        LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
 
         try:
             instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
@@ -150,8 +157,7 @@ class ContentPackResourceControler(ResourceController):
 
         return result
 
-    @jsexpose()
-    def get_all(self, **kwargs):
+    def _get_all(self, **kwargs):
         result = super(ContentPackResourceControler, self)._get_all(**kwargs)
 
         if self.include_reference:
