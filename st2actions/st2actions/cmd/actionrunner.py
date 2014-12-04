@@ -31,7 +31,7 @@ def _setup():
     # 1. parse args to setup config.
     config.parse_args()
     # 2. setup logging.
-    logging.setup(cfg.CONF.actionrunner.logging, disable_existing_loggers=True)
+    logging.setup(cfg.CONF.actionrunner.logging)
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
     username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
