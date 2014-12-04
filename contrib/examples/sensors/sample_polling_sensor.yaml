@@ -1,10 +1,11 @@
 ---
-  class_name: "SimpleSensor"
-  entry_point: "sample_sensor.py"
-  description: "Simple sensor that emits triggers."
+  class_name: "SimplePollingSensor"
+  entry_point: "sample_polling_sensor.py"
+  description: "Simple polling sensor that emits triggers."
+  poll_interval: 10
   trigger_types:
     -
-      name: "event"
+      name: "polling_event"
       description: "An example trigger."
       payload_schema:
         type: "object"

@@ -18,7 +18,7 @@ import pecan
 
 from st2common import hooks
 from st2common import log as logging
-from st2api.version import version_string
+from st2common.constants.system import VERSION_STRING
 
 
 LOG = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ def __get_pecan_config():
 
 
 def setup_app(config=None):
-    LOG.info(version_string)
+    LOG.info(VERSION_STRING)
 
     LOG.info('Creating %s as Pecan app.' % __name__)
     if not config:

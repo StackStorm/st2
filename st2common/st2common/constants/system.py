@@ -19,4 +19,4 @@ __all__ = [
     'VERSION_STRING'
 ]
 
-VERSION_STRING = 'Running StackStorm v%s' % (__version__)
+VERSION_STRING = 'StackStorm v%s' % (__version__)

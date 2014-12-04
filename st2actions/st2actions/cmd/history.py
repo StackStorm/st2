@@ -32,7 +32,7 @@ def _setup():
     config.parse_args()
 
     # Setup logging.
-    logging.setup(cfg.CONF.history.logging, disable_existing_loggers=True)
+    logging.setup(cfg.CONF.history.logging)
 
     # All other setup which requires config to be parsed and logging to be correctly setup.
     username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None

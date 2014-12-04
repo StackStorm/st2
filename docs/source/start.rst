@@ -73,10 +73,17 @@ as described in `Configure SSH </install/config.rst#configure-ssh>`__ section.
 
     st2 run core.remote host='abc.example.com, cde.example.com' user='mysshuser' -- ls -l
 
-**Note:** for ``core.local`` and ``core.remote`` actions, we use ``--`` to separate action
-parameters to ensure that options keys, like ``-l`` or ``-a`` are
-properly passed to the action. Alternatively, ``core.local`` and ``core.remote`` actions take
-the ``cmd`` parameter to pass crasily complex commands:
+.. note::
+
+    For ``core.local`` and ``core.remote`` actions, we use ``--`` to separate action
+    parameters to ensure that options keys, like ``-l`` or ``-a`` are
+    properly passed to the action. Alternatively, ``core.local`` and ``core.remote`` actions take
+    the ``cmd`` parameter to pass crazily complex commands.
+
+    When specifying a command using the command line tool, you also need to escape all the
+    variables, otherwise the variables will get interpolated locally by a shell. Variables
+    are escaped using a backslash (``\``) - e.g.
+    `\\$user`.
 
 .. code-block:: bash
 
@@ -85,7 +92,7 @@ the ``cmd`` parameter to pass crasily complex commands:
     # Equivalent using `cmd` parameter
     st2 run core.local cmd="ls -al"
     # Crasily complex command passed with `cmd`
-    st2 run core.remote hosts='localhost' cmd="for u in bob phill luke; do echo \"Logins by $u per day:\"; grep $u /var/log/secure | grep opened |awk '{print $1 \"-\" $2}' | uniq -c | sort; done;"
+    st2 run core.remote hosts='localhost' cmd="for u in bob phill luke; do echo \"Logins by \$u per day:\"; grep \$u /var/log/secure | grep opened | awk '{print \$1 \"-\" \$2}' | uniq -c | sort; done;"
 
 Check the action execution history and details of action executions with ``st2 execution`` command:
 

@@ -33,7 +33,8 @@ RUNNER_URL = 'url'
 RUNNER_HEADERS = 'headers'  # Debatable whether this should be action params.
 RUNNER_COOKIES = 'cookies'
 RUNNER_ALLOW_REDIRECTS = 'allow_redirects'
-RUNNER_PROXIES = 'proxies'
+RUNNER_HTTP_PROXY = 'http_proxy'
+RUNNER_HTTPS_PROXY = 'https_proxy'
 
 
 # Lookup constants for action params
@@ -67,9 +68,9 @@ class HttpRunner(ActionRunner):
         self._headers = self._params_to_dict(self._headers)
 
         self._cookies = self.runner_parameters.get(RUNNER_COOKIES, None)
-        self._redirects = self.runner_parameters.get(RUNNER_ALLOW_REDIRECTS, False)
-        self._proxies = self.runner_parameters.get(RUNNER_PROXIES, None)
-        return
+        self._allow_redirects = self.runner_parameters.get(RUNNER_ALLOW_REDIRECTS, False)
+        self._http_proxy = self.runner_parameters.get(RUNNER_HTTP_PROXY, None)
+        self._https_proxy = self.runner_parameters.get(RUNNER_HTTPS_PROXY, None)
 
     def run(self, action_parameters):
         client = self._get_http_client(action_parameters)
@@ -109,10 +110,18 @@ class HttpRunner(ActionRunner):
         else:
             files = None
 
+        proxies = {}
+
+        if self._http_proxy:
+            proxies['http'] = self._http_proxy
+
+        if self._https_proxy:
+            proxies['https'] = self._https_proxy
+
         return HTTPClient(url=self._url, method=method, body=body, params=params,
                           headers=headers, cookies=self._cookies, auth=auth,
-                          timeout=timeout, allow_redirects=self._redirects,
-                          proxies=self._proxies, files=files)
+                          timeout=timeout, allow_redirects=self._allow_redirects,
+                          proxies=proxies, files=files)
 
     def _params_to_dict(self, params):
         if not params:
@@ -131,7 +140,7 @@ class HttpRunner(ActionRunner):
 
 class HTTPClient(object):
     def __init__(self, url=None, method=None, body='', params=None, headers=None, cookies=None,
-                 auth=None, timeout=60, allow_redirects=True, proxies=None,
+                 auth=None, timeout=60, allow_redirects=False, proxies=None,
                  files=None):
         if url is None:
             raise Exception('URL must be specified.')
