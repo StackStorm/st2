@@ -28,7 +28,7 @@ Docs: http://docs.stackstorm.com/0.6.0/
 * Numerous bug fixes.
 
 
-v0.5.0 - November 3rd, 2014
+v0.5.1 - November 3rd, 2014
 ---------------------------
 
 Docs: http://docs.stackstorm.com/0.5.0/
