@@ -212,9 +212,10 @@ def register_runner_types():
                     'description': 'A URL of a HTTPs proxy to use (e.g. http://10.10.1.10:3128).',
                     'type': 'string'
                 },
-                'redirects': {
-                    'description': 'TODO: Description for redirects.',
-                    'type': 'string'
+                'allow_redirects': {
+                    'description': 'Set to True if POST/PUT/DELETE redirect following is allowed.',
+                    'type': 'boolean',
+                    'default': False
                 },
             },
             'runner_module': 'st2actions.runners.httprunner'

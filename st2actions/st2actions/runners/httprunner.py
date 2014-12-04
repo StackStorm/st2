@@ -68,7 +68,7 @@ class HttpRunner(ActionRunner):
         self._headers = self._params_to_dict(self._headers)
 
         self._cookies = self.runner_parameters.get(RUNNER_COOKIES, None)
-        self._redirects = self.runner_parameters.get(RUNNER_ALLOW_REDIRECTS, False)
+        self._allow_redirects = self.runner_parameters.get(RUNNER_ALLOW_REDIRECTS, False)
         self._http_proxy = self.runner_parameters.get(RUNNER_HTTP_PROXY, None)
         self._https_proxy = self.runner_parameters.get(RUNNER_HTTPS_PROXY, None)
 
@@ -120,7 +120,7 @@ class HttpRunner(ActionRunner):
 
         return HTTPClient(url=self._url, method=method, body=body, params=params,
                           headers=headers, cookies=self._cookies, auth=auth,
-                          timeout=timeout, allow_redirects=self._redirects,
+                          timeout=timeout, allow_redirects=self._allow_redirects,
                           proxies=proxies, files=files)
 
     def _params_to_dict(self, params):
@@ -140,7 +140,7 @@ class HttpRunner(ActionRunner):
 
 class HTTPClient(object):
     def __init__(self, url=None, method=None, body='', params=None, headers=None, cookies=None,
-                 auth=None, timeout=60, allow_redirects=True, proxies=None,
+                 auth=None, timeout=60, allow_redirects=False, proxies=None,
                  files=None):
         if url is None:
             raise Exception('URL must be specified.')
