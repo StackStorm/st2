@@ -201,8 +201,8 @@ def register_runner_types():
                     'type': 'string'
                 },
                 'cookies': {
-                    'description': 'TODO: Description for cookies.',
-                    'type': 'string'
+                    'description': 'Optional cookies to send with the request.',
+                    'type': 'object'
                 },
                 'http_proxy': {
                     'description': 'A URL of a HTTP proxy to use (e.g. http://10.10.1.10:3128).',
