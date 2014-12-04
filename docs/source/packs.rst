@@ -27,7 +27,7 @@ To uninstall packs: ``st2 run packs.uninstall packs=docker,sensu``. This unloads
 The integration packs often require configurations to adjust to the environment. e.g. you will need to specify SMTP server for email, a puppet master URL for Puppet, or a Keystone endpoint and tenant credentials for OpenStack. The installation process is:
 
 1. Download the pack with ``packs.download``
-2. Check out the `REAMDE.md`. Adjust configurations per your environment, install dependencies if needed.
+2. Check out the `REAMDE.md`. Adjust configurations per your environment.
 3. Load the pack into |st2| with ``pack.load``. Sometimes components may need a restart with ``pack.restart_component`` (live reload without restart is coming soon).
 
 Let's install the Docker pack:
@@ -37,11 +37,11 @@ Let's install the Docker pack:
     # Download Docker pack from http://github.com/stackstorm/st2contrib
     st2 run packs.download packs=docker
 
-    # Check out README.md.
-    less /opt/stackstorm/packs/docker/README.md
+    # This step sets up a virtual environment for this pack and installs all the pack dependencies
+    st2 run packs.setup_virtualenv packs=docker
 
-    # Apparently the pack needs docker-py python library. Installing...
-    sudo pip install docker-py
+    # Check out README.md and if necessart, adjust configuration for your environment
+    less /opt/stackstorm/packs/docker/README.md
 
     # Reloads the content
     st2 run packs.load
