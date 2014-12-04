@@ -47,7 +47,17 @@ class ConfigurableSyslogHandler(logging.handlers.SysLogHandler):
         else:
             super(ConfigurableSyslogHandler, self).__init__(address, facility)
 
-ignore_kwargs = ['extra', 'exc_info']
+
+class ExclusionFilter(object):
+
+    def __init__(self, exclusions):
+        self._exclusions = exclusions
+
+    def filter(self, record):
+        for e in self._exclusions:
+            if record.name.startswith(e):
+                return False
+        return True
 
 
 def _audit(logger, msg, *args, **kwargs):
@@ -57,6 +67,11 @@ def _audit(logger, msg, *args, **kwargs):
 logging.Logger.audit = _audit
 
 
+def _add_exclusion_filters(handlers):
+    for h in handlers:
+            h.addFilter(ExclusionFilter(cfg.CONF.log.excludes))
+
+
 def setup(config_file, disable_existing_loggers=False):
     """Configure logging from file.
     """
@@ -64,6 +79,8 @@ def setup(config_file, disable_existing_loggers=False):
         logging.config.fileConfig(config_file,
                                   defaults=None,
                                   disable_existing_loggers=disable_existing_loggers)
+        handlers = logging.getLoggerClass().manager.root.handlers
+        _add_exclusion_filters(handlers)
     except Exception as exc:
         # No logger yet therefore write to stderr
         sys.stderr.write('ERROR: %s' % traceback.format_exc())
@@ -71,4 +88,5 @@ def setup(config_file, disable_existing_loggers=False):
 
 
 def getLogger(name):
-    return logging.getLogger(name)
+    logger_name = 'st2.{}'.format(name)
+    return logging.getLogger(logger_name)
