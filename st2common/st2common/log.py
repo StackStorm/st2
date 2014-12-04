@@ -51,13 +51,14 @@ class ConfigurableSyslogHandler(logging.handlers.SysLogHandler):
 class ExclusionFilter(object):
 
     def __init__(self, exclusions):
-        self._exclusions = exclusions
+        self._exclusions = set(exclusions)
 
     def filter(self, record):
-        for e in self._exclusions:
-            if record.name.startswith(e):
-                return False
-        return True
+        if len(self._exclusions) < 1:
+            return True
+        module_decomposition = record.name.split('.')
+        exclude = len(module_decomposition) > 0 and module_decomposition[0] in self._exclusions
+        return not exclude
 
 
 def _audit(logger, msg, *args, **kwargs):
