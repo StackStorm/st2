@@ -1,4 +1,5 @@
 import os
+import sys
 
 from oslo.config import cfg
 
@@ -39,6 +40,8 @@ def main():
     try:
         _setup()
         return worker.work()
+    except SystemExit as exit_code:
+        sys.exit(exit_code)
     except:
         LOG.exception('(PID:%s) RulesEngine quit due to exception.', os.getpid())
         return 1
