@@ -316,9 +316,12 @@ install_st2client() {
   pip install -U -r /tmp/st2client-requirements.txt
   if [[ "$TYPE" == "debs" ]]; then
     echo "########## Removing st2client ##########"
-    dpkg --purge st2client
+    if dpkg -l | grep st2client; then
+        apt-get -y purge python-st2client
+    fi
     echo "########## Installing st2client ${VER} ##########"
-    dpkg -i st2client*
+    apt-get -y install gdebi-core
+    gdebi --n st2client*
   elif [[ "$TYPE" == "rpms" ]]; then
     yum localinstall -y st2client-${VER}-${RELEASE}.noarch.rpm
   fi
