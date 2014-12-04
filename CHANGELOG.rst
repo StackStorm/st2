@@ -5,8 +5,8 @@ in development
 --------------
 
 
-v0.6.0 - TBD
---------------
+v0.6.0 - December 8, 2014
+-------------------------
 
 Docs: http://docs.stackstorm.com/0.6.0/
 
