@@ -1,0 +1,38 @@
+{
+    "status": "succeeded",
+    "start_timestamp": "2014-12-05T22:44:19.973000Z",
+    "parameters": {
+        "packs": [
+            "sensu"
+        ]
+    },
+    "callback": {},
+    "result": {
+        "unregister": {
+            "exit_code": 0,
+            "result": null,
+            "stderr": "st2.actions.python.UnregisterPackAction: DEBUG    Removing pack sensu.\nst2.actions.python.UnregisterPackAction: INFO     Removed pack sensu.\n",
+            "stdout": ""
+        },
+        "restart-sensor-container": {
+            "localhost": {
+                "failed": false,
+                "stderr": "",
+                "return_code": 0,
+                "succeeded": true,
+                "stdout": "restarting service sensor_containesr with 1 process(es).\r\nsensor_containesr is not running\r\nactionrunner PID: 16604\r\nactionrunner PID: 16605\r\nactionrunner PID: 16606\r\nactionrunner PID: 16607\r\nactionrunner PID: 16608\r\nactionrunner PID: 16609\r\nactionrunner PID: 16610\r\nactionrunner PID: 16611\r\nactionrunner PID: 16612\r\nactionrunner PID: 16613\r\nactionrunner PID: 19916\r\nst2api PID: 16614\r\nsensor_container is not running\r\nhistory PID: 16616\r\nrules_engine PID: 16617\r\nmistral PID: 16624\r\nmistral PID: 16625"
+            }
+        },
+        "delete": {
+            "exit_code": 0,
+            "result": null,
+            "stderr": "st2.actions.python.UninstallPackAction: DEBUG    Deleting pack directory \"/opt/stackstorm/packs/sensu\"\nst2.actions.python.UninstallPackAction: DEBUG    Deleting virtualenv \"/opt/stackstorm/virtualenvs/sensu\" for pack \"sensu\"\n",
+            "stdout": ""
+        }
+    },
+    "context": {
+        "user": "stanley"
+    },
+    "action": "packs.uninstall",
+    "id": "548235439c993840e690d710"
+}
