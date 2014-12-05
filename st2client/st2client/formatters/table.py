@@ -160,7 +160,7 @@ class PropertyValueTable(formatters.Formatter):
         table.field_names = ['Property', 'Value']
         table.max_width['Property'] = 20
         table.max_width['Value'] = 60
-        table.padding_widht = 1
+        table.padding_width = 1
         table.align = 'l'
         table.valign = 't'
         for attribute in attributes:

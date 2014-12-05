@@ -32,14 +32,17 @@ from st2client.utils import httpclient
 LOG = logging.getLogger(__name__)
 
 FIXTURES_MANIFEST = {
-    'executions': ['execution.json'],
+    'executions': ['execution.json',
+                   'execution_result_has_carriage_return.json'],
     'results': ['execution_get_default.txt',
                 'execution_get_detail.txt',
-                'execution_get_result_by_key.txt']
+                'execution_get_result_by_key.txt',
+                'execution_result_has_carriage_return.txt']
 }
 
 FIXTURES = loader.load_fixtures(fixtures_dict=FIXTURES_MANIFEST)
 ACTION_EXECUTION = FIXTURES['executions']['execution.json']
+HAS_CARRIAGE_RETURN = FIXTURES['executions']['execution_result_has_carriage_return.json']
 
 
 class TestExecutionResultFormatter(unittest2.TestCase):
@@ -114,3 +117,15 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         content = self._get_execution(argv)
         self.assertDictEqual(json.loads(content),
                              jsutil.get_kvps(ACTION_EXECUTION, ['result.localhost.stdout']))
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(HAS_CARRIAGE_RETURN), 200, 'OK')))
+    def test_execution_get_detail_with_carriage_return(self):
+        argv = ['execution', 'get', HAS_CARRIAGE_RETURN['id'], '-d']
+        self.assertEqual(self.shell.run(argv), 0)
+        self._undo_console_redirect()
+        with open(self.path, 'r') as fd:
+            content = fd.read()
+        self.assertEqual(
+            content, FIXTURES['results']['execution_result_has_carriage_return.txt'])
