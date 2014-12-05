@@ -3,7 +3,7 @@ set -e
 
 if [ -z $1 ]
 then
-  VER='0.6.0'
+  VER='0.5.1'
 else
   VER=$1
 fi
@@ -243,7 +243,7 @@ setup_mistral() {
   deactivate
 
   # Setup mistral client.
-  pip install -U git+https://github.com/stackforge/python-mistralclient.git
+  pip install -U git+https://github.com/StackStorm/python-mistralclient.git@st2-0.5.1
 }
 
 download_pkgs() {
@@ -301,12 +301,12 @@ download_pkgs
 
 if [[ "$TYPE" == "debs" ]]; then
   install_apt
-  deploy_deb
   setup_mistral
+  deploy_deb
 elif [[ "$TYPE" == "rpms" ]]; then
   install_yum
-  deploy_rpm
   setup_mistral
+  deploy_rpm
 fi
 
 install_st2client() {
@@ -316,9 +316,12 @@ install_st2client() {
   pip install -U -r /tmp/st2client-requirements.txt
   if [[ "$TYPE" == "debs" ]]; then
     echo "########## Removing st2client ##########"
-    dpkg --purge st2client
+    if dpkg -l | grep st2client; then
+        apt-get -y purge python-st2client
+    fi
     echo "########## Installing st2client ${VER} ##########"
-    dpkg -i st2client*
+    apt-get -y install gdebi-core
+    gdebi --n st2client*
   elif [[ "$TYPE" == "rpms" ]]; then
     yum localinstall -y st2client-${VER}-${RELEASE}.noarch.rpm
   fi

@@ -1,7 +1,11 @@
 ---
+# Action definition metadata
     name: "echochain-param"
     runner_type: "action-chain"
-    description: ""
+    description: "Action Chain workflow passing variables"
     enabled: true
-    entry_point: "echochain_param"
-    parameters: {}
+    entry_point: "echochain_param.yaml"
+    parameters: 
+      input1: 
+        type: "string"
+        required: true

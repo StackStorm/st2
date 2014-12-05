@@ -8,25 +8,15 @@ Authoring an ActionChain
 
 ActionChain's are described in YAML (JSON supported for backward compatibiltiy) and placed inside a pack similar to other script or python actions. An ActionChain must also be associated with a metadata file that allows it to be registered as an Action by |st2|. This metadata contains name and parameter description of an action.
 
-ActionChain metadata
-~~~~~~~~~~~~~~~~~~~~
-
-Following is sample metadata for an ActionChain named ``echochain``
-
-.. literalinclude:: /../../contrib/examples/actions/echochain.meta.yaml
-
-Note:
-
-* `runner_type` has value `action-chain` to identify that action is an `action-chain`.
-* `entry_point` links to the actual chain file relative to the location of the meta file.
-* Schema followed is identical to any other action i.e. echochain is now an action in the system.
 
 ActionChain script
 ~~~~~~~~~~~~~~~~~~
 
-Following is sample script for an ActionChain named ``echochain``
+Following is sample ActionChain workflow definition named :github_st2:`echochain.yaml
+<contrib/examples/actions/echochain.yaml>`:
 
-.. literalinclude:: /../../contrib/examples/actions/echochain
+.. literalinclude:: /../../contrib/examples/actions/echochain.yaml
+   :language: yaml
 
 Note:
 
@@ -36,6 +26,22 @@ Note:
 * `on-success` is the link to action element to invoke next on a successful execution. If not provided the ActionChain will terminate with status set to success.
 * `on-failure` is the link to action element to invoke next on a failed execution. If not provided the ActionChain will terminate with the status set to error.
 * `default` is the top level property that specifies start of an ActionChain.
+
+ActionChain metadata
+~~~~~~~~~~~~~~~~~~~~
+
+The action definition metadata :github_st2:`echochain.meta.yaml
+<contrib/examples/actions/echochain.meta.yaml>` for an ActionChain :github_st2:`echochain.yaml
+<contrib/examples/actions/echochain.yaml>` looks like this:
+
+.. literalinclude:: /../../contrib/examples/actions/echochain.meta.yaml
+   :language: yaml
+
+Note:
+
+* `runner_type` has value `action-chain` to identify that action is an `action-chain`.
+* `entry_point` links to the actual chain file relative to the location of the meta file.
+* Schema followed is identical to any other action i.e. echochain is now an action in the system.
 
 Providing input
 ~~~~~~~~~~~~~~~
@@ -47,9 +53,9 @@ For a user to provide input to an ActionChain the input parameters must be defin
    ---
       # ...
       parameters:
-      input1:
-         type: "string"
-         required: true
+         input1:
+            type: "string"
+            required: true
       # ...
 
 The input parameter `input1` can now be referenced in the parameters field of an action element.
@@ -71,9 +77,11 @@ The input parameter `input1` can now be referenced in the parameters field of an
 Data passing
 ~~~~~~~~~~~~
 
-Similar to how input to an ActionChain can be referenced in an action elements; the output of previous action elements can also be referenced. Below is a parameterized version of the previously seen `echochain`.
+Similar to how input to an ActionChain can be referenced in an action elements; the output of previous action elements can also be referenced. Below is a version of the previously seen `echochain`, :github_st2:`echochain.param.yaml
+<contrib/examples/actions/echochain_param.yaml>` with input and data passing down the flow:
 
-.. literalinclude:: /../../contrib/examples/actions/echochain_param
+.. literalinclude:: /../../contrib/examples/actions/echochain_param.yaml
+   :language: yaml
 
 Note:
 

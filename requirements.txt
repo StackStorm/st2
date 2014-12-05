@@ -11,11 +11,11 @@ paramiko
 pecan==0.7.0
 pymongo
 python-dateutil
+python-mistralclient==0.1.1
 pyyaml
 requests
 setuptools
 six
-git+https://github.com/stackforge/python-mistralclient.git
 git+https://github.com/StackStorm/fabric.git@stanley-patched
 gitpython==0.3.2RC1
 python-json-logger
