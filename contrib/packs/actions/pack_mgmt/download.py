@@ -1,3 +1,7 @@
+try:
+    import simplejson as json
+except ImportError:
+    import json
 import os
 import shutil
 import six
@@ -21,7 +25,7 @@ class InstallGitRepoAction(Action):
             result = self._move_packs(abs_repo_base, packs, pack_abs_local_path)
         finally:
             self._cleanup_repo(abs_local_path)
-        return self._validate_result(result, packs)
+        return json.dumps(self._validate_result(result, packs))
 
     @staticmethod
     def _clone_repo(repo_url):
