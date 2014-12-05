@@ -17,6 +17,11 @@ About
 How it works
 -------------
 
+.. figure:: /_static/images/architecture_diagram.jpg
+    :align: center
+
+    StackStorm architecture diagram
+
 |st2| plugs into the environment via the extensible set of adapters: sensors and actions. 
  
 * **Sensors** are python plugins for inbound integration that watch for events from external systems and fire a |st2| trigger when event happens.
