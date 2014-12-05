@@ -28,6 +28,7 @@ LOG = logging.getLogger(__name__)
 
 
 class TestShell(base.BaseCLITestCase):
+    hide_output = True
 
     def __init__(self, *args, **kwargs):
         super(TestShell, self).__init__(*args, **kwargs)
@@ -179,8 +180,14 @@ class TestShell(base.BaseCLITestCase):
         args_list = [
             ['execution', 'list'],
             ['execution', 'get', '123'],
+            ['execution', 'get', '123', '-d'],
+            ['execution', 'get', '123', '-k', 'localhost.stdout']
         ]
         self._validate_parser(args_list)
+
+        # Test mutually exclusive argument groups
+        self.assertRaises(SystemExit, self._validate_parser,
+                          [['execution', 'get', '123', '-d', '-k', 'localhost.stdout']])
 
     def test_key(self):
         args_list = [

@@ -28,7 +28,7 @@ from os.path import join as pjoin
 from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
-from st2client.formatters import table
+from st2client.formatters import table, execution
 
 
 LOG = logging.getLogger(__name__)
@@ -434,11 +434,23 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
         self.parser.add_argument('id',
                                  help=('ID of the %s.' %
                                        resource.get_display_name().lower()))
-        self.parser.add_argument('-a', '--attr', nargs='+',
-                                 default=self.display_attributes,
-                                 help=('List of attributes to include in the '
-                                       'output. "all" or unspecified will '
-                                       'return all attributes.'))
+
+        root_arg_grp = self.parser.add_mutually_exclusive_group()
+
+        detail_arg_grp = root_arg_grp.add_mutually_exclusive_group()
+        detail_arg_grp.add_argument('-a', '--attr', nargs='+',
+                                    default=self.display_attributes,
+                                    help=('List of attributes to include in the '
+                                          'output. "all" or unspecified will '
+                                          'return all attributes.'))
+        detail_arg_grp.add_argument('-d', '--detail', action='store_true',
+                                    help='Display full detail of the execution in table format.')
+
+        result_arg_grp = root_arg_grp.add_mutually_exclusive_group()
+        result_arg_grp.add_argument('-k', '--key',
+                                    help=('If result is type of JSON, then print specific '
+                                          'key-value pair; dot notation for nested JSON is '
+                                          'supported.'))
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -447,7 +459,14 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         try:
             instance = self.run(args, **kwargs)
-            self.print_output(instance, table.PropertyValueTable,
-                              attributes=args.attr, json=args.json)
+            formatter = table.PropertyValueTable if args.detail else execution.ExecutionResult
+            if args.detail:
+                options = {'attributes': args.attr}
+            elif args.key:
+                options = {'attributes': ['result.%s' % args.key], 'key': args.key}
+            else:
+                options = {'attributes': ['status', 'result']}
+            options['json'] = args.json
+            self.print_output(instance, formatter, **options)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)

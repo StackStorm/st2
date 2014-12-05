@@ -21,6 +21,7 @@ from prettytable import PrettyTable
 from six.moves import zip
 
 from st2client import formatters
+from st2client.utils import strutil
 from st2client.utils.terminal import get_terminal_size
 
 
@@ -94,9 +95,11 @@ class MultiColumnTable(formatters.Formatter):
                         value = cls._get_field_value(value, name)
                         if type(value) is str:
                             break
+                    value = strutil.unescape(value)
                     values.append(value)
                 else:
                     value = cls._get_simple_field_value(entry, field_name)
+                    value = strutil.unescape(value)
                     values.append(value)
             table.add_row(values)
         return table
@@ -156,7 +159,7 @@ class PropertyValueTable(formatters.Formatter):
         table = PrettyTable()
         table.field_names = ['Property', 'Value']
         table.max_width['Property'] = 20
-        table.max_width['Value'] = 55
+        table.max_width['Value'] = 60
         table.padding_widht = 1
         table.align = 'l'
         table.valign = 't'
@@ -164,6 +167,7 @@ class PropertyValueTable(formatters.Formatter):
             value = cls._get_attribute_value(subject, attribute)
             if type(value) is dict or type(value) is list:
                 value = json.dumps(value, indent=4)
+            value = strutil.unescape(value)
             table.add_row([attribute, value])
         return table
 
