@@ -17,7 +17,7 @@ About
 How it works
 -------------
 
-image: https://cloud.githubusercontent.com/assets/20028/5310065/7b28baf2-7bf2-11e4-998a-9bf1e3a5091e.jpg
+image:: https://cloud.githubusercontent.com/assets/20028/5310065/7b28baf2-7bf2-11e4-998a-9bf1e3a5091e.jpg
 
 |st2| plugs into the environment via the extensible set of adapters: sensors and actions. 
  
