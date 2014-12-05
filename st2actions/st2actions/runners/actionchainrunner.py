@@ -157,6 +157,7 @@ class ActionChainRunner(ActionRunner):
             if reverse_json_dumps:
                 rendered_v = json.loads(rendered_v)
             rendered_params[k] = rendered_v
+        LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
 
     @staticmethod
@@ -174,6 +175,15 @@ class ActionChainRunner(ActionRunner):
 
     @staticmethod
     def _cast_params(action_ref, params):
+        def cast_object(x):
+            if isinstance(x, str) or isinstance(x, unicode):
+                try:
+                    return json.loads(x)
+                except:
+                    return ast.literal_eval(x)
+            else:
+                return x
+
         casts = {
             'array': (lambda x: ast.literal_eval(x) if isinstance(x, str) or isinstance(x, unicode)
                       else x),
@@ -181,8 +191,7 @@ class ActionChainRunner(ActionRunner):
                         if isinstance(x, str) or isinstance(x, unicode) else x),
             'integer': int,
             'number': float,
-            'object': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
-                       else x),
+            'object': cast_object,
             'string': str
         }
 
@@ -206,6 +215,7 @@ class ActionChainRunner(ActionRunner):
             if not parameter_type:
                 continue
             cast = casts.get(parameter_type, None)
+            LOG.debug('Casting param: %s of type %s to type: %s', v, type(v), parameter_type)
             if not cast:
                 continue
             params[k] = cast(v)
