@@ -17,7 +17,6 @@ Docs: http://docs.stackstorm.com/0.6.0/
 * Add Sensor and PollingSensor base classes. (Sensors API change is non-backward compatible.)
 * Separate out rules_engine into own process.
 * YAML support for action, rules and chain meta.
-* APIs are now versioned.
 * Add sensor meta support (JSON/YAML) to specify trigger types.
 * Packs default path moves from /opt/stackstorm to /opt/stackstorm/packs/.
 * Webhooks are not part of a sensor. They are now part of core API. (Authentication may
