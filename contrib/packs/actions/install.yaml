@@ -1,0 +1,32 @@
+---
+  chain:
+    -
+      name: "download"
+      ref: "packs.download"
+      params:
+        repo_url: "{{repo_url}}"
+        packs: "{{packs}}"
+      on-success: "virtualenv_prerun"
+    -
+      name: "virtualenv_prerun"
+      ref: "packs.virtualenv_prerun"
+      params:
+        packs_status: "{{download.result}}"
+      on-success: "setup_virtualenv"
+    -
+      name: "setup_virtualenv"
+      ref: "packs.setup_virtualenv"
+      params:
+        packs: "{{virtualenv_prerun.result}}"
+      on-success: "reload"
+    -
+      name: "reload"
+      ref: "packs.load"
+      params: {}
+      on-success: "restart-sensor-container"
+    -
+      name: "restart-sensor-container"
+      ref: "packs.restart_component"
+      params:
+        servicename: "sensor_container"
+  default: "download"
