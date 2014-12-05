@@ -161,7 +161,7 @@ start on runlevel [2345]
 stop on runlevel [016]
 respawn
 script
-    /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log
+    /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log --verbose
 end script
 mistral_upstart
 }
