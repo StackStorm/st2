@@ -17,7 +17,7 @@ import json
 import logging
 
 from st2client import formatters
-import six
+from st2client.utils import jsutil
 
 
 LOG = logging.getLogger(__name__)
@@ -31,19 +31,13 @@ class Json(formatters.Formatter):
         if type(subject) is str:
             subject = json.loads(subject)
         if type(subject) is not list:
-            doc = subject if type(subject) is dict else subject.__dict__
-            attr = (doc.keys()
-                    if not attributes or 'all' in attributes
-                    else attributes)
-            output = dict((k, v) for k, v in six.iteritems(doc)
-                          if k in attr)
+            doc = subject if isinstance(subject, dict) else subject.__dict__
+            keys = doc.keys() if not attributes or 'all' in attributes else attributes
+            docs = jsutil.get_kvps(doc, keys)
         else:
-            output = []
+            docs = []
             for item in subject:
-                doc = item if type(item) is dict else item.__dict__
-                attr = (doc.keys()
-                        if not attributes or 'all' in attributes
-                        else attributes)
-                output.append(dict((k, v) for k, v in six.iteritems(doc)
-                                   if k in attr))
-        return json.dumps(output, indent=4)
+                doc = item if isinstance(item, dict) else item.__dict__
+                keys = doc.keys() if not attributes or 'all' in attributes else attributes
+                docs.append(jsutil.get_kvps(doc, keys))
+        return json.dumps(docs, indent=4)

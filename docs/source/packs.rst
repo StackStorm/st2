@@ -37,10 +37,13 @@ Let's install the Docker pack:
     # Download Docker pack from http://github.com/stackstorm/st2contrib
     st2 run packs.download packs=docker
 
-    # This step sets up a virtual environment for this pack and installs all the pack dependencies
+    # Set up a virtual environment for this pack and installs all the pack dependencies
+    # listed in requirements.txt (if any).
+    # Virtual environment provides isolated Python environment for sensors and Python runner
+    # actions.
     st2 run packs.setup_virtualenv packs=docker
 
-    # Check out README.md and if necessart, adjust configuration for your environment
+    # Check out README.md and if necessary, adjust configuration for your environment
     less /opt/stackstorm/packs/docker/README.md
 
     # Reloads the content
