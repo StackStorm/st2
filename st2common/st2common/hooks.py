@@ -52,7 +52,8 @@ class CorsHook(PecanHook):
         headers['Access-Control-Allow-Methods'] = ','.join(methods_allowed)
         headers['Access-Control-Allow-Headers'] = ','.join(request_headers_allowed)
         headers['Access-Control-Expose-Headers'] = ','.join(response_headers_allowed)
-        if not headers['Content-Length']:
+        if not headers.get('Content-Length') \
+                and not headers.get('Content-type', '').startswith('text/event-stream'):
             headers['Content-Length'] = str(len(state.response.body))
 
     def on_error(self, state, e):
