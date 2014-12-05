@@ -23,7 +23,7 @@ The easiest way to install these is to use the requirements.txt file from the |s
 
 ::
 
-    curl -q -k -O https://ops.stackstorm.net/releases/st2/0.6.0/requirements.txt
+    curl -q -k -O https://ops.stackstorm.net/releases/st2/0.6.1/requirements.txt
     pip install -r requirements.txt
 
 RabbitMQ
@@ -68,7 +68,7 @@ The format of the DEB packages is like this: <component>_<version>-<build>_amd64
 You can download the packages from this URL:
 ::
 
-    https://ops.stackstorm.net/releases/st2/0.6.0/debs/current/
+    https://ops.stackstorm.net/releases/st2/0.6.1/debs/current/
 
 --------------
 
