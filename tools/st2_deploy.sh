@@ -3,7 +3,7 @@ set -e
 
 if [ -z $1 ]
 then
-  VER='0.6.0'
+  VER='0.5.1'
 else
   VER=$1
 fi
