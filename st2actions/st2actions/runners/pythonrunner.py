@@ -151,6 +151,11 @@ class PythonRunner(ActionRunner):
         else:
             result = None
 
+        try:
+            result = json.loads(result)
+        except:
+            pass
+
         output = {
             'stdout': stdout,
             'stderr': stderr,
@@ -160,8 +165,6 @@ class PythonRunner(ActionRunner):
 
         if error:
             output['error'] = error
-
-        output = json.dumps(output)
 
         status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
         self.container_service.report_result(output)

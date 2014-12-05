@@ -58,7 +58,12 @@ class PythonActionWrapper(object):
 
         # Print output to stdout so the parent can capture it
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
-        sys.stdout.write(str(output) + '\n')
+        print_output = None
+        try:
+            print_output = json.dumps(output)
+        except:
+            print_output = str(output)
+        sys.stdout.write(print_output + '\n')
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
 
     def _get_action_instance(self):

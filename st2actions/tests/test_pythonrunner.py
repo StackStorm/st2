@@ -49,7 +49,7 @@ class PythonRunnerTestCase(TestCase):
         result = runner.run({'row_index': 4})
         self.assertTrue(result)
         self.assertEqual(runner.container_service.get_status(), ACTIONEXEC_STATUS_SUCCEEDED)
-        self.assertEqual(runner.container_service.get_result()['result'], '[1, 4, 6, 4, 1]')
+        self.assertEqual(runner.container_service.get_result()['result'], [1, 4, 6, 4, 1])
 
     def test_simple_action_fail(self):
         runner = pythonrunner.get_runner()
