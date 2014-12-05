@@ -92,6 +92,12 @@ def register_opts(ignore_errors=False):
     ]
     _do_register_opts(syslog_opts, 'syslog', ignore_errors)
 
+    log_opts = [
+        cfg.ListOpt('excludes', default='',
+                    help='Exclusion list of loggers to omit.')
+    ]
+    _do_register_opts(log_opts, 'log', ignore_errors)
+
     use_debugger = cfg.BoolOpt(
         'use-debugger', default=True,
         help='Enables debugger. Note that using this option changes how the '
