@@ -223,7 +223,7 @@ html_context = {
         ('0.6.0', 'http://docs.stackstorm.com/0.6.0'),
         ('0.5.1', 'http://docs.stackstorm.com/0.5.1'),
     ],
-    'current_version': "latest"
+    'current_version': release
 }
 
 
