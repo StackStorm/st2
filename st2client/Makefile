@@ -19,5 +19,5 @@ rpm:
 deb:
 	python setup.py --command-packages=stdeb.command bdist_deb
 	mkdir -p ~/debbuild
-	cp deb_dist/python-$(COMPONENTS)_$(VER)-1_all.deb ~/debbuild/$(COMPONENTS)_$(VER)-$(RELEASE)_amd64.deb
+	cp deb_dist/python-$(COMPONENTS)*-1_all.deb ~/debbuild/$(COMPONENTS)_$(VER)-$(RELEASE)_amd64.deb
 	rm -Rf dist deb_dist $(COMPONENTS)-$(VER).tar.gz $(COMPONENTS).egg-info ChangeLog AUTHORS build
