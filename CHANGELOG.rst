@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+v0.6.1 - Under development
+--------------------------
+
+Docs: http://docks.stackstorm.com/latest
 
 v0.6.0 - December 8, 2014
 -------------------------
