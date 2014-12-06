@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
 import os
 import sys
 import mock
@@ -94,8 +95,8 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     def test_execution_get_default_in_json(self):
         argv = ['execution', 'get', ACTION_EXECUTION['id'], '-j']
         content = self._get_execution(argv)
-        self.assertDictEqual(json.loads(content),
-                             jsutil.get_kvps(ACTION_EXECUTION, ['status', 'result']))
+        self.assertEqual(json.loads(content),
+                         jsutil.get_kvps(ACTION_EXECUTION, ['status', 'result']))
 
     def test_execution_get_detail(self):
         argv = ['execution', 'get', ACTION_EXECUTION['id'], '-d']
@@ -105,7 +106,13 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     def test_execution_get_detail_in_json(self):
         argv = ['execution', 'get', ACTION_EXECUTION['id'], '-d', '-j']
         content = self._get_execution(argv)
-        self.assertDictEqual(json.loads(content), ACTION_EXECUTION)
+        content_dict = json.loads(content)
+        # Sufficient to check if output contains all expected keys. The entire result will not
+        # match as content will contain characters which improve rendering.
+        for k in six.iterkeys(ACTION_EXECUTION):
+            if k in content:
+                continue
+            self.assertTrue(False, 'Missing key %s. %s != %s' % (k, ACTION_EXECUTION, content_dict))
 
     def test_execution_get_result_by_key(self):
         argv = ['execution', 'get', ACTION_EXECUTION['id'], '-k', 'localhost.stdout']
