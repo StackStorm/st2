@@ -25,7 +25,7 @@ def get_value(doc, key):
     matches = jsonpath_expr.find(doc)
     value = None if len(matches) < 1 else matches[0].value
     if isinstance(value, dict):
-        value = json.dumps(value, indent=4)
+        value = json.dumps(value, indent=4, sort_keys=True)
     return value
 
 
