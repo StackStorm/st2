@@ -16,5 +16,5 @@
       name: "restart-sensor-container"
       ref: "packs.restart_component"
       params:
-        servicename: "sensor_containesr"
+        servicename: "sensor_container"
   default: "unregister"
