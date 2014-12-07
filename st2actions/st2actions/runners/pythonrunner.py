@@ -35,7 +35,7 @@ from st2common.util.sandboxing import get_sandbox_virtualenv_path
 
 LOG = logging.getLogger(__name__)
 
-# Default timeout for actions executed by Python runner
+# Default timeout (in seconds) for actions executed by Python runner
 DEFAULT_ACTION_TIMEOUT = 10 * 60
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -98,7 +98,10 @@ class PythonRunner(ActionRunner):
         self._timeout = timeout
 
     def pre_run(self):
-        pass
+        # TODO :This is awful, but the way "runner_parameters" and other variables get
+        # assigned on the runner instance is even worse. Those arguments should
+        # be passed to the constructor.
+        self._timeout = self.runner_parameters.get('timeout', self._timeout)
 
     def run(self, action_parameters):
         pack = self.action.pack if self.action else DEFAULT_PACK_NAME
