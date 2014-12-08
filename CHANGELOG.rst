@@ -9,6 +9,11 @@ v0.6.1 - Under development
 
 Docs: http://docks.stackstorm.com/latest
 
+* Python runner and all the fabric based runners (``run-local``, ``run-local-script``,
+  ``run-remote``, ``run-remote-script``) now expose ``timeout`` argument. With this argument
+  user can specify action timeout. Previously, the action timeout was not user-configurable and
+  a system-wide default value was used.
+
 v0.6.0 - December 8, 2014
 -------------------------
 
