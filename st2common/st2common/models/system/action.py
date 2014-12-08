@@ -19,6 +19,7 @@ import six
 
 from fabric.api import (put, run, sudo)
 from fabric.context_managers import shell_env
+from fabric.context_managers import settings
 from fabric.tasks import WrappedCallableTask
 
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
@@ -80,10 +81,11 @@ class SSHCommandAction(object):
 
 class RemoteAction(SSHCommandAction):
     def __init__(self, name, action_exec_id, command, env_vars={}, on_behalf_user=None, user=None,
-                 hosts=None, parallel=True, sudo=False):
+                 hosts=None, parallel=True, sudo=False, timeout=None):
         super(RemoteAction, self).__init__(name, action_exec_id, command, env_vars, user,
                                            hosts=hosts, parallel=parallel, sudo=sudo)
         self.on_behalf_user = on_behalf_user  # Used for audit purposes.
+        self.timeout = timeout
 
     def get_on_behalf_user(self):
         return self.on_behalf_user
@@ -105,9 +107,10 @@ class RemoteAction(SSHCommandAction):
 class RemoteScriptAction(RemoteAction):
     def __init__(self, name, action_exec_id, script_local_path_abs, script_local_libs_path_abs,
                  named_args=None, positional_args=None, env_vars={}, on_behalf_user=None, user=None,
-                 remote_dir=None, hosts=None, parallel=True, sudo=False):
+                 remote_dir=None, hosts=None, parallel=True, sudo=False, timeout=None):
         super(RemoteScriptAction, self).__init__(name, action_exec_id, '', env_vars, on_behalf_user,
-                                                 user, hosts=hosts, parallel=parallel, sudo=sudo)
+                                                 user, hosts=hosts, parallel=parallel, sudo=sudo,
+                                                 timeout=timeout)
         self.script_local_path_abs = script_local_path_abs
         self.script_local_libs_path_abs = script_local_libs_path_abs
         self.script_local_dir, self.script_name = os.path.split(self.script_local_path_abs)
@@ -186,7 +189,7 @@ class FabricRemoteAction(RemoteAction):
         return self._run
 
     def _run(self):
-        with shell_env(**self.env_vars):
+        with shell_env(**self.env_vars), settings(command_timeout=self.timeout):
             output = run(self.command, combine_stderr=False, pty=False, quiet=True)
         result = {
             'stdout': output.stdout,
@@ -198,7 +201,7 @@ class FabricRemoteAction(RemoteAction):
         return result
 
     def _sudo(self):
-        with shell_env(**self.env_vars):
+        with shell_env(**self.env_vars), settings(command_timeout=self.timeout):
             output = sudo(self.command, combine_stderr=False, pty=True, quiet=True)
         result = {
             'stdout': output.stdout,
