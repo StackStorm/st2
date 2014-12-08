@@ -38,6 +38,9 @@ LOG = logging.getLogger(__name__)
 # Default timeout (in seconds) for actions executed by Python runner
 DEFAULT_ACTION_TIMEOUT = 10 * 60
 
+# constants to lookup in runner_parameters.
+RUNNER_TIMEOUT = 'timeout'
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
@@ -101,7 +104,7 @@ class PythonRunner(ActionRunner):
         # TODO :This is awful, but the way "runner_parameters" and other variables get
         # assigned on the runner instance is even worse. Those arguments should
         # be passed to the constructor.
-        self._timeout = self.runner_parameters.get('timeout', self._timeout)
+        self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
 
     def run(self, action_parameters):
         pack = self.action.pack if self.action else DEFAULT_PACK_NAME
