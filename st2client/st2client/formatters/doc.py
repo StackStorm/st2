@@ -30,7 +30,7 @@ class Json(formatters.Formatter):
         attributes = kwargs.get('attributes', None)
         if type(subject) is str:
             subject = json.loads(subject)
-        if type(subject) is not list:
+        elif not isinstance(subject, (list, tuple)) and not hasattr(subject, '__iter__'):
             doc = subject if isinstance(subject, dict) else subject.__dict__
             keys = doc.keys() if not attributes or 'all' in attributes else attributes
             docs = jsutil.get_kvps(doc, keys)
