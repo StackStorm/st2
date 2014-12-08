@@ -203,6 +203,11 @@ class ActionExecutionAPI(BaseAPI):
                 "type": "string",
                 "pattern": isotime.ISO8601_UTC_REGEX
             },
+            "end_timestamp": {
+                "description": "The timestamp when the action has finished.",
+                "type": "string",
+                "pattern": isotime.ISO8601_UTC_REGEX
+            },
             "action": {
                 "description": "Reference to the action to be executed.",
                 "type": "string",
@@ -247,14 +252,21 @@ class ActionExecutionAPI(BaseAPI):
         doc = super(cls, cls)._from_model(model)
         if model.start_timestamp:
             doc['start_timestamp'] = isotime.format(model.start_timestamp, offset=False)
+        if model.end_timestamp:
+            doc['end_timestamp'] = isotime.format(model.end_timestamp, offset=False)
         return cls(**doc)
 
     @classmethod
     def to_model(cls, execution):
         model = super(cls, cls).to_model(execution)
         model.action = execution.action
+
         if getattr(execution, 'start_timestamp', None):
             model.start_timestamp = isotime.parse(execution.start_timestamp)
+
+        if getattr(execution, 'end_timestamp', None):
+            model.end_timestamp = isotime.parse(execution.end_timestamp)
+
         model.status = getattr(execution, 'status', None)
         model.parameters = getattr(execution, 'parameters', dict())
         model.context = getattr(execution, 'context', dict())

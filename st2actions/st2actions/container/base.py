@@ -16,8 +16,10 @@
 import importlib
 import sys
 import traceback
+import datetime
 
 from st2common import log as logging
+from st2common.util import isotime
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED,
                                         ACTIONEXEC_STATUS_FAILED)
@@ -150,8 +152,14 @@ class RunnerContainer(object):
                 actionexec_status = ACTIONEXEC_STATUS_SUCCEEDED
                 runner.container_service.report_status(actionexec_status)
 
+        if actionexec_status in [ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED]:
+            end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+        else:
+            end_timestamp = None
+
         # Push result data and updated status to ActionExecution DB
-        actionexec_db = update_actionexecution_status(actionexec_status,
+        actionexec_db = update_actionexecution_status(new_status=actionexec_status,
+                                                      end_timestamp=end_timestamp,
                                                       actionexec_db=actionexec_db)
 
         LOG.debug('Performing post_run for runner: %s', runner)

@@ -173,7 +173,8 @@ def get_action_by_ref(action_ref):
     return _get_action_by_pack_and_name(name=action_ref.name, pack=action_ref.pack)
 
 
-def update_actionexecution_status(new_status, actionexec_id=None, actionexec_db=None):
+def update_actionexecution_status(new_status, end_timestamp=None, actionexec_id=None,
+                                  actionexec_db=None):
     """
         Update the status of the specified ActionExecution to the value provided in
         new_status.
@@ -197,6 +198,10 @@ def update_actionexecution_status(new_status, actionexec_id=None, actionexec_db=
     LOG.debug('Updating ActionExection: "%s" with status="%s"',
               actionexec_db, new_status)
     actionexec_db.status = new_status
+
+    if end_timestamp:
+        actionexec_db.end_timestamp = end_timestamp
+
     actionexec_db = ActionExecution.add_or_update(actionexec_db)
     LOG.debug('Updated status for ActionExecution object: %s', actionexec_db)
     return actionexec_db
