@@ -120,10 +120,31 @@ class ActionDBUtilsTestCase(DbTestCase):
 
         # Update by id.
         newactionexec_db = action_db_utils.update_actionexecution_status(
-            'running', actionexec_id=actionexec_db.id)
+            new_status='running', actionexec_id=actionexec_db.id)
         # Verify id didn't change.
         self.assertEqual(origactionexec_db.id, newactionexec_db.id)
         self.assertEqual(newactionexec_db.status, 'running')
+
+    def test_update_actionexecution_status_and_end_timestamp(self):
+        actionexec_db = ActionExecutionDB()
+        actionexec_db.status = 'initializing'
+        actionexec_db.start_timestamp = datetime.datetime.utcnow()
+        actionexec_db.action = ResourceReference(
+            name=ActionDBUtilsTestCase.action_db.name,
+            pack=ActionDBUtilsTestCase.action_db.pack).ref
+        actionexec_db.parameters = {}
+        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+        origactionexec_db = copy.copy(actionexec_db)
+
+        # Update by id
+        now = datetime.datetime.now()
+        newactionexec_db = action_db_utils.update_actionexecution_status(
+            new_status='running', end_timestamp=now, actionexec_id=actionexec_db.id)
+
+        # Verify id didn't change and end_timestamp has been set
+        self.assertEqual(origactionexec_db.id, newactionexec_db.id)
+        self.assertEqual(newactionexec_db.status, 'running')
+        self.assertEqual(newactionexec_db.end_timestamp, now)
 
     def test_update_actionexecution_status_invalid(self):
         actionexec_db = ActionExecutionDB()
@@ -142,7 +163,7 @@ class ActionDBUtilsTestCase(DbTestCase):
 
         # Update by id.
         self.assertRaises(ValueError, action_db_utils.update_actionexecution_status,
-                          'mea culpa', actionexec_id=actionexec_db.id)
+                          new_status='mea culpa', actionexec_id=actionexec_db.id)
 
     def test_get_args(self):
         params = {
