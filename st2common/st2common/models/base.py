@@ -120,6 +120,7 @@ def jsexpose(*argtypes, **opts):
                                 pass
 
                 body_cls = opts.get('body')
+                requires_body = opts.get('requires_body', False)
                 if body_cls:
                     if pecan.request.body:
                         try:
@@ -127,6 +128,9 @@ def jsexpose(*argtypes, **opts):
                         except jsonschema.exceptions.ValidationError as e:
                             return _handle_error(http_client.BAD_REQUEST, e)
                         more.append(obj)
+                    elif requires_body:
+                        e = Exception('No body provided')
+                        return _handle_error(http_client.BAD_REQUEST, e)
                     else:
                         more.append(None)
 
