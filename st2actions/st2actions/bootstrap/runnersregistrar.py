@@ -27,6 +27,10 @@ LOG = logging.getLogger(__name__)
 
 
 def register_runner_types():
+    # Note: We need to do import here because config needs to be parsed for this
+    # import to work
+    from st2actions.runners import fabricrunner
+
     try:
         default_remote_dir = cfg.CONF.ssh_runner.remote_dir
     except:
@@ -70,6 +74,12 @@ def register_runner_types():
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
                     'type': 'string',
                     'default': '--'
+                },
+                'timeout': {
+                    'description': ('Action timeout in seconds. Action will get killed if it '
+                                    'doesn\'t finish in timeout seconds.'),
+                    'type': 'integer',
+                    'default': fabricrunner.DEFAULT_ACTION_TIMEOUT
                 }
             },
             'runner_module': 'st2actions.runners.fabricrunner'
@@ -106,6 +116,12 @@ def register_runner_types():
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
                     'type': 'string',
                     'default': '--'
+                },
+                'timeout': {
+                    'description': ('Action timeout in seconds. Action will get killed if it '
+                                    'doesn\'t finish in timeout seconds.'),
+                    'type': 'integer',
+                    'default': fabricrunner.DEFAULT_ACTION_TIMEOUT
                 }
             },
             'runner_module': 'st2actions.runners.fabricrunner'
@@ -147,6 +163,12 @@ def register_runner_types():
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
                     'type': 'string',
                     'default': '--'
+                },
+                'timeout': {
+                    'description': ('Action timeout in seconds. Action will get killed if it '
+                                    'doesn\'t finish in timeout seconds.'),
+                    'type': 'integer',
+                    'default': fabricrunner.DEFAULT_ACTION_TIMEOUT
                 }
             },
             'runner_module': 'st2actions.runners.fabricrunner'
@@ -183,6 +205,12 @@ def register_runner_types():
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
                     'type': 'string',
                     'default': '--'
+                },
+                'timeout': {
+                    'description': ('Action timeout in seconds. Action will get killed if it '
+                                    'doesn\'t finish in timeout seconds.'),
+                    'type': 'integer',
+                    'default': fabricrunner.DEFAULT_ACTION_TIMEOUT
                 }
             },
             'runner_module': 'st2actions.runners.fabricrunner'

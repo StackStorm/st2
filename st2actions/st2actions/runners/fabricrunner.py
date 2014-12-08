@@ -31,6 +31,9 @@ import st2common.util.action_db as action_utils
 # Replace with container call to get logger.
 LOG = logging.getLogger(__name__)
 
+DEFAULT_ACTION_TIMEOUT = 60
+
+
 # Fabric environment level settings.
 # XXX: Note fabric env is a global singleton.
 env.parallel = True  # By default, execute things in parallel. Uses multiprocessing under the hood.
@@ -44,7 +47,7 @@ if ssh_key_file and os.path.exists(ssh_key_file):
     env.key_filename = ssh_key_file
 
 env.timeout = 10  # Timeout for connections (in seconds)
-env.command_timeout = 60  # timeout for commands (in seconds)
+env.command_timeout = DEFAULT_ACTION_TIMEOUT  # timeout for commands (in seconds)
 env.combine_stderr = False
 env.group = 'staff'
 env.abort_exception = FabricExecutionFailureException
@@ -57,6 +60,7 @@ RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_REMOTE_DIR = 'dir'
 RUNNER_COMMAND = 'cmd'
 RUNNER_KWARG_OP = 'kwarg_op'
+RUNNER_TIMEOUT = 'timeout'
 
 
 def get_runner():
@@ -89,6 +93,7 @@ class FabricRunner(ActionRunner):
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, env.user)
         self._user = cfg.CONF.system_user.user
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
+        self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
         LOG.info('[FabricRunner="%s", actionexec_id="%s"] Finished pre_run.',
                  self._runner_id, self.action_execution_id)
@@ -130,7 +135,8 @@ class FabricRunner(ActionRunner):
                                   user=self._user,
                                   hosts=self._hosts,
                                   parallel=self._parallel,
-                                  sudo=self._sudo)
+                                  sudo=self._sudo,
+                                  timeout=self._timeout)
 
     def _get_fabric_remote_script_action(self, action_parameters):
         script_local_path_abs = self.entry_point
@@ -152,7 +158,8 @@ class FabricRunner(ActionRunner):
                                         remote_dir=remote_dir,
                                         hosts=self._hosts,
                                         parallel=self._parallel,
-                                        sudo=self._sudo)
+                                        sudo=self._sudo,
+                                        timeout=self._timeout)
 
     def _transform_pos_args(self, named_args):
         if named_args:
