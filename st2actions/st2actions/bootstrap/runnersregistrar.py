@@ -20,6 +20,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.action import RunnerType
 from st2common.util.action_db import get_runnertype_by_name
+from st2actions.runners import pythonrunner
 
 
 LOG = logging.getLogger(__name__)
@@ -272,7 +273,14 @@ def register_runner_types():
             'name': 'run-python',
             'description': 'A runner for launching python actions.',
             'enabled': True,
-            'runner_parameters': {},
+            'runner_parameters': {
+                'timeout': {
+                    'description': ('Action timeout in seconds. Action will get killed if it '
+                                    'doesn\'t finish in timeout seconds.'),
+                    'type': 'integer',
+                    'default': pythonrunner.DEFAULT_ACTION_TIMEOUT
+                }
+            },
             'runner_module': 'st2actions.runners.pythonrunner'
         }
     ]
