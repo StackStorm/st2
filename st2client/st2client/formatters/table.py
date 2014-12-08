@@ -38,6 +38,7 @@ class MultiColumnTable(formatters.Formatter):
     @classmethod
     def format(cls, entries, *args, **kwargs):
         attributes = kwargs.get('attributes', [])
+        attribute_transform_functions = kwargs.get('attribute_transform_functions', {})
         widths = kwargs.get('widths', [])
         widths = widths or []
 
@@ -99,6 +100,9 @@ class MultiColumnTable(formatters.Formatter):
                     values.append(value)
                 else:
                     value = cls._get_simple_field_value(entry, field_name)
+                    transfor_function = attribute_transform_functions.get(field_name,
+                                                                          lambda value: value)
+                    value = transfor_function(value=value)
                     value = strutil.unescape(value)
                     values.append(value)
             table.add_row(values)
@@ -147,6 +151,7 @@ class PropertyValueTable(formatters.Formatter):
         attributes = kwargs.get('attributes', None)
         attribute_display_order = kwargs.get('attribute_display_order',
                                              DEFAULT_ATTRIBUTE_DISPLAY_ORDER)
+        attribute_transform_functions = kwargs.get('attribute_transform_functions', {})
 
         if not attributes or 'all' in attributes:
             attributes = sorted([attr for attr in subject.__dict__
@@ -168,6 +173,9 @@ class PropertyValueTable(formatters.Formatter):
             if type(value) is dict or type(value) is list:
                 value = json.dumps(value, indent=4)
             value = strutil.unescape(value)
+            transfor_function = attribute_transform_functions.get(attribute,
+                                                                  lambda value: value)
+            value = transfor_function(value=value)
             table.add_row([attribute, value])
         return table
 
