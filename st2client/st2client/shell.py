@@ -150,9 +150,10 @@ class Shell(object):
             'An invocation of an action.',
             self, self.subparsers)
 
-    def get_client(self, args):
+    def get_client(self, args, debug=False):
         options = ['base_url', 'auth_url', 'api_url', 'api_version', 'cacert']
         kwargs = {opt: getattr(args, opt) for opt in options}
+        kwargs['debug'] = debug
         return Client(**kwargs)
 
     def run(self, argv):
@@ -161,7 +162,8 @@ class Shell(object):
             args = self.parser.parse_args(args=argv)
 
             # Set up client.
-            self.client = self.get_client(args)
+            debug = getattr(args, 'debug', False)
+            self.client = self.get_client(args=args, debug=debug)
 
             # Execute command.
             args.func(args)
