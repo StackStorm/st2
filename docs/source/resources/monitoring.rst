@@ -61,7 +61,7 @@ You should see sensu.action-runners-rule listed.
     {
       "checks": {
         "cron_check": {
-          "handlers": ["default", "|st2| "],
+          "handlers": ["default", "st2"],
           "command": "/etc/sensu/plugins/check-procs.rb -p actionrunner -C 10 ",
           "interval": 60,
           "subscribers": [ "webservers" ]
