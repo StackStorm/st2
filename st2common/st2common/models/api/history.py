@@ -69,8 +69,16 @@ class ActionExecutionHistoryAPI(BaseAPI):
     @classmethod
     def from_model(cls, model):
         doc = cls._from_model(model)
-        timestamp = isotime.format(doc['execution']['start_timestamp'], offset=False)
-        doc['execution']['start_timestamp'] = timestamp
+        start_timestamp = isotime.format(doc['execution']['start_timestamp'], offset=False)
+
+        if doc['execution']['end_timestamp']:
+            end_timestamp = isotime.format(doc['execution']['end_timestamp'], offset=False)
+        else:
+            end_timestamp = None
+
+        doc['execution']['start_timestamp'] = start_timestamp
+        doc['execution']['end_timestamp'] = end_timestamp
+
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}
         return cls(**attrs)
 

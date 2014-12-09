@@ -29,6 +29,7 @@ from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table, execution
+from st2client.utils.date import format_isodate
 
 
 LOG = logging.getLogger(__name__)
@@ -384,7 +385,12 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
 class ActionExecutionListCommand(resource.ResourceCommand):
 
-    display_attributes = ['id', 'action', 'context.user', 'status', 'start_timestamp']
+    display_attributes = ['id', 'action', 'context.user', 'status', 'start_timestamp',
+                          'end_timestamp']
+    attribute_transform_functions = {
+        'start_timestamp': format_isodate,
+        'end_timestamp': format_isodate
+    }
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionListCommand, self).__init__(
@@ -418,12 +424,17 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         instances = self.run(args, **kwargs)
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
-                          json=args.json)
+                          json=args.json,
+                          attribute_transform_functions=self.attribute_transform_functions)
 
 
 class ActionExecutionGetCommand(resource.ResourceCommand):
 
     display_attributes = ['all']
+    attribute_transform_functions = {
+        'start_timestamp': format_isodate,
+        'end_timestamp': format_isodate
+    }
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionGetCommand, self).__init__(
@@ -467,6 +478,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
             else:
                 options = {'attributes': ['status', 'result']}
             options['json'] = args.json
+            options['attribute_transform_functions'] = self.attribute_transform_functions
             self.print_output(instance, formatter, **options)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)

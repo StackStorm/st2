@@ -77,8 +77,8 @@ class Worker(ConsumerMixin):
             raise
 
         # Update ActionExecution status to "running"
-        actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_RUNNING,
-                                                      actionexec_db.id)
+        actionexec_db = update_actionexecution_status(new_status=ACTIONEXEC_STATUS_RUNNING,
+                                                      actionexec_id=actionexec_db.id)
         # Launch action
         LOG.audit('Launching action execution.',
                   extra={'actionexec': actionexec_db.to_serializable_dict()})
@@ -87,8 +87,8 @@ class Worker(ConsumerMixin):
             result = self.container.dispatch(actionexec_db)
             LOG.debug('Runner dispatch produced result: %s', result)
         except Exception:
-            actionexec_db = update_actionexecution_status(ACTIONEXEC_STATUS_FAILED,
-                                                          actionexec_db.id)
+            actionexec_db = update_actionexecution_status(new_status=ACTIONEXEC_STATUS_FAILED,
+                                                          actionexec_id=actionexec_db.id)
             raise
 
         if not result:

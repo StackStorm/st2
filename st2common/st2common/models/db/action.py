@@ -104,6 +104,8 @@ class ActionExecutionDB(StormFoundationDB):
     start_timestamp = me.DateTimeField(
         default=datetime.datetime.utcnow,
         help_text='The timestamp when the ActionExecution was created.')
+    end_timestamp = me.DateTimeField(
+        help_text='The timestamp when the ActionExecution has finished.')
     action = me.StringField(
         required=True,
         help_text='Reference to the action that has to be executed.')

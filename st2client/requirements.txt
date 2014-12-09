@@ -2,3 +2,4 @@ prettytable
 pyyaml
 requests
 six
+python-dateutil
