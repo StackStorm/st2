@@ -20,6 +20,7 @@ except ImportError:
 
 import pecan
 import six
+from pecan.rest import RestController
 from urlparse import urljoin
 
 from st2common import log as logging
@@ -33,7 +34,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class WebhooksController(pecan.rest.RestController):
+class WebhooksController(RestController):
     def __init__(self, *args, **kwargs):
         super(WebhooksController, self).__init__(*args, **kwargs)
         self._hooks = {}
