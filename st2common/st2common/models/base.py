@@ -120,19 +120,16 @@ def jsexpose(*argtypes, **opts):
                                 pass
 
                 body_cls = opts.get('body')
-                requires_body = opts.get('requires_body', False)
                 if body_cls:
                     if pecan.request.body:
-                        try:
-                            obj = body_cls(**pecan.request.json)
-                        except jsonschema.exceptions.ValidationError as e:
-                            return _handle_error(http_client.BAD_REQUEST, e)
-                        more.append(obj)
-                    elif requires_body:
-                        e = Exception('No body provided')
-                        return _handle_error(http_client.BAD_REQUEST, e)
+                        data = pecan.request.json
                     else:
-                        more.append(None)
+                        data = {}
+                    try:
+                        obj = body_cls(**data)
+                    except jsonschema.exceptions.ValidationError as e:
+                        return _handle_error(http_client.BAD_REQUEST, e)
+                    more.append(obj)
 
                 args = tuple(more) + tuple(args)
 

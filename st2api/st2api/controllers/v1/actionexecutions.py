@@ -68,7 +68,7 @@ class ActionExecutionsController(ResourceController):
         LOG.info('GET all /actionexecutions/ with filters=%s', kw)
         return self._get_action_executions(**kw)
 
-    @jsexpose(body=ActionExecutionAPI, requires_body=True, status_code=http_client.CREATED)
+    @jsexpose(body=ActionExecutionAPI, status_code=http_client.CREATED)
     def post(self, execution):
         try:
             # Initialize execution context if it does not exist.

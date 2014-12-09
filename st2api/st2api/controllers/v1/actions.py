@@ -68,7 +68,7 @@ class ActionsController(resource.ContentPackResourceControler):
             LOG.error(msg)
             abort(http_client.CONFLICT, msg)
 
-    @jsexpose(body=ActionAPI, requires_body=True, status_code=http_client.CREATED)
+    @jsexpose(body=ActionAPI, status_code=http_client.CREATED)
     def post(self, action):
         """
             Create a new action.
