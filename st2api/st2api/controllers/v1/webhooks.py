@@ -59,7 +59,7 @@ class WebhooksController(pecan.rest.RestController):
             msg = 'Invalid JSON body: %s' % (body)
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
-        if hook == 'st2':
+        if hook == 'st2' or hook == 'st2/':
             return self._handle_st2_webhook(body)
 
         if not self._is_valid_hook(hook):
