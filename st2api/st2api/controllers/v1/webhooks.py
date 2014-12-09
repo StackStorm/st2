@@ -52,10 +52,6 @@ class WebhooksController(pecan.rest.RestController):
         hook = '/'.join(args)  # TODO: There must be a better way to do this.
         LOG.info('POST /webhooks/ with hook=%s', hook)
 
-        if not self._is_valid_hook(hook):
-            msg = 'Webhook %s not registered with st2' % hook
-            return pecan.abort(http_client.NOT_FOUND, msg)
-
         body = pecan.request.body
         try:
             body = json.loads(body)
@@ -63,10 +59,27 @@ class WebhooksController(pecan.rest.RestController):
             msg = 'Invalid JSON body: %s' % (body)
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
+        if hook == 'st2' or hook == 'st2/':
+            return self._handle_st2_webhook(body)
+
+        if not self._is_valid_hook(hook):
+            msg = 'Webhook %s not registered with st2' % hook
+            return pecan.abort(http_client.NOT_FOUND, msg)
+
         trigger = self._get_trigger_for_hook(hook)
         payload = {}
         payload['headers'] = self._get_headers_as_dict(pecan.request.headers)
         payload['body'] = body
+        self._trigger_dispatcher.dispatch(trigger, payload=payload)
+
+        return body
+
+    def _handle_st2_webhook(self, body):
+        trigger = body.get('trigger', None)
+        payload = body.get('payload', None)
+        if not trigger:
+            msg = 'Trigger not specified.'
+            return pecan.abort(http_client.BAD_REQUEST, msg)
         self._trigger_dispatcher.dispatch(trigger, payload=payload)
 
         return body
