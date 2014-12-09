@@ -16,6 +16,7 @@
 import json
 import requests
 import logging
+from pipes import quote as pquote
 
 
 LOG = logging.getLogger(__name__)
@@ -53,34 +54,82 @@ def add_json_content_type_to_headers(func):
 
 class HTTPClient(object):
 
-    def __init__(self, root, cacert=None):
+    def __init__(self, root, cacert=None, debug=False):
         self.root = root
         self.cacert = cacert
+        self.debug = debug
 
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
     def get(self, url, **kwargs):
-        return requests.get(self.root + url, **kwargs)
+        response = requests.get(self.root + url, **kwargs)
+        response = self._response_hook(response=response)
+        return response
 
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
     @add_json_content_type_to_headers
     def post(self, url, data, **kwargs):
-        return requests.post(self.root + url, json.dumps(data), **kwargs)
+        response = requests.post(self.root + url, json.dumps(data), **kwargs)
+        response = self._response_hook(response=response)
+        return response
 
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
     @add_json_content_type_to_headers
     def put(self, url, data, **kwargs):
-        return requests.put(self.root + url, json.dumps(data), **kwargs)
+        response = requests.put(self.root + url, json.dumps(data), **kwargs)
+        response = self._response_hook(response=response)
+        return response
 
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
     @add_json_content_type_to_headers
     def patch(self, url, data, **kwargs):
-        return requests.patch(self.root + url, data, **kwargs)
+        response = requests.patch(self.root + url, data, **kwargs)
+        response = self._response_hook(response=response)
+        return response
 
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
     def delete(self, url, **kwargs):
-        return requests.delete(self.root + url, **kwargs)
+        response = requests.delete(self.root + url, **kwargs)
+        response = self._response_hook(response=response)
+        return response
+
+    def _response_hook(self, response):
+        if self.debug:
+            # Log cURL request line
+            curl_line = self._get_curl_line_for_request(request=response.request)
+            print("# -------- begin %d request ----------" % id(self))
+            print(curl_line)
+            print("# -------- begin %d response ----------" % (id(self)))
+            print(response.text)
+            print("# -------- end %d response ------------" % (id(self)))
+            print('')
+
+        return response
+
+    def _get_curl_line_for_request(self, request):
+        parts = ['curl']
+
+        # method
+        method = request.method.upper()
+        if method in ['HEAD']:
+            parts.extend(['--head'])
+        else:
+            parts.extend(['-X', pquote(method)])
+
+        # headers
+        for key, value in request.headers.items():
+            parts.extend(['-H ', pquote('%s: %s' % (key, value))])
+
+        # body
+        if request.body:
+            parts.extend(['--data-binary', pquote(request.body)])
+
+        # URL
+        parts.extend([pquote(request.url)])
+
+        curl_line = ' '.join(parts)
+        return curl_line

@@ -25,8 +25,9 @@ LOG = logging.getLogger(__name__)
 class Client(object):
 
     def __init__(self, *args, **kwargs):
-
         # Get CLI options. If not given, then try to get it from the environment.
+        self.debug = kwargs.get('debug', False)
+
         self.endpoints = dict()
         self.endpoints['base'] = kwargs.get('base_url')
         if not self.endpoints['base']:
@@ -55,21 +56,21 @@ class Client(object):
         # Instantiate resource managers and assign appropriate API endpoint.
         self.managers = dict()
         self.managers['Token'] = models.ResourceManager(
-            models.Token, self.endpoints['auth'], cacert=self.cacert)
+            models.Token, self.endpoints['auth'], cacert=self.cacert, debug=self.debug)
         self.managers['RunnerType'] = models.ResourceManager(
-            models.RunnerType, self.endpoints['api'], cacert=self.cacert)
+            models.RunnerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Action'] = models.ResourceManager(
-            models.Action, self.endpoints['api'], cacert=self.cacert)
+            models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['ActionExecution'] = models.ResourceManager(
-            models.ActionExecution, self.endpoints['api'], cacert=self.cacert)
+            models.ActionExecution, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Rule'] = models.ResourceManager(
-            models.Rule, self.endpoints['api'], cacert=self.cacert)
+            models.Rule, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Sensor'] = models.ResourceManager(
-            models.Sensor, self.endpoints['api'], cacert=self.cacert)
+            models.Sensor, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Trigger'] = models.ResourceManager(
-            models.Trigger, self.endpoints['api'], cacert=self.cacert)
+            models.Trigger, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['KeyValuePair'] = models.ResourceManager(
-            models.KeyValuePair, self.endpoints['api'], cacert=self.cacert)
+            models.KeyValuePair, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
 
     @property
     def tokens(self):

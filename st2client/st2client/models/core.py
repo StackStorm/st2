@@ -109,9 +109,10 @@ class Resource(object):
 
 class ResourceManager(object):
 
-    def __init__(self, resource, endpoint, cacert=None):
+    def __init__(self, resource, endpoint, cacert=None, debug=False):
         self.resource = resource
-        self.client = httpclient.HTTPClient(endpoint, cacert=cacert)
+        self.debug = debug
+        self.client = httpclient.HTTPClient(endpoint, cacert=cacert, debug=debug)
 
     @staticmethod
     def handle_error(response):
