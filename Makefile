@@ -101,10 +101,7 @@ flake8: requirements .flake8
 lint: requirements .flake8 .pylint
 
 .PHONY: clean
-clean: .cleanpycs .cleandocs .cleanmongodb .cleanrabbitmq
-
-.PHONY: clean-post
-clean-post:  .cleanrabbitmq
+clean: .cleanpycs .cleandocs
 
 .PHONY: .cleanpycs
 .cleanpycs:
@@ -115,18 +112,6 @@ clean-post:  .cleanrabbitmq
 .cleandocs:
 	@echo "Removing generated documentation"
 	rm -rf $(DOC_BUILD_DIR)
-
-.PHONY: .cleanmongodb
-.cleanmongodb:
-	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
-
-.PHONY: .cleanrabbitmq
-.cleanrabbitmq:
-	@echo "Deleting all RabbitMQ queue and exchanges"
-	sudo rabbitmqctl stop_app
-	sudo rabbitmqctl reset
-	sudo rabbitmqctl start_app
 
 .PHONY: distclean
 distclean: clean
@@ -176,7 +161,7 @@ $(VIRTUALENV_DIR)/bin/activate:
 	touch $(VIRTUALENV_DIR)/bin/activate.fish
 
 .PHONY: tests
-tests: pytests clean-post
+tests: pytests
 
 .PHONY: pytests
 pytests: requirements .flake8 .pytests-coverage
@@ -186,6 +171,8 @@ pytests: requirements .flake8 .pytests-coverage
 	@echo
 	@echo "==================== tests ===================="
 	@echo
+	@echo "----- Dropping st2-test db -----"
+	@mongo st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
