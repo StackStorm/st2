@@ -31,6 +31,11 @@ WEBHOOK_1 = {
     }
 }
 
+ST2_WEBHOOK = {
+    'trigger': 'foo.bar',
+    'payload': {'ponies': 'unicorns'}
+}
+
 DUMMY_TRIGGER = TriggerDB(name='pr-merged', pack='git')
 DUMMY_TRIGGER.type = GENERIC_WEBHOOK_TRIGGER_REF
 
@@ -52,6 +57,22 @@ class TestTriggerTypeController(FunctionalTest):
     def test_post_hook_not_registered(self):
         post_resp = self.__do_post('foo', WEBHOOK_1, expect_errors=True)
         self.assertEqual(post_resp.status_int, http_client.NOT_FOUND)
+
+    @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
+        return_value=True))
+    def test_st2_webhook_success(self):
+        post_resp = self.__do_post('st2', ST2_WEBHOOK)
+        self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
+
+        post_resp = self.__do_post('st2/', ST2_WEBHOOK)
+        self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
+
+    @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
+        return_value=True))
+    def test_st2_webhook_body_missing_trigger(self):
+        post_resp = self.__do_post('st2', {'payload': {}}, expect_errors=True)
+        self.assertTrue('Trigger not specified.' in post_resp)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
     def __do_post(self, hook, webhook, expect_errors=False):
         return self.app.post_json('/v1/webhooks/' + hook, webhook, expect_errors=expect_errors)
