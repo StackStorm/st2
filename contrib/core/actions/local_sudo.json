@@ -4,5 +4,10 @@
     "description": "Action that executes an arbitrary Linux command on the localhost.",
     "enabled": true,
     "entry_point": "",
-    "parameters": {}
+    "parameters": {
+        "sudo": {
+            "immutable": true,
+            "default": true
+        }
+    }
 }
