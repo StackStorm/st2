@@ -166,6 +166,41 @@ Named argument are passed to the script in the following format:
 
     script.sh --param1=value --param2=value --param3=value
 
+By default, each parameter is prefixed with two dashes (``--``). If you want to
+use a single dash (``-``), some other prefix or no prefix at all, you can
+configure that using ``kwarg_op`` parameter in the metadata file.
+
+For example:
+
+.. code-block:: yaml
+
+    ---
+        name: "my_script"
+        runner_type: "run-remote"
+        description: "Script which prints arguments to stdout."
+        enabled: true
+        entry_point: "script.sh"
+        parameters:
+            key1:
+                type: "string"
+                required: true
+            key2:
+                type: "string"
+                required: true
+            key3:
+                type: "string"
+                required: true
+           kwarg_op:
+                type: "string"
+                immutable: true
+                default: "-"
+
+In this case, arguments are passed to the script in the following format:
+
+::
+
+    script.sh -key1=value1 -key2=value2 -key3=value3
+
 And positional argument are passed to the script ordered by the ``position``
 value in the following format:
 
