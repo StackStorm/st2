@@ -30,12 +30,12 @@ class ActionRunner(object):
         Action Runner implementation.
     """
 
-    def __init__(self, id):
+    def __init__(self, runner_id):
         """
         :param id: Runner id.
         :type id: ``str``
         """
-        self.runner_id = id
+        self.runner_id = runner_id
 
         self.container_service = None
         self.runner_parameters = None
