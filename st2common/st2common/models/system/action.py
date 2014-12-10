@@ -77,7 +77,7 @@ class ShellScriptAction(ShellCommandAction):
     def __init__(self, name, action_exec_id, script_local_path_abs, named_args=None,
                  positional_args=None, env_vars=None, user=None, sudo=False, timeout=None):
         super(ShellScriptAction, self).__init__(name=name, action_exec_id=action_exec_id,
-                                                user=user, env_vars=env_vars,
+                                                command=None, user=user, env_vars=env_vars,
                                                 sudo=sudo, timeout=timeout)
         self.script_local_path_abs = script_local_path_abs
         self.named_args = named_args
@@ -87,7 +87,10 @@ class ShellScriptAction(ShellCommandAction):
         if self.sudo:
             command = 'sudo -- bash -c ./%s' % (self.script_local_path_abs)
         else:
-            command = self.script_local_path_abs
+            script_arguments = self._get_script_arguments(named_args=self.named_args,
+                                                          positional_args=self.positional_args)
+
+            command = '%s %s' % (self.script_local_path_abs, script_arguments)
 
         return command
 
@@ -221,7 +224,7 @@ class RemoteScriptAction(ShellScriptAction):
         command_parts.append(self.remote_script)
         script_arguments = self._get_script_arguments(named_args=self.named_args,
                                                       positional_args=self.positional_args)
-        command = '%s %s' % (self.remote_script)
+        command = '%s %s' % (self.remote_script, script_arguments)
         return command
 
     def __str__(self):
