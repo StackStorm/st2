@@ -25,21 +25,114 @@ from fabric.tasks import WrappedCallableTask
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common import log as logging
 
+__all__ = [
+    'ShellCommandAction',
+    'ShellScriptAction',
+    'RemoteAction',
+    'RemoteScriptAction',
+    'ParamikoSSHCommandAction',
+    'FabricRemoteAction',
+    'FabricRemoteScriptAction'
+]
+
 
 LOG = logging.getLogger(__name__)
 
 
-class SSHCommandAction(object):
-    def __init__(self, name, action_exec_id, command, env_vars, user, password=None, pkey=None,
-                 hosts=None, parallel=True, sudo=False):
+class ShellCommandAction(object):
+    def __init__(self, name, action_exec_id, command, user, env_vars=None, sudo=False, timeout=None):
         self.name = name
+        self.action_exec_id = action_exec_id
         self.command = command
         self.env_vars = env_vars or {}
-        self.id = action_exec_id
+        self.user = user
+        self.sudo = sudo
+
+    def get_full_command_string(self):
+        if self.sudo:
+            command = 'sudo -- bash -c %s' % (self.command)
+        else:
+            command = self.command
+
+        return command
+
+    def _get_command_string(self, cmd, args):
+        """
+        Escape the command arguments and form a command string.
+
+        :type cmd: ``str``
+        :type args: ``list``
+
+        :rtype: ``str``
+        """
+        assert isinstance(args, (list, tuple))
+
+        args = [pipes.quote(arg) for arg in args]
+        args = ' '.join(args)
+        result = '%s %s' % (cmd, args)
+        return result
+
+
+class ShellScriptAction(ShellCommandAction):
+    def __init__(self, name, action_exec_id, script_local_path_abs, named_args=None,
+                 positional_args=None, env_vars=None, user=None, sudo=False, timeout=None):
+        super(ShellScriptAction, self).__init__(name=name, action_exec_id=action_exec_id,
+                                                user=user, env_vars=env_vars,
+                                                sudo=sudo, timeout=timeout)
+        self.script_local_path_abs = script_local_path_abs
+        self.named_args = named_args
+        self.positional_args = positional_args
+
+    def get_full_command_string(self):
+        if self.sudo:
+            command = 'sudo -- bash -c ./%s' % (self.script_local_path_abs)
+        else:
+            command = self.script_local_path_abs
+
+        return command
+
+    def _get_script_arguments(self, named_args=None, positional_args=None):
+        """
+        Build a string of named and positional arguments which are passed to the
+        script.
+
+        :param named_args: Dictionary with named arguments.
+        :type named_args: ``dict``.
+
+        :param positional_args: List with positional arguments.
+        :type positional_args: ``dict``.
+
+        :rtype: ``str``
+        """
+        command_parts = []
+
+        # add all named_args in the format <kwarg_op>name=value (e.g. --name=value)
+        if named_args is not None:
+            for (arg, value) in six.iteritems(named_args):
+                if value is None or (isinstance(value, (str, unicode)) and len(value) < 1):
+                    LOG.debug('Ignoring arg %s as its value is %s.', arg, value)
+                    continue
+
+                if isinstance(value, bool):
+                    if value is True:
+                        command_parts.append(arg)
+                else:
+                    command_parts.append('%s=%s' % (arg, pipes.quote(str(value))))
+
+        # add the positional args
+        if positional_args:
+            command_parts.append(positional_args)
+        return ' '.join(command_parts)
+
+
+class SSHCommandAction(ShellCommandAction):
+    def __init__(self, name, action_exec_id, command, env_vars, user, password=None, pkey=None,
+                 hosts=None, parallel=True, sudo=False, timeout=None):
+        super(SSHCommandAction, self).__init__(name=name, action_exec_id=action_exec_id,
+                                               command=command, env_vars=env_vars, user=user,
+                                               sudo=sudo, timeout=timeout)
         self.hosts = hosts
         self.parallel = parallel
-        self.sudo = sudo
-        self.user = user
         self.pkey = pkey
         self.password = password
 
@@ -70,7 +163,7 @@ class SSHCommandAction(object):
     def __str__(self):
         str_rep = []
         str_rep.append('%s@%s(name: %s' % (self.__class__.__name__, id(self), self.name))
-        str_rep.append('id: %s' % self.id)
+        str_rep.append('id: %s' % self.action_exec_id)
         str_rep.append('command: %s' % self.command)
         str_rep.append('user: %s' % self.user)
         str_rep.append('sudo: %s' % str(self.sudo))
@@ -82,8 +175,10 @@ class SSHCommandAction(object):
 class RemoteAction(SSHCommandAction):
     def __init__(self, name, action_exec_id, command, env_vars=None, on_behalf_user=None,
                  user=None, hosts=None, parallel=True, sudo=False, timeout=None):
-        super(RemoteAction, self).__init__(name, action_exec_id, command, env_vars, user,
-                                           hosts=hosts, parallel=parallel, sudo=sudo)
+        super(RemoteAction, self).__init__(name=name, action_exec_id=action_exec_id,
+                                           command=command, env_vars=env_vars, user=user,
+                                           hosts=hosts, parallel=parallel, sudo=sudo,
+                                           timeout=timeout)
         self.on_behalf_user = on_behalf_user  # Used for audit purposes.
         self.timeout = timeout
 
@@ -104,18 +199,17 @@ class RemoteAction(SSHCommandAction):
         return ', '.join(str_rep)
 
 
-class RemoteScriptAction(RemoteAction):
+class RemoteScriptAction(ShellScriptAction):
     def __init__(self, name, action_exec_id, script_local_path_abs, script_local_libs_path_abs,
                  named_args=None, positional_args=None, env_vars=None, on_behalf_user=None,
                  user=None, remote_dir=None, hosts=None, parallel=True, sudo=False, timeout=None):
-        super(RemoteScriptAction, self).__init__(name, action_exec_id, '', env_vars, on_behalf_user,
-                                                 user, hosts=hosts, parallel=parallel, sudo=sudo,
-                                                 timeout=timeout)
-        self.script_local_path_abs = script_local_path_abs
+        super(RemoteScriptAction, self).__init__(name=name, action_exec_id=action_exec_id,
+                                                 script_local_path_abs=script_local_path_abs,
+                                                 named_args=named_args,
+                                                 positional_args=positional_args, env_vars=env_vars,
+                                                 user=user, sudo=sudo, timeout=timeout)
         self.script_local_libs_path_abs = script_local_libs_path_abs
         self.script_local_dir, self.script_name = os.path.split(self.script_local_path_abs)
-        self.named_args = named_args
-        self.positional_args = positional_args
         self.remote_dir = remote_dir if remote_dir is not None else '/tmp'
         self.remote_libs_path_abs = os.path.join(self.remote_dir, ACTION_LIBS_DIR)
         self.remote_script = os.path.join(self.remote_dir, pipes.quote(self.script_name))
@@ -124,37 +218,22 @@ class RemoteScriptAction(RemoteAction):
 
     def _format_command(self):
         command_parts = []
-        if self.command and len(self.command) > 0:
-            command_parts.append(self.command)
         command_parts.append(self.remote_script)
-        # add all named_args in the format <kwarg_op>name=value (e.g. --name=value)
-        if self.named_args is not None:
-            for (arg, value) in six.iteritems(self.named_args):
-                if value is None or (isinstance(value, (str, unicode)) and len(value) < 1):
-                    LOG.debug('Ignoring arg %s as its value is %s.', arg, value)
-                    continue
-
-                if isinstance(value, bool):
-                    if value is True:
-                        command_parts.append(arg)
-                else:
-                    command_parts.append('%s=%s' % (arg, pipes.quote(str(value))))
-        # add the positional args
-        if self.positional_args:
-            command_parts.append(self.positional_args)
-        return ' '.join(command_parts)
+        script_arguments = self._get_script_arguments(named_args=self.named_args,
+                                                      positional_args=self.positional_args)
+        command = '%s %s' % (self.remote_script)
+        return command
 
     def __str__(self):
         str_rep = []
         str_rep.append('%s@%s(name: %s' % (self.__class__.__name__, id(self), self.name))
-        str_rep.append('id: %s' % self.id)
+        str_rep.append('id: %s' % self.action_exec_id)
         str_rep.append('local_script: %s' % self.script_local_path_abs)
         str_rep.append('local_libs: %s' % self.script_local_libs_path_abs)
         str_rep.append('remote_dir: %s' % self.remote_dir)
         str_rep.append('remote_libs: %s' % self.remote_libs_path_abs)
         str_rep.append('named_args: %s' % self.named_args)
         str_rep.append('positional_args: %s' % self.positional_args)
-        str_rep.append('command: %s' % self.command)
         str_rep.append('user: %s' % self.user)
         str_rep.append('on_behalf_user: %s' % self.on_behalf_user)
         str_rep.append('sudo: %s' % self.sudo)
