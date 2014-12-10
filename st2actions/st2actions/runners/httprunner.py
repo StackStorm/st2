@@ -53,8 +53,8 @@ def get_runner():
 
 
 class HttpRunner(ActionRunner):
-    def __init__(self, id):
-        super(HttpRunner, self).__init__()
+    def __init__(self, runner_id):
+        super(HttpRunner, self).__init__(runner_id=runner_id)
         self._on_behalf_user = cfg.CONF.system_user.user
         self._timeout = 60
 

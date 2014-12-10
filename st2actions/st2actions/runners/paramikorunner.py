@@ -24,9 +24,8 @@ LOG = logging.getLogger(__name__)
 
 
 class SSHRunner(ActionRunner):
-    def __init__(self, id):
-        super(SSHRunner, self).__init__()
-        self.runner_id = id
+    def __init__(self, runner_id):
+        super(SSHRunner, self).__init__(runner_id=runner_id)
 
     def run(self, ssh_action):
         LOG.info('Executing action via SSHRunner :%s for user: %s.' %

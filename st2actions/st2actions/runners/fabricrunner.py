@@ -68,9 +68,8 @@ def get_runner():
 
 
 class FabricRunner(ActionRunner):
-    def __init__(self, id):
-        super(FabricRunner, self).__init__()
-        self._runner_id = id
+    def __init__(self, runner_id):
+        super(FabricRunner, self).__init__(runner_id=runner_id)
         self._hosts = None
         self._parallel = True
         self._sudo = False
@@ -96,7 +95,7 @@ class FabricRunner(ActionRunner):
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
         LOG.info('[FabricRunner="%s", actionexec_id="%s"] Finished pre_run.',
-                 self._runner_id, self.action_execution_id)
+                 self.runner_id, self.action_execution_id)
 
     def run(self, action_parameters):
         LOG.debug('    action_parameters = %s', action_parameters)
@@ -115,7 +114,7 @@ class FabricRunner(ActionRunner):
 
     def _run(self, remote_action):
         LOG.info('Executing action via FabricRunner :%s for user: %s.',
-                 self._runner_id, remote_action.get_on_behalf_user())
+                 self.runner_id, remote_action.get_on_behalf_user())
         LOG.info(('[Action info] name: %s, Id: %s, command: %s, on behalf user: %s, '
                   'actual user: %s, sudo: %s'),
                  remote_action.name, remote_action.id, remote_action.get_command(),
