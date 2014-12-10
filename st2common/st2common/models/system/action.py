@@ -193,7 +193,7 @@ class RemoteAction(SSHCommandAction):
     def __str__(self):
         str_rep = []
         str_rep.append('%s@%s(name: %s' % (self.__class__.__name__, id(self), self.name))
-        str_rep.append('id: %s' % self.id)
+        str_rep.append('id: %s' % self.action_exec_id)
         str_rep.append('command: %s' % self.command)
         str_rep.append('user: %s' % self.user)
         str_rep.append('on_behalf_user: %s' % self.on_behalf_user)
@@ -257,7 +257,7 @@ class FabricRemoteAction(RemoteAction):
     def get_fabric_task(self):
         action_method = self._get_action_method()
         LOG.info('action_method is %s' % action_method)
-        task = WrappedCallableTask(action_method, name=self.name, alias=self.id,
+        task = WrappedCallableTask(action_method, name=self.name, alias=self.action_exec_id,
                                    parallel=self.parallel, sudo=self.sudo)
 
         # We need to explicitly set that since WrappedCallableTask abuses kwargs
@@ -311,7 +311,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         return self._get_script_action_method()
 
     def _get_script_action_method(self):
-        task = WrappedCallableTask(self._run_script, name=self.name, alias=self.id,
+        task = WrappedCallableTask(self._run_script, name=self.name, alias=self.action_exec_id,
                                    parallel=self.parallel, sudo=self.sudo)
         task.parallel = self.parallel
         task.serial = not self.parallel
