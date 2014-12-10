@@ -70,6 +70,7 @@ class LocalRunner(ActionRunner):
         LOG.debug('    action_parameters = %s', action_parameters)
 
         if not self.entry_point:
+            script_action = False
             command = self.runner_parameters.get(RUNNER_COMMAND, None)
             action = ShellCommandAction(name=self.action_name,
                                         action_exec_id=str(self.action_execution_id),
@@ -79,6 +80,7 @@ class LocalRunner(ActionRunner):
                                         sudo=self._sudo,
                                         timeout=self._timeout)
         else:
+            script_action = True
             script_local_path_abs = self.entry_point
             positional_args, named_args = self._get_script_args(action_parameters)
             named_args = self._transform_pos_args(named_args)
@@ -94,6 +96,11 @@ class LocalRunner(ActionRunner):
                                        timeout=self._timeout)
 
         args = action.get_full_command_string()
+
+        # For consistency with the old Fabric based runner, make sure the file is executable
+        if script_action:
+            args = 'chmod +x %s ; %s' % (script_local_path_abs, args)
+
         env = os.environ.copy()
         process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=True, env=env)
