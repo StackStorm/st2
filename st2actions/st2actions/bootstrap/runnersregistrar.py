@@ -30,6 +30,7 @@ def register_runner_types():
     # Note: We need to do import here because config needs to be parsed for this
     # import to work
     from st2actions.runners import fabricrunner
+    from st2actions.runners import localrunner
 
     try:
         default_remote_dir = cfg.CONF.ssh_runner.remote_dir
@@ -42,33 +43,15 @@ def register_runner_types():
             'description': 'A runner to execute local actions as a fixed user.',
             'enabled': True,
             'runner_parameters': {
-                'hosts': {
-                    'description': 'Fixed to localhost as this action is run locally.',
-                    'type': 'string',
-                    'default': 'localhost',
-                    'immutable': True
-                },
                 'cmd': {
                     'description': 'Arbitrary Linux command to be executed on the '
                                    'host.',
                     'type': 'string'
                 },
-                'parallel': {
-                    'description': 'Default to parallel execution.',
-                    'type': 'boolean',
-                    'default': True,
-                    'immutable': True
-                },
                 'sudo': {
                     'description': 'The command will be executed with sudo.',
                     'type': 'boolean',
                     'default': False
-                },
-                'dir': {
-                    'description': 'The working directory where the command will be '
-                                   'executed on the host.',
-                    'type': 'string',
-                    'default': default_remote_dir
                 },
                 'kwarg_op': {
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
@@ -79,38 +62,20 @@ def register_runner_types():
                     'description': ('Action timeout in seconds. Action will get killed if it '
                                     'doesn\'t finish in timeout seconds.'),
                     'type': 'integer',
-                    'default': fabricrunner.DEFAULT_ACTION_TIMEOUT
+                    'default': localrunner.DEFAULT_ACTION_TIMEOUT
                 }
             },
-            'runner_module': 'st2actions.runners.fabricrunner'
+            'runner_module': 'st2actions.runners.localrunner'
         },
         {
             'name': 'run-local-script',
             'description': 'A runner to execute local actions as a fixed user.',
             'enabled': True,
             'runner_parameters': {
-                'hosts': {
-                    'description': 'Fixed to localhost as this action is run locally.',
-                    'type': 'string',
-                    'default': 'localhost',
-                    'immutable': True
-                },
-                'parallel': {
-                    'description': 'Default to parallel execution.',
-                    'type': 'boolean',
-                    'default': True,
-                    'immutable': True
-                },
                 'sudo': {
                     'description': 'The command will be executed with sudo.',
                     'type': 'boolean',
                     'default': False
-                },
-                'dir': {
-                    'description': 'The working directory where the command will be '
-                                   'executed on the host.',
-                    'type': 'string',
-                    'default': default_remote_dir
                 },
                 'kwarg_op': {
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
@@ -124,7 +89,7 @@ def register_runner_types():
                     'default': fabricrunner.DEFAULT_ACTION_TIMEOUT
                 }
             },
-            'runner_module': 'st2actions.runners.fabricrunner'
+            'runner_module': 'st2actions.runners.localrunner'
         },
         {
             'name': 'run-remote',
