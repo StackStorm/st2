@@ -14,9 +14,10 @@
 # limitations under the License.
 
 import os
+import pwd
 import pipes
-import six
 
+import six
 from fabric.api import (put, run, sudo)
 from fabric.context_managers import shell_env
 from fabric.context_managers import settings
@@ -38,6 +39,8 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
+LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
+
 
 class ShellCommandAction(object):
     def __init__(self, name, action_exec_id, command, user, env_vars=None, sudo=False, timeout=None):
@@ -53,7 +56,13 @@ class ShellCommandAction(object):
             command = pipes.quote(self.command)
             command = 'sudo -- bash -c %s' % (command)
         else:
-            command = self.command
+            if self.user and self.user != LOGGED_USER_USERNAME:
+                # Need to use sudo to run as a different user
+                user = pipes.quote(self.user)
+                command = pipes.quote(self.command)
+                command = 'sudo -u %s -- bash -c %s' % (user, command)
+            else:
+                command = self.command
 
         return command
 
@@ -92,8 +101,14 @@ class ShellScriptAction(ShellCommandAction):
             command = pipes.quote('%s %s' % (self.script_local_path_abs, script_arguments))
             command = 'sudo -- bash -c %s' % (command)
         else:
-            script_path = pipes.quote(self.script_local_path_abs)
-            command = '%s %s' % (script_path, script_arguments)
+            if self.user and self.user != LOGGED_USER_USERNAME:
+                # Need to use sudo to run as a different user
+                user = pipes.quote(self.user)
+                command = pipes.quote('%s %s' % (self.script_local_path_abs, script_arguments))
+                command = 'sudo -u %s -- bash -c %s' % (user, command)
+            else:
+                script_path = pipes.quote(self.script_local_path_abs)
+                command = '%s %s' % (script_path, script_arguments)
 
         return command
 
