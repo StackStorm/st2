@@ -34,7 +34,7 @@ class SSHCommandAction(object):
                  hosts=None, parallel=True, sudo=False):
         self.name = name
         self.command = command
-        self.env_vars = env_vars
+        self.env_vars = env_vars or {}
         self.id = action_exec_id
         self.hosts = hosts
         self.parallel = parallel
@@ -80,8 +80,8 @@ class SSHCommandAction(object):
 
 
 class RemoteAction(SSHCommandAction):
-    def __init__(self, name, action_exec_id, command, env_vars={}, on_behalf_user=None, user=None,
-                 hosts=None, parallel=True, sudo=False, timeout=None):
+    def __init__(self, name, action_exec_id, command, env_vars=None, on_behalf_user=None,
+                 user=None, hosts=None, parallel=True, sudo=False, timeout=None):
         super(RemoteAction, self).__init__(name, action_exec_id, command, env_vars, user,
                                            hosts=hosts, parallel=parallel, sudo=sudo)
         self.on_behalf_user = on_behalf_user  # Used for audit purposes.
@@ -106,8 +106,8 @@ class RemoteAction(SSHCommandAction):
 
 class RemoteScriptAction(RemoteAction):
     def __init__(self, name, action_exec_id, script_local_path_abs, script_local_libs_path_abs,
-                 named_args=None, positional_args=None, env_vars={}, on_behalf_user=None, user=None,
-                 remote_dir=None, hosts=None, parallel=True, sudo=False, timeout=None):
+                 named_args=None, positional_args=None, env_vars=None, on_behalf_user=None,
+                 user=None, remote_dir=None, hosts=None, parallel=True, sudo=False, timeout=None):
         super(RemoteScriptAction, self).__init__(name, action_exec_id, '', env_vars, on_behalf_user,
                                                  user, hosts=hosts, parallel=parallel, sudo=sudo,
                                                  timeout=timeout)
