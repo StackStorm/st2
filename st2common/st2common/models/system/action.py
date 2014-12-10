@@ -84,13 +84,15 @@ class ShellScriptAction(ShellCommandAction):
         self.positional_args = positional_args
 
     def get_full_command_string(self):
-        if self.sudo:
-            command = 'sudo -- bash -c ./%s' % (self.script_local_path_abs)
-        else:
-            script_arguments = self._get_script_arguments(named_args=self.named_args,
-                                                          positional_args=self.positional_args)
+        script_arguments = self._get_script_arguments(named_args=self.named_args,
+                                                      positional_args=self.positional_args)
 
-            command = '%s %s' % (self.script_local_path_abs, script_arguments)
+        if self.sudo:
+            command = pipes.quote('%s %s' % (self.script_local_path_abs, script_arguments))
+            command = 'sudo -- bash -c %s' % (command)
+        else:
+            script_path = pipes.quote(self.script_local_path_abs)
+            command = '%s %s' % (script_path, script_arguments)
 
         return command
 
