@@ -69,6 +69,8 @@ class LocalRunner(ActionRunner):
     def run(self, action_parameters):
         LOG.debug('    action_parameters = %s', action_parameters)
 
+        # TODO: Actually use "user" when not running in sudo mode
+
         if not self.entry_point:
             script_action = False
             command = self.runner_parameters.get(RUNNER_COMMAND, None)
