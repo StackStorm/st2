@@ -50,7 +50,8 @@ class ShellCommandAction(object):
 
     def get_full_command_string(self):
         if self.sudo:
-            command = 'sudo -- bash -c %s' % (self.command)
+            command = pipes.quote(self.command)
+            command = 'sudo -- bash -c %s' % (command)
         else:
             command = self.command
 
