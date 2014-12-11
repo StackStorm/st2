@@ -48,16 +48,16 @@ RUNNER_TIMEOUT = 'timeout'
 
 
 def get_runner():
-    return LocalRunner(str(uuid.uuid4()))
+    return LocalShellRunner(str(uuid.uuid4()))
 
 
-class LocalRunner(ActionRunner):
+class LocalShellRunner(ActionRunner):
     """
-    Runner which executes local actions as a fixed user.
+    Runner which executes actions locally as a system or as a specified user.
     """
 
     def __init__(self, runner_id):
-        super(LocalRunner, self).__init__(runner_id=runner_id)
+        super(LocalShellRunner, self).__init__(runner_id=runner_id)
 
     def pre_run(self):
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
