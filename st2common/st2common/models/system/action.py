@@ -43,7 +43,8 @@ LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 
 class ShellCommandAction(object):
-    def __init__(self, name, action_exec_id, command, user, env_vars=None, sudo=False, timeout=None):
+    def __init__(self, name, action_exec_id, command, user, env_vars=None, sudo=False,
+                 timeout=None):
         self.name = name
         self.action_exec_id = action_exec_id
         self.command = command
