@@ -34,7 +34,9 @@ def _register_app_opts():
         cfg.StrOpt('host', default='0.0.0.0', help='StackStorm Robotinator API server host'),
         cfg.IntOpt('port', default=9101, help='StackStorm Robotinator API server port'),
         cfg.ListOpt('allow_origin', default=['http://localhost:3000'],
-                    help='List of origins allowed')
+                    help='List of origins allowed'),
+        cfg.IntOpt('heartbeat', default=25,
+                   help='Send empty message every N seconds to keep connection open')
     ]
     CONF.register_opts(api_opts, group='api')
 

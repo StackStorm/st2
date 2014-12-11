@@ -18,6 +18,7 @@ from kombu.pools import producers
 
 from st2common import log as logging
 
+ANY_RK = '*'
 CREATE_RK = 'create'
 UPDATE_RK = 'update'
 DELETE_RK = 'delete'
