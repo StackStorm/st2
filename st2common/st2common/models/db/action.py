@@ -122,6 +122,10 @@ class ActionExecutionDB(StormFoundationDB):
         default={},
         help_text='Callback information for the on completion of action execution.')
 
+    meta = {
+        'indexes': ['-start_timestamp', 'action']
+    }
+
 
 # specialized access objects
 runnertype_access = MongoDBAccess(RunnerTypeDB)
