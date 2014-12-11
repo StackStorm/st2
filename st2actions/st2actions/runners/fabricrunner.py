@@ -21,12 +21,12 @@ from oslo.config import cfg
 import six
 
 from st2actions.runners import ActionRunner
+from st2actions.runners import ShellRunnerMixin
 from st2common import log as logging
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
 from st2common.exceptions.fabricrunner import FabricExecutionFailureException
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.models.system.action import (FabricRemoteAction, FabricRemoteScriptAction)
-import st2common.util.action_db as action_utils
 
 # Replace with container call to get logger.
 LOG = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ def get_runner():
     return FabricRunner(str(uuid.uuid4()))
 
 
-class FabricRunner(ActionRunner):
+class FabricRunner(ActionRunner, ShellRunnerMixin):
     def __init__(self, runner_id):
         super(FabricRunner, self).__init__(runner_id=runner_id)
         self._hosts = None
@@ -140,7 +140,7 @@ class FabricRunner(ActionRunner):
     def _get_fabric_remote_script_action(self, action_parameters):
         script_local_path_abs = self.entry_point
         pos_args, named_args = self._get_script_args(action_parameters)
-        named_args = self._transform_pos_args(named_args)
+        named_args = self._transform_named_args(named_args)
         env_vars = self._get_env_vars()
         remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
                                                 cfg.CONF.ssh_runner.remote_dir)
@@ -159,22 +159,6 @@ class FabricRunner(ActionRunner):
                                         parallel=self._parallel,
                                         sudo=self._sudo,
                                         timeout=self._timeout)
-
-    def _transform_pos_args(self, named_args):
-        if named_args:
-            return {self._kwarg_op + k: v for (k, v) in six.iteritems(named_args)}
-        return None
-
-    def _get_script_args(self, action_parameters):
-        is_script_run_as_cmd = self.runner_parameters.get(RUNNER_COMMAND, None)
-        pos_args = ''
-        named_args = {}
-        if is_script_run_as_cmd:
-            pos_args = self.runner_parameters.get(RUNNER_COMMAND, '')
-            named_args = action_parameters
-        else:
-            pos_args, named_args = action_utils.get_args(action_parameters, self.action)
-        return pos_args, named_args
 
     def _get_env_vars(self):
         return {'st2_auth_token': self.auth_token.token} if self.auth_token else {}

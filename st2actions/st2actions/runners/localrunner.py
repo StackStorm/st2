@@ -17,13 +17,12 @@ import os
 import pwd
 import uuid
 
-import six
 from oslo.config import cfg
 from eventlet.green import subprocess
 
 from st2common import log as logging
 from st2actions.runners import ActionRunner
-import st2common.util.action_db as action_utils
+from st2actions.runners import ShellRunnerMixin
 from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
@@ -50,7 +49,7 @@ def get_runner():
     return LocalShellRunner(str(uuid.uuid4()))
 
 
-class LocalShellRunner(ActionRunner):
+class LocalShellRunner(ActionRunner, ShellRunnerMixin):
     """
     Runner which executes actions locally as a system or as a specified user.
     """
@@ -132,40 +131,3 @@ class LocalShellRunner(ActionRunner):
         self.container_service.report_result(output)
         self.container_service.report_status(status)
         return output is not None
-
-    def _transform_named_args(self, named_args):
-        """
-        Transform named arguments to the final form.
-
-        :param named_args: Named arguments.
-        :type named_args: ``dict``
-
-        :rtype: ``dict``
-        """
-        if named_args:
-            return {self._kwarg_op + k: v for (k, v) in six.iteritems(named_args)}
-        return None
-
-    def _get_script_args(self, action_parameters):
-        """
-        :param action_parameters: Action parameters.
-        :type action_parameters: ``dict``
-
-        :return: (positional_args, named_args)
-        :rtype: (``str``, ``dict``)
-        """
-        # TODO: return list for positional args, command classes should escape it
-        # and convert it to string
-
-        is_script_run_as_cmd = self.runner_parameters.get(RUNNER_COMMAND, None)
-
-        pos_args = ''
-        named_args = {}
-
-        if is_script_run_as_cmd:
-            pos_args = self.runner_parameters.get(RUNNER_COMMAND, '')
-            named_args = action_parameters
-        else:
-            pos_args, named_args = action_utils.get_args(action_parameters, self.action)
-
-        return pos_args, named_args
