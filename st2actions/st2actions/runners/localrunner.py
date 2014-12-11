@@ -16,7 +16,6 @@
 import os
 import pwd
 import uuid
-import pipes
 
 import six
 from oslo.config import cfg
@@ -83,7 +82,7 @@ class LocalShellRunner(ActionRunner):
             script_action = True
             script_local_path_abs = self.entry_point
             positional_args, named_args = self._get_script_args(action_parameters)
-            named_args = self._transform_pos_args(named_args)
+            named_args = self._transform_named_args(named_args)
 
             action = ShellScriptAction(name=self.action_name,
                                        action_exec_id=str(self.action_execution_id),
@@ -134,12 +133,30 @@ class LocalShellRunner(ActionRunner):
         self.container_service.report_status(status)
         return output is not None
 
-    def _transform_pos_args(self, named_args):
+    def _transform_named_args(self, named_args):
+        """
+        Transform named arguments to the final form.
+
+        :param named_args: Named arguments.
+        :type named_args: ``dict``
+
+        :rtype: ``dict``
+        """
         if named_args:
             return {self._kwarg_op + k: v for (k, v) in six.iteritems(named_args)}
         return None
 
     def _get_script_args(self, action_parameters):
+        """
+        :param action_parameters: Action parameters.
+        :type action_parameters: ``dict``
+
+        :return: (positional_args, named_args)
+        :rtype: (``str``, ``dict``)
+        """
+        # TODO: return list for positional args, command classes should escape it
+        # and convert it to string
+
         is_script_run_as_cmd = self.runner_parameters.get(RUNNER_COMMAND, None)
 
         pos_args = ''
