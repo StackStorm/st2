@@ -87,22 +87,25 @@ class ParametersViewController(RestController):
 
 
 class OverviewController(resource.ContentPackResourceControler):
-    model = None
-    access = None
+    model = ActionAPI
+    access = Action
     supported_filters = {}
 
+    query_options = {
+        'sort': ['pack', 'name']
+    }
+
+    include_reference = True
+
     @jsexpose(str)
-    def get_one(self, action_id):
+    def get_one(self, ref_or_id):
         """
             List action by id.
 
             Handle:
                 GET /actions/views/overview/1
         """
-
-        LOG.info('GET /actions/views/overview with id=%s', action_id)
-        action_db = LookupUtils._get_action_by_id(action_id)
-        action_api = ActionAPI.from_model(action_db)
+        action_api = super(OverviewController, self)._get_one(ref_or_id)
         return self._transform_action_api(action_api)
 
     @jsexpose(str)
@@ -113,30 +116,36 @@ class OverviewController(resource.ContentPackResourceControler):
             Handles requests:
                 GET /actions/views/overview
         """
-        LOG.info('GET all /actions/views/overview with filters=%s', kwargs)
-        kwargs = self._get_filters(**kwargs)
-        action_dbs = Action.get_all(**kwargs)
-        action_apis = [ActionAPI.from_model(action_db) for action_db in action_dbs]
+        action_apis = super(OverviewController, self)._get_all(**kwargs)
         return map(self._transform_action_api, action_apis)
 
-    def _transform_action_api(self, action_api):
+    @staticmethod
+    def _transform_action_api(action_api):
         action_id = action_api.id
         action_api.parameters = ParametersViewController._get_one(action_id).get('parameters')
         return action_api
 
 
-class EntryPointController(RestController):
+class EntryPointController(resource.ContentPackResourceControler):
+    model = ActionAPI
+    access = Action
+
+    supported_filters = {}
+
+    @jsexpose()
+    def get_all(self, **kwargs):
+        return abort(404)
 
     @jsexpose(str, content_type='text/plain', status_code=http_client.OK)
-    def get_one(self, action_id):
+    def get_one(self, ref_or_id):
         """
             Outputs the file associated with action entry_point
 
             Handles requests:
                 GET /actions/views/entry_point/1
         """
-        LOG.info('GET /actions/views/overview with id=%s', action_id)
-        action_db = LookupUtils._get_action_by_id(action_id)
+        LOG.info('GET /actions/views/overview with ref_or_id=%s', ref_or_id)
+        action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
         pack = getattr(action_db, 'pack', None)
         entry_point = getattr(action_db, 'entry_point', None)
@@ -144,8 +153,8 @@ class EntryPointController(RestController):
         abs_path = RunnerContainerService.get_entry_point_abs_path(pack, entry_point)
 
         if not abs_path:
-            raise StackStormDBObjectNotFoundError('Action id=%s has no entry_point to output'
-                                                  % action_id)
+            raise StackStormDBObjectNotFoundError('Action ref_or_id=%s has no entry_point to output'
+                                                  % ref_or_id)
 
         with open(abs_path) as file:
             content = file.read()
