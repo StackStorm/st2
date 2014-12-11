@@ -116,18 +116,24 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
 
         stdout, stderr = process.communicate()
         exit_code = process.returncode
+        succeeded = (exit_code == 0)
 
-        output = {
-            'stdout': stdout,
-            'stderr': stderr,
-            'exit_code': exit_code,
-            'result': stdout
+        # Note: "localhost" is there so it's backward compatible with old local
+        # runner
+        result = {
+            'localhost': {
+                'failed': not succeeded,
+                'succeeded': succeeded,
+                'return_code': exit_code,
+                'stdout': stdout,
+                'stderr': stderr
+            }
         }
 
         if error:
-            output['error'] = error
+            result['localhost']['error'] = error
 
         status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
-        self.container_service.report_result(output)
+        self.container_service.report_result(result)
         self.container_service.report_status(status)
-        return output is not None
+        return result is not None
