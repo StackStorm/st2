@@ -208,6 +208,10 @@ def update_actionexecution_status(new_status, end_timestamp=None, actionexec_id=
 
 
 def get_args(action_parameters, action_db):
+    """
+    :return: (positional_args, named_args)
+    :rtype: (``str``, ``dict``)
+    """
     position_args_dict = _get_position_arg_dict(action_parameters, action_db)
 
     positional_args = []
