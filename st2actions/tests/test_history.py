@@ -25,7 +25,7 @@ from st2tests.fixtures import history as fixture
 from st2tests import DbTestCase
 import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2actions import worker, history
-from st2actions.runners.fabricrunner import FabricRunner
+from st2actions.runners.localrunner import LocalShellRunner
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2common.util import reference
 from st2common.transport.publishers import CUDPublisher
@@ -36,7 +36,7 @@ from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInst
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
 import st2common.util.action_db as action_utils
-from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
+from st2common.constants.action import ACTIONEXEC_STATUS_FAILED
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 from st2common.persistence.action import RunnerType, Action, ActionExecution
 from st2common.persistence.history import ActionExecutionHistory
@@ -65,7 +65,7 @@ def process_update(payload):
         print(e)
 
 
-@mock.patch.object(FabricRunner, '_run', mock.MagicMock(return_value={}))
+@mock.patch.object(LocalShellRunner, 'run', mock.MagicMock(return_value={}))
 @mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
 @mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(side_effect=process_update))
 class TestActionExecutionHistoryWorker(DbTestCase):
@@ -89,7 +89,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         execution = ActionExecutionDB(action=action_ref.ref, parameters={'cmd': 'uname -a'})
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_SUCCEEDED)
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
         history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
         self.assertDictEqual(history.trigger, {})
         self.assertDictEqual(history.trigger_type, {})
@@ -112,7 +112,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         execution = ActionExecutionDB(action=action_ref.ref)
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_SUCCEEDED)
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
         history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
         action, _ = action_utils.get_action_by_dict(
             {'name': action_ref.name, 'pack': action_ref.pack})
@@ -151,7 +151,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         execution = ActionExecution.get(context__trigger_instance__id=str(trigger_instance.id))
         self.assertIsNotNone(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_SUCCEEDED)
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
         history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
         self.assertDictEqual(history.trigger, vars(TriggerAPI.from_model(trigger)))
         self.assertDictEqual(history.trigger_type, vars(TriggerTypeAPI.from_model(trigger_type)))
