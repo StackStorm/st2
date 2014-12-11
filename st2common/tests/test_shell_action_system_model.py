@@ -73,6 +73,15 @@ class ShellScriptActionTestCase(unittest2.TestCase):
             'timeout': None
         }
 
+    def _get_fixture(self, name):
+        current_dir = os.path.abspath(os.path.dirname(__file__))
+        path = os.path.join(current_dir, 'fixtures/localrunner/', name)
+
+        with open(path, 'r') as fp:
+            content = fp.read().strip()
+
+        return content
+
     def test_user_argument(self):
         # User is the same as logged user, no sudo should be used
         kwargs = copy.deepcopy(self._base_kwargs)
@@ -162,4 +171,35 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         command = action.get_full_command_string()
         expected = ('sudo -u mauser -- bash -c \'/tmp/foo.sh key2=value2 '
                     'key1=value1 ein zwei drei\'')
+        self.assertEqual(command, expected)
+
+    def test_named_parameter_escaping(self):
+        # no sudo
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = False
+        kwargs['user'] = LOGGED_USER_USERNAME
+        kwargs['named_args'] = {
+            'key1': 'value foo bar',
+            'key2': 'value "bar" foo',
+            'key3': 'date ; whoami',
+            'key4': '"date ; whoami"',
+        }
+        action = ShellScriptAction(**kwargs)
+        command = action.get_full_command_string()
+        expected = self._get_fixture('escaping_test_command_1.txt')
+        self.assertEqual(command, expected)
+
+        # sudo
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = True
+        kwargs['user'] = LOGGED_USER_USERNAME
+        kwargs['named_args'] = {
+            'key1': 'value foo bar',
+            'key2': 'value "bar" foo',
+            'key3': 'date ; whoami',
+            'key4': '"date ; whoami"',
+        }
+        action = ShellScriptAction(**kwargs)
+        command = action.get_full_command_string()
+        expected = self._get_fixture('escaping_test_command_2.txt')
         self.assertEqual(command, expected)
