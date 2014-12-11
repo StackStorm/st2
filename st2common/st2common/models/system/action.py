@@ -98,17 +98,30 @@ class ShellScriptAction(ShellCommandAction):
                                                       positional_args=self.positional_args)
 
         if self.sudo:
-            command = pipes.quote('%s %s' % (self.script_local_path_abs, script_arguments))
+            if script_arguments:
+                command = pipes.quote('%s %s' % (self.script_local_path_abs, script_arguments))
+            else:
+                command = pipes.quote(self.script_local_path_abs)
+
             command = 'sudo -- bash -c %s' % (command)
         else:
             if self.user and self.user != LOGGED_USER_USERNAME:
                 # Need to use sudo to run as a different user
                 user = pipes.quote(self.user)
-                command = pipes.quote('%s %s' % (self.script_local_path_abs, script_arguments))
+
+                if script_arguments:
+                    command = pipes.quote('%s %s' % (self.script_local_path_abs, script_arguments))
+                else:
+                    command = pipes.quote(self.script_local_path_abs)
+
                 command = 'sudo -u %s -- bash -c %s' % (user, command)
             else:
                 script_path = pipes.quote(self.script_local_path_abs)
-                command = '%s %s' % (script_path, script_arguments)
+
+                if script_arguments:
+                    command = '%s %s' % (script_path, script_arguments)
+                else:
+                    command = script_path
 
         return command
 
@@ -239,11 +252,14 @@ class RemoteScriptAction(ShellScriptAction):
         LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
 
     def _format_command(self):
-        command_parts = []
-        command_parts.append(self.remote_script)
         script_arguments = self._get_script_arguments(named_args=self.named_args,
                                                       positional_args=self.positional_args)
-        command = '%s %s' % (self.remote_script, script_arguments)
+
+        if script_arguments:
+            command = '%s %s' % (self.remote_script, script_arguments)
+        else:
+            command = self.remote_script
+
         return command
 
     def __str__(self):
