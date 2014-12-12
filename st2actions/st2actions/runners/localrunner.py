@@ -51,7 +51,8 @@ def get_runner():
 
 class LocalShellRunner(ActionRunner, ShellRunnerMixin):
     """
-    Runner which executes actions locally as a system or as a specified user.
+    Runner which executes actions locally using the user under which the action runner service is
+    running or under the provided user.
     """
 
     def __init__(self, runner_id):
