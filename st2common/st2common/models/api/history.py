@@ -91,5 +91,7 @@ class ActionExecutionHistoryAPI(BaseAPI):
             if not value and not cls.model._fields[attr].required:
                 continue
             setattr(model, attr, value)
+
         model.execution['start_timestamp'] = isotime.parse(model.execution['start_timestamp'])
+        model.execution['end_timestamp'] = isotime.parse(model.execution['end_timestamp'])
         return model
