@@ -47,6 +47,11 @@ class RootController(object):
         version = ''
         if len(remainder) > 0:
             version = remainder[0]
+            if remainder[len(remainder) - 1] == '':
+                # If the url has a trailing '/' remainder will contain an empty string.
+                # In order for further pecan routing to work this method needs to remove
+                # the empty string from end of the tuple.
+                remainder = remainder[:len(remainder) - 1]
         versioned_controller = self.controllers.get(version, None)
         if versioned_controller:
             return versioned_controller, remainder[1:]
