@@ -119,16 +119,12 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         exit_code = process.returncode
         succeeded = (exit_code == 0)
 
-        # Note: "localhost" is there so it's backward compatible with old local
-        # runner
         result = {
-            'localhost': {
-                'failed': not succeeded,
-                'succeeded': succeeded,
-                'return_code': exit_code,
-                'stdout': stdout,
-                'stderr': stderr
-            }
+            'failed': not succeeded,
+            'succeeded': succeeded,
+            'return_code': exit_code,
+            'stdout': stdout,
+            'stderr': stderr
         }
 
         if error:
