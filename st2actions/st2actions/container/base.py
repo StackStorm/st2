@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import importlib
+import json
 import sys
 import traceback
 import datetime
@@ -68,10 +69,10 @@ class RunnerContainer(object):
         runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
         runner_type = runnertype_db.name
 
-        LOG.info('Dispatching runner for Action "%s"', actionexec_db)
+        LOG.info('Dispatching Action to runner \n%s',
+                 json.dumps(actionexec_db.to_serializable_dict(), indent=4))
         LOG.debug('    liverunner_type: %s', runner_type)
         LOG.debug('    RunnerType: %s', runnertype_db)
-        LOG.debug('    ActionExecution: %s', actionexec_db)
 
         # Get runner instance.
         runner = self._get_runner(runnertype_db)
@@ -82,8 +83,10 @@ class RunnerContainer(object):
         LOG.debug('runner do_run result: %s', result)
 
         actionsensor.post_trigger(actionexec_db)
+        actionexec_serializable = actionexec_db.to_serializable_dict()
         LOG.audit('ActionExecution complete.',
-                  extra={'actionexecution': actionexec_db.to_serializable_dict()})
+                  extra={'actionexecution': actionexec_serializable})
+        LOG.info('result :\n%s.', json.dumps(actionexec_serializable.get('result', None), indent=4))
 
         return result
 
