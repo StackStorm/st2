@@ -38,6 +38,7 @@ ACTION_2 = {
     'name': 'st2.dummy.action2',
     'description': 'test description',
     'enabled': True,
+    'pack': 'wolfpack',
     'entry_point': '/tmp/test/action2.py',
     'runner_type': 'run-local',
     'parameters': {
@@ -53,41 +54,60 @@ class TestActionViews(FunctionalTest):
     def test_get_one(self):
         post_resp = self._do_post(ACTION_1)
         action_id = self._get_action_id(post_resp)
-        get_resp = self._do_get_one(action_id)
-        self.assertEqual(get_resp.status_int, 200)
-        self.assertEqual(self._get_action_id(get_resp), action_id)
-        self._do_delete(action_id)
+        try:
+            get_resp = self._do_get_one(action_id)
+            self.assertEqual(get_resp.status_int, 200)
+            self.assertEqual(self._get_action_id(get_resp), action_id)
+        finally:
+            self._do_delete(action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_one_ref(self):
+        post_resp = self._do_post(ACTION_1)
+        action_id = self._get_action_id(post_resp)
+        action_ref = self._get_action_ref(post_resp)
+        try:
+            get_resp = self._do_get_one(action_ref)
+            self.assertEqual(get_resp.status_int, 200)
+            self.assertEqual(get_resp.json['ref'], action_ref)
+        finally:
+            self._do_delete(action_id)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_all(self):
         action_1_id = self._get_action_id(self._do_post(ACTION_1))
         action_2_id = self._get_action_id(self._do_post(ACTION_2))
-        resp = self.app.get('/v1/actions/views/overview')
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2,
-                         '/v1/actions/views/overview did not return all actions.')
-        ref = '.'.join([ACTION_1['pack'], ACTION_1['name']])
-        resp = self.app.get('/v1/actions/views/overview?ref=%s' % ref)
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 1, '/v1/actions did not return all actions.')
-        self._do_delete(action_1_id)
-        self._do_delete(action_2_id)
+        try:
+            resp = self.app.get('/v1/actions/views/overview')
+            self.assertEqual(resp.status_int, 200)
+            self.assertEqual(len(resp.json), 2,
+                             '/v1/actions/views/overview did not return all actions.')
+        finally:
+            self._do_delete(action_1_id)
+            self._do_delete(action_2_id)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_all_filter_by_name(self):
         action_1_id = self._get_action_id(self._do_post(ACTION_1))
         action_2_id = self._get_action_id(self._do_post(ACTION_2))
-        resp = self.app.get('/v1/actions/views/overview?name=%s' % str('st2.dummy.action2'))
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json[0]['id'], action_2_id, 'Filtering failed')
-        self._do_delete(action_1_id)
-        self._do_delete(action_2_id)
+        try:
+            resp = self.app.get('/v1/actions/views/overview?name=%s' % str('st2.dummy.action2'))
+            self.assertEqual(resp.status_int, 200)
+            self.assertEqual(resp.json[0]['id'], action_2_id, 'Filtering failed')
+        finally:
+            self._do_delete(action_1_id)
+            self._do_delete(action_2_id)
 
     @staticmethod
     def _get_action_id(resp):
         return resp.json['id']
+
+    @staticmethod
+    def _get_action_ref(resp):
+        return '.'.join((resp.json['pack'], resp.json['name']))
 
     @staticmethod
     def _get_action_name(resp):
@@ -110,9 +130,11 @@ class TestParametersView(FunctionalTest):
     def test_get_one(self):
         post_resp = self.app.post_json('/v1/actions', ACTION_1)
         action_id = post_resp.json['id']
-        get_resp = self.app.get('/v1/actions/views/parameters/%s' % action_id)
-        self.assertEqual(get_resp.status_int, 200)
-        self.app.delete('/v1/actions/%s' % action_id)
+        try:
+            get_resp = self.app.get('/v1/actions/views/parameters/%s' % action_id)
+            self.assertEqual(get_resp.status_int, 200)
+        finally:
+            self.app.delete('/v1/actions/%s' % action_id)
 
 
 class TestEntryPointView(FunctionalTest):
@@ -124,6 +146,23 @@ class TestEntryPointView(FunctionalTest):
     def test_get_one(self):
         post_resp = self.app.post_json('/v1/actions', ACTION_1)
         action_id = post_resp.json['id']
-        get_resp = self.app.get('/v1/actions/views/entry_point/%s' % action_id)
-        self.assertEqual(get_resp.status_int, 200)
-        self.app.delete('/v1/actions/%s' % action_id)
+        try:
+            get_resp = self.app.get('/v1/actions/views/entry_point/%s' % action_id)
+            self.assertEqual(get_resp.status_int, 200)
+        finally:
+            self.app.delete('/v1/actions/%s' % action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(RunnerContainerService, 'get_entry_point_abs_path', mock.MagicMock(
+        return_value='/path/to/file'))
+    @mock.patch('__builtin__.open', mock.mock_open(read_data='file content'), create=True)
+    def test_get_one_ref(self):
+        post_resp = self.app.post_json('/v1/actions', ACTION_1)
+        action_id = post_resp.json['id']
+        action_ref = '.'.join((post_resp.json['pack'], post_resp.json['name']))
+        try:
+            get_resp = self.app.get('/v1/actions/views/entry_point/%s' % action_ref)
+            self.assertEqual(get_resp.status_int, 200)
+        finally:
+            self.app.delete('/v1/actions/%s' % action_id)

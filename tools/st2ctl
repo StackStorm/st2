@@ -24,12 +24,12 @@ fi
 function st2start(){
   for i in `seq 1 ${AR}`
   do
-    actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
+    nohup actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
   done
-  st2api --config-file ${STANCONF} &>> ${LOGFILE} &
-  sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
-  /usr/bin/history --config-file ${STANCONF} &>> ${LOGFILE} &
-  rules_engine --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup st2api --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup /usr/bin/history --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup rules_engine --config-file ${STANCONF} &>> ${LOGFILE} &
   if [[ "${CONTAINER}" == "DOCKER" ]]
   then
     /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
