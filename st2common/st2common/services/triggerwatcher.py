@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import eventlet
+import uuid
 from kombu.mixins import ConsumerMixin
 from kombu import Connection
 from oslo.config import cfg
@@ -27,12 +28,10 @@ LOG = logging.getLogger(__name__)
 
 class TriggerWatcher(ConsumerMixin):
 
-    TRIGGER_WATCH_Q = reactor.get_trigger_cud_queue('st2.trigger.watch',
-                                                    routing_key='#')
     sleep_interval = 4  # how long to sleep after processing each message
 
     def __init__(self, create_handler, update_handler, delete_handler,
-                 trigger_types=None):
+                 trigger_types=None, queue_suffix=None):
         """
         :param create_handler: Function which is called on TriggerDB create event.
         :type create_handler: ``callable``
@@ -53,6 +52,7 @@ class TriggerWatcher(ConsumerMixin):
         self._update_handler = update_handler
         self._delete_handler = delete_handler
         self._trigger_types = trigger_types
+        self._trigger_watch_q = self._get_queue(queue_suffix)
 
         self.connection = None
         self._load_thread = None
@@ -65,7 +65,7 @@ class TriggerWatcher(ConsumerMixin):
         }
 
     def get_consumers(self, Consumer, channel):
-        return [Consumer(queues=[self.TRIGGER_WATCH_Q],
+        return [Consumer(queues=[self._trigger_watch_q],
                          accept=['pickle'],
                          callbacks=[self.process_task])]
 
@@ -78,21 +78,22 @@ class TriggerWatcher(ConsumerMixin):
         routing_key = message.delivery_info.get('routing_key', '')
         handler = self._handlers.get(routing_key, None)
 
-        if not handler:
-            LOG.debug('Skipping message %s as no handler was found.', message)
-            return
-
-        trigger_type = getattr(body, 'type', None)
-        if self._trigger_types and trigger_type not in self._trigger_types:
-            LOG.debug('Skipping message %s since\'t trigger_type doesn\'t match (type=%s)',
-                      message, trigger_type)
-            return
-
         try:
-            handler(body)
-        except Exception as e:
-            LOG.exception('Handling failed. Message body: %s. Exception: %s',
-                          body, e.message)
+            if not handler:
+                LOG.debug('Skipping message %s as no handler was found.', message)
+                return
+
+            trigger_type = getattr(body, 'type', None)
+            if self._trigger_types and trigger_type not in self._trigger_types:
+                LOG.debug('Skipping message %s since\'t trigger_type doesn\'t match (type=%s)',
+                          message, trigger_type)
+                return
+
+            try:
+                handler(body)
+            except Exception as e:
+                LOG.exception('Handling failed. Message body: %s. Exception: %s',
+                              body, e.message)
         finally:
             message.ack()
 
@@ -132,3 +133,12 @@ class TriggerWatcher(ConsumerMixin):
             for trigger in Trigger.query(type=trigger_type):
                 LOG.debug('Found existing trigger: %s in db.' % trigger)
                 self._handlers[publishers.CREATE_RK](trigger)
+
+    @staticmethod
+    def _get_queue(queue_suffix):
+        if not queue_suffix:
+            # pick last 10 digits of uuid. Arbitrary but unique enough for the TriggerWatcher.
+            u_hex = uuid.uuid4().hex
+            queue_suffix = uuid.uuid4().hex[len(u_hex) - 10:]
+        queue_name = 'st2.trigger.watch.%s' % queue_suffix
+        return reactor.get_trigger_cud_queue(queue_name, routing_key='#')
