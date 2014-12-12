@@ -52,11 +52,11 @@ class WebhooksController(RestController):
     def post(self, *args, **kwargs):
         hook = '/'.join(args)  # TODO: There must be a better way to do this.
         LOG.info('POST /webhooks/ with hook=%s', hook)
-
         body = pecan.request.body
         try:
             body = json.loads(body)
         except ValueError:
+            self._log_request('Invalid JSON body.', pecan.request)
             msg = 'Invalid JSON body: %s' % (body)
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
@@ -64,6 +64,7 @@ class WebhooksController(RestController):
             return self._handle_st2_webhook(body)
 
         if not self._is_valid_hook(hook):
+            self._log_request('Invalid hook.', pecan.request)
             msg = 'Webhook %s not registered with st2' % hook
             return pecan.abort(http_client.NOT_FOUND, msg)
 
@@ -112,6 +113,11 @@ class WebhooksController(RestController):
         for key, value in headers.items():
             headers_dict[key] = value
         return headers_dict
+
+    def _log_request(self, msg, request, log_method=LOG.debug):
+        headers = self._get_headers_as_dict(request.headers)
+        body = str(request.body)
+        log_method('%s\n\trequest.header: %s.\n\trequest.body: %s.', msg, headers, body)
 
     ##############################################
     # Event handler methods for the trigger events
