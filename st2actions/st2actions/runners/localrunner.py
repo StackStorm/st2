@@ -53,6 +53,9 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
     """
     Runner which executes actions locally using the user under which the action runner service is
     running or under the provided user.
+
+    Note: The user under which the action runner service is running (stanley user by default) needs
+    to have pasworless sudo access set up.
     """
 
     def __init__(self, runner_id):
