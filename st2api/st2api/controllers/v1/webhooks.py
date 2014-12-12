@@ -45,7 +45,8 @@ class WebhooksController(RestController):
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger,
-                                               trigger_types=self._trigger_types)
+                                               trigger_types=self._trigger_types,
+                                               queue_suffix='webhooks')
         self._trigger_watcher.start()
 
     @jsexpose(str, status_code=http_client.ACCEPTED)
