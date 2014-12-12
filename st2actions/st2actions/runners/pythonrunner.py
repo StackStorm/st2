@@ -91,13 +91,12 @@ class Action(object):
 
 class PythonRunner(ActionRunner):
 
-    def __init__(self, _id, timeout=DEFAULT_ACTION_TIMEOUT):
+    def __init__(self, runner_id, timeout=DEFAULT_ACTION_TIMEOUT):
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``
         """
-        super(PythonRunner, self).__init__()
-        self._id = _id
+        super(PythonRunner, self).__init__(runner_id=runner_id)
         self._timeout = timeout
 
     def pre_run(self):

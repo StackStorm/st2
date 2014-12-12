@@ -138,7 +138,7 @@ class TestActionChainRunner(TestCase):
     def test_runner_creation(self):
         runner = acr.get_runner()
         self.assertTrue(runner)
-        self.assertTrue(runner.id)
+        self.assertTrue(runner.runner_id)
 
     def test_malformed_chain(self):
         try:

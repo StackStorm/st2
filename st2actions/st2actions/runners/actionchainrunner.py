@@ -83,9 +83,8 @@ class ActionChain(object):
 
 class ActionChainRunner(ActionRunner):
 
-    def __init__(self, id):
-        super(ActionChainRunner, self).__init__()
-        self.id = id
+    def __init__(self, runner_id):
+        super(ActionChainRunner, self).__init__(runner_id=runner_id)
         self.action_chain = None
         self._meta_loader = MetaLoader()
 

@@ -13,14 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
 import abc
+
+import six
 
 from st2actions import handlers
 from st2common import log as logging
+import st2common.util.action_db as action_utils
+
+__all__ = [
+    'ActionRunner',
+    'ShellRunnerMixin'
+]
 
 
 LOG = logging.getLogger(__name__)
+
+# constants to lookup in runner_parameters
+RUNNER_COMMAND = 'cmd'
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -30,7 +40,13 @@ class ActionRunner(object):
         Action Runner implementation.
     """
 
-    def __init__(self):
+    def __init__(self, runner_id):
+        """
+        :param id: Runner id.
+        :type id: ``str``
+        """
+        self.runner_id = runner_id
+
         self.container_service = None
         self.runner_parameters = None
         self.action = None
@@ -63,3 +79,46 @@ class ActionRunner(object):
     def __str__(self):
         attrs = ', '.join(['%s=%s' % (k, v) for k, v in six.iteritems(self.__dict__)])
         return '%s@%s(%s)' % (self.__class__.__name__, str(id(self)), attrs)
+
+
+class ShellRunnerMixin(object):
+    """
+    Class which contains utility functions to be used by shell runners.
+    """
+
+    def _transform_named_args(self, named_args):
+        """
+        Transform named arguments to the final form.
+
+        :param named_args: Named arguments.
+        :type named_args: ``dict``
+
+        :rtype: ``dict``
+        """
+        if named_args:
+            return {self._kwarg_op + k: v for (k, v) in six.iteritems(named_args)}
+        return None
+
+    def _get_script_args(self, action_parameters):
+        """
+        :param action_parameters: Action parameters.
+        :type action_parameters: ``dict``
+
+        :return: (positional_args, named_args)
+        :rtype: (``str``, ``dict``)
+        """
+        # TODO: return list for positional args, command classes should escape it
+        # and convert it to string
+
+        is_script_run_as_cmd = self.runner_parameters.get(RUNNER_COMMAND, None)
+
+        pos_args = ''
+        named_args = {}
+
+        if is_script_run_as_cmd:
+            pos_args = self.runner_parameters.get(RUNNER_COMMAND, '')
+            named_args = action_parameters
+        else:
+            pos_args, named_args = action_utils.get_args(action_parameters, self.action)
+
+        return pos_args, named_args

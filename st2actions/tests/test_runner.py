@@ -29,7 +29,7 @@ def get_runner():
 
 class TestRunner(ActionRunner):
     def __init__(self):
-        super(TestRunner, self).__init__()
+        super(TestRunner, self).__init__(runner_id='1')
         self.pre_run_called = False
         self.run_called = False
         self.post_run_called = False

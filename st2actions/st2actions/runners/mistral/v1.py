@@ -34,8 +34,8 @@ class MistralRunner(ActionRunner):
 
     url = cfg.CONF.workflow.url
 
-    def __init__(self, id):
-        super(MistralRunner, self).__init__()
+    def __init__(self, runner_id):
+        super(MistralRunner, self).__init__(runner_id=runner_id)
         self._on_behalf_user = cfg.CONF.system_user.user
 
     def pre_run(self):

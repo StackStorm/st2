@@ -17,6 +17,10 @@ Docs: http://docks.stackstorm.com/latest
   ``end_timestamp`` attribute on the ``ActionExecution`` model.
 * Status code 400 (bad request) is now returned if user doesn't provide a body to API endpoints
   which require it. Previously 500 internal server error was returned (bug-fix).
+* Refactor local runners so they are more robust, efficient and easier to debug. Previously, local
+  actions were executed through SSH, now they are executed directly without the overhead of SSH.
+* Fix local runner so it correctly executes a command under the provider system user if ``user``
+  parameter is provided. (bug-fix)
 
 v0.6.0 - December 8, 2014
 -------------------------

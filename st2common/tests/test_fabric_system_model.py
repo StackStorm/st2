@@ -53,6 +53,7 @@ class FabricRemoteActionsTest(unittest2.TestCase):
                                                  None,
                                                  on_behalf_user='stan',
                                                  parallel=True, sudo=False)
+        self.assertEqual(remote_action.get_on_behalf_user(), 'stan')
         self.assertEqual(remote_action.remote_dir, '/tmp')
         self.assertEqual(remote_action.remote_script, '/tmp/st2.py')
 
@@ -61,5 +62,6 @@ class FabricRemoteActionsTest(unittest2.TestCase):
                                                  None,
                                                  on_behalf_user='stan',
                                                  parallel=True, sudo=False, remote_dir='/foo')
+        self.assertEqual(remote_action.get_on_behalf_user(), 'stan')
         self.assertEqual(remote_action.remote_dir, '/foo')
         self.assertEqual(remote_action.remote_script, '/foo/st2.py')
