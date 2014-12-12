@@ -81,7 +81,7 @@ class BaseAPI(object):
 
 
 def _handle_error(status, exception):
-    LOG.error(exception)
+    LOG.error(exception, exc_info=True)
     pecan.response.status = status
     error = {'faultstring': exception.message}
     return json_encode(error)
