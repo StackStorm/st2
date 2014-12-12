@@ -38,7 +38,6 @@ def create_token(username, ttl=None):
             user = UserDB(name=username)
             User.add_or_update(user)
             LOG.audit('Registered new user "%s".' % username)
-        LOG.audit('Access granted to user "%s".' % username)
 
     token = uuid.uuid4().hex
     expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)

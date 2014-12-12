@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import bson
 import datetime
 import mongoengine as me
 import six
@@ -26,6 +27,8 @@ __all__ = [
     'EscapedDictField',
     'ContentPackResourceMixin'
 ]
+
+JSON_UNFRIENDLY_TYPES = (datetime.datetime, bson.ObjectId)
 
 
 class StormFoundationDB(me.Document):
@@ -56,7 +59,7 @@ class StormFoundationDB(me.Document):
         serializable_dict = {}
         for k in sorted(six.iterkeys(self._fields)):
             v = getattr(self, k)
-            v = str(v) if type(v) in [datetime.datetime] else v
+            v = str(v) if isinstance(v, JSON_UNFRIENDLY_TYPES) else v
             serializable_dict[k] = v
         return serializable_dict
 
