@@ -28,7 +28,6 @@ from st2common.constants.triggers import GENERIC_WEBHOOK_TRIGGER_REF
 from st2common.models.base import jsexpose
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
-from st2common.models.api.reactor import TriggerAPI
 
 http_client = six.moves.http_client
 
@@ -53,7 +52,7 @@ class WebhooksController(RestController):
     @jsexpose()
     def get_all(self):
         # Return only the hooks known by this controller.
-        return [TriggerAPI.from_model(v) for _, v in self._hooks]
+        return [trigger for trigger in six.itervalues(self._hooks)]
 
     @jsexpose(str, status_code=http_client.ACCEPTED)
     def post(self, *args, **kwargs):
