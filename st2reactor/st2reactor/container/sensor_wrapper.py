@@ -108,7 +108,8 @@ class SensorWrapper(object):
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger,
-                                               trigger_types=self._trigger_types)
+                                               trigger_types=self._trigger_types,
+                                               queue_suffix='sensorwrapper')
 
         # 3. Set up logging
         self._logger = logging.getLogger('SensorWrapper.%s' %

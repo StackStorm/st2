@@ -45,8 +45,14 @@ class WebhooksController(RestController):
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger,
-                                               trigger_types=self._trigger_types)
+                                               trigger_types=self._trigger_types,
+                                               queue_suffix='webhooks')
         self._trigger_watcher.start()
+
+    @jsexpose()
+    def get_all(self):
+        # Return only the hooks known by this controller.
+        return [trigger for trigger in six.itervalues(self._hooks)]
 
     @jsexpose(str, status_code=http_client.ACCEPTED)
     def post(self, *args, **kwargs):
