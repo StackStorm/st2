@@ -32,6 +32,7 @@ def _register_app_opts():
     auth_opts = [
         cfg.StrOpt('host', default='0.0.0.0'),
         cfg.IntOpt('port', default=9100),
+        cfg.BoolOpt('secure', default=False),
         cfg.StrOpt('cert', default='/etc/apache2/ssl/mycert.crt'),
         cfg.StrOpt('key', default='/etc/apache2/ssl/mycert.key'),
         cfg.StrOpt('logging', default='conf/logging.conf'),
