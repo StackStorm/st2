@@ -17,6 +17,7 @@ from oslo.config import cfg
 
 from st2common import config as st2cfg
 from st2common.constants.system import VERSION_STRING
+from st2common.constants.auth import DEFAULT_MODE
 
 
 def parse_args(args=None):
@@ -34,7 +35,9 @@ def _register_app_opts():
         cfg.StrOpt('cert', default='/etc/apache2/ssl/mycert.crt'),
         cfg.StrOpt('key', default='/etc/apache2/ssl/mycert.key'),
         cfg.StrOpt('logging', default='conf/logging.conf'),
-        cfg.BoolOpt('debug', default=False)]
+        cfg.BoolOpt('debug', default=False),
+        cfg.StrOpt('mode', default=DEFAULT_MODE),
+    ]
     cfg.CONF.register_opts(auth_opts, group='auth')
 
     api_opts = [
