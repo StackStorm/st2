@@ -47,14 +47,13 @@ class TokenController(rest.RestController):
             return self._handle_standalone_auth(request=request, **kwargs)
 
     def _handle_proxy_auth(self, request, **kwargs):
-        if not pecan.request.remote_user:
-            LOG.audit('Access denied to anonymous user.')
-            self._abort_request()
-            return
+        if pecan.request.remote_user:
+            ttl = getattr(request, 'ttl', None)
+            token = self._create_token_for_user(username=pecan.request.remote_user, ttl=ttl)
+            return token
 
-        ttl = getattr(request, 'ttl', None)
-        token = self._create_token_for_user(username=pecan.request.remote_user, ttl=ttl)
-        return token
+        LOG.audit('Access denied to anonymous user.')
+        self._abort_request()
 
     def _handle_standalone_auth(self, request, **kwargs):
         authorization = pecan.request.authorization
