@@ -49,7 +49,7 @@ class TokenController(rest.RestController):
     def _handle_proxy_auth(self, request, **kwargs):
         if not pecan.request.remote_user:
             LOG.audit('Access denied to anonymous user.')
-            pecan.abort(http_client.UNAUTHORIZED)
+            self._abort_request()
             return
 
         ttl = getattr(request, 'ttl', None)
@@ -61,26 +61,26 @@ class TokenController(rest.RestController):
 
         if not authorization:
             LOG.audit('Authorization header not provided')
-            pecan.abort(http_client.UNAUTHORIZED)
+            self._abort_request()
             return
 
         auth_type, auth_value = authorization
         if auth_type.lower() not in ['basic']:
             LOG.audit('Unsupported authorization type: %s' % (auth_type))
-            pecan.abort(http_client.UNAUTHORIZED)
+            self._abort_request()
             return
 
         try:
             auth_value = base64.b64decode(auth_value)
         except Exception:
             LOG.audit('Invalid authorization header')
-            pecan.abort(http_client.UNAUTHORIZED)
+            self._abort_request()
             return
 
         split = auth_value.split(':')
         if len(split) != 2:
             LOG.audit('Invalid authorization header')
-            pecan.abort(http_client.UNAUTHORIZED)
+            self._abort_request()
             return
 
         username, password = split
@@ -93,7 +93,11 @@ class TokenController(rest.RestController):
             return token
 
         LOG.audit('Invalid credentials provided')
-        pecan.abort(http_client.UNAUTHORIZED)
+        self._abort_request()
+
+    def _abort_request(self, status_code=http_client.UNAUTHORIZED,
+                       message='Invalid or missing credentials'):
+        pecan.abort(status_code, message)
 
     def _create_token_for_user(self, username, ttl=None):
         tokendb = create_token(username=username, ttl=ttl)
