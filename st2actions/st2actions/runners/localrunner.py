@@ -131,7 +131,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         }
 
         if error:
-            result['localhost']['error'] = error
+            result['error'] = error
 
         status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
         self.container_service.report_result(result)
