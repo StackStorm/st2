@@ -18,6 +18,7 @@ from oslo.config import cfg
 from st2common import config as st2cfg
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.auth import DEFAULT_MODE
+from st2common.constants.auth import DEFAULT_BACKEND
 
 
 def parse_args(args=None):
@@ -38,6 +39,8 @@ def _register_app_opts():
         cfg.StrOpt('logging', default='conf/logging.conf'),
         cfg.BoolOpt('debug', default=False),
         cfg.StrOpt('mode', default=DEFAULT_MODE),
+        cfg.StrOpt('backend', default=DEFAULT_BACKEND),
+        cfg.StrOpt('backend_kwargs', default=None),
     ]
     cfg.CONF.register_opts(auth_opts, group='auth')
 
