@@ -17,7 +17,7 @@ import os
 
 import yaml
 
-from st2actions.container.service import RunnerContainerService
+from st2common.content import utils
 
 __all__ = [
     'ContentPackConfigParser',
@@ -35,8 +35,7 @@ class ContentPackConfigParser(object):
 
     def __init__(self, pack_name):
         self.pack_name = pack_name
-        self.pack_path = RunnerContainerService() \
-            .get_pack_base_path(pack_name=pack_name)
+        self.pack_path = utils.get_pack_base_path(pack_name=pack_name)
 
     def get_action_config(self, action_file_path):
         """
