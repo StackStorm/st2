@@ -65,8 +65,8 @@ def _run_server():
     host = cfg.CONF.auth.host
     port = cfg.CONF.auth.port
 
-    cert_file_path = cfg.CONF.auth.cert
-    key_file_path = cfg.CONF.auth.key
+    cert_file_path = os.path.realpath(cfg.CONF.auth.cert)
+    key_file_path = os.path.realpath(cfg.CONF.auth.key)
 
     if not os.path.isfile(cert_file_path):
         raise ValueError('Certificate file "%s" doesn\'t exist' % (cert))
