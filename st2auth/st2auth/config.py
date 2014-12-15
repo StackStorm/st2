@@ -16,6 +16,7 @@
 from oslo.config import cfg
 
 from st2common import config as st2cfg
+from st2api import config as st2apicfg
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.auth import DEFAULT_MODE
 from st2common.constants.auth import DEFAULT_BACKEND
@@ -27,6 +28,10 @@ def parse_args(args=None):
 
 def _register_common_opts():
     st2cfg.register_opts()
+
+
+def _register_api_opts():
+    st2apicfg.regsiter_opts()
 
 
 def _register_app_opts():
@@ -53,6 +58,7 @@ def _register_app_opts():
 
 def register_opts():
     _register_common_opts()
+    _register_api_opts()
     _register_app_opts()
 
 

@@ -24,6 +24,7 @@ from st2common.models.base import jsexpose
 from st2common.models.api.access import TokenAPI
 from st2common.services.access import create_token
 from st2common import log as logging
+from st2common.constants.api import DEFAULT_API_VERSION
 from st2auth.backends import get_backend_instance
 
 
@@ -50,7 +51,7 @@ class TokenController(rest.RestController):
         if pecan.request.remote_user:
             ttl = getattr(request, 'ttl', None)
             token = self._create_token_for_user(username=pecan.request.remote_user, ttl=ttl)
-            return token
+            return self._process_successful_response(token=token)
 
         LOG.audit('Access denied to anonymous user.')
         self._abort_request()
@@ -89,7 +90,7 @@ class TokenController(rest.RestController):
         if result is True:
             ttl = getattr(request, 'ttl', None)
             token = self._create_token_for_user(username=username, ttl=ttl)
-            return token
+            return self._process_successful_response(token=token)
 
         LOG.audit('Invalid credentials provided')
         self._abort_request()
@@ -97,6 +98,11 @@ class TokenController(rest.RestController):
     def _abort_request(self, status_code=http_client.UNAUTHORIZED,
                        message='Invalid or missing credentials'):
         pecan.abort(status_code, message)
+
+    def _process_successful_response(self, token):
+        api_url = 'http://%s:%s/%s/' % (cfg.CONF.api.host, cfg.CONF.api.port, DEFAULT_API_VERSION)
+        pecan.response.headers['X-API-URL'] = api_url
+        return token
 
     def _create_token_for_user(self, username, ttl=None):
         tokendb = create_token(username=username, ttl=ttl)
