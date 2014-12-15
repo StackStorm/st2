@@ -31,7 +31,7 @@ def _register_common_opts():
 
 
 def _register_api_opts():
-    st2apicfg.regsiter_opts()
+    st2apicfg.register_opts()
 
 
 def _register_app_opts():
