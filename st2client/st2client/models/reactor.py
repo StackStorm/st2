@@ -36,9 +36,9 @@ class TriggerType(core.Resource):
 
 class Trigger(core.Resource):
     _alias = 'TriggerSpecification'
-    _display_name = 'TriggerSpecification'
+    _display_name = 'Trigger Specification'
     _plural = 'Triggers'
-    _plural_display_name = 'Triggers'
+    _plural_display_name = 'Trigger Specifications'
     _repr_attributes = ['name', 'pack']
 
 
