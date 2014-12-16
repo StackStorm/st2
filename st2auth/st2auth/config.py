@@ -20,6 +20,8 @@ from st2api import config as st2apicfg
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.auth import DEFAULT_MODE
 from st2common.constants.auth import DEFAULT_BACKEND
+from st2common.constants.auth import VALID_MODES
+from st2auth.backends import VALID_BACKEND_NAMES
 
 
 def parse_args(args=None):
@@ -36,16 +38,25 @@ def _register_api_opts():
 
 def _register_app_opts():
     auth_opts = [
-        cfg.StrOpt('host', default='0.0.0.0'),
-        cfg.IntOpt('port', default=9100),
-        cfg.BoolOpt('secure', default=False),
-        cfg.StrOpt('cert', default='/etc/apache2/ssl/mycert.crt'),
-        cfg.StrOpt('key', default='/etc/apache2/ssl/mycert.key'),
-        cfg.StrOpt('logging', default='conf/logging.conf'),
-        cfg.BoolOpt('debug', default=False),
-        cfg.StrOpt('mode', default=DEFAULT_MODE),
-        cfg.StrOpt('backend', default=DEFAULT_BACKEND),
-        cfg.StrOpt('backend_kwargs', default=None),
+        cfg.StrOpt('host', default='0.0.0.0', help='Host on which the service should listen on.'),
+        cfg.IntOpt('port', default=9100, help='Port on which the service should listen on.'),
+        cfg.BoolOpt('secure', default=False, help='Specify to enable SSL / TLS mode'),
+        cfg.StrOpt('cert', default='/etc/apache2/ssl/mycert.crt',
+                   help='Path to the SSL certificate file. Only used in "secure" mode.'),
+        cfg.StrOpt('key', default='/etc/apache2/ssl/mycert.key',
+                   help='Path to the SSL private key file. Only used in "secure" mode.'),
+        cfg.StrOpt('logging', default='conf/logging.conf',
+                   help='Path to the logging config.'),
+        cfg.BoolOpt('debug', default=False,
+                    help='Specify to enable debug mode.'),
+        cfg.StrOpt('mode', default=DEFAULT_MODE,
+                   help='Authentication mode (%s)' % (','.join(VALID_MODES))),
+        cfg.StrOpt('backend', default=DEFAULT_BACKEND,
+                   help='Authentication backend to use in a standalone mode (%s).' %
+                   (','.join(VALID_BACKEND_NAMES))),
+        cfg.StrOpt('backend_kwargs', default=None,
+                   help='JSON serialized arguments which are passed to the authentication backend'
+                        ' in a standalone mode.'),
     ]
     cfg.CONF.register_cli_opts(auth_opts, group='auth')
 

@@ -20,7 +20,8 @@ from oslo.config import cfg
 from st2auth.backends.file import FileAuthenticationBackend
 
 __all__ = [
-    'get_backend_instance'
+    'get_backend_instance',
+    'VALID_BACKEND_NAMES'
 ]
 
 VALID_BACKEND_NAMES = [
