@@ -18,6 +18,7 @@ import os
 import unittest2
 
 from st2auth.backends.file import FileAuthenticationBackend
+from st2auth.backends.mongodb import MongoDBAuthenticationBackend
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -41,3 +42,36 @@ class FileAuthenticationBackendTestCase(unittest2.TestCase):
 
         # Valid password (crypt - insecure)
         self.assertTrue(backend.authenticate(username='test4', password='testpassword'))
+
+
+class MongoDBAuthenticationBackendTestCase(unittest2.TestCase):
+    fixtures = [
+        {
+            'username': 'test1',
+            'password': MongoDBAuthenticationBackend._hash_function('testpassword').hexdigest()
+        }
+    ]
+
+    def setUp(self):
+        self._backend = MongoDBAuthenticationBackend(db_name='st2authtest')
+
+        # Clear database
+        self._backend._collection.remove()
+
+        # Add fixtures
+        for fixture in self.fixtures:
+            self._backend._collection.insert(fixture)
+
+    def tearDown(self):
+        # Clear database
+        self._backend._collection.remove()
+
+    def test_authenticate(self):
+        # Inexistent user
+        self.assertFalse(self._backend.authenticate(username='inexistent', password='ponies'))
+
+        # Existent user, invalid password
+        self.assertFalse(self._backend.authenticate(username='test1', password='ponies'))
+
+        # Valid password
+        self.assertTrue(self._backend.authenticate(username='test1', password='testpassword'))
