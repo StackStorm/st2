@@ -24,7 +24,7 @@ from pecan.rest import RestController
 from urlparse import urljoin
 
 from st2common import log as logging
-from st2common.constants.triggers import GENERIC_WEBHOOK_TRIGGER_REF
+from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
 from st2common.models.base import jsexpose
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
@@ -39,7 +39,7 @@ class WebhooksController(RestController):
         super(WebhooksController, self).__init__(*args, **kwargs)
         self._hooks = {}
         self._base_url = '/webhooks/'
-        self._trigger_types = [GENERIC_WEBHOOK_TRIGGER_REF]
+        self._trigger_types = WEBHOOK_TRIGGER_TYPES.keys()
 
         self._trigger_dispatcher = TriggerDispatcher(LOG)
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
