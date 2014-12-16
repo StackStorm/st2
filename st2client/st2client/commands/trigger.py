@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models import TriggerType
 from st2client.commands import resource
+from st2client.models import TriggerType
+from st2client.formatters import table
 
 
 class TriggerTypeBranch(resource.ResourceBranch):
@@ -28,6 +29,11 @@ class TriggerTypeBranch(resource.ResourceBranch):
                 'update': TriggerTypeUpdateCommand,
                 'delete': TriggerTypeDeleteCommand
             })
+
+        # Registers extended commands
+        self.commands['getspecs'] = TriggerTypeSubTriggerCommand(
+            self.resource, self.app, self.subparsers,
+            add_help=False)
 
 
 class TriggerTypeListCommand(resource.ContentPackResourceListCommand):
@@ -46,3 +52,38 @@ class TriggerTypeUpdateCommand(resource.ContentPackResourceUpdateCommand):
 
 class TriggerTypeDeleteCommand(resource.ContentPackResourceDeleteCommand):
     pass
+
+
+class TriggerTypeSubTriggerCommand(resource.ResourceCommand):
+    attribute_display_order = ['id', 'ref', 'context', 'parameters', 'status',
+                               'start_timestamp', 'result']
+
+    def __init__(self, resource, *args, **kwargs):
+
+        super(TriggerTypeSubTriggerCommand, self).__init__(
+            resource, kwargs.pop('name', 'getspecs'),
+            'A command to return Trigger Specifications of a Trigger.',
+            *args, **kwargs)
+
+        self.parser.add_argument('ref', nargs='?',
+                                 metavar='ref',
+                                 help='Fully qualified name (pack.trigger_name) ' +
+                                 'of the trigger.')
+
+        self.parser.add_argument('-h', '--help',
+                                 action='store_true', dest='help',
+                                 help='Print usage for the given action.')
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        trigger_mgr = self.app.client.managers['Trigger']
+        return trigger_mgr.query(**{'type': args.ref})
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        if args.help:
+            self.parser.print_help()
+            return
+        instances = self.run(args, **kwargs)
+        self.print_output(instances, table.MultiColumnTable,
+                          json=args.json)
