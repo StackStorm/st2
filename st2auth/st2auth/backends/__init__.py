@@ -18,6 +18,7 @@ import json
 from oslo.config import cfg
 
 from st2auth.backends.file import FileAuthenticationBackend
+from st2auth.backends.mongodb import MongoDBAuthenticationBackend
 
 __all__ = [
     'get_backend_instance',
@@ -25,7 +26,8 @@ __all__ = [
 ]
 
 VALID_BACKEND_NAMES = [
-    'file'
+    'file',
+    'mongodb'
 ]
 
 
@@ -39,6 +41,8 @@ def get_backend_instance(name):
 
     if name == 'file':
         cls = FileAuthenticationBackend
+    elif name == 'mongodb':
+        cls = MongoDBAuthenticationBackend
 
     backend_kwargs = cfg.CONF.auth.backend_kwargs
 
