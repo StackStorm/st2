@@ -19,13 +19,13 @@ from st2common import log as logging
 from st2auth.backends.base import BaseAuthenticationBackend
 
 __all__ = [
-    'FileAuthenticationBackend'
+    'FlatFileAuthenticationBackend'
 ]
 
 LOG = logging.getLogger(__name__)
 
 
-class FileAuthenticationBackend(BaseAuthenticationBackend):
+class FlatFileAuthenticationBackend(BaseAuthenticationBackend):
     """
     Backend which reads authentication information from a local file.
 

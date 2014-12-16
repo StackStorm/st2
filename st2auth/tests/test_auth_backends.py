@@ -17,16 +17,16 @@ import os
 
 import unittest2
 
-from st2auth.backends.file import FileAuthenticationBackend
+from st2auth.backends.file import FlatFileAuthenticationBackend
 from st2auth.backends.mongodb import MongoDBAuthenticationBackend
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-class FileAuthenticationBackendTestCase(unittest2.TestCase):
+class FlatFileAuthenticationBackendTestCase(unittest2.TestCase):
     def test_authenticate(self):
         file_path = os.path.join(BASE_DIR, 'fixtures/htpasswd_test')
-        backend = FileAuthenticationBackend(file_path=file_path)
+        backend = FlatFileAuthenticationBackend(file_path=file_path)
 
         # Inexistent user
         self.assertFalse(backend.authenticate(username='doesntexist', password='bar'))

@@ -26,7 +26,7 @@ __all__ = [
 ]
 
 BACKEND_MODULES = {
-    'file': 'st2auth.backends.file',
+    'flat_file': 'st2auth.backends.flat_file',
     'mongodb': 'st2auth.backends.mongodb'
 }
 
