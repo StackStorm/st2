@@ -33,9 +33,9 @@ LOG = logging.getLogger(__name__)
 
 
 class St2Timer(object):
-    '''
-    A timer sensor that uses APScheduler 3.0.
-    '''
+    """
+    A timer interface that uses APScheduler 3.0.
+    """
     def __init__(self, sensor_service=None):
         self._timezone = 'America/Los_Angeles'  # Whatever TZ local box runs in.
         self._scheduler = BlockingScheduler(timezone=self._timezone)
@@ -67,7 +67,7 @@ class St2Timer(object):
         try:
             job_id = self._jobs[id]
         except KeyError:
-            self._log.info('Job not found: %s', id)
+            LOG.info('Job not found: %s', id)
             return
 
         self._scheduler.remove_job(job_id)
@@ -79,8 +79,8 @@ class St2Timer(object):
             jsonschema.validate(trigger['parameters'],
                                 trigger_type['parameters_schema'])
         except jsonschema.ValidationError as e:
-            self._log.error('Exception scheduling timer: %s, %s',
-                            trigger['parameters'], e, exc_info=True)
+            LOG.error('Exception scheduling timer: %s, %s',
+                      trigger['parameters'], e, exc_info=True)
             raise  # Or should we just return?
 
         time_spec = trigger['parameters']
@@ -103,8 +103,8 @@ class St2Timer(object):
             time_type = CronTrigger(**cron)
 
         if hasattr(time_type, 'run_date') and datetime.now(tzutc()) > time_type.run_date:
-            self._log.warning('Not scheduling expired timer: %s : %s',
-                              trigger['parameters'], time_type.run_date)
+            LOG.warning('Not scheduling expired timer: %s : %s',
+                        trigger['parameters'], time_type.run_date)
         else:
             self._add_job(trigger, time_type)
 
@@ -114,14 +114,14 @@ class St2Timer(object):
                                           trigger=time_type,
                                           args=[trigger],
                                           replace_existing=replace)
-            self._log.info('Job %s scheduled.', job.id)
+            LOG.info('Job %s scheduled.', job.id)
             self._jobs[trigger['id']] = job.id
         except Exception as e:
-            self._log.error('Exception scheduling timer: %s, %s',
-                            trigger['parameters'], e, exc_info=True)
+            LOG.error('Exception scheduling timer: %s, %s',
+                      trigger['parameters'], e, exc_info=True)
 
     def _emit_trigger_instance(self, trigger):
-        self._log.info('Timer fired at: %s. Trigger: %s', str(datetime.utcnow()), trigger)
+        LOG.info('Timer fired at: %s. Trigger: %s', str(datetime.utcnow()), trigger)
 
         payload = {
             'executed_at': str(datetime.utcnow()),
