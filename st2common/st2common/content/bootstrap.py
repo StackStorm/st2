@@ -45,6 +45,8 @@ def register_sensors():
         LOG.info('=========================================================')
         LOG.info('############## Registering sensors ######################')
         LOG.info('=========================================================')
+        # Importing here to reduce scope of dependency. This way even if st2reactor
+        # is not installed bootstrap continues.
         import st2reactor.bootstrap.sensorsregistrar as sensors_registrar
         sensors_registrar.register_sensors()
     except Exception as e:
@@ -58,6 +60,8 @@ def register_actions():
         LOG.info('=========================================================')
         LOG.info('############## Registering actions ######################')
         LOG.info('=========================================================')
+        # Importing here to reduce scope of dependency. This way even if st2action
+        # is not installed bootstrap continues.
         import st2actions.bootstrap.runnersregistrar as runners_registrar
         runners_registrar.register_runner_types()
     except Exception as e:
@@ -65,6 +69,8 @@ def register_actions():
         LOG.warning('Not registering stock actions.')
     else:
         try:
+            # Importing here to reduce scope of dependency. This way even if st2action
+            # is not installed bootstrap continues.
             import st2actions.bootstrap.actionsregistrar as actions_registrar
             actions_registrar.register_actions()
         except Exception as e:
@@ -77,6 +83,8 @@ def register_rules():
         LOG.info('=========================================================')
         LOG.info('############## Registering rules ######################')
         LOG.info('=========================================================')
+        # Importing here to reduce scope of dependency. This way even if st2reactor
+        # is not installed bootstrap continues.
         import st2reactor.bootstrap.rulesregistrar as rules_registrar
         rules_registrar.register_rules()
     except Exception as e:
