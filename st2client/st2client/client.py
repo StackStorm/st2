@@ -69,6 +69,8 @@ class Client(object):
             models.Sensor, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['TriggerType'] = models.ResourceManager(
             models.TriggerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Trigger'] = models.ResourceManager(
+            models.Trigger, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['KeyValuePair'] = models.ResourceManager(
             models.KeyValuePair, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
 
