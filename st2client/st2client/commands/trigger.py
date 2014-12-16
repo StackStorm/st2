@@ -13,36 +13,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models import Trigger
+from st2client.models import TriggerType
 from st2client.commands import resource
 
 
-class TriggerBranch(resource.ResourceBranch):
+class TriggerTypeBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
-        super(TriggerBranch, self).__init__(
-            Trigger, description, app, subparsers,
+        super(TriggerTypeBranch, self).__init__(
+            TriggerType, description, app, subparsers,
             parent_parser=parent_parser,
             commands={
-                'list': TriggerListCommand,
-                'get': TriggerGetCommand,
-                'update': TriggerUpdateCommand,
-                'delete': TriggerDeleteCommand
+                'list': TriggerTypeListCommand,
+                'get': TriggerTypeGetCommand,
+                'update': TriggerTypeUpdateCommand,
+                'delete': TriggerTypeDeleteCommand
             })
 
 
-class TriggerListCommand(resource.ContentPackResourceListCommand):
+class TriggerTypeListCommand(resource.ContentPackResourceListCommand):
     display_attributes = ['ref', 'pack', 'name', 'description']
 
 
-class TriggerGetCommand(resource.ContentPackResourceGetCommand):
+class TriggerTypeGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
     attribute_display_order = ['id', 'ref', 'pack', 'name', 'description',
                                'parameters_schema', 'payload_schema']
 
 
-class TriggerUpdateCommand(resource.ContentPackResourceUpdateCommand):
+class TriggerTypeUpdateCommand(resource.ContentPackResourceUpdateCommand):
     pass
 
 
-class TriggerDeleteCommand(resource.ContentPackResourceDeleteCommand):
+class TriggerTypeDeleteCommand(resource.ContentPackResourceDeleteCommand):
     pass
