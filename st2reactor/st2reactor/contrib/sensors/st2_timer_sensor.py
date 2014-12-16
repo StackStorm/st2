@@ -24,156 +24,31 @@ from dateutil.tz import tzutc
 import dateutil.parser as date_parser
 import jsonschema
 
-from st2common.constants.pack import SYSTEM_PACK_NAME
-from st2common.models.system.common import ResourceReference
-from st2reactor.sensor.base import Sensor
+from st2common import log as logging
+from st2common.constants.triggers import TIMER_TRIGGER_TYPES
+from st2common.services.triggerwatcher import TriggerWatcher
+from st2common.transport.reactor import TriggerDispatcher
+
+LOG = logging.getLogger(__name__)
 
 
-INTERVAL_PARAMETERS_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "timezone": {
-            "type": "string"
-        },
-        "unit": {
-            "enum": ["weeks", "days", "hours", "minutes", "seconds"]
-        },
-        "delta": {
-            "type": "integer"
-        }
-    },
-    "required": [
-        "unit",
-        "delta"
-    ],
-    "additionalProperties": False
-}
-
-DATE_PARAMETERS_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "timezone": {
-            "type": "string"
-        },
-        "date": {
-            "type": "string",
-            "format": "date-time"
-        }
-    },
-    "required": [
-        "date"
-    ],
-    "additionalProperties": False
-}
-
-CRON_PARAMETERS_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "timezone": {
-            "type": "string"
-        },
-        "year": {
-            "type": "integer"
-        },
-        "month": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 12
-        },
-        "day": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 31
-        },
-        "week": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 53
-        },
-        "day_of_week": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 6
-        },
-        "hour": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 23
-        },
-        "minute": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 59
-        },
-        "second": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 59
-        }
-    },
-    "additionalProperties": False
-}
-
-PAYLOAD_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "executed_at": {
-            "type": "string",
-            "format": "date-time",
-            "default": "2014-07-30 05:04:24.578325"
-        },
-        "schedule": {
-            "type": "object",
-            "default": {
-                "delta": 30,
-                "units": "seconds"
-            }
-        }
-    }
-}
-
-TRIGGER_TYPES = {
-    ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.IntervalTimer'): {
-        'name': 'st2.IntervalTimer',
-        'pack': SYSTEM_PACK_NAME,
-        'description': 'Triggers on specified intervals. e.g. every 30s, 1week etc.',
-        'payload_schema': PAYLOAD_SCHEMA,
-        'parameters_schema': INTERVAL_PARAMETERS_SCHEMA
-    },
-    ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.DateTimer'): {
-        'name': 'st2.DateTimer',
-        'pack': SYSTEM_PACK_NAME,
-        'description': 'Triggers exactly once when the current time matches the specified time. '
-                       'e.g. timezone:UTC date:2014-12-31 23:59:59.',
-        'payload_schema': PAYLOAD_SCHEMA,
-        'parameters_schema': DATE_PARAMETERS_SCHEMA
-    },
-    ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.CronTimer'): {
-        'name': 'st2.CronTimer',
-        'pack': SYSTEM_PACK_NAME,
-        'description': 'Triggers whenever current time matches the specified time constaints like '
-                       'a UNIX cron scheduler.',
-        'payload_schema': PAYLOAD_SCHEMA,
-        'parameters_schema': CRON_PARAMETERS_SCHEMA
-    }
-}
-
-
-class St2TimerSensor(Sensor):
+class St2Timer(object):
     '''
     A timer sensor that uses APScheduler 3.0.
     '''
     def __init__(self, sensor_service=None):
         self._timezone = 'America/Los_Angeles'  # Whatever TZ local box runs in.
-        self._sensor_service = sensor_service
-        self._log = self._sensor_service.get_logger(self.__class__.__name__)
         self._scheduler = BlockingScheduler(timezone=self._timezone)
         self._jobs = {}
+        self._trigger_types = TIMER_TRIGGER_TYPES.keys()
+        self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
+                                               update_handler=self._handle_update_trigger,
+                                               delete_handler=self._handle_delete_trigger,
+                                               trigger_types=self._trigger_types,
+                                               queue_suffix='timers')
+        self._trigger_dispatcher = TriggerDispatcher(LOG)
 
-    def setup(self):
-        pass
-
-    def run(self):
+    def start(self):
         self._scheduler.start()
 
     def cleanup(self):
@@ -197,12 +72,9 @@ class St2TimerSensor(Sensor):
 
         self._scheduler.remove_job(job_id)
 
-    def _get_trigger_type(self, ref):
-        pass
-
     def _add_job_to_scheduler(self, trigger):
         trigger_type_ref = trigger['type']
-        trigger_type = TRIGGER_TYPES[trigger_type_ref]
+        trigger_type = TIMER_TRIGGER_TYPES[trigger_type_ref]
         try:
             jsonschema.validate(trigger['parameters'],
                                 trigger_type['parameters_schema'])
@@ -255,4 +127,30 @@ class St2TimerSensor(Sensor):
             'executed_at': str(datetime.utcnow()),
             'schedule': trigger['parameters'].get('time')
         }
-        self._sensor_service.dispatch(trigger, payload)
+        self._trigger_dispatcher.dispatch(trigger, payload)
+
+    ##############################################
+    # Event handler methods for the trigger events
+    ##############################################
+
+    def _handle_create_trigger(self, trigger):
+        LOG.debug('Calling "add_trigger" method (trigger.type=%s)' % (trigger.type))
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self.add_trigger(trigger=trigger)
+
+    def _handle_update_trigger(self, trigger):
+        LOG.debug('Calling "update_trigger" method (trigger.type=%s)' % (trigger.type))
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self.update_trigger(trigger=trigger)
+
+    def _handle_delete_trigger(self, trigger):
+        LOG.debug('Calling "remove_trigger" method (trigger.type=%s)' % (trigger.type))
+        trigger = self._sanitize_trigger(trigger=trigger)
+        self.remove_trigger(trigger=trigger)
+
+    def _sanitize_trigger(self, trigger):
+        sanitized = trigger._data
+        if 'id' in sanitized:
+            # Friendly objectid rather than the MongoEngine representation.
+            sanitized['id'] = str(sanitized['id'])
+        return sanitized
