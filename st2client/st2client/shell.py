@@ -173,8 +173,8 @@ class Shell(object):
             print('ERROR: %s\n' % e)
 
             debug = getattr(args, 'debug', False)
-            #if debug:
-            traceback.print_exc()
+            if debug:
+                traceback.print_exc()
 
             return 1
 
