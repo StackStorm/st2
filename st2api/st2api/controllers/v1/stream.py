@@ -27,6 +27,9 @@ LOG = logging.getLogger(__name__)
 
 
 def format(gen):
+    # Yield initial state so client would receive the headers the moment it connects to the stream
+    yield '\n'
+
     message = '''event: %s\ndata: %s\n\n'''
 
     for pack in gen:
