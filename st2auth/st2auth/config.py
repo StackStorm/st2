@@ -47,13 +47,13 @@ def _register_app_opts():
         cfg.StrOpt('backend', default=DEFAULT_BACKEND),
         cfg.StrOpt('backend_kwargs', default=None),
     ]
-    cfg.CONF.register_opts(auth_opts, group='auth')
+    cfg.CONF.register_cli_opts(auth_opts, group='auth')
 
     api_opts = [
         cfg.ListOpt('allow_origin', default=['http://localhost:3000'],
             help='List of origins allowed'),
     ]
-    cfg.CONF.register_opts(api_opts, group='api')
+    cfg.CONF.register_cli_opts(api_opts, group='api')
 
 
 def register_opts():
