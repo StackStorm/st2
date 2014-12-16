@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class FileAuthenticationBackendTestCase(unittest2.TestCase):
     def test_authenticate(self):
-        file_path = os.path.join(BASE_DIR, 'fixtures/httpasswd_test')
+        file_path = os.path.join(BASE_DIR, 'fixtures/htpasswd_test')
         backend = FileAuthenticationBackend(file_path=file_path)
 
         # Inexistent user

@@ -29,7 +29,7 @@ class FileAuthenticationBackend(BaseAuthenticationBackend):
     """
     Backend which reads authentication information from a local file.
 
-    Entries need to be in a httpasswd file like format. This means entries can be managed with
+    Entries need to be in a htpasswd file like format. This means entries can be managed with
     the htpasswd utility (https://httpd.apache.org/docs/current/programs/htpasswd.html) which
     ships with Apache HTTP server.
 
