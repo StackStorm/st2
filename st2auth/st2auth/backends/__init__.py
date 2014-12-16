@@ -14,21 +14,23 @@
 # limitations under the License.
 
 import json
+import importlib
 
 from oslo.config import cfg
 
-from st2auth.backends.file import FileAuthenticationBackend
-from st2auth.backends.mongodb import MongoDBAuthenticationBackend
+from st2common.util.loader import _get_classes_in_module
 
 __all__ = [
     'get_backend_instance',
     'VALID_BACKEND_NAMES'
 ]
 
-VALID_BACKEND_NAMES = [
-    'file',
-    'mongodb'
-]
+BACKEND_MODULES = {
+    'file': 'st2auth.backends.file',
+    'mongodb': 'st2auth.backends.mongodb'
+}
+
+VALID_BACKEND_NAMES = BACKEND_MODULES.keys()
 
 
 def get_backend_instance(name):
@@ -39,10 +41,9 @@ def get_backend_instance(name):
     if name not in VALID_BACKEND_NAMES:
         raise ValueError('Invalid authentication backend specified: %s', name)
 
-    if name == 'file':
-        cls = FileAuthenticationBackend
-    elif name == 'mongodb':
-        cls = MongoDBAuthenticationBackend
+    module = importlib.import_module(BACKEND_MODULES[name])
+    classes = _get_classes_in_module(module=module)
+    cls = [klass for klass in classes if klass.__name__.endswith('AuthenticationBackend')][0]
 
     backend_kwargs = cfg.CONF.auth.backend_kwargs
 
