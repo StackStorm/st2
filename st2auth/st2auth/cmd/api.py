@@ -73,7 +73,7 @@ def _run_server():
         raise ValueError('Certificate file "%s" doesn\'t exist' % (cert_file_path))
 
     if not os.path.isfile(key_file_path):
-        raise ValueError('Privaye key file "%s" doesn\'t exist' % (key_file_path))
+        raise ValueError('Private key file "%s" doesn\'t exist' % (key_file_path))
 
     socket = eventlet.listen((host, port))
 
