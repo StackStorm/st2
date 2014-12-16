@@ -43,7 +43,7 @@ class MongoDBAuthenticationBackend(BaseAuthenticationBackend):
 
     _collection_name = 'users'
     _indexes = [
-        ('username' , pymongo.ASCENDING)
+        ('username', pymongo.ASCENDING)
     ]
     _hash_function = hashlib.sha256
 
