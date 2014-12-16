@@ -43,12 +43,19 @@ def get_backend_instance(name):
 
     module = importlib.import_module(BACKEND_MODULES[name])
     classes = _get_classes_in_module(module=module)
-    cls = [klass for klass in classes if klass.__name__.endswith('AuthenticationBackend')][0]
+
+    try:
+        cls = [klass for klass in classes if klass.__name__.endswith('AuthenticationBackend')][0]
+    except IndexError:
+        raise ValueError('"%s" backend module doesn\'t export a compatible class' % (name))
 
     backend_kwargs = cfg.CONF.auth.backend_kwargs
 
     if backend_kwargs:
-        kwargs = json.loads(backend_kwargs)
+        try:
+            kwargs = json.loads(backend_kwargs)
+        except ValueError:
+            raise ValueError('Failed to JSON parse backend settings')
     else:
         kwargs = {}
 
