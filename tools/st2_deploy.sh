@@ -148,6 +148,16 @@ auth_enable=false
 mistral_config
 }
 
+setup_mistral_log_config()
+{
+log_config=/etc/mistral/wf_trace_logging.conf
+if [ -e "$log_config" ]; then
+    rm $log_config
+fi
+cp /opt/openstack/mistral/etc/wf_trace_logging.conf.sample $log_config
+sed -i "s~tmp~var/log~g" $log_config
+}
+
 setup_mistral_upstart()
 {
 upstart=/etc/init/mistral.conf
@@ -161,7 +171,7 @@ start on runlevel [2345]
 stop on runlevel [016]
 respawn
 script
-    /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log --verbose
+    /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-config-append /etc/mistral/wf_trace_logging.conf
 end script
 mistral_upstart
 }
@@ -178,7 +188,7 @@ cat <<mistral_systemd >$systemd
 Description=Mistral Workflow Service
 
 [Service]
-ExecStart=/opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log
+ExecStart=/opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log --log-config-append /etc/mistral/wf_trace_logging.conf
 Restart=on-abort
 
 [Install]
@@ -226,6 +236,7 @@ setup_mistral() {
   # Create configuration files.
   mkdir -p /etc/mistral
   setup_mistral_config
+  setup_mistral_log_config
 
   # Setup database.
   cd /opt/openstack/mistral
