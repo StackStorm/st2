@@ -26,8 +26,19 @@ class Sensor(core.Resource):
     _repr_attributes = ['name', 'pack']
 
 
-class Trigger(core.Resource):
+class TriggerType(core.Resource):
+    _alias = 'Trigger'
+    _display_name = 'Trigger'
     _plural = 'Triggertypes'
+    _plural_display_name = 'Triggers'
+    _repr_attributes = ['name', 'pack']
+
+
+class Trigger(core.Resource):
+    _alias = 'TriggerSpecification'
+    _display_name = 'Trigger Specification'
+    _plural = 'Triggers'
+    _plural_display_name = 'Trigger Specifications'
     _repr_attributes = ['name', 'pack']
 
 

@@ -126,7 +126,7 @@ class Shell(object):
             'An adapter which allows you to integrate Stanley with external system ',
             self, self.subparsers)
 
-        self.commands['trigger'] = trigger.TriggerBranch(
+        self.commands['trigger'] = trigger.TriggerTypeBranch(
             'An external event that is mapped to a st2 input. It is the '
             'st2 invocation point.',
             self, self.subparsers)
