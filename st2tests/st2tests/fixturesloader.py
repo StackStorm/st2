@@ -288,4 +288,4 @@ class FixturesLoader(object):
         return os.path.join(get_fixtures_base_path(), fixtures_pack_name)
 
     def get_fixture_file_path_abs(self, fixtures_pack, fixtures_type, fixture_name):
-        return os.path.join(get_fixtures_base_path(), fixtures_type, fixture_name)
+        return os.path.join(get_fixtures_base_path(), fixtures_pack, fixtures_type, fixture_name)
