@@ -58,11 +58,12 @@ class MongoDBAuthenticationBackend(BaseAuthenticationBackend):
 
         self._client = MongoClient(host=self._db_host, port=self._db_port, tz_aware=True)
         self._db = self._client[db_name]
+
+        if self._db_username:
+            self._db.authenticate(name=self._db_username, password=self._db_password)
+
         self._collection = self._db[self._collection_name]
         self._ensure_indexes()
-
-    def _ensure_indexes(self):
-        self._collection.ensure_index(self._indexes, unique=True)
 
     def authenticate(self, username, password):
         result = self._collection.find_one({'username': username})
@@ -86,3 +87,6 @@ class MongoDBAuthenticationBackend(BaseAuthenticationBackend):
 
     def get_user(self, username):
         pass
+
+    def _ensure_indexes(self):
+        self._collection.ensure_index(self._indexes, unique=True)
