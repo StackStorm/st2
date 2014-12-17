@@ -66,12 +66,12 @@ class MongoDBAuthenticationBackend(BaseAuthenticationBackend):
         self._ensure_indexes()
 
     def authenticate(self, username, password):
-        result = self._collection.find_one({'username': username})
+        salt_result = self._collection.find_one({'username': username})
 
-        if not result:
+        if not salt_result:
             return False
 
-        salt = result.get('salt', None)
+        salt = salt_result.get('salt', None)
         if not salt:
             return False
 
