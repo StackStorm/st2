@@ -22,7 +22,7 @@ import tempfile
 import unittest2
 
 from tests import base
-from tests.fixtures import loader
+from tests.unit.fixtures import loader
 
 from st2client import shell
 from st2client.utils import jsutil

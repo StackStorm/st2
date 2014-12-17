@@ -4,5 +4,5 @@
     "enabled": true,
     "runner_parameters": {
     },
-    "runner_module": "tests.test_runner"
+    "runner_module": "tests.unit.test_runner"
 }
