@@ -45,24 +45,24 @@ The service upstream is responsible for performing the authentication. If the
 provided credentials are correct, the service needs to populate ``REMOTE_USER``
 environment variable and proxy the request to the st2auth service. The
 st2auth service then generates a new access token and returns it back to the
-user.
+client.
 
-An example of a service which can perform authentication upstream includes
+An example of services which can perform authentication upstream include
 Apache httpd, Nginx and load balancer.
 
-If you are using Apache, this means you can utilize one of the many
-`authentication modules <http://httpd.apache.org/docs/2.2/howto/auth.html>`_
-supported by Apache httpd (e.g. basic auth, PAM module, kerberos module, etc.).
+If you are using Apache httpd, this means you can utilize one of the many
+`existing authentication modules <http://httpd.apache.org/docs/2.2/howto/auth.html>`_
+(e.g. basic auth, PAM module, kerberos module, etc.).
 
 When you are running authentication service in the proxy mode, you need to make
 sure the service is only accessible to the upstream service which is responsible
 for handling authentication.
 
 This usually means running the upstream service on the same host as the
-st2auth service and configuring it to only listen on ``localhost``. As an
+st2auth service and configuring st2auth to only listen on ``localhost``. As an
 alternative, you can run upstream service on a different host inside the same
 private network and configure the st2auth service to listen on an internal IP
-and configure the firewall on that host so only the upstream service can reach
+and configure the firewall on that host so only the upstream service can access
 it.
 
 Standalone mode
@@ -111,7 +111,7 @@ MongoDB backend supports reading credentials from a MongoDB collection called
 Entries in this collection need to have the following attributes:
 
 * ``username`` - Username
-* ``salt`` - Salt for the password.
+* ``salt`` - Password salt
 * ``password`` - SHA256 hash for the salt+password - SHA256(<salt><password>)
 
 Configuration options
