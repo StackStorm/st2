@@ -27,9 +27,10 @@ function st2start(){
     nohup actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
   done
   nohup st2api --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup rules_engine --config-file ${STANCONF} &>> ${LOGFILE} &
+  sleep 5
   nohup sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup /usr/bin/history --config-file ${STANCONF} &>> ${LOGFILE} &
-  nohup rules_engine --config-file ${STANCONF} &>> ${LOGFILE} &
   if [[ "${CONTAINER}" == "DOCKER" ]]
   then
     /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
