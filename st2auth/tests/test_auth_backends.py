@@ -45,10 +45,12 @@ class FlatFileAuthenticationBackendTestCase(unittest2.TestCase):
 
 
 class MongoDBAuthenticationBackendTestCase(unittest2.TestCase):
+    hash_function = MongoDBAuthenticationBackend._hash_function
     fixtures = [
         {
             'username': 'test1',
-            'password': MongoDBAuthenticationBackend._hash_function('testpassword').hexdigest()
+            'salt': 'salty',
+            'password': hash_function('saltytestpassword').hexdigest()
         }
     ]
 

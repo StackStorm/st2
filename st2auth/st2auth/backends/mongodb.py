@@ -36,7 +36,8 @@ class MongoDBAuthenticationBackend(BaseAuthenticationBackend):
     collection should have two attributes:
 
     - username - username
-    - password - SHA256 hash of the user's password
+    - salt - password salt
+    - password - SHA256 hash of the salt + user's password (SHA256(<salt><password>))
 
     Note: This backends depends on the "pymongo" library.
     """
@@ -64,14 +65,24 @@ class MongoDBAuthenticationBackend(BaseAuthenticationBackend):
         self._collection.ensure_index(self._indexes, unique=True)
 
     def authenticate(self, username, password):
-        password_hash = self._hash_function(password).hexdigest()
+        result = self._collection.find_one({'username': username})
+
+        if not result:
+            return False
+
+        salt = result.get('salt', None)
+        if not salt:
+            return False
+
+        password_string = '%s%s' % (salt, password)
+        password_hash = self._hash_function(password_string).hexdigest()
         result = self._collection.find_one({'username': username, 'password': password_hash})
 
         if result and result.get('username', None) == username and \
            result.get('password', None) == password_hash:
             return True
-        else:
-            return False
+
+        return False
 
     def get_user(self, username):
         pass
