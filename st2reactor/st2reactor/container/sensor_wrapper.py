@@ -21,6 +21,7 @@ import argparse
 from oslo.config import cfg
 
 from st2common import log as logging
+from st2common.models.db import db_setup
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
 from st2common.util.config_parser import ContentPackConfigParser
@@ -104,13 +105,19 @@ class SensorWrapper(object):
         except Exception:
             pass
 
-        # 2. Instantiate the watcher
+        # 2. Establish DB connection
+        username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
+        password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
+        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
+                 username=username, password=password)
+
+        # 3. Instantiate the watcher
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger,
                                                trigger_types=self._trigger_types)
 
-        # 3. Set up logging
+        # 4. Set up logging
         self._logger = logging.getLogger('SensorWrapper.%s' %
                                          (self._class_name))
         logging.setup(cfg.CONF.sensorcontainer.logging)
