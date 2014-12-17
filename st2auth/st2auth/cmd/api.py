@@ -69,10 +69,10 @@ def _run_server():
     cert_file_path = os.path.realpath(cfg.CONF.auth.cert)
     key_file_path = os.path.realpath(cfg.CONF.auth.key)
 
-    if not os.path.isfile(cert_file_path):
+    if secure and not os.path.isfile(cert_file_path):
         raise ValueError('Certificate file "%s" doesn\'t exist' % (cert_file_path))
 
-    if not os.path.isfile(key_file_path):
+    if secure and not os.path.isfile(key_file_path):
         raise ValueError('Private key file "%s" doesn\'t exist' % (key_file_path))
 
     socket = eventlet.listen((host, port))
