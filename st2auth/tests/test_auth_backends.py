@@ -17,7 +17,7 @@ import os
 
 import unittest2
 
-from st2auth.backends.file import FlatFileAuthenticationBackend
+from st2auth.backends.flat_file import FlatFileAuthenticationBackend
 from st2auth.backends.mongodb import MongoDBAuthenticationBackend
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
