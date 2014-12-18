@@ -158,6 +158,7 @@ def get_resolved_params(runnertype_parameter_info, action_parameter_info, action
 
 
 def _is_template(template_str):
+    template_str = six.u(template_str)
     template = Template(template_str)
     return template_str != template.render({})
 
@@ -281,8 +282,9 @@ def _cast_params(rendered, parameter_schemas):
         'number': float,
         'object': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
                    else x),
-        'string': str
+        'string': six.u
     }
+
     casted_params = {}
     for k, v in six.iteritems(rendered):
         # Add uncasted first and then override with casted param. Not all params will end up
