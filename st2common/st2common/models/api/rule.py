@@ -123,6 +123,10 @@ class RuleAPI(BaseAPI):
     def from_model(cls, model):
         rule = cls._from_model(model)
         trigger_db = reference.get_model_by_resource_ref(Trigger, model.trigger)
+
+        if not trigger_db:
+            raise ValueError('Missing TriggerDB object for rule %s' % (rule['id']))
+
         rule['trigger'] = vars(TriggerAPI.from_model(trigger_db))
         del rule['trigger']['id']
         del rule['trigger']['name']
