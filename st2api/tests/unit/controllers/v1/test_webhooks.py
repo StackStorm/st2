@@ -18,7 +18,7 @@ import six
 from tests import FunctionalTest
 
 from st2api.controllers.v1.webhooks import WebhooksController
-from st2common.constants.triggers import GENERIC_WEBHOOK_TRIGGER_REF
+from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
 from st2common.models.db.reactor import TriggerDB
 from st2common.transport.reactor import TriggerInstancePublisher
 
@@ -37,7 +37,7 @@ ST2_WEBHOOK = {
 }
 
 DUMMY_TRIGGER = TriggerDB(name='pr-merged', pack='git')
-DUMMY_TRIGGER.type = GENERIC_WEBHOOK_TRIGGER_REF
+DUMMY_TRIGGER.type = WEBHOOK_TRIGGER_TYPES.keys()[0]
 
 
 class TestTriggerTypeController(FunctionalTest):
