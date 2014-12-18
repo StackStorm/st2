@@ -105,6 +105,25 @@ class EscapedDynamicField(me.DynamicField):
         return mongoescape.unescape_chars(value)
 
 
+class TagField(me.EmbeddedDocument):
+    """
+    To be attached to a db model object for the purpose of providing supplemental
+    information.
+    """
+    name = me.StringField()
+    value = me.StringField()
+
+
+class TagsMixin(object):
+    """
+    Mixin to include tags on an object.
+    """
+    tags = me.ListField(field=me.EmbeddedDocumentField(TagField))
+
+    def get_indices():
+        return ['tags.name', 'tags.value']
+
+
 class ContentPackResourceMixin(object):
     """
     Mixin class which provides utility methods for models which contain
