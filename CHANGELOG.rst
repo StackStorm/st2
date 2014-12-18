@@ -4,7 +4,6 @@ Changelog
 in development
 --------------
 
-
 v0.6.0 - December 8, 2014
 -------------------------
 
