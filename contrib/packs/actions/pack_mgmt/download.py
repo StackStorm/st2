@@ -21,8 +21,7 @@ class InstallGitRepoAction(Action):
             result = self._move_packs(abs_repo_base, packs, pack_abs_local_path)
         finally:
             self._cleanup_repo(abs_local_path)
-        return self._validate_result(result, packs)
-
+        return self._validate_result(result=result, packs=packs, repo_url=repo_url)
     @staticmethod
     def _clone_repo(repo_url):
         user_home = os.path.expanduser('~')
@@ -53,17 +52,18 @@ class InstallGitRepoAction(Action):
     def _is_desired_pack(abs_pack_path, pack_name):
         # path has to exists.
         if not os.path.exists(abs_pack_path):
-            return (False, 'Pack %s not found.' % pack_name)
+            return (False, 'Pack "%s" not found or it\'s missing a "pack.yaml" file.' %
+                    (pack_name))
         # Must be a dir.
         if not os.path.isdir(abs_pack_path):
-            return (False, '%s is not a expected directory structure.' % pack_name)
+            return (False, '%s is not a expected directory structure.' % (pack_name))
         # should not include reserve characters
         if PACK_RESERVE_CHARACTER in pack_name:
             return (False, 'Pack name "%s" contains reserve character "%s"' %
                     (pack_name, PACK_RESERVE_CHARACTER))
         # must contain a manifest file. Empty file is ok for now.
         if not os.path.isfile(os.path.join(abs_pack_path, MANIFEST_FILE)):
-            return (False, 'Pack manifest not found.')
+            return (False, 'Pack is missing a manifest file (%s).' % (MANIFEST_FILE))
         return (True, '')
 
     @staticmethod
@@ -72,12 +72,27 @@ class InstallGitRepoAction(Action):
         shutil.rmtree(abs_local_path)
 
     @staticmethod
-    def _validate_result(result, packs):
+    def _validate_result(result, packs, repo_url):
         atleast_one_success = False
         sanitized_result = {}
         for k, v in six.iteritems(result):
             atleast_one_success |= v[0]
             sanitized_result[k] = v[1]
+
         if not atleast_one_success:
-            raise Exception('No packs from %s were downloaded.' % packs)
+            message_list = []
+            message_list.append('No packs were downloaded from repository "%s".\n' % (repo_url))
+            message_list.append('Errors:')
+
+            for pack, value in result.items():
+                success, error = value
+
+                if success:
+                    continue
+
+                message_list.append(' - %s: %s' % (pack, error))
+
+            message = '\n'.join(message_list)
+            raise Exception(message)
+
         return sanitized_result
