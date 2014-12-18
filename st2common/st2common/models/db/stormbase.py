@@ -25,6 +25,7 @@ __all__ = [
     'StormFoundationDB',
     'StormBaseDB',
     'EscapedDictField',
+    'TagsMixin',
     'ContentPackResourceMixin'
 ]
 
