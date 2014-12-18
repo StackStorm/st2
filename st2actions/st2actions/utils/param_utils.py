@@ -21,6 +21,7 @@ import six
 from jinja2 import Template, Environment, StrictUndefined, meta
 from st2common import log as logging
 from st2common.exceptions import actionrunner
+from st2common.util.compat import to_unicode
 
 
 LOG = logging.getLogger(__name__)
@@ -158,7 +159,7 @@ def get_resolved_params(runnertype_parameter_info, action_parameter_info, action
 
 
 def _is_template(template_str):
-    template_str = six.u(template_str)
+    template_str = to_unicode(template_str)
     template = Template(template_str)
     return template_str != template.render({})
 
@@ -282,7 +283,7 @@ def _cast_params(rendered, parameter_schemas):
         'number': float,
         'object': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
                    else x),
-        'string': six.u
+        'string': to_unicode
     }
 
     casted_params = {}
