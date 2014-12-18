@@ -121,7 +121,8 @@ class TagsMixin(object):
     """
     tags = me.ListField(field=me.EmbeddedDocumentField(TagField))
 
-    def get_indices():
+    @classmethod
+    def get_indices(cls):
         return ['tags.name', 'tags.value']
 
 
