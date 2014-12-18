@@ -57,7 +57,10 @@ class St2Timer(object):
         self._scheduler.shutdown(wait=True)
 
     def add_trigger(self, trigger):
-        self._add_job_to_scheduler(trigger)
+        try:
+            self._add_job_to_scheduler(trigger)
+        except:
+            LOG.exception('Unable to add timer for trigger: %s', trigger)
 
     def update_trigger(self, trigger):
         self.remove_trigger(trigger)
@@ -111,6 +114,8 @@ class St2Timer(object):
             self._add_job(trigger, time_type)
 
     def _add_job(self, trigger, time_type, replace=True):
+        if self._jobs.get(trigger['id'], None):
+            raise Exception('Should not try to register timer for trigger %s' % trigger)
         try:
             job = self._scheduler.add_job(self._emit_trigger_instance,
                                           trigger=time_type,
@@ -127,7 +132,6 @@ class St2Timer(object):
 
         payload = {
             'executed_at': str(datetime.utcnow()),
-            'schedule': trigger['parameters'].get('time')
         }
         self._trigger_dispatcher.dispatch(trigger, payload)
 
