@@ -101,6 +101,7 @@ class TimerTest(EventletTestCase):
             timer.start()
 
         eventlet.spawn(kickoff_timer, timer)
+        self.assertFalse(mock_dispatcher.assert_payload())
         eventlet.sleep(2)
         self.assertTrue(mock_dispatcher.assert_payload())
         timer.cleanup()
