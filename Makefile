@@ -14,7 +14,7 @@ COMPONENTS := $(wildcard st2*)
 
 # Components that implement a component-controlled test-runner. These components provide an
 # in-component Makefile. (Temporary fix until I can generalize the pecan unittest setup. -mar)
-COMPONENT_SPECIFIC_TESTS := st2tests
+COMPONENT_SPECIFIC_TESTS := st2tests st2synapse
 
 # nasty hack to get a space into a variable
 space_char :=
@@ -24,7 +24,7 @@ COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),
 
 PYTHON_TARGET := 2.7
 
-REQUIREMENTS := requirements.txt test-requirements.txt st2client/requirements.txt
+REQUIREMENTS := requirements.txt test-requirements.txt st2synapse/requirements.txt st2client/requirements.txt
 
 .PHONY: all
 all: requirements check tests docs
@@ -170,6 +170,7 @@ pytests: requirements .flake8 .pytests-coverage
 .pytests: clean
 	@echo
 	@echo "==================== tests ===================="
+	@echo "Affected components: $(COMPONENTS_TEST)"
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
@@ -184,6 +185,7 @@ pytests: requirements .flake8 .pytests-coverage
 .pytests-coverage: clean
 	@echo
 	@echo "==================== tests with coverage ===================="
+	@echo "Affected components: $(COMPONENTS_TEST)"
 	@echo
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -191,6 +193,19 @@ pytests: requirements .flake8 .pytests-coverage
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-xcoverage --xcoverage-file=coverage-$$component.xml --cover-package=$$component $$component/tests || exit 1; \
 	done
+
+.PHONY: itests
+itests: requirements .pytests-integration
+
+.PHONY: .pytests-integration
+.pytests-integration: clean
+	@echo
+	@echo "==================== integration tests ===================="
+	@echo
+	@echo "===========================================================";
+	@echo "Running tests in st2synapse";
+	@echo "===========================================================";
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-xcoverage --xcoverage-file=coverage-st2synapse.xml --cover-package=st2synapse st2synapse/tests || exit 1;
 
 .PHONY: rpms
 rpms:
