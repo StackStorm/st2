@@ -24,7 +24,7 @@ import st2common.util.loader as plugin_loader
 
 
 PLUGIN_FOLDER = 'loadableplugin'
-SRC_RELATIVE = os.path.join('resources', PLUGIN_FOLDER)
+SRC_RELATIVE = os.path.join('../resources', PLUGIN_FOLDER)
 SRC_ROOT = os.path.join(os.path.abspath(os.path.dirname(__file__)), SRC_RELATIVE)
 
 
@@ -57,7 +57,7 @@ class LoaderTest(unittest2.TestCase):
         # matches the specs of DummyPlugin class.
         self.assertEqual(1, len(plugin_classes))
         # Validate sys.path now contains the plugin directory.
-        self.assertTrue(os.path.join(SRC_ROOT, 'plugin') in sys.path)
+        self.assertTrue(os.path.abspath(os.path.join(SRC_ROOT, 'plugin')) in sys.path)
         # Validate the individual plugins
         for plugin_class in plugin_classes:
             try:

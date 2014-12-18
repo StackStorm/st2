@@ -22,8 +22,9 @@ import logging as logbase
 from st2common import log as logging
 
 
-CONFIG_FILE_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                'resources/logging.conf')
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
+CONFIG_FILE_PATH = os.path.join(RESOURCES_DIR, 'logging.conf')
 
 
 class TestLogger(unittest.TestCase):

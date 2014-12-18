@@ -21,6 +21,9 @@ import unittest2
 from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
 
+
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+FIXTURES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../fixtures'))
 LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 
@@ -74,8 +77,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         }
 
     def _get_fixture(self, name):
-        current_dir = os.path.abspath(os.path.dirname(__file__))
-        path = os.path.join(current_dir, 'fixtures/localrunner/', name)
+        path = os.path.join(FIXTURES_DIR, 'localrunner', name)
 
         with open(path, 'r') as fp:
             content = fp.read().strip()

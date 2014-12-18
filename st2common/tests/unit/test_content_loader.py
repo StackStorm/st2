@@ -20,19 +20,21 @@ import unittest2
 from st2common.content.loader import ContentPackLoader
 
 
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
+
+
 class ContentLoaderTest(unittest2.TestCase):
 
     def test_get_sensors(self):
-        packs_base_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), 'resources/packs/')
+        packs_base_path = os.path.join(RESOURCES_DIR, 'packs/')
         loader = ContentPackLoader()
         pack_sensors = loader.get_content(base_dir=packs_base_path, content_type='sensors')
         self.assertTrue(pack_sensors.get('pack1', None) is not None)
 
     def test_get_sensors_pack_missing_sensors(self):
         loader = ContentPackLoader()
-        fail_pack_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), 'resources/packs/pack2')
+        fail_pack_path = os.path.join(RESOURCES_DIR, 'packs/pack2')
         self.assertTrue(os.path.exists(fail_pack_path))
         try:
             loader._get_sensors(fail_pack_path)
@@ -41,8 +43,7 @@ class ContentLoaderTest(unittest2.TestCase):
             pass
 
     def test_invalid_content_type(self):
-        packs_base_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), 'resources/packs/')
+        packs_base_path = os.path.join(RESOURCES_DIR, 'packs/')
         loader = ContentPackLoader()
         try:
             loader.get_content(base_dir=packs_base_path, content_type='stuff')

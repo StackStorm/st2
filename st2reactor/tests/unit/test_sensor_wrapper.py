@@ -7,7 +7,7 @@ import st2tests.config as tests_config
 from st2reactor.container.sensor_wrapper import SensorWrapper
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
-RESOURCES_DIR = os.path.join(CURRENT_DIR, 'resources')
+RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
 
 
 class Trigger(object):
