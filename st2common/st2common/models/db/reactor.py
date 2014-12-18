@@ -66,7 +66,7 @@ class TriggerTypeDB(stormbase.StormBaseDB,
     parameters_schema = me.DictField(default={})
 
     meta = {
-        'indexes': ['tags.name', 'tags.value']
+        'indexes': stormbase.TagsMixin.get_indices()
     }
 
 
@@ -124,6 +124,10 @@ class RuleDB(stormbase.StormBaseDB, stormbase.TagsMixin):
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
     enabled = me.BooleanField(required=True, default=True,
                               help_text=u'Flag indicating whether the rule is enabled.')
+
+    meta = {
+        'indexes': stormbase.TagsMixin.get_indices()
+    }
 
 # specialized access objects
 sensor_type_access = MongoDBAccess(SensorTypeDB)

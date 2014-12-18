@@ -84,6 +84,10 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
     parameters = me.DictField(
         help_text='The specification for parameters for the action.')
 
+    meta = {
+        'indexes': stormbase.TagsMixin.get_indices()
+    }
+
 
 class ActionExecutionDB(stormbase.StormFoundationDB):
     """
