@@ -117,7 +117,7 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
                  self.runner_id, remote_action.get_on_behalf_user())
         LOG.info(('[Action info] name: %s, Id: %s, command: %s, on behalf user: %s, '
                   'actual user: %s, sudo: %s'),
-                 remote_action.name, remote_action.id, remote_action.get_command(),
+                 remote_action.name, remote_action.action_exec_id, remote_action.get_command(),
                  remote_action.get_on_behalf_user(), remote_action.get_user(),
                  remote_action.is_sudo())
         results = execute(remote_action.get_fabric_task(), hosts=remote_action.hosts)
