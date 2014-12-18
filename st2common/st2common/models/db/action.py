@@ -18,7 +18,7 @@ import mongoengine as me
 
 from st2common import log as logging
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.stormbase import StormFoundationDB, StormBaseDB, EscapedDynamicField
+from st2common.models.db import stormbase
 
 __all__ = [
     'RunnerTypeDB',
@@ -32,7 +32,7 @@ LOG = logging.getLogger(__name__)
 PACK_SEPARATOR = '.'
 
 
-class RunnerTypeDB(StormBaseDB):
+class RunnerTypeDB(stormbase.StormBaseDB):
     """
     The representation of an RunnerType in the system. An RunnerType
     has a one-to-one mapping to a particular ActionRunner implementation.
@@ -56,7 +56,7 @@ class RunnerTypeDB(StormBaseDB):
         help_text='The specification for parameters for the action runner.')
 
 
-class ActionDB(StormFoundationDB):
+class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
     """
     The system entity that represents a Stack Action/Automation in the system.
 
@@ -85,7 +85,7 @@ class ActionDB(StormFoundationDB):
         help_text='The specification for parameters for the action.')
 
 
-class ActionExecutionDB(StormFoundationDB):
+class ActionExecutionDB(stormbase.StormFoundationDB):
     """
         The databse entity that represents a Stack Action/Automation in
         the system.
@@ -112,7 +112,7 @@ class ActionExecutionDB(StormFoundationDB):
     parameters = me.DictField(
         default={},
         help_text='The key-value pairs passed as to the action runner &  execution.')
-    result = EscapedDynamicField(
+    result = stormbase.EscapedDynamicField(
         default={},
         help_text='Action defined result.')
     context = me.DictField(
