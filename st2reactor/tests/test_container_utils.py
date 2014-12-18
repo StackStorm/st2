@@ -15,18 +15,18 @@
 
 import mock
 
-from st2common.persistence.reactor import Trigger, TriggerType
-from st2common.models.db.reactor import TriggerDB, TriggerTypeDB
+from st2common.persistence.reactor import TriggerType
+from st2common.models.db.reactor import TriggerDB
 from st2common.transport.publishers import PoolPublisher
 import st2reactor.container.utils as container_utils
 from st2tests.base import DbTestCase
 
-MOCK_TRIGGER_TYPE = TriggerTypeDB()
-MOCK_TRIGGER_TYPE.id = 'trigger-type-test.id'
-MOCK_TRIGGER_TYPE.name = 'trigger-type-test.name'
-MOCK_TRIGGER_TYPE.pack = 'dummy_pack_1'
-MOCK_TRIGGER_TYPE.parameters_schema = {}
-MOCK_TRIGGER_TYPE.payload_info = {}
+MOCK_TRIGGER_TYPE = {}
+MOCK_TRIGGER_TYPE['id'] = 'trigger-type-test.id'
+MOCK_TRIGGER_TYPE['name'] = 'trigger-type-test.name'
+MOCK_TRIGGER_TYPE['pack'] = 'dummy_pack_1'
+MOCK_TRIGGER_TYPE['parameters_schema'] = {}
+MOCK_TRIGGER_TYPE['payload_schema'] = {}
 
 MOCK_TRIGGER = TriggerDB()
 MOCK_TRIGGER.id = 'trigger-test.id'
@@ -38,16 +38,6 @@ MOCK_TRIGGER.type = 'dummy_pack_1.trigger-type-test.name'
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class ContainerUtilsTest(DbTestCase):
-    @mock.patch.object(TriggerType, 'query', mock.MagicMock(
-        return_value=[MOCK_TRIGGER_TYPE]))
-    @mock.patch.object(Trigger, 'get_by_name', mock.MagicMock(return_value=MOCK_TRIGGER))
-    @mock.patch.object(TriggerType, 'add_or_update')
-    def test_add_trigger(self, mock_add_handler):
-        mock_add_handler.return_value = MOCK_TRIGGER_TYPE
-        container_utils.add_trigger_models(pack='dummy_pack_1',
-                                           trigger_types=[MOCK_TRIGGER_TYPE])
-        self.assertTrue(mock_add_handler.called, 'trigger not added.')
-
     def test_add_trigger_type(self):
         """
         This sensor has misconfigured trigger type. We shouldn't explode.
@@ -89,12 +79,11 @@ class ContainerUtilsTest(DbTestCase):
             'parameters_schema': {},
             'payload_schema': {}
         }
-        trigtype_dbs = container_utils.add_trigger_models(pack='my_pack_1',
-                                                          trigger_types=[trig_type])
+        trigtype_dbs = container_utils.add_trigger_models(trigger_types=[trig_type])
         trigger_type, trigger = trigtype_dbs[0]
 
         trigtype_db = TriggerType.get_by_id(trigger_type.id)
-        self.assertEqual(trigtype_db.pack, 'my_pack_1')
+        self.assertEqual(trigtype_db.pack, 'dummy_pack_1')
         self.assertEqual(trigtype_db.name, trig_type.get('name'))
         self.assertTrue(trigger is not None)
         self.assertEqual(trigger.name, trigtype_db.name)
@@ -112,13 +101,12 @@ class ContainerUtilsTest(DbTestCase):
         }
         trig_type = {
             'name': 'myawesometriggertype2',
-            'pack': 'dummy_pack_1',
+            'pack': 'my_pack_1',
             'description': 'Words cannot describe how awesome I am.',
             'parameters_schema': PARAMETERS_SCHEMA,
             'payload_schema': {}
         }
-        trigtype_dbs = container_utils.add_trigger_models(pack='my_pack_1',
-                                                          trigger_types=[trig_type])
+        trigtype_dbs = container_utils.add_trigger_models(trigger_types=[trig_type])
         trigger_type, trigger = trigtype_dbs[0]
 
         trigtype_db = TriggerType.get_by_id(trigger_type.id)
