@@ -1,6 +1,6 @@
 {
     "name": "hey",
-    "pack": "default",
+    "pack": "mistral",
     "runner_type": "mistral-v1",
     "description": "Say hi to friend!",
     "enabled": true,
@@ -8,7 +8,7 @@
     "parameters": {
         "workbook": {
             "type": "string",
-            "default": "default.hey",
+            "default": "mistral.hey",
             "immutable": true
         },
         "task": {
@@ -17,7 +17,7 @@
             "immutable": true
         },
         "context": {
-            "description": "Context for the startup task.", 
+            "description": "Context for the startup task.",
             "type": "object",
             "default": {},
             "immutable": true
