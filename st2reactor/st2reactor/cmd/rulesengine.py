@@ -1,6 +1,7 @@
 import os
 import sys
 
+import eventlet
 from oslo.config import cfg
 
 from st2common import log as logging
@@ -9,6 +10,7 @@ from st2common.models.db import db_teardown
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2reactor.rules import config
 from st2reactor.rules import worker
+from st2reactor.timer.base import St2Timer
 
 LOG = logging.getLogger('st2reactor.bin.rulesengine')
 
@@ -36,14 +38,26 @@ def _teardown():
     db_teardown()
 
 
+def _kickoff_rules_worker(worker):
+    worker.work()
+
+
+def _kickoff_timer(timer):
+    timer.start()
+
+
 def main():
+    timer = St2Timer(local_timezone=cfg.CONF.timer.local_timezone)
     try:
         _setup()
-        return worker.work()
+        timer_thread = eventlet.spawn(_kickoff_timer, timer)
+        worker_thread = eventlet.spawn(_kickoff_rules_worker, worker)
+        return (timer_thread.wait() and worker_thread.wait())
     except SystemExit as exit_code:
         sys.exit(exit_code)
     except:
         LOG.exception('(PID:%s) RulesEngine quit due to exception.', os.getpid())
         return 1
     finally:
+        timer.cleanup()
         _teardown()

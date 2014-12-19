@@ -14,9 +14,9 @@
 # limitations under the License.
 
 from st2common import log as logging
-from st2common.models.api.reactor import TriggerAPI
+from st2common.models.api.reactor import (TriggerAPI, TriggerTypeAPI)
 from st2common.models.system.common import ResourceReference
-from st2common.persistence.reactor import Trigger
+from st2common.persistence.reactor import (Trigger, TriggerType)
 
 LOG = logging.getLogger(__name__)
 
@@ -44,9 +44,7 @@ def get_trigger_db(trigger):
     # TODO: This method should die in a fire
     if isinstance(trigger, str) or isinstance(trigger, unicode):
         # Assume reference was passed in
-        ref_obj = ResourceReference.from_string_reference(ref=trigger)
-        return _get_trigger_db_by_name_and_pack(name=ref_obj.name,
-                                                pack=ref_obj.pack)
+        return Trigger.get_by_ref(trigger)
     if isinstance(trigger, dict):
         name = trigger.get('name', None)
         pack = trigger.get('pack', None)
@@ -71,6 +69,23 @@ def get_trigger_db(trigger):
         return trigger_db
     else:
         raise Exception('Unrecognized object')
+
+
+def get_trigger_type_db(ref):
+    """
+    Returns the trigger type object from db given a string ref.
+
+    :param ref: Reference to the trigger type db object.
+    :type ref: ``str``
+
+    :rtype trigger_type: ``object``
+    """
+    try:
+        return TriggerType.get_by_ref(ref)
+    except ValueError as e:
+        LOG.debug('Database lookup for ref="%s" resulted ' +
+                  'in exception : %s.', ref, e, exc_info=True)
+        return None
 
 
 def _get_trigger_api_given_rule(rule):
@@ -103,3 +118,23 @@ def create_trigger_db(trigger):
 def create_trigger_db_from_rule(rule):
     trigger_api = _get_trigger_api_given_rule(rule)
     return create_trigger_db(trigger_api)
+
+
+def create_trigger_type_db(trigger_type):
+    """
+    Creates a trigger type db object in the db given trigger_type definition as dict.
+
+    :param trigger_type: Trigger type model.
+    :type trigger_type: ``dict``
+
+    :rtype: ``object``
+    """
+    trigger_type_api = TriggerTypeAPI(**trigger_type)
+    ref = ResourceReference.to_string_reference(name=trigger_type_api.name,
+                                                pack=trigger_type_api.pack)
+    trigger_type_db = get_trigger_type_db(ref)
+    if not trigger_type_db:
+        trigger_type_db = TriggerTypeAPI.to_model(trigger_type_api)
+        LOG.debug('verified trigger and formulated TriggerDB=%s', trigger_type_db)
+        trigger_type_db = TriggerType.add_or_update(trigger_type_db)
+    return trigger_type_db
