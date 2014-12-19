@@ -13,8 +13,8 @@ workflows:
                     parameters:
                         cmd: $.cmd
                 publish:
-                    stdout: $.localhost.stdout
-                    stderr: $.localhost.stderr
+                    stdout: $.stdout
+                    stderr: $.stderr
                 on-error:
                     - callback-on-error
                 on-success:
