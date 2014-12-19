@@ -112,6 +112,9 @@ class ActionExecutionsController(ResourceController):
             actionexec_db.status = new_actionexec_db.status
         if actionexec_db.result != new_actionexec_db.result:
             actionexec_db.result = new_actionexec_db.result
+        if not actionexec_db.end_timestamp and new_actionexec_db.end_timestamp:
+            actionexec_db.end_timestamp = new_actionexec_db.end_timestamp
+
         actionexec_db = ActionExecution.add_or_update(actionexec_db)
         actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
         return actionexec_api
