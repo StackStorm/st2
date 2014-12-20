@@ -1,0 +1,12 @@
+---
+  name: "get_task_results"
+  pack: "mistral"
+  runner_type: "run-python"
+  description: "Get results of mistral task in an execution."
+  enabled: true
+  entry_point: "get_results/get_task_results.py"
+  parameters:
+    task_id:
+      type: "string"
+      description: "Task id."
+      required: true

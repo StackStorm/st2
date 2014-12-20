@@ -1,0 +1,12 @@
+---
+  name: "get_workflow_results"
+  pack: "mistral"
+  runner_type: "run-python"
+  description: "Get results of mistral workflow."
+  enabled: true
+  entry_point: "get_results/get_workflow_results.py"
+  parameters:
+    execution_id:
+      type: "string"
+      description: "Workflow execution id."
+      required: true

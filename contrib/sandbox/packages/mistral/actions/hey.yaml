@@ -3,7 +3,7 @@ Workflow:
     say-greeting:
       action: st2.action
       parameters:
-        ref: "default.greet"
+        ref: "mistral.greet"
         parameters:
           cmd: $.count
       publish:
@@ -13,7 +13,7 @@ Workflow:
     say-friend:
       action: st2.action
       parameters:
-        ref: "default.friend"
+        ref: "mistral.friend"
         parameters:
           cmd: $.friend
       publish:
