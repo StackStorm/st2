@@ -56,6 +56,8 @@ class SensorContainerManager(object):
             LOG.info('(PID:%s) SensorContainer stopped. Reason - run ended.', os.getpid())
             return exit_code
         except (KeyboardInterrupt, SystemExit):
+            sensor_container.shutdown()
+
             LOG.info('(PID:%s) SensorContainer stopped. Reason - %s', os.getpid(),
                      sys.exc_info()[0].__name__)
             return 0
