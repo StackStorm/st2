@@ -15,6 +15,7 @@
 
 import os
 import sys
+import signal
 
 from st2common import log as logging
 from st2reactor.container.process_container import ProcessSensorContainer
@@ -51,6 +52,16 @@ class SensorContainerManager(object):
 
         LOG.info('(PID:%s) SensorContainer started.', os.getpid())
         sensor_container = ProcessSensorContainer(sensors=sensors_to_run)
+
+        def sigterm_handler(signum=None, frame=None):
+            # This will cause SystemExit to be throw and we call sensor_container.shutdown()
+            # there which cleans things up.
+            sys.exit(0)
+
+        # Register a SIGTERM sensor which calls sys.exit which causes SystemExit to be thrown.
+        # We catch SystemExit and handle cleanup there.
+        signal.signal(signal.SIGTERM, sigterm_handler)
+
         try:
             exit_code = sensor_container.run()
             LOG.info('(PID:%s) SensorContainer stopped. Reason - run ended.', os.getpid())
