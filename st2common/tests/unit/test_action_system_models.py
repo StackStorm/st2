@@ -43,8 +43,9 @@ class RemoteScriptActionTestCase(unittest2.TestCase):
         action = RemoteScriptAction(name='name', action_exec_id='aeid',
                                     script_local_path_abs='/tmp/sc/ma_script.sh',
                                     script_local_libs_path_abs='/tmp/sc/libs', named_args=None,
-                                    positional_args=None, env_vars={'a': 1}, on_behalf_user='onbehalf',
-                                    user='user', remote_dir='/home/mauser', hosts=['localhost'],
+                                    positional_args=None, env_vars={'a': 1},
+                                    on_behalf_user='onbehalf', user='user',
+                                    remote_dir='/home/mauser', hosts=['localhost'],
                                     parallel=False, sudo=True, timeout=10)
         self.assertEqual(action.name, 'name')
         self.assertEqual(action.action_exec_id, 'aeid')
