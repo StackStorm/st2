@@ -1,0 +1,12 @@
+---
+  class_name: "TestSensor"
+  entry_point: "test_sensor.py"
+  description: "Test sensor"
+  poll_interval: 10
+  trigger_types:
+    -
+      name: "trigger_type_1"
+      description: "1"
+    -
+      name: "trigger_type_2"
+      description: "2"
