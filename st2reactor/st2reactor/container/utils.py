@@ -49,8 +49,18 @@ def create_trigger_instance(trigger, payload, occurrence_time):
     return TriggerInstance.add_or_update(trigger_instance)
 
 
-def _create_trigger_type(trigger_type):
-    return TriggerService.create_trigger_type_db(trigger_type)
+def _create_trigger_type(pack, name, description=None, payload_schema=None,
+                         parameters_schema=None):
+    trigger_type = {
+        'name': name,
+        'pack': pack,
+        'description': description,
+        'payload_schema': payload_schema,
+        'parameters_schema': parameters_schema
+    }
+
+    trigger_type_db = TriggerService.create_or_update_trigger_type_db(trigger_type=trigger_type)
+    return trigger_type_db
 
 
 def _validate_trigger_type(trigger_type):
@@ -65,13 +75,25 @@ def _validate_trigger_type(trigger_type):
 
 
 def _create_trigger(trigger_type):
+    """
+    :param trigger_type: TriggerType db object.
+    :type trigger_type: :class:`TriggerTypeDB`
+    """
     if hasattr(trigger_type, 'parameters_schema') and not trigger_type['parameters_schema']:
         trigger_dict = {
             'name': trigger_type.name,
             'pack': trigger_type.pack,
             'type': trigger_type.get_reference().ref
         }
-        return TriggerService.create_trigger_db(trigger_dict)
+
+        try:
+            trigger_db = TriggerService.create_or_update_trigger_db(trigger=trigger_dict)
+        except:
+            LOG.exception('Validation failed for Trigger=%s.', trigger_dict)
+            raise TriggerTypeRegistrationException(
+                'Unable to create Trigger for TriggerType=%s.' % trigger_type.name)
+        else:
+            return trigger_db
     else:
         LOG.debug('Won\'t create Trigger object as TriggerType %s expects ' +
                   'parameters.', trigger_type)
@@ -79,7 +101,19 @@ def _create_trigger(trigger_type):
 
 
 def _add_trigger_models(trigger_type):
-    trigger_type = _create_trigger_type(trigger_type)
+    pack = trigger_type['pack']
+    description = trigger_type['description'] if 'description' in trigger_type else ''
+    payload_schema = trigger_type['payload_schema'] if 'payload_schema' in trigger_type else {}
+    parameters_schema = trigger_type['parameters_schema'] \
+        if 'parameters_schema' in trigger_type else {}
+
+    trigger_type = _create_trigger_type(
+        pack=pack,
+        name=trigger_type['name'],
+        description=description,
+        payload_schema=payload_schema,
+        parameters_schema=parameters_schema
+    )
     trigger = _create_trigger(trigger_type=trigger_type)
     return (trigger_type, trigger)
 
@@ -89,7 +123,9 @@ def add_trigger_models(trigger_types):
     Register trigger types.
 
     :param trigger_types: A list of triggers to register.
-    :type trigger_types: ``list`` of trigger_type.
+    :type trigger_types: ``list`` of ``dict``
+
+    :rtype: ``list`` of ``tuple`` (trigger_type, trigger)
     """
     [r for r in (_validate_trigger_type(trigger_type)
      for trigger_type in trigger_types) if r is not None]

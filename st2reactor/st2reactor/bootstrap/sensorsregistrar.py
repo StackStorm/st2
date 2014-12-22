@@ -63,6 +63,10 @@ class SensorsRegistrar(object):
         trigger_types = metadata.get('trigger_types', [])
         poll_interval = metadata.get('poll_interval', None)
 
+        # Add pack to each trigger type item
+        for trigger_type in trigger_types:
+            trigger_type['pack'] = pack
+
         # Add TrigerType models to the DB
         trigger_type_dbs = container_utils.add_trigger_models(trigger_types=trigger_types)
 
