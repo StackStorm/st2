@@ -249,6 +249,7 @@ class RemoteScriptAction(ShellScriptAction):
         self.remote_libs_path_abs = os.path.join(self.remote_dir, ACTION_LIBS_DIR)
         self.on_behalf_user = on_behalf_user
         self.remote_script = os.path.join(self.remote_dir, pipes.quote(self.script_name))
+        self.hosts = hosts
         self.command = self._format_command()
         LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
 
