@@ -1,5 +1,6 @@
 name: 'examples.mistral-basic'
 version: '2.0'
+description: 'Basic mistral workflow example'
 workflows:
     demo:
         type: direct

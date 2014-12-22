@@ -5,7 +5,7 @@
                 Will download pack, load the actions, sensors and rules from the pack.
                 Note that install require reboot of some st2 services."
   enabled: true
-  entry_point: "install.yaml"
+  entry_point: "workflows/install.yaml"
   parameters:
     packs:
       type: "array"

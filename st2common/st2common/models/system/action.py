@@ -51,6 +51,7 @@ class ShellCommandAction(object):
         self.env_vars = env_vars or {}
         self.user = user
         self.sudo = sudo
+        self.timeout = timeout
 
     def get_full_command_string(self):
         if self.sudo:
@@ -250,6 +251,7 @@ class RemoteScriptAction(ShellScriptAction):
         self.on_behalf_user = on_behalf_user
         self.remote_script = os.path.join(self.remote_dir, pipes.quote(self.script_name))
         self.hosts = hosts
+        self.parallel = parallel
         self.command = self._format_command()
         LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
 

@@ -21,6 +21,8 @@ Docs: http://docks.stackstorm.com/latest
   actions were executed through SSH, now they are executed directly without the overhead of SSH.
 * Fix local runner so it correctly executes a command under the provider system user if ``user``
   parameter is provided. (bug-fix)
+* Fix a bug with a Trigger database object in some cases being created twice when registering a
+  rule. (bug-fix)
 
 v0.6.0 - December 8, 2014
 -------------------------
