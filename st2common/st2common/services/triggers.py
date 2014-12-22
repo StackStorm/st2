@@ -103,12 +103,12 @@ def _get_trigger_api_given_rule(rule):
     trigger = rule.trigger
     triggertype_ref = ResourceReference.from_string_reference(trigger.get('type'))
     trigger_dict = {}
-    trigger_name = trigger.get('name', None)
-    if trigger_name:
-        trigger_dict['name'] = trigger_name
+
+    trigger_dict['name'] = triggertype_ref.name
     trigger_dict['pack'] = triggertype_ref.pack
     trigger_dict['type'] = triggertype_ref.ref
     trigger_dict['parameters'] = rule.trigger.get('parameters', {})
+
     trigger_api = TriggerAPI(**trigger_dict)
 
     return trigger_api
