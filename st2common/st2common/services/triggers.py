@@ -18,6 +18,17 @@ from st2common.models.api.reactor import (TriggerAPI, TriggerTypeAPI)
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import (Trigger, TriggerType)
 
+__all__ = [
+    'get_trigger_db',
+    'get_trigger_type_db',
+
+    'create_trigger_db',
+    'create_trigger_type_db',
+
+    'create_or_update_trigger_db',
+    'create_or_update_trigger_type_db'
+]
+
 LOG = logging.getLogger(__name__)
 
 
@@ -110,8 +121,41 @@ def create_trigger_db(trigger):
     trigger_db = get_trigger_db(trigger_api)
     if not trigger_db:
         trigger_db = TriggerAPI.to_model(trigger_api)
-        LOG.debug('verified trigger and formulated TriggerDB=%s', trigger_db)
+        LOG.debug('Verified trigger and formulated TriggerDB=%s', trigger_db)
         trigger_db = Trigger.add_or_update(trigger_db)
+    return trigger_db
+
+
+def create_or_update_trigger_db(trigger):
+    """
+    Create a new TriggerDB model if one doesn't exist yet or update existing
+    one.
+
+    :param trigger: Trigger info.
+    :type trigger: ``dict``
+    """
+    assert isinstance(trigger, dict)
+
+    trigger_api = TriggerAPI(**trigger)
+    trigger_api = TriggerAPI.to_model(trigger_api)
+
+    existing_trigger_db = get_trigger_db(trigger_api)
+
+    if existing_trigger_db:
+        is_update = True
+    else:
+        is_update = False
+
+    if is_update:
+        trigger_api.id = existing_trigger_db.id
+
+    trigger_db = Trigger.add_or_update(trigger_api)
+
+    if is_update:
+        LOG.audit('Trigger updated. Trigger=%s', trigger_db)
+    else:
+        LOG.audit('Trigger created. Trigger=%s', trigger_db)
+
     return trigger_db
 
 
@@ -133,8 +177,45 @@ def create_trigger_type_db(trigger_type):
     ref = ResourceReference.to_string_reference(name=trigger_type_api.name,
                                                 pack=trigger_type_api.pack)
     trigger_type_db = get_trigger_type_db(ref)
+
     if not trigger_type_db:
         trigger_type_db = TriggerTypeAPI.to_model(trigger_type_api)
         LOG.debug('verified trigger and formulated TriggerDB=%s', trigger_type_db)
         trigger_type_db = TriggerType.add_or_update(trigger_type_db)
+    return trigger_type_db
+
+
+def create_or_update_trigger_type_db(trigger_type):
+    """
+    Create or update a trigger type db object in the db given trigger_type definition as dict.
+
+    :param trigger_type: Trigger type model.
+    :type trigger_type: ``dict``
+
+    :rtype: ``object``
+    """
+    assert isinstance(trigger_type, dict)
+
+    trigger_type_api = TriggerTypeAPI(**trigger_type)
+    trigger_type_api = TriggerTypeAPI.to_model(trigger_type_api)
+
+    ref = ResourceReference.to_string_reference(name=trigger_type_api.name,
+                                                pack=trigger_type_api.pack)
+
+    existing_trigger_type_db = get_trigger_type_db(ref)
+    if existing_trigger_type_db:
+        is_update = True
+    else:
+        is_update = False
+
+    if is_update:
+        trigger_type_api.id = existing_trigger_type_db.id
+
+    trigger_type_db = TriggerType.add_or_update(trigger_type_api)
+
+    if is_update:
+        LOG.audit('TriggerType updated. TriggerType=%s', trigger_type_db)
+    else:
+        LOG.audit('TriggerType created. TriggerType=%s', trigger_type_db)
+
     return trigger_type_db
