@@ -58,8 +58,8 @@ class SensorContainerManager(object):
             # there which cleans things up.
             sys.exit(0)
 
-        # Register a SIGTERM sensor which calls sys.exit which causes SystemExit to be thrown.
-        # We catch SystemExit and handle cleanup there.
+        # Register a SIGTERM signal handler which calls sys.exit which causes SystemExit to
+        # be thrown. We catch SystemExit and handle cleanup there.
         signal.signal(signal.SIGTERM, sigterm_handler)
 
         try:
