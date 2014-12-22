@@ -16,6 +16,7 @@
 import os
 import sys
 import time
+import copy
 import json
 import subprocess
 
@@ -92,7 +93,8 @@ class ProcessSensorContainer(object):
     def shutdown(self):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
 
-        for sensor_id in self._sensors:
+        sensors = copy.deepcopy(self._sensors)
+        for sensor_id in sensors:
             self._stop_sensor_process(sensor_id=sensor_id)
 
         LOG.info('All sensors are shut down.')
