@@ -16,13 +16,12 @@
 import os
 
 from st2tests import DbTestCase
-from st2common.models.db.reactor import SensorTypeDB
-from st2common.models.db.reactor import TriggerDB
-from st2common.models.db.reactor import TriggerTypeDB
 from st2common.persistence.reactor import SensorType
 from st2common.persistence.reactor import Trigger
 from st2common.persistence.reactor import TriggerType
+from st2common.persistence.reactor import Rule
 from st2reactor.bootstrap.sensorsregistrar import SensorsRegistrar
+from st2reactor.bootstrap.rulesregistrar import RulesRegistrar
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -78,6 +77,7 @@ class SensorRegistrationTestCase(DbTestCase):
 
         # Verify sensor and trigger data is updated on registration
         original_load = registrar._meta_loader.load
+
         def mock_load(*args, **kwargs):
             # Update poll_interval and trigger_type_2 description
             data = original_load(*args, **kwargs)
@@ -104,3 +104,33 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(trigger_type_dbs[1].name, 'trigger_type_2')
         self.assertEqual(trigger_type_dbs[1].pack, 'pack_with_sensor')
         self.assertEqual(trigger_type_dbs[1].description, 'test 2')
+
+
+class RuleRegistrationTestCase(DbTestCase):
+    def setUp(self):
+        self._packs_base_path = os.path.join(CURRENT_DIR, 'fixtures/packs')
+
+    def test_register_rules(self):
+        # Verify DB is empty at the beginning
+        self.assertEqual(len(Rule.get_all()), 0)
+        self.assertEqual(len(Trigger.get_all()), 0)
+
+        registrar = RulesRegistrar()
+        registrar.register_rules_from_packs(base_dir=self._packs_base_path)
+
+        # Verify modeles are created
+        rule_dbs = Rule.get_all()
+        trigger_dbs = Trigger.get_all()
+        self.assertEqual(len(rule_dbs), 1)
+        self.assertEqual(len(trigger_dbs), 1)
+
+        self.assertEqual(rule_dbs[0].name, 'sample.with_timer')
+        self.assertEqual(trigger_dbs[0].name, 'st2.IntervalTimer')
+
+        # Verify second register call updates existing models
+        registrar.register_rules_from_packs(base_dir=self._packs_base_path)
+
+        rule_dbs = Rule.get_all()
+        trigger_dbs = Trigger.get_all()
+        self.assertEqual(len(rule_dbs), 1)
+        self.assertEqual(len(trigger_dbs), 1)
