@@ -253,7 +253,8 @@ def register_runner_types():
                     'default': {}
                 }
             },
-            'runner_module': 'st2actions.runners.mistral.v2'
+            'runner_module': 'st2actions.runners.mistral.v2',
+            'query_module': 'st2actions.query.mistral.v2'
         },
         {
             'name': 'action-chain',

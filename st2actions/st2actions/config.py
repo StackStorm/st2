@@ -75,6 +75,12 @@ workflow_opts = [
 ]
 CONF.register_opts(workflow_opts, group='workflow')
 
+mistral_opts = [
+    cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2/',
+               help='Mistral v2 API server root endpoint.'),
+]
+CONF.register_opts(workflow_opts, group='mistral')
+
 history_opts = [
     cfg.StrOpt('logging', default='conf/logging.history.conf',
                help='Location of the logging configuration file.')
