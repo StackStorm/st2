@@ -17,8 +17,8 @@ import os
 
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
-from st2common.persistence.reactor import SensorType, TriggerType, TriggerInstance
-from st2common.models.db.reactor import SensorTypeDB, TriggerTypeDB, TriggerInstanceDB
+from st2common.persistence.reactor import SensorType, TriggerInstance
+from st2common.models.db.reactor import SensorTypeDB, TriggerInstanceDB
 from st2common.services import triggers as TriggerService
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.constants.sensors import MINIMUM_POLL_INTERVAL
