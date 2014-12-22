@@ -92,7 +92,8 @@ class ProcessSensorContainer(object):
     def shutdown(self):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
 
-        for sensor_id in self._sensors:
+        sensor_ids = self._sensors.keys()
+        for sensor_id in sensor_ids:
             self._stop_sensor_process(sensor_id=sensor_id)
 
         LOG.info('All sensors are shut down.')

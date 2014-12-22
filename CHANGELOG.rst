@@ -23,6 +23,8 @@ Docs: http://docks.stackstorm.com/latest
   parameter is provided. (bug-fix)
 * Fix a bug with a Trigger database object in some cases being created twice when registering a
   rule. (bug-fix)
+* Fix a bug with child processes which run sensor code not being killed when stopping a sensor
+  container service. (bug-fix)
 
 v0.6.0 - December 8, 2014
 -------------------------
