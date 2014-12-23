@@ -127,9 +127,30 @@ class ActionExecutionDB(StormFoundationDB):
     }
 
 
+class ActionExecutionStateDB(StormFoundationDB):
+    """
+        Database entity that represents the state of Action execution.
+    """
+
+    execution_id = me.StringField(
+        required=True,
+        unique=True,
+        help_text='ActionExecution ID.')
+    runner = me.StringField(
+        required=True,
+        help_text='Reference to the runner model.')
+    query_context = me.DictField(
+        required=True,
+        help_text='Context about the action execution that is needed for results query.')
+
+    meta = {
+        'indexes': ['runner']
+    }
+
 # specialized access objects
 runnertype_access = MongoDBAccess(RunnerTypeDB)
 action_access = MongoDBAccess(ActionDB)
 actionexec_access = MongoDBAccess(ActionExecutionDB)
+actionexecstate_access = MongoDBAccess(ActionExecutionStateDB)
 
-MODELS = [RunnerTypeDB, ActionDB, ActionExecutionDB]
+MODELS = [RunnerTypeDB, ActionDB, ActionExecutionDB, ActionExecutionStateDB]
