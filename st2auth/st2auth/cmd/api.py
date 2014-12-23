@@ -23,6 +23,7 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
+from st2common.constants.auth import VALID_MODES
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2auth import config
 from st2auth import app
@@ -49,6 +50,9 @@ def _setup():
     # 2. setup logging.
     logging.setup(cfg.CONF.auth.logging)
 
+    if cfg.CONF.auth.mode not in VALID_MODES:
+        raise ValueError('Valid modes are: %s' % (','.join(VALID_MODES)))
+
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
     username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
@@ -60,17 +64,30 @@ def _setup():
 def _run_server():
     host = cfg.CONF.auth.host
     port = cfg.CONF.auth.port
+    use_ssl = cfg.CONF.auth.use_ssl
 
-    cert = cfg.CONF.auth.cert
-    key = cfg.CONF.auth.key
+    cert_file_path = os.path.realpath(cfg.CONF.auth.cert)
+    key_file_path = os.path.realpath(cfg.CONF.auth.key)
 
-    LOG.info('(PID=%s) ST2 Auth API is serving on http://%s:%s.', os.getpid(), host, port)
+    if use_ssl and not os.path.isfile(cert_file_path):
+        raise ValueError('Certificate file "%s" doesn\'t exist' % (cert_file_path))
 
-    wsgi.server(eventlet.wrap_ssl(eventlet.listen((host, port)),
-                                  certfile=cert,
-                                  keyfile=key,
-                                  server_side=True),
-                app.setup_app())
+    if use_ssl and not os.path.isfile(key_file_path):
+        raise ValueError('Private key file "%s" doesn\'t exist' % (key_file_path))
+
+    socket = eventlet.listen((host, port))
+
+    if use_ssl:
+        socket = eventlet.wrap_ssl(socket,
+                                   certfile=cert_file_path,
+                                   keyfile=key_file_path,
+                                   server_side=True)
+
+    LOG.info('ST2 Auth API running in "%s" auth mode', cfg.CONF.auth.mode)
+    LOG.info('(PID=%s) ST2 Auth API is serving on %s://%s:%s.', os.getpid(),
+             'https' if use_ssl else 'http', host, port)
+
+    wsgi.server(socket, app.setup_app())
     return 0
 
 

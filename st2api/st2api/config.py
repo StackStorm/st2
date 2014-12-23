@@ -61,7 +61,7 @@ def _register_app_opts():
     CONF.register_opts(logging_opts, group='api')
 
 
-def regsiter_opts():
+def register_opts():
     _register_common_opts()
     _register_app_opts()
 
@@ -70,4 +70,4 @@ def parse_args(args=None):
     CONF(args=args, version=VERSION_STRING)
 
 
-regsiter_opts()
+register_opts()
