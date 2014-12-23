@@ -23,9 +23,9 @@ The available options are described bellow:
 
 * ``host`` - Hostname for the service to listen on.
 * ``port`` - Port for the service to listen on.
-* ``secure`` - True to use SSL / TLS.
-* ``cert`` - Path to the certificate file. Only used when secure is True.
-* ``key`` - Path to the private key file. Only used when secure is True.
+* ``use_ssl`` - True to use SSL / TLS.
+* ``cert`` - Path to the certificate file. Only used when "use_ssl" is True.
+* ``key`` - Path to the private key file. Only used when "use_ssl" is True.
 * ``mode`` - Mode to use (``proxy`` or ``standalone``)
 * ``backend_kwargs`` - JSON serialized keyword arguments which are passed to
   the authentication backend.
@@ -77,7 +77,7 @@ using a backend which is specified in the config file.
     Standalone mode
 
 In this mode, the service should listen on https (this means setting the
-``secure`` configuration option) and be accessible to the st2 clients.
+``use_ssl`` configuration option) and be accessible to the st2 clients.
 
 Authentication backends
 -----------------------
@@ -99,7 +99,7 @@ Example usage
 
 .. sourcecode:: bash
 
-    st2auth --config-file /etc/stanley/st2.conf --auth-secure --auth-mode=standalone \
+    st2auth --config-file /etc/stanley/st2.conf --auth-use_ssl --auth-mode=standalone \
         --auth-backend=flat_file --auth-backend_kwargs='{"file_path": "/etc/private/htpaswd"}'
 
 MongoDB backend
@@ -126,7 +126,7 @@ Example usage
 
 .. sourcecode:: bash
 
-    st2auth --config-file /etc/stanley/st2.conf --auth-secure --auth-mode=standalone \
+    st2auth --config-file /etc/stanley/st2.conf --auth-use_ssl--auth-mode=standalone \
         --auth-backend=mongodb \
         --auth-backend_kwargs='{"db_host": "196.168.100.10", "db_port": 27017, "db_name": "st2auth"}'
 

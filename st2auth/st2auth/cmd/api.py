@@ -64,20 +64,20 @@ def _setup():
 def _run_server():
     host = cfg.CONF.auth.host
     port = cfg.CONF.auth.port
-    secure = cfg.CONF.auth.secure
+    use_ssl = cfg.CONF.auth.use_ssl
 
     cert_file_path = os.path.realpath(cfg.CONF.auth.cert)
     key_file_path = os.path.realpath(cfg.CONF.auth.key)
 
-    if secure and not os.path.isfile(cert_file_path):
+    if use_ssl and not os.path.isfile(cert_file_path):
         raise ValueError('Certificate file "%s" doesn\'t exist' % (cert_file_path))
 
-    if secure and not os.path.isfile(key_file_path):
+    if use_ssl and not os.path.isfile(key_file_path):
         raise ValueError('Private key file "%s" doesn\'t exist' % (key_file_path))
 
     socket = eventlet.listen((host, port))
 
-    if secure:
+    if use_ssl:
         socket = eventlet.wrap_ssl(socket,
                                    certfile=cert_file_path,
                                    keyfile=key_file_path,
@@ -85,7 +85,7 @@ def _run_server():
 
     LOG.info('ST2 Auth API running in "%s" auth mode', cfg.CONF.auth.mode)
     LOG.info('(PID=%s) ST2 Auth API is serving on %s://%s:%s.', os.getpid(),
-             'https' if secure else 'http', host, port)
+             'https' if use_ssl else 'http', host, port)
 
     wsgi.server(socket, app.setup_app())
     return 0
