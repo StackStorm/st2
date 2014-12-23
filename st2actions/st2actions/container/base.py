@@ -24,7 +24,9 @@ from st2common.util import isotime
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED,
                                         ACTIONEXEC_STATUS_FAILED)
+from st2common.models.db.action import ActionExecutionStateDB
 from st2common.models.system.common import ResourceReference
+from st2common.persistence.action import ActionExecutionState
 from st2common.services import access
 from st2common.util.action_db import (get_action_by_dict, get_runnertype_by_name)
 from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
@@ -109,12 +111,27 @@ class RunnerContainer(object):
                                                               action_db.entry_point)
         runner.auth_token = self._create_auth_token(runner.context)
 
+        is_done = False
         try:
             LOG.debug('Performing pre-run for runner: %s', runner)
             runner.pre_run()
 
             LOG.debug('Performing run for runner: %s', runner)
             run_result = runner.run(action_params)
+
+            # XXX: The len check below is done for backward compatibilty. Once
+            # all the runners return a tuple, we can remove some code here.
+            if len(run_result) > 1:
+                is_done = run_result[0]
+                query_context = run_result[1]
+                partial_results = run_result[2]
+                runner.container_service.report_result(partial_results)
+                run_result = partial_results
+            else:
+                is_done = True
+
+            if not is_done:
+                self._setup_async_query(actionexec_db.id, runnertype_db, query_context)
             LOG.debug('Result of run: %s', run_result)
         except:
             LOG.exception('Failed to run action.')
@@ -190,6 +207,29 @@ class RunnerContainer(object):
     def _delete_auth_token(self, auth_token):
         if auth_token:
             access.delete_token(auth_token.token)
+
+    def _setup_async_query(self, actionexec_id, runnertype_db, query_context):
+        query_module = getattr(runnertype_db, 'query_module', None)
+        if not query_module:
+            LOG.error('No query module specified for runner %s.', runnertype_db)
+            return
+        try:
+            self._create_execution_state(actionexec_id, runnertype_db, query_context)
+        except:
+            LOG.exception('Unable to create action execution state db model ' +
+                          'for action_execution_id %s', actionexec_id)
+
+    def _create_execution_state(actionexec_id, runnertype_db, query_context):
+        state_db = ActionExecutionStateDB(
+            execution_id=actionexec_id,
+            runner=runnertype_db.name,
+            query_context=query_context)
+        try:
+            return ActionExecutionState.add_or_update(state_db)
+        except:
+            LOG.exception('Unable to create execution state db for action_execution_id %s.'
+                          % actionexec_id)
+            return None
 
 
 def get_runner_container():
