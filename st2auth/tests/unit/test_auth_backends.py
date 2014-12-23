@@ -28,7 +28,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class FlatFileAuthenticationBackendTestCase(unittest2.TestCase):
     def test_authenticate(self):
-        file_path = os.path.join(BASE_DIR, 'fixtures/htpasswd_test')
+        file_path = os.path.join(BASE_DIR, '../fixtures/htpasswd_test')
         backend = FlatFileAuthenticationBackend(file_path=file_path)
 
         # Inexistent user
