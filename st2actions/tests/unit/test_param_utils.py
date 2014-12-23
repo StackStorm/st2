@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -223,6 +224,35 @@ class ParamsUtilsTest(TestCase):
             runner_params, action_params, runner_param_info, action_param_info)
         self.assertEqual(r_runner_params, {'r1': 1, 'r2': 1})
         self.assertEqual(r_action_params, {'a1': True, 'a2': True})
+
+    def test_unicode_value_casting(self):
+        rendered = {'a1': 'unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2'}
+        parameter_schemas = {'a1': {'type': 'string'}}
+
+        result = param_utils._cast_params(rendered=rendered,
+                                          parameter_schemas=parameter_schemas)
+        expected = {
+            'a1': (u'unicode1 \xd9\xa9(\xcc\xbe\xe2\x97\x8f\xcc\xae\xcc\xae\xcc'
+                   u'\x83\xcc\xbe\xe2\x80\xa2\xcc\x83\xcc\xbe)\xdb\xb6 unicode2')
+        }
+        self.assertEqual(result, expected)
+
+    def test_get_rendered_params_with_casting_unicode_values(self):
+        runner_params = {}
+        action_params = {'a1': 'unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2'}
+
+        runner_param_info = {}
+        action_param_info = {'a1': {'type': 'string'}}
+
+        r_runner_params, r_action_params = param_utils.get_rendered_params(
+            runner_params, action_params, runner_param_info, action_param_info)
+
+        expected_action_params = {
+            'a1': (u'unicode1 \xd9\xa9(\xcc\xbe\xe2\x97\x8f\xcc\xae\xcc\xae\xcc'
+                   u'\x83\xcc\xbe\xe2\x80\xa2\xcc\x83\xcc\xbe)\xdb\xb6 unicode2')
+        }
+        self.assertEqual(r_runner_params, {})
+        self.assertEqual(r_action_params, expected_action_params)
 
     def test_get_rendered_params_with_dict(self):
         # Note : In this test runner_params.r1 has a string value. However per runner_param_info the

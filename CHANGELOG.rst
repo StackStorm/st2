@@ -25,6 +25,8 @@ Docs: http://docks.stackstorm.com/latest
   rule. (bug-fix)
 * Fix a bug with child processes which run sensor code not being killed when stopping a sensor
   container service. (bug-fix)
+* Fix a bug and allow user to use non-ascii (unicode) values in the parameter substitution values.
+  (bug-fix)
 
 v0.6.0 - December 8, 2014
 -------------------------
