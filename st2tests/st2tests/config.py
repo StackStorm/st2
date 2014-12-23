@@ -103,9 +103,11 @@ def _register_auth_opts():
     auth_opts = [
         cfg.StrOpt('host', default='0.0.0.0'),
         cfg.IntOpt('port', default=9100),
+        cfg.BoolOpt('use_ssl', default=False),
+        cfg.StrOpt('mode', default='proxy'),
         cfg.StrOpt('logging', default='conf/logging.conf'),
         cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.'),
-        cfg.BoolOpt('debug', default=False)
+        cfg.BoolOpt('debug', default=True)
     ]
     _register_opts(auth_opts, group='auth')
 

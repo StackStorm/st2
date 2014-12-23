@@ -19,3 +19,4 @@ setuptools
 six
 git+https://github.com/StackStorm/python-mistralclient.git@st2-0.5.1
 git+https://github.com/StackStorm/fabric.git@stanley-patched
+passlib>=1.6.2,<1.7
