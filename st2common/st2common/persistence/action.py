@@ -54,7 +54,15 @@ class ActionExecution(Access):
 
 class ActionExecutionState(Access):
     impl = actionexecstate_access
+    publisher = None
 
     @classmethod
     def _get_impl(kls):
         return kls.impl
+
+    @classmethod
+    def _get_publisher(kls):
+        if not kls.publisher:
+            kls.publisher = transport.actionexecutionstate.ActionExecutionStatePublisher(
+                cfg.CONF.messaging.url)
+        return kls.publisher
