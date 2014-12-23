@@ -67,6 +67,49 @@ class SensorService(object):
         """
         self._dispatcher.dispatch(trigger, payload=payload)
 
+    def get_value(self, name):
+        """
+        Retrieve a value from the datastore for the provided key.
+
+        :param name: Key name.
+        :type name: ``str``
+        """
+        name = self._get_full_key_name(name=name)
+        pass
+
+    def set_value(self, name, value):
+        """
+        Set a value for the provided key.
+
+        :param name: Key name.
+        :type name: ``str``
+
+        :param value: Key value.
+        :type value: ``str``
+        """
+        name = self._get_full_key_name(name=name)
+        pass
+
+    def delete_value(self, name):
+        """
+        Delete the provided key.
+
+        :param name: Name of the key to delete.
+        :type name: ``str``
+        """
+        name = self._get_full_key_name(name=name)
+        pass
+
+    def _get_full_key_name(self, name):
+        prefix = self._get_datastore_key_prefix()
+        separator = '.'
+        full_name = prefix + separator + name
+        return full_name
+
+    def _get_datastore_key_prefix(self):
+        prefix = '%s.%s' % (self._sensor_wrapper._pack, self._sensor_wrapper.class_name)
+        return prefix
+
 
 class SensorWrapper(object):
     def __init__(self, pack, file_path, class_name, trigger_types,
