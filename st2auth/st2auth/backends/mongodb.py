@@ -17,6 +17,7 @@ import hashlib
 
 import pymongo
 from pymongo import MongoClient
+from oslo.config import cfg
 
 from st2common import log as logging
 from st2auth.backends.base import BaseAuthenticationBackend
@@ -26,6 +27,9 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
+
+if not cfg.CONF.auth.debug:
+    raise Exception('"mongodb" authentication backend can only be used in debug mode')
 
 
 class MongoDBAuthenticationBackend(BaseAuthenticationBackend):
