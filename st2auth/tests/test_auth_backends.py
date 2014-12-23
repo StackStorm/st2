@@ -17,6 +17,9 @@ import os
 
 import unittest2
 
+from st2tests.config import parse_args
+parse_args()
+
 from st2auth.backends.flat_file import FlatFileAuthenticationBackend
 from st2auth.backends.mongodb import MongoDBAuthenticationBackend
 
