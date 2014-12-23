@@ -27,6 +27,8 @@ Docs: http://docks.stackstorm.com/latest
   container service. (bug-fix)
 * Fix a bug and allow user to use non-ascii (unicode) values in the parameter substitution values.
   (bug-fix)
+* Allow polling sensors to retrieve current poll interval and change it using ``get_poll_interval``
+  and ``set_poll_interval`` methods respectively. (new-feature)
 
 v0.6.0 - December 8, 2014
 -------------------------
