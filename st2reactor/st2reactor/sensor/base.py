@@ -81,14 +81,32 @@ class PollingSensor(BaseSensor):
         super(PollingSensor, self).__init__(sensor_service=sensor_service, config=config)
         self._poll_interval = poll_interval
 
-    def run(self):
-        while True:
-            self.poll()
-            eventlet.sleep(self._poll_interval)
-
     @abc.abstractmethod
     def poll(self):
         """
         Poll 3rd party system for new information.
         """
         pass
+
+    def run(self):
+        while True:
+            self.poll()
+            eventlet.sleep(self._poll_interval)
+
+    def get_poll_interval(self):
+        """
+        Retrieve current poll interval.
+
+        :return: Current poll interval.
+        :rtype: ``float``
+        """
+        return self._poll_interval
+
+    def set_poll_interval(self, poll_interval):
+        """
+        Set the poll interval.
+
+        :param poll_interval: Poll interval to use.
+        :type poll_interval: ``float``
+        """
+        self._poll_interval = poll_interval

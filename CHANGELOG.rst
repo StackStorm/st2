@@ -27,6 +27,8 @@ Docs: http://docks.stackstorm.com/latest
   container service. (bug-fix)
 * Fix a bug and allow user to use non-ascii (unicode) values in the parameter substitution values.
   (bug-fix)
+* Allow polling sensors to retrieve current poll interval and change it using ``get_poll_interval``
+  and ``set_poll_interval`` methods respectively. (new-feature)
 * Add support for a ``standalone`` mode to the st2auth service. In the standalone mode,
   authentication is handled inside the st2auth service using the defined backend. (new feature)
 
