@@ -24,12 +24,10 @@ from st2reactor.bootstrap.sensorsregistrar import SensorsRegistrar
 from st2reactor.bootstrap.rulesregistrar import RulesRegistrar
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PACKS_DIR = os.path.join(CURRENT_DIR, '../fixtures/packs')
 
 
 class SensorRegistrationTestCase(DbTestCase):
-    def setUp(self):
-        self._packs_base_path = os.path.join(CURRENT_DIR, 'fixtures/packs')
-
     def test_register_sensors(self):
         # Verify DB is empty at the beginning
         self.assertEqual(len(SensorType.get_all()), 0)
@@ -37,7 +35,7 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(len(Trigger.get_all()), 0)
 
         registrar = SensorsRegistrar()
-        registrar.register_sensors_from_packs(base_dir=self._packs_base_path)
+        registrar.register_sensors_from_packs(base_dir=PACKS_DIR)
 
         # Verify objects have been created
         sensor_dbs = SensorType.get_all()
@@ -57,7 +55,7 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(trigger_type_dbs[1].pack, 'pack_with_sensor')
 
         # Verify second call to registration doesn't create a duplicate objects
-        registrar.register_sensors_from_packs(base_dir=self._packs_base_path)
+        registrar.register_sensors_from_packs(base_dir=PACKS_DIR)
 
         sensor_dbs = SensorType.get_all()
         trigger_type_dbs = TriggerType.get_all()
@@ -86,7 +84,7 @@ class SensorRegistrationTestCase(DbTestCase):
             return data
         registrar._meta_loader.load = mock_load
 
-        registrar.register_sensors_from_packs(base_dir=self._packs_base_path)
+        registrar.register_sensors_from_packs(base_dir=PACKS_DIR)
 
         sensor_dbs = SensorType.get_all()
         trigger_type_dbs = TriggerType.get_all()
@@ -107,16 +105,13 @@ class SensorRegistrationTestCase(DbTestCase):
 
 
 class RuleRegistrationTestCase(DbTestCase):
-    def setUp(self):
-        self._packs_base_path = os.path.join(CURRENT_DIR, 'fixtures/packs')
-
     def test_register_rules(self):
         # Verify DB is empty at the beginning
         self.assertEqual(len(Rule.get_all()), 0)
         self.assertEqual(len(Trigger.get_all()), 0)
 
         registrar = RulesRegistrar()
-        registrar.register_rules_from_packs(base_dir=self._packs_base_path)
+        registrar.register_rules_from_packs(base_dir=PACKS_DIR)
 
         # Verify modeles are created
         rule_dbs = Rule.get_all()
@@ -128,7 +123,7 @@ class RuleRegistrationTestCase(DbTestCase):
         self.assertEqual(trigger_dbs[0].name, 'st2.IntervalTimer')
 
         # Verify second register call updates existing models
-        registrar.register_rules_from_packs(base_dir=self._packs_base_path)
+        registrar.register_rules_from_packs(base_dir=PACKS_DIR)
 
         rule_dbs = Rule.get_all()
         trigger_dbs = Trigger.get_all()
