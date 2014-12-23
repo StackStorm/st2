@@ -19,6 +19,7 @@ import atexit
 import argparse
 
 from oslo.config import cfg
+from st2client.client import Client
 
 from st2common import log as logging
 from st2common.models.db import db_setup
@@ -45,6 +46,8 @@ class SensorService(object):
         self._sensor_wrapper = sensor_wrapper
         self._logger = self._sensor_wrapper._logger
         self._dispatcher = TriggerDispatcher(self._logger)
+
+        self._client = self._get_api_client()
 
     def get_logger(self, name):
         """
@@ -99,6 +102,17 @@ class SensorService(object):
         """
         name = self._get_full_key_name(name=name)
         pass
+
+    def _get_api_client(self):
+        """
+        Retrieve API client instance.
+        """
+        api_url = os.environ['ST2-API-URL']
+        auth_token = os.environ['ST2-AUTH-TOKEN']
+        # TODO: API client is really unfriendly and needs to be re-designed and
+        # improved
+        client = Client(api_url=api_url)
+        return client
 
     def _get_full_key_name(self, name):
         prefix = self._get_datastore_key_prefix()

@@ -187,6 +187,11 @@ class ProcessSensorContainer(object):
         env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
                                                     inherit_parent_virtualenv=True)
 
+
+        # Include full api URL and API token specific to that sensor
+        env['ST2-API-URL'] = None
+        env['ST2-API-TOKEN'] = None
+
         LOG.debug('Running sensor subprocess (cmd="%s")', ' '.join(args))
 
         # TODO: Intercept stdout and stderr for aggregated logging purposes
