@@ -20,7 +20,7 @@ class MistralResultsQuerier(Querier):
         super(MistralResultsQuerier, Querier).__init__(*args, **kwargs)
         self._base_url = cfg.CONF.mistral.v2_base_url
 
-    def query(self, query_context):
+    def query(self, execution_id, query_context):
         """
         TODO: doc str
         """
