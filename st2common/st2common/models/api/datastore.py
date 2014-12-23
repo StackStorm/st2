@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 from st2common.models.base import BaseAPI
 from st2common.models.db.datastore import KeyValuePairDB
 
@@ -22,15 +24,11 @@ class KeyValuePairAPI(BaseAPI):
     schema = {
         'type': 'object',
         'properties': {
-            'id': {
-                'type': 'string'
-            },
             'description': {
                 'type': 'string'
             },
             'name': {
-                'type': 'string',
-                'required': True
+                'type': 'string'
             },
             'value': {
                 'type': 'string',
@@ -39,6 +37,16 @@ class KeyValuePairAPI(BaseAPI):
         },
         'additionalProperties': False
     }
+
+    @classmethod
+    def from_model(cls, model):
+        doc = cls._from_model(model)
+
+        if 'id' in doc:
+            del doc['id']
+
+        attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
+        return cls(**attrs)
 
     @classmethod
     def to_model(cls, kvp):
