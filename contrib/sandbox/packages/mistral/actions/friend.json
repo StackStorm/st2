@@ -1,5 +1,6 @@
 {
     "name": "friend",
+    "pack": "mistral",
     "runner_type": "run-local",
     "description": "Say friend's name.",
     "enabled": true,

@@ -132,7 +132,7 @@ value in payload is ``st2``. See :doc:`rules` for detailed rule anatomy.
 
 Trigger payload is referred with ``{{trigger}}``. If trigger payload is valid JSON,
 it is parsed and can be accessed like ``{{trigger.path.to.parameter}}`` (it's
-`Jinga template syntax <http://jinja.pocoo.org/docs/dev/templates/>`__).
+`Jinja template syntax <http://jinja.pocoo.org/docs/dev/templates/>`__).
 
 While the most data are retrieved as needed by |st2|, you may need to
 store and share some common variables. Use |st2| datastore service to store

@@ -177,7 +177,7 @@ pytests: requirements .flake8 .pytests-coverage
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component/tests || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component/tests/unit || exit 1; \
 	done
 
 .PHONY: .pytests-coverage
@@ -189,8 +189,16 @@ pytests: requirements .flake8 .pytests-coverage
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-xcoverage --xcoverage-file=coverage-$$component.xml --cover-package=$$component $$component/tests || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-xcoverage --xcoverage-file=coverage-$$component.xml --cover-package=$$component $$component/tests/unit || exit 1; \
 	done
+
+.PHONY: itests
+itests:
+	@echo
+	@echo "==================== integration tests ===================="
+	@echo "The tests assume both st2 and mistral are running on localhost."
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration || exit 1;
 
 .PHONY: rpms
 rpms:

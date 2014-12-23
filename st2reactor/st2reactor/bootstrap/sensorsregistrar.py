@@ -31,8 +31,6 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)))
-SYSTEM_SENSORS_PATH = os.path.join(PATH, '../contrib/sensors')
-SYSTEM_SENSORS_PATH = os.path.abspath(SYSTEM_SENSORS_PATH)
 
 
 class SensorsRegistrar(object):
@@ -65,9 +63,12 @@ class SensorsRegistrar(object):
         trigger_types = metadata.get('trigger_types', [])
         poll_interval = metadata.get('poll_interval', None)
 
+        # Add pack to each trigger type item
+        for trigger_type in trigger_types:
+            trigger_type['pack'] = pack
+
         # Add TrigerType models to the DB
-        trigger_type_dbs = container_utils.add_trigger_models(pack=pack,
-                                                              trigger_types=trigger_types)
+        trigger_type_dbs = container_utils.add_trigger_models(trigger_types=trigger_types)
 
         # Populate a list of references belonging to this sensor
         trigger_type_refs = []
@@ -93,10 +94,6 @@ class SensorsRegistrar(object):
     def register_sensors_from_packs(self, base_dir):
         pack_loader = ContentPackLoader()
         dirs = pack_loader.get_content(base_dir=base_dir, content_type='sensors')
-
-        # Add system sensors to the core pack
-        dirs['core'] = {}
-        dirs['core'] = SYSTEM_SENSORS_PATH
 
         for pack, sensors_dir in six.iteritems(dirs):
             try:

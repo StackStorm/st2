@@ -1,6 +1,6 @@
 {
     "name": "heyhey",
-    "pack": "default",
+    "pack": "mistral",
     "runner_type": "mistral-v2",
     "description": "Say hi to friend!",
     "enabled": true,
@@ -8,11 +8,11 @@
     "parameters": {
         "workflow": {
             "type": "string",
-            "default": "default.heyhey.heyhey",
+            "default": "mistral.heyhey.heyhey",
             "immutable": true
         },
         "context": {
-            "description": "Context for the startup task.", 
+            "description": "Context for the startup task.",
             "type": "object",
             "default": {},
             "immutable": true

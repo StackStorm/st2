@@ -24,11 +24,11 @@ from pecan.rest import RestController
 from urlparse import urljoin
 
 from st2common import log as logging
-from st2common.constants.triggers import GENERIC_WEBHOOK_TRIGGER_REF
+from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
 from st2common.models.base import jsexpose
+import st2common.services.triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
-
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class WebhooksController(RestController):
         super(WebhooksController, self).__init__(*args, **kwargs)
         self._hooks = {}
         self._base_url = '/webhooks/'
-        self._trigger_types = [GENERIC_WEBHOOK_TRIGGER_REF]
+        self._trigger_types = WEBHOOK_TRIGGER_TYPES.keys()
 
         self._trigger_dispatcher = TriggerDispatcher(LOG)
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
@@ -48,6 +48,7 @@ class WebhooksController(RestController):
                                                trigger_types=self._trigger_types,
                                                queue_suffix='webhooks')
         self._trigger_watcher.start()
+        self._register_webhook_trigger_types()
 
     @jsexpose()
     def get_all(self):
@@ -98,6 +99,10 @@ class WebhooksController(RestController):
 
     def _get_trigger_for_hook(self, hook):
         return self._hooks[hook]
+
+    def _register_webhook_trigger_types(self):
+        for trigger_type in WEBHOOK_TRIGGER_TYPES.values():
+            trigger_service.create_trigger_type_db(trigger_type)
 
     def add_trigger(self, trigger):
         url = trigger['parameters']['url']

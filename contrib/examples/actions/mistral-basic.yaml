@@ -1,5 +1,6 @@
 name: 'examples.mistral-basic'
 version: '2.0'
+description: 'Basic mistral workflow example'
 workflows:
     demo:
         type: direct
@@ -13,8 +14,8 @@ workflows:
                     parameters:
                         cmd: $.cmd
                 publish:
-                    stdout: $.localhost.stdout
-                    stderr: $.localhost.stderr
+                    stdout: $.stdout
+                    stderr: $.stderr
                 on-error:
                     - callback-on-error
                 on-success:

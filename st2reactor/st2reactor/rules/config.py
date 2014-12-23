@@ -33,6 +33,12 @@ def _register_rules_engine_opts():
     ]
     CONF.register_opts(logging_opts, group='rulesengine')
 
+    timer_opts = [
+        cfg.StrOpt('local_timezone', default='America/Los_Angeles',
+                   help='Timezone pertaining to the location where st2 is run.')
+    ]
+    CONF.register_opts(timer_opts, group='timer')
+
 
 def register_opts():
     _register_common_opts()

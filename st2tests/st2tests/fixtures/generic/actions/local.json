@@ -1,0 +1,12 @@
+{
+    "runner_type": "run-local",
+    "name": "local",
+    "parameters": {
+        "sudo": {
+            "immutable": true
+        }
+    }, 
+    "enabled": true,
+    "pack": "core",
+    "entry_point": ""
+}

@@ -2,6 +2,7 @@ apscheduler>=3.0.0rc1
 eventlet>=0.13.0
 flask
 flask-jsonschema
+gitpython==0.3.2.1
 jinja2
 jsonschema>=2.3.0
 kombu
@@ -11,13 +12,13 @@ paramiko
 pecan==0.7.0
 pymongo
 python-dateutil
-python-mistralclient==0.1.1
+python-json-logger
 pyyaml
 requests
 setuptools
 six
+git+https://github.com/StackStorm/python-mistralclient.git@st2-0.5.1
 git+https://github.com/StackStorm/fabric.git@stanley-patched
 gitpython==0.3.2RC1
 python-json-logger
-
 passlib>=1.6.2,<1.7

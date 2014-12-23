@@ -21,6 +21,12 @@ Docs: http://docks.stackstorm.com/latest
   actions were executed through SSH, now they are executed directly without the overhead of SSH.
 * Fix local runner so it correctly executes a command under the provider system user if ``user``
   parameter is provided. (bug-fix)
+* Fix a bug with a Trigger database object in some cases being created twice when registering a
+  rule. (bug-fix)
+* Fix a bug with child processes which run sensor code not being killed when stopping a sensor
+  container service. (bug-fix)
+* Fix a bug and allow user to use non-ascii (unicode) values in the parameter substitution values.
+  (bug-fix)
 * Add support for a ``standalone`` mode to the st2auth service. In the standalone mode,
   authentication is handled inside the st2auth service using the defined backend. (new feature)
 
