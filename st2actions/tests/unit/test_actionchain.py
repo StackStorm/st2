@@ -193,8 +193,7 @@ class TestActionChainRunner(TestCase):
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        success = chain_runner.run({})
-        self.assertFalse(success)
+        (done, query_context, success) = chain_runner.run({})
         self.assertEqual(chain_runner.container_service.get_status(),
                          ACTIONEXEC_STATUS_FAILED)
         self.assertNotEqual(chain_runner.action_chain, None)
