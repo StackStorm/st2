@@ -67,6 +67,12 @@ class RunnerTypeAPI(BaseAPI):
                 "type": "string",
                 "required": True
             },
+            "query_module": {
+                "description": "The python module that implements the "
+                               "results tracker (querier) for the runner.",
+                "type": "string",
+                "required": False
+            },
             "runner_parameters": {
                 "description": "Input parameters for the action runner.",
                 "type": "object",
