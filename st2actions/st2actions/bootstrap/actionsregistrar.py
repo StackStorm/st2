@@ -65,8 +65,8 @@ class ActionsRegistrar(object):
             LOG.info('Action %s found. Will be updated from: %s to: %s',
                      action_ref, model, content)
         action_api = ActionAPI(**content)
+        action_validator.validate_action(action_api)
         model = ActionAPI.to_model(action_api)
-        action_validator.validate_action(model)
         try:
             model = Action.add_or_update(model)
             LOG.audit('Action created. Action %s from %s.', model, action)
