@@ -17,7 +17,7 @@ try:
     import simplejson as json
 except ImportError:
     import json
-
+import jsonschema
 import mock
 
 import st2actions.bootstrap.actionsregistrar as actions_registrar
@@ -73,3 +73,17 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             self.assertEqual(action_db.pack, 'dummy', 'Content pack must be ' +
                              'set to dummy')
             Action.delete(action_db)
+
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
+    @mock.patch.object(action_validator, '_get_runner_model',
+                       mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
+    def test_invalid_params_schema(self):
+        registrar = actions_registrar.ActionsRegistrar()
+        loader = fixtures_loader.FixturesLoader()
+        action_file = loader.get_fixture_file_path_abs(
+            'generic', 'actions', 'action-invalid-schema-params.yaml')
+        try:
+            registrar._register_action('dummy', action_file)
+            self.fail('Invalid action schema. Should have failed.')
+        except jsonschema.ValidationError:
+            pass
