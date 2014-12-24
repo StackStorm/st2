@@ -6,7 +6,7 @@ import time
 
 from st2actions.container.service import RunnerContainerService
 from st2common import log as logging
-from st2common.persistence.action import ActionExecution
+from st2common.persistence.action import (ActionExecution, ActionExecutionState)
 
 LOG = logging.getLogger(__name__)
 
@@ -62,6 +62,8 @@ class Querier(object):
             LOG.exception('Failed updating action results for action_execution_id %s',
                           execution_id)
             return
+        finally:
+            self._delete_state_object(query_context)
 
         if not done:
             self._query_contexts.put((time.time(), query_context))
@@ -74,14 +76,29 @@ class Querier(object):
         actionexec_db.results = results
         return ActionExecution.add_or_update(actionexec_db)
 
+    def _delete_state_object(self, query_context):
+        state_db = ActionExecutionState.get_by_id(query_context.id)
+        try:
+            ActionExecutionState.delete(state_db)
+        except:
+            LOG.exception('Failed clearing state object: %s', state_db)
+
     def query(self, execution_id, query_context):
         """
         This is the method individual queriers must implement.
         """
         pass
 
+    def print_stats(self):
+        LOG.info('\t --- Name: %s, pending queuries: %d', self.__class__.__name__,
+                 self._query_contexts.qsize())
+
 
 class QueryContext(object):
-    def __init__(self, execution_id, query_context):
+    def __init__(self, id, execution_id, query_context):
         self.execution_id = execution_id
         self.query_context = query_context
+        self.id = id
+
+    def from_model(self, model):
+        return QueryContext(model.id, model.execution_id, model.query_context)
