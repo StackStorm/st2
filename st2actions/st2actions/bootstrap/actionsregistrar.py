@@ -24,9 +24,10 @@ from st2common.constants.meta import ALLOWED_EXTS
 from st2common.content.loader import (ContentPackLoader, MetaLoader)
 from st2common.content.validators import RequirementsValidator
 from st2common.persistence.action import Action
-from st2common.models.db.action import ActionDB
+from st2common.models.api.action import ActionAPI
 from st2common.models.system.common import ResourceReference
 import st2common.util.action_db as action_utils
+import st2common.validators.api.action as action_validator
 
 LOG = logging.getLogger(__name__)
 
@@ -48,36 +49,30 @@ class ActionsRegistrar(object):
 
     def _register_action(self, pack, action):
         content = self._meta_loader.load(action)
+        pack_field = content.get('pack', None)
+        if not pack_field:
+            content['pack'] = pack
+            pack_field = pack
+        if pack_field != pack:
+            raise Exception('Model is in pack: %s but field "pack" is different. %s' %
+                            (pack, content.get(pack)))
+
         action_ref = ResourceReference(pack=pack, name=str(content['name']))
         model = action_utils.get_action_by_ref(action_ref)
         if not model:
-            model = ActionDB()
-        model.name = content['name']
-        model.description = content['description']
-        model.enabled = content['enabled']
-        model.pack = pack
-        model.entry_point = content['entry_point']
-        model.parameters = content.get('parameters', {})
-        runner_type = str(content['runner_type'])
-        valid_runner_type, runner_type_db = self._has_valid_runner_type(runner_type)
-        if valid_runner_type:
-            model.runner_type = {'name': runner_type_db.name}
+            LOG.info('Action %s not found. Creating new one with: %s', action_ref, content)
         else:
-            LOG.exception('Runner type %s doesn\'t exist.', runner_type)
-            raise
-
+            LOG.info('Action %s found. Will be updated from: %s to: %s',
+                     action_ref, model, content)
+        action_api = ActionAPI(**content)
+        model = ActionAPI.to_model(action_api)
+        action_validator.validate_action(model)
         try:
             model = Action.add_or_update(model)
             LOG.audit('Action created. Action %s from %s.', model, action)
         except Exception:
             LOG.exception('Failed to write action to db %s.', model.name)
             raise
-
-    def _has_valid_runner_type(self, runner_type):
-        try:
-            return True, action_utils.get_runnertype_by_name(runner_type)
-        except:
-            return False, None
 
     def _register_actions_from_pack(self, pack, actions):
         for action in actions:
