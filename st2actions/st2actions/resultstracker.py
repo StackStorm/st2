@@ -13,28 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import defaultdict
+
 import eventlet
+import importlib
 from kombu import Connection
 from kombu.mixins import ConsumerMixin
 from oslo.config import cfg
+import six
 
 from st2actions.query.base import QueryContext
 from st2common import log as logging
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import ActionExecutionState
 from st2common.transport import actionexecutionstate, publishers
 from st2common.util.greenpooldispatch import BufferedDispatcher
 
 LOG = logging.getLogger(__name__)
 
-ACTIONSTATE_WORK_Q = actionexecution.get_queue('st2.resultstracker.work',
-                                               routing_key=publishers.CREATE_RK)
+ACTIONSTATE_WORK_Q = actionexecutionstate.get_queue('st2.resultstracker.work',
+                                                    routing_key=publishers.CREATE_RK)
 
 
-class ActionStateQueueConsumer(object):
+class ActionStateQueueConsumer(ConsumerMixin):
     def __init__(self, connection, tracker):
         self.connection = connection
-        self.container = RunnerContainer()
         self._dispatcher = BufferedDispatcher()
         self._tracker = tracker
 
@@ -62,9 +64,16 @@ class ActionStateQueueConsumer(object):
 
     def _do_process_task(self, body):
         try:
-            self.add_to_querier(body)
+            self._add_to_querier(body)
         except:
             LOG.exception('execute_action failed. Message body : %s', body)
+
+    def _add_to_querier(self, body):
+        context = QueryContext(body.execution_id, body.query_context)
+        query_module_name = body.query_module
+        querier = self._tracker.get_querier(query_module_name)
+        querier.add_queries([context])
+        return
 
 
 class ResultsTracker(object):
@@ -75,20 +84,37 @@ class ResultsTracker(object):
         self._failed_imports = set()
 
     def start(self):
+        self._bootstrap()
         self._consumer_thread = eventlet.spawn(self._queue_consumer.run)
+
+    def shutdown(self):
+        LOG.info('Tracker shutting down. Stats from queriers:')
+        for querier in self._queriers:
+            querier.print_stats()
+        self._queue_consumer.shutdown()
 
     def _bootstrap(self):
         all_states = ActionExecutionState.get_all()
 
-        query_contexts_dict = {}
-        for state in all_states:
-            query_module_name = state['query_module']
+        query_contexts_dict = defaultdict(list)
+        for state_db in all_states:
+            try:
+                context = QueryContext.from_model(state_db)
+            except:
+                LOG.exception('Invalid state object: %s', state_db)
+                continue
+            query_module_name = state_db.query_module
             querier = self.get_querier(query_module_name)
-            context = QueryContext(state.execution_id, state.query_context)
-            query_contexts_dict[querier]
+            query_contexts_dict[querier].append(context)
+
+        for querier, contexts in six.iteritems(query_contexts_dict):
+            LOG.info('Found %d pending actions for query module %s', len(contexts), querier)
+            querier.add_queries(contexts)
+            querier.start()
 
     def get_querier(self, query_module_name):
-        if query_module_name not in self._queriers and query_module_name not in self._failed_imports:
+        if (query_module_name not in self._queriers and
+                query_module_name not in self._failed_imports):
             try:
                 querier = self._import_query_module(query_module_name)
             except:
@@ -102,4 +128,13 @@ class ResultsTracker(object):
 
     def _import_query_module(self, module_name):
         return importlib.import_module(module_name, package=None)
+
+
 def work():
+    with Connection(cfg.CONF.messaging.url) as conn:
+        tracker = ResultsTracker(q_connection=conn)
+        try:
+            tracker.start()
+        except:
+            tracker.shutdown()
+            raise
