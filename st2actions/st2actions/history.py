@@ -28,7 +28,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import bson
 import eventlet
 from kombu import Connection
 from kombu.mixins import ConsumerMixin
@@ -88,7 +87,6 @@ class Historian(ConsumerMixin):
 
     def record_action_execution(self, body):
         try:
-            history_id = bson.ObjectId()
             execution = ActionExecution.get_by_id(str(body.id))
             action_ref = ResourceReference.from_string_reference(ref=execution.action)
             action_db, _ = action_utils.get_action_by_dict(
@@ -97,7 +95,6 @@ class Historian(ConsumerMixin):
             runner = RunnerType.get_by_name(action_db.runner_type['name'])
 
             attrs = {
-                'id': history_id,
                 'action': vars(ActionAPI.from_model(action_db)),
                 'runner': vars(RunnerTypeAPI.from_model(runner)),
                 'execution': vars(ActionExecutionAPI.from_model(execution))
@@ -124,12 +121,14 @@ class Historian(ConsumerMixin):
             parent = ActionExecutionHistory.get(execution__id=execution.context.get('parent', ''))
             if parent:
                 attrs['parent'] = str(parent.id)
-                if str(history_id) not in parent.children:
-                    parent.children.append(str(history_id))
-                    ActionExecutionHistory.add_or_update(parent)
 
             history = ActionExecutionHistoryDB(**attrs)
             history = ActionExecutionHistory.add_or_update(history)
+
+            if parent:
+                if str(history.id) not in parent.children:
+                    parent.children.append(str(history.id))
+                    ActionExecutionHistory.add_or_update(parent)
         except:
             LOG.exception('An unexpected error occurred while creating the '
                           'action execution history.')
