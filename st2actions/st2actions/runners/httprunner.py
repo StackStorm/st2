@@ -79,7 +79,7 @@ class HttpRunner(ActionRunner):
         self.container_service.report_result(output)
         self.container_service.report_status(HttpRunner._get_result_status(output.get('status_code',
                                                                                       None)))
-        return output is not None
+        return (True, None, output)
 
     def _get_http_client(self, action_parameters):
         body = action_parameters.get(ACTION_BODY, None)

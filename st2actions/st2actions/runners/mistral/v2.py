@@ -67,8 +67,8 @@ class MistralRunner(ActionRunner):
                                              workflow_input=context, **params)
 
         self.container_service.report_status(ACTIONEXEC_STATUS_RUNNING)
-        self.container_service.report_result()
-        done = (str(execution.state) == 'RUNNING')
+        is_running = (str(execution.state) == 'RUNNING')
+        done = not is_running
         query_context = {'id': execution.id}
         partial_results = {'tasks': []}
         return (done, query_context, partial_results)

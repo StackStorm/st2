@@ -23,7 +23,8 @@ from st2common import log as logging
 from st2common.util import isotime
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED,
-                                        ACTIONEXEC_STATUS_FAILED)
+                                        ACTIONEXEC_STATUS_FAILED,
+                                        ACTIONEXEC_STATUS_RUNNING)
 from st2common.models.db.action import ActionExecutionStateDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import ActionExecutionState
@@ -117,22 +118,11 @@ class RunnerContainer(object):
             runner.pre_run()
 
             LOG.debug('Performing run for runner: %s', runner)
-            run_result = runner.run(action_params)
-
-            # XXX: The len check below is done for backward compatibilty. Once
-            # all the runners return a tuple, we can remove some code here.
-            if len(run_result) > 1:
-                is_done = run_result[0]
-                query_context = run_result[1]
-                partial_results = run_result[2]
-                runner.container_service.report_result(partial_results)
-                run_result = partial_results
-            else:
-                is_done = True
-
+            is_done, query_context, results = runner.run(action_params)
+            runner.container_service.report_result(results)
             if not is_done:
+                runner.container_service.report_status(ACTIONEXEC_STATUS_RUNNING)
                 self._setup_async_query(actionexec_db.id, runnertype_db, query_context)
-            LOG.debug('Result of run: %s', run_result)
         except:
             LOG.exception('Failed to run action.')
             _, ex, tb = sys.exc_info()
