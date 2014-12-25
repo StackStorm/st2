@@ -19,6 +19,7 @@ Command-line interface to Stanley
 
 from __future__ import print_function
 
+import os
 import sys
 import argparse
 import logging
@@ -174,9 +175,31 @@ class Shell(object):
 
             debug = getattr(args, 'debug', False)
             if debug:
+                # Print client settings
+                self._print_client_settings()
+
+                # Print exception traceback
                 traceback.print_exc()
 
             return 1
+
+    def _print_client_settings(self):
+        client = self.client
+
+        if not client:
+            return
+
+        print('Client settings:')
+        print('----------------')
+        print('ST2_BASE_URL: %s' % (client.endpoints['base']))
+        print('ST2_AUTH_URL: %s' % (client.endpoints['auth']))
+        print('ST2_API_URL: %s' % (client.endpoints['api']))
+        print('')
+        print('Proxy settings:')
+        print('---------------')
+        print('HTTP_PROXY: %s' % (os.environ.get('HTTP_PROXY', '')))
+        print('HTTPS_PROXY: %s' % (os.environ.get('HTTPS_PROXY', '')))
+        print('')
 
 
 def main(argv=sys.argv[1:]):
