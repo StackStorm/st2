@@ -71,13 +71,10 @@ class MistralRunner(ActionRunner):
                                              self.runner_parameters.get('task'),
                                              context=context)
 
-        # Return status and output.
-        output = {
-            'id': str(execution.id),
-            'state': str(execution.state)
-        }
-
         self.container_service.report_status(ACTIONEXEC_STATUS_RUNNING)
-        self.container_service.report_result(output)
+        is_running = (str(execution.state) == 'RUNNING')
+        done = not is_running
+        query_context = {'id': str(execution.id)}
+        partial_results = {'tasks': []}
 
-        return (str(execution.state) == 'RUNNING')
+        return (done, query_context, partial_results)

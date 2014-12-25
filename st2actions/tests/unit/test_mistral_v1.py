@@ -64,7 +64,7 @@ def process_create(payload):
         CHAMPION.execute_action(payload)
 
 
-@mock.patch.object(LocalShellRunner, 'run', mock.MagicMock(return_value={}))
+@mock.patch.object(LocalShellRunner, 'run', mock.MagicMock(return_value=(True, None, {})))
 @mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
 @mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(return_value=None))
 class TestMistralRunner(DbTestCase):
