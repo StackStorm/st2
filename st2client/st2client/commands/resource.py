@@ -119,17 +119,24 @@ class ResourceCommand(commands.Command):
                (self.resource.get_display_name(), name))
 
     def get_resource(self, name_or_id, **kwargs):
-        return self.get_resource_by_name_or_id(name_or_id=name_or_id, **kwargs)
+        pk_argument_name = self.pk_argument_name
+
+        if pk_argument_name == 'name_or_id':
+            instance = self.get_resource_by_name_or_id(name_or_id=name_or_id, **kwargs)
+        elif pk_argument_name == 'ref_or_id':
+            instance = self.get_resource_by_ref_or_id(ref_or_id=name_or_id, **kwargs)
+        else:
+            instance = self.get_resource_by_pk(pk=name_or_id, **kwargs)
+
+        return instance
 
     def get_resource_by_pk(self, pk, **kwargs):
         """
         Retrieve resource by a primary key.
         """
-        pk_argument_name = self.pk_argument_name
-
         try:
             instance = self.manager.get_by_id(pk, **kwargs)
-        except Exception as e:
+        except Exception:
             instance = None
 
         return instance
@@ -175,7 +182,6 @@ class ResourceCommand(commands.Command):
     def _get_help_for_argument(self, resource, argument):
         argument_display_name = argument.title()
         resource_display_name = resource.get_display_name().lower()
-
 
         if 'ref' in argument:
             result = ('Reference or ID of the %s.' % (resource_display_name))
