@@ -24,10 +24,13 @@ class KeyValuePairAPI(BaseAPI):
     schema = {
         'type': 'object',
         'properties': {
-            'description': {
+            'id': {
                 'type': 'string'
             },
             'name': {
+                'type': 'string'
+            },
+            'description': {
                 'type': 'string'
             },
             'value': {

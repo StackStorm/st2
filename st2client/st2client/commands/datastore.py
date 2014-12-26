@@ -18,11 +18,13 @@ import json
 import logging
 from os.path import join as pjoin
 
+import six
+
 from st2client.models import datastore
 from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
-import six
+from st2client.models.datastore import KeyValuePair
 
 
 LOG = logging.getLogger(__name__)
@@ -37,66 +39,66 @@ class KeyValuePairBranch(resource.ResourceBranch):
             commands={
                 'list': KeyValuePairListCommand,
                 'get': KeyValuePairGetCommand,
-                'create': KeyValuePairCreateCommand,
-                'update': KeyValuePairUpdateCommand
+                'delete': KeyValuePairDeleteCommand
             })
 
         # Registers extended commands
+        self.commands['set'] = KeyValuePairSetCommand(self.resource, self.app,
+                                                      self.subparsers)
         self.commands['load'] = KeyValuePairLoadCommand(
             self.resource, self.app, self.subparsers)
 
+        # Remove unsupported commands
+        # TODO: Refactor parent class and make it nicer
+        del self.commands['create']
+        del self.commands['update']
+
 
 class KeyValuePairListCommand(resource.ResourceListCommand):
-    display_attributes = ['id', 'name', 'value']
+    display_attributes = ['name', 'value']
 
 
 class KeyValuePairGetCommand(resource.ResourceGetCommand):
-    display_attributes = ['id', 'name', 'value']
+    pk_argument_name = 'name'
+    display_attributes = ['name', 'value']
 
 
-class KeyValuePairCreateCommand(resource.ResourceCommand):
+class KeyValuePairSetCommand(resource.ResourceCommand):
+    display_attributes = ['name', 'value']
 
     def __init__(self, resource, *args, **kwargs):
-        super(KeyValuePairCreateCommand, self).__init__(resource, 'create',
-            'Create a new %s.' % resource.get_display_name().lower(),
+        super(KeyValuePairSetCommand, self).__init__(resource, 'set',
+            'Set an existing %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('name', help='Key name.')
+        self.parser.add_argument('name',
+                                 metavar='name',
+                                 help='Name of the key value pair.')
         self.parser.add_argument('value', help='Value paired with the key.')
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        instance = self.resource(name=args.name, value=args.value)
-        return self.manager.create(instance, **kwargs)
-
-    def run_and_print(self, args, **kwargs):
-        instance = self.run(args, **kwargs)
-        self.print_output(instance, table.PropertyValueTable,
-                          attributes=['id', 'name', 'value'], json=args.json)
-
-
-class KeyValuePairUpdateCommand(resource.ResourceCommand):
-
-    def __init__(self, resource, *args, **kwargs):
-        super(KeyValuePairUpdateCommand, self).__init__(resource, 'update',
-            'Update an existing %s.' % resource.get_display_name().lower(),
-            *args, **kwargs)
-
-        self.parser.add_argument('name_or_id',
-                                 metavar='name-or-id',
-                                 help='Name or ID of the key value pair.')
-        self.parser.add_argument('value', help='Value paired with the key.')
-
-    @add_auth_token_to_kwargs_from_cli
-    def run(self, args, **kwargs):
-        instance = self.get_resource(args.name_or_id, **kwargs)
+        instance = KeyValuePair()
+        instance.id = args.name  # TODO: refactor and get rid of id
+        instance.name = args.name
         instance.value = args.value
         return self.manager.update(instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
-                          attributes=['id', 'name', 'value'], json=args.json)
+                          attributes=self.display_attributes, json=args.json)
+
+
+class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
+    pk_argument_name = 'name'
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        resource_id = getattr(args, self.pk_argument_name, None)
+        instance = self.get_resource(resource_id, **kwargs)
+        instance.id = resource_id  # TODO: refactor and get rid of id
+        self.manager.delete(instance, **kwargs)
 
 
 class KeyValuePairLoadCommand(resource.ResourceCommand):

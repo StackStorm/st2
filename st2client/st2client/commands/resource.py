@@ -121,13 +121,31 @@ class ResourceCommand(commands.Command):
     def get_resource(self, name_or_id, **kwargs):
         return self.get_resource_by_name_or_id(name_or_id=name_or_id, **kwargs)
 
+    def get_resource_by_pk(self, pk, **kwargs):
+        """
+        Retrieve resource by a primary key.
+        """
+        pk_argument_name = self.pk_argument_name
+
+        try:
+            instance = self.manager.get_by_id(pk, **kwargs)
+        except Exception as e:
+            instance = None
+
+        return instance
+
+    def get_resource_by_name(self, name, **kwargs):
+        """
+        Retrieve resource by name.
+        """
+        instance = self.manager.get_by_name(name, **kwargs)
+        return instance
+
     def get_resource_by_name_or_id(self, name_or_id, **kwargs):
-        instance = self.manager.get_by_name(name_or_id, **kwargs)
+        instance = self.get_resource_by_name(name=name_or_id, **kwargs)
         if not instance:
-            try:
-                instance = self.manager.get_by_id(name_or_id, **kwargs)
-            except:
-                pass
+            instance = self.get_resource_by_pk(pk=name_or_id, **kwargs)
+
         if not instance:
             message = ('Resource with id or name "%s" doesn\'t exist.' %
                        (name_or_id))
@@ -155,12 +173,16 @@ class ResourceCommand(commands.Command):
         return argument.replace('_', '-')
 
     def _get_help_for_argument(self, resource, argument):
+        argument_display_name = argument.title()
         resource_display_name = resource.get_display_name().lower()
 
+
         if 'ref' in argument:
-            result = ('Reference or ID of the %s.' % resource_display_name)
+            result = ('Reference or ID of the %s.' % (resource_display_name))
+        elif 'name_or_id' in argument:
+            result = ('Name or ID of the %s.' % (resource_display_name))
         else:
-            result = ('Name or ID of the %s.' % resource_display_name)
+            result = ('%s of the %s.' % (argument_display_name, resource_display_name))
 
         return result
 
