@@ -47,6 +47,9 @@ class TestRunner(ActionRunner):
                 'ran': True,
                 'action_params': action_params
             }
+
+            if action_params.get('async_test', None):
+                return (False, {'id': 'foo'}, json.dumps(result))
             self.container_service.report_status(0)
         return (True, None, json.dumps(result))
 

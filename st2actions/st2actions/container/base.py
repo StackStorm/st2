@@ -209,7 +209,7 @@ class RunnerContainer(object):
             LOG.exception('Unable to create action execution state db model ' +
                           'for action_execution_id %s', actionexec_id)
 
-    def _create_execution_state(actionexec_id, runnertype_db, query_context):
+    def _create_execution_state(self, actionexec_id, runnertype_db, query_context):
         state_db = ActionExecutionStateDB(
             execution_id=actionexec_id,
             query_module=runnertype_db.query_module,

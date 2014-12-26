@@ -24,5 +24,6 @@
             "immutable": true
         }
     },
-    "runner_module": "tests.unit.test_runner"
+    "runner_module": "tests.unit.test_runner",
+    "query_module": "tests.unit.test_querier"
 }

@@ -103,6 +103,8 @@ class RunnerTypeAPI(BaseAPI):
         model = super(cls, cls).to_model(runnertype)
         model.enabled = bool(runnertype.enabled)
         model.runner_module = str(runnertype.runner_module)
+        if getattr(runnertype, 'query_module', None):
+            model.query_module = str(runnertype.query_module)
         model.runner_parameters = getattr(runnertype, 'runner_parameters', dict())
         return model
 

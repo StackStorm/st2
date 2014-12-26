@@ -20,7 +20,7 @@ from oslo.config import cfg
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.action import (ActionExecutionDB, RunnerTypeDB)
-from st2common.persistence.action import (ActionExecution)
+from st2common.persistence.action import (ActionExecution, ActionExecutionState)
 from st2common.transport.publishers import PoolPublisher
 from st2tests.base import DbTestCase
 import st2tests.config as tests_config
@@ -117,6 +117,28 @@ class RunnerContainerTest(DbTestCase):
         result = actionexec_db.result
         self.assertTrue(result.get('action_params').get('actionint') == 20)
         self.assertTrue(result.get('action_params').get('actionstr') == 'foo')
+
+    def test_state_db_creation_async_actions(self):
+        runner_container = get_runner_container()
+        params = {
+            'actionstr': 'foo',
+            'actionint': 20,
+            'async_test': True
+        }
+        actionexec_db = self._get_action_exec_db_model(params)
+        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+
+        # Assert that execution ran without exceptions.
+        runner_container.dispatch(actionexec_db)
+        states = ActionExecutionState.get_all()
+
+        found = None
+        for state in states:
+            if state.execution_id == actionexec_db.id:
+                found = state
+        self.assertTrue(found is not None, 'There should be a state db object.')
+        self.assertTrue(found.query_context is not None)
+        self.assertTrue(found.query_module is not None)
 
     def _get_action_exec_db_model(self, params):
         actionexec_db = ActionExecutionDB()
