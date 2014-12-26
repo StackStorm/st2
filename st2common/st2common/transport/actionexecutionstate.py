@@ -13,8 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.transport import actionexecution, actionexecutionstate, publishers, reactor
+# All Exchanges and Queues related to ActionExecution.
 
-# TODO(manas) : Exchanges, Queues and RoutingKey design discussion pending.
+from kombu import Exchange, Queue
+from st2common.transport import publishers
 
-__all__ = ['actionexecution', 'actionexecutionstate', 'publishers', 'reactor']
+ACTIONEXECUTIONSTATE_XCHG = Exchange('st2.actionexecutionstate',
+                                     type='topic')
+
+
+class ActionExecutionStatePublisher(publishers.CUDPublisher):
+
+    def __init__(self, url):
+        super(ActionExecutionStatePublisher, self).__init__(url, ACTIONEXECUTIONSTATE_XCHG)
+
+
+def get_queue(name, routing_key):
+    return Queue(name, ACTIONEXECUTIONSTATE_XCHG, routing_key=routing_key)

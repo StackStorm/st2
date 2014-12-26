@@ -212,7 +212,7 @@ class RunnerContainer(object):
     def _create_execution_state(actionexec_id, runnertype_db, query_context):
         state_db = ActionExecutionStateDB(
             execution_id=actionexec_id,
-            runner=runnertype_db.name,
+            query_module=runnertype_db.query_module,
             query_context=query_context)
         try:
             return ActionExecutionState.add_or_update(state_db)
