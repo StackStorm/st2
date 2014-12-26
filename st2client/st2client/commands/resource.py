@@ -49,7 +49,7 @@ class ResourceNotFoundError(Exception):
 class ResourceBranch(commands.Branch):
 
     def __init__(self, resource, description, app, subparsers,
-                 parent_parser=None, read_only=False, commands={}):
+                 parent_parser=None, read_only=False, commands=None):
 
         self.resource = resource
         super(ResourceBranch, self).__init__(
@@ -62,6 +62,7 @@ class ResourceBranch(commands.Branch):
                   self.resource.get_plural_display_name().lower()))
 
         # Resolves if commands need to be overridden.
+        commands = commands or {}
         if 'list' not in commands:
             commands['list'] = ResourceListCommand
         if 'get' not in commands:
