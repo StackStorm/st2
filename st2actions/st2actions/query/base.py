@@ -115,5 +115,6 @@ class QueryContext(object):
         self.query_context = query_context
         self.id = id
 
-    def from_model(self, model):
+    @classmethod
+    def from_model(cls, model):
         return QueryContext(model.id, model.execution_id, model.query_context)

@@ -105,7 +105,8 @@ class ResultsTracker(object):
                 continue
             query_module_name = state_db.query_module
             querier = self.get_querier(query_module_name)
-            query_contexts_dict[querier].append(context)
+            if querier is not None:
+                query_contexts_dict[querier].append(context)
 
         for querier, contexts in six.iteritems(query_contexts_dict):
             LOG.info('Found %d pending actions for query module %s', len(contexts), querier)
@@ -120,7 +121,7 @@ class ResultsTracker(object):
             except:
                 LOG.exception('Failed importing query module: %s', query_module_name)
                 self._failed_imports.add(query_module_name)
-                continue
+                self._queriers[query_module_name] = None
             else:
                 self._queriers[query_module_name] = querier.get_instance()
 

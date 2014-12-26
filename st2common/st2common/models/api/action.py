@@ -20,6 +20,7 @@ from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.base import BaseAPI
 from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB)
+from st2common.models.db.action import ActionExecutionStateDB
 from st2common.constants.action import ACTIONEXEC_STATUSES
 
 
@@ -280,4 +281,52 @@ class ActionExecutionAPI(BaseAPI):
         model.context = getattr(execution, 'context', dict())
         model.callback = getattr(execution, 'callback', dict())
         model.result = getattr(execution, 'result', None)
+        return model
+
+
+class ActionExecutionStateAPI(BaseAPI):
+    """
+    System entity that represents state of an action in the system.
+    This is used only in tests for now.
+    """
+    model = ActionExecutionStateDB
+    schema = {
+        "title": "ActionExecutionState",
+        "description": "Execution state of an action.",
+        "type": "object",
+        "properties": {
+            "id": {
+                "description": "The unique identifier for the action execution state.",
+                "type": "string"
+            },
+            "execution_id": {
+                "type": "string",
+                "description": "ID of the action execution.",
+                "required": True
+            },
+            "query_context": {
+                "type": "object",
+                "description": "query context to be used by querier.",
+                "required": True
+            },
+            "query_module": {
+                "type": "string",
+                "description": "Name of the query module.",
+                "required": True
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def from_model(cls, model):
+        doc = super(cls, cls)._from_model(model)
+        return cls(**doc)
+
+    @classmethod
+    def to_model(cls, state):
+        model = super(cls, cls).to_model(state)
+        model.query_module = state.query_module
+        model.execution_id = state.execution_id
+        model.query_context = state.query_context
         return model
