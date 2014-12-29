@@ -29,8 +29,8 @@ LOG = logging.getLogger('st2common.content.bootstrap')
 def register_opts():
     content_opts = [
         cfg.BoolOpt('all', default=False, help='Register sensors, actions and rules.'),
-        cfg.BoolOpt('sensors', default=True, help='Register sensors.'),
-        cfg.BoolOpt('actions', default=True, help='Register actions.'),
+        cfg.BoolOpt('sensors', default=False, help='Register sensors.'),
+        cfg.BoolOpt('actions', default=False, help='Register actions.'),
         cfg.BoolOpt('rules', default=False, help='Register rules.')
     ]
     try:
