@@ -43,5 +43,16 @@
                 "immutable": true
             }
         }
+    },
+    "action-immutable-runner-param-no-default": {
+        "runner_type": "run-local",
+        "name": "action-immutable-param-no-default",
+        "enabled": true,
+        "pack": "core",
+        "parameters": {
+            "sudo": {
+                "immutable": true
+            }
+        }
     }
 }
