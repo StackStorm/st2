@@ -117,6 +117,13 @@ class KeyValuePairController(RestController):
         """
         LOG.info('DELETE /keys/ with id=%s', id)
         kvp_db = self.__get_by_name(name=name)
+
+        if not kvp_db:
+            LOG.exception('Database lookup for name="%s" '
+                          'resulted in exception.', name)
+            abort(http_client.NOT_FOUND)
+            return
+
         LOG.debug('DELETE /keys/ lookup with name=%s found '
                   'object: %s', name, kvp_db)
         try:
