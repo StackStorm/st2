@@ -31,6 +31,8 @@ Docs: http://docks.stackstorm.com/latest
   and ``set_poll_interval`` methods respectively. (new-feature)
 * Add support for a ``standalone`` mode to the st2auth service. In the standalone mode,
   authentication is handled inside the st2auth service using the defined backend. (new feature)
+* Add new rule criteria comparison operators: ``iequals``, ``contains``, ``icontains``,
+  ``ncontains``, ``incontains`` (new-feature)
 
 v0.6.0 - December 8, 2014
 -------------------------
