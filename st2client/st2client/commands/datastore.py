@@ -102,6 +102,8 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
 
 
 class KeyValuePairLoadCommand(resource.ResourceCommand):
+    pk_argument_name = 'name'
+    display_attributes = ['name', 'value']
 
     def __init__(self, resource, *args, **kwargs):
         help_text = ('Load a list of %s from file.' %
@@ -124,20 +126,18 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             raise ValueError('"%s" is not a file' % (file_path))
 
         with open(file_path, 'r') as f:
-            instances = []
             kvps = json.loads(f.read())
-            for k, v in six.iteritems(kvps):
-                try:
-                    instance = self.get_resource(k, **kwargs)
-                except resource.ResourceNotFoundError:
-                    instance = None
-                if not instance:
-                    instance = self.resource(name=k, value=v)
-                    instances.append(self.manager.create(instance, **kwargs))
-                else:
-                    instance.value = v
-                    instances.append(self.manager.update(instance, **kwargs))
-            return instances
+
+        instances = []
+        for name, value in six.iteritems(kvps):
+            instance = KeyValuePair()
+            instance.id = name  # TODO: refactor and get rid of id
+            instance.name = name
+            instance.value = value
+
+            self.manager.update(instance, **kwargs)
+            instances.append(instance)
+        return instances
 
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
