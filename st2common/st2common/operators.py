@@ -17,6 +17,11 @@ import re
 
 from datetime import datetime
 
+__all__ = [
+    'get_operator',
+    'get_allowed_operators'
+]
+
 # operator impls
 equals = lambda value, criteria_pattern: value == criteria_pattern
 
@@ -47,8 +52,8 @@ def get_operator(op):
         raise Exception('Invalid operator: ' + op)
 
 
-def match_regex(value, match_pattern):
-    regex = re.compile(match_pattern)
+def match_regex(value, criteria_pattern):
+    regex = re.compile(criteria_pattern)
     # check for a match and not for details of the match.
     return regex.match(value) is not None
 
@@ -62,12 +67,12 @@ def _timediff(diff_target, period_seconds, operator):
     return operator((utc_now - diff_target_utc).total_seconds(), period_seconds)
 
 
-def timediff_lt(diff_target, period):
-    return _timediff(diff_target, period, less_than)
+def timediff_lt(value, criteria_pattern):
+    return _timediff(diff_target=value, period_seconds=criteria_pattern, operator=less_than)
 
 
-def timediff_gt(diff_target, period):
-    return _timediff(diff_target, period, greater_than)
+def timediff_gt(value, criteria_pattern):
+    return _timediff(diff_target=value, period_seconds=criteria_pattern, operator=greater_than)
 
 # operator match strings
 MATCH_REGEX = 'matchregex'

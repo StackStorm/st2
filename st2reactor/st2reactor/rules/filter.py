@@ -71,4 +71,4 @@ class RuleFilter(object):
             criteria_operator = criterion_v['type']
         op_func = criteria_operators.get_operator(criteria_operator)
 
-        return op_func(payload_value['result'], criteria_pattern)
+        return op_func(value=payload_value['result'], criteria_pattern=criteria_pattern)
