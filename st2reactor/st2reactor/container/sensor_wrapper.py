@@ -112,6 +112,7 @@ class SensorService(object):
         # TODO: API client is really unfriendly and needs to be re-designed and
         # improved
         client = Client(api_url=api_url)
+        auth_token
         return client
 
     def _get_full_key_name(self, name):
