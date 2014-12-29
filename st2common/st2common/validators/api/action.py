@@ -66,6 +66,10 @@ def _validate_parameters(action_params=None, runner_params=None):
                     msg = 'Param %s is declared immutable in runner. ' % param + \
                           'Cannot override in action.'
                     raise ValueValidationException(msg)
-            if 'default' not in action_param_meta:
-                msg = 'Immutable param %s requires a default value.' % param
-                raise ValueValidationException(msg)
+                if 'default' not in action_param_meta and 'default' not in runner_param_meta:
+                    msg = 'Immutable param %s requires a default value.' % param
+                    raise ValueValidationException(msg)
+            else:
+                if 'default' not in action_param_meta:
+                    msg = 'Immutable param %s requires a default value.' % param
+                    raise ValueValidationException(msg)
