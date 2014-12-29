@@ -23,16 +23,7 @@
             "required": true,
             "position": 2
         },
-        "user": {
-            "immutable": true
-        },
-        "dir": {
-            "immutable": true
-        },
         "sudo": {
-            "immutable": true
-        },
-        "parallel": {
             "immutable": true
         }
     }
