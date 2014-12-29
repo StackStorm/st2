@@ -57,6 +57,62 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('iequals')
         self.assertFalse(op('ABC', 'BCA'), 'Failed iequals.')
 
+    def test_contains(self):
+        op = operators.get_operator('contains')
+        self.assertTrue(op('hasystack needle haystack', 'needle'))
+        self.assertTrue(op('needle', 'needle'))
+        self.assertTrue(op('needlehaystack', 'needle'))
+        self.assertTrue(op('needle haystack', 'needle'))
+        self.assertTrue(op('haystackneedle', 'needle'))
+        self.assertTrue(op('haystack needle', 'needle'))
+
+    def test_contains_fail(self):
+        op = operators.get_operator('contains')
+        self.assertFalse(op('hasystack needl haystack', 'needle'))
+        self.assertFalse(op('needla', 'needle'))
+
+    def test_icontains(self):
+        op = operators.get_operator('icontains')
+        self.assertTrue(op('hasystack nEEdle haystack', 'needle'))
+        self.assertTrue(op('neeDle', 'NeedlE'))
+        self.assertTrue(op('needlehaystack', 'needle'))
+        self.assertTrue(op('NEEDLE haystack', 'NEEDLE'))
+        self.assertTrue(op('haystackNEEDLE', 'needle'))
+        self.assertTrue(op('haystack needle', 'NEEDLE'))
+
+    def test_icontains_fail(self):
+        op = operators.get_operator('icontains')
+        self.assertFalse(op('hasystack needl haystack', 'needle'))
+        self.assertFalse(op('needla', 'needle'))
+
+    def test_ncontains(self):
+        op = operators.get_operator('ncontains')
+        self.assertTrue(op('hasystack needle haystack', 'foo'))
+        self.assertTrue(op('needle', 'foo'))
+        self.assertTrue(op('needlehaystack', 'needlex'))
+        self.assertTrue(op('needle haystack', 'needlex'))
+        self.assertTrue(op('haystackneedle', 'needlex'))
+        self.assertTrue(op('haystack needle', 'needlex'))
+
+    def test_ncontains_fail(self):
+        op = operators.get_operator('ncontains')
+        self.assertFalse(op('hasystack needle haystack', 'needle'))
+        self.assertFalse(op('needla', 'needla'))
+
+    def test_incontains(self):
+        op = operators.get_operator('incontains')
+        self.assertTrue(op('hasystack needle haystack', 'FOO'))
+        self.assertTrue(op('needle', 'FOO'))
+        self.assertTrue(op('needlehaystack', 'needlex'))
+        self.assertTrue(op('needle haystack', 'needlex'))
+        self.assertTrue(op('haystackneedle', 'needlex'))
+        self.assertTrue(op('haystack needle', 'needlex'))
+
+    def test_incontains_fail(self):
+        op = operators.get_operator('incontains')
+        self.assertFalse(op('hasystack needle haystack', 'nEeDle'))
+        self.assertFalse(op('needlA', 'needlA'))
+
     def test_lt(self):
         op = operators.get_operator('lessthan')
         self.assertTrue(op(1, 2), 'Failed lessthan.')
