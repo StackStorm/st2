@@ -22,6 +22,14 @@ equals = lambda v1, v2: v1 == v2
 
 iequals = lambda v1, v2: v1.lower() == v2.lower()
 
+contains = lambda v1, v2: v2 in v1
+
+icontains = lambda v1, v2: v2.lower() in v1.lower()
+
+ncontains = lambda v1, v2: v2 not in v1
+
+incontains = lambda v1, v2: v2.lower() not in v1.lower()
+
 less_than = lambda v1, v2: v1 < v2
 
 greater_than = lambda v1, v2: v1 > v2
@@ -67,6 +75,10 @@ EQUALS_SHORT = 'eq'
 EQUALS_LONG = 'equals'
 IEQUALS_SHORT = 'ieq'
 IEQUALS_LONG = 'iequals'
+CONTAINS_LONG = 'contains'
+ICONTAINS_LONG = 'icontains'
+NCONTAINS_LONG = 'ncontains'
+INCONTAINS_LONG = 'incontains'
 LESS_THAN_SHORT = 'lt'
 LESS_THAN_LONG = 'lessthan'
 GREATER_THAN_SHORT = 'gt'
@@ -83,6 +95,10 @@ operators = {
     EQUALS_LONG: equals,
     IEQUALS_SHORT: iequals,
     IEQUALS_LONG: iequals,
+    CONTAINS_LONG: contains,
+    ICONTAINS_LONG: icontains,
+    NCONTAINS_LONG: ncontains,
+    INCONTAINS_LONG: incontains,
     LESS_THAN_SHORT: less_than,
     LESS_THAN_LONG: less_than,
     GREATER_THAN_SHORT: greater_than,
