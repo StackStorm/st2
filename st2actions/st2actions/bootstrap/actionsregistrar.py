@@ -54,19 +54,22 @@ class ActionsRegistrar(object):
             content['pack'] = pack
             pack_field = pack
         if pack_field != pack:
-            raise Exception('Model is in pack: %s but field "pack" is different. %s' %
-                            (pack, content.get(pack)))
+            raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
+                            (pack, pack_field))
 
-        action_ref = ResourceReference(pack=pack, name=str(content['name']))
-        model = action_utils.get_action_by_ref(action_ref)
-        if not model:
-            LOG.info('Action %s not found. Creating new one with: %s', action_ref, content)
-        else:
-            LOG.info('Action %s found. Will be updated from: %s to: %s',
-                     action_ref, model, content)
         action_api = ActionAPI(**content)
         action_validator.validate_action(action_api)
         model = ActionAPI.to_model(action_api)
+
+        action_ref = ResourceReference(pack=pack, name=str(content['name']))
+        existing = action_utils.get_action_by_ref(action_ref)
+        if not existing:
+            LOG.info('Action %s not found. Creating new one with: %s', action_ref, content)
+        else:
+            LOG.info('Action %s found. Will be updated from: %s to: %s',
+                     action_ref, existing, model)
+            model.id = existing.id
+
         try:
             model = Action.add_or_update(model)
             LOG.audit('Action created. Action %s from %s.', model, action)

@@ -87,3 +87,23 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             self.fail('Invalid action schema. Should have failed.')
         except jsonschema.ValidationError:
             pass
+
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
+    @mock.patch.object(action_validator, '_get_runner_model',
+                       mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
+    def test_action_update(self):
+        registrar = actions_registrar.ActionsRegistrar()
+        loader = fixtures_loader.FixturesLoader()
+        action_file = loader.get_fixture_file_path_abs(
+            'generic', 'actions', 'action1.json')
+        registrar._register_action('wolfpack', action_file)
+        # try registering again. this should not throw errors.
+        registrar._register_action('wolfpack', action_file)
+        action_name = None
+        with open(action_file, 'r') as fd:
+            content = json.load(fd)
+            action_name = str(content['name'])
+            action_db = Action.get_by_name(action_name)
+            self.assertEqual(action_db.pack, 'wolfpack', 'Content pack must be ' +
+                             'set to wolfpack')
+            Action.delete(action_db)
