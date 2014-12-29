@@ -7,12 +7,6 @@
         "sudo": {
             "immutable": true
         },
-        "user": {
-            "immutable": true
-        },
-        "dir": {
-            "immutable": true
-        },
         "source": {
             "type": "string",
             "position": 0
