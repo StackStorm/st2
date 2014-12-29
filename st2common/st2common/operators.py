@@ -18,21 +18,21 @@ import re
 from datetime import datetime
 
 # operator impls
-equals = lambda v1, v2: v1 == v2
+equals = lambda value, criteria_pattern: value == criteria_pattern
 
-iequals = lambda v1, v2: v1.lower() == v2.lower()
+iequals = lambda value, criteria_pattern: value.lower() == criteria_pattern.lower()
 
-contains = lambda v1, v2: v2 in v1
+contains = lambda value, criteria_pattern: criteria_pattern in value
 
-icontains = lambda v1, v2: v2.lower() in v1.lower()
+icontains = lambda value, criteria_pattern: criteria_pattern.lower() in value.lower()
 
-ncontains = lambda v1, v2: v2 not in v1
+ncontains = lambda value, criteria_pattern: criteria_pattern not in value
 
-incontains = lambda v1, v2: v2.lower() not in v1.lower()
+incontains = lambda value, criteria_pattern: criteria_pattern.lower() not in value.lower()
 
-less_than = lambda v1, v2: v1 < v2
+less_than = lambda value, criteria_pattern: value < criteria_pattern
 
-greater_than = lambda v1, v2: v1 > v2
+greater_than = lambda value, criteria_pattern: value > criteria_pattern
 
 
 def get_allowed_operators():
