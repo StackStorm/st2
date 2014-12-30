@@ -21,6 +21,8 @@ import subprocess
 
 from st2common import log as logging
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
+from st2common.services.access import create_token
+from st2common.util.api import get_full_api_url
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
@@ -188,8 +190,13 @@ class ProcessSensorContainer(object):
                                                     inherit_parent_virtualenv=True)
 
         # Include full api URL and API token specific to that sensor
-        env['ST2-API-URL'] = None
-        env['ST2-API-TOKEN'] = None
+        ttl = (24 * 60 * 60)
+        temporary_token = create_token(username='sensors_container', ttl=ttl)
+
+        env['ST2-API-URL'] = get_full_api_url()
+        env['ST2-API-TOKEN'] = temporary_token.token
+
+        # TODO: Purge temporary token when service stops or sensor process dies
 
         LOG.debug('Running sensor subprocess (cmd="%s")', ' '.join(args))
 
