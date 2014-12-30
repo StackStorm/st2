@@ -31,9 +31,14 @@ Docs: http://docks.stackstorm.com/latest
   and ``set_poll_interval`` methods respectively. (new-feature)
 * Add support for a ``standalone`` mode to the st2auth service. In the standalone mode,
   authentication is handled inside the st2auth service using the defined backend. (new feature)
+* Timer is not a sensor anymore. It is spun as part of rules_engine process (refactor)
+* Fix a bug with action registration where action with invalid schema for
+  parameters get registered. (bug-fix)
+* Fix a bug with 'default' param values inheritance in runner/actions. (bug-fix)
+* Add new rule criteria comparison operators: ``iequals``, ``contains``, ``icontains``,
+  ``ncontains``, ``incontains`` (new-feature)
 * Allow sensors to store temporary data in the datastore using the ``get_value``, ``set_value`` and
   ``delete_value`` methods exposed by sensor_service. (new-feature)
-* (improvement)
 
 v0.6.0 - December 8, 2014
 -------------------------

@@ -116,7 +116,8 @@ def register_runner_types():
                 },
                 'sudo': {
                     'description': 'The remote command will be executed with sudo.',
-                    'type': 'boolean'
+                    'type': 'boolean',
+                    'default': False
                 },
                 'dir': {
                     'description': 'The working directory where the command will be '
@@ -158,7 +159,8 @@ def register_runner_types():
                 },
                 'sudo': {
                     'description': 'The remote command will be executed with sudo.',
-                    'type': 'boolean'
+                    'type': 'boolean',
+                    'default': False
                 },
                 'dir': {
                     'description': 'The working directory where the command will be '
