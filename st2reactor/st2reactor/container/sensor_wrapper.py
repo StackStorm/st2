@@ -30,6 +30,8 @@ from st2common.services.triggerwatcher import TriggerWatcher
 from st2reactor.sensor.base import Sensor
 from st2reactor.sensor import config
 from st2common.constants.pack import SYSTEM_PACK_NAMES
+from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
+from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2client.models.datastore import KeyValuePair
 
 __all__ = [
@@ -148,11 +150,12 @@ class SensorService(object):
         # improved
         # TODO: Token should be passed to the constructor
         # TODO; Use environment variable
-        api_url = os.environ.get('ST2-API-URL', None)
-        auth_token = os.environ.get('ST2-AUTH-TOKEN', None)
+        api_url = os.environ.get(API_URL_ENV_VARIABLE_NAME, None)
+        auth_token = os.environ.get(AUTH_TOKEN_ENV_VARIABLE_NAME, None)
 
         if not api_url or not auth_token:
-            raise ValueError('ST2-API-URL and ST2-AUTH-TOKEN environment variable must be set')
+            raise ValueError('%s and %s environment variable must be set' %
+                             (API_URL_ENV_VARIABLE_NAME, AUTH_TOKEN_ENV_VARIABLE_NAME))
 
         if not self._client:
             self._client = Client(api_url=api_url)
