@@ -198,7 +198,9 @@ class ProcessSensorContainer(object):
         env[API_URL_ENV_VARIABLE_NAME] = get_full_api_url()
         env[AUTH_TOKEN_ENV_VARIABLE_NAME] = temporary_token.token
 
-        # TODO: Purge temporary token when service stops or sensor process dies
+        # TODO 1: Purge temporary token when service stops or sensor process dies
+        # TODO 2: Store metadata (wrapper process id) with the token and delete
+        # tokens for old, dead processes on startup
 
         LOG.debug('Running sensor subprocess (cmd="%s")', ' '.join(args))
 
