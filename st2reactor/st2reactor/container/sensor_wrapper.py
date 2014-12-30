@@ -77,6 +77,8 @@ class SensorService(object):
 
         :param name: Key name.
         :type name: ``str``
+
+        :rtype: ``str`` or ``None``
         """
         name = self._get_full_key_name(name=name)
         client = self._get_api_client()
@@ -100,6 +102,9 @@ class SensorService(object):
 
         :param value: Key value.
         :type value: ``str``
+
+        :return: ``True`` on sucess, ``False`` otherwise.
+        :rtype: ``bool``
         """
         name = self._get_full_key_name(name=name)
         client = self._get_api_client()
@@ -117,6 +122,9 @@ class SensorService(object):
 
         :param name: Name of the key to delete.
         :type name: ``str``
+
+        :return: ``True`` on sucess, ``False`` otherwise.
+        :rtype: ``bool``
         """
         name = self._get_full_key_name(name=name)
         client = self._get_api_client()
@@ -139,6 +147,7 @@ class SensorService(object):
         # TODO: API client is really unfriendly and needs to be re-designed and
         # improved
         # TODO: Token should be passed to the constructor
+        # TODO; Use environment variable
         api_url = os.environ.get('ST2-API-URL', None)
         auth_token = os.environ.get('ST2-AUTH-TOKEN', None)
 
@@ -160,7 +169,7 @@ class SensorService(object):
         return full_name
 
     def _get_datastore_key_prefix(self):
-        prefix = '%s.%s' % (self._sensor_wrapper._pack, self._sensor_wrapper.class_name)
+        prefix = '%s.%s' % (self._sensor_wrapper._pack, self._sensor_wrapper._class_name)
         return prefix
 
 
