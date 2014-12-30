@@ -105,6 +105,8 @@ class ParamsUtilsTest(TestCase):
         self.assertEqual(runner_params.get('runnerint'), 555)
         # Assert that a runner param can be overriden by action param default.
         self.assertEqual(runner_params.get('runnerdummy'), 'actiondummy')
+        # Asser that runner param made immutable in action can use default value in runner.
+        self.assertEqual(runner_params.get('runnerfoo'), 'FOO')
         # Assert that an immutable param cannot be overriden by action param or execution param.
         self.assertEqual(runner_params.get('runnerimmutable'), 'runnerimmutable')
 
@@ -328,6 +330,10 @@ class ParamsUtilsTest(TestCase):
                     'description': 'Foo int param.',
                     'type': 'number'
                 },
+                'runnerfoo': {
+                    'description': 'Some foo param.',
+                    'default': 'FOO'
+                },
                 'runnerdummy': {
                     'description': 'Dummy param.',
                     'type': 'string',
@@ -358,6 +364,7 @@ class ParamsUtilsTest(TestCase):
             'actionstr': {'type': 'string', 'required': True},
             'actionint': {'type': 'number', 'default': 10},
             'runnerdummy': {'type': 'string', 'default': 'actiondummy', 'immutable': True},
+            'runnerfoo': {'type': 'string', 'immutable': True},
             'runnerimmutable': {'type': 'string', 'default': 'failed_override'},
             'actionimmutable': {'type': 'string', 'default': 'actionimmutable', 'immutable': True}
         }

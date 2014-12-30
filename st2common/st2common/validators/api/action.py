@@ -28,13 +28,7 @@ LOG = logging.getLogger(__name__)
 
 
 def validate_action(action_api):
-    runner_db = None
-    # Check if runner exists.
-    try:
-        runner_db = get_runnertype_by_name(action_api.runner_type)
-    except StackStormDBObjectNotFoundError:
-        msg = 'RunnerType %s is not found.' % action_api.runner_type
-        raise ValueValidationException(msg)
+    runner_db = _get_runner_model(action_api)
 
     # Check if pack is valid.
     if not _is_valid_pack(action_api.pack):
@@ -45,6 +39,17 @@ def validate_action(action_api):
 
     # Check if parameters defined are valid.
     _validate_parameters(action_api.parameters, runner_db.runner_parameters)
+
+
+def _get_runner_model(action_api):
+    runner_db = None
+    # Check if runner exists.
+    try:
+        runner_db = get_runnertype_by_name(action_api.runner_type)
+    except StackStormDBObjectNotFoundError:
+        msg = 'RunnerType %s is not found.' % action_api.runner_type
+        raise ValueValidationException(msg)
+    return runner_db
 
 
 def _is_valid_pack(pack):
@@ -61,6 +66,10 @@ def _validate_parameters(action_params=None, runner_params=None):
                     msg = 'Param %s is declared immutable in runner. ' % param + \
                           'Cannot override in action.'
                     raise ValueValidationException(msg)
-            if 'default' not in action_param_meta:
-                msg = 'Immutable param %s requires a default value.' % param
-                raise ValueValidationException(msg)
+                if 'default' not in action_param_meta and 'default' not in runner_param_meta:
+                    msg = 'Immutable param %s requires a default value.' % param
+                    raise ValueValidationException(msg)
+            else:
+                if 'default' not in action_param_meta:
+                    msg = 'Immutable param %s requires a default value.' % param
+                    raise ValueValidationException(msg)
