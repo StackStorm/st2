@@ -18,7 +18,6 @@ from oslo.config import cfg
 from st2common import config as st2cfg
 from st2api import config as st2apicfg
 from st2common.constants.system import VERSION_STRING
-#st2cfg.register_opts()
 
 CONF = cfg.CONF
 
