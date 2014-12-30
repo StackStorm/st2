@@ -72,7 +72,7 @@ class ActionStateQueueConsumer(ConsumerMixin):
         context = QueryContext(body.execution_id, body.query_context)
         query_module_name = body.query_module
         querier = self._tracker.get_querier(query_module_name)
-        querier.add_queries([context])
+        querier.add_queries(query_contexts=[context])
         return
 
 
@@ -81,6 +81,7 @@ class ResultsTracker(object):
         self._queue_consumer = ActionStateQueueConsumer(q_connection, self)
         self._consumer_thread = None
         self._queriers = {}
+        self._query_threads = []
         self._failed_imports = set()
 
     def start(self):
@@ -89,8 +90,9 @@ class ResultsTracker(object):
 
     def shutdown(self):
         LOG.info('Tracker shutting down. Stats from queriers:')
-        for querier in self._queriers:
-            querier.print_stats()
+        for name, querier in six.iteritems(self._queriers):
+            if querier:
+                querier.print_stats()
         self._queue_consumer.shutdown()
 
     def _bootstrap(self):
@@ -110,8 +112,8 @@ class ResultsTracker(object):
 
         for querier, contexts in six.iteritems(query_contexts_dict):
             LOG.info('Found %d pending actions for query module %s', len(contexts), querier)
-            querier.add_queries(contexts)
-            querier.start()
+            querier.add_queries(query_contexts=contexts)
+            self._query_threads.append(eventlet.spawn(querier.start))
 
     def get_querier(self, query_module_name):
         if (query_module_name not in self._queriers and

@@ -38,7 +38,7 @@ class MistralResultsQuerier(Querier):
             raise
         url = self._get_execution_results_url(exec_id)
         resp = requests.get(url)
-        return is_done, resp.json()
+        return (is_done, resp.json())
 
     def _get_execution_results_url(self, exec_id):
         return self._base_url + 'executions/' + exec_id + '/tasks'

@@ -21,6 +21,8 @@ import time
 
 from st2actions.container.service import RunnerContainerService
 from st2common import log as logging
+from st2common.constants.action import (ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_FAILED,
+                                        ACTIONEXEC_STATUS_SUCCEEDED)
 from st2common.persistence.action import (ActionExecution, ActionExecutionState)
 
 LOG = logging.getLogger(__name__)
@@ -41,25 +43,27 @@ class Querier(object):
         self.container_service = container_service
 
     def start(self):
-        while self._query_contexts.empty():
-            eventlet.greenthread.sleep(self._empty_q_sleep_time)
-        while self._dispatcher_pool.free() <= 0:
-            eventlet.greenthread.sleep(self._no_workers_sleep_time)
-        self._fire_queries()
+        while True:
+            while self._query_contexts.empty():
+                eventlet.greenthread.sleep(self._empty_q_sleep_time)
+            while self._thread_pool.free() <= 0:
+                eventlet.greenthread.sleep(self._no_workers_sleep_time)
+            self._fire_queries()
 
     def add_queries(self, query_contexts=[]):
         for query_context in query_contexts:
             self._query_contexts.put((time.time(), query_context))
 
     def _fire_queries(self):
-        if self._dispatcher_pool.free() <= 0:
+        if self._thread_pool.free() <= 0:
             return
-        while not self._query_contexts.empty() and self._dispatcher_pool.free() > 0:
+        while not self._query_contexts.empty() and self._thread_pool.free() > 0:
             (last_query_time, query_context) = self._query_contexts.get_nowait()
             if time.time() - last_query_time < self._query_interval:
                 self._query_contexts.put((last_query_time, query_context))
                 continue
-        self._dispatcher_pool.spawn(self._query_and_save_results, query_context)
+            else:
+                self._thread_pool.spawn(self._query_and_save_results, query_context)
 
     def _query_and_save_results(self, query_context):
         execution_id = query_context.execution_id
@@ -71,32 +75,42 @@ class Querier(object):
             LOG.exception('Failed querying results for action_execution_id %s.', execution_id)
             return
 
+        status = ACTIONEXEC_STATUS_RUNNING
+
+        # XXX: Status needs to be confirmed by querier.
+        if done:
+            status = ACTIONEXEC_STATUS_SUCCEEDED
         try:
-            self._update_action_results(execution_id, results)
-        except:
+            self._update_action_results(execution_id, status, results)
+        except Exception:
             LOG.exception('Failed updating action results for action_execution_id %s',
                           execution_id)
-            return
-        finally:
             self._delete_state_object(query_context)
-
-        if not done:
-            self._query_contexts.put((time.time(), query_context))
             return
+        else:
+            if done:
+                self._delete_state_object(query_context)
+                return
 
-    def _update_action_results(self, execution_id, results):
+        self._query_contexts.put((time.time(), query_context))
+        return
+
+    def _update_action_results(self, execution_id, status, results):
         actionexec_db = ActionExecution.get_by_id(execution_id)
         if not actionexec_db:
             raise Exception('No DB model for action_execution_id: %s' % execution_id)
-        actionexec_db.results = results
-        return ActionExecution.add_or_update(actionexec_db)
+        actionexec_db.result = results
+        actionexec_db.status = status
+        updated_exec = ActionExecution.add_or_update(actionexec_db)
+        return updated_exec
 
     def _delete_state_object(self, query_context):
         state_db = ActionExecutionState.get_by_id(query_context.id)
-        try:
-            ActionExecutionState.delete(state_db)
-        except:
-            LOG.exception('Failed clearing state object: %s', state_db)
+        if state_db is not None:
+            try:
+                ActionExecutionState.delete(state_db)
+            except:
+                LOG.exception('Failed clearing state object: %s', state_db)
 
     def query(self, execution_id, query_context):
         """
@@ -117,4 +131,4 @@ class QueryContext(object):
 
     @classmethod
     def from_model(cls, model):
-        return QueryContext(model.id, model.execution_id, model.query_context)
+        return QueryContext(str(model.id), str(model.execution_id), model.query_context)
