@@ -23,6 +23,10 @@ from st2common.models.db.access import TokenDB, UserDB
 from st2common.persistence.access import Token, User
 from st2common import log as logging
 
+__all__ = [
+    'create_token',
+    'delete_token'
+]
 
 LOG = logging.getLogger(__name__)
 
