@@ -15,15 +15,20 @@
 
 from oslo.config import cfg
 
-import st2common.config as common_config
+from st2common import config as st2cfg
+from st2api import config as st2apicfg
 from st2common.constants.system import VERSION_STRING
-common_config.register_opts()
+#st2cfg.register_opts()
 
 CONF = cfg.CONF
 
 
 def _register_common_opts():
-    common_config.register_opts()
+    st2cfg.register_opts()
+
+
+def _register_api_opts():
+    st2apicfg.register_opts()
 
 
 def _register_sensor_container_opts():
@@ -53,6 +58,7 @@ def _register_sensor_container_opts():
 
 def register_opts():
     _register_common_opts()
+    _register_api_opts()
     _register_sensor_container_opts()
 
 
