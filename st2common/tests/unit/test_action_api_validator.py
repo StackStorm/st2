@@ -82,3 +82,17 @@ class TestActionAPIValidator(DbTestCase):
             self.fail('Action validation should not have passed. %s' % json.dumps(action_api_dict))
         except ValueValidationException as e:
             self.assertTrue('requires a default value.' in e.message)
+
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(
+        return_value=True))
+    def test_validate_action_param_immutable_no_default(self):
+        action_api_dict = fixture.ARTIFACTS['actions']['action-immutable-runner-param-no-default']
+        action_api = ActionAPI(**action_api_dict)
+
+        # Runner param sudo is decalred immutable in action but no defualt value
+        # supplied in action. We should pick up default value from runner.
+        try:
+            action_validator.validate_action(action_api)
+        except ValueValidationException as e:
+            print(e)
+            self.fail('Action validation should have passed. %s' % json.dumps(action_api_dict))

@@ -11,6 +11,10 @@
             },
             "cmd": {
                 "type": "string"
+            },
+            "sudo": {
+                "type": "boolean",
+                "default": false
             }
         },
         "runner_module": "st2actions.runners.fabricrunner"
