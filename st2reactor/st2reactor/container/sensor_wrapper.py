@@ -30,6 +30,7 @@ from st2common.services.triggerwatcher import TriggerWatcher
 from st2reactor.sensor.base import Sensor
 from st2reactor.sensor import config
 from st2common.constants.pack import SYSTEM_PACK_NAMES
+from st2client.models.datastore import KeyValuePair
 
 __all__ = [
     'SensorWrapper'
@@ -47,7 +48,7 @@ class SensorService(object):
         self._logger = self._sensor_wrapper._logger
         self._dispatcher = TriggerDispatcher(self._logger)
 
-        self._client = self._get_api_client()
+        self._client = None
 
     def get_logger(self, name):
         """
@@ -78,7 +79,17 @@ class SensorService(object):
         :type name: ``str``
         """
         name = self._get_full_key_name(name=name)
-        pass
+        client = self._get_api_client()
+
+        try:
+            kvp = client.keys.get_by_id(id=name)
+        except Exception:
+            return None
+
+        if kvp:
+            return kvp.value
+
+        return None
 
     def set_value(self, name, value):
         """
@@ -91,7 +102,14 @@ class SensorService(object):
         :type value: ``str``
         """
         name = self._get_full_key_name(name=name)
-        pass
+        client = self._get_api_client()
+
+        instance = KeyValuePair()
+        instance.id = name
+        instance.name = name
+        instance.value = value
+        client.keys.update(instance=instance)
+        return True
 
     def delete_value(self, name):
         """
@@ -101,21 +119,41 @@ class SensorService(object):
         :type name: ``str``
         """
         name = self._get_full_key_name(name=name)
-        pass
+        client = self._get_api_client()
+
+        instance = KeyValuePair()
+        instance.id = name
+        instance.name = name
+
+        try:
+            client.keys.delete(instance=instance)
+        except Exception:
+            return False
+
+        return True
 
     def _get_api_client(self):
         """
         Retrieve API client instance.
         """
-        api_url = os.environ['ST2-API-URL']
-        auth_token = os.environ['ST2-AUTH-TOKEN']
         # TODO: API client is really unfriendly and needs to be re-designed and
         # improved
-        client = Client(api_url=api_url)
-        auth_token
-        return client
+        # TODO: Token should be passed to the constructor
+        api_url = os.environ.get('ST2-API-URL', None)
+        auth_token = os.environ.get('ST2-AUTH-TOKEN', None)
+
+        if not api_url or not auth_token:
+            raise ValueError('ST2-API-URL and ST2-AUTH-TOKEN environment variable must be set')
+
+        if not self._client:
+            self._client = Client(api_url=api_url)
+
+        return self._client
 
     def _get_full_key_name(self, name):
+        """
+        :rtype: ``str``
+        """
         prefix = self._get_datastore_key_prefix()
         separator = '.'
         full_name = prefix + separator + name
