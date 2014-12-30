@@ -148,8 +148,6 @@ class SensorService(object):
         """
         # TODO: API client is really unfriendly and needs to be re-designed and
         # improved
-        # TODO: Token should be passed to the constructor
-        # TODO; Use environment variable
         api_url = os.environ.get(API_URL_ENV_VARIABLE_NAME, None)
         auth_token = os.environ.get(AUTH_TOKEN_ENV_VARIABLE_NAME, None)
 
