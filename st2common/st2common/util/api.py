@@ -28,5 +28,5 @@ def get_full_api_url(api_version=DEFAULT_API_VERSION):
 
     :rtype: ``str``
     """
-    api_url = 'http://%s:%s/%s/' % (cfg.CONF.api.host, cfg.CONF.api.port, api_version)
+    api_url = 'http://%s:%s/%s' % (cfg.CONF.api.host, cfg.CONF.api.port, api_version)
     return api_url
