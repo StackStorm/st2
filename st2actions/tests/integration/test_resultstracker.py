@@ -1,6 +1,9 @@
 import eventlet
 
-from st2actions.resultstracker import ResultsTracker
+from kombu import Connection
+from oslo.config import cfg
+
+import st2actions.resultstracker as results_tracker
 from st2common.persistence.action import ActionExecution, ActionExecutionState
 from st2tests.base import (DbTestCase, EventletTestCase)
 from st2tests.fixturesloader import FixturesLoader
@@ -27,7 +30,7 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         ResultsTrackerTests._update_state_models()
 
     def test_bootstrap(self):
-        tracker = ResultsTracker()
+        tracker = results_tracker.ResultsTracker()
         tracker._bootstrap()
         eventlet.sleep(0.2)
         exec_id = str(ResultsTrackerTests.states['state1.json'].execution_id)
@@ -39,6 +42,18 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         self.assertTrue(exec_db.result['called_with'][exec_id] is not None,
                         exec_db.result)
         tracker.shutdown()
+
+    def test_start_shutdown(self):
+        with Connection(cfg.CONF.messaging.url) as conn:
+            tracker = results_tracker.ResultsTracker(q_connection=conn)
+            tracker.start()
+            tracker.shutdown()
+
+    def test_get_querier(self):
+        tracker = results_tracker.ResultsTracker()
+        tracker._bootstrap()
+        self.assertEqual(tracker.get_querier('this_module_aint_exist'), None)
+        self.assertTrue(tracker.get_querier('tests.resources.test_querymodule') is not None)
 
     @classmethod
     def tearDownClass(cls):

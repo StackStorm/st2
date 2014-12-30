@@ -21,11 +21,12 @@ import time
 
 from st2actions.container.service import RunnerContainerService
 from st2common import log as logging
-from st2common.constants.action import (ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_FAILED,
+from st2common.constants.action import (ACTIONEXEC_STATUS_FAILED,
                                         ACTIONEXEC_STATUS_SUCCEEDED)
 from st2common.persistence.action import (ActionExecution, ActionExecutionState)
 
 LOG = logging.getLogger(__name__)
+DONE_STATES = [ACTIONEXEC_STATUS_FAILED, ACTIONEXEC_STATUS_SUCCEEDED]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -70,16 +71,13 @@ class Querier(object):
         actual_query_context = query_context.query_context
 
         try:
-            (done, results) = self.query(execution_id, actual_query_context)
+            (status, results) = self.query(execution_id, actual_query_context)
         except:
             LOG.exception('Failed querying results for action_execution_id %s.', execution_id)
             return
 
-        status = ACTIONEXEC_STATUS_RUNNING
+        done = (status in DONE_STATES)
 
-        # XXX: Status needs to be confirmed by querier.
-        if done:
-            status = ACTIONEXEC_STATUS_SUCCEEDED
         try:
             self._update_action_results(execution_id, status, results)
         except Exception:
@@ -115,6 +113,10 @@ class Querier(object):
     def query(self, execution_id, query_context):
         """
         This is the method individual queriers must implement.
+        This method should return a tuple of (status, results).
+
+        status should be one of ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_RUNNING,
+        ACTIONEXEC_STATUS_FAILED defined in st2common.constants.action.
         """
         pass
 
@@ -124,11 +126,17 @@ class Querier(object):
 
 
 class QueryContext(object):
-    def __init__(self, id, execution_id, query_context):
+    def __init__(self, obj_id, execution_id, query_context, query_module):
+        self.id = obj_id
         self.execution_id = execution_id
         self.query_context = query_context
-        self.id = id
+        self.query_module = query_module
 
     @classmethod
     def from_model(cls, model):
-        return QueryContext(str(model.id), str(model.execution_id), model.query_context)
+        return QueryContext(str(model.id), str(model.execution_id), model.query_context,
+                            model.query_module)
+
+    def __repr__(self):
+        return ('<QueryContext id=%s,execution_id=%s,query_context=%s>' %
+                (self.id, self.execution_id, self.query_context))

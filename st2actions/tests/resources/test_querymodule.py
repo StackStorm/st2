@@ -1,4 +1,5 @@
 from st2actions.query.base import Querier
+from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
 
 
 class TestQuerier(Querier):
@@ -6,7 +7,7 @@ class TestQuerier(Querier):
         super(TestQuerier, self).__init__(*args, **kwargs)
 
     def query(self, execution_id, query_context):
-        return (True, {'called_with': {execution_id: query_context}})
+        return (ACTIONEXEC_STATUS_SUCCEEDED, {'called_with': {execution_id: query_context}})
 
 
 def get_instance():

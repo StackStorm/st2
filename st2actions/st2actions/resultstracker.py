@@ -69,9 +69,8 @@ class ActionStateQueueConsumer(ConsumerMixin):
             LOG.exception('execute_action failed. Message body : %s', body)
 
     def _add_to_querier(self, body):
-        context = QueryContext(body.execution_id, body.query_context)
-        query_module_name = body.query_module
-        querier = self._tracker.get_querier(query_module_name)
+        querier = self._tracker.get_querier(body.query_module)
+        context = QueryContext.from_model(body)
         querier.add_queries(query_contexts=[context])
         return
 
