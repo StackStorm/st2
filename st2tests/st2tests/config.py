@@ -29,7 +29,13 @@ def parse_args():
 
 def _setup_config_opts():
     cfg.CONF.reset()
-    _register_config_opts()
+
+    try:
+        _register_config_opts()
+    except Exception:
+        # Some scripts register the options themselves which means registering them again will
+        # cause a non-fatal exception
+        return
     _override_config_opts()
 
 
