@@ -18,4 +18,4 @@ __all__ = [
 ]
 
 
-DEFAULT_API_VERSION = 'v1.0'
+DEFAULT_API_VERSION = 'v1'
