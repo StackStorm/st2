@@ -140,7 +140,6 @@ timediff_gt
 
 Checks that the time difference between the trigger value is greater than the provided pattern.
 
-
 Rule location
 -------------
 
