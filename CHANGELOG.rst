@@ -34,6 +34,7 @@ Docs: http://docks.stackstorm.com/latest
 * Timer is not a sensor anymore. It is spun as part of rules_engine process (refactor)
 * Fix a bug with action registration where action with invalid schema for
   parameters get registered. (bug-fix)
+* Fix a bug with 'default' param values inheritance in runner/actions. (bug-fix)
 
 v0.6.0 - December 8, 2014
 -------------------------
