@@ -25,7 +25,12 @@ def format_isodate(value):
     Make a ISO date time string human friendly.
 
     :type value: ``str``
+
+    :rtype: ``str``
     """
+    if not value:
+        return ''
+
     date = dateutil.parser.parse(str(value))
     value = date.strftime('%a, %d %b %Y %H:%M:%S %Z')
     return value
