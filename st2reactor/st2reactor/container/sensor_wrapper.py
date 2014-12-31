@@ -17,7 +17,6 @@ import os
 import json
 import atexit
 import argparse
-import datetime
 
 from oslo.config import cfg
 from st2client.client import Client
