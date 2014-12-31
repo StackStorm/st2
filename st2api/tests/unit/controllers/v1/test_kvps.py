@@ -26,6 +26,7 @@ KVP_WITH_TTL = {
     'ttl': 10
 }
 
+
 class TestKeyValuePairController(FunctionalTest):
 
     def test_get_all(self):
