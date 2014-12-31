@@ -17,6 +17,7 @@ import os
 import json
 import atexit
 import argparse
+import datetime
 
 from oslo.config import cfg
 from st2client.client import Client
@@ -99,7 +100,7 @@ class SensorService(object):
 
         return None
 
-    def set_value(self, name, value):
+    def set_value(self, name, value, ttl=None):
         """
         Set a value for the provided key.
 
@@ -108,6 +109,9 @@ class SensorService(object):
 
         :param value: Key value.
         :type value: ``str``
+
+        :param ttl: Optional TTL (in seconds).
+        :type ttl: ``int``
 
         :return: ``True`` on sucess, ``False`` otherwise.
         :rtype: ``bool``
@@ -123,6 +127,10 @@ class SensorService(object):
         instance.id = name
         instance.name = name
         instance.value = value
+
+        if ttl:
+            instance.ttl = ttl
+
         client.keys.update(instance=instance)
         return True
 
