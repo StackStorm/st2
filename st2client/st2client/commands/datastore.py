@@ -25,6 +25,7 @@ from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 from st2client.models.datastore import KeyValuePair
+from st2client.utils.date import format_isodate
 
 
 LOG = logging.getLogger(__name__)
@@ -56,6 +57,16 @@ class KeyValuePairBranch(resource.ResourceBranch):
 
 class KeyValuePairListCommand(resource.ResourceListCommand):
     display_attributes = ['name', 'value', 'expire_timestamp']
+    attribute_transform_functions = {
+        'expire_timestamp': format_isodate,
+    }
+
+    def run_and_print(self, args, **kwargs):
+        instances = self.run(args, **kwargs)
+        self.print_output(reversed(instances), table.MultiColumnTable,
+                          attributes=args.attr, widths=args.width,
+                          json=args.json,
+                          attribute_transform_functions=self.attribute_transform_functions)
 
 
 class KeyValuePairGetCommand(resource.ResourceGetCommand):
