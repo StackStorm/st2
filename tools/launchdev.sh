@@ -114,6 +114,12 @@ function st2start(){
         ./st2reactor/bin/rules_engine \
         --config-file $ST2_CONF
 
+    # Run the results tracker
+    echo 'Starting screen session st2-resultstracker...'
+    screen -d -m -S st2-resultstracker ./virtualenv/bin/python \
+        ./st2actions/bin/st2resultstracker \
+        --config-file $ST2_CONF
+
     # Check whether screen sessions are started
     screens=(
         "st2-api"
@@ -121,6 +127,7 @@ function st2start(){
         "st2-actionrunner"
         "st2-sensorcontainer"
         "st2-rulesengine"
+        "st2-resultstracker"
     )
 
     echo

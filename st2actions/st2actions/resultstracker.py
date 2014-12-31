@@ -86,6 +86,9 @@ class ResultsTracker(object):
     def start(self):
         self._bootstrap()
         self._consumer_thread = eventlet.spawn(self._queue_consumer.run)
+        self._consumer_thread.wait()
+        for thread in self._query_threads():
+            thread.wait()
 
     def shutdown(self):
         LOG.info('Tracker shutting down. Stats from queriers:')
@@ -132,11 +135,7 @@ class ResultsTracker(object):
         return importlib.import_module(module_name, package=None)
 
 
-def work():
+def get_tracker():
     with Connection(cfg.CONF.messaging.url) as conn:
         tracker = ResultsTracker(q_connection=conn)
-        try:
-            tracker.start()
-        except:
-            tracker.shutdown()
-            raise
+        return tracker

@@ -42,10 +42,12 @@ def _setup():
 
 def _run_worker():
     LOG.info('(PID=%s) Results tracker started.', os.getpid())
+    tracker = resultstracker.get_tracker()
     try:
-        resultstracker.work()
+        tracker.start()
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Results tracker stopped.', os.getpid())
+        tracker.shutdown()
     except:
         return 1
     return 0
