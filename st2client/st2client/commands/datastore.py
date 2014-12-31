@@ -55,7 +55,7 @@ class KeyValuePairBranch(resource.ResourceBranch):
 
 
 class KeyValuePairListCommand(resource.ResourceListCommand):
-    display_attributes = ['name', 'value']
+    display_attributes = ['name', 'value', 'expire_timestamp']
 
 
 class KeyValuePairGetCommand(resource.ResourceGetCommand):
