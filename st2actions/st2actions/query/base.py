@@ -33,7 +33,7 @@ DONE_STATES = [ACTIONEXEC_STATUS_FAILED, ACTIONEXEC_STATUS_SUCCEEDED]
 class Querier(object):
     def __init__(self, threads_pool_size=10, query_interval=1, empty_q_sleep_time=5,
                  no_workers_sleep_time=1, container_service=None):
-        self._query_threads_pool_size = 10
+        self._query_threads_pool_size = threads_pool_size
         self._query_contexts = Queue.Queue()
         self._thread_pool = eventlet.GreenPool(self._query_threads_pool_size)
         self._empty_q_sleep_time = empty_q_sleep_time
@@ -42,8 +42,10 @@ class Querier(object):
         if not container_service:
             container_service = RunnerContainerService()
         self.container_service = container_service
+        self._started = False
 
     def start(self):
+        self._started = True
         while True:
             while self._query_contexts.empty():
                 eventlet.greenthread.sleep(self._empty_q_sleep_time)
@@ -52,8 +54,12 @@ class Querier(object):
             self._fire_queries()
 
     def add_queries(self, query_contexts=[]):
+        LOG.debug('Adding queries to querier: %s' % query_contexts)
         for query_context in query_contexts:
             self._query_contexts.put((time.time(), query_context))
+
+    def is_started(self):
+        return self._is_started
 
     def _fire_queries(self):
         if self._thread_pool.free() <= 0:
@@ -70,10 +76,12 @@ class Querier(object):
         execution_id = query_context.execution_id
         actual_query_context = query_context.query_context
 
+        LOG.debug('Querying external service for results. Context: %s' % actual_query_context)
         try:
             (status, results) = self.query(execution_id, actual_query_context)
         except:
             LOG.exception('Failed querying results for action_execution_id %s.', execution_id)
+            self._delete_state_object(query_context)
             return
 
         done = (status in DONE_STATES)

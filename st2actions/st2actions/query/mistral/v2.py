@@ -19,17 +19,17 @@ def get_query_instance():
 
 class MistralResultsQuerier(Querier):
     def __init__(self, id, *args, **kwargs):
-        super(MistralResultsQuerier, Querier).__init__(*args, **kwargs)
+        super(MistralResultsQuerier, self).__init__(*args, **kwargs)
         self._base_url = cfg.CONF.mistral.v2_base_url
 
     def query(self, execution_id, query_context):
         """
         TODO: doc str
         """
-        exec_id = query_context.get('execution_id', None)
+        exec_id = query_context.get('mistral_execution_id', None)
         if not exec_id:
-            raise Exception('Mistral execution id invalid in query_context %s.'
-                            % str(query_context))
+            raise Exception('Mistral execution id invalid in query_context %s.' %
+                            str(query_context))
         url = self._get_execution_status_url(exec_id)
         resp = requests.get(url)
         try:
@@ -40,6 +40,7 @@ class MistralResultsQuerier(Querier):
             raise
         url = self._get_execution_results_url(exec_id)
         resp = requests.get(url)
+        LOG.debug('Mistral query results: %s' % resp.json())
         return (status, resp.json())
 
     def _get_execution_results_url(self, exec_id):
@@ -60,3 +61,7 @@ class MistralResultsQuerier(Querier):
             return DONE_STATES[workflow_state]
 
         return ACTIONEXEC_STATUS_RUNNING
+
+
+def get_instance():
+    return MistralResultsQuerier(str(uuid.uuid4()))

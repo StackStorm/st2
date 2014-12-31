@@ -66,7 +66,7 @@ class ActionStateQueueConsumer(ConsumerMixin):
         try:
             self._add_to_querier(body)
         except:
-            LOG.exception('execute_action failed. Message body : %s', body)
+            LOG.exception('Add query_context failed. Message body : %s', body)
 
     def _add_to_querier(self, body):
         querier = self._tracker.get_querier(body.query_module)
@@ -92,13 +92,17 @@ class ResultsTracker(object):
 
     def shutdown(self):
         LOG.info('Tracker shutting down. Stats from queriers:')
+        self._print_stats()
+        self._queue_consumer.shutdown()
+
+    def _print_stats(self):
         for name, querier in six.iteritems(self._queriers):
             if querier:
                 querier.print_stats()
-        self._queue_consumer.shutdown()
 
     def _bootstrap(self):
         all_states = ActionExecutionState.get_all()
+        LOG.info('Found %d pending states in db.' % len(all_states))
 
         query_contexts_dict = defaultdict(list)
         for state_db in all_states:
@@ -109,13 +113,13 @@ class ResultsTracker(object):
                 continue
             query_module_name = state_db.query_module
             querier = self.get_querier(query_module_name)
+
             if querier is not None:
                 query_contexts_dict[querier].append(context)
 
         for querier, contexts in six.iteritems(query_contexts_dict):
             LOG.info('Found %d pending actions for query module %s', len(contexts), querier)
             querier.add_queries(query_contexts=contexts)
-            self._query_threads.append(eventlet.spawn(querier.start))
 
     def get_querier(self, query_module_name):
         if (query_module_name not in self._queriers and
@@ -127,7 +131,9 @@ class ResultsTracker(object):
                 self._failed_imports.add(query_module_name)
                 self._queriers[query_module_name] = None
             else:
-                self._queriers[query_module_name] = querier.get_instance()
+                instance = querier.get_instance()
+                self._queriers[query_module_name] = instance
+                self._query_threads.append(eventlet.spawn(instance.start))
 
         return self._queriers[query_module_name]
 

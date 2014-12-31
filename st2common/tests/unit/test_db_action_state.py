@@ -12,7 +12,7 @@ class ActionExecutionStateTests(DbTestCase):
         retrieved = ActionExecutionState.get_by_id(saved.id)
         self.assertDictEqual(saved.query_context, retrieved.query_context)
         self.assertEqual(saved.query_module, retrieved.query_module)
-        ActionExecutionStateTests._delete([retrieved])
+        ActionExecutionStateTests._delete(model_objects=[retrieved])
         try:
             retrieved = ActionExecutionState.get_by_id(saved.id)
         except ValueError:

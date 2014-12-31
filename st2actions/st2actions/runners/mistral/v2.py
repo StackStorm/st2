@@ -69,7 +69,8 @@ class MistralRunner(ActionRunner):
         self.container_service.report_status(ACTIONEXEC_STATUS_RUNNING)
         is_running = (str(execution.state) == 'RUNNING')
         done = not is_running
-        query_context = {'id': str(execution.id)}
+        query_context = {'mistral_execution_id': str(execution.id)}
+        LOG.debug('Mistral query_context is %s' % query_context)
         partial_results = {'tasks': []}
 
         return (done, query_context, partial_results)
