@@ -45,6 +45,8 @@ class SensorService(object):
     methods which can be called by the sensor.
     """
 
+    DATASTORE_NAME_SEPARATOR = ':'
+
     def __init__(self, sensor_wrapper):
         self._sensor_wrapper = sensor_wrapper
         self._logger = self._sensor_wrapper._logger
@@ -173,8 +175,7 @@ class SensorService(object):
         :rtype: ``str``
         """
         prefix = self._get_datastore_key_prefix()
-        separator = '.'
-        full_name = prefix + separator + name
+        full_name = prefix + self.DATASTORE_NAME_SEPARATOR + name
         return full_name
 
     def _get_datastore_key_prefix(self):
