@@ -108,6 +108,8 @@ class SensorService(object):
         :return: ``True`` on sucess, ``False`` otherwise.
         :rtype: ``bool``
         """
+        value = str(value)
+
         name = self._get_full_key_name(name=name)
         client = self._get_api_client()
 
