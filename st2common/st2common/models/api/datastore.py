@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+
 import six
 
+from st2common.util import isotime
 from st2common.models.base import BaseAPI
 from st2common.models.db.datastore import KeyValuePairDB
 
@@ -36,6 +39,15 @@ class KeyValuePairAPI(BaseAPI):
             'value': {
                 'type': 'string',
                 'required': True
+            },
+            'expire_timestamp': {
+                'type': 'string',
+                'pattern': isotime.ISO8601_UTC_REGEX
+            },
+            # Note: Those values are only used for input
+            # TODO: Improve
+            'ttl': {
+                'type': 'integer'
             }
         },
         'additionalProperties': False
@@ -48,6 +60,9 @@ class KeyValuePairAPI(BaseAPI):
         if 'id' in doc:
             del doc['id']
 
+        if model.expire_timestamp:
+            doc['expire_timestamp'] = isotime.format(model.expire_timestamp, offset=False)
+
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
         return cls(**attrs)
 
@@ -55,4 +70,8 @@ class KeyValuePairAPI(BaseAPI):
     def to_model(cls, kvp):
         model = super(cls, cls).to_model(kvp)
         model.value = kvp.value
+
+        if kvp.ttl:
+            model.expire_timestamp = datetime.datetime.utcnow() + datetime.timedelta(seconds=kvp.ttl)
+
         return model
