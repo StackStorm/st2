@@ -20,6 +20,11 @@ KVP = {
     'value': 'http://localhost:5000/v3'
 }
 
+KVP_WITH_TTL = {
+    'name': 'keystone_endpoint',
+    'value': 'http://localhost:5000/v3',
+    'ttl': 10
+}
 
 class TestKeyValuePairController(FunctionalTest):
 
@@ -45,6 +50,13 @@ class TestKeyValuePairController(FunctionalTest):
         update_input['value'] = 'http://localhost:35357/v3'
         put_resp = self.__do_put(self.__get_kvp_id(put_resp), update_input)
         self.assertEqual(put_resp.status_int, 200)
+        self.__do_delete(self.__get_kvp_id(put_resp))
+
+    def test_put_with_ttl(self):
+        put_resp = self.__do_put('key_with_ttl', KVP_WITH_TTL)
+        self.assertEqual(put_resp.status_int, 200)
+        get_resp = self.app.get('/v1/keys')
+        self.assertTrue(get_resp.json[0]['expire_timestamp'])
         self.__do_delete(self.__get_kvp_id(put_resp))
 
     def test_put_delete(self):
