@@ -30,6 +30,16 @@ class KeyValuePairDB(stormbase.StormBaseDB):
     """
     name = me.StringField(required=True, unique=True)
     value = me.StringField()
+    expire_timestamp = me.DateTimeField()
+
+    meta = {
+        'indexes': [
+            {
+                'fields': ['expire_timestamp'],
+                'expireAfterSeconds': 0
+            }
+        ]
+    }
 
 
 # specialized access objects
