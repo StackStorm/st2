@@ -64,8 +64,6 @@ def _register_common_opts():
 
 def _register_api_opts():
     api_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='action API server host'),
-        cfg.IntOpt('port', default=9101, help='action API server port'),
         cfg.ListOpt('allow_origin', default=['http://localhost:3000', 'http://dev'],
                     help='List of origins allowed'),
         cfg.IntOpt('heartbeat', default=25,
