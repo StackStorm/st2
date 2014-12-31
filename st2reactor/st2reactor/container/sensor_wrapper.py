@@ -85,6 +85,8 @@ class SensorService(object):
         name = self._get_full_key_name(name=name)
         client = self._get_api_client()
 
+        self._logger.audit('Retrieving value from the datastore (name=%s)', name)
+
         try:
             kvp = client.keys.get_by_id(id=name)
         except Exception:
@@ -113,6 +115,8 @@ class SensorService(object):
         name = self._get_full_key_name(name=name)
         client = self._get_api_client()
 
+        self._logger.audit('Setting value in the datastore (name=%s)', name)
+
         instance = KeyValuePair()
         instance.id = name
         instance.name = name
@@ -136,6 +140,8 @@ class SensorService(object):
         instance = KeyValuePair()
         instance.id = name
         instance.name = name
+
+        self._logger.audit('Deleting value from the datastore (name=%s)', name)
 
         try:
             client.keys.delete(instance=instance)
