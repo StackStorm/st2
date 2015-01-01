@@ -39,6 +39,8 @@ Docs: http://docks.stackstorm.com/latest
   ``ncontains``, ``incontains`` (new-feature)
 * Allow sensors to store temporary data in the datastore using the ``get_value``, ``set_value`` and
   ``delete_value`` methods exposed by sensor_service. (new-feature)
+* Allow user to specify TTL for datastore values by sending ``ttl`` attribute in the body of a
+  `PUT /keys/<key id>` request. (new feature)
 
 v0.6.0 - December 8, 2014
 -------------------------
