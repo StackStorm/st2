@@ -39,7 +39,7 @@ class SensorsRegistrar(object):
 
     def _get_sensors_from_pack(self, sensors_dir):
         sensors = glob.glob(sensors_dir + '/*.yaml')
-        sensors.extend(glob.glob(sensors_dir + '*.yml'))
+        sensors.extend(glob.glob(sensors_dir + '/*.yml'))
         sensors = sorted(sensors)
         return sensors
 
