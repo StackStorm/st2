@@ -62,6 +62,7 @@ class SensorsRegistrar(object):
         description = metadata.get('description', None)
         trigger_types = metadata.get('trigger_types', [])
         poll_interval = metadata.get('poll_interval', None)
+        enabled = metadata.get('enabled', True)
 
         # Add pack to each trigger type item
         for trigger_type in trigger_types:
@@ -87,7 +88,8 @@ class SensorsRegistrar(object):
                 'class_name': class_name,
                 'file_path': sensor_file_path,
                 'trigger_types': trigger_type_refs,
-                'poll_interval': poll_interval
+                'poll_interval': poll_interval,
+                'enabled': enabled
             }
             container_utils.add_sensor_model(pack=pack, sensor=sensor_obj)
 
