@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 
 from oslo.config import cfg
 import six
@@ -22,7 +21,6 @@ from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.content.loader import ContentPackLoader
-from st2common.content.validators import RequirementsValidator
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.models.system.common import ResourceReference
