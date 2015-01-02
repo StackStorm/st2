@@ -42,12 +42,17 @@ class SensorRegistrationTestCase(DbTestCase):
         trigger_type_dbs = TriggerType.get_all()
         trigger_dbs = Trigger.get_all()
 
-        self.assertEqual(len(sensor_dbs), 1)
+        self.assertEqual(len(sensor_dbs), 2)
         self.assertEqual(len(trigger_type_dbs), 2)
         self.assertEqual(len(trigger_dbs), 2)
 
         self.assertEqual(sensor_dbs[0].name, 'TestSensor')
         self.assertEqual(sensor_dbs[0].poll_interval, 10)
+        self.assertTrue(sensor_dbs[0].enabled)
+
+        self.assertEqual(sensor_dbs[1].name, 'TestSensorDisabled')
+        self.assertEqual(sensor_dbs[1].poll_interval, 10)
+        self.assertFalse(sensor_dbs[1].enabled)
 
         self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
         self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
@@ -61,7 +66,7 @@ class SensorRegistrationTestCase(DbTestCase):
         trigger_type_dbs = TriggerType.get_all()
         trigger_dbs = Trigger.get_all()
 
-        self.assertEqual(len(sensor_dbs), 1)
+        self.assertEqual(len(sensor_dbs), 2)
         self.assertEqual(len(trigger_type_dbs), 2)
         self.assertEqual(len(trigger_dbs), 2)
 
@@ -90,7 +95,7 @@ class SensorRegistrationTestCase(DbTestCase):
         trigger_type_dbs = TriggerType.get_all()
         trigger_dbs = Trigger.get_all()
 
-        self.assertEqual(len(sensor_dbs), 1)
+        self.assertEqual(len(sensor_dbs), 2)
         self.assertEqual(len(trigger_type_dbs), 2)
         self.assertEqual(len(trigger_dbs), 2)
 
