@@ -14,13 +14,13 @@
 # limitations under the License.
 
 import os
-import glob
 
 import six
 from oslo.config import cfg
 
 from st2common import log as logging
-from st2common.content.loader import ContentPackLoader, MetaLoader
+from st2common.bootstrap.base import ResourceRegistrar
+from st2common.content.loader import ContentPackLoader
 import st2reactor.container.utils as container_utils
 
 __all__ = [
@@ -33,15 +33,14 @@ LOG = logging.getLogger(__name__)
 PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)))
 
 
-class SensorsRegistrar(object):
-    def __init__(self):
-        self._meta_loader = MetaLoader()
+class SensorsRegistrar(ResourceRegistrar):
+    ALLOWED_EXTENSIONS = [
+        '.yaml',
+        '.yml'
+    ]
 
     def _get_sensors_from_pack(self, sensors_dir):
-        sensors = glob.glob(sensors_dir + '/*.yaml')
-        sensors.extend(glob.glob(sensors_dir + '/*.yml'))
-        sensors = sorted(sensors)
-        return sensors
+        return self._get_resources_from_pack(resources_dir=sensors_dir)
 
     def _register_sensors_from_pack(self, pack, sensors):
         for sensor in sensors:

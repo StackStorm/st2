@@ -13,32 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import glob
 
 from oslo.config import cfg
 import six
 
 from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
-from st2common.content.loader import (ContentPackLoader, MetaLoader)
+from st2common.bootstrap.base import ResourceRegistrar
+from st2common.content.loader import ContentPackLoader
 from st2common.models.api.rule import RuleAPI
 from st2common.persistence.reactor import Rule
 
 LOG = logging.getLogger(__name__)
 
 
-class RulesRegistrar(object):
-    def __init__(self):
-        self._meta_loader = MetaLoader()
+class RulesRegistrar(ResourceRegistrar):
+    ALLOWED_EXTENSIONS = ALLOWED_EXTS
 
     def _get_rules_from_pack(self, rules_dir):
-        rules = []
-        for ext in ALLOWED_EXTS:
-            rules_ext = glob.glob(rules_dir + '/*' + ext)
-            rules.extend(rules_ext)
-
-        rules = sorted(rules)
-        return rules
+        return self._get_resources_from_pack(resources_dir=rules_dir)
 
     def _register_rules_from_pack(self, pack, rules):
         for rule in rules:

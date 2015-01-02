@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import glob
 import os
 
 from oslo.config import cfg
@@ -21,7 +20,8 @@ import six
 
 from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
-from st2common.content.loader import (ContentPackLoader, MetaLoader)
+from st2common.bootstrap.base import ResourceRegistrar
+from st2common.content.loader import ContentPackLoader
 from st2common.content.validators import RequirementsValidator
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
@@ -32,21 +32,18 @@ import st2common.validators.api.action as action_validator
 LOG = logging.getLogger(__name__)
 
 
-class ActionsRegistrar(object):
-    def __init__(self):
-        self._meta_loader = MetaLoader()
+class ActionsRegistrar(ResourceRegistrar):
+    ALLOWED_EXTENSIONS = ALLOWED_EXTS
 
     def _get_actions_from_pack(self, actions_dir):
-        actions = []
-        for ext in ALLOWED_EXTS:
-            actions_ext = glob.glob(actions_dir + '/*' + ext)
-            # Exclude global actions configuration file
-            config_file = 'actions/config' + ext
-            actions_ext = [file_path for file_path in actions_ext if
-                           config_file not in file_path]
-            actions.extend(actions_ext)
+        actions = self._get_resources_from_pack(resources_dir=actions_dir)
 
-        actions = sorted(actions)
+        # Exclude global actions configuration file
+        config_files = ['actions/config' + ext for ext in self.ALLOWED_EXTENSIONS]
+
+        for config_file in config_files:
+            actions = [file_path for file_path in actions if config_file not in file_path]
+
         return actions
 
     def _register_action(self, pack, action):
