@@ -43,8 +43,10 @@ class ActionsRegistrar(object):
             # Exclude global actions configuration file
             config_file = 'actions/config' + ext
             actions_ext = [file_path for file_path in actions_ext if
-                           config_file not in file_path] or []
+                           config_file not in file_path]
             actions.extend(actions_ext)
+
+        actions = sorted(actions)
         return actions
 
     def _register_action(self, pack, action):

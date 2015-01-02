@@ -36,6 +36,8 @@ class RulesRegistrar(object):
         for ext in ALLOWED_EXTS:
             rules_ext = glob.glob(rules_dir + '/*' + ext)
             rules.extend(rules_ext)
+
+        rules = sorted(rules)
         return rules
 
     def _register_rules_from_pack(self, pack, rules):
