@@ -85,20 +85,6 @@ class ActionsRegistrar(ResourceRegistrar):
                 LOG.exception('Unable to register action: %s', action)
                 continue
 
-    # XXX: Requirements for actions is tricky because actions can execute remotely.
-    # Currently, this method is unused.
-    def _is_requirements_ok(self, actions_dir):
-        rqmnts_file = os.path.join(actions_dir, 'requirements.txt')
-
-        if not os.path.exists(rqmnts_file):
-            return True
-
-        missing = RequirementsValidator.validate(rqmnts_file)
-        if missing:
-            LOG.warning('Actions in %s missing dependencies: %s', actions_dir, ','.join(missing))
-            return False
-        return True
-
     def register_actions_from_packs(self, base_dir):
         pack_loader = ContentPackLoader()
         dirs = pack_loader.get_content(base_dir=base_dir,
