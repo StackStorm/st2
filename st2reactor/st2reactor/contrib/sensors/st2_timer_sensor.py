@@ -15,6 +15,7 @@
 
 from datetime import datetime
 
+import eventlet
 from apscheduler.schedulers.background import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
@@ -27,6 +28,13 @@ import jsonschema
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.models.system.common import ResourceReference
 from st2reactor.sensor.base import Sensor
+
+eventlet.monkey_patch(
+    os=True,
+    select=True,
+    socket=True,
+    thread=True,
+    time=True)
 
 
 INTERVAL_PARAMETERS_SCHEMA = {
