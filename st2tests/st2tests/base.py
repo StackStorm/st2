@@ -43,6 +43,10 @@ ALL_MODELS.extend(history_model.MODELS)
 
 
 class EventletTestCase(TestCase):
+    """
+    Base test class which performs eventlet monkey patching before the tests run
+    and un-patching after the tests have finished running.
+    """
 
     @classmethod
     def setUpClass(cls):
