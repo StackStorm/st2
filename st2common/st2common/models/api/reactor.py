@@ -70,10 +70,11 @@ class SensorTypeAPI(BaseAPI):
         model.trigger_types = sensor_type.trigger_types
 
         if hasattr(sensor_type, 'poll_interval'):
-            nodel.poll_interval = sensor_type.poll_interval
+            model.poll_interval = sensor_type.poll_interval
 
         model.enabled = sensor_type.enabled
         return model
+
 
 class TriggerTypeAPI(BaseAPI):
     model = TriggerTypeDB
