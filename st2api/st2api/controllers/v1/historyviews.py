@@ -18,7 +18,7 @@ from pecan.rest import RestController
 import six
 
 from st2common import log as logging
-from st2common.models.base import jsexpose
+from st2common.models.api.base import jsexpose
 from st2common.persistence.history import ActionExecutionHistory
 
 LOG = logging.getLogger(__name__)

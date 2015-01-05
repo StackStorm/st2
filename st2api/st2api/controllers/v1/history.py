@@ -20,7 +20,7 @@ from st2api.controllers.v1.historyviews import SUPPORTED_FILTERS
 from st2api.controllers.v1.historyviews import HistoryViewsController
 from st2common.persistence.history import ActionExecutionHistory
 from st2common.models.api.history import ActionExecutionHistoryAPI
-from st2common.models.base import jsexpose
+from st2common.models.api.base import jsexpose
 from st2common.models.system.common import ResourceReference
 from st2common import log as logging
 

@@ -22,7 +22,7 @@ from pecan import rest
 import six
 from six.moves import http_client
 
-from st2common.models.base import jsexpose
+from st2common.models.api.base import jsexpose
 from st2common import log as logging
 from st2common.models.system.common import InvalidResourceReferenceError
 from st2common.models.system.common import ResourceReference

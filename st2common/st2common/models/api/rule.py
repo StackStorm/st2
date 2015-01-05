@@ -17,7 +17,7 @@ import copy
 
 import six
 
-from st2common.models.base import BaseAPI
+from st2common.models.api.base import BaseAPI
 from st2common.models.api.reactor import TriggerAPI
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB
 from st2common.persistence.reactor import Trigger
