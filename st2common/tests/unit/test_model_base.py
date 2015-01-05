@@ -19,7 +19,7 @@ import mock
 import pecan
 import unittest
 
-from st2common.models import base
+from st2common.models.api import base
 
 
 class FakeModel(base.BaseAPI):

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.models.base import BaseAPI
+from st2common.models.api.base import BaseAPI
 from st2common.models.db.datastore import KeyValuePairDB
 
 

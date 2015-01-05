@@ -18,7 +18,7 @@ import copy
 import six
 
 from st2common.util import isotime
-from st2common.models.base import BaseAPI
+from st2common.models.api.base import BaseAPI
 from st2common.models.db.history import ActionExecutionHistoryDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
