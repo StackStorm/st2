@@ -100,6 +100,12 @@ class BaseDbTestCase(TestCase):
 
 
 class DbTestCase(BaseDbTestCase):
+    """
+    This class drops and re-creates the database once per TestCase run.
+
+    This means database is only dropped once before all the tests from this class run. This means
+    data is persited between different tests in this class.
+    """
     db_connection = None
 
     @classmethod
@@ -114,9 +120,10 @@ class DbTestCase(BaseDbTestCase):
 
 class CleanDbTestCase(BaseDbTestCase):
     """
-    Class which ensures database is re-created for every test method.
+    Class which ensures database is re-created before running each test method.
 
-    This way each test method starts with a clean database.
+    This means each test inside this class is self-sustained and starts with a clean (empty)
+    database.
     """
 
     def setUp(self):
