@@ -25,9 +25,6 @@ from st2tests.base import CleanDbTestCase
 
 
 class St2TimerTestCase(CleanDbTestCase):
-    def setUp(self):
-        self.setUpClass()
-
     def test_trigger_types_are_registered_on_start(self):
         timer = St2Timer()
         timer._scheduler = Mock()
