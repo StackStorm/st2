@@ -51,9 +51,13 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
 
     def test_get_querier(self):
         tracker = results_tracker.ResultsTracker()
-        tracker._bootstrap()
         self.assertEqual(tracker.get_querier('this_module_aint_exist'), None)
         self.assertTrue(tracker.get_querier('tests.resources.test_querymodule') is not None)
+
+    def test_querier_started(self):
+        tracker = results_tracker.ResultsTracker()
+        querier = tracker.get_querier('tests.resources.test_querymodule')
+        self.assertTrue(querier.is_started(), 'querier must have been started.')
 
     @classmethod
     def tearDownClass(cls):
