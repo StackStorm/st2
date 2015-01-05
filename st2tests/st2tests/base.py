@@ -27,6 +27,12 @@ import st2common.models.db.datastore as datastore_model
 import st2common.models.db.actionrunner as actionrunner_model
 import st2common.models.db.history as history_model
 
+__all__ = [
+    'EventletTestCase',
+    'DbTestCase',
+    'CleanDbTestCase'
+]
+
 
 ALL_MODELS = []
 ALL_MODELS.extend(reactor_model.MODELS)
@@ -91,6 +97,17 @@ class DbTestCase(TestCase):
         global ALL_MODELS
         for model in ALL_MODELS:
             model.drop_collection()
+
+
+class CleanDbTestCase(DbTestCase):
+    """
+    Class which ensures database is re-created for every test method.
+
+    This way each test method starts with a clean database.
+    """
+
+    def setUp(self):
+        self.setUpClass()
 
 
 def get_fixtures_path():

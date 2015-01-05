@@ -21,10 +21,10 @@ from st2common.persistence.reactor import Trigger
 from st2common.models.db.reactor import TriggerDB
 from st2common.models.system.common import ResourceReference
 from st2common.constants.triggers import TIMER_TRIGGER_TYPES
-from st2tests.base import DbTestCase
+from st2tests.base import CleanDbTestCase
 
 
-class St2TimerTestCase(DbTestCase):
+class St2TimerTestCase(CleanDbTestCase):
     def setUp(self):
         self.setUpClass()
 
@@ -55,7 +55,7 @@ class St2TimerTestCase(DbTestCase):
         timer._scheduler = Mock()
         timer._trigger_watcher.run = Mock()
 
-        # Verify there are no Trigger and TriggerType in the db when we start
+        # Verify there are no Trigger and TriggerType in the db wh:w
         self.assertItemsEqual(Trigger.get_all(), [])
         self.assertItemsEqual(TriggerType.get_all(), [])
 
