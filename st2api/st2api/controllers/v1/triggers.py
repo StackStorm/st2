@@ -20,7 +20,7 @@ import six
 
 from st2common import log as logging
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
-from st2common.models.base import jsexpose
+from st2common.models.api.base import jsexpose
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance
 from st2common.services import triggers as TriggerService
 from st2api.controllers import resource
