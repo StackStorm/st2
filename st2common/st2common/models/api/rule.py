@@ -114,6 +114,11 @@ class RuleAPI(BaseAPI):
             'enabled': {
                 'type': 'boolean',
                 'default': True
+            },
+            "tags": {
+                "description": "User associated metadata assigned to this object.",
+                "type": "array",
+                "items": {"type": "object"}
             }
         },
         'additionalProperties': False

@@ -85,6 +85,11 @@ class TriggerTypeAPI(BaseAPI):
             'parameters_schema': {
                 'type': 'object',
                 'default': {}
+            },
+            "tags": {
+                "description": "User associated metadata assigned to this object.",
+                "type": "array",
+                "items": {"type": "object"}
             }
         },
         'additionalProperties': False
