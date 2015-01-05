@@ -48,6 +48,8 @@ class KeyValuePairBranch(resource.ResourceBranch):
                                                       self.subparsers)
         self.commands['load'] = KeyValuePairLoadCommand(
             self.resource, self.app, self.subparsers)
+        self.commands['delete_by_prefix'] = KeyValuePairDeleteByPrefixCommand(
+            self.resource, self.app, self.subparsers)
 
         # Remove unsupported commands
         # TODO: Refactor parent class and make it nicer
@@ -110,6 +112,46 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
         instance = self.get_resource(resource_id, **kwargs)
         instance.id = resource_id  # TODO: refactor and get rid of id
         self.manager.delete(instance, **kwargs)
+
+
+class KeyValuePairDeleteByPrefixCommand(resource.ResourceCommand):
+    """
+    Commands which delete all the key value pairs which match the provided
+    prefix.
+    """
+    def __init__(self, resource, *args, **kwargs):
+        super(KeyValuePairDeleteByPrefixCommand, self).__init__(resource, 'delete_by_prefix',
+            'Delete KeyValue pairs which match the provided prefix', *args, **kwargs)
+
+        self.parser.add_argument('-p', '--prefix', required=True,
+                                 help='Name prefix (e.g. twitter.TwitterSensor:)')
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        prefix = args.prefix
+        key_pairs = self.manager.get_all()
+
+        to_delete = []
+        for key_pair in key_pairs:
+            if key_pair.name.startswith(prefix):
+                key_pair.id = key_pair.name
+                to_delete.append(key_pair)
+
+        deleted = []
+        for key_pair in to_delete:
+            self.manager.delete(instance=key_pair, **kwargs)
+            deleted.append(key_pair)
+
+        return deleted
+
+    def run_and_print(self, args, **kwargs):
+        # TODO: Need to use args, instead of kwargs (args=) because of bad API
+        # FIX ME
+        deleted = self.run(args, **kwargs)
+        key_ids = [key_pair.id for key_pair in deleted]
+
+        print('Deleted %s keys' % (len(deleted)))
+        print('Deleted key ids: %s' % (', '.join(key_ids)))
 
 
 class KeyValuePairLoadCommand(resource.ResourceCommand):

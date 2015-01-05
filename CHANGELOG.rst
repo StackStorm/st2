@@ -41,6 +41,8 @@ Docs: http://docks.stackstorm.com/latest
   ``delete_value`` methods exposed by sensor_service. (new-feature)
 * Allow user to specify TTL for datastore values by sending ``ttl`` attribute in the body of a
   `PUT /keys/<key id>` request. (new feature)
+* Add new `key delete_by_prefix --prefix=<prefix>` client command. This command allows deletion of
+  all the keys which name starts with the provided prefix. (new-feature)
 
 v0.6.0 - December 8, 2014
 -------------------------
