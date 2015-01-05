@@ -14,9 +14,15 @@
 # limitations under the License.
 
 import six
+from pecan import abort
+from mongoengine import ValidationError
+
 from st2common import log as logging
+from st2common.models.base import jsexpose
 from st2common.persistence.reactor import SensorType
 from st2common.models.api.reactor import SensorTypeAPI
+from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2api.controllers import resource
 
 http_client = six.moves.http_client
@@ -37,3 +43,36 @@ class SensorTypeController(resource.ContentPackResourceControler):
     }
 
     include_reference = True
+
+    @jsexpose(str, body=SensorTypeAPI)
+    def put(self, ref_or_id, sensor_type):
+        try:
+            sensor_type_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+        except Exception as e:
+            LOG.exception(e.message)
+            abort(http_client.NOT_FOUND, e.message)
+            return
+
+        sensor_type_id = sensor_type_db.id
+
+        try:
+            validate_not_part_of_system_pack(sensor_type_db)
+        except ValueValidationException as e:
+            abort(http_client.BAD_REQUEST, str(e))
+
+        if not getattr(sensor_type, 'pack', None):
+            sensor_type.pack = sensor_type_db.pack
+
+        try:
+            sensor_type_db = SensorTypeAPI.to_model(sensor_type)
+            sensor_type_db.id = sensor_type_id
+            sensor_type_db = SensorType.add_or_update(sensor_type_db)
+        except (ValidationError, ValueError) as e:
+            LOG.exception('Unable to update sensor_type data=%s', sensor_type)
+            abort(http_client.BAD_REQUEST, str(e))
+            return
+
+        sensor_type_api = SensorTypeAPI.from_model(sensor_type_db)
+        LOG.debug('PUT /sensors/ client_result=%s', sensor_type_api)
+
+        return sensor_type_api
