@@ -61,6 +61,19 @@ class SensorTypeAPI(BaseAPI):
         'additionalProperties': False
     }
 
+    @classmethod
+    def to_model(cls, sensor_type):
+        model = super(cls, cls).to_model(sensor_type)
+        model.pack = sensor_type.pack
+        model.artifact_uri = sensor_type.artifact_uri
+        model.entry_point = sensor_type.entry_point
+        model.trigger_types = sensor_type.trigger_types
+
+        if hasattr(sensor_type, 'poll_interval'):
+            nodel.poll_interval = sensor_type.poll_interval
+
+        model.enabled = sensor_type.enabled
+        return model
 
 class TriggerTypeAPI(BaseAPI):
     model = TriggerTypeDB
