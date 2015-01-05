@@ -27,6 +27,12 @@ import st2common.models.db.datastore as datastore_model
 import st2common.models.db.actionrunner as actionrunner_model
 import st2common.models.db.history as history_model
 
+__all__ = [
+    'EventletTestCase',
+    'DbTestCase',
+    'CleanDbTestCase'
+]
+
 
 ALL_MODELS = []
 ALL_MODELS.extend(reactor_model.MODELS)
@@ -37,6 +43,10 @@ ALL_MODELS.extend(history_model.MODELS)
 
 
 class EventletTestCase(TestCase):
+    """
+    Base test class which performs eventlet monkey patching before the tests run
+    and un-patching after the tests have finished running.
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -59,31 +69,31 @@ class EventletTestCase(TestCase):
         )
 
 
-class DbTestCase(TestCase):
-
-    db_connection = None
-
+class BaseDbTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         st2tests.config.parse_args()
+
+    @classmethod
+    def _establish_connection_and_re_create_db(cls):
         username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
         password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-        DbTestCase.db_connection = db_setup(
+        cls.db_connection = db_setup(
             cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
             username=username, password=password)
-        cls.drop_collections()
-        DbTestCase.db_connection.drop_database(cfg.CONF.database.db_name)
+        cls._drop_collections()
+        cls.db_connection.drop_database(cfg.CONF.database.db_name)
 
     @classmethod
-    def tearDownClass(cls):
-        cls.drop_collections()
-        if DbTestCase.db_connection is not None:
-            DbTestCase.db_connection.drop_database(cfg.CONF.database.db_name)
+    def _drop_db(cls):
+        cls._drop_collections()
+        if cls.db_connection is not None:
+            cls.db_connection.drop_database(cfg.CONF.database.db_name)
         db_teardown()
-        DbTestCase.db_connection = None
+        cls.db_connection = None
 
     @classmethod
-    def drop_collections(cls):
+    def _drop_collections(cls):
         # XXX: Explicitly drop all the collection. Otherwise, artifacts are left over in
         # subsequent tests.
         # See: https://github.com/MongoEngine/mongoengine/issues/566
@@ -91,6 +101,37 @@ class DbTestCase(TestCase):
         global ALL_MODELS
         for model in ALL_MODELS:
             model.drop_collection()
+
+
+class DbTestCase(BaseDbTestCase):
+    """
+    This class drops and re-creates the database once per TestCase run.
+
+    This means database is only dropped once before all the tests from this class run. This means
+    data is persited between different tests in this class.
+    """
+    db_connection = None
+
+    @classmethod
+    def setUpClass(cls):
+        BaseDbTestCase.setUpClass()
+        cls._establish_connection_and_re_create_db()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._drop_db()
+
+
+class CleanDbTestCase(BaseDbTestCase):
+    """
+    Class which ensures database is re-created before running each test method.
+
+    This means each test inside this class is self-sustained and starts with a clean (empty)
+    database.
+    """
+
+    def setUp(self):
+        self._establish_connection_and_re_create_db()
 
 
 def get_fixtures_path():
