@@ -73,8 +73,7 @@ class PollingSensor(BaseSensor):
     """
     Base class to be inherited from by the active sensors.
 
-    Active sensors are the ones which periodically polling a 3rd party system
-    for new information.
+    Active sensors periodically poll a 3rd party system for new information.
     """
 
     def __init__(self, sensor_service, config, poll_interval=5):
