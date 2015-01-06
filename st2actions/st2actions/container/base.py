@@ -23,8 +23,7 @@ from st2common import log as logging
 from st2common.util import isotime
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED,
-                                        ACTIONEXEC_STATUS_FAILED,
-                                        ACTIONEXEC_STATUS_RUNNING)
+                                        ACTIONEXEC_STATUS_FAILED)
 from st2common.models.db.action import ActionExecutionStateDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import ActionExecutionState
@@ -34,9 +33,11 @@ from st2common.util.action_db import (update_actionexecution_status, get_actione
 
 from st2actions.container import actionsensor
 from st2actions.container.service import RunnerContainerService
+from st2actions.runners import AsyncActionRunner
 from st2actions.utils import param_utils
 
 LOG = logging.getLogger(__name__)
+DONE_STATES = [ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED]
 
 
 class RunnerContainer(object):
@@ -82,8 +83,8 @@ class RunnerContainer(object):
         LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Invoke pre_run, run, post_run cycle.
-        result, actionexec_db = self._do_run(runner, runnertype_db, action_db, actionexec_db)
-        LOG.debug('runner do_run result: %s', result)
+        actionexec_db = self._do_run(runner, runnertype_db, action_db, actionexec_db)
+        LOG.debug('runner do_run result: %s', actionexec_db.result)
 
         actionsensor.post_trigger(actionexec_db)
         actionexec_serializable = actionexec_db.to_serializable_dict()
@@ -91,7 +92,7 @@ class RunnerContainer(object):
                   extra={'actionexecution': actionexec_serializable})
         LOG.info('result :\n%s.', json.dumps(actionexec_serializable.get('result', None), indent=4))
 
-        return result
+        return actionexec_db.result
 
     def _do_run(self, runner, runnertype_db, action_db, actionexec_db):
         # Finalized parameters are resolved and then rendered.
@@ -112,71 +113,61 @@ class RunnerContainer(object):
                                                               action_db.entry_point)
         runner.auth_token = self._create_auth_token(runner.context)
 
-        is_done = False
+        updated_actionexec_db = None
         try:
             LOG.debug('Performing pre-run for runner: %s', runner)
             runner.pre_run()
 
             LOG.debug('Performing run for runner: %s', runner)
-            is_done, query_context, results = runner.run(action_params)
-            runner.container_service.report_result(results)
-            if not is_done:
-                runner.container_service.report_status(ACTIONEXEC_STATUS_RUNNING)
+            if isinstance(runner, AsyncActionRunner):
+                (status, result, query_context) = runner.run(action_params)
+            else:
+                (status, result) = runner.run(action_params)
+
+            try:
+                result = json.loads(result)
+            except:
+                pass
+
+            if status not in DONE_STATES:
                 self._setup_async_query(actionexec_db.id, runnertype_db, query_context)
         except:
             LOG.exception('Failed to run action.')
             _, ex, tb = sys.exc_info()
             # mark execution as failed.
-            runner.container_service.report_status(ACTIONEXEC_STATUS_FAILED)
+            status = ACTIONEXEC_STATUS_FAILED
             # include the error message and traceback to try and provide some hints.
-            runner.container_service.report_result(
-                {'message': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))})
+            result = {'message': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
         finally:
             # Always clean-up the auth_token
+            updated_actionexec_db = self._update_action_execution_db(actionexec_db.id, status,
+                                                                     result)
+            LOG.debug('Updated ActionExecution after run: %s', updated_actionexec_db)
             try:
                 self._delete_auth_token(runner.auth_token)
             except:
                 LOG.warn('Unable to clean-up auth_token.')
 
-        # Re-load Action Execution from DB:
-        actionexec_db = get_actionexec_by_id(actionexec_db.id)
+        LOG.debug('Performing post_run for runner: %s', runner)
+        runner.post_run(status, result)
+        runner.container_service = None
 
-        # TODO: Store payload when DB model can hold payload data
-        action_result = runner.container_service.get_result()
-        actionexec_status = runner.container_service.get_status()
-        LOG.debug('Result as reporter to container service: %s', action_result)
+        return actionexec_db
 
-        if action_result is None:
-            # If the runner didn't set an exit code then the action didn't complete.
-            # Therefore, the action produced an error.
-            result = False
-            if not actionexec_status:
-                actionexec_status = ACTIONEXEC_STATUS_FAILED
-                runner.container_service.report_status(actionexec_status)
-        else:
-            # So long as the runner produced an exit code, we can assume that the
-            # Live Action ran to completion.
-            result = True
-            actionexec_db.result = action_result
-            if not actionexec_status:
-                actionexec_status = ACTIONEXEC_STATUS_SUCCEEDED
-                runner.container_service.report_status(actionexec_status)
+    def _update_action_execution_db(self, actionexec_id, status, result):
+        actionexec_db = get_actionexec_by_id(actionexec_id)
 
-        if actionexec_status in [ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED]:
+        if status in DONE_STATES:
             end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
         else:
             end_timestamp = None
 
         # Push result data and updated status to ActionExecution DB
-        actionexec_db = update_actionexecution_status(new_status=actionexec_status,
+        actionexec_db = update_actionexecution_status(status=status,
+                                                      result=result,
                                                       end_timestamp=end_timestamp,
                                                       actionexec_db=actionexec_db)
-
-        LOG.debug('Performing post_run for runner: %s', runner)
-        runner.post_run()
-        runner.container_service = None
-
-        return result, actionexec_db
+        return actionexec_db
 
     def _get_entry_point_abs_path(self, pack, entry_point):
         return RunnerContainerService.get_entry_point_abs_path(pack=pack,

@@ -68,17 +68,22 @@ class ActionRunner(object):
     def run(self, action_parameters):
         raise NotImplementedError()
 
-    def post_run(self):
+    def post_run(self, status, result):
         if self.callback and not (set(['url', 'source']) - set(self.callback.keys())):
             handler = handlers.get_handler(self.callback['source'])
             handler.callback(self.callback['url'],
                              self.context,
-                             self.container_service.get_status(),
-                             self.container_service.get_result())
+                             status,
+                             result)
 
     def __str__(self):
         attrs = ', '.join(['%s=%s' % (k, v) for k, v in six.iteritems(self.__dict__)])
         return '%s@%s(%s)' % (self.__class__.__name__, str(id(self)), attrs)
+
+
+@six.add_metaclass(abc.ABCMeta)
+class AsyncActionRunner(ActionRunner):
+    pass
 
 
 class ShellRunnerMixin(object):

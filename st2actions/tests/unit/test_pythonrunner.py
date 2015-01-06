@@ -46,10 +46,9 @@ class PythonRunnerTestCase(TestCase):
         runner.action = self._get_mock_action_obj()
         runner.entry_point = PACAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
-        (is_done, query_context, result) = runner.run({'row_index': 4})
-        self.assertTrue(is_done)
-        self.assertTrue(result)
-        self.assertEqual(runner.container_service.get_status(), ACTIONEXEC_STATUS_SUCCEEDED)
+        (status, result) = runner.run({'row_index': 4})
+        self.assertEqual(status, ACTIONEXEC_STATUS_SUCCEEDED)
+        self.assertTrue(result is not None)
         self.assertEqual(result['result'], [1, 4, 6, 4, 1])
 
     def test_simple_action_fail(self):
@@ -57,18 +56,18 @@ class PythonRunnerTestCase(TestCase):
         runner.action = self._get_mock_action_obj()
         runner.entry_point = PACAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
-        (is_done, query_context, result) = runner.run({'row_index': '4'})
-        self.assertTrue(result)
-        self.assertEqual(runner.container_service.get_status(), ACTIONEXEC_STATUS_FAILED)
+        (status, result) = runner.run({'row_index': '4'})
+        self.assertTrue(result is not None)
+        self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
 
     def test_simple_action_no_file(self):
         runner = pythonrunner.get_runner()
         runner.action = self._get_mock_action_obj()
         runner.entry_point = ''
         runner.container_service = service.RunnerContainerService()
-        (is_done, query_context, result) = runner.run({})
-        self.assertTrue(result)
-        self.assertEqual(runner.container_service.get_status(), ACTIONEXEC_STATUS_FAILED)
+        (status, result) = runner.run({})
+        self.assertTrue(result is not None)
+        self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
 
     def _get_mock_action_obj(self):
         """

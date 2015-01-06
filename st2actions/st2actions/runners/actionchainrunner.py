@@ -123,11 +123,13 @@ class ActionChainRunner(ActionRunner):
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-failure')
                 elif actionexec.status == ACTIONEXEC_STATUS_SUCCEEDED:
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-success')
+
+        status = None
         if fail:
-            self.container_service.report_status(ACTIONEXEC_STATUS_FAILED)
+            status = ACTIONEXEC_STATUS_FAILED
         else:
-            self.container_service.report_status(ACTIONEXEC_STATUS_SUCCEEDED)
-        return (True, None, results)
+            status = ACTIONEXEC_STATUS_SUCCEEDED
+        return (status, results)
 
     @staticmethod
     def _resolve_params(action_node, original_parameters, results):

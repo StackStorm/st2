@@ -193,9 +193,8 @@ class TestActionChainRunner(TestCase):
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        (done, query_context, success) = chain_runner.run({})
-        self.assertEqual(chain_runner.container_service.get_status(),
-                         ACTIONEXEC_STATUS_FAILED)
+        (status, success) = chain_runner.run({})
+        self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEqual(schedule.call_count, 2)

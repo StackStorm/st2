@@ -134,5 +134,5 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             result['error'] = error
 
         status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
-        self.container_service.report_status(status)
-        return (True, None, result)
+        print('Returning from localshellrunner*********')
+        return (status, result)

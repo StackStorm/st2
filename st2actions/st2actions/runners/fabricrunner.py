@@ -105,11 +105,11 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         LOG.debug('Will execute remote_action : %s.', str(remote_action))
         result = self._run(remote_action)
         LOG.debug('Executed remote_action : %s. Result is : %s.', remote_action, result)
-        self.container_service.report_status(FabricRunner._get_result_status(
-            result, cfg.CONF.ssh_runner.allow_partial_failure))
+        status = FabricRunner._get_result_status(
+            result, cfg.CONF.ssh_runner.allow_partial_failure)
 
         # TODO (manas) : figure out the right boolean representation.
-        return (True, None, result)
+        return (status, result)
 
     def _run(self, remote_action):
         LOG.info('Executing action via FabricRunner :%s for user: %s.',

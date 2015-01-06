@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import os
 import pipes
 
@@ -37,21 +36,6 @@ class RunnerContainerService(object):
         self._status = None
         self._result = None
         self._payload = {}
-
-    def report_status(self, status):
-        self._status = status
-
-    def report_result(self, result):
-        try:
-            self._result = json.loads(result)
-        except:
-            self._result = result
-
-    def get_status(self):
-        return self._status
-
-    def get_result(self):
-        return self._result
 
     def report_payload(self, name, value):
         self._payload[name] = value

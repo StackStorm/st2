@@ -18,19 +18,19 @@ try:
 except:
     import json
 
-from st2actions.runners import ActionRunner
-from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED)
+from st2actions.runners import AsyncActionRunner
+from st2common.constants.action import (ACTIONEXEC_STATUS_RUNNING)
 
 RAISE_PROPERTY = 'raise'
 
 
 def get_runner():
-    return TestRunner()
+    return AsyncTestRunner()
 
 
-class TestRunner(ActionRunner):
+class AsyncTestRunner(AsyncActionRunner):
     def __init__(self):
-        super(TestRunner, self).__init__(runner_id='1')
+        super(AsyncTestRunner, self).__init__(runner_id='1')
         self.pre_run_called = False
         self.run_called = False
         self.post_run_called = False
@@ -49,7 +49,7 @@ class TestRunner(ActionRunner):
                 'action_params': action_params
             }
 
-        return (ACTIONEXEC_STATUS_SUCCEEDED, json.dumps(result))
+        return (ACTIONEXEC_STATUS_RUNNING, json.dumps(result), {'id': 'foo'})
 
     def post_run(self, status, result):
         self.post_run_called = True
