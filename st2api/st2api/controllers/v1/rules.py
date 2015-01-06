@@ -21,7 +21,7 @@ import six
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.rule import RuleAPI
-from st2common.models.base import jsexpose
+from st2common.models.api.base import jsexpose
 from st2common.persistence.reactor import Rule
 
 http_client = six.moves.http_client

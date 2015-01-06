@@ -25,7 +25,7 @@ from urlparse import urljoin
 
 from st2common import log as logging
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
-from st2common.models.base import jsexpose
+from st2common.models.api.base import jsexpose
 import st2common.services.triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher

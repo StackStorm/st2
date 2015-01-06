@@ -51,6 +51,7 @@ class St2Timer(object):
 
     def start(self):
         self._register_timer_trigger_types()
+        self._trigger_watcher.start()
         self._scheduler.start()
 
     def cleanup(self):

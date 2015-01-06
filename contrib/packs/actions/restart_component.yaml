@@ -16,5 +16,3 @@
       required: true
     kwarg_op:
       immutable: true
-    dir:
-      immutable: true

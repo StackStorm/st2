@@ -24,7 +24,7 @@ from six.moves import http_client
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
 from st2common.models.api.action import ActionExecutionAPI
-from st2common.models.base import jsexpose
+from st2common.models.api.base import jsexpose
 from st2common.persistence.action import ActionExecution
 from st2common.services import action as action_service
 

@@ -16,5 +16,3 @@
       description: "Possible options are all, sensors, actions, rules."
     kwarg_op:
       immutable: true
-    dir:
-      immutable: true
