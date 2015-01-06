@@ -17,6 +17,7 @@ import uuid
 
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
+from st2common.models.api.tag import TagsHelper
 from st2common.models.db.reactor import SensorTypeDB, TriggerTypeDB, TriggerDB, TriggerInstanceDB
 
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
@@ -101,7 +102,14 @@ class TriggerTypeAPI(BaseAPI):
         model.pack = getattr(triggertype, 'pack', None)
         model.payload_schema = getattr(triggertype, 'payload_schema', {})
         model.parameters_schema = getattr(triggertype, 'parameters_schema', {})
+        model.tags = TagsHelper.to_model(getattr(triggertype, 'tags', []))
         return model
+
+    @classmethod
+    def from_model(cls, model):
+        triggertype = cls._from_model(model)
+        triggertype['tags'] = TagsHelper.from_model(model.tags)
+        return cls(**triggertype)
 
 
 class TriggerAPI(BaseAPI):
