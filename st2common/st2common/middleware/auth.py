@@ -75,6 +75,7 @@ class AuthMiddleware(object):
             raise exceptions.TokenNotProvidedError('Token is not provided.')
         token = Token.get(env['HTTP_X_AUTH_TOKEN'])
         if token.expiry <= isotime.add_utc_tz(datetime.datetime.utcnow()):
+            # TODO: purge expired tokens
             LOG.audit('Token "%s" has expired.' % env['HTTP_X_AUTH_TOKEN'])
             raise exceptions.TokenExpiredError('Token has expired.')
         LOG.audit('Token "%s" is validated.' % env['HTTP_X_AUTH_TOKEN'])

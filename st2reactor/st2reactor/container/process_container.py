@@ -20,7 +20,11 @@ import json
 import subprocess
 
 from st2common import log as logging
+from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
+from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
+from st2common.services.access import create_token
+from st2common.util.api import get_full_api_url
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
@@ -92,7 +96,8 @@ class ProcessSensorContainer(object):
     def shutdown(self):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
 
-        for sensor_id in self._sensors:
+        sensor_ids = self._sensors.keys()
+        for sensor_id in sensor_ids:
             self._stop_sensor_process(sensor_id=sensor_id)
 
         LOG.info('All sensors are shut down.')
@@ -136,7 +141,7 @@ class ProcessSensorContainer(object):
 
         for sensor_id in sensor_ids:
             sensor_obj = self._sensors[sensor_id]
-            LOG.info('Running sensor %s' % sensor_id)
+            LOG.info('Running sensor %s', sensor_id)
 
             try:
                 self._spawn_sensor_process(sensor=sensor_obj)
@@ -185,6 +190,17 @@ class ProcessSensorContainer(object):
         env = os.environ.copy()
         env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
                                                     inherit_parent_virtualenv=True)
+
+        # Include full api URL and API token specific to that sensor
+        ttl = (24 * 60 * 60)
+        temporary_token = create_token(username='sensors_container', ttl=ttl)
+
+        env[API_URL_ENV_VARIABLE_NAME] = get_full_api_url()
+        env[AUTH_TOKEN_ENV_VARIABLE_NAME] = temporary_token.token
+
+        # TODO 1: Purge temporary token when service stops or sensor process dies
+        # TODO 2: Store metadata (wrapper process id) with the token and delete
+        # tokens for old, dead processes on startup
 
         LOG.debug('Running sensor subprocess (cmd="%s")', ' '.join(args))
 

@@ -13,58 +13,59 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import glob
-import os
 
 from oslo.config import cfg
 import six
 
 from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
-from st2common.content.loader import (ContentPackLoader, MetaLoader)
-from st2common.content.validators import RequirementsValidator
+from st2common.bootstrap.base import ResourceRegistrar
+from st2common.content.loader import ContentPackLoader
 from st2common.persistence.action import Action
-from st2common.models.db.action import ActionDB
+from st2common.models.api.action import ActionAPI
 from st2common.models.system.common import ResourceReference
 import st2common.util.action_db as action_utils
+import st2common.validators.api.action as action_validator
 
 LOG = logging.getLogger(__name__)
 
 
-class ActionsRegistrar(object):
-    def __init__(self):
-        self._meta_loader = MetaLoader()
+class ActionsRegistrar(ResourceRegistrar):
+    ALLOWED_EXTENSIONS = ALLOWED_EXTS
 
     def _get_actions_from_pack(self, actions_dir):
-        actions = []
-        for ext in ALLOWED_EXTS:
-            actions_ext = glob.glob(actions_dir + '/*' + ext)
-            # Exclude global actions configuration file
-            config_file = 'actions/config' + ext
-            actions_ext = [file_path for file_path in actions_ext if
-                           config_file not in file_path] or []
-            actions.extend(actions_ext)
+        actions = self._get_resources_from_pack(resources_dir=actions_dir)
+
+        # Exclude global actions configuration file
+        config_files = ['actions/config' + ext for ext in self.ALLOWED_EXTENSIONS]
+
+        for config_file in config_files:
+            actions = [file_path for file_path in actions if config_file not in file_path]
+
         return actions
 
     def _register_action(self, pack, action):
         content = self._meta_loader.load(action)
+        pack_field = content.get('pack', None)
+        if not pack_field:
+            content['pack'] = pack
+            pack_field = pack
+        if pack_field != pack:
+            raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
+                            (pack, pack_field))
+
+        action_api = ActionAPI(**content)
+        action_validator.validate_action(action_api)
+        model = ActionAPI.to_model(action_api)
+
         action_ref = ResourceReference(pack=pack, name=str(content['name']))
-        model = action_utils.get_action_by_ref(action_ref)
-        if not model:
-            model = ActionDB()
-        model.name = content['name']
-        model.description = content['description']
-        model.enabled = content['enabled']
-        model.pack = pack
-        model.entry_point = content['entry_point']
-        model.parameters = content.get('parameters', {})
-        runner_type = str(content['runner_type'])
-        valid_runner_type, runner_type_db = self._has_valid_runner_type(runner_type)
-        if valid_runner_type:
-            model.runner_type = {'name': runner_type_db.name}
+        existing = action_utils.get_action_by_ref(action_ref)
+        if not existing:
+            LOG.info('Action %s not found. Creating new one with: %s', action_ref, content)
         else:
-            LOG.exception('Runner type %s doesn\'t exist.', runner_type)
-            raise
+            LOG.info('Action %s found. Will be updated from: %s to: %s',
+                     action_ref, existing, model)
+            model.id = existing.id
 
         try:
             model = Action.add_or_update(model)
@@ -72,12 +73,6 @@ class ActionsRegistrar(object):
         except Exception:
             LOG.exception('Failed to write action to db %s.', model.name)
             raise
-
-    def _has_valid_runner_type(self, runner_type):
-        try:
-            return True, action_utils.get_runnertype_by_name(runner_type)
-        except:
-            return False, None
 
     def _register_actions_from_pack(self, pack, actions):
         for action in actions:
@@ -87,20 +82,6 @@ class ActionsRegistrar(object):
             except Exception:
                 LOG.exception('Unable to register action: %s', action)
                 continue
-
-    # XXX: Requirements for actions is tricky because actions can execute remotely.
-    # Currently, this method is unused.
-    def _is_requirements_ok(self, actions_dir):
-        rqmnts_file = os.path.join(actions_dir, 'requirements.txt')
-
-        if not os.path.exists(rqmnts_file):
-            return True
-
-        missing = RequirementsValidator.validate(rqmnts_file)
-        if missing:
-            LOG.warning('Actions in %s missing dependencies: %s', actions_dir, ','.join(missing))
-            return False
-        return True
 
     def register_actions_from_packs(self, base_dir):
         pack_loader = ContentPackLoader()

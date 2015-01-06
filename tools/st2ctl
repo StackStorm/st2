@@ -121,7 +121,14 @@ function restart_component() {
 
 function register_content() {
   echo "Registering content..."
-  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF} ${1}
+
+  if [ ! ${1} ]; then
+      REGISTER_FLAGS="--register-sensors --register-actions"
+  else
+      REGISTER_FLAGS="--register-${1}"
+  fi
+
+  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF} ${REGISTER_FLAGS}
 }
 
 clean_db() {

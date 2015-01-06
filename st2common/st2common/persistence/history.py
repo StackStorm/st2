@@ -13,14 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo.config import cfg
 from st2common.persistence import Access
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.history import ActionExecutionHistoryDB
+from st2common import transport
 
 
 class ActionExecutionHistory(Access):
     impl = MongoDBAccess(ActionExecutionHistoryDB)
+    publisher = None
 
     @classmethod
     def _get_impl(kls):
         return kls.impl
+
+    @classmethod
+    def _get_publisher(kls):
+        if not kls.publisher:
+            kls.publisher = transport.history.HistoryPublisher(
+                cfg.CONF.messaging.url)
+        return kls.publisher

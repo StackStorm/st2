@@ -46,6 +46,8 @@ class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
     entry_point = me.StringField()
     trigger_types = me.ListField(field=me.StringField())
     poll_interval = me.IntField()
+    enabled = me.BooleanField(default=True,
+                              help_text=u'Flag indicating whether the sensor is enabled.')
 
 
 class TriggerTypeDB(StormBaseDB, ContentPackResourceMixin):

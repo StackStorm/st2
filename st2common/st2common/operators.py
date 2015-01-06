@@ -17,12 +17,27 @@ import re
 
 from datetime import datetime
 
+__all__ = [
+    'get_operator',
+    'get_allowed_operators'
+]
+
 # operator impls
-equals = lambda v1, v2: v1 == v2
+equals = lambda value, criteria_pattern: value == criteria_pattern
 
-less_than = lambda v1, v2: v1 < v2
+iequals = lambda value, criteria_pattern: value.lower() == criteria_pattern.lower()
 
-greater_than = lambda v1, v2: v1 > v2
+contains = lambda value, criteria_pattern: criteria_pattern in value
+
+icontains = lambda value, criteria_pattern: criteria_pattern.lower() in value.lower()
+
+ncontains = lambda value, criteria_pattern: criteria_pattern not in value
+
+incontains = lambda value, criteria_pattern: criteria_pattern.lower() not in value.lower()
+
+less_than = lambda value, criteria_pattern: value < criteria_pattern
+
+greater_than = lambda value, criteria_pattern: value > criteria_pattern
 
 
 def get_allowed_operators():
@@ -37,8 +52,8 @@ def get_operator(op):
         raise Exception('Invalid operator: ' + op)
 
 
-def match_regex(value, match_pattern):
-    regex = re.compile(match_pattern)
+def match_regex(value, criteria_pattern):
+    regex = re.compile(criteria_pattern)
     # check for a match and not for details of the match.
     return regex.match(value) is not None
 
@@ -52,17 +67,23 @@ def _timediff(diff_target, period_seconds, operator):
     return operator((utc_now - diff_target_utc).total_seconds(), period_seconds)
 
 
-def timediff_lt(diff_target, period):
-    return _timediff(diff_target, period, less_than)
+def timediff_lt(value, criteria_pattern):
+    return _timediff(diff_target=value, period_seconds=criteria_pattern, operator=less_than)
 
 
-def timediff_gt(diff_target, period):
-    return _timediff(diff_target, period, greater_than)
+def timediff_gt(value, criteria_pattern):
+    return _timediff(diff_target=value, period_seconds=criteria_pattern, operator=greater_than)
 
 # operator match strings
 MATCH_REGEX = 'matchregex'
 EQUALS_SHORT = 'eq'
 EQUALS_LONG = 'equals'
+IEQUALS_SHORT = 'ieq'
+IEQUALS_LONG = 'iequals'
+CONTAINS_LONG = 'contains'
+ICONTAINS_LONG = 'icontains'
+NCONTAINS_LONG = 'ncontains'
+INCONTAINS_LONG = 'incontains'
 LESS_THAN_SHORT = 'lt'
 LESS_THAN_LONG = 'lessthan'
 GREATER_THAN_SHORT = 'gt'
@@ -77,6 +98,12 @@ operators = {
     MATCH_REGEX: match_regex,
     EQUALS_SHORT: equals,
     EQUALS_LONG: equals,
+    IEQUALS_SHORT: iequals,
+    IEQUALS_LONG: iequals,
+    CONTAINS_LONG: contains,
+    ICONTAINS_LONG: icontains,
+    NCONTAINS_LONG: ncontains,
+    INCONTAINS_LONG: incontains,
     LESS_THAN_SHORT: less_than,
     LESS_THAN_LONG: less_than,
     GREATER_THAN_SHORT: greater_than,

@@ -21,6 +21,7 @@ import six
 from jinja2 import Template, Environment, StrictUndefined, meta
 from st2common import log as logging
 from st2common.exceptions import actionrunner
+from st2common.util.compat import to_unicode
 
 
 LOG = logging.getLogger(__name__)
@@ -103,14 +104,18 @@ def _get_resolved_runner_params(runner_parameters, action_parameters,
         # No override if param is immutable
         if param_value.get('immutable', False):
             continue
+
         # Check if param exists in action_parameters and if it has a default value then
         # pickup the override.
-        if param_name in action_parameters and 'default' in action_parameters[param_name]:
+        if param_name in action_parameters:
             action_param = action_parameters[param_name]
-            resolved_params[param_name] = action_param['default']
-            # No further override if param is immutable
+            if action_param.get('default', False):
+                resolved_params[param_name] = action_param['default']
+
+            # No further override (from actionexecution) if param is immutable
             if action_param.get('immutable', False):
                 continue
+
         # Finally pick up override from actionexec_runner_parameters
         if param_name in actionexec_runner_parameters:
             resolved_params[param_name] = actionexec_runner_parameters[param_name]
@@ -158,6 +163,7 @@ def get_resolved_params(runnertype_parameter_info, action_parameter_info, action
 
 
 def _is_template(template_str):
+    template_str = to_unicode(template_str)
     template = Template(template_str)
     return template_str != template.render({})
 
@@ -281,8 +287,9 @@ def _cast_params(rendered, parameter_schemas):
         'number': float,
         'object': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
                    else x),
-        'string': str
+        'string': to_unicode
     }
+
     casted_params = {}
     for k, v in six.iteritems(rendered):
         # Add uncasted first and then override with casted param. Not all params will end up

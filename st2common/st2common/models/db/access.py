@@ -30,6 +30,8 @@ class TokenDB(stormbase.StormFoundationDB):
     user = me.StringField(required=True)
     token = me.StringField(required=True, unique=True)
     expiry = me.DateTimeField(required=True)
+    metadata = me.DictField(required=False,
+                            help_text='Arbitrary metadata associated with this token')
 
 
 MODELS = [UserDB, TokenDB]

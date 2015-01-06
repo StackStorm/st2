@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.transport import actionexecution, actionexecutionstate, publishers, reactor
+from st2common.transport import actionexecution, actionexecutionstate, history, publishers, reactor
 
 # TODO(manas) : Exchanges, Queues and RoutingKey design discussion pending.
 
-__all__ = ['actionexecution', 'actionexecutionstate', 'publishers', 'reactor']
+__all__ = ['actionexecution', 'actionexecutionstate', 'history', 'publishers', 'reactor']

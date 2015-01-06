@@ -14,12 +14,12 @@ are resolved on rule evaluation.
 Storing and Retrieving Key Value Pairs from CLI
 -----------------------------------------------
 
-Create new key value pairs.
+Set a value of a key value pair.
 
 ::
 
-    st2 key create os_keystone_endpoint http://localhost:5000/v2.0
-    st2 key create aws_cfn_endpoint https://cloudformation.us-west-1.amazonaws.com
+    st2 key set os_keystone_endpoint http://localhost:5000/v2.0
+    st2 key set aws_cfn_endpoint https://cloudformation.us-west-1.amazonaws.com
 
 Load a list of key value pairs from a JSON file. The following is the
 JSON example using the same keys from the create examples above.
@@ -45,7 +45,7 @@ Update an existing key value pair.
 
 ::
 
-    st2 key update os_keystone_endpoint http://localhost:5000/v3
+    st2 key set os_keystone_endpoint http://localhost:5000/v3
 
 Delete an existing key value pair.
 

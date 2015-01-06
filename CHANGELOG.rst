@@ -21,6 +21,28 @@ Docs: http://docks.stackstorm.com/latest
   actions were executed through SSH, now they are executed directly without the overhead of SSH.
 * Fix local runner so it correctly executes a command under the provider system user if ``user``
   parameter is provided. (bug-fix)
+* Fix a bug with a Trigger database object in some cases being created twice when registering a
+  rule. (bug-fix)
+* Fix a bug with child processes which run sensor code not being killed when stopping a sensor
+  container service. (bug-fix)
+* Fix a bug and allow user to use non-ascii (unicode) values in the parameter substitution values.
+  (bug-fix)
+* Allow polling sensors to retrieve current poll interval and change it using ``get_poll_interval``
+  and ``set_poll_interval`` methods respectively. (new-feature)
+* Add support for a ``standalone`` mode to the st2auth service. In the standalone mode,
+  authentication is handled inside the st2auth service using the defined backend. (new feature)
+* Timer is not a sensor anymore. It is spun as part of rules_engine process (refactor)
+* Fix a bug with action registration where action with invalid schema for
+  parameters get registered. (bug-fix)
+* Fix a bug with 'default' param values inheritance in runner/actions. (bug-fix)
+* Add new rule criteria comparison operators: ``iequals``, ``contains``, ``icontains``,
+  ``ncontains``, ``incontains`` (new-feature)
+* Allow sensors to store temporary data in the datastore using the ``get_value``, ``set_value`` and
+  ``delete_value`` methods exposed by sensor_service. (new-feature)
+* Allow user to specify TTL for datastore values by sending ``ttl`` attribute in the body of a
+  `PUT /keys/<key id>` request. (new feature)
+* Add new `key delete_by_prefix --prefix=<prefix>` client command. This command allows deletion of
+  all the keys which name starts with the provided prefix. (new-feature)
 
 v0.6.0 - December 8, 2014
 -------------------------

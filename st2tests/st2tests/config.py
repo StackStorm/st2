@@ -29,7 +29,13 @@ def parse_args():
 
 def _setup_config_opts():
     cfg.CONF.reset()
-    _register_config_opts()
+
+    try:
+        _register_config_opts()
+    except Exception:
+        # Some scripts register the options themselves which means registering them again will
+        # cause a non-fatal exception
+        return
     _override_config_opts()
 
 
@@ -58,8 +64,6 @@ def _register_common_opts():
 
 def _register_api_opts():
     api_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='action API server host'),
-        cfg.IntOpt('port', default=9101, help='action API server port'),
         cfg.ListOpt('allow_origin', default=['http://localhost:3000', 'http://dev'],
                     help='List of origins allowed'),
         cfg.IntOpt('heartbeat', default=25,
@@ -103,9 +107,11 @@ def _register_auth_opts():
     auth_opts = [
         cfg.StrOpt('host', default='0.0.0.0'),
         cfg.IntOpt('port', default=9100),
+        cfg.BoolOpt('use_ssl', default=False),
+        cfg.StrOpt('mode', default='proxy'),
         cfg.StrOpt('logging', default='conf/logging.conf'),
         cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.'),
-        cfg.BoolOpt('debug', default=False)
+        cfg.BoolOpt('debug', default=True)
     ]
     _register_opts(auth_opts, group='auth')
 

@@ -27,7 +27,7 @@ from st2api.controllers.v1.actionviews import ActionViewsController
 from st2common import log as logging
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.models.base import jsexpose
+from st2common.models.api.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.validators.api.misc import validate_not_part_of_system_pack

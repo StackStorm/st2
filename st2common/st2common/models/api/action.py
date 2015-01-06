@@ -18,7 +18,7 @@ import jsonschema
 from st2common.util import isotime
 from st2common.util import schema as util_schema
 from st2common import log as logging
-from st2common.models.base import BaseAPI
+from st2common.models.api.base import BaseAPI
 from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB)
 from st2common.models.db.action import ActionExecutionStateDB
 from st2common.constants.action import ACTIONEXEC_STATUSES

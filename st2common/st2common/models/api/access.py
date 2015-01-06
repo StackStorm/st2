@@ -15,7 +15,7 @@
 
 from oslo.config import cfg
 from st2common.util import isotime
-from st2common.models.base import BaseAPI
+from st2common.models.api.base import BaseAPI
 from st2common.models.db.access import UserDB, TokenDB
 from st2common import log as logging
 
@@ -64,6 +64,9 @@ class TokenAPI(BaseAPI):
             "expiry": {
                 "type": ["string", "null"],
                 "pattern": isotime.ISO8601_UTC_REGEX
+            },
+            "metadata": {
+                "type": ["object", "null"]
             }
         },
         "additionalProperties": False
