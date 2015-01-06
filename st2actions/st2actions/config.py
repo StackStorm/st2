@@ -64,12 +64,6 @@ action_sensor_opts = [
 ]
 CONF.register_opts(action_sensor_opts, group='action_sensor')
 
-api_opts = [
-    cfg.StrOpt('host', default='0.0.0.0', help='ST2 API server host.'),
-    cfg.IntOpt('port', default=9101, help='ST2 API server port.')
-]
-CONF.register_opts(api_opts, group='api')
-
 workflow_opts = [
     cfg.StrOpt('url', default='http://localhost:8989', help='Mistral API server root endpoint.')
 ]

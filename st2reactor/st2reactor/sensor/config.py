@@ -15,15 +15,14 @@
 
 from oslo.config import cfg
 
-import st2common.config as common_config
+from st2common import config as st2cfg
 from st2common.constants.system import VERSION_STRING
-common_config.register_opts()
 
 CONF = cfg.CONF
 
 
 def _register_common_opts():
-    common_config.register_opts()
+    st2cfg.register_opts()
 
 
 def _register_sensor_container_opts():

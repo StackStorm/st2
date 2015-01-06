@@ -30,9 +30,9 @@ def _register_common_opts():
 
 
 def _register_app_opts():
+    # Note "host" and "port" options are registerd as part of st2common since they are also used
+    # outside st2api
     api_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='StackStorm Robotinator API server host'),
-        cfg.IntOpt('port', default=9101, help='StackStorm Robotinator API server port'),
         cfg.ListOpt('allow_origin', default=['http://localhost:3000'],
                     help='List of origins allowed'),
         cfg.IntOpt('heartbeat', default=25,

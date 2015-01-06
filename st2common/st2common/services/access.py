@@ -23,11 +23,26 @@ from st2common.models.db.access import TokenDB, UserDB
 from st2common.persistence.access import Token, User
 from st2common import log as logging
 
+__all__ = [
+    'create_token',
+    'delete_token'
+]
 
 LOG = logging.getLogger(__name__)
 
 
-def create_token(username, ttl=None):
+def create_token(username, ttl=None, metadata=None):
+    """
+    :param username: Username of the user to create the token for. If the account for this user
+                     doesn't exist yet it will be created.
+    :type username: ``str``
+
+    :param ttl: Token TTL (in seconds).
+    :type ttl: ``int``
+
+    :param metadata: Optional metadata to associate with the token.
+    :type metadata: ``dict``
+    """
     if not ttl or ttl > cfg.CONF.auth.token_ttl:
         ttl = cfg.CONF.auth.token_ttl
 
@@ -42,7 +57,7 @@ def create_token(username, ttl=None):
     token = uuid.uuid4().hex
     expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
     expiry = isotime.add_utc_tz(expiry)
-    token = TokenDB(user=username, token=token, expiry=expiry)
+    token = TokenDB(user=username, token=token, expiry=expiry, metadata=metadata)
     Token.add_or_update(token)
     LOG.audit('Access granted to %s with the token set to expire at "%s".' %
               ('user "%s"' % username if username else "an anonymous user",

@@ -34,15 +34,22 @@ class KeyValuePairController(RestController):
     """
 
     @jsexpose(str)
-    def get_one(self, id):
+    def get_one(self, name):
         """
-            List key by id.
+            List key by name.
 
             Handle:
-                GET /keys/1
+                GET /keys/key1
         """
-        LOG.info('GET /keys/ with id=%s', id)
-        kvp_db = self.__get_by_id(id)
+        LOG.info('GET /keys/ with name=%s', name)
+
+        kvp_db = self.__get_by_name(name=name)
+
+        if not kvp_db:
+            LOG.exception('Database lookup for name="%s" '
+                          'resulted in exception.', name)
+            abort(http_client.NOT_FOUND)
+            return
 
         try:
             kvp_api = KeyValuePairAPI.from_model(kvp_db)
@@ -50,7 +57,7 @@ class KeyValuePairController(RestController):
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
 
-        LOG.debug('GET /keys/ with id=%s, client_result=%s', id, kvp_api)
+        LOG.debug('GET /keys/ with name=%s, client_result=%s', name, kvp_api)
         return kvp_api
 
     @jsexpose(str)
@@ -69,62 +76,39 @@ class KeyValuePairController(RestController):
 
         return kvps
 
-    @jsexpose(body=KeyValuePairAPI, status_code=http_client.CREATED)
-    def post(self, kvp):
-        """
-            Create a new key value pair.
-
-            Handles requests:
-                POST /keys/
-        """
-        LOG.info('POST /keys/ with key value data=%s', kvp)
-
-        try:
-            kvp_db = KeyValuePairAPI.to_model(kvp)
-            LOG.debug('/keys/ POST verified KeyValuePairAPI and '
-                      'formulated KeyValuePairDB=%s', kvp_db)
-        except (ValidationError, ValueError) as e:
-            LOG.exception('Validation failed for key value data=%s.', kvp)
-            abort(http_client.BAD_REQUEST, str(e))
-            return
-
-        kvp_db = KeyValuePair.add_or_update(kvp_db)
-        LOG.audit('KeyValuePair created. KeyValuePair=%s', kvp_db)
-
-        kvp_api = KeyValuePairAPI.from_model(kvp_db)
-        LOG.debug('POST /keys/ client_result=%s', kvp_api)
-
-        return kvp_api
-
     @jsexpose(str, body=KeyValuePairAPI)
-    def put(self, id, kvp):
-        LOG.info('PUT /keys/ with key id=%s and data=%s', id, kvp)
-        kvp_db = self.__get_by_id(id)
-        LOG.debug('PUT /keys/ lookup with id=%s found object: %s', id, kvp_db)
+    def put(self, name, kvp):
+        """
+        Create a new entry or update an existing one.
+        """
+        LOG.info('PUT /keys/ with key name=%s and data=%s', name, kvp)
+
+        # TODO: There is a race, add custom add_or_update which updates by non
+        # id field
+        existing_kvp = self.__get_by_name(name=name)
+
+        kvp.name = name
 
         try:
-            if kvp.id and kvp.id != id:
-                LOG.warning('Discarding mismatched id=%s found in payload '
-                            'and using uri_id=%s.',
-                            kvp.id, id)
-            old_kvp_db = kvp_db
             kvp_db = KeyValuePairAPI.to_model(kvp)
-            kvp_db.id = id
+
+            if existing_kvp:
+                kvp_db.id = existing_kvp.id
+
             kvp_db = KeyValuePair.add_or_update(kvp_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for key value data=%s', kvp)
             abort(http_client.BAD_REQUEST, str(e))
             return
 
-        LOG.audit('KeyValuePair updated. KeyValuePair=%s and original KeyValuePair=%s',
-                  kvp_db, old_kvp_db)
+        LOG.audit('KeyValuePair updated. KeyValuePair=%s', kvp_db)
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
         LOG.debug('PUT /keys/ client_result=%s', kvp_api)
 
         return kvp_api
 
     @jsexpose(str, status_code=http_client.NO_CONTENT)
-    def delete(self, id):
+    def delete(self, name):
         """
             Delete the key value pair.
 
@@ -132,33 +116,31 @@ class KeyValuePairController(RestController):
                 DELETE /keys/1
         """
         LOG.info('DELETE /keys/ with id=%s', id)
-        kvp_db = self.__get_by_id(id)
-        LOG.debug('DELETE /keys/ lookup with id=%s found '
-                  'object: %s', id, kvp_db)
+        kvp_db = self.__get_by_name(name=name)
+
+        if not kvp_db:
+            LOG.exception('Database lookup for name="%s" '
+                          'resulted in exception.', name)
+            abort(http_client.NOT_FOUND)
+            return
+
+        LOG.debug('DELETE /keys/ lookup with name=%s found '
+                  'object: %s', name, kvp_db)
         try:
             KeyValuePair.delete(kvp_db)
         except Exception as e:
             LOG.exception('Database delete encountered exception during '
-                          'delete of id="%s". ', id)
+                          'delete of name="%s". ', name)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
 
         LOG.audit('KeyValuePair deleted. KeyValuePair=%s', kvp_db)
 
     @staticmethod
-    def __get_by_id(id):
-        try:
-            return KeyValuePair.get_by_id(id)
-        except Exception:
-            LOG.exception('Database lookup for id="%s" '
-                          'resulted in exception.', id)
-            abort(http_client.NOT_FOUND)
-
-    @staticmethod
     def __get_by_name(name):
         try:
-            return [KeyValuePair.get_by_name(name)]
+            return KeyValuePair.get_by_name(name)
         except ValueError as e:
             LOG.debug('Database lookup for name="%s" '
                       'resulted in exception : %s.', name, e)
-            return []
+            return None

@@ -13,9 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo.config import cfg
+
+from st2common.constants.api import DEFAULT_API_VERSION
+
 __all__ = [
-    'DEFAULT_API_VERSION'
+    'get_full_api_url'
 ]
 
 
-DEFAULT_API_VERSION = 'v1'
+def get_full_api_url(api_version=DEFAULT_API_VERSION):
+    """
+    Return full URL to the API endpoint.
+
+    :rtype: ``str``
+    """
+    api_url = 'http://%s:%s/%s' % (cfg.CONF.api.host, cfg.CONF.api.port, api_version)
+    return api_url
