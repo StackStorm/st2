@@ -19,6 +19,7 @@ import atexit
 import argparse
 
 from oslo.config import cfg
+from st2client.client import Client
 
 from st2common import log as logging
 from st2common.models.db import db_setup
@@ -29,6 +30,9 @@ from st2common.services.triggerwatcher import TriggerWatcher
 from st2reactor.sensor.base import Sensor
 from st2reactor.sensor import config
 from st2common.constants.pack import SYSTEM_PACK_NAMES
+from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
+from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
+from st2client.models.datastore import KeyValuePair
 
 __all__ = [
     'SensorWrapper'
@@ -41,10 +45,14 @@ class SensorService(object):
     methods which can be called by the sensor.
     """
 
+    DATASTORE_NAME_SEPARATOR = ':'
+
     def __init__(self, sensor_wrapper):
         self._sensor_wrapper = sensor_wrapper
         self._logger = self._sensor_wrapper._logger
         self._dispatcher = TriggerDispatcher(self._logger)
+
+        self._client = None
 
     def get_logger(self, name):
         """
@@ -66,6 +74,120 @@ class SensorService(object):
         :type payload: ``dict``
         """
         self._dispatcher.dispatch(trigger, payload=payload)
+
+    def get_value(self, name):
+        """
+        Retrieve a value from the datastore for the provided key.
+
+        :param name: Key name.
+        :type name: ``str``
+
+        :rtype: ``str`` or ``None``
+        """
+        name = self._get_full_key_name(name=name)
+        client = self._get_api_client()
+
+        self._logger.audit('Retrieving value from the datastore (name=%s)', name)
+
+        try:
+            kvp = client.keys.get_by_id(id=name)
+        except Exception:
+            return None
+
+        if kvp:
+            return kvp.value
+
+        return None
+
+    def set_value(self, name, value, ttl=None):
+        """
+        Set a value for the provided key.
+
+        :param name: Key name.
+        :type name: ``str``
+
+        :param value: Key value.
+        :type value: ``str``
+
+        :param ttl: Optional TTL (in seconds).
+        :type ttl: ``int``
+
+        :return: ``True`` on sucess, ``False`` otherwise.
+        :rtype: ``bool``
+        """
+        value = str(value)
+
+        name = self._get_full_key_name(name=name)
+        client = self._get_api_client()
+
+        self._logger.audit('Setting value in the datastore (name=%s)', name)
+
+        instance = KeyValuePair()
+        instance.id = name
+        instance.name = name
+        instance.value = value
+
+        if ttl:
+            instance.ttl = ttl
+
+        client.keys.update(instance=instance)
+        return True
+
+    def delete_value(self, name):
+        """
+        Delete the provided key.
+
+        :param name: Name of the key to delete.
+        :type name: ``str``
+
+        :return: ``True`` on sucess, ``False`` otherwise.
+        :rtype: ``bool``
+        """
+        name = self._get_full_key_name(name=name)
+        client = self._get_api_client()
+
+        instance = KeyValuePair()
+        instance.id = name
+        instance.name = name
+
+        self._logger.audit('Deleting value from the datastore (name=%s)', name)
+
+        try:
+            client.keys.delete(instance=instance)
+        except Exception:
+            return False
+
+        return True
+
+    def _get_api_client(self):
+        """
+        Retrieve API client instance.
+        """
+        # TODO: API client is really unfriendly and needs to be re-designed and
+        # improved
+        api_url = os.environ.get(API_URL_ENV_VARIABLE_NAME, None)
+        auth_token = os.environ.get(AUTH_TOKEN_ENV_VARIABLE_NAME, None)
+
+        if not api_url or not auth_token:
+            raise ValueError('%s and %s environment variable must be set' %
+                             (API_URL_ENV_VARIABLE_NAME, AUTH_TOKEN_ENV_VARIABLE_NAME))
+
+        if not self._client:
+            self._client = Client(api_url=api_url)
+
+        return self._client
+
+    def _get_full_key_name(self, name):
+        """
+        :rtype: ``str``
+        """
+        prefix = self._get_datastore_key_prefix()
+        full_name = prefix + self.DATASTORE_NAME_SEPARATOR + name
+        return full_name
+
+    def _get_datastore_key_prefix(self):
+        prefix = '%s.%s' % (self._sensor_wrapper._pack, self._sensor_wrapper._class_name)
+        return prefix
 
 
 class SensorWrapper(object):

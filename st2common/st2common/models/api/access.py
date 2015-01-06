@@ -64,6 +64,9 @@ class TokenAPI(BaseAPI):
             "expiry": {
                 "type": ["string", "null"],
                 "pattern": isotime.ISO8601_UTC_REGEX
+            },
+            "metadata": {
+                "type": ["object", "null"]
             }
         },
         "additionalProperties": False

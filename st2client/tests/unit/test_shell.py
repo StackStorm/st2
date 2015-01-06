@@ -193,8 +193,7 @@ class TestShell(base.BaseCLITestCase):
         args_list = [
             ['key', 'list'],
             ['key', 'get', 'abc'],
-            ['key', 'create', 'abc', '123'],
-            ['key', 'update', 'abc', '456'],
+            ['key', 'set', 'abc', '123'],
             ['key', 'delete', 'abc'],
             ['key', 'load', '/tmp/keys.json']
         ]

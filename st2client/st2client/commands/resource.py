@@ -49,7 +49,7 @@ class ResourceNotFoundError(Exception):
 class ResourceBranch(commands.Branch):
 
     def __init__(self, resource, description, app, subparsers,
-                 parent_parser=None, read_only=False, commands={}):
+                 parent_parser=None, read_only=False, commands=None):
 
         self.resource = resource
         super(ResourceBranch, self).__init__(
@@ -62,6 +62,7 @@ class ResourceBranch(commands.Branch):
                   self.resource.get_plural_display_name().lower()))
 
         # Resolves if commands need to be overridden.
+        commands = commands or {}
         if 'list' not in commands:
             commands['list'] = ResourceListCommand
         if 'get' not in commands:
@@ -118,15 +119,40 @@ class ResourceCommand(commands.Command):
                (self.resource.get_display_name(), name))
 
     def get_resource(self, name_or_id, **kwargs):
-        return self.get_resource_by_name_or_id(name_or_id=name_or_id, **kwargs)
+        pk_argument_name = self.pk_argument_name
+
+        if pk_argument_name == 'name_or_id':
+            instance = self.get_resource_by_name_or_id(name_or_id=name_or_id, **kwargs)
+        elif pk_argument_name == 'ref_or_id':
+            instance = self.get_resource_by_ref_or_id(ref_or_id=name_or_id, **kwargs)
+        else:
+            instance = self.get_resource_by_pk(pk=name_or_id, **kwargs)
+
+        return instance
+
+    def get_resource_by_pk(self, pk, **kwargs):
+        """
+        Retrieve resource by a primary key.
+        """
+        try:
+            instance = self.manager.get_by_id(pk, **kwargs)
+        except Exception:
+            instance = None
+
+        return instance
+
+    def get_resource_by_name(self, name, **kwargs):
+        """
+        Retrieve resource by name.
+        """
+        instance = self.manager.get_by_name(name, **kwargs)
+        return instance
 
     def get_resource_by_name_or_id(self, name_or_id, **kwargs):
-        instance = self.manager.get_by_name(name_or_id, **kwargs)
+        instance = self.get_resource_by_name(name=name_or_id, **kwargs)
         if not instance:
-            try:
-                instance = self.manager.get_by_id(name_or_id, **kwargs)
-            except:
-                pass
+            instance = self.get_resource_by_pk(pk=name_or_id, **kwargs)
+
         if not instance:
             message = ('Resource with id or name "%s" doesn\'t exist.' %
                        (name_or_id))
@@ -154,12 +180,15 @@ class ResourceCommand(commands.Command):
         return argument.replace('_', '-')
 
     def _get_help_for_argument(self, resource, argument):
+        argument_display_name = argument.title()
         resource_display_name = resource.get_display_name().lower()
 
         if 'ref' in argument:
-            result = ('Reference or ID of the %s.' % resource_display_name)
+            result = ('Reference or ID of the %s.' % (resource_display_name))
+        elif 'name_or_id' in argument:
+            result = ('Name or ID of the %s.' % (resource_display_name))
         else:
-            result = ('Name or ID of the %s.' % resource_display_name)
+            result = ('%s of the %s.' % (argument_display_name, resource_display_name))
 
         return result
 
