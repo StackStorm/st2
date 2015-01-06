@@ -112,8 +112,8 @@ class TagField(me.EmbeddedDocument):
     To be attached to a db model object for the purpose of providing supplemental
     information.
     """
-    name = me.StringField()
-    value = me.StringField()
+    name = me.StringField(max_length=1024)
+    value = me.StringField(max_length=1024)
 
 
 class TagsMixin(object):
