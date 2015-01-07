@@ -125,15 +125,15 @@ class ResultsTracker(object):
         if (query_module_name not in self._queriers and
                 query_module_name not in self._failed_imports):
             try:
-                querier = self._import_query_module(query_module_name)
+                query_module = self._import_query_module(query_module_name)
             except:
                 LOG.exception('Failed importing query module: %s', query_module_name)
                 self._failed_imports.add(query_module_name)
                 self._queriers[query_module_name] = None
             else:
-                instance = querier.get_instance()
-                self._queriers[query_module_name] = instance
-                self._query_threads.append(eventlet.spawn(instance.start))
+                querier = query_module.get_instance()
+                self._queriers[query_module_name] = querier
+                self._query_threads.append(eventlet.spawn(querier.start))
 
         return self._queriers[query_module_name]
 
