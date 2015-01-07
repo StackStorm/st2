@@ -21,6 +21,14 @@ ESCAPED = [u'\uFF0E', u'\uFF04']
 ESCAPE_TRANSLATION = dict(zip(UNESCAPED, ESCAPED))
 UNESCAPE_TRANSLATION = dict(zip(ESCAPED, UNESCAPED))
 
+# Note: Because of old rule escaping code, two different characters can be translated back to dot
+RULE_CRITERIA_UNESCAPED = ['.']
+RULE_CRITERIA_ESCAPED = [u'\u2024']
+RULE_CRITERIA_ESCAPE_TRANSLATION = dict(zip(RULE_CRITERIA_UNESCAPED,
+                                            RULE_CRITERIA_ESCAPED))
+RULE_CRITERIA_UNESCAPE_TRANSLATION = dict(zip(RULE_CRITERIA_ESCAPED,
+                                              RULE_CRITERIA_UNESCAPED))
+
 
 def _translate_chars(field, translation):
     # Only translate the fields of a dict
@@ -49,4 +57,6 @@ def escape_chars(field):
 
 
 def unescape_chars(field):
-    return _translate_chars(field, UNESCAPE_TRANSLATION)
+    translated = _translate_chars(field, UNESCAPE_TRANSLATION)
+    translated = _translate_chars(field, RULE_CRITERIA_UNESCAPE_TRANSLATION)
+    return translated

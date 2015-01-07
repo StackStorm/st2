@@ -130,11 +130,6 @@ class RuleAPI(BaseAPI):
         rule['trigger'] = vars(TriggerAPI.from_model(trigger_db))
         del rule['trigger']['id']
         del rule['trigger']['name']
-        for oldkey, value in six.iteritems(rule['criteria']):
-            newkey = oldkey.replace(u'\u2024', '.')
-            if oldkey != newkey:
-                rule['criteria'][newkey] = value
-                del rule['criteria'][oldkey]
         return cls(**rule)
 
     @classmethod
@@ -143,11 +138,6 @@ class RuleAPI(BaseAPI):
         trigger_db = TriggerService.create_trigger_db_from_rule(rule)
         model.trigger = reference.get_str_resource_ref_from_model(trigger_db)
         model.criteria = dict(getattr(rule, 'criteria', {}))
-        for oldkey, value in six.iteritems(model.criteria):
-            newkey = oldkey.replace('.', u'\u2024')
-            if oldkey != newkey:
-                model.criteria[newkey] = value
-                del model.criteria[oldkey]
         validator.validate_criteria(model.criteria)
         model.action = ActionExecutionSpecDB()
         model.action.ref = rule.action['ref']
