@@ -57,5 +57,3 @@ class TestMongoEscape(unittest.TestCase):
 
         result = mongoescape.unescape_chars(escaped)
         self.assertEqual(result, unescaped)
-
-

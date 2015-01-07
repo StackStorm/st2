@@ -17,6 +17,7 @@ import mongoengine as me
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
 from st2common.models.db.stormbase import ContentPackResourceMixin
+from st2common.models.db.stormbase import EscapedDictField
 
 __all__ = [
     'SensorTypeDB',
@@ -115,7 +116,7 @@ class RuleDB(StormBaseDB):
         does not lead to execution of a action and vice-versa.
     """
     trigger = me.StringField()
-    criteria = me.DictField()
+    criteria = EscapedDictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
     enabled = me.BooleanField(required=True, default=True,
                               help_text=u'Flag indicating whether the rule is enabled.')
