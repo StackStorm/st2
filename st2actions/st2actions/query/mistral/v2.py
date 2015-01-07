@@ -24,7 +24,16 @@ class MistralResultsQuerier(Querier):
 
     def query(self, execution_id, query_context):
         """
-        TODO: doc str
+        Queries mistral for workflow results using v2 APIs.
+
+        :param execution_id: st2 execution_id (context to be used for logging/audit)
+        :type execution_id: ``str``
+
+        :param query_context: context for the query to be made to mistral. This contains mistral
+                              execution id.
+        :type query_context: ``objext``
+
+        :rtype: (``str``, ``object``)
         """
         exec_id = query_context.get('mistral_execution_id', None)
         if not exec_id:
@@ -51,7 +60,12 @@ class MistralResultsQuerier(Querier):
 
     def _get_workflow_status(self, execution_obj):
         """
-        TODO: doc str
+        Returns st2 status given mistral status.
+
+        :param execution_obj: Object representing the results of API call v2/executions/${id}/tasks
+        :type execution_obj: ``object``
+
+        :rtype: ``str``
         """
         workflow_state = execution_obj.get('state', None)
         if not workflow_state:
