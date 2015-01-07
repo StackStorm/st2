@@ -319,11 +319,6 @@ class ActionExecutionStateAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model):
-        doc = super(cls, cls)._from_model(model)
-        return cls(**doc)
-
-    @classmethod
     def to_model(cls, state):
         model = super(cls, cls).to_model(state)
         model.query_module = state.query_module
