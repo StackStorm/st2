@@ -11,7 +11,6 @@ workflows:
             - memory_mb
         task-defaults:
           on-error:
-            - callback_on_error
             - fail
         tasks:
             create_vm:
@@ -38,20 +37,6 @@ workflows:
                         cmd: "sleep 2; printf \"running\""
                 publish:
                     vm_state: $.stdout
-                on-success:
-                    - post_result
-            post_result:
-                action: st2.callback
-                input:
-                    state: "SUCCESS"
-                    result:
-                        vm_id: $.vm_id
-                        vm_state: $.vm_state
-            callback_on_error:
-                action: st2.callback
-                input:
-                    state: "ERROR"
-                    result: $
 
     create_vm:
         type: direct
@@ -61,7 +46,6 @@ workflows:
             vm_id: $.vm_id
         task-defaults:
           on-error:
-            - callback_on_error
             - fail
         tasks:
             create:
@@ -72,11 +56,6 @@ workflows:
                         cmd: "sleep 3; printf \"vm1234\""
                 publish:
                     vm_id: $.stdout
-            callback_on_error:
-                action: st2.callback
-                input:
-                    state: "ERROR"
-                    result: $
 
     reconfig_vm:
         type: direct
@@ -86,7 +65,6 @@ workflows:
             - memory_mb
         task-defaults:
           on-error:
-            - callback_on_error
             - fail
         tasks:
             add_disk:
@@ -101,8 +79,3 @@ workflows:
                     ref: core.local
                     parameters:
                         cmd: "sleep 1; printf \"{\"vm_id\": \"{$.vm_id}\", \"cpu\": {$.cpu_cores}, \"memory\": {$.memory_mb}}\""
-            callback_on_error:
-                action: st2.callback
-                input:
-                    state: "ERROR"
-                    result: $

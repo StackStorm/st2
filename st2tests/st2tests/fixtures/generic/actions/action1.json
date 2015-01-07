@@ -26,6 +26,10 @@
             "type": "string",
             "default": "actionimmutable",
             "immutable": true
+        },
+        "async_test": {
+            "type": "boolean",
+            "default": false
         }
     }
  }

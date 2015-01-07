@@ -88,7 +88,9 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt('port', default=514,
                    help='Port for the syslog server.'),
         cfg.StrOpt('facility', default='local7',
-                   help='Syslog facility level.')
+                   help='Syslog facility level.'),
+        cfg.StrOpt('protocol', default='udp',
+                   help='Transport protocol to use (udp / tcp).')
     ]
     _do_register_opts(syslog_opts, 'syslog', ignore_errors)
 

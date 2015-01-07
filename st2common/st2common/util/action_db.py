@@ -173,7 +173,7 @@ def get_action_by_ref(action_ref):
     return _get_action_by_pack_and_name(name=action_ref.name, pack=action_ref.pack)
 
 
-def update_actionexecution_status(new_status, end_timestamp=None, actionexec_id=None,
+def update_actionexecution_status(status=None, result=None, end_timestamp=None, actionexec_id=None,
                                   actionexec_db=None):
     """
         Update the status of the specified ActionExecution to the value provided in
@@ -190,14 +190,16 @@ def update_actionexecution_status(new_status, end_timestamp=None, actionexec_id=
     if actionexec_db is None:
         actionexec_db = get_actionexec_by_id(actionexec_id)
 
-    if new_status not in ACTIONEXEC_STATUSES:
+    if status not in ACTIONEXEC_STATUSES:
         raise ValueError('Attempting to set status for ActionExecution "%s" '
                          'to unknown status string. Unknown status is "%s"',
-                         actionexec_db, new_status)
+                         actionexec_db, status)
 
     LOG.debug('Updating ActionExection: "%s" with status="%s"',
-              actionexec_db, new_status)
-    actionexec_db.status = new_status
+              actionexec_db, status)
+    actionexec_db.status = status
+    if result:
+        actionexec_db.result = result
 
     if end_timestamp:
         actionexec_db.end_timestamp = end_timestamp

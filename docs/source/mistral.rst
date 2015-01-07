@@ -1,14 +1,14 @@
 Mistral
 =======
-`Mistral <https://wiki.openstack.org/wiki/Mistral>`_ is an OpenStack project that manages and executes workflows as a service. Mistral is installed as a separate service named "mistral" along with |st2|. A Mistral workflow can be defined as an |st2| action in a Mistral workbook using the `DSL v2 <https://wiki.openstack.org/wiki/Mistral/DSLv2>`_. On action execution, |st2| writes the workbook to Mistral and executes the workflow in the workbook. The workflow can invoke other |st2| actions as subtasks. There're custom actions in Mistral responsible for handling calls and context for |st2|. Subtasks in the workflow that are |st2| actions are tracked under the parent workflow in |st2|. On completion of the workflow, Mistral will communicate the status of the workflow execution back to |st2|.
+`Mistral <https://wiki.openstack.org/wiki/Mistral>`_ is an OpenStack project that manages and executes workflows as a service. Mistral is installed as a separate service named "mistral" along with |st2|. A Mistral workflow can be defined as an |st2| action in a Mistral workbook using the `DSL v2 <https://wiki.openstack.org/wiki/Mistral/DSLv2>`_. On action execution, |st2| writes the workbook to Mistral and executes the workflow in the workbook. The workflow can invoke other |st2| actions as subtasks. There're custom actions in Mistral responsible for handling calls and context for |st2|. Subtasks in the workflow that are |st2| actions are tracked under the parent workflow in |st2|. |st2| actively polls Mistral for execution results.
 
 Custom Mistral Actions
 ++++++++++++++++++++++
-|st2| introduces two custom actions in Mistral: **st2.action** and **st2.callback**. These custom actions are used for a unit of work or subtask in a workflow. **st2.action** should be used to schedule a st2 action and **st2.callback** should be used to update the status of the parent action execution in |st2| on workflow completion in Mistral.
+|st2| introduces a custom action in Mistral named **st2.action**. This custom action us used for a unit of work or subtask in a workflow. **st2.action** should be used to schedule a st2 action.
 
 Basic Workflow
 ++++++++++++++
-Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under /usr/share/doc/st2/examples if |st2| is already installed. The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. A st2.action takes two input arguments: ref (or name) of the |st2| action and a list of input parameters for the |st2| action. In this case, the run-cmd task is calling **core.local** and passing the cmd as input. On success, the task **callback-on-success** returns the stdout of the shell to |st2|. On error, the task **callback-on-error** notifies |st2| an error has occurred. Let's save this as mistral-basic.yaml at /opt/stackstorm/packs/examples/actions/ where |st2| is installed.
+Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under /usr/share/doc/st2/examples if |st2| is already installed. The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. A st2.action takes two input arguments: ref (or name) of the |st2| action and a list of input parameters for the |st2| action. In this case, the run-cmd task is calling **core.local** and passing the cmd as input. Let's save this as mistral-basic.yaml at /opt/stackstorm/packs/examples/actions/ where |st2| is installed.
 
 .. literalinclude:: /../../contrib/examples/actions/mistral-basic.yaml
 
@@ -20,11 +20,12 @@ Next, run the following |st2| command to create this workflow action. This will 
 
     st2 action create /opt/stackstorm/packs/examples/actions/mistral-basic.json
 
+
 To execute the workflow, run the following command where -a tells the command to return and not wait for the workflow to complete. ::
 
     st2 run examples.mistral-basic cmd=date -a
 
-If the workflow completed successfully, both the workflow **examples.mistral-basic** and the action **core.http** would have a **succeeded** status in the |st2| action execution list. ::
+If the workflow completed successfully, both the workflow **examples.mistral-basic** and the action **core.local** would have a **succeeded** status in the |st2| action execution list. ::
 
     +--------------------------+------------------------+--------------+-----------+-----------------------------+
     | id                       | action                 | context.user | status    | start_timestamp             |
@@ -35,7 +36,7 @@ If the workflow completed successfully, both the workflow **examples.mistral-bas
 
 Stitching a more Complex Workflow
 +++++++++++++++++++++++++++++++++
-Let's say we need to upgrade and reboot all the members of a MongoDB replica set in production. In this mockup, the workflow orchestrates a rolling upgrade. A member node is upgraded first and then becomes the primary before upgrading the remaining nodes of the replica set. Part of this example here references the MongoDB `tutorial <http://docs.mongodb.org/manual/tutorial/force-member-to-be-primary/>`_ on forcing a member to be a primary in a replica set. The workflow takes two input arguments: primary server and the member servers. Then the workflow executes the following tasks. If on any error, the workflow runs the task **callback-on-error** and exit.
+Let's say we need to upgrade and reboot all the members of a MongoDB replica set in production. In this mockup, the workflow orchestrates a rolling upgrade. A member node is upgraded first and then becomes the primary before upgrading the remaining nodes of the replica set. Part of this example here references the MongoDB `tutorial <http://docs.mongodb.org/manual/tutorial/force-member-to-be-primary/>`_ on forcing a member to be a primary in a replica set. The workflow takes two input arguments: primary server and the member servers. Then the workflow executes the following tasks.
 
 #. Checks the status of the replica set.
 #. Select a new primary from the list of members and outputs the candidate and the other secondary.
@@ -63,8 +64,6 @@ Let's say we need to upgrade and reboot all the members of a MongoDB replica set
                         ref: mongodb.rs-check-status
                         parameters:
                             primary: $.primary
-                    on-error:
-                        - callback-on-error
                     on-success:
                         - elect-primary
                 elect-primary:
@@ -76,8 +75,6 @@ Let's say we need to upgrade and reboot all the members of a MongoDB replica set
                     publish:
                         candidate: $.candidate
                         secondary: $.secondary
-                    on-error:
-                        - callback-on-error
                     on-success:
                         - update-candidate
                 update-candidate:
@@ -86,8 +83,6 @@ Let's say we need to upgrade and reboot all the members of a MongoDB replica set
                         ref: mongodb.run-update-xyz
                         parameters:
                             node: $.candidate
-                    on-error:
-                        - callback-on-error
                     on-success:
                         - freeze-secondary
                 freeze-secondary:
@@ -97,8 +92,6 @@ Let's say we need to upgrade and reboot all the members of a MongoDB replica set
                         parameters:
                             node: $.secondary
                             duration: $.duration
-                    on-error:
-                        - callback-on-error
                     on-success:
                         - step-down-primary
                 step-down-primary:
@@ -110,8 +103,6 @@ Let's say we need to upgrade and reboot all the members of a MongoDB replica set
                             duration: $.duration
                     policies:
                         wait-after: $.duration
-                    on-error:
-                        - callback-on-error
                     on-success:
                         - update-primary
                 update-primary:
@@ -120,8 +111,6 @@ Let's say we need to upgrade and reboot all the members of a MongoDB replica set
                         ref: mongodb.run-update-xyz
                         parameters:
                             node: $.primary
-                    on-error:
-                        - callback-on-error
                     on-success:
                         - update-secondary
                 update-secondary:
@@ -130,18 +119,4 @@ Let's say we need to upgrade and reboot all the members of a MongoDB replica set
                         ref: mongodb.run-update-xyz
                         parameters:
                             node: $.secondary
-                    on-error:
-                        - callback-on-error
-                    on-success:
-                        - callback-on-success
-                callback-on-error:
-                    action: st2.callback
-                    input:
-                        state: "ERROR"
-                        result: "Unexpected failure."
-                callback-on-success:
-                    action: st2.callback
-                    input:
-                        state: "SUCCESS"
-                        result: "Replica set upgraded. Promoted {$.candidate} to primary."
 

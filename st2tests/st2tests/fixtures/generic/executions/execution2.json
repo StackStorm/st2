@@ -1,0 +1,12 @@
+{
+    "start_timestamp": "2014-09-01T00:00:01.000000Z",
+    "end_timestamp": "2014-09-01T00:00:05.000000Z",
+    "parameters": {},
+    "callback": {},
+    "result": {},
+    "status": "scheduled",
+    "context": {
+        "user": "system"
+    },
+    "action": "foo.mistral.wf1"
+}

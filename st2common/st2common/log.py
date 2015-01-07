@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import socket
 import datetime
 import logging
 import logging.config
@@ -42,6 +43,16 @@ class ConfigurableSyslogHandler(logging.handlers.SysLogHandler):
             address = (cfg.CONF.syslog.host, cfg.CONF.syslog.port)
         if not facility:
             facility = cfg.CONF.syslog.facility
+        if not socktype:
+            protocol = cfg.CONF.syslog.protocol.lower()
+
+            if protocol == 'udp':
+                socktype = socket.SOCK_DGRAM
+            elif protocol == 'tcp':
+                socktype = socket.SOCK_STREAM
+            else:
+                raise ValueError('Unsupported protocol: %s' % (protocol))
+
         if socktype:
             super(ConfigurableSyslogHandler, self).__init__(address, facility, socktype)
         else:

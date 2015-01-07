@@ -19,7 +19,7 @@ from oslo.config import cfg
 from mistralclient.api import client as mistral
 
 from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
-from st2actions.runners import ActionRunner
+from st2actions.runners import AsyncActionRunner
 from st2common import log as logging
 
 
@@ -30,7 +30,7 @@ def get_runner():
     return MistralRunner(str(uuid.uuid4()))
 
 
-class MistralRunner(ActionRunner):
+class MistralRunner(AsyncActionRunner):
 
     url = cfg.CONF.workflow.url
 
@@ -66,13 +66,9 @@ class MistralRunner(ActionRunner):
         execution = client.executions.create(self.runner_parameters.get('workflow'),
                                              workflow_input=context, **params)
 
-        # Return status and output.
-        output = {
-            'id': str(execution.id),
-            'state': str(execution.state)
-        }
+        status = ACTIONEXEC_STATUS_RUNNING
+        query_context = {'mistral_execution_id': str(execution.id)}
+        LOG.info('Mistral query_context is %s' % query_context)
+        partial_results = {'tasks': []}
 
-        self.container_service.report_status(ACTIONEXEC_STATUS_RUNNING)
-        self.container_service.report_result(output)
-
-        return (str(execution.state) == 'RUNNING')
+        return (status, partial_results, query_context)

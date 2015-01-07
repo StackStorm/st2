@@ -16,17 +16,3 @@ workflows:
                 publish:
                     stdout: $.stdout
                     stderr: $.stderr
-                on-error:
-                    - callback-on-error
-                on-success:
-                    - callback-on-success
-            callback-on-error:
-                action: st2.callback
-                input:
-                    state: "ERROR"
-                    result: $.stderr
-            callback-on-success:
-                action: st2.callback
-                input:
-                    state: "SUCCESS"
-                    result: $.stdout

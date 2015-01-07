@@ -44,6 +44,7 @@ Docs: http://docks.stackstorm.com/latest
 * Add new `key delete_by_prefix --prefix=<prefix>` client command. This command allows deletion of
   all the keys which name starts with the provided prefix. (new-feature)
 * Add ability to attach tags to Action, Rule and TriggerType.
+* Add ability to query results asynchronously from external services. (new-feature)
 
 v0.6.0 - December 8, 2014
 -------------------------
