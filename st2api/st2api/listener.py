@@ -98,6 +98,9 @@ class Listener(ConsumerMixin):
         finally:
             self.queues.remove(queue)
 
+    def shutdown(self):
+        pass
+
 
 def listen(listener):
     try:
