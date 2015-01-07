@@ -19,6 +19,7 @@ from st2common.util import isotime
 from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.api.base import BaseAPI
+from st2common.models.api.tag import TagsHelper
 from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB)
 from st2common.models.db.action import ActionExecutionStateDB
 from st2common.constants.action import ACTIONEXEC_STATUSES
@@ -157,6 +158,11 @@ class ActionAPI(BaseAPI):
                 "patternProperties": {
                     "^\w+$": util_schema.get_draft_schema()
                 }
+            },
+            "tags": {
+                "description": "User associated metadata assigned to this object.",
+                "type": "array",
+                "items": {"type": "object"}
             }
         },
         "additionalProperties": False
@@ -175,6 +181,7 @@ class ActionAPI(BaseAPI):
     def from_model(cls, model):
         action = cls._from_model(model)
         action['runner_type'] = action['runner_type']['name']
+        action['tags'] = TagsHelper.from_model(model.tags)
         return cls(**action)
 
     @classmethod
@@ -185,6 +192,7 @@ class ActionAPI(BaseAPI):
         model.pack = str(action.pack)
         model.runner_type = {'name': str(action.runner_type)}
         model.parameters = getattr(action, 'parameters', dict())
+        model.tags = TagsHelper.to_model(getattr(action, 'tags', []))
         return model
 
 
