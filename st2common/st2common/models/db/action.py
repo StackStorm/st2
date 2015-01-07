@@ -134,7 +134,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     }
 
 
-class ActionExecutionStateDB(StormFoundationDB):
+class ActionExecutionStateDB(stormbase.StormFoundationDB):
     """
         Database entity that represents the state of Action execution.
     """

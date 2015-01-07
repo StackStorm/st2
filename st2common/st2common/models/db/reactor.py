@@ -120,7 +120,7 @@ class RuleDB(stormbase.StormBaseDB, stormbase.TagsMixin):
         does not lead to execution of a action and vice-versa.
     """
     trigger = me.StringField()
-    criteria = stormbase.scapedDictField()
+    criteria = stormbase.EscapedDictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
     enabled = me.BooleanField(required=True, default=True,
                               help_text=u'Flag indicating whether the rule is enabled.')
