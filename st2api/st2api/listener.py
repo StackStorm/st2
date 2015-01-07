@@ -39,6 +39,11 @@ from st2common.models.api.history import ActionExecutionHistoryAPI
 from st2common.transport import actionexecution, history, publishers
 from st2common import log as logging
 
+__all__ = [
+    'get_listener',
+    'get_listener_if_set'
+]
+
 LOG = logging.getLogger(__name__)
 
 QUEUE = Queue(None,
@@ -54,6 +59,7 @@ class Listener(ConsumerMixin):
     def __init__(self, connection):
         self.connection = connection
         self.queues = []
+        self._stopped = False
 
     def get_consumers(self, consumer, channel):
         return [
@@ -90,7 +96,7 @@ class Listener(ConsumerMixin):
         queue = eventlet.Queue()
         self.queues.append(queue)
         try:
-            while True:
+            while not self._stopped:
                 try:
                     yield queue.get(timeout=cfg.CONF.api.heartbeat)
                 except eventlet.queue.Empty:
@@ -99,7 +105,7 @@ class Listener(ConsumerMixin):
             self.queues.remove(queue)
 
     def shutdown(self):
-        pass
+        self._stopped = True
 
 
 def listen(listener):
@@ -115,4 +121,9 @@ def get_listener():
         with Connection(cfg.CONF.messaging.url) as conn:
             _listener = Listener(conn)
             eventlet.spawn_n(listen, _listener)
+    return _listener
+
+
+def get_listener_if_set():
+    global _listener
     return _listener
