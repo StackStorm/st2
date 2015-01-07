@@ -46,8 +46,9 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
     def test_start_shutdown(self):
         with Connection(cfg.CONF.messaging.url) as conn:
             tracker = results_tracker.ResultsTracker(q_connection=conn)
-            tracker.start()
-            tracker.shutdown()
+            eventlet.spawn(tracker.start)
+            eventlet.sleep(0.1)
+            eventlet.spawn(tracker.shutdown)
 
     def test_get_querier(self):
         tracker = results_tracker.ResultsTracker()
@@ -57,6 +58,7 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
     def test_querier_started(self):
         tracker = results_tracker.ResultsTracker()
         querier = tracker.get_querier('tests.resources.test_querymodule')
+        eventlet.sleep(0.1)
         self.assertTrue(querier.is_started(), 'querier must have been started.')
 
     @classmethod

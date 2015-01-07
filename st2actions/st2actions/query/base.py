@@ -59,7 +59,7 @@ class Querier(object):
             self._query_contexts.put((time.time(), query_context))
 
     def is_started(self):
-        return self._is_started
+        return self._started
 
     def _fire_queries(self):
         if self._thread_pool.free() <= 0:
