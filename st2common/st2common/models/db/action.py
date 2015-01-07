@@ -54,6 +54,9 @@ class RunnerTypeDB(StormBaseDB):
         help_text='The python module that implements the action runner for this type.')
     runner_parameters = me.DictField(
         help_text='The specification for parameters for the action runner.')
+    query_module = me.StringField(
+        required=False,
+        help_text='The python module that implements the query module for this runner.')
 
 
 class ActionDB(StormFoundationDB):
@@ -127,9 +130,30 @@ class ActionExecutionDB(StormFoundationDB):
     }
 
 
+class ActionExecutionStateDB(StormFoundationDB):
+    """
+        Database entity that represents the state of Action execution.
+    """
+
+    execution_id = me.ObjectIdField(
+        required=True,
+        unique=True,
+        help_text='ActionExecution ID.')
+    query_module = me.StringField(
+        required=True,
+        help_text='Reference to the runner model.')
+    query_context = me.DictField(
+        required=True,
+        help_text='Context about the action execution that is needed for results query.')
+
+    meta = {
+        'indexes': ['query_module']
+    }
+
 # specialized access objects
 runnertype_access = MongoDBAccess(RunnerTypeDB)
 action_access = MongoDBAccess(ActionDB)
 actionexec_access = MongoDBAccess(ActionExecutionDB)
+actionexecstate_access = MongoDBAccess(ActionExecutionStateDB)
 
-MODELS = [RunnerTypeDB, ActionDB, ActionExecutionDB]
+MODELS = [RunnerTypeDB, ActionDB, ActionExecutionDB, ActionExecutionStateDB]

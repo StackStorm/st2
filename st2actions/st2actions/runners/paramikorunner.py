@@ -57,7 +57,7 @@ class SSHRunner(ActionRunner):
                 result['failed'] = True
             finally:
                 results[host] = result
-        return results
+        return (True, None, results)
 
     def _get_ssh_client(self, host, user=None, pkey=None, password=None):
         if pkey is not None:

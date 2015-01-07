@@ -120,7 +120,7 @@ class ActionDBUtilsTestCase(DbTestCase):
 
         # Update by id.
         newactionexec_db = action_db_utils.update_actionexecution_status(
-            new_status='running', actionexec_id=actionexec_db.id)
+            status='running', actionexec_id=actionexec_db.id)
         # Verify id didn't change.
         self.assertEqual(origactionexec_db.id, newactionexec_db.id)
         self.assertEqual(newactionexec_db.status, 'running')
@@ -139,7 +139,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         # Update by id
         now = datetime.datetime.now()
         newactionexec_db = action_db_utils.update_actionexecution_status(
-            new_status='running', end_timestamp=now, actionexec_id=actionexec_db.id)
+            status='running', end_timestamp=now, actionexec_id=actionexec_db.id)
 
         # Verify id didn't change and end_timestamp has been set
         self.assertEqual(origactionexec_db.id, newactionexec_db.id)
@@ -163,7 +163,7 @@ class ActionDBUtilsTestCase(DbTestCase):
 
         # Update by id.
         self.assertRaises(ValueError, action_db_utils.update_actionexecution_status,
-                          new_status='mea culpa', actionexec_id=actionexec_db.id)
+                          status='mea culpa', actionexec_id=actionexec_db.id)
 
     def test_get_args(self):
         params = {

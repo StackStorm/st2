@@ -40,7 +40,6 @@ from st2common.services import action as action_service
 from st2common.models.db.action import ActionExecutionDB
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
 from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
-from st2common.constants.action import ACTIONEXEC_STATUS_FAILED
 from st2common.models.api.action import ActionAPI
 from st2common.persistence.action import Action, ActionExecution
 
@@ -65,7 +64,8 @@ def process_create(payload):
         CHAMPION.execute_action(payload)
 
 
-@mock.patch.object(LocalShellRunner, 'run', mock.MagicMock(return_value={}))
+@mock.patch.object(LocalShellRunner, 'run', mock.
+                   MagicMock(return_value=(ACTIONEXEC_STATUS_SUCCEEDED, {})))
 @mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
 @mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(return_value=None))
 class TestMistralRunner(DbTestCase):
@@ -178,7 +178,7 @@ class TestMistralRunner(DbTestCase):
             callback={'source': 'mistral', 'url': 'http://localhost:8989/v2/tasks/12345'})
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_SUCCEEDED)
         requests.request.assert_called_with('PUT', execution.callback['url'],
-                                            data=json.dumps({'state': 'ERROR', 'result': 'None'}),
+                                            data=json.dumps({'state': 'SUCCESS', 'result': '{}'}),
                                             headers={'content-type': 'application/json'})

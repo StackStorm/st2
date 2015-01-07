@@ -1,6 +1,6 @@
 #!/bin/bash
 LOGFILE="/tmp/st2_startup.log"
-COMPONENTS="actionrunner st2api sensor_container history rules_engine mistral"
+COMPONENTS="actionrunner st2api sensor_container history rules_engine mistral st2resultstracker"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
 if [ -z "$AR" ];
@@ -29,6 +29,7 @@ function st2start(){
   nohup st2api --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup /usr/bin/history --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup /usr/bin/st2resultstracker --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup rules_engine --config-file ${STANCONF} &>> ${LOGFILE} &
   if [[ "${CONTAINER}" == "DOCKER" ]]
   then

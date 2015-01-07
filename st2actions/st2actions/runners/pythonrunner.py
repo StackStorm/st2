@@ -172,7 +172,5 @@ class PythonRunner(ActionRunner):
             output['error'] = error
 
         status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
-        self.container_service.report_result(output)
-        self.container_service.report_status(status)
         LOG.debug('Action output : %s. exit_code : %s. status : %s', str(output), exit_code, status)
-        return output is not None
+        return (status, output)

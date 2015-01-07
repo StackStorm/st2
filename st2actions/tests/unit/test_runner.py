@@ -19,6 +19,7 @@ except:
     import json
 
 from st2actions.runners import ActionRunner
+from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED)
 
 RAISE_PROPERTY = 'raise'
 
@@ -39,6 +40,7 @@ class TestRunner(ActionRunner):
 
     def run(self, action_params):
         self.run_called = True
+        result = {}
         if self.runner_parameters.get(RAISE_PROPERTY, False):
             raise Exception('Raise required.')
         else:
@@ -46,8 +48,8 @@ class TestRunner(ActionRunner):
                 'ran': True,
                 'action_params': action_params
             }
-            self.container_service.report_result(json.dumps(result))
-            self.container_service.report_status(0)
 
-    def post_run(self):
+        return (ACTIONEXEC_STATUS_SUCCEEDED, json.dumps(result))
+
+    def post_run(self, status, result):
         self.post_run_called = True

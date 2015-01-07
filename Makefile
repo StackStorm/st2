@@ -167,7 +167,10 @@ tests: pytests
 pytests: requirements .flake8 .pytests-coverage
 
 .PHONY: .pytests
-.pytests: clean
+.pytests: unit-tests itests clean
+
+.PHONY: unit-tests
+unit-tests:
 	@echo
 	@echo "==================== tests ===================="
 	@echo
@@ -193,7 +196,24 @@ pytests: requirements .flake8 .pytests-coverage
 	done
 
 .PHONY: itests
-itests:
+itests: .itests
+
+.PHONY: .itests
+.itests:
+	@echo
+	@echo "==================== integration tests ===================="
+	@echo
+	@echo "----- Dropping st2-test db -----"
+	@mongo st2-test --eval "db.dropDatabase();"
+	@for component in $(COMPONENTS_TEST); do\
+		echo "==========================================================="; \
+		echo "Running tests in" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component/tests/integration || exit 1; \
+	done
+
+.PHONY: mistral-itests
+mistral-itests:
 	@echo
 	@echo "==================== integration tests ===================="
 	@echo "The tests assume both st2 and mistral are running on localhost."
