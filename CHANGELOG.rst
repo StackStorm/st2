@@ -43,6 +43,7 @@ Docs: http://docks.stackstorm.com/latest
   `PUT /keys/<key id>` request. (new feature)
 * Add new `key delete_by_prefix --prefix=<prefix>` client command. This command allows deletion of
   all the keys which name starts with the provided prefix. (new-feature)
+* Add ability to query results asynchronously from external services. (new-feature)
 
 v0.6.0 - December 8, 2014
 -------------------------
