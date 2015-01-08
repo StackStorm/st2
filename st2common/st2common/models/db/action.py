@@ -18,7 +18,8 @@ import mongoengine as me
 
 from st2common import log as logging
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.stormbase import StormFoundationDB, StormBaseDB, EscapedDynamicField
+from st2common.models.db.stormbase import (StormFoundationDB, StormBaseDB, EscapedDynamicField,
+                                           ContentPackResourceMixin)
 
 __all__ = [
     'RunnerTypeDB',
@@ -59,7 +60,7 @@ class RunnerTypeDB(StormBaseDB):
         help_text='The python module that implements the query module for this runner.')
 
 
-class ActionDB(StormFoundationDB):
+class ActionDB(StormFoundationDB, ContentPackResourceMixin):
     """
     The system entity that represents a Stack Action/Automation in the system.
 

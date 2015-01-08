@@ -22,7 +22,6 @@ from st2common import log as logging
 from st2common.constants.action import (ACTIONEXEC_STATUSES,
                                         ACTION_ID, ACTION_NAME, ACTION_PACK)
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import (RunnerType, Action, ActionExecution)
 
 LOG = logging.getLogger(__name__)
@@ -90,13 +89,21 @@ def get_action_by_id(action_id):
     return action
 
 
-def _get_action_by_pack_and_name(pack=None, name=None):
+def get_action_by_ref(ref):
     """
-        Get Action by name and pack.
+    Returns the action object from db given a string ref.
 
-        Query doesn't raise an exception.
+    :param ref: Reference to the trigger type db object.
+    :type ref: ``str``
+
+    :rtype action: ``object``
     """
-    return Action.query(name=name, pack=pack).first()
+    try:
+        return Action.get_by_ref(ref)
+    except ValueError as e:
+        LOG.debug('Database lookup for ref="%s" resulted ' +
+                  'in exception : %s.', ref, e, exc_info=True)
+        return None
 
 
 def get_actionexec_by_id(actionexec_id):
@@ -116,61 +123,6 @@ def get_actionexec_by_id(actionexec_id):
                                               'id="%s"' % actionexec_id)
 
     return actionexec
-
-
-def get_action_by_dict(action_dict):
-    """
-        Get Action object from DB based on action_dict values.
-
-        action_dict is a dictionary that contains either an "id" field,
-        a "name" field", or both fields.
-
-        Returns:
-            - Action object found in DB. (None on lookup failure.)
-            - modified action_dict with "id" key removed if lookup by
-                  id failed.
-    """
-    action = None
-
-    if ACTION_ID in action_dict:
-        action_id = action_dict[ACTION_ID]
-        try:
-            action = get_action_by_id(action_id)
-            if (ACTION_NAME not in action_dict or
-                    action_dict[ACTION_NAME] != getattr(action, ACTION_NAME)):
-                action_dict[ACTION_NAME] = getattr(action, ACTION_NAME)
-        except StackStormDBObjectNotFoundError:
-            LOG.info('Action not found by id, falling back to lookup by name and '
-                     'removing action id from Action Execution.')
-            del action_dict[ACTION_ID]
-        else:
-            return (action, action_dict)
-
-    if ACTION_NAME in action_dict:
-        if ACTION_PACK not in action_dict:
-            return (None, {})
-        name = action_dict[ACTION_NAME]
-        pack = action_dict[ACTION_PACK]
-
-        action = _get_action_by_pack_and_name(pack=pack, name=name)
-
-        if action:
-            action_dict[ACTION_ID] = str(getattr(action, ACTION_ID))
-            return (action, action_dict)
-
-    # No action found by identifiers in action_dict.
-    return (None, {})
-
-
-def get_action_by_ref(action_ref):
-    if (not isinstance(action_ref, str) and not isinstance(action_ref, unicode)
-            and not isinstance(action_ref, ResourceReference)):
-        raise Exception('Action reference has to be either str or ResourceReference.')
-
-    if isinstance(action_ref, str) or isinstance(action_ref, unicode):
-        action_ref = ResourceReference.from_string_reference(ref=action_ref)
-
-    return _get_action_by_pack_and_name(name=action_ref.name, pack=action_ref.pack)
 
 
 def update_actionexecution_status(status=None, result=None, end_timestamp=None, actionexec_id=None,
