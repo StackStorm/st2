@@ -193,7 +193,7 @@ class TestActionChainRunner(TestCase):
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        (status, success) = chain_runner.run({})
+        status, _ = chain_runner.run({})
         self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
@@ -208,10 +208,13 @@ class TestActionChainRunner(TestCase):
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        chain_runner.run({})
+        status, results = chain_runner.run({})
+        self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
         self.assertNotEqual(chain_runner.action_chain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEqual(schedule.call_count, 2)
+        self.assertEqual(len([result['error'] for _, result in six.iteritems(results)]),
+                         2, 'Expected errors')
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))

@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import uuid
-
 import ast
 import eventlet
 import jinja2
 import json
 import six
+import traceback
+import uuid
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
@@ -113,6 +113,8 @@ class ActionChainRunner(ActionRunner):
                                                            resolved_params)
             except:
                 LOG.exception('Failure in running action %s.', action_node.name)
+                # Save the traceback and error message.
+                results[action_node.name] = {'error': traceback.format_exc(10)}
             else:
                 # for now append all successful results
                 results[action_node.name] = actionexec.result
