@@ -46,6 +46,8 @@ Docs: http://docks.stackstorm.com/latest
 * Add ability to attach tags to Action, Rule and TriggerType.
 * Add ability to query results asynchronously from external services. (new-feature)
 * Action models now use ContentPackResourceMixin so we can get them by ref. (refactor)
+* Add ``rule_tester`` tool which allows users to test rules in an offline mode without any services
+  running (new-feature)
 
 v0.6.0 - December 8, 2014
 -------------------------

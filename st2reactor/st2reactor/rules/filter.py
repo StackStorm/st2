@@ -23,6 +23,16 @@ LOG = logging.getLogger('st2reactor.ruleenforcement.filter')
 
 class RuleFilter(object):
     def __init__(self, trigger_instance, trigger, rule):
+        """
+        :param trigger_instance: TriggerInstance DB object.
+        :type trigger_instance: :class:`TriggerInstanceDB``
+
+        :param trigger: Trigger DB object.
+        :type trigger: :class:`TriggerDB`
+
+        :param rule: Rule DB object.
+        :type rule: :class:`RuleDB`
+        """
         self.trigger_instance = trigger_instance
         self.trigger = trigger
         self.rule = rule
