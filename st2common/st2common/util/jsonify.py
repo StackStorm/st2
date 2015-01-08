@@ -34,3 +34,18 @@ def json_encode(obj, indent=4):
 def load_file(path):
     with open(path, 'r') as fd:
         return json.load(fd)
+
+
+def json_loads(obj, keys=None):
+    if not obj:
+        return None
+
+    if not keys:
+        keys = obj.keys()
+
+    for key in keys:
+        try:
+            obj[key] = json.loads(obj[key])
+        except:
+            pass
+    return obj

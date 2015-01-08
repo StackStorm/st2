@@ -27,6 +27,7 @@ from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
 from st2common.constants.action import ACTIONEXEC_STATUS_FAILED
+import st2common.util.jsonify as jsonify
 
 __all__ = [
     'get_runner'
@@ -57,6 +58,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
     Note: The user under which the action runner service is running (stanley user by default) needs
     to have pasworless sudo access set up.
     """
+    KEYS_TO_TRANSFORM = ['stdout', 'stderr']
 
     def __init__(self, runner_id):
         super(LocalShellRunner, self).__init__(runner_id=runner_id)
@@ -134,5 +136,4 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             result['error'] = error
 
         status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
-        print('Returning from localshellrunner*********')
-        return (status, result)
+        return (status, jsonify.json_loads(result, LocalShellRunner.KEYS_TO_TRANSFORM))
