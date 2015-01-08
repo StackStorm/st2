@@ -43,7 +43,9 @@ Docs: http://docks.stackstorm.com/latest
   `PUT /keys/<key id>` request. (new feature)
 * Add new `key delete_by_prefix --prefix=<prefix>` client command. This command allows deletion of
   all the keys which name starts with the provided prefix. (new-feature)
+* Add ability to attach tags to Action, Rule and TriggerType.
 * Add ability to query results asynchronously from external services. (new-feature)
+* Action models now use ContentPackResourceMixin so we can get them by ref. (refactor)
 * Add ``rule_tester`` tool which allows users to test rules in an offline mode without any services
   running (new-feature)
 
@@ -68,7 +70,6 @@ Docs: http://docs.stackstorm.com/0.6.0/
 * Audit log messages are now saved in a structured format as JSON in
   ``st2actionrunner.{pid}.audit.log`` log file.
 * Numerous bug fixes.
-
 
 v0.5.1 - November 3rd, 2014
 ---------------------------

@@ -25,10 +25,9 @@ from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED,
                                         ACTIONEXEC_STATUS_FAILED)
 from st2common.models.db.action import ActionExecutionStateDB
-from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import ActionExecutionState
 from st2common.services import access
-from st2common.util.action_db import (get_action_by_dict, get_runnertype_by_name)
+from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
 
 from st2actions.container import actionsensor
@@ -67,9 +66,9 @@ class RunnerContainer(object):
         return runner
 
     def dispatch(self, actionexec_db):
-        action_ref = ResourceReference.from_string_reference(ref=actionexec_db.action)
-        (action_db, _) = get_action_by_dict(
-            {'name': action_ref.name, 'pack': action_ref.pack})
+        action_db = get_action_by_ref(actionexec_db.action)
+        if not action_db:
+            raise Exception('Action %s not found in dB.' % actionexec_db.action)
         runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
         runner_type = runnertype_db.name
 

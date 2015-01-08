@@ -43,7 +43,6 @@ from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance,
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
-from st2common.models.system.common import ResourceReference
 from st2common.models.db.history import ActionExecutionHistoryDB
 from st2common import log as logging
 
@@ -88,10 +87,7 @@ class Historian(ConsumerMixin):
     def record_action_execution(self, body):
         try:
             execution = ActionExecution.get_by_id(str(body.id))
-            action_ref = ResourceReference.from_string_reference(ref=execution.action)
-            action_db, _ = action_utils.get_action_by_dict(
-                {'name': action_ref.name,
-                 'pack': action_ref.pack})
+            action_db = action_utils.get_action_by_ref(execution.action)
             runner = RunnerType.get_by_name(action_db.runner_type['name'])
 
             attrs = {

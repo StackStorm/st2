@@ -68,30 +68,11 @@ class ActionDBUtilsTestCase(DbTestCase):
         action = action_db_utils.get_action_by_id(ActionDBUtilsTestCase.action_db.id)
         self.assertEqual(action.name, ActionDBUtilsTestCase.action_db.name)
         # Lookup by reference as string.
-        action_ref = '.'.join([ActionDBUtilsTestCase.action_db.pack,
-                               ActionDBUtilsTestCase.action_db.name])
+        action_ref = ResourceReference.to_string_reference(
+            pack=ActionDBUtilsTestCase.action_db.pack,
+            name=ActionDBUtilsTestCase.action_db.name)
         action = action_db_utils.get_action_by_ref(action_ref)
         self.assertEqual(action.id, ActionDBUtilsTestCase.action_db.id)
-        # Lookup by action dict.
-        # Dict contains name.
-        lookup_action_dict = {
-            'name': ActionDBUtilsTestCase.action_db.name,
-            'pack': ActionDBUtilsTestCase.action_db.pack
-        }
-        action, _ = action_db_utils.get_action_by_dict(lookup_action_dict)
-        self.assertEqual(action.id, ActionDBUtilsTestCase.action_db.id)
-        # Dict contains both name + pack and id, id invalid.
-        lookup_action_dict = {
-            'name': ActionDBUtilsTestCase.action_db.name,
-            'pack': ActionDBUtilsTestCase.action_db.pack,
-            'id': 'haha'
-        }
-        action, _ = action_db_utils.get_action_by_dict(lookup_action_dict)
-        self.assertTrue(action is not None)
-        # Dict contains nothing.
-        lookup_action_dict = {}
-        action, _ = action_db_utils.get_action_by_dict(lookup_action_dict)
-        self.assertTrue(action is None)
 
     def test_get_actionexec_nonexisting(self):
         # By id.

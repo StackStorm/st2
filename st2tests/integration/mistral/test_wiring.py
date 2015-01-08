@@ -39,7 +39,7 @@ class TestWorkflowExecution(unittest2.TestCase):
         self.assertIn(execution.status, ['scheduled', 'running'])
         return execution
 
-    def _wait_for_completion(self, execution, wait=10):
+    def _wait_for_completion(self, execution, wait=20):
         for i in range(wait):
             eventlet.sleep(1)
             execution = self.st2client.executions.get_by_id(execution.id)
@@ -49,13 +49,17 @@ class TestWorkflowExecution(unittest2.TestCase):
 
     def _assert_success(self, execution):
         self.assertEqual(execution.status, 'succeeded')
-        self.assertIn('state', execution.result)
-        self.assertEqual(execution.result['state'], 'SUCCESS')
+        tasks = execution.result['tasks']
+        for task in tasks:
+            self.assertIn('state', task)
+            self.assertEqual(task['state'], 'SUCCESS')
 
     def _assert_failure(self, execution):
         self.assertEqual(execution.status, 'failed')
-        self.assertIn('state', execution.result)
-        self.assertEqual(execution.result['state'], 'ERROR')
+        tasks = execution.result['tasks']
+        for task in tasks:
+            self.assertIn('state', task)
+            self.assertEqual(task['state'], 'ERROR')
 
     def test_basic_workflow(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'date'})

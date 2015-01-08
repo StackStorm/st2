@@ -15,9 +15,7 @@
 
 import mongoengine as me
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.stormbase import StormBaseDB, StormFoundationDB
-from st2common.models.db.stormbase import ContentPackResourceMixin
-from st2common.models.db.stormbase import EscapedDictField
+from st2common.models.db import stormbase
 
 __all__ = [
     'SensorTypeDB',
@@ -29,7 +27,7 @@ __all__ = [
 ]
 
 
-class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
+class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin):
     """
     Description of a specific type of a sensor (think of it as a sensor
     template).
@@ -51,7 +49,9 @@ class SensorTypeDB(StormBaseDB, ContentPackResourceMixin):
                               help_text=u'Flag indicating whether the sensor is enabled.')
 
 
-class TriggerTypeDB(StormBaseDB, ContentPackResourceMixin):
+class TriggerTypeDB(stormbase.StormBaseDB,
+                    stormbase.ContentPackResourceMixin,
+                    stormbase.TagsMixin):
     """Description of a specific kind/type of a trigger. The
        (pack, name) tuple is expected uniquely identify a trigger in
        the namespace of all triggers provided by a specific trigger_source.
@@ -65,8 +65,12 @@ class TriggerTypeDB(StormBaseDB, ContentPackResourceMixin):
     payload_schema = me.DictField()
     parameters_schema = me.DictField(default={})
 
+    meta = {
+        'indexes': stormbase.TagsMixin.get_indices()
+    }
 
-class TriggerDB(StormBaseDB, ContentPackResourceMixin):
+
+class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin):
     """
     Attribute:
         pack - Name of the content pack this trigger belongs to.
@@ -79,7 +83,7 @@ class TriggerDB(StormBaseDB, ContentPackResourceMixin):
     parameters = me.DictField()
 
 
-class TriggerInstanceDB(StormFoundationDB):
+class TriggerInstanceDB(stormbase.StormFoundationDB):
     """An instance or occurrence of a type of Trigger.
     Attribute:
         trigger: Reference to the Trigger object.
@@ -104,7 +108,7 @@ class ActionExecutionSpecDB(me.EmbeddedDocument):
         return ''.join(result)
 
 
-class RuleDB(StormBaseDB):
+class RuleDB(stormbase.StormBaseDB, stormbase.TagsMixin):
     """Specifies the action to invoke on the occurrence of a Trigger. It
     also includes the transformation to perform to match the impedance
     between the payload of a TriggerInstance and input of a action.
@@ -116,10 +120,14 @@ class RuleDB(StormBaseDB):
         does not lead to execution of a action and vice-versa.
     """
     trigger = me.StringField()
-    criteria = EscapedDictField()
+    criteria = stormbase.EscapedDictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
     enabled = me.BooleanField(required=True, default=True,
                               help_text=u'Flag indicating whether the rule is enabled.')
+
+    meta = {
+        'indexes': stormbase.TagsMixin.get_indices()
+    }
 
 # specialized access objects
 sensor_type_access = MongoDBAccess(SensorTypeDB)

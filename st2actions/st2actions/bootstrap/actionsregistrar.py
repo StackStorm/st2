@@ -58,7 +58,7 @@ class ActionsRegistrar(ResourceRegistrar):
         action_validator.validate_action(action_api)
         model = ActionAPI.to_model(action_api)
 
-        action_ref = ResourceReference(pack=pack, name=str(content['name']))
+        action_ref = ResourceReference.to_string_reference(pack=pack, name=str(content['name']))
         existing = action_utils.get_action_by_ref(action_ref)
         if not existing:
             LOG.info('Action %s not found. Creating new one with: %s', action_ref, content)

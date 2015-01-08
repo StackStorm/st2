@@ -151,7 +151,7 @@ class TestActionChainRunner(TestCase):
         except runnerexceptions.ActionRunnerPreRunError:
             self.assertTrue(True)
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_success_path(self, schedule):
@@ -168,7 +168,7 @@ class TestActionChainRunner(TestCase):
     @mock.patch('eventlet.sleep', mock.MagicMock())
     @mock.patch.object(action_db_util, 'get_actionexec_by_id', mock.MagicMock(
         return_value=DummyActionExecution()))
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
                        return_value=DummyActionExecution(status=ACTIONEXEC_STATUS_RUNNING))
@@ -183,7 +183,7 @@ class TestActionChainRunner(TestCase):
         # based on the chain the callcount is known to be 3. Not great but works.
         self.assertEqual(schedule.call_count, 3)
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
                        return_value=DummyActionExecution(status=ACTIONEXEC_STATUS_FAILED))
@@ -199,7 +199,7 @@ class TestActionChainRunner(TestCase):
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEqual(schedule.call_count, 2)
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', side_effect=RuntimeError('Test Failure.'))
     def test_chain_runner_action_exception(self, schedule):
@@ -213,7 +213,7 @@ class TestActionChainRunner(TestCase):
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEqual(schedule.call_count, 2)
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_str_param_temp(self, schedule):
@@ -227,7 +227,7 @@ class TestActionChainRunner(TestCase):
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, {"p1": "1"})
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_list_param_temp(self, schedule):
@@ -241,7 +241,7 @@ class TestActionChainRunner(TestCase):
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, {"p1": "[2, 3, 4]"})
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_dict_param_temp(self, schedule):
@@ -256,7 +256,7 @@ class TestActionChainRunner(TestCase):
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
                        return_value=DummyActionExecution(result={'o1': '1'}))
@@ -277,7 +277,7 @@ class TestActionChainRunner(TestCase):
             expected_values.remove(call_args[0][0].parameters)
         self.assertEqual(len(expected_values), 0, 'Not all expected values received.')
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
                        return_value=DummyActionExecution(result={'o1': '1'}))
@@ -299,7 +299,7 @@ class TestActionChainRunner(TestCase):
             expected_values.remove(call_args[0][0].parameters)
         self.assertEqual(len(expected_values), 0, 'Not all expected values received.')
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_missing_param_temp(self, schedule):
@@ -311,7 +311,7 @@ class TestActionChainRunner(TestCase):
         chain_runner.run({})
         self.assertEqual(schedule.call_count, 0, 'No call expected.')
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_2))
     @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
     def test_chain_runner_typed_params(self, schedule):

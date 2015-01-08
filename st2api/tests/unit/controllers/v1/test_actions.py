@@ -39,7 +39,11 @@ ACTION_1 = {
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
-    }
+    },
+    'tags': [
+        {'name': 'tag1', 'value': 'dont-care'},
+        {'name': 'tag2', 'value': 'dont-care'}
+    ]
 }
 
 # ACTION_2: Good action definition. No content pack.
@@ -357,6 +361,17 @@ class TestActionController(FunctionalTest):
         post_resp = self.__do_post(ACTION_1)
         del_resp = self.__do_delete(self.__get_action_id(post_resp))
         self.assertEqual(del_resp.status_int, 204)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_action_with_tags(self):
+        post_resp = self.__do_post(ACTION_1)
+        action_id = self.__get_action_id(post_resp)
+        get_resp = self.__do_get_one(action_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self.__get_action_id(get_resp), action_id)
+        self.assertEqual(get_resp.json['tags'], ACTION_1['tags'])
+        self.__do_delete(action_id)
 
     # TODO: Re-enable those tests after we ensure DB is flushed in setUp
     # and each test starts in a clean state

@@ -19,6 +19,7 @@ import six
 
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.reactor import TriggerAPI
+from st2common.models.api.tag import TagsHelper
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB
 from st2common.persistence.reactor import Trigger
 import st2common.services.triggers as TriggerService
@@ -114,6 +115,11 @@ class RuleAPI(BaseAPI):
             'enabled': {
                 'type': 'boolean',
                 'default': True
+            },
+            "tags": {
+                "description": "User associated metadata assigned to this object.",
+                "type": "array",
+                "items": {"type": "object"}
             }
         },
         'additionalProperties': False
@@ -130,6 +136,7 @@ class RuleAPI(BaseAPI):
         rule['trigger'] = vars(TriggerAPI.from_model(trigger_db))
         del rule['trigger']['id']
         del rule['trigger']['name']
+        rule['tags'] = TagsHelper.from_model(model.tags)
         return cls(**rule)
 
     @classmethod
@@ -143,4 +150,5 @@ class RuleAPI(BaseAPI):
         model.action.ref = rule.action['ref']
         model.action.parameters = rule.action['parameters']
         model.enabled = rule.enabled
+        model.tags = TagsHelper.to_model(getattr(rule, 'tags', []))
         return model

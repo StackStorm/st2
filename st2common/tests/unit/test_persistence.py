@@ -22,7 +22,7 @@ import mongoengine
 from st2tests import DbTestCase
 from st2common.util import isotime
 from st2common.models import db
-from st2common import persistence
+from st2common.persistence.base import Access
 from st2common.models.db import stormbase
 
 
@@ -33,7 +33,7 @@ class FakeModelDB(stormbase.StormBaseDB):
     timestamp = mongoengine.DateTimeField()
 
 
-class FakeModel(persistence.Access):
+class FakeModel(Access):
     impl = db.MongoDBAccess(FakeModelDB)
 
     @classmethod

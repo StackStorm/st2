@@ -14,10 +14,11 @@
 # limitations under the License.
 
 from oslo.config import cfg
-from st2common.persistence import Access
+
+from st2common import transport
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.history import ActionExecutionHistoryDB
-from st2common import transport
+from st2common.persistence.base import Access
 
 
 class ActionExecutionHistory(Access):
