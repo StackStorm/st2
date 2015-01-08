@@ -37,6 +37,18 @@ def load_file(path):
 
 
 def json_loads(obj, keys=None):
+    """
+    Given an object, this method tries to json.loads() the value of each of the keys. If json.loads
+    fails, the original value stays in the object.
+
+    :param obj: Original object whose values should be converted to json.
+    :type obj: ``dict``
+
+    :param keys: Optional List of keys whose values should be transformed.
+    :type keys: ``list``
+
+    :rtype ``dict`` or ``None``
+    """
     if not obj:
         return None
 
