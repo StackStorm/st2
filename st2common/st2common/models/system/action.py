@@ -25,6 +25,7 @@ from fabric.tasks import WrappedCallableTask
 
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common import log as logging
+import st2common.util.jsonify as jsonify
 
 __all__ = [
     'ShellCommandAction',
@@ -290,6 +291,8 @@ class ParamikoSSHCommandAction(SSHCommandAction):
 
 
 class FabricRemoteAction(RemoteAction):
+    KEYS_TO_TRANSFORM = ['stdout', 'stderr']
+
     def get_fabric_task(self):
         action_method = self._get_action_method()
         LOG.debug('action_method is %s', action_method)
@@ -319,7 +322,7 @@ class FabricRemoteAction(RemoteAction):
             'succeeded': output.succeeded,
             'failed': output.failed
         }
-        return result
+        return jsonify.json_loads(result, FabricRemoteAction.KEYS_TO_TRANSFORM)
 
     def _sudo(self):
         with shell_env(**self.env_vars), settings(command_timeout=self.timeout):
@@ -339,7 +342,7 @@ class FabricRemoteAction(RemoteAction):
             result['stderr'] = result['stdout']
             result['stdout'] = ''
 
-        return result
+        return jsonify.json_loads(result, FabricRemoteAction.KEYS_TO_TRANSFORM)
 
 
 class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
