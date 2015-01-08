@@ -44,6 +44,7 @@ Docs: http://docks.stackstorm.com/latest
 * Add new `key delete_by_prefix --prefix=<prefix>` client command. This command allows deletion of
   all the keys which name starts with the provided prefix. (new-feature)
 * Add ability to query results asynchronously from external services. (new-feature)
+* Action models now use ContentPackResourceMixin so we can get them by ref. (refactor)
 
 v0.6.0 - December 8, 2014
 -------------------------
@@ -66,7 +67,6 @@ Docs: http://docs.stackstorm.com/0.6.0/
 * Audit log messages are now saved in a structured format as JSON in
   ``st2actionrunner.{pid}.audit.log`` log file.
 * Numerous bug fixes.
-
 
 v0.5.1 - November 3rd, 2014
 ---------------------------
