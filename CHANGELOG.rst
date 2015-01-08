@@ -36,7 +36,8 @@ Docs: http://docks.stackstorm.com/latest
   parameters get registered. (bug-fix)
 * Fix a bug with 'default' param values inheritance in runner/actions. (bug-fix)
 * Add new rule criteria comparison operators: ``iequals``, ``contains``, ``icontains``,
-  ``ncontains``, ``incontains`` (new-feature)
+  ``ncontains``, ``incontains``, ``startswith``, ``istartswith``, ``endswith``, ``iendswith``
+  (new-feature)
 * Allow sensors to store temporary data in the datastore using the ``get_value``, ``set_value`` and
   ``delete_value`` methods exposed by sensor_service. (new-feature)
 * Allow user to specify TTL for datastore values by sending ``ttl`` attribute in the body of a
