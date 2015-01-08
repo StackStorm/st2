@@ -148,7 +148,111 @@ Custom rules can be placed in ``/opt/stackstorm/packs/default/rules`` and regist
 .. rubric:: What's Next?
 
 * See :doc:`/start` for a simple example of creating and deploying a rule.
-* Explore automations on `st2contrib`_ comminity repo.
+* Explore automations on `st2contrib`_ community repo.
 * Learn more about :doc:`sensors`.
+
+Testing Rules
+-------------
+
+To make testing the rules easier we provide a tool which allows you to evaluate rules against
+trigger instances without running any of the StackStorm components.
+
+The tool works by taking a path to the file which contains rule definition and a file which
+contains trigger instance definition.
+
+Both files need to contain definitions in YAML or JSON format. For the rule, you can use the same
+file you would use to create the rule using the command line tool (the file you
+pass to ``st2 rule create``)
+
+And for the trigger instance, the definition file needs contain the following keys:
+
+* ``trigger`` - Full reference to the trigger (e.g. ``core.st2.IntervalTimer``,
+  ``slack.message``, ``irc.pubmsg``, ``twitter.matched_tweet``, etc.).
+* ``payload`` - Trigger payload. The payload itself is specific to the trigger in question. To
+  figure out the trigger structure you can look at the pack README or look for the
+  ``trigger_types`` section in the sensor metadata file which is located in the ``packs/<pack
+  name>/sensors/`` directory.
+
+If the trigger instance matches, ``=== RULE MATCHES ===`` will be printed and the tool will exit
+with ``0`` status code. On the other hand, if the rule doesn't match,
+``=== RULE DOES NOT MATCH ===`` will be printed and the tool will exit with ``1`` status code.
+
+Here are some examples on how to use the tool.
+
+my_rule.yaml:
+
+.. code-block:: yaml
+
+    ---
+      name: "relayed_matched_irc_message"
+      description: "Relay IRC message to Slack if the message contains word StackStorm"
+      enabled: true
+
+      trigger:
+        type: "irc.pubmsg"
+        parameters: {}
+
+      criteria:
+          trigger.message:
+              type: "icontains"
+              pattern: "StackStorm"
+
+      action:
+        ref: "slack.post_message"
+        parameters:
+            message: "{{trigger.source.nick}} on {{trigger.channel}}: {{trigger.message}}"
+            channel: "#irc-relay"
+
+trigger_instance_1.yaml:
+
+.. code-block:: yaml
+
+    ---
+        trigger: "irc.pubmsg"
+        payload:
+          source:
+              nick: "Kami_"
+              host: "gateway/web/irccloud.com/x-uvv"
+          channel: "#stackstorm"
+          timestamp: 1419166748,
+          message: "stackstorm is cool!"
+
+trigger_instance_2.yaml:
+
+.. code-block:: yaml
+
+    ---
+        trigger: "irc.pubmsg"
+        payload:
+          source:
+              nick: "Kami_"
+              host: "gateway/web/irccloud.com/x-uvv"
+          channel: "#stackstorm"
+          timestamp: 1419166748,
+          message: "blah blah"
+
+.. code-block:: bash
+
+    rule_tester --rule=./my_rule.yaml --trigger-instance=./trigger_instance_1.yaml
+    echo $?
+
+Output:
+
+.. code-block:: bash
+
+    === RULE MATCHES ===
+    0
+
+.. code-block:: bash
+
+    rule_tester --rule=./my_rule.yaml --trigger-instance=./trigger_instance_2.yaml
+    echo $?
+
+Output:
+
+.. code-block:: bash
+
+    === RULE DOES NOT MATCH ===
+    1
 
 .. include:: engage.rst
