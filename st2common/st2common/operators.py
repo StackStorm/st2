@@ -35,6 +35,14 @@ ncontains = lambda value, criteria_pattern: criteria_pattern not in value
 
 incontains = lambda value, criteria_pattern: criteria_pattern.lower() not in value.lower()
 
+startswith = lambda value, criteria_pattern: value.startswith(criteria_pattern)
+
+istartswith = lambda value, criteria_pattern: value.lower().startswith(criteria_pattern.lower())
+
+endswith = lambda value, criteria_pattern: value.endswith(criteria_pattern)
+
+iendswith = lambda value, criteria_pattern: value.lower().endswith(criteria_pattern.lower())
+
 less_than = lambda value, criteria_pattern: value < criteria_pattern
 
 greater_than = lambda value, criteria_pattern: value > criteria_pattern
@@ -84,6 +92,10 @@ CONTAINS_LONG = 'contains'
 ICONTAINS_LONG = 'icontains'
 NCONTAINS_LONG = 'ncontains'
 INCONTAINS_LONG = 'incontains'
+STARTSWITH_LONG = 'startswith'
+ISTARTSWITH_LONG = 'istartswith'
+ENDSWITH_LONG = 'endswith'
+IENDSWITH_LONG = 'iendswith'
 LESS_THAN_SHORT = 'lt'
 LESS_THAN_LONG = 'lessthan'
 GREATER_THAN_SHORT = 'gt'
@@ -104,6 +116,10 @@ operators = {
     ICONTAINS_LONG: icontains,
     NCONTAINS_LONG: ncontains,
     INCONTAINS_LONG: incontains,
+    STARTSWITH_LONG: startswith,
+    ISTARTSWITH_LONG: istartswith,
+    ENDSWITH_LONG: endswith,
+    IENDSWITH_LONG: iendswith,
     LESS_THAN_SHORT: less_than,
     LESS_THAN_LONG: less_than,
     GREATER_THAN_SHORT: greater_than,
