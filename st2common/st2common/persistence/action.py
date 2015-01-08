@@ -14,10 +14,11 @@
 # limitations under the License.
 
 from oslo.config import cfg
-from st2common.persistence import Access
+
+from st2common import transport
 from st2common.models.db.action import (runnertype_access, action_access, actionexec_access)
 from st2common.models.db.action import actionexecstate_access
-from st2common import transport
+from st2common.persistence.base import (Access, ContentPackResourceMixin)
 
 
 class RunnerType(Access):
@@ -28,7 +29,7 @@ class RunnerType(Access):
         return kls.impl
 
 
-class Action(Access):
+class Action(Access, ContentPackResourceMixin):
     impl = action_access
 
     @classmethod

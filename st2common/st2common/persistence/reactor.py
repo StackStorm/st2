@@ -14,24 +14,12 @@
 # limitations under the License.
 
 from oslo.config import cfg
+
 from st2common import transport
-from st2common.persistence import Access
 from st2common.models.db.reactor import sensor_type_access
 from st2common.models.db.reactor import triggertype_access, trigger_access, triggerinstance_access,\
     rule_access
-from st2common.models.system.common import ResourceReference
-
-
-class ContentPackResourceMixin():
-    @classmethod
-    def get_by_ref(cls, ref):
-        if not ref:
-            return None
-
-        ref_obj = ResourceReference.from_string_reference(ref=ref)
-        result = cls.query(name=ref_obj.name,
-                           pack=ref_obj.pack).first()
-        return result
+from st2common.persistence.base import (Access, ContentPackResourceMixin)
 
 
 class SensorType(Access, ContentPackResourceMixin):

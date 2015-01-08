@@ -59,7 +59,8 @@ class RunnerTypeDB(stormbase.StormBaseDB):
         help_text='The python module that implements the query module for this runner.')
 
 
-class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
+class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
+               stormbase.ContentPackResourceMixin):
     """
     The system entity that represents a Stack Action/Automation in the system.
 
