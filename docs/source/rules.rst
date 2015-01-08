@@ -51,6 +51,18 @@ needs to match.
 A list of all the available criteria operators is described bellow. If you are missing some
 operator, you are welcome to code it up and submit a patch :)
 
+If the criteria key contains an operator like (-) then use the dictionary lookup format for specifying
+the criteria key. In case of a webhook based rule it is typical for the header of the posted event to
+contain such values e.g.
+
+.. code-block:: yaml
+
+    criteria:
+        trigger.headers['X-Custom-Header']:
+            type: "eq"
+            pattern : "customvalue"
+
+
 To deploy a rule, use CLI:
 
 .. code-block:: bash
