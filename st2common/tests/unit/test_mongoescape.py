@@ -19,7 +19,6 @@ from st2common.util import mongoescape
 
 
 class TestMongoEscape(unittest.TestCase):
-
     def test_unnested(self):
         field = {'k1.k1.k1': 'v1', 'k2$': 'v2', '$k3.': 'v3'}
         escaped = mongoescape.escape_chars(field)
@@ -40,3 +39,21 @@ class TestMongoEscape(unittest.TestCase):
                                    u'\uff04k3\uff0e': 'v3'}, 'un-escaping failed.')
         unescaped = mongoescape.unescape_chars(escaped)
         self.assertEqual(unescaped, field, 'Unescaping failed.')
+
+    def test_unescaping_of_rule_criteria(self):
+        # Verify that dot escaped in rule criteria is correctly escaped.
+        # Note: In the past we used different character to escape dot in the
+        # rule criteria.
+        escaped = {
+            u'k1\u2024k1\u2024k1': 'v1',
+            u'k2$': 'v2',
+            u'$k3\u2024': 'v3'
+        }
+        unescaped = {
+            'k1.k1.k1': 'v1',
+            'k2$': 'v2',
+            '$k3.': 'v3'
+        }
+
+        result = mongoescape.unescape_chars(escaped)
+        self.assertEqual(result, unescaped)

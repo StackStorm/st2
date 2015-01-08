@@ -105,6 +105,15 @@ class TestRuleController(FunctionalTest):
         del_resp = self.__do_delete(self.__get_rule_id(post_resp))
         self.assertEqual(del_resp.status_int, http_client.NO_CONTENT)
 
+    def test_rule_with_tags(self):
+        post_resp = self.__do_post(TestRuleController.RULE_1)
+        rule_id = self.__get_rule_id(post_resp)
+        get_resp = self.__do_get_one(rule_id)
+        self.assertEqual(get_resp.status_int, http_client.OK)
+        self.assertEqual(self.__get_rule_id(get_resp), rule_id)
+        self.assertEqual(get_resp.json['tags'], TestRuleController.RULE_1['tags'])
+        self.__do_delete(rule_id)
+
     @staticmethod
     def __get_rule_id(resp):
         return resp.json['id']

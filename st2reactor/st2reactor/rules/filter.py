@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from st2common import log as logging
-from st2common.models.api.rule import RuleAPI
 import st2common.operators as criteria_operators
 from st2reactor.rules.datatransform import get_transformer
 
@@ -33,7 +32,7 @@ class RuleFilter(object):
         if not self.rule.enabled:
             return False
 
-        criteria = RuleAPI.from_model(self.rule).criteria
+        criteria = self.rule.criteria
         is_rule_applicable = True
 
         if criteria and not self.trigger_instance.payload:

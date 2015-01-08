@@ -25,6 +25,8 @@ __all__ = [
     'StormFoundationDB',
     'StormBaseDB',
     'EscapedDictField',
+    'TagsMixin',
+    'TagField',
     'ContentPackResourceMixin'
 ]
 
@@ -103,6 +105,26 @@ class EscapedDynamicField(me.DynamicField):
     def to_python(self, value):
         value = super(EscapedDynamicField, self).to_python(value)
         return mongoescape.unescape_chars(value)
+
+
+class TagField(me.EmbeddedDocument):
+    """
+    To be attached to a db model object for the purpose of providing supplemental
+    information.
+    """
+    name = me.StringField(max_length=1024)
+    value = me.StringField(max_length=1024)
+
+
+class TagsMixin(object):
+    """
+    Mixin to include tags on an object.
+    """
+    tags = me.ListField(field=me.EmbeddedDocumentField(TagField))
+
+    @classmethod
+    def get_indices(cls):
+        return ['tags.name', 'tags.value']
 
 
 class ContentPackResourceMixin(object):

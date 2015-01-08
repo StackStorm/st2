@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import eventlet
 import os
 import sys
 
+import eventlet
 from oslo.config import cfg
 from eventlet import wsgi
 
@@ -24,6 +24,7 @@ from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
+from st2api.listener import get_listener_if_set
 from st2api import config
 from st2api import app
 
@@ -77,6 +78,11 @@ def main():
         return _run_server()
     except SystemExit as exit_code:
         sys.exit(exit_code)
+    except KeyboardInterrupt:
+        listener = get_listener_if_set()
+
+        if listener:
+            listener.shutdown()
     except:
         LOG.exception('(PID=%s) ST2 API quit due to exception.', os.getpid())
         return 1

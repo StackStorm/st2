@@ -36,6 +36,14 @@ class DataTransformTest(DbTestCase):
         result = transformer(mapping)
         self.assertEqual(result, {'ip1': 'v1-static', 'ip2': 'v2 static'})
 
+    def test_hypenated_payload_transform(self):
+        payload = {'headers': {'hypenated-header': 'dont-care'}, 'k2': 'v2'}
+        transformer = datatransform.get_transformer(payload)
+        mapping = {'ip1': '{{trigger.headers[\'hypenated-header\']}}-static',
+                   'ip2': '{{trigger.k2}} static'}
+        result = transformer(mapping)
+        self.assertEqual(result, {'ip1': 'dont-care-static', 'ip2': 'v2 static'})
+
     def test_system_transform(self):
         k5 = KeyValuePair.add_or_update(KeyValuePairDB(name='k5', value='v5'))
         k6 = KeyValuePair.add_or_update(KeyValuePairDB(name='k6', value='v6'))
