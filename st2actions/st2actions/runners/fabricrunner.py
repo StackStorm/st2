@@ -166,12 +166,13 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
     def _get_result_status(result, allow_partial_failure):
         success = not allow_partial_failure
         for r in six.itervalues(result):
+            r_succeess = r.get('succeeded', False) if r else False
             if allow_partial_failure:
-                success |= r.get('succeeded', False)
+                success |= r_succeess
                 if success:
                     return ACTIONEXEC_STATUS_SUCCEEDED
             else:
-                success &= r.get('succeeded', False)
+                success &= r_succeess
                 if not success:
                     return ACTIONEXEC_STATUS_FAILED
         return ACTIONEXEC_STATUS_SUCCEEDED if success else ACTIONEXEC_STATUS_FAILED
