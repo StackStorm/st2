@@ -91,6 +91,10 @@ This section describes all the available operators which can be used in the crit
 * ``contains`` - String contains comparison.
 * ``icontains`` - Case insensitive string contains comparison.
 * ``ncontains`` - String doesn't contain comparison.
+* ``startswith`` - String startswith comparison.
+* ``istartswith`` - Case insensitive string startswith comparison.
+* ``endswith`` - String endswith comparison.
+* ``iendswith`` - Case insensitive string endswith comparison.
 * ``incontains`` - Case insensitive string doesn't contain comparison.
 * ``lessthan`` - Less than comparison.
 * ``greaterthan`` - Greater than comparison.

@@ -113,6 +113,46 @@ class OperatorTest(unittest2.TestCase):
         self.assertFalse(op('hasystack needle haystack', 'nEeDle'))
         self.assertFalse(op('needlA', 'needlA'))
 
+    def test_startswith(self):
+        op = operators.get_operator('startswith')
+        self.assertTrue(op('hasystack needle haystack', 'hasystack'))
+        self.assertTrue(op('a hasystack needle haystack', 'a '))
+
+    def test_startswith_fail(self):
+        op = operators.get_operator('startswith')
+        self.assertFalse(op('hasystack needle haystack', 'needle'))
+        self.assertFalse(op('a hasystack needle haystack', 'haystack'))
+
+    def test_istartswith(self):
+        op = operators.get_operator('istartswith')
+        self.assertTrue(op('haystack needle haystack', 'HAYstack'))
+        self.assertTrue(op('HAYSTACK needle haystack', 'haystack'))
+
+    def test_istartswith_fail(self):
+        op = operators.get_operator('istartswith')
+        self.assertFalse(op('hasystack needle haystack', 'NEEDLE'))
+        self.assertFalse(op('a hasystack needle haystack', 'haystack'))
+
+    def test_endswith(self):
+        op = operators.get_operator('endswith')
+        self.assertTrue(op('hasystack needle haystackend', 'haystackend'))
+        self.assertTrue(op('a hasystack needle haystack b', 'b'))
+
+    def test_endswith_fail(self):
+        op = operators.get_operator('endswith')
+        self.assertFalse(op('hasystack needle haystackend', 'haystack'))
+        self.assertFalse(op('a hasystack needle haystack', 'a'))
+
+    def test_iendswith(self):
+        op = operators.get_operator('iendswith')
+        self.assertTrue(op('haystack needle haystackEND', 'HAYstackend'))
+        self.assertTrue(op('HAYSTACK needle haystackend', 'haystackEND'))
+
+    def test_iendswith_fail(self):
+        op = operators.get_operator('iendswith')
+        self.assertFalse(op('hasystack needle haystack', 'NEEDLE'))
+        self.assertFalse(op('a hasystack needle haystack', 'a '))
+
     def test_lt(self):
         op = operators.get_operator('lessthan')
         self.assertTrue(op(1, 2), 'Failed lessthan.')
