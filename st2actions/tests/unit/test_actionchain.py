@@ -24,8 +24,11 @@ from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
 from st2common.constants.action import ACTIONEXEC_STATUS_FAILED
+from st2common.models.db.datastore import KeyValuePairDB
+from st2common.persistence.datastore import KeyValuePair
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
+from st2tests import DbTestCase
 import st2tests.config as tests_config
 from st2tests.fixturesloader import FixturesLoader
 
@@ -74,6 +77,8 @@ MALFORMED_CHAIN_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'malformedchain.json')
 CHAIN_TYPED_PARAMS = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_typed_params.json')
+CHAIN_SYSTEM_PARAMS = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_typed_system_params.json')
 
 CHAIN_EMPTY = {}
 
@@ -129,11 +134,7 @@ class TestActionChain(TestCase):
 
 @mock.patch.object(action_db_util, 'get_runnertype_by_name',
                    mock.MagicMock(return_value=RUNNER))
-class TestActionChainRunner(TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        tests_config.parse_args()
+class TestActionChainRunner(DbTestCase):
 
     def test_runner_creation(self):
         runner = acr.get_runner()
@@ -332,6 +333,24 @@ class TestActionChainRunner(TestCase):
                           'arrtype': ['1', 'two'],
                           'objtype': {'s2': 'two',
                                       'k1': '1'}}
+        mock_args, _ = schedule.call_args
+        self.assertEqual(mock_args[0].parameters, expected_value)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_2))
+    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
+    def test_chain_runner_typed_system_params(self, schedule):
+        KeyValuePair.add_or_update(KeyValuePairDB(name='a', value='1'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='a.b.c', value='two'))
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_SYSTEM_PARAMS
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        chain_runner.run({})
+        self.assertNotEqual(chain_runner.action_chain, None)
+        expected_value = {'inttype': 1,
+                          'strtype': 'two'}
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
 

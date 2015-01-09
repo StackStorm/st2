@@ -13,18 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
 import json
 import copy
 import jinja2
 
-from st2common.persistence.datastore import KeyValuePair
+from st2common.constants.system import SYSTEM_KV_PREFIX
+from st2common.services.keyvalues import KeyValueLookup
 import six
 
 
 PAYLOAD_PREFIX = 'trigger'
 RULE_DATA_PREFIX = 'rule'
-SYSTEM_PREFIX = 'system'
 
 
 class Jinja2BasedTransformer(object):
@@ -34,7 +33,7 @@ class Jinja2BasedTransformer(object):
 
     def __call__(self, mapping):
         context = copy.copy(self._payload_context)
-        context = self._construct_system_context(mapping, context)
+        context[SYSTEM_KV_PREFIX] = KeyValueLookup()
         resolved_mapping = {}
         for mapping_k, mapping_v in six.iteritems(mapping):
             template = jinja2.Template(mapping_v)
@@ -45,33 +44,15 @@ class Jinja2BasedTransformer(object):
     def _construct_context(prefix, data, context):
         if data is None:
             return context
-        context = Jinja2BasedTransformer.\
-            _construct_system_context(data, context)
+        # setup initial context as system context to help resolve the original context
+        # which may itself contain references to system variables.
+        context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
         template = jinja2.Template(json.dumps(data))
         resolved_data = json.loads(template.render(context))
         if resolved_data:
             if prefix not in context:
                 context[prefix] = {}
             context[prefix].update(resolved_data)
-        return context
-
-    @staticmethod
-    def _construct_system_context(data, context):
-        """Identify the system context in the data."""
-        # The following regex will look for all occurrences of "{{system.*}}",
-        # "{{ system.* }}", "{{ system.*}}", and "{{system.* }}" in the data.
-        regex = '{{\s*' + SYSTEM_PREFIX + '.(.*?)\s*}}'
-        keys = re.findall(regex, json.dumps(data))
-        if not keys:
-            return context
-        kvps = {}
-        for key in keys:
-            kvp = KeyValuePair.get_by_name(key)
-            kvps[key] = kvp.value
-        if kvps:
-            if SYSTEM_PREFIX not in context:
-                context[SYSTEM_PREFIX] = {}
-            context[SYSTEM_PREFIX].update(kvps)
         return context
 
 

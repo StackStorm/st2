@@ -24,10 +24,12 @@ import uuid
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED)
+from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.db.action import ActionExecutionDB
 from st2common.services import action as action_service
+from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import action_db as action_db_util
 
 
@@ -139,6 +141,7 @@ class ActionChainRunner(ActionRunner):
         context.update(original_parameters)
         context.update(results)
         context.update({RESULTS_KEY: results})
+        context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
         env = jinja2.Environment(undefined=jinja2.StrictUndefined)
         rendered_params = {}
         for k, v in six.iteritems(action_node.params):
