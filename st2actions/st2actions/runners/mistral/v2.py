@@ -20,6 +20,7 @@ from mistralclient.api import client as mistral
 
 from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
 from st2actions.runners import AsyncActionRunner
+from st2actions.runners.mistral import utils
 from st2common import log as logging
 
 
@@ -48,12 +49,13 @@ class MistralRunner(AsyncActionRunner):
         workbook_name = self.action.pack + '.' + self.action.name
         with open(self.entry_point, 'r') as wbkfile:
             definition = wbkfile.read()
+            transformed_definition = utils.transform_definition(definition)
             try:
                 wbk = client.workbooks.get(workbook_name)
-                if wbk.definition != definition:
-                    client.workbooks.update(definition)
+                if wbk.definition != transformed_definition:
+                    client.workbooks.update(transformed_definition)
             except:
-                client.workbooks.create(definition)
+                client.workbooks.create(transformed_definition)
 
         # Setup context for the workflow execution.
         context = self.runner_parameters.get('context', dict())

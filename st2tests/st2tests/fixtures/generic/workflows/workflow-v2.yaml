@@ -10,44 +10,16 @@ workflows:
       - friend
     tasks:
       say-greeting:
-        action: st2.action
+        action: core.hey
         input:
-          name: "core.hey"
-          parameters:
-            cmd: $.count
+          cmd: $.count
         publish:
-          greet: $.localhost.stdout
-        on-error:
-          - callback_on_error
+          greet: $.stdout
         on-success:
           - say-friend
       say-friend:
-        action: st2.action
+        action: core.friend
         input:
-          name: "core.friend"
-          parameters:
-            cmd: $.friend
+          cmd: $.friend
         publish:
-          towhom: $.localhost.stdout
-        on-error:
-          - callback_on_error
-        on-success:
-          - callback_on_success
-      callback_on_error:
-        action: st2.callback
-        input:
-          state: "ERROR"
-          result: "Unexpected failure occurred."
-        policies:
-          retry:
-            count: 10
-            delay: 60
-      callback_on_success:
-        action: st2.callback
-        input:
-          state: "SUCCESS"
-          result: "{$.greet}, {$.towhom}"
-        policies:
-          retry:
-            count: 10
-            delay: 60
+          towhom: $.stdout

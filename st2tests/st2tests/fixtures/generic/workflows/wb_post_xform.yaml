@@ -30,9 +30,11 @@ workflows:
                 on-success:
                     - power_on_vm
             power_on_vm:
-                action: core.local
+                action: st2.action
                 input:
-                    cmd: "sleep 2; printf 'running'"
+                    ref: core.local
+                    parameters:
+                        cmd: "sleep 2; printf 'running'"
                 publish:
                     vm_state: $.stdout
 
@@ -47,9 +49,11 @@ workflows:
             - fail
         tasks:
             create:
-                action: core.local
+                action: st2.action
                 input:
-                    cmd: "sleep 3; printf 'vm1234'"
+                    ref: core.local
+                    parameters:
+                        cmd: "sleep 3; printf 'vm1234'"
                 publish:
                     vm_id: $.stdout
 
@@ -64,10 +68,14 @@ workflows:
             - fail
         tasks:
             add_disk:
-                action: core.local
+                action: st2.action
                 input:
-                    cmd: "sleep 1; printf '{$.vm_id}'"
+                    ref: core.local
+                    parameters:
+                        cmd: "sleep 1; printf '{$.vm_id}'"
             edit_cpu_mem:
-                action: core.local
+                action: st2.action
                 input:
-                    cmd: "sleep 1; printf '{\"vm_id\": \"{$.vm_id}\", \"cpu\": {$.cpu_cores}, \"memory\": {$.memory_mb}}'"
+                    ref: core.local
+                    parameters:
+                        cmd: "sleep 1; printf '{\"vm_id\": \"{$.vm_id}\", \"cpu\": {$.cpu_cores}, \"memory\": {$.memory_mb}}'"

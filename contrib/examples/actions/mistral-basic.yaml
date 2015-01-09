@@ -8,11 +8,9 @@ workflows:
             - cmd
         tasks:
             run-cmd:
-                action: st2.action
+                action: core.local
                 input:
-                    ref: core.local
-                    parameters:
-                        cmd: $.cmd
+                    cmd: $.cmd
                 publish:
                     stdout: $.stdout
                     stderr: $.stderr
