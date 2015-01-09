@@ -4,9 +4,6 @@ Changelog
 in development
 --------------
 
-v0.6.1 - Under development
---------------------------
-
 Docs: http://docks.stackstorm.com/latest
 
 * Python runner and all the fabric based runners (``run-local``, ``run-local-script``,
