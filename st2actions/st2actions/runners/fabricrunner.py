@@ -59,6 +59,7 @@ RUNNER_SUDO = 'sudo'
 RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_REMOTE_DIR = 'dir'
 RUNNER_COMMAND = 'cmd'
+RUNNER_CWD = 'cwd'
 RUNNER_KWARG_OP = 'kwarg_op'
 RUNNER_TIMEOUT = 'timeout'
 
@@ -91,6 +92,7 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         self._sudo = self._sudo if self._sudo else False
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, env.user)
         self._user = cfg.CONF.system_user.user
+        self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
@@ -134,7 +136,8 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
                                   hosts=self._hosts,
                                   parallel=self._parallel,
                                   sudo=self._sudo,
-                                  timeout=self._timeout)
+                                  timeout=self._timeout,
+                                  cwd=self._cwd)
 
     def _get_fabric_remote_script_action(self, action_parameters):
         script_local_path_abs = self.entry_point
@@ -157,7 +160,8 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
                                         hosts=self._hosts,
                                         parallel=self._parallel,
                                         sudo=self._sudo,
-                                        timeout=self._timeout)
+                                        timeout=self._timeout,
+                                        cwd=self._cwd)
 
     def _get_env_vars(self):
         return {'st2_auth_token': self.auth_token.token} if self.auth_token else {}

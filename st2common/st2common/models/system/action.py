@@ -166,10 +166,10 @@ class ShellScriptAction(ShellCommandAction):
 
 class SSHCommandAction(ShellCommandAction):
     def __init__(self, name, action_exec_id, command, env_vars, user, password=None, pkey=None,
-                 hosts=None, parallel=True, sudo=False, timeout=None):
+                 hosts=None, parallel=True, sudo=False, timeout=None, cwd=None):
         super(SSHCommandAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                                command=command, env_vars=env_vars, user=user,
-                                               sudo=sudo, timeout=timeout)
+                                               sudo=sudo, timeout=timeout, cwd=cwd)
         self.hosts = hosts
         self.parallel = parallel
         self.pkey = pkey
@@ -213,11 +213,11 @@ class SSHCommandAction(ShellCommandAction):
 
 class RemoteAction(SSHCommandAction):
     def __init__(self, name, action_exec_id, command, env_vars=None, on_behalf_user=None,
-                 user=None, hosts=None, parallel=True, sudo=False, timeout=None):
+                 user=None, hosts=None, parallel=True, sudo=False, timeout=None, cwd=None):
         super(RemoteAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                            command=command, env_vars=env_vars, user=user,
                                            hosts=hosts, parallel=parallel, sudo=sudo,
-                                           timeout=timeout)
+                                           timeout=timeout, cwd=cwd)
         self.on_behalf_user = on_behalf_user  # Used for audit purposes.
         self.timeout = timeout
 
@@ -241,12 +241,13 @@ class RemoteAction(SSHCommandAction):
 class RemoteScriptAction(ShellScriptAction):
     def __init__(self, name, action_exec_id, script_local_path_abs, script_local_libs_path_abs,
                  named_args=None, positional_args=None, env_vars=None, on_behalf_user=None,
-                 user=None, remote_dir=None, hosts=None, parallel=True, sudo=False, timeout=None):
+                 user=None, remote_dir=None, hosts=None, parallel=True, sudo=False, timeout=None,
+                 cwd=None):
         super(RemoteScriptAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                                  script_local_path_abs=script_local_path_abs,
                                                  named_args=named_args,
                                                  positional_args=positional_args, env_vars=env_vars,
-                                                 user=user, sudo=sudo, timeout=timeout)
+                                                 user=user, sudo=sudo, timeout=timeout, cwd=cwd)
         self.script_local_libs_path_abs = script_local_libs_path_abs
         self.script_local_dir, self.script_name = os.path.split(self.script_local_path_abs)
         self.remote_dir = remote_dir if remote_dir is not None else '/tmp'
@@ -315,7 +316,7 @@ class FabricRemoteAction(RemoteAction):
         return self._run
 
     def _run(self):
-        with shell_env(**self.env_vars), settings(command_timeout=self.timeout):
+        with shell_env(**self.env_vars), settings(command_timeout=self.timeout, cwd=self.cwd):
             output = run(self.command, combine_stderr=False, pty=False, quiet=True)
         result = {
             'stdout': output.stdout,
@@ -327,7 +328,7 @@ class FabricRemoteAction(RemoteAction):
         return jsonify.json_loads(result, FabricRemoteAction.KEYS_TO_TRANSFORM)
 
     def _sudo(self):
-        with shell_env(**self.env_vars), settings(command_timeout=self.timeout):
+        with shell_env(**self.env_vars), settings(command_timeout=self.timeout, cwd=self.cwd):
             output = sudo(self.command, combine_stderr=False, pty=True, quiet=True)
         result = {
             'stdout': output.stdout,

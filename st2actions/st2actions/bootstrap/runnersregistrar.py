@@ -116,6 +116,10 @@ def register_runner_types():
                                    'remote host(s).',
                     'type': 'string'
                 },
+                'cwd': {
+                    'description': 'Working directory where the script will be executed in',
+                    'type': 'string'
+                },
                 'parallel': {
                     'description': 'Default to parallel execution.',
                     'type': 'boolean',
@@ -164,6 +168,10 @@ def register_runner_types():
                     'type': 'boolean',
                     'default': True,
                     'immutable': True
+                },
+                'cwd': {
+                    'description': 'Working directory where the script will be executed in',
+                    'type': 'string'
                 },
                 'sudo': {
                     'description': 'The remote command will be executed with sudo.',
