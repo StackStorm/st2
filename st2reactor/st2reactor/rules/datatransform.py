@@ -18,13 +18,13 @@ import json
 import copy
 import jinja2
 
+from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.persistence.datastore import KeyValuePair
 import six
 
 
 PAYLOAD_PREFIX = 'trigger'
 RULE_DATA_PREFIX = 'rule'
-SYSTEM_PREFIX = 'system'
 
 
 class Jinja2BasedTransformer(object):
@@ -60,7 +60,7 @@ class Jinja2BasedTransformer(object):
         """Identify the system context in the data."""
         # The following regex will look for all occurrences of "{{system.*}}",
         # "{{ system.* }}", "{{ system.*}}", and "{{system.* }}" in the data.
-        regex = '{{\s*' + SYSTEM_PREFIX + '.(.*?)\s*}}'
+        regex = '{{\s*' + SYSTEM_KV_PREFIX + '.(.*?)\s*}}'
         keys = re.findall(regex, json.dumps(data))
         if not keys:
             return context
@@ -69,9 +69,9 @@ class Jinja2BasedTransformer(object):
             kvp = KeyValuePair.get_by_name(key)
             kvps[key] = kvp.value
         if kvps:
-            if SYSTEM_PREFIX not in context:
-                context[SYSTEM_PREFIX] = {}
-            context[SYSTEM_PREFIX].update(kvps)
+            if SYSTEM_KV_PREFIX not in context:
+                context[SYSTEM_KV_PREFIX] = {}
+            context[SYSTEM_KV_PREFIX].update(kvps)
         return context
 
 
