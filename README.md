@@ -4,6 +4,8 @@
 
 [![Build Status](https://travis-ci.org/StackStorm/st2.svg)](https://travis-ci.org/StackStorm/st2)
 
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/StackStorm/st2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## StackStorm Overview
 ### About
 
@@ -45,9 +47,8 @@ StackStorm is a service with modular architecture. It comprises loosely coupled 
 StackStorm is new and under active development. We are opening it early to engage community, get feedback, and refine directions, and welcome contributions.
 
 ## Documentation
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/StackStorm/st2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Please refer to [StackStorm Docs](http://docs.stackstorm.com).
+Additional documentation describing installation proceduces, action/rule/workflow authoring, and how to setup and use triggers/sensors can be found at [StackStorm Docs](http://docs.stackstorm.com).
 
 ## Hacking
 
