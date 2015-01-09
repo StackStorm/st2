@@ -48,6 +48,10 @@ def register_runner_types():
                                    'host.',
                     'type': 'string'
                 },
+                'cwd': {
+                    'description': 'Working directory where the command will be executed in',
+                    'type': 'string'
+                },
                 'sudo': {
                     'description': 'The command will be executed with sudo.',
                     'type': 'boolean',
@@ -72,6 +76,10 @@ def register_runner_types():
             'description': 'A runner to execute local actions as a fixed user.',
             'enabled': True,
             'runner_parameters': {
+                'cwd': {
+                    'description': 'Working directory where the script will be executed in',
+                    'type': 'string'
+                },
                 'sudo': {
                     'description': 'The command will be executed with sudo.',
                     'type': 'boolean',

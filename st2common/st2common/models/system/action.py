@@ -45,7 +45,7 @@ LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 class ShellCommandAction(object):
     def __init__(self, name, action_exec_id, command, user, env_vars=None, sudo=False,
-                 timeout=None):
+                 timeout=None, cwd=None):
         self.name = name
         self.action_exec_id = action_exec_id
         self.command = command
@@ -53,6 +53,7 @@ class ShellCommandAction(object):
         self.user = user
         self.sudo = sudo
         self.timeout = timeout
+        self.cwd = cwd
 
     def get_full_command_string(self):
         if self.sudo:
@@ -88,10 +89,11 @@ class ShellCommandAction(object):
 
 class ShellScriptAction(ShellCommandAction):
     def __init__(self, name, action_exec_id, script_local_path_abs, named_args=None,
-                 positional_args=None, env_vars=None, user=None, sudo=False, timeout=None):
+                 positional_args=None, env_vars=None, user=None, sudo=False, timeout=None,
+                 cwd=None):
         super(ShellScriptAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                                 command=None, user=user, env_vars=env_vars,
-                                                sudo=sudo, timeout=timeout)
+                                                sudo=sudo, timeout=timeout, cwd=cwd)
         self.script_local_path_abs = script_local_path_abs
         self.named_args = named_args
         self.positional_args = positional_args
