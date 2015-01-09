@@ -151,7 +151,7 @@ class RunnerContainer(object):
         runner.post_run(status, result)
         runner.container_service = None
 
-        return actionexec_db
+        return updated_actionexec_db
 
     def _update_action_execution_db(self, actionexec_id, status, result):
         actionexec_db = get_actionexec_by_id(actionexec_id)
