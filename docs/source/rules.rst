@@ -271,4 +271,127 @@ Output:
     === RULE DOES NOT MATCH ===
     1
 
+Timers
+------
+
+Timers allows you to run a particular action repeatedly based on the defined time interval or one
+time on a particular date and time. You can think of it as cron jobs, but with additional
+flexibility and ability to run actions only once on a particular date and time.
+
+Currently, we support the following timer trigger types:
+
+* ``core.st2.IntervalTimer`` - Run an action on a pre-defined time intervals (e.g. every
+  30 seconds, every 24 hours, every week, etc.).
+* ``core.st2.DateTimer`` - Run an action on the specified date and time.
+* ``core.st2.CronTimer`` - Run an action when the current time matches the time constraint
+  defined in the UNIX cron format.
+
+Timers are implemented as triggers which means you can use them inside the rules. In the section
+bellow, you can find some examples on how to use timers in the rule definitions.
+
+core.st2.IntervalTimer
+~~~~~~~~~~~~~~~~~~~~~~
+
+Supported values for ``unit`` attribute are: ``seconds``, ``minutes``, ``hours``, ``days``,
+``weeks``.
+
+Run action every 30 seconds
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: yaml
+
+  ---
+  ...
+
+  trigger:
+    type: "core.st2.IntervalTimer"
+    parameters:
+        unit: "seconds"
+        delta: "30"
+
+  action:
+    ...
+
+Run action every 24 hours
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: yaml
+
+  ---
+  ...
+
+  trigger:
+    type: "core.st2.IntervalTimer"
+    parameters:
+        unit: "hours"
+        delta: "24"
+
+  action:
+    ...
+
+Run action every 2 weeks
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: yaml
+
+  ---
+  ...
+
+  trigger:
+    type: "core.st2.IntervalTimer"
+    parameters:
+        unit: "weeks"
+        delta: "2"
+
+  action:
+    ...
+
+core.st2.DateTimer
+~~~~~~~~~~~~~~~~~~
+
+Available attributes: ``timezone``, ``date``.
+
+Run action on a specific date
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: yaml
+
+  ---
+  ...
+
+  trigger:
+    type: "core.st2.IntervalTimer"
+    parameters:
+        timezone: "UTC"
+        date: "2014-12-31 23:59:59"
+
+  action:
+    ...
+
+core.st2.CronTimer
+~~~~~~~~~~~~~~~~~~
+
+Available attributes: ``timezone``, ``year``, ``month``, ``day``, ``week``, ``day_of_week``,
+``hour``, ``minute``, ``second``.
+
+Run action every sunday at midnight
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: yaml
+
+  ---
+  ...
+
+  trigger:
+    type: "core.st2.CronTimer"
+    parameters:
+        timezone: "UTC"
+        day_of_week: 6
+        hour: 0
+        minute: 0
+        second: 0
+
+  action:
+    ...
+
 .. include:: engage.rst
