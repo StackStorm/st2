@@ -117,17 +117,5 @@ triggers.
 Advanced examples
 ~~~~~~~~~~~~~~~~~
 
-There are some common use cases that we identified and |st2| comes
-bundled with some default sensors. For example, the two triggers in
-this section are implemented as sensors.
-
-Timer sensor
-^^^^^^^^^^^^
-
-Look at the timer sensor implementation
-`here <https://github.com/StackStorm/st2/blob/master/st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.py>`__.
-Timer uses `APScheduler <http://apscheduler.readthedocs.org/en/3.0/>`__
-as the scheduling engine.
-
-More sensor examples are in
-`st2contrib repo <https://github.com/StackStorm/st2contrib/tree/master/packs>`__.
+For more examples, please see sensors in the `st2contrib repo
+<https://github.com/StackStorm/st2contrib/tree/master/packs>`__.
