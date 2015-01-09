@@ -46,6 +46,9 @@ Docs: http://docks.stackstorm.com/latest
 * Action models now use ContentPackResourceMixin so we can get them by ref. (refactor)
 * Add ``rule_tester`` tool which allows users to test rules in an offline mode without any services
   running (new-feature)
+* Allow user to specify current working directory (``cwd`` parameter) when running actions using the
+  local or the remote runner (``run-local``, ``run-local-script``, ``run-remote``,
+  ``run-remote-script``). (new-feature)
 
 v0.6.0 - December 8, 2014
 -------------------------
