@@ -125,7 +125,7 @@ Timer sensor
 ^^^^^^^^^^^^
 
 Look at the timer sensor implementation
-`here <https://github.com/StackStorm/st2/blob/master/st2reactor/st2reactor/contrib/sensors/st2_timer_sensor.py>`__.
+`here <https://github.com/StackStorm/st2/blob/master/st2reactor/st2reactor/timer/base.py>`__.
 Timer uses `APScheduler <http://apscheduler.readthedocs.org/en/3.0/>`__
 as the scheduling engine.
 
