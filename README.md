@@ -56,7 +56,7 @@ To set up dev environment and run StackStorm from sources, follow [these instruc
 
 ## Copyright, License, and Contributors Agreement
 
-Copyright 2014 StackStorm, Inc.
+Copyright 2015 StackStorm, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License. You may obtain a copy of the License in the [LICENSE](LICENSE) file, or at:
 
