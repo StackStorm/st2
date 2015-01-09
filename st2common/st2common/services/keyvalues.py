@@ -18,14 +18,14 @@ from st2common.persistence.datastore import KeyValuePair
 
 class KeyValueLookup(object):
 
-    def __init__(self, base_lookup='', cache=None):
-        self._base_lookup = base_lookup
+    def __init__(self, key_prefix='', cache=None):
+        self._key_prefix = key_prefix
         if cache is None:
             cache = {}
         self._value_cache = cache
 
     def __str__(self):
-        return self._value_cache[self._base_lookup]
+        return self._value_cache[self._key_prefix]
 
     def __getitem__(self, key):
         return self._get(key)
@@ -35,14 +35,14 @@ class KeyValueLookup(object):
 
     def _get(self, name):
         # get the value for this key and save in value_cache
-        lookup = name if len(self._base_lookup) == 0 else '%s.%s' % (self._base_lookup, name)
-        value = self._get_kv(lookup)
-        self._value_cache[lookup] = value
+        key = '%s.%s' % (self._key_prefix, name) if self._key_prefix else name
+        value = self._get_kv(key)
+        self._value_cache[key] = value
         # return a KeyValueLookup as response since the lookup may not be complete e.g. if
         # the lookup is for 'key_base.key_value' it is likely that the calling code, e.g. Jinja,
         # will expect to do a dictionary style lookup for key_base and key_value as subsequent
-        # calls. Saving the value in cache allows
-        return KeyValueLookup(lookup, self._value_cache)
+        # calls. Saving the value in cache avoids extra DB calls.
+        return KeyValueLookup(key, self._value_cache)
 
     def _get_kv(self, key):
         kvp = None
