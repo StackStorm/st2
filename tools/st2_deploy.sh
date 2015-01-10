@@ -345,7 +345,7 @@ echo "########## Starting St2 Services ##########"
 st2ctl restart
 sleep 20
 ##This is a hack around a weird issue with actions getting stuck in scheduled state
-st2 run core.local date -a &> /dev/null && st2ctl restart &> /dev/null
+st2 run core.local date -a &> /dev/null
 ACTIONEXIT=$?
 
 echo "=============================="
