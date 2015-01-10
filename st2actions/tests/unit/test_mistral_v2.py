@@ -45,16 +45,16 @@ from st2common.persistence.action import Action, ActionExecution
 
 
 TEST_FIXTURES = {
-    'workflows': ['workflow-v2.yaml'],
-    'actions': ['local.json', 'workflow-v2.json']
+    'workflows': ['workbook-v2.yaml'],
+    'actions': ['local.json', 'workbook-v2.json']
 }
 
 PACK = 'generic'
 FIXTURES = FixturesLoader().load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
-WORKFLOW_YAML = FixturesLoader().get_fixture_file_path_abs(PACK, 'workflows', 'workflow-v2.yaml')
-WORKBOOK_SPEC = FIXTURES['workflows']['workflow-v2.yaml']
-WORKBOOK = workbooks.Workbook(None, {'name': 'workflow-v2', 'definition': WORKBOOK_SPEC})
-WORKBOOK_OLD = workbooks.Workbook(None, {'name': 'workflow-v2', 'definition': ''})
+WORKFLOW_YAML = FixturesLoader().get_fixture_file_path_abs(PACK, 'workflows', 'workbook-v2.yaml')
+WORKBOOK_SPEC = FIXTURES['workflows']['workbook-v2.yaml']
+WORKBOOK = workbooks.Workbook(None, {'name': 'generic.workbook-v2', 'definition': WORKBOOK_SPEC})
+WORKBOOK_OLD = workbooks.Workbook(None, {'name': 'generic.workbook-v2', 'definition': ''})
 EXECUTION = executions.Execution(None, {'id': str(uuid.uuid4()), 'state': 'RUNNING'})
 CHAMPION = worker.Worker(None)
 
@@ -76,8 +76,8 @@ class TestMistralRunner(DbTestCase):
         runners_registrar.register_runner_types()
         action_local = ActionAPI(**copy.deepcopy(FIXTURES['actions']['local.json']))
         Action.add_or_update(ActionAPI.to_model(action_local))
-        action_wkflow = ActionAPI(**copy.deepcopy(FIXTURES['actions']['workflow-v2.json']))
-        Action.add_or_update(ActionAPI.to_model(action_wkflow))
+        action_wkbk = ActionAPI(**copy.deepcopy(FIXTURES['actions']['workbook-v2.json']))
+        Action.add_or_update(ActionAPI.to_model(action_wkbk))
 
     @mock.patch.object(
         workbooks.WorkbookManager, 'get',
@@ -91,9 +91,9 @@ class TestMistralRunner(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=EXECUTION))
-    def test_launch_workflow(self):
+    def test_launch_workbook(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WORKFLOW_YAML)
-        execution = ActionExecutionDB(action='generic.workflow-v2', parameters={'friend': 'Rocky'})
+        execution = ActionExecutionDB(action='generic.workbook-v2', parameters={'friend': 'Rocky'})
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
@@ -110,9 +110,9 @@ class TestMistralRunner(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=EXECUTION))
-    def test_launch_workflow_when_definition_changed(self):
+    def test_launch_when_workbook_definition_changed(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WORKFLOW_YAML)
-        execution = ActionExecutionDB(action='generic.workflow-v2', parameters={'friend': 'Rocky'})
+        execution = ActionExecutionDB(action='generic.workbook-v2', parameters={'friend': 'Rocky'})
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
@@ -126,8 +126,8 @@ class TestMistralRunner(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=EXECUTION))
-    def test_launch_workflow_when_workbook_not_exists(self):
-        execution = ActionExecutionDB(action='generic.workflow-v2', parameters={'friend': 'Rocky'})
+    def test_launch_when_workbook_not_exists(self):
+        execution = ActionExecutionDB(action='generic.workbook-v2', parameters={'friend': 'Rocky'})
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)

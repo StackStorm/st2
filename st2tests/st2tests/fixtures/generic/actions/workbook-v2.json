@@ -1,19 +1,14 @@
 {
-    "name": "workflow-v1",
+    "name": "workbook-v2",
     "pack": "generic",
-    "runner_type": "mistral-v1",
+    "runner_type": "mistral-v2",
     "description": "Say hi to friend!",
     "enabled": true,
-    "entry_point":"workflow-v1.yaml",
+    "entry_point":"workbook-v2.yaml",
     "parameters": {
-        "workbook": {
+        "workflow": {
             "type": "string",
-            "default": "workflow-v1",
-            "immutable": true
-        },
-        "task": {
-            "type": "string",
-            "default": "say-greeting",
+            "default": "workflow-v2.workflow-v2",
             "immutable": true
         },
         "context": {
