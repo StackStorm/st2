@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 from jsonpath_rw import parse
 
 
@@ -24,8 +22,6 @@ def get_value(doc, key):
     jsonpath_expr = parse(key)
     matches = jsonpath_expr.find(doc)
     value = None if len(matches) < 1 else matches[0].value
-    if isinstance(value, dict):
-        value = json.dumps(value, indent=4, sort_keys=True)
     return value
 
 
