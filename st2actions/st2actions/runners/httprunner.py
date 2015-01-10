@@ -76,7 +76,6 @@ class HttpRunner(ActionRunner):
         client = self._get_http_client(action_parameters)
         LOG.debug('action_parameters = %s', action_parameters)
         output = client.run()
-        self.container_service.report_result(output)
         status = HttpRunner._get_result_status(output.get('status_code', None))
         return (status, output)
 
