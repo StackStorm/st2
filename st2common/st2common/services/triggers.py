@@ -75,13 +75,22 @@ def get_trigger_db(trigger):
 
 def _get_trigger_api_given_rule(rule):
     trigger = rule.trigger
-    triggertype_ref = ResourceReference.from_string_reference(trigger.get('type'))
     trigger_dict = {}
-
-    trigger_dict['name'] = triggertype_ref.name
-    trigger_dict['pack'] = triggertype_ref.pack
+    triggertype_ref = ResourceReference.from_string_reference(trigger.get('type'))
+    trigger_dict['pack'] = trigger_dict.get('pack', triggertype_ref.pack)
     trigger_dict['type'] = triggertype_ref.ref
-    trigger_dict['parameters'] = rule.trigger.get('parameters', {})
+
+    trigger_ref_str = trigger.get('ref', None)
+    if trigger_ref_str:
+        trigger_ref = ResourceReference.from_string_reference(trigger_ref_str)
+        trigger_dict['name'] = trigger_ref.name
+        trigger_dict['pack'] = trigger_ref.pack
+        if triggertype_ref and trigger_ref.pack != triggertype_ref.pack:
+            raise Exception('Invalid definition for trigger in rule. ' +
+                            'Packs mismatch for trigger (%s) and trigger type (%s).' %
+                            (trigger_ref.pack, triggertype_ref.pack))
+    else:
+        trigger_dict['parameters'] = rule.trigger.get('parameters', {})
 
     trigger_api = TriggerAPI(**trigger_dict)
 
