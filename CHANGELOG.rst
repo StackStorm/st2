@@ -49,6 +49,7 @@ Docs: http://docks.stackstorm.com/latest
 * Action models now use ContentPackResourceMixin so we can get them by ref. (refactor)
 * Add ``rule_tester`` tool which allows users to test rules in an offline mode without any services
   running (new-feature)
+* Fix a bug where trigger objects weren't created for triggers with different parameters. (bug-fix)
 
 v0.6.0 - December 8, 2014
 -------------------------

@@ -103,6 +103,10 @@ class RuleAPI(BaseAPI):
                     'parameters': {
                         'type': 'object',
                         'default': {}
+                    },
+                    'ref': {
+                        'type': 'string',
+                        'required': False
                     }
                 },
                 'additionalProperties': True
