@@ -148,11 +148,13 @@ class PythonRunner(ActionRunner):
         stdout, stderr = process.communicate()
         exit_code = process.returncode
 
-        if ACTION_OUTPUT_RESULT_DELIMITER in stdout:
-            split = stdout.split(ACTION_OUTPUT_RESULT_DELIMITER)
+        stream_to_process = stderr if exit_code else stdout
+
+        if ACTION_OUTPUT_RESULT_DELIMITER in stream_to_process:
+            split = stream_to_process.split(ACTION_OUTPUT_RESULT_DELIMITER)
             assert len(split) == 3
             result = split[1].strip()
-            stdout = split[0] = split[2]
+            stream_to_process = split[0] = split[2]
         else:
             result = None
 
