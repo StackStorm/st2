@@ -37,7 +37,7 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-DEFAULT_ACTION_TIMEOUT = 10
+DEFAULT_ACTION_TIMEOUT = 60
 LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 # constants to lookup in runner_parameters.
