@@ -1,20 +1,14 @@
 {
-    "name": "workbook-v2",
+    "name": "workbook_v2_many_workflows",
     "pack": "generic",
     "runner_type": "mistral-v2",
     "description": "Say hi to friend!",
     "enabled": true,
-    "entry_point":"workbook-v2.yaml",
+    "entry_point":"workbook_v2_many_workflows.yaml",
     "parameters": {
         "workflow": {
             "type": "string",
-            "default": "workflow-v2.workflow-v2",
-            "immutable": true
-        },
-        "context": {
-            "description": "Context for the startup task.",
-            "type": "object",
-            "default": {},
+            "default": "generic.workbook_v2_many_workflows.main",
             "immutable": true
         },
         "count": {

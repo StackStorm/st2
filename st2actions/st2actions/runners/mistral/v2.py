@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import uuid
+import yaml
 
 from oslo.config import cfg
 from mistralclient.api import client as mistral
@@ -42,6 +43,26 @@ class MistralRunner(AsyncActionRunner):
     def pre_run(self):
         pass
 
+    def _find_default_workflow(self, definition):
+        def_dict = yaml.safe_load(definition)
+        num_workflows = len(def_dict['workflows'].keys())
+
+        if num_workflows > 1:
+            fully_qualified_wf_name = self.runner_parameters.get('workflow')
+            if not fully_qualified_wf_name:
+                raise ValueError('Default workflow to run is not provided for the workbook.')
+
+            wf_name = fully_qualified_wf_name[fully_qualified_wf_name.rindex('.') + 1:]
+            if wf_name not in def_dict['workflows']:
+                raise ValueError('Unable to find the workflow "%s" in the workbook.'
+                                 % fully_qualified_wf_name)
+
+            return fully_qualified_wf_name
+        elif num_workflows == 1:
+            return '%s.%s' % (def_dict['name'], def_dict['workflows'].keys()[0])
+        else:
+            raise Exception('There are no workflows in the workbook.')
+
     def run(self, action_parameters):
         client = mistral.client(mistral_url='%s/v2' % self.url)
 
@@ -64,9 +85,11 @@ class MistralRunner(AsyncActionRunner):
         params = {'st2_api_url': endpoint,
                   'st2_parent': self.action_execution_id}
 
+        # Determine the default workflow in the workbook to run.
+        default_workflow = self._find_default_workflow(transformed_definition)
+
         # Execute the workflow.
-        execution = client.executions.create(self.runner_parameters.get('workflow'),
-                                             workflow_input=context, **params)
+        execution = client.executions.create(default_workflow, workflow_input=context, **params)
 
         status = ACTIONEXEC_STATUS_RUNNING
         query_context = {'mistral_execution_id': str(execution.id)}
