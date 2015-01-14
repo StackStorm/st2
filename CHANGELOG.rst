@@ -50,6 +50,7 @@ Docs: http://docks.stackstorm.com/latest
 * Add ``rule_tester`` tool which allows users to test rules in an offline mode without any services
   running (new-feature)
 * Fix a bug where trigger objects weren't created for triggers with different parameters. (bug-fix)
+* Exception thrown from python actions should record the action as failed. (bug-fix)
 
 v0.6.0 - December 8, 2014
 -------------------------
