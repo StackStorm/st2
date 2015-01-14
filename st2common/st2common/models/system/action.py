@@ -37,7 +37,6 @@ __all__ = [
     'FabricRemoteScriptAction'
 ]
 
-
 LOG = logging.getLogger(__name__)
 
 LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
@@ -83,6 +82,20 @@ class ShellCommandAction(object):
         args = [pipes.quote(arg) for arg in args]
         args = ' '.join(args)
         result = '%s %s' % (cmd, args)
+        return result
+
+    def _get_error_result(self, e):
+        """
+        Prepares a structured error result based on the exception.
+
+        :type e: ``Exception``
+
+        :rtype: ``dict``
+        """
+        result = {}
+        result['failed'] = True
+        result['succeeded'] = False
+        result['exception'] = str(e)
         return result
 
 
@@ -313,15 +326,19 @@ class FabricRemoteAction(RemoteAction):
         return self._run
 
     def _run(self):
-        with shell_env(**self.env_vars), settings(command_timeout=self.timeout):
-            output = run(self.command, combine_stderr=False, pty=False, quiet=True)
-        result = {
-            'stdout': output.stdout,
-            'stderr': output.stderr,
-            'return_code': output.return_code,
-            'succeeded': output.succeeded,
-            'failed': output.failed
-        }
+        try:
+            with shell_env(**self.env_vars), settings(command_timeout=self.timeout):
+                output = run(self.command, combine_stderr=False, pty=False, quiet=True)
+            result = {
+                'stdout': output.stdout,
+                'stderr': output.stderr,
+                'return_code': output.return_code,
+                'succeeded': output.succeeded,
+                'failed': output.failed
+            }
+        except Exception as e:
+            LOG.exception('Failed executing remote action.')
+            result = self._get_error_result(e)
         return jsonify.json_loads(result, FabricRemoteAction.KEYS_TO_TRANSFORM)
 
     def _sudo(self):
@@ -383,12 +400,8 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             self._execute_remote_command(cmd2)
         except Exception as e:
             LOG.exception('Failed executing remote action.')
-            result = {}
-            result.failed = True
-            result.succeeded = False
-            result.exception = str(e)
-        finally:
-            return result
+            result = self._get_error_result(e)
+        return result
 
     def _get_command_string(self, cmd, args):
         """
