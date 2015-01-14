@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-import json
 import argparse
+import json
+import sys
+import traceback
 
 from st2common import log as logging
 from st2actions import config
@@ -62,7 +63,7 @@ class PythonActionWrapper(object):
             stream = sys.stdout
             exit_code = 0
         except Exception as e:
-            output = e
+            output = traceback.format_exc(e)
             stream = sys.stderr
             exit_code = 1
 
