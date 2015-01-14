@@ -38,6 +38,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 DEFAULT_ACTION_TIMEOUT = 60
+DEFAULT_KWARG_OP = '--'
 LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 # constants to lookup in runner_parameters.
@@ -69,7 +70,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, LOGGED_USER_USERNAME)
         self._user = cfg.CONF.system_user.user
-        self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
+        self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, DEFAULT_KWARG_OP)
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
     def run(self, action_parameters):
