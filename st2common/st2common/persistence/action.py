@@ -18,7 +18,7 @@ from oslo.config import cfg
 from st2common import transport
 from st2common.models.db.action import (runnertype_access, action_access, actionexec_access)
 from st2common.models.db.action import actionexecstate_access
-from st2common.persistence.base import (Access, ContentPackResourceMixin)
+from st2common.persistence.base import (Access, ContentPackResource)
 
 
 class RunnerType(Access):
@@ -35,7 +35,7 @@ class RunnerType(Access):
         return cls.get_by_name(name)
 
 
-class Action(Access, ContentPackResourceMixin):
+class Action(ContentPackResource):
     impl = action_access
 
     @classmethod

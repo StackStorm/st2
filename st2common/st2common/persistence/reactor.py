@@ -19,10 +19,10 @@ from st2common import transport
 from st2common.models.db.reactor import sensor_type_access
 from st2common.models.db.reactor import triggertype_access, trigger_access, triggerinstance_access,\
     rule_access
-from st2common.persistence.base import (Access, ContentPackResourceMixin)
+from st2common.persistence.base import (Access, ContentPackResource)
 
 
-class SensorType(Access, ContentPackResourceMixin):
+class SensorType(ContentPackResource):
     impl = sensor_type_access
 
     @classmethod
@@ -30,7 +30,7 @@ class SensorType(Access, ContentPackResourceMixin):
         return cls.impl
 
 
-class TriggerType(Access, ContentPackResourceMixin):
+class TriggerType(ContentPackResource):
     impl = triggertype_access
 
     @classmethod
@@ -38,7 +38,7 @@ class TriggerType(Access, ContentPackResourceMixin):
         return cls.impl
 
 
-class Trigger(Access, ContentPackResourceMixin):
+class Trigger(ContentPackResource):
     impl = trigger_access
     publisher = None
 
