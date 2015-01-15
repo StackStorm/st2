@@ -1,5 +1,5 @@
 version: "2.0"
-name: "examples.mistral-complex"
+name: "examples.mistral-workbook-complex"
 
 workflows:
 

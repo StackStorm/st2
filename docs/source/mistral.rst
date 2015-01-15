@@ -4,31 +4,31 @@ Mistral
 
 Basic Workflow
 ++++++++++++++
-Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under /usr/share/doc/st2/examples if |st2| is already installed. The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. The run-cmd task is calling **core.local** and passing the cmd as input. **core.local** is an action that comes installed with |st2|. In the workflow, we can reference |st2| action directly. When the workflow is invoked, |st2| will translate the workflow definition appropriately before sending it to Mistral. Let's save this as mistral-basic.yaml at /opt/stackstorm/packs/examples/actions/ where |st2| is installed.
+Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under /usr/share/doc/st2/examples if |st2| is already installed. The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. The run-cmd task is calling **core.local** and passing the cmd as input. **core.local** is an action that comes installed with |st2|. In the workflow, we can reference |st2| action directly. When the workflow is invoked, |st2| will translate the workflow definition appropriately before sending it to Mistral. Let's save this as mistral-workbook-basic.yaml at /opt/stackstorm/packs/examples/actions/ where |st2| is installed.
 
-.. literalinclude:: /../../contrib/examples/actions/mistral-basic.yaml
+.. literalinclude:: /../../contrib/examples/actions/mistral-workbook-basic.yaml
 
-The following is the corresponding |st2| action metadata for example above. The |st2| pack for this workflow action is named "examples". Please note that the workbook is named fully qualified as "<pack>.<action>" in the workbook definition above. The |st2| action runner is "mistral-v2". The entry point for the |st2| action refers to the YAML file of the workbook definition. Under the parameters section, we added an immutable parameter that specifies which workflow in the workbook to execute and a second parameter that takes the command to execute. Let's save this metadata as mistral-basic.json at /opt/stackstorm/packs/examples/actions/.
+The following is the corresponding |st2| action metadata for example above. The |st2| pack for this workflow action is named "examples". Please note that the workbook is named fully qualified as "<pack>.<action>" in the workbook definition above. The |st2| action runner is "mistral-v2". The entry point for the |st2| action refers to the YAML file of the workbook definition. Under the parameters section, we added an immutable parameter that specifies which workflow in the workbook to execute and a second parameter that takes the command to execute. Let's save this metadata as mistral-workbook-basic.json at /opt/stackstorm/packs/examples/actions/.
 
-.. literalinclude:: /../../contrib/examples/actions/mistral-basic.json
+.. literalinclude:: /../../contrib/examples/actions/mistral-workbook-basic.json
 
-Next, run the following |st2| command to create this workflow action. This will register the workflow as examples.mistral-basic in |st2|. ::
+Next, run the following |st2| command to create this workflow action. This will register the workflow as examples.mistral-workbook-basic in |st2|. ::
 
-    st2 action create /opt/stackstorm/packs/examples/actions/mistral-basic.json
+    st2 action create /opt/stackstorm/packs/examples/actions/mistral-workbook-basic.json
 
 
 To execute the workflow, run the following command where -a tells the command to return and not wait for the workflow to complete. ::
 
-    st2 run examples.mistral-basic cmd=date -a
+    st2 run examples.mistral-workbook-basic cmd=date -a
 
-If the workflow completed successfully, both the workflow **examples.mistral-basic** and the action **core.local** would have a **succeeded** status in the |st2| action execution list. ::
+If the workflow completed successfully, both the workflow **examples.mistral-workbook-basic** and the action **core.local** would have a **succeeded** status in the |st2| action execution list. ::
 
-    +--------------------------+------------------------+--------------+-----------+-----------------------------+
-    | id                       | action                 | context.user | status    | start_timestamp             |
-    +--------------------------+------------------------+--------------+-----------+-----------------------------+
-    | 545169bf9c99383e585e2934 | examples.mistral-basic |              | succeeded | 2014-11-03T10:00:11.808000Z |
-    | 545169c09c99383e585e2935 | core.local             |              | succeeded | 2014-11-03T10:00:12.084000Z |
-    +--------------------------+------------------------+--------------+-----------+-----------------------------+
+    +--------------------------+---------------------------------+--------------+-----------+-----------------------------+
+    | id                       | action                          | context.user | status    | start_timestamp             |
+    +--------------------------+---------------------------------+--------------+-----------+-----------------------------+
+    | 545169bf9c99383e585e2934 | examples.mistral-workbook-basic | stanley      | succeeded | 2014-11-03T10:00:11.808000Z |
+    | 545169c09c99383e585e2935 | core.local                      | stanley      | succeeded | 2014-11-03T10:00:12.084000Z |
+    +--------------------------+---------------------------------+--------------+-----------+-----------------------------+
 
 Stitching a more Complex Workflow
 +++++++++++++++++++++++++++++++++

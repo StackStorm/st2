@@ -1,0 +1,43 @@
+version: '2.0'
+
+main1:
+  type: direct
+  input:
+    - count
+    - friend
+  tasks:
+    say-greeting:
+      action: core.hey
+      input:
+        cmd: $.count
+      publish:
+        greet: $.stdout
+      on-success:
+        - say-friend
+    say-friend:
+      action: core.friend
+      input:
+        cmd: $.friend
+      publish:
+        towhom: $.stdout
+
+main2:
+  type: direct
+  input:
+    - count
+    - friend
+  tasks:
+    say-greeting:
+      action: core.hey
+      input:
+        cmd: $.count
+      publish:
+        greet: $.stdout
+      on-success:
+        - say-friend
+    say-friend:
+      action: core.friend
+      input:
+        cmd: $.friend
+      publish:
+        towhom: $.stdout

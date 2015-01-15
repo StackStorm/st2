@@ -1,0 +1,19 @@
+{
+    "name": "mistral-workbook-basic",
+    "pack": "examples",
+    "runner_type": "mistral-v2",
+    "description": "Run a local linux command",
+    "enabled": true,
+    "entry_point":"mistral-workbook-basic.yaml",
+    "parameters": {
+        "workflow": {
+            "type": "string",
+            "default": "examples.mistral-workbook-basic.demo",
+            "immutable": true
+        },
+        "cmd": {
+            "type": "string",
+            "required": true
+        }
+    }
+}

@@ -13,14 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 import json
 import uuid
 
 import mock
 import requests
+import six
+import yaml
 
 from mistralclient.api.v2 import workbooks
+from mistralclient.api.v2 import workflows
 from mistralclient.api.v2 import executions
 
 # XXX: actionsensor import depends on config being setup.
@@ -49,12 +51,16 @@ TEST_FIXTURES = {
     'workflows': [
         'workbook_v2.yaml',
         'workbook_v2_many_workflows.yaml',
-        'workbook_v2_many_workflows_no_default.yaml'
+        'workbook_v2_many_workflows_no_default.yaml',
+        'workflow_v2.yaml',
+        'workflow_v2_many_workflows.yaml'
     ],
     'actions': [
         'workbook_v2.json',
         'workbook_v2_many_workflows.json',
         'workbook_v2_many_workflows_no_default.json',
+        'workflow_v2.json',
+        'workflow_v2_many_workflows.json',
         'local.json'
     ]
 }
@@ -67,23 +73,43 @@ FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 WB1_YAML_FILE_NAME = TEST_FIXTURES['workflows'][0]
 WB1_YAML_FILE_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WB1_YAML_FILE_NAME)
 WB1_SPEC = FIXTURES['workflows'][WB1_YAML_FILE_NAME]
+WB1_YAML = yaml.safe_dump(WB1_SPEC, default_flow_style=False)
 WB1_NAME = '%s.%s' % (PACK, WB1_YAML_FILE_NAME.replace('.yaml', ''))
-WB1 = workbooks.Workbook(None, {'name': WB1_NAME, 'definition': WB1_SPEC})
+WB1 = workbooks.Workbook(None, {'name': WB1_NAME, 'definition': WB1_YAML})
 WB1_OLD = workbooks.Workbook(None, {'name': WB1_NAME, 'definition': ''})
 
 # Workbook with many workflows
 WB2_YAML_FILE_NAME = TEST_FIXTURES['workflows'][1]
 WB2_YAML_FILE_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WB2_YAML_FILE_NAME)
 WB2_SPEC = FIXTURES['workflows'][WB2_YAML_FILE_NAME]
+WB2_YAML = yaml.safe_dump(WB2_SPEC, default_flow_style=False)
 WB2_NAME = '%s.%s' % (PACK, WB2_YAML_FILE_NAME.replace('.yaml', ''))
-WB2 = workbooks.Workbook(None, {'name': WB2_NAME, 'definition': WB2_SPEC})
+WB2 = workbooks.Workbook(None, {'name': WB2_NAME, 'definition': WB2_YAML})
 
 # Workbook with many workflows but no default workflow is defined
 WB3_YAML_FILE_NAME = TEST_FIXTURES['workflows'][2]
 WB3_YAML_FILE_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WB3_YAML_FILE_NAME)
 WB3_SPEC = FIXTURES['workflows'][WB3_YAML_FILE_NAME]
+WB3_YAML = yaml.safe_dump(WB3_SPEC, default_flow_style=False)
 WB3_NAME = '%s.%s' % (PACK, WB3_YAML_FILE_NAME.replace('.yaml', ''))
-WB3 = workbooks.Workbook(None, {'name': WB3_NAME, 'definition': WB3_SPEC})
+WB3 = workbooks.Workbook(None, {'name': WB3_NAME, 'definition': WB3_YAML})
+
+# Non-workbook with a single workflow
+WF1_YAML_FILE_NAME = TEST_FIXTURES['workflows'][3]
+WF1_YAML_FILE_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WF1_YAML_FILE_NAME)
+WF1_SPEC = FIXTURES['workflows'][WF1_YAML_FILE_NAME]
+WF1_YAML = yaml.safe_dump(WF1_SPEC, default_flow_style=False)
+WF1_NAME = '%s.%s' % (PACK, WF1_YAML_FILE_NAME.replace('.yaml', ''))
+WF1 = workflows.Workflow(None, {'name': WF1_NAME, 'definition': WF1_YAML})
+WF1_OLD = workflows.Workflow(None, {'name': WF1_NAME, 'definition': ''})
+
+# Non-workbook with a many workflows
+WF2_YAML_FILE_NAME = TEST_FIXTURES['workflows'][4]
+WF2_YAML_FILE_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WF2_YAML_FILE_NAME)
+WF2_SPEC = FIXTURES['workflows'][WF2_YAML_FILE_NAME]
+WF2_YAML = yaml.safe_dump(WF2_SPEC, default_flow_style=False)
+WF2_NAME = '%s.%s' % (PACK, WF2_YAML_FILE_NAME.replace('.yaml', ''))
+WF2 = workflows.Workflow(None, {'name': WF2_NAME, 'definition': WF2_YAML})
 
 # Action executions' requirements
 ACTION_PARAMS = {'friend': 'Rocky'}
@@ -107,19 +133,73 @@ class TestMistralRunner(DbTestCase):
         super(TestMistralRunner, cls).setUpClass()
         runners_registrar.register_runner_types()
 
-        action_local = ActionAPI(**copy.deepcopy(FIXTURES['actions']['local.json']))
-        Action.add_or_update(ActionAPI.to_model(action_local))
+        for name, fixture in six.iteritems(FIXTURES['actions']):
+            instance = ActionAPI(**fixture)
+            Action.add_or_update(ActionAPI.to_model(instance))
 
-        action_wkbk1 = ActionAPI(**copy.deepcopy(FIXTURES['actions']['workbook_v2.json']))
-        Action.add_or_update(ActionAPI.to_model(action_wkbk1))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF1))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=EXECUTION))
+    def test_launch_workflow(self):
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
+        execution = ActionExecutionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        execution = action_service.schedule(execution)
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
 
-        action_wkbk2 = ActionAPI(
-            **copy.deepcopy(FIXTURES['actions']['workbook_v2_many_workflows.json']))
-        Action.add_or_update(ActionAPI.to_model(action_wkbk2))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF1_OLD))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'update',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=EXECUTION))
+    def test_launch_when_workflow_definition_changed(self):
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
+        execution = ActionExecutionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        execution = action_service.schedule(execution)
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
 
-        action_wkbk3 = ActionAPI(
-            **copy.deepcopy(FIXTURES['actions']['workbook_v2_many_workflows_no_default.json']))
-        Action.add_or_update(ActionAPI.to_model(action_wkbk3))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(side_effect=Exception()))
+    @mock.patch.object(
+        workbooks.WorkbookManager, 'delete',
+        mock.MagicMock(side_effect=Exception()))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=EXECUTION))
+    def test_launch_when_workflow_not_exists(self):
+        execution = ActionExecutionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        execution = action_service.schedule(execution)
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF2))
+    def test_launch_workflow_with_many_workflows(self):
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WF2_YAML_FILE_PATH)
+        execution = ActionExecutionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
+        execution = action_service.schedule(execution)
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        self.assertIn('Multiple workflows is not supported.', execution.result['message'])
 
     @mock.patch.object(
         workbooks.WorkbookManager, 'get',
@@ -177,8 +257,7 @@ class TestMistralRunner(DbTestCase):
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
-        self.assertEqual(execution.result['message'],
-                         'Default workflow to run is not provided for the workbook.')
+        self.assertIn('Default workflow cannot be determined.', execution.result['message'])
 
     @mock.patch.object(
         workbooks.WorkbookManager, 'get',
@@ -201,10 +280,13 @@ class TestMistralRunner(DbTestCase):
 
     @mock.patch.object(
         workbooks.WorkbookManager, 'get',
-        mock.MagicMock(return_value=Exception()))
+        mock.MagicMock(side_effect=Exception()))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'delete',
+        mock.MagicMock(side_effect=Exception()))
     @mock.patch.object(
         workbooks.WorkbookManager, 'create',
-        mock.MagicMock(return_value=None))
+        mock.MagicMock(return_value=WB1))
     @mock.patch.object(
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=EXECUTION))
