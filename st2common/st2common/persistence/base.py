@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from mongoengine import NotUniqueError
+from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.system.common import ResourceReference
-
 
 import abc
 import six
@@ -36,6 +37,11 @@ class Access(object):
     @classmethod
     @abc.abstractmethod
     def _get_publisher(kls):
+        return None
+
+    @classmethod
+    @abc.abstractmethod
+    def _get_by_object(kls, object):
         return None
 
     @classmethod
@@ -73,7 +79,15 @@ class Access(object):
     @classmethod
     def add_or_update(kls, model_object, publish=True):
         pre_persist_id = model_object.id
-        model_object = kls._get_impl().add_or_update(model_object)
+        try:
+            model_object = kls._get_impl().add_or_update(model_object)
+        except NotUniqueError as e:
+            LOG.exception('Conflict while trying to save in DB.')
+            # On a conflict determine the conflicting object and return its id in
+            # the raised exception.
+            conflict_object = kls._get_by_object(model_object)
+            conflict_id = str(conflict_object.id) if conflict_object else None
+            raise StackStormDBObjectConflictError(str(e), conflict_id)
         publisher = kls._get_publisher()
         try:
             if publisher and publish:
@@ -95,7 +109,7 @@ class Access(object):
         return persisted_object
 
 
-class ContentPackResourceMixin():
+class ContentPackResourceMixin(object):
     @classmethod
     def get_by_ref(cls, ref):
         if not ref:
@@ -105,3 +119,10 @@ class ContentPackResourceMixin():
         result = cls.query(name=ref_obj.name,
                            pack=ref_obj.pack).first()
         return result
+
+    @classmethod
+    def _get_by_object(cls, object):
+        # For an object with a resourcepack pack.name is unique.
+        name = getattr(object, 'name', '')
+        pack = getattr(object, 'pack', '')
+        return cls.get_by_ref(ResourceReference.to_string_reference(pack=pack, name=name))

@@ -23,3 +23,9 @@ class KeyValuePair(Access):
     @classmethod
     def _get_impl(cls):
         return cls.IMPL
+
+    @classmethod
+    def _get_by_object(kls, object):
+        # For KeyValuePair name is unique.
+        name = getattr(object, 'name', '')
+        return kls.get_by_name(name)

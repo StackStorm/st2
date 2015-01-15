@@ -28,6 +28,12 @@ class RunnerType(Access):
     def _get_impl(kls):
         return kls.impl
 
+    @classmethod
+    def _get_by_object(kls, object):
+        # For RunnerType name is unique.
+        name = getattr(object, 'name', '')
+        return kls.get_by_name(name)
+
 
 class Action(Access, ContentPackResourceMixin):
     impl = action_access
