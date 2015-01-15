@@ -72,7 +72,7 @@ The input parameter `input1` can now be referenced in the parameters field of an
                action1_input: "{{input1}}"
       # ...
 
-`action1_input` has value `{{input1}}`. This syntax is variable referencing as supported by Jinja2 templating. Similar constructs are also used in `Rule </rules>`__ criteria and action fields.
+`action1_input` has value `{{input1}}`. This syntax is variable referencing as supported by Jinja2 templating. Similar constructs are also used in :doc:`Rule </rules>` criteria and action fields.
 
 Data passing
 ~~~~~~~~~~~~

@@ -9,7 +9,7 @@ The docs are build with Sphinx. It's integrated with the main project Makefile.
 * TODO (Use [http://localhost:8000/todo.html](http://localhost:8000/todo.html) for full TODO list (must be empty when we ship)
 :
 
-		.. todo:: Hers is all TODO 
+		.. todo:: Here is a TODO
 
 * Code fragment:
 
@@ -21,12 +21,25 @@ The docs are build with Sphinx. It's integrated with the main project Makefile.
 * Reference the document
 
 		:doc:`/start`
+		:doc:`in the Rules doc </rules>`
+
+* Referencing an arbitrary section: for instance, there's examples section in sensors.rst. Define a reference on `examples` section in sensors.rst: 
+
+         .. _sensors-examples
+
+    and point to it as from this, or from other documensts as:
+
+       :ref:`sensors-examples`
+
+    Note that the leading `_` underscore is gone, and the reference is quoted.
+
+    Name convention for references is `_filename-refname` (because they are unique across the docs).  Note that there is no way to reference just a point in the docs. See http://sphinx-doc.org/markup/inline.html#cross-referencing-syntax
 
 * External links: 
 
-		`External link <http://webchat.freenode.net/?channels=stackstorm>`_ 
+		`External link <http://webchat.freenode.net/?channels=stackstorm>`_
 
-Inlcude a document
+* Inlcude a document, full body:
 
 		.. include:: /engage.rst
 
@@ -50,8 +63,6 @@ Inlcude a document
 		.. literalinclude:: /../../contrib/examples/rules/sample_rule_with_webhook.json
     		:language: json
     		
-* Referencing an arbitrary section: mark examples as reference: define reference as `.. _sensors-examples` and point to it as :ref:`sensors-examples`. Name convention for references is `_filename-refname` (because they are unique across the docs). Works across the docs, too. Note that there is no way to reference just a point in the docs. See http://sphinx-doc.org/markup/inline.html#cross-referencing-syntax
-
 
 ## Pandoc - convert md <-> rst and more
 
