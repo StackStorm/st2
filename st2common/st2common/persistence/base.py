@@ -31,64 +31,64 @@ class Access(object):
 
     @classmethod
     @abc.abstractmethod
-    def _get_impl(kls):
+    def _get_impl(cls):
         pass
 
     @classmethod
     @abc.abstractmethod
-    def _get_publisher(kls):
+    def _get_publisher(cls):
         return None
 
     @classmethod
     @abc.abstractmethod
-    def _get_by_object(kls, object):
+    def _get_by_object(cls, object):
         return None
 
     @classmethod
-    def get_by_name(kls, value):
-        return kls._get_impl().get_by_name(value)
+    def get_by_name(cls, value):
+        return cls._get_impl().get_by_name(value)
 
     @classmethod
-    def get_by_id(kls, value):
-        return kls._get_impl().get_by_id(value)
+    def get_by_id(cls, value):
+        return cls._get_impl().get_by_id(value)
 
     @classmethod
-    def get(kls, *args, **kwargs):
-        return kls._get_impl().get(*args, **kwargs)
+    def get(cls, *args, **kwargs):
+        return cls._get_impl().get(*args, **kwargs)
 
     @classmethod
-    def get_all(kls, *args, **kwargs):
-        return kls._get_impl().get_all(*args, **kwargs)
+    def get_all(cls, *args, **kwargs):
+        return cls._get_impl().get_all(*args, **kwargs)
 
     @classmethod
-    def count(kls, *args, **kwargs):
-        return kls._get_impl().count(*args, **kwargs)
+    def count(cls, *args, **kwargs):
+        return cls._get_impl().count(*args, **kwargs)
 
     @classmethod
-    def query(kls, *args, **kwargs):
-        return kls._get_impl().query(*args, **kwargs)
+    def query(cls, *args, **kwargs):
+        return cls._get_impl().query(*args, **kwargs)
 
     @classmethod
-    def distinct(kls, *args, **kwargs):
-        return kls._get_impl().distinct(*args, **kwargs)
+    def distinct(cls, *args, **kwargs):
+        return cls._get_impl().distinct(*args, **kwargs)
 
     @classmethod
-    def aggregate(kls, *args, **kwargs):
-        return kls._get_impl().aggregate(*args, **kwargs)
+    def aggregate(cls, *args, **kwargs):
+        return cls._get_impl().aggregate(*args, **kwargs)
 
     @classmethod
-    def add_or_update(kls, model_object, publish=True):
+    def add_or_update(cls, model_object, publish=True):
         pre_persist_id = model_object.id
         try:
-            model_object = kls._get_impl().add_or_update(model_object)
+            model_object = cls._get_impl().add_or_update(model_object)
         except NotUniqueError as e:
             LOG.exception('Conflict while trying to save in DB.')
             # On a conflict determine the conflicting object and return its id in
             # the raised exception.
-            conflict_object = kls._get_by_object(model_object)
+            conflict_object = cls._get_by_object(model_object)
             conflict_id = str(conflict_object.id) if conflict_object else None
             raise StackStormDBObjectConflictError(str(e), conflict_id)
-        publisher = kls._get_publisher()
+        publisher = cls._get_publisher()
         try:
             if publisher and publish:
                 if str(pre_persist_id) == str(model_object.id):
@@ -100,9 +100,9 @@ class Access(object):
         return model_object
 
     @classmethod
-    def delete(kls, model_object, publish=True):
-        persisted_object = kls._get_impl().delete(model_object)
-        publisher = kls._get_publisher()
+    def delete(cls, model_object, publish=True):
+        persisted_object = cls._get_impl().delete(model_object)
+        publisher = cls._get_publisher()
         if publisher and publish:
             # using model_object.
             publisher.publish_delete(model_object)
