@@ -42,6 +42,21 @@ TRIGGER_2 = {
 
 class TestTriggerTypeController(FunctionalTest):
 
+    @classmethod
+    def setUpClass(cls):
+        # super's setUpClass does the following:
+        #  - create DB connections, sets up a fresh DB etc.
+        #  - creates all the controllers by instantiating the pecan app.
+        # The WebHookController ends up registering a TriggerType in its  __init__
+        # which is why when this test is run individually it simply falls apart.
+        # When run in a suite the pecan app creation is somehow optimized and since
+        # this is not the first test to run its all good as some other test performs
+        # the DB cleanup. This is the unfortunate story of why these two lines in this
+        # exact order are needed. There are perhaps other ways to fix the problem
+        # however this is the most localized solution for now.
+        super(TestTriggerTypeController, cls).setUpClass()
+        cls._establish_connection_and_re_create_db()
+
     def test_get_all(self):
         post_resp = self.__do_post(TRIGGER_0)
         trigger_id_0 = self.__get_trigger_id(post_resp)
