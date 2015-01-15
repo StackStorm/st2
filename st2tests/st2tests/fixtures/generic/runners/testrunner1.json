@@ -17,6 +17,10 @@
             "type": "string",
             "default": "runnerdummy"
         },
+        "runnerfoo": {
+            "description": "Some foo param.",
+            "default": "FOO"
+        },
         "runnerimmutable": {
             "description": "Immutable param.",
             "type": "string",
