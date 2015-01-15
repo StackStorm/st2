@@ -20,8 +20,7 @@ import mock
 import st2actions.utils.param_utils as param_utils
 from st2common.exceptions import actionrunner
 from st2common.models.system.common import ResourceReference
-from st2common.models.db.action import (ActionDB, ActionExecutionDB)
-from st2common.models.api.action import RunnerTypeAPI
+from st2common.models.db.action import ActionExecutionDB
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
 from unittest2 import TestCase
