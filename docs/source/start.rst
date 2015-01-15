@@ -67,7 +67,7 @@ To run the action from the CLI, do
 
 Use ``core.remote`` action to run linux command on multiple hosts over ssh.
 This assumes that passwordless SSH access is configured for the hosts,
-as described in `Configure SSH </install/config.rst#configure-ssh>`__ section.
+as described in :ref:`config-configure-ssh` section.
 
 .. code-block:: bash
 
