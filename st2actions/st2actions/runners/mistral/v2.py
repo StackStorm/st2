@@ -14,10 +14,11 @@
 # limitations under the License.
 
 import uuid
-import yaml
 
-from oslo.config import cfg
 from mistralclient.api import client as mistral
+from oslo.config import cfg
+import six
+import yaml
 
 from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
 from st2actions.runners import AsyncActionRunner
@@ -39,18 +40,59 @@ class MistralRunner(AsyncActionRunner):
     def __init__(self, runner_id):
         super(MistralRunner, self).__init__(runner_id=runner_id)
         self._on_behalf_user = cfg.CONF.system_user.user
+        self._client = mistral.client(mistral_url='%s/v2' % self.url)
 
     def pre_run(self):
         pass
 
-    def _find_default_workflow(self, definition):
-        def_dict = yaml.safe_load(definition)
+    def _save_workbook(self, name, def_yaml):
+        # If the workbook is not found, the mistral client throws a generic API exception.
+        try:
+            # Update existing workbook.
+            wb = self._client.workbooks.get(name)
+        except:
+            # Delete if definition was previously a workflow.
+            # If not found, an API exception is thrown.
+            try:
+                self._client.workflows.delete(name)
+            except:
+                pass
+
+            # Create the new workbook.
+            wb = self._client.workbooks.create(def_yaml)
+
+        # Update the workbook definition.
+        if wb.definition != def_yaml:
+            self._client.workbooks.update(def_yaml)
+
+    def _save_workflow(self, name, def_yaml):
+        # If the workflow is not found, the mistral client throws a generic API exception.
+        try:
+            # Update existing workbook.
+            wf = self._client.workflows.get(name)
+        except:
+            # Delete if definition was previously a workbook.
+            # If not found, an API exception is thrown.
+            try:
+                self._client.workbooks.delete(name)
+            except:
+                pass
+
+            # Create the new workflow.
+            wf = self._client.workflows.create(def_yaml)[0]
+
+        # Update the workflow definition.
+        if wf.definition != def_yaml:
+            self._client.workflows.update(def_yaml)
+
+    def _find_default_workflow(self, def_dict):
         num_workflows = len(def_dict['workflows'].keys())
 
         if num_workflows > 1:
             fully_qualified_wf_name = self.runner_parameters.get('workflow')
             if not fully_qualified_wf_name:
-                raise ValueError('Default workflow to run is not provided for the workbook.')
+                raise ValueError('Workbook definition is detected. '
+                                 'Default workflow cannot be determined.')
 
             wf_name = fully_qualified_wf_name[fully_qualified_wf_name.rindex('.') + 1:]
             if wf_name not in def_dict['workflows']:
@@ -64,32 +106,39 @@ class MistralRunner(AsyncActionRunner):
             raise Exception('There are no workflows in the workbook.')
 
     def run(self, action_parameters):
-        client = mistral.client(mistral_url='%s/v2' % self.url)
-
-        # Update workbook definition.
-        workbook_name = self.action.pack + '.' + self.action.name
-        with open(self.entry_point, 'r') as wbkfile:
-            definition = wbkfile.read()
-            transformed_definition = utils.transform_definition(definition)
-            try:
-                wbk = client.workbooks.get(workbook_name)
-                if wbk.definition != transformed_definition:
-                    client.workbooks.update(transformed_definition)
-            except:
-                client.workbooks.create(transformed_definition)
-
-        # Setup context for the workflow execution.
-        context = self.runner_parameters.get('context', dict())
-        context.update(action_parameters)
+        # Setup inputs for the workflow execution.
+        inputs = self.runner_parameters.get('context', dict())
+        inputs.update(action_parameters)
         endpoint = 'http://%s:%s/v1/actionexecutions' % (cfg.CONF.api.host, cfg.CONF.api.port)
-        params = {'st2_api_url': endpoint,
-                  'st2_parent': self.action_execution_id}
+        options = {
+            'st2_api_url': endpoint,
+            'st2_parent': self.action_execution_id
+        }
 
-        # Determine the default workflow in the workbook to run.
-        default_workflow = self._find_default_workflow(transformed_definition)
+        # Get workbook/workflow definition from file.
+        with open(self.entry_point, 'r') as def_file:
+            def_yaml = def_file.read()
 
-        # Execute the workflow.
-        execution = client.executions.create(default_workflow, workflow_input=context, **params)
+        def_name = '%s.%s' % (self.action.pack, self.action.name)
+        def_yaml_xformed = utils.transform_definition(def_yaml)
+        def_dict_xformed = yaml.safe_load(def_yaml_xformed)
+
+        # Save workbook/workflow definition.
+        if 'workflows' in def_dict_xformed:
+            self._save_workbook(def_name, def_yaml_xformed)
+            default_workflow = self._find_default_workflow(def_dict_xformed)
+            execution = self._client.executions.create(default_workflow,
+                                                       workflow_input=inputs,
+                                                       **options)
+        else:
+            # Non-workbook definition containing multiple workflows is not supported.
+            if len([k for k, v in six.iteritems(def_dict_xformed) if k != 'version']) != 1:
+                raise Exception('Workflow (not workbook) definition is detected. '
+                                'Multiple workflows is not supported.')
+            self._save_workflow(def_name, def_yaml_xformed)
+            execution = self._client.executions.create(def_name,
+                                                       workflow_input=inputs,
+                                                       **options)
 
         status = ACTIONEXEC_STATUS_RUNNING
         query_context = {'mistral_execution_id': str(execution.id)}

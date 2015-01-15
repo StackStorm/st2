@@ -6,11 +6,6 @@
     "enabled": true,
     "entry_point":"mistral-basic.yaml",
     "parameters": {
-        "workflow": {
-            "type": "string",
-            "default": "examples.mistral-basic.demo",
-            "immutable": true
-        },
         "cmd": {
             "type": "string",
             "required": true

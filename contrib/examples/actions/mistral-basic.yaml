@@ -1,16 +1,12 @@
-name: 'examples.mistral-basic'
 version: '2.0'
-description: 'Basic mistral workflow example'
-workflows:
-    demo:
-        type: direct
-        input:
-            - cmd
-        tasks:
-            run-cmd:
-                action: core.local
-                input:
-                    cmd: $.cmd
-                publish:
-                    stdout: $.stdout
-                    stderr: $.stderr
+
+examples.mistral-basic:
+    type: direct
+    input:
+        - cmd
+    tasks:
+        run-cmd:
+            action: core.local cmd={$.cmd}
+            publish:
+                stdout: $.stdout
+                stderr: $.stderr
