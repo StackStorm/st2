@@ -260,6 +260,7 @@ class ParamsUtilsTest(TestCase):
         actionexec_db.action = ResourceReference(name=ParamsUtilsTest.action_db.name,
                                                  pack=ParamsUtilsTest.action_db.pack).ref
         actionexec_db.parameters = params
+
         return actionexec_db
 
     @classmethod

@@ -16,10 +16,10 @@
 
 import copy
 
-import st2actions.utils.param_utils as param_utils
 from unittest2 import TestCase
-from st2common.models.db.action import ActionDB
 from st2common.models.api.action import RunnerTypeAPI
+from st2common.models.db.action import ActionDB
+from st2common.models.utils import action_param_utils
 
 
 class ActionParamsUtilsTest(TestCase):
@@ -33,7 +33,7 @@ class ActionParamsUtilsTest(TestCase):
         ActionParamsUtilsTest._setup_test_models()
 
     def test_merge_action_runner_params_meta(self):
-        required, optional, immutable = param_utils.get_params_view(
+        required, optional, immutable = action_param_utils.get_params_view(
             action_db=ActionParamsUtilsTest.action_db,
             runner_db=ActionParamsUtilsTest.runnertype_db)
         merged = {}
@@ -41,7 +41,7 @@ class ActionParamsUtilsTest(TestCase):
         merged.update(optional)
         merged.update(immutable)
 
-        consolidated = param_utils.get_params_view(
+        consolidated = action_param_utils.get_params_view(
             action_db=ActionParamsUtilsTest.action_db,
             runner_db=ActionParamsUtilsTest.runnertype_db,
             merged_only=True)
@@ -68,8 +68,8 @@ class ActionParamsUtilsTest(TestCase):
         runner_meta = copy.deepcopy(
             ActionParamsUtilsTest.runnertype_db.runner_parameters['runnerdummy'])
         action_meta = copy.deepcopy(ActionParamsUtilsTest.action_db.parameters['runnerdummy'])
-        merged_meta = param_utils._merge_param_meta_values(action_meta=action_meta,
-                                                           runner_meta=runner_meta)
+        merged_meta = action_param_utils._merge_param_meta_values(action_meta=action_meta,
+                                                                  runner_meta=runner_meta)
 
         # Description is in runner meta but not in action meta.
         self.assertEqual(merged_meta['description'], runner_meta['description'])
