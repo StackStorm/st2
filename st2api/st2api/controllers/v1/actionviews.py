@@ -18,10 +18,10 @@ from pecan import abort
 from pecan.rest import RestController
 import six
 
-from st2actions.container.service import RunnerContainerService
 from st2api.controllers import resource
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
+from st2common.content import utils
 from st2common.models.api.action import ActionAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.utils import action_param_utils
@@ -150,7 +150,7 @@ class EntryPointController(resource.ContentPackResourceControler):
         pack = getattr(action_db, 'pack', None)
         entry_point = getattr(action_db, 'entry_point', None)
 
-        abs_path = RunnerContainerService.get_entry_point_abs_path(pack, entry_point)
+        abs_path = utils.get_entry_point_abs_path(pack, entry_point)
 
         if not abs_path:
             raise StackStormDBObjectNotFoundError('Action ref_or_id=%s has no entry_point to output'
