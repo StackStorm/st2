@@ -23,18 +23,25 @@ from st2common.models.system.common import ResourceReference
 from st2common.models.db.action import (ActionDB, ActionExecutionDB)
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.transport.publishers import PoolPublisher
+from st2tests.fixturesloader import FixturesLoader
 from unittest2 import TestCase
+
+
+FIXTURES_PACK = 'generic'
+
+TEST_MODELS = {
+    'actions': ['action1.json'],
+    'runners': ['testrunner1.json']
+}
+
+FIXTURES = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
+                                        fixtures_dict=TEST_MODELS)
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class ParamsUtilsTest(TestCase):
-    action_db = None
-    runnertype_db = None
-
-    @classmethod
-    def setUpClass(cls):
-        super(ParamsUtilsTest, cls).setUpClass()
-        ParamsUtilsTest._setup_test_models()
+    action_db = FIXTURES['actions']['action1.json']
+    runnertype_db = FIXTURES['runners']['testrunner1.json']
 
     def test_get_resolved_params(self):
         params = {
@@ -262,64 +269,3 @@ class ParamsUtilsTest(TestCase):
         actionexec_db.parameters = params
 
         return actionexec_db
-
-    @classmethod
-    def _setup_test_models(cls):
-        ParamsUtilsTest._setup_runner_models()
-        ParamsUtilsTest._setup_action_models()
-
-    @classmethod
-    def _setup_runner_models(cls):
-        test_runner = {
-            'name': 'test-runner',
-            'description': 'A test runner.',
-            'enabled': True,
-            'runner_parameters': {
-                'runnerstr': {
-                    'description': 'Foo str param.',
-                    'type': 'string',
-                    'default': 'defaultfoo'
-                },
-                'runnerint': {
-                    'description': 'Foo int param.',
-                    'type': 'number'
-                },
-                'runnerfoo': {
-                    'description': 'Some foo param.',
-                    'default': 'FOO'
-                },
-                'runnerdummy': {
-                    'description': 'Dummy param.',
-                    'type': 'string',
-                    'default': 'runnerdummy'
-                },
-                'runnerimmutable': {
-                    'description': 'Immutable param.',
-                    'type': 'string',
-                    'default': 'runnerimmutable',
-                    'immutable': True
-                }
-            },
-            'runner_module': 'tests.test_runner'
-        }
-        runnertype_api = RunnerTypeAPI(**test_runner)
-        ParamsUtilsTest.runnertype_db = RunnerTypeAPI.to_model(runnertype_api)
-
-    @classmethod
-    def _setup_action_models(cls):
-        action_db = ActionDB()
-        action_db.name = 'action-1'
-        action_db.description = 'awesomeness'
-        action_db.enabled = True
-        action_db.pack = 'wolfpack'
-        action_db.entry_point = ''
-        action_db.runner_type = {'name': 'test-runner'}
-        action_db.parameters = {
-            'actionstr': {'type': 'string', 'required': True},
-            'actionint': {'type': 'number', 'default': 10},
-            'runnerdummy': {'type': 'string', 'default': 'actiondummy', 'immutable': True},
-            'runnerfoo': {'type': 'string', 'immutable': True},
-            'runnerimmutable': {'type': 'string', 'default': 'failed_override'},
-            'actionimmutable': {'type': 'string', 'default': 'actionimmutable', 'immutable': True}
-        }
-        ParamsUtilsTest.action_db = action_db
