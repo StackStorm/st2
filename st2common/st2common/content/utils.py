@@ -17,6 +17,7 @@ import os
 import pipes
 
 from oslo.config import cfg
+from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 
 __all__ = [
     'get_packs_base_path',
@@ -44,3 +45,41 @@ def get_pack_base_path(pack_name):
     pack_base_path = os.path.join(packs_base_path, pipes.quote(pack_name))
     pack_base_path = os.path.abspath(pack_base_path)
     return pack_base_path
+
+
+def get_entry_point_abs_path(pack=None, entry_point=None):
+    """
+    Return full absolute path of an action entry point in a pack.
+
+    :param pack_name: Content pack name.
+    :type pack_name: ``str``
+    :param entry_point: Action entry point.
+    :type entry_point: ``str``
+
+    :rtype: ``str``
+    """
+    if entry_point is not None and len(entry_point) > 0:
+        if os.path.isabs(entry_point):
+            return entry_point
+        return os.path.join(get_packs_base_path(),
+                            pipes.quote(pack), 'actions', pipes.quote(entry_point))
+    else:
+        return None
+
+
+def get_action_libs_abs_path(pack=None, entry_point=None):
+    """
+    Return full absolute path of libs for an action.
+
+    :param pack_name: Content pack name.
+    :type pack_name: ``str``
+    :param entry_point: Action entry point.
+    :type entry_point: ``str``
+
+    :rtype: ``str``
+    """
+    entry_point_abs_path = get_entry_point_abs_path(pack=pack, entry_point=entry_point)
+    if entry_point_abs_path is not None:
+        return os.path.join(os.path.dirname(entry_point_abs_path), ACTION_LIBS_DIR)
+    else:
+        return None
