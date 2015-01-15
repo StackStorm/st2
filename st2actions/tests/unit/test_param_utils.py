@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 import datetime
 import mock
 
@@ -36,52 +35,6 @@ class ParamsUtilsTest(TestCase):
     def setUpClass(cls):
         super(ParamsUtilsTest, cls).setUpClass()
         ParamsUtilsTest._setup_test_models()
-
-    def test_merge_action_runner_params_meta(self):
-        required, optional, immutable = param_utils.get_params_view(
-            action_db=ParamsUtilsTest.action_db,
-            runner_db=ParamsUtilsTest.runnertype_db)
-        merged = {}
-        merged.update(required)
-        merged.update(optional)
-        merged.update(immutable)
-
-        consolidated = param_utils.get_params_view(
-            action_db=ParamsUtilsTest.action_db,
-            runner_db=ParamsUtilsTest.runnertype_db,
-            merged_only=True)
-
-        # Validate that merged_only view works.
-        self.assertEqual(merged, consolidated)
-
-        # Validate required params.
-        self.assertEqual(len(required), 1, 'Required should contain only one param.')
-        self.assertTrue('actionstr' in required, 'actionstr param is a required param.')
-        self.assertTrue('actionstr' not in optional and 'actionstr' not in immutable and
-                        'actionstr' in merged)
-
-        # Validate immutable params.
-        self.assertTrue('runnerimmutable' in immutable, 'runnerimmutable should be in immutable.')
-        self.assertTrue('actionimmutable' in immutable, 'actionimmutable should be in immutable.')
-
-        # Validate optional params.
-        for opt in optional:
-            self.assertTrue(opt not in required and opt not in immutable and opt in merged,
-                            'Optional parameter %s failed validation.' % opt)
-
-    def test_merge_param_meta_values(self):
-
-        runner_meta = copy.deepcopy(ParamsUtilsTest.runnertype_db.runner_parameters['runnerdummy'])
-        action_meta = copy.deepcopy(ParamsUtilsTest.action_db.parameters['runnerdummy'])
-        merged_meta = param_utils._merge_param_meta_values(action_meta=action_meta,
-                                                           runner_meta=runner_meta)
-
-        # Description is in runner meta but not in action meta.
-        self.assertEqual(merged_meta['description'], runner_meta['description'])
-        # Default value is overridden in action.
-        self.assertEqual(merged_meta['default'], action_meta['default'])
-        # Immutability is set in action.
-        self.assertEqual(merged_meta['immutable'], action_meta['immutable'])
 
     def test_get_resolved_params(self):
         params = {
