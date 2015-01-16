@@ -70,7 +70,7 @@ class TriggerTypeController(resource.ContentPackResourceControler):
         except StackStormDBObjectConflictError as e:
             LOG.warn('TriggerType creation of %s failed with uniqueness conflict. Exception : %s',
                      triggertype, str(e))
-            abort(http_client.CONFLICT, str(e), headers={'X-st2-conflict-id': e.conflict_id})
+            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
             return
         else:
             LOG.audit('TriggerType created. TriggerType=%s', triggertype_db)

@@ -92,10 +92,12 @@ class TestTriggerTypeController(FunctionalTest):
 
     def test_post_duplicate(self):
         post_resp = self.__do_post(TRIGGER_1)
+        org_id = self.__get_trigger_id(post_resp)
         self.assertEqual(post_resp.status_int, http_client.CREATED)
         post_resp_2 = self.__do_post(TRIGGER_1)
         self.assertEqual(post_resp_2.status_int, http_client.CONFLICT)
-        self.__do_delete(self.__get_trigger_id(post_resp))
+        self.assertEqual(post_resp_2.json['conflict-id'], org_id)
+        self.__do_delete(org_id)
 
     def test_put(self):
         post_resp = self.__do_post(TRIGGER_1)
