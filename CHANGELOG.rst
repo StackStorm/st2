@@ -4,8 +4,8 @@ Changelog
 in development
 --------------
 
-v0.6.1 - Under development
---------------------------
+v0.7 - January 16, 2015
+-----------------------
 
 Docs: http://docks.stackstorm.com/latest
 
