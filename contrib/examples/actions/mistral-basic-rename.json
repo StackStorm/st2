@@ -1,10 +1,10 @@
 {
-    "name": "mistral-workbook-basic",
+    "name": "mistral-basic-rename",
     "pack": "examples",
     "runner_type": "mistral-v2",
-    "description": "Run a local linux command",
+    "description": "Example of auto-renaming the workflow before saving the definition to Mistral.",
     "enabled": true,
-    "entry_point":"mistral-workbook-basic.yaml",
+    "entry_point":"mistral-basic-rename.yaml",
     "parameters": {
         "cmd": {
             "type": "string",

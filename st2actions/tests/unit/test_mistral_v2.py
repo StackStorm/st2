@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import json
 import uuid
 
@@ -61,6 +62,8 @@ TEST_FIXTURES = {
         'workbook_v2_many_workflows_no_default.json',
         'workflow_v2.json',
         'workflow_v2_many_workflows.json',
+        'workbook_v2_rename.json',
+        'workflow_v2_rename.json',
         'local.json'
     ]
 }
@@ -202,6 +205,26 @@ class TestMistralRunner(DbTestCase):
         self.assertIn('Multiple workflows is not supported.', execution.result['message'])
 
     @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(side_effect=Exception()))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=EXECUTION))
+    def test_launch_workflow_rename(self):
+        action_ref = 'generic.workflow_v2_rename'
+        wf_spec = copy.deepcopy(WF1_SPEC)
+        wf_spec[action_ref] = wf_spec.pop(WF1_NAME)
+        wf_yaml = yaml.safe_dump(wf_spec, default_flow_style=False)
+        wf = workflows.Workflow(None, {'name': action_ref, 'definition': wf_yaml})
+        workflows.WorkflowManager.create = mock.MagicMock(return_value=[wf])
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
+        execution = ActionExecutionDB(action=action_ref, parameters=ACTION_PARAMS)
+        execution = action_service.schedule(execution)
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+        workflows.WorkflowManager.create.assert_called_once_with(wf_yaml)
+
+    @mock.patch.object(
         workbooks.WorkbookManager, 'get',
         mock.MagicMock(return_value=WB1))
     @mock.patch.object(
@@ -295,6 +318,26 @@ class TestMistralRunner(DbTestCase):
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+
+    @mock.patch.object(
+        workbooks.WorkbookManager, 'get',
+        mock.MagicMock(side_effect=Exception()))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=EXECUTION))
+    def test_launch_workbook_rename(self):
+        action_ref = 'generic.workbook_v2_rename'
+        wb_spec = copy.deepcopy(WB1_SPEC)
+        wb_spec['name'] = action_ref
+        wb_yaml = yaml.safe_dump(wb_spec, default_flow_style=False)
+        wb = workbooks.Workbook(None, {'name': action_ref, 'definition': wb_yaml})
+        workbooks.WorkbookManager.create = mock.MagicMock(return_value=wb)
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WB1_YAML_FILE_PATH)
+        execution = ActionExecutionDB(action=action_ref, parameters=ACTION_PARAMS)
+        execution = action_service.schedule(execution)
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+        workbooks.WorkbookManager.create.assert_called_once_with(wb_yaml)
 
     @mock.patch.object(
         requests, 'request',

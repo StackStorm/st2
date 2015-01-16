@@ -1,0 +1,14 @@
+{
+    "name": "mistral-workbook-basic-rename",
+    "pack": "examples",
+    "runner_type": "mistral-v2",
+    "description": "Example of auto-renaming the workbook before saving the definition to Mistral.",
+    "enabled": true,
+    "entry_point":"mistral-workbook-basic-rename.yaml",
+    "parameters": {
+        "cmd": {
+            "type": "string",
+            "required": true
+        }
+    }
+}

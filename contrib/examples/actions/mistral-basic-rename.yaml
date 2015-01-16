@@ -1,0 +1,12 @@
+version: '2.0'
+
+whatever:
+    type: direct
+    input:
+        - cmd
+    tasks:
+        run-cmd:
+            action: core.local cmd={$.cmd}
+            publish:
+                stdout: $.stdout
+                stderr: $.stderr
