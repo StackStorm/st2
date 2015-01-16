@@ -88,7 +88,7 @@ class RuleController(RestController):
         except StackStormDBObjectConflictError as e:
             LOG.warn('Rule creation of %s failed with uniqueness conflict. Exception %s',
                      rule, str(e))
-            abort(http_client.CONFLICT, str(e), headers={'X-st2-conflict-id': e.conflict_id})
+            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
             return
 
         LOG.audit('Rule created. Rule=%s', rule_db)
