@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
+import logging as std_logging
 import os
 import sys
-import argparse
 
+from st2common import log as logging
 from st2reactor.rules.tester import RuleTester
 
 __all__ = [
@@ -24,14 +26,44 @@ __all__ = [
 ]
 
 
-def main():
+def _parse_args():
     parser = argparse.ArgumentParser(description='Test the provided rule')
     parser.add_argument('--rule', help='Path to the file containing rule definition',
                         required=True)
     parser.add_argument('--trigger-instance',
                         help='Path to the file containing trigger instance definition',
                         required=True)
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def _setup_logging():
+    logging_config = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'default': {
+                'format': '%(asctime)s %(levelname)s %(name)s %(message)s'
+            },
+        },
+        'handlers': {
+            'console': {
+                '()': std_logging.StreamHandler,
+                'formatter': 'default'
+            }
+        },
+        'root': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    }
+    std_logging.config.dictConfig(logging_config)
+
+
+def main():
+    args = _parse_args()
+    _setup_logging()
+
+    log = logging.getLogger(__name__)
 
     rule_file_path = os.path.realpath(args.rule)
     trigger_instance_file_path = os.path.realpath(args.trigger_instance)
@@ -41,8 +73,8 @@ def main():
     matches = tester.evaluate()
 
     if matches:
-        print('=== RULE MATCHES ===')
+        log.info('=== RULE MATCHES ===')
         sys.exit(0)
     else:
-        print('=== RULE DOES NOT MATCH ===')
+        log.info('=== RULE DOES NOT MATCH ===')
         sys.exit(1)
