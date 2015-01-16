@@ -66,8 +66,19 @@ class TestWorkflowExecution(unittest2.TestCase):
         execution = self._wait_for_completion(execution)
         self._assert_success(execution)
 
+    def test_basic_workflow_rename_to_action_ref(self):
+        execution = self._execute_workflow('examples.mistral-basic-rename', {'cmd': 'date'})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution)
+
     def test_basic_workbook(self):
         execution = self._execute_workflow('examples.mistral-workbook-basic', {'cmd': 'date'})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution)
+
+    def test_basic_workbook_rename_to_action_ref(self):
+        execution = self._execute_workflow(
+            'examples.mistral-workbook-basic-rename', {'cmd': 'date'})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution)
 

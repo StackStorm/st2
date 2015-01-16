@@ -45,6 +45,18 @@ class MistralRunner(AsyncActionRunner):
     def pre_run(self):
         pass
 
+    @staticmethod
+    def _check_and_rename_definition(action_ref, def_dict):
+        # If workbook, change the value of the "name" key.
+        if 'workflows' in def_dict:
+            if def_dict.get('name') != action_ref:
+                def_dict['name'] = action_ref
+        # If workflow, change the key name of the workflow.
+        else:
+            workflow_name = [k for k, v in six.iteritems(def_dict) if k != 'version'][0]
+            if workflow_name != action_ref:
+                def_dict[action_ref] = def_dict.pop(workflow_name)
+
     def _save_workbook(self, name, def_yaml):
         # If the workbook is not found, the mistral client throws a generic API exception.
         try:
@@ -119,24 +131,30 @@ class MistralRunner(AsyncActionRunner):
         with open(self.entry_point, 'r') as def_file:
             def_yaml = def_file.read()
 
-        def_name = '%s.%s' % (self.action.pack, self.action.name)
-        def_yaml_xformed = utils.transform_definition(def_yaml)
-        def_dict_xformed = yaml.safe_load(def_yaml_xformed)
+        def_dict = yaml.safe_load(def_yaml)
+        is_workbook = ('workflows' in def_dict)
+
+        if not is_workbook:
+            # Non-workbook definition containing multiple workflows is not supported.
+            if len([k for k, v in six.iteritems(def_dict) if k != 'version']) != 1:
+                raise Exception('Workflow (not workbook) definition is detected. '
+                                'Multiple workflows is not supported.')
+
+        action_ref = '%s.%s' % (self.action.pack, self.action.name)
+        def_dict_xformed = utils.transform_definition(def_dict)
+        self._check_and_rename_definition(action_ref, def_dict_xformed)
+        def_yaml_xformed = yaml.safe_dump(def_dict_xformed, default_flow_style=False)
 
         # Save workbook/workflow definition.
-        if 'workflows' in def_dict_xformed:
-            self._save_workbook(def_name, def_yaml_xformed)
+        if is_workbook:
+            self._save_workbook(action_ref, def_yaml_xformed)
             default_workflow = self._find_default_workflow(def_dict_xformed)
             execution = self._client.executions.create(default_workflow,
                                                        workflow_input=inputs,
                                                        **options)
         else:
-            # Non-workbook definition containing multiple workflows is not supported.
-            if len([k for k, v in six.iteritems(def_dict_xformed) if k != 'version']) != 1:
-                raise Exception('Workflow (not workbook) definition is detected. '
-                                'Multiple workflows is not supported.')
-            self._save_workflow(def_name, def_yaml_xformed)
-            execution = self._client.executions.create(def_name,
+            self._save_workflow(action_ref, def_yaml_xformed)
+            execution = self._client.executions.create(action_ref,
                                                        workflow_input=inputs,
                                                        **options)
 

@@ -1,6 +1,6 @@
 version: '2.0'
 
-main1:
+generic.workflow_v2.main1:
   type: direct
   input:
     - count
@@ -21,7 +21,7 @@ main1:
       publish:
         towhom: $.stdout
 
-main2:
+generic.workflow_v2.main2:
   type: direct
   input:
     - count
