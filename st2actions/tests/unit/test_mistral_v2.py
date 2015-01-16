@@ -61,6 +61,8 @@ TEST_FIXTURES = {
         'workbook_v2_many_workflows_no_default.json',
         'workflow_v2.json',
         'workflow_v2_many_workflows.json',
+        'workbook_v2_name_mismatch.json',
+        'workflow_v2_name_mismatch.json',
         'local.json'
     ]
 }
@@ -202,6 +204,18 @@ class TestMistralRunner(DbTestCase):
         self.assertIn('Multiple workflows is not supported.', execution.result['message'])
 
     @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(side_effect=Exception()))
+    def test_launch_workflow_name_mistmatch(self):
+        action_ref = 'generic.workflow_v2_name_mismatch'
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
+        execution = ActionExecutionDB(action=action_ref, parameters=ACTION_PARAMS)
+        execution = action_service.schedule(execution)
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        self.assertIn('Name of the workflow must be the same', execution.result['message'])
+
+    @mock.patch.object(
         workbooks.WorkbookManager, 'get',
         mock.MagicMock(return_value=WB1))
     @mock.patch.object(
@@ -295,6 +309,18 @@ class TestMistralRunner(DbTestCase):
         execution = action_service.schedule(execution)
         execution = ActionExecution.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+
+    @mock.patch.object(
+        workbooks.WorkbookManager, 'get',
+        mock.MagicMock(side_effect=Exception()))
+    def test_launch_workbook_name_mismatch(self):
+        action_ref = 'generic.workbook_v2_name_mismatch'
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WB1_YAML_FILE_PATH)
+        execution = ActionExecutionDB(action=action_ref, parameters=ACTION_PARAMS)
+        execution = action_service.schedule(execution)
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        self.assertIn('Name of the workbook must be the same', execution.result['message'])
 
     @mock.patch.object(
         requests, 'request',

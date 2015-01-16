@@ -85,17 +85,31 @@ class DSLTransformTestCase(DbTestCase):
         def_yaml = yaml.safe_dump(def_dict)
         self.assertRaises(Exception, utils.transform_definition, def_yaml)
 
-    def test_transform_workbook_dsl(self):
+    def test_transform_workbook_dsl_yaml(self):
         def_yaml = _read_file_content(WB_PRE_XFORM_PATH)
         new_def = utils.transform_definition(def_yaml)
         actual = yaml.safe_load(new_def)
         expected = copy.deepcopy(WB_POST_XFORM_DEF)
         self.assertDictEqual(actual, expected)
 
-    def test_transform_workflow_dsl(self):
+    def test_transform_workbook_dsl_dict(self):
+        def_yaml = _read_file_content(WB_PRE_XFORM_PATH)
+        def_dict = yaml.safe_load(def_yaml)
+        actual = utils.transform_definition(def_dict)
+        expected = copy.deepcopy(WB_POST_XFORM_DEF)
+        self.assertDictEqual(actual, expected)
+
+    def test_transform_workflow_dsl_yaml(self):
         def_yaml = _read_file_content(WF_PRE_XFORM_PATH)
         new_def = utils.transform_definition(def_yaml)
         actual = yaml.safe_load(new_def)
+        expected = copy.deepcopy(WF_POST_XFORM_DEF)
+        self.assertDictEqual(actual, expected)
+
+    def test_transform_workflow_dsl_dict(self):
+        def_yaml = _read_file_content(WF_PRE_XFORM_PATH)
+        def_dict = yaml.safe_load(def_yaml)
+        actual = utils.transform_definition(def_dict)
         expected = copy.deepcopy(WF_POST_XFORM_DEF)
         self.assertDictEqual(actual, expected)
 

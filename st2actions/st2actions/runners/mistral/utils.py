@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import json
 import re
 
@@ -127,8 +128,11 @@ def _transform_action(spec, action_key, input_key):
 
 
 def transform_definition(definition):
-    spec = yaml.safe_load(definition)
+    # If definition is a dictionary, there is no need to load from YAML.
+    is_dict = isinstance(definition, dict)
+    spec = copy.deepcopy(definition) if is_dict else yaml.safe_load(definition)
 
+    # Check version
     if 'version' not in spec:
         raise Exception('Unknown version. Only version 2.0 is supported.')
 
@@ -153,4 +157,5 @@ def transform_definition(definition):
                 for task_name, task_spec in six.iteritems(value.get('tasks')):
                     _transform_action(task_spec, 'action', 'input')
 
-    return yaml.safe_dump(spec, default_flow_style=False)
+    # Return the same type as original input.
+    return (spec if is_dict else yaml.safe_dump(spec, default_flow_style=False))
