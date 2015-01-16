@@ -106,7 +106,7 @@ class ActionsController(resource.ContentPackResourceControler):
             # If an existing DB object conflicts with new object then raise error.
             LOG.warn('/actions/ POST unable to save ActionDB object "%s" due to uniqueness '
                      'conflict. %s', action_model, str(e))
-            abort(http_client.CONFLICT, str(e), headers={'X-st2-conflict-id': e.conflict_id})
+            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
             return
         except Exception as e:
             LOG.exception('/actions/ POST unable to save ActionDB object "%s". %s',
