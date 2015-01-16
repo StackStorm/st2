@@ -80,11 +80,20 @@ class BaseAPI(object):
         return model
 
 
-def _handle_error(status, exception):
-    LOG.error(exception, exc_info=True)
-    pecan.response.status = status
-    error = {'faultstring': exception.message}
-    return json_encode(error)
+def _handle_error(e, status_code, body=None, headers=None):
+    """
+    Encodes error into a json response and returns. This was the default
+    response to an error, HTML page, is skipped.
+    """
+    pecan.response.status = status_code
+    if headers:
+        pecan.response.headers = headers
+    # re-purposing body this way has drawbacks but the other options i.e.
+    # to envelope the body inside error_body would be awkward for clients.
+    error_body = body if body else dict()
+    assert isinstance(error_body, dict)
+    error_body['faultstring'] = e.message
+    return json_encode(error_body)
 
 
 def jsexpose(*argtypes, **opts):
@@ -128,7 +137,7 @@ def jsexpose(*argtypes, **opts):
                     try:
                         obj = body_cls(**data)
                     except jsonschema.exceptions.ValidationError as e:
-                        return _handle_error(http_client.BAD_REQUEST, e)
+                        return _handle_error(e, http_client.BAD_REQUEST)
                     more.append(obj)
 
                 args = tuple(more) + tuple(args)
@@ -152,10 +161,15 @@ def jsexpose(*argtypes, **opts):
                     else:
                         return result
                 except exc.HTTPException as e:
-                    return _handle_error(e.wsgi_response.status, e)
+                    LOG.exception('API call failed.')
+                    # Exception contains pecan.response.header + more. This is per implementation
+                    # of the WSGIHTTPException type from WebOb.
+                    return _handle_error(e, e.wsgi_response.status_code, e.wsgi_response.body,
+                                         e.headers)
 
             except Exception as e:
-                return _handle_error(http_client.INTERNAL_SERVER_ERROR, e)
+                LOG.exception('API call failed.')
+                return _handle_error(e, http_client.INTERNAL_SERVER_ERROR)
 
         pecan_json_decorate(callfunction)
 
