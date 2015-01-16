@@ -85,9 +85,7 @@ class Access(object):
             LOG.exception('Conflict while trying to save in DB.')
             # On a conflict determine the conflicting object and return its id in
             # the raised exception.
-            print cls
             conflict_object = cls._get_by_object(model_object)
-            print conflict_object
             conflict_id = str(conflict_object.id) if conflict_object else None
             raise StackStormDBObjectConflictError(str(e), conflict_id)
         publisher = cls._get_publisher()
