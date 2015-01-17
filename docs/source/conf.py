@@ -221,8 +221,8 @@ html_context = {
     'source_suffix': source_suffix,
     'versions': [
         ('latest', 'http://docs.stackstorm.com/latest'),
-        ('0.6.0', 'http://docs.stackstorm.com/0.6.0'),
-        ('0.5.1', 'http://docs.stackstorm.com/0.5.1'),
+        (release, 'http://docs.stackstorm.com/%s' % release),
+        ('0.6.0', 'http://docs.stackstorm.com/0.6.0')
     ],
     'current_version': release
 }
