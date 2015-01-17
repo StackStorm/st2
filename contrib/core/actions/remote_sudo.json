@@ -4,5 +4,10 @@
     "description": "Action to execute arbitrary linux command remotely.",
     "enabled": true,
     "entry_point": "",
-    "parameters": {}
+    "parameters": {
+        "sudo": {
+            "immutable": true,
+            "default": true
+        }
+    }
 }
