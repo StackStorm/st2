@@ -57,7 +57,7 @@ copyright = u'2014, StackStorm Inc'
 # built documents.
 #
 # The short X.Y version.
-version = '0.6'
+version = '.'.join(__version__.split('.')[:2])
 # The full version, including alpha/beta/rc tags.
 release = __version__
 
@@ -156,7 +156,7 @@ html_theme_path = ["_themes", ]
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-# html_favicon = None
+# html_favicon = "favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -221,10 +221,12 @@ html_context = {
     'source_suffix': source_suffix,
     'versions': [
         ('latest', 'http://docs.stackstorm.com/latest'),
-        ('0.6.0', 'http://docs.stackstorm.com/0.6.0'),
-        ('0.5.1', 'http://docs.stackstorm.com/0.5.1'),
+        (version, 'http://docs.stackstorm.com/%s' % version),
+        # TODO(dzimine): get "prev stable version" from somewhere (?)
+        ('0.7', 'http://docs.stackstorm.com/0.7'),
+        ('0.6.0', 'http://docs.stackstorm.com/0.6.0')
     ],
-    'current_version': release
+    'current_version': version
 }
 
 

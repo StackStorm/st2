@@ -181,7 +181,7 @@ Lets leave these empty for now and fill them in as per requirement.
 .. code-block:: bash
 
    # Assuming that hello-st2 is on the same machine as the |st2| content-repo.
-   cp -R ./hello-st2 /opt/stackstork/
+   cp -R ./hello-st2 /opt/stackstorm/packs
 
    # Reloads the content
    st2 run packs.load register=all

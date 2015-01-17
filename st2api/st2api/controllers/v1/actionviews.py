@@ -18,13 +18,13 @@ from pecan import abort
 from pecan.rest import RestController
 import six
 
-import st2actions.utils.param_utils as param_utils
-from st2actions.container.service import RunnerContainerService
 from st2api.controllers import resource
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
+from st2common.content import utils
 from st2common.models.api.action import ActionAPI
 from st2common.models.api.base import jsexpose
+from st2common.models.utils import action_param_utils
 from st2common.persistence.action import (Action, RunnerType)
 
 http_client = six.moves.http_client
@@ -80,7 +80,7 @@ class ParametersViewController(RestController):
         LOG.info('Found action: %s, runner: %s', action_db, action_db.runner_type['name'])
         runner_db = LookupUtils._get_runner_by_name(action_db.runner_type['name'])
 
-        all_params = param_utils.get_params_view(
+        all_params = action_param_utils.get_params_view(
             action_db=action_db, runner_db=runner_db, merged_only=True)
 
         return {'parameters': all_params}
@@ -150,7 +150,7 @@ class EntryPointController(resource.ContentPackResourceControler):
         pack = getattr(action_db, 'pack', None)
         entry_point = getattr(action_db, 'entry_point', None)
 
-        abs_path = RunnerContainerService.get_entry_point_abs_path(pack, entry_point)
+        abs_path = utils.get_entry_point_abs_path(pack, entry_point)
 
         if not abs_path:
             raise StackStormDBObjectNotFoundError('Action ref_or_id=%s has no entry_point to output'

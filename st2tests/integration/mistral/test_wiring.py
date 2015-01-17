@@ -66,12 +66,18 @@ class TestWorkflowExecution(unittest2.TestCase):
         execution = self._wait_for_completion(execution)
         self._assert_success(execution)
 
-    def test_complex_workflow(self):
-        execution = self._execute_workflow('examples.mistral-complex', {'vm_name': 'demo1'})
+    def test_basic_workbook(self):
+        execution = self._execute_workflow('examples.mistral-workbook-basic', {'cmd': 'date'})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution)
 
-    def test_workflow_failure(self):
+    def test_complex_workbook(self):
+        execution = self._execute_workflow(
+            'examples.mistral-workbook-complex', {'vm_name': 'demo1'})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution)
+
+    def test_execution_failure(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'foo'})
         execution = self._wait_for_completion(execution)
         self._assert_failure(execution)

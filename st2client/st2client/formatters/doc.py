@@ -40,4 +40,4 @@ class Json(formatters.Formatter):
                 doc = item if isinstance(item, dict) else item.__dict__
                 keys = doc.keys() if not attributes or 'all' in attributes else attributes
                 docs.append(jsutil.get_kvps(doc, keys))
-        return json.dumps(docs, indent=4)
+        return json.dumps(docs, indent=4, sort_keys=True)

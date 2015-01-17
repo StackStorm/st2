@@ -43,8 +43,7 @@ class TestGetValue(unittest2.TestCase):
         self.assertEqual(jsutil.get_value(DOC, 'a01'), 1)
         self.assertEqual(jsutil.get_value(DOC, 'c01.c11'), 3)
         self.assertEqual(jsutil.get_value(DOC, 'c01.c13.c22'), 6)
-        self.assertEqual(jsutil.get_value(DOC, 'c01.c13'), json.dumps({'c21': 5, 'c22': 6},
-                                                                      indent=4, sort_keys=True))
+        self.assertEqual(jsutil.get_value(DOC, 'c01.c13'), {'c21': 5, 'c22': 6})
         self.assertListEqual(jsutil.get_value(DOC, 'c01.c14'), [7, 8, 9])
 
     def test_dot_notation_with_val_error(self):
@@ -69,8 +68,7 @@ class TestGetKeyValuePairs(unittest2.TestCase):
         self.assertEqual(jsutil.get_kvps(DOC, ['c01.c13.c22']),
                          {'c01': {'c13': {'c22': 6}}})
         self.assertEqual(jsutil.get_kvps(DOC, ['c01.c13']),
-                         {'c01': {'c13': json.dumps({'c21': 5, 'c22': 6},
-                                                    indent=4, sort_keys=True)}})
+                         {'c01': {'c13': {'c21': 5, 'c22': 6}}})
         self.assertEqual(jsutil.get_kvps(DOC, ['c01.c14']),
                          {'c01': {'c14': [7, 8, 9]}})
         self.assertEqual(jsutil.get_kvps(DOC, ['a01', 'c01.c11', 'c01.c13.c21']),

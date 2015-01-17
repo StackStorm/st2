@@ -13,10 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import pipes
-
-from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common.content import utils
 from st2common import log as logging
 
@@ -54,22 +50,11 @@ class RunnerContainerService(object):
 
     @staticmethod
     def get_entry_point_abs_path(pack=None, entry_point=None):
-        if entry_point is not None and len(entry_point) > 0:
-            if os.path.isabs(entry_point):
-                return entry_point
-            return os.path.join(utils.get_packs_base_path(),
-                                pipes.quote(pack), 'actions', pipes.quote(entry_point))
-        else:
-            return None
+        return utils.get_entry_point_abs_path(pack, entry_point)
 
     @staticmethod
     def get_action_libs_abs_path(pack=None, entry_point=None):
-        entry_point_abs_path = RunnerContainerService.get_entry_point_abs_path(
-            pack=pack, entry_point=entry_point)
-        if entry_point_abs_path is not None:
-            return os.path.join(os.path.dirname(entry_point_abs_path), ACTION_LIBS_DIR)
-        else:
-            return None
+        return utils.get_action_libs_abs_path(pack, entry_point)
 
     def __str__(self):
         result = []

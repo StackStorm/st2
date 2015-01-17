@@ -1,10 +1,19 @@
 Changelog
 =========
 
-in development
---------------
+v0.8dev - Under development
+---------------------------
 
 Docs: http://docks.stackstorm.com/latest
+
+* Allow user to specify current working directory (``cwd`` parameter) when running actions using the
+  local or the remote runner (``run-local``, ``run-local-script``, ``run-remote``,
+  ``run-remote-script``). (new-feature)
+
+v0.7 - January 16, 2015
+-----------------------
+
+Docs: http://docks.stackstorm.com/0.7/
 
 * Python runner and all the fabric based runners (``run-local``, ``run-local-script``,
   ``run-remote``, ``run-remote-script``) now expose ``timeout`` argument. With this argument
@@ -46,9 +55,9 @@ Docs: http://docks.stackstorm.com/latest
 * Action models now use ContentPackResourceMixin so we can get them by ref. (refactor)
 * Add ``rule_tester`` tool which allows users to test rules in an offline mode without any services
   running (new-feature)
-* Allow user to specify current working directory (``cwd`` parameter) when running actions using the
-  local or the remote runner (``run-local``, ``run-local-script``, ``run-remote``,
-  ``run-remote-script``). (new-feature)
+* Fix a bug where trigger objects weren't created for triggers with different parameters. (bug-fix)
+* st2api only requires st2common and dependencies defined in requirements to be available on the
+  pythonpath thus making it possible to run st2api standalone.
 
 v0.6.0 - December 8, 2014
 -------------------------

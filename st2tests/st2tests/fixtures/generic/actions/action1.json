@@ -16,7 +16,13 @@
         },
         "runnerdummy": {
             "type": "string",
-            "default": "actiondummy"
+            "default": "actiondummy",
+            "immutable": true
+        },
+        "runnerfoo": {
+            "type": "string",
+            "default": "FOO",
+            "immutable": true
         },
         "runnerimmutable": {
             "type": "string",

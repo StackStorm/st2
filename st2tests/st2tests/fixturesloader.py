@@ -132,8 +132,7 @@ class FixturesLoader(object):
 
     def load_fixtures(self, fixtures_pack=None, fixtures_dict={}):
         """
-        Loads fixtures specified in fixtures_dict. This method must be
-        used for fixtures that don't have associated data models. We
+        Loads fixtures specified in fixtures_dict. We
         simply want to load the meta into dict objects.
 
         fixtures_dict should be of the form:

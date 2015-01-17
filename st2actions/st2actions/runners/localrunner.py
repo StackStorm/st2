@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import eventlet
 import os
 import pwd
+import shlex
 import uuid
 
 from oslo.config import cfg
@@ -36,6 +38,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 DEFAULT_ACTION_TIMEOUT = 60
+DEFAULT_KWARG_OP = '--'
 LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 # constants to lookup in runner_parameters.
@@ -69,7 +72,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, LOGGED_USER_USERNAME)
         self._user = cfg.CONF.system_user.user
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
-        self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
+        self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, DEFAULT_KWARG_OP)
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
     def run(self, action_parameters):
@@ -109,22 +112,39 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             args = 'chmod +x %s ; %s' % (script_local_path_abs, args)
 
         env = os.environ.copy()
+        # Make sure os.setsid is called on each spawned process so that all processes
+        # are in the same group.
         process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=True, cwd=self._cwd,
-                                   env=env)
+                                   env=env, preexec_fn=os.setsid)
 
-        try:
-            exit_code = process.wait(timeout=self._timeout)
-        except subprocess.TimeoutExpired:
-            # Action has timed out, kill the process and propagate the error
-            # Note: process.kill() will set the returncode to -9 so we don't
-            # need to explicitly set it to some non-zero value
-            process.kill()
-            error = 'Action failed to complete in %s seconds' % (self._timeout)
-        else:
-            error = None
+        error_holder = {}
+
+        def on_timeout_expired(timeout):
+            try:
+                process.wait(timeout=self._timeout)
+            except subprocess.TimeoutExpired:
+                # Set the error prior to kill the process else the error is not picked up due
+                # to eventlet scheduling.
+                error_holder['error'] = 'Action failed to complete in %s seconds' % (self._timeout)
+                # Action has timed out, kill the process and propagate the error. The process
+                # is started as sudo -u {{system_user}} -- bash -c {{command}}. Introduction of the
+                # bash means that multiple independent processes are spawned without them being
+                # children of the process we have access to and this requires use of pkill.
+                # Ideally os.killpg should have done the trick but for some reason that failed.
+                # Note: pkill will set the returncode to 143 so we don't need to explicitly set
+                # it to some non-zero value.
+                try:
+                    killcommand = shlex.split('sudo pkill -TERM -s %s' % process.pid)
+                    subprocess.call(killcommand)
+                except:
+                    LOG.exception('Unable to pkill.')
+
+        timeout_expiry = eventlet.spawn(on_timeout_expired, self._timeout)
 
         stdout, stderr = process.communicate()
+        timeout_expiry.cancel()
+        error = error_holder.get('error', None)
         exit_code = process.returncode
         succeeded = (exit_code == 0)
 

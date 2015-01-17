@@ -16,8 +16,10 @@
 import os
 import pwd
 import pipes
-
 import six
+import sys
+import traceback
+
 from fabric.api import (put, run, sudo)
 from fabric.context_managers import shell_env
 from fabric.context_managers import settings
@@ -36,7 +38,6 @@ __all__ = [
     'FabricRemoteAction',
     'FabricRemoteScriptAction'
 ]
-
 
 LOG = logging.getLogger(__name__)
 
@@ -84,6 +85,22 @@ class ShellCommandAction(object):
         args = [pipes.quote(arg) for arg in args]
         args = ' '.join(args)
         result = '%s %s' % (cmd, args)
+        return result
+
+    def _get_error_result(self):
+        """
+        Prepares a structured error result based on the exception.
+
+        :type e: ``Exception``
+
+        :rtype: ``dict``
+        """
+        _, exc_value, exc_traceback = sys.exc_info()
+        result = {}
+        result['failed'] = True
+        result['succeeded'] = False
+        result['error'] = str(exc_value)
+        result['traceback'] = ''.join(traceback.format_tb(exc_traceback))
         return result
 
 
@@ -316,15 +333,20 @@ class FabricRemoteAction(RemoteAction):
         return self._run
 
     def _run(self):
-        with shell_env(**self.env_vars), settings(command_timeout=self.timeout, cwd=self.cwd):
-            output = run(self.command, combine_stderr=False, pty=False, quiet=True)
-        result = {
-            'stdout': output.stdout,
-            'stderr': output.stderr,
-            'return_code': output.return_code,
-            'succeeded': output.succeeded,
-            'failed': output.failed
-        }
+        try:
+            with shell_env(**self.env_vars), settings(command_timeout=self.timeout, cwd=self.cwd):
+                output = run(self.command, combine_stderr=False, pty=False, quiet=True)
+            result = {
+                'stdout': output.stdout,
+                'stderr': output.stderr,
+                'return_code': output.return_code,
+                'succeeded': output.succeeded,
+                'failed': output.failed
+            }
+        except Exception:
+            LOG.exception('Failed executing remote action.')
+            result = self._get_error_result()
+
         return jsonify.json_loads(result, FabricRemoteAction.KEYS_TO_TRANSFORM)
 
     def _sudo(self):
@@ -384,14 +406,10 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             cmd2 = self._get_command_string(cmd='rm -rf', args=[self.remote_dir])
             self._execute_remote_command(cmd1)
             self._execute_remote_command(cmd2)
-        except Exception as e:
+        except Exception:
             LOG.exception('Failed executing remote action.')
-            result = {}
-            result.failed = True
-            result.succeeded = False
-            result.exception = str(e)
-        finally:
-            return result
+            result = self._get_error_result()
+        return result
 
     def _get_command_string(self, cmd, args):
         """
