@@ -4,10 +4,16 @@ Changelog
 v0.8dev - Under development
 ---------------------------
 
+Docs: http://docks.stackstorm.com/latest
+
+* Allow user to specify current working directory (``cwd`` parameter) when running actions using the
+  local or the remote runner (``run-local``, ``run-local-script``, ``run-remote``,
+  ``run-remote-script``). (new-feature)
+
 v0.7 - January 16, 2015
 -----------------------
 
-Docs: http://docks.stackstorm.com/latest
+Docs: http://docks.stackstorm.com/0.7/
 
 * Python runner and all the fabric based runners (``run-local``, ``run-local-script``,
   ``run-remote``, ``run-remote-script``) now expose ``timeout`` argument. With this argument

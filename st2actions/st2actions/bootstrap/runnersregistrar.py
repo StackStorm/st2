@@ -48,6 +48,10 @@ def register_runner_types():
                                    'host.',
                     'type': 'string'
                 },
+                'cwd': {
+                    'description': 'Working directory where the command will be executed in',
+                    'type': 'string'
+                },
                 'sudo': {
                     'description': 'The command will be executed with sudo.',
                     'type': 'boolean',
@@ -72,6 +76,10 @@ def register_runner_types():
             'description': 'A runner to execute local actions as a fixed user.',
             'enabled': True,
             'runner_parameters': {
+                'cwd': {
+                    'description': 'Working directory where the script will be executed in',
+                    'type': 'string'
+                },
                 'sudo': {
                     'description': 'The command will be executed with sudo.',
                     'type': 'boolean',
@@ -108,6 +116,10 @@ def register_runner_types():
                                    'remote host(s).',
                     'type': 'string'
                 },
+                'cwd': {
+                    'description': 'Working directory where the script will be executed in',
+                    'type': 'string'
+                },
                 'parallel': {
                     'description': 'Default to parallel execution.',
                     'type': 'boolean',
@@ -120,10 +132,11 @@ def register_runner_types():
                     'default': False
                 },
                 'dir': {
-                    'description': 'The working directory where the command will be '
-                                   'executed on the remote host.',
+                    'description': 'The working directory where the script will be copied to ' +
+                                   'on the remote host.',
                     'type': 'string',
-                    'default': default_remote_dir
+                    'default': default_remote_dir,
+                    'immutable': True
                 },
                 'kwarg_op': {
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
@@ -157,14 +170,19 @@ def register_runner_types():
                     'default': True,
                     'immutable': True
                 },
+                'cwd': {
+                    'description': 'Working directory where the script will be executed in.',
+                    'type': 'string',
+                    'default': default_remote_dir
+                },
                 'sudo': {
                     'description': 'The remote command will be executed with sudo.',
                     'type': 'boolean',
                     'default': False
                 },
                 'dir': {
-                    'description': 'The working directory where the command will be '
-                                   'executed on the remote host.',
+                    'description': 'The working directory where the script will be copied to ' +
+                                   'on the remote host.',
                     'type': 'string',
                     'default': default_remote_dir
                 },
