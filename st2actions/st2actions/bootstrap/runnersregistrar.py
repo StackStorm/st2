@@ -132,10 +132,11 @@ def register_runner_types():
                     'default': False
                 },
                 'dir': {
-                    'description': 'The working directory where the command will be '
-                                   'executed on the remote host.',
+                    'description': 'The working directory where the script will be copied to ' +
+                                   'on the remote host.',
                     'type': 'string',
-                    'default': default_remote_dir
+                    'default': default_remote_dir,
+                    'immutable': True
                 },
                 'kwarg_op': {
                     'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
@@ -170,8 +171,9 @@ def register_runner_types():
                     'immutable': True
                 },
                 'cwd': {
-                    'description': 'Working directory where the script will be executed in',
-                    'type': 'string'
+                    'description': 'Working directory where the script will be executed in.',
+                    'type': 'string',
+                    'default': default_remote_dir
                 },
                 'sudo': {
                     'description': 'The remote command will be executed with sudo.',
@@ -179,8 +181,8 @@ def register_runner_types():
                     'default': False
                 },
                 'dir': {
-                    'description': 'The working directory where the command will be '
-                                   'executed on the remote host.',
+                    'description': 'The working directory where the script will be copied to ' +
+                                   'on the remote host.',
                     'type': 'string',
                     'default': default_remote_dir
                 },
