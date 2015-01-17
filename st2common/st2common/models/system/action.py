@@ -336,6 +336,10 @@ class FabricRemoteAction(RemoteAction):
         try:
             with shell_env(**self.env_vars), settings(command_timeout=self.timeout, cwd=self.cwd):
                 output = run(self.command, combine_stderr=False, pty=False, quiet=True)
+        except Exception:
+            LOG.exception('Failed executing remote action.')
+            result = self._get_error_result()
+        else:
             result = {
                 'stdout': output.stdout,
                 'stderr': output.stderr,
@@ -343,9 +347,6 @@ class FabricRemoteAction(RemoteAction):
                 'succeeded': output.succeeded,
                 'failed': output.failed
             }
-        except Exception:
-            LOG.exception('Failed executing remote action.')
-            result = self._get_error_result()
 
         return jsonify.json_loads(result, FabricRemoteAction.KEYS_TO_TRANSFORM)
 
