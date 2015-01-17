@@ -140,7 +140,6 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         timeout_expiry = eventlet.spawn(on_timeout_expired, self._timeout)
 
         stdout, stderr = process.communicate()
-        LOG.info('Process terminated %s.', process.pid)
         timeout_expiry.cancel()
         error = error_holder.get('error', None)
         exit_code = process.returncode
