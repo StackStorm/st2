@@ -351,20 +351,25 @@ class FabricRemoteAction(RemoteAction):
         return jsonify.json_loads(result, FabricRemoteAction.KEYS_TO_TRANSFORM)
 
     def _sudo(self):
-        with shell_env(**self.env_vars), settings(command_timeout=self.timeout, cwd=self.cwd):
-            output = sudo(self.command, combine_stderr=False, pty=True, quiet=True)
-        result = {
-            'stdout': output.stdout,
-            'stderr': output.stderr,
-            'return_code': output.return_code,
-            'succeeded': output.succeeded,
-            'failed': output.failed
-        }
+        try:
+            with shell_env(**self.env_vars), settings(command_timeout=self.timeout, cwd=self.cwd):
+                output = sudo(self.command, combine_stderr=False, pty=True, quiet=True)
+        except Exception:
+            LOG.exception('Failed executing remote action.')
+            result = self._get_error_result()
+        else:
+            result = {
+                'stdout': output.stdout,
+                'stderr': output.stderr,
+                'return_code': output.return_code,
+                'succeeded': output.succeeded,
+                'failed': output.failed
+            }
 
         # XXX: For sudo, fabric requires to set pty=True. This basically combines stdout and
         # stderr into a single stdout stream. So if the command fails, we explictly set stderr
         # to stdout and stdout to ''.
-        if result['failed']:
+        if result['failed'] and result.get('stdout', None):
             result['stderr'] = result['stdout']
             result['stdout'] = ''
 
