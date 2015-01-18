@@ -16,6 +16,7 @@
 import argparse
 import logging as std_logging
 import os
+import pprint
 import sys
 
 from st2common import log as logging
@@ -33,6 +34,8 @@ def _parse_args():
     parser.add_argument('--trigger-instance',
                         help='Path to the file containing trigger instance definition',
                         required=True)
+    parser.add_argument('-v', '--verbose', help='increase output verbosity',
+                        action='store_true')
     return parser.parse_args()
 
 
@@ -61,9 +64,11 @@ def _setup_logging():
 
 def main():
     args = _parse_args()
-    _setup_logging()
-
-    log = logging.getLogger(__name__)
+    if args.verbose:
+        _setup_logging()
+        output = logging.getLogger(__name__).info
+    else:
+        output = pprint.pprint
 
     rule_file_path = os.path.realpath(args.rule)
     trigger_instance_file_path = os.path.realpath(args.trigger_instance)
@@ -73,8 +78,8 @@ def main():
     matches = tester.evaluate()
 
     if matches:
-        log.info('=== RULE MATCHES ===')
+        output('=== RULE MATCHES ===')
         sys.exit(0)
     else:
-        log.info('=== RULE DOES NOT MATCH ===')
+        output('=== RULE DOES NOT MATCH ===')
         sys.exit(1)
