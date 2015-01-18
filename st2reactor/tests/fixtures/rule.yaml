@@ -1,0 +1,19 @@
+---
+  name: "relayed_matched_irc_message"
+  description: "Relay IRC message to Slack if the message contains word StackStorm"
+  enabled: true
+
+  trigger:
+    type: "irc.pubmsg"
+    parameters: {}
+
+  criteria:
+      trigger.message:
+          type: "icontains"
+          pattern: "StackStorm"
+
+  action:
+    ref: "slack.post_message"
+    parameters:
+        message: "{{trigger.source.nick}} on {{trigger.channel}}: {{trigger.message}}"
+        channel: "#irc-relay"
