@@ -34,6 +34,7 @@ from st2client.commands import sensor
 from st2client.commands import trigger
 from st2client.commands import action
 from st2client.commands import datastore
+from st2client.commands import pack
 
 
 LOG = logging.getLogger(__name__)
@@ -150,6 +151,10 @@ class Shell(object):
         self.commands['execution'] = action.ActionExecutionBranch(
             'An invocation of an action.',
             self, self.subparsers)
+
+        # Other, non-resource related commands
+        self.commands['pack'] = pack.PackBranch('Pack management utilities', self,
+                                                self.subparsers)
 
     def get_client(self, args, debug=False):
         options = ['base_url', 'auth_url', 'api_url', 'api_version', 'cacert']
