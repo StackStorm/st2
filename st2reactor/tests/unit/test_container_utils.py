@@ -15,11 +15,11 @@
 
 import mock
 
-from st2common.persistence.reactor import TriggerType
+from st2common.persistence.reactor import (Trigger, TriggerType)
 from st2common.models.db.reactor import TriggerDB
 from st2common.transport.publishers import PoolPublisher
 import st2reactor.container.utils as container_utils
-from st2tests.base import DbTestCase
+from st2tests.base import CleanDbTestCase
 
 MOCK_TRIGGER_TYPE = {}
 MOCK_TRIGGER_TYPE['id'] = 'trigger-type-test.id'
@@ -37,7 +37,7 @@ MOCK_TRIGGER.type = 'dummy_pack_1.trigger-type-test.name'
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class ContainerUtilsTest(DbTestCase):
+class ContainerUtilsTest(CleanDbTestCase):
     def test_add_trigger_type(self):
         """
         This sensor has misconfigured trigger type. We shouldn't explode.
@@ -87,6 +87,11 @@ class ContainerUtilsTest(DbTestCase):
         self.assertEqual(trigtype_db.name, trig_type.get('name'))
         self.assertTrue(trigger is not None)
         self.assertEqual(trigger.name, trigtype_db.name)
+
+        # Add duplicate
+        trigtype_dbs = container_utils.add_trigger_models(trigger_types=[trig_type])
+        triggers = Trigger.get_all()
+        self.assertTrue(len(triggers) == 1)
 
     def test_add_trigger_type_with_params(self):
         MOCK_TRIGGER.type = 'system.test'
