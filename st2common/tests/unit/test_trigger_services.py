@@ -67,3 +67,30 @@ class TriggerServiceTests(CleanDbTestCase):
         trigger_db_ret_2 = trigger_service.create_trigger_db_from_rule(rule_api2)
         self.assertTrue(trigger_db_ret_2 is not None)
         self.assertTrue(trigger_db_ret_2.id == trigger_db_ret_1.id)
+
+    def test_create_or_update_trigger_db(self):
+        test_fixtures = {
+            'triggertypes': ['triggertype1.json']
+        }
+        loader = FixturesLoader()
+        fixtures = loader.save_fixtures_to_db(fixtures_pack='generic', fixtures_dict=test_fixtures)
+        triggertypes = fixtures['triggertypes']
+        trigger_type_ref = ResourceReference.to_string_reference(
+            name=triggertypes['triggertype1.json']['name'],
+            pack=triggertypes['triggertype1.json']['name'])
+
+        trigger = {
+            'name': 'foo',
+            'pack': 'st2',
+            'type': trigger_type_ref
+        }
+        trigger_service.create_or_update_trigger_db(trigger)
+        triggers = Trigger.get_all()
+        self.assertTrue(len(triggers) == 1, 'Only one trigger should be created.')
+        self.assertTrue(triggers[0]['name'] == 'foo')
+
+        # Try adding duplicate
+        trigger_service.create_or_update_trigger_db(trigger)
+        triggers = Trigger.get_all()
+        self.assertTrue(len(triggers) == 1, 'Only one trigger should be present.')
+        self.assertTrue(triggers[0]['name'] == 'foo')

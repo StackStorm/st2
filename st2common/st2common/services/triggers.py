@@ -32,7 +32,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-def _get_trigger_db(type=None, parameters=None):
+def _get_trigger_given_type_and_params(type=None, parameters=None):
     try:
         return Trigger.query(type=type,
                              parameters=parameters).first()
@@ -42,13 +42,25 @@ def _get_trigger_db(type=None, parameters=None):
         return None
 
 
-def _get_trigger_db_by_name_and_pack(name, pack):
+def _get_trigger_db_by_name_and_pack(name=None, pack=None):
     try:
         return Trigger.query(name=name, pack=pack).first()
     except ValueError as e:
         LOG.debug('Database lookup for name="%s",pack="%s" resulted ' +
                   'in exception : %s.', name, pack, e, exc_info=True)
         return None
+
+
+def get_trigger_db_by_ref(ref):
+    """
+    Returns the trigger object from db given a string ref.
+
+    :param ref: Reference to the trigger db object.
+    :type ref: ``str``
+
+    :rtype trigger_type: ``object``
+    """
+    return Trigger.get_by_ref(ref)
 
 
 def get_trigger_db(trigger):
@@ -63,8 +75,8 @@ def get_trigger_db(trigger):
         if name and pack:
             return _get_trigger_db_by_name_and_pack(name=name, pack=pack)
 
-        return _get_trigger_db(type=trigger['type'],
-                               parameters=trigger.get('parameters', {}))
+        return _get_trigger_given_type_and_params(type=trigger['type'],
+                                                  parameters=trigger.get('parameters', {}))
 
     if isinstance(trigger, object):
         name = getattr(trigger, 'name', None)
@@ -75,8 +87,8 @@ def get_trigger_db(trigger):
         if name and pack:
             trigger_db = _get_trigger_db_by_name_and_pack(name=name, pack=pack)
         else:
-            trigger_db = _get_trigger_db(type=trigger.type,
-                                         parameters=parameters)
+            trigger_db = _get_trigger_given_type_and_params(type=trigger.type,
+                                                            parameters=parameters)
         return trigger_db
     else:
         raise Exception('Unrecognized object')
@@ -99,7 +111,7 @@ def get_trigger_type_db(ref):
         return None
 
 
-def _get_trigger_api_given_rule(rule):
+def _get_trigger_dict_given_rule(rule):
     trigger = rule.trigger
     trigger_dict = {}
     triggertype_ref = ResourceReference.from_string_reference(trigger.get('type'))
@@ -117,10 +129,10 @@ def _get_trigger_api_given_rule(rule):
                             (trigger_ref.pack, triggertype_ref.pack))
     else:
         trigger_dict['parameters'] = rule.trigger.get('parameters', {})
+        if not trigger_dict['parameters']:
+            trigger_dict['name'] = triggertype_ref.name
 
-    trigger_api = TriggerAPI(**trigger_dict)
-
-    return trigger_api
+    return trigger_dict
 
 
 def create_trigger_db(trigger):
@@ -145,20 +157,20 @@ def create_or_update_trigger_db(trigger):
     """
     assert isinstance(trigger, dict)
 
-    trigger_api = TriggerAPI(**trigger)
-    trigger_api = TriggerAPI.to_model(trigger_api)
-
-    existing_trigger_db = get_trigger_db(trigger_api)
+    existing_trigger_db = get_trigger_db(trigger)
 
     if existing_trigger_db:
         is_update = True
     else:
         is_update = False
 
-    if is_update:
-        trigger_api.id = existing_trigger_db.id
+    trigger_api = TriggerAPI(**trigger)
+    trigger_db = TriggerAPI.to_model(trigger_api)
 
-    trigger_db = Trigger.add_or_update(trigger_api)
+    if is_update:
+        trigger_db.id = existing_trigger_db.id
+
+    trigger_db = Trigger.add_or_update(trigger_db)
 
     if is_update:
         LOG.audit('Trigger updated. Trigger=%s', trigger_db)
@@ -169,8 +181,8 @@ def create_or_update_trigger_db(trigger):
 
 
 def create_trigger_db_from_rule(rule):
-    trigger_api = _get_trigger_api_given_rule(rule)
-    return create_trigger_db(trigger_api)
+    trigger_dict = _get_trigger_dict_given_rule(rule)
+    return create_or_update_trigger_db(trigger_dict)
 
 
 def create_trigger_type_db(trigger_type):
