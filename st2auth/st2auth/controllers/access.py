@@ -24,7 +24,6 @@ from st2common.models.api.base import jsexpose
 from st2common.models.api.access import TokenAPI
 from st2common.services.access import create_token
 from st2common import log as logging
-from st2common.util.api import get_full_api_url
 from st2auth.backends import get_backend_instance
 
 
@@ -100,7 +99,7 @@ class TokenController(rest.RestController):
         pecan.abort(status_code, message)
 
     def _process_successful_response(self, token):
-        api_url = get_full_api_url()
+        api_url = cfg.CONF.auth.api_url
         pecan.response.headers['X-API-URL'] = api_url
         return token
 
