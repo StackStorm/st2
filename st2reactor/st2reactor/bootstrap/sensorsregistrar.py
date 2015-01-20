@@ -16,12 +16,12 @@
 import os
 
 import six
-from oslo.config import cfg
 
 from st2common import log as logging
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.content.loader import ContentPackLoader
 import st2reactor.container.utils as container_utils
+import st2common.content.utils as content_utils
 
 __all__ = [
     'SensorsRegistrar',
@@ -93,11 +93,11 @@ class SensorsRegistrar(ResourceRegistrar):
             }
             container_utils.add_sensor_model(pack=pack, sensor=sensor_obj)
 
-    def register_sensors_from_packs(self, base_dir):
+    def register_sensors_from_packs(self, base_dirs):
         pack_loader = ContentPackLoader()
-        dirs = pack_loader.get_content(base_dir=base_dir, content_type='sensors')
+        content = pack_loader.get_content(base_dirs=base_dirs, content_type='sensors')
 
-        for pack, sensors_dir in six.iteritems(dirs):
+        for pack, sensors_dir in six.iteritems(content):
             try:
                 LOG.info('Registering sensors from pack: %s', pack)
                 sensors = self._get_sensors_from_pack(sensors_dir)
@@ -107,8 +107,11 @@ class SensorsRegistrar(ResourceRegistrar):
                               str(e))
 
 
-def register_sensors(packs_base_path=None):
-    if not packs_base_path:
-        packs_base_path = cfg.CONF.content.packs_base_path
+def register_sensors(packs_base_paths=None):
+    if packs_base_paths:
+        assert(isinstance(packs_base_paths, list))
 
-    return SensorsRegistrar().register_sensors_from_packs(base_dir=packs_base_path)
+    if not packs_base_paths:
+        packs_base_paths = content_utils.get_packs_base_paths()
+
+    return SensorsRegistrar().register_sensors_from_packs(base_dirs=packs_base_paths)
