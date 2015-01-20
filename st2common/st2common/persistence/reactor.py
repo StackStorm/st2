@@ -19,51 +19,57 @@ from st2common import transport
 from st2common.models.db.reactor import sensor_type_access
 from st2common.models.db.reactor import triggertype_access, trigger_access, triggerinstance_access,\
     rule_access
-from st2common.persistence.base import (Access, ContentPackResourceMixin)
+from st2common.persistence.base import (Access, ContentPackResource)
 
 
-class SensorType(Access, ContentPackResourceMixin):
+class SensorType(ContentPackResource):
     impl = sensor_type_access
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
+    def _get_impl(cls):
+        return cls.impl
 
 
-class TriggerType(Access, ContentPackResourceMixin):
+class TriggerType(ContentPackResource):
     impl = triggertype_access
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
+    def _get_impl(cls):
+        return cls.impl
 
 
-class Trigger(Access, ContentPackResourceMixin):
+class Trigger(ContentPackResource):
     impl = trigger_access
     publisher = None
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
+    def _get_impl(cls):
+        return cls.impl
 
     @classmethod
-    def _get_publisher(kls):
-        if not kls.publisher:
-            kls.publisher = transport.reactor.TriggerCUDPublisher(cfg.CONF.messaging.url)
-        return kls.publisher
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.reactor.TriggerCUDPublisher(cfg.CONF.messaging.url)
+        return cls.publisher
 
 
 class TriggerInstance(Access):
     impl = triggerinstance_access
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
+    def _get_impl(cls):
+        return cls.impl
 
 
 class Rule(Access):
     impl = rule_access
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_by_object(cls, object):
+        # For Rule name is unique.
+        name = getattr(object, 'name', '')
+        return cls.get_by_name(name)

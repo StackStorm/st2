@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
 import argparse
+import logging as std_logging
+import os
+import pprint
+import sys
 
+from st2common import log as logging
 from st2reactor.rules.tester import RuleTester
 
 __all__ = [
@@ -24,14 +27,48 @@ __all__ = [
 ]
 
 
-def main():
+def _parse_args():
     parser = argparse.ArgumentParser(description='Test the provided rule')
     parser.add_argument('--rule', help='Path to the file containing rule definition',
                         required=True)
     parser.add_argument('--trigger-instance',
                         help='Path to the file containing trigger instance definition',
                         required=True)
-    args = parser.parse_args()
+    parser.add_argument('-v', '--verbose', help='increase output verbosity',
+                        action='store_true')
+    return parser.parse_args()
+
+
+def _setup_logging():
+    logging_config = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'default': {
+                'format': '%(asctime)s %(levelname)s %(name)s %(message)s'
+            },
+        },
+        'handlers': {
+            'console': {
+                '()': std_logging.StreamHandler,
+                'formatter': 'default'
+            }
+        },
+        'root': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    }
+    std_logging.config.dictConfig(logging_config)
+
+
+def main():
+    args = _parse_args()
+    if args.verbose:
+        _setup_logging()
+        output = logging.getLogger(__name__).info
+    else:
+        output = pprint.pprint
 
     rule_file_path = os.path.realpath(args.rule)
     trigger_instance_file_path = os.path.realpath(args.trigger_instance)
@@ -41,8 +78,8 @@ def main():
     matches = tester.evaluate()
 
     if matches:
-        print('=== RULE MATCHES ===')
+        output('=== RULE MATCHES ===')
         sys.exit(0)
     else:
-        print('=== RULE DOES NOT MATCH ===')
+        output('=== RULE DOES NOT MATCH ===')
         sys.exit(1)

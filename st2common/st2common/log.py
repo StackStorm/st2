@@ -29,6 +29,11 @@ logging.AUDIT = logging.CRITICAL + 10
 logging.addLevelName(logging.AUDIT, 'AUDIT')
 
 
+def getLogger(name):
+    logger_name = 'st2.{}'.format(name)
+    return logging.getLogger(logger_name)
+
+
 class FormatNamedFileHandler(logging.FileHandler):
     def __init__(self, filename, mode='a', encoding=None, delay=False):
         # Include timestamp in the name.
@@ -72,6 +77,16 @@ class ExclusionFilter(object):
         return not exclude
 
 
+class LoggingStream(object):
+
+    def __init__(self, name, level=logging.ERROR):
+        self._logger = getLogger(name)
+        self._level = level
+
+    def write(self, message):
+        self._logger._log(self._level, message, None)
+
+
 def _audit(logger, msg, *args, **kwargs):
     if logger.isEnabledFor(logging.AUDIT):
         logger._log(logging.AUDIT, msg, args, **kwargs)
@@ -81,7 +96,13 @@ logging.Logger.audit = _audit
 
 def _add_exclusion_filters(handlers):
     for h in handlers:
-            h.addFilter(ExclusionFilter(cfg.CONF.log.excludes))
+        h.addFilter(ExclusionFilter(cfg.CONF.log.excludes))
+
+
+def _redirect_stderr():
+    # It is ok to redirect stderr as none of the st2 handlers write to stderr.
+    if cfg.CONF.log.redirect_stderr:
+        sys.stderr = LoggingStream('STDERR')
 
 
 def setup(config_file, disable_existing_loggers=False):
@@ -93,12 +114,10 @@ def setup(config_file, disable_existing_loggers=False):
                                   disable_existing_loggers=disable_existing_loggers)
         handlers = logging.getLoggerClass().manager.root.handlers
         _add_exclusion_filters(handlers)
+        _redirect_stderr()
     except Exception as exc:
+        # revert stderr redirection since there is no logger in place.
+        sys.stderr = sys.__stderr__
         # No logger yet therefore write to stderr
         sys.stderr.write('ERROR: %s' % traceback.format_exc())
         raise Exception(six.text_type(exc))
-
-
-def getLogger(name):
-    logger_name = 'st2.{}'.format(name)
-    return logging.getLogger(logger_name)
