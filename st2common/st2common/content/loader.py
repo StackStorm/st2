@@ -85,6 +85,10 @@ class ContentPackLoader(object):
             # TODO: Use function from util which escapes the name
             pack_dir = os.path.join(base_dir, pack)
 
+            if not os.path.isdir(pack_dir):
+                # Skip non directories
+                continue
+
             pack_content = None
             try:
                 pack_content = get_func(pack_dir=pack_dir)
