@@ -61,9 +61,7 @@ def register_opts(ignore_errors=False):
     packs_default_base = os.path.join(cfg.CONF.system.base_path, 'packs')
     content_opts = [
         cfg.StrOpt('packs_base_path', default=packs_default_base,
-                   help='path to place content packs in.'),
-        cfg.StrOpt('system_path', default='st2reactor/st2reactor/contrib/sensors',
-                   help='path to load system sensor modules from')
+                   help='path to place content packs in.')
     ]
     _do_register_opts(content_opts, 'content', ignore_errors)
 
@@ -98,7 +96,7 @@ def register_opts(ignore_errors=False):
         cfg.ListOpt('excludes', default='',
                     help='Exclusion list of loggers to omit.'),
         cfg.BoolOpt('redirect_stderr', default=False,
-                   help='Controls if stderr should be redirected to the logs.')
+                    help='Controls if stderr should be redirected to the logs.')
     ]
     _do_register_opts(log_opts, 'log', ignore_errors)
 
