@@ -23,29 +23,35 @@ class User(Access):
     impl = MongoDBAccess(UserDB)
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_by_object(cls, object):
+        # For User name is unique.
+        name = getattr(object, 'name', '')
+        return cls.get_by_name(name)
 
 
 class Token(Access):
     impl = MongoDBAccess(TokenDB)
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
+    def _get_impl(cls):
+        return cls.impl
 
     @classmethod
-    def add_or_update(kls, model_object, publish=True):
+    def add_or_update(cls, model_object, publish=True):
         if not getattr(model_object, 'user', None):
             raise ValueError('User is not provided in the token.')
         if not getattr(model_object, 'token', None):
             raise ValueError('Token value is not set.')
         if not getattr(model_object, 'expiry', None):
             raise ValueError('Token expiry is not provided in the token.')
-        return super(Token, kls).add_or_update(model_object, publish=publish)
+        return super(Token, cls).add_or_update(model_object, publish=publish)
 
     @classmethod
-    def get(kls, value):
+    def get(cls, value):
         for model_object in TokenDB.objects(token=value):
             return model_object
         raise TokenNotFoundError()

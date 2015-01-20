@@ -18,23 +18,29 @@ from oslo.config import cfg
 from st2common import transport
 from st2common.models.db.action import (runnertype_access, action_access, actionexec_access)
 from st2common.models.db.action import actionexecstate_access
-from st2common.persistence.base import (Access, ContentPackResourceMixin)
+from st2common.persistence.base import (Access, ContentPackResource)
 
 
 class RunnerType(Access):
     impl = runnertype_access
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_by_object(cls, object):
+        # For RunnerType name is unique.
+        name = getattr(object, 'name', '')
+        return cls.get_by_name(name)
 
 
-class Action(Access, ContentPackResourceMixin):
+class Action(ContentPackResource):
     impl = action_access
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
+    def _get_impl(cls):
+        return cls.impl
 
 
 class ActionExecution(Access):
@@ -42,15 +48,15 @@ class ActionExecution(Access):
     publisher = None
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
+    def _get_impl(cls):
+        return cls.impl
 
     @classmethod
-    def _get_publisher(kls):
-        if not kls.publisher:
-            kls.publisher = transport.actionexecution.ActionExecutionPublisher(
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.actionexecution.ActionExecutionPublisher(
                 cfg.CONF.messaging.url)
-        return kls.publisher
+        return cls.publisher
 
 
 class ActionExecutionState(Access):
@@ -58,12 +64,12 @@ class ActionExecutionState(Access):
     publisher = None
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
+    def _get_impl(cls):
+        return cls.impl
 
     @classmethod
-    def _get_publisher(kls):
-        if not kls.publisher:
-            kls.publisher = transport.actionexecutionstate.ActionExecutionStatePublisher(
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.actionexecutionstate.ActionExecutionStatePublisher(
                 cfg.CONF.messaging.url)
-        return kls.publisher
+        return cls.publisher

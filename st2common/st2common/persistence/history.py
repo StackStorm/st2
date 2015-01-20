@@ -26,12 +26,12 @@ class ActionExecutionHistory(Access):
     publisher = None
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
+    def _get_impl(cls):
+        return cls.impl
 
     @classmethod
-    def _get_publisher(kls):
-        if not kls.publisher:
-            kls.publisher = transport.history.HistoryPublisher(
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.history.HistoryPublisher(
                 cfg.CONF.messaging.url)
-        return kls.publisher
+        return cls.publisher
