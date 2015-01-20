@@ -16,8 +16,10 @@
 import os
 
 import unittest2
+from mock import Mock
 
 from st2common.content.loader import ContentPackLoader
+from st2common.content.loader import LOG
 
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -42,3 +44,21 @@ class ContentLoaderTest(unittest2.TestCase):
         loader = ContentPackLoader()
         self.assertRaises(ValueError, loader.get_content, base_dirs=[packs_base_path],
                           content_type='stuff')
+
+    def test_get_content_multiple_directories(self):
+        packs_base_path_1 = os.path.join(RESOURCES_DIR, 'packs/')
+        packs_base_path_2 = os.path.join(RESOURCES_DIR, 'packs2/')
+        base_dirs = [packs_base_path_1, packs_base_path_2]
+
+        LOG.warning = Mock()
+
+        loader = ContentPackLoader()
+        sensors = loader.get_content(base_dirs=base_dirs, content_type='sensors')
+        self.assertTrue('pack1' in sensors)  # from packs/
+        self.assertTrue('pack3' in sensors)  # from packs2/
+
+        # Assert that a warning is emitted when a duplicated pack is found
+        expected_msg = ('Pack "pack1" already found in '
+                        '"/data/stanley/st2common/tests/resources/packs/", ignoring content from '
+                        '"/data/stanley/st2common/tests/resources/packs2/"')
+        LOG.warning.assert_called_once_with(expected_msg)
