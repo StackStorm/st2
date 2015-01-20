@@ -95,20 +95,9 @@ def _get_trigger_dict_given_rule(rule):
     triggertype_ref = ResourceReference.from_string_reference(trigger.get('type'))
     trigger_dict['pack'] = trigger_dict.get('pack', triggertype_ref.pack)
     trigger_dict['type'] = triggertype_ref.ref
-
-    trigger_ref_str = trigger.get('ref', None)
-    if trigger_ref_str:
-        trigger_ref = ResourceReference.from_string_reference(trigger_ref_str)
-        trigger_dict['name'] = trigger_ref.name
-        trigger_dict['pack'] = trigger_ref.pack
-        if triggertype_ref and trigger_ref.pack != triggertype_ref.pack:
-            raise Exception('Invalid definition for trigger in rule. ' +
-                            'Packs mismatch for trigger (%s) and trigger type (%s).' %
-                            (trigger_ref.pack, triggertype_ref.pack))
-    else:
-        trigger_dict['parameters'] = rule.trigger.get('parameters', {})
-        if not trigger_dict['parameters']:
-            trigger_dict['name'] = triggertype_ref.name
+    trigger_dict['parameters'] = rule.trigger.get('parameters', {})
+    if not trigger_dict['parameters']:
+        trigger_dict['name'] = triggertype_ref.name
 
     return trigger_dict
 
