@@ -21,6 +21,8 @@ from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 
 __all__ = [
     'get_packs_base_paths',
+    'check_pack_directory_exists',
+    'check_pack_content_directory_exists',
     'get_pack_base_path'
 ]
 
@@ -34,6 +36,47 @@ def get_packs_base_paths():
     packs_base_paths = cfg.CONF.content.packs_base_paths or ''
     packs_base_paths = packs_base_paths.split(':')
     return packs_base_paths
+
+
+def check_pack_directory_exists(pack):
+    """
+    Check if a provided pack exists in one of the pack paths.
+
+    :param pack: Pack name.
+    :type pack: ``str``
+
+    :rtype: ``bool``
+    """
+    packs_base_paths = get_packs_base_paths()
+
+    for base_dir in packs_base_paths:
+        pack_path = os.path.join(base_dir, pack)
+        if os.path.exists(pack_path):
+            return True
+
+    return False
+
+
+def check_pack_content_directory_exists(pack, content_type):
+    """
+    Check if a provided pack exists in one of the pack paths.
+
+    :param pack: Pack name.
+    :type pack: ``str``
+
+    :param content_type: Content type (actions, sensors, rules).
+    :type content_type: ``str``
+
+    :rtype: ``bool``
+    """
+    packs_base_paths = get_packs_base_paths()
+
+    for base_dir in packs_base_paths:
+        pack_content_pack = os.path.join(base_dir, pack, content_type)
+        if os.path.exists(pack_content_pack):
+            return True
+
+    return False
 
 
 def get_pack_base_path(pack_name):

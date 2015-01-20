@@ -22,6 +22,7 @@ from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
 from st2common.util.action_db import get_runnertype_by_name
+from st2common.content.utils import check_pack_content_directory_exists
 
 
 LOG = logging.getLogger(__name__)
@@ -53,8 +54,7 @@ def _get_runner_model(action_api):
 
 
 def _is_valid_pack(pack):
-    base_path = cfg.CONF.content.packs_base_path
-    return os.path.exists(os.path.join(base_path, pack, 'actions'))
+    return check_pack_content_directory_exists(pack=pack, content_type='actions')
 
 
 def _validate_parameters(action_params=None, runner_params=None):
