@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
 import six
 
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -31,9 +30,7 @@ def validate_action(action_api):
 
     # Check if pack is valid.
     if not _is_valid_pack(action_api.pack):
-        msg = 'Content pack %s does not exist in %s.' % (
-            action_api.pack,
-            cfg.CONF.content.packs_base_path)
+        msg = 'Content pack "%s" doesn\'t exist in any of the packs paths' % (action_api.pack)
         raise ValueValidationException(msg)
 
     # Check if parameters defined are valid.
