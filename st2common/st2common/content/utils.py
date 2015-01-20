@@ -21,9 +21,9 @@ from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 
 __all__ = [
     'get_packs_base_paths',
+    'get_pack_base_path',
     'check_pack_directory_exists',
-    'check_pack_content_directory_exists',
-    'get_pack_base_path'
+    'check_pack_content_directory_exists'
 ]
 
 
@@ -83,6 +83,9 @@ def get_pack_base_path(pack_name):
     """
     Return full absolute base path to the content pack directory.
 
+    Note: This function looks for a pack in all the load paths and return path to the first pack
+    which matched the provided name. If pack is not found None is returned.
+
     :param pack_name: Content pack name.
     :type pack_name: ``str``
 
@@ -91,10 +94,16 @@ def get_pack_base_path(pack_name):
     if not pack_name:
         return None
 
-    packs_base_path = get_packs_base_path()
-    pack_base_path = os.path.join(packs_base_path, pipes.quote(pack_name))
-    pack_base_path = os.path.abspath(pack_base_path)
-    return pack_base_path
+    packs_base_paths = get_packs_base_paths()
+    for packs_base_path in packs_base_paths:
+        pack_base_path = os.path.join(packs_base_path, pipes.quote(pack_name))
+        pack_base_path = os.path.abspath(pack_base_path)
+
+        if os.path.isdir(pack_base_path):
+            return pack_base_path
+
+    # Path with the provided name not found
+    return None
 
 
 def get_entry_point_abs_path(pack=None, entry_point=None):
@@ -111,8 +120,10 @@ def get_entry_point_abs_path(pack=None, entry_point=None):
     if entry_point is not None and len(entry_point) > 0:
         if os.path.isabs(entry_point):
             return entry_point
-        return os.path.join(get_packs_base_path(),
-                            pipes.quote(pack), 'actions', pipes.quote(entry_point))
+
+        pack_base_path = get_pack_base_path(pack_name=pack)
+        entry_point_abs_path = os.path.join(pack_base_path, 'actions', pipes.quote(entry_point))
+        return entry_point_abs_path
     else:
         return None
 
