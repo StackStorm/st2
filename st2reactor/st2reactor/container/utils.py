@@ -15,6 +15,8 @@
 
 import os
 
+import six
+
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.persistence.reactor import SensorType, TriggerInstance
@@ -39,7 +41,7 @@ def create_trigger_instance(trigger, payload, occurrence_time):
     :type payload: ``dict``
     """
     # TODO: This is nasty, this should take a unique reference and not a dict
-    if isinstance(trigger, str):
+    if isinstance(trigger, six.string_types):
         trigger_db = TriggerService.get_trigger_db_by_ref(trigger)
     else:
         trigger_db = TriggerService.get_trigger_db_given_type_and_params(trigger)
