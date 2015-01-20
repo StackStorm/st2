@@ -19,6 +19,11 @@ from st2common.constants.meta import (ALLOWED_EXTS, PARSER_FUNCS)
 from st2common import log as logging
 from yaml.parser import ParserError
 
+__all__ = [
+    'ContentPackLoader',
+    'MetaLoader'
+]
+
 LOG = logging.getLogger(__name__)
 
 
@@ -26,15 +31,12 @@ class ContentPackLoader(object):
     def __init__(self):
         self._allowed_content_types = ['sensors', 'actions', 'rules']
 
-    def get_content(self, base_dir=None, content_type=None):
-        if content_type is None:
-            raise Exception('Content type unknown.')
+    def get_content(self, base_dir, content_type):
+        if content_type not in self._allowed_content_types:
+            raise ValueError('Unsupported content_type: %s' % (content_type))
 
         if not os.path.isdir(base_dir):
-            raise Exception('Directory containing content-packs must be provided.')
-
-        if content_type not in self._allowed_content_types:
-            raise Exception('Unknown content type %s.' % content_type)
+            raise ValueError('Directory containing content-packs must be provided.')
 
         content = {}
         for pack in os.listdir(base_dir):
