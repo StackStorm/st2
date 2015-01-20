@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-from oslo.config import cfg
 import six
 
 from st2common import log as logging
@@ -23,6 +21,12 @@ from st2common.bootstrap.base import ResourceRegistrar
 from st2common.content.loader import ContentPackLoader
 from st2common.models.api.rule import RuleAPI
 from st2common.persistence.reactor import Rule
+import st2common.content.utils as content_utils
+
+__all__ = [
+    'RulesRegistrar',
+    'register_rules'
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -52,11 +56,11 @@ class RulesRegistrar(ResourceRegistrar):
             except:
                 LOG.exception('Failed registering rule from %s.', rule)
 
-    def register_rules_from_packs(self, base_dir):
+    def register_rules_from_packs(self, base_dirs):
         pack_loader = ContentPackLoader()
-        dirs = pack_loader.get_content(base_dir=base_dir,
-                                       content_type='rules')
-        for pack, rules_dir in six.iteritems(dirs):
+        content = pack_loader.get_content(base_dirs=base_dirs,
+                                          content_type='rules')
+        for pack, rules_dir in six.iteritems(content):
             try:
                 LOG.info('Registering rules from pack: %s', pack)
                 rules = self._get_rules_from_pack(rules_dir)
@@ -65,7 +69,11 @@ class RulesRegistrar(ResourceRegistrar):
                 LOG.exception('Failed registering all rules from pack: %s', rules_dir)
 
 
-def register_rules(packs_base_path=None):
-    if not packs_base_path:
-        packs_base_path = cfg.CONF.content.packs_base_path
-    return RulesRegistrar().register_rules_from_packs(packs_base_path)
+def register_rules(packs_base_paths=None):
+    if packs_base_paths:
+        assert(isinstance(packs_base_paths, list))
+
+    if not packs_base_paths:
+        packs_base_paths = content_utils.get_packs_base_paths()
+
+    return RulesRegistrar().register_rules_from_packs(base_dirs=packs_base_paths)
