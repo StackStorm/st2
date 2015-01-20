@@ -68,7 +68,7 @@ class TriggerServiceTests(CleanDbTestCase):
         self.assertTrue(trigger_db_ret_2 is not None)
         self.assertTrue(trigger_db_ret_2.id == trigger_db_ret_1.id)
 
-    def test_create_or_update_trigger_db(self):
+    def test_create_or_update_trigger_db_simple_triggers(self):
         test_fixtures = {
             'triggertypes': ['triggertype1.json']
         }
@@ -94,3 +94,36 @@ class TriggerServiceTests(CleanDbTestCase):
         triggers = Trigger.get_all()
         self.assertTrue(len(triggers) == 1, 'Only one trigger should be present.')
         self.assertTrue(triggers[0]['name'] == 'foo')
+
+    def test_exception_thrown_when_rule_creation_no_trigger_yes_triggertype(self):
+        test_fixtures = {
+            'triggertypes': ['triggertype1.json']
+        }
+        loader = FixturesLoader()
+        fixtures = loader.save_fixtures_to_db(fixtures_pack='generic', fixtures_dict=test_fixtures)
+        triggertypes = fixtures['triggertypes']
+        trigger_type_ref = ResourceReference.to_string_reference(
+            name=triggertypes['triggertype1.json']['name'],
+            pack=triggertypes['triggertype1.json']['name'])
+
+        rule = {
+            'name': 'fancyrule',
+            'trigger': {
+                'type': trigger_type_ref
+            },
+            'criteria': {
+
+            },
+            'action': {
+                'ref': 'core.local',
+                'parameters': {
+                    'cmd': 'date'
+                }
+            }
+        }
+        rule_api = RuleAPI(**rule)
+        try:
+            trigger_service.create_trigger_db_from_rule(rule_api)
+            self.fail('Should have thrown an exception.')
+        except:
+            pass
