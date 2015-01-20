@@ -35,17 +35,10 @@ class ContentLoaderTest(unittest2.TestCase):
         loader = ContentPackLoader()
         fail_pack_path = os.path.join(RESOURCES_DIR, 'packs/pack2')
         self.assertTrue(os.path.exists(fail_pack_path))
-        try:
-            loader._get_sensors(fail_pack_path)
-            self.fail('Empty packs must throw exception.')
-        except:
-            pass
+        self.assertRaises(ValueError, loader._get_sensors, fail_pack_path)
 
     def test_invalid_content_type(self):
         packs_base_path = os.path.join(RESOURCES_DIR, 'packs/')
         loader = ContentPackLoader()
-        try:
-            loader.get_content(base_dirs=[packs_base_path], content_type='stuff')
-            self.fail('Asking for invalid content should have thrown.')
-        except:
-            pass
+        self.assertRaises(ValueError, loader.get_content, base_dirs=[packs_base_path],
+                          content_type='stuff')
