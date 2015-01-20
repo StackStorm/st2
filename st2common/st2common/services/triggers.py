@@ -35,6 +35,8 @@ LOG = logging.getLogger(__name__)
 
 def get_trigger_db_given_type_and_params(type=None, parameters=None):
     try:
+        if not parameters:
+            parameters = {}
         return Trigger.query(type=type,
                              parameters=parameters).first()
     except ValueError as e:
@@ -96,8 +98,6 @@ def _get_trigger_dict_given_rule(rule):
     trigger_dict['pack'] = trigger_dict.get('pack', triggertype_ref.pack)
     trigger_dict['type'] = triggertype_ref.ref
     trigger_dict['parameters'] = rule.trigger.get('parameters', {})
-    if not trigger_dict['parameters']:
-        trigger_dict['name'] = triggertype_ref.name
 
     return trigger_dict
 
@@ -157,7 +157,10 @@ def create_trigger_db_from_rule(rule):
         raise Exception('A simple trigger should have been created when registering '
                         + ' triggertype. Cannot create trigger: %s.' % trigger_dict)
 
-    return create_or_update_trigger_db(trigger_dict)
+    if not existing_trigger_db:
+        return create_or_update_trigger_db(trigger_dict)
+
+    return existing_trigger_db
 
 
 def create_trigger_type_db(trigger_type):
