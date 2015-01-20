@@ -80,20 +80,20 @@ class TriggerServiceTests(CleanDbTestCase):
             pack=triggertypes['triggertype1.json']['pack'])
 
         trigger = {
-            'name': 'foo',
-            'pack': 'st2',
+            'name': triggertypes['triggertype1.json']['name'],
+            'pack': triggertypes['triggertype1.json']['pack'],
             'type': trigger_type_ref
         }
         trigger_service.create_or_update_trigger_db(trigger)
         triggers = Trigger.get_all()
         self.assertTrue(len(triggers) == 1, 'Only one trigger should be created.')
-        self.assertTrue(triggers[0]['name'] == 'foo')
+        self.assertTrue(triggers[0]['name'] == triggertypes['triggertype1.json']['name'])
 
         # Try adding duplicate
         trigger_service.create_or_update_trigger_db(trigger)
         triggers = Trigger.get_all()
         self.assertTrue(len(triggers) == 1, 'Only one trigger should be present.')
-        self.assertTrue(triggers[0]['name'] == 'foo')
+        self.assertTrue(triggers[0]['name'] == triggertypes['triggertype1.json']['name'])
 
     def test_exception_thrown_when_rule_creation_no_trigger_yes_triggertype(self):
         test_fixtures = {
