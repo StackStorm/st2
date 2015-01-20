@@ -36,7 +36,7 @@ def create_trigger_instance(trigger, payload, occurrence_time):
     :type trigger: ``dict``
 
     :param payload: Trigger payload.
-    :type payload: ``dict``p
+    :type payload: ``dict``
     """
     # TODO: This is nasty, this should take a unique reference and not a dict
     if isinstance(trigger, str):
