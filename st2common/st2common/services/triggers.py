@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from st2common import log as logging
+from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2common.models.api.reactor import (TriggerAPI, TriggerTypeAPI)
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import (Trigger, TriggerType)
@@ -154,8 +155,9 @@ def create_trigger_db_from_rule(rule):
     # registering triggertype. So if we hit the case that there is no trigger in db but
     # parameters is empty, then this case is a run time error.
     if not trigger_dict.get('parameters', {}) and not existing_trigger_db:
-        raise Exception('A simple trigger should have been created when registering '
-                        + ' triggertype. Cannot create trigger: %s.' % trigger_dict)
+        raise TriggerDoesNotExistException(
+            'A simple trigger should have been created when registering '
+            + 'triggertype. Cannot create trigger: %s.' % trigger_dict)
 
     if not existing_trigger_db:
         return create_or_update_trigger_db(trigger_dict)

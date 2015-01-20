@@ -20,6 +20,7 @@ import six
 
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.reactor import Rule
@@ -83,6 +84,11 @@ class RuleController(RestController):
         except ValueValidationException as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
             abort(http_client.BAD_REQUEST, str(e))
+            return
+        except TriggerDoesNotExistException as e:
+            msg = 'Trigger %s in rule does not exist in system' % rule.trigger['type']
+            LOG.exception(msg)
+            abort(http_client.BAD_REQUEST, msg)
             return
         except NotUniqueError as e:
             LOG.warn('Rule creation of %s failed with uniqueness conflict. Exception %s',

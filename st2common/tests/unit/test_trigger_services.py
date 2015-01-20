@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2common.models.api.rule import RuleAPI
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import Trigger
@@ -117,8 +118,5 @@ class TriggerServiceTests(CleanDbTestCase):
             }
         }
         rule_api = RuleAPI(**rule)
-        try:
-            trigger_service.create_trigger_db_from_rule(rule_api)
-            self.fail('Should have thrown an exception.')
-        except:
-            pass
+        self.assertRaises(TriggerDoesNotExistException,
+                          trigger_service.create_trigger_db_from_rule, rule_api)
