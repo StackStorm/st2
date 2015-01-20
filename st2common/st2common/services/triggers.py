@@ -43,15 +43,6 @@ def get_trigger_db_given_type_and_params(type=None, parameters=None):
         return None
 
 
-def _get_trigger_db_by_name_and_pack(name=None, pack=None):
-    try:
-        return Trigger.query(name=name, pack=pack).first()
-    except ValueError as e:
-        LOG.debug('Database lookup for name="%s",pack="%s" resulted ' +
-                  'in exception : %s.', name, pack, e, exc_info=True)
-        return None
-
-
 def get_trigger_db_by_ref(ref):
     """
     Returns the trigger object from db given a string ref.
@@ -66,12 +57,14 @@ def get_trigger_db_by_ref(ref):
 
 def _get_trigger_db(trigger):
     # TODO: This method should die in a fire
+    # XXX: Do not make this method public.
     if isinstance(trigger, dict):
         name = trigger.get('name', None)
         pack = trigger.get('pack', None)
 
         if name and pack:
-            return _get_trigger_db_by_name_and_pack(name=name, pack=pack)
+            ref = ResourceReference.to_string_reference(name=name, pack=pack)
+            return get_trigger_db_by_ref(ref)
 
         return get_trigger_db_given_type_and_params(type=trigger['type'],
                                                     parameters=trigger.get('parameters', {}))
@@ -144,13 +137,6 @@ def create_or_update_trigger_db(trigger):
 
     existing_trigger_db = _get_trigger_db(trigger)
 
-    # For simple triggertypes (triggertype with no parameters), we create a trigger when
-    # registering triggertype. So if we hit the case that there is no trigger in db but
-    # parameters is empty, then this case is a run time error.
-    if not trigger.get('parameters', {}) and not existing_trigger_db:
-        raise Exception('A simple trigger should have been created when registering '
-                        + ' triggertype. Cannot create trigger: %s.' + trigger)
-
     if existing_trigger_db:
         is_update = True
     else:
@@ -174,6 +160,14 @@ def create_or_update_trigger_db(trigger):
 
 def create_trigger_db_from_rule(rule):
     trigger_dict = _get_trigger_dict_given_rule(rule)
+    existing_trigger_db = _get_trigger_db(trigger_dict)
+    # For simple triggertypes (triggertype with no parameters), we create a trigger when
+    # registering triggertype. So if we hit the case that there is no trigger in db but
+    # parameters is empty, then this case is a run time error.
+    if not trigger_dict.get('parameters', {}) and not existing_trigger_db:
+        raise Exception('A simple trigger should have been created when registering '
+                        + ' triggertype. Cannot create trigger: %s.' % trigger_dict)
+
     return create_or_update_trigger_db(trigger_dict)
 
 
