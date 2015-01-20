@@ -58,10 +58,10 @@ def register_opts(ignore_errors=False):
     ]
     _do_register_opts(system_opts, 'system', ignore_errors)
 
-    packs_default_base = os.path.join(cfg.CONF.system.base_path, 'packs')
+    packs_base_paths = os.path.join(cfg.CONF.system.base_path, 'packs')
     content_opts = [
-        cfg.StrOpt('packs_base_path', default=packs_default_base,
-                   help='path to place content packs in.')
+        cfg.StrOpt('packs_base_paths', default=packs_base_paths,
+                   help='Paths which will be searched for integration packs.')
     ]
     _do_register_opts(content_opts, 'content', ignore_errors)
 
