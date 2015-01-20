@@ -27,10 +27,6 @@ class ContentPackConfigParserTestCase(TestCase):
         super(ContentPackConfigParserTestCase, self).setUp()
         tests_config.parse_args()
 
-        # Mock the packs_base_path
-        mock_path = tests_base.get_fixtures_path()
-        cfg.CONF.content.packs_base_path = mock_path
-
     def test_get_action_config_inexistent_pack(self):
         parser = ContentPackConfigParser(pack_name='inexistent')
         config = parser.get_action_config(action_file_path='test.py')

@@ -89,7 +89,10 @@ def get_pack_base_path(pack_name):
     Return full absolute base path to the content pack directory.
 
     Note: This function looks for a pack in all the load paths and return path to the first pack
-    which matched the provided name. If pack is not found None is returned.
+    which matched the provided name.
+
+    If a pack is not found, we return a pack which points to the first packs directory (this is
+    here for backward compatibility reasons).
 
     :param pack_name: Content pack name.
     :type pack_name: ``str``
@@ -108,7 +111,9 @@ def get_pack_base_path(pack_name):
             return pack_base_path
 
     # Path with the provided name not found
-    return None
+    pack_base_path = os.path.join(packs_base_paths[0], pipes.quote(pack_name))
+    pack_base_path = os.path.abspath(pack_base_path)
+    return pack_base_path
 
 
 def get_entry_point_abs_path(pack=None, entry_point=None):
