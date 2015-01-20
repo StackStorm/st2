@@ -77,7 +77,7 @@ class TriggerServiceTests(CleanDbTestCase):
         triggertypes = fixtures['triggertypes']
         trigger_type_ref = ResourceReference.to_string_reference(
             name=triggertypes['triggertype1.json']['name'],
-            pack=triggertypes['triggertype1.json']['name'])
+            pack=triggertypes['triggertype1.json']['pack'])
 
         trigger = {
             'name': 'foo',
@@ -104,7 +104,7 @@ class TriggerServiceTests(CleanDbTestCase):
         triggertypes = fixtures['triggertypes']
         trigger_type_ref = ResourceReference.to_string_reference(
             name=triggertypes['triggertype1.json']['name'],
-            pack=triggertypes['triggertype1.json']['name'])
+            pack=triggertypes['triggertype1.json']['pack'])
 
         rule = {
             'name': 'fancyrule',
