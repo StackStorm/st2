@@ -28,11 +28,10 @@ LOG = logging.getLogger(__name__)
 
 
 class ContentPackLoader(object):
-    def __init__(self):
-        self._allowed_content_types = ['sensors', 'actions', 'rules']
+    ALLOWED_CONTENT_TYPES = ['sensors', 'actions', 'rules']
 
     def get_content(self, base_dir, content_type):
-        if content_type not in self._allowed_content_types:
+        if content_type not in self.ALLOWED_CONTENT_TYPES:
             raise ValueError('Unsupported content_type: %s' % (content_type))
 
         if not os.path.isdir(base_dir):
