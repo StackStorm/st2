@@ -66,7 +66,7 @@ class ContainerUtilsTest(CleanDbTestCase):
             self.assertTrue(True)
 
     def test_create_trigger_instance_invalid_trigger(self):
-        trigger_instance = {'name': 'footrigger', 'pack': 'dummy_pack'}
+        trigger_instance = 'dummy_pack.footrigger'
         instance = container_utils.create_trigger_instance(trigger_instance, {}, None)
         self.assertTrue(instance is None)
 

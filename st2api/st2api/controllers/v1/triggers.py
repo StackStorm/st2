@@ -21,6 +21,7 @@ import six
 from st2common import log as logging
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.base import jsexpose
+from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance
 from st2common.services import triggers as TriggerService
 from st2api.controllers import resource
@@ -131,7 +132,7 @@ class TriggerTypeController(resource.ContentPackResourceControler):
                 DELETE /triggertypes/pack.name
         """
         LOG.info('DELETE /triggertypes/ with ref_or_id=%s',
-                triggertype_ref_or_id)
+                 triggertype_ref_or_id)
 
         try:
             triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
@@ -167,7 +168,7 @@ class TriggerTypeController(resource.ContentPackResourceControler):
                        'pack': triggertype_db.pack,
                        'type': trigger_type_ref,
                        'parameters': {}}
-            trigger_db = TriggerService.create_trigger_db(trigger)
+            trigger_db = TriggerService.create_or_update_trigger_db(trigger)
             LOG.audit('Trigger created for parameter-less TriggerType. Trigger=%s',
                       trigger_db)
         except (ValidationError, ValueError) as e:
@@ -183,7 +184,8 @@ class TriggerTypeController(resource.ContentPackResourceControler):
     @staticmethod
     def _delete_shadow_trigger(triggertype_db):
         # shadow Trigger's have the same name as the shadowed TriggerType.
-        trigger_db = TriggerService.get_trigger_db(triggertype_db.name)
+        triggertype_ref = ResourceReference(name=triggertype_db.name, pack=triggertype_db.pack)
+        trigger_db = TriggerService.get_trigger_db_by_ref(triggertype_ref.ref)
         if not trigger_db:
             LOG.warn('No shadow trigger found for %s. Will skip delete.', triggertype_db)
             return

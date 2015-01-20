@@ -19,7 +19,8 @@ from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import (Trigger, TriggerType)
 
 __all__ = [
-    'get_trigger_db',
+    'get_trigger_db_by_ref',
+    'get_trigger_db_given_type_and_params',
     'get_trigger_type_db',
 
     'create_trigger_db',
@@ -32,7 +33,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-def _get_trigger_given_type_and_params(type=None, parameters=None):
+def get_trigger_db_given_type_and_params(type=None, parameters=None):
     try:
         return Trigger.query(type=type,
                              parameters=parameters).first()
@@ -63,11 +64,8 @@ def get_trigger_db_by_ref(ref):
     return Trigger.get_by_ref(ref)
 
 
-def get_trigger_db(trigger):
+def _get_trigger_db(trigger):
     # TODO: This method should die in a fire
-    if isinstance(trigger, str) or isinstance(trigger, unicode):
-        # Assume reference was passed in
-        return Trigger.get_by_ref(trigger)
     if isinstance(trigger, dict):
         name = trigger.get('name', None)
         pack = trigger.get('pack', None)
@@ -75,21 +73,8 @@ def get_trigger_db(trigger):
         if name and pack:
             return _get_trigger_db_by_name_and_pack(name=name, pack=pack)
 
-        return _get_trigger_given_type_and_params(type=trigger['type'],
-                                                  parameters=trigger.get('parameters', {}))
-
-    if isinstance(trigger, object):
-        name = getattr(trigger, 'name', None)
-        pack = getattr(trigger, 'pack', None)
-        parameters = getattr(trigger, 'parameters', {})
-
-        trigger_db = None
-        if name and pack:
-            trigger_db = _get_trigger_db_by_name_and_pack(name=name, pack=pack)
-        else:
-            trigger_db = _get_trigger_given_type_and_params(type=trigger.type,
-                                                            parameters=parameters)
-        return trigger_db
+        return get_trigger_db_given_type_and_params(type=trigger['type'],
+                                                    parameters=trigger.get('parameters', {}))
     else:
         raise Exception('Unrecognized object')
 
@@ -135,11 +120,11 @@ def _get_trigger_dict_given_rule(rule):
     return trigger_dict
 
 
-def create_trigger_db(trigger):
-    trigger_api = trigger
-    if isinstance(trigger, dict):
-        trigger_api = TriggerAPI(**trigger)
-    trigger_db = get_trigger_db(trigger_api)
+def create_trigger_db(trigger_api):
+    # TODO: This is used only in trigger API controller. We should get rid of this.
+    trigger_ref = ResourceReference.to_string_reference(name=trigger_api.name,
+                                                        pack=trigger_api.pack)
+    trigger_db = get_trigger_db_by_ref(trigger_ref)
     if not trigger_db:
         trigger_db = TriggerAPI.to_model(trigger_api)
         LOG.debug('Verified trigger and formulated TriggerDB=%s', trigger_db)
@@ -157,7 +142,14 @@ def create_or_update_trigger_db(trigger):
     """
     assert isinstance(trigger, dict)
 
-    existing_trigger_db = get_trigger_db(trigger)
+    existing_trigger_db = _get_trigger_db(trigger)
+
+    # For simple triggertypes (triggertype with no parameters), we create a trigger when
+    # registering triggertype. So if we hit the case that there is no trigger in db but
+    # parameters is empty, then this case is a run time error.
+    if not trigger.get('parameters', {}) and not existing_trigger_db:
+        raise Exception('A simple trigger should have been created when registering '
+                        + ' triggertype. Cannot create trigger: %s.' + trigger)
 
     if existing_trigger_db:
         is_update = True

@@ -15,7 +15,7 @@
 
 from st2common import log as logging
 from st2common.persistence.reactor import Rule
-from st2common.services.triggers import get_trigger_db
+from st2common.services.triggers import get_trigger_db_by_ref
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.matcher import RulesMatcher
 
@@ -34,7 +34,8 @@ class RulesEngine(object):
         self.enforce_rules(enforcers)
 
     def get_matching_rules_for_trigger(self, trigger_instance):
-        trigger = get_trigger_db(trigger=trigger_instance.trigger)
+        trigger = trigger_instance.trigger
+        trigger = get_trigger_db_by_ref(trigger_instance.trigger)
         rules = Rule.query(trigger=trigger_instance.trigger, enabled=True)
         LOG.info('Found %d rules defined for trigger %s', len(rules), trigger['name'])
         matcher = RulesMatcher(trigger_instance=trigger_instance,

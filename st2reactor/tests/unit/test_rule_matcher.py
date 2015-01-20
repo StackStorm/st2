@@ -18,7 +18,7 @@ import datetime
 from st2common.models.db.reactor import (TriggerDB, TriggerTypeDB)
 from st2common.models.api.rule import RuleAPI
 from st2common.persistence.reactor import (TriggerType, Trigger, Rule)
-from st2common.services.triggers import get_trigger_db
+from st2common.services.triggers import get_trigger_db_by_ref
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.matcher import RulesMatcher
 from st2tests.base import DbTestCase
@@ -29,11 +29,11 @@ class RuleMatcherTest(DbTestCase):
     def test_get_matching_rules(self):
         self._setup_sample_trigger('st2.test.trigger1')
         trigger_instance = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1', 'pack': 'dummy_pack_1'},
+            'dummy_pack_1.st2.test.trigger1',
             {'k1': 't1_p_v', 'k2': 'v2'},
             datetime.datetime.utcnow()
         )
-        trigger = get_trigger_db(trigger=trigger_instance.trigger)
+        trigger = get_trigger_db_by_ref(trigger_instance.trigger)
         rules = self._get_sample_rules()
         rules_matcher = RulesMatcher(trigger_instance, trigger, rules)
         matching_rules = rules_matcher.get_matching_rules()
