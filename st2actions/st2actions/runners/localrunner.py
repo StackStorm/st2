@@ -45,6 +45,7 @@ LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 RUNNER_SUDO = 'sudo'
 RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_COMMAND = 'cmd'
+RUNNER_CWD = 'cwd'
 RUNNER_KWARG_OP = 'kwarg_op'
 RUNNER_TIMEOUT = 'timeout'
 
@@ -70,6 +71,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, LOGGED_USER_USERNAME)
         self._user = cfg.CONF.system_user.user
+        self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, DEFAULT_KWARG_OP)
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
@@ -100,7 +102,8 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
                                        user=self._user,
                                        env_vars={},
                                        sudo=self._sudo,
-                                       timeout=self._timeout)
+                                       timeout=self._timeout,
+                                       cwd=self._cwd)
 
         args = action.get_full_command_string()
 
@@ -112,8 +115,8 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         # Make sure os.setsid is called on each spawned process so that all processes
         # are in the same group.
         process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, shell=True, env=env,
-                                   preexec_fn=os.setsid)
+                                   stderr=subprocess.PIPE, shell=True, cwd=self._cwd,
+                                   env=env, preexec_fn=os.setsid)
 
         error_holder = {}
 
@@ -140,7 +143,6 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         timeout_expiry = eventlet.spawn(on_timeout_expired, self._timeout)
 
         stdout, stderr = process.communicate()
-        LOG.info('Process terminated %s.', process.pid)
         timeout_expiry.cancel()
         error = error_holder.get('error', None)
         exit_code = process.returncode

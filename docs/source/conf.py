@@ -19,6 +19,7 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../st2common'))
+sys.path.insert(0, os.path.abspath('./_themes'))
 
 from st2common import __version__
 
@@ -34,6 +35,9 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
     'sphinx.ext.extlinks',
+
+    # Add theme as extension so sitemap.xml is generated
+    'sphinx_rtd_theme'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -136,7 +140,9 @@ html_theme = "sphinx_rtd_theme"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+html_theme_options = {
+    'base_url': 'http://docs.stackstorm.com/'
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -222,6 +228,11 @@ html_context = {
     'versions': [
         ('latest', 'http://docs.stackstorm.com/latest'),
         (version, 'http://docs.stackstorm.com/%s' % version),
+<<<<<<< HEAD
+=======
+        # TODO(dzimine): get "prev stable version" from somewhere (?)
+        ('0.7', 'http://docs.stackstorm.com/0.7'),
+>>>>>>> rule_trigger_bug_fix
         ('0.6.0', 'http://docs.stackstorm.com/0.6.0')
     ],
     'current_version': version

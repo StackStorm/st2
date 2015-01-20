@@ -13,4 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = '0.7'
+from st2common.exceptions import StackStormBaseException
+
+
+class TriggerDoesNotExistException(StackStormBaseException):
+    pass

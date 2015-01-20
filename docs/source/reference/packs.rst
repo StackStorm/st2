@@ -201,35 +201,43 @@ Pushing a Pack to the Community
 
 "What's better than getting to use your mega-awesome |st2| pack?" Why publishing it to the community and sharing your awesomeness with others. For this purpose we have created the `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__ where you can share and pull other content packs. Submit a pull request! Here are the steps:
 
+1. Fork the |st2| community repository (st2contrib) on Github
 
-1. Clone the |st2| community repo locally
+  * Go to https://github.com/StackStorm/st2contrib and click "Fork" button on
+    the right
 
-.. code-block:: bash
-
-   git clone https://github.com/StackStorm/st2contrib.git
-
-2. Put your pack in the repo
+2. Clone your fork
 
 .. code-block:: bash
 
-   cd st2contrib
+   git clone https://github.com/<your username>/st2contrib.git
+
+3. Create a branch for your changes
+
+.. code-block:: bash
+
+    cd st2contrib
+    git checkout -b my_new_pack
+
+4. Put your pack in the repo
+
+.. code-block:: bash
+
    cp -R ~/hello-st2 ./packs/
 
-3. Create a local commit and push to remote repo.
+5. Create a local commit and push to remote repo
 
 .. code-block:: bash
 
-   # Creating a local branch new/hello-st2
-   git checkout -b new/hello-st2
    git add packs/hello-st2
    git commit -m "My first pack."
-   git push origin new/hello-st2
+   git push origin my_new_pack
 
 4. Create pull request
 
-    * Goto `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__. You will see a yellow banner with a button ``Compare & Pull request``. Click the button.
-    * Fill in details describing the pack. Click the ``Create pull request`` button.
-    * Github will notify us of a new pull request(PR) and we shall review the code, make sure everything looks pristine and merge it in to make your pack publicly available via st2contrib.
+  * Go to `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__. You will see a yellow banner with a button ``Compare & Pull request``. Click the button.
+  * Fill in details describing the pack. Click the ``Create pull request`` button.
+  * Github will notify us of a new pull request(PR) and we shall review the code, make sure everything looks pristine and merge it in to make your pack publicly available via st2contrib.
 
 .. hint:: If you are new to git/GitHub, `here <https://try.github.io/levels/1/challenges/1>`__ is an excellent interactive learning resource.
 

@@ -19,11 +19,8 @@ import mock
 from mongoengine import NotUniqueError
 
 from st2common.models.db.reactor import (TriggerDB, TriggerTypeDB)
-from st2common.models.api.reactor import TriggerAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.persistence.reactor import (TriggerType, Trigger, Rule)
-from st2common.services import triggers as TriggerService
-from st2common.util import reference
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.engine import RulesEngine
@@ -40,19 +37,19 @@ class RuleEngineTest(DbTestCase):
     @mock.patch.object(RuleEnforcer, 'enforce', mock.MagicMock(return_value=True))
     def test_handle_trigger_instances(self):
         trigger_instance_1 = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1', 'pack': 'dummy_pack_1'},
+            'dummy_pack_1.st2.test.trigger1',
             {'k1': 't1_p_v', 'k2': 'v2'},
             datetime.datetime.utcnow()
         )
 
         trigger_instance_2 = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1', 'pack': 'dummy_pack_1'},
+            'dummy_pack_1.st2.test.trigger1',
             {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'},
             datetime.datetime.utcnow()
         )
 
         trigger_instance_3 = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger2', 'pack': 'dummy_pack_1'},
+            'dummy_pack_1.st2.test.trigger2',
             {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'},
             datetime.datetime.utcnow()
         )
@@ -63,7 +60,7 @@ class RuleEngineTest(DbTestCase):
 
     def test_get_matching_rules_filters_disabled_rules(self):
         trigger_instance = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger1', 'pack': 'dummy_pack_1'},
+            'dummy_pack_1.st2.test.trigger1',
             {'k1': 't1_p_v', 'k2': 'v2'}, datetime.datetime.utcnow()
         )
         rules_engine = RulesEngine()
@@ -74,7 +71,7 @@ class RuleEngineTest(DbTestCase):
 
     def test_handle_trigger_instance_no_rules(self):
         trigger_instance = container_utils.create_trigger_instance(
-            {'name': 'st2.test.trigger3', 'pack': 'dummy_pack_1'},
+            'dummy_pack_1.st2.test.trigger3',
             {'k1': 't1_p_v', 'k2': 'v2'},
             datetime.datetime.utcnow()
         )
@@ -146,10 +143,6 @@ class RuleEngineTest(DbTestCase):
         }
         rule_api = RuleAPI(**RULE_1)
         rule_db = RuleAPI.to_model(rule_api)
-        trigger_api = TriggerAPI(**rule_api.trigger)
-        trigger_db = TriggerService.create_trigger_db(trigger_api)
-        trigger_ref = reference.get_str_resource_ref_from_model(trigger_db)
-        rule_db.trigger = trigger_ref
         rule_db = Rule.add_or_update(rule_db)
         rules.append(rule_db)
 
@@ -177,7 +170,6 @@ class RuleEngineTest(DbTestCase):
         }
         rule_api = RuleAPI(**RULE_2)
         rule_db = RuleAPI.to_model(rule_api)
-        rule_db.trigger = trigger_ref
         rule_db = Rule.add_or_update(rule_db)
         rules.append(rule_db)
 
@@ -205,7 +197,6 @@ class RuleEngineTest(DbTestCase):
         }
         rule_api = RuleAPI(**RULE_3)
         rule_db = RuleAPI.to_model(rule_api)
-        rule_db.trigger = trigger_ref
         rule_db = Rule.add_or_update(rule_db)
         rules.append(rule_db)
 
@@ -234,10 +225,6 @@ class RuleEngineTest(DbTestCase):
         }
         rule_api = RuleAPI(**RULE_4)
         rule_db = RuleAPI.to_model(rule_api)
-        trigger_api = TriggerAPI(**rule_api.trigger)
-        trigger_db = TriggerService.create_trigger_db(trigger_api)
-        trigger_ref = reference.get_str_resource_ref_from_model(trigger_db)
-        rule_db.trigger = trigger_ref
         rule_db = Rule.add_or_update(rule_db)
         rules.append(rule_db)
 

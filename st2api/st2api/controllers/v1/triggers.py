@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mongoengine import ValidationError, NotUniqueError
+from mongoengine import ValidationError
 from pecan import abort
 from pecan.rest import RestController
 import six
@@ -21,10 +21,12 @@ import six
 from st2common import log as logging
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.base import jsexpose
+from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance
 from st2common.services import triggers as TriggerService
 from st2api.controllers import resource
 from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 
 http_client = six.moves.http_client
@@ -66,10 +68,10 @@ class TriggerTypeController(resource.ContentPackResourceControler):
             LOG.exception('Validation failed for triggertype data=%s.', triggertype)
             abort(http_client.BAD_REQUEST, str(e))
             return
-        except NotUniqueError as e:
+        except StackStormDBObjectConflictError as e:
             LOG.warn('TriggerType creation of %s failed with uniqueness conflict. Exception : %s',
                      triggertype, str(e))
-            abort(http_client.CONFLICT, str(e))
+            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
             return
         else:
             LOG.audit('TriggerType created. TriggerType=%s', triggertype_db)
@@ -131,7 +133,7 @@ class TriggerTypeController(resource.ContentPackResourceControler):
                 DELETE /triggertypes/pack.name
         """
         LOG.info('DELETE /triggertypes/ with ref_or_id=%s',
-                triggertype_ref_or_id)
+                 triggertype_ref_or_id)
 
         try:
             triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
@@ -167,14 +169,14 @@ class TriggerTypeController(resource.ContentPackResourceControler):
                        'pack': triggertype_db.pack,
                        'type': trigger_type_ref,
                        'parameters': {}}
-            trigger_db = TriggerService.create_trigger_db(trigger)
+            trigger_db = TriggerService.create_or_update_trigger_db(trigger)
             LOG.audit('Trigger created for parameter-less TriggerType. Trigger=%s',
                       trigger_db)
         except (ValidationError, ValueError) as e:
                 LOG.exception('Validation failed for trigger data=%s.', trigger)
                 # Not aborting as this is convenience.
                 return
-        except NotUniqueError as e:
+        except StackStormDBObjectConflictError as e:
             LOG.warn('Trigger creation of %s failed with uniqueness conflict. Exception %s',
                      trigger, str(e))
             # Not aborting as this is convenience.
@@ -183,7 +185,8 @@ class TriggerTypeController(resource.ContentPackResourceControler):
     @staticmethod
     def _delete_shadow_trigger(triggertype_db):
         # shadow Trigger's have the same name as the shadowed TriggerType.
-        trigger_db = TriggerService.get_trigger_db(triggertype_db.name)
+        triggertype_ref = ResourceReference(name=triggertype_db.name, pack=triggertype_db.pack)
+        trigger_db = TriggerService.get_trigger_db_by_ref(triggertype_ref.ref)
         if not trigger_db:
             LOG.warn('No shadow trigger found for %s. Will skip delete.', triggertype_db)
             return
@@ -244,10 +247,10 @@ class TriggerController(RestController):
             LOG.exception('Validation failed for trigger data=%s.', trigger)
             abort(http_client.BAD_REQUEST, str(e))
             return
-        except NotUniqueError as e:
+        except StackStormDBObjectConflictError as e:
             LOG.warn('Trigger creation of %s failed with uniqueness conflict. Exception %s',
                      trigger, str(e))
-            abort(http_client.CONFLICT, str(e))
+            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
             return
 
         LOG.audit('Trigger created. Trigger=%s', trigger_db)
