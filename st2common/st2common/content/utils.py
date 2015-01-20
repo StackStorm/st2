@@ -34,6 +34,11 @@ def get_packs_base_paths():
     :rtype: ``list``
     """
     packs_base_paths = cfg.CONF.content.packs_base_paths or ''
+
+    # Remove trailing colon (if present)
+    if packs_base_paths.endswith(':'):
+        packs_base_paths = packs_base_paths[:-1]
+
     packs_base_paths = packs_base_paths.split(':')
     return packs_base_paths
 
