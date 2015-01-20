@@ -20,7 +20,7 @@ from oslo.config import cfg
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 
 __all__ = [
-    'get_packs_base_paths'
+    'get_packs_base_paths',
     'get_pack_base_path'
 ]
 
@@ -31,7 +31,7 @@ def get_packs_base_paths():
 
     :rtype: ``list``
     """
-    packs_base_paths = cfg.CONF.contentpacks_paths or ''
+    packs_base_paths = cfg.CONF.content.packs_base_paths or ''
     packs_base_paths = packs_base_paths.split(':')
     return packs_base_paths
 
