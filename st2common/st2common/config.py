@@ -96,7 +96,9 @@ def register_opts(ignore_errors=False):
 
     log_opts = [
         cfg.ListOpt('excludes', default='',
-                    help='Exclusion list of loggers to omit.')
+                    help='Exclusion list of loggers to omit.'),
+        cfg.BoolOpt('redirect_stderr', default=False,
+                   help='Controls if stderr should be redirected to the logs.')
     ]
     _do_register_opts(log_opts, 'log', ignore_errors)
 
