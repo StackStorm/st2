@@ -15,10 +15,7 @@
 
 from unittest2 import TestCase
 
-from oslo.config import cfg
-
 from st2common.util.config_parser import ContentPackConfigParser
-import st2tests.base as tests_base
 import st2tests.config as tests_config
 
 
