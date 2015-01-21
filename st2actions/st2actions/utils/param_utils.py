@@ -19,7 +19,9 @@ import six
 
 from jinja2 import Template, Environment, StrictUndefined, meta
 from st2common import log as logging
+from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.exceptions import actionrunner
+from st2common.services.keyvalues import KeyValueLookup
 from st2common.util.compat import to_unicode
 
 
@@ -267,6 +269,8 @@ def get_rendered_params(runner_parameters, action_parameters, runnertype_paramet
     # depend on an action parameter.
     renderable_params, context = _renderable_context_param_split(action_parameters,
                                                                  runner_parameters)
+    # Ability to lookup system params
+    context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
     rendered_params = _do_render_params(renderable_params, context)
     template_free_params = {}
     template_free_params.update(rendered_params)
