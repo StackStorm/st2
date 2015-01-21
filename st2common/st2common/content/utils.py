@@ -29,6 +29,7 @@ __all__ = [
     'check_pack_content_directory_exists'
 ]
 
+
 def get_system_packs_base_path():
     """
     Return a path to the directory where system packs are stored.
