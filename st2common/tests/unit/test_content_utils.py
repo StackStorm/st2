@@ -26,6 +26,7 @@ class ContentUtilsTestCase(unittest2.TestCase):
         tests_config.parse_args()
 
     def test_get_pack_base_paths(self):
+        cfg.CONF.content.system_packs_base_path = ''
         cfg.CONF.content.packs_base_paths = '/opt/path1'
         result = get_packs_base_paths()
         self.assertEqual(result, ['/opt/path1'])
@@ -44,3 +45,9 @@ class ContentUtilsTestCase(unittest2.TestCase):
         cfg.CONF.content.packs_base_paths = '/opt/path1:/opt/path2:/opt/path1:/opt/path2'
         result = get_packs_base_paths()
         self.assertEqual(result, ['/opt/path1', '/opt/path2'])
+
+        # Assert system path is always first
+        cfg.CONF.content.system_packs_base_path = '/opt/system'
+        cfg.CONF.content.packs_base_paths = '/opt/path1'
+        result = get_packs_base_paths()
+        self.assertEqual(result, ['/opt/system', '/opt/path1'])
