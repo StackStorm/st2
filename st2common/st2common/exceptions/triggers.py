@@ -13,25 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
-
-from st2common import transport
-from st2common.models.db import MongoDBAccess
-from st2common.models.db.history import ActionExecutionHistoryDB
-from st2common.persistence.base import Access
+from st2common.exceptions import StackStormBaseException
 
 
-class ActionExecutionHistory(Access):
-    impl = MongoDBAccess(ActionExecutionHistoryDB)
-    publisher = None
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
-
-    @classmethod
-    def _get_publisher(cls):
-        if not cls.publisher:
-            cls.publisher = transport.history.HistoryPublisher(
-                cfg.CONF.messaging.url)
-        return cls.publisher
+class TriggerDoesNotExistException(StackStormBaseException):
+    pass

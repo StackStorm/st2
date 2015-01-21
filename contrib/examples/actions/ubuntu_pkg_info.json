@@ -10,9 +10,6 @@
             "description": "Name of the package for which info is needed.",
             "required": true,
             "position": 0
-        },
-        "sudo": {
-            "immutable": true
         }
     }
 }

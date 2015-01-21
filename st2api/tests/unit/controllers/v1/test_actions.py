@@ -321,6 +321,7 @@ class TestActionController(FunctionalTest):
         post_resp = self.__do_post(ACTION_1, expect_errors=True)
         # Verify name conflict
         self.assertEqual(post_resp.status_int, 409)
+        self.assertEqual(post_resp.json['conflict-id'], action_ids[0])
 
         post_resp = self.__do_post(ACTION_10)
         action_ids.append(self.__get_action_id(post_resp))
