@@ -16,8 +16,6 @@
 import mock
 import six
 
-from unittest2 import TestCase
-
 from st2actions.runners import actionchainrunner as acr
 from st2actions.container.service import RunnerContainerService
 from st2common.exceptions import actionrunner as runnerexceptions
@@ -29,7 +27,6 @@ from st2common.persistence.datastore import KeyValuePair
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 from st2tests import DbTestCase
-import st2tests.config as tests_config
 from st2tests.fixturesloader import FixturesLoader
 
 
@@ -80,57 +77,6 @@ CHAIN_TYPED_PARAMS = FixturesLoader().get_fixture_file_path_abs(
 CHAIN_SYSTEM_PARAMS = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_typed_system_params.json')
 
-CHAIN_EMPTY = {}
-
-
-class TestActionChain(TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        tests_config.parse_args()
-
-    def test_chain_creation_basic(self):
-        action_chain = acr.ActionChain(CHAIN_1)
-
-        expected_node_count = 0
-        expected_link_count = 0
-        for node in CHAIN_1['chain']:
-            expected_node_count += 1
-            if 'on-success' in node:
-                expected_link_count += 1
-            if 'on-failure' in node:
-                expected_link_count += 1
-
-        self.assertEqual(len(action_chain.nodes), expected_node_count)
-
-        link_count = 0
-        for _, links in six.iteritems(action_chain.links):
-            link_count += len(links)
-        self.assertEqual(link_count, expected_link_count)
-
-        self.assertEqual(action_chain.default, CHAIN_1['default'])
-
-    def test_chain_iteration(self):
-        action_chain = acr.ActionChain(CHAIN_1)
-
-        for node in CHAIN_1['chain']:
-            if 'on-success' in node:
-                next_node = action_chain.get_next_node(node['name'], 'on-success')
-                self.assertEqual(next_node.name, node['on-success'])
-            if 'on-failure' in node:
-                next_node = action_chain.get_next_node(node['name'], 'on-failure')
-                self.assertEqual(next_node.name, node['on-failure'])
-
-        default = action_chain.get_next_node()
-        self.assertEqual(type(default), acr.ActionChain.Node)
-        self.assertEqual(default.name, CHAIN_1['default'])
-
-    def test_empty_chain(self):
-        action_chain = acr.ActionChain(CHAIN_EMPTY)
-        self.assertEqual(len(action_chain.nodes), 0)
-        self.assertEqual(len(action_chain.links), 0)
-        self.assertEqual(action_chain.default, '')
-
 
 @mock.patch.object(action_db_util, 'get_runnertype_by_name',
                    mock.MagicMock(return_value=RUNNER))
@@ -162,7 +108,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         # based on the chain the callcount is known to be 3. Not great but works.
         self.assertEqual(schedule.call_count, 3)
 
@@ -180,7 +126,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         # based on the chain the callcount is known to be 3. Not great but works.
         self.assertEqual(schedule.call_count, 3)
 
@@ -196,7 +142,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.pre_run()
         status, _ = chain_runner.run({})
         self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEqual(schedule.call_count, 2)
 
@@ -211,7 +157,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.pre_run()
         status, results = chain_runner.run({})
         self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEqual(schedule.call_count, 2)
         self.assertEqual(len([result['error'] for _, result in six.iteritems(results)]),
@@ -227,7 +173,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, {"p1": "1"})
 
@@ -241,7 +187,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, {"p1": "[2, 3, 4]"})
 
@@ -255,7 +201,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         expected_value = {"p1": {"p1.3": "[3, 4]", "p1.2": "2", "p1.1": "1"}}
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
@@ -271,7 +217,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         expected_values = [{u'p1': u'1'},
                            {u'p1': u'1'},
                            {u'p2': u'1', u'p3': u'1', u'p1': u'1'}]
@@ -292,7 +238,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         expected_values = [{u'p1': u'1'},
                            {u'p1': u'1'},
                            {u'out': u"{u'c2': {'o1': '1'}, u'c1': {'o1': '1'}}"}]
@@ -325,7 +271,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 'two', 's3': 3.14})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         expected_value = {'booltype': True,
                           'inttype': 1,
                           'numbertype': 3.14,
@@ -348,7 +294,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         expected_value = {'inttype': 1,
                           'strtype': 'two'}
         mock_args, _ = schedule.call_args

@@ -28,6 +28,7 @@ from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.db.action import ActionExecutionDB
+from st2common.models.system import actionchain
 from st2common.services import action as action_service
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import action_db as action_db_util
@@ -37,56 +38,63 @@ LOG = logging.getLogger(__name__)
 RESULTS_KEY = '__results'
 
 
-class ActionChain(object):
+class ChainHolder(object):
 
-    class Node(object):
+    def __init__(self, chainspec, chainname):
+        self.actionchain = actionchain.ActionChain(**chainspec)
+        self.chainname = chainname
+        if not self.actionchain.default:
+            default = self._get_default()
+            self.actionchain.default = default
+        LOG.debug('Using %s as default for %s.', self.actionchain.default, self.chainname)
+        if not self.actionchain.default:
+            raise Exception('Failed to find default node in %s.' % (self.chainname))
 
-        def __init__(self, name, action_ref, params):
-            self.name = name
-            self.ref = action_ref
-            self.params = params
+    @staticmethod
+    def _get_default(_actionchain):
+        # default is defined
+        if _actionchain.default:
+            return _actionchain.default
+        # no nodes in chain
+        if not _actionchain.chain:
+            return None
+        # The first node with no references is the default node. Assumptions
+        # that support this are :
+        # 1. There are no loops in the chain. Even if there are loops there is
+        #    at least 1 node which does not end up in this loop.
+        # 2. There are no fragments in the chain.
+        node_names = set([node.name for node in _actionchain.chain])
+        on_success_nodes = set([node.on_success for node in _actionchain.chain])
+        on_failure_nodes = set([node.on_failure for node in _actionchain.chain])
+        referenced_nodes = on_success_nodes | on_failure_nodes
+        possible_default_nodes = node_names - referenced_nodes
+        if possible_default_nodes:
+            return possible_default_nodes[0]
+        # If no node is found assume the first node in the chain list to be default.
+        return _actionchain.chain[0].name
 
-    class Link(object):
-
-        def __init__(self, head, tail, condition):
-            self.head = head
-            self.tail = tail
-            self.condition = condition
-
-    def __init__(self, chainspec):
-        chain = chainspec.get('chain', [])
-        self.default = chainspec.get('default', '')
-        self.nodes = {}
-        self.links = {}
-        for node in chain:
-            node_name = node['name']
-            self.nodes[node_name] = ActionChain.Node(
-                node_name, node['ref'], node['params'])
-            self.links[node_name] = []
-            on_success = node.get('on-success', None)
-            if on_success:
-                self.links[node_name].append(ActionChain.Link(node_name, on_success, 'on-success'))
-            on_failure = node.get('on-failure', None)
-            if on_failure:
-                self.links[node_name].append(ActionChain.Link(node_name, on_failure, 'on-failure'))
+    def get_node(self, node_name=None):
+        for node in self.actionchain.chain:
+            if node.name == node_name:
+                return node
+        return None
 
     def get_next_node(self, curr_node_name=None, condition='on-success'):
         if not curr_node_name:
-            return self.nodes.get(self.default, None)
-        links = self.links.get(curr_node_name, None)
-        if not links:
-            return None
-        for link in links:
-            if link.condition == condition:
-                return self.nodes.get(link.tail, None)
-        return None
+            return self.get_node(self.actionchain.default)
+        current_node = self.get_node(curr_node_name)
+        if condition == 'on-success':
+            return self.get_node(current_node.on_success)
+        elif condition == 'on-failure':
+            return self.get_node(current_node.on_failure)
+        raise runnerexceptions.ActionRunnerException('Unknown condition %s.' % condition)
 
 
 class ActionChainRunner(ActionRunner):
 
     def __init__(self, runner_id):
         super(ActionChainRunner, self).__init__(runner_id=runner_id)
-        self.action_chain = None
+        self.chain_holder = None
         self._meta_loader = MetaLoader()
 
     def pre_run(self):
@@ -95,13 +103,13 @@ class ActionChainRunner(ActionRunner):
                   self.action)
         try:
             chainspec = self._meta_loader.load(chainspec_file)
-            self.action_chain = ActionChain(chainspec)
+            self.chain_holder = ChainHolder(chainspec, self.action_name)
         except Exception as e:
             LOG.exception('Failed to instantiate ActionChain.')
             raise runnerexceptions.ActionRunnerPreRunError(e.message)
 
     def run(self, action_parameters):
-        action_node = self.action_chain.get_next_node()
+        action_node = self.chain_holder.get_next_node()
         results = {}
         fail = True
         while action_node:
@@ -123,9 +131,9 @@ class ActionChainRunner(ActionRunner):
             finally:
                 if not actionexec or actionexec.status == ACTIONEXEC_STATUS_FAILED:
                     fail = True
-                    action_node = self.action_chain.get_next_node(action_node.name, 'on-failure')
+                    action_node = self.chain_holder.get_next_node(action_node.name, 'on-failure')
                 elif actionexec.status == ACTIONEXEC_STATUS_SUCCEEDED:
-                    action_node = self.action_chain.get_next_node(action_node.name, 'on-success')
+                    action_node = self.chain_holder.get_next_node(action_node.name, 'on-success')
 
         status = None
         if fail:
