@@ -21,7 +21,6 @@ from mock import Mock
 from st2common.content.loader import ContentPackLoader
 from st2common.content.loader import LOG
 
-
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
 
@@ -59,6 +58,6 @@ class ContentLoaderTest(unittest2.TestCase):
 
         # Assert that a warning is emitted when a duplicated pack is found
         expected_msg = ('Pack "pack1" already found in '
-                        '"/data/stanley/st2common/tests/resources/packs/", ignoring content from '
-                        '"/data/stanley/st2common/tests/resources/packs2/"')
+                        '"%s/packs/", ignoring content from '
+                        '"%s/packs2/"' % (RESOURCES_DIR,RESOURCES_DIR ))
         LOG.warning.assert_called_once_with(expected_msg)
