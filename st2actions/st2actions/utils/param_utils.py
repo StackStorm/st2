@@ -14,10 +14,11 @@
 # limitations under the License.
 
 import ast
+import copy
 import json
 import six
 
-from jinja2 import Template, Environment, StrictUndefined, meta
+from jinja2 import Template, Environment, StrictUndefined, meta, exceptions
 from st2common import log as logging
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.exceptions import actionrunner
@@ -110,14 +111,18 @@ def get_resolved_params(runnertype_parameter_info, action_parameter_info, action
 def _is_template(template_str):
     template_str = to_unicode(template_str)
     template = Template(template_str)
-    return template_str != template.render({})
+    try:
+        return template_str != template.render({})
+    except exceptions.UndefinedError:
+        return True
 
 
-def _renderable_context_param_split(action_parameters, runner_parameters):
+def _renderable_context_param_split(action_parameters, runner_parameters, base_context=None):
     # To render the params it is necessary to combine the params together so that cross
     # parameter category references are resolved.
     renderable_params = {}
-    context_params = {}
+    # shallow copy since this will be updated
+    context_params = copy.copy(base_context) if base_context else {}
 
     def do_render_context_split(source_params):
         '''
@@ -267,10 +272,10 @@ def get_rendered_params(runner_parameters, action_parameters, runnertype_paramet
     # parameter category references are also rendered correctly. Particularly in the cases where
     # a runner parameter is overridden in an action it is likely that a runner parameter could
     # depend on an action parameter.
+    system_context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
     renderable_params, context = _renderable_context_param_split(action_parameters,
-                                                                 runner_parameters)
-    # Ability to lookup system params
-    context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
+                                                                 runner_parameters,
+                                                                 system_context)
     rendered_params = _do_render_params(renderable_params, context)
     template_free_params = {}
     template_free_params.update(rendered_params)
