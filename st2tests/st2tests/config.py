@@ -59,7 +59,7 @@ def _override_db_opts():
 
 def _override_common_opts():
     packs_base_path = get_fixtures_base_path()
-    CONF.set_override(name='packs_base_paths', override=packs_base_path, group='content')
+    CONF.set_override(name='system_packs_base_path', override=packs_base_path, group='content')
 
 
 def _register_common_opts():
