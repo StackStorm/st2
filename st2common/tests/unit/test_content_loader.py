@@ -59,5 +59,5 @@ class ContentLoaderTest(unittest2.TestCase):
         # Assert that a warning is emitted when a duplicated pack is found
         expected_msg = ('Pack "pack1" already found in '
                         '"%s/packs/", ignoring content from '
-                        '"%s/packs2/"' % (RESOURCES_DIR,RESOURCES_DIR ))
+                        '"%s/packs2/"' % (RESOURCES_DIR, RESOURCES_DIR))
         LOG.warning.assert_called_once_with(expected_msg)
