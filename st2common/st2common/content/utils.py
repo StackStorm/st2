@@ -60,6 +60,7 @@ def get_packs_base_paths():
     packs_base_paths = packs_base_paths.split(':')
 
     result = result + packs_base_paths
+    result = [path for path in result if path]
     result = list(OrderedSet(result))
     return result
 
