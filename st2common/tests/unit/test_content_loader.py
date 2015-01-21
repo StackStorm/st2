@@ -61,3 +61,26 @@ class ContentLoaderTest(unittest2.TestCase):
                         '"%s/packs/", ignoring content from '
                         '"%s/packs2/"' % (RESOURCES_DIR, RESOURCES_DIR))
         LOG.warning.assert_called_once_with(expected_msg)
+
+    def test_get_content_from_pack_success(self):
+        loader = ContentPackLoader()
+        pack_path = os.path.join(RESOURCES_DIR, 'packs/pack1')
+
+        sensors = loader.get_content_from_pack(pack_dir=pack_path, content_type='sensors')
+        self.assertTrue(sensors.endswith('packs/pack1/sensors'))
+
+    def test_get_content_from_pack_directory_doesnt_exist(self):
+        loader = ContentPackLoader()
+        pack_path = os.path.join(RESOURCES_DIR, 'packs/pack100')
+
+        message_regex = 'Directory .*? doesn\'t exist'
+        self.assertRaisesRegexp(ValueError, message_regex, loader.get_content_from_pack,
+                                pack_dir=pack_path, content_type='sensors')
+
+    def test_get_content_from_pack_no_sensors(self):
+        loader = ContentPackLoader()
+        pack_path = os.path.join(RESOURCES_DIR, 'packs/pack2')
+
+        message_regex = 'No sensors found'
+        self.assertRaisesRegexp(ValueError, message_regex, loader.get_content_from_pack,
+                                pack_dir=pack_path, content_type='sensors')

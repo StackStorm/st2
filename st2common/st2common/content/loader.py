@@ -72,7 +72,46 @@ class ContentPackLoader(object):
 
         return content
 
+    def get_content_from_pack(self, pack_dir, content_type):
+        """
+        Retrieve content from the provided pack directory.
+
+        :param pack_dir: Path to the pack directory.
+        :type pack_dir: ``str``
+
+        :param content_type: Content type to look for (sensors, actions, rules).
+        :type content_type: ``str``
+
+        :rtype: ``str``
+        """
+        if content_type not in self.ALLOWED_CONTENT_TYPES:
+            raise ValueError('Unsupported content_type: %s' % (content_type))
+
+        if not os.path.isdir(pack_dir):
+            raise ValueError('Directory "%s" doesn\'t exist' % (pack_dir))
+
+        content = self._get_content_from_pack_dir(pack_dir=pack_dir,
+                                                  content_type=content_type)
+        return content
+
     def _get_content_from_dir(self, base_dir, content_type):
+        content = {}
+        for pack in os.listdir(base_dir):
+            # TODO: Use function from util which escapes the name
+            pack_dir = os.path.join(base_dir, pack)
+
+            # Ignore missing or non directories
+            try:
+                pack_content = self._get_content_from_pack_dir(pack_dir=pack_dir,
+                                                               content_type=content_type)
+            except ValueError:
+                continue
+            else:
+                content[pack] = pack_content
+
+        return content
+
+    def _get_content_from_pack_dir(self, pack_dir, content_type):
         if content_type == 'sensors':
             get_func = self._get_sensors
         elif content_type == 'actions':
@@ -80,24 +119,11 @@ class ContentPackLoader(object):
         elif content_type == 'rules':
             get_func = self._get_rules
 
-        content = {}
-        for pack in os.listdir(base_dir):
-            # TODO: Use function from util which escapes the name
-            pack_dir = os.path.join(base_dir, pack)
+        if not os.path.isdir(pack_dir):
+            raise ValueError('Directory "%s" doesn\'t exist' % (pack_dir))
 
-            if not os.path.isdir(pack_dir):
-                # Skip non directories
-                continue
-
-            pack_content = None
-            try:
-                pack_content = get_func(pack_dir=pack_dir)
-            except ValueError:
-                continue
-            else:
-                content[pack] = pack_content
-
-        return content
+        pack_content = get_func(pack_dir=pack_dir)
+        return pack_content
 
     def _get_sensors(self, pack_dir):
         if 'sensors' not in os.listdir(pack_dir):
