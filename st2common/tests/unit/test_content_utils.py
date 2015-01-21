@@ -48,6 +48,6 @@ class ContentUtilsTestCase(unittest2.TestCase):
 
         # Assert system path is always first
         cfg.CONF.content.system_packs_base_path = '/opt/system'
-        cfg.CONF.content.packs_base_paths = '/opt/path1'
+        cfg.CONF.content.packs_base_paths = '/opt/path2:/opt/path1'
         result = get_packs_base_paths()
-        self.assertEqual(result, ['/opt/system', '/opt/path1'])
+        self.assertEqual(result, ['/opt/system', '/opt/path2', '/opt/path1'])
