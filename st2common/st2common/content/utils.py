@@ -22,11 +22,20 @@ from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common.util.types import OrderedSet
 
 __all__ = [
+    'get_system_packs_base_path',
     'get_packs_base_paths',
     'get_pack_base_path',
     'check_pack_directory_exists',
     'check_pack_content_directory_exists'
 ]
+
+def get_system_packs_base_path():
+    """
+    Return a path to the directory where system packs are stored.
+
+    :rtype: ``str``
+    """
+    return cfg.CONF.content.system_packs_base_path
 
 
 def get_packs_base_paths():
@@ -35,20 +44,23 @@ def get_packs_base_paths():
 
     :rtype: ``list``
     """
+    system_packs_base_path = get_system_packs_base_path()
     packs_base_paths = cfg.CONF.content.packs_base_paths or ''
 
     # Remove trailing colon (if present)
     if packs_base_paths.endswith(':'):
         packs_base_paths = packs_base_paths[:-1]
 
+    result = []
+    # System path is always first
+    if system_packs_base_path:
+        result.append(system_packs_base_path)
+
     packs_base_paths = packs_base_paths.split(':')
 
-    # System path is always first
-    if cfg.CONF.content.system_packs_base_path:
-        packs_base_paths.insert(0, cfg.CONF.content.system_packs_base_path)
-
-    packs_base_paths = list(OrderedSet(packs_base_paths))
-    return packs_base_paths
+    result = result + packs_base_paths
+    result = list(OrderedSet(result))
+    return result
 
 
 def check_pack_directory_exists(pack):
