@@ -39,18 +39,10 @@ class DummyActionExecution(object):
 
 FIXTURES_PACK = 'generic'
 
-TEST_FIXTURES = {
-    'actionchains': ['chain1.json']
-}
-
 TEST_MODELS = {
     'actions': ['a1.json', 'a2.json'],
     'runners': ['testrunner1.json']
 }
-
-FIXTURES = FixturesLoader().load_fixtures(fixtures_pack=FIXTURES_PACK,
-                                          fixtures_dict=TEST_FIXTURES)
-CHAIN_1 = FIXTURES['actionchains']['chain1.json']
 
 MODELS = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
                                       fixtures_dict=TEST_MODELS)
@@ -60,6 +52,8 @@ RUNNER = MODELS['runners']['testrunner1.json']
 
 CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain1.json')
+CHAIN_NO_DEFAULT = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'no_default_chain.json')
 CHAIN_STR_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_str_template.json')
 CHAIN_LIST_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
@@ -109,6 +103,24 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # based on the chain the callcount is known to be 3. Not great but works.
+        self.assertEqual(schedule.call_count, 3)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
+    def test_chain_runner_no_default(self, schedule):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_NO_DEFAULT
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        chain_runner.run({})
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # In case of this chain default_node is the first_node.
+        default_node = chain_runner.chain_holder.actionchain.default
+        first_node = chain_runner.chain_holder.actionchain.chain[0]
+        self.assertEqual(default_node, first_node.name)
         # based on the chain the callcount is known to be 3. Not great but works.
         self.assertEqual(schedule.call_count, 3)
 

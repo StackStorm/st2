@@ -44,7 +44,7 @@ class ChainHolder(object):
         self.actionchain = actionchain.ActionChain(**chainspec)
         self.chainname = chainname
         if not self.actionchain.default:
-            default = self._get_default()
+            default = self._get_default(self.actionchain)
             self.actionchain.default = default
         LOG.debug('Using %s as default for %s.', self.actionchain.default, self.chainname)
         if not self.actionchain.default:
@@ -69,7 +69,7 @@ class ChainHolder(object):
         referenced_nodes = on_success_nodes | on_failure_nodes
         possible_default_nodes = node_names - referenced_nodes
         if possible_default_nodes:
-            return possible_default_nodes[0]
+            return possible_default_nodes.pop()
         # If no node is found assume the first node in the chain list to be default.
         return _actionchain.chain[0].name
 
