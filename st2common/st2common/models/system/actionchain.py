@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import six
+import string
 
 from st2common.util import schema as util_schema
 
@@ -61,6 +62,9 @@ class Node(object):
     def __init__(self, **kw):
         for prop in six.iterkeys(self.schema.get('properties', [])):
             value = kw.get(prop, None)
+            # having '-' in the property name lead to challenges in referencing the property.
+            # At hindsight the schema property should've been on_success rather than on-success.
+            prop = string.replace(prop, '-', '_')
             setattr(self, prop, value)
 
 
