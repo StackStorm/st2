@@ -18,7 +18,6 @@ import six
 from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
-from st2common.content.loader import ContentPackLoader
 from st2common.models.api.rule import RuleAPI
 from st2common.persistence.reactor import Rule
 import st2common.content.utils as content_utils
@@ -33,6 +32,17 @@ LOG = logging.getLogger(__name__)
 
 class RulesRegistrar(ResourceRegistrar):
     ALLOWED_EXTENSIONS = ALLOWED_EXTS
+
+    def register_rules_from_packs(self, base_dirs):
+        content = self._pack_loader.get_content(base_dirs=base_dirs,
+                                                content_type='rules')
+        for pack, rules_dir in six.iteritems(content):
+            try:
+                LOG.info('Registering rules from pack: %s', pack)
+                rules = self._get_rules_from_pack(rules_dir)
+                self._register_rules_from_pack(pack, rules)
+            except:
+                LOG.exception('Failed registering all rules from pack: %s', rules_dir)
 
     def _get_rules_from_pack(self, rules_dir):
         return self._get_resources_from_pack(resources_dir=rules_dir)
@@ -55,18 +65,6 @@ class RulesRegistrar(ResourceRegistrar):
                     LOG.exception('Failed to create rule %s.', rule_api.name)
             except:
                 LOG.exception('Failed registering rule from %s.', rule)
-
-    def register_rules_from_packs(self, base_dirs):
-        pack_loader = ContentPackLoader()
-        content = pack_loader.get_content(base_dirs=base_dirs,
-                                          content_type='rules')
-        for pack, rules_dir in six.iteritems(content):
-            try:
-                LOG.info('Registering rules from pack: %s', pack)
-                rules = self._get_rules_from_pack(rules_dir)
-                self._register_rules_from_pack(pack, rules)
-            except:
-                LOG.exception('Failed registering all rules from pack: %s', rules_dir)
 
 
 def register_rules(packs_base_paths=None):

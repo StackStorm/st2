@@ -19,7 +19,6 @@ import six
 from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
-from st2common.content.loader import ContentPackLoader
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.models.system.common import ResourceReference
@@ -37,6 +36,18 @@ LOG = logging.getLogger(__name__)
 
 class ActionsRegistrar(ResourceRegistrar):
     ALLOWED_EXTENSIONS = ALLOWED_EXTS
+
+    def register_actions_from_packs(self, base_dirs):
+        content = self._pack_loader.get_content(base_dirs=base_dirs,
+                                                content_type='actions')
+
+        for pack, actions_dir in six.iteritems(content):
+            try:
+                LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
+                actions = self._get_actions_from_pack(actions_dir)
+                self._register_actions_from_pack(pack=pack, actions=actions)
+            except:
+                LOG.exception('Failed registering all actions from pack: %s', actions_dir)
 
     def _get_actions_from_pack(self, actions_dir):
         actions = self._get_resources_from_pack(resources_dir=actions_dir)
@@ -87,19 +98,6 @@ class ActionsRegistrar(ResourceRegistrar):
             except Exception:
                 LOG.exception('Unable to register action: %s', action)
                 continue
-
-    def register_actions_from_packs(self, base_dirs):
-        pack_loader = ContentPackLoader()
-        content = pack_loader.get_content(base_dirs=base_dirs,
-                                          content_type='actions')
-
-        for pack, actions_dir in six.iteritems(content):
-            try:
-                LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
-                actions = self._get_actions_from_pack(actions_dir)
-                self._register_actions_from_pack(pack=pack, actions=actions)
-            except:
-                LOG.exception('Failed registering all actions from pack: %s', actions_dir)
 
 
 def register_actions(packs_base_paths=None):
