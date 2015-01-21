@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 
 import six
 
@@ -38,6 +39,10 @@ class ActionsRegistrar(ResourceRegistrar):
     ALLOWED_EXTENSIONS = ALLOWED_EXTS
 
     def register_actions_from_packs(self, base_dirs):
+        """
+        Discover all the packs in the provided directory and register actions from all of the
+        discovered packs.
+        """
         content = self._pack_loader.get_content(base_dirs=base_dirs,
                                                 content_type='actions')
 
@@ -48,6 +53,25 @@ class ActionsRegistrar(ResourceRegistrar):
                 self._register_actions_from_pack(pack=pack, actions=actions)
             except:
                 LOG.exception('Failed registering all actions from pack: %s', actions_dir)
+
+    def register_actions_from_pack(self, pack_dir):
+        """
+        Register all the actions from the provided pack.
+        """
+        _, pack = os.path.split(pack_dir)
+        actions_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
+                                                              content_type='actions')
+
+        if not actions_dir:
+            return None
+
+        LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
+
+        try:
+            actions = self._get_actions_from_pack(actions_dir=actions_dir)
+            self._register_actions_from_pack(pack=pack, actions=actions)
+        except:
+            LOG.exception('Failed registering all actions from pack: %s', actions_dir)
 
     def _get_actions_from_pack(self, actions_dir):
         actions = self._get_resources_from_pack(resources_dir=actions_dir)

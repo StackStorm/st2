@@ -39,17 +39,40 @@ class SensorsRegistrar(ResourceRegistrar):
     ]
 
     def register_sensors_from_packs(self, base_dirs):
+        """
+        Discover all the packs in the provided directory and register sensors from all of the
+        discovered packs.
+        """
         content = self._pack_loader.get_content(base_dirs=base_dirs,
                                                 content_type='sensors')
 
         for pack, sensors_dir in six.iteritems(content):
             try:
-                LOG.info('Registering sensors from pack: %s', pack)
+                LOG.debug('Registering sensors from pack %s:, dir: %s', pack, sensors_dir)
                 sensors = self._get_sensors_from_pack(sensors_dir)
                 self._register_sensors_from_pack(pack=pack, sensors=sensors)
             except Exception as e:
                 LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir,
                               str(e))
+
+    def register_sensors_from_pack(self, pack_dir):
+        """
+        Register all the sensors from the provided pack.
+        """
+        _, pack = os.path.split(pack_dir)
+        sensors_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
+                                                              content_type='sensors')
+
+        if not sensors_dir:
+            return None
+
+        LOG.debug('Registering sensors from pack %s:, dir: %s', pack, sensors_dir)
+
+        try:
+            sensors = self._get_sensors_from_pack(sensors_dir=sensors_dir)
+            self._register_sensors_from_pack(pack=pack, sensors=sensors)
+        except Exception as e:
+            LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir, str(e))
 
     def _get_sensors_from_pack(self, sensors_dir):
         return self._get_resources_from_pack(resources_dir=sensors_dir)

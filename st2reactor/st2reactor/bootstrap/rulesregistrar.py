@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import six
 
 from st2common import log as logging
@@ -43,6 +45,25 @@ class RulesRegistrar(ResourceRegistrar):
                 self._register_rules_from_pack(pack, rules)
             except:
                 LOG.exception('Failed registering all rules from pack: %s', rules_dir)
+
+    def register_rules_from_pack(self, pack_dir):
+        """
+        Register all the rules from the provided pack.
+        """
+        _, pack = os.path.split(pack_dir)
+        rules_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
+                                                            content_type='rules')
+
+        if not rules_dir:
+            return None
+
+        LOG.debug('Registering rules from pack %s:, dir: %s', pack, rules_dir)
+
+        try:
+            rules = self._get_rules_from_pack(rules_dir=rules_dir)
+            self._register_rules_from_pack(pack=pack, rules=rules)
+        except:
+            LOG.exception('Failed registering all rules from pack: %s', rules_dir)
 
     def _get_rules_from_pack(self, rules_dir):
         return self._get_resources_from_pack(resources_dir=rules_dir)
