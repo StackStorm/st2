@@ -40,6 +40,7 @@ def get_packs_base_paths():
         packs_base_paths = packs_base_paths[:-1]
 
     packs_base_paths = packs_base_paths.split(':')
+    packs_base_paths = list(set(packs_base_paths))
     return packs_base_paths
 
 

@@ -39,3 +39,8 @@ class ContentUtilsTestCase(unittest2.TestCase):
         cfg.CONF.content.packs_base_paths = '/opt/path1:/opt/path2:'
         result = get_packs_base_paths()
         self.assertEqual(result, ['/opt/path1', '/opt/path2'])
+
+        # Multiple same paths
+        cfg.CONF.content.packs_base_paths = '/opt/path1:/opt/path2:/opt/path1:/opt/path2'
+        result = get_packs_base_paths()
+        self.assertEqual(result, ['/opt/path1', '/opt/path2'])
