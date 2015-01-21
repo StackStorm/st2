@@ -17,9 +17,9 @@ import os
 import pipes
 
 from oslo.config import cfg
-from sortedcontainers import SortedSet
 
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
+from st2common.util.types import OrderedSet
 
 __all__ = [
     'get_packs_base_paths',
@@ -47,7 +47,7 @@ def get_packs_base_paths():
     if cfg.CONF.content.system_packs_base_path:
         packs_base_paths.insert(0, cfg.CONF.content.system_packs_base_path)
 
-    packs_base_paths = list(SortedSet(packs_base_paths))
+    packs_base_paths = list(OrderedSet(packs_base_paths))
     return packs_base_paths
 
 
