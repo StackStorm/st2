@@ -40,7 +40,7 @@ class Node(object):
             },
             "params": {
                 "type": "object",
-                "description": "query context to be used by querier.",
+                "description": "Parameter for the execution.",
                 "default": {}
             },
             "on-success": {
@@ -84,6 +84,13 @@ class ActionChain(object):
             "default": {
                 "type": "string",
                 "description": "Ref of the action to be executed."
+            },
+            "vars": {
+                "description": "",
+                "type": "object",
+                "patternProperties": {
+                    "^\w+$": {}
+                }
             }
         },
         "additionalProperties": False
