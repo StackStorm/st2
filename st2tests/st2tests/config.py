@@ -118,6 +118,7 @@ def _register_auth_opts():
         cfg.StrOpt('mode', default='proxy'),
         cfg.StrOpt('logging', default='conf/logging.conf'),
         cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.'),
+        cfg.StrOpt('api_url', default='http://localhost:9101/'),
         cfg.BoolOpt('debug', default=True)
     ]
     _register_opts(auth_opts, group='auth')

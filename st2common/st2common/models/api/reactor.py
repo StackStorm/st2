@@ -19,6 +19,7 @@ from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.tag import TagsHelper
 from st2common.models.db.reactor import SensorTypeDB, TriggerTypeDB, TriggerDB, TriggerInstanceDB
+from st2common.models.system.common import ResourceReference
 
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 
@@ -149,14 +150,19 @@ class TriggerAPI(BaseAPI):
     @classmethod
     def to_model(cls, trigger):
         model = super(cls, cls).to_model(trigger)
+        model.pack = getattr(trigger, 'pack', None)
+        model.type = getattr(trigger, 'type', None)
+        model.parameters = getattr(trigger, 'parameters', {})
+
+        if model.type and not model.parameters:
+            triggertype_ref = ResourceReference.from_string_reference(model.type)
+            model.name = triggertype_ref.name
+
         if hasattr(trigger, 'name') and trigger.name:
             model.name = trigger.name
         else:
             # assign a name if none is provided.
             model.name = str(uuid.uuid4())
-        model.pack = getattr(trigger, 'pack', None)
-        model.type = getattr(trigger, 'type', None)
-        model.parameters = getattr(trigger, 'parameters', None)
         return model
 
 
