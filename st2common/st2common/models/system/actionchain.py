@@ -54,6 +54,16 @@ class Node(object):
                 "description": "Name of the node to invoke on failure of action executed for this"
                                " node.",
                 "default": ""
+            },
+            "output": {
+                "description": "The variables to publish from the result. Should be of the form"
+                               " name.foo. o1: {{node_name.foo}} will result in creation of a"
+                               " variable node_name.o1 which is now available for reference through"
+                               " remainder of the chain.",
+                "type": "object",
+                "patternProperties": {
+                    "^\w+$": {}
+                }
             }
         },
         "additionalProperties": False
