@@ -127,17 +127,17 @@ class ContentPackLoader(object):
 
     def _get_sensors(self, pack_dir):
         if 'sensors' not in os.listdir(pack_dir):
-            raise ValueError('No sensors found.')
+            raise ValueError('No sensors found in "%s".' % (pack_dir))
         return os.path.join(pack_dir, 'sensors')
 
     def _get_actions(self, pack_dir):
         if 'actions' not in os.listdir(pack_dir):
-            raise ValueError('No actions found.')
+            raise ValueError('No actions found in "%s".' % (pack_dir))
         return os.path.join(pack_dir, 'actions')
 
     def _get_rules(self, pack_dir):
         if 'rules' not in os.listdir(pack_dir):
-            raise ValueError('No rules found.')
+            raise ValueError('No rules found in "%s".' % (pack_dir))
         return os.path.join(pack_dir, 'rules')
 
 
