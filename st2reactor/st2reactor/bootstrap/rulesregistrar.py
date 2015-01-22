@@ -88,11 +88,18 @@ class RulesRegistrar(ResourceRegistrar):
                 LOG.exception('Failed registering rule from %s.', rule)
 
 
-def register_rules(packs_base_paths=None):
+def register_rules(packs_base_paths=None, pack_dir=None):
     if packs_base_paths:
         assert(isinstance(packs_base_paths, list))
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()
 
-    return RulesRegistrar().register_rules_from_packs(base_dirs=packs_base_paths)
+    registrar = RulesRegistrar()
+
+    if pack_dir:
+        result = registrar.register_rules_from_pack(pack_dir=pack_dir)
+    else:
+        result = registrar.register_rules_from_packs(base_dirs=packs_base_paths)
+
+    return result

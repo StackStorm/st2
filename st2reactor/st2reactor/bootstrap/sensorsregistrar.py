@@ -129,11 +129,18 @@ class SensorsRegistrar(ResourceRegistrar):
             container_utils.add_sensor_model(pack=pack, sensor=sensor_obj)
 
 
-def register_sensors(packs_base_paths=None):
+def register_sensors(packs_base_paths=None, pack_dir=None):
     if packs_base_paths:
         assert(isinstance(packs_base_paths, list))
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()
 
-    return SensorsRegistrar().register_sensors_from_packs(base_dirs=packs_base_paths)
+    registrar = SensorsRegistrar()
+
+    if pack_dir:
+        result = registrar.register_sensors_from_pack(pack_dir=pack_dir)
+    else:
+        result = registrar.register_sensors_from_packs(base_dirs=packs_base_paths)
+
+    return result
