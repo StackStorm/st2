@@ -159,7 +159,8 @@ class ActionChainRunner(ActionRunner):
                 results[action_node.name] = {'error': traceback.format_exc(10)}
             else:
                 # for now append all successful results
-                results[action_node.name] = actionexec.result
+                results[action_node.name] = ActionChainRunner._determine_action_result(
+                    action_node, actionexec.result, results, self.chain_holder.vars)
             finally:
                 if not actionexec or actionexec.status == ACTIONEXEC_STATUS_FAILED:
                     fail = True
@@ -173,6 +174,27 @@ class ActionChainRunner(ActionRunner):
         else:
             status = ACTIONEXEC_STATUS_SUCCEEDED
         return (status, results)
+
+    @staticmethod
+    def _determine_action_result(action_node, execution_result, previous_execution_results,
+                                 chain_vars):
+        """
+        If no output is specified on the action_node the output is the entire execution_result.
+        If any output is specified then only those variables are published as output of an
+        execution of this action_node.
+        The output variable can refer to a variable from the execution_result,
+        previous_execution_results or chain_vars.
+        """
+        if not action_node.output:
+            return execution_result
+        context = {}
+        context.update({action_node.name: execution_result})
+        context.update(previous_execution_results)
+        context.update(chain_vars)
+        context.update({RESULTS_KEY: previous_execution_results})
+        context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
+        rendered_result = render_values(action_node.output, context)
+        return rendered_result
 
     @staticmethod
     def _resolve_params(action_node, original_parameters, results, chain_vars):
