@@ -36,7 +36,7 @@ from oslo.config import cfg
 
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.history import ActionExecutionHistoryAPI
-from st2common.transport import actionexecution, history, publishers
+from st2common.transport import liveaction, history, publishers
 from st2common import log as logging
 
 __all__ = [
@@ -47,7 +47,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 QUEUE = Queue(None,
-              actionexecution.ACTIONEXECUTION_XCHG,
+              liveaction.ACTIONEXECUTION_XCHG,
               routing_key=publishers.ANY_RK,
               exclusive=True)
 
@@ -69,7 +69,7 @@ class Listener(ConsumerMixin):
                      callbacks=[self.processor(ActionExecutionHistoryAPI)]),
 
             consumer(queues=[Queue(None,
-                                   actionexecution.ACTIONEXECUTION_XCHG,
+                                   liveaction.ACTIONEXECUTION_XCHG,
                                    routing_key=publishers.ANY_RK,
                                    exclusive=True)],
                      accept=['pickle'],
