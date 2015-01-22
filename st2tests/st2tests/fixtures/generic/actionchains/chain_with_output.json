@@ -1,0 +1,23 @@
+{
+    "vars": {
+        "strtype": "{{system.a}}",
+        "inttype": 1
+    },
+    "chain": [
+        {
+            "name": "c1",
+            "ref": "wolfpack.a2",
+            "params":
+            {
+                "inttype": "{{inttype}}",
+                "strtype": "{{strtype}}",
+                "booltype": true
+            },
+            "output":
+            {
+                "o1": "{{c1.foo.bar}}"
+            }
+        }
+    ],
+    "default": "c1"
+}
