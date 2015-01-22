@@ -20,7 +20,7 @@ import unittest2
 
 from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
     RuleDB, ActionExecutionSpecDB
-from st2common.models.db.action import ActionDB, ActionExecutionDB
+from st2common.models.db.action import ActionDB, LiveActionDB
 import st2common.services.action as action_service
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
@@ -41,7 +41,7 @@ MOCK_ACTION = ActionDB()
 MOCK_ACTION.id = 'action-test-1.id'
 MOCK_ACTION.name = 'action-test-1.name'
 
-MOCK_ACTION_EXECUTION = ActionExecutionDB()
+MOCK_ACTION_EXECUTION = LiveActionDB()
 MOCK_ACTION_EXECUTION.id = 'actionexec-test-1.id'
 MOCK_ACTION_EXECUTION.name = 'actionexec-test-1.name'
 MOCK_ACTION_EXECUTION.status = 'scheduled'
