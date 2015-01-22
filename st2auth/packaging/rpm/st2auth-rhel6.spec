@@ -23,9 +23,9 @@ sed -i -r "s~logs~/var/log/st2~g" conf/logging.conf
 %install
 
 mkdir -p %{buildroot}/etc/st2auth
-mkdir -p %{buildroot}/usr/local/lib/python2.7
+mkdir -p %{buildroot}/usr/local/lib/python2.7/site-packages/
 mkdir -p %{buildroot}/usr/bin
-cp -R st2auth %{buildroot}/usr/local/lib/python2.7/
+cp -R st2auth %{buildroot}/usr/local/lib/python2.7/site-packages/
 cp -R conf/* %{buildroot}/etc/st2auth
 install -m755 bin/st2auth %{buildroot}/usr/bin/st2auth
 
