@@ -46,6 +46,21 @@ Install st2auth. The configuration file for st2auth should be located at /etc/st
     [auth]
     token_ttl = 2592000
 
+Configuring the API endpoint URL
+--------------------------------
+
+Authentication service also acts as a service catalog. It returns a URL to the API endpoint on
+successful authentication. This information is used by clients such as command line tool and web
+ui.
+
+For this to work, you need to configure ``api_url`` setting in the config file. The setting needs
+to contain a public base URL to the API endpoint (excluding the API version).
+
+For example ::
+
+    [auth]
+    api_url = http://myhost.net:9101/
+
 Follow the example below and create /etc/apache2/sites-available/st2-auth.conf. The following configures st2auth to authenticate users who belong to the st2ops group, with PAM via apache.
 
 .. literalinclude:: ../../../st2auth/conf/apache.sample.conf

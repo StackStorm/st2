@@ -9,6 +9,9 @@ Docs: http://docks.stackstorm.com/latest
 * Allow user to specify current working directory (``cwd`` parameter) when running actions using the
   local or the remote runner (``run-local``, ``run-local-script``, ``run-remote``,
   ``run-remote-script``). (new-feature)
+* Default values of the parameter of an Action can be system values stored in kv-store. (new-feature)
+* Allow users to specify additional paths where StackStorm looks for integration packs using
+  ``packs_base_paths`` setting. (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------
