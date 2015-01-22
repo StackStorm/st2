@@ -59,7 +59,7 @@ def process_create(payload):
 def process_update(payload):
     try:
         if isinstance(payload, LiveActionDB):
-            HISTORIAN.update_LIVE_ACTION_history(payload)
+            HISTORIAN.update_live_action_history(payload)
     except Exception as e:
         print(e)
 

@@ -80,7 +80,7 @@ class Historian(ConsumerMixin):
 
     def process_update(self, body, message):
         try:
-            self._dispatcher.dispatch(self.update_LIVE_ACTION_history, body)
+            self._dispatcher.dispatch(self.update_live_action_history, body)
         finally:
             message.ack()
 
@@ -130,7 +130,7 @@ class Historian(ConsumerMixin):
                           'action execution history.')
             raise
 
-    def update_LIVE_ACTION_history(self, body):
+    def update_live_action_history(self, body):
         try:
             count = self.timeout / self.wait
             # Allow up to 1 minute for the post event to create the history record.
