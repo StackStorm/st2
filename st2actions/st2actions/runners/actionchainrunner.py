@@ -27,7 +27,7 @@ from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
 from st2common.exceptions import actionrunner as runnerexceptions
-from st2common.models.db.action import ActionExecutionDB
+from st2common.models.db.action import LiveActionDB
 from st2common.services import action as action_service
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import action_db as action_db_util
@@ -166,7 +166,7 @@ class ActionChainRunner(ActionRunner):
 
     @staticmethod
     def _run_action(action_ref, parent_execution_id, params, wait_for_completion=True):
-        execution = ActionExecutionDB(action=action_ref)
+        execution = LiveActionDB(action=action_ref)
         execution.parameters = ActionChainRunner._cast_params(action_ref, params)
         execution.context = {'parent': str(parent_execution_id)}
         execution = action_service.schedule(execution)

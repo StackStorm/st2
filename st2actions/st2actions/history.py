@@ -35,12 +35,12 @@ from oslo.config import cfg
 
 from st2common.util import reference
 import st2common.util.action_db as action_utils
-from st2common.transport import actionexecution, publishers
+from st2common.transport import liveaction, publishers
 from st2common.util.greenpooldispatch import BufferedDispatcher
 from st2common.persistence.history import ActionExecutionHistory
-from st2common.persistence.action import RunnerType, ActionExecution
+from st2common.persistence.action import RunnerType, LiveAction
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
-from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
+from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.db.history import ActionExecutionHistoryDB
@@ -50,8 +50,8 @@ from st2common import log as logging
 LOG = logging.getLogger(__name__)
 
 QUEUES = {
-    'create': actionexecution.get_queue('st2.hist.exec.create', routing_key=publishers.CREATE_RK),
-    'update': actionexecution.get_queue('st2.hist.exec.update', routing_key=publishers.UPDATE_RK)
+    'create': liveaction.get_queue('st2.hist.exec.create', routing_key=publishers.CREATE_RK),
+    'update': liveaction.get_queue('st2.hist.exec.update', routing_key=publishers.UPDATE_RK)
 }
 
 
@@ -86,14 +86,14 @@ class Historian(ConsumerMixin):
 
     def record_action_execution(self, body):
         try:
-            execution = ActionExecution.get_by_id(str(body.id))
+            execution = LiveAction.get_by_id(str(body.id))
             action_db = action_utils.get_action_by_ref(execution.action)
             runner = RunnerType.get_by_name(action_db.runner_type['name'])
 
             attrs = {
                 'action': vars(ActionAPI.from_model(action_db)),
                 'runner': vars(RunnerTypeAPI.from_model(runner)),
-                'execution': vars(ActionExecutionAPI.from_model(execution))
+                'execution': vars(LiveActionAPI.from_model(execution))
             }
 
             if 'rule' in execution.context:
@@ -137,8 +137,8 @@ class Historian(ConsumerMixin):
             for i in range(count):
                 history = ActionExecutionHistory.get(execution__id=str(body.id))
                 if history:
-                    execution = ActionExecution.get_by_id(str(body.id))
-                    history.execution = vars(ActionExecutionAPI.from_model(execution))
+                    execution = LiveAction.get_by_id(str(body.id))
+                    history.execution = vars(LiveActionAPI.from_model(execution))
                     history = ActionExecutionHistory.add_or_update(history)
                     return
                 if i >= count:

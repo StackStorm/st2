@@ -23,9 +23,9 @@ from six.moves import http_client
 
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
-from st2common.models.api.action import ActionExecutionAPI
+from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.base import jsexpose
-from st2common.persistence.action import ActionExecution
+from st2common.persistence.action import LiveAction
 from st2common.services import action as action_service
 
 LOG = logging.getLogger(__name__)
@@ -40,8 +40,8 @@ class ActionExecutionsController(ResourceController):
         Implements the RESTful web endpoint that handles
         the lifecycle of ActionExecutions in the system.
     """
-    model = ActionExecutionAPI
-    access = ActionExecution
+    model = LiveActionAPI
+    access = LiveAction
 
     supported_filters = {
         'action': 'action'
@@ -68,7 +68,7 @@ class ActionExecutionsController(ResourceController):
         LOG.info('GET all /actionexecutions/ with filters=%s', kw)
         return self._get_action_executions(**kw)
 
-    @jsexpose(body=ActionExecutionAPI, status_code=http_client.CREATED)
+    @jsexpose(body=LiveActionAPI, status_code=http_client.CREATED)
     def post(self, execution):
         try:
             # Initialize execution context if it does not exist.
@@ -87,9 +87,9 @@ class ActionExecutionsController(ResourceController):
                 execution.context.update(json.loads(context))
 
             # Schedule the action execution.
-            executiondb = ActionExecutionAPI.to_model(execution)
+            executiondb = LiveActionAPI.to_model(execution)
             executiondb = action_service.schedule(executiondb)
-            return ActionExecutionAPI.from_model(executiondb)
+            return LiveActionAPI.from_model(executiondb)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
@@ -100,14 +100,14 @@ class ActionExecutionsController(ResourceController):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    @jsexpose(str, body=ActionExecutionAPI)
+    @jsexpose(str, body=LiveActionAPI)
     def put(self, id, actionexecution):
         try:
-            actionexec_db = ActionExecution.get_by_id(id)
+            actionexec_db = LiveAction.get_by_id(id)
         except:
             msg = 'ActionExecution by id: %s not found.' % id
             pecan.abort(http_client, msg)
-        new_actionexec_db = ActionExecutionAPI.to_model(actionexecution)
+        new_actionexec_db = LiveActionAPI.to_model(actionexecution)
         if actionexec_db.status != new_actionexec_db.status:
             actionexec_db.status = new_actionexec_db.status
         if actionexec_db.result != new_actionexec_db.result:
@@ -115,8 +115,8 @@ class ActionExecutionsController(ResourceController):
         if not actionexec_db.end_timestamp and new_actionexec_db.end_timestamp:
             actionexec_db.end_timestamp = new_actionexec_db.end_timestamp
 
-        actionexec_db = ActionExecution.add_or_update(actionexec_db)
-        actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
+        actionexec_db = LiveAction.add_or_update(actionexec_db)
+        actionexec_api = LiveActionAPI.from_model(actionexec_db)
         return actionexec_api
 
     @jsexpose()

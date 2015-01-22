@@ -23,7 +23,7 @@ from st2actions.container.service import RunnerContainerService
 from st2common import log as logging
 from st2common.constants.action import (ACTIONEXEC_STATUS_FAILED,
                                         ACTIONEXEC_STATUS_SUCCEEDED)
-from st2common.persistence.action import (ActionExecution, ActionExecutionState)
+from st2common.persistence.action import (LiveAction, ActionExecutionState)
 
 LOG = logging.getLogger(__name__)
 DONE_STATES = [ACTIONEXEC_STATUS_FAILED, ACTIONEXEC_STATUS_SUCCEEDED]
@@ -102,12 +102,12 @@ class Querier(object):
         return
 
     def _update_action_results(self, execution_id, status, results):
-        actionexec_db = ActionExecution.get_by_id(execution_id)
+        actionexec_db = LiveAction.get_by_id(execution_id)
         if not actionexec_db:
             raise Exception('No DB model for action_execution_id: %s' % execution_id)
         actionexec_db.result = results
         actionexec_db.status = status
-        updated_exec = ActionExecution.add_or_update(actionexec_db)
+        updated_exec = LiveAction.add_or_update(actionexec_db)
         return updated_exec
 
     def _delete_state_object(self, query_context):

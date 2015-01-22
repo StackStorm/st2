@@ -21,7 +21,7 @@ import six
 from st2common import log as logging
 from st2common.constants.action import (ACTIONEXEC_STATUSES)
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.persistence.action import (RunnerType, Action, ActionExecution)
+from st2common.persistence.action import (RunnerType, Action, LiveAction)
 
 LOG = logging.getLogger(__name__)
 
@@ -107,18 +107,18 @@ def get_action_by_ref(ref):
 
 def get_actionexec_by_id(actionexec_id):
     """
-        Get ActionExecution by id.
+        Get LiveAction by id.
 
         On error, raise ST2DBObjectNotFoundError.
     """
     actionexec = None
 
     try:
-        actionexec = ActionExecution.get_by_id(actionexec_id)
+        actionexec = LiveAction.get_by_id(actionexec_id)
     except (ValidationError, ValueError) as e:
-        LOG.error('Database lookup for actionexecution with id="%s" resulted in '
+        LOG.error('Database lookup for LiveAction with id="%s" resulted in '
                   'exception: %s', actionexec_id, e)
-        raise StackStormDBObjectNotFoundError('Unable to find actionexecution with '
+        raise StackStormDBObjectNotFoundError('Unable to find LiveAction with '
                                               'id="%s"' % actionexec_id)
 
     return actionexec
@@ -127,22 +127,22 @@ def get_actionexec_by_id(actionexec_id):
 def update_actionexecution_status(status=None, result=None, end_timestamp=None, actionexec_id=None,
                                   actionexec_db=None):
     """
-        Update the status of the specified ActionExecution to the value provided in
+        Update the status of the specified LiveAction to the value provided in
         new_status.
 
-        The ActionExecution may be specified using either actionexec_id, or as an
+        The LiveAction may be specified using either actionexec_id, or as an
         actionexec_db instance.
     """
 
     if (actionexec_id is None) and (actionexec_db is None):
         raise ValueError('Must specify an actionexec_id or an actionexec_db when '
-                         'calling update_actionexecution_status')
+                         'calling update_LiveAction_status')
 
     if actionexec_db is None:
         actionexec_db = get_actionexec_by_id(actionexec_id)
 
     if status not in ACTIONEXEC_STATUSES:
-        raise ValueError('Attempting to set status for ActionExecution "%s" '
+        raise ValueError('Attempting to set status for LiveAction "%s" '
                          'to unknown status string. Unknown status is "%s"',
                          actionexec_db, status)
 
@@ -155,8 +155,8 @@ def update_actionexecution_status(status=None, result=None, end_timestamp=None, 
     if end_timestamp:
         actionexec_db.end_timestamp = end_timestamp
 
-    actionexec_db = ActionExecution.add_or_update(actionexec_db)
-    LOG.debug('Updated status for ActionExecution object: %s', actionexec_db)
+    actionexec_db = LiveAction.add_or_update(actionexec_db)
+    LOG.debug('Updated status for LiveAction object: %s', actionexec_db)
     return actionexec_db
 
 
