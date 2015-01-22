@@ -159,7 +159,7 @@ class ActionRunCommand(resource.ResourceCommand):
             return value
 
         action_ref = '.'.join([action.pack, action.name])
-        execution = models.ActionExecution()
+        execution = models.liveaction()
         execution.action = action_ref
         execution.parameters = dict()
         for idx in range(len(args.parameters)):
@@ -209,7 +209,7 @@ class ActionRunCommand(resource.ResourceCommand):
 
             del execution.parameters['_file_name']
 
-        action_exec_mgr = self.app.client.managers['ActionExecution']
+        action_exec_mgr = self.app.client.managers['liveaction']
         execution = action_exec_mgr.create(execution, **kwargs)
 
         if not args.async:
@@ -377,7 +377,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
-            models.ActionExecution, description, app, subparsers,
+            models.liveaction, description, app, subparsers,
             parent_parser=parent_parser, read_only=True,
             commands={'list': ActionExecutionListCommand,
                       'get': ActionExecutionGetCommand})

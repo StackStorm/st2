@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# All Exchanges and Queues related to ActionExecution.
+# All Exchanges and Queues related to liveaction.
 
 from kombu import Exchange, Queue
 from st2common.transport import publishers
 
-LIVEACTION_XCHG = Exchange('st2.actionexecution',
+LIVEACTION_XCHG = Exchange('st2.liveaction',
                            type='topic')
 
 

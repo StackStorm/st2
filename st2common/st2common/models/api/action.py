@@ -203,7 +203,7 @@ class LiveActionAPI(BaseAPI):
 
     model = LiveActionDB
     schema = {
-        "title": "ActionExecution",
+        "title": "liveaction",
         "description": "An execution of an action.",
         "type": "object",
         "properties": {

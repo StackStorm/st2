@@ -86,10 +86,10 @@ class RunnerContainer(object):
         LOG.debug('runner do_run result: %s', liveaction_db.result)
 
         actionsensor.post_trigger(liveaction_db)
-        actionexec_serializable = liveaction_db.to_serializable_dict()
-        LOG.audit('ActionExecution complete.',
-                  extra={'actionexecution': actionexec_serializable})
-        LOG.info('result :\n%s.', json.dumps(actionexec_serializable.get('result', None), indent=4))
+        liveaction_serializable = liveaction_db.to_serializable_dict()
+        LOG.audit('liveaction complete.',
+                  extra={'liveaction': liveaction_serializable})
+        LOG.info('result :\n%s.', json.dumps(liveaction_serializable.get('result', None), indent=4))
 
         return liveaction_db.result
 
@@ -140,8 +140,8 @@ class RunnerContainer(object):
         finally:
             # Always clean-up the auth_token
             updated_liveaction_db = self._update_LIVE_ACTION_db(liveaction_db.id, status,
-                                                                     result)
-            LOG.debug('Updated ActionExecution after run: %s', updated_liveaction_db)
+                                                                result)
+            LOG.debug('Updated liveaction after run: %s', updated_liveaction_db)
             try:
                 self._delete_auth_token(runner.auth_token)
             except:
@@ -161,7 +161,7 @@ class RunnerContainer(object):
         else:
             end_timestamp = None
 
-        # Push result data and updated status to ActionExecution DB
+        # Push result data and updated status to liveaction DB
         liveaction_db = update_liveaction_status(status=status,
                                                  result=result,
                                                  end_timestamp=end_timestamp,

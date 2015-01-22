@@ -20,7 +20,7 @@ from st2tests import DbTestCase
 from st2common.util import isotime
 from st2common.transport.publishers import PoolPublisher
 from st2common.services import action as action_service
-from st2common.persistence.action import RunnerType, Action, ActionExecution
+from st2common.persistence.action import RunnerType, Action, liveaction
 from st2common.models.db.action import ActionExecutionDB
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.models.system.common import ResourceReference
@@ -79,7 +79,7 @@ class TestActionExecutionService(DbTestCase):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
         request = ActionExecutionDB(action=ACTION_REF, context=context, parameters=parameters)
         request = action_service.schedule(request)
-        execution = ActionExecution.get_by_id(str(request.id))
+        execution = liveaction.get_by_id(str(request.id))
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
         action = '.'.join([self.actiondb.pack, self.actiondb.name])

@@ -187,7 +187,7 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         matching_execution = filter(lambda ae: ae['id'] == actionexecution_1_id, resp.json)
         self.assertEqual(len(list(matching_execution)), 1,
-                         '/v1/actionexecutions did not return correct actionexecution.')
+                         '/v1/actionexecutions did not return correct liveaction.')
 
     def test_get_query_with_limit(self):
         self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
@@ -291,11 +291,11 @@ class TestActionExecutionController(FunctionalTest):
     def _do_get_one(self, actionexecution_id, *args, **kwargs):
         return self.app.get('/v1/actionexecutions/%s' % actionexecution_id, *args, **kwargs)
 
-    def _do_post(self, actionexecution, *args, **kwargs):
-        return self.app.post_json('/v1/actionexecutions', actionexecution, *args, **kwargs)
+    def _do_post(self, liveaction, *args, **kwargs):
+        return self.app.post_json('/v1/actionexecutions', liveaction, *args, **kwargs)
 
-    def _do_put(self, id, actionexecution, *args, **kwargs):
-        return self.app.put_json('/v1/actionexecutions/%s' % id, actionexecution, *args, **kwargs)
+    def _do_put(self, id, liveaction, *args, **kwargs):
+        return self.app.put_json('/v1/actionexecutions/%s' % id, liveaction, *args, **kwargs)
 
 
 NOW = isotime.add_utc_tz(datetime.datetime.utcnow())
@@ -335,8 +335,8 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
         cls.app.delete('/v1/actions/%s' % cls.action['id'], headers=headers)
         super(TestActionExecutionControllerAuthEnabled, cls).tearDownClass()
 
-    def _do_post(self, actionexecution, *args, **kwargs):
-        return self.app.post_json('/v1/actionexecutions', actionexecution, *args, **kwargs)
+    def _do_post(self, liveaction, *args, **kwargs):
+        return self.app.post_json('/v1/actionexecutions', liveaction, *args, **kwargs)
 
     @mock.patch.object(
         Token, 'get',

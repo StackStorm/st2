@@ -36,7 +36,7 @@ def _get_resolved_runner_params(runner_parameters, action_parameters,
                                 actionexec_runner_parameters):
     # Runner parameters should use the defaults from the RunnerType object.
     # The runner parameter defaults may be overridden by values provided in
-    # the Action and ActionExecution.
+    # the Action and liveaction.
 
     # Create runner parameter by merging default values with dynamic values
     resolved_params = {k: v['default'] if 'default' in v else None
@@ -55,7 +55,7 @@ def _get_resolved_runner_params(runner_parameters, action_parameters,
             if action_param.get('default', False):
                 resolved_params[param_name] = action_param['default']
 
-            # No further override (from actionexecution) if param is immutable
+            # No further override (from liveaction) if param is immutable
             if action_param.get('immutable', False):
                 continue
 
@@ -92,7 +92,7 @@ def get_resolved_params(runnertype_parameter_info, action_parameter_info, action
     '''
     # Runner parameters should use the defaults from the RunnerType object.
     # The runner parameter defaults may be overridden by values provided in
-    # the Action and ActionExecution.
+    # the Action and liveaction.
     actionexec_runner_parameters, actionexec_action_parameters = _split_params(
         runnertype_parameter_info, action_parameter_info, actionexec_parameters)
     runner_params = _get_resolved_runner_params(runnertype_parameter_info,
