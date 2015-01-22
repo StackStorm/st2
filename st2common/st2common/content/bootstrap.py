@@ -31,7 +31,8 @@ def register_opts():
         cfg.BoolOpt('all', default=False, help='Register sensors, actions and rules.'),
         cfg.BoolOpt('sensors', default=False, help='Register sensors.'),
         cfg.BoolOpt('actions', default=False, help='Register actions.'),
-        cfg.BoolOpt('rules', default=False, help='Register rules.')
+        cfg.BoolOpt('rules', default=False, help='Register rules.'),
+        cfg.StrOpt('pack', default=None, help='Directory to the pack to register content from.')
     ]
     try:
         cfg.CONF.register_cli_opts(content_opts, group='register')
@@ -48,7 +49,7 @@ def register_sensors():
         # Importing here to reduce scope of dependency. This way even if st2reactor
         # is not installed bootstrap continues.
         import st2reactor.bootstrap.sensorsregistrar as sensors_registrar
-        sensors_registrar.register_sensors()
+        sensors_registrar.register_sensors(pack_dir=cfg.CONF.register.pack)
     except Exception as e:
         LOG.warning('Failed to register sensors: %s', e, exc_info=True)
 
@@ -72,7 +73,7 @@ def register_actions():
             # Importing here to reduce scope of dependency. This way even if st2action
             # is not installed bootstrap continues.
             import st2actions.bootstrap.actionsregistrar as actions_registrar
-            actions_registrar.register_actions()
+            actions_registrar.register_actions(pack_dir=cfg.CONF.register.pack)
         except Exception as e:
             LOG.warning('Failed to register actions: %s', e, exc_info=True)
 
@@ -86,7 +87,7 @@ def register_rules():
         # Importing here to reduce scope of dependency. This way even if st2reactor
         # is not installed bootstrap continues.
         import st2reactor.bootstrap.rulesregistrar as rules_registrar
-        rules_registrar.register_rules()
+        rules_registrar.register_rules(pack_dir=cfg.CONF.register.pack)
     except Exception as e:
         LOG.warning('Failed to register rules: %s', e, exc_info=True)
 
