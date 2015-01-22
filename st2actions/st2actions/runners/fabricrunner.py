@@ -80,13 +80,13 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
 
     def pre_run(self):
         LOG.debug('Entering FabricRunner.pre_run() for liveaction_id="%s"',
-                  self.LIVE_ACTION_id)
+                  self.liveaction_id)
         LOG.debug('    runner_parameters = %s', self.runner_parameters)
         hosts = self.runner_parameters.get(RUNNER_HOSTS, '').split(',')
         self._hosts = [h.strip() for h in hosts if len(h) > 0]
         if len(self._hosts) < 1:
             raise ActionRunnerPreRunError('No hosts specified to run action for action %s.',
-                                          self.LIVE_ACTION_id)
+                                          self.liveaction_id)
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._sudo = self._sudo if self._sudo else False
@@ -97,7 +97,7 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
         LOG.info('[FabricRunner="%s", liveaction_id="%s"] Finished pre_run.',
-                 self.runner_id, self.LIVE_ACTION_id)
+                 self.runner_id, self.liveaction_id)
 
     def run(self, action_parameters):
         LOG.debug('    action_parameters = %s', action_parameters)
@@ -128,7 +128,7 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         command = self.runner_parameters.get(RUNNER_COMMAND, None)
         env_vars = self._get_env_vars()
         return FabricRemoteAction(self.action_name,
-                                  str(self.LIVE_ACTION_id),
+                                  str(self.liveaction_id),
                                   command,
                                   env_vars=env_vars,
                                   on_behalf_user=self._on_behalf_user,
@@ -146,9 +146,9 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         env_vars = self._get_env_vars()
         remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
                                                 cfg.CONF.ssh_runner.remote_dir)
-        remote_dir = os.path.join(remote_dir, self.LIVE_ACTION_id)
+        remote_dir = os.path.join(remote_dir, self.liveaction_id)
         return FabricRemoteScriptAction(self.action_name,
-                                        str(self.LIVE_ACTION_id),
+                                        str(self.liveaction_id),
                                         script_local_path_abs,
                                         self.libs_dir_path,
                                         named_args=named_args,

@@ -51,7 +51,7 @@ class ActionRunner(object):
         self.runner_parameters = None
         self.action = None
         self.action_name = None
-        self.LIVE_ACTION_id = None
+        self.liveaction_id = None
         self.entry_point = None
         self.libs_dir_path = None
         self.context = None

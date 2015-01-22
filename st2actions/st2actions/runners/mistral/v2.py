@@ -126,7 +126,7 @@ class MistralRunner(AsyncActionRunner):
         endpoint = 'http://%s:%s/v1/actionexecutions' % (cfg.CONF.api.host, cfg.CONF.api.port)
         options = {
             'st2_api_url': endpoint,
-            'st2_parent': self.LIVE_ACTION_id
+            'st2_parent': self.liveaction_id
         }
 
         # Get workbook/workflow definition from file.

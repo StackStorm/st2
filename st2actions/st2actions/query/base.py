@@ -80,7 +80,7 @@ class Querier(object):
         try:
             (status, results) = self.query(execution_id, actual_query_context)
         except:
-            LOG.exception('Failed querying results for LIVE_ACTION_id %s.', execution_id)
+            LOG.exception('Failed querying results for liveaction_id %s.', execution_id)
             self._delete_state_object(query_context)
             return
 
@@ -89,7 +89,7 @@ class Querier(object):
         try:
             self._update_action_results(execution_id, status, results)
         except Exception:
-            LOG.exception('Failed updating action results for LIVE_ACTION_id %s',
+            LOG.exception('Failed updating action results for liveaction_id %s',
                           execution_id)
             self._delete_state_object(query_context)
             return
@@ -104,7 +104,7 @@ class Querier(object):
     def _update_action_results(self, execution_id, status, results):
         liveaction_db = LiveAction.get_by_id(execution_id)
         if not liveaction_db:
-            raise Exception('No DB model for LIVE_ACTION_id: %s' % execution_id)
+            raise Exception('No DB model for liveaction_id: %s' % execution_id)
         liveaction_db.result = results
         liveaction_db.status = status
         updated_exec = LiveAction.add_or_update(liveaction_db)

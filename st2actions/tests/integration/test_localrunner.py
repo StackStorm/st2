@@ -91,7 +91,7 @@ class TestLocalShellRunner(TestCase):
         runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
-        runner.LIVE_ACTION_id = uuid.uuid4().hex
+        runner.liveaction_id = uuid.uuid4().hex
         runner.entry_point = entry_point
         runner.runner_parameters = {localrunner.RUNNER_COMMAND: cmd,
                                     localrunner.RUNNER_SUDO: sudo,

@@ -111,7 +111,7 @@ class ActionChainRunner(ActionRunner):
                 resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
                                                                     results)
                 liveaction = ActionChainRunner._run_action(action_node.ref,
-                                                           self.LIVE_ACTION_id,
+                                                           self.liveaction_id,
                                                            resolved_params)
             except:
                 LOG.exception('Failure in running action %s.', action_node.name)

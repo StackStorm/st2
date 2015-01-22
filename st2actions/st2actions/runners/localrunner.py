@@ -82,7 +82,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             script_action = False
             command = self.runner_parameters.get(RUNNER_COMMAND, None)
             action = ShellCommandAction(name=self.action_name,
-                                        action_exec_id=str(self.LIVE_ACTION_id),
+                                        action_exec_id=str(self.liveaction_id),
                                         command=command,
                                         user=self._user,
                                         env_vars={},
@@ -95,7 +95,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             named_args = self._transform_named_args(named_args)
 
             action = ShellScriptAction(name=self.action_name,
-                                       action_exec_id=str(self.LIVE_ACTION_id),
+                                       action_exec_id=str(self.liveaction_id),
                                        script_local_path_abs=script_local_path_abs,
                                        named_args=named_args,
                                        positional_args=positional_args,

@@ -103,7 +103,7 @@ class RunnerContainer(object):
         runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
-        runner.LIVE_ACTION_id = str(liveaction_db.id)
+        runner.liveaction_id = str(liveaction_db.id)
         runner.entry_point = resolved_entry_point
         runner.runner_parameters = runner_params
         runner.context = getattr(liveaction_db, 'context', dict())
@@ -197,7 +197,7 @@ class RunnerContainer(object):
             self._create_execution_state(liveaction_id, runnertype_db, query_context)
         except:
             LOG.exception('Unable to create action execution state db model ' +
-                          'for LIVE_ACTION_id %s', liveaction_id)
+                          'for liveaction_id %s', liveaction_id)
 
     def _create_execution_state(self, liveaction_id, runnertype_db, query_context):
         state_db = ActionExecutionStateDB(
@@ -207,7 +207,7 @@ class RunnerContainer(object):
         try:
             return ActionExecutionState.add_or_update(state_db)
         except:
-            LOG.exception('Unable to create execution state db for LIVE_ACTION_id %s.'
+            LOG.exception('Unable to create execution state db for liveaction_id %s.'
                           % liveaction_id)
             return None
 
