@@ -22,15 +22,15 @@ from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.constants.action import (ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_FAILED)
 from st2common.exceptions.actionrunner import ActionRunnerException
-from st2common.transport import actionexecution, publishers
+from st2common.transport import liveaction, publishers
 from st2common.util.action_db import (get_actionexec_by_id, update_actionexecution_status)
 from st2common.util.greenpooldispatch import BufferedDispatcher
 
 LOG = logging.getLogger(__name__)
 
 
-ACTIONRUNNER_WORK_Q = actionexecution.get_queue('st2.actionrunner.work',
-                                                routing_key=publishers.CREATE_RK)
+ACTIONRUNNER_WORK_Q = liveaction.get_queue('st2.actionrunner.work',
+                                           routing_key=publishers.CREATE_RK)
 
 
 class Worker(ConsumerMixin):
@@ -68,15 +68,15 @@ class Worker(ConsumerMixin):
         except:
             LOG.exception('execute_action failed. Message body : %s', body)
 
-    def execute_action(self, actionexecution):
+    def execute_action(self, liveaction):
         try:
-            actionexec_db = get_actionexec_by_id(actionexecution.id)
+            actionexec_db = get_actionexec_by_id(liveaction.id)
         except StackStormDBObjectNotFoundError:
-            LOG.exception('Failed to find ActionExecution %s in the database.',
-                          actionexecution.id)
+            LOG.exception('Failed to find liveaction %s in the database.',
+                          liveaction.id)
             raise
 
-        # Update ActionExecution status to "running"
+        # Update liveaction status to "running"
         actionexec_db = update_actionexecution_status(status=ACTIONEXEC_STATUS_RUNNING,
                                                       actionexec_id=actionexec_db.id)
         # Launch action
