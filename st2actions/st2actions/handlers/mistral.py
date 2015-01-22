@@ -40,17 +40,30 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
 
     @staticmethod
     def callback(url, context, status, result):
+        if status not in [action.ACTIONEXEC_STATUS_SUCCEEDED, action.ACTIONEXEC_STATUS_FAILED]:
+            return
+
         try:
             method = 'PUT'
+            headers = {'content-type': 'application/json'}
+
             if isinstance(result, basestring) and len(result) > 0 and result[0] in ['{', '[']:
                 value = ast.literal_eval(result)
                 if type(value) in [dict, list]:
                     result = value
-            output = json.dumps(result) if type(result) in [dict, list] else str(result)
+
+            if type(result) in [dict, list]:
+                # Remove the list of tasks created by the results
+                # tracker before sending the output.
+                result.pop('tasks', None)
+                output = json.dumps(result)
+            else:
+                output = str(result)
+
             v1 = 'v1' in url
             output_key = 'output' if v1 else 'result'
             data = {'state': STATUS_MAP[status], output_key: output}
-            headers = {'content-type': 'application/json'}
+            LOG.info('Sending callback to %s with data %s.', url, data)
             response = requests.request(method, url, data=json.dumps(data), headers=headers)
             if response.status_code != 200:
                 response.raise_for_status()

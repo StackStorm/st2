@@ -4,6 +4,8 @@ examples.mistral-basic:
     type: direct
     input:
         - cmd
+    output:
+        stdout: $.stdout
     tasks:
         run-cmd:
             action: core.local cmd={$.cmd}

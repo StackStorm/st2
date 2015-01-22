@@ -65,17 +65,29 @@ class TestWorkflowExecution(unittest2.TestCase):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'date'})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution)
+        self.assertIn('stdout', execution.result)
 
     def test_basic_workbook(self):
         execution = self._execute_workflow('examples.mistral-workbook-basic', {'cmd': 'date'})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution)
+        self.assertIn('stdout', execution.result)
 
     def test_complex_workbook(self):
         execution = self._execute_workflow(
             'examples.mistral-workbook-complex', {'vm_name': 'demo1'})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution)
+        self.assertIn('vm_id', execution.result)
+        self.assertIn('vm_state', execution.result)
+
+    def test_complex_workbook_subflow_actions(self):
+        execution = self._execute_workflow(
+            'examples.mistral-workbook-subflows', {'subject': 'st2', 'adjective': 'cool'})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution)
+        self.assertIn('tagline', execution.result)
+        self.assertEqual(execution.result['tagline'], 'st2 is cool!')
 
     def test_execution_failure(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'foo'})
