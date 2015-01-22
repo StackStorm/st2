@@ -38,6 +38,29 @@ LOG = logging.getLogger(__name__)
 RESULTS_KEY = '__results'
 
 
+def render_values(values, context):
+    env = jinja2.Environment(undefined=jinja2.StrictUndefined)
+    rendered_values = {}
+    for k, v in six.iteritems(values):
+        # jinja2 works with string so transform list and dict to strings.
+        reverse_json_dumps = False
+        if isinstance(v, dict) or isinstance(v, list):
+            v = json.dumps(v)
+            reverse_json_dumps = True
+        else:
+            v = str(v)
+        rendered_v = env.from_string(v).render(context)
+        # no change therefore no templatization so pick params from original to retain
+        # original type
+        if rendered_v == v:
+            rendered_values[k] = values[k]
+            continue
+        if reverse_json_dumps:
+            rendered_v = json.loads(rendered_v)
+        rendered_values[k] = rendered_v
+    return rendered_values
+
+
 class ChainHolder(object):
 
     def __init__(self, chainspec, chainname):
@@ -49,6 +72,8 @@ class ChainHolder(object):
         LOG.debug('Using %s as default for %s.', self.actionchain.default, self.chainname)
         if not self.actionchain.default:
             raise Exception('Failed to find default node in %s.' % (self.chainname))
+        # finalize the vars and save them around to be used at execution time.
+        self.vars = self._get_rendered_vars(self.actionchain.vars)
 
     @staticmethod
     def _get_default(_actionchain):
@@ -72,6 +97,13 @@ class ChainHolder(object):
             return possible_default_nodes.pop()
         # If no node is found assume the first node in the chain list to be default.
         return _actionchain.chain[0].name
+
+    @staticmethod
+    def _get_rendered_vars(vars):
+        if not vars:
+            return {}
+        context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
+        return render_values(vars, context)
 
     def get_node(self, node_name=None):
         for node in self.actionchain.chain:
@@ -117,7 +149,7 @@ class ActionChainRunner(ActionRunner):
             fail = False
             try:
                 resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
-                                                                    results)
+                                                                    results, self.chain_holder.vars)
                 actionexec = ActionChainRunner._run_action(action_node.ref,
                                                            self.action_execution_id,
                                                            resolved_params)
@@ -143,32 +175,15 @@ class ActionChainRunner(ActionRunner):
         return (status, results)
 
     @staticmethod
-    def _resolve_params(action_node, original_parameters, results):
+    def _resolve_params(action_node, original_parameters, results, chain_vars):
         # setup context with original parameters and the intermediate results.
         context = {}
         context.update(original_parameters)
         context.update(results)
+        context.update(chain_vars)
         context.update({RESULTS_KEY: results})
         context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
-        env = jinja2.Environment(undefined=jinja2.StrictUndefined)
-        rendered_params = {}
-        for k, v in six.iteritems(action_node.params):
-            # jinja2 works with string so transform list and dict to strings.
-            reverse_json_dumps = False
-            if isinstance(v, dict) or isinstance(v, list):
-                v = json.dumps(v)
-                reverse_json_dumps = True
-            else:
-                v = str(v)
-            rendered_v = env.from_string(v).render(context)
-            # no change therefore no templatization so pick params from original to retain
-            # original type
-            if rendered_v == v:
-                rendered_params[k] = action_node.params[k]
-                continue
-            if reverse_json_dumps:
-                rendered_v = json.loads(rendered_v)
-            rendered_params[k] = rendered_v
+        rendered_params = render_values(action_node.params, context)
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
 
