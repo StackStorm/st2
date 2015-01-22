@@ -19,8 +19,8 @@ import mock
 from oslo.config import cfg
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.system.common import ResourceReference
-from st2common.models.db.action import (ActionExecutionDB, RunnerTypeDB)
-from st2common.persistence.action import (ActionExecution, ActionExecutionState)
+from st2common.models.db.action import (LiveActionDB, RunnerTypeDB)
+from st2common.persistence.action import (LiveAction, ActionExecutionState)
 from st2common.transport.publishers import PoolPublisher
 from st2tests.base import DbTestCase
 import st2tests.config as tests_config
@@ -82,10 +82,10 @@ class RunnerContainerTest(DbTestCase):
             'actionstr': 'bar'
         }
         actionexec_db = self._get_action_exec_db_model(RunnerContainerTest.action_db, params)
-        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+        actionexec_db = LiveAction.add_or_update(actionexec_db)
         # Assert that execution ran successfully.
         runner_container.dispatch(actionexec_db)
-        actionexec_db = ActionExecution.get_by_id(actionexec_db.id)
+        actionexec_db = LiveAction.get_by_id(actionexec_db.id)
         result = actionexec_db.result
         self.assertTrue(result.get('action_params').get('actionint') == 10)
         self.assertTrue(result.get('action_params').get('actionstr') == 'bar')
@@ -96,10 +96,10 @@ class RunnerContainerTest(DbTestCase):
             'actionstr': 'bar'
         }
         actionexec_db = self._get_failingaction_exec_db_model(params)
-        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+        actionexec_db = LiveAction.add_or_update(actionexec_db)
         runner_container.dispatch(actionexec_db)
         # pickup updated actionexec_db
-        actionexec_db = ActionExecution.get_by_id(actionexec_db.id)
+        actionexec_db = LiveAction.get_by_id(actionexec_db.id)
         self.assertTrue('message' in actionexec_db.result)
         self.assertTrue('traceback' in actionexec_db.result)
 
@@ -110,11 +110,11 @@ class RunnerContainerTest(DbTestCase):
             'actionint': 20
         }
         actionexec_db = self._get_action_exec_db_model(RunnerContainerTest.action_db, params)
-        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+        actionexec_db = LiveAction.add_or_update(actionexec_db)
 
         # Assert that execution ran successfully.
         runner_container.dispatch(actionexec_db)
-        actionexec_db = ActionExecution.get_by_id(actionexec_db.id)
+        actionexec_db = LiveAction.get_by_id(actionexec_db.id)
         result = actionexec_db.result
         self.assertTrue(result.get('action_params').get('actionint') == 20)
         self.assertTrue(result.get('action_params').get('actionstr') == 'foo')
@@ -127,7 +127,7 @@ class RunnerContainerTest(DbTestCase):
             'async_test': True
         }
         actionexec_db = self._get_action_exec_db_model(RunnerContainerTest.async_action_db, params)
-        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+        actionexec_db = LiveAction.add_or_update(actionexec_db)
 
         # Assert that execution ran without exceptions.
         runner_container.dispatch(actionexec_db)
@@ -142,7 +142,7 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(found.query_module is not None)
 
     def _get_action_exec_db_model(self, action_db, params):
-        actionexec_db = ActionExecutionDB()
+        actionexec_db = LiveActionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
         actionexec_db.action = ResourceReference(
@@ -153,7 +153,7 @@ class RunnerContainerTest(DbTestCase):
         return actionexec_db
 
     def _get_failingaction_exec_db_model(self, params):
-        actionexec_db = ActionExecutionDB()
+        actionexec_db = LiveActionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.now()
         actionexec_db.action = ResourceReference(

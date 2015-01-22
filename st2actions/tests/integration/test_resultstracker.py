@@ -4,7 +4,7 @@ from kombu import Connection
 from oslo.config import cfg
 
 import st2actions.resultstracker as results_tracker
-from st2common.persistence.action import ActionExecution, ActionExecutionState
+from st2common.persistence.action import LiveAction, ActionExecutionState
 from st2tests.base import (DbTestCase, EventletTestCase)
 from st2tests.fixturesloader import FixturesLoader
 
@@ -34,11 +34,11 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         tracker._bootstrap()
         eventlet.sleep(0.2)
         exec_id = str(ResultsTrackerTests.states['state1.json'].execution_id)
-        exec_db = ActionExecution.get_by_id(exec_id)
+        exec_db = LiveAction.get_by_id(exec_id)
         self.assertTrue(exec_db.result['called_with'][exec_id] is not None,
                         exec_db.result)
         exec_id = str(ResultsTrackerTests.states['state2.json'].execution_id)
-        exec_db = ActionExecution.get_by_id(exec_id)
+        exec_db = LiveAction.get_by_id(exec_id)
         self.assertTrue(exec_db.result['called_with'][exec_id] is not None,
                         exec_db.result)
         tracker.shutdown()

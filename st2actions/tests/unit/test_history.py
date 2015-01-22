@@ -30,14 +30,14 @@ from st2reactor.rules.enforcer import RuleEnforcer
 from st2common.util import reference
 from st2common.transport.publishers import CUDPublisher
 from st2common.services import action as action_service
-from st2common.models.db.action import ActionExecutionDB
+from st2common.models.db.action import LiveActionDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
-from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
+from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 import st2common.util.action_db as action_utils
 from st2common.constants.action import ACTIONEXEC_STATUS_FAILED
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
-from st2common.persistence.action import RunnerType, Action, ActionExecution
+from st2common.persistence.action import RunnerType, Action, LiveAction
 from st2common.persistence.history import ActionExecutionHistory
 
 
@@ -48,7 +48,7 @@ MOCK_FAIL_HISTORY_CREATE = False
 
 def process_create(payload):
     try:
-        if isinstance(payload, ActionExecutionDB):
+        if isinstance(payload, LiveActionDB):
             if not MOCK_FAIL_HISTORY_CREATE:
                 HISTORIAN.record_action_execution(payload)
             CHAMPION.execute_action(payload)
@@ -58,7 +58,7 @@ def process_create(payload):
 
 def process_update(payload):
     try:
-        if isinstance(payload, ActionExecutionDB):
+        if isinstance(payload, LiveActionDB):
             HISTORIAN.update_action_execution_history(payload)
     except Exception as e:
         print(e)
@@ -84,9 +84,9 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         super(TestActionExecutionHistoryWorker, self).tearDown()
 
     def test_basic_execution(self):
-        execution = ActionExecutionDB(action='core.local', parameters={'cmd': 'uname -a'})
+        execution = LiveActionDB(action='core.local', parameters={'cmd': 'uname -a'})
         execution = action_service.schedule(execution)
-        execution = ActionExecution.get_by_id(str(execution.id))
+        execution = LiveAction.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
         history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
         self.assertDictEqual(history.trigger, {})
@@ -97,25 +97,25 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))
-        execution = ActionExecution.get_by_id(str(execution.id))
-        self.assertDictEqual(history.execution, vars(ActionExecutionAPI.from_model(execution)))
+        execution = LiveAction.get_by_id(str(execution.id))
+        self.assertDictEqual(history.execution, vars(LiveActionAPI.from_model(execution)))
 
     def test_basic_execution_history_create_failed(self):
         MOCK_FAIL_HISTORY_CREATE = True     # noqa
         self.test_basic_execution()
 
     def test_chained_executions(self):
-        execution = ActionExecutionDB(action='core.chain')
+        execution = LiveActionDB(action='core.chain')
         execution = action_service.schedule(execution)
-        execution = ActionExecution.get_by_id(str(execution.id))
+        execution = LiveAction.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
         history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
         action = action_utils.get_action_by_ref('core.chain')
         self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))
-        execution = ActionExecution.get_by_id(str(execution.id))
-        self.assertDictEqual(history.execution, vars(ActionExecutionAPI.from_model(execution)))
+        execution = LiveAction.get_by_id(str(execution.id))
+        self.assertDictEqual(history.execution, vars(LiveActionAPI.from_model(execution)))
         self.assertGreater(len(history.children), 0)
         for child in history.children:
             record = ActionExecutionHistory.get(id=child, raise_exception=True)
@@ -143,9 +143,9 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         enforcer.enforce()
 
         # Wait for the action execution to complete and then confirm outcome.
-        execution = ActionExecution.get(context__trigger_instance__id=str(trigger_instance.id))
+        execution = LiveAction.get(context__trigger_instance__id=str(trigger_instance.id))
         self.assertIsNotNone(execution)
-        execution = ActionExecution.get_by_id(str(execution.id))
+        execution = LiveAction.get_by_id(str(execution.id))
         self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
         history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
         self.assertDictEqual(history.trigger, vars(TriggerAPI.from_model(trigger)))
@@ -157,5 +157,5 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))
-        execution = ActionExecution.get_by_id(str(execution.id))
-        self.assertDictEqual(history.execution, vars(ActionExecutionAPI.from_model(execution)))
+        execution = LiveAction.get_by_id(str(execution.id))
+        self.assertDictEqual(history.execution, vars(LiveActionAPI.from_model(execution)))

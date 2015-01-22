@@ -20,7 +20,7 @@ import mock
 import st2actions.utils.param_utils as param_utils
 from st2common.exceptions import actionrunner
 from st2common.models.system.common import ResourceReference
-from st2common.models.db.action import ActionExecutionDB
+from st2common.models.db.action import LiveActionDB
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
 from unittest2 import TestCase
@@ -260,7 +260,7 @@ class ParamsUtilsTest(TestCase):
         self.assertTrue(test_pass)
 
     def _get_action_exec_db_model(self, params):
-        actionexec_db = ActionExecutionDB()
+        actionexec_db = LiveActionDB()
         actionexec_db.status = 'initializing'
         actionexec_db.start_timestamp = datetime.datetime.utcnow()
         actionexec_db.action = ResourceReference(name=ParamsUtilsTest.action_db.name,
