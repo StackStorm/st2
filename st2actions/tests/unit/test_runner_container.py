@@ -17,6 +17,7 @@ import datetime
 import mock
 
 from oslo.config import cfg
+from st2actions.runners import get_runner
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.action import (ActionExecutionDB, RunnerTypeDB)
@@ -31,7 +32,7 @@ from st2tests.fixturesloader import FixturesLoader
 # XXX: There is dependency on config being setup before importing
 # RunnerContainer. Do not move this until you fix config
 # dependencies.
-from st2actions.container.base import RunnerContainer, get_runner_container
+from st2actions.container.base import get_runner_container
 
 TEST_FIXTURES = {
     'runners': ['testrunner1.json', 'testfailingrunner1.json', 'testasyncrunner1.json'],
@@ -61,17 +62,15 @@ class RunnerContainerTest(DbTestCase):
 
     def test_get_runner_module(self):
         runnertype_db = RunnerContainerTest.runnertype_db
-        runner_container = RunnerContainer()
-        runner = runner_container._get_runner(runnertype_db)
+        runner = get_runner(runnertype_db.runner_module)
         self.assertTrue(runner is not None, 'TestRunner must be valid.')
 
     def test_get_runner_module_fail(self):
         runnertype_db = RunnerTypeDB()
         runnertype_db.runner_module = 'absent.module'
-        runner_container = RunnerContainer()
         runner = None
         try:
-            runner = runner_container._get_runner(runnertype_db)
+            runner = get_runner(runnertype_db.runner_module)
         except ActionRunnerCreateError:
             pass
         self.assertFalse(runner, 'TestRunner must be valid.')
