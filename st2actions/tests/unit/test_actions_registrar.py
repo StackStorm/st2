@@ -40,7 +40,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         try:
             packs_base_path = fixtures_loader.get_fixtures_base_path()
             all_actions_in_db = Action.get_all()
-            actions_registrar.register_actions(packs_base_path=packs_base_path)
+            actions_registrar.register_actions(packs_base_paths=[packs_base_path])
         except Exception as e:
             print(str(e))
             self.fail('All actions must be registered without exceptions.')
@@ -51,7 +51,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
     def test_register_actions_from_bad_pack(self):
         packs_base_path = tests_base.get_fixtures_path()
         try:
-            actions_registrar.register_actions(packs_base_path=packs_base_path)
+            actions_registrar.register_actions(packs_base_paths=[packs_base_path])
             self.fail('Should have thrown.')
         except:
             pass

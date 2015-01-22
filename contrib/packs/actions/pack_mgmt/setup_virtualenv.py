@@ -9,6 +9,7 @@ from st2common.util.shell import run_command
 from st2actions.runners.pythonrunner import Action
 from st2common.constants.pack import PACK_NAME_WHITELIST
 from st2common.constants.pack import BASE_PACK_REQUIREMENTS
+from st2common.content.utils import get_system_packs_base_path
 
 
 class SetupVirtualEnvironmentAction(Action):
@@ -26,7 +27,7 @@ class SetupVirtualEnvironmentAction(Action):
         super(SetupVirtualEnvironmentAction, self).__init__(config=config)
         self.initialize()
 
-        self._base_packs_path = cfg.CONF.content.packs_base_path
+        self._base_packs_path = get_system_packs_base_path()
         self._base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path,
                                                    'virtualenvs/')
 

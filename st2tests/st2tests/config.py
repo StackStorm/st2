@@ -17,6 +17,7 @@ from oslo.config import cfg
 
 from st2common import log as logging
 import st2common.config as common_config
+from st2tests.fixturesloader import get_fixtures_base_path
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -41,6 +42,7 @@ def _setup_config_opts():
 
 def _override_config_opts():
     _override_db_opts()
+    _override_common_opts()
 
 
 def _register_config_opts():
@@ -53,6 +55,11 @@ def _register_config_opts():
 
 def _override_db_opts():
     CONF.set_override(name='db_name', override='st2-test', group='database')
+
+
+def _override_common_opts():
+    packs_base_path = get_fixtures_base_path()
+    CONF.set_override(name='system_packs_base_path', override=packs_base_path, group='content')
 
 
 def _register_common_opts():
