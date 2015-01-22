@@ -185,7 +185,7 @@ class ActionChainRunner(ActionRunner):
         The output variable can refer to a variable from the execution_result,
         previous_execution_results or chain_vars.
         """
-        if not action_node.output:
+        if not action_node.publish:
             return execution_result
         context = {}
         context.update({action_node.name: execution_result})
@@ -193,7 +193,7 @@ class ActionChainRunner(ActionRunner):
         context.update(chain_vars)
         context.update({RESULTS_KEY: previous_execution_results})
         context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
-        rendered_result = render_values(action_node.output, context)
+        rendered_result = render_values(action_node.publish, context)
         return rendered_result
 
     @staticmethod

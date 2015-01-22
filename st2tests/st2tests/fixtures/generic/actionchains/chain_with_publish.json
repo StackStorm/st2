@@ -13,7 +13,7 @@
                 "strtype": "{{strtype}}",
                 "booltype": true
             },
-            "output":
+            "publish":
             {
                 "o1": "{{c1.foo.bar}}"
             },

@@ -22,7 +22,7 @@ from st2tests.fixturesloader import FixturesLoader
 FIXTURES_PACK = 'generic'
 TEST_FIXTURES = {
     'actionchains': ['chain1.json', 'malformedchain.json', 'no_default_chain.json',
-                     'chain_with_vars.json', 'chain_with_output.json']
+                     'chain_with_vars.json', 'chain_with_publish.json']
 }
 FIXTURES = FixturesLoader().load_fixtures(fixtures_pack=FIXTURES_PACK,
                                           fixtures_dict=TEST_FIXTURES)
@@ -30,7 +30,7 @@ CHAIN_1 = FIXTURES['actionchains']['chain1.json']
 MALFORMED_CHAIN = FIXTURES['actionchains']['malformedchain.json']
 NO_DEFAULT_CHAIN = FIXTURES['actionchains']['no_default_chain.json']
 CHAIN_WITH_VARS = FIXTURES['actionchains']['chain_with_vars.json']
-CHAIN_WITH_OUTPUT = FIXTURES['actionchains']['chain_with_output.json']
+CHAIN_WITH_PUBLISH = FIXTURES['actionchains']['chain_with_publish.json']
 
 
 class ActionChainSchemaTest(unittest2.TestCase):
@@ -50,10 +50,11 @@ class ActionChainSchemaTest(unittest2.TestCase):
         self.assertEquals(len(chain.chain), len(CHAIN_WITH_VARS['chain']))
         self.assertEquals(len(chain.vars), len(CHAIN_WITH_VARS['vars']))
 
-    def test_actionchain_with_output(self):
-        chain = actionchain.ActionChain(**CHAIN_WITH_OUTPUT)
-        self.assertEquals(len(chain.chain), len(CHAIN_WITH_OUTPUT['chain']))
-        self.assertEquals(len(chain.chain[0].output), len(CHAIN_WITH_OUTPUT['chain'][0]['output']))
+    def test_actionchain_with_publish(self):
+        chain = actionchain.ActionChain(**CHAIN_WITH_PUBLISH)
+        self.assertEquals(len(chain.chain), len(CHAIN_WITH_PUBLISH['chain']))
+        self.assertEquals(len(chain.chain[0].publish),
+                          len(CHAIN_WITH_PUBLISH['chain'][0]['publish']))
 
     def test_actionchain_schema_invalid(self):
         with self.assertRaises(ValidationError):
