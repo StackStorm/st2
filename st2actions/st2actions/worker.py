@@ -23,7 +23,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.constants.action import (ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_FAILED)
 from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.transport import liveaction, publishers
-from st2common.util.action_db import (get_actionexec_by_id, update_actionexecution_status)
+from st2common.util.action_db import (get_actionexec_by_id, update_liveaction_status)
 from st2common.util.greenpooldispatch import BufferedDispatcher
 
 LOG = logging.getLogger(__name__)
@@ -77,8 +77,8 @@ class Worker(ConsumerMixin):
             raise
 
         # Update liveaction status to "running"
-        actionexec_db = update_actionexecution_status(status=ACTIONEXEC_STATUS_RUNNING,
-                                                      actionexec_id=actionexec_db.id)
+        actionexec_db = update_liveaction_status(status=ACTIONEXEC_STATUS_RUNNING,
+                                                 actionexec_id=actionexec_db.id)
         # Launch action
         LOG.audit('Launching action execution.',
                   extra={'actionexec': actionexec_db.to_serializable_dict()})
@@ -87,8 +87,8 @@ class Worker(ConsumerMixin):
             result = self.container.dispatch(actionexec_db)
             LOG.debug('Runner dispatch produced result: %s', result)
         except Exception:
-            actionexec_db = update_actionexecution_status(status=ACTIONEXEC_STATUS_FAILED,
-                                                          actionexec_id=actionexec_db.id)
+            actionexec_db = update_liveaction_status(status=ACTIONEXEC_STATUS_FAILED,
+                                                     actionexec_id=actionexec_db.id)
             raise
 
         if not result:

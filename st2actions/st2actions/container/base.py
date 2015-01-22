@@ -28,7 +28,7 @@ from st2common.models.db.action import ActionExecutionStateDB
 from st2common.persistence.action import ActionExecutionState
 from st2common.services import access
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
-from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
+from st2common.util.action_db import (update_liveaction_status, get_actionexec_by_id)
 
 from st2actions.container import actionsensor
 from st2actions.container.service import RunnerContainerService
@@ -162,10 +162,10 @@ class RunnerContainer(object):
             end_timestamp = None
 
         # Push result data and updated status to ActionExecution DB
-        actionexec_db = update_actionexecution_status(status=status,
-                                                      result=result,
-                                                      end_timestamp=end_timestamp,
-                                                      actionexec_db=actionexec_db)
+        actionexec_db = update_liveaction_status(status=status,
+                                                 result=result,
+                                                 end_timestamp=end_timestamp,
+                                                 actionexec_db=actionexec_db)
         return actionexec_db
 
     def _get_entry_point_abs_path(self, pack, entry_point):
