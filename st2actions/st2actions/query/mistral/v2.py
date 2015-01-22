@@ -4,6 +4,7 @@ from oslo.config import cfg
 import requests
 
 from st2actions.query.base import Querier
+from st2common.util import jsonify
 from st2common import log as logging
 from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED,
                                         ACTIONEXEC_STATUS_RUNNING)
@@ -39,42 +40,68 @@ class MistralResultsQuerier(Querier):
         if not exec_id:
             raise Exception('Mistral execution id invalid in query_context %s.' %
                             str(query_context))
-        url = self._get_execution_status_url(exec_id)
-        resp = requests.get(url)
-        try:
-            status = self._get_workflow_status(resp.json())
-        except:
-            LOG.exception('Exception trying to get workflow status for query context: %s.' +
-                          ' Will skip query.', query_context)
-            raise
-        url = self._get_execution_results_url(exec_id)
-        resp = requests.get(url)
-        LOG.debug('Mistral query results: %s' % resp.json())
-        return (status, resp.json())
 
-    def _get_execution_results_url(self, exec_id):
+        try:
+            status, output = self._get_workflow_result(exec_id)
+            if output and 'tasks' in output:
+                LOG.warn('Key conflict with tasks in the workflow output.')
+        except:
+            LOG.exception('Exception trying to get workflow status and output for '
+                          'query context: %s. Will skip query.', query_context)
+            raise
+
+        result = output or {}
+        result['tasks'] = self._get_workflow_tasks(exec_id)
+
+        LOG.debug('Mistral query results: %s' % result)
+
+        return (status, result)
+
+    def _get_execution_tasks_url(self, exec_id):
         return self._base_url + 'executions/' + exec_id + '/tasks'
 
-    def _get_execution_status_url(self, exec_id):
+    def _get_execution_url(self, exec_id):
         return self._base_url + 'executions/' + exec_id
 
-    def _get_workflow_status(self, execution_obj):
+    def _get_workflow_result(self, exec_id):
         """
-        Returns st2 status given mistral status.
+        Returns the workflow status and output. Mistral workflow status will be converted
+        to st2 action status.
 
-        :param execution_obj: Object representing the results of API call v2/executions/${id}/tasks
-        :type execution_obj: ``object``
+        :param exec_id: Mistral execution ID
+        :type exec_id: ``str``
 
-        :rtype: ``str``
+        :rtype: (``str``, ``dict``)
         """
-        workflow_state = execution_obj.get('state', None)
+        url = self._get_execution_url(exec_id)
+        resp = requests.get(url)
+        execution = resp.json()
+
+        workflow_state = execution.get('state', None)
+
         if not workflow_state:
-            raise Exception('Workflow status unknown for mistral execution id %s.'
-                            % execution_obj.get('id', None))
-        if workflow_state in DONE_STATES:
-            return DONE_STATES[workflow_state]
+            raise Exception('Workflow status unknown for mistral execution id %s.' % exec_id)
 
-        return ACTIONEXEC_STATUS_RUNNING
+        if workflow_state in DONE_STATES:
+            workflow_output = jsonify.try_loads(execution.get('output', {}))
+            return (DONE_STATES[workflow_state], workflow_output)
+
+        return (ACTIONEXEC_STATUS_RUNNING, None)
+
+    def _get_workflow_tasks(self, exec_id):
+        """
+        Returns the list of tasks for a workflow execution.
+
+        :param exec_id: Mistral execution ID
+        :type exec_id: ``str``
+
+        :rtype: ``list``
+        """
+        url = self._get_execution_tasks_url(exec_id)
+        resp = requests.get(url)
+        result = resp.json()
+        tasks = result.get('tasks', [])
+        return tasks
 
 
 def get_instance():

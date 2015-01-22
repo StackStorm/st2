@@ -14,12 +14,15 @@
 # limitations under the License.
 
 import abc
+import importlib
 
 import six
 
 from st2actions import handlers
 from st2common import log as logging
+from st2common.exceptions.actionrunner import ActionRunnerCreateError
 import st2common.util.action_db as action_utils
+
 
 __all__ = [
     'ActionRunner',
@@ -31,6 +34,23 @@ LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters
 RUNNER_COMMAND = 'cmd'
+
+
+def get_runner(module_name):
+    """Load the module and return an instance of the runner."""
+
+    LOG.debug('Runner loading python module: %s', module_name)
+    try:
+        module = importlib.import_module(module_name, package=None)
+    except Exception as e:
+        LOG.exception('Failed to import module %s.', module_name)
+        raise ActionRunnerCreateError(e)
+
+    LOG.debug('Instance of runner module: %s', module)
+
+    runner = module.get_runner()
+    LOG.debug('Instance of runner: %s', runner)
+    return runner
 
 
 @six.add_metaclass(abc.ABCMeta)

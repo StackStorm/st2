@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import importlib
 import json
 import sys
 import traceback
@@ -21,7 +20,6 @@ import datetime
 
 from st2common import log as logging
 from st2common.util import isotime
-from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED,
                                         ACTIONEXEC_STATUS_FAILED)
 from st2common.models.db.action import ActionExecutionStateDB
@@ -32,7 +30,7 @@ from st2common.util.action_db import (update_actionexecution_status, get_actione
 
 from st2actions.container import actionsensor
 from st2actions.container.service import RunnerContainerService
-from st2actions.runners import AsyncActionRunner
+from st2actions.runners import get_runner, AsyncActionRunner
 from st2actions.utils import param_utils
 
 LOG = logging.getLogger(__name__)
@@ -44,26 +42,6 @@ class RunnerContainer(object):
     def __init__(self):
         LOG.info('Action RunnerContainer instantiated.')
         self._pending = []
-
-    def _get_runner(self, runnertype_db):
-        """
-            Load the module specified by the runnertype_db.runner_module field and
-            return an instance of the runner.
-        """
-
-        module_name = runnertype_db.runner_module
-        LOG.debug('Runner loading python module: %s', module_name)
-        try:
-            module = importlib.import_module(module_name, package=None)
-        except Exception as e:
-            LOG.exception('Failed to import module %s.', module_name)
-            raise ActionRunnerCreateError(e)
-
-        LOG.debug('Instance of runner module: %s', module)
-
-        runner = module.get_runner()
-        LOG.debug('Instance of runner: %s', runner)
-        return runner
 
     def dispatch(self, actionexec_db):
         action_db = get_action_by_ref(actionexec_db.action)
@@ -78,7 +56,7 @@ class RunnerContainer(object):
         LOG.debug('    RunnerType: %s', runnertype_db)
 
         # Get runner instance.
-        runner = self._get_runner(runnertype_db)
+        runner = get_runner(runnertype_db.runner_module)
         LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Invoke pre_run, run, post_run cycle.
