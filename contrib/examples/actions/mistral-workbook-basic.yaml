@@ -6,6 +6,8 @@ workflows:
         type: direct
         input:
             - cmd
+        output:
+            stdout: $.stdout
         tasks:
             run-cmd:
                 action: core.local
