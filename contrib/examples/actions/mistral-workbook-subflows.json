@@ -1,0 +1,18 @@
+{
+    "name": "mistral-workbook-subflows",
+    "pack": "examples",
+    "runner_type": "mistral-v2",
+    "description": "Test the output for a series of mistral-basic workflows.",
+    "enabled": true,
+    "entry_point":"mistral-workbook-subflows.yaml",
+    "parameters": {
+        "subject": {
+            "type": "string",
+            "default": "StackStorm"
+        },
+        "adjective": {
+            "type": "string",
+            "default": "awesome"
+        }
+    }
+}

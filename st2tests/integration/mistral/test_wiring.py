@@ -81,6 +81,14 @@ class TestWorkflowExecution(unittest2.TestCase):
         self.assertIn('vm_id', execution.result)
         self.assertIn('vm_state', execution.result)
 
+    def test_complex_workbook_subflow_actions(self):
+        execution = self._execute_workflow(
+            'examples.mistral-workbook-subflows', {'subject': 'st2', 'adjective': 'cool'})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution)
+        self.assertIn('tagline', execution.result)
+        self.assertEqual(execution.result['tagline'], 'st2 is cool!')
+
     def test_execution_failure(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'foo'})
         execution = self._wait_for_completion(execution)
