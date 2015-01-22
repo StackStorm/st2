@@ -20,6 +20,7 @@ except ImportError:
 
 
 from pecan.jsonify import GenericJSON
+import six
 
 
 __all__ = [
@@ -61,3 +62,10 @@ def json_loads(obj, keys=None):
         except:
             pass
     return obj
+
+
+def try_loads(s):
+    try:
+        return json.loads(s) if s and isinstance(s, six.string_types) else s
+    except:
+        return s

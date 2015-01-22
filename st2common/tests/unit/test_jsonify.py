@@ -23,3 +23,14 @@ class JsonifyTests(unittest2.TestCase):
         obj = {'foo': '{"bar": "baz"}', 'yo': 'bibimbao'}
         transformed_obj = jsonify.json_loads(obj, ['yo'])
         self.assertTrue(transformed_obj['yo'] == 'bibimbao')
+
+    def test_try_loads(self):
+        # The function json.loads will fail and the function should return the original value.
+        values = ['abc', 123, True, object()]
+        for value in values:
+            self.assertEqual(jsonify.try_loads(value), value)
+
+        # The function json.loads succeed.
+        d = '{"a": 1, "b": true}'
+        expected = {'a': 1, 'b': True}
+        self.assertDictEqual(jsonify.try_loads(d), expected)
