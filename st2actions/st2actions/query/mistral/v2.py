@@ -5,12 +5,12 @@ import requests
 
 from st2actions.query.base import Querier
 from st2common import log as logging
-from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED,
-                                        ACTIONEXEC_STATUS_RUNNING)
+from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED,
+                                        LIVEACTION_STATUS_RUNNING)
 
 LOG = logging.getLogger(__name__)
 
-DONE_STATES = {'ERROR': ACTIONEXEC_STATUS_FAILED, 'SUCCESS': ACTIONEXEC_STATUS_SUCCEEDED}
+DONE_STATES = {'ERROR': LIVEACTION_STATUS_FAILED, 'SUCCESS': LIVEACTION_STATUS_SUCCEEDED}
 
 
 def get_query_instance():
@@ -74,7 +74,7 @@ class MistralResultsQuerier(Querier):
         if workflow_state in DONE_STATES:
             return DONE_STATES[workflow_state]
 
-        return ACTIONEXEC_STATUS_RUNNING
+        return LIVEACTION_STATUS_RUNNING
 
 
 def get_instance():

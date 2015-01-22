@@ -22,7 +22,7 @@ from oslo.config import cfg
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
-from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 
 LOG = logging.getLogger(__name__)
 SUCCESS_STATUS_CODES = [code for code in range(200, 207)]
@@ -59,7 +59,7 @@ class HttpRunner(ActionRunner):
         self._timeout = 60
 
     def pre_run(self):
-        LOG.debug('Entering HttpRunner.pre_run() for actionexec_id="%s"', self.action_execution_id)
+        LOG.debug('Entering HttpRunner.pre_run() for liveaction_id="%s"', self.LIVE_ACTION_id)
         LOG.debug('    runner_parameters = %s', self.runner_parameters)
         self._on_behalf_user = self.runner_parameters.get(RUNNER_ON_BEHALF_USER,
                                                           self._on_behalf_user)
@@ -132,8 +132,8 @@ class HttpRunner(ActionRunner):
 
     @staticmethod
     def _get_result_status(status_code):
-        return ACTIONEXEC_STATUS_SUCCEEDED if status_code in SUCCESS_STATUS_CODES \
-            else ACTIONEXEC_STATUS_FAILED
+        return LIVEACTION_STATUS_SUCCEEDED if status_code in SUCCESS_STATUS_CODES \
+            else LIVEACTION_STATUS_FAILED
 
 
 class HTTPClient(object):

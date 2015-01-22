@@ -68,7 +68,7 @@ ACTION2 = {
     "pack": "mockety"
 }
 
-ACTION_EXECUTION = {
+LIVE_ACTION = {
     'action': 'mockety.mock',
     'status': 'complete'
 }
@@ -107,7 +107,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         mock.MagicMock(side_effect=get_by_name))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
     def test_runner_param_bool_conversion(self):
         self.shell.run(['run', 'mockety.mock1', 'bool=false'])
         expected = {'action': 'mockety.mock1', 'parameters': {'bool': False}}
@@ -121,7 +121,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         mock.MagicMock(side_effect=get_by_name))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
     def test_runner_param_integer_conversion(self):
         self.shell.run(['run', 'mockety.mock1', 'int=30'])
         expected = {'action': 'mockety.mock1', 'parameters': {'int': 30}}
@@ -135,7 +135,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         mock.MagicMock(side_effect=get_by_name))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
     def test_runner_param_float_conversion(self):
         self.shell.run(['run', 'mockety.mock1', 'float=3.01'])
         expected = {'action': 'mockety.mock1', 'parameters': {'float': 3.01}}
@@ -149,7 +149,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         mock.MagicMock(side_effect=get_by_name))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
     def test_runner_param_json_conversion(self):
         self.shell.run(['run', 'mockety.mock1', 'json={"a":1}'])
         expected = {'action': 'mockety.mock1', 'parameters': {'json': {'a': 1}}}
@@ -163,7 +163,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         mock.MagicMock(side_effect=get_by_name))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
     def test_param_bool_conversion(self):
         self.shell.run(['run', 'mockety.mock2', 'bool=false'])
         expected = {'action': 'mockety.mock2', 'parameters': {'bool': False}}
@@ -177,7 +177,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         mock.MagicMock(side_effect=get_by_name))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
     def test_param_integer_conversion(self):
         self.shell.run(['run', 'mockety.mock2', 'int=30'])
         expected = {'action': 'mockety.mock2', 'parameters': {'int': 30}}
@@ -191,7 +191,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         mock.MagicMock(side_effect=get_by_name))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
     def test_param_float_conversion(self):
         self.shell.run(['run', 'mockety.mock2', 'float=3.01'])
         expected = {'action': 'mockety.mock2', 'parameters': {'float': 3.01}}
@@ -205,7 +205,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         mock.MagicMock(side_effect=get_by_name))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
     def test_param_json_conversion(self):
         self.shell.run(['run', 'mockety.mock2', 'json={"a":1}'])
         expected = {'action': 'mockety.mock2', 'parameters': {'json': {'a': 1}}}
@@ -219,7 +219,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         mock.MagicMock(side_effect=get_by_name))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(ACTION_EXECUTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
     def test_param_value_with_equal_sign(self):
         self.shell.run(['run', 'mockety.mock2', 'key=foo=bar&ponies=unicorns'])
         expected = {'action': 'mockety.mock2',

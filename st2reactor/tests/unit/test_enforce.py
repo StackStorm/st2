@@ -41,10 +41,10 @@ MOCK_ACTION = ActionDB()
 MOCK_ACTION.id = 'action-test-1.id'
 MOCK_ACTION.name = 'action-test-1.name'
 
-MOCK_ACTION_EXECUTION = LiveActionDB()
-MOCK_ACTION_EXECUTION.id = 'actionexec-test-1.id'
-MOCK_ACTION_EXECUTION.name = 'actionexec-test-1.name'
-MOCK_ACTION_EXECUTION.status = 'scheduled'
+MOCK_LIVEACTION = LiveActionDB()
+MOCK_LIVEACTION.id = 'liveaction-test-1.id'
+MOCK_LIVEACTION.name = 'liveaction-test-1.name'
+MOCK_LIVEACTION.status = 'scheduled'
 
 MOCK_RULE_1 = RuleDB()
 MOCK_RULE_1.id = 'rule-test-1'
@@ -70,7 +70,7 @@ class EnforceTest(unittest2.TestCase):
         tests_config.parse_args()
 
     @mock.patch.object(action_service, 'schedule', mock.MagicMock(
-        return_value=MOCK_ACTION_EXECUTION))
+        return_value=MOCK_LIVEACTION))
     def test_ruleenforcement_occurs(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, MOCK_RULE_1)
         execution_id = enforcer.enforce()

@@ -19,7 +19,7 @@ from mongoengine import ValidationError
 import six
 
 from st2common import log as logging
-from st2common.constants.action import (ACTIONEXEC_STATUSES)
+from st2common.constants.action import (LIVEACTION_STATUSES)
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import (RunnerType, Action, LiveAction)
 
@@ -105,59 +105,59 @@ def get_action_by_ref(ref):
         return None
 
 
-def get_actionexec_by_id(actionexec_id):
+def get_liveaction_by_id(liveaction_id):
     """
         Get LiveAction by id.
 
         On error, raise ST2DBObjectNotFoundError.
     """
-    actionexec = None
+    liveaction = None
 
     try:
-        actionexec = LiveAction.get_by_id(actionexec_id)
+        liveaction = LiveAction.get_by_id(liveaction_id)
     except (ValidationError, ValueError) as e:
         LOG.error('Database lookup for LiveAction with id="%s" resulted in '
-                  'exception: %s', actionexec_id, e)
+                  'exception: %s', liveaction_id, e)
         raise StackStormDBObjectNotFoundError('Unable to find LiveAction with '
-                                              'id="%s"' % actionexec_id)
+                                              'id="%s"' % liveaction_id)
 
-    return actionexec
+    return liveaction
 
 
-def update_liveaction_status(status=None, result=None, end_timestamp=None, actionexec_id=None,
-                             actionexec_db=None):
+def update_liveaction_status(status=None, result=None, end_timestamp=None, liveaction_id=None,
+                             liveaction_db=None):
     """
         Update the status of the specified LiveAction to the value provided in
         new_status.
 
-        The LiveAction may be specified using either actionexec_id, or as an
-        actionexec_db instance.
+        The LiveAction may be specified using either liveaction_id, or as an
+        liveaction_db instance.
     """
 
-    if (actionexec_id is None) and (actionexec_db is None):
-        raise ValueError('Must specify an actionexec_id or an actionexec_db when '
+    if (liveaction_id is None) and (liveaction_db is None):
+        raise ValueError('Must specify an liveaction_id or an liveaction_db when '
                          'calling update_LiveAction_status')
 
-    if actionexec_db is None:
-        actionexec_db = get_actionexec_by_id(actionexec_id)
+    if liveaction_db is None:
+        liveaction_db = get_liveaction_by_id(liveaction_id)
 
-    if status not in ACTIONEXEC_STATUSES:
+    if status not in LIVEACTION_STATUSES:
         raise ValueError('Attempting to set status for LiveAction "%s" '
                          'to unknown status string. Unknown status is "%s"',
-                         actionexec_db, status)
+                         liveaction_db, status)
 
     LOG.debug('Updating ActionExection: "%s" with status="%s"',
-              actionexec_db, status)
-    actionexec_db.status = status
+              liveaction_db, status)
+    liveaction_db.status = status
     if result:
-        actionexec_db.result = result
+        liveaction_db.result = result
 
     if end_timestamp:
-        actionexec_db.end_timestamp = end_timestamp
+        liveaction_db.end_timestamp = end_timestamp
 
-    actionexec_db = LiveAction.add_or_update(actionexec_db)
-    LOG.debug('Updated status for LiveAction object: %s', actionexec_db)
-    return actionexec_db
+    liveaction_db = LiveAction.add_or_update(liveaction_db)
+    LOG.debug('Updated status for LiveAction object: %s', liveaction_db)
+    return liveaction_db
 
 
 def get_args(action_parameters, action_db):

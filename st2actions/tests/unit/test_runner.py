@@ -19,7 +19,7 @@ except:
     import json
 
 from st2actions.runners import ActionRunner
-from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED)
+from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED)
 
 RAISE_PROPERTY = 'raise'
 
@@ -49,7 +49,7 @@ class TestRunner(ActionRunner):
                 'action_params': action_params
             }
 
-        return (ACTIONEXEC_STATUS_SUCCEEDED, json.dumps(result))
+        return (LIVEACTION_STATUS_SUCCEEDED, json.dumps(result))
 
     def post_run(self, status, result):
         self.post_run_called = True

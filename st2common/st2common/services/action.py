@@ -22,7 +22,7 @@ from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
 from st2common.persistence.action import LiveAction
-from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
+from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
 
 LOG = logging.getLogger(__name__)
 
@@ -69,7 +69,7 @@ def schedule(execution):
                          % str(overridden_immutables))
 
     # Write to database and send to message queue.
-    execution.status = ACTIONEXEC_STATUS_SCHEDULED
+    execution.status = LIVEACTION_STATUS_SCHEDULED
     execution.start_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
     execution = LiveAction.add_or_update(execution)
     LOG.audit('Action execution scheduled. LiveAction=%s.', execution)

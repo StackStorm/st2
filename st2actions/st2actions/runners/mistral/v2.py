@@ -20,7 +20,7 @@ from oslo.config import cfg
 import six
 import yaml
 
-from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
+from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2actions.runners import AsyncActionRunner
 from st2actions.runners.mistral import utils
 from st2common import log as logging
@@ -126,7 +126,7 @@ class MistralRunner(AsyncActionRunner):
         endpoint = 'http://%s:%s/v1/actionexecutions' % (cfg.CONF.api.host, cfg.CONF.api.port)
         options = {
             'st2_api_url': endpoint,
-            'st2_parent': self.action_execution_id
+            'st2_parent': self.LIVE_ACTION_id
         }
 
         # Get workbook/workflow definition from file.
@@ -160,7 +160,7 @@ class MistralRunner(AsyncActionRunner):
                                                        workflow_input=inputs,
                                                        **options)
 
-        status = ACTIONEXEC_STATUS_RUNNING
+        status = LIVEACTION_STATUS_RUNNING
         query_context = {'mistral_execution_id': str(execution.id)}
         LOG.info('Mistral query_context is %s' % query_context)
         partial_results = {'tasks': []}

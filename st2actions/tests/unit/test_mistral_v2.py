@@ -40,9 +40,9 @@ from st2actions.handlers.mistral import MistralCallbackHandler
 from st2common.transport.publishers import CUDPublisher
 from st2common.services import action as action_service
 from st2common.models.db.action import LiveActionDB
-from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
-from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
-from st2common.constants.action import ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_RUNNING
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.models.api.action import ActionAPI
 from st2common.persistence.action import Action, LiveAction
 
@@ -125,7 +125,7 @@ def process_create(payload):
 
 
 @mock.patch.object(LocalShellRunner, 'run', mock.
-                   MagicMock(return_value=(ACTIONEXEC_STATUS_SUCCEEDED, {})))
+                   MagicMock(return_value=(LIVEACTION_STATUS_SUCCEEDED, {})))
 @mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
 @mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(return_value=None))
 class TestMistralRunner(DbTestCase):
@@ -153,7 +153,7 @@ class TestMistralRunner(DbTestCase):
         execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'get',
@@ -172,7 +172,7 @@ class TestMistralRunner(DbTestCase):
         execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'get',
@@ -190,7 +190,7 @@ class TestMistralRunner(DbTestCase):
         execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'get',
@@ -200,7 +200,7 @@ class TestMistralRunner(DbTestCase):
         execution = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_FAILED)
         self.assertIn('Multiple workflows is not supported.', execution.result['message'])
 
     @mock.patch.object(
@@ -212,7 +212,7 @@ class TestMistralRunner(DbTestCase):
         execution = LiveActionDB(action=action_ref, parameters=ACTION_PARAMS)
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_FAILED)
         self.assertIn('Name of the workflow must be the same', execution.result['message'])
 
     @mock.patch.object(
@@ -232,7 +232,7 @@ class TestMistralRunner(DbTestCase):
         execution = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
         workbooks.WorkbookManager, 'get',
@@ -251,7 +251,7 @@ class TestMistralRunner(DbTestCase):
         execution = LiveActionDB(action=WB2_NAME, parameters=ACTION_PARAMS)
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
         workbooks.WorkbookManager, 'get',
@@ -270,7 +270,7 @@ class TestMistralRunner(DbTestCase):
         execution = LiveActionDB(action=WB3_NAME, parameters=ACTION_PARAMS)
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_FAILED)
         self.assertIn('Default workflow cannot be determined.', execution.result['message'])
 
     @mock.patch.object(
@@ -290,7 +290,7 @@ class TestMistralRunner(DbTestCase):
         execution = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
         workbooks.WorkbookManager, 'get',
@@ -308,7 +308,7 @@ class TestMistralRunner(DbTestCase):
         execution = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_RUNNING)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
         workbooks.WorkbookManager, 'get',
@@ -319,7 +319,7 @@ class TestMistralRunner(DbTestCase):
         execution = LiveActionDB(action=action_ref, parameters=ACTION_PARAMS)
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_FAILED)
         self.assertIn('Name of the workbook must be the same', execution.result['message'])
 
     @mock.patch.object(
@@ -327,37 +327,37 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
     def test_callback_handler_with_result_as_text(self):
         MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
-                                        ACTIONEXEC_STATUS_SUCCEEDED, '<html></html>')
+                                        LIVEACTION_STATUS_SUCCEEDED, '<html></html>')
 
     @mock.patch.object(
         requests, 'request',
         mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
     def test_callback_handler_with_result_as_dict(self):
         MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
-                                        ACTIONEXEC_STATUS_SUCCEEDED, {'a': 1})
+                                        LIVEACTION_STATUS_SUCCEEDED, {'a': 1})
 
     @mock.patch.object(
         requests, 'request',
         mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
     def test_callback_handler_with_result_as_json_str(self):
         MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
-                                        ACTIONEXEC_STATUS_SUCCEEDED, '{"a": 1}')
+                                        LIVEACTION_STATUS_SUCCEEDED, '{"a": 1}')
         MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
-                                        ACTIONEXEC_STATUS_SUCCEEDED, "{'a': 1}")
+                                        LIVEACTION_STATUS_SUCCEEDED, "{'a': 1}")
 
     @mock.patch.object(
         requests, 'request',
         mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
     def test_callback_handler_with_result_as_list(self):
         MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
-                                        ACTIONEXEC_STATUS_SUCCEEDED, ["a", "b", "c"])
+                                        LIVEACTION_STATUS_SUCCEEDED, ["a", "b", "c"])
 
     @mock.patch.object(
         requests, 'request',
         mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
     def test_callback_handler_with_result_as_list_str(self):
         MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
-                                        ACTIONEXEC_STATUS_SUCCEEDED, '["a", "b", "c"]')
+                                        LIVEACTION_STATUS_SUCCEEDED, '["a", "b", "c"]')
 
     @mock.patch.object(
         requests, 'request',
@@ -368,7 +368,7 @@ class TestMistralRunner(DbTestCase):
             callback={'source': 'mistral', 'url': 'http://localhost:8989/v2/tasks/12345'})
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_SUCCEEDED)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_SUCCEEDED)
         requests.request.assert_called_with('PUT', execution.callback['url'],
                                             data=json.dumps({'state': 'SUCCESS', 'result': '{}'}),
                                             headers={'content-type': 'application/json'})

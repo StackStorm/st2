@@ -27,8 +27,8 @@ from st2actions.runners import ActionRunner
 from st2actions.runners import ShellRunnerMixin
 from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
-from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
-from st2common.constants.action import ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
 import st2common.util.jsonify as jsonify
 
 __all__ = [
@@ -82,7 +82,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             script_action = False
             command = self.runner_parameters.get(RUNNER_COMMAND, None)
             action = ShellCommandAction(name=self.action_name,
-                                        action_exec_id=str(self.action_execution_id),
+                                        action_exec_id=str(self.LIVE_ACTION_id),
                                         command=command,
                                         user=self._user,
                                         env_vars={},
@@ -95,7 +95,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             named_args = self._transform_named_args(named_args)
 
             action = ShellScriptAction(name=self.action_name,
-                                       action_exec_id=str(self.action_execution_id),
+                                       action_exec_id=str(self.LIVE_ACTION_id),
                                        script_local_path_abs=script_local_path_abs,
                                        named_args=named_args,
                                        positional_args=positional_args,
@@ -159,5 +159,5 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         if error:
             result['error'] = error
 
-        status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
+        status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
         return (status, jsonify.json_loads(result, LocalShellRunner.KEYS_TO_TRANSFORM))

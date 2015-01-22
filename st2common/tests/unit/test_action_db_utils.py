@@ -32,7 +32,7 @@ from st2tests.base import DbTestCase
 class ActionDBUtilsTestCase(DbTestCase):
     runnertype_db = None
     action_db = None
-    actionexec_db = None
+    liveaction_db = None
 
     @classmethod
     def setUpClass(cls):
@@ -76,18 +76,18 @@ class ActionDBUtilsTestCase(DbTestCase):
 
     def test_get_actionexec_nonexisting(self):
         # By id.
-        self.assertRaises(StackStormDBObjectNotFoundError, action_db_utils.get_actionexec_by_id,
+        self.assertRaises(StackStormDBObjectNotFoundError, action_db_utils.get_liveaction_by_id,
                           'somedummyactionexecid')
 
     def test_get_actionexec_existing(self):
-        actionexec = action_db_utils.get_actionexec_by_id(ActionDBUtilsTestCase.actionexec_db.id)
-        self.assertEqual(actionexec, ActionDBUtilsTestCase.actionexec_db)
+        liveaction = action_db_utils.get_liveaction_by_id(ActionDBUtilsTestCase.liveaction_db.id)
+        self.assertEqual(liveaction, ActionDBUtilsTestCase.liveaction_db)
 
     def test_update_LiveAction_status(self):
-        actionexec_db = LiveActionDB()
-        actionexec_db.status = 'initializing'
-        actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = ResourceReference(
+        liveaction_db = LiveActionDB()
+        liveaction_db.status = 'initializing'
+        liveaction_db.start_timestamp = datetime.datetime.utcnow()
+        liveaction_db.action = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.pack).ref
         params = {
@@ -95,43 +95,43 @@ class ActionDBUtilsTestCase(DbTestCase):
             'some_key_that_aint_exist_in_action_or_runner': 'bar',
             'runnerint': 555
         }
-        actionexec_db.parameters = params
-        actionexec_db = LiveAction.add_or_update(actionexec_db)
-        origactionexec_db = copy.copy(actionexec_db)
+        liveaction_db.parameters = params
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        origliveaction_db = copy.copy(liveaction_db)
 
         # Update by id.
-        newactionexec_db = action_db_utils.update_liveaction_status(
-            status='running', actionexec_id=actionexec_db.id)
+        newliveaction_db = action_db_utils.update_liveaction_status(
+            status='running', liveaction_id=liveaction_db.id)
         # Verify id didn't change.
-        self.assertEqual(origactionexec_db.id, newactionexec_db.id)
-        self.assertEqual(newactionexec_db.status, 'running')
+        self.assertEqual(origliveaction_db.id, newliveaction_db.id)
+        self.assertEqual(newliveaction_db.status, 'running')
 
     def test_update_LiveAction_status_and_end_timestamp(self):
-        actionexec_db = LiveActionDB()
-        actionexec_db.status = 'initializing'
-        actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = ResourceReference(
+        liveaction_db = LiveActionDB()
+        liveaction_db.status = 'initializing'
+        liveaction_db.start_timestamp = datetime.datetime.utcnow()
+        liveaction_db.action = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.pack).ref
-        actionexec_db.parameters = {}
-        actionexec_db = LiveAction.add_or_update(actionexec_db)
-        origactionexec_db = copy.copy(actionexec_db)
+        liveaction_db.parameters = {}
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        origliveaction_db = copy.copy(liveaction_db)
 
         # Update by id
         now = datetime.datetime.now()
-        newactionexec_db = action_db_utils.update_liveaction_status(
-            status='running', end_timestamp=now, actionexec_id=actionexec_db.id)
+        newliveaction_db = action_db_utils.update_liveaction_status(
+            status='running', end_timestamp=now, liveaction_id=liveaction_db.id)
 
         # Verify id didn't change and end_timestamp has been set
-        self.assertEqual(origactionexec_db.id, newactionexec_db.id)
-        self.assertEqual(newactionexec_db.status, 'running')
-        self.assertEqual(newactionexec_db.end_timestamp, now)
+        self.assertEqual(origliveaction_db.id, newliveaction_db.id)
+        self.assertEqual(newliveaction_db.status, 'running')
+        self.assertEqual(newliveaction_db.end_timestamp, now)
 
     def test_update_LiveAction_status_invalid(self):
-        actionexec_db = LiveActionDB()
-        actionexec_db.status = 'initializing'
-        actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = ResourceReference(
+        liveaction_db = LiveActionDB()
+        liveaction_db.status = 'initializing'
+        liveaction_db.start_timestamp = datetime.datetime.utcnow()
+        liveaction_db.action = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.pack).ref
         params = {
@@ -139,12 +139,12 @@ class ActionDBUtilsTestCase(DbTestCase):
             'some_key_that_aint_exist_in_action_or_runner': 'bar',
             'runnerint': 555
         }
-        actionexec_db.parameters = params
-        actionexec_db = LiveAction.add_or_update(actionexec_db)
+        liveaction_db.parameters = params
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
 
         # Update by id.
         self.assertRaises(ValueError, action_db_utils.update_liveaction_status,
-                          status='mea culpa', actionexec_id=actionexec_db.id)
+                          status='mea culpa', liveaction_id=liveaction_db.id)
 
     def test_get_args(self):
         params = {
@@ -208,10 +208,10 @@ class ActionDBUtilsTestCase(DbTestCase):
         }
         ActionDBUtilsTestCase.action_db = Action.add_or_update(action_db)
 
-        actionexec_db = LiveActionDB()
-        actionexec_db.status = 'initializing'
-        actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = ResourceReference(
+        liveaction_db = LiveActionDB()
+        liveaction_db.status = 'initializing'
+        liveaction_db.start_timestamp = datetime.datetime.utcnow()
+        liveaction_db.action = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.pack).ref
         params = {
@@ -219,5 +219,5 @@ class ActionDBUtilsTestCase(DbTestCase):
             'some_key_that_aint_exist_in_action_or_runner': 'bar',
             'runnerint': 555
         }
-        actionexec_db.parameters = params
-        ActionDBUtilsTestCase.actionexec_db = LiveAction.add_or_update(actionexec_db)
+        liveaction_db.parameters = params
+        ActionDBUtilsTestCase.liveaction_db = LiveAction.add_or_update(liveaction_db)

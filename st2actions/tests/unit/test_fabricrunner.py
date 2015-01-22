@@ -20,7 +20,7 @@ tests_config.parse_args()
 from unittest2 import TestCase
 
 from st2actions.runners.fabricrunner import FabricRunner
-from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.models.system.action import RemoteScriptAction
 
 
@@ -32,7 +32,7 @@ class TestFabricRunnerResultStatus(TestCase):
             '2': {'succeeded': True},
             '3': {'succeeded': True},
         }
-        self.assertEquals(ACTIONEXEC_STATUS_SUCCEEDED,
+        self.assertEquals(LIVEACTION_STATUS_SUCCEEDED,
                           FabricRunner._get_result_status(result, True))
 
     def test_pf_ok_some_success(self):
@@ -41,7 +41,7 @@ class TestFabricRunnerResultStatus(TestCase):
             '2': {'succeeded': True},
             '3': {'succeeded': False},
         }
-        self.assertEquals(ACTIONEXEC_STATUS_SUCCEEDED,
+        self.assertEquals(LIVEACTION_STATUS_SUCCEEDED,
                           FabricRunner._get_result_status(result, True))
 
         result = {
@@ -49,7 +49,7 @@ class TestFabricRunnerResultStatus(TestCase):
             '2': {'succeeded': False},
             '3': {'succeeded': False},
         }
-        self.assertEquals(ACTIONEXEC_STATUS_SUCCEEDED,
+        self.assertEquals(LIVEACTION_STATUS_SUCCEEDED,
                           FabricRunner._get_result_status(result, True))
 
         result = {
@@ -57,7 +57,7 @@ class TestFabricRunnerResultStatus(TestCase):
             '2': {'succeeded': False},
             '3': {'succeeded': True},
         }
-        self.assertEquals(ACTIONEXEC_STATUS_SUCCEEDED,
+        self.assertEquals(LIVEACTION_STATUS_SUCCEEDED,
                           FabricRunner._get_result_status(result, True))
 
     def test_pf_ok_all_fail(self):
@@ -66,7 +66,7 @@ class TestFabricRunnerResultStatus(TestCase):
             '2': {'succeeded': False},
             '3': {'succeeded': False},
         }
-        self.assertEquals(ACTIONEXEC_STATUS_FAILED,
+        self.assertEquals(LIVEACTION_STATUS_FAILED,
                           FabricRunner._get_result_status(result, True))
 
     def test_pf_not_ok_all_success(self):
@@ -75,7 +75,7 @@ class TestFabricRunnerResultStatus(TestCase):
             '2': {'succeeded': True},
             '3': {'succeeded': True},
         }
-        self.assertEquals(ACTIONEXEC_STATUS_SUCCEEDED,
+        self.assertEquals(LIVEACTION_STATUS_SUCCEEDED,
                           FabricRunner._get_result_status(result, False))
 
     def test_pf_not_ok_some_success(self):
@@ -84,7 +84,7 @@ class TestFabricRunnerResultStatus(TestCase):
             '2': {'succeeded': True},
             '3': {'succeeded': False},
         }
-        self.assertEquals(ACTIONEXEC_STATUS_FAILED,
+        self.assertEquals(LIVEACTION_STATUS_FAILED,
                           FabricRunner._get_result_status(result, False))
 
         result = {
@@ -92,7 +92,7 @@ class TestFabricRunnerResultStatus(TestCase):
             '2': {'succeeded': False},
             '3': {'succeeded': False},
         }
-        self.assertEquals(ACTIONEXEC_STATUS_FAILED,
+        self.assertEquals(LIVEACTION_STATUS_FAILED,
                           FabricRunner._get_result_status(result, False))
 
         result = {
@@ -100,7 +100,7 @@ class TestFabricRunnerResultStatus(TestCase):
             '2': {'succeeded': False},
             '3': {'succeeded': True},
         }
-        self.assertEquals(ACTIONEXEC_STATUS_FAILED,
+        self.assertEquals(LIVEACTION_STATUS_FAILED,
                           FabricRunner._get_result_status(result, False))
 
     def test_pf_not_ok_all_fail(self):
@@ -109,7 +109,7 @@ class TestFabricRunnerResultStatus(TestCase):
             '2': {'succeeded': False},
             '3': {'succeeded': False},
         }
-        self.assertEquals(ACTIONEXEC_STATUS_FAILED,
+        self.assertEquals(LIVEACTION_STATUS_FAILED,
                           FabricRunner._get_result_status(result, False))
 
 

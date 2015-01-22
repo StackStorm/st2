@@ -50,12 +50,12 @@ class ParamsUtilsTest(TestCase):
             'runnerimmutable': 'failed_override',
             'actionimmutable': 'failed_override'
         }
-        actionexec_db = self._get_action_exec_db_model(params)
+        liveaction_db = self._get_action_exec_db_model(params)
 
         runner_params, action_params = param_utils.get_resolved_params(
             ParamsUtilsTest.runnertype_db.runner_parameters,
             ParamsUtilsTest.action_db.parameters,
-            actionexec_db.parameters)
+            liveaction_db.parameters)
 
         # Asserts for runner params.
         # Assert that default values for runner params are resolved.
@@ -88,12 +88,12 @@ class ParamsUtilsTest(TestCase):
             'runnerimmutable': 'failed_override',
             'actionimmutable': 'failed_override'
         }
-        actionexec_db = self._get_action_exec_db_model(params)
+        liveaction_db = self._get_action_exec_db_model(params)
 
         runner_params, action_params = param_utils.get_finalized_params(
             ParamsUtilsTest.runnertype_db.runner_parameters,
             ParamsUtilsTest.action_db.parameters,
-            actionexec_db.parameters)
+            liveaction_db.parameters)
 
         # Asserts for runner params.
         # Assert that default values for runner params are resolved.
@@ -123,12 +123,12 @@ class ParamsUtilsTest(TestCase):
             'runnerint': 555,
             'actionimmutable': 'failed_override'
         }
-        actionexec_db = self._get_action_exec_db_model(params)
+        liveaction_db = self._get_action_exec_db_model(params)
 
         runner_params, action_params = param_utils.get_resolved_params(
             ParamsUtilsTest.runnertype_db.runner_parameters,
             ParamsUtilsTest.action_db.parameters,
-            actionexec_db.parameters)
+            liveaction_db.parameters)
 
         # Asserts for runner params.
         # Assert that default values for runner params are resolved.
@@ -260,11 +260,11 @@ class ParamsUtilsTest(TestCase):
         self.assertTrue(test_pass)
 
     def _get_action_exec_db_model(self, params):
-        actionexec_db = LiveActionDB()
-        actionexec_db.status = 'initializing'
-        actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = ResourceReference(name=ParamsUtilsTest.action_db.name,
+        liveaction_db = LiveActionDB()
+        liveaction_db.status = 'initializing'
+        liveaction_db.start_timestamp = datetime.datetime.utcnow()
+        liveaction_db.action = ResourceReference(name=ParamsUtilsTest.action_db.name,
                                                  pack=ParamsUtilsTest.action_db.pack).ref
-        actionexec_db.parameters = params
+        liveaction_db.parameters = params
 
-        return actionexec_db
+        return liveaction_db

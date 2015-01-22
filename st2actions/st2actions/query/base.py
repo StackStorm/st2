@@ -21,12 +21,12 @@ import time
 
 from st2actions.container.service import RunnerContainerService
 from st2common import log as logging
-from st2common.constants.action import (ACTIONEXEC_STATUS_FAILED,
-                                        ACTIONEXEC_STATUS_SUCCEEDED)
+from st2common.constants.action import (LIVEACTION_STATUS_FAILED,
+                                        LIVEACTION_STATUS_SUCCEEDED)
 from st2common.persistence.action import (LiveAction, ActionExecutionState)
 
 LOG = logging.getLogger(__name__)
-DONE_STATES = [ACTIONEXEC_STATUS_FAILED, ACTIONEXEC_STATUS_SUCCEEDED]
+DONE_STATES = [LIVEACTION_STATUS_FAILED, LIVEACTION_STATUS_SUCCEEDED]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -80,7 +80,7 @@ class Querier(object):
         try:
             (status, results) = self.query(execution_id, actual_query_context)
         except:
-            LOG.exception('Failed querying results for action_execution_id %s.', execution_id)
+            LOG.exception('Failed querying results for LIVE_ACTION_id %s.', execution_id)
             self._delete_state_object(query_context)
             return
 
@@ -89,7 +89,7 @@ class Querier(object):
         try:
             self._update_action_results(execution_id, status, results)
         except Exception:
-            LOG.exception('Failed updating action results for action_execution_id %s',
+            LOG.exception('Failed updating action results for LIVE_ACTION_id %s',
                           execution_id)
             self._delete_state_object(query_context)
             return
@@ -102,12 +102,12 @@ class Querier(object):
         return
 
     def _update_action_results(self, execution_id, status, results):
-        actionexec_db = LiveAction.get_by_id(execution_id)
-        if not actionexec_db:
-            raise Exception('No DB model for action_execution_id: %s' % execution_id)
-        actionexec_db.result = results
-        actionexec_db.status = status
-        updated_exec = LiveAction.add_or_update(actionexec_db)
+        liveaction_db = LiveAction.get_by_id(execution_id)
+        if not liveaction_db:
+            raise Exception('No DB model for LIVE_ACTION_id: %s' % execution_id)
+        liveaction_db.result = results
+        liveaction_db.status = status
+        updated_exec = LiveAction.add_or_update(liveaction_db)
         return updated_exec
 
     def _delete_state_object(self, query_context):
@@ -123,8 +123,8 @@ class Querier(object):
         This is the method individual queriers must implement.
         This method should return a tuple of (status, results).
 
-        status should be one of ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_RUNNING,
-        ACTIONEXEC_STATUS_FAILED defined in st2common.constants.action.
+        status should be one of LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_RUNNING,
+        LIVEACTION_STATUS_FAILED defined in st2common.constants.action.
         """
         pass
 

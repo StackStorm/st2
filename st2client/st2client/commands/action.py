@@ -34,8 +34,8 @@ from st2client.utils.date import format_isodate
 
 LOG = logging.getLogger(__name__)
 
-ACTIONEXEC_STATUS_SCHEDULED = 'scheduled'
-ACTIONEXEC_STATUS_RUNNING = 'running'
+LIVEACTION_STATUS_SCHEDULED = 'scheduled'
+LIVEACTION_STATUS_RUNNING = 'running'
 
 
 class ActionBranch(resource.ResourceBranch):
@@ -213,8 +213,8 @@ class ActionRunCommand(resource.ResourceCommand):
         execution = action_exec_mgr.create(execution, **kwargs)
 
         if not args.async:
-            while execution.status == ACTIONEXEC_STATUS_SCHEDULED \
-                    or execution.status == ACTIONEXEC_STATUS_RUNNING:
+            while execution.status == LIVEACTION_STATUS_SCHEDULED \
+                    or execution.status == LIVEACTION_STATUS_RUNNING:
                 time.sleep(1)
                 if not args.json:
                     sys.stdout.write('.')

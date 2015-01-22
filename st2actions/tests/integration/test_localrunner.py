@@ -37,7 +37,7 @@ class TestLocalShellRunner(TestCase):
         runner.pre_run()
         status, result = runner.run({})
         runner.post_run(status, result)
-        self.assertEquals(status, action_constants.ACTIONEXEC_STATUS_SUCCEEDED)
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEquals(result['stdout'], 10)
 
     def test_shell_script_action(self):
@@ -50,7 +50,7 @@ class TestLocalShellRunner(TestCase):
         runner.pre_run()
         status, result = runner.run({'chars': 1000})
         runner.post_run(status, result)
-        self.assertEquals(status, action_constants.ACTIONEXEC_STATUS_SUCCEEDED)
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEquals(len(result['stdout']), 1000 + 1)  # +1 for the newline
 
     def test_timeout(self):
@@ -62,7 +62,7 @@ class TestLocalShellRunner(TestCase):
         runner.pre_run()
         status, result = runner.run({})
         runner.post_run(status, result)
-        self.assertEquals(status, action_constants.ACTIONEXEC_STATUS_FAILED)
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_FAILED)
 
     def test_large_stdout(self):
         models = TestLocalShellRunner.fixtures_loader.load_models(
@@ -75,7 +75,7 @@ class TestLocalShellRunner(TestCase):
         char_count = 10 ** 6  # Note 10^7 succeeds but ends up being slow.
         status, result = runner.run({'chars': char_count})
         runner.post_run(status, result)
-        self.assertEquals(status, action_constants.ACTIONEXEC_STATUS_SUCCEEDED)
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEquals(len(result['stdout']), char_count + 1)  # +1 for the newline
 
     @staticmethod
@@ -91,7 +91,7 @@ class TestLocalShellRunner(TestCase):
         runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
-        runner.action_execution_id = uuid.uuid4().hex
+        runner.LIVE_ACTION_id = uuid.uuid4().hex
         runner.entry_point = entry_point
         runner.runner_parameters = {localrunner.RUNNER_COMMAND: cmd,
                                     localrunner.RUNNER_SUDO: sudo,

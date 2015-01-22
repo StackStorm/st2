@@ -103,20 +103,20 @@ class ActionExecutionsController(ResourceController):
     @jsexpose(str, body=LiveActionAPI)
     def put(self, id, actionexecution):
         try:
-            actionexec_db = LiveAction.get_by_id(id)
+            liveaction_db = LiveAction.get_by_id(id)
         except:
             msg = 'ActionExecution by id: %s not found.' % id
             pecan.abort(http_client, msg)
-        new_actionexec_db = LiveActionAPI.to_model(actionexecution)
-        if actionexec_db.status != new_actionexec_db.status:
-            actionexec_db.status = new_actionexec_db.status
-        if actionexec_db.result != new_actionexec_db.result:
-            actionexec_db.result = new_actionexec_db.result
-        if not actionexec_db.end_timestamp and new_actionexec_db.end_timestamp:
-            actionexec_db.end_timestamp = new_actionexec_db.end_timestamp
+        new_liveaction_db = LiveActionAPI.to_model(actionexecution)
+        if liveaction_db.status != new_liveaction_db.status:
+            liveaction_db.status = new_liveaction_db.status
+        if liveaction_db.result != new_liveaction_db.result:
+            liveaction_db.result = new_liveaction_db.result
+        if not liveaction_db.end_timestamp and new_liveaction_db.end_timestamp:
+            liveaction_db.end_timestamp = new_liveaction_db.end_timestamp
 
-        actionexec_db = LiveAction.add_or_update(actionexec_db)
-        actionexec_api = LiveActionAPI.from_model(actionexec_db)
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        actionexec_api = LiveActionAPI.from_model(liveaction_db)
         return actionexec_api
 
     @jsexpose()

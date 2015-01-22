@@ -20,10 +20,10 @@ from oslo.config import cfg
 from st2actions.container.base import RunnerContainer
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.constants.action import (ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_FAILED)
+from st2common.constants.action import (LIVEACTION_STATUS_RUNNING, LIVEACTION_STATUS_FAILED)
 from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.transport import liveaction, publishers
-from st2common.util.action_db import (get_actionexec_by_id, update_liveaction_status)
+from st2common.util.action_db import (get_liveaction_by_id, update_liveaction_status)
 from st2common.util.greenpooldispatch import BufferedDispatcher
 
 LOG = logging.getLogger(__name__)
@@ -70,25 +70,25 @@ class Worker(ConsumerMixin):
 
     def execute_action(self, liveaction):
         try:
-            actionexec_db = get_actionexec_by_id(liveaction.id)
+            liveaction_db = get_liveaction_by_id(liveaction.id)
         except StackStormDBObjectNotFoundError:
             LOG.exception('Failed to find liveaction %s in the database.',
                           liveaction.id)
             raise
 
         # Update liveaction status to "running"
-        actionexec_db = update_liveaction_status(status=ACTIONEXEC_STATUS_RUNNING,
-                                                 actionexec_id=actionexec_db.id)
+        liveaction_db = update_liveaction_status(status=LIVEACTION_STATUS_RUNNING,
+                                                 liveaction_id=liveaction_db.id)
         # Launch action
         LOG.audit('Launching action execution.',
-                  extra={'actionexec': actionexec_db.to_serializable_dict()})
+                  extra={'liveaction': liveaction_db.to_serializable_dict()})
 
         try:
-            result = self.container.dispatch(actionexec_db)
+            result = self.container.dispatch(liveaction_db)
             LOG.debug('Runner dispatch produced result: %s', result)
         except Exception:
-            actionexec_db = update_liveaction_status(status=ACTIONEXEC_STATUS_FAILED,
-                                                     actionexec_id=actionexec_db.id)
+            liveaction_db = update_liveaction_status(status=LIVEACTION_STATUS_FAILED,
+                                                     liveaction_id=liveaction_db.id)
             raise
 
         if not result:

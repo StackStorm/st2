@@ -47,7 +47,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 QUEUE = Queue(None,
-              liveaction.ACTIONEXECUTION_XCHG,
+              liveaction.LIVEACTION_XCHG,
               routing_key=publishers.ANY_RK,
               exclusive=True)
 
@@ -69,7 +69,7 @@ class Listener(ConsumerMixin):
                      callbacks=[self.processor(ActionExecutionHistoryAPI)]),
 
             consumer(queues=[Queue(None,
-                                   liveaction.ACTIONEXECUTION_XCHG,
+                                   liveaction.LIVEACTION_XCHG,
                                    routing_key=publishers.ANY_RK,
                                    exclusive=True)],
                      accept=['pickle'],

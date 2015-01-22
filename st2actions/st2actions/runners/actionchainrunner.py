@@ -23,7 +23,7 @@ import uuid
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
-from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED)
+from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED)
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
 from st2common.exceptions import actionrunner as runnerexceptions
@@ -105,13 +105,13 @@ class ActionChainRunner(ActionRunner):
         results = {}
         fail = True
         while action_node:
-            actionexec = None
+            liveaction = None
             fail = False
             try:
                 resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
                                                                     results)
-                actionexec = ActionChainRunner._run_action(action_node.ref,
-                                                           self.action_execution_id,
+                liveaction = ActionChainRunner._run_action(action_node.ref,
+                                                           self.LIVE_ACTION_id,
                                                            resolved_params)
             except:
                 LOG.exception('Failure in running action %s.', action_node.name)
@@ -119,19 +119,19 @@ class ActionChainRunner(ActionRunner):
                 results[action_node.name] = {'error': traceback.format_exc(10)}
             else:
                 # for now append all successful results
-                results[action_node.name] = actionexec.result
+                results[action_node.name] = liveaction.result
             finally:
-                if not actionexec or actionexec.status == ACTIONEXEC_STATUS_FAILED:
+                if not liveaction or liveaction.status == LIVEACTION_STATUS_FAILED:
                     fail = True
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-failure')
-                elif actionexec.status == ACTIONEXEC_STATUS_SUCCEEDED:
+                elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
                     action_node = self.action_chain.get_next_node(action_node.name, 'on-success')
 
         status = None
         if fail:
-            status = ACTIONEXEC_STATUS_FAILED
+            status = LIVEACTION_STATUS_FAILED
         else:
-            status = ACTIONEXEC_STATUS_SUCCEEDED
+            status = LIVEACTION_STATUS_SUCCEEDED
         return (status, results)
 
     @staticmethod
@@ -171,10 +171,10 @@ class ActionChainRunner(ActionRunner):
         execution.context = {'parent': str(parent_execution_id)}
         execution = action_service.schedule(execution)
         while (wait_for_completion and
-               execution.status != ACTIONEXEC_STATUS_SUCCEEDED and
-               execution.status != ACTIONEXEC_STATUS_FAILED):
+               execution.status != LIVEACTION_STATUS_SUCCEEDED and
+               execution.status != LIVEACTION_STATUS_FAILED):
             eventlet.sleep(1)
-            execution = action_db_util.get_actionexec_by_id(execution.id)
+            execution = action_db_util.get_liveaction_by_id(execution.id)
         return execution
 
     @staticmethod

@@ -35,7 +35,7 @@ from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInst
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 import st2common.util.action_db as action_utils
-from st2common.constants.action import ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 from st2common.persistence.action import RunnerType, Action, LiveAction
 from st2common.persistence.history import ActionExecutionHistory
@@ -59,7 +59,7 @@ def process_create(payload):
 def process_update(payload):
     try:
         if isinstance(payload, LiveActionDB):
-            HISTORIAN.update_action_execution_history(payload)
+            HISTORIAN.update_LIVE_ACTION_history(payload)
     except Exception as e:
         print(e)
 
@@ -87,7 +87,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         execution = LiveActionDB(action='core.local', parameters={'cmd': 'uname -a'})
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_FAILED)
         history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
         self.assertDictEqual(history.trigger, {})
         self.assertDictEqual(history.trigger_type, {})
@@ -108,7 +108,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         execution = LiveActionDB(action='core.chain')
         execution = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_FAILED)
         history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
         action = action_utils.get_action_by_ref('core.chain')
         self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
@@ -146,7 +146,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         execution = LiveAction.get(context__trigger_instance__id=str(trigger_instance.id))
         self.assertIsNotNone(execution)
         execution = LiveAction.get_by_id(str(execution.id))
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_FAILED)
         history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
         self.assertDictEqual(history.trigger, vars(TriggerAPI.from_model(trigger)))
         self.assertDictEqual(history.trigger_type, vars(TriggerTypeAPI.from_model(trigger_type)))

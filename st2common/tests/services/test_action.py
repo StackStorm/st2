@@ -24,7 +24,7 @@ from st2common.persistence.action import RunnerType, Action, ActionExecution
 from st2common.models.db.action import ActionExecutionDB
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.models.system.common import ResourceReference
-from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
+from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
 
 
 RUNNER = {
@@ -87,7 +87,7 @@ class TestActionExecutionService(DbTestCase):
         self.assertEqual(actual_action, action)
         self.assertEqual(execution.context['user'], request.context['user'])
         self.assertDictEqual(execution.parameters, request.parameters)
-        self.assertEqual(execution.status, ACTIONEXEC_STATUS_SCHEDULED)
+        self.assertEqual(execution.status, LIVEACTION_STATUS_SCHEDULED)
         # mongoengine DateTimeField stores datetime only up to milliseconds
         self.assertEqual(isotime.format(execution.start_timestamp, usec=False),
                          isotime.format(request.start_timestamp, usec=False))

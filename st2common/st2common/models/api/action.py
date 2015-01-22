@@ -22,7 +22,7 @@ from st2common.models.api.base import BaseAPI
 from st2common.models.api.tag import TagsHelper
 from st2common.models.db.action import (RunnerTypeDB, ActionDB, LiveActionDB)
 from st2common.models.db.action import ActionExecutionStateDB
-from st2common.constants.action import ACTIONEXEC_STATUSES
+from st2common.constants.action import LIVEACTION_STATUSES
 
 
 __all__ = ['ActionAPI',
@@ -213,7 +213,7 @@ class LiveActionAPI(BaseAPI):
             },
             "status": {
                 "description": "The current status of the action execution.",
-                "enum": ACTIONEXEC_STATUSES
+                "enum": LIVEACTION_STATUSES
             },
             "start_timestamp": {
                 "description": "The start time when the action is executed.",

@@ -20,7 +20,7 @@ from st2common.util import reference
 from st2reactor.rules.datatransform import get_transformer
 from st2common.services import action as action_service
 from st2common.models.db.action import LiveActionDB
-from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
+from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
 from st2common.models.api.access import get_system_username
 
 
@@ -44,18 +44,18 @@ class RuleEnforcer(object):
             'user': get_system_username()
         }
 
-        action_execution = RuleEnforcer._invoke_action(self.rule.action, data, context)
-        if not action_execution:
+        LIVE_ACTION = RuleEnforcer._invoke_action(self.rule.action, data, context)
+        if not LIVE_ACTION:
             LOG.audit('Rule enforcement failed. ActionExecution for Action %s failed. '
                       'TriggerInstance: %s and Rule: %s',
                       self.rule.action.name, self.trigger_instance, self.rule)
             return None
 
-        actionexecution_db = action_execution.get('id', None)
+        liveaction_db = LIVE_ACTION.get('id', None)
         LOG.audit('Rule enforced. ActionExecution %s, TriggerInstance %s and Rule %s.',
-                  actionexecution_db, self.trigger_instance, self.rule)
+                  liveaction_db, self.trigger_instance, self.rule)
 
-        return actionexecution_db
+        return liveaction_db
 
     @staticmethod
     def _invoke_action(action, action_args, context=None):
@@ -63,4 +63,4 @@ class RuleEnforcer(object):
         execution = LiveActionDB(action=action_ref, context=context, parameters=action_args)
         execution = action_service.schedule(execution)
         return ({'id': str(execution.id)}
-                if execution.status == ACTIONEXEC_STATUS_SCHEDULED else None)
+                if execution.status == LIVEACTION_STATUS_SCHEDULED else None)
