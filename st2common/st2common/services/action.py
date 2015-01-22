@@ -21,7 +21,7 @@ from st2common import log as logging
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
-from st2common.persistence.action import ActionExecution
+from st2common.persistence.action import LiveAction
 from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
 
 LOG = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ def schedule(execution):
     # action can be invoked by a system user and so we want to use the user context
     # from the original workflow action.
     if getattr(execution, 'context', None) and 'parent' in execution.context:
-        parent = ActionExecution.get_by_id(execution.context['parent'])
+        parent = LiveAction.get_by_id(execution.context['parent'])
         execution.context['user'] = getattr(parent, 'context', dict()).get('user')
 
     # Validate action.
@@ -71,6 +71,6 @@ def schedule(execution):
     # Write to database and send to message queue.
     execution.status = ACTIONEXEC_STATUS_SCHEDULED
     execution.start_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
-    execution = ActionExecution.add_or_update(execution)
-    LOG.audit('Action execution scheduled. ActionExecution=%s.', execution)
+    execution = LiveAction.add_or_update(execution)
+    LOG.audit('Action execution scheduled. LiveAction=%s.', execution)
     return execution

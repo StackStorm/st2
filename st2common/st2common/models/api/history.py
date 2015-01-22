@@ -22,7 +22,7 @@ from st2common.models.api.base import BaseAPI
 from st2common.models.db.history import ActionExecutionHistoryDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
-from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
+from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common import log as logging
 
 
@@ -31,7 +31,7 @@ LOG = logging.getLogger(__name__)
 REQUIRED_ATTR_SCHEMAS = {
     "action": copy.deepcopy(ActionAPI.schema),
     "runner": copy.deepcopy(RunnerTypeAPI.schema),
-    "execution": copy.deepcopy(ActionExecutionAPI.schema),
+    "execution": copy.deepcopy(LiveActionAPI.schema),
 }
 
 for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
