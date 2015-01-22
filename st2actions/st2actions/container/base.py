@@ -139,7 +139,7 @@ class RunnerContainer(object):
             result = {'message': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
         finally:
             # Always clean-up the auth_token
-            updated_liveaction_db = self._update_LIVE_ACTION_db(liveaction_db.id, status,
+            updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
                                                                 result)
             LOG.debug('Updated liveaction after run: %s', updated_liveaction_db)
             try:
@@ -153,7 +153,7 @@ class RunnerContainer(object):
 
         return updated_liveaction_db
 
-    def _update_LIVE_ACTION_db(self, liveaction_id, status, result):
+    def _update_live_action_db(self, liveaction_id, status, result):
         liveaction_db = get_liveaction_by_id(liveaction_id)
 
         if status in DONE_STATES:
