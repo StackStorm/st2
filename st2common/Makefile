@@ -17,7 +17,7 @@ rpm:
 .PHONY: rhel-rpm
 rhel-rpm:
 	pushd ~ && rpmdev-setuptree && popd
-	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz bin conf $(COMPONENTS)
+	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ --exclude=correlation -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz bin st2 $(COMPONENTS) ../contrib ../docs ../tools/ ../requirements.txt
 	cp packaging/rpm/$(COMPONENTS)-rhel6.spec $(RPM_SPECS_DIR)/
 	cd $(RPM_SPECS_DIR) && rpmbuild --clean --rmsource -ba $(COMPONENTS)-rhel6.spec
 
