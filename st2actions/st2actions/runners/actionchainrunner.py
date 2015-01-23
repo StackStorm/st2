@@ -73,7 +73,7 @@ class ChainHolder(object):
         if not self.actionchain.default:
             raise Exception('Failed to find default node in %s.' % (self.chainname))
         # finalize the vars and save them around to be used at execution time.
-        self.vars = self._get_rendered_vars(self.actionchain.vars)
+        self.vars = self._get_rendered_vars(self.actionchain.vars) if self.actionchain.vars else {}
 
     @staticmethod
     def _get_default(_actionchain):
@@ -158,9 +158,12 @@ class ActionChainRunner(ActionRunner):
                 # Save the traceback and error message.
                 results[action_node.name] = {'error': traceback.format_exc(10)}
             else:
-                # for now append all successful results
-                results[action_node.name] = ActionChainRunner._determine_action_result(
+                # Append full result under the node_name
+                results[action_node.name] = actionexec.result
+                rendered_publish_vars = ActionChainRunner._render_publish_vars(
                     action_node, actionexec.result, results, self.chain_holder.vars)
+                if rendered_publish_vars:
+                    self.chain_holder.vars.update(rendered_publish_vars)
             finally:
                 if not actionexec or actionexec.status == ACTIONEXEC_STATUS_FAILED:
                     fail = True
@@ -176,8 +179,8 @@ class ActionChainRunner(ActionRunner):
         return (status, results)
 
     @staticmethod
-    def _determine_action_result(action_node, execution_result, previous_execution_results,
-                                 chain_vars):
+    def _render_publish_vars(action_node, execution_result, previous_execution_results,
+                             chain_vars):
         """
         If no output is specified on the action_node the output is the entire execution_result.
         If any output is specified then only those variables are published as output of an
@@ -186,7 +189,7 @@ class ActionChainRunner(ActionRunner):
         previous_execution_results or chain_vars.
         """
         if not action_node.publish:
-            return execution_result
+            return {}
         context = {}
         context.update({action_node.name: execution_result})
         context.update(previous_execution_results)
