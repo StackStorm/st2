@@ -36,7 +36,7 @@ from st2common.persistence.action import (Action, LiveAction, ActionExecutionSta
 from st2common.persistence.history import (ActionExecutionHistory)
 from st2common.persistence.reactor import (Rule, Trigger, TriggerType)
 
-ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'executions', 'history', 'rules', 'runners',
+ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'liveactions', 'history', 'rules', 'runners',
                        'triggertypes', 'triggers']
 ALLOWED_FIXTURES = copy.copy(ALLOWED_DB_FIXTURES)
 ALLOWED_FIXTURES.extend(['actionchains', 'workflows'])
@@ -44,7 +44,7 @@ ALLOWED_FIXTURES.extend(['actionchains', 'workflows'])
 FIXTURE_DB_MODEL = {
     'actions': ActionDB,
     'actionstates': ActionExecutionStateDB,
-    'executions': LiveActionDB,
+    'liveactions': LiveActionDB,
     'history': ActionExecutionHistoryDB,
     'rules': RuleDB,
     'runners': RunnerTypeDB,
@@ -55,7 +55,7 @@ FIXTURE_DB_MODEL = {
 FIXTURE_API_MODEL = {
     'actions': ActionAPI,
     'actionstates': ActionExecutionStateAPI,
-    'executions': LiveActionAPI,
+    'liveactions': LiveActionAPI,
     'history': ActionExecutionHistoryAPI,
     'rules': RuleAPI,
     'runners': RunnerTypeAPI,
@@ -67,7 +67,7 @@ FIXTURE_API_MODEL = {
 FIXTURE_PERSISTENCE_MODEL = {
     'actions': Action,
     'actionstates': ActionExecutionState,
-    'executions': LiveAction,
+    'liveactions': LiveAction,
     'history': ActionExecutionHistory,
     'rules': Rule,
     'runners': RunnerType,
@@ -97,7 +97,7 @@ class FixturesLoader(object):
         {
             'actions': ['action-1.json', 'action-2.json'],
             'rules': ['rule-1.json'],
-            'executions': ['execution-1.json']
+            'liveactions': ['execution-1.json']
         }
 
         :param fixtures_pack: Name of the pack to load fixtures from.
@@ -173,7 +173,7 @@ class FixturesLoader(object):
         {
             'actions': ['action-1.json', 'action-2.json'],
             'rules': ['rule-1.json'],
-            'executions': ['execution-1.json']
+            'liveactions': ['execution-1.json']
         }
 
         :param fixtures_pack: Name of the pack to load fixtures from.
@@ -211,7 +211,7 @@ class FixturesLoader(object):
         {
             'actions': ['action-1.json', 'action-2.json'],
             'rules': ['rule-1.json'],
-            'executions': ['execution-1.json']
+            'liveactions': ['execution-1.json']
         }
 
         :param fixtures_pack: Name of the pack to delete fixtures from.
@@ -251,7 +251,7 @@ class FixturesLoader(object):
         {
             'actions': [ACTION1, ACTION2],
             'rules': [RULE1],
-            'executions': [EXECUTION]
+            'liveactions': [EXECUTION]
         }
 
         :param fixtures_dict: Dictionary specifying the fixtures to delete for each type.

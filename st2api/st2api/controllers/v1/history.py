@@ -53,14 +53,14 @@ class ActionExecutionHistoryController(resource.ResourceController):
     @jsexpose()
     def get_all(self, **kw):
         """
-            List all history for action executions.
+            List all history for action liveactions.
 
             Handles requests:
-                GET /history/executions/
+                GET /history/liveactions/
         """
-        LOG.info('GET all /history/executions/ with filters=%s', kw)
+        LOG.info('GET all /history/liveactions/ with filters=%s', kw)
         return self._get_executions(**kw)
 
 
 class HistoryController(rest.RestController):
-    executions = ActionExecutionHistoryController()
+    liveactions = ActionExecutionHistoryController()

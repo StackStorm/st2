@@ -53,16 +53,16 @@ class MistralResultsQuerier(Querier):
         return (status, resp.json())
 
     def _get_execution_results_url(self, exec_id):
-        return self._base_url + 'executions/' + exec_id + '/tasks'
+        return self._base_url + 'liveactions/' + exec_id + '/tasks'
 
     def _get_execution_status_url(self, exec_id):
-        return self._base_url + 'executions/' + exec_id
+        return self._base_url + 'liveactions/' + exec_id
 
     def _get_workflow_status(self, execution_obj):
         """
         Returns st2 status given mistral status.
 
-        :param execution_obj: Object representing the results of API call v2/executions/${id}/tasks
+        :param execution_obj: Object representing the results of API call v2/liveactions/${id}/tasks
         :type execution_obj: ``object``
 
         :rtype: ``str``

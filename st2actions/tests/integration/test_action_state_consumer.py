@@ -10,13 +10,13 @@ from st2tests.fixturesloader import FixturesLoader
 from tests.resources.test_querymodule import TestQuerier
 
 FIXTURES_PACK = 'generic'
-FIXTURES = {'executions': ['execution1.json']}
+FIXTURES = {'liveactions': ['liveaction1.json']}
 loader = FixturesLoader()
 
 
 class ActionStateConsumerTests(EventletTestCase, DbTestCase):
     models = None
-    executions = None
+    liveactions = None
 
     @classmethod
     def setUpClass(cls):
@@ -24,7 +24,7 @@ class ActionStateConsumerTests(EventletTestCase, DbTestCase):
         DbTestCase.setUpClass()
         ActionStateConsumerTests.models = loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                                      fixtures_dict=FIXTURES)
-        ActionStateConsumerTests.executions = ActionStateConsumerTests.models['executions']
+        ActionStateConsumerTests.liveactions = ActionStateConsumerTests.models['liveactions']
 
     @mock.patch.object(TestQuerier, 'query', mock.MagicMock(return_value=(False, {})))
     def test_do_process_task(self):
@@ -34,7 +34,7 @@ class ActionStateConsumerTests(EventletTestCase, DbTestCase):
             tracker._bootstrap()
             consumer = ActionStateQueueConsumer(conn, tracker)
             state = ActionStateConsumerTests.get_state(
-                ActionStateConsumerTests.executions['execution1.json'])
+                ActionStateConsumerTests.liveactions['liveaction1.json'])
             consumer._do_process_task(state)
             querier = tracker.get_querier('tests.resources.test_querymodule')
             self.assertEqual(querier._query_contexts.qsize(), 1)

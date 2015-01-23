@@ -29,19 +29,19 @@ class TestActionExecutionHistoryModel(DbTestCase):
     def setUp(self):
         super(TestActionExecutionHistoryModel, self).setUp()
 
-        # Fake history record for action executions triggered by workflow runner.
+        # Fake history record for action liveactions triggered by workflow runner.
         self.fake_history_subtasks = [
             {
                 'id': str(bson.ObjectId()),
                 'action': copy.deepcopy(fixture.ARTIFACTS['actions']['local']),
                 'runner': copy.deepcopy(fixture.ARTIFACTS['runners']['run-local']),
-                'execution': copy.deepcopy(fixture.ARTIFACTS['executions']['task1']),
+                'execution': copy.deepcopy(fixture.ARTIFACTS['liveactions']['task1']),
             },
             {
                 'id': str(bson.ObjectId()),
                 'action': copy.deepcopy(fixture.ARTIFACTS['actions']['local']),
                 'runner': copy.deepcopy(fixture.ARTIFACTS['runners']['run-local']),
-                'execution': copy.deepcopy(fixture.ARTIFACTS['executions']['task2']),
+                'execution': copy.deepcopy(fixture.ARTIFACTS['liveactions']['task2']),
             }
         ]
 
@@ -54,7 +54,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
             'rule': copy.deepcopy(fixture.ARTIFACTS['rule']),
             'action': copy.deepcopy(fixture.ARTIFACTS['actions']['chain']),
             'runner': copy.deepcopy(fixture.ARTIFACTS['runners']['action-chain']),
-            'execution': copy.deepcopy(fixture.ARTIFACTS['executions']['workflow']),
+            'execution': copy.deepcopy(fixture.ARTIFACTS['liveactions']['workflow']),
             'children': [task['id'] for task in self.fake_history_subtasks]
         }
 

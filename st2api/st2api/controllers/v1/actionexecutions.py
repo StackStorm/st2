@@ -54,7 +54,7 @@ class ActionExecutionsController(ResourceController):
     def _get_action_executions(self, **kw):
         kw['limit'] = int(kw.get('limit', 50))
 
-        LOG.debug('Retrieving all action executions with filters=%s', kw)
+        LOG.debug('Retrieving all action liveactions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(**kw)
 
     @jsexpose()

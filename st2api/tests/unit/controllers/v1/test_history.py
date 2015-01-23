@@ -48,13 +48,13 @@ class TestActionExecutionHistory(FunctionalTest):
                 'rule': copy.deepcopy(fixture.ARTIFACTS['rule']),
                 'action': copy.deepcopy(fixture.ARTIFACTS['actions']['chain']),
                 'runner': copy.deepcopy(fixture.ARTIFACTS['runners']['action-chain']),
-                'execution': copy.deepcopy(fixture.ARTIFACTS['executions']['workflow']),
+                'execution': copy.deepcopy(fixture.ARTIFACTS['liveactions']['workflow']),
                 'children': []
             },
             {
                 'action': copy.deepcopy(fixture.ARTIFACTS['actions']['local']),
                 'runner': copy.deepcopy(fixture.ARTIFACTS['runners']['run-local']),
-                'execution': copy.deepcopy(fixture.ARTIFACTS['executions']['task1'])
+                'execution': copy.deepcopy(fixture.ARTIFACTS['liveactions']['task1'])
             }
         ]
 
@@ -80,7 +80,7 @@ class TestActionExecutionHistory(FunctionalTest):
             cls.refs[obj_id] = ActionExecutionHistory.add_or_update(db_obj)
 
     def test_get_all(self):
-        response = self.app.get('/v1/history/executions')
+        response = self.app.get('/v1/history/liveactions')
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), self.num_records)
@@ -90,7 +90,7 @@ class TestActionExecutionHistory(FunctionalTest):
 
     def test_get_one(self):
         obj_id = random.choice(self.refs.keys())
-        response = self.app.get('/v1/history/executions/%s' % obj_id)
+        response = self.app.get('/v1/history/liveactions/%s' % obj_id)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, dict)
         record = response.json
@@ -101,14 +101,14 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertDictEqual(record['execution'], fake_record.execution)
 
     def test_get_one_failed(self):
-        response = self.app.get('/v1/history/executions/%s' % str(bson.ObjectId()),
+        response = self.app.get('/v1/history/liveactions/%s' % str(bson.ObjectId()),
                                 expect_errors=True)
         self.assertEqual(response.status_int, http_client.NOT_FOUND)
 
     def test_limit(self):
         limit = 10
         refs = [k for k, v in six.iteritems(self.refs) if v.action['name'] == 'chain']
-        response = self.app.get('/v1/history/executions?action=core.chain&limit=%s' %
+        response = self.app.get('/v1/history/liveactions?action=core.chain&limit=%s' %
                                 limit)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
@@ -120,7 +120,7 @@ class TestActionExecutionHistory(FunctionalTest):
 
     def test_query(self):
         refs = [k for k, v in six.iteritems(self.refs) if v.action['name'] == 'chain']
-        response = self.app.get('/v1/history/executions?action=core.chain')
+        response = self.app.get('/v1/history/liveactions?action=core.chain')
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), len(refs))
@@ -136,7 +136,7 @@ class TestActionExecutionHistory(FunctionalTest):
             value = self.fake_types[0]
             for item in field.split('.'):
                 value = value[item]
-            response = self.app.get('/v1/history/executions?%s=%s' % (param, value))
+            response = self.app.get('/v1/history/liveactions?%s=%s' % (param, value))
             self.assertEqual(response.status_int, 200)
             self.assertIsInstance(response.json, list)
             self.assertGreater(len(response.json), 0)
@@ -147,7 +147,7 @@ class TestActionExecutionHistory(FunctionalTest):
                 if v.action['name'] == 'chain' and v.children]
         self.assertTrue(refs)
         ref = random.choice(refs)
-        response = self.app.get('/v1/history/executions?parent=%s' % str(ref.id))
+        response = self.app.get('/v1/history/liveactions?parent=%s' % str(ref.id))
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), len(ref.children))
@@ -159,7 +159,7 @@ class TestActionExecutionHistory(FunctionalTest):
         refs = {k: v for k, v in six.iteritems(self.refs) if not getattr(v, 'parent', None)}
         self.assertTrue(refs)
         self.assertNotEqual(len(refs), self.num_records)
-        response = self.app.get('/v1/history/executions?parent=null')
+        response = self.app.get('/v1/history/liveactions?parent=null')
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), len(refs))
@@ -173,7 +173,7 @@ class TestActionExecutionHistory(FunctionalTest):
         page_count = self.num_records / page_size
         for i in range(page_count):
             offset = i * page_size
-            response = self.app.get('/v1/history/executions?offset=%s&limit=%s' % (
+            response = self.app.get('/v1/history/liveactions?offset=%s&limit=%s' % (
                 offset, page_size))
             self.assertEqual(response.status_int, 200)
             self.assertIsInstance(response.json, list)
@@ -188,7 +188,7 @@ class TestActionExecutionHistory(FunctionalTest):
 
     def test_datetime_range(self):
         dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'
-        response = self.app.get('/v1/history/executions?timestamp=%s' % dt_range)
+        response = self.app.get('/v1/history/liveactions?timestamp=%s' % dt_range)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), 10)
@@ -198,7 +198,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertLess(isotime.parse(dt1), isotime.parse(dt2))
 
         dt_range = '2014-12-25T00:00:19Z..2014-12-25T00:00:10Z'
-        response = self.app.get('/v1/history/executions?timestamp=%s' % dt_range)
+        response = self.app.get('/v1/history/liveactions?timestamp=%s' % dt_range)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), 10)
@@ -208,7 +208,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertLess(isotime.parse(dt2), isotime.parse(dt1))
 
     def test_default_sort(self):
-        response = self.app.get('/v1/history/executions')
+        response = self.app.get('/v1/history/liveactions')
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         dt1 = response.json[0]['execution']['start_timestamp']
@@ -216,7 +216,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertLess(isotime.parse(dt2), isotime.parse(dt1))
 
     def test_filters_view(self):
-        response = self.app.get('/v1/history/executions/views/filters')
+        response = self.app.get('/v1/history/liveactions/views/filters')
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, dict)
         for key, value in six.iteritems(history_views.ARTIFACTS['filters']):

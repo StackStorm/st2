@@ -94,11 +94,11 @@ as described in :ref:`config-configure-ssh` section.
     # Crasily complex command passed with `cmd`
     st2 run core.remote hosts='localhost' cmd="for u in bob phill luke; do echo \"Logins by \$u per day:\"; grep \$u /var/log/secure | grep opened | awk '{print \$1 \"-\" \$2}' | uniq -c | sort; done;"
 
-Check the action execution history and details of action executions with ``st2 execution`` command:
+Check the action execution history and details of action liveactions with ``st2 execution`` command:
 
 .. code-block:: bash
 
-    # List of executions (recent at the bottom)
+    # List of liveactions (recent at the bottom)
     st2 execution list
     # Get execution by ID
     st2 execution get <execution_id>
@@ -201,7 +201,7 @@ Troubleshooting
 ----------------------
 If something goes wrong:
 
-* Check recent executions: ``st2 execution list``
+* Check recent liveactions: ``st2 execution list``
 * Check the logs at ``/var/log/st2.``
 * Use service control ``st2ctl`` to check service status, restart services, reload packs, or clean the db.
 * `Engage with developers <http://webchat.freenode.net/?channels=stackstorm>`__

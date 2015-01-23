@@ -87,7 +87,7 @@ class Client(object):
         return self.managers['Action']
 
     @property
-    def executions(self):
+    def liveactions(self):
         return self.managers['liveaction']
 
     @property

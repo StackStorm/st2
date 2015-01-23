@@ -37,4 +37,4 @@ class liveaction(core.Resource):
     _alias = 'Execution'
     _display_name = 'Action Execution'
     _plural = 'ActionExecutions'
-    _plural_display_name = 'Action Executions'
+    _plural_display_name = 'Action liveactions'

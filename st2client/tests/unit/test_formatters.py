@@ -33,7 +33,7 @@ from st2client.utils import httpclient
 LOG = logging.getLogger(__name__)
 
 FIXTURES_MANIFEST = {
-    'executions': ['execution.json',
+    'liveactions': ['execution.json',
                    'execution_result_has_carriage_return.json'],
     'results': ['execution_get_default.txt',
                 'execution_get_detail.txt',
@@ -42,8 +42,8 @@ FIXTURES_MANIFEST = {
 }
 
 FIXTURES = loader.load_fixtures(fixtures_dict=FIXTURES_MANIFEST)
-LIVE_ACTION = FIXTURES['executions']['execution.json']
-HAS_CARRIAGE_RETURN = FIXTURES['executions']['execution_result_has_carriage_return.json']
+LIVE_ACTION = FIXTURES['liveactions']['execution.json']
+HAS_CARRIAGE_RETURN = FIXTURES['liveactions']['execution_result_has_carriage_return.json']
 
 
 class TestExecutionResultFormatter(unittest2.TestCase):

@@ -171,7 +171,7 @@ class TestActionExecutionController(FunctionalTest):
         self._get_actionexecution_id(self._do_post(LIVE_ACTION_2))
         resp = self.app.get('/v1/actionexecutions')
         body = resp.json
-        # Assert executions are sorted by timestamp.
+        # Assert liveactions are sorted by timestamp.
         for i in range(len(body) - 1):
             self.assertTrue(isotime.parse(body[i]['start_timestamp']) >=
                             isotime.parse(body[i + 1]['start_timestamp']))
