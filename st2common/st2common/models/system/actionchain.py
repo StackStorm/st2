@@ -59,7 +59,7 @@ class Node(object):
                 "description": "The variables to publish from the result. Should be of the form"
                                " name.foo. o1: {{node_name.foo}} will result in creation of a"
                                " variable o1 which is now available for reference through"
-                               " remainder of the chain.",
+                               " remainder of the chain as a global variable.",
                 "type": "object",
                 "patternProperties": {
                     "^\w+$": {}
@@ -86,14 +86,14 @@ class ActionChain(object):
         "type": "object",
         "properties": {
             "chain": {
-                "description": "The chains.",
+                "description": "The chain.",
                 "type": "array",
                 "items": [Node.schema],
                 "required": True
             },
             "default": {
                 "type": "string",
-                "description": "Ref of the action to be executed."
+                "description": "name of the action to be executed."
             },
             "vars": {
                 "description": "",
