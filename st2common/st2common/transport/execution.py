@@ -18,7 +18,7 @@
 from kombu import Exchange, Queue
 from st2common.transport import publishers
 
-HISTORY_XCHG = Exchange('st2.history', type='topic')
+HISTORY_XCHG = Exchange('st2.execution', type='topic')
 
 
 class ActionExecutionPublisher(publishers.CUDPublisher):
