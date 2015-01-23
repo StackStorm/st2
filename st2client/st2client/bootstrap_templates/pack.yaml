@@ -1,0 +1,6 @@
+---
+name: {{ pack_name }}
+description:
+version: 0.1
+author: {{ author_name }}
+email: {{ author_email }}

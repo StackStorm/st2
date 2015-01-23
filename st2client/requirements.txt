@@ -4,3 +4,4 @@ requests
 six
 python-dateutil
 jsonpath-rw
+jinja2>=2.7.3,<2.8
