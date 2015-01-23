@@ -44,14 +44,14 @@ class RuleEnforcer(object):
             'user': get_system_username()
         }
 
-        LIVE_ACTION = RuleEnforcer._invoke_action(self.rule.action, data, context)
-        if not LIVE_ACTION:
+        liveaction = RuleEnforcer._invoke_action(self.rule.action, data, context)
+        if not liveaction:
             LOG.audit('Rule enforcement failed. liveaction for Action %s failed. '
                       'TriggerInstance: %s and Rule: %s',
                       self.rule.action.name, self.trigger_instance, self.rule)
             return None
 
-        liveaction_db = LIVE_ACTION.get('id', None)
+        liveaction_db = liveaction.get('id', None)
         LOG.audit('Rule enforced. liveaction %s, TriggerInstance %s and Rule %s.',
                   liveaction_db, self.trigger_instance, self.rule)
 
@@ -60,7 +60,7 @@ class RuleEnforcer(object):
     @staticmethod
     def _invoke_action(action, action_args, context=None):
         action_ref = action['ref']
-        execution = LiveActionDB(action=action_ref, context=context, parameters=action_args)
-        execution = action_service.schedule(execution)
-        return ({'id': str(execution.id)}
-                if execution.status == LIVEACTION_STATUS_SCHEDULED else None)
+        liveaction = LiveActionDB(action=action_ref, context=context, parameters=action_args)
+        liveaction = action_service.schedule(liveaction)
+        return ({'id': str(liveaction.id)}
+                if liveaction.status == LIVEACTION_STATUS_SCHEDULED else None)

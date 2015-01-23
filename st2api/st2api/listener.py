@@ -35,8 +35,8 @@ from kombu.mixins import ConsumerMixin
 from oslo.config import cfg
 
 from st2common.models.api.action import LiveActionAPI
-from st2common.models.api.history import ActionExecutionHistoryAPI
-from st2common.transport import liveaction, history, publishers
+from st2common.models.api.execution import ActionExecutionAPI
+from st2common.transport import liveaction, execution, publishers
 from st2common import log as logging
 
 __all__ = [
@@ -63,10 +63,10 @@ class Listener(ConsumerMixin):
 
     def get_consumers(self, consumer, channel):
         return [
-            consumer(queues=[history.get_queue(routing_key=publishers.ANY_RK,
-                                               exclusive=True)],
+            consumer(queues=[execution.get_queue(routing_key=publishers.ANY_RK,
+                                                 exclusive=True)],
                      accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionHistoryAPI)]),
+                     callbacks=[self.processor(ActionExecutionAPI)]),
 
             consumer(queues=[Queue(None,
                                    liveaction.LIVEACTION_XCHG,

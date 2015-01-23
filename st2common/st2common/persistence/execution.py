@@ -17,12 +17,12 @@ from oslo.config import cfg
 
 from st2common import transport
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.history import ActionExecutionHistoryDB
+from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.base import Access
 
 
-class ActionExecutionHistory(Access):
-    impl = MongoDBAccess(ActionExecutionHistoryDB)
+class ActionExecution(Access):
+    impl = MongoDBAccess(ActionExecutionDB)
     publisher = None
 
     @classmethod
@@ -32,6 +32,6 @@ class ActionExecutionHistory(Access):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.history.HistoryPublisher(
+            cls.publisher = transport.execution.ActionExecutionPublisher(
                 cfg.CONF.messaging.url)
         return cls.publisher

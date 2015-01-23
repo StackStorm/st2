@@ -22,12 +22,12 @@ import six
 from six.moves import http_client
 
 from tests import FunctionalTest
-from st2tests.fixtures import history as fixture
+from st2tests.fixtures import executions as fixture
 from st2tests.fixtures import history_views
 from st2common.util import isotime
 from st2api.controllers.v1.history import ActionExecutionHistoryController
-from st2common.persistence.history import ActionExecutionHistory
-from st2common.models.api.history import ActionExecutionHistoryAPI
+from st2common.persistence.execution import ActionExecution
+from st2common.models.api.execution import ActionExecutionAPI
 
 
 class TestActionExecutionHistory(FunctionalTest):
@@ -64,7 +64,7 @@ class TestActionExecutionHistory(FunctionalTest):
                 parent = random.choice(candidates)
                 child['parent'] = str(parent.id)
                 parent.children.append(child['id'])
-                cls.refs[str(parent.id)] = ActionExecutionHistory.add_or_update(parent)
+                cls.refs[str(parent.id)] = ActionExecution.add_or_update(parent)
 
         for i in range(cls.num_records):
             obj_id = str(bson.ObjectId())
@@ -75,9 +75,9 @@ class TestActionExecutionHistory(FunctionalTest):
             data['execution']['start_timestamp'] = isotime.format(timestamp, offset=False)
             if fake_type['action']['name'] == 'local' and random.choice([True, False]):
                 assign_parent(data)
-            wb_obj = ActionExecutionHistoryAPI(**data)
-            db_obj = ActionExecutionHistoryAPI.to_model(wb_obj)
-            cls.refs[obj_id] = ActionExecutionHistory.add_or_update(db_obj)
+            wb_obj = ActionExecutionAPI(**data)
+            db_obj = ActionExecutionAPI.to_model(wb_obj)
+            cls.refs[obj_id] = ActionExecution.add_or_update(db_obj)
 
     def test_get_all(self):
         response = self.app.get('/v1/history/liveactions')
@@ -94,7 +94,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, dict)
         record = response.json
-        fake_record = ActionExecutionHistoryAPI.from_model(self.refs[obj_id])
+        fake_record = ActionExecutionAPI.from_model(self.refs[obj_id])
         self.assertEqual(record['id'], obj_id)
         self.assertDictEqual(record['action'], fake_record.action)
         self.assertDictEqual(record['runner'], fake_record.runner)

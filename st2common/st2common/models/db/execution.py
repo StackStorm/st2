@@ -19,14 +19,14 @@ from st2common.models.db import stormbase
 from st2common import log as logging
 
 __all__ = [
-    'ActionExecutionHistoryDB'
+    'ActionExecutionDB'
 ]
 
 
 LOG = logging.getLogger(__name__)
 
 
-class ActionExecutionHistoryDB(stormbase.StormFoundationDB):
+class ActionExecutionDB(stormbase.StormFoundationDB):
     trigger = stormbase.EscapedDictField()
     trigger_type = stormbase.EscapedDictField()
     trigger_instance = stormbase.EscapedDictField()
@@ -45,4 +45,4 @@ class ActionExecutionHistoryDB(stormbase.StormFoundationDB):
         ]
     }
 
-MODELS = [ActionExecutionHistoryDB]
+MODELS = [ActionExecutionDB]
