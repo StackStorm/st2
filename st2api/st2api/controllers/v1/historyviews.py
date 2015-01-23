@@ -19,7 +19,7 @@ import six
 
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
-from st2common.persistence.history import ActionExecution
+from st2common.persistence.execution import ActionExecution
 
 LOG = logging.getLogger(__name__)
 

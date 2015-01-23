@@ -37,13 +37,13 @@ from st2common.util import reference
 import st2common.util.action_db as action_utils
 from st2common.transport import liveaction, publishers
 from st2common.util.greenpooldispatch import BufferedDispatcher
-from st2common.persistence.history import ActionExecution
+from st2common.persistence.execution import ActionExecution
 from st2common.persistence.action import RunnerType, LiveAction
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
-from st2common.models.db.history import ActionExecutionDB
+from st2common.models.db.execution import ActionExecutionDB
 from st2common import log as logging
 
 

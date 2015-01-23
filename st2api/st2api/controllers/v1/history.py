@@ -18,8 +18,8 @@ from pecan import rest
 from st2api.controllers import resource
 from st2api.controllers.v1.historyviews import SUPPORTED_FILTERS
 from st2api.controllers.v1.historyviews import HistoryViewsController
-from st2common.persistence.history import ActionExecution
-from st2common.models.api.history import ActionExecutionAPI
+from st2common.persistence.execution import ActionExecution
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.system.common import ResourceReference
 from st2common import log as logging

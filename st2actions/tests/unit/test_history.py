@@ -38,7 +38,7 @@ import st2common.util.action_db as action_utils
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 from st2common.persistence.action import RunnerType, Action, LiveAction
-from st2common.persistence.history import ActionExecution
+from st2common.persistence.execution import ActionExecution
 
 
 CHAMPION = worker.Worker(None)

@@ -22,18 +22,18 @@ from st2common.content.loader import MetaLoader
 
 from st2common.models.api.action import (ActionAPI, LiveActionAPI, ActionExecutionStateAPI,
                                          RunnerTypeAPI)
-from st2common.models.api.history import (ActionExecutionAPI)
+from st2common.models.api.execution import (ActionExecutionAPI)
 from st2common.models.api.reactor import (TriggerAPI, TriggerTypeAPI)
 from st2common.models.api.rule import (RuleAPI)
 
 from st2common.models.db.action import (ActionDB, LiveActionDB, ActionExecutionStateDB,
                                         RunnerTypeDB)
-from st2common.models.db.history import (ActionExecutionDB)
+from st2common.models.db.execution import (ActionExecutionDB)
 from st2common.models.db.reactor import (RuleDB, TriggerDB, TriggerTypeDB)
 
 from st2common.persistence.action import (Action, LiveAction, ActionExecutionState,
                                           RunnerType)
-from st2common.persistence.history import (ActionExecution)
+from st2common.persistence.execution import (ActionExecution)
 from st2common.persistence.reactor import (Rule, Trigger, TriggerType)
 
 ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'liveactions', 'history', 'rules', 'runners',

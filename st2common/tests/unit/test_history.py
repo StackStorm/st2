@@ -20,8 +20,8 @@ import datetime
 from st2tests.fixtures import history as fixture
 from st2tests import DbTestCase
 from st2common.util import isotime
-from st2common.persistence.history import ActionExecution
-from st2common.models.api.history import ActionExecutionAPI
+from st2common.persistence.execution import ActionExecution
+from st2common.models.api.execution import ActionExecutionAPI
 
 
 class TestActionExecutionHistoryModel(DbTestCase):

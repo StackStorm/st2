@@ -17,7 +17,7 @@ from oslo.config import cfg
 
 from st2common import transport
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.history import ActionExecutionDB
+from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.base import Access
 
 

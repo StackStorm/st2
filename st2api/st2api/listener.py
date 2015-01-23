@@ -35,7 +35,7 @@ from kombu.mixins import ConsumerMixin
 from oslo.config import cfg
 
 from st2common.models.api.action import LiveActionAPI
-from st2common.models.api.history import ActionExecutionAPI
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.transport import liveaction, history, publishers
 from st2common import log as logging
 

@@ -26,8 +26,8 @@ from st2tests.fixtures import history as fixture
 from st2tests.fixtures import history_views
 from st2common.util import isotime
 from st2api.controllers.v1.history import ActionExecutionHistoryController
-from st2common.persistence.history import ActionExecution
-from st2common.models.api.history import ActionExecutionAPI
+from st2common.persistence.execution import ActionExecution
+from st2common.models.api.execution import ActionExecutionAPI
 
 
 class TestActionExecutionHistory(FunctionalTest):

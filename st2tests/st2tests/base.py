@@ -25,7 +25,7 @@ import st2common.models.db.reactor as reactor_model
 import st2common.models.db.action as action_model
 import st2common.models.db.datastore as datastore_model
 import st2common.models.db.actionrunner as actionrunner_model
-import st2common.models.db.history as history_model
+import st2common.models.db.execution as history_model
 
 __all__ = [
     'EventletTestCase',
