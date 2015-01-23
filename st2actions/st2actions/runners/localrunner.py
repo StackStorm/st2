@@ -160,7 +160,5 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         if error:
             result['error'] = error
 
-        print('Status %s' % exit_code)
-        print('Result %s' % result)
         status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
         return (status, jsonify.json_loads(result, LocalShellRunner.KEYS_TO_TRANSFORM))
