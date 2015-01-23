@@ -22,7 +22,7 @@ import six
 from six.moves import http_client
 
 from tests import FunctionalTest
-from st2tests.fixtures import history as fixture
+from st2tests.fixtures import executions as fixture
 from st2tests.fixtures import history_views
 from st2common.util import isotime
 from st2api.controllers.v1.history import ActionExecutionHistoryController

@@ -17,7 +17,7 @@ import copy
 import bson
 import datetime
 
-from st2tests.fixtures import history as fixture
+from st2tests.fixtures import executions as fixture
 from st2tests import DbTestCase
 from st2common.util import isotime
 from st2common.persistence.execution import ActionExecution
@@ -29,7 +29,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
     def setUp(self):
         super(TestActionExecutionHistoryModel, self).setUp()
 
-        # Fake history record for action liveactions triggered by workflow runner.
+        # Fake execution record for action liveactions triggered by workflow runner.
         self.fake_history_subtasks = [
             {
                 'id': str(bson.ObjectId()),
@@ -45,7 +45,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
             }
         ]
 
-        # Fake history record for a workflow action execution triggered by rule.
+        # Fake execution record for a workflow action execution triggered by rule.
         self.fake_history_workflow = {
             'id': str(bson.ObjectId()),
             'trigger': copy.deepcopy(fixture.ARTIFACTS['trigger']),
@@ -58,7 +58,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
             'children': [task['id'] for task in self.fake_history_subtasks]
         }
 
-        # Assign parent to the history records for the subtasks.
+        # Assign parent to the execution records for the subtasks.
         for task in self.fake_history_subtasks:
             task['parent'] = self.fake_history_workflow['id']
 
@@ -237,10 +237,10 @@ class TestActionExecutionHistoryModel(DbTestCase):
 
         dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'
         objs = ActionExecution.query(execution__start_timestamp=dt_range,
-                                            order_by=['execution__start_timestamp'])
+                                     order_by=['execution__start_timestamp'])
         self.assertLess(objs[0].execution['start_timestamp'], objs[9].execution['start_timestamp'])
 
         dt_range = '2014-12-25T00:00:19Z..2014-12-25T00:00:10Z'
         objs = ActionExecution.query(execution__start_timestamp=dt_range,
-                                            order_by=['-execution__start_timestamp'])
+                                     order_by=['-execution__start_timestamp'])
         self.assertLess(objs[9].execution['start_timestamp'], objs[0].execution['start_timestamp'])

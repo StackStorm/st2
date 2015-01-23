@@ -76,6 +76,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
     def run(self, action_parameters):
+        print('Runner run')
         LOG.debug('    action_parameters = %s', action_parameters)
 
         if not self.entry_point:
@@ -159,5 +160,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         if error:
             result['error'] = error
 
+        print('Status %s' % exit_code)
+        print('Result %s' % result)
         status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
         return (status, jsonify.json_loads(result, LocalShellRunner.KEYS_TO_TRANSFORM))
