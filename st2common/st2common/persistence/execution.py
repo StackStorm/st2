@@ -32,6 +32,6 @@ class ActionExecution(Access):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.history.HistoryPublisher(
+            cls.publisher = transport.execution.ActionExecutionPublisher(
                 cfg.CONF.messaging.url)
         return cls.publisher

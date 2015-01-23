@@ -21,10 +21,10 @@ from st2common.transport import publishers
 HISTORY_XCHG = Exchange('st2.history', type='topic')
 
 
-class HistoryPublisher(publishers.CUDPublisher):
+class ActionExecutionPublisher(publishers.CUDPublisher):
 
     def __init__(self, url):
-        super(HistoryPublisher, self).__init__(url, HISTORY_XCHG)
+        super(ActionExecutionPublisher, self).__init__(url, HISTORY_XCHG)
 
 
 def get_queue(name=None, routing_key=None, exclusive=False):
