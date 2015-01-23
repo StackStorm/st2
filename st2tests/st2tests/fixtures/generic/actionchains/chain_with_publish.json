@@ -15,7 +15,7 @@
             },
             "publish":
             {
-                "o1": "{{c1.foo.bar}}"
+                "o1": "{{c1.raw_out}}"
             },
             "on-success": "c2"
         },
@@ -25,7 +25,7 @@
             "params":
             {
                 "inttype": "{{inttype}}",
-                "strtype": "{{c1.o1}}",
+                "strtype": "{{o1}}",
                 "booltype": true
             }
         }

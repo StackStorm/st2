@@ -72,6 +72,8 @@ CHAIN_SYSTEM_PARAMS = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_typed_system_params.json')
 CHAIN_VARS = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_vars.json')
+CHAIN_WITH_PUBLISH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_with_publish.json')
 
 
 @mock.patch.object(action_db_util, 'get_runnertype_by_name',
@@ -341,6 +343,24 @@ class TestActionChainRunner(DbTestCase):
         finally:
             for kvp in kvps:
                 KeyValuePair.delete(kvp)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_2))
+    @mock.patch.object(action_service, 'schedule',
+                       return_value=DummyActionExecution(result={'raw_out': 'published'}))
+    def test_chain_runner_publish(self, schedule):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_PUBLISH
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        chain_runner.run({})
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        expected_value = {'inttype': 1,
+                          'strtype': 'published',
+                          'booltype': True}
+        mock_args, _ = schedule.call_args
+        self.assertEqual(mock_args[0].parameters, expected_value)
 
     @classmethod
     def tearDownClass(cls):
