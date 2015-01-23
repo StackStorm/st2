@@ -37,13 +37,13 @@ from st2common.util import reference
 import st2common.util.action_db as action_utils
 from st2common.transport import liveaction, publishers
 from st2common.util.greenpooldispatch import BufferedDispatcher
-from st2common.persistence.history import ActionExecutionHistory
+from st2common.persistence.history import ActionExecution
 from st2common.persistence.action import RunnerType, LiveAction
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
-from st2common.models.db.history import ActionExecutionHistoryDB
+from st2common.models.db.history import ActionExecutionDB
 from st2common import log as logging
 
 
@@ -114,17 +114,17 @@ class Historian(ConsumerMixin):
                 attrs['trigger'] = vars(TriggerAPI.from_model(trigger))
                 attrs['trigger_type'] = vars(TriggerTypeAPI.from_model(trigger_type))
 
-            parent = ActionExecutionHistory.get(execution__id=execution.context.get('parent', ''))
+            parent = ActionExecution.get(execution__id=execution.context.get('parent', ''))
             if parent:
                 attrs['parent'] = str(parent.id)
 
-            history = ActionExecutionHistoryDB(**attrs)
-            history = ActionExecutionHistory.add_or_update(history)
+            history = ActionExecutionDB(**attrs)
+            history = ActionExecution.add_or_update(history)
 
             if parent:
                 if str(history.id) not in parent.children:
                     parent.children.append(str(history.id))
-                    ActionExecutionHistory.add_or_update(parent)
+                    ActionExecution.add_or_update(parent)
         except:
             LOG.exception('An unexpected error occurred while creating the '
                           'action execution history.')
@@ -135,11 +135,11 @@ class Historian(ConsumerMixin):
             count = self.timeout / self.wait
             # Allow up to 1 minute for the post event to create the history record.
             for i in range(count):
-                history = ActionExecutionHistory.get(execution__id=str(body.id))
+                history = ActionExecution.get(execution__id=str(body.id))
                 if history:
                     execution = LiveAction.get_by_id(str(body.id))
                     history.execution = vars(LiveActionAPI.from_model(execution))
-                    history = ActionExecutionHistory.add_or_update(history)
+                    history = ActionExecution.add_or_update(history)
                     return
                 if i >= count:
                     # If wait failed, create the history record regardless.

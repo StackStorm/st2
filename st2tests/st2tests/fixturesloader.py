@@ -22,18 +22,18 @@ from st2common.content.loader import MetaLoader
 
 from st2common.models.api.action import (ActionAPI, LiveActionAPI, ActionExecutionStateAPI,
                                          RunnerTypeAPI)
-from st2common.models.api.history import (ActionExecutionHistoryAPI)
+from st2common.models.api.history import (ActionExecutionAPI)
 from st2common.models.api.reactor import (TriggerAPI, TriggerTypeAPI)
 from st2common.models.api.rule import (RuleAPI)
 
 from st2common.models.db.action import (ActionDB, LiveActionDB, ActionExecutionStateDB,
                                         RunnerTypeDB)
-from st2common.models.db.history import (ActionExecutionHistoryDB)
+from st2common.models.db.history import (ActionExecutionDB)
 from st2common.models.db.reactor import (RuleDB, TriggerDB, TriggerTypeDB)
 
 from st2common.persistence.action import (Action, LiveAction, ActionExecutionState,
                                           RunnerType)
-from st2common.persistence.history import (ActionExecutionHistory)
+from st2common.persistence.history import (ActionExecution)
 from st2common.persistence.reactor import (Rule, Trigger, TriggerType)
 
 ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'liveactions', 'history', 'rules', 'runners',
@@ -44,8 +44,8 @@ ALLOWED_FIXTURES.extend(['actionchains', 'workflows'])
 FIXTURE_DB_MODEL = {
     'actions': ActionDB,
     'actionstates': ActionExecutionStateDB,
+    'history': ActionExecutionDB,
     'liveactions': LiveActionDB,
-    'history': ActionExecutionHistoryDB,
     'rules': RuleDB,
     'runners': RunnerTypeDB,
     'triggertypes': TriggerTypeDB,
@@ -55,8 +55,8 @@ FIXTURE_DB_MODEL = {
 FIXTURE_API_MODEL = {
     'actions': ActionAPI,
     'actionstates': ActionExecutionStateAPI,
+    'history': ActionExecutionAPI,
     'liveactions': LiveActionAPI,
-    'history': ActionExecutionHistoryAPI,
     'rules': RuleAPI,
     'runners': RunnerTypeAPI,
     'triggertypes': TriggerTypeAPI,
@@ -67,8 +67,8 @@ FIXTURE_API_MODEL = {
 FIXTURE_PERSISTENCE_MODEL = {
     'actions': Action,
     'actionstates': ActionExecutionState,
+    'history': ActionExecution,
     'liveactions': LiveAction,
-    'history': ActionExecutionHistory,
     'rules': Rule,
     'runners': RunnerType,
     'triggertypes': TriggerType,

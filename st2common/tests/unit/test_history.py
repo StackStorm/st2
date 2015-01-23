@@ -20,8 +20,8 @@ import datetime
 from st2tests.fixtures import history as fixture
 from st2tests import DbTestCase
 from st2common.util import isotime
-from st2common.persistence.history import ActionExecutionHistory
-from st2common.models.api.history import ActionExecutionHistoryAPI
+from st2common.persistence.history import ActionExecution
+from st2common.models.api.history import ActionExecutionAPI
 
 
 class TestActionExecutionHistoryModel(DbTestCase):
@@ -65,7 +65,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
     def test_model_complete(self):
 
         # Create API object.
-        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history_workflow))
+        obj = ActionExecutionAPI(**copy.deepcopy(self.fake_history_workflow))
         self.assertDictEqual(obj.trigger, self.fake_history_workflow['trigger'])
         self.assertDictEqual(obj.trigger_type, self.fake_history_workflow['trigger_type'])
         self.assertDictEqual(obj.trigger_instance, self.fake_history_workflow['trigger_instance'])
@@ -77,7 +77,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertListEqual(obj.children, self.fake_history_workflow['children'])
 
         # Convert API object to DB model.
-        model = ActionExecutionHistoryAPI.to_model(obj)
+        model = ActionExecutionAPI.to_model(obj)
         self.assertEqual(str(model.id), obj.id)
         self.assertDictEqual(model.trigger, self.fake_history_workflow['trigger'])
         self.assertDictEqual(model.trigger_type, self.fake_history_workflow['trigger_type'])
@@ -93,7 +93,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertListEqual(model.children, self.fake_history_workflow['children'])
 
         # Convert DB model to API object.
-        obj = ActionExecutionHistoryAPI.from_model(model)
+        obj = ActionExecutionAPI.from_model(model)
         self.assertEqual(str(model.id), obj.id)
         self.assertDictEqual(obj.trigger, self.fake_history_workflow['trigger'])
         self.assertDictEqual(obj.trigger_type, self.fake_history_workflow['trigger_type'])
@@ -107,9 +107,9 @@ class TestActionExecutionHistoryModel(DbTestCase):
 
     def test_crud_complete(self):
         # Create the DB record.
-        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history_workflow))
-        ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
-        model = ActionExecutionHistory.get_by_id(obj.id)
+        obj = ActionExecutionAPI(**copy.deepcopy(self.fake_history_workflow))
+        ActionExecution.add_or_update(ActionExecutionAPI.to_model(obj))
+        model = ActionExecution.get_by_id(obj.id)
         self.assertEqual(str(model.id), obj.id)
         self.assertDictEqual(model.trigger, self.fake_history_workflow['trigger'])
         self.assertDictEqual(model.trigger_type, self.fake_history_workflow['trigger_type'])
@@ -127,17 +127,17 @@ class TestActionExecutionHistoryModel(DbTestCase):
         # Update the DB record.
         children = [str(bson.ObjectId()), str(bson.ObjectId())]
         model.children = children
-        ActionExecutionHistory.add_or_update(model)
-        model = ActionExecutionHistory.get_by_id(obj.id)
+        ActionExecution.add_or_update(model)
+        model = ActionExecution.get_by_id(obj.id)
         self.assertListEqual(model.children, children)
 
         # Delete the DB record.
-        ActionExecutionHistory.delete(model)
-        self.assertRaises(ValueError, ActionExecutionHistory.get_by_id, obj.id)
+        ActionExecution.delete(model)
+        self.assertRaises(ValueError, ActionExecution.get_by_id, obj.id)
 
     def test_model_partial(self):
         # Create API object.
-        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history_subtasks[0]))
+        obj = ActionExecutionAPI(**copy.deepcopy(self.fake_history_subtasks[0]))
         self.assertIsNone(getattr(obj, 'trigger', None))
         self.assertIsNone(getattr(obj, 'trigger_type', None))
         self.assertIsNone(getattr(obj, 'trigger_instance', None))
@@ -149,7 +149,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertIsNone(getattr(obj, 'children', None))
 
         # Convert API object to DB model.
-        model = ActionExecutionHistoryAPI.to_model(obj)
+        model = ActionExecutionAPI.to_model(obj)
         self.assertEqual(str(model.id), obj.id)
         self.assertDictEqual(model.trigger, {})
         self.assertDictEqual(model.trigger_type, {})
@@ -165,7 +165,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertListEqual(model.children, [])
 
         # Convert DB model to API object.
-        obj = ActionExecutionHistoryAPI.from_model(model)
+        obj = ActionExecutionAPI.from_model(model)
         self.assertEqual(str(model.id), obj.id)
         self.assertIsNone(getattr(obj, 'trigger', None))
         self.assertIsNone(getattr(obj, 'trigger_type', None))
@@ -179,9 +179,9 @@ class TestActionExecutionHistoryModel(DbTestCase):
 
     def test_crud_partial(self):
         # Create the DB record.
-        obj = ActionExecutionHistoryAPI(**copy.deepcopy(self.fake_history_subtasks[0]))
-        ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
-        model = ActionExecutionHistory.get_by_id(obj.id)
+        obj = ActionExecutionAPI(**copy.deepcopy(self.fake_history_subtasks[0]))
+        ActionExecution.add_or_update(ActionExecutionAPI.to_model(obj))
+        model = ActionExecution.get_by_id(obj.id)
         self.assertEqual(str(model.id), obj.id)
         self.assertDictEqual(model.trigger, {})
         self.assertDictEqual(model.trigger_type, {})
@@ -199,13 +199,13 @@ class TestActionExecutionHistoryModel(DbTestCase):
         # Update the DB record.
         children = [str(bson.ObjectId()), str(bson.ObjectId())]
         model.children = children
-        ActionExecutionHistory.add_or_update(model)
-        model = ActionExecutionHistory.get_by_id(obj.id)
+        ActionExecution.add_or_update(model)
+        model = ActionExecution.get_by_id(obj.id)
         self.assertListEqual(model.children, children)
 
         # Delete the DB record.
-        ActionExecutionHistory.delete(model)
-        self.assertRaises(ValueError, ActionExecutionHistory.get_by_id, obj.id)
+        ActionExecution.delete(model)
+        self.assertRaises(ValueError, ActionExecution.get_by_id, obj.id)
 
     def test_datetime_range(self):
         base = isotime.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
@@ -214,15 +214,15 @@ class TestActionExecutionHistoryModel(DbTestCase):
             doc = copy.deepcopy(self.fake_history_subtasks[0])
             doc['id'] = str(bson.ObjectId())
             doc['execution']['start_timestamp'] = isotime.format(timestamp)
-            obj = ActionExecutionHistoryAPI(**doc)
-            ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
+            obj = ActionExecutionAPI(**doc)
+            ActionExecution.add_or_update(ActionExecutionAPI.to_model(obj))
 
         dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'
-        objs = ActionExecutionHistory.query(execution__start_timestamp=dt_range)
+        objs = ActionExecution.query(execution__start_timestamp=dt_range)
         self.assertEqual(len(objs), 10)
 
         dt_range = '2014-12-25T00:00:19Z..2014-12-25T00:00:10Z'
-        objs = ActionExecutionHistory.query(execution__start_timestamp=dt_range)
+        objs = ActionExecution.query(execution__start_timestamp=dt_range)
         self.assertEqual(len(objs), 10)
 
     def test_sort_by_start_timestamp(self):
@@ -232,15 +232,15 @@ class TestActionExecutionHistoryModel(DbTestCase):
             doc = copy.deepcopy(self.fake_history_subtasks[0])
             doc['id'] = str(bson.ObjectId())
             doc['execution']['start_timestamp'] = isotime.format(timestamp)
-            obj = ActionExecutionHistoryAPI(**doc)
-            ActionExecutionHistory.add_or_update(ActionExecutionHistoryAPI.to_model(obj))
+            obj = ActionExecutionAPI(**doc)
+            ActionExecution.add_or_update(ActionExecutionAPI.to_model(obj))
 
         dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'
-        objs = ActionExecutionHistory.query(execution__start_timestamp=dt_range,
+        objs = ActionExecution.query(execution__start_timestamp=dt_range,
                                             order_by=['execution__start_timestamp'])
         self.assertLess(objs[0].execution['start_timestamp'], objs[9].execution['start_timestamp'])
 
         dt_range = '2014-12-25T00:00:19Z..2014-12-25T00:00:10Z'
-        objs = ActionExecutionHistory.query(execution__start_timestamp=dt_range,
+        objs = ActionExecution.query(execution__start_timestamp=dt_range,
                                             order_by=['-execution__start_timestamp'])
         self.assertLess(objs[9].execution['start_timestamp'], objs[0].execution['start_timestamp'])

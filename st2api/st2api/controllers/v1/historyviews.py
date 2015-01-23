@@ -19,7 +19,7 @@ import six
 
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
-from st2common.persistence.history import ActionExecutionHistory
+from st2common.persistence.history import ActionExecution
 
 LOG = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ class FiltersController(RestController):
                     dot_notation.pop(-1)
                     query = {'$concat': dot_notation}
 
-                aggregate = ActionExecutionHistory.aggregate([
+                aggregate = ActionExecution.aggregate([
                     {'$group': {'_id': query}}
                 ])
 

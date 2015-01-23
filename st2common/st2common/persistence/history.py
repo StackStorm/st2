@@ -17,12 +17,12 @@ from oslo.config import cfg
 
 from st2common import transport
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.history import ActionExecutionHistoryDB
+from st2common.models.db.history import ActionExecutionDB
 from st2common.persistence.base import Access
 
 
-class ActionExecutionHistory(Access):
-    impl = MongoDBAccess(ActionExecutionHistoryDB)
+class ActionExecution(Access):
+    impl = MongoDBAccess(ActionExecutionDB)
     publisher = None
 
     @classmethod
