@@ -63,11 +63,20 @@ class PythonRunnerTestCase(TestCase):
     def test_simple_action_no_file(self):
         runner = pythonrunner.get_runner()
         runner.action = self._get_mock_action_obj()
-        runner.entry_point = ''
+        runner.entry_point = 'foo.py'
         runner.container_service = service.RunnerContainerService()
         (status, result) = runner.run({})
         self.assertTrue(result is not None)
         self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
+
+    def test_simple_action_no_entry_point(self):
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.entry_point = ''
+        runner.container_service = service.RunnerContainerService()
+
+        expected_msg = 'Action .*? is missing entry_point attribute'
+        self.assertRaisesRegexp(Exception, expected_msg, runner.run, {})
 
     def _get_mock_action_obj(self):
         """
@@ -77,4 +86,5 @@ class PythonRunnerTestCase(TestCase):
         """
         action = mock.Mock()
         action.pack = SYSTEM_PACK_NAME
+        action.entry_point = 'foo.py'
         return action

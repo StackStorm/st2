@@ -115,6 +115,9 @@ class PythonRunner(ActionRunner):
             msg = PACK_VIRTUALENV_DOESNT_EXIST % (pack, pack)
             raise Exception(msg)
 
+        if not self.entry_point:
+            raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
+
         args = [
             python_path,
             WRAPPER_SCRIPT_PATH,
