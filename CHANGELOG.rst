@@ -12,6 +12,10 @@ Docs: http://docks.stackstorm.com/latest
 * Default values of the parameter of an Action can be system values stored in kv-store. (new-feature)
 * Allow users to specify additional paths where StackStorm looks for integration packs using
   ``packs_base_paths`` setting. (new-feature)
+* Allow user to specify which Python binary to use for the Python runner actions using
+  ``actionrunner.python_binary`` setting (new-feature)
+* Default Python binary which is used by Python runner actions to be the Python binary which is
+  used by the action runner service. Previous, system's default Python binary was used.
 
 v0.7 - January 16, 2015
 -----------------------
