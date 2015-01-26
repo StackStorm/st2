@@ -23,56 +23,59 @@ from st2common.content.loader import MetaLoader
 from st2common.models.api.action import (ActionAPI, LiveActionAPI, ActionExecutionStateAPI,
                                          RunnerTypeAPI)
 from st2common.models.api.execution import (ActionExecutionAPI)
-from st2common.models.api.reactor import (TriggerAPI, TriggerTypeAPI)
+from st2common.models.api.reactor import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
 from st2common.models.api.rule import (RuleAPI)
 
 from st2common.models.db.action import (ActionDB, LiveActionDB, ActionExecutionStateDB,
                                         RunnerTypeDB)
 from st2common.models.db.execution import (ActionExecutionDB)
-from st2common.models.db.reactor import (RuleDB, TriggerDB, TriggerTypeDB)
+from st2common.models.db.reactor import (RuleDB, TriggerDB, TriggerTypeDB, TriggerInstanceDB)
 
 from st2common.persistence.action import (Action, LiveAction, ActionExecutionState,
                                           RunnerType)
 from st2common.persistence.execution import (ActionExecution)
-from st2common.persistence.reactor import (Rule, Trigger, TriggerType)
+from st2common.persistence.reactor import (Rule, Trigger, TriggerType, TriggerInstance)
 
-ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'liveactions', 'execution', 'rules', 'runners',
-                       'triggertypes', 'triggers']
+ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'executions', 'liveactions', 'rules', 'runners',
+                       'triggertypes', 'triggers', 'triggerinstances']
 ALLOWED_FIXTURES = copy.copy(ALLOWED_DB_FIXTURES)
 ALLOWED_FIXTURES.extend(['actionchains', 'workflows'])
 
 FIXTURE_DB_MODEL = {
     'actions': ActionDB,
     'actionstates': ActionExecutionStateDB,
-    'execution': ActionExecutionDB,
+    'executions': ActionExecutionDB,
     'liveactions': LiveActionDB,
     'rules': RuleDB,
     'runners': RunnerTypeDB,
     'triggertypes': TriggerTypeDB,
-    'triggers': TriggerDB
+    'triggers': TriggerDB,
+    'triggerinstances': TriggerInstanceDB
 }
 
 FIXTURE_API_MODEL = {
     'actions': ActionAPI,
     'actionstates': ActionExecutionStateAPI,
-    'execution': ActionExecutionAPI,
+    'executions': ActionExecutionAPI,
     'liveactions': LiveActionAPI,
     'rules': RuleAPI,
     'runners': RunnerTypeAPI,
     'triggertypes': TriggerTypeAPI,
-    'triggers': TriggerAPI
+    'triggers': TriggerAPI,
+    'triggerinstances': TriggerInstanceAPI
 }
 
 
 FIXTURE_PERSISTENCE_MODEL = {
     'actions': Action,
     'actionstates': ActionExecutionState,
-    'execution': ActionExecution,
+    'executions': ActionExecution,
     'liveactions': LiveAction,
     'rules': Rule,
     'runners': RunnerType,
     'triggertypes': TriggerType,
-    'triggers': Trigger
+    'triggers': Trigger,
+    'triggerinstances': TriggerInstance
 }
 
 

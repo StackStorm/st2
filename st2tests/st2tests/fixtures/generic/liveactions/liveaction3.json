@@ -6,7 +6,15 @@
     "result": {},
     "status": "scheduled",
     "context": {
-        "user": "system"
+        "trigger_instance": {
+            "id": "54c2f30c0640fd2b2fda03ec",
+            "name": ""
+        },
+        "user": "stanley",
+        "rule": {
+            "id": "54c2f30c0640fd2b2fda03ec",
+            "name": "st2.person.joe"
+        }
     },
     "action": "core.local"
 }

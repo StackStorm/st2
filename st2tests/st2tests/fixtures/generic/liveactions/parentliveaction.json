@@ -3,10 +3,11 @@
     "end_timestamp": "2014-09-01T00:00:05.000000Z",
     "parameters": {},
     "callback": {},
+    "id": "54c6b6d60640fd4f5354e74a",
     "result": {},
     "status": "scheduled",
     "context": {
         "user": "system"
     },
-    "action": "core.local"
+    "action": "core.someworkflow"
 }
