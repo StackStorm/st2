@@ -10,6 +10,8 @@ Docs: http://docks.stackstorm.com/latest
   local or the remote runner (``run-local``, ``run-local-script``, ``run-remote``,
   ``run-remote-script``). (new-feature)
 * Default values of the paramter of an Action can be system values stored in kv-store.
+* vars can be defined in the ActionChain.
+* Node in an ActionChain can publish global variables.
 
 v0.7 - January 16, 2015
 -----------------------
