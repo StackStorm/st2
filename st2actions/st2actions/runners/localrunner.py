@@ -153,7 +153,9 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             'succeeded': succeeded,
             'return_code': exit_code,
             'stdout': stdout,
-            'stderr': stderr
+            'stdout_raw': stdout,
+            'stderr': stderr,
+            'stderr_raw': stderr
         }
 
         if error:

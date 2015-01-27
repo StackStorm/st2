@@ -342,7 +342,9 @@ class FabricRemoteAction(RemoteAction):
         else:
             result = {
                 'stdout': output.stdout,
+                'stdout_raw': output.stdout,
                 'stderr': output.stderr,
+                'stderr_raw': output.stderr,
                 'return_code': output.return_code,
                 'succeeded': output.succeeded,
                 'failed': output.failed
@@ -360,7 +362,9 @@ class FabricRemoteAction(RemoteAction):
         else:
             result = {
                 'stdout': output.stdout,
+                'stdout_raw': output.stdout,
                 'stderr': output.stderr,
+                'stderr_raw': output.stderr,
                 'return_code': output.return_code,
                 'succeeded': output.succeeded,
                 'failed': output.failed
