@@ -16,6 +16,8 @@ Docs: http://docks.stackstorm.com/latest
   ``actionrunner.python_binary`` setting (new-feature)
 * Default Python binary which is used by Python runner actions to be the Python binary which is
   used by the action runner service. Previous, system's default Python binary was used.
+* Fix a race-condition / bug which would occur when multiple packs are installed at the same time.
+  (bug-fix)
 
 v0.7 - January 16, 2015
 -----------------------
