@@ -304,7 +304,7 @@ deploy_deb() {
 
 register_content() {
   echo "########## Registering all content ##########"
-  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF}
+  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --register-sensors --register-actions--config-file ${STANCONF}
 }
 
 create_user
