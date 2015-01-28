@@ -18,8 +18,9 @@ try:
 except ImportError:
     import json
 
-import pecan
 import six
+import pecan
+from pecan import abort
 from pecan.rest import RestController
 from urlparse import urljoin
 
@@ -54,6 +55,16 @@ class WebhooksController(RestController):
     def get_all(self):
         # Return only the hooks known by this controller.
         return [trigger for trigger in six.itervalues(self._hooks)]
+
+    @jsexpose()
+    def get_one(self, name):
+        hook = self._hooks.get(name, None)
+
+        if not hook:
+            abort(http_client.NOT_FOUND)
+            return
+
+        return hook
 
     @jsexpose(str, status_code=http_client.ACCEPTED)
     def post(self, *args, **kwargs):
