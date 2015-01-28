@@ -14,6 +14,7 @@ Contents:
     actions
     rules
     sensors
+    webhooks
     datastore
     workflows
     history
