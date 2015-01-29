@@ -102,7 +102,7 @@ class AuthHook(PecanHook):
         query_string = request.query_string
         query_params = dict(urlparse.parse_qsl(query_string))
 
-        token_in_headers = headers.get('X_Auth_Token', None)
+        token_in_headers = headers.get('X-Auth-Token', None)
         token_in_query_params = query_params.get('x-auth-token', None)
         return validate_token(token_in_headers=token_in_headers,
                               token_in_query_params=token_in_query_params)
