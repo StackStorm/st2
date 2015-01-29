@@ -21,7 +21,7 @@ workflows:
                 input:
                     name: $.vm_name
                 publish:
-                    vm_id: $.vm_id
+                    vm_id: $.create_vm.vm_id
                 on-success:
                     - reconfig_vm
             reconfig_vm:
@@ -37,7 +37,7 @@ workflows:
                 input:
                     cmd: "sleep 2; printf 'running'"
                 publish:
-                    vm_state: $.stdout
+                    vm_state: $.power_on_vm.stdout
 
     create_vm:
         type: direct
@@ -54,7 +54,7 @@ workflows:
                 input:
                     cmd: "sleep 3; printf 'vm1234'"
                 publish:
-                    vm_id: $.stdout
+                    vm_id: $.create.stdout
 
     reconfig_vm:
         type: direct
