@@ -14,12 +14,11 @@
 # limitations under the License.
 
 import urlparse
-import datetime
 
 from st2common.util import isotime
-from st2common.persistence.access import Token
 from st2common.exceptions import access as exceptions
 from st2common import log as logging
+from st2common.util.auth import validate_token
 
 
 LOG = logging.getLogger(__name__)
@@ -77,20 +76,8 @@ class AuthMiddleware(object):
         token_in_headers = env.get('HTTP_X_AUTH_TOKEN', None)
         token_in_query_params = query_params.get('x-auth-token', None)
 
-        if not token_in_headers and not token_in_query_params:
-            LOG.audit('Token is not found in header.')
-            raise exceptions.TokenNotProvidedError('Token is not provided.')
-
-        token_string = token_in_headers or token_in_query_params
-        token = Token.get(token_string)
-
-        if token.expiry <= isotime.add_utc_tz(datetime.datetime.utcnow()):
-            # TODO: purge expired tokens
-            LOG.audit('Token "%s" has expired.' % (token_string))
-            raise exceptions.TokenExpiredError('Token has expired.')
-
-        LOG.audit('Token "%s" is validated.' % (token_string))
-        return token
+        return validate_token(token_in_headers=token_in_headers,
+                              token_in_query_params=token_in_query_params)
 
     def _add_auth_headers(self, env, token):
         """Write authenticated user data to headers
