@@ -34,6 +34,7 @@ from st2client.commands import sensor
 from st2client.commands import trigger
 from st2client.commands import action
 from st2client.commands import datastore
+from st2client.commands import webhook
 
 
 LOG = logging.getLogger(__name__)
@@ -149,6 +150,10 @@ class Shell(object):
             models.Action, self, self.subparsers, name='run', add_help=False)
         self.commands['execution'] = action.ActionExecutionBranch(
             'An invocation of an action.',
+            self, self.subparsers)
+
+        self.commands['webhook'] = webhook.WebhookBranch(
+            'Webhooks.',
             self, self.subparsers)
 
     def get_client(self, args, debug=False):
