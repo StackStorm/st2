@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import urlparse
 
 import webob
 from oslo.config import cfg
 from pecan.hooks import PecanHook
+from six.moves.urllib import parse as urlparse
 
 from st2common import log as logging
 from st2common.exceptions import access as exceptions

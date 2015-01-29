@@ -15,10 +15,10 @@
 
 import copy
 import uuid
-import urlparse
 
 import requests
 from oslo.config import cfg
+from six.moves.urllib import parse as urlparse
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
