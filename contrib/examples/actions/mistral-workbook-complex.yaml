@@ -9,6 +9,9 @@ workflows:
             - vm_name
             - cpu_cores
             - memory_mb
+        output:
+            vm_id: $.vm_id
+            vm_state: $.vm_state 
         task-defaults:
           on-error:
             - fail
@@ -18,7 +21,7 @@ workflows:
                 input:
                     name: $.vm_name
                 publish:
-                    vm_id: $.vm_id
+                    vm_id: $.create_vm.vm_id
                 on-success:
                     - reconfig_vm
             reconfig_vm:
@@ -34,7 +37,7 @@ workflows:
                 input:
                     cmd: "sleep 2; printf 'running'"
                 publish:
-                    vm_state: $.stdout
+                    vm_state: $.power_on_vm.stdout
 
     create_vm:
         type: direct
@@ -51,7 +54,7 @@ workflows:
                 input:
                     cmd: "sleep 3; printf 'vm1234'"
                 publish:
-                    vm_id: $.stdout
+                    vm_id: $.create.stdout
 
     reconfig_vm:
         type: direct
@@ -66,8 +69,8 @@ workflows:
             add_disk:
                 action: core.local
                 input:
-                    cmd: "sleep 1; printf '{$.vm_id}'"
+                    cmd: "sleep 1; printf 'configured'"
             edit_cpu_mem:
                 action: core.local
                 input:
-                    cmd: "sleep 1; printf '{\"vm_id\": \"{$.vm_id}\", \"cpu\": {$.cpu_cores}, \"memory\": {$.memory_mb}}'"
+                    cmd: "sleep 1; printf 'configured'"

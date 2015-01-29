@@ -1,7 +1,10 @@
 import os
 import shutil
+import hashlib
+
 import six
 from git.repo import Repo
+from lockfile import LockFile
 
 from st2actions.runners.pythonrunner import Action
 
@@ -12,16 +15,20 @@ PACK_RESERVE_CHARACTER = '.'
 
 
 class InstallGitRepoAction(Action):
-
     def run(self, packs, repo_url, abs_repo_base):
-        abs_local_path = self._clone_repo(repo_url)
-        try:
-            # st2-contrib repo has a top-level packs folder that actually contains the
-            pack_abs_local_path = os.path.join(abs_local_path, PACK_REPO_ROOT)
-            result = self._move_packs(abs_repo_base, packs, pack_abs_local_path)
-        finally:
-            self._cleanup_repo(abs_local_path)
+        repo_name = repo_url[repo_url.rfind('/') + 1: repo_url.rfind('.')]
+        lock_name = hashlib.md5(repo_name).hexdigest() + '.lock'
+
+        with LockFile('/tmp/%s' % (lock_name)):
+            abs_local_path = self._clone_repo(repo_url)
+            try:
+                # st2-contrib repo has a top-level packs folder that actually contains the
+                pack_abs_local_path = os.path.join(abs_local_path, PACK_REPO_ROOT)
+                result = self._move_packs(abs_repo_base, packs, pack_abs_local_path)
+            finally:
+                self._cleanup_repo(abs_local_path)
         return self._validate_result(result=result, packs=packs, repo_url=repo_url)
+
     @staticmethod
     def _clone_repo(repo_url):
         user_home = os.path.expanduser('~')

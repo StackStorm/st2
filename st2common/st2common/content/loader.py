@@ -15,59 +15,130 @@
 
 import os
 
+import six
+from yaml.parser import ParserError
+
 from st2common.constants.meta import (ALLOWED_EXTS, PARSER_FUNCS)
 from st2common import log as logging
-from yaml.parser import ParserError
+
+__all__ = [
+    'ContentPackLoader',
+    'MetaLoader'
+]
 
 LOG = logging.getLogger(__name__)
 
 
 class ContentPackLoader(object):
-    def __init__(self):
-        self._allowed_content_types = ['sensors', 'actions', 'rules']
+    ALLOWED_CONTENT_TYPES = ['sensors', 'actions', 'rules']
 
-    def get_content(self, base_dir=None, content_type=None):
-        if content_type is None:
-            raise Exception('Content type unknown.')
+    def get_content(self, base_dirs, content_type):
+        """
+        Retrieve content from the provided directories.
 
-        if not os.path.isdir(base_dir):
-            raise Exception('Directory containing content-packs must be provided.')
+        Provided directories are searched from left to right. If a pack with the same name exists
+        in multiple directories, first pack which is found wins.
 
-        if content_type not in self._allowed_content_types:
-            raise Exception('Unknown content type %s.' % content_type)
+        :param base_dirs: Directories to look into.
+        :type base_dirs: ``list``
+
+        :param content_type: Content type to look for (sensors, actions, rules).
+        :type content_type: ``str``
+
+        :rtype: ``dict``
+        """
+        assert(isinstance(base_dirs, list))
+
+        if content_type not in self.ALLOWED_CONTENT_TYPES:
+            raise ValueError('Unsupported content_type: %s' % (content_type))
 
         content = {}
-        for pack in os.listdir(base_dir):
-            pack_dir = os.path.join(base_dir, pack)
-            new_content = None
-            try:
-                if content_type == 'sensors':
-                    new_content = self._get_sensors(pack_dir)
-                if content_type == 'actions':
-                    new_content = self._get_actions(pack_dir)
-                if content_type == 'rules':
-                    new_content = self._get_rules(pack_dir)
-            except:
-                continue
-            else:
-                content[pack] = new_content
+        pack_to_dir_map = {}
+        for base_dir in base_dirs:
+            if not os.path.isdir(base_dir):
+                raise ValueError('Directory "%s" doesn\'t exist' % (base_dir))
+
+            dir_content = self._get_content_from_dir(base_dir=base_dir, content_type=content_type)
+
+            # Check for duplicate packs
+            for pack_name, pack_content in six.iteritems(dir_content):
+                if pack_name in content:
+                    pack_dir = pack_to_dir_map[pack_name]
+                    LOG.warning('Pack "%s" already found in "%s", ignoring content from "%s"' %
+                                (pack_name, pack_dir, base_dir))
+                else:
+                    content[pack_name] = pack_content
+                    pack_to_dir_map[pack_name] = base_dir
 
         return content
 
-    def _get_sensors(self, pack):
-        if 'sensors' not in os.listdir(pack):
-            raise Exception('No sensors found.')
-        return os.path.join(pack, 'sensors')
+    def get_content_from_pack(self, pack_dir, content_type):
+        """
+        Retrieve content from the provided pack directory.
 
-    def _get_actions(self, pack):
-        if 'actions' not in os.listdir(pack):
-            raise Exception('No actions found.')
-        return os.path.join(pack, 'actions')
+        :param pack_dir: Path to the pack directory.
+        :type pack_dir: ``str``
 
-    def _get_rules(self, pack):
-        if 'rules' not in os.listdir(pack):
-            raise Exception('No rules found.')
-        return os.path.join(pack, 'rules')
+        :param content_type: Content type to look for (sensors, actions, rules).
+        :type content_type: ``str``
+
+        :rtype: ``str``
+        """
+        if content_type not in self.ALLOWED_CONTENT_TYPES:
+            raise ValueError('Unsupported content_type: %s' % (content_type))
+
+        if not os.path.isdir(pack_dir):
+            raise ValueError('Directory "%s" doesn\'t exist' % (pack_dir))
+
+        content = self._get_content_from_pack_dir(pack_dir=pack_dir,
+                                                  content_type=content_type)
+        return content
+
+    def _get_content_from_dir(self, base_dir, content_type):
+        content = {}
+        for pack in os.listdir(base_dir):
+            # TODO: Use function from util which escapes the name
+            pack_dir = os.path.join(base_dir, pack)
+
+            # Ignore missing or non directories
+            try:
+                pack_content = self._get_content_from_pack_dir(pack_dir=pack_dir,
+                                                               content_type=content_type)
+            except ValueError:
+                continue
+            else:
+                content[pack] = pack_content
+
+        return content
+
+    def _get_content_from_pack_dir(self, pack_dir, content_type):
+        if content_type == 'sensors':
+            get_func = self._get_sensors
+        elif content_type == 'actions':
+            get_func = self._get_actions
+        elif content_type == 'rules':
+            get_func = self._get_rules
+
+        if not os.path.isdir(pack_dir):
+            raise ValueError('Directory "%s" doesn\'t exist' % (pack_dir))
+
+        pack_content = get_func(pack_dir=pack_dir)
+        return pack_content
+
+    def _get_sensors(self, pack_dir):
+        if 'sensors' not in os.listdir(pack_dir):
+            raise ValueError('No sensors found in "%s".' % (pack_dir))
+        return os.path.join(pack_dir, 'sensors')
+
+    def _get_actions(self, pack_dir):
+        if 'actions' not in os.listdir(pack_dir):
+            raise ValueError('No actions found in "%s".' % (pack_dir))
+        return os.path.join(pack_dir, 'actions')
+
+    def _get_rules(self, pack_dir):
+        if 'rules' not in os.listdir(pack_dir):
+            raise ValueError('No rules found in "%s".' % (pack_dir))
+        return os.path.join(pack_dir, 'rules')
 
 
 class MetaLoader(object):

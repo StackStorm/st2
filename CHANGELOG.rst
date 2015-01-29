@@ -9,9 +9,17 @@ Docs: http://docks.stackstorm.com/latest
 * Allow user to specify current working directory (``cwd`` parameter) when running actions using the
   local or the remote runner (``run-local``, ``run-local-script``, ``run-remote``,
   ``run-remote-script``). (new-feature)
-* Default values of the paramter of an Action can be system values stored in kv-store.
-* vars can be defined in the ActionChain.
-* Node in an ActionChain can publish global variables.
+* Default values of the parameter of an Action can be system values stored in kv-store. (new-feature)
+* Allow users to specify additional paths where StackStorm looks for integration packs using
+  ``packs_base_paths`` setting. (new-feature)
+* Allow user to specify which Python binary to use for the Python runner actions using
+  ``actionrunner.python_binary`` setting (new-feature)
+* Default Python binary which is used by Python runner actions to be the Python binary which is
+  used by the action runner service. Previous, system's default Python binary was used.
+* Fix a race-condition / bug which would occur when multiple packs are installed at the same time.
+  (bug-fix)
+* vars can be defined in the ActionChain. (new-feature)
+* Node in an ActionChain can publish global variables. (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------
