@@ -101,6 +101,11 @@ class MistralResultsQuerier(Querier):
         resp = requests.get(url)
         result = resp.json()
         tasks = result.get('tasks', [])
+
+        for task in tasks:
+            for attr in ['result', 'input', 'output']:
+                task[attr] = jsonify.try_loads(task.get(attr, None))
+
         return tasks
 
 
