@@ -28,6 +28,7 @@ from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.db.action import ActionExecutionDB
+from st2common.models.system import actionchain
 from st2common.services import action as action_service
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import action_db as action_db_util
@@ -37,56 +38,95 @@ LOG = logging.getLogger(__name__)
 RESULTS_KEY = '__results'
 
 
-class ActionChain(object):
+def render_values(values, context):
+    env = jinja2.Environment(undefined=jinja2.StrictUndefined)
+    rendered_values = {}
+    for k, v in six.iteritems(values):
+        # jinja2 works with string so transform list and dict to strings.
+        reverse_json_dumps = False
+        if isinstance(v, dict) or isinstance(v, list):
+            v = json.dumps(v)
+            reverse_json_dumps = True
+        else:
+            v = str(v)
+        rendered_v = env.from_string(v).render(context)
+        # no change therefore no templatization so pick params from original to retain
+        # original type
+        if rendered_v == v:
+            rendered_values[k] = values[k]
+            continue
+        if reverse_json_dumps:
+            rendered_v = json.loads(rendered_v)
+        rendered_values[k] = rendered_v
+    return rendered_values
 
-    class Node(object):
 
-        def __init__(self, name, action_ref, params):
-            self.name = name
-            self.ref = action_ref
-            self.params = params
+class ChainHolder(object):
 
-    class Link(object):
+    def __init__(self, chainspec, chainname):
+        self.actionchain = actionchain.ActionChain(**chainspec)
+        self.chainname = chainname
+        if not self.actionchain.default:
+            default = self._get_default(self.actionchain)
+            self.actionchain.default = default
+        LOG.debug('Using %s as default for %s.', self.actionchain.default, self.chainname)
+        if not self.actionchain.default:
+            raise Exception('Failed to find default node in %s.' % (self.chainname))
+        # finalize the vars and save them around to be used at execution time.
+        self.vars = self._get_rendered_vars(self.actionchain.vars) if self.actionchain.vars else {}
 
-        def __init__(self, head, tail, condition):
-            self.head = head
-            self.tail = tail
-            self.condition = condition
+    @staticmethod
+    def _get_default(_actionchain):
+        # default is defined
+        if _actionchain.default:
+            return _actionchain.default
+        # no nodes in chain
+        if not _actionchain.chain:
+            return None
+        # The first node with no references is the default node. Assumptions
+        # that support this are :
+        # 1. There are no loops in the chain. Even if there are loops there is
+        #    at least 1 node which does not end up in this loop.
+        # 2. There are no fragments in the chain.
+        node_names = set([node.name for node in _actionchain.chain])
+        on_success_nodes = set([node.on_success for node in _actionchain.chain])
+        on_failure_nodes = set([node.on_failure for node in _actionchain.chain])
+        referenced_nodes = on_success_nodes | on_failure_nodes
+        possible_default_nodes = node_names - referenced_nodes
+        if possible_default_nodes:
+            return possible_default_nodes.pop()
+        # If no node is found assume the first node in the chain list to be default.
+        return _actionchain.chain[0].name
 
-    def __init__(self, chainspec):
-        chain = chainspec.get('chain', [])
-        self.default = chainspec.get('default', '')
-        self.nodes = {}
-        self.links = {}
-        for node in chain:
-            node_name = node['name']
-            self.nodes[node_name] = ActionChain.Node(
-                node_name, node['ref'], node['params'])
-            self.links[node_name] = []
-            on_success = node.get('on-success', None)
-            if on_success:
-                self.links[node_name].append(ActionChain.Link(node_name, on_success, 'on-success'))
-            on_failure = node.get('on-failure', None)
-            if on_failure:
-                self.links[node_name].append(ActionChain.Link(node_name, on_failure, 'on-failure'))
+    @staticmethod
+    def _get_rendered_vars(vars):
+        if not vars:
+            return {}
+        context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
+        return render_values(vars, context)
+
+    def get_node(self, node_name=None):
+        for node in self.actionchain.chain:
+            if node.name == node_name:
+                return node
+        return None
 
     def get_next_node(self, curr_node_name=None, condition='on-success'):
         if not curr_node_name:
-            return self.nodes.get(self.default, None)
-        links = self.links.get(curr_node_name, None)
-        if not links:
-            return None
-        for link in links:
-            if link.condition == condition:
-                return self.nodes.get(link.tail, None)
-        return None
+            return self.get_node(self.actionchain.default)
+        current_node = self.get_node(curr_node_name)
+        if condition == 'on-success':
+            return self.get_node(current_node.on_success)
+        elif condition == 'on-failure':
+            return self.get_node(current_node.on_failure)
+        raise runnerexceptions.ActionRunnerException('Unknown condition %s.' % condition)
 
 
 class ActionChainRunner(ActionRunner):
 
     def __init__(self, runner_id):
         super(ActionChainRunner, self).__init__(runner_id=runner_id)
-        self.action_chain = None
+        self.chain_holder = None
         self._meta_loader = MetaLoader()
 
     def pre_run(self):
@@ -95,13 +135,13 @@ class ActionChainRunner(ActionRunner):
                   self.action)
         try:
             chainspec = self._meta_loader.load(chainspec_file)
-            self.action_chain = ActionChain(chainspec)
+            self.chain_holder = ChainHolder(chainspec, self.action_name)
         except Exception as e:
             LOG.exception('Failed to instantiate ActionChain.')
             raise runnerexceptions.ActionRunnerPreRunError(e.message)
 
     def run(self, action_parameters):
-        action_node = self.action_chain.get_next_node()
+        action_node = self.chain_holder.get_next_node()
         results = {}
         fail = True
         while action_node:
@@ -109,7 +149,7 @@ class ActionChainRunner(ActionRunner):
             fail = False
             try:
                 resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
-                                                                    results)
+                                                                    results, self.chain_holder.vars)
                 actionexec = ActionChainRunner._run_action(action_node.ref,
                                                            self.action_execution_id,
                                                            resolved_params)
@@ -118,14 +158,18 @@ class ActionChainRunner(ActionRunner):
                 # Save the traceback and error message.
                 results[action_node.name] = {'error': traceback.format_exc(10)}
             else:
-                # for now append all successful results
+                # Append full result under the node_name
                 results[action_node.name] = actionexec.result
+                rendered_publish_vars = ActionChainRunner._render_publish_vars(
+                    action_node, actionexec.result, results, self.chain_holder.vars)
+                if rendered_publish_vars:
+                    self.chain_holder.vars.update(rendered_publish_vars)
             finally:
                 if not actionexec or actionexec.status == ACTIONEXEC_STATUS_FAILED:
                     fail = True
-                    action_node = self.action_chain.get_next_node(action_node.name, 'on-failure')
+                    action_node = self.chain_holder.get_next_node(action_node.name, 'on-failure')
                 elif actionexec.status == ACTIONEXEC_STATUS_SUCCEEDED:
-                    action_node = self.action_chain.get_next_node(action_node.name, 'on-success')
+                    action_node = self.chain_holder.get_next_node(action_node.name, 'on-success')
 
         status = None
         if fail:
@@ -135,32 +179,36 @@ class ActionChainRunner(ActionRunner):
         return (status, results)
 
     @staticmethod
-    def _resolve_params(action_node, original_parameters, results):
+    def _render_publish_vars(action_node, execution_result, previous_execution_results,
+                             chain_vars):
+        """
+        If no output is specified on the action_node the output is the entire execution_result.
+        If any output is specified then only those variables are published as output of an
+        execution of this action_node.
+        The output variable can refer to a variable from the execution_result,
+        previous_execution_results or chain_vars.
+        """
+        if not action_node.publish:
+            return {}
+        context = {}
+        context.update({action_node.name: execution_result})
+        context.update(previous_execution_results)
+        context.update(chain_vars)
+        context.update({RESULTS_KEY: previous_execution_results})
+        context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
+        rendered_result = render_values(action_node.publish, context)
+        return rendered_result
+
+    @staticmethod
+    def _resolve_params(action_node, original_parameters, results, chain_vars):
         # setup context with original parameters and the intermediate results.
         context = {}
         context.update(original_parameters)
         context.update(results)
+        context.update(chain_vars)
         context.update({RESULTS_KEY: results})
         context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
-        env = jinja2.Environment(undefined=jinja2.StrictUndefined)
-        rendered_params = {}
-        for k, v in six.iteritems(action_node.params):
-            # jinja2 works with string so transform list and dict to strings.
-            reverse_json_dumps = False
-            if isinstance(v, dict) or isinstance(v, list):
-                v = json.dumps(v)
-                reverse_json_dumps = True
-            else:
-                v = str(v)
-            rendered_v = env.from_string(v).render(context)
-            # no change therefore no templatization so pick params from original to retain
-            # original type
-            if rendered_v == v:
-                rendered_params[k] = action_node.params[k]
-                continue
-            if reverse_json_dumps:
-                rendered_v = json.loads(rendered_v)
-            rendered_params[k] = rendered_v
+        rendered_params = render_values(action_node.params, context)
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
 

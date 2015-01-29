@@ -276,8 +276,11 @@ class SensorWrapper(object):
         try:
             self._sensor_instance.run()
         except Exception as e:
-            raise Exception('Sensor "%s" run method raised an exception: %s' %
-                            (self._class_name, str(e)))
+            # Include traceback
+            msg = ('Sensor "%s" run method raised an exception: %s.' %
+                   (self._class_name, str(e)))
+            self._logger.warn(msg, exc_info=True)
+            raise Exception(msg)
 
     def stop(self):
         # Stop watcher
