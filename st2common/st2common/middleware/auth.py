@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import urlparse
 import datetime
 
 from st2common.util import isotime
@@ -70,15 +71,25 @@ class AuthMiddleware(object):
 
     def _validate_token(self, env):
         """Validate token"""
-        if 'HTTP_X_AUTH_TOKEN' not in env:
+        query_string = env.get('QUERY_STRING', '')
+        query_params = dict(urlparse.parse_qsl(query_string))
+
+        token_in_headers = env.get('HTTP_X_AUTH_TOKEN', None)
+        token_in_query_params = query_params.get('x-auth-token', None)
+
+        if not token_in_headers and not token_in_query_params:
             LOG.audit('Token is not found in header.')
             raise exceptions.TokenNotProvidedError('Token is not provided.')
-        token = Token.get(env['HTTP_X_AUTH_TOKEN'])
+
+        token_string = token_in_headers or token_in_query_params
+        token = Token.get(token_string)
+
         if token.expiry <= isotime.add_utc_tz(datetime.datetime.utcnow()):
             # TODO: purge expired tokens
-            LOG.audit('Token "%s" has expired.' % env['HTTP_X_AUTH_TOKEN'])
+            LOG.audit('Token "%s" has expired.' % (token_string))
             raise exceptions.TokenExpiredError('Token has expired.')
-        LOG.audit('Token "%s" is validated.' % env['HTTP_X_AUTH_TOKEN'])
+
+        LOG.audit('Token "%s" is validated.' % (token_string))
         return token
 
     def _add_auth_headers(self, env, token):

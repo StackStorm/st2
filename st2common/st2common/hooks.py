@@ -14,9 +14,11 @@
 # limitations under the License.
 
 import datetime
+import urlparse
+
+import webob
 from oslo.config import cfg
 from pecan.hooks import PecanHook
-import webob
 
 from st2common import log as logging
 from st2common.exceptions import access as exceptions
@@ -68,7 +70,7 @@ class AuthHook(PecanHook):
         if state.request.method == 'OPTIONS':
             return
 
-        state.request.context['token'] = self._validate_token(state.request.headers)
+        state.request.context['token'] = self._validate_token(request=state.request)
 
     def on_error(self, state, e):
         if isinstance(e, exceptions.TokenNotProvidedError):
@@ -94,18 +96,34 @@ class AuthHook(PecanHook):
         }), status=500)
 
     @staticmethod
-    def _validate_token(headers):
-        """Validate token"""
-        if 'X_Auth_Token' not in headers:
-            LOG.audit('Token is not found in header.')
+    def _validate_token(request):
+        """
+        Validate token provided either in headers or query parameters.
+        """
+        headers = request.headers
+        query_string = request.query_string
+        query_params = dict(urlparse.parse_qsl(query_string))
+
+        token_in_headers = headers.get('X_Auth_Token', None)
+        token_in_query_params = query_params.get('x-auth-token', None)
+
+        if not token_in_headers and not token_in_query_params:
+            LOG.audit('Token is not found in header or query parameyers.')
             raise exceptions.TokenNotProvidedError('Token is not provided.')
 
-        token = Token.get(headers['X_Auth_Token'])
+        if token_in_headers:
+            LOG.audit('Token provided in headers')
+
+        if token_in_query_params:
+            LOG.audit('Token provided in query parameters')
+
+        token_string = token_in_headers or token_in_query_params
+        token = Token.get(token_string)
 
         if token.expiry <= isotime.add_utc_tz(datetime.datetime.utcnow()):
-            LOG.audit('Token "%s" has expired.' % headers['X_Auth_Token'])
+            LOG.audit('Token "%s" has expired.' % (token_string))
             raise exceptions.TokenExpiredError('Token has expired.')
 
-        LOG.audit('Token "%s" is validated.' % headers['X_Auth_Token'])
+        LOG.audit('Token "%s" is validated.' % (token_string))
 
         return token
