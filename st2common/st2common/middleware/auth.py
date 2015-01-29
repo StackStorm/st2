@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
+from six.moves.urllib import parse as urlparse
 
 from st2common.util import isotime
-from st2common.persistence.access import Token
 from st2common.exceptions import access as exceptions
 from st2common import log as logging
+from st2common.util.auth import validate_token
 
 
 LOG = logging.getLogger(__name__)
@@ -70,16 +70,15 @@ class AuthMiddleware(object):
 
     def _validate_token(self, env):
         """Validate token"""
-        if 'HTTP_X_AUTH_TOKEN' not in env:
-            LOG.audit('Token is not found in header.')
-            raise exceptions.TokenNotProvidedError('Token is not provided.')
-        token = Token.get(env['HTTP_X_AUTH_TOKEN'])
-        if token.expiry <= isotime.add_utc_tz(datetime.datetime.utcnow()):
-            # TODO: purge expired tokens
-            LOG.audit('Token "%s" has expired.' % env['HTTP_X_AUTH_TOKEN'])
-            raise exceptions.TokenExpiredError('Token has expired.')
-        LOG.audit('Token "%s" is validated.' % env['HTTP_X_AUTH_TOKEN'])
-        return token
+        query_string = env.get('QUERY_STRING', '')
+        query_params = dict(urlparse.parse_qsl(query_string))
+
+        # Note: This is a WSGI environment variable name
+        token_in_headers = env.get('HTTP_X_AUTH_TOKEN', None)
+        token_in_query_params = query_params.get('x-auth-token', None)
+
+        return validate_token(token_in_headers=token_in_headers,
+                              token_in_query_params=token_in_query_params)
 
     def _add_auth_headers(self, env, token):
         """Write authenticated user data to headers

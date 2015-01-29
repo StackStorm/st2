@@ -39,9 +39,16 @@ class TestTokenValidation(AuthMiddlewareTest):
     @mock.patch.object(
         Token, 'get',
         mock.Mock(return_value=TokenDB(id=OBJ_ID, user=USER, token=TOKEN, expiry=FUTURE)))
-    def test_token_validation(self):
+    def test_token_validation_token_in_headers(self):
         response = self.app.get('/v1/actions', headers={'X-Auth-Token': TOKEN},
                                 expect_errors=False)
+        self.assertEqual(response.status_int, 200)
+
+    @mock.patch.object(
+        Token, 'get',
+        mock.Mock(return_value=TokenDB(id=OBJ_ID, user=USER, token=TOKEN, expiry=FUTURE)))
+    def test_token_validation_token_in_query_params(self):
+        response = self.app.get('/v1/actions?x-auth-token=%s' % (TOKEN), expect_errors=False)
         self.assertEqual(response.status_int, 200)
 
     @mock.patch.object(

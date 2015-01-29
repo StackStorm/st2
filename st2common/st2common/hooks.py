@@ -13,16 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
+
+import webob
 from oslo.config import cfg
 from pecan.hooks import PecanHook
-import webob
+from six.moves.urllib import parse as urlparse
 
 from st2common import log as logging
 from st2common.exceptions import access as exceptions
-from st2common.persistence.access import Token
-from st2common.util import isotime
 from st2common.util.jsonify import json_encode
+from st2common.util.auth import validate_token
 
 
 LOG = logging.getLogger(__name__)
@@ -68,7 +68,7 @@ class AuthHook(PecanHook):
         if state.request.method == 'OPTIONS':
             return
 
-        state.request.context['token'] = self._validate_token(state.request.headers)
+        state.request.context['token'] = self._validate_token(request=state.request)
 
     def on_error(self, state, e):
         if isinstance(e, exceptions.TokenNotProvidedError):
@@ -94,18 +94,15 @@ class AuthHook(PecanHook):
         }), status=500)
 
     @staticmethod
-    def _validate_token(headers):
-        """Validate token"""
-        if 'X_Auth_Token' not in headers:
-            LOG.audit('Token is not found in header.')
-            raise exceptions.TokenNotProvidedError('Token is not provided.')
+    def _validate_token(request):
+        """
+        Validate token provided either in headers or query parameters.
+        """
+        headers = request.headers
+        query_string = request.query_string
+        query_params = dict(urlparse.parse_qsl(query_string))
 
-        token = Token.get(headers['X_Auth_Token'])
-
-        if token.expiry <= isotime.add_utc_tz(datetime.datetime.utcnow()):
-            LOG.audit('Token "%s" has expired.' % headers['X_Auth_Token'])
-            raise exceptions.TokenExpiredError('Token has expired.')
-
-        LOG.audit('Token "%s" is validated.' % headers['X_Auth_Token'])
-
-        return token
+        token_in_headers = headers.get('X-Auth-Token', None)
+        token_in_query_params = query_params.get('x-auth-token', None)
+        return validate_token(token_in_headers=token_in_headers,
+                              token_in_query_params=token_in_query_params)

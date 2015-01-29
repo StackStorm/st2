@@ -22,7 +22,8 @@ import six
 import pecan
 from pecan import abort
 from pecan.rest import RestController
-from urlparse import urljoin
+from six.moves.urllib import parse as urlparse
+urljoin = urlparse.urljoin
 
 from st2common import log as logging
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
