@@ -13,9 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models.core import *         # noqa
-from st2client.models.access import *       # noqa
-from st2client.models.action import *       # noqa
-from st2client.models.datastore import *    # noqa
-from st2client.models.reactor import *      # noqa
-from st2client.models.webhook import *      # noqa
+import logging
+
+from st2client.models import core
+
+
+LOG = logging.getLogger(__name__)
+
+
+class Webhook(core.Resource):
+    _alias = 'Webhook'
+    _display_name = 'Webhook'
+    _plural = 'Webhooks'
+    _plural_display_name = 'Webhooks'
