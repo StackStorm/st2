@@ -18,6 +18,7 @@ import sys
 import json
 import atexit
 import argparse
+import traceback
 
 import eventlet
 from oslo.config import cfg
@@ -276,8 +277,11 @@ class SensorWrapper(object):
         try:
             self._sensor_instance.run()
         except Exception as e:
-            raise Exception('Sensor "%s" run method raised an exception: %s' %
-                            (self._class_name, str(e)))
+            # Include traceback
+            msg = 'Sensor "%s" run method raised an exception: %s.\nTraceback: %s'
+            msg = msg % (self._class_name, str(e), traceback.format_exc())
+            self._logger.warn(msg, exc_info=True)
+            raise Exception(msg)
 
     def stop(self):
         # Stop watcher
