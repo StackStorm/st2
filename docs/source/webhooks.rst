@@ -29,8 +29,11 @@ Authentication
 --------------
 
 All the requests to the /webhooks endpoints needs to be authenticated in the
-same way as other API requests. This means the requests need to contain
-``X-Auth-Token`` header with a valid authentication token.
+same way as other API requests. This means the request needs to contain a valid
+authentication token. This token can either be provided in ``X-Auth-Token``
+(usually used with your scripts where you can control request headers) or via
+``?x-auth-token`` query parameter (usually used with 3rd party services such as
+Github where you can only specify a URL).
 
 Using a generic st2 webhook
 ---------------------------
