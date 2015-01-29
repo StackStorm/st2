@@ -55,8 +55,8 @@ def validate_token(token_in_headers, token_in_query_params):
 
     if token.expiry <= isotime.add_utc_tz(datetime.datetime.utcnow()):
         # TODO: purge expired tokens
-        LOG.audit('Token "%s" has expired.' % (token_string))
+        LOG.audit('Token with id "%s" has expired.' % (token.id))
         raise exceptions.TokenExpiredError('Token has expired.')
 
-    LOG.audit('Token "%s" is validated.' % (token_string))
+    LOG.audit('Token with id "%s" is validated.' % (token.id))
     return token
