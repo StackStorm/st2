@@ -279,7 +279,7 @@ class SensorWrapper(object):
         except Exception as e:
             # Include traceback
             msg = 'Sensor "%s" run method raised an exception: %s.\nTraceback: %s'
-            msg = msg % (self._class_name, str(e),traceback.format_exc())
+            msg = msg % (self._class_name, str(e), traceback.format_exc())
             self._logger.warn(msg)
             raise Exception(msg)
 
