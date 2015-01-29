@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import urlparse
 
 import webob
@@ -22,9 +21,8 @@ from pecan.hooks import PecanHook
 
 from st2common import log as logging
 from st2common.exceptions import access as exceptions
-from st2common.persistence.access import Token
-from st2common.util import isotime
 from st2common.util.jsonify import json_encode
+from st2common.util.auth import validate_token
 
 
 LOG = logging.getLogger(__name__)
@@ -106,24 +104,5 @@ class AuthHook(PecanHook):
 
         token_in_headers = headers.get('X_Auth_Token', None)
         token_in_query_params = query_params.get('x-auth-token', None)
-
-        if not token_in_headers and not token_in_query_params:
-            LOG.audit('Token is not found in header or query parameyers.')
-            raise exceptions.TokenNotProvidedError('Token is not provided.')
-
-        if token_in_headers:
-            LOG.audit('Token provided in headers')
-
-        if token_in_query_params:
-            LOG.audit('Token provided in query parameters')
-
-        token_string = token_in_headers or token_in_query_params
-        token = Token.get(token_string)
-
-        if token.expiry <= isotime.add_utc_tz(datetime.datetime.utcnow()):
-            LOG.audit('Token "%s" has expired.' % (token_string))
-            raise exceptions.TokenExpiredError('Token has expired.')
-
-        LOG.audit('Token "%s" is validated.' % (token_string))
-
-        return token
+        return validate_token(token_in_headers=token_in_headers,
+                              token_in_query_params=token_in_query_params)
