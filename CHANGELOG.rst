@@ -18,6 +18,8 @@ Docs: http://docks.stackstorm.com/latest
   used by the action runner service. Previous, system's default Python binary was used.
 * Fix a race-condition / bug which would occur when multiple packs are installed at the same time.
   (bug-fix)
+* Allow user to provide authentication token either inside headers (``X-Auth-Token``) or via
+  ``x-auth-token`` query string parameter. (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------
