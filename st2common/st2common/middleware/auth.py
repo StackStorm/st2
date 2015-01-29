@@ -73,6 +73,7 @@ class AuthMiddleware(object):
         query_string = env.get('QUERY_STRING', '')
         query_params = dict(urlparse.parse_qsl(query_string))
 
+        # Note: This is a WSGI environment variable name
         token_in_headers = env.get('HTTP_X_AUTH_TOKEN', None)
         token_in_query_params = query_params.get('x-auth-token', None)
 
