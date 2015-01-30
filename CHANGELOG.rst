@@ -23,6 +23,7 @@ Docs: http://docks.stackstorm.com/latest
 * Allow user to provide authentication token either inside headers (``X-Auth-Token``) or via
   ``x-auth-token`` query string parameter. (new-feature)
 * Allow actions without parameters. (bug-fix)
+* Fix a bug with rule matching not working for any triggers with parameters. (bug-fix)
 
 v0.7 - January 16, 2015
 -----------------------
