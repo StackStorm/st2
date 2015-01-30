@@ -19,8 +19,8 @@ from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInst
 from st2common.models.api.rule import RuleAPI
 from st2common.persistence.action import RunnerType, LiveAction
 from st2common.persistence.execution import ActionExecution
+import st2common.services.executions as executions_util
 import st2common.util.action_db as action_utils
-import st2common.util.executions as executions_util
 
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
