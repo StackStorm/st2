@@ -157,7 +157,8 @@ class ActionAPI(BaseAPI):
                 "type": "object",
                 "patternProperties": {
                     "^\w+$": util_schema.get_draft_schema()
-                }
+                },
+                "default": {}
             },
             "tags": {
                 "description": "User associated metadata assigned to this object.",
