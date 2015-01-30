@@ -58,6 +58,17 @@ class RuleEngineTest(DbTestCase):
         for instance in instances:
             rules_engine.handle_trigger_instance(instance)
 
+    def test_create_trigger_instance_for_trigger_with_params(self):
+        trigger = {'type': 'dummy_pack_1.st2.test.trigger4', 'parameters': {'url': 'sample'}}
+        payload = {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'}
+        occurrence_time = datetime.datetime.now()
+        trigger_instance = container_utils.create_trigger_instance(trigger=trigger,
+                                                                   payload=payload,
+                                                                   occurrence_time=occurrence_time)
+        self.assertTrue(trigger_instance)
+        self.assertEqual(trigger_instance.trigger, trigger['type'])
+        self.assertEqual(trigger_instance.payload, payload)
+
     def test_get_matching_rules_filters_disabled_rules(self):
         trigger_instance = container_utils.create_trigger_instance(
             'dummy_pack_1.st2.test.trigger1',
@@ -85,7 +96,7 @@ class RuleEngineTest(DbTestCase):
 
     @classmethod
     def _setup_sample_triggers(self, names=['st2.test.trigger1', 'st2.test.trigger2',
-                                            'st2.test.trigger3']):
+                                            'st2.test.trigger3', 'st2.test.trigger4']):
         trigger_dbs = []
         for name in names:
             trigtype = None
@@ -108,7 +119,12 @@ class RuleEngineTest(DbTestCase):
             created.pack = 'dummy_pack_1'
             created.description = ''
             created.type = trigtype.get_reference().ref
-            created.parameters = {}
+
+            if name in ['st2.test.trigger4']:
+                created.parameters = {'url': 'sample'}
+            else:
+                created.parameters = {}
+
             created = Trigger.add_or_update(created)
             trigger_dbs.append(created)
 

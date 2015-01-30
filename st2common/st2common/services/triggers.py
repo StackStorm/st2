@@ -36,8 +36,7 @@ LOG = logging.getLogger(__name__)
 
 def get_trigger_db_given_type_and_params(type=None, parameters=None):
     try:
-        if not parameters:
-            parameters = {}
+        parameters = parameters or {}
         return Trigger.query(type=type,
                              parameters=parameters).first()
     except ValueError as e:
