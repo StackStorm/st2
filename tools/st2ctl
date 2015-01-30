@@ -125,7 +125,10 @@ function register_content() {
   if [ ! ${1} ]; then
       REGISTER_FLAGS="--register-sensors --register-actions"
   else
-      REGISTER_FLAGS="--register-${1}"
+      # Note: Scripts already call reload with "--register-<content>"
+      # TODO: Update packs. actions to only pass in a resource name excluding
+      # --register prefix
+      REGISTER_FLAGS="${1}"
   fi
 
   $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF} ${REGISTER_FLAGS}
