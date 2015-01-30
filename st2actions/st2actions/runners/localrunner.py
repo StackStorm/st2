@@ -76,7 +76,6 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
     def run(self, action_parameters):
-        print('Runner run')
         LOG.debug('    action_parameters = %s', action_parameters)
 
         if not self.entry_point:
