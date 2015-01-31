@@ -128,10 +128,13 @@ When configuring the metadata, there exists several built-in parameters that
 can be used and overwritten to change the default functionality of the
 various runners.
 
-* ``args`` - (``run-local``/``run-remote``) By default, |st2| will assemble arguments based on whether a user defines named or positional arguments. Adjusts the format of arguments passed to ``cmd``
-* ``cmd``  - (``run-local``/``run-remote``) Configure the command to be run on the target system
-* ``cwd``  - (``run-local``/``run-remote``) Configure the directory where remote commands will be executed from.
-* ``dir``  - (``run-local``/``run-remote``) Configure the directory where scripts are copied from a pack to the target machine prior to execution
+* ``args`` - (``run-local``, ``run-remote``) By default, |st2| will assemble arguments based on whether a user defines named or positional arguments. Adjusts the format of arguments passed to ``cmd``
+* ``cmd``  - (``run-local``, ``run-remote``) Configure the command to be run on the target system
+* ``cwd``  - (``run-local``, ``run-remote``) Configure the directory where remote commands will be executed from.
+* ``env``  - (``run-local``, ``run-local-script``, ``run-remote``,
+  ``run-remote-script``, ``run-python``) Environment variables which will be
+  available to the executed command / script.
+* ``dir``  - (``run-local``, ``run-remote``) Configure the directory where scripts are copied from a pack to the target machine prior to execution
 
 Converting existing scripts into actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
