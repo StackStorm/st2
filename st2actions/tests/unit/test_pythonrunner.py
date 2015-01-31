@@ -19,6 +19,7 @@ from unittest2 import TestCase
 import mock
 
 from st2actions.runners import pythonrunner
+from st2actions.runners.pythonrunner import subprocess
 from st2actions.container import service
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.constants.pack import SYSTEM_PACK_NAME
@@ -44,8 +45,10 @@ class PythonRunnerTestCase(TestCase):
     def test_simple_action(self):
         runner = pythonrunner.get_runner()
         runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
         runner.entry_point = PACAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
         (status, result) = runner.run({'row_index': 4})
         self.assertEqual(status, ACTIONEXEC_STATUS_SUCCEEDED)
         self.assertTrue(result is not None)
@@ -54,8 +57,10 @@ class PythonRunnerTestCase(TestCase):
     def test_simple_action_fail(self):
         runner = pythonrunner.get_runner()
         runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
         runner.entry_point = PACAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
         (status, result) = runner.run({'row_index': '4'})
         self.assertTrue(result is not None)
         self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
@@ -63,8 +68,10 @@ class PythonRunnerTestCase(TestCase):
     def test_simple_action_no_file(self):
         runner = pythonrunner.get_runner()
         runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
         runner.entry_point = 'foo.py'
         runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
         (status, result) = runner.run({})
         self.assertTrue(result is not None)
         self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
@@ -72,11 +79,38 @@ class PythonRunnerTestCase(TestCase):
     def test_simple_action_no_entry_point(self):
         runner = pythonrunner.get_runner()
         runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
         runner.entry_point = ''
         runner.container_service = service.RunnerContainerService()
 
         expected_msg = 'Action .*? is missing entry_point attribute'
         self.assertRaisesRegexp(Exception, expected_msg, runner.run, {})
+
+    @mock.patch('st2actions.runners.pythonrunner.subprocess.Popen')
+    def test_action_with_user_supplied_env_vars(self, mock_popen):
+        env_vars = {'key1': 'val1', 'key2': 'val2', 'PYTHONPATH': 'foobar'}
+
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = ('', '')
+        mock_popen.return_value = mock_process
+
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {'env': env_vars}
+        runner.entry_point = PACAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, result) = runner.run({'row_index': 4})
+
+        call_args, call_kwargs = mock_popen.call_args
+        actual_env = call_kwargs['env']
+
+        for key, value in env_vars.items():
+            # Verify that a blacklsited PYTHONPATH has been filtered out
+            if key == 'PYTHONPATH':
+                self.assertTrue(actual_env[key] != value)
+            else:
+                self.assertEqual(actual_env[key], value)
 
     def _get_mock_action_obj(self):
         """
