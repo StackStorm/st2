@@ -120,6 +120,11 @@ def register_runner_types():
                     'description': 'Working directory where the script will be executed in',
                     'type': 'string'
                 },
+                'env': {
+                    'description': ('Environment variables which will be available to the command'
+                                    '(e.g. key1=val1,key2=val2)'),
+                    'type': 'object'
+                },
                 'parallel': {
                     'description': 'Default to parallel execution.',
                     'type': 'boolean',
@@ -174,6 +179,11 @@ def register_runner_types():
                     'description': 'Working directory where the script will be executed in.',
                     'type': 'string',
                     'default': default_remote_dir
+                },
+                'env': {
+                    'description': ('Environment variables which will be available to the script'
+                                    '(e.g. key1=val1,key2=val2)'),
+                    'type': 'object'
                 },
                 'sudo': {
                     'description': 'The remote command will be executed with sudo.',
