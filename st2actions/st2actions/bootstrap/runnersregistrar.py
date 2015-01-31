@@ -306,6 +306,11 @@ def register_runner_types():
             'description': 'A runner for launching python actions.',
             'enabled': True,
             'runner_parameters': {
+                'env': {
+                    'description': ('Environment variables which will be available to the script'
+                                    '(e.g. key1=val1,key2=val2)'),
+                    'type': 'object'
+                },
                 'timeout': {
                     'description': ('Action timeout in seconds. Action will get killed if it '
                                     'doesn\'t finish in timeout seconds.'),
