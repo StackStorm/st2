@@ -57,15 +57,17 @@ class ShellCommandAction(object):
         self.cwd = cwd
 
     def get_full_command_string(self):
+        # Note: We pass -E to sudo because we want to preserve user provided
+        # environment variables
         if self.sudo:
             command = pipes.quote(self.command)
-            command = 'sudo -- bash -c %s' % (command)
+            command = 'sudo -E -- bash -c %s' % (command)
         else:
             if self.user and self.user != LOGGED_USER_USERNAME:
                 # Need to use sudo to run as a different user
                 user = pipes.quote(self.user)
                 command = pipes.quote(self.command)
-                command = 'sudo -u %s -- bash -c %s' % (user, command)
+                command = 'sudo -E -u %s -- bash -c %s' % (user, command)
             else:
                 command = self.command
 
@@ -125,7 +127,7 @@ class ShellScriptAction(ShellCommandAction):
             else:
                 command = pipes.quote(self.script_local_path_abs)
 
-            command = 'sudo -- bash -c %s' % (command)
+            command = 'sudo -E -- bash -c %s' % (command)
         else:
             if self.user and self.user != LOGGED_USER_USERNAME:
                 # Need to use sudo to run as a different user
@@ -136,7 +138,7 @@ class ShellScriptAction(ShellCommandAction):
                 else:
                     command = pipes.quote(self.script_local_path_abs)
 
-                command = 'sudo -u %s -- bash -c %s' % (user, command)
+                command = 'sudo -E -u %s -- bash -c %s' % (user, command)
             else:
                 script_path = pipes.quote(self.script_local_path_abs)
 
