@@ -109,10 +109,10 @@ class LiveActionDB(stormbase.StormFoundationDB):
     status = me.StringField(
         required=True,
         help_text='The current status of the liveaction.')
-    start_timestamp = me.DateTimeField(
+    start_timestamp = me.ComplexDateTimeField(
         default=datetime.datetime.utcnow,
         help_text='The timestamp when the liveaction was created.')
-    end_timestamp = me.DateTimeField(
+    end_timestamp = me.ComplexDateTimeField(
         help_text='The timestamp when the liveaction has finished.')
     action = me.StringField(
         required=True,
