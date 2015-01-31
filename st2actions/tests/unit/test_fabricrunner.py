@@ -19,9 +19,25 @@ tests_config.parse_args()
 
 from unittest2 import TestCase
 
+from st2actions.runners.fabricrunner import get_runner
 from st2actions.runners.fabricrunner import FabricRunner
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.models.system.action import RemoteScriptAction
+
+
+class FabricRunnerTestCase(TestCase):
+    def test_get_env_vars(self):
+        env_vars = {'key1': 'val1', 'key2': 'val2'}
+
+        runner = get_runner()
+        runner.runner_parameters = {'hosts': 'localhost', 'env': env_vars}
+        # This is awful, context is just set at some point, no idea when and
+        # where MOVE IT TO CONSTRUCTOR!11
+        runner.context = {}
+        runner.pre_run()
+
+        actual_env_vars = runner._get_env_vars()
+        self.assertEqual(actual_env_vars, env_vars)
 
 
 class TestFabricRunnerResultStatus(TestCase):
