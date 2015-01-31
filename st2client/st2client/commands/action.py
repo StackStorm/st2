@@ -137,12 +137,31 @@ class ActionRunCommand(resource.ResourceCommand):
 
             return content
 
+        def transform_object(value):
+            # Also support simple key1=val1,key2=val2 syntax
+            if value.startswith('{'):
+                # Assume it's JSON
+                result = value = json.loads(value)
+            else:
+                pairs = value.split(',')
+
+                result = {}
+                for pair in pairs:
+                    split = pair.split('=', 1)
+
+                    if len(split) != 2:
+                        continue
+
+                    key, value = split
+                    result[key] = value
+            return result
+
         transformer = {
             'array': (lambda cs_x: [v.strip() for v in cs_x.split(',')]),
             'boolean': (lambda x: ast.literal_eval(x.capitalize())),
             'integer': int,
             'number': float,
-            'object': json.loads,
+            'object': transform_object,
             'string': str
         }
 
