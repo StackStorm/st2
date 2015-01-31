@@ -19,7 +19,6 @@ from unittest2 import TestCase
 import mock
 
 from st2actions.runners import pythonrunner
-from st2actions.runners.pythonrunner import subprocess
 from st2actions.container import service
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.constants.pack import SYSTEM_PACK_NAME
