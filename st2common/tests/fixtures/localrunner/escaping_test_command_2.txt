@@ -1,1 +1,1 @@
-sudo -- bash -c '/tmp/foo.sh key3='"'"'date ; whoami'"'"' key2='"'"'value "bar" foo'"'"' key1='"'"'value foo bar'"'"' key4='"'"'"date ; whoami"'"'"''
+sudo -E -- bash -c '/tmp/foo.sh key3='"'"'date ; whoami'"'"' key2='"'"'value "bar" foo'"'"' key1='"'"'value foo bar'"'"' key4='"'"'"date ; whoami"'"'"''

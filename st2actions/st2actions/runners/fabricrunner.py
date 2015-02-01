@@ -60,6 +60,7 @@ RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_REMOTE_DIR = 'dir'
 RUNNER_COMMAND = 'cmd'
 RUNNER_CWD = 'cwd'
+RUNNER_ENV = 'env'
 RUNNER_KWARG_OP = 'kwarg_op'
 RUNNER_TIMEOUT = 'timeout'
 
@@ -93,6 +94,7 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, env.user)
         self._user = cfg.CONF.system_user.user
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
+        self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
@@ -164,7 +166,18 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
                                         cwd=self._cwd)
 
     def _get_env_vars(self):
-        return {'st2_auth_token': self.auth_token.token} if self.auth_token else {}
+        """
+        :rtype: ``dict``
+        """
+        env_vars = {}
+
+        if self.auth_token:
+            env_vars['st2_auth_token'] = self.auth_token.token
+
+        if self._env:
+            env_vars.update(self._env)
+
+        return env_vars
 
     @staticmethod
     def _get_result_status(result, allow_partial_failure):
