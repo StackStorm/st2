@@ -100,9 +100,9 @@ class MultiColumnTable(formatters.Formatter):
                     values.append(value)
                 else:
                     value = cls._get_simple_field_value(entry, field_name)
-                    transfor_function = attribute_transform_functions.get(field_name,
+                    transform_function = attribute_transform_functions.get(field_name,
                                                                           lambda value: value)
-                    value = transfor_function(value=value)
+                    value = transform_function(value=value)
                     value = strutil.unescape(value)
                     values.append(value)
             table.add_row(values)
@@ -168,14 +168,18 @@ class PropertyValueTable(formatters.Formatter):
         table.padding_width = 1
         table.align = 'l'
         table.valign = 't'
+
         for attribute in attributes:
             value = cls._get_attribute_value(subject, attribute)
+
+            transform_function = attribute_transform_functions.get(attribute,
+                                                                  lambda value: value)
+            value = transform_function(value=value)
+
             if type(value) is dict or type(value) is list:
                 value = json.dumps(value, indent=4)
+
             value = strutil.unescape(value)
-            transfor_function = attribute_transform_functions.get(attribute,
-                                                                  lambda value: value)
-            value = transfor_function(value=value)
             table.add_row([attribute, value])
         return table
 
