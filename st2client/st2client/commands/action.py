@@ -181,6 +181,9 @@ class ActionRunCommand(resource.ResourceCommand):
         execution = models.ActionExecution()
         execution.action = action_ref
         execution.parameters = dict()
+
+        action_ref_or_id = args.ref_or_id
+
         for idx in range(len(args.parameters)):
             arg = args.parameters[idx]
             if '=' in arg:
@@ -200,8 +203,13 @@ class ActionRunCommand(resource.ResourceCommand):
                         file_path = os.path.normpath(pjoin(os.getcwd(), v))
                         file_name = os.path.basename(file_path)
                         content = read_file(file_path=file_path)
-                        execution.parameters['_file_name'] = file_name
-                        execution.parameters['file_content'] = content
+
+                        if action_ref_or_id == 'core.http':
+                            # Special case for http runner
+                            execution.parameters['_file_name'] = file_name
+                            execution.parameters['file_content'] = content
+                        else:
+                            execution.parameters[k] = content
                     else:
                         execution.parameters[k] = normalize(k, v)
                 except Exception as e:
