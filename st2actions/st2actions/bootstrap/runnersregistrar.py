@@ -122,20 +122,20 @@ def register_runner_types():
                     'required': True
                 },
                 'username': {
-                    'description': 'Username used to log-in. If not provided, '
-                                   'default username from config is used.',
+                    'description': ('Username used to log-in. If not provided, '
+                                    'default username from config is used.'),
                     'type': 'string',
                     'required': False
                 },
                 'password': {
-                    'description': 'Password used to log in. If not provided, ',
-                                   'private key from the config file is used.'
+                    'description': ('Password used to log in. If not provided, '
+                                    'private key from the config file is used.'),
                     'type': 'string',
                     'required': False
                 },
                 'private_key': {
-                    'description': 'Private key used to log in. If not provided, ',
-                                   'private key from the config file is used.'
+                    'description': ('Private key used to log in. If not provided, '
+                                    'private key from the config file is used.'),
                     'type': 'string',
                     'required': False
                 },
@@ -198,20 +198,20 @@ def register_runner_types():
                     'required': True
                 },
                 'username': {
-                    'description': 'Username used to log-in. If not provided, '
-                                   'default username from config is used.',
+                    'description': ('Username used to log-in. If not provided, '
+                                    'default username from config is used.'),
                     'type': 'string',
                     'required': False
                 },
                 'password': {
-                    'description': 'Password used to log in. If not provided, ',
-                                   'private key from the config file is used.'
+                    'description': ('Password used to log in. If not provided, '
+                                    'private key from the config file is used.'),
                     'type': 'string',
                     'required': False
                 },
                 'private_key': {
-                    'description': 'Private key used to log in. If not provided, ',
-                                   'private key from the config file is used.'
+                    'description': ('Private key used to log in. If not provided, '
+                                    'private key from the config file is used.'),
                     'type': 'string',
                     'required': False
                 },
