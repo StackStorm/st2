@@ -74,6 +74,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         self._user = cfg.CONF.system_user.user
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
+        self._env = self._env or {}
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, DEFAULT_KWARG_OP)
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
