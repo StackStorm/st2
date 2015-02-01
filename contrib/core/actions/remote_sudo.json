@@ -8,6 +8,11 @@
         "sudo": {
             "immutable": true,
             "default": true
+        },
+        "cmd": {
+            "description": "Arbitrary Linux command to be executed on the remote host(s).",
+            "type": "string",
+            "required": true
         }
     }
 }
