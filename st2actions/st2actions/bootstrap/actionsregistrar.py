@@ -58,6 +58,7 @@ class ActionsRegistrar(ResourceRegistrar):
         """
         Register all the actions from the provided pack.
         """
+        pack_dir = pack_dir[:-1] if pack_dir.endswith('/') else pack_dir
         _, pack = os.path.split(pack_dir)
         actions_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
                                                               content_type='actions')
