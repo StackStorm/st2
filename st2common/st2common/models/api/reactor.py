@@ -49,6 +49,11 @@ class SensorTypeAPI(BaseAPI):
             'entry_point': {
                 'type': 'string',
             },
+            'enabled': {
+                'description': 'Enable or disable the sensor.',
+                'type': 'boolean',
+                'default': True
+            },
             'trigger_types': {
                 'type': 'array',
                 'default': []
@@ -88,10 +93,10 @@ class TriggerTypeAPI(BaseAPI):
                 'type': 'object',
                 'default': {}
             },
-            "tags": {
-                "description": "User associated metadata assigned to this object.",
-                "type": "array",
-                "items": {"type": "object"}
+            'tags': {
+                'description': 'User associated metadata assigned to this object.',
+                'type': 'array',
+                'items': {'type': 'object'}
             }
         },
         'additionalProperties': False
