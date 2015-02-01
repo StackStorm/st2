@@ -268,8 +268,7 @@ class RemoteScriptAction(ShellScriptAction):
                  parallel=True, sudo=False, timeout=None, cwd=None):
         super(RemoteScriptAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                                  script_local_path_abs=script_local_path_abs,
-                                                 user=user, password=password,
-                                                 private_key=private_key,
+                                                 user=user,
                                                  named_args=named_args,
                                                  positional_args=positional_args, env_vars=env_vars,
                                                  sudo=sudo, timeout=timeout, cwd=cwd)
@@ -278,6 +277,8 @@ class RemoteScriptAction(ShellScriptAction):
         self.remote_dir = remote_dir if remote_dir is not None else '/tmp'
         self.remote_libs_path_abs = os.path.join(self.remote_dir, ACTION_LIBS_DIR)
         self.on_behalf_user = on_behalf_user
+        self.password = password
+        self.private_key = private_key
         self.remote_script = os.path.join(self.remote_dir, pipes.quote(self.script_name))
         self.hosts = hosts
         self.parallel = parallel
