@@ -16,6 +16,7 @@
 from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2common.models.api.rule import RuleAPI
 from st2common.models.system.common import ResourceReference
+from st2common.models.db.reactor import TriggerDB
 from st2common.persistence.reactor import Trigger
 import st2common.services.triggers as trigger_service
 
@@ -120,3 +121,76 @@ class TriggerServiceTests(CleanDbTestCase):
         rule_api = RuleAPI(**rule)
         self.assertRaises(TriggerDoesNotExistException,
                           trigger_service.create_trigger_db_from_rule, rule_api)
+
+    def test_get_trigger_db_given_type_and_params(self):
+        # Add dummy triggers
+        trigger_1 = TriggerDB()
+        trigger_1.pack = 'testpack'
+        trigger_1.name = 'testtrigger1'
+        trigger_1.type = 'testpack.testtrigger1'
+        trigger_1.parameters = {}
+
+        trigger_2 = TriggerDB()
+        trigger_2.pack = 'testpack'
+        trigger_2.name = 'testtrigger2'
+        trigger_2.type = 'testpack.testtrigger2'
+        trigger_2.parameters = None
+
+        trigger_3 = TriggerDB()
+        trigger_3.pack = 'testpack'
+        trigger_3.name = 'testtrigger3'
+        trigger_3.type = 'testpack.testtrigger3'
+
+        trigger_4 = TriggerDB()
+        trigger_4.pack = 'testpack'
+        trigger_4.name = 'testtrigger4'
+        trigger_4.type = 'testpack.testtrigger4'
+        trigger_4.parameters = {'ponies': 'unicorn'}
+
+        Trigger.add_or_update(trigger_1)
+        Trigger.add_or_update(trigger_2)
+        Trigger.add_or_update(trigger_3)
+        Trigger.add_or_update(trigger_4)
+
+        # Trigger with no parameters, parameters={} in db
+        trigger_db = trigger_service.get_trigger_db_given_type_and_params(type=trigger_1.type,
+                                                                          parameters={})
+        self.assertEqual(trigger_db, trigger_1)
+
+        trigger_db = trigger_service.get_trigger_db_given_type_and_params(type=trigger_1.type,
+                                                                          parameters=None)
+        self.assertEqual(trigger_db, trigger_1)
+
+        trigger_db = trigger_service.get_trigger_db_given_type_and_params(type=trigger_1.type,
+                                                                          parameters={'fo': 'bar'})
+        self.assertEqual(trigger_db, None)
+
+        # Trigger with no parameters, no parameters attribute in the db
+        trigger_db = trigger_service.get_trigger_db_given_type_and_params(type=trigger_2.type,
+                                                                          parameters={})
+        self.assertEqual(trigger_db, trigger_2)
+
+        trigger_db = trigger_service.get_trigger_db_given_type_and_params(type=trigger_2.type,
+                                                                          parameters=None)
+        self.assertEqual(trigger_db, trigger_2)
+
+        trigger_db = trigger_service.get_trigger_db_given_type_and_params(type=trigger_2.type,
+                                                                          parameters={'fo': 'bar'})
+        self.assertEqual(trigger_db, None)
+
+        trigger_db = trigger_service.get_trigger_db_given_type_and_params(type=trigger_3.type,
+                                                                          parameters={})
+        self.assertEqual(trigger_db, trigger_3)
+
+        trigger_db = trigger_service.get_trigger_db_given_type_and_params(type=trigger_3.type,
+                                                                          parameters=None)
+        self.assertEqual(trigger_db, trigger_3)
+
+        # Trigger with parameters
+        trigger_db = trigger_service.get_trigger_db_given_type_and_params(type=trigger_4.type,
+            parameters=trigger_4.parameters)
+        self.assertEqual(trigger_db, trigger_4)
+
+        trigger_db = trigger_service.get_trigger_db_given_type_and_params(type=trigger_4.type,
+                                                                          parameters=None)
+        self.assertEqual(trigger_db, None)
