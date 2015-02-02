@@ -18,6 +18,7 @@ Contents:
     datastore
     workflows
     history
+    cli
     resources/index
     reference/index
     changelog

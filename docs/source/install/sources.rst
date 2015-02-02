@@ -114,6 +114,8 @@ output.
 |st2| can now be operated using the REST API, |st2| CLI, and the
 st2client python client library.
 
+.. _setup-st2-cli:
+
 Setup |st2| CLI
 ~~~~~~~~~~~~~~~
 
