@@ -121,6 +121,24 @@ def register_runner_types():
                     'type': 'string',
                     'required': True
                 },
+                'username': {
+                    'description': ('Username used to log-in. If not provided, '
+                                    'default username from config is used.'),
+                    'type': 'string',
+                    'required': False
+                },
+                'password': {
+                    'description': ('Password used to log in. If not provided, '
+                                    'private key from the config file is used.'),
+                    'type': 'string',
+                    'required': False
+                },
+                'private_key': {
+                    'description': ('Private key used to log in. If not provided, '
+                                    'private key from the config file is used.'),
+                    'type': 'string',
+                    'required': False
+                },
                 'cmd': {
                     'description': 'Arbitrary Linux command to be executed on the '
                                    'remote host(s).',
@@ -178,6 +196,24 @@ def register_runner_types():
                                    'where the remote command will be executed.',
                     'type': 'string',
                     'required': True
+                },
+                'username': {
+                    'description': ('Username used to log-in. If not provided, '
+                                    'default username from config is used.'),
+                    'type': 'string',
+                    'required': False
+                },
+                'password': {
+                    'description': ('Password used to log in. If not provided, '
+                                    'private key from the config file is used.'),
+                    'type': 'string',
+                    'required': False
+                },
+                'private_key': {
+                    'description': ('Private key used to log in. If not provided, '
+                                    'private key from the config file is used.'),
+                    'type': 'string',
+                    'required': False
                 },
                 'parallel': {
                     'description': 'Default to parallel execution.',

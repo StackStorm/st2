@@ -37,6 +37,20 @@ LOG = logging.getLogger(__name__)
 ACTIONEXEC_STATUS_SCHEDULED = 'scheduled'
 ACTIONEXEC_STATUS_RUNNING = 'running'
 
+PARAMETERS_TO_MASK = [
+    'password',
+    'private_key'
+]
+
+
+def format_parameters(value):
+    # Mask sensitive parameters
+    for param_name, _ in value.items():
+        if param_name in PARAMETERS_TO_MASK:
+            value[param_name] = '********'
+
+    return value
+
 
 class ActionBranch(resource.ResourceBranch):
 
@@ -79,6 +93,11 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
 class ActionRunCommand(resource.ResourceCommand):
     attribute_display_order = ['id', 'ref', 'context', 'parameters', 'status',
                                'start_timestamp', 'result']
+    attribute_transform_functions = {
+        'start_timestamp': format_isodate,
+        'end_timestamp': format_isodate,
+        'parameters': format_parameters
+    }
 
     def __init__(self, resource, *args, **kwargs):
 
@@ -181,6 +200,9 @@ class ActionRunCommand(resource.ResourceCommand):
         execution = models.ActionExecution()
         execution.action = action_ref
         execution.parameters = dict()
+
+        action_ref_or_id = args.ref_or_id
+
         for idx in range(len(args.parameters)):
             arg = args.parameters[idx]
             if '=' in arg:
@@ -200,8 +222,13 @@ class ActionRunCommand(resource.ResourceCommand):
                         file_path = os.path.normpath(pjoin(os.getcwd(), v))
                         file_name = os.path.basename(file_path)
                         content = read_file(file_path=file_path)
-                        execution.parameters['_file_name'] = file_name
-                        execution.parameters['file_content'] = content
+
+                        if action_ref_or_id == 'core.http':
+                            # Special case for http runner
+                            execution.parameters['_file_name'] = file_name
+                            execution.parameters['file_content'] = content
+                        else:
+                            execution.parameters[k] = content
                     else:
                         execution.parameters[k] = normalize(k, v)
                 except Exception as e:
@@ -334,11 +361,13 @@ class ActionRunCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         if self.print_help(args, **kwargs):
             return
+
         # Execute the action.
         instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
                           attributes=['all'], json=args.json,
-                          attribute_display_order=self.attribute_display_order)
+                          attribute_display_order=self.attribute_display_order,
+                          attribute_transform_functions=self.attribute_transform_functions)
         if args.async:
             self.print_output('To get the results, execute: \n'
                               '    $ st2 execution get %s' % instance.id,
@@ -408,7 +437,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                           'end_timestamp']
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
-        'end_timestamp': format_isodate
+        'end_timestamp': format_isodate,
+        'parameters': format_parameters
     }
 
     def __init__(self, resource, *args, **kwargs):
@@ -452,7 +482,8 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
     display_attributes = ['all']
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
-        'end_timestamp': format_isodate
+        'end_timestamp': format_isodate,
+        'parameters': format_parameters
     }
 
     def __init__(self, resource, *args, **kwargs):

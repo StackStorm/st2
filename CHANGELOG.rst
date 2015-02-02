@@ -24,6 +24,10 @@ Docs: http://docks.stackstorm.com/latest
   ``x-auth-token`` query string parameter. (new-feature)
 * Allow actions without parameters. (bug-fix)
 * Fix a bug with rule matching not working for any triggers with parameters. (bug-fix)
+* Require ``cmd`` parameter for the following actions: ``core.remote``, ``core.remote_sudo``,
+  ``core.local``, ``core.local_sudo`` (bug-fix)
+* Allow user to override authentication information (username, password, private key) on per
+  action basis for all the remote runner actions. (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------
