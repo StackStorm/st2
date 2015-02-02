@@ -37,8 +37,17 @@ LOG = logging.getLogger(__name__)
 def get_trigger_db_given_type_and_params(type=None, parameters=None):
     try:
         parameters = parameters or {}
-        return Trigger.query(type=type,
-                             parameters=parameters).first()
+
+        trigger_db = Trigger.query(type=type,
+                                   parameters=parameters).first()
+
+        if not parameters and not trigger_db:
+            # We need to do double query because some TriggeDB objects without
+            # parameters have "parameters" attribute stored in the db and others
+            # don't
+            trigger_db = Trigger.query(type=type, parameters=None).first()
+
+        return trigger_db
     except ValueError as e:
         LOG.debug('Database lookup for type="%s" parameters="%s" resulted ' +
                   'in exception : %s.', type, parameters, e, exc_info=True)
@@ -60,6 +69,7 @@ def get_trigger_db_by_ref(ref):
 def _get_trigger_db(trigger):
     # TODO: This method should die in a fire
     # XXX: Do not make this method public.
+
     if isinstance(trigger, dict):
         name = trigger.get('name', None)
         pack = trigger.get('pack', None)
