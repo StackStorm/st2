@@ -30,6 +30,9 @@ setup(
     install_requires=[
         "pecan",
     ],
+    package_data={
+        'st2api': ['templates/*.html']
+    },
     test_suite='st2api',
     zip_safe=False,
     include_package_data=True,
