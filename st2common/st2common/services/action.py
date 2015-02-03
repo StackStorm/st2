@@ -72,8 +72,11 @@ def schedule(liveaction):
     # Write to database and send to message queue.
     liveaction.status = LIVEACTION_STATUS_SCHEDULED
     liveaction.start_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
-    liveaction = LiveAction.add_or_update(liveaction)
+    # Publish creation after both liveaction and actionexecution are created.
+    liveaction = LiveAction.add_or_update(liveaction, publish=False)
     execution = executions.create_execution_object(liveaction)
+    # assume that this is a creation.
+    LiveAction.publish_create(liveaction)
     LOG.audit('Action execution scheduled. LiveAction=%s. ActionExecution=%s', liveaction,
               execution)
     return liveaction
