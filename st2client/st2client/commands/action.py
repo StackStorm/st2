@@ -45,6 +45,10 @@ PARAMETERS_TO_MASK = [
 
 def format_parameters(value):
     # Mask sensitive parameters
+    if not isinstance(value, dict):
+        # No parameters, leave it as it is
+        return value
+
     for param_name, _ in value.items():
         if param_name in PARAMETERS_TO_MASK:
             value[param_name] = '********'
