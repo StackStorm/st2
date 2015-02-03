@@ -5,7 +5,7 @@ demo:
     input:
         - cmd
     tasks:
-        run-cmd:
+        task_with_input:
             action: st2.action
             input:
                 ref: core.local
@@ -14,3 +14,7 @@ demo:
             publish:
                 stdout: $.stdout
                 stderr: $.stderr
+        task_with_no_input:
+            action: st2.action
+            input:
+                ref: core.local
