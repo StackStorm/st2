@@ -37,9 +37,32 @@ LOG = logging.getLogger(__name__)
 ACTIONEXEC_STATUS_SCHEDULED = 'scheduled'
 ACTIONEXEC_STATUS_RUNNING = 'running'
 
+# Who parameters should be masked when displaying action execution output
 PARAMETERS_TO_MASK = [
     'password',
     'private_key'
+]
+
+# A list of environment variables which are never inherited when using run
+# --inherit-env flag
+ENV_VARS_BLACKLIST = [
+    'pwd',
+    'mail',
+    'username',
+    'user',
+    'path',
+    'home',
+    'ps1',
+    'shell',
+    'pythonpath',
+    'ssh_tty',
+    'ssh_connection',
+    'lang',
+    'ls_colors',
+    'logname',
+    'oldpwd',
+    'term',
+    'xdg_session_id'
 ]
 
 
@@ -122,6 +145,12 @@ class ActionRunCommand(resource.ResourceCommand):
             self.parser.add_argument('-a', '--async',
                                      action='store_true', dest='async',
                                      help='Do not wait for action to finish.')
+            self.parser.add_argument('-e', '--inherit-env',
+                                     action='store_true', dest='inherit_env',
+                                     help='Pass all the environment variables '
+                                          'which are accessible to the CLI as "env" '
+                                          'parameter to the action. Note: Only works '
+                                          'with python, local and remote runners.')
         else:
             self.parser.set_defaults(async=True)
 
@@ -254,6 +283,9 @@ class ActionRunCommand(resource.ResourceCommand):
                 execution.parameters['file_name'] = execution.parameters['_file_name']
 
             del execution.parameters['_file_name']
+
+        if args.inherit_env:
+            execution.parameters['env'] = self._get_inherited_env_vars()
 
         action_exec_mgr = self.app.client.managers['ActionExecution']
         execution = action_exec_mgr.create(execution, **kwargs)
@@ -419,6 +451,17 @@ class ActionRunCommand(resource.ResourceCommand):
         result = 'Message: %s\nTraceback: %s' % (result['message'],
                 result['traceback'])
         return result
+
+    def _get_inherited_env_vars(self):
+        env_vars = os.environ.copy()
+
+        for var_name in ENV_VARS_BLACKLIST:
+            if var_name.lower() in env_vars:
+                del env_vars[var_name.lower()]
+            if var_name.upper() in env_vars:
+                del env_vars[var_name.upper()]
+
+        return env_vars
 
 
 class ActionExecutionBranch(resource.ResourceBranch):
