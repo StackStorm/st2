@@ -65,7 +65,7 @@ class Worker(ConsumerMixin):
     def _do_process_task(self, body):
         try:
             self.execute_action(body)
-        except:
+        except Exception:
             LOG.exception('execute_action failed. Message body : %s', body)
 
     def execute_action(self, liveaction):
