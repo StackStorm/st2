@@ -16,6 +16,7 @@
 import copy
 
 import mock
+import traceback
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
@@ -52,19 +53,22 @@ def process_create(payload):
             if not MOCK_FAIL_EXECUTION_CREATE:
                 HISTORIAN.record_action_execution(payload)
             CHAMPION.execute_action(payload)
-    except Exception as e:
-        print(e)
+    except Exception:
+        traceback.print_exc()
+        print(payload)
 
 
 def process_update(payload):
     try:
         if isinstance(payload, LiveActionDB):
             HISTORIAN.update_live_action_history(payload)
-    except Exception as e:
-        print(e)
+    except Exception:
+        traceback.print_exc()
+        print(payload)
 
 
-@mock.patch.object(LocalShellRunner, 'run', mock.MagicMock(return_value={}))
+@mock.patch.object(LocalShellRunner, 'run',
+                   mock.MagicMock(return_value=(LIVEACTION_STATUS_FAILED, 'Non-empty')))
 @mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
 @mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(side_effect=process_update))
 class TestActionExecutionHistoryWorker(DbTestCase):
