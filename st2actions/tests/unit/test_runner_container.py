@@ -17,10 +17,12 @@ import datetime
 import mock
 
 from oslo.config import cfg
+from st2common.constants import action as action_constants
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.action import (LiveActionDB, RunnerTypeDB)
 from st2common.persistence.action import (LiveAction, ActionExecutionState)
+from st2common.services import executions
 from st2common.transport.publishers import PoolPublisher
 from st2tests.base import DbTestCase
 import st2tests.config as tests_config
@@ -83,6 +85,7 @@ class RunnerContainerTest(DbTestCase):
         }
         liveaction_db = self._get_action_exec_db_model(RunnerContainerTest.action_db, params)
         liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
         # Assert that execution ran successfully.
         runner_container.dispatch(liveaction_db)
         liveaction_db = LiveAction.get_by_id(liveaction_db.id)
@@ -97,6 +100,7 @@ class RunnerContainerTest(DbTestCase):
         }
         liveaction_db = self._get_failingaction_exec_db_model(params)
         liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
         runner_container.dispatch(liveaction_db)
         # pickup updated liveaction_db
         liveaction_db = LiveAction.get_by_id(liveaction_db.id)
@@ -111,7 +115,7 @@ class RunnerContainerTest(DbTestCase):
         }
         liveaction_db = self._get_action_exec_db_model(RunnerContainerTest.action_db, params)
         liveaction_db = LiveAction.add_or_update(liveaction_db)
-
+        executions.create_execution_object(liveaction_db)
         # Assert that execution ran successfully.
         runner_container.dispatch(liveaction_db)
         liveaction_db = LiveAction.get_by_id(liveaction_db.id)
@@ -128,7 +132,7 @@ class RunnerContainerTest(DbTestCase):
         }
         liveaction_db = self._get_action_exec_db_model(RunnerContainerTest.async_action_db, params)
         liveaction_db = LiveAction.add_or_update(liveaction_db)
-
+        executions.create_execution_object(liveaction_db)
         # Assert that execution ran without exceptions.
         runner_container.dispatch(liveaction_db)
         states = ActionExecutionState.get_all()
@@ -143,7 +147,7 @@ class RunnerContainerTest(DbTestCase):
 
     def _get_action_exec_db_model(self, action_db, params):
         liveaction_db = LiveActionDB()
-        liveaction_db.status = 'initializing'
+        liveaction_db.status = action_constants.LIVEACTION_STATUS_SCHEDULED
         liveaction_db.start_timestamp = datetime.datetime.utcnow()
         liveaction_db.action = ResourceReference(
             name=action_db.name,
@@ -154,7 +158,7 @@ class RunnerContainerTest(DbTestCase):
 
     def _get_failingaction_exec_db_model(self, params):
         liveaction_db = LiveActionDB()
-        liveaction_db.status = 'initializing'
+        liveaction_db.status = action_constants.LIVEACTION_STATUS_SCHEDULED
         liveaction_db.start_timestamp = datetime.datetime.now()
         liveaction_db.action = ResourceReference(
             name=RunnerContainerTest.failingaction_db.name,
