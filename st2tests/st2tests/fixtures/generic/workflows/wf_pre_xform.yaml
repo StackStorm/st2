@@ -5,10 +5,12 @@ demo:
     input:
         - cmd
     tasks:
-        run-cmd:
+        task_with_input:
             action: core.local
             input:
                 cmd: $.cmd
             publish:
                 stdout: $.stdout
                 stderr: $.stderr
+        task_with_no_input:
+            action: core.local
