@@ -107,7 +107,7 @@ def jsexpose(*argtypes, **opts):
     def decorate(f):
         @functools.wraps(f)
         def callfunction(*args, **kwargs):
-            params = pecan.request.params
+            params = getattr(pecan.request, 'params', {})
 
             if QUERY_PARAM_ATTRIBUTE_NAME in params and QUERY_PARAM_ATTRIBUTE_NAME in kwargs:
                 # Remove auth token if one is provided via query params
