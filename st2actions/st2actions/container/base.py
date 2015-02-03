@@ -26,7 +26,7 @@ from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED,
                                         LIVEACTION_STATUS_FAILED)
 from st2common.models.db.action import ActionExecutionStateDB
 from st2common.persistence.action import ActionExecutionState
-from st2common.services import access
+from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
 
@@ -141,6 +141,7 @@ class RunnerContainer(object):
             # Always clean-up the auth_token
             updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
                                                                 result)
+            executions.update_execution(updated_liveaction_db)
             LOG.debug('Updated liveaction after run: %s', updated_liveaction_db)
             try:
                 self._delete_auth_token(runner.auth_token)
