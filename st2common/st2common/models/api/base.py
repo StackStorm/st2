@@ -28,6 +28,7 @@ from st2common.util import mongoescape as util_mongodb
 from st2common.util import schema as util_schema
 from st2common.util.jsonify import json_encode
 from st2common import log as logging
+from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 
 
 LOG = logging.getLogger(__name__)
@@ -106,6 +107,12 @@ def jsexpose(*argtypes, **opts):
     def decorate(f):
         @functools.wraps(f)
         def callfunction(*args, **kwargs):
+            params = getattr(pecan.request, 'params', {})
+
+            if QUERY_PARAM_ATTRIBUTE_NAME in params and QUERY_PARAM_ATTRIBUTE_NAME in kwargs:
+                # Remove auth token if one is provided via query params
+                del kwargs[QUERY_PARAM_ATTRIBUTE_NAME]
+
             try:
                 args = list(args)
                 types = list(argtypes)

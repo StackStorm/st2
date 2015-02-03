@@ -15,13 +15,13 @@
 
 from mongoengine import ValidationError
 from pecan import abort
-from pecan.rest import RestController
 import six
 
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.exceptions.triggers import TriggerDoesNotExistException
+from st2api.controllers import resource
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.reactor import Rule
@@ -31,38 +31,21 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class RuleController(RestController):
+class RuleController(resource.ContentPackResourceControler):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Rules in the system.
     """
-    @jsexpose(str)
-    def get_one(self, id):
-        """
-            List rule by id.
 
-            Handle:
-                GET /rules/1
-        """
-        LOG.info('GET /rules/ with id=%s', id)
-        rule_db = RuleController.__get_by_id(id)
-        rule_api = RuleAPI.from_model(rule_db)
-        LOG.debug('GET /rules/ with id=%s, client_result=%s', id, rule_api)
-        return rule_api
+    model = RuleAPI
+    access = Rule
+    supported_filters = {
+        'name': 'name'
+    }
 
-    @jsexpose(str)
-    def get_all(self, **kw):
-        """
-            List all rules.
-
-            Handles requests:
-                GET /rules/
-        """
-        LOG.info('GET all /rules/ with filters=%s', kw)
-        rule_dbs = Rule.get_all(**kw)
-        rule_apis = [RuleAPI.from_model(rule_db) for rule_db in rule_dbs]
-        LOG.debug('GET all /rules/ client_result=%s', rule_apis)
-        return rule_apis
+    query_options = {
+        'sort': ['name']
+    }
 
     @jsexpose(body=RuleAPI, status_code=http_client.CREATED)
     def post(self, rule):

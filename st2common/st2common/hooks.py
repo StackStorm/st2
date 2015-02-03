@@ -23,6 +23,8 @@ from st2common import log as logging
 from st2common.exceptions import access as exceptions
 from st2common.util.jsonify import json_encode
 from st2common.util.auth import validate_token
+from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
+from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 
 
 LOG = logging.getLogger(__name__)
@@ -102,7 +104,7 @@ class AuthHook(PecanHook):
         query_string = request.query_string
         query_params = dict(urlparse.parse_qsl(query_string))
 
-        token_in_headers = headers.get('X-Auth-Token', None)
-        token_in_query_params = query_params.get('x-auth-token', None)
+        token_in_headers = headers.get(HEADER_ATTRIBUTE_NAME, None)
+        token_in_query_params = query_params.get(QUERY_PARAM_ATTRIBUTE_NAME, None)
         return validate_token(token_in_headers=token_in_headers,
                               token_in_query_params=token_in_query_params)

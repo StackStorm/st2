@@ -19,6 +19,7 @@ from st2common.util import isotime
 from st2common.exceptions import access as exceptions
 from st2common import log as logging
 from st2common.util.auth import validate_token
+from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 
 
 LOG = logging.getLogger(__name__)
@@ -75,7 +76,7 @@ class AuthMiddleware(object):
 
         # Note: This is a WSGI environment variable name
         token_in_headers = env.get('HTTP_X_AUTH_TOKEN', None)
-        token_in_query_params = query_params.get('x-auth-token', None)
+        token_in_query_params = query_params.get(QUERY_PARAM_ATTRIBUTE_NAME, None)
 
         return validate_token(token_in_headers=token_in_headers,
                               token_in_query_params=token_in_query_params)
