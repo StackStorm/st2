@@ -106,6 +106,12 @@ def jsexpose(*argtypes, **opts):
     def decorate(f):
         @functools.wraps(f)
         def callfunction(*args, **kwargs):
+            params = pecan.request.params
+
+            if 'x-auth-token' in params and 'x-auth-token' in kwargs:
+                # Remove auth token if one is provided via query params
+                del kwargs['x-auth-token']
+
             try:
                 args = list(args)
                 types = list(argtypes)
