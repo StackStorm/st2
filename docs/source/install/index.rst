@@ -1,5 +1,5 @@
 Installation
-=================
+============
 
 To install and run |st2| on Ubuntu/Debian or RedHat/Fedora with all dependencies,
 download and run the deployment script.
@@ -23,7 +23,7 @@ This will download and install the latest release of |st2| (currently |release|)
     RedHat / Fedora <rpm>
     config
     Vagrant <vagrant>
-    docker
+    Docker <docker>
     deploy
     sources
 
