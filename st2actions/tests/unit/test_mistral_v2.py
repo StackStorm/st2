@@ -118,6 +118,8 @@ ACTION_PARAMS = {'friend': 'Rocky'}
 EXECUTION = executions.Execution(None, {'id': str(uuid.uuid4()), 'state': 'RUNNING'})
 CHAMPION = worker.Worker(None)
 
+NON_EMPTY_RESULT = 'non-empty'
+
 
 def process_create(payload):
     if isinstance(payload, LiveActionDB):
@@ -125,7 +127,7 @@ def process_create(payload):
 
 
 @mock.patch.object(LocalShellRunner, 'run', mock.
-                   MagicMock(return_value=(LIVEACTION_STATUS_SUCCEEDED, {})))
+                   MagicMock(return_value=(LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT)))
 @mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
 @mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(return_value=None))
 class TestMistralRunner(DbTestCase):
@@ -370,5 +372,6 @@ class TestMistralRunner(DbTestCase):
         execution = LiveAction.get_by_id(str(execution.id))
         self.assertEqual(execution.status, LIVEACTION_STATUS_SUCCEEDED)
         requests.request.assert_called_with('PUT', execution.callback['url'],
-                                            data=json.dumps({'state': 'SUCCESS', 'result': '{}'}),
+                                            data=json.dumps({'state': 'SUCCESS',
+                                                             'result': NON_EMPTY_RESULT}),
                                             headers={'content-type': 'application/json'})
