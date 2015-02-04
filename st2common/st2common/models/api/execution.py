@@ -69,14 +69,14 @@ class ActionExecutionAPI(BaseAPI):
     @classmethod
     def from_model(cls, model):
         doc = cls._from_model(model)
-        start_timestamp = isotime.format(doc['execution']['start_timestamp'], offset=False)
+        start_timestamp = isotime.format(doc['liveaction']['start_timestamp'], offset=False)
 
-        end_timestamp = doc['execution'].get('end_timestamp', None)
+        end_timestamp = doc['liveaction'].get('end_timestamp', None)
         if end_timestamp is not None:
             end_timestamp = isotime.format(end_timestamp, offset=False)
-            doc['execution']['end_timestamp'] = end_timestamp
+            doc['liveaction']['end_timestamp'] = end_timestamp
 
-        doc['execution']['start_timestamp'] = start_timestamp
+        doc['liveaction']['start_timestamp'] = start_timestamp
 
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}
         return cls(**attrs)
@@ -91,6 +91,6 @@ class ActionExecutionAPI(BaseAPI):
                 continue
             setattr(model, attr, value)
 
-        model.execution['start_timestamp'] = isotime.parse(model.execution['start_timestamp'])
-        model.execution['end_timestamp'] = isotime.parse(model.execution['end_timestamp'])
+        model.liveaction['start_timestamp'] = isotime.parse(model.liveaction['start_timestamp'])
+        model.liveaction['end_timestamp'] = isotime.parse(model.liveaction['end_timestamp'])
         return model

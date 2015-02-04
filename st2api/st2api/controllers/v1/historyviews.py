@@ -27,19 +27,19 @@ SUPPORTED_FILTERS = {
     'action': ('action.pack', 'action.name'),  # XXX: Compound filter. For aggregation only.
     'action.name': 'action.name',
     'action.pack': 'action.pack',
-    'execution': 'execution.id',
+    'liveaction': 'liveaction.id',
     'parent': 'parent',
     'rule': 'rule.name',
     'runner': 'runner.name',
-    'timestamp': 'execution.start_timestamp',
+    'timestamp': 'liveaction.start_timestamp',
     'trigger': 'trigger.name',
     'trigger_type': 'trigger_type.name',
-    'user': 'execution.context.user'
+    'user': 'liveaction.context.user'
 }
 
 # List of filters that are too broad to distinct by them and are very likely to represent 1 to 1
 # relation between filter and particular history record.
-IGNORE_FILTERS = ['parent', 'timestamp', 'execution']
+IGNORE_FILTERS = ['parent', 'timestamp', 'liveaction']
 
 
 class FiltersController(RestController):

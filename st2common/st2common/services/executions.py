@@ -50,7 +50,7 @@ def create_execution_object(liveaction):
     attrs = {
         'action': vars(ActionAPI.from_model(action_db)),
         'runner': vars(RunnerTypeAPI.from_model(runner)),
-        'execution': vars(LiveActionAPI.from_model(liveaction))
+        'liveaction': vars(LiveActionAPI.from_model(liveaction))
     }
 
     if 'rule' in liveaction.context:
@@ -71,7 +71,7 @@ def create_execution_object(liveaction):
         attrs['trigger'] = vars(TriggerAPI.from_model(trigger))
         attrs['trigger_type'] = vars(TriggerTypeAPI.from_model(trigger_type))
 
-    parent = ActionExecution.get(execution__id=liveaction.context.get('parent', ''))
+    parent = ActionExecution.get(liveaction__id=liveaction.context.get('parent', ''))
     if parent:
         attrs['parent'] = str(parent.id)
 
@@ -87,8 +87,8 @@ def create_execution_object(liveaction):
 
 
 def update_execution(liveaction):
-    execution = ActionExecution.get(execution__id=str(liveaction.id))
-    execution.execution = vars(LiveActionAPI.from_model(liveaction))
+    execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+    execution.liveaction = vars(LiveActionAPI.from_model(liveaction))
     execution = ActionExecution.add_or_update(execution)
 
     return execution
