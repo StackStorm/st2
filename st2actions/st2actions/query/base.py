@@ -24,6 +24,7 @@ from st2common import log as logging
 from st2common.constants.action import (LIVEACTION_STATUS_FAILED,
                                         LIVEACTION_STATUS_SUCCEEDED)
 from st2common.persistence.action import (LiveAction, ActionExecutionState)
+from st2common.services import executions
 
 LOG = logging.getLogger(__name__)
 DONE_STATES = [LIVEACTION_STATUS_FAILED, LIVEACTION_STATUS_SUCCEEDED]
@@ -107,8 +108,11 @@ class Querier(object):
             raise Exception('No DB model for liveaction_id: %s' % execution_id)
         liveaction_db.result = results
         liveaction_db.status = status
-        updated_exec = LiveAction.add_or_update(liveaction_db)
-        return updated_exec
+        # update liveaction, update actionexecution and then publish update.
+        updated_liveaction = LiveAction.add_or_update(liveaction_db, publish=False)
+        executions.update_execution(updated_liveaction)
+        LiveAction.publish_update(updated_liveaction)
+        return updated_liveaction
 
     def _delete_state_object(self, query_context):
         state_db = ActionExecutionState.get_by_id(query_context.id)
