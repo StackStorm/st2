@@ -79,7 +79,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         liveaction = action_service.schedule(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, LIVEACTION_STATUS_FAILED)
-        execution = ActionExecution.get(execution__id=str(liveaction.id), raise_exception=True)
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id), raise_exception=True)
         self.assertDictEqual(execution.trigger, {})
         self.assertDictEqual(execution.trigger_type, {})
         self.assertDictEqual(execution.trigger_instance, {})
@@ -89,7 +89,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.execution, vars(LiveActionAPI.from_model(liveaction)))
+        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))
 
     def test_basic_execution_history_create_failed(self):
         MOCK_FAIL_EXECUTION_CREATE = True     # noqa
@@ -100,13 +100,13 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         liveaction = action_service.schedule(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, LIVEACTION_STATUS_FAILED)
-        execution = ActionExecution.get(execution__id=str(liveaction.id), raise_exception=True)
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id), raise_exception=True)
         action = action_utils.get_action_by_ref('core.chain')
         self.assertDictEqual(execution.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.execution, vars(LiveActionAPI.from_model(liveaction)))
+        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))
         self.assertGreater(len(execution.children), 0)
         for child in execution.children:
             record = ActionExecution.get(id=child, raise_exception=True)
@@ -138,7 +138,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertIsNotNone(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, LIVEACTION_STATUS_FAILED)
-        execution = ActionExecution.get(execution__id=str(liveaction.id), raise_exception=True)
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id), raise_exception=True)
         self.assertDictEqual(execution.trigger, vars(TriggerAPI.from_model(trigger)))
         self.assertDictEqual(execution.trigger_type, vars(TriggerTypeAPI.from_model(trigger_type)))
         self.assertDictEqual(execution.trigger_instance,
@@ -149,4 +149,4 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.execution, vars(LiveActionAPI.from_model(liveaction)))
+        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))

@@ -48,13 +48,13 @@ class TestActionExecutionHistory(FunctionalTest):
                 'rule': copy.deepcopy(fixture.ARTIFACTS['rule']),
                 'action': copy.deepcopy(fixture.ARTIFACTS['actions']['chain']),
                 'runner': copy.deepcopy(fixture.ARTIFACTS['runners']['action-chain']),
-                'execution': copy.deepcopy(fixture.ARTIFACTS['liveactions']['workflow']),
+                'liveaction': copy.deepcopy(fixture.ARTIFACTS['liveactions']['workflow']),
                 'children': []
             },
             {
                 'action': copy.deepcopy(fixture.ARTIFACTS['actions']['local']),
                 'runner': copy.deepcopy(fixture.ARTIFACTS['runners']['run-local']),
-                'execution': copy.deepcopy(fixture.ARTIFACTS['liveactions']['task1'])
+                'liveaction': copy.deepcopy(fixture.ARTIFACTS['liveactions']['task1'])
             }
         ]
 
@@ -72,7 +72,7 @@ class TestActionExecutionHistory(FunctionalTest):
             fake_type = random.choice(cls.fake_types)
             data = copy.deepcopy(fake_type)
             data['id'] = obj_id
-            data['execution']['start_timestamp'] = isotime.format(timestamp, offset=False)
+            data['liveaction']['start_timestamp'] = isotime.format(timestamp, offset=False)
             if fake_type['action']['name'] == 'local' and random.choice([True, False]):
                 assign_parent(data)
             wb_obj = ActionExecutionAPI(**data)
@@ -98,7 +98,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertEqual(record['id'], obj_id)
         self.assertDictEqual(record['action'], fake_record.action)
         self.assertDictEqual(record['runner'], fake_record.runner)
-        self.assertDictEqual(record['execution'], fake_record.execution)
+        self.assertDictEqual(record['liveaction'], fake_record.liveaction)
 
     def test_get_one_failed(self):
         response = self.app.get('/v1/history/liveactions/%s' % str(bson.ObjectId()),
@@ -129,7 +129,7 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertListEqual(sorted(ids), sorted(refs))
 
     def test_filters(self):
-        excludes = ['parent', 'timestamp', 'action', 'execution']
+        excludes = ['parent', 'timestamp', 'action', 'liveaction']
         for param, field in six.iteritems(ActionExecutionHistoryController.supported_filters):
             if param in excludes:
                 continue
@@ -193,8 +193,8 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), 10)
         self.assertEqual(response.headers['X-Total-Count'], '10')
-        dt1 = response.json[0]['execution']['start_timestamp']
-        dt2 = response.json[9]['execution']['start_timestamp']
+        dt1 = response.json[0]['liveaction']['start_timestamp']
+        dt2 = response.json[9]['liveaction']['start_timestamp']
         self.assertLess(isotime.parse(dt1), isotime.parse(dt2))
 
         dt_range = '2014-12-25T00:00:19Z..2014-12-25T00:00:10Z'
@@ -203,16 +203,16 @@ class TestActionExecutionHistory(FunctionalTest):
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), 10)
         self.assertEqual(response.headers['X-Total-Count'], '10')
-        dt1 = response.json[0]['execution']['start_timestamp']
-        dt2 = response.json[9]['execution']['start_timestamp']
+        dt1 = response.json[0]['liveaction']['start_timestamp']
+        dt2 = response.json[9]['liveaction']['start_timestamp']
         self.assertLess(isotime.parse(dt2), isotime.parse(dt1))
 
     def test_default_sort(self):
         response = self.app.get('/v1/history/liveactions')
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
-        dt1 = response.json[0]['execution']['start_timestamp']
-        dt2 = response.json[len(response.json) - 1]['execution']['start_timestamp']
+        dt1 = response.json[0]['liveaction']['start_timestamp']
+        dt2 = response.json[len(response.json) - 1]['liveaction']['start_timestamp']
         self.assertLess(isotime.parse(dt2), isotime.parse(dt1))
 
     def test_filters_view(self):

@@ -61,7 +61,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
     def test_execution_creation_manual_action_run(self):
         liveaction = self.MODELS['liveactions']['liveaction1.json']
         executions_util.create_execution_object(liveaction)
-        execution = ActionExecution.get(execution__id=str(liveaction.id), raise_exception=True)
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id), raise_exception=True)
         self.assertDictEqual(execution.trigger, {})
         self.assertDictEqual(execution.trigger_type, {})
         self.assertDictEqual(execution.trigger_instance, {})
@@ -71,7 +71,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.execution, vars(LiveActionAPI.from_model(liveaction)))
+        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))
 
     def test_execution_creation_action_triggered_by_rule(self):
         # Wait for the action execution to complete and then confirm outcome.
@@ -90,7 +90,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         self.assertIsNotNone(liveaction)
         self.assertEqual(liveaction.status, LIVEACTION_STATUS_SCHEDULED)
         executions_util.create_execution_object(liveaction)
-        execution = ActionExecution.get(execution__id=str(liveaction.id), raise_exception=True)
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id), raise_exception=True)
         self.assertDictEqual(execution.trigger, vars(TriggerAPI.from_model(trigger)))
         self.assertDictEqual(execution.trigger_type, vars(TriggerTypeAPI.from_model(trigger_type)))
         self.assertDictEqual(execution.trigger_instance,
@@ -101,7 +101,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.execution, vars(LiveActionAPI.from_model(liveaction)))
+        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))
 
     def test_execution_creation_chains(self):
         """
@@ -110,7 +110,6 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         childliveaction = self.MODELS['liveactions']['childliveaction.json']
         child_exec = executions_util.create_execution_object(childliveaction)
         parent_exection = ActionExecution.get(
-            execution__id=childliveaction.context.get('parent', ''))
+            liveaction__id=childliveaction.context.get('parent', ''))
         child_execs = parent_exection.children
         self.assertTrue(str(child_exec.id) in child_execs)
-        pass

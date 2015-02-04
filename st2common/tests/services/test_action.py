@@ -20,8 +20,8 @@ from st2tests import DbTestCase
 from st2common.util import isotime
 from st2common.transport.publishers import PoolPublisher
 from st2common.services import action as action_service
-from st2common.persistence.action import RunnerType, Action, liveaction
-from st2common.models.db.action import ActionExecutionDB
+from st2common.persistence.action import RunnerType, Action, LiveAction
+from st2common.models.db.action import LiveActionDB
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.models.system.common import ResourceReference
 from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
@@ -77,9 +77,9 @@ class TestActionExecutionService(DbTestCase):
     def test_schedule(self):
         context = {'user': USERNAME}
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        request = ActionExecutionDB(action=ACTION_REF, context=context, parameters=parameters)
+        request = LiveActionDB(action=ACTION_REF, context=context, parameters=parameters)
         request = action_service.schedule(request)
-        execution = liveaction.get_by_id(str(request.id))
+        execution = LiveAction.get_by_id(str(request.id))
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
         action = '.'.join([self.actiondb.pack, self.actiondb.name])
@@ -94,20 +94,20 @@ class TestActionExecutionService(DbTestCase):
 
     def test_schedule_invalid_parameters(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'a': 123}
-        execution = ActionExecutionDB(action=ACTION_REF, parameters=parameters)
+        execution = LiveActionDB(action=ACTION_REF, parameters=parameters)
         self.assertRaises(jsonschema.ValidationError, action_service.schedule, execution)
 
     def test_schedule_nonexistent_action(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
         action_ref = ResourceReference(name='i.action', pack='default').ref
-        execution = ActionExecutionDB(action=action_ref, parameters=parameters)
+        execution = LiveActionDB(action=action_ref, parameters=parameters)
         self.assertRaises(ValueError, action_service.schedule, execution)
 
     def test_schedule_disabled_action(self):
         self.actiondb.enabled = False
         Action.add_or_update(self.actiondb)
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        execution = ActionExecutionDB(action=ACTION_REF, parameters=parameters)
+        execution = LiveActionDB(action=ACTION_REF, parameters=parameters)
         self.assertRaises(ValueError, action_service.schedule, execution)
         self.actiondb.enabled = True
         Action.add_or_update(self.actiondb)
