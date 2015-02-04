@@ -25,7 +25,7 @@ tests_config.parse_args()
 from st2tests.fixtures import executions as fixture
 from st2tests import DbTestCase
 import st2actions.bootstrap.runnersregistrar as runners_registrar
-from st2actions import worker, history
+from st2actions import worker
 from st2actions.runners.localrunner import LocalShellRunner
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2common.util import reference
@@ -43,25 +43,13 @@ from st2common.persistence.execution import ActionExecution
 
 
 CHAMPION = worker.Worker(None)
-HISTORIAN = history.Historian(None, timeout=1, wait=1)
 MOCK_FAIL_EXECUTION_CREATE = False
 
 
 def process_create(payload):
     try:
         if isinstance(payload, LiveActionDB):
-            if not MOCK_FAIL_EXECUTION_CREATE:
-                HISTORIAN.record_action_execution(payload)
             CHAMPION.execute_action(payload)
-    except Exception:
-        traceback.print_exc()
-        print(payload)
-
-
-def process_update(payload):
-    try:
-        if isinstance(payload, LiveActionDB):
-            HISTORIAN.update_live_action_history(payload)
     except Exception:
         traceback.print_exc()
         print(payload)
@@ -70,7 +58,6 @@ def process_update(payload):
 @mock.patch.object(LocalShellRunner, 'run',
                    mock.MagicMock(return_value=(LIVEACTION_STATUS_FAILED, 'Non-empty')))
 @mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
-@mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(side_effect=process_update))
 class TestActionExecutionHistoryWorker(DbTestCase):
 
     @classmethod
