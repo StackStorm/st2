@@ -33,15 +33,15 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     rule = stormbase.EscapedDictField()
     action = stormbase.EscapedDictField(required=True)
     runner = stormbase.EscapedDictField(required=True)
-    execution = stormbase.EscapedDictField(required=True)
+    liveaction = stormbase.EscapedDictField(required=True)
     parent = me.StringField()
     children = me.ListField(field=me.StringField())
 
     meta = {
         'indexes': [
             {'fields': ['parent']},
-            {'fields': ['execution.id']},
-            {'fields': ['execution.start_timestamp']}
+            {'fields': ['liveaction.id']},
+            {'fields': ['liveaction.start_timestamp']}
         ]
     }
 

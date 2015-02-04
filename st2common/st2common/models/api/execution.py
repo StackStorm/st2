@@ -31,7 +31,7 @@ LOG = logging.getLogger(__name__)
 REQUIRED_ATTR_SCHEMAS = {
     "action": copy.deepcopy(ActionAPI.schema),
     "runner": copy.deepcopy(RunnerTypeAPI.schema),
-    "execution": copy.deepcopy(LiveActionAPI.schema),
+    "liveaction": copy.deepcopy(LiveActionAPI.schema),
 }
 
 for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
@@ -42,7 +42,7 @@ class ActionExecutionAPI(BaseAPI):
     model = ActionExecutionDB
     schema = {
         "title": "ActionExecution",
-        "description": "History record for action execution.",
+        "description": "Record of the execution of an action.",
         "type": "object",
         "properties": {
             "id": {
@@ -55,7 +55,7 @@ class ActionExecutionAPI(BaseAPI):
             "rule": RuleAPI.schema,
             "action": REQUIRED_ATTR_SCHEMAS['action'],
             "runner": REQUIRED_ATTR_SCHEMAS['runner'],
-            "execution": REQUIRED_ATTR_SCHEMAS['execution'],
+            "liveaction": REQUIRED_ATTR_SCHEMAS['liveaction'],
             "parent": {"type": "string"},
             "children": {
                 "type": "array",
