@@ -238,9 +238,11 @@ class TestActionExecutionHistoryModel(DbTestCase):
         dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'
         objs = ActionExecution.query(liveaction__start_timestamp=dt_range,
                                      order_by=['liveaction__start_timestamp'])
-        self.assertLess(objs[0].liveaction['start_timestamp'], objs[9].liveaction['start_timestamp'])
+        self.assertLess(objs[0].liveaction['start_timestamp'],
+                        objs[9].liveaction['start_timestamp'])
 
         dt_range = '2014-12-25T00:00:19Z..2014-12-25T00:00:10Z'
         objs = ActionExecution.query(liveaction__start_timestamp=dt_range,
                                      order_by=['-liveaction__start_timestamp'])
-        self.assertLess(objs[9].liveaction['start_timestamp'], objs[0].liveaction['start_timestamp'])
+        self.assertLess(objs[9].liveaction['start_timestamp'],
+                        objs[0].liveaction['start_timestamp'])
