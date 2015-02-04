@@ -131,3 +131,35 @@ Example:
 .. sourcecode:: bash
 
     st2 run core.remote hosts=<host> username=<username> @private_key=/home/myuser/.ssh/id_rsa cmd=<cmd>
+
+Inheriting all the environment variables which are accessible to the CLI and passing them to runner as env parameter
+--------------------------------------------------------------------------------------------------------------------
+
+Local, remote and Python runner support ``env`` parameter. This parameter tells
+the runner which environment variables should be accessible to the action which
+is being executed.
+
+User can specify environment variables manually using ``env`` parameter exactly
+the same way as other parameters.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 run core.remote hosts=localhost env="key1=val1,key2=val2" cmd="echo ponies \${key1} \${key2}
+
+In addition to that, user can pass ``-e`` / ``--inherit-env`` flag to the
+``action run`` command.
+
+This flag will cause the command to inherit all the environment variables which
+are accessible to the CLI and send them as an ``env`` parameter to the action.
+
+Keep in mind that some global shell login variables such as ``PWD``, ``PATH``
+and others are ignored and not inherited. Full list of ignored variables can
+be found in `action.py file <https://github.com/StackStorm/st2/blob/master/st2client/st2client/commands/action.py>`_.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 run --inherit-env core.remote cmd=...
