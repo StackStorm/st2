@@ -28,6 +28,9 @@ Docs: http://docks.stackstorm.com/latest
   ``core.local``, ``core.local_sudo`` (bug-fix)
 * Allow user to override authentication information (username, password, private key) on per
   action basis for all the remote runner actions. (new-feature)
+* Allow user to pass ``--inherit-env`` flag to the ``st2 action run`` command which causes all
+  the environment variables accessible to the CLI to be sent as ``env`` parameter to the action
+  being executed. (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------
