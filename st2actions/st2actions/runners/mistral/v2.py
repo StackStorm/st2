@@ -124,7 +124,7 @@ class MistralRunner(AsyncActionRunner):
         try:
             # Test the connection
             self._client.workflows.list()
-        except requests.exceptions.ConnectionError as e:
+        except requests.exceptions.ConnectionError:
             msg = ('Failed to connect to mistral on %s. Make sure that mistral is running '
                    ' and that the url is set correctly in the config.' % (self.url))
             raise Exception(msg)
