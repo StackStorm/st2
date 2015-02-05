@@ -149,9 +149,9 @@ class ActionChainRunner(ActionRunner):
             fail = False
             try:
                 resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
-                                                                    results)
+                                                                    results, self.chain_holder.vars)
                 liveaction = ActionChainRunner._run_action(action_node.ref,
-                                                           self.action_execution_id,
+                                                           self.liveaction_id,
                                                            resolved_params)
             except:
                 LOG.exception('Failure in running action %s.', action_node.name)
@@ -167,9 +167,9 @@ class ActionChainRunner(ActionRunner):
             finally:
                 if not liveaction or liveaction.status == LIVEACTION_STATUS_FAILED:
                     fail = True
-                    action_node = self.action_chain.get_next_node(action_node.name, 'on-failure')
+                    action_node = self.chain_holder.get_next_node(action_node.name, 'on-failure')
                 elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
-                    action_node = self.action_chain.get_next_node(action_node.name, 'on-success')
+                    action_node = self.chain_holder.get_next_node(action_node.name, 'on-success')
 
         status = None
         if fail:
