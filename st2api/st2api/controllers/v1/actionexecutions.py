@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 import jsonschema
 from oslo.config import cfg
 import pecan
@@ -27,6 +25,8 @@ from st2common.models.api.action import ActionExecutionAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.action import ActionExecution
 from st2common.services import action as action_service
+from st2common.util import jsonify
+
 
 LOG = logging.getLogger(__name__)
 
@@ -83,8 +83,10 @@ class ActionExecutionsController(ResourceController):
 
             # Retrieve other st2 context from request header.
             if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
-                context = pecan.request.headers['st2-context'].replace("'", "\"")
-                execution.context.update(json.loads(context))
+                context = jsonify.try_loads(pecan.request.headers['st2-context'])
+                if not isinstance(context, dict):
+                    raise ValueError('Unable to convert st2-context from the headers into JSON.')
+                execution.context.update(context)
 
             # Schedule the action execution.
             executiondb = ActionExecutionAPI.to_model(execution)
