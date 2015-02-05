@@ -20,6 +20,7 @@ import json
 import six
 import traceback
 import uuid
+import datetime
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
@@ -32,6 +33,7 @@ from st2common.models.system import actionchain
 from st2common.services import action as action_service
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import action_db as action_db_util
+from st2common.util import isotime
 
 
 LOG = logging.getLogger(__name__)
@@ -142,41 +144,66 @@ class ActionChainRunner(ActionRunner):
 
     def run(self, action_parameters):
         action_node = self.chain_holder.get_next_node()
-        results = {}
+
+        result = {'tasks': []}  # holds final result we store
+        context_result = {}  # holds result which is used for the template context purposes
         fail = True
+
+        error = None
+
         while action_node:
             actionexec = None
             fail = False
+            created_at = datetime.datetime.now()
+
             try:
-                resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
-                                                                    results, self.chain_holder.vars)
-                actionexec = ActionChainRunner._run_action(action_node.ref,
-                                                           self.action_execution_id,
-                                                           resolved_params)
-            except:
-                LOG.exception('Failure in running action %s.', action_node.name)
+                resolved_params = ActionChainRunner._resolve_params(
+                    action_node=action_node, original_parameters=action_parameters,
+                    results=context_result, chain_vars=self.chain_holder.vars)
+                actionexec = ActionChainRunner._run_action(
+                    action_node=action_node, parent_execution_id=self.action_execution_id,
+                    params=resolved_params)
+            except Exception:
                 # Save the traceback and error message.
-                results[action_node.name] = {'error': traceback.format_exc(10)}
+                LOG.exception('Failure in running action %s.', action_node.name)
+                error = traceback.format_exc(10)
+                context_result[action_node.name] = {'error': error}
             else:
-                # Append full result under the node_name
-                results[action_node.name] = actionexec.result
+                # Update context result
+                context_result[action_node.name] = actionexec.result
+
+                # Render and publish variables
                 rendered_publish_vars = ActionChainRunner._render_publish_vars(
-                    action_node, actionexec.result, results, self.chain_holder.vars)
+                    action_node=action_node, execution_result=actionexec.result,
+                    previous_execution_results=context_result, chain_vars=self.chain_holder.vars)
+
                 if rendered_publish_vars:
                     self.chain_holder.vars.update(rendered_publish_vars)
             finally:
+                # Record result and resolve a next node based on the task success or failure
+                updated_at = datetime.datetime.now()
+
+                format_kwargs = {'action_node': action_node, 'action_exec_db': actionexec,
+                                 'created_at': created_at, 'updated_at': updated_at}
+
+                if error:
+                    format_kwargs['error'] = error
+
+                task_result = self._format_action_exec_result(**format_kwargs)
+                result['tasks'].append(task_result)
+
                 if not actionexec or actionexec.status == ACTIONEXEC_STATUS_FAILED:
                     fail = True
                     action_node = self.chain_holder.get_next_node(action_node.name, 'on-failure')
                 elif actionexec.status == ACTIONEXEC_STATUS_SUCCEEDED:
                     action_node = self.chain_holder.get_next_node(action_node.name, 'on-success')
 
-        status = None
         if fail:
             status = ACTIONEXEC_STATUS_FAILED
         else:
             status = ACTIONEXEC_STATUS_SUCCEEDED
-        return (status, results)
+
+        return (status, result)
 
     @staticmethod
     def _render_publish_vars(action_node, execution_result, previous_execution_results,
@@ -213,10 +240,13 @@ class ActionChainRunner(ActionRunner):
         return rendered_params
 
     @staticmethod
-    def _run_action(action_ref, parent_execution_id, params, wait_for_completion=True):
-        execution = ActionExecutionDB(action=action_ref)
-        execution.parameters = ActionChainRunner._cast_params(action_ref, params)
-        execution.context = {'parent': str(parent_execution_id)}
+    def _run_action(action_node, parent_execution_id, params, wait_for_completion=True):
+        execution = ActionExecutionDB(action=action_node.ref)
+        execution.parameters = ActionChainRunner._cast_params(action_node.ref, params)
+        execution.context = {
+            'parent': str(parent_execution_id),
+            'chain': vars(action_node)
+        }
         execution = action_service.schedule(execution)
         while (wait_for_completion and
                execution.status != ACTIONEXEC_STATUS_SUCCEEDED and
@@ -224,6 +254,39 @@ class ActionChainRunner(ActionRunner):
             eventlet.sleep(1)
             execution = action_db_util.get_actionexec_by_id(execution.id)
         return execution
+
+    def _format_action_exec_result(self, action_node, action_exec_db, created_at, updated_at,
+                                   error=None):
+        """
+        Format ActionExecution result so it can be used in the final action result output.
+
+        :rtype: ``dict``
+        """
+        assert(isinstance(created_at, datetime.datetime))
+        assert(isinstance(updated_at, datetime.datetime))
+
+        result = {}
+
+        result['id'] = action_node.name
+        result['name'] = action_node.name
+        result['execution_id'] = action_exec_db.id if action_exec_db else None
+        result['mistral_execution_id'] = None
+        result['workflow'] = None
+
+        result['created_at'] = isotime.format(dt=created_at)
+        result['updated_at'] = isotime.format(dt=updated_at)
+
+        if error or not action_exec_db:
+            result['state'] = ACTIONEXEC_STATUS_FAILED
+        else:
+            result['state'] = action_exec_db.status
+
+        if error:
+            result['result'] = {'error': error}
+        else:
+            result['result'] = action_exec_db.result
+
+        return result
 
     @staticmethod
     def _cast_params(action_ref, params):
