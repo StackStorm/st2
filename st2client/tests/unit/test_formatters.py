@@ -34,7 +34,7 @@ LOG = logging.getLogger(__name__)
 
 FIXTURES_MANIFEST = {
     'liveactions': ['execution.json',
-                   'execution_result_has_carriage_return.json'],
+                    'execution_result_has_carriage_return.json'],
     'results': ['execution_get_default.txt',
                 'execution_get_detail.txt',
                 'execution_get_result_by_key.txt',

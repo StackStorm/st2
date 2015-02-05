@@ -70,7 +70,8 @@ ACTION2 = {
 
 LIVE_ACTION = {
     'action': 'mockety.mock',
-    'status': 'complete'
+    'status': 'complete',
+    'result': 'non-empty'
 }
 
 
