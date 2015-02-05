@@ -40,7 +40,7 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
 
     @staticmethod
     def callback(url, context, status, result):
-        if status not in [action.ACTIONEXEC_STATUS_SUCCEEDED, action.ACTIONEXEC_STATUS_FAILED]:
+        if status not in [action.LIVEACTION_STATUS_SUCCEEDED, action.LIVEACTION_STATUS_FAILED]:
             return
 
         try:
