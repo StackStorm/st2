@@ -20,7 +20,6 @@ import datetime
 
 from st2common import log as logging
 from st2common.util import isotime
-from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED,
                                         LIVEACTION_STATUS_FAILED)
 from st2common.models.db.action import ActionExecutionStateDB
@@ -43,26 +42,6 @@ class RunnerContainer(object):
     def __init__(self):
         LOG.info('Action RunnerContainer instantiated.')
         self._pending = []
-
-    def _get_runner(self, runnertype_db):
-        """
-            Load the module specified by the runnertype_db.runner_module field and
-            return an instance of the runner.
-        """
-
-        module_name = runnertype_db.runner_module
-        LOG.debug('Runner loading python module: %s', module_name)
-        try:
-            module = importlib.import_module(module_name, package=None)
-        except Exception as e:
-            LOG.exception('Failed to import module %s.', module_name)
-            raise ActionRunnerCreateError(e)
-
-        LOG.debug('Instance of runner module: %s', module)
-
-        runner = module.get_runner()
-        LOG.debug('Instance of runner: %s', runner)
-        return runner
 
     def dispatch(self, liveaction_db):
         action_db = get_action_by_ref(liveaction_db.action)
@@ -115,7 +94,7 @@ class RunnerContainer(object):
             # Finalized parameters are resolved and then rendered. This process could
             # fail. Handle the exception and report the error correctly.
             runner_params, action_params = param_utils.get_finalized_params(
-                runnertype_db.runner_parameters, action_db.parameters, actionexec_db.parameters)
+                runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters)
             runner.runner_parameters = runner_params
             LOG.debug('Performing pre-run for runner: %s', runner)
             runner.pre_run()
