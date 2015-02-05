@@ -46,6 +46,7 @@ RUNNER_SUDO = 'sudo'
 RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_COMMAND = 'cmd'
 RUNNER_CWD = 'cwd'
+RUNNER_ENV = 'env'
 RUNNER_KWARG_OP = 'kwarg_op'
 RUNNER_TIMEOUT = 'timeout'
 
@@ -72,11 +73,15 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, LOGGED_USER_USERNAME)
         self._user = cfg.CONF.system_user.user
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
+        self._env = self.runner_parameters.get(RUNNER_ENV, {})
+        self._env = self._env or {}
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, DEFAULT_KWARG_OP)
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
     def run(self, action_parameters):
         LOG.debug('    action_parameters = %s', action_parameters)
+
+        env_vars = self._env
 
         if not self.entry_point:
             script_action = False
@@ -85,7 +90,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
                                         action_exec_id=str(self.liveaction_id),
                                         command=command,
                                         user=self._user,
-                                        env_vars={},
+                                        env_vars=env_vars,
                                         sudo=self._sudo,
                                         timeout=self._timeout)
         else:
@@ -100,7 +105,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
                                        named_args=named_args,
                                        positional_args=positional_args,
                                        user=self._user,
-                                       env_vars={},
+                                       env_vars=env_vars,
                                        sudo=self._sudo,
                                        timeout=self._timeout,
                                        cwd=self._cwd)
@@ -112,6 +117,10 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             args = 'chmod +x %s ; %s' % (script_local_path_abs, args)
 
         env = os.environ.copy()
+
+        # Include user provided env vars (if any)
+        env.update(env_vars)
+
         # Make sure os.setsid is called on each spawned process so that all processes
         # are in the same group.
         process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,

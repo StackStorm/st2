@@ -37,6 +37,47 @@ LOG = logging.getLogger(__name__)
 LIVEACTION_STATUS_SCHEDULED = 'scheduled'
 LIVEACTION_STATUS_RUNNING = 'running'
 
+# Who parameters should be masked when displaying action execution output
+PARAMETERS_TO_MASK = [
+    'password',
+    'private_key'
+]
+
+# A list of environment variables which are never inherited when using run
+# --inherit-env flag
+ENV_VARS_BLACKLIST = [
+    'pwd',
+    'mail',
+    'username',
+    'user',
+    'path',
+    'home',
+    'ps1',
+    'shell',
+    'pythonpath',
+    'ssh_tty',
+    'ssh_connection',
+    'lang',
+    'ls_colors',
+    'logname',
+    'oldpwd',
+    'term',
+    'xdg_session_id'
+]
+
+
+def format_parameters(value):
+    # Mask sensitive parameters
+    if not isinstance(value, dict):
+        # No parameters, leave it as it is
+        return value
+
+    for param_name, _ in value.items():
+        if param_name in PARAMETERS_TO_MASK:
+            value[param_name] = '********'
+
+    return value
+
 
 class ActionBranch(resource.ResourceBranch):
 
@@ -79,6 +120,11 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
 class ActionRunCommand(resource.ResourceCommand):
     attribute_display_order = ['id', 'ref', 'context', 'parameters', 'status',
                                'start_timestamp', 'result']
+    attribute_transform_functions = {
+        'start_timestamp': format_isodate,
+        'end_timestamp': format_isodate,
+        'parameters': format_parameters
+    }
 
     def __init__(self, resource, *args, **kwargs):
 
@@ -103,6 +149,12 @@ class ActionRunCommand(resource.ResourceCommand):
             self.parser.add_argument('-a', '--async',
                                      action='store_true', dest='async',
                                      help='Do not wait for action to finish.')
+            self.parser.add_argument('-e', '--inherit-env',
+                                     action='store_true', dest='inherit_env',
+                                     help='Pass all the environment variables '
+                                          'which are accessible to the CLI as "env" '
+                                          'parameter to the action. Note: Only works '
+                                          'with python, local and remote runners.')
         else:
             self.parser.set_defaults(async=True)
 
@@ -137,12 +189,31 @@ class ActionRunCommand(resource.ResourceCommand):
 
             return content
 
+        def transform_object(value):
+            # Also support simple key1=val1,key2=val2 syntax
+            if value.startswith('{'):
+                # Assume it's JSON
+                result = value = json.loads(value)
+            else:
+                pairs = value.split(',')
+
+                result = {}
+                for pair in pairs:
+                    split = pair.split('=', 1)
+
+                    if len(split) != 2:
+                        continue
+
+                    key, value = split
+                    result[key] = value
+            return result
+
         transformer = {
             'array': (lambda cs_x: [v.strip() for v in cs_x.split(',')]),
             'boolean': (lambda x: ast.literal_eval(x.capitalize())),
             'integer': int,
             'number': float,
-            'object': json.loads,
+            'object': transform_object,
             'string': str
         }
 
@@ -159,9 +230,12 @@ class ActionRunCommand(resource.ResourceCommand):
             return value
 
         action_ref = '.'.join([action.pack, action.name])
-        execution = models.liveaction()
+        execution = models.LiveAction()
         execution.action = action_ref
         execution.parameters = dict()
+
+        action_ref_or_id = args.ref_or_id
+
         for idx in range(len(args.parameters)):
             arg = args.parameters[idx]
             if '=' in arg:
@@ -181,8 +255,13 @@ class ActionRunCommand(resource.ResourceCommand):
                         file_path = os.path.normpath(pjoin(os.getcwd(), v))
                         file_name = os.path.basename(file_path)
                         content = read_file(file_path=file_path)
-                        execution.parameters['_file_name'] = file_name
-                        execution.parameters['file_content'] = content
+
+                        if action_ref_or_id == 'core.http':
+                            # Special case for http runner
+                            execution.parameters['_file_name'] = file_name
+                            execution.parameters['file_content'] = content
+                        else:
+                            execution.parameters[k] = content
                     else:
                         execution.parameters[k] = normalize(k, v)
                 except Exception as e:
@@ -209,7 +288,11 @@ class ActionRunCommand(resource.ResourceCommand):
 
             del execution.parameters['_file_name']
 
+        if args.inherit_env:
+            execution.parameters['env'] = self._get_inherited_env_vars()
+
         action_exec_mgr = self.app.client.managers['liveaction']
+
         execution = action_exec_mgr.create(execution, **kwargs)
 
         if not args.async:
@@ -315,11 +398,13 @@ class ActionRunCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         if self.print_help(args, **kwargs):
             return
+
         # Execute the action.
         instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
                           attributes=['all'], json=args.json,
-                          attribute_display_order=self.attribute_display_order)
+                          attribute_display_order=self.attribute_display_order,
+                          attribute_transform_functions=self.attribute_transform_functions)
         if args.async:
             self.print_output('To get the results, execute: \n'
                               '    $ st2 execution get %s' % instance.id,
@@ -372,6 +457,17 @@ class ActionRunCommand(resource.ResourceCommand):
                 result['traceback'])
         return result
 
+    def _get_inherited_env_vars(self):
+        env_vars = os.environ.copy()
+
+        for var_name in ENV_VARS_BLACKLIST:
+            if var_name.lower() in env_vars:
+                del env_vars[var_name.lower()]
+            if var_name.upper() in env_vars:
+                del env_vars[var_name.upper()]
+
+        return env_vars
+
 
 class ActionExecutionBranch(resource.ResourceBranch):
 
@@ -389,7 +485,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                           'end_timestamp']
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
-        'end_timestamp': format_isodate
+        'end_timestamp': format_isodate,
+        'parameters': format_parameters
     }
 
     def __init__(self, resource, *args, **kwargs):
@@ -433,7 +530,8 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
     display_attributes = ['all']
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
-        'end_timestamp': format_isodate
+        'end_timestamp': format_isodate,
+        'parameters': format_parameters
     }
 
     def __init__(self, resource, *args, **kwargs):

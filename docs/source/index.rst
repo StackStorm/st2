@@ -14,9 +14,11 @@ Contents:
     actions
     rules
     sensors
+    webhooks
     datastore
     workflows
     history
+    cli
     resources/index
     reference/index
     changelog

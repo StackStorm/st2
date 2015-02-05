@@ -52,7 +52,7 @@ class ShellCommandActionTestCase(unittest2.TestCase):
         kwargs['user'] = 'mauser'
         action = ShellCommandAction(**kwargs)
         command = action.get_full_command_string()
-        self.assertEqual(command, 'sudo -u mauser -- bash -c \'ls -la\'')
+        self.assertEqual(command, 'sudo -E -u mauser -- bash -c \'ls -la\'')
 
         # sudo is used, it doesn't matter what user is specified since the
         # command should run as root
@@ -61,7 +61,7 @@ class ShellCommandActionTestCase(unittest2.TestCase):
         kwargs['user'] = 'mauser'
         action = ShellCommandAction(**kwargs)
         command = action.get_full_command_string()
-        self.assertEqual(command, 'sudo -- bash -c \'ls -la\'')
+        self.assertEqual(command, 'sudo -E -- bash -c \'ls -la\'')
 
 
 class ShellScriptActionTestCase(unittest2.TestCase):
@@ -99,7 +99,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs['user'] = 'mauser'
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        self.assertEqual(command, 'sudo -u mauser -- bash -c /tmp/foo.sh')
+        self.assertEqual(command, 'sudo -E -u mauser -- bash -c /tmp/foo.sh')
 
         # sudo is used, it doesn't matter what user is specified since the
         # command should run as root
@@ -108,7 +108,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs['user'] = 'mauser'
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        self.assertEqual(command, 'sudo -- bash -c /tmp/foo.sh')
+        self.assertEqual(command, 'sudo -E -- bash -c /tmp/foo.sh')
 
     def test_command_construction_with_parameters(self):
         # same user, named args, no positional args
@@ -129,7 +129,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs['positional_args'] = ''
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        expected = 'sudo -u mauser -- bash -c \'/tmp/foo.sh key2=value2 key1=value1\''
+        expected = 'sudo -E -u mauser -- bash -c \'/tmp/foo.sh key2=value2 key1=value1\''
         self.assertEqual(command, expected)
 
         # same user, positional args, no named args
@@ -150,7 +150,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs['positional_args'] = 'ein zwei drei'
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        expected = 'sudo -u mauser -- bash -c \'/tmp/foo.sh ein zwei drei\''
+        expected = 'sudo -E -u mauser -- bash -c \'/tmp/foo.sh ein zwei drei\''
         self.assertEqual(command, expected)
 
         # same user, positional and named args
@@ -171,7 +171,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs['positional_args'] = 'ein zwei drei'
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        expected = ('sudo -u mauser -- bash -c \'/tmp/foo.sh key2=value2 '
+        expected = ('sudo -E -u mauser -- bash -c \'/tmp/foo.sh key2=value2 '
                     'key1=value1 ein zwei drei\'')
         self.assertEqual(command, expected)
 

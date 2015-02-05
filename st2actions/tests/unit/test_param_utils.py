@@ -21,15 +21,17 @@ import st2actions.utils.param_utils as param_utils
 from st2common.exceptions import actionrunner
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.action import LiveActionDB
+from st2common.models.db.datastore import KeyValuePairDB
+from st2common.persistence.datastore import KeyValuePair
 from st2common.transport.publishers import PoolPublisher
+from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
-from unittest2 import TestCase
 
 
 FIXTURES_PACK = 'generic'
 
 TEST_MODELS = {
-    'actions': ['action1.json'],
+    'actions': ['action1.json', 'action_system_default.json'],
     'runners': ['testrunner1.json']
 }
 
@@ -38,8 +40,9 @@ FIXTURES = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class ParamsUtilsTest(TestCase):
+class ParamsUtilsTest(DbTestCase):
     action_db = FIXTURES['actions']['action1.json']
+    action_system_default_db = FIXTURES['actions']['action_system_default.json']
     runnertype_db = FIXTURES['runners']['testrunner1.json']
 
     def test_get_resolved_params(self):
@@ -115,6 +118,31 @@ class ParamsUtilsTest(TestCase):
         # Assert that none of runner params are present in action_params.
         for k in action_params:
             self.assertTrue(k not in runner_params, 'Param ' + k + ' is a runner param.')
+
+    def test_get_finalized_params_system_values(self):
+        KeyValuePair.add_or_update(KeyValuePairDB(name='actionstr', value='foo'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='actionnumber', value='1.0'))
+        params = {
+            'runnerint': 555
+        }
+        actionexec_db = self._get_action_exec_db_model(params)
+
+        runner_params, action_params = param_utils.get_finalized_params(
+            ParamsUtilsTest.runnertype_db.runner_parameters,
+            ParamsUtilsTest.action_system_default_db.parameters,
+            actionexec_db.parameters)
+
+        # Asserts for runner params.
+        # Assert that default values for runner params are resolved.
+        self.assertEqual(runner_params.get('runnerstr'), 'defaultfoo')
+        # Assert that a runner param from action exec is picked up.
+        self.assertEqual(runner_params.get('runnerint'), 555)
+        # Assert that an immutable param cannot be overriden by action param or execution param.
+        self.assertEqual(runner_params.get('runnerimmutable'), 'runnerimmutable')
+
+        # Asserts for action params.
+        self.assertEqual(action_params.get('actionstr'), 'foo')
+        self.assertEqual(action_params.get('actionnumber'), 1.0)
 
     def test_get_resolved_params_action_immutable(self):
         params = {

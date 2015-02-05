@@ -41,10 +41,6 @@ class RunnerContainerService(object):
         logging.getLogger(__name__ + '.' + name)
 
     @staticmethod
-    def get_packs_base_path():
-        return utils.get_packs_base_path()
-
-    @staticmethod
     def get_pack_base_path(pack_name):
         return utils.get_pack_base_path(pack_name)
 

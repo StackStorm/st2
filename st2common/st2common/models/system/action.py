@@ -19,6 +19,7 @@ import pipes
 import six
 import sys
 import traceback
+import tempfile
 
 from fabric.api import (put, run, sudo)
 from fabric.context_managers import shell_env
@@ -57,15 +58,17 @@ class ShellCommandAction(object):
         self.cwd = cwd
 
     def get_full_command_string(self):
+        # Note: We pass -E to sudo because we want to preserve user provided
+        # environment variables
         if self.sudo:
             command = pipes.quote(self.command)
-            command = 'sudo -- bash -c %s' % (command)
+            command = 'sudo -E -- bash -c %s' % (command)
         else:
             if self.user and self.user != LOGGED_USER_USERNAME:
                 # Need to use sudo to run as a different user
                 user = pipes.quote(self.user)
                 command = pipes.quote(self.command)
-                command = 'sudo -u %s -- bash -c %s' % (user, command)
+                command = 'sudo -E -u %s -- bash -c %s' % (user, command)
             else:
                 command = self.command
 
@@ -125,7 +128,7 @@ class ShellScriptAction(ShellCommandAction):
             else:
                 command = pipes.quote(self.script_local_path_abs)
 
-            command = 'sudo -- bash -c %s' % (command)
+            command = 'sudo -E -- bash -c %s' % (command)
         else:
             if self.user and self.user != LOGGED_USER_USERNAME:
                 # Need to use sudo to run as a different user
@@ -136,7 +139,7 @@ class ShellScriptAction(ShellCommandAction):
                 else:
                     command = pipes.quote(self.script_local_path_abs)
 
-                command = 'sudo -u %s -- bash -c %s' % (user, command)
+                command = 'sudo -E -u %s -- bash -c %s' % (user, command)
             else:
                 script_path = pipes.quote(self.script_local_path_abs)
 
@@ -230,11 +233,14 @@ class SSHCommandAction(ShellCommandAction):
 
 class RemoteAction(SSHCommandAction):
     def __init__(self, name, action_exec_id, command, env_vars=None, on_behalf_user=None,
-                 user=None, hosts=None, parallel=True, sudo=False, timeout=None, cwd=None):
+                 user=None, password=None, private_key=None, hosts=None, parallel=True, sudo=False,
+                 timeout=None, cwd=None):
         super(RemoteAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                            command=command, env_vars=env_vars, user=user,
                                            hosts=hosts, parallel=parallel, sudo=sudo,
                                            timeout=timeout, cwd=cwd)
+        self.password = password
+        self.private_key = private_key
         self.on_behalf_user = on_behalf_user  # Used for audit purposes.
         self.timeout = timeout
 
@@ -258,18 +264,21 @@ class RemoteAction(SSHCommandAction):
 class RemoteScriptAction(ShellScriptAction):
     def __init__(self, name, action_exec_id, script_local_path_abs, script_local_libs_path_abs,
                  named_args=None, positional_args=None, env_vars=None, on_behalf_user=None,
-                 user=None, remote_dir=None, hosts=None, parallel=True, sudo=False, timeout=None,
-                 cwd=None):
+                 user=None, password=None, private_key=None, remote_dir=None, hosts=None,
+                 parallel=True, sudo=False, timeout=None, cwd=None):
         super(RemoteScriptAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                                  script_local_path_abs=script_local_path_abs,
+                                                 user=user,
                                                  named_args=named_args,
                                                  positional_args=positional_args, env_vars=env_vars,
-                                                 user=user, sudo=sudo, timeout=timeout, cwd=cwd)
+                                                 sudo=sudo, timeout=timeout, cwd=cwd)
         self.script_local_libs_path_abs = script_local_libs_path_abs
         self.script_local_dir, self.script_name = os.path.split(self.script_local_path_abs)
         self.remote_dir = remote_dir if remote_dir is not None else '/tmp'
         self.remote_libs_path_abs = os.path.join(self.remote_dir, ACTION_LIBS_DIR)
         self.on_behalf_user = on_behalf_user
+        self.password = password
+        self.private_key = private_key
         self.remote_script = os.path.join(self.remote_dir, pipes.quote(self.script_name))
         self.hosts = hosts
         self.parallel = parallel
@@ -333,8 +342,11 @@ class FabricRemoteAction(RemoteAction):
         return self._run
 
     def _run(self):
+        fabric_env_vars = self.env_vars
+        fabric_settings = self._get_settings()
+
         try:
-            with shell_env(**self.env_vars), settings(command_timeout=self.timeout, cwd=self.cwd):
+            with shell_env(**fabric_env_vars), settings(**fabric_settings):
                 output = run(self.command, combine_stderr=False, pty=False, quiet=True)
         except Exception:
             LOG.exception('Failed executing remote action.')
@@ -347,12 +359,17 @@ class FabricRemoteAction(RemoteAction):
                 'succeeded': output.succeeded,
                 'failed': output.failed
             }
+        finally:
+            self._cleanup(settings=fabric_settings)
 
         return jsonify.json_loads(result, FabricRemoteAction.KEYS_TO_TRANSFORM)
 
     def _sudo(self):
+        fabric_env_vars = self.env_vars
+        fabric_settings = self._get_settings()
+
         try:
-            with shell_env(**self.env_vars), settings(command_timeout=self.timeout, cwd=self.cwd):
+            with shell_env(**fabric_env_vars), settings(**fabric_settings):
                 output = sudo(self.command, combine_stderr=False, pty=True, quiet=True)
         except Exception:
             LOG.exception('Failed executing remote action.')
@@ -365,6 +382,8 @@ class FabricRemoteAction(RemoteAction):
                 'succeeded': output.succeeded,
                 'failed': output.failed
             }
+        finally:
+            self._cleanup(settings=fabric_settings)
 
         # XXX: For sudo, fabric requires to set pty=True. This basically combines stdout and
         # stderr into a single stdout stream. So if the command fails, we explictly set stderr
@@ -374,6 +393,69 @@ class FabricRemoteAction(RemoteAction):
             result['stdout'] = ''
 
         return jsonify.json_loads(result, FabricRemoteAction.KEYS_TO_TRANSFORM)
+
+    def _cleanup(self, settings):
+        """
+        Clean function which is ran after executing a fabric command.
+
+        :param settings: Fabric settings.
+        """
+        temporary_key_file_path = settings.get('key_filename', None)
+
+        if temporary_key_file_path:
+            self._remove_private_key_file(file_path=temporary_key_file_path)
+
+    def _get_settings(self):
+        """
+        Retrieve settings used for the fabric command execution.
+        """
+        settings = {
+            'user': self.user,
+            'command_timeout': self.timeout,
+            'cwd': self.cwd
+        }
+
+        if self.password:
+            settings['password'] = self.password
+
+        if self.private_key:
+            # Fabric doesn't support passing key as string so we need to write
+            # it to a temporary file
+            key_file_path = self._write_private_key(private_key_material=self.private_key)
+            settings['key_filename'] = key_file_path
+
+        return settings
+
+    def _get_env_vars(self):
+        """
+        Retrieve environment variables used for the fabric command execution.
+        """
+        env_vars = self.env_vars or {}
+        return env_vars
+
+    def _write_private_key(self, private_key_material):
+        """
+        Write private key to a temporary file and return path to the file.
+        """
+        _, key_file_path = tempfile.mkstemp()
+        with open(key_file_path, 'w') as fp:
+            fp.write(private_key_material)
+
+        return key_file_path
+
+    def _remove_private_key_file(self, file_path):
+        """
+        Remove private key file if temporary private key is used to log in.
+        """
+        if not file_path or '/tmp' not in file_path:
+            return False
+
+        try:
+            os.remove(file_path)
+        except Exception:
+            pass
+
+        return True
 
 
 class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):

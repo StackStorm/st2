@@ -13,25 +13,66 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 
-from oslo.config import cfg
 import six
 
 from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
-from st2common.content.loader import ContentPackLoader
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.models.system.common import ResourceReference
+import st2common.content.utils as content_utils
 import st2common.util.action_db as action_utils
 import st2common.validators.api.action as action_validator
+
+__all__ = [
+    'ActionsRegistrar',
+    'register_actions'
+]
 
 LOG = logging.getLogger(__name__)
 
 
 class ActionsRegistrar(ResourceRegistrar):
     ALLOWED_EXTENSIONS = ALLOWED_EXTS
+
+    def register_actions_from_packs(self, base_dirs):
+        """
+        Discover all the packs in the provided directory and register actions from all of the
+        discovered packs.
+        """
+        content = self._pack_loader.get_content(base_dirs=base_dirs,
+                                                content_type='actions')
+
+        for pack, actions_dir in six.iteritems(content):
+            try:
+                LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
+                actions = self._get_actions_from_pack(actions_dir)
+                self._register_actions_from_pack(pack=pack, actions=actions)
+            except:
+                LOG.exception('Failed registering all actions from pack: %s', actions_dir)
+
+    def register_actions_from_pack(self, pack_dir):
+        """
+        Register all the actions from the provided pack.
+        """
+        pack_dir = pack_dir[:-1] if pack_dir.endswith('/') else pack_dir
+        _, pack = os.path.split(pack_dir)
+        actions_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
+                                                              content_type='actions')
+
+        if not actions_dir:
+            return None
+
+        LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
+
+        try:
+            actions = self._get_actions_from_pack(actions_dir=actions_dir)
+            self._register_actions_from_pack(pack=pack, actions=actions)
+        except:
+            LOG.exception('Failed registering all actions from pack: %s', actions_dir)
 
     def _get_actions_from_pack(self, actions_dir):
         actions = self._get_resources_from_pack(resources_dir=actions_dir)
@@ -83,20 +124,19 @@ class ActionsRegistrar(ResourceRegistrar):
                 LOG.exception('Unable to register action: %s', action)
                 continue
 
-    def register_actions_from_packs(self, base_dir):
-        pack_loader = ContentPackLoader()
-        dirs = pack_loader.get_content(base_dir=base_dir,
-                                       content_type='actions')
-        for pack, actions_dir in six.iteritems(dirs):
-            try:
-                LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
-                actions = self._get_actions_from_pack(actions_dir)
-                self._register_actions_from_pack(pack, actions)
-            except:
-                LOG.exception('Failed registering all actions from pack: %s', actions_dir)
 
+def register_actions(packs_base_paths=None, pack_dir=None):
+    if packs_base_paths:
+        assert(isinstance(packs_base_paths, list))
 
-def register_actions(packs_base_path=None):
-    if not packs_base_path:
-        packs_base_path = cfg.CONF.content.packs_base_path
-    return ActionsRegistrar().register_actions_from_packs(packs_base_path)
+    if not packs_base_paths:
+        packs_base_paths = content_utils.get_packs_base_paths()
+
+    registrar = ActionsRegistrar()
+
+    if pack_dir:
+        result = registrar.register_actions_from_pack(pack_dir=pack_dir)
+    else:
+        result = registrar.register_actions_from_packs(base_dirs=packs_base_paths)
+
+    return result

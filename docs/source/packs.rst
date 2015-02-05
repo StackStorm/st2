@@ -8,8 +8,32 @@ Pack is the unit of deployment for integrations and automations in order to exte
 
 It is best to view a pack as the means to extend |st2| and allow it to integrate with an external systems. See `next section` to learn more about pack management.
 
+Packs location and discovery
+----------------------------
+
+When using |st2| and pack management actions, all the packs are by default installed into the
+system packs directory which defaults to ``/opt/stackstorm/packs``.
+
+When |st2| searches for all the available packs it looks into the system packs directory and
+into any additional directories which are specified in the ``packs_base_paths`` setting.
+
+If user wants |st2| to look for packs in additional directories, they can do that by setting the
+value of ``packs_base_paths`` setting. The value must be a colon delimited string of directory
+paths.
+
+For example:
+
+::
+
+    [content]
+    packs_base_paths=/home/myuser1/packs:/home/myuser2/packs
+
+Note: Directories are always searched from left to right in the order they are
+specified, with the system packs directory always being searched first.
+
 Getting a pack
 --------------
+
 Pack management is done by |st2| actions from `packs` pack, pun intended. Run ``st2 action list --pack packs`` for a list of pack management actions.
 
 Some packs can be installed and run "as is" without any configurations.

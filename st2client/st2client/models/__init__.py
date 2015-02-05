@@ -18,3 +18,4 @@ from st2client.models.access import *       # noqa
 from st2client.models.action import *       # noqa
 from st2client.models.datastore import *    # noqa
 from st2client.models.reactor import *      # noqa
+from st2client.models.webhook import *      # noqa

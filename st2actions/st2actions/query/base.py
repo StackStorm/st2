@@ -20,11 +20,13 @@ import six
 import time
 
 from st2actions.container.service import RunnerContainerService
+from st2actions.runners import get_runner
 from st2common import log as logging
 from st2common.constants.action import (LIVEACTION_STATUS_FAILED,
                                         LIVEACTION_STATUS_SUCCEEDED)
 from st2common.persistence.action import (LiveAction, ActionExecutionState)
 from st2common.services import executions
+from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 
 LOG = logging.getLogger(__name__)
 DONE_STATES = [LIVEACTION_STATUS_FAILED, LIVEACTION_STATUS_SUCCEEDED]
@@ -54,7 +56,9 @@ class Querier(object):
                 eventlet.greenthread.sleep(self._no_workers_sleep_time)
             self._fire_queries()
 
-    def add_queries(self, query_contexts=[]):
+    def add_queries(self, query_contexts=None):
+        if query_contexts is None:
+            query_contexts = []
         LOG.debug('Adding queries to querier: %s' % query_contexts)
         for query_context in query_contexts:
             self._query_contexts.put((time.time(), query_context))
@@ -83,24 +87,32 @@ class Querier(object):
         except:
             LOG.exception('Failed querying results for liveaction_id %s.', execution_id)
             self._delete_state_object(query_context)
+            LOG.debug('Remove state object %s.', query_context)
             return
 
         done = (status in DONE_STATES)
 
+        liveaction_db = None
         try:
-            self._update_action_results(execution_id, status, results)
+            liveaction_db = self._update_action_results(execution_id, status, results)
         except Exception:
             LOG.exception('Failed updating action results for liveaction_id %s',
                           execution_id)
             self._delete_state_object(query_context)
             return
-        else:
-            if done:
+
+        if done:
+            action_db = get_action_by_ref(liveaction_db.action)
+            if not action_db:
+                LOG.exception('Unable to invoke post run. Action %s '
+                              'no longer exists.' % liveaction_db.action)
                 self._delete_state_object(query_context)
                 return
+            self._invoke_post_run(liveaction_db, action_db)
+            self._delete_state_object(query_context)
+            return
 
         self._query_contexts.put((time.time(), query_context))
-        return
 
     def _update_action_results(self, execution_id, status, results):
         liveaction_db = LiveAction.get_by_id(execution_id)
@@ -113,6 +125,29 @@ class Querier(object):
         executions.update_execution(updated_liveaction)
         LiveAction.publish_update(updated_liveaction)
         return updated_liveaction
+
+    def _invoke_post_run(self, actionexec_db, action_db):
+        LOG.info('Invoking post run for action execution %s. Action=%s; Runner=%s',
+                 actionexec_db.id, action_db.name, action_db.runner_type['name'])
+
+        # Get an instance of the action runner.
+        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
+        runner = get_runner(runnertype_db.runner_module)
+
+        # Configure the action runner.
+        runner.container_service = RunnerContainerService()
+        runner.action = action_db
+        runner.action_name = action_db.name
+        runner.action_execution_id = str(actionexec_db.id)
+        runner.entry_point = RunnerContainerService.get_entry_point_abs_path(
+            pack=action_db.pack, entry_point=action_db.entry_point)
+        runner.context = getattr(actionexec_db, 'context', dict())
+        runner.callback = getattr(actionexec_db, 'callback', dict())
+        runner.libs_dir_path = RunnerContainerService.get_action_libs_abs_path(
+            pack=action_db.pack, entry_point=action_db.entry_point)
+
+        # Invoke the post_run method.
+        runner.post_run(actionexec_db.status, actionexec_db.result)
 
     def _delete_state_object(self, query_context):
         state_db = ActionExecutionState.get_by_id(query_context.id)

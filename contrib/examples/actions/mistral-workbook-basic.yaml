@@ -6,11 +6,13 @@ workflows:
         type: direct
         input:
             - cmd
+        output:
+            stdout: $.stdout
         tasks:
-            run-cmd:
+            task1:
                 action: core.local
                 input:
                     cmd: $.cmd
                 publish:
-                    stdout: $.stdout
-                    stderr: $.stderr
+                    stdout: $.task1.stdout
+                    stderr: $.task1.stderr

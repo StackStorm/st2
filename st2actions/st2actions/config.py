@@ -17,6 +17,8 @@
 Configuration options registration and useful routines.
 """
 
+import sys
+
 from oslo.config import cfg
 
 import st2common.config as common_config
@@ -27,7 +29,9 @@ CONF = cfg.CONF
 
 logging_opts = [
     cfg.StrOpt('logging', default='conf/logging.conf',
-               help='location of the logging.conf file')
+               help='location of the logging.conf file'),
+    cfg.StrOpt('python_binary', default=sys.executable,
+               help='Python binary which will be used by Python actions.')
 ]
 CONF.register_opts(logging_opts, group='actionrunner')
 

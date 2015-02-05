@@ -54,12 +54,16 @@ env.abort_exception = FabricExecutionFailureException
 
 # constants to lookup in runner_parameters.
 RUNNER_HOSTS = 'hosts'
+RUNNER_USERNAME = 'username'
+RUNNER_PASSWORD = 'password'
+RUNNER_PRIVATE_KEY = 'private_key'
 RUNNER_PARALLEL = 'parallel'
 RUNNER_SUDO = 'sudo'
 RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_REMOTE_DIR = 'dir'
 RUNNER_COMMAND = 'cmd'
 RUNNER_CWD = 'cwd'
+RUNNER_ENV = 'env'
 RUNNER_KWARG_OP = 'kwarg_op'
 RUNNER_TIMEOUT = 'timeout'
 
@@ -75,8 +79,13 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         self._parallel = True
         self._sudo = False
         self._on_behalf_user = None
-        self._user = None
+        self._username = None
+        self._password = None
+        self._private_key = None
         self._kwarg_op = '--'
+        self._cwd = None
+        self._env = None
+        self._timeout = None
 
     def pre_run(self):
         LOG.debug('Entering FabricRunner.pre_run() for liveaction_id="%s"',
@@ -87,12 +96,16 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         if len(self._hosts) < 1:
             raise ActionRunnerPreRunError('No hosts specified to run action for action %s.',
                                           self.liveaction_id)
+        self._username = self.runner_parameters.get(RUNNER_USERNAME, cfg.CONF.system_user.user)
+        self._username = self._username or cfg.CONF.system_user.user
+        self._password = self.runner_parameters.get(RUNNER_PASSWORD, None)
+        self._private_key = self.runner_parameters.get(RUNNER_PRIVATE_KEY, None)
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._sudo = self._sudo if self._sudo else False
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, env.user)
-        self._user = cfg.CONF.system_user.user
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
+        self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
@@ -132,7 +145,9 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
                                   command,
                                   env_vars=env_vars,
                                   on_behalf_user=self._on_behalf_user,
-                                  user=self._user,
+                                  user=self._username,
+                                  password=self._password,
+                                  private_key=self._private_key,
                                   hosts=self._hosts,
                                   parallel=self._parallel,
                                   sudo=self._sudo,
@@ -155,7 +170,9 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
                                         positional_args=pos_args,
                                         env_vars=env_vars,
                                         on_behalf_user=self._on_behalf_user,
-                                        user=self._user,
+                                        user=self._username,
+                                        password=self._password,
+                                        private_key=self._private_key,
                                         remote_dir=remote_dir,
                                         hosts=self._hosts,
                                         parallel=self._parallel,
@@ -164,7 +181,18 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
                                         cwd=self._cwd)
 
     def _get_env_vars(self):
-        return {'st2_auth_token': self.auth_token.token} if self.auth_token else {}
+        """
+        :rtype: ``dict``
+        """
+        env_vars = {}
+
+        if self.auth_token:
+            env_vars['st2_auth_token'] = self.auth_token.token
+
+        if self._env:
+            env_vars.update(self._env)
+
+        return env_vars
 
     @staticmethod
     def _get_result_status(result, allow_partial_failure):

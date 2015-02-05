@@ -52,6 +52,11 @@ def register_runner_types():
                     'description': 'Working directory where the command will be executed in',
                     'type': 'string'
                 },
+                'env': {
+                    'description': ('Environment variables which will be available to the command'
+                                    '(e.g. key1=val1,key2=val2)'),
+                    'type': 'object'
+                },
                 'sudo': {
                     'description': 'The command will be executed with sudo.',
                     'type': 'boolean',
@@ -79,6 +84,11 @@ def register_runner_types():
                 'cwd': {
                     'description': 'Working directory where the script will be executed in',
                     'type': 'string'
+                },
+                'env': {
+                    'description': ('Environment variables which will be available to the script'
+                                    '(e.g. key1=val1,key2=val2)'),
+                    'type': 'object'
                 },
                 'sudo': {
                     'description': 'The command will be executed with sudo.',
@@ -111,6 +121,24 @@ def register_runner_types():
                     'type': 'string',
                     'required': True
                 },
+                'username': {
+                    'description': ('Username used to log-in. If not provided, '
+                                    'default username from config is used.'),
+                    'type': 'string',
+                    'required': False
+                },
+                'password': {
+                    'description': ('Password used to log in. If not provided, '
+                                    'private key from the config file is used.'),
+                    'type': 'string',
+                    'required': False
+                },
+                'private_key': {
+                    'description': ('Private key used to log in. If not provided, '
+                                    'private key from the config file is used.'),
+                    'type': 'string',
+                    'required': False
+                },
                 'cmd': {
                     'description': 'Arbitrary Linux command to be executed on the '
                                    'remote host(s).',
@@ -119,6 +147,11 @@ def register_runner_types():
                 'cwd': {
                     'description': 'Working directory where the script will be executed in',
                     'type': 'string'
+                },
+                'env': {
+                    'description': ('Environment variables which will be available to the command'
+                                    '(e.g. key1=val1,key2=val2)'),
+                    'type': 'object'
                 },
                 'parallel': {
                     'description': 'Default to parallel execution.',
@@ -164,6 +197,24 @@ def register_runner_types():
                     'type': 'string',
                     'required': True
                 },
+                'username': {
+                    'description': ('Username used to log-in. If not provided, '
+                                    'default username from config is used.'),
+                    'type': 'string',
+                    'required': False
+                },
+                'password': {
+                    'description': ('Password used to log in. If not provided, '
+                                    'private key from the config file is used.'),
+                    'type': 'string',
+                    'required': False
+                },
+                'private_key': {
+                    'description': ('Private key used to log in. If not provided, '
+                                    'private key from the config file is used.'),
+                    'type': 'string',
+                    'required': False
+                },
                 'parallel': {
                     'description': 'Default to parallel execution.',
                     'type': 'boolean',
@@ -174,6 +225,11 @@ def register_runner_types():
                     'description': 'Working directory where the script will be executed in.',
                     'type': 'string',
                     'default': default_remote_dir
+                },
+                'env': {
+                    'description': ('Environment variables which will be available to the script'
+                                    '(e.g. key1=val1,key2=val2)'),
+                    'type': 'object'
                 },
                 'sudo': {
                     'description': 'The remote command will be executed with sudo.',
@@ -296,6 +352,11 @@ def register_runner_types():
             'description': 'A runner for launching python actions.',
             'enabled': True,
             'runner_parameters': {
+                'env': {
+                    'description': ('Environment variables which will be available to the script'
+                                    '(e.g. key1=val1,key2=val2)'),
+                    'type': 'object'
+                },
                 'timeout': {
                     'description': ('Action timeout in seconds. Action will get killed if it '
                                     'doesn\'t finish in timeout seconds.'),

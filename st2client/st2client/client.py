@@ -73,6 +73,8 @@ class Client(object):
             models.Trigger, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['KeyValuePair'] = models.ResourceManager(
             models.KeyValuePair, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Webhook'] = models.ResourceManager(
+            models.Webhook, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
 
     @property
     def tokens(self):

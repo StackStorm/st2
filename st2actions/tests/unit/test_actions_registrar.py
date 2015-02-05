@@ -40,7 +40,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         try:
             packs_base_path = fixtures_loader.get_fixtures_base_path()
             all_actions_in_db = Action.get_all()
-            actions_registrar.register_actions(packs_base_path=packs_base_path)
+            actions_registrar.register_actions(packs_base_paths=[packs_base_path])
         except Exception as e:
             print(str(e))
             self.fail('All actions must be registered without exceptions.')
@@ -51,7 +51,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
     def test_register_actions_from_bad_pack(self):
         packs_base_path = tests_base.get_fixtures_path()
         try:
-            actions_registrar.register_actions(packs_base_path=packs_base_path)
+            actions_registrar.register_actions(packs_base_paths=[packs_base_path])
             self.fail('Should have thrown.')
         except:
             pass
@@ -73,6 +73,17 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             self.assertEqual(action_db.pack, 'dummy', 'Content pack must be ' +
                              'set to dummy')
             Action.delete(action_db)
+
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
+    @mock.patch.object(action_validator, '_get_runner_model',
+                       mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
+    def test_register_action_with_no_params(self):
+        registrar = actions_registrar.ActionsRegistrar()
+        loader = fixtures_loader.FixturesLoader()
+        action_file = loader.get_fixture_file_path_abs(
+            'generic', 'actions', 'action-with-no-parameters.yaml')
+
+        self.assertEqual(registrar._register_action('dummy', action_file), None)
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
     @mock.patch.object(action_validator, '_get_runner_model',

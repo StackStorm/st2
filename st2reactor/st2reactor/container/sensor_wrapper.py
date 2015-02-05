@@ -14,10 +14,12 @@
 # limitations under the License.
 
 import os
+import sys
 import json
 import atexit
 import argparse
 
+import eventlet
 from oslo.config import cfg
 from st2client.client import Client
 
@@ -37,6 +39,13 @@ from st2client.models.datastore import KeyValuePair
 __all__ = [
     'SensorWrapper'
 ]
+
+eventlet.monkey_patch(
+    os=True,
+    select=True,
+    socket=True,
+    thread=False if '--use-debugger' in sys.argv else True,
+    time=True)
 
 
 class SensorService(object):
@@ -267,8 +276,11 @@ class SensorWrapper(object):
         try:
             self._sensor_instance.run()
         except Exception as e:
-            raise Exception('Sensor "%s" run method raised an exception: %s' %
-                            (self._class_name, str(e)))
+            # Include traceback
+            msg = ('Sensor "%s" run method raised an exception: %s.' %
+                   (self._class_name, str(e)))
+            self._logger.warn(msg, exc_info=True)
+            raise Exception(msg)
 
     def stop(self):
         # Stop watcher

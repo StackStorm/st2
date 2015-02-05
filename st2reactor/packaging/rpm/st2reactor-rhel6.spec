@@ -22,10 +22,10 @@ sed -i -r "s~logs~/var/log/st2~g" conf/logging*.conf
 
 %install
 
-mkdir -p %{buildroot}/usr/local/lib/python2.7
+mkdir -p %{buildroot}/usr/local/lib/python2.7/site-packages/
 mkdir -p %{buildroot}/etc/st2reactor
 mkdir -p %{buildroot}/usr/bin/
-cp -R st2reactor %{buildroot}/usr/local/lib/python2.7/
+cp -R st2reactor %{buildroot}/usr/local/lib/python2.7/site-packages/
 cp -R conf/* %{buildroot}/etc/st2reactor
 install -m755 bin/sensor_container %{buildroot}/usr/bin/sensor_container
 install -m755 bin/rules_engine %{buildroot}/usr/bin/rules_engine

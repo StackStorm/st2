@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import importlib
 import json
 import sys
 import traceback
@@ -32,7 +31,7 @@ from st2common.util.action_db import (update_liveaction_status, get_liveaction_b
 
 from st2actions.container import actionsensor
 from st2actions.container.service import RunnerContainerService
-from st2actions.runners import AsyncActionRunner
+from st2actions.runners import get_runner, AsyncActionRunner
 from st2actions.utils import param_utils
 
 LOG = logging.getLogger(__name__)
@@ -78,7 +77,7 @@ class RunnerContainer(object):
         LOG.debug('    RunnerType: %s', runnertype_db)
 
         # Get runner instance.
-        runner = self._get_runner(runnertype_db)
+        runner = get_runner(runnertype_db.runner_module)
         LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Invoke pre_run, run, post_run cycle.
@@ -97,7 +96,6 @@ class RunnerContainer(object):
         # Finalized parameters are resolved and then rendered.
         runner_params, action_params = param_utils.get_finalized_params(
             runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters)
-
         resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
                                                               action_db.entry_point)
         runner.container_service = RunnerContainerService()
@@ -114,6 +112,11 @@ class RunnerContainer(object):
 
         updated_liveaction_db = None
         try:
+            # Finalized parameters are resolved and then rendered. This process could
+            # fail. Handle the exception and report the error correctly.
+            runner_params, action_params = param_utils.get_finalized_params(
+                runnertype_db.runner_parameters, action_db.parameters, actionexec_db.parameters)
+            runner.runner_parameters = runner_params
             LOG.debug('Performing pre-run for runner: %s', runner)
             runner.pre_run()
 

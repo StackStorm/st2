@@ -39,6 +39,7 @@ LOG = logging.getLogger(__name__)
 DEFAULT_ACTION_TIMEOUT = 10 * 60
 
 # constants to lookup in runner_parameters.
+RUNNER_ENV = 'env'
 RUNNER_TIMEOUT = 'timeout'
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -103,6 +104,7 @@ class PythonRunner(ActionRunner):
         # TODO :This is awful, but the way "runner_parameters" and other variables get
         # assigned on the runner instance is even worse. Those arguments should
         # be passed to the constructor.
+        self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
 
     def run(self, action_parameters):
@@ -114,6 +116,9 @@ class PythonRunner(ActionRunner):
         if virtualenv_path and not os.path.isdir(virtualenv_path):
             msg = PACK_VIRTUALENV_DOESNT_EXIST % (pack, pack)
             raise Exception(msg)
+
+        if not self.entry_point:
+            raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
 
         args = [
             python_path,
@@ -128,6 +133,10 @@ class PythonRunner(ActionRunner):
         env = os.environ.copy()
         env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
                                                     inherit_parent_virtualenv=True)
+
+        # Include user provided environment variables (if any)
+        user_env_vars = self._get_env_vars()
+        env.update(user_env_vars)
 
         # Note: We are using eventlet friendly implementation of subprocess
         # which uses GreenPipe so it doesn't block
@@ -174,3 +183,28 @@ class PythonRunner(ActionRunner):
         status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
         LOG.debug('Action output : %s. exit_code : %s. status : %s', str(output), exit_code, status)
         return (status, output)
+
+    def _get_env_vars(self):
+        """
+        Return sanitized environment variables which will be used when launching
+        a subprocess.
+
+        :rtype: ``dict``
+        """
+        # Don't allow user to override PYTHONPATH since this would break things
+        blacklisted_vars = ['pythonpath']
+        env_vars = {}
+
+        if self._env:
+            env_vars.update(self._env)
+
+        # Remove "blacklisted" environment variables
+        to_delete = []
+        for key, value in env_vars.items():
+            if key.lower() in blacklisted_vars:
+                to_delete.append(key)
+
+        for key in to_delete:
+            del env_vars[key]
+
+        return env_vars

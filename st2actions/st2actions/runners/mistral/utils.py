@@ -112,7 +112,7 @@ def _transform_action(spec, action_key, input_key):
 
     action_ref = spec.get(action_key)
 
-    if ResourceReference.is_resource_reference(action_ref):
+    if action_ref and ResourceReference.is_resource_reference(action_ref):
         ref = ResourceReference.from_string_reference(ref=action_ref)
         actions = Action.query(name=ref.name, pack=ref.pack)
         action = actions.first() if actions else None
@@ -121,10 +121,10 @@ def _transform_action(spec, action_key, input_key):
 
     if action:
         spec[action_key] = 'st2.action'
-        spec[input_key] = {
-            'ref': action_ref,
-            'parameters': spec[input_key]
-        }
+        action_input = spec.get(input_key)
+        spec[input_key] = {'ref': action_ref}
+        if action_input:
+            spec[input_key]['parameters'] = action_input
 
 
 def transform_definition(definition):

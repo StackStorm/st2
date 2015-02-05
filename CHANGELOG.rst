@@ -9,6 +9,28 @@ Docs: http://docks.stackstorm.com/latest
 * Allow user to specify current working directory (``cwd`` parameter) when running actions using the
   local or the remote runner (``run-local``, ``run-local-script``, ``run-remote``,
   ``run-remote-script``). (new-feature)
+* Default values of the parameter of an Action can be system values stored in kv-store. (new-feature)
+* Allow users to specify additional paths where StackStorm looks for integration packs using
+  ``packs_base_paths`` setting. (new-feature)
+* Allow user to specify which Python binary to use for the Python runner actions using
+  ``actionrunner.python_binary`` setting (new-feature)
+* Default Python binary which is used by Python runner actions to be the Python binary which is
+  used by the action runner service. Previous, system's default Python binary was used.
+* Fix a race-condition / bug which would occur when multiple packs are installed at the same time.
+  (bug-fix)
+* Vars can be defined in the ActionChain. (new-feature)
+* Node in an ActionChain can publish global variables. (new-feature)
+* Allow user to provide authentication token either inside headers (``X-Auth-Token``) or via
+  ``x-auth-token`` query string parameter. (new-feature)
+* Allow actions without parameters. (bug-fix)
+* Fix a bug with rule matching not working for any triggers with parameters. (bug-fix)
+* Require ``cmd`` parameter for the following actions: ``core.remote``, ``core.remote_sudo``,
+  ``core.local``, ``core.local_sudo`` (bug-fix)
+* Allow user to override authentication information (username, password, private key) on per
+  action basis for all the remote runner actions. (new-feature)
+* Allow user to pass ``--inherit-env`` flag to the ``st2 action run`` command which causes all
+  the environment variables accessible to the CLI to be sent as ``env`` parameter to the action
+  being executed. (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------

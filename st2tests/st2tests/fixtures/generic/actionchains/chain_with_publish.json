@@ -1,0 +1,34 @@
+{
+    "vars": {
+        "strtype": "{{system.a}}",
+        "inttype": 1
+    },
+    "chain": [
+        {
+            "name": "c1",
+            "ref": "wolfpack.a2",
+            "params":
+            {
+                "inttype": "{{inttype}}",
+                "strtype": "{{strtype}}",
+                "booltype": true
+            },
+            "publish":
+            {
+                "o1": "{{c1.raw_out}}"
+            },
+            "on-success": "c2"
+        },
+        {
+            "name": "c2",
+            "ref": "wolfpack.a2",
+            "params":
+            {
+                "inttype": "{{inttype}}",
+                "strtype": "{{o1}}",
+                "booltype": true
+            }
+        }
+    ],
+    "default": "c1"
+}
