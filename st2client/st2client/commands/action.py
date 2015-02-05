@@ -291,7 +291,7 @@ class ActionRunCommand(resource.ResourceCommand):
         if args.inherit_env:
             execution.parameters['env'] = self._get_inherited_env_vars()
 
-        action_exec_mgr = self.app.client.managers['liveaction']
+        action_exec_mgr = self.app.client.managers['LiveAction']
 
         execution = action_exec_mgr.create(execution, **kwargs)
 
@@ -473,7 +473,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
-            models.liveaction, description, app, subparsers,
+            models.LiveAction, description, app, subparsers,
             parent_parser=parent_parser, read_only=True,
             commands={'list': ActionExecutionListCommand,
                       'get': ActionExecutionGetCommand})
