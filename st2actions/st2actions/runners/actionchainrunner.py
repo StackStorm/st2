@@ -161,7 +161,7 @@ class ActionChainRunner(ActionRunner):
                     action_node=action_node, original_parameters=action_parameters,
                     results=context_result, chain_vars=self.chain_holder.vars)
                 actionexec = ActionChainRunner._run_action(
-                    action_ref=action_node.ref, parent_execution_id=self.action_execution_id,
+                    action_node=action_node, parent_execution_id=self.action_execution_id,
                     params=resolved_params)
             except Exception:
                 # Save the traceback and error message.
@@ -240,10 +240,13 @@ class ActionChainRunner(ActionRunner):
         return rendered_params
 
     @staticmethod
-    def _run_action(action_ref, parent_execution_id, params, wait_for_completion=True):
-        execution = ActionExecutionDB(action=action_ref)
-        execution.parameters = ActionChainRunner._cast_params(action_ref, params)
-        execution.context = {'parent': str(parent_execution_id)}
+    def _run_action(action_node, parent_execution_id, params, wait_for_completion=True):
+        execution = ActionExecutionDB(action=action_node.ref)
+        execution.parameters = ActionChainRunner._cast_params(action_node.ref, params)
+        execution.context = {
+            'parent': str(parent_execution_id),
+            'chain': vars(action_node)
+        }
         execution = action_service.schedule(execution)
         while (wait_for_completion and
                execution.status != ACTIONEXEC_STATUS_SUCCEEDED and
