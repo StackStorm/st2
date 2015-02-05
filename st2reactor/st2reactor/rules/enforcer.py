@@ -20,6 +20,7 @@ from st2common.util import reference
 from st2reactor.rules.datatransform import get_transformer
 from st2common.services import action as action_service
 from st2common.models.db.action import ActionExecutionDB
+from st2common.models.utils import action_param_utils
 from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
 from st2common.models.api.access import get_system_username
 
@@ -58,9 +59,11 @@ class RuleEnforcer(object):
         return actionexecution_db
 
     @staticmethod
-    def _invoke_action(action, action_args, context=None):
+    def _invoke_action(action, params, context=None):
         action_ref = action['ref']
-        execution = ActionExecutionDB(action=action_ref, context=context, parameters=action_args)
+        # prior to shipping off the params cast them to the right type.
+        params = action_param_utils.cast_params(action_ref, params)
+        execution = ActionExecutionDB(action=action_ref, context=context, parameters=params)
         execution = action_service.schedule(execution)
         return ({'id': str(execution.id)}
                 if execution.status == ACTIONEXEC_STATUS_SCHEDULED else None)
