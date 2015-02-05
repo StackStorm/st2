@@ -150,7 +150,7 @@ class ActionChainRunner(ActionRunner):
             try:
                 resolved_params = ActionChainRunner._resolve_params(action_node, action_parameters,
                                                                     results, self.chain_holder.vars)
-                actionexec = ActionChainRunner._run_action(action_node.ref,
+                actionexec = ActionChainRunner._run_action(action_node,
                                                            self.action_execution_id,
                                                            resolved_params)
             except:
@@ -213,10 +213,13 @@ class ActionChainRunner(ActionRunner):
         return rendered_params
 
     @staticmethod
-    def _run_action(action_ref, parent_execution_id, params, wait_for_completion=True):
-        execution = ActionExecutionDB(action=action_ref)
-        execution.parameters = ActionChainRunner._cast_params(action_ref, params)
-        execution.context = {'parent': str(parent_execution_id)}
+    def _run_action(action_node, parent_execution_id, params, wait_for_completion=True):
+        execution = ActionExecutionDB(action=action_node.ref)
+        execution.parameters = ActionChainRunner._cast_params(action_node.ref, params)
+        execution.context = {
+            'parent': str(parent_execution_id),
+            'chain': vars(action_node)
+        }
         execution = action_service.schedule(execution)
         while (wait_for_completion and
                execution.status != ACTIONEXEC_STATUS_SUCCEEDED and
