@@ -76,7 +76,7 @@ def create_execution_object(liveaction):
         attrs['parent'] = str(parent.id)
 
     execution = ActionExecutionDB(**attrs)
-    execution = ActionExecution.add_or_update(execution)
+    execution = ActionExecution.add_or_update(execution, publish=False)
 
     if parent:
         if str(execution.id) not in parent.children:
