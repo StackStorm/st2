@@ -43,7 +43,7 @@ from st2common import log as logging
 LOG = logging.getLogger(__name__)
 
 
-def create_execution_object(liveaction):
+def create_execution_object(liveaction, publish=True):
     action_db = action_utils.get_action_by_ref(liveaction.action)
     runner = RunnerType.get_by_name(action_db.runner_type['name'])
 
@@ -76,7 +76,7 @@ def create_execution_object(liveaction):
         attrs['parent'] = str(parent.id)
 
     execution = ActionExecutionDB(**attrs)
-    execution = ActionExecution.add_or_update(execution, publish=False)
+    execution = ActionExecution.add_or_update(execution, publish=publish)
 
     if parent:
         if str(execution.id) not in parent.children:
@@ -86,9 +86,9 @@ def create_execution_object(liveaction):
     return execution
 
 
-def update_execution(liveaction):
+def update_execution(liveaction, publish=True):
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
     execution.liveaction = vars(LiveActionAPI.from_model(liveaction))
-    execution = ActionExecution.add_or_update(execution)
+    execution = ActionExecution.add_or_update(execution, publish=publish)
 
     return execution
