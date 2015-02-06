@@ -23,6 +23,7 @@ from oslo.config import cfg
 from six.moves.urllib import parse as urlparse
 
 from st2actions.runners import ActionRunner
+from st2common import __version__ as st2_version
 from st2common import log as logging
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 
@@ -95,7 +96,7 @@ class HttpRunner(ActionRunner):
 
         # Include our user agent and action name so requests can be tracked back
         headers = copy.deepcopy(self._headers) if self._headers else {}
-        headers['User-Agent'] = 'st2/v0.5.0'  # TODO: use __version__ when available
+        headers['User-Agent'] = 'st2/v%s' % (st2_version)
         headers['X-Stanley-Action'] = self.action_name
 
         if file_name and file_content:
