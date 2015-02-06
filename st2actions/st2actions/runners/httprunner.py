@@ -23,6 +23,7 @@ from oslo.config import cfg
 from six.moves.urllib import parse as urlparse
 
 from st2actions.runners import ActionRunner
+from st2common import __version__ as st2_version
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 
@@ -95,7 +96,7 @@ class HttpRunner(ActionRunner):
 
         # Include our user agent and action name so requests can be tracked back
         headers = copy.deepcopy(self._headers) if self._headers else {}
-        headers['User-Agent'] = 'st2/v0.5.0'  # TODO: use __version__ when available
+        headers['User-Agent'] = 'st2/v%s' % (st2_version)
         headers['X-Stanley-Action'] = self.action_name
 
         if file_name and file_content:
@@ -172,37 +173,35 @@ class HTTPClient(object):
     def run(self):
         results = {}
         resp = None
+        json_content = self._is_json_content()
+
         try:
-            if self._is_json_content():
-                # use the json property instead of data in case of json content
-                # also cast property to a dict.
-                resp = requests.request(
-                    self.method,
-                    self.url,
-                    params=self.params,
-                    json=self._cast_object(self.body),
-                    headers=self.headers,
-                    cookies=self.cookies,
-                    auth=self.auth,
-                    timeout=self.timeout,
-                    allow_redirects=self.allow_redirects,
-                    proxies=self.proxies,
-                    files=self.files
-                )
+            if json_content:
+                # cast params (body) to dict
+                data = self._cast_object(self.body)
+
+                try:
+                    data = json.dumps(data)
+                except ValueError:
+                    msg = 'Request body (%s) can\'t be parsed as JSON' % (data)
+                    raise ValueError(msg)
             else:
-                resp = requests.request(
-                    self.method,
-                    self.url,
-                    params=self.params,
-                    data=self.body,
-                    headers=self.headers,
-                    cookies=self.cookies,
-                    auth=self.auth,
-                    timeout=self.timeout,
-                    allow_redirects=self.allow_redirects,
-                    proxies=self.proxies,
-                    files=self.files
-                )
+                data = self.body
+
+            resp = requests.request(
+                self.method,
+                self.url,
+                params=self.params,
+                data=data,
+                headers=self.headers,
+                cookies=self.cookies,
+                auth=self.auth,
+                timeout=self.timeout,
+                allow_redirects=self.allow_redirects,
+                proxies=self.proxies,
+                files=self.files
+            )
+
             results['status_code'] = resp.status_code
             results['body'] = resp.text
             results['headers'] = dict(resp.headers)
