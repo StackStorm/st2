@@ -14,22 +14,15 @@
 # limitations under the License.
 
 import datetime
-
 import mock
 
-import st2tests.config
-st2tests.config.parse_args()
-
-from st2common.models.db.reactor import TriggerInstanceDB, \
-    RuleDB, ActionExecutionSpecDB
+from st2common.models.db.reactor import TriggerInstanceDB
 from st2common.models.db.action import ActionExecutionDB
-import st2common.services.action as action_service
+from st2common.services import action as action_service
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
-
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
-
 
 PACK = 'generic'
 FIXTURES_1 = {
