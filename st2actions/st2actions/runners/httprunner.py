@@ -172,37 +172,35 @@ class HTTPClient(object):
     def run(self):
         results = {}
         resp = None
+        json_content = self._is_json_content()
+
         try:
-            if self._is_json_content():
-                # use the json property instead of data in case of json content
-                # also cast property to a dict.
-                resp = requests.request(
-                    self.method,
-                    self.url,
-                    params=self.params,
-                    json=self._cast_object(self.body),
-                    headers=self.headers,
-                    cookies=self.cookies,
-                    auth=self.auth,
-                    timeout=self.timeout,
-                    allow_redirects=self.allow_redirects,
-                    proxies=self.proxies,
-                    files=self.files
-                )
+            if json_content:
+                # cast params (body) to dict
+                data = self._cast_object(self.body)
+
+                try:
+                    data = json.dumps(data)
+                except ValueError:
+                    msg = 'Request body (%s) can\'t be parsed as JSON' % (data)
+                    raise ValueError(msg)
             else:
-                resp = requests.request(
-                    self.method,
-                    self.url,
-                    params=self.params,
-                    data=self.body,
-                    headers=self.headers,
-                    cookies=self.cookies,
-                    auth=self.auth,
-                    timeout=self.timeout,
-                    allow_redirects=self.allow_redirects,
-                    proxies=self.proxies,
-                    files=self.files
-                )
+                data = self.body
+
+            resp = requests.request(
+                self.method,
+                self.url,
+                params=self.params,
+                data=data,
+                headers=self.headers,
+                cookies=self.cookies,
+                auth=self.auth,
+                timeout=self.timeout,
+                allow_redirects=self.allow_redirects,
+                proxies=self.proxies,
+                files=self.files
+            )
+
             results['status_code'] = resp.status_code
             results['body'] = resp.text
             results['headers'] = dict(resp.headers)
