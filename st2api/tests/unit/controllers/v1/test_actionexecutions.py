@@ -269,10 +269,10 @@ class TestActionExecutionController(FunctionalTest):
         self.assertDictEqual(resp.json['context'], expected)
 
     def test_post_with_st2_context_in_headers_failed(self):
-        resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1))
+        resp = self._do_post(copy.deepcopy(LIVE_ACTION_1))
         self.assertEqual(resp.status_int, 201)
         headers = {'content-type': 'application/json', 'st2-context': 'foobar'}
-        resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1), headers=headers, expect_errors=True)
+        resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers, expect_errors=True)
         self.assertEqual(resp.status_int, 400)
         self.assertIn('Unable to convert st2-context', resp.json['faultstring'])
 
