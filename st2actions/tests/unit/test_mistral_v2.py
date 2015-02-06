@@ -142,6 +142,9 @@ class TestMistralRunner(DbTestCase):
             Action.add_or_update(ActionAPI.to_model(instance))
 
     @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
         workflows.WorkflowManager, 'get',
         mock.MagicMock(return_value=WF1))
     @mock.patch.object(
@@ -157,6 +160,9 @@ class TestMistralRunner(DbTestCase):
         execution = LiveAction.get_by_id(str(execution.id))
         self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
     @mock.patch.object(
         workflows.WorkflowManager, 'get',
         mock.MagicMock(return_value=WF1_OLD))
@@ -177,6 +183,9 @@ class TestMistralRunner(DbTestCase):
         self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
         workflows.WorkflowManager, 'get',
         mock.MagicMock(side_effect=Exception()))
     @mock.patch.object(
@@ -195,6 +204,9 @@ class TestMistralRunner(DbTestCase):
         self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
         workflows.WorkflowManager, 'get',
         mock.MagicMock(return_value=WF2))
     def test_launch_workflow_with_many_workflows(self):
@@ -205,6 +217,9 @@ class TestMistralRunner(DbTestCase):
         self.assertEqual(execution.status, LIVEACTION_STATUS_FAILED)
         self.assertIn('Multiple workflows is not supported.', execution.result['message'])
 
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
     @mock.patch.object(
         workflows.WorkflowManager, 'get',
         mock.MagicMock(side_effect=Exception()))
@@ -217,6 +232,9 @@ class TestMistralRunner(DbTestCase):
         self.assertEqual(execution.status, LIVEACTION_STATUS_FAILED)
         self.assertIn('Name of the workflow must be the same', execution.result['message'])
 
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
     @mock.patch.object(
         workbooks.WorkbookManager, 'get',
         mock.MagicMock(return_value=WB1))
@@ -237,6 +255,9 @@ class TestMistralRunner(DbTestCase):
         self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
         workbooks.WorkbookManager, 'get',
         mock.MagicMock(return_value=WB2))
     @mock.patch.object(
@@ -255,6 +276,9 @@ class TestMistralRunner(DbTestCase):
         execution = LiveAction.get_by_id(str(execution.id))
         self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
     @mock.patch.object(
         workbooks.WorkbookManager, 'get',
         mock.MagicMock(return_value=WB3))
@@ -276,6 +300,9 @@ class TestMistralRunner(DbTestCase):
         self.assertIn('Default workflow cannot be determined.', execution.result['message'])
 
     @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
         workbooks.WorkbookManager, 'get',
         mock.MagicMock(return_value=WB1_OLD))
     @mock.patch.object(
@@ -295,6 +322,9 @@ class TestMistralRunner(DbTestCase):
         self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
         workbooks.WorkbookManager, 'get',
         mock.MagicMock(side_effect=Exception()))
     @mock.patch.object(
@@ -312,6 +342,9 @@ class TestMistralRunner(DbTestCase):
         execution = LiveAction.get_by_id(str(execution.id))
         self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
     @mock.patch.object(
         workbooks.WorkbookManager, 'get',
         mock.MagicMock(side_effect=Exception()))

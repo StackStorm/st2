@@ -15,10 +15,11 @@
 
 import uuid
 
-from mistralclient.api import client as mistral
-from oslo.config import cfg
 import six
 import yaml
+import requests
+from mistralclient.api import client as mistral
+from oslo.config import cfg
 
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2actions.runners import AsyncActionRunner
@@ -120,6 +121,14 @@ class MistralRunner(AsyncActionRunner):
             raise Exception('There are no workflows in the workbook.')
 
     def run(self, action_parameters):
+        try:
+            # Test the connection
+            self._client.workflows.list()
+        except requests.exceptions.ConnectionError:
+            msg = ('Failed to connect to mistral on %s. Make sure that mistral is running '
+                   ' and that the url is set correctly in the config.' % (self.url))
+            raise Exception(msg)
+
         # Setup inputs for the workflow execution.
         inputs = self.runner_parameters.get('context', dict())
         inputs.update(action_parameters)

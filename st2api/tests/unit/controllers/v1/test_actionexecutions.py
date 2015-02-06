@@ -260,13 +260,21 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(resp.status_int, 201)
         parent_user = resp.json['context']['user']
         parent_exec_id = str(resp.json['id'])
-        context = {'parent': parent_exec_id, 'user': None}
+        context = {'parent': parent_exec_id, 'user': None, 'other': {'k1': 'v1'}}
         headers = {'content-type': 'application/json', 'st2-context': json.dumps(context)}
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
         self.assertEqual(resp.json['context']['user'], parent_user, 'Should use parent\'s user.')
-        expected = {'parent': parent_exec_id, 'user': parent_user}
+        expected = {'parent': parent_exec_id, 'user': parent_user, 'other': {'k1': 'v1'}}
         self.assertDictEqual(resp.json['context'], expected)
+
+    def test_post_with_st2_context_in_headers_failed(self):
+        resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1))
+        self.assertEqual(resp.status_int, 201)
+        headers = {'content-type': 'application/json', 'st2-context': 'foobar'}
+        resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1), headers=headers, expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertIn('Unable to convert st2-context', resp.json['faultstring'])
 
     def test_update_execution(self):
         response = self._do_post(LIVE_ACTION_1)

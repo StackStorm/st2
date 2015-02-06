@@ -95,11 +95,36 @@ class MistralResultsQuerier(Querier):
         result = resp.json()
         tasks = result.get('tasks', [])
 
-        for task in tasks:
-            for attr in ['result', 'input', 'output']:
-                task[attr] = jsonify.try_loads(task.get(attr, None))
+        result = []
 
-        return tasks
+        for task in tasks:
+            # Format the task output
+            formatted_task = self._format_task_result(task=task)
+            result.append(formatted_task)
+
+        return result
+
+    def _format_task_result(self, task):
+        """
+        Format task result to follow the unified workflow result format.
+        """
+        result = {}
+
+        result['id'] = task['id']
+        result['name'] = task['name']
+        result['execution_id'] = task.get('execution_id', None)
+        result['workflow'] = task['wf_name']
+        result['created_at'] = task.get('created_at', None)
+        result['updated_at'] = task.get('updated_at', None)
+        result['state'] = task.get('state', None)
+        result['input'] = task.get('input', None)
+        result['output'] = task.get('output', None)
+        result['result'] = task.get('result', None)
+
+        for attr in ['result', 'input', 'output']:
+            result[attr] = jsonify.try_loads(task.get(attr, None))
+
+        return result
 
 
 def get_instance():

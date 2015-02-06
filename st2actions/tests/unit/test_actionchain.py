@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import mock
-import six
 
 from st2actions.runners import actionchainrunner as acr
 from st2actions.container.service import RunnerContainerService
@@ -174,10 +173,16 @@ class TestActionChainRunner(DbTestCase):
         status, results = chain_runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEqual(schedule.call_count, 2)
-        self.assertEqual(len([result['error'] for _, result in six.iteritems(results)]),
-                         2, 'Expected errors')
+
+        error_count = 0
+        for task_result in results['tasks']:
+            if task_result['result'].get('error', None):
+                error_count += 1
+
+        self.assertEqual(error_count, 2)
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))

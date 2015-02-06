@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ast
 import copy
+import json
 import uuid
 
 import requests
@@ -171,19 +173,36 @@ class HTTPClient(object):
         results = {}
         resp = None
         try:
-            resp = requests.request(
-                self.method,
-                self.url,
-                params=self.params,
-                data=self.body,
-                headers=self.headers,
-                cookies=self.cookies,
-                auth=self.auth,
-                timeout=self.timeout,
-                allow_redirects=self.allow_redirects,
-                proxies=self.proxies,
-                files=self.files
-            )
+            if self._is_json_content():
+                # use the json property instead of data in case of json content
+                # also cast property to a dict.
+                resp = requests.request(
+                    self.method,
+                    self.url,
+                    params=self.params,
+                    json=self._cast_object(self.body),
+                    headers=self.headers,
+                    cookies=self.cookies,
+                    auth=self.auth,
+                    timeout=self.timeout,
+                    allow_redirects=self.allow_redirects,
+                    proxies=self.proxies,
+                    files=self.files
+                )
+            else:
+                resp = requests.request(
+                    self.method,
+                    self.url,
+                    params=self.params,
+                    data=self.body,
+                    headers=self.headers,
+                    cookies=self.cookies,
+                    auth=self.auth,
+                    timeout=self.timeout,
+                    allow_redirects=self.allow_redirects,
+                    proxies=self.proxies,
+                    files=self.files
+                )
             results['status_code'] = resp.status_code
             results['body'] = resp.text
             results['headers'] = dict(resp.headers)
@@ -204,3 +223,16 @@ class HTTPClient(object):
             result[key.lower()] = value
 
         return result
+
+    def _is_json_content(self):
+        normalized = self._normalize_headers(self.headers)
+        return normalized.get('content-type', None) == 'application/json'
+
+    def _cast_object(self, value):
+        if isinstance(value, str) or isinstance(value, unicode):
+            try:
+                return json.loads(value)
+            except:
+                return ast.literal_eval(value)
+        else:
+            return value
