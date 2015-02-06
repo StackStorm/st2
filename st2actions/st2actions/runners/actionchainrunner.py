@@ -270,7 +270,7 @@ class ActionChainRunner(ActionRunner):
 
         result['id'] = action_node.name
         result['name'] = action_node.name
-        result['execution_id'] = action_exec_db.id if action_exec_db else None
+        result['execution_id'] = str(action_exec_db.id) if action_exec_db else None
         result['mistral_execution_id'] = None
         result['workflow'] = None
 

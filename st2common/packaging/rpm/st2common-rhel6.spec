@@ -11,8 +11,6 @@ Vendor: StackStorm
 Packager: Estee Tew <st2@stackstorm.com>
 Requires:	python-devel
 Requires:   	python-pip
-Requires:     mongodb
-Requires:     mongodb-server
 
 %description
 An automation plaform that needs a much better description than this.

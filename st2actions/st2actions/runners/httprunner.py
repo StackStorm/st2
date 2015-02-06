@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ast
 import copy
+import json
 import uuid
 
 import requests
@@ -21,6 +23,7 @@ from oslo.config import cfg
 from six.moves.urllib import parse as urlparse
 
 from st2actions.runners import ActionRunner
+from st2common import __version__ as st2_version
 from st2common import log as logging
 from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 
@@ -93,7 +96,7 @@ class HttpRunner(ActionRunner):
 
         # Include our user agent and action name so requests can be tracked back
         headers = copy.deepcopy(self._headers) if self._headers else {}
-        headers['User-Agent'] = 'st2/v0.5.0'  # TODO: use __version__ when available
+        headers['User-Agent'] = 'st2/v%s' % (st2_version)
         headers['X-Stanley-Action'] = self.action_name
 
         if file_name and file_content:
@@ -170,12 +173,26 @@ class HTTPClient(object):
     def run(self):
         results = {}
         resp = None
+        json_content = self._is_json_content()
+
         try:
+            if json_content:
+                # cast params (body) to dict
+                data = self._cast_object(self.body)
+
+                try:
+                    data = json.dumps(data)
+                except ValueError:
+                    msg = 'Request body (%s) can\'t be parsed as JSON' % (data)
+                    raise ValueError(msg)
+            else:
+                data = self.body
+
             resp = requests.request(
                 self.method,
                 self.url,
                 params=self.params,
-                data=self.body,
+                data=data,
                 headers=self.headers,
                 cookies=self.cookies,
                 auth=self.auth,
@@ -184,6 +201,7 @@ class HTTPClient(object):
                 proxies=self.proxies,
                 files=self.files
             )
+
             results['status_code'] = resp.status_code
             results['body'] = resp.text
             results['headers'] = dict(resp.headers)
@@ -204,3 +222,16 @@ class HTTPClient(object):
             result[key.lower()] = value
 
         return result
+
+    def _is_json_content(self):
+        normalized = self._normalize_headers(self.headers)
+        return normalized.get('content-type', None) == 'application/json'
+
+    def _cast_object(self, value):
+        if isinstance(value, str) or isinstance(value, unicode):
+            try:
+                return json.loads(value)
+            except:
+                return ast.literal_eval(value)
+        else:
+            return value
