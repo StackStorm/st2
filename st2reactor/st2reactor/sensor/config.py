@@ -22,7 +22,7 @@ CONF = cfg.CONF
 
 
 def _register_common_opts(ignore_errors=False):
-    st2cfg.register_opts(ignore_errors=True)
+    st2cfg.register_opts(ignore_errors=ignore_errors)
 
 
 def _register_sensor_container_opts(ignore_errors=False):
