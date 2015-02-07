@@ -13,14 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ast
 import copy
-import json
 import six
 
 from st2common import log as logging
 from st2common.util import action_db as action_db_util
-
+from st2common.util.casts import get_cast
 
 LOG = logging.getLogger(__name__)
 
@@ -84,25 +82,6 @@ def get_params_view(action_db=None, runner_db=None, merged_only=False):
 def cast_params(action_ref, params):
     """
     """
-    def cast_object(x):
-        if isinstance(x, str) or isinstance(x, unicode):
-            try:
-                return json.loads(x)
-            except:
-                return ast.literal_eval(x)
-        else:
-            return x
-
-    casts = {
-        'array': (lambda x: ast.literal_eval(x) if isinstance(x, str) or isinstance(x, unicode)
-                  else x),
-        'boolean': (lambda x: ast.literal_eval(x.capitalize())
-                    if isinstance(x, str) or isinstance(x, unicode) else x),
-        'integer': int,
-        'number': float,
-        'object': cast_object,
-        'string': str
-    }
     action_db = action_db_util.get_action_by_ref(action_ref)
     action_parameters_schema = action_db.parameters
     runnertype_db = action_db_util.get_runnertype_by_name(action_db.runner_type['name'])
@@ -123,7 +102,7 @@ def cast_params(action_ref, params):
         if not parameter_type:
             LOG.debug('Will skip cast of param[name: %s, value: %s]. No type.', k, v)
             continue
-        cast = casts.get(parameter_type, None)
+        cast = get_cast(cast_type=parameter_type)
         if not cast:
             LOG.debug('Will skip cast of param[name: %s, value: %s]. No cast for %s.', k, v,
                       parameter_type)
