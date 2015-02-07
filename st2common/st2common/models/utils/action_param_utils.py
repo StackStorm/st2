@@ -117,13 +117,17 @@ def cast_params(action_ref, params):
     for k, v in six.iteritems(params):
         parameter_schema = parameters_schema.get(k, None)
         if not parameter_schema:
+            LOG.debug('Will skip cast of param[name: %s, value: %s]. No schema.', k, v)
             continue
         parameter_type = parameter_schema.get('type', None)
         if not parameter_type:
+            LOG.debug('Will skip cast of param[name: %s, value: %s]. No type.', k, v)
             continue
         cast = casts.get(parameter_type, None)
-        LOG.debug('Casting param: %s of type %s to type: %s', v, type(v), parameter_type)
         if not cast:
+            LOG.debug('Will skip cast of param[name: %s, value: %s]. No cast for %s.', k, v,
+                      parameter_type)
             continue
+        LOG.debug('Casting param: %s of type %s to type: %s', v, type(v), parameter_type)
         params[k] = cast(v)
     return params
