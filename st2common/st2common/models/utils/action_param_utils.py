@@ -14,6 +14,13 @@
 # limitations under the License.
 
 import copy
+import six
+
+from st2common import log as logging
+from st2common.util import action_db as action_db_util
+from st2common.util.casts import get_cast
+
+LOG = logging.getLogger(__name__)
 
 
 def _merge_param_meta_values(action_meta=None, runner_meta=None):
@@ -70,3 +77,36 @@ def get_params_view(action_db=None, runner_db=None, merged_only=False):
     immutable_params = {k: merged_params[k] for k in immutable}
 
     return (required_params, optional_params, immutable_params)
+
+
+def cast_params(action_ref, params):
+    """
+    """
+    action_db = action_db_util.get_action_by_ref(action_ref)
+    action_parameters_schema = action_db.parameters
+    runnertype_db = action_db_util.get_runnertype_by_name(action_db.runner_type['name'])
+    runner_parameters_schema = runnertype_db.runner_parameters
+    # combine into 1 list of parameter schemas
+    parameters_schema = {}
+    if runner_parameters_schema:
+        parameters_schema.update(runner_parameters_schema)
+    if action_parameters_schema:
+        parameters_schema.update(action_parameters_schema)
+    # cast each param individually
+    for k, v in six.iteritems(params):
+        parameter_schema = parameters_schema.get(k, None)
+        if not parameter_schema:
+            LOG.debug('Will skip cast of param[name: %s, value: %s]. No schema.', k, v)
+            continue
+        parameter_type = parameter_schema.get('type', None)
+        if not parameter_type:
+            LOG.debug('Will skip cast of param[name: %s, value: %s]. No type.', k, v)
+            continue
+        cast = get_cast(cast_type=parameter_type)
+        if not cast:
+            LOG.debug('Will skip cast of param[name: %s, value: %s]. No cast for %s.', k, v,
+                      parameter_type)
+            continue
+        LOG.debug('Casting param: %s of type %s to type: %s', v, type(v), parameter_type)
+        params[k] = cast(v)
+    return params

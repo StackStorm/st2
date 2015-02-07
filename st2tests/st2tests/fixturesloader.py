@@ -88,7 +88,7 @@ class FixturesLoader(object):
     def __init__(self):
         self.meta_loader = MetaLoader()
 
-    def save_fixtures_to_db(self, fixtures_pack=None, fixtures_dict={}):
+    def save_fixtures_to_db(self, fixtures_pack=None, fixtures_dict=None):
         """
         Loads fixtures specified in fixtures_dict into the database
         and returns DB models for the fixtures.
@@ -108,6 +108,8 @@ class FixturesLoader(object):
 
         :rtype: ``dict``
         """
+        if fixtures_dict is None:
+            fixtures_dict = {}
         fixtures_pack_path = self._validate_fixtures_pack(fixtures_pack)
         self._validate_fixture_dict(fixtures_dict, allowed=ALLOWED_DB_FIXTURES)
 
