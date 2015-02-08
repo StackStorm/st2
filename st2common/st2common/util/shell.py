@@ -16,31 +16,40 @@
 import os
 import subprocess
 
+import six
+
 __all__ = [
     'run_command'
 ]
 
 
-def run_command(cmd, env=None):
+def run_command(cmd, cwd=None, env=None, shell=False):
     """
     Run the provided command in a subprocess and wait until it completes.
 
     :param cmd: Command to run.
-    :type cmd: ``list``
+    :type cmd: ``str`` or ``list``
+
+    :param cwd: Optional working directory.
+    :type cwd: ``str``
 
     :param env: Optional environment to use with the command. If not provided,
                 environment from the current process is inherited.
     :type env: ``dict``
 
+    :param shell: True to use a shell.
+    :type shell ``boolean``
+
     :rtype: ``tuple`` (exit_code, stdout, stderr)
     """
-    assert isinstance(cmd, (list, str, unicode))
+    assert isinstance(cmd, (list, tuple) + six.string_types)
 
     if not env:
         env = os.environ.copy()
 
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, env=env)
+                               stderr=subprocess.PIPE, env=env, cwd=cwd,
+                               shell=shell)
     stdout, stderr = process.communicate()
     exit_code = process.returncode
 
