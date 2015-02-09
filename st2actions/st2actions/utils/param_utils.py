@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ast
 import copy
 import json
 import six
@@ -23,6 +22,7 @@ from st2common import log as logging
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.exceptions import actionrunner
 from st2common.services.keyvalues import KeyValueLookup
+from st2common.util.casts import get_cast
 from st2common.util.compat import to_unicode
 
 
@@ -30,8 +30,10 @@ LOG = logging.getLogger(__name__)
 
 
 def _split_params(runner_parameters, action_parameters, mixed_params):
-    pf = lambda params, skips: {k: v for k, v in six.iteritems(mixed_params)
-                                if k in params and k not in skips}
+    def pf(params, skips):
+        result = {k: v for k, v in six.iteritems(mixed_params)
+                  if k in params and k not in skips}
+        return result
     return (pf(runner_parameters, {}), pf(action_parameters, runner_parameters))
 
 
@@ -228,18 +230,6 @@ def _do_render_params(renderable_params, context):
 
 
 def _cast_params(rendered, parameter_schemas):
-    casts = {
-        'array': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
-                  else x),
-        'boolean': (lambda x: ast.literal_eval(x.capitalize())
-                    if isinstance(x, str) or isinstance(x, unicode) else x),
-        'integer': int,
-        'number': float,
-        'object': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
-                   else x),
-        'string': to_unicode
-    }
-
     casted_params = {}
     for k, v in six.iteritems(rendered):
         # Add uncasted first and then override with casted param. Not all params will end up
@@ -255,7 +245,7 @@ def _cast_params(rendered, parameter_schemas):
         parameter_type = parameter_schema.get('type', None)
         if not parameter_type:
             continue
-        cast = casts.get(parameter_type, None)
+        cast = get_cast(cast_type=parameter_type)
         if not cast:
             continue
         casted_params[k] = cast(v)

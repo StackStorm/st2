@@ -14,64 +14,67 @@
 # limitations under the License.
 
 import datetime
-
 import mock
-import unittest2
 
-from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
-    RuleDB, ActionExecutionSpecDB
-from st2common.models.db.action import ActionDB, ActionExecutionDB
-import st2common.services.action as action_service
+from st2common.models.db.reactor import TriggerInstanceDB
+from st2common.models.db.action import ActionExecutionDB
+from st2common.services import action as action_service
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
-import st2tests.config as tests_config
+from st2tests import DbTestCase
+from st2tests.fixturesloader import FixturesLoader
 
-MOCK_TRIGGER = TriggerDB()
-MOCK_TRIGGER.id = 'trigger-test.id'
-MOCK_TRIGGER.name = 'trigger-test.name'
-MOCK_TRIGGER.pack = 'dummypack1'
+PACK = 'generic'
+FIXTURES_1 = {
+    'runners': ['testrunner1.json', 'testrunner2.json'],
+    'actions': ['action1.json', 'a2.json'],
+    'triggertypes': ['triggertype1.json'],
+    'triggers': ['trigger1.json']
+}
+FIXTURES_2 = {
+    'rules': ['rule1.json', 'rule2.json']
+}
 
 MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
 MOCK_TRIGGER_INSTANCE.id = 'triggerinstance-test'
-MOCK_TRIGGER_INSTANCE.trigger = reference.get_ref_from_model(MOCK_TRIGGER)
-MOCK_TRIGGER_INSTANCE.payload = {}
+MOCK_TRIGGER_INSTANCE.payload = {'t1_p': 't1_p_v'}
 MOCK_TRIGGER_INSTANCE.occurrence_time = datetime.datetime.utcnow()
-
-MOCK_ACTION = ActionDB()
-MOCK_ACTION.id = 'action-test-1.id'
-MOCK_ACTION.name = 'action-test-1.name'
 
 MOCK_ACTION_EXECUTION = ActionExecutionDB()
 MOCK_ACTION_EXECUTION.id = 'actionexec-test-1.id'
 MOCK_ACTION_EXECUTION.name = 'actionexec-test-1.name'
 MOCK_ACTION_EXECUTION.status = 'scheduled'
 
-MOCK_RULE_1 = RuleDB()
-MOCK_RULE_1.id = 'rule-test-1'
-MOCK_RULE_1.trigger = reference.get_str_resource_ref_from_model(MOCK_TRIGGER)
-MOCK_RULE_1.criteria = {}
-MOCK_RULE_1.action = ActionExecutionSpecDB()
-MOCK_RULE_1.action.ref = reference.get_ref_from_model(MOCK_ACTION)
-MOCK_RULE_1.enabled = True
 
-MOCK_RULE_2 = RuleDB()
-MOCK_RULE_2.id = 'rule-test-2'
-MOCK_RULE_2.trigger = reference.get_str_resource_ref_from_model(MOCK_TRIGGER)
-MOCK_RULE_2.criteria = {}
-MOCK_RULE_2.action = ActionExecutionSpecDB()
-MOCK_RULE_2.action.ref = reference.get_ref_from_model(MOCK_ACTION)
-MOCK_RULE_2.enabled = True
+class EnforceTest(DbTestCase):
 
-
-class EnforceTest(unittest2.TestCase):
+    models = None
 
     @classmethod
     def setUpClass(cls):
-        tests_config.parse_args()
+        super(EnforceTest, cls).setUpClass()
+        # Create TriggerTypes before creation of Rule to avoid failure. Rule requires the
+        # Trigger and therefore TriggerType to be created prior to rule creation.
+        cls.models = FixturesLoader().save_fixtures_to_db(
+            fixtures_pack=PACK, fixtures_dict=FIXTURES_1)
+        cls.models.update(FixturesLoader().save_fixtures_to_db(
+            fixtures_pack=PACK, fixtures_dict=FIXTURES_2))
+        MOCK_TRIGGER_INSTANCE.trigger = reference.get_ref_from_model(
+            cls.models['triggers']['trigger1.json'])
 
     @mock.patch.object(action_service, 'schedule', mock.MagicMock(
         return_value=MOCK_ACTION_EXECUTION))
     def test_ruleenforcement_occurs(self):
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, MOCK_RULE_1)
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule1.json'])
         execution_id = enforcer.enforce()
         self.assertTrue(execution_id is not None)
+
+    @mock.patch.object(action_service, 'schedule', mock.MagicMock(
+        return_value=MOCK_ACTION_EXECUTION))
+    def test_ruleenforcement_casts(self):
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule2.json'])
+        execution_id = enforcer.enforce()
+        self.assertTrue(execution_id is not None)
+        self.assertTrue(action_service.schedule.called)
+        self.assertTrue(isinstance(action_service.schedule.call_args[0][0].parameters['objtype'],
+                                   dict))

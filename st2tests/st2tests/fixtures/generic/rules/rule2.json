@@ -1,5 +1,5 @@
 {
-    "name": "rule1",
+    "name": "rule2",
     "description": "",
     "enabled": true,
     "trigger": {
@@ -12,10 +12,10 @@
         }
     },
     "action": {
-        "ref": "wolfpack.action-1",
+        "ref": "wolfpack.a2",
         "parameters": {
-            "ip2": "{{trigger}}",
-            "ip1": "{{trigger.t1_p}}"
+            "objtype": "{{trigger}}",
+            "strtype": "{{trigger.t1_p}}"
         }
     },
     "tags": [
