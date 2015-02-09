@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# --review flag
 
 import re
 import pipes
@@ -120,12 +119,12 @@ def get_package_list(name_startswith):
 
     :rtype: ``list`` of ``dict``
     """
-    dpkg_exit_code, _, _ = run_command(cmd=['dpkg'])
-    rpm_exit_code, _, _ = run_command(cmd=['rpm'])
+    dpkg_exit_code, _, _ = run_command(cmd='dpkg', shell=True)
+    rpm_exit_code, _, _ = run_command(cmd='rpm', shell=True)
 
-    if dpkg_exit_code == 0:
+    if dpkg_exit_code != 127:
         result = get_rpm_package_list(name_startswith=name_startswith)
-    elif rpm_exit_code == 0:
+    elif rpm_exit_code != 127:
         result = get_deb_package_list(name_startswith=name_startswith)
     else:
         raise Exception('Unsupported platform (dpkg or rpm binary not available)')
