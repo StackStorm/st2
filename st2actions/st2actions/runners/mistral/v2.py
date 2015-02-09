@@ -170,8 +170,15 @@ class MistralRunner(AsyncActionRunner):
                                                        **options)
 
         status = ACTIONEXEC_STATUS_RUNNING
-        query_context = {'mistral_execution_id': str(execution.id)}
-        LOG.info('Mistral query_context is %s' % query_context)
         partial_results = {'tasks': []}
 
-        return (status, partial_results, query_context)
+        context = {
+            'mistral': {
+                'execution_id': str(execution.id),
+                'workflow_name': execution.workflow_name
+            }
+        }
+
+        LOG.info('Mistral query context is %s' % context)
+
+        return (status, partial_results, context)

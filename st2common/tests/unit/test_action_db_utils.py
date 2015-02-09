@@ -15,6 +15,7 @@
 
 import copy
 import datetime
+import uuid
 
 import mock
 
@@ -102,29 +103,24 @@ class ActionDBUtilsTestCase(DbTestCase):
         # Update by id.
         newactionexec_db = action_db_utils.update_actionexecution_status(
             status='running', actionexec_id=actionexec_db.id)
+
         # Verify id didn't change.
         self.assertEqual(origactionexec_db.id, newactionexec_db.id)
         self.assertEqual(newactionexec_db.status, 'running')
 
-    def test_update_actionexecution_status_and_end_timestamp(self):
-        actionexec_db = ActionExecutionDB()
-        actionexec_db.status = 'initializing'
-        actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = ResourceReference(
-            name=ActionDBUtilsTestCase.action_db.name,
-            pack=ActionDBUtilsTestCase.action_db.pack).ref
-        actionexec_db.parameters = {}
-        actionexec_db = ActionExecution.add_or_update(actionexec_db)
-        origactionexec_db = copy.copy(actionexec_db)
-
-        # Update by id
-        now = datetime.datetime.now()
+        # Update status, result, context, and end timestamp.
+        now = datetime.datetime.utcnow()
+        status = 'succeeded'
+        result = 'Work is done.'
+        context = {'third_party_id': uuid.uuid4().hex}
         newactionexec_db = action_db_utils.update_actionexecution_status(
-            status='running', end_timestamp=now, actionexec_id=actionexec_db.id)
+            status=status, result=result, context=context, end_timestamp=now,
+            actionexec_id=actionexec_db.id)
 
-        # Verify id didn't change and end_timestamp has been set
         self.assertEqual(origactionexec_db.id, newactionexec_db.id)
-        self.assertEqual(newactionexec_db.status, 'running')
+        self.assertEqual(newactionexec_db.status, status)
+        self.assertEqual(newactionexec_db.result, result)
+        self.assertDictEqual(newactionexec_db.context, context)
         self.assertEqual(newactionexec_db.end_timestamp, now)
 
     def test_update_actionexecution_status_invalid(self):

@@ -36,7 +36,7 @@ class MistralResultsQuerier(Querier):
 
         :rtype: (``str``, ``object``)
         """
-        exec_id = query_context.get('mistral_execution_id', None)
+        exec_id = query_context.get('mistral', {}).get('execution_id', None)
         if not exec_id:
             raise Exception('Mistral execution id invalid in query_context %s.' %
                             str(query_context))

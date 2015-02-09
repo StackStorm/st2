@@ -169,4 +169,4 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             result['error'] = error
 
         status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
-        return (status, jsonify.json_loads(result, LocalShellRunner.KEYS_TO_TRANSFORM))
+        return (status, jsonify.json_loads(result, LocalShellRunner.KEYS_TO_TRANSFORM), None)
