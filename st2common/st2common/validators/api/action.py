@@ -30,7 +30,8 @@ def validate_action(action_api):
 
     # Check if pack is valid.
     if not _is_valid_pack(action_api.pack):
-        msg = 'Content pack "%s" doesn\'t exist in any of the packs paths' % (action_api.pack)
+        msg = ('Content pack "%s" is not found or doesn\'t contain actions directory' %
+               (action_api.pack))
         raise ValueValidationException(msg)
 
     # Check if parameters defined are valid.
