@@ -73,6 +73,42 @@ Example output (error):
         return func(*args, **kwargs)
         ...
 
+Changing the CLI output format
+------------------------------
+
+By default, CLI returns and prints results in a user-friendly table oriented
+format.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 action list --pack=slack
+    +--------------------+-------+--------------+-------------------------------+
+    | ref                | pack  | name         | description                   |
+    +--------------------+-------+--------------+-------------------------------+
+    | slack.post_message | slack | post_message | Post a message to the Slack   |
+    |                    |       |              | channel.                      |
+    +--------------------+-------+--------------+-------------------------------+
+
+If you want a raw JSON result as returned by the API (e.g. you are calling CLI
+as part of your script and you want raw result which you can parse), you can
+pass ``-j`` flag to the command.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 action list -j --pack=slack
+    [
+        {
+            "description": "Post a message to the Slack channel.",
+            "name": "post_message",
+            "pack": "slack",
+            "ref": "slack.post_message"
+        }
+    ]
+
 Escaping shell variables when using core.local and core.remote actions
 ----------------------------------------------------------------------
 
