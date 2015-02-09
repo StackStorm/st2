@@ -124,7 +124,8 @@ def get_actionexec_by_id(actionexec_id):
     return actionexec
 
 
-def update_actionexecution_status(status=None, result=None, end_timestamp=None, actionexec_id=None,
+def update_actionexecution_status(status=None, result=None, context=None,
+                                  end_timestamp=None, actionexec_id=None,
                                   actionexec_db=None):
     """
         Update the status of the specified ActionExecution to the value provided in
@@ -148,15 +149,21 @@ def update_actionexecution_status(status=None, result=None, end_timestamp=None, 
 
     LOG.debug('Updating ActionExection: "%s" with status="%s"',
               actionexec_db, status)
+
     actionexec_db.status = status
+
     if result:
         actionexec_db.result = result
+
+    if context:
+        actionexec_db.context.update(context)
 
     if end_timestamp:
         actionexec_db.end_timestamp = end_timestamp
 
     actionexec_db = ActionExecution.add_or_update(actionexec_db)
     LOG.debug('Updated status for ActionExecution object: %s', actionexec_db)
+
     return actionexec_db
 
 

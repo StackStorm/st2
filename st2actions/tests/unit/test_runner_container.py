@@ -89,6 +89,16 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(result.get('action_params').get('actionint') == 10)
         self.assertTrue(result.get('action_params').get('actionstr') == 'bar')
 
+        # Assert that context is written correctly.
+        context = {
+            'user': 'stanley',
+            'third_party_system': {
+                'ref_id': '1234'
+            }
+        }
+
+        self.assertDictEqual(actionexec_db.context, context)
+
     def test_dispatch_runner_failure(self):
         runner_container = get_runner_container()
         params = {

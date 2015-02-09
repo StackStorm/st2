@@ -49,7 +49,13 @@ class TestRunner(ActionRunner):
                 'action_params': action_params
             }
 
-        return (ACTIONEXEC_STATUS_SUCCEEDED, json.dumps(result))
+        context = {
+            'third_party_system': {
+                'ref_id': '1234'
+            }
+        }
+
+        return (ACTIONEXEC_STATUS_SUCCEEDED, json.dumps(result), context)
 
     def post_run(self, status, result):
         self.post_run_called = True

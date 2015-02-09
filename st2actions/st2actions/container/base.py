@@ -96,18 +96,15 @@ class RunnerContainer(object):
             runner.pre_run()
 
             LOG.debug('Performing run for runner: %s', runner)
-            if isinstance(runner, AsyncActionRunner):
-                (status, result, query_context) = runner.run(action_params)
-            else:
-                (status, result) = runner.run(action_params)
+            (status, result, context) = runner.run(action_params)
 
             try:
                 result = json.loads(result)
             except:
                 pass
 
-            if status not in DONE_STATES:
-                self._setup_async_query(actionexec_db.id, runnertype_db, query_context)
+            if isinstance(runner, AsyncActionRunner) and status not in DONE_STATES:
+                self._setup_async_query(actionexec_db.id, runnertype_db, context)
         except:
             LOG.exception('Failed to run action.')
             _, ex, tb = sys.exc_info()
@@ -115,11 +112,14 @@ class RunnerContainer(object):
             status = ACTIONEXEC_STATUS_FAILED
             # include the error message and traceback to try and provide some hints.
             result = {'message': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
+            context = None
         finally:
-            # Always clean-up the auth_token
-            updated_actionexec_db = self._update_action_execution_db(actionexec_db.id, status,
-                                                                     result)
+            updated_actionexec_db = self._update_action_execution_db(
+                actionexec_db.id, status, result, context)
+
             LOG.debug('Updated ActionExecution after run: %s', updated_actionexec_db)
+
+            # Always clean-up the auth_token
             try:
                 self._delete_auth_token(runner.auth_token)
             except:
@@ -131,7 +131,7 @@ class RunnerContainer(object):
 
         return updated_actionexec_db
 
-    def _update_action_execution_db(self, actionexec_id, status, result):
+    def _update_action_execution_db(self, actionexec_id, status, result, context):
         actionexec_db = get_actionexec_by_id(actionexec_id)
 
         if status in DONE_STATES:
@@ -142,6 +142,7 @@ class RunnerContainer(object):
         # Push result data and updated status to ActionExecution DB
         actionexec_db = update_actionexecution_status(status=status,
                                                       result=result,
+                                                      context=context,
                                                       end_timestamp=end_timestamp,
                                                       actionexec_db=actionexec_db)
         return actionexec_db

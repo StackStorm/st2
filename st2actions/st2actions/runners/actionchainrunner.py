@@ -203,7 +203,7 @@ class ActionChainRunner(ActionRunner):
         else:
             status = ACTIONEXEC_STATUS_SUCCEEDED
 
-        return (status, result)
+        return (status, result, None)
 
     @staticmethod
     def _render_publish_vars(action_node, execution_result, previous_execution_results,

@@ -155,7 +155,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        status, _ = chain_runner.run({})
+        status, _, _ = chain_runner.run({})
         self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
@@ -170,7 +170,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        status, results = chain_runner.run({})
+        status, results, context = chain_runner.run({})
         self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
 
