@@ -19,6 +19,7 @@ import shutil
 
 __all__ = [
     'get_full_file_list',
+    'get_dirs_in_path',
     'copy_files'
 ]
 
@@ -39,15 +40,44 @@ def get_full_file_list(file_path_glob):
     return file_list
 
 
-def copy_files(file_paths, destination):
+def get_dirs_in_path(file_path):
+    """
+    Retrieve full paths to the directories in the provided file path.
+
+    :param file_path: Parent directory file path.
+    :type file_path: ``str``
+
+    :rtype: ``list``
+    """
+    names = os.listdir(file_path)
+
+    result = []
+    for name in names:
+        full_path = os.path.join(file_path, name)
+
+        if not os.path.isdir(full_path):
+            continue
+
+        result.append(full_path)
+    return result
+
+
+def copy_files(file_paths, destination, ignore_errors=True):
     """
     Copy files to the provided destination.
 
     :type file_paths: ``list``
     :type destination: ``str``
+
+    :param ignore_errors: True to ignore errors if a source or destination doesnt'e exist.
+    :type ignore_errors: ``bool``
     """
 
     for file_path in file_paths:
-        shutil.copy(src=file_path, dst=destination)
+        try:
+            shutil.copy(src=file_path, dst=destination)
+        except IOError as e:
+            if not ignore_errors:
+                raise e
 
     return True
