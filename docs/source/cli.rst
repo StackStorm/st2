@@ -84,6 +84,7 @@ For example:
 .. sourcecode:: bash
 
     st2 action list --pack=slack
+
     +--------------------+-------+--------------+-------------------------------+
     | ref                | pack  | name         | description                   |
     +--------------------+-------+--------------+-------------------------------+
@@ -100,6 +101,7 @@ For example:
 .. sourcecode:: bash
 
     st2 action list -j --pack=slack
+
     [
         {
             "description": "Post a message to the Slack channel.",
@@ -108,6 +110,42 @@ For example:
             "ref": "slack.post_message"
         }
     ]
+
+Only displaying a particular attribute when retrieving action result
+--------------------------------------------------------------------
+
+By default when retrieving action execution result using ``execution get``
+command, the whole result object will be printed.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 execution get 54d8c52e0640fd1c87b9443f
+
+    STATUS: succeeded
+    RESULT:
+    {
+        "failed": false,
+        "stderr": "",
+        "return_code": 0,
+        "succeeded": true,
+        "stdout": "Mon Feb  9 14:33:18 UTC 2015
+    "
+    }
+
+If you only want to retrieve and print out a specified attribute, you can do
+that using ``-k <attribute name>`` flag.
+
+For example, if you only want to print ``stdout`` attribute of the result
+object:
+
+.. sourcecode:: bash
+
+    st2 execution get -k stdout 54d8c52e0640fd1c87b9443f
+
+    Mon Feb  9 14:33:18 UTC 2015
+
 
 Escaping shell variables when using core.local and core.remote actions
 ----------------------------------------------------------------------
