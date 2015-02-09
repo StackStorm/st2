@@ -30,8 +30,10 @@ LOG = logging.getLogger(__name__)
 
 
 def _split_params(runner_parameters, action_parameters, mixed_params):
-    pf = lambda params, skips: {k: v for k, v in six.iteritems(mixed_params)
-                                if k in params and k not in skips}
+    def pf(params, skips):
+        result = {k: v for k, v in six.iteritems(mixed_params)
+                  if k in params and k not in skips}
+        return result
     return (pf(runner_parameters, {}), pf(action_parameters, runner_parameters))
 
 

@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import uuid
+
 import st2tests.config as tests_config
 tests_config.parse_args()
-
-import uuid
 
 from unittest2 import TestCase
 from st2actions.container.service import RunnerContainerService
