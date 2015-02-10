@@ -124,8 +124,8 @@ def get_liveaction_by_id(liveaction_id):
     return liveaction
 
 
-def update_actionexecution_status(status=None, result=None, context=None, end_timestamp=None,
-                                  liveaction_id=None, liveaction_db=None):
+def update_liveaction_status(status=None, result=None, context=None, end_timestamp=None,
+                             liveaction_id=None, liveaction_db=None):
     """
         Update the status of the specified LiveAction to the value provided in
         new_status.
