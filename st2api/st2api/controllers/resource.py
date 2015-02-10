@@ -120,7 +120,7 @@ class ResourceController(rest.RestController):
 
         if limit:
             pecan.response.headers['X-Limit'] = str(limit)
-        pecan.response.headers['X-Total-Count'] = str(len(instances))
+        pecan.response.headers['X-Total-Count'] = str(instances.count())
 
         return [self.model.from_model(instance) for instance in instances[offset:eop]]
 
