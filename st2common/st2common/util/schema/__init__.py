@@ -103,10 +103,13 @@ def get_validator(version='custom', assign_property_default=False):
 
 def get_parameter_schema(model):
     # Dynamically construct JSON schema from the parameters metadata.
+    def normalize(x):
+        return {k: v if v else SCHEMA_ANY_TYPE for k, v in six.iteritems(x)}
+
     schema = {}
     from st2common.util.action_db import get_runnertype_by_name
     runner_type = get_runnertype_by_name(model.runner_type['name'])
-    normalize = lambda x: {k: v if v else SCHEMA_ANY_TYPE for k, v in six.iteritems(x)}
+
     properties = normalize(runner_type.runner_parameters)
     properties.update(normalize(model.parameters))
     if properties:

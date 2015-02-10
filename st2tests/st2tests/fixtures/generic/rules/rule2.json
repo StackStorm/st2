@@ -1,22 +1,25 @@
 {
+    "name": "rule2",
+    "description": "",
     "enabled": true,
     "trigger": {
-        "type": "dummy_pack_1.st2.webhook",
-        "parameters": {
-            "url": "person"
-        }
+        "type": "wolfpack.triggertype-1"
     },
     "criteria": {
-        "trigger.name": {
-            "pattern": "Joe",
+        "t1_p": {
+            "pattern": "t1_p_v",
             "type": "equals"
         }
     },
     "action": {
-        "ref": "core.local",
+        "ref": "wolfpack.a2",
         "parameters": {
-            "cmd": "echo \"{{trigger}}\" >> /tmp/st2.persons.out"
+            "objtype": "{{trigger}}",
+            "strtype": "{{trigger.t1_p}}"
         }
     },
-    "name": "st2.person.joe"
+    "tags": [
+        {"name": "tag1", "value": "dont-care"},
+        {"name": "tag2", "value": "dont-care"}
+    ]
 }

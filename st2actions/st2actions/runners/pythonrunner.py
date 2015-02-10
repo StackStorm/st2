@@ -182,7 +182,7 @@ class PythonRunner(ActionRunner):
 
         status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
         LOG.debug('Action output : %s. exit_code : %s. status : %s', str(output), exit_code, status)
-        return (status, output)
+        return (status, output, None)
 
     def _get_env_vars(self):
         """

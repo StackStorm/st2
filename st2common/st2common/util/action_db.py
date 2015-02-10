@@ -124,8 +124,8 @@ def get_liveaction_by_id(liveaction_id):
     return liveaction
 
 
-def update_liveaction_status(status=None, result=None, end_timestamp=None, liveaction_id=None,
-                             liveaction_db=None):
+def update_actionexecution_status(status=None, result=None, context=None, end_timestamp=None,
+                                  liveaction_id=None, liveaction_db=None):
     """
         Update the status of the specified LiveAction to the value provided in
         new_status.
@@ -146,17 +146,21 @@ def update_liveaction_status(status=None, result=None, end_timestamp=None, livea
                          'to unknown status string. Unknown status is "%s"',
                          liveaction_db, status)
 
-    LOG.debug('Updating ActionExection: "%s" with status="%s"',
-              liveaction_db, status)
+    LOG.debug('Updating ActionExection: "%s" with status="%s"', liveaction_db, status)
     liveaction_db.status = status
+
     if result:
         liveaction_db.result = result
+
+    if context:
+        liveaction_db.context.update(context)
 
     if end_timestamp:
         liveaction_db.end_timestamp = end_timestamp
 
     liveaction_db = LiveAction.add_or_update(liveaction_db)
     LOG.debug('Updated status for LiveAction object: %s', liveaction_db)
+
     return liveaction_db
 
 
@@ -169,7 +173,7 @@ def get_args(action_parameters, action_db):
 
     positional_args = []
     positional_args_keys = set()
-    for pos, arg in six.iteritems(position_args_dict):
+    for _, arg in six.iteritems(position_args_dict):
         positional_args.append(str(action_parameters.get(arg)))
         positional_args_keys.add(arg)
     positional_args = ' '.join(positional_args)  # convert to string.

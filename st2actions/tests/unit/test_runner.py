@@ -48,8 +48,13 @@ class TestRunner(ActionRunner):
                 'ran': True,
                 'action_params': action_params
             }
+        context = {
+            'third_party_system': {
+                'ref_id': '1234'
+            }
+        }
 
-        return (LIVEACTION_STATUS_SUCCEEDED, json.dumps(result))
+        return (LIVEACTION_STATUS_SUCCEEDED, json.dumps(result), context)
 
     def post_run(self, status, result):
         self.post_run_called = True

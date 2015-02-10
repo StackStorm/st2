@@ -124,7 +124,7 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
             result, cfg.CONF.ssh_runner.allow_partial_failure)
 
         # TODO (manas) : figure out the right boolean representation.
-        return (status, result)
+        return (status, result, None)
 
     def _run(self, remote_action):
         LOG.info('Executing action via FabricRunner :%s for user: %s.',

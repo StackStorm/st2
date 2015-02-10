@@ -31,6 +31,8 @@ Docs: http://docks.stackstorm.com/latest
 * Allow user to pass ``--inherit-env`` flag to the ``st2 action run`` command which causes all
   the environment variables accessible to the CLI to be sent as ``env`` parameter to the action
   being executed. (new-feature)
+* Cast params of an execution before scheduling in the RulesEngine. This allows non-string
+  parameters in an action. (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------

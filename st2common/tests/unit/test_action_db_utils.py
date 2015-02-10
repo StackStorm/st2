@@ -15,6 +15,7 @@
 
 import copy
 import datetime
+import uuid
 
 import mock
 
@@ -83,7 +84,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         liveaction = action_db_utils.get_liveaction_by_id(ActionDBUtilsTestCase.liveaction_db.id)
         self.assertEqual(liveaction, ActionDBUtilsTestCase.liveaction_db)
 
-    def test_update_LiveAction_status(self):
+    def test_update_liveaction_status(self):
         liveaction_db = LiveActionDB()
         liveaction_db.status = 'initializing'
         liveaction_db.start_timestamp = datetime.datetime.utcnow()
@@ -106,25 +107,19 @@ class ActionDBUtilsTestCase(DbTestCase):
         self.assertEqual(origliveaction_db.id, newliveaction_db.id)
         self.assertEqual(newliveaction_db.status, 'running')
 
-    def test_update_LiveAction_status_and_end_timestamp(self):
-        liveaction_db = LiveActionDB()
-        liveaction_db.status = 'initializing'
-        liveaction_db.start_timestamp = datetime.datetime.utcnow()
-        liveaction_db.action = ResourceReference(
-            name=ActionDBUtilsTestCase.action_db.name,
-            pack=ActionDBUtilsTestCase.action_db.pack).ref
-        liveaction_db.parameters = {}
-        liveaction_db = LiveAction.add_or_update(liveaction_db)
-        origliveaction_db = copy.copy(liveaction_db)
-
-        # Update by id
-        now = datetime.datetime.now()
+        # Update status, result, context, and end timestamp.
+        now = datetime.datetime.utcnow()
+        status = 'succeeded'
+        result = 'Work is done.'
+        context = {'third_party_id': uuid.uuid4().hex}
         newliveaction_db = action_db_utils.update_liveaction_status(
-            status='running', end_timestamp=now, liveaction_id=liveaction_db.id)
+            status=status, result=result, context=context, end_timestamp=now,
+            liveaction_id=liveaction_db.id)
 
-        # Verify id didn't change and end_timestamp has been set
         self.assertEqual(origliveaction_db.id, newliveaction_db.id)
-        self.assertEqual(newliveaction_db.status, 'running')
+        self.assertEqual(newliveaction_db.status, status)
+        self.assertEqual(newliveaction_db.result, result)
+        self.assertDictEqual(newliveaction_db.context, context)
         self.assertEqual(newliveaction_db.end_timestamp, now)
 
     def test_update_LiveAction_status_invalid(self):

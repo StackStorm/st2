@@ -100,18 +100,15 @@ class RunnerContainer(object):
             runner.pre_run()
 
             LOG.debug('Performing run for runner: %s', runner)
-            if isinstance(runner, AsyncActionRunner):
-                (status, result, query_context) = runner.run(action_params)
-            else:
-                (status, result) = runner.run(action_params)
+            (status, result, context) = runner.run(action_params)
 
             try:
                 result = json.loads(result)
             except:
                 pass
 
-            if status not in DONE_STATES:
-                self._setup_async_query(liveaction_db.id, runnertype_db, query_context)
+            if isinstance(runner, AsyncActionRunner) and status not in DONE_STATES:
+                self._setup_async_query(liveaction_db.id, runnertype_db, context)
         except:
             LOG.exception('Failed to run action.')
             _, ex, tb = sys.exc_info()
@@ -119,10 +116,11 @@ class RunnerContainer(object):
             status = LIVEACTION_STATUS_FAILED
             # include the error message and traceback to try and provide some hints.
             result = {'message': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
+            context = None
         finally:
             # Always clean-up the auth_token
             updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
-                                                                result)
+                                                                result, context)
             executions.update_execution(updated_liveaction_db)
             LOG.debug('Updated liveaction after run: %s', updated_liveaction_db)
             try:
@@ -136,17 +134,16 @@ class RunnerContainer(object):
 
         return updated_liveaction_db
 
-    def _update_live_action_db(self, liveaction_id, status, result):
+    def _update_live_action_db(self, liveaction_id, status, result, context):
         liveaction_db = get_liveaction_by_id(liveaction_id)
-
         if status in DONE_STATES:
             end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
         else:
             end_timestamp = None
 
-        # Push result data and updated status to liveaction DB
         liveaction_db = update_liveaction_status(status=status,
                                                  result=result,
+                                                 context=context,
                                                  end_timestamp=end_timestamp,
                                                  liveaction_db=liveaction_db)
         return liveaction_db

@@ -22,30 +22,55 @@ __all__ = [
     'get_allowed_operators'
 ]
 
-# operator impls
-equals = lambda value, criteria_pattern: value == criteria_pattern
+# Operation implementations
 
-iequals = lambda value, criteria_pattern: value.lower() == criteria_pattern.lower()
 
-contains = lambda value, criteria_pattern: criteria_pattern in value
+def equals(value, criteria_pattern):
+    return value == criteria_pattern
 
-icontains = lambda value, criteria_pattern: criteria_pattern.lower() in value.lower()
 
-ncontains = lambda value, criteria_pattern: criteria_pattern not in value
+def iequals(value, criteria_pattern):
+    return value.lower() == criteria_pattern.lower()
 
-incontains = lambda value, criteria_pattern: criteria_pattern.lower() not in value.lower()
 
-startswith = lambda value, criteria_pattern: value.startswith(criteria_pattern)
+def contains(value, criteria_pattern):
+    return criteria_pattern in value
 
-istartswith = lambda value, criteria_pattern: value.lower().startswith(criteria_pattern.lower())
 
-endswith = lambda value, criteria_pattern: value.endswith(criteria_pattern)
+def icontains(value, criteria_pattern):
+    return criteria_pattern.lower() in value.lower()
 
-iendswith = lambda value, criteria_pattern: value.lower().endswith(criteria_pattern.lower())
 
-less_than = lambda value, criteria_pattern: value < criteria_pattern
+def ncontains(value, criteria_pattern):
+    return criteria_pattern not in value
 
-greater_than = lambda value, criteria_pattern: value > criteria_pattern
+
+def incontains(value, criteria_pattern):
+    return criteria_pattern.lower() not in value.lower()
+
+
+def startswith(value, criteria_pattern):
+    return value.startswith(criteria_pattern)
+
+
+def istartswith(value, criteria_pattern):
+    return value.lower().startswith(criteria_pattern.lower())
+
+
+def endswith(value, criteria_pattern):
+    return value.endswith(criteria_pattern)
+
+
+def iendswith(value, criteria_pattern):
+    return value.lower().endswith(criteria_pattern.lower())
+
+
+def less_than(value, criteria_pattern):
+    return value < criteria_pattern
+
+
+def greater_than(value, criteria_pattern):
+    return value > criteria_pattern
 
 
 def get_allowed_operators():

@@ -147,7 +147,7 @@ class MistralRunner(AsyncActionRunner):
 
         if not is_workbook:
             # Non-workbook definition containing multiple workflows is not supported.
-            if len([k for k, v in six.iteritems(def_dict) if k != 'version']) != 1:
+            if len([k for k, _ in six.iteritems(def_dict) if k != 'version']) != 1:
                 raise Exception('Workflow (not workbook) definition is detected. '
                                 'Multiple workflows is not supported.')
 
@@ -170,8 +170,14 @@ class MistralRunner(AsyncActionRunner):
                                                        **options)
 
         status = LIVEACTION_STATUS_RUNNING
-        query_context = {'mistral_execution_id': str(execution.id)}
-        LOG.info('Mistral query_context is %s' % query_context)
         partial_results = {'tasks': []}
+        context = {
+            'mistral': {
+                'execution_id': str(execution.id),
+                'workflow_name': execution.workflow_name
+            }
+        }
 
-        return (status, partial_results, query_context)
+        LOG.info('Mistral query context is %s' % context)
+
+        return (status, partial_results, context)

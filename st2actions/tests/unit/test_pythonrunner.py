@@ -48,7 +48,7 @@ class PythonRunnerTestCase(TestCase):
         runner.entry_point = PACAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        (status, result) = runner.run({'row_index': 4})
+        (status, result, _) = runner.run({'row_index': 4})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(result is not None)
         self.assertEqual(result['result'], [1, 4, 6, 4, 1])
@@ -60,7 +60,7 @@ class PythonRunnerTestCase(TestCase):
         runner.entry_point = PACAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        (status, result) = runner.run({'row_index': '4'})
+        (status, result, _) = runner.run({'row_index': '4'})
         self.assertTrue(result is not None)
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
 
@@ -71,7 +71,7 @@ class PythonRunnerTestCase(TestCase):
         runner.entry_point = 'foo.py'
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        (status, result) = runner.run({})
+        (status, result, _) = runner.run({})
         self.assertTrue(result is not None)
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
 
@@ -99,9 +99,9 @@ class PythonRunnerTestCase(TestCase):
         runner.entry_point = PACAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        (status, result) = runner.run({'row_index': 4})
+        (_, _, _) = runner.run({'row_index': 4})
 
-        call_args, call_kwargs = mock_popen.call_args
+        _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs['env']
 
         for key, value in env_vars.items():

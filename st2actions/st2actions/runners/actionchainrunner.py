@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ast
 import eventlet
 import jinja2
 import json
@@ -30,6 +29,7 @@ from st2common.content.loader import MetaLoader
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.db.action import LiveActionDB
 from st2common.models.system import actionchain
+from st2common.models.utils import action_param_utils
 from st2common.services import action as action_service
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import action_db as action_db_util
@@ -202,7 +202,7 @@ class ActionChainRunner(ActionRunner):
         else:
             status = LIVEACTION_STATUS_SUCCEEDED
 
-        return (status, result)
+        return (status, result, None)
 
     @staticmethod
     def _render_publish_vars(action_node, execution_result, previous_execution_results,
@@ -241,7 +241,8 @@ class ActionChainRunner(ActionRunner):
     @staticmethod
     def _run_action(action_node, parent_execution_id, params, wait_for_completion=True):
         execution = LiveActionDB(action=action_node.ref)
-        execution.parameters = ActionChainRunner._cast_params(action_node.ref, params)
+        execution.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
+                                                              params=params)
         execution.context = {
             'parent': str(parent_execution_id),
             'chain': vars(action_node)
@@ -286,53 +287,6 @@ class ActionChainRunner(ActionRunner):
             result['result'] = liveaction_db.result
 
         return result
-
-    @staticmethod
-    def _cast_params(action_ref, params):
-        def cast_object(x):
-            if isinstance(x, str) or isinstance(x, unicode):
-                try:
-                    return json.loads(x)
-                except:
-                    return ast.literal_eval(x)
-            else:
-                return x
-
-        casts = {
-            'array': (lambda x: ast.literal_eval(x) if isinstance(x, str) or isinstance(x, unicode)
-                      else x),
-            'boolean': (lambda x: ast.literal_eval(x.capitalize())
-                        if isinstance(x, str) or isinstance(x, unicode) else x),
-            'integer': int,
-            'number': float,
-            'object': cast_object,
-            'string': str
-        }
-
-        action_db = action_db_util.get_action_by_ref(action_ref)
-        action_parameters_schema = action_db.parameters
-        runnertype_db = action_db_util.get_runnertype_by_name(action_db.runner_type['name'])
-        runner_parameters_schema = runnertype_db.runner_parameters
-        # combine into 1 list of parameter schemas
-        parameters_schema = {}
-        if runner_parameters_schema:
-            parameters_schema.update(runner_parameters_schema)
-        if action_parameters_schema:
-            parameters_schema.update(action_parameters_schema)
-        # cast each param individually
-        for k, v in six.iteritems(params):
-            parameter_schema = parameters_schema.get(k, None)
-            if not parameter_schema:
-                continue
-            parameter_type = parameter_schema.get('type', None)
-            if not parameter_type:
-                continue
-            cast = casts.get(parameter_type, None)
-            LOG.debug('Casting param: %s of type %s to type: %s', v, type(v), parameter_type)
-            if not cast:
-                continue
-            params[k] = cast(v)
-        return params
 
 
 def get_runner():
