@@ -19,6 +19,7 @@ Contents:
     workflows
     history
     cli
+    debugging
     resources/index
     reference/index
     changelog
