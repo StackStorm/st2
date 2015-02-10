@@ -52,7 +52,7 @@ def get_cpu_info():
         line = line.strip()
 
         if not line:
-            if item and index != (lines_count - 1):
+            if item and index != lines_count:
                 result.append(item)
             continue
 
