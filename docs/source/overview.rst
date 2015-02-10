@@ -36,7 +36,7 @@ How it works
 
 * **Packs** are the units of content deployment. They simplify the management and sharing of |st2| pluggable content by grouping integrations (triggers and actions) and automations (rules and workflows). A growing number of packs is available on |st2| community. User can create their own packs,  share them on Github, or submit to |st2| community repo.
 
-* **Audit trail** of action liveactions, manual or automated, is recorded and stored with full details of triggering context and execution results. It is is also captured in audit logs for integrating with external logging and analytical tools: LogStash, Splunk, statsd, syslog.
+* **Audit trail** of action executions, manual or automated, is recorded and stored with full details of triggering context and execution results. It is is also captured in audit logs for integrating with external logging and analytical tools: LogStash, Splunk, statsd, syslog.
 
 
 |st2| is a service with modular architecture. It comprises loosely coupled  service components that communicate over the message bus, and scales horizontally to deliver automation at scale. |st2| has a full REST API, CLI client for admins and users to operate it locally or remotely, and Python client bindings for developer’s convenience. Web UI is coming soon.

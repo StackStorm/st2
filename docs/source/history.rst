@@ -1,7 +1,7 @@
 History and Audit
 =================
 
-These are records maintained by |st2| of past action liveactions.  These records include information about what events triggered what rules and then what actions; common uses for this information includes root cause analysis reporting as well as operational control as well as collaboration.
+These are records maintained by |st2| of past action executions.  These records include information about what events triggered what rules and then what actions; common uses for this information includes root cause analysis reporting as well as operational control as well as collaboration.
 
 This information is stored in two forms
 
@@ -17,7 +17,7 @@ All execution records are accessible by the ``st2 execution *`` command family.
 
 .. code-block:: bash
 
-    # to see last 5 liveactions
+    # to see last 5 executions
     $ st2 execution list -n 5
     +--------------------------+---------------+--------------+-----------+-----------------------------+
     | id                       | action        | context.user | status    | start_timestamp             |
