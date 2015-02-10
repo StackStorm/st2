@@ -55,6 +55,7 @@ from st2debug.constants import S3_BUCKET_URL
 from st2debug.utils.fs import copy_files
 from st2debug.utils.fs import get_full_file_list
 from st2debug.utils.fs import get_dirs_in_path
+from st2debug.utils.fs import remove_file
 from st2debug.utils.system_info import get_cpu_info
 from st2debug.utils.system_info import get_memory_info
 from st2debug.utils.system_info import get_package_list
@@ -334,11 +335,20 @@ def upload_archive(archive_file_path):
 
 def create_and_upload_archive(include_logs, include_configs, include_content, include_system_info,
                               debug=False):
-    plain_text_output_path, encrypted_output_path = create_archive(include_logs=include_logs, include_configs=include_configs,
-                                                                   include_content=include_content,
-                                                                   include_system_info=include_system_info)
-    upload_archive(archive_file_path=encrypted_output_path)
-    LOG.info('Debug tarball successfully uploaded to StackStorm')
+    try:
+        plain_text_output_path, encrypted_output_path = create_archive(include_logs=include_logs,
+                                                                       include_configs=include_configs,
+                                                                       include_content=include_content,
+                                                                       include_system_info=include_system_info)
+        upload_archive(archive_file_path=encrypted_output_path)
+    except Exception as e:
+        LOG.exception('Failed to upload tarball to StackStorm', exc_info=True)
+    else:
+        LOG.info('Debug tarball successfully uploaded to StackStorm')
+    finally:
+        # Remove tarballs
+        remove_file(file_path=plain_text_output_path)
+        remove_file(file_path=encrypted_output_path)
 
 
 def main():
@@ -353,6 +363,8 @@ def main():
                         help='Don\'t include system information in the generated tarball')
     parser.add_argument('--yes', action='store_true', default=False,
                         help='Run in non-interative mode and answer "yes" to all the questions')
+    parser.add_argument('--review', action='store_true', default=False,
+                        help='Generate the tarball, but don\'t encrypt and upload it')
     parser.add_argument('--debug', action='store_true', default=False,
                         help='Enable debug mode')
     args = parser.parse_args()

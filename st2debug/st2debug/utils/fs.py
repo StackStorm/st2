@@ -20,7 +20,8 @@ import shutil
 __all__ = [
     'get_full_file_list',
     'get_dirs_in_path',
-    'copy_files'
+    'copy_files',
+    'remove_file'
 ]
 
 
@@ -81,3 +82,11 @@ def copy_files(file_paths, destination, ignore_errors=True):
                 raise e
 
     return True
+
+
+def remove_file(file_path, ignore_errors=True):
+    try:
+        os.remove(file_path)
+    except Exception as e:
+        if not ignore_errors:
+            raise e
