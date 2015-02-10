@@ -34,7 +34,7 @@ Docs: http://docks.stackstorm.com/latest
 * Cast params of an execution before scheduling in the RulesEngine. This allows non-string
   parameters in an action. (new-feature)
 * Rename ActionExecution to LiveAction. (refactor)
-* Rename ActionExecutionHistor to ActionExecution. (refactor)
+* Rename ActionExecutionHistory to ActionExecution. (refactor)
 * A separate history process is no longer required. ActionExecution updates are carried at time of
   update to LiveAction. (refactor)
 * API url change /v1/history/execution to /v1/history/liveactions (refactor)
