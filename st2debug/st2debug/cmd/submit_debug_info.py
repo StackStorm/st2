@@ -420,7 +420,7 @@ def main():
                         not getattr(args, name, False)]
     submited_content = ', '.join(submited_content)
 
-    if not args.yes:
+    if not args.yes and not args.review:
         print('This will submit the following information to StackStorm: %s' % (submited_content))
         value = six.moves.input('Are you sure you want to proceed? [y/n] ')
         if value.strip().lower() not in ['y', 'yes']:
