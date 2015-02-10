@@ -30,7 +30,7 @@ actions to be run remotely (via SSH) and locally. The objective is to
 allow the Action author to concentrate only on the implementation of the
 action itself rather than setting up the environment.
 
-Aavailable runners
+Available runners
 ~~~~~~~~~~~~~~~~~~
 
 The environment in which the action runs is specified by the runner.
