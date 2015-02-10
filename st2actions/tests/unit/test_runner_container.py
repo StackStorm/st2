@@ -100,7 +100,7 @@ class RunnerContainerTest(DbTestCase):
             }
         }
 
-        self.assertDictEqual(actionexec_db.context, context)
+        self.assertDictEqual(liveaction_db.context, context)
 
     def test_dispatch_runner_failure(self):
         runner_container = get_runner_container()
