@@ -17,19 +17,16 @@ import json
 import copy
 import jinja2
 
+from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.services.keyvalues import KeyValueLookup
 import six
 
 
-PAYLOAD_PREFIX = 'trigger'
-RULE_DATA_PREFIX = 'rule'
-
-
 class Jinja2BasedTransformer(object):
     def __init__(self, payload):
         self._payload_context = Jinja2BasedTransformer.\
-            _construct_context(PAYLOAD_PREFIX, payload, {})
+            _construct_context(TRIGGER_PAYLOAD_PREFIX, payload, {})
 
     def __call__(self, mapping):
         context = copy.copy(self._payload_context)
