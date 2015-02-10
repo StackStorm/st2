@@ -36,7 +36,7 @@ TEST_FIXTURES = {
     'executions': ['execution1.json'],
     'runners': ['run-local.json'],
     'triggertypes': ['triggertype2.json'],
-    'rules': ['rule2.json'],
+    'rules': ['rule3.json'],
     'triggers': ['trigger2.json'],
     'triggerinstances': ['trigger_instance_1.json']
 }
@@ -79,7 +79,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         trigger = self.MODELS['triggers']['trigger2.json']
         trigger_instance = self.MODELS['triggerinstances']['trigger_instance_1.json']
         test_liveaction = self.FIXTURES['liveactions']['liveaction3.json']
-        rule = self.MODELS['rules']['rule2.json']
+        rule = self.MODELS['rules']['rule3.json']
         # Setup LiveAction to point to right rule and trigger_instance.
         # XXX: We need support for dynamic fixtures.
         test_liveaction['context']['rule']['id'] = str(rule.id)
