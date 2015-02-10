@@ -20,7 +20,6 @@ from st2common import log as logging
 from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.services.keyvalues import KeyValueLookup
-from st2reactor.rules.datatransform import get_transformer
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.filter')
