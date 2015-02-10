@@ -13,8 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common import log as logging
 import st2common.operators as criteria_operators
+
+from jsonpath_rw import parse
+from st2common import log as logging
+from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
+from st2common.constants.system import SYSTEM_KV_PREFIX
+from st2common.services.keyvalues import KeyValueLookup
 from st2reactor.rules.datatransform import get_transformer
 
 
@@ -48,12 +53,12 @@ class RuleFilter(object):
         if criteria and not self.trigger_instance.payload:
             return False
 
-        transform = get_transformer(self.trigger_instance.payload)
+        payload_lookup = PayloadLookup(self.trigger_instance.payload)
 
         LOG.debug('Trigger payload: %s', self.trigger_instance.payload)
         for criterion_k in criteria.keys():
             criterion_v = criteria[criterion_k]
-            is_rule_applicable = self._check_criterion(criterion_k, criterion_v, transform)
+            is_rule_applicable = self._check_criterion(criterion_k, criterion_v, payload_lookup)
             if not is_rule_applicable:
                 break
 
@@ -63,13 +68,15 @@ class RuleFilter(object):
 
         return is_rule_applicable
 
-    def _check_criterion(self, criterion_k, criterion_v, transform):
+    def _check_criterion(self, criterion_k, criterion_v, payload_lookup):
         # No payload or matching criterion_k in the payload therefore cannot apply a criteria.
         if 'pattern' not in criterion_v or criterion_v['pattern'] is None:
             return False
 
         try:
-            payload_value = transform({'result': '{{' + criterion_k + '}}'})
+            matches = payload_lookup.get_value(criterion_k)
+            # pick value if only 1 matches else will end up being an array match.
+            payload_value = matches[0] if len(matches) > 0 else matches
         except:
             LOG.exception('Failed transforming criteria key %s', criterion_k)
             return False
@@ -80,4 +87,20 @@ class RuleFilter(object):
             criteria_operator = criterion_v['type']
         op_func = criteria_operators.get_operator(criteria_operator)
 
-        return op_func(value=payload_value['result'], criteria_pattern=criteria_pattern)
+        return op_func(value=payload_value, criteria_pattern=criteria_pattern)
+
+
+class PayloadLookup():
+
+    def __init__(self, payload):
+        self._context = {
+            SYSTEM_KV_PREFIX: KeyValueLookup(),
+            TRIGGER_PAYLOAD_PREFIX: payload
+        }
+
+    def get_value(self, lookup_key):
+        expr = parse(lookup_key)
+        matches = [match.value for match in expr.find(self._context)]
+        if not matches:
+            raise ValueError('Unable to find key %s.' % lookup_key)
+        return matches
