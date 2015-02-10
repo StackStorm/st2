@@ -211,6 +211,12 @@ def get_system_information():
 
 def create_archive(include_logs, include_configs, include_content, include_system_info,
                    debug=False):
+    """
+    Create an archive with debugging information.
+
+    :return: Path to the generated archive.
+    :rtype: ``str``
+    """
     date = datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
     values = {'hostname': socket.gethostname(), 'date': date}
 
@@ -302,7 +308,21 @@ def create_archive(include_logs, include_configs, include_content, include_syste
 
             tar.add(source_dir, arcname=arcname)
 
-    # 5. Encrypt the tarball
+    return output_file_path
+
+
+def encrypt_archive(archive_file_path, debug=False):
+    """
+    Encrypt archive with debugging information using our public key.
+
+    :param archive_file_path: Path to the non-encrypted tarball file.
+    :type archive_file_path: ``str``
+
+    :return: Path to the encrypted archive.
+    :rtype: ``str``
+    """
+    assert(archive_file_path.endswith('.tar.gz'))
+
     LOG.info('Encrypting tarball...')
     gpg = gnupg.GPG(verbose=debug)
 
@@ -310,14 +330,14 @@ def create_archive(include_logs, include_configs, include_content, include_syste
     import_result = gpg.import_keys(GPG_KEY)
     assert(import_result.count == 1)
 
-    encrypted_archive_output_file_path = output_file_path + '.asc'
-    with open(output_file_path, 'rb') as fp:
+    encrypted_archive_output_file_path = archive_file_path + '.asc'
+    with open(archive_file_path, 'rb') as fp:
         gpg.encrypt_file(fp,
                          recipients=GPG_KEY_FINGERPRINT,
                          always_trust=True,
                          output=encrypted_archive_output_file_path)
 
-    return (output_file_path, encrypted_archive_output_file_path)
+    return encrypted_archive_output_file_path
 
 
 def upload_archive(archive_file_path):
@@ -333,15 +353,30 @@ def upload_archive(archive_file_path):
     assert response.status_code == httplib.OK
 
 
+def create_and_review_archive(include_logs, include_configs, include_content, include_system_info,
+                              debug=False):
+    try:
+        plain_text_output_path = create_archive(include_logs=include_logs,
+                                                include_configs=include_configs,
+                                                include_content=include_content,
+                                                include_system_info=include_system_info)
+    except Exception:
+        LOG.exception('Failed to generate tarball', exc_info=True)
+    else:
+        LOG.info('Debug tarball successfully generated and can be reviewed at: %s' %
+                 (plain_text_output_path))
+
+
 def create_and_upload_archive(include_logs, include_configs, include_content, include_system_info,
                               debug=False):
     try:
-        plain_text_output_path, encrypted_output_path = create_archive(include_logs=include_logs,
-                                                                       include_configs=include_configs,
-                                                                       include_content=include_content,
-                                                                       include_system_info=include_system_info)
+        plain_text_output_path = create_archive(include_logs=include_logs,
+                                                include_configs=include_configs,
+                                                include_content=include_content,
+                                                include_system_info=include_system_info)
+        encrypted_output_path = encrypt_archive(archive_file_path=plain_text_output_path)
         upload_archive(archive_file_path=encrypted_output_path)
-    except Exception as e:
+    except Exception:
         LOG.exception('Failed to upload tarball to StackStorm', exc_info=True)
     else:
         LOG.info('Debug tarball successfully uploaded to StackStorm')
@@ -393,8 +428,16 @@ def main():
             sys.exit(1)
 
     setup_logging()
-    create_and_upload_archive(include_logs=not args.exclude_logs,
-                              include_configs=not args.exclude_configs,
-                              include_content=not args.exclude_content,
-                              include_system_info=not args.exclude_system_info,
-                              debug=args.debug)
+
+    if args.review:
+        create_and_review_archive(include_logs=not args.exclude_logs,
+                                  include_configs=not args.exclude_configs,
+                                  include_content=not args.exclude_content,
+                                  include_system_info=not args.exclude_system_info,
+                                  debug=args.debug)
+    else:
+        create_and_upload_archive(include_logs=not args.exclude_logs,
+                                  include_configs=not args.exclude_configs,
+                                  include_content=not args.exclude_content,
+                                  include_system_info=not args.exclude_system_info,
+                                  debug=args.debug)
