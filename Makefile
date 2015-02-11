@@ -169,6 +169,9 @@ pytests: requirements .flake8 .pytests-coverage
 .PHONY: .pytests
 .pytests: unit-tests itests clean
 
+.PHONY: .pytests-coverage
+.pytests-coverage: unit-tests-coverage itests clean
+
 .PHONY: unit-tests
 unit-tests:
 	@echo
@@ -183,11 +186,13 @@ unit-tests:
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component/tests/unit || exit 1; \
 	done
 
-.PHONY: .pytests-coverage
-.pytests-coverage: clean
+.PHONY: unit-tests-coverage
+unit-tests-coverage:
 	@echo
-	@echo "==================== tests with coverage ===================="
+	@echo "==================== unit tests with coverage ===================="
 	@echo
+	@echo "----- Dropping st2-test db -----"
+	@mongo st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -196,10 +201,7 @@ unit-tests:
 	done
 
 .PHONY: itests
-itests: .itests
-
-.PHONY: .itests
-.itests:
+itests:
 	@echo
 	@echo "==================== integration tests ===================="
 	@echo
@@ -209,7 +211,7 @@ itests: .itests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component/tests/integration || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv $$component/tests/integration || exit 1; \
 	done
 
 .PHONY: mistral-itests
