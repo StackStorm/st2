@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import uuid
+import unittest2
 
 import st2tests.config as tests_config
 tests_config.parse_args()
@@ -53,6 +54,7 @@ class TestLocalShellRunner(TestCase):
         self.assertEquals(status, action_constants.ACTIONEXEC_STATUS_SUCCEEDED)
         self.assertEquals(len(result['stdout']), 1000 + 1)  # +1 for the newline
 
+    @unittest2.skip
     def test_timeout(self):
         models = TestLocalShellRunner.fixtures_loader.load_models(
             fixtures_pack='generic', fixtures_dict={'actions': ['local.json']})
@@ -95,7 +97,6 @@ class TestLocalShellRunner(TestCase):
         runner.entry_point = entry_point
         runner.runner_parameters = {localrunner.RUNNER_COMMAND: cmd,
                                     localrunner.RUNNER_SUDO: sudo,
-
                                     localrunner.RUNNER_ON_BEHALF_USER: user,
                                     localrunner.RUNNER_KWARG_OP: kwarg_op,
                                     localrunner.RUNNER_TIMEOUT: timeout}
