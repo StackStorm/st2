@@ -324,7 +324,7 @@ class ResourceCreateCommand(ResourceCommand):
                               attributes=['all'], json=args.json)
         except Exception as e:
             print('ERROR: %s' % e.message)
-            raise OperationFailureException('Create failed.')
+            raise OperationFailureException(e.message)
 
 
 class ResourceUpdateCommand(ResourceCommand):
@@ -371,7 +371,7 @@ class ResourceUpdateCommand(ResourceCommand):
                               attributes=['all'], json=args.json)
         except Exception as e:
             print('ERROR: %s' % e.message)
-            raise OperationFailureException('Update failed.')
+            raise OperationFailureException(e.message)
 
 
 class ContentPackResourceUpdateCommand(ResourceUpdateCommand):
