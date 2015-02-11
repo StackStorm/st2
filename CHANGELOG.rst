@@ -33,6 +33,8 @@ Docs: http://docks.stackstorm.com/latest
   being executed. (new-feature)
 * Cast params of an execution before scheduling in the RulesEngine. This allows non-string
   parameters in an action. (new-feature)
+* Use QuerySet.count() instead of len(QuerySet) to avoid the caching of the entire result which
+  improve running time of API request. (bug-fix)
 * Rename ActionExecution to LiveAction. (refactor)
 * Rename ActionExecutionHistory to ActionExecution. (refactor)
 * A separate history process is no longer required. ActionExecution updates are carried at time of

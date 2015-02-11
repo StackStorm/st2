@@ -34,7 +34,7 @@ MOCK_TRIGGER.type = 'system.test'
 MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
 MOCK_TRIGGER_INSTANCE.id = bson.ObjectId()
 MOCK_TRIGGER_INSTANCE.trigger = MOCK_TRIGGER.get_reference().ref
-MOCK_TRIGGER_INSTANCE.payload = {'p1': 'v1'}
+MOCK_TRIGGER_INSTANCE.payload = {'p1': 'v1', 'bool': True, 'int': 1, 'float': 0.8}
 MOCK_TRIGGER_INSTANCE.occurrence_time = datetime.datetime.utcnow()
 
 MOCK_ACTION = ActionDB()
@@ -104,3 +104,21 @@ class FilterTest(DbTestCase):
         rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': 'v'}}
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertFalse(f.filter(), 'equals check should have failed.')
+
+    def test_equals_bool_value(self):
+        rule = MOCK_RULE_1
+        rule.criteria = {'trigger.bool': {'type': 'equals', 'pattern': True}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'equals check should have passed.')
+
+    def test_equals_int_value(self):
+        rule = MOCK_RULE_1
+        rule.criteria = {'trigger.int': {'type': 'equals', 'pattern': 1}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'equals check should have passed.')
+
+    def test_equals_float_value(self):
+        rule = MOCK_RULE_1
+        rule.criteria = {'trigger.float': {'type': 'equals', 'pattern': 0.8}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'equals check should have passed.')
