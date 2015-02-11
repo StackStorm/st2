@@ -35,6 +35,7 @@ Docs: http://docks.stackstorm.com/latest
   parameters in an action. (new-feature)
 * Use QuerySet.count() instead of len(QuerySet) to avoid the caching of the entire result which
   improve running time of API request. (bug-fix)
+* CLI commands to return non-zero exit codes for failed operations (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------
