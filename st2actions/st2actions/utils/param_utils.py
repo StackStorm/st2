@@ -15,6 +15,7 @@
 
 import copy
 import json
+
 import six
 
 from jinja2 import Template, Environment, StrictUndefined, meta, exceptions
@@ -215,17 +216,51 @@ def _do_render_params(renderable_params, context):
     env = Environment(undefined=StrictUndefined)
     rendered_params = {}
     rendered_params.update(context)
+
+    # Maps parameter key to render exception
+    # We save the exception so we can throw a more meaningful exception at the end if rendering of
+    # some parameter fails
+    parameter_render_exceptions = {}
+
+    num_parameters = len(renderable_params) + len(context)
+    # After how many attempts at failing to render parameter we should bail out
+    max_rendered_parameters_unchanged_count = num_parameters
+    rendered_params_unchanged_count = 0
+
     while len(renderable_params) != 0:
+        renderable_params_pre_loop = renderable_params.copy()
         for k, v in six.iteritems(renderable_params):
             template = env.from_string(v)
+
             try:
                 rendered = template.render(rendered_params)
                 rendered_params[k] = rendered
-            except:
+
+                if k in parameter_render_exceptions:
+                    del parameter_render_exceptions[k]
+            except Exception as e:
+                # Note: This sucks, but because we support multi level and out of order
+                # rendering, we can't throw an exception here yet since the parameter could get
+                # rendered in future iteration
                 LOG.debug('Failed to render %s: %s', k, v, exc_info=True)
+                parameter_render_exceptions[k] = e
+
         for k in rendered_params:
             if k in renderable_params:
                 del renderable_params[k]
+
+        if renderable_params_pre_loop == renderable_params:
+            rendered_params_unchanged_count += 1
+
+        # Make sure we terminate and don't end up in an infinite loop if we
+        # tried to render all the parameters but rendering of some parameters
+        # still fails
+        if rendered_params_unchanged_count >= max_rendered_parameters_unchanged_count:
+            k = parameter_render_exceptions.keys()[0]
+            e = parameter_render_exceptions[k]
+            msg = 'Failed to render parameter "%s": %s' % (k, str(e))
+            raise actionrunner.ActionRunnerException(msg)
+
     return rendered_params
 
 
