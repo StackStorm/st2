@@ -163,6 +163,11 @@ $(VIRTUALENV_DIR)/bin/activate:
 .PHONY: tests
 tests: pytests
 
+# Travis cannot run itests since those require users to be configured etc.
+# Creating special travis target. (Yuck!)
+.PHONY: tests-travis
+tests-travis: requirements .flake8 unit-tests-coverage
+
 .PHONY: pytests
 pytests: requirements .flake8 .pytests-coverage
 
