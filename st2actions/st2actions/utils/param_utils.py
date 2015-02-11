@@ -215,15 +215,25 @@ def _do_render_params(renderable_params, context):
     env = Environment(undefined=StrictUndefined)
     rendered_params = {}
     rendered_params.update(context)
+
+    keys_to_delete = []
     while len(renderable_params) != 0:
         for k, v in six.iteritems(renderable_params):
             template = env.from_string(v)
+
             try:
                 rendered = template.render(rendered_params)
                 rendered_params[k] = rendered
-            except:
+                keys_to_delete.append(k)
+            except Exception:
+                # TODO: Maybe we should throw here and abort action execution?
                 LOG.debug('Failed to render %s: %s', k, v, exc_info=True)
-        for k in rendered_params:
+
+                # Delete key from renderable_params to prevent infinite loop on
+                # exception
+                keys_to_delete.append(k)
+
+        for k in keys_to_delete:
             if k in renderable_params:
                 del renderable_params[k]
     return rendered_params
