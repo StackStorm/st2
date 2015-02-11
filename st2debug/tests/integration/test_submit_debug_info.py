@@ -21,6 +21,7 @@ import mock
 
 from st2tests.base import CleanFilesTestCase
 from st2debug.cmd.submit_debug_info import create_archive
+from st2debug.cmd.submit_debug_info import encrypt_archive
 import st2debug.cmd.submit_debug_info
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -136,6 +137,21 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
 
         full_path = os.path.join(extract_path, 'system_info.yaml')
         self.assertTrue(os.path.isfile(full_path))
+
+    def test_encrypt_archive(self):
+        plaintext_archive_path = create_archive(include_logs=True, include_configs=True,
+                                                include_content=True,
+                                                include_system_info=True)
+        plaintext_archive_size = os.stat(plaintext_archive_path).st_size
+
+        encrypted_archive_path = encrypt_archive(archive_file_path=plaintext_archive_path)
+        encrypt_archive_size = os.stat(encrypted_archive_path).st_size
+
+        self.assertTrue(os.path.isfile(encrypted_archive_path))
+        self.assertTrue(encrypt_archive_size > plaintext_archive_size)
+
+        self.assertRaises(Exception, archive_path=encrypted_archive_path,
+                          extract_path='/tmp')
 
     def _extract_archive(self, archive_path, extract_path):
         with tarfile.open(archive_path) as tar:
