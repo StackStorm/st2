@@ -35,6 +35,7 @@ from st2client.commands import trigger
 from st2client.commands import action
 from st2client.commands import datastore
 from st2client.commands import webhook
+from st2client.exceptions.operations import OperationFailureException
 
 
 LOG = logging.getLogger(__name__)
@@ -163,30 +164,36 @@ class Shell(object):
         return Client(**kwargs)
 
     def run(self, argv):
+        debug = False
         try:
             # Parse command line arguments.
             args = self.parser.parse_args(args=argv)
 
-            # Set up client.
             debug = getattr(args, 'debug', False)
+
+            # Set up client.
             self.client = self.get_client(args=args, debug=debug)
 
             # Execute command.
             args.func(args)
 
             return 0
+        except OperationFailureException as e:
+            if debug:
+                self._print_debug_info()
+            return 2
         except Exception as e:
             print('ERROR: %s\n' % e)
-
-            debug = getattr(args, 'debug', False)
             if debug:
-                # Print client settings
-                self._print_client_settings()
-
-                # Print exception traceback
-                traceback.print_exc()
-
+                self._print_debug_info()
             return 1
+
+    def _print_debug_info(self):
+        # Print client settings
+        self._print_client_settings()
+
+        # Print exception traceback
+        traceback.print_exc()
 
     def _print_client_settings(self):
         client = self.client

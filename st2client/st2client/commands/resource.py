@@ -22,6 +22,7 @@ import logging
 import yaml
 
 from st2client import commands
+from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 
 ALLOWED_EXTS = ['.json', '.yaml', '.yml']
@@ -278,6 +279,7 @@ class ResourceGetCommand(ResourceCommand):
         except ResourceNotFoundError:
             resource_id = getattr(args, self.pk_argument_name, None)
             self.print_not_found(resource_id)
+            raise OperationFailureException('Resource %s not found.' % resource_id)
 
 
 class ContentPackResourceGetCommand(ResourceGetCommand):
@@ -314,9 +316,15 @@ class ResourceCreateCommand(ResourceCommand):
         return self.manager.create(instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
-        instance = self.run(args, **kwargs)
-        self.print_output(instance, table.PropertyValueTable,
-                          attributes=['all'], json=args.json)
+        try:
+            instance = self.run(args, **kwargs)
+            if not instance:
+                raise Exception('Server did not create instance.')
+            self.print_output(instance, table.PropertyValueTable,
+                              attributes=['all'], json=args.json)
+        except Exception as e:
+            print('ERROR: %s' % e.message)
+            raise OperationFailureException(e.message)
 
 
 class ResourceUpdateCommand(ResourceCommand):
@@ -358,8 +366,12 @@ class ResourceUpdateCommand(ResourceCommand):
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
-        self.print_output(instance, table.PropertyValueTable,
-                          attributes=['all'], json=args.json)
+        try:
+            self.print_output(instance, table.PropertyValueTable,
+                              attributes=['all'], json=args.json)
+        except Exception as e:
+            print('ERROR: %s' % e.message)
+            raise OperationFailureException(e.message)
 
 
 class ContentPackResourceUpdateCommand(ResourceUpdateCommand):
@@ -395,6 +407,7 @@ class ResourceDeleteCommand(ResourceCommand):
         except ResourceNotFoundError:
             resource_id = getattr(args, self.pk_argument_name, None)
             self.print_not_found(resource_id)
+            raise OperationFailureException('Resource %s not found.' % resource_id)
 
 
 class ContentPackResourceDeleteCommand(ResourceDeleteCommand):
