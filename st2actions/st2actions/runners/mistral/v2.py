@@ -132,10 +132,22 @@ class MistralRunner(AsyncActionRunner):
         # Setup inputs for the workflow execution.
         inputs = self.runner_parameters.get('context', dict())
         inputs.update(action_parameters)
+
         endpoint = 'http://%s:%s/v1/actionexecutions' % (cfg.CONF.api.host, cfg.CONF.api.port)
+
+        st2_execution_context = {
+            'endpoint': endpoint,
+            'parent': self.action_execution_id
+        }
+
         options = {
-            'st2_api_url': endpoint,
-            'st2_parent': self.action_execution_id
+            'env': {
+                '__actions': {
+                    'st2.action': {
+                        'st2_context': st2_execution_context
+                    }
+                }
+            }
         }
 
         # Get workbook/workflow definition from file.
