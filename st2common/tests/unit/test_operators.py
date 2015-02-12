@@ -47,6 +47,17 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('equals')
         self.assertFalse(op('1', '2'), 'Passed equals.')
 
+    def test_nequals(self):
+        op = operators.get_operator('nequals')
+        self.assertTrue(op('foo', 'bar'))
+        self.assertTrue(op('foo', 'foo1'))
+        self.assertTrue(op('foo', 'FOO'))
+        self.assertTrue(op('True', True))
+        self.assertTrue(op('None', None))
+
+        self.assertFalse(op('True', 'True'))
+        self.assertFalse(op(None, None))
+
     def test_iequals(self):
         op = operators.get_operator('iequals')
         self.assertTrue(op('ABC', 'ABC'), 'Failed iequals.')
