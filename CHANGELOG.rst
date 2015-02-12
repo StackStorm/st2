@@ -43,6 +43,8 @@ Docs: http://docks.stackstorm.com/latest
   update to LiveAction. (refactor)
 * API url change /v1/history/execution to /v1/history/liveactions (refactor)
 * API url change /v1/history/execution/views/filters?execution to /v1/history/liveactions/views/filters?liveaction (refactor)
+* Add new ``nequals`` (``neq``) rule criteria operator. This criteria operator
+  performs not equals check on values of an arbitrary type. (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------
