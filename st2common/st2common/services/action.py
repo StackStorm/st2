@@ -23,7 +23,7 @@ from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
 from st2common.persistence.action import LiveAction
-from st2common.persistence.execution import ActionExecution
+# from st2common.persistence.execution import ActionExecution
 from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
 
 LOG = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ def schedule(liveaction):
     execution = executions.create_execution_object(liveaction, publish=False)
     # assume that this is a creation.
     LiveAction.publish_create(liveaction)
-    ActionExecution.publish_create(execution)
+    # ActionExecution.publish_create(execution)
     LOG.audit('Action execution scheduled. LiveAction=%s. ActionExecution=%s', liveaction,
               execution)
     return liveaction
