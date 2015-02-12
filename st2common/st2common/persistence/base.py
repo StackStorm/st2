@@ -88,42 +88,25 @@ class Access(object):
             conflict_object = cls._get_by_object(model_object)
             conflict_id = str(conflict_object.id) if conflict_object else None
             raise StackStormDBObjectConflictError(str(e), conflict_id)
+        publisher = cls._get_publisher()
         try:
-            if publish:
+            if publisher and publish:
                 if str(pre_persist_id) == str(model_object.id):
-                    cls.publish_update(model_object)
+                    publisher.publish_update(model_object)
                 else:
-                    cls.publish_create(model_object)
+                    publisher.publish_create(model_object)
         except:
             LOG.exception('publish failed.')
-
         return model_object
 
     @classmethod
     def delete(cls, model_object, publish=True):
         persisted_object = cls._get_impl().delete(model_object)
-        if publish:
+        publisher = cls._get_publisher()
+        if publisher and publish:
             # using model_object.
-            cls.publish_delete(model_object)
-        return persisted_object
-
-    @classmethod
-    def publish_create(cls, model_object):
-        publisher = cls._get_publisher()
-        if publisher:
-            publisher.publish_create(model_object)
-
-    @classmethod
-    def publish_update(cls, model_object):
-        publisher = cls._get_publisher()
-        if publisher:
-            publisher.publish_update(model_object)
-
-    @classmethod
-    def publish_delete(cls, model_object):
-        publisher = cls._get_publisher()
-        if publisher:
             publisher.publish_delete(model_object)
+        return persisted_object
 
 
 class ContentPackResource(Access):

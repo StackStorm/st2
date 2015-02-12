@@ -61,8 +61,8 @@ class Client(object):
             models.RunnerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Action'] = models.ResourceManager(
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['LiveAction'] = models.ResourceManager(
-            models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['ActionExecution'] = models.ResourceManager(
+            models.ActionExecution, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Rule'] = models.ResourceManager(
             models.Rule, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Sensor'] = models.ResourceManager(
@@ -89,8 +89,8 @@ class Client(object):
         return self.managers['Action']
 
     @property
-    def liveactions(self):
-        return self.managers['liveaction']
+    def executions(self):
+        return self.managers['ActionExecution']
 
     @property
     def rules(self):

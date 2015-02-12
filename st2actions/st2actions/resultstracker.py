@@ -53,10 +53,10 @@ class ActionStateQueueConsumer(ConsumerMixin):
         return [consumer]
 
     def process_task(self, body, message):
-        LOG.debug('process_task')
-        LOG.debug('     body: %s', body)
-        LOG.debug('     message.properties: %s', message.properties)
-        LOG.debug('     message.delivery_info: %s', message.delivery_info)
+        # LOG.debug('process_task')
+        # LOG.debug('     body: %s', body)
+        # LOG.debug('     message.properties: %s', message.properties)
+        # LOG.debug('     message.delivery_info: %s', message.delivery_info)
         try:
             self._dispatcher.dispatch(self._do_process_task, body)
         finally:

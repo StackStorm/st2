@@ -19,7 +19,7 @@ except:
     import json
 
 from st2actions.runners import AsyncActionRunner
-from st2common.constants.action import (LIVEACTION_STATUS_RUNNING)
+from st2common.constants.action import (ACTIONEXEC_STATUS_RUNNING)
 
 RAISE_PROPERTY = 'raise'
 
@@ -49,7 +49,7 @@ class AsyncTestRunner(AsyncActionRunner):
                 'action_params': action_params
             }
 
-        return (LIVEACTION_STATUS_RUNNING, json.dumps(result), {'id': 'foo'})
+        return (ACTIONEXEC_STATUS_RUNNING, json.dumps(result), {'id': 'foo'})
 
     def post_run(self, status, result):
         self.post_run_called = True

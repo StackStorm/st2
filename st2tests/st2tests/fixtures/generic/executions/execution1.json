@@ -1,37 +1,12 @@
 {
-    "id": "54c6bb640640fd5211edef0d",
-    "liveaction": {
-        "start_timestamp": "2014-09-01T00:00:01.000000Z",
-        "end_timestamp": "2014-09-01T00:00:05.000000Z",
-        "parameters": {},
-        "callback": {},
-        "id": "54c6b6d60640fd4f5354e74a",
-        "result": {},
-        "status": "scheduled",
-        "context": {
-            "user": "system"
-        },
-        "action": "core.someworkflow"
+    "start_timestamp": "2014-09-01T00:00:01.000000Z",
+    "end_timestamp": "2014-09-01T00:00:05.000000Z",
+    "parameters": {},
+    "callback": {},
+    "result": {},
+    "status": "scheduled",
+    "context": {
+        "user": "system"
     },
-    "runner": {
-        "name": "action-chain",
-        "description": "A runner for launching linear action chains.",
-        "enabled": true,
-        "runner_parameters": {},
-        "runner_module": "st2actions.runners.actionchainrunner",
-        "id": "54c6bb640640fd5211edef0b"
-    },
-    "action":{
-        "runner_type": "run-local",
-        "name": "local",
-        "parameters": {
-            "sudo": {
-                "immutable": true
-            }
-        },
-        "enabled": true,
-        "pack": "core",
-        "entry_point": "",
-        "id": "54c6bb640640fd5211edef0c"
-    }
+    "action": "foo.mistral.wf1"
 }

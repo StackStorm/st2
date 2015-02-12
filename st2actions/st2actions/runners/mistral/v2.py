@@ -21,7 +21,7 @@ import requests
 from mistralclient.api import client as mistral
 from oslo.config import cfg
 
-from st2common.constants.action import LIVEACTION_STATUS_RUNNING
+from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
 from st2actions.runners import AsyncActionRunner
 from st2actions.runners.mistral import utils
 from st2common import log as logging
@@ -137,7 +137,7 @@ class MistralRunner(AsyncActionRunner):
 
         st2_execution_context = {
             'endpoint': endpoint,
-            'parent': self.liveaction_id
+            'parent': self.action_execution_id
         }
 
         options = {
@@ -159,7 +159,7 @@ class MistralRunner(AsyncActionRunner):
 
         if not is_workbook:
             # Non-workbook definition containing multiple workflows is not supported.
-            if len([k for k, _ in six.iteritems(def_dict) if k != 'version']) != 1:
+            if len([k for k, v in six.iteritems(def_dict) if k != 'version']) != 1:
                 raise Exception('Workflow (not workbook) definition is detected. '
                                 'Multiple workflows is not supported.')
 
@@ -181,8 +181,9 @@ class MistralRunner(AsyncActionRunner):
                                                        workflow_input=inputs,
                                                        **options)
 
-        status = LIVEACTION_STATUS_RUNNING
+        status = ACTIONEXEC_STATUS_RUNNING
         partial_results = {'tasks': []}
+
         context = {
             'mistral': {
                 'execution_id': str(execution.id),

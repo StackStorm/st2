@@ -21,9 +21,9 @@ from six.moves import http_client
 
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
-from st2common.models.api.action import LiveActionAPI
+from st2common.models.api.action import ActionExecutionAPI
 from st2common.models.api.base import jsexpose
-from st2common.persistence.action import LiveAction
+from st2common.persistence.action import ActionExecution
 from st2common.services import action as action_service
 from st2common.util import jsonify
 
@@ -40,8 +40,8 @@ class ActionExecutionsController(ResourceController):
         Implements the RESTful web endpoint that handles
         the lifecycle of ActionExecutions in the system.
     """
-    model = LiveActionAPI
-    access = LiveAction
+    model = ActionExecutionAPI
+    access = ActionExecution
 
     supported_filters = {
         'action': 'action'
@@ -54,7 +54,7 @@ class ActionExecutionsController(ResourceController):
     def _get_action_executions(self, **kw):
         kw['limit'] = int(kw.get('limit', 50))
 
-        LOG.debug('Retrieving all action liveactions with filters=%s', kw)
+        LOG.debug('Retrieving all action executions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(**kw)
 
     @jsexpose()
@@ -68,7 +68,7 @@ class ActionExecutionsController(ResourceController):
         LOG.info('GET all /actionexecutions/ with filters=%s', kw)
         return self._get_action_executions(**kw)
 
-    @jsexpose(body=LiveActionAPI, status_code=http_client.CREATED)
+    @jsexpose(body=ActionExecutionAPI, status_code=http_client.CREATED)
     def post(self, execution):
         try:
             # Initialize execution context if it does not exist.
@@ -89,9 +89,9 @@ class ActionExecutionsController(ResourceController):
                 execution.context.update(context)
 
             # Schedule the action execution.
-            executiondb = LiveActionAPI.to_model(execution)
+            executiondb = ActionExecutionAPI.to_model(execution)
             executiondb = action_service.schedule(executiondb)
-            return LiveActionAPI.from_model(executiondb)
+            return ActionExecutionAPI.from_model(executiondb)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
@@ -102,24 +102,24 @@ class ActionExecutionsController(ResourceController):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    @jsexpose(str, body=LiveActionAPI)
-    def put(self, id, liveaction):
+    @jsexpose(str, body=ActionExecutionAPI)
+    def put(self, id, actionexecution):
         try:
-            liveaction_db = LiveAction.get_by_id(id)
+            actionexec_db = ActionExecution.get_by_id(id)
         except:
-            msg = 'liveaction by id: %s not found.' % id
+            msg = 'ActionExecution by id: %s not found.' % id
             pecan.abort(http_client, msg)
-        new_liveaction_db = LiveActionAPI.to_model(liveaction)
-        if liveaction_db.status != new_liveaction_db.status:
-            liveaction_db.status = new_liveaction_db.status
-        if liveaction_db.result != new_liveaction_db.result:
-            liveaction_db.result = new_liveaction_db.result
-        if not liveaction_db.end_timestamp and new_liveaction_db.end_timestamp:
-            liveaction_db.end_timestamp = new_liveaction_db.end_timestamp
+        new_actionexec_db = ActionExecutionAPI.to_model(actionexecution)
+        if actionexec_db.status != new_actionexec_db.status:
+            actionexec_db.status = new_actionexec_db.status
+        if actionexec_db.result != new_actionexec_db.result:
+            actionexec_db.result = new_actionexec_db.result
+        if not actionexec_db.end_timestamp and new_actionexec_db.end_timestamp:
+            actionexec_db.end_timestamp = new_actionexec_db.end_timestamp
 
-        liveaction_db = LiveAction.add_or_update(liveaction_db)
-        liveaction_api = LiveActionAPI.from_model(liveaction_db)
-        return liveaction_api
+        actionexec_db = ActionExecution.add_or_update(actionexec_db)
+        actionexec_api = ActionExecutionAPI.from_model(actionexec_db)
+        return actionexec_api
 
     @jsexpose()
     def options(self):

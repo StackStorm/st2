@@ -35,8 +35,8 @@ from st2client.utils.date import format_isodate
 
 LOG = logging.getLogger(__name__)
 
-LIVEACTION_STATUS_SCHEDULED = 'scheduled'
-LIVEACTION_STATUS_RUNNING = 'running'
+ACTIONEXEC_STATUS_SCHEDULED = 'scheduled'
+ACTIONEXEC_STATUS_RUNNING = 'running'
 
 # Who parameters should be masked when displaying action execution output
 PARAMETERS_TO_MASK = [
@@ -231,7 +231,7 @@ class ActionRunCommand(resource.ResourceCommand):
             return value
 
         action_ref = '.'.join([action.pack, action.name])
-        execution = models.LiveAction()
+        execution = models.ActionExecution()
         execution.action = action_ref
         execution.parameters = dict()
 
@@ -292,13 +292,12 @@ class ActionRunCommand(resource.ResourceCommand):
         if args.inherit_env:
             execution.parameters['env'] = self._get_inherited_env_vars()
 
-        action_exec_mgr = self.app.client.managers['LiveAction']
-
+        action_exec_mgr = self.app.client.managers['ActionExecution']
         execution = action_exec_mgr.create(execution, **kwargs)
 
         if not args.async:
-            while execution.status == LIVEACTION_STATUS_SCHEDULED \
-                    or execution.status == LIVEACTION_STATUS_RUNNING:
+            while execution.status == ACTIONEXEC_STATUS_SCHEDULED \
+                    or execution.status == ACTIONEXEC_STATUS_RUNNING:
                 time.sleep(1)
                 if not args.json:
                     sys.stdout.write('.')
@@ -474,7 +473,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
-            models.LiveAction, description, app, subparsers,
+            models.ActionExecution, description, app, subparsers,
             parent_parser=parent_parser, read_only=True,
             commands={'list': ActionExecutionListCommand,
                       'get': ActionExecutionGetCommand})

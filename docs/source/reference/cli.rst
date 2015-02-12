@@ -20,7 +20,7 @@ client will assume localhost and default ports.
    server URL is provided, it will override the base URL and default
    port.
 -  ST2\_API\_URL - Endpoint for the Action REST API (i.e.
-   http://localhost:9101/v1) for managing actions, liveactions, triggers,
+   http://localhost:9101/v1) for managing actions, executions, triggers,
    rules and reusable configuration data.
 
 The default endpoint configuration can be explicitly specified at the
@@ -88,7 +88,7 @@ defined under st2client.models. Please refer to the respective README
 section for these models for their schema.
 
 The resource managers for the models are instantiated under the client
-as **triggers**, **rules**, **actions**, **liveactions**, and **keys**.
+as **triggers**, **rules**, **actions**, **executions**, and **keys**.
 The operations get\_all, get\_by\_name, get\_by\_id, create, update, and
 delete are generally implemented for these resource managers.
 

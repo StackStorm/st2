@@ -19,10 +19,10 @@ import six
 
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
-from st2common.models.db.execution import ActionExecutionDB
+from st2common.models.db.history import ActionExecutionHistoryDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
-from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
+from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
 from st2common import log as logging
 
 
@@ -31,18 +31,18 @@ LOG = logging.getLogger(__name__)
 REQUIRED_ATTR_SCHEMAS = {
     "action": copy.deepcopy(ActionAPI.schema),
     "runner": copy.deepcopy(RunnerTypeAPI.schema),
-    "liveaction": copy.deepcopy(LiveActionAPI.schema),
+    "execution": copy.deepcopy(ActionExecutionAPI.schema),
 }
 
 for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
     v.update({"required": True})
 
 
-class ActionExecutionAPI(BaseAPI):
-    model = ActionExecutionDB
+class ActionExecutionHistoryAPI(BaseAPI):
+    model = ActionExecutionHistoryDB
     schema = {
-        "title": "ActionExecution",
-        "description": "Record of the execution of an action.",
+        "title": "ActionExecutionHistory",
+        "description": "History record for action execution.",
         "type": "object",
         "properties": {
             "id": {
@@ -55,7 +55,7 @@ class ActionExecutionAPI(BaseAPI):
             "rule": RuleAPI.schema,
             "action": REQUIRED_ATTR_SCHEMAS['action'],
             "runner": REQUIRED_ATTR_SCHEMAS['runner'],
-            "liveaction": REQUIRED_ATTR_SCHEMAS['liveaction'],
+            "execution": REQUIRED_ATTR_SCHEMAS['execution'],
             "parent": {"type": "string"},
             "children": {
                 "type": "array",
@@ -69,14 +69,14 @@ class ActionExecutionAPI(BaseAPI):
     @classmethod
     def from_model(cls, model):
         doc = cls._from_model(model)
-        start_timestamp = isotime.format(doc['liveaction']['start_timestamp'], offset=False)
+        start_timestamp = isotime.format(doc['execution']['start_timestamp'], offset=False)
 
-        end_timestamp = doc['liveaction'].get('end_timestamp', None)
+        end_timestamp = doc['execution'].get('end_timestamp', None)
         if end_timestamp is not None:
             end_timestamp = isotime.format(end_timestamp, offset=False)
-            doc['liveaction']['end_timestamp'] = end_timestamp
+            doc['execution']['end_timestamp'] = end_timestamp
 
-        doc['liveaction']['start_timestamp'] = start_timestamp
+        doc['execution']['start_timestamp'] = start_timestamp
 
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}
         return cls(**attrs)
@@ -91,6 +91,6 @@ class ActionExecutionAPI(BaseAPI):
                 continue
             setattr(model, attr, value)
 
-        model.liveaction['start_timestamp'] = isotime.parse(model.liveaction['start_timestamp'])
-        model.liveaction['end_timestamp'] = isotime.parse(model.liveaction['end_timestamp'])
+        model.execution['start_timestamp'] = isotime.parse(model.execution['start_timestamp'])
+        model.execution['end_timestamp'] = isotime.parse(model.execution['end_timestamp'])
         return model

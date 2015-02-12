@@ -37,12 +37,6 @@ Docs: http://docks.stackstorm.com/latest
   improve running time of API request. (bug-fix)
 * CLI commands to return non-zero exit codes for failed operations (new-feature)
 * Fix a bug with template rendering, under some conditions, ending in an infinite loop. (bug-fix)
-* Rename ActionExecution to LiveAction. (refactor)
-* Rename ActionExecutionHistory to ActionExecution. (refactor)
-* A separate history process is no longer required. ActionExecution updates are carried at time of
-  update to LiveAction. (refactor)
-* API url change /v1/history/execution to /v1/history/liveactions (refactor)
-* API url change /v1/history/execution/views/filters?execution to /v1/history/liveactions/views/filters?liveaction (refactor)
 
 v0.7 - January 16, 2015
 -----------------------
