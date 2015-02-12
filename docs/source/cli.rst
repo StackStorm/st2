@@ -73,6 +73,47 @@ Example output (error):
         return func(*args, **kwargs)
         ...
 
+Using CLI inside scripts
+------------------------
+
+CLI returns a non-zero return code for any erroneous operation. You can capture the return code of CLI commands to check whether the command succeeded. For example:
+
+.. sourcecode:: bash
+
+    st2 action get twilio.send_sms
+
+    +-------------+--------------------------------------------------------------+
+    | Property    | Value                                                        |
+    +-------------+--------------------------------------------------------------+
+    | id          | 54bfff490640fd2f6224ac1a                                     |
+    | ref         | twilio.send_sms                                              |
+    | pack        | twilio                                                       |
+    | name        | send_sms
+
+Now, let's get the exit code of the previous command.
+
+.. sourcecode:: bash
+
+    echo $?
+
+    0
+
+Now, let's run a command that we know will fail.
+
+.. sourcecode:: bash
+
+    st2 action get twilio.make_call
+
+    Action "twilio.make_call" is not found.
+
+Let's check the exit code of the last command.
+
+.. sourcecode:: bash
+
+    echo $?
+
+    2
+
 Changing the CLI output format
 ------------------------------
 

@@ -287,6 +287,19 @@ class ParamsUtilsTest(DbTestCase):
             test_pass = e.message.find('Dependecy') == 0
         self.assertTrue(test_pass)
 
+    def test_get_rendered_params_param_rendering_failure(self):
+        runner_params = {}
+        action_params = {'cmd': '{{a2.foo}}', 'a2': 'test'}
+
+        expected_msg = 'Failed to render parameter "cmd": .*'
+        self.assertRaisesRegexp(actionrunner.ActionRunnerException,
+                                expected_msg,
+                                param_utils.get_rendered_params,
+                                runner_parameters=runner_params,
+                                action_parameters=action_params,
+                                runnertype_parameter_info={},
+                                action_parameter_info={})
+
     def _get_action_exec_db_model(self, params):
         liveaction_db = LiveActionDB()
         liveaction_db.status = 'initializing'

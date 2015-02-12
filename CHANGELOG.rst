@@ -35,6 +35,8 @@ Docs: http://docks.stackstorm.com/latest
   parameters in an action. (new-feature)
 * Use QuerySet.count() instead of len(QuerySet) to avoid the caching of the entire result which
   improve running time of API request. (bug-fix)
+* CLI commands to return non-zero exit codes for failed operations (new-feature)
+* Fix a bug with template rendering, under some conditions, ending in an infinite loop. (bug-fix)
 * Rename ActionExecution to LiveAction. (refactor)
 * Rename ActionExecutionHistory to ActionExecution. (refactor)
 * A separate history process is no longer required. ActionExecution updates are carried at time of

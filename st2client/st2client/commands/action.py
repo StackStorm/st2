@@ -28,6 +28,7 @@ from os.path import join as pjoin
 from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
+from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table, execution
 from st2client.utils.date import format_isodate
 
@@ -580,3 +581,4 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
             self.print_output(instance, formatter, **options)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
+            raise OperationFailureException('Execution %s not found.' % args.id)
