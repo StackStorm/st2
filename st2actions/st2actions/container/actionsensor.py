@@ -88,22 +88,22 @@ def register_trigger_type():
     eventlet.greenthread.spawn(_do_register_trigger_type)
 
 
-def post_trigger(action_execution):
+def post_trigger(liveaction):
     if not ACTION_SENSOR_ENABLED:
         return
     try:
         trigger = ResourceReference.to_string_reference(pack=ACTION_TRIGGER_TYPE['pack'],
                                                         name=ACTION_TRIGGER_TYPE['name'])
-        payload = {'execution_id': str(action_execution.id),
-                   'status': action_execution.status,
-                   'start_timestamp': str(action_execution.start_timestamp),
-                   'action_name': action_execution.action,
-                   'parameters': action_execution.parameters,
-                   'result': action_execution.result}
+        payload = {'execution_id': str(liveaction.id),
+                   'status': liveaction.status,
+                   'start_timestamp': str(liveaction.start_timestamp),
+                   'action_name': liveaction.action,
+                   'parameters': liveaction.parameters,
+                   'result': liveaction.result}
         LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
-                  action_execution.id, payload)
+                  liveaction.id, payload)
         TRIGGER_DISPATCHER.dispatch(trigger, payload=payload)
     except:
-        LOG.exception('Failed to fire trigger for action_execution %s.', str(action_execution.id))
+        LOG.exception('Failed to fire trigger for liveaction %s.', str(liveaction.id))
 
 register_trigger_type()

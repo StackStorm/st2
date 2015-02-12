@@ -32,8 +32,8 @@ class TestWorkflowExecution(unittest2.TestCase):
         self.assertGreaterEqual(multiprocessing.cpu_count(), 2)
 
     def _execute_workflow(self, action, parameters):
-        execution = models.ActionExecution(action=action, parameters=parameters)
-        execution = self.st2client.executions.create(execution)
+        execution = models.liveaction(action=action, parameters=parameters)
+        execution = self.st2client.liveactions.create(execution)
         self.assertIsNotNone(execution.id)
         self.assertEqual(execution.action, action)
         self.assertIn(execution.status, ['scheduled', 'running'])
@@ -42,7 +42,7 @@ class TestWorkflowExecution(unittest2.TestCase):
     def _wait_for_completion(self, execution, wait=20):
         for i in range(wait):
             eventlet.sleep(1)
-            execution = self.st2client.executions.get_by_id(execution.id)
+            execution = self.st2client.liveactions.get_by_id(execution.id)
             if execution.status in ['succeeded', 'failed']:
                 break
         return execution

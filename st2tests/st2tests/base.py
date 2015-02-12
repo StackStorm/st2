@@ -25,7 +25,7 @@ import st2common.models.db.reactor as reactor_model
 import st2common.models.db.action as action_model
 import st2common.models.db.datastore as datastore_model
 import st2common.models.db.actionrunner as actionrunner_model
-import st2common.models.db.history as history_model
+import st2common.models.db.execution as execution_model
 
 __all__ = [
     'EventletTestCase',
@@ -39,7 +39,7 @@ ALL_MODELS.extend(reactor_model.MODELS)
 ALL_MODELS.extend(action_model.MODELS)
 ALL_MODELS.extend(datastore_model.MODELS)
 ALL_MODELS.extend(actionrunner_model.MODELS)
-ALL_MODELS.extend(history_model.MODELS)
+ALL_MODELS.extend(execution_model.MODELS)
 
 
 class EventletTestCase(TestCase):

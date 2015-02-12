@@ -26,10 +26,10 @@ LOG = logging.getLogger(__name__)
 
 
 STATUS_MAP = dict()
-STATUS_MAP[action.ACTIONEXEC_STATUS_SCHEDULED] = 'RUNNING'
-STATUS_MAP[action.ACTIONEXEC_STATUS_RUNNING] = 'RUNNING'
-STATUS_MAP[action.ACTIONEXEC_STATUS_SUCCEEDED] = 'SUCCESS'
-STATUS_MAP[action.ACTIONEXEC_STATUS_FAILED] = 'ERROR'
+STATUS_MAP[action.LIVEACTION_STATUS_SCHEDULED] = 'RUNNING'
+STATUS_MAP[action.LIVEACTION_STATUS_RUNNING] = 'RUNNING'
+STATUS_MAP[action.LIVEACTION_STATUS_SUCCEEDED] = 'SUCCESS'
+STATUS_MAP[action.LIVEACTION_STATUS_FAILED] = 'ERROR'
 
 
 def get_handler():
@@ -40,7 +40,7 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
 
     @staticmethod
     def callback(url, context, status, result):
-        if status not in [action.ACTIONEXEC_STATUS_SUCCEEDED, action.ACTIONEXEC_STATUS_FAILED]:
+        if status not in [action.LIVEACTION_STATUS_SUCCEEDED, action.LIVEACTION_STATUS_FAILED]:
             return
 
         try:

@@ -23,7 +23,7 @@ from st2common.models.db import stormbase
 __all__ = [
     'RunnerTypeDB',
     'ActionDB',
-    'ActionExecutionDB'
+    'LiveActionDB'
 ]
 
 
@@ -93,7 +93,7 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     }
 
 
-class ActionExecutionDB(stormbase.StormFoundationDB):
+class LiveActionDB(stormbase.StormFoundationDB):
     """
         The databse entity that represents a Stack Action/Automation in
         the system.
@@ -108,12 +108,12 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     # TODO: Can status be an enum at the Mongo layer?
     status = me.StringField(
         required=True,
-        help_text='The current status of the ActionExecution.')
-    start_timestamp = me.DateTimeField(
+        help_text='The current status of the liveaction.')
+    start_timestamp = me.ComplexDateTimeField(
         default=datetime.datetime.utcnow,
-        help_text='The timestamp when the ActionExecution was created.')
-    end_timestamp = me.DateTimeField(
-        help_text='The timestamp when the ActionExecution has finished.')
+        help_text='The timestamp when the liveaction was created.')
+    end_timestamp = me.ComplexDateTimeField(
+        help_text='The timestamp when the liveaction has finished.')
     action = me.StringField(
         required=True,
         help_text='Reference to the action that has to be executed.')
@@ -143,7 +143,7 @@ class ActionExecutionStateDB(stormbase.StormFoundationDB):
     execution_id = me.ObjectIdField(
         required=True,
         unique=True,
-        help_text='ActionExecution ID.')
+        help_text='liveaction ID.')
     query_module = me.StringField(
         required=True,
         help_text='Reference to the runner model.')
@@ -158,7 +158,7 @@ class ActionExecutionStateDB(stormbase.StormFoundationDB):
 # specialized access objects
 runnertype_access = MongoDBAccess(RunnerTypeDB)
 action_access = MongoDBAccess(ActionDB)
-actionexec_access = MongoDBAccess(ActionExecutionDB)
+liveaction_access = MongoDBAccess(LiveActionDB)
 actionexecstate_access = MongoDBAccess(ActionExecutionStateDB)
 
-MODELS = [RunnerTypeDB, ActionDB, ActionExecutionDB, ActionExecutionStateDB]
+MODELS = [RunnerTypeDB, ActionDB, LiveActionDB, ActionExecutionStateDB]

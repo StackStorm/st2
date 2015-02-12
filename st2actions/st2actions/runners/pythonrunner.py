@@ -25,7 +25,7 @@ from eventlet.green import subprocess
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
-from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.util.sandboxing import get_sandbox_python_path
@@ -180,7 +180,7 @@ class PythonRunner(ActionRunner):
         if error:
             output['error'] = error
 
-        status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
+        status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
         LOG.debug('Action output : %s. exit_code : %s. status : %s', str(output), exit_code, status)
         return (status, output, None)
 

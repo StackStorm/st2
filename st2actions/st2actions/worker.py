@@ -20,17 +20,17 @@ from oslo.config import cfg
 from st2actions.container.base import RunnerContainer
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.constants.action import (ACTIONEXEC_STATUS_RUNNING, ACTIONEXEC_STATUS_FAILED)
+from st2common.constants.action import (LIVEACTION_STATUS_RUNNING, LIVEACTION_STATUS_FAILED)
 from st2common.exceptions.actionrunner import ActionRunnerException
-from st2common.transport import actionexecution, publishers
-from st2common.util.action_db import (get_actionexec_by_id, update_actionexecution_status)
+from st2common.transport import liveaction, publishers
+from st2common.util.action_db import (get_liveaction_by_id, update_liveaction_status)
 from st2common.util.greenpooldispatch import BufferedDispatcher
 
 LOG = logging.getLogger(__name__)
 
 
-ACTIONRUNNER_WORK_Q = actionexecution.get_queue('st2.actionrunner.work',
-                                                routing_key=publishers.CREATE_RK)
+ACTIONRUNNER_WORK_Q = liveaction.get_queue('st2.actionrunner.work',
+                                           routing_key=publishers.CREATE_RK)
 
 
 class Worker(ConsumerMixin):
@@ -65,30 +65,30 @@ class Worker(ConsumerMixin):
     def _do_process_task(self, body):
         try:
             self.execute_action(body)
-        except:
+        except Exception:
             LOG.exception('execute_action failed. Message body : %s', body)
 
-    def execute_action(self, actionexecution):
+    def execute_action(self, liveaction):
         try:
-            actionexec_db = get_actionexec_by_id(actionexecution.id)
+            liveaction_db = get_liveaction_by_id(liveaction.id)
         except StackStormDBObjectNotFoundError:
-            LOG.exception('Failed to find ActionExecution %s in the database.',
-                          actionexecution.id)
+            LOG.exception('Failed to find liveaction %s in the database.',
+                          liveaction.id)
             raise
 
-        # Update ActionExecution status to "running"
-        actionexec_db = update_actionexecution_status(status=ACTIONEXEC_STATUS_RUNNING,
-                                                      actionexec_id=actionexec_db.id)
+        # Update liveaction status to "running"
+        liveaction_db = update_liveaction_status(status=LIVEACTION_STATUS_RUNNING,
+                                                 liveaction_id=liveaction_db.id)
         # Launch action
         LOG.audit('Launching action execution.',
-                  extra={'actionexec': actionexec_db.to_serializable_dict()})
+                  extra={'liveaction': liveaction_db.to_serializable_dict()})
 
         try:
-            result = self.container.dispatch(actionexec_db)
+            result = self.container.dispatch(liveaction_db)
             LOG.debug('Runner dispatch produced result: %s', result)
         except Exception:
-            actionexec_db = update_actionexecution_status(status=ACTIONEXEC_STATUS_FAILED,
-                                                          actionexec_id=actionexec_db.id)
+            liveaction_db = update_liveaction_status(status=LIVEACTION_STATUS_FAILED,
+                                                     liveaction_id=liveaction_db.id)
             raise
 
         if not result:

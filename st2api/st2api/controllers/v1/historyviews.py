@@ -19,7 +19,7 @@ import six
 
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
-from st2common.persistence.history import ActionExecutionHistory
+from st2common.persistence.execution import ActionExecution
 
 LOG = logging.getLogger(__name__)
 
@@ -27,19 +27,19 @@ SUPPORTED_FILTERS = {
     'action': ('action.pack', 'action.name'),  # XXX: Compound filter. For aggregation only.
     'action.name': 'action.name',
     'action.pack': 'action.pack',
-    'execution': 'execution.id',
+    'liveaction': 'liveaction.id',
     'parent': 'parent',
     'rule': 'rule.name',
     'runner': 'runner.name',
-    'timestamp': 'execution.start_timestamp',
+    'timestamp': 'liveaction.start_timestamp',
     'trigger': 'trigger.name',
     'trigger_type': 'trigger_type.name',
-    'user': 'execution.context.user'
+    'user': 'liveaction.context.user'
 }
 
 # List of filters that are too broad to distinct by them and are very likely to represent 1 to 1
 # relation between filter and particular history record.
-IGNORE_FILTERS = ['parent', 'timestamp', 'execution']
+IGNORE_FILTERS = ['parent', 'timestamp', 'liveaction']
 
 
 class FiltersController(RestController):
@@ -49,9 +49,9 @@ class FiltersController(RestController):
             List all distinct filters.
 
             Handles requests:
-                GET /history/executions/views/filters
+                GET /history/liveactions/views/filters
         """
-        LOG.info('GET all /history/executions/views/filters')
+        LOG.info('GET all /history/liveactions/views/filters')
 
         filters = {}
 
@@ -66,7 +66,7 @@ class FiltersController(RestController):
                     dot_notation.pop(-1)
                     query = {'$concat': dot_notation}
 
-                aggregate = ActionExecutionHistory.aggregate([
+                aggregate = ActionExecution.aggregate([
                     {'$group': {'_id': query}}
                 ])
 
