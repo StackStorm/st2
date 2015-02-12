@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# All Exchanges and Queues related to liveaction.
+# All Exchanges and Queues related to ActionExecution.
 
 from kombu import Exchange, Queue
 from st2common.transport import publishers

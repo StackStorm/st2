@@ -25,7 +25,7 @@ from st2actions.runners import ShellRunnerMixin
 from st2common import log as logging
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
 from st2common.exceptions.fabricrunner import FabricExecutionFailureException
-from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
+from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
 from st2common.models.system.action import (FabricRemoteAction, FabricRemoteScriptAction)
 
 # Replace with container call to get logger.
@@ -83,19 +83,16 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         self._password = None
         self._private_key = None
         self._kwarg_op = '--'
-        self._cwd = None
-        self._env = None
-        self._timeout = None
 
     def pre_run(self):
-        LOG.debug('Entering FabricRunner.pre_run() for liveaction_id="%s"',
-                  self.liveaction_id)
+        LOG.debug('Entering FabricRunner.pre_run() for actionexec_id="%s"',
+                  self.action_execution_id)
         LOG.debug('    runner_parameters = %s', self.runner_parameters)
         hosts = self.runner_parameters.get(RUNNER_HOSTS, '').split(',')
         self._hosts = [h.strip() for h in hosts if len(h) > 0]
         if len(self._hosts) < 1:
             raise ActionRunnerPreRunError('No hosts specified to run action for action %s.',
-                                          self.liveaction_id)
+                                          self.action_execution_id)
         self._username = self.runner_parameters.get(RUNNER_USERNAME, cfg.CONF.system_user.user)
         self._username = self._username or cfg.CONF.system_user.user
         self._password = self.runner_parameters.get(RUNNER_PASSWORD, None)
@@ -109,8 +106,8 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
 
-        LOG.info('[FabricRunner="%s", liveaction_id="%s"] Finished pre_run.',
-                 self.runner_id, self.liveaction_id)
+        LOG.info('[FabricRunner="%s", actionexec_id="%s"] Finished pre_run.',
+                 self.runner_id, self.action_execution_id)
 
     def run(self, action_parameters):
         LOG.debug('    action_parameters = %s', action_parameters)
@@ -141,7 +138,7 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         command = self.runner_parameters.get(RUNNER_COMMAND, None)
         env_vars = self._get_env_vars()
         return FabricRemoteAction(self.action_name,
-                                  str(self.liveaction_id),
+                                  str(self.action_execution_id),
                                   command,
                                   env_vars=env_vars,
                                   on_behalf_user=self._on_behalf_user,
@@ -161,9 +158,9 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         env_vars = self._get_env_vars()
         remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
                                                 cfg.CONF.ssh_runner.remote_dir)
-        remote_dir = os.path.join(remote_dir, self.liveaction_id)
+        remote_dir = os.path.join(remote_dir, self.action_execution_id)
         return FabricRemoteScriptAction(self.action_name,
-                                        str(self.liveaction_id),
+                                        str(self.action_execution_id),
                                         script_local_path_abs,
                                         self.libs_dir_path,
                                         named_args=named_args,
@@ -202,12 +199,12 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
             if allow_partial_failure:
                 success |= r_succeess
                 if success:
-                    return LIVEACTION_STATUS_SUCCEEDED
+                    return ACTIONEXEC_STATUS_SUCCEEDED
             else:
                 success &= r_succeess
                 if not success:
-                    return LIVEACTION_STATUS_FAILED
-        return LIVEACTION_STATUS_SUCCEEDED if success else LIVEACTION_STATUS_FAILED
+                    return ACTIONEXEC_STATUS_FAILED
+        return ACTIONEXEC_STATUS_SUCCEEDED if success else ACTIONEXEC_STATUS_FAILED
 
 
 # XXX: Write proper tests.

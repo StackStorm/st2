@@ -13,18 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# All Exchanges and Queues related to liveaction.
+# All Exchanges and Queues related to ActionExecution.
 
 from kombu import Exchange, Queue
 from st2common.transport import publishers
 
-HISTORY_XCHG = Exchange('st2.execution', type='topic')
+HISTORY_XCHG = Exchange('st2.history', type='topic')
 
 
-class ActionExecutionPublisher(publishers.CUDPublisher):
+class HistoryPublisher(publishers.CUDPublisher):
 
     def __init__(self, url):
-        super(ActionExecutionPublisher, self).__init__(url, HISTORY_XCHG)
+        super(HistoryPublisher, self).__init__(url, HISTORY_XCHG)
 
 
 def get_queue(name=None, routing_key=None, exclusive=False):

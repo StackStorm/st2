@@ -13,20 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# All Exchanges and Queues related to liveaction.
+from oslo.config import cfg
 
-from kombu import Exchange, Queue
-from st2common.transport import publishers
-
-LIVEACTION_XCHG = Exchange('st2.liveaction',
-                           type='topic')
-
-
-class LiveActionPublisher(publishers.CUDPublisher):
-
-    def __init__(self, url):
-        super(LiveActionPublisher, self).__init__(url, LIVEACTION_XCHG)
+from st2common import transport
+from st2common.models.db import MongoDBAccess
+from st2common.models.db.history import ActionExecutionHistoryDB
+from st2common.persistence.base import Access
 
 
-def get_queue(name, routing_key):
-    return Queue(name, LIVEACTION_XCHG, routing_key=routing_key)
+class ActionExecutionHistory(Access):
+    impl = MongoDBAccess(ActionExecutionHistoryDB)
+    publisher = None
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.history.HistoryPublisher(
+                cfg.CONF.messaging.url)
+        return cls.publisher

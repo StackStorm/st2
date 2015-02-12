@@ -33,8 +33,8 @@ class Action(core.Resource):
     _repr_attributes = ['name', 'pack', 'enabled', 'runner_type']
 
 
-class LiveAction(core.Resource):
+class ActionExecution(core.Resource):
     _alias = 'Execution'
     _display_name = 'Action Execution'
     _plural = 'ActionExecutions'
-    _plural_display_name = 'Action liveactions'
+    _plural_display_name = 'Action Executions'

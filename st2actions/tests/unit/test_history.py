@@ -16,48 +16,57 @@
 import copy
 
 import mock
-import traceback
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from st2tests.fixtures import executions as fixture
+from st2tests.fixtures import history as fixture
 from st2tests import DbTestCase
 import st2actions.bootstrap.runnersregistrar as runners_registrar
-from st2actions import worker
+from st2actions import worker, history
 from st2actions.runners.localrunner import LocalShellRunner
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2common.util import reference
 from st2common.transport.publishers import CUDPublisher
 from st2common.services import action as action_service
-from st2common.models.db.action import LiveActionDB
+from st2common.models.db.action import ActionExecutionDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
-from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
+from st2common.models.api.action import RunnerTypeAPI, ActionAPI, ActionExecutionAPI
 import st2common.util.action_db as action_utils
-from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.constants.action import ACTIONEXEC_STATUS_FAILED
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
-from st2common.persistence.action import RunnerType, Action, LiveAction
-from st2common.persistence.execution import ActionExecution
+from st2common.persistence.action import RunnerType, Action, ActionExecution
+from st2common.persistence.history import ActionExecutionHistory
 
 
 CHAMPION = worker.Worker(None)
-MOCK_FAIL_EXECUTION_CREATE = False
+HISTORIAN = history.Historian(None, timeout=1, wait=1)
+MOCK_FAIL_HISTORY_CREATE = False
 
 
 def process_create(payload):
     try:
-        if isinstance(payload, LiveActionDB):
+        if isinstance(payload, ActionExecutionDB):
+            if not MOCK_FAIL_HISTORY_CREATE:
+                HISTORIAN.record_action_execution(payload)
             CHAMPION.execute_action(payload)
-    except Exception:
-        traceback.print_exc()
-        print(payload)
+    except Exception as e:
+        print(e)
 
 
-@mock.patch.object(LocalShellRunner, 'run',
-                   mock.MagicMock(return_value=(LIVEACTION_STATUS_FAILED, 'Non-empty')))
+def process_update(payload):
+    try:
+        if isinstance(payload, ActionExecutionDB):
+            HISTORIAN.update_action_execution_history(payload)
+    except Exception as e:
+        print(e)
+
+
+@mock.patch.object(LocalShellRunner, 'run', mock.MagicMock(return_value={}))
 @mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
+@mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(side_effect=process_update))
 class TestActionExecutionHistoryWorker(DbTestCase):
 
     @classmethod
@@ -71,46 +80,46 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         Action.add_or_update(ActionAPI.to_model(action_chain))
 
     def tearDown(self):
-        MOCK_FAIL_EXECUTION_CREATE = False    # noqa
+        MOCK_FAIL_HISTORY_CREATE = False    # noqa
         super(TestActionExecutionHistoryWorker, self).tearDown()
 
     def test_basic_execution(self):
-        liveaction = LiveActionDB(action='core.local', parameters={'cmd': 'uname -a'})
-        liveaction = action_service.schedule(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, LIVEACTION_STATUS_FAILED)
-        execution = ActionExecution.get(liveaction__id=str(liveaction.id), raise_exception=True)
-        self.assertDictEqual(execution.trigger, {})
-        self.assertDictEqual(execution.trigger_type, {})
-        self.assertDictEqual(execution.trigger_instance, {})
-        self.assertDictEqual(execution.rule, {})
+        execution = ActionExecutionDB(action='core.local', parameters={'cmd': 'uname -a'})
+        execution = action_service.schedule(execution)
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
+        self.assertDictEqual(history.trigger, {})
+        self.assertDictEqual(history.trigger_type, {})
+        self.assertDictEqual(history.trigger_instance, {})
+        self.assertDictEqual(history.rule, {})
         action = action_utils.get_action_by_ref('core.local')
-        self.assertDictEqual(execution.action, vars(ActionAPI.from_model(action)))
+        self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
-        self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))
+        self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertDictEqual(history.execution, vars(ActionExecutionAPI.from_model(execution)))
 
     def test_basic_execution_history_create_failed(self):
-        MOCK_FAIL_EXECUTION_CREATE = True     # noqa
+        MOCK_FAIL_HISTORY_CREATE = True     # noqa
         self.test_basic_execution()
 
     def test_chained_executions(self):
-        liveaction = LiveActionDB(action='core.chain')
-        liveaction = action_service.schedule(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, LIVEACTION_STATUS_FAILED)
-        execution = ActionExecution.get(liveaction__id=str(liveaction.id), raise_exception=True)
+        execution = ActionExecutionDB(action='core.chain')
+        execution = action_service.schedule(execution)
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
         action = action_utils.get_action_by_ref('core.chain')
-        self.assertDictEqual(execution.action, vars(ActionAPI.from_model(action)))
+        self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
-        self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))
-        self.assertGreater(len(execution.children), 0)
-        for child in execution.children:
-            record = ActionExecution.get(id=child, raise_exception=True)
-            self.assertEqual(record.parent, str(execution.id))
+        self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertDictEqual(history.execution, vars(ActionExecutionAPI.from_model(execution)))
+        self.assertGreater(len(history.children), 0)
+        for child in history.children:
+            record = ActionExecutionHistory.get(id=child, raise_exception=True)
+            self.assertEqual(record.parent, str(history.id))
             self.assertEqual(record.action['name'], 'local')
             self.assertEqual(record.runner['name'], 'run-local')
 
@@ -134,19 +143,19 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         enforcer.enforce()
 
         # Wait for the action execution to complete and then confirm outcome.
-        liveaction = LiveAction.get(context__trigger_instance__id=str(trigger_instance.id))
-        self.assertIsNotNone(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, LIVEACTION_STATUS_FAILED)
-        execution = ActionExecution.get(liveaction__id=str(liveaction.id), raise_exception=True)
-        self.assertDictEqual(execution.trigger, vars(TriggerAPI.from_model(trigger)))
-        self.assertDictEqual(execution.trigger_type, vars(TriggerTypeAPI.from_model(trigger_type)))
-        self.assertDictEqual(execution.trigger_instance,
+        execution = ActionExecution.get(context__trigger_instance__id=str(trigger_instance.id))
+        self.assertIsNotNone(execution)
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertEqual(execution.status, ACTIONEXEC_STATUS_FAILED)
+        history = ActionExecutionHistory.get(execution__id=str(execution.id), raise_exception=True)
+        self.assertDictEqual(history.trigger, vars(TriggerAPI.from_model(trigger)))
+        self.assertDictEqual(history.trigger_type, vars(TriggerTypeAPI.from_model(trigger_type)))
+        self.assertDictEqual(history.trigger_instance,
                              vars(TriggerInstanceAPI.from_model(trigger_instance)))
-        self.assertDictEqual(execution.rule, vars(RuleAPI.from_model(rule)))
-        action = action_utils.get_action_by_ref(liveaction.action)
-        self.assertDictEqual(execution.action, vars(ActionAPI.from_model(action)))
+        self.assertDictEqual(history.rule, vars(RuleAPI.from_model(rule)))
+        action = action_utils.get_action_by_ref(execution.action)
+        self.assertDictEqual(history.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
-        self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))
+        self.assertDictEqual(history.runner, vars(RunnerTypeAPI.from_model(runner)))
+        execution = ActionExecution.get_by_id(str(execution.id))
+        self.assertDictEqual(history.execution, vars(ActionExecutionAPI.from_model(execution)))

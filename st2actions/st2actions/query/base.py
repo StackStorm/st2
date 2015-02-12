@@ -22,14 +22,14 @@ import time
 from st2actions.container.service import RunnerContainerService
 from st2actions.runners import get_runner
 from st2common import log as logging
-from st2common.constants.action import (LIVEACTION_STATUS_FAILED,
-                                        LIVEACTION_STATUS_SUCCEEDED)
-from st2common.persistence.action import (LiveAction, ActionExecutionState)
-from st2common.services import executions
+from st2common.constants.action import (ACTIONEXEC_STATUS_FAILED,
+                                        ACTIONEXEC_STATUS_SUCCEEDED)
+from st2common.persistence.action import (ActionExecution, ActionExecutionState)
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 
+
 LOG = logging.getLogger(__name__)
-DONE_STATES = [LIVEACTION_STATUS_FAILED, LIVEACTION_STATUS_SUCCEEDED]
+DONE_STATES = [ACTIONEXEC_STATUS_FAILED, ACTIONEXEC_STATUS_SUCCEEDED]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -56,9 +56,7 @@ class Querier(object):
                 eventlet.greenthread.sleep(self._no_workers_sleep_time)
             self._fire_queries()
 
-    def add_queries(self, query_contexts=None):
-        if query_contexts is None:
-            query_contexts = []
+    def add_queries(self, query_contexts=[]):
         LOG.debug('Adding queries to querier: %s' % query_contexts)
         for query_context in query_contexts:
             self._query_contexts.put((time.time(), query_context))
@@ -85,46 +83,38 @@ class Querier(object):
         try:
             (status, results) = self.query(execution_id, actual_query_context)
         except:
-            LOG.exception('Failed querying results for liveaction_id %s.', execution_id)
+            LOG.exception('Failed querying results for action_execution_id %s.', execution_id)
             self._delete_state_object(query_context)
-            LOG.debug('Remove state object %s.', query_context)
             return
 
         done = (status in DONE_STATES)
 
-        liveaction_db = None
-        try:
-            liveaction_db = self._update_action_results(execution_id, status, results)
-        except Exception:
-            LOG.exception('Failed updating action results for liveaction_id %s',
-                          execution_id)
+        actionexec_db = ActionExecution.get_by_id(execution_id)
+        if not actionexec_db:
+            LOG.exception('Action execution %s no longer exists.' % execution_id)
             self._delete_state_object(query_context)
             return
 
+        actionexec_db = self._update_action_results(actionexec_db, status, results)
+
         if done:
-            action_db = get_action_by_ref(liveaction_db.action)
+            action_db = get_action_by_ref(actionexec_db.action)
             if not action_db:
                 LOG.exception('Unable to invoke post run. Action %s '
-                              'no longer exists.' % liveaction_db.action)
+                              'no longer exists.' % actionexec_db.action)
                 self._delete_state_object(query_context)
                 return
-            self._invoke_post_run(liveaction_db, action_db)
+            self._invoke_post_run(actionexec_db, action_db)
             self._delete_state_object(query_context)
             return
 
         self._query_contexts.put((time.time(), query_context))
 
-    def _update_action_results(self, execution_id, status, results):
-        liveaction_db = LiveAction.get_by_id(execution_id)
-        if not liveaction_db:
-            raise Exception('No DB model for liveaction_id: %s' % execution_id)
-        liveaction_db.result = results
-        liveaction_db.status = status
-        # update liveaction, update actionexecution and then publish update.
-        updated_liveaction = LiveAction.add_or_update(liveaction_db, publish=False)
-        executions.update_execution(updated_liveaction)
-        LiveAction.publish_update(updated_liveaction)
-        return updated_liveaction
+    def _update_action_results(self, actionexec_db, status, results):
+        actionexec_db.result = results
+        actionexec_db.status = status
+        updated_exec = ActionExecution.add_or_update(actionexec_db)
+        return updated_exec
 
     def _invoke_post_run(self, actionexec_db, action_db):
         LOG.info('Invoking post run for action execution %s. Action=%s; Runner=%s',
@@ -162,8 +152,8 @@ class Querier(object):
         This is the method individual queriers must implement.
         This method should return a tuple of (status, results).
 
-        status should be one of LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_RUNNING,
-        LIVEACTION_STATUS_FAILED defined in st2common.constants.action.
+        status should be one of ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_RUNNING,
+        ACTIONEXEC_STATUS_FAILED defined in st2common.constants.action.
         """
         pass
 
