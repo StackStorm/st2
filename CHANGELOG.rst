@@ -37,6 +37,8 @@ Docs: http://docks.stackstorm.com/latest
   improve running time of API request. (bug-fix)
 * CLI commands to return non-zero exit codes for failed operations (new-feature)
 * Fix a bug with template rendering, under some conditions, ending in an infinite loop. (bug-fix)
+* Add new ``nequals`` (``neq``) rule criteria operator. This criteria operator
+  performs not equals check on values of an arbitrary type. (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------
