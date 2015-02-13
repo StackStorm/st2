@@ -37,14 +37,25 @@ class PoolPublisher(object):
         # pickling the payload for now. Better serialization mechanism is essential.
         with self.pool.acquire(block=True) as connection:
             with producers[connection].acquire(block=True) as producer:
+                channel = None
                 try:
+                    # creating a new channel for every producer publish. This could be expensive
+                    # and maybe there is a better way to do this by creating a ChannelPool etc.
+                    channel = connection.channel()
+                    # ain't clean but I am done trying to find out the right solution!
+                    producer._set_channel(channel)
                     publish = connection.ensure(producer, producer.publish, errback=self.errback,
                                                 max_retries=3)
                     publish(payload, exchange=exchange, routing_key=routing_key,
                             serializer='pickle')
                 except Exception as e:
-                    LOG.exception('Connections to rabbitmq cannot be re-established: %s',
-                                  e.message, exc_info=False)
+                    LOG.error('Connections to rabbitmq cannot be re-established: %s', e.message)
+                finally:
+                    if channel:
+                        try:
+                            channel.close()
+                        except Exception:
+                            LOG.warning('Error closing channel.', exc_info=True)
 
 
 class CUDPublisher(object):
