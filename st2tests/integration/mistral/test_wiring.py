@@ -32,7 +32,7 @@ class TestWorkflowExecution(unittest2.TestCase):
         self.assertGreaterEqual(multiprocessing.cpu_count(), 2)
 
     def _execute_workflow(self, action, parameters):
-        execution = models.liveaction(action=action, parameters=parameters)
+        execution = models.LiveAction(action=action, parameters=parameters)
         execution = self.st2client.liveactions.create(execution)
         self.assertIsNotNone(execution.id)
         self.assertEqual(execution.action, action)
