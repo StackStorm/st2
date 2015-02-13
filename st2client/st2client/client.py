@@ -90,7 +90,7 @@ class Client(object):
 
     @property
     def liveactions(self):
-        return self.managers['liveaction']
+        return self.managers['LiveAction']
 
     @property
     def rules(self):
