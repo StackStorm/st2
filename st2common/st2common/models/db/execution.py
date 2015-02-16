@@ -33,7 +33,23 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     rule = stormbase.EscapedDictField()
     action = stormbase.EscapedDictField(required=True)
     runner = stormbase.EscapedDictField(required=True)
+    # Only the diff between the liveaction type and what is replicated
+    # in the ActionExecutionDB object.
     liveaction = stormbase.EscapedDictField(required=True)
+    status = me.StringField(
+        required=True,
+        help_text='The current status of the liveaction.')
+    start_timestamp = me.ComplexDateTimeField(
+        default=datetime.datetime.utcnow,
+        help_text='The timestamp when the liveaction was created.')
+    end_timestamp = me.ComplexDateTimeField(
+        help_text='The timestamp when the liveaction has finished.')
+    parameters = me.DictField(
+        default={},
+        help_text='The key-value pairs passed as to the action runner &  execution.')
+    result = stormbase.EscapedDynamicField(
+        default={},
+        help_text='Action defined result.')
     parent = me.StringField()
     children = me.ListField(field=me.StringField())
 
@@ -41,7 +57,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         'indexes': [
             {'fields': ['parent']},
             {'fields': ['liveaction.id']},
-            {'fields': ['liveaction.start_timestamp']}
+            {'fields': ['start_timestamp']}
         ]
     }
 
