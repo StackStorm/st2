@@ -28,6 +28,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 from st2common.util import reference
 import st2common.util.action_db as action_utils
 from st2common.persistence.execution import ActionExecution
@@ -42,6 +44,21 @@ from st2common import log as logging
 
 LOG = logging.getLogger(__name__)
 
+SKIPPED = ['id', 'context', 'callback', 'action']
+
+
+def _decompose_liveaction(liveaction):
+    """
+    Splits the liveaction into an ActionExecution compatible dict.
+    """
+    decomposed = {'liveaction':{}}
+    for k,v in six.iteritems(vars(LiveActionAPI.from_model(liveaction))):
+        if k in SKIPPED:
+            decomposed['liveaction'][k] = v
+        else:
+            decomposed[k] = v
+    return decomposed
+
 
 def create_execution_object(liveaction, publish=True):
     action_db = action_utils.get_action_by_ref(liveaction.action)
@@ -49,9 +66,9 @@ def create_execution_object(liveaction, publish=True):
 
     attrs = {
         'action': vars(ActionAPI.from_model(action_db)),
-        'runner': vars(RunnerTypeAPI.from_model(runner)),
-        'liveaction': vars(LiveActionAPI.from_model(liveaction))
+        'runner': vars(RunnerTypeAPI.from_model(runner))
     }
+    attrs.update(_decompose_liveaction(liveaction))
 
     if 'rule' in liveaction.context:
         rule = reference.get_model_from_ref(Rule, liveaction.context.get('rule', {}))
@@ -88,7 +105,8 @@ def create_execution_object(liveaction, publish=True):
 
 def update_execution(liveaction, publish=True):
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
-    execution.liveaction = vars(LiveActionAPI.from_model(liveaction))
+    decomposed = _decompose_liveaction(liveaction)
+    for k,v in six.iteritems(decomposed):
+        execution.setattr(k, v)
     execution = ActionExecution.add_or_update(execution, publish=publish)
-
     return execution
