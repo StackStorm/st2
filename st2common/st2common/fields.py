@@ -56,7 +56,7 @@ class ComplexDateTimeField(LongField):
         :param data: Number of microseconds since the epoch.
         :type data: ``int``
         """
-        result = datetime.datetime.fromtimestamp(data//SECOND_TO_MICROSECONDS)
+        result = datetime.datetime.fromtimestamp(data // SECOND_TO_MICROSECONDS)
         microseconds_reminder = (data % SECOND_TO_MICROSECONDS)
         result.replace(microsecond=microseconds_reminder)
         return result
