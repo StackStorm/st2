@@ -183,13 +183,38 @@ class MistralRunner(AsyncActionRunner):
 
         status = LIVEACTION_STATUS_RUNNING
         partial_results = {'tasks': []}
-        context = {
-            'mistral': {
-                'execution_id': str(execution.id),
-                'workflow_name': execution.workflow_name
-            }
+
+        current_context = {
+            'execution_id': str(execution.id),
+            'workflow_name': execution.workflow_name
         }
 
-        LOG.info('Mistral query context is %s' % context)
+        exec_context = self.context
+        exec_context = self._build_mistral_context(exec_context, current_context)
+        LOG.info('Mistral query context is %s' % exec_context)
 
-        return (status, partial_results, context)
+        return (status, partial_results, exec_context)
+
+    @staticmethod
+    def _build_mistral_context(parent, current):
+        context = dict()
+
+        if not parent:
+            context['mistral'] = current
+        else:
+            if 'mistral' in parent.keys():
+                orig_parent_context = parent.get('mistral', dict())
+                actual_parent = dict()
+                if 'workflow_name' in orig_parent_context.keys():
+                    actual_parent['workflow_name'] = orig_parent_context['workflow_name']
+                    del orig_parent_context['workflow_name']
+                if 'execution_id' in orig_parent_context.keys():
+                    actual_parent['execution_id'] = orig_parent_context['execution_id']
+                    del orig_parent_context['execution_id']
+                context['mistral'] = orig_parent_context
+                context['mistral'].update(current)
+                context['mistral']['parent'] = actual_parent
+            else:
+                context['mistral'] = current
+
+        return context
