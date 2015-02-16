@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import uuid
 
 import six
@@ -189,7 +190,7 @@ class MistralRunner(AsyncActionRunner):
             'workflow_name': execution.workflow_name
         }
 
-        exec_context = self.context
+        exec_context = copy.deepcopy(self.context)
         exec_context = self._build_mistral_context(exec_context, current_context)
         LOG.info('Mistral query context is %s' % exec_context)
 
