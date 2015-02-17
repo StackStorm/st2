@@ -190,7 +190,7 @@ class MistralRunner(AsyncActionRunner):
             'workflow_name': execution.workflow_name
         }
 
-        exec_context = copy.deepcopy(self.context)
+        exec_context = self.context
         exec_context = self._build_mistral_context(exec_context, current_context)
         LOG.info('Mistral query context is %s' % exec_context)
 
@@ -198,6 +198,13 @@ class MistralRunner(AsyncActionRunner):
 
     @staticmethod
     def _build_mistral_context(parent, current):
+        """
+        Mistral workflow might be kicked off in st2 by a parent Mistral
+        workflow. In that case, we need to make sure that the existing
+        mistral 'context' is moved as 'parent' and the child workflow
+        'context' is added.
+        """
+        parent = copy.deepcopy(parent)
         context = dict()
 
         if not parent:
