@@ -16,6 +16,70 @@
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.models.system.common import ResourceReference
 
+__all__ = [
+    'WEBHOOKS_PARAMETERS_SCHEMA',
+    'WEBHOOKS_PAYLOAD_SCHEMA',
+    'INTERVAL_PARAMETERS_SCHEMA',
+    'DATE_PARAMETERS_SCHEMA',
+    'CRON_PARAMETERS_SCHEMA',
+    'TIMER_PAYLOAD_SCHEMA',
+
+    'TIMER_TRIGGER_TYPES',
+    'INTERNAL_TRIGGER_TYPES',
+    'SYSTEM_TRIGGER_TYPES'
+]
+
+# Internal system triggers which are available for each resource
+INTERNAL_TRIGGER_TYPES = {
+    'action': [
+        {
+            'name': 'st2.generic.actiontrigger',
+            'pack': SYSTEM_PACK_NAME,
+            'description': 'Trigger encapsulating the completion of an action execution.',
+            'payload_schema': {
+                'type': 'object',
+                'properties': {
+                    'execution_id': {},
+                    'status': {},
+                    'start_timestamp': {},
+                    'action_name': {},
+                    'parameters': {},
+                    'result': {}
+                }
+            }
+        }
+    ],
+    'sensor': [
+        {
+            'name': 'st2.sensor.process_spawn',
+            'pack': SYSTEM_PACK_NAME,
+            'description': 'Trigger encapsulating spawning of a sensor process.',
+            'payload_schema': {
+                'type': 'object',
+                'properties': {
+                    'id': {},
+                    'timestamp': {},
+                    'pid': {},
+                    'cmd': {}
+                }
+            }
+        },
+        {
+            'name': 'st2.sensor.process_exit',
+            'pack': SYSTEM_PACK_NAME,
+            'description': 'Trigger encapsulating exit of a sensor process.',
+            'payload_schema': {
+                'type': 'object',
+                'properties': {
+                    'id': {},
+                    'timestamp': {},
+                    'exit_code': {}
+                }
+            }
+        }
+    ]
+}
+
 
 WEBHOOKS_PARAMETERS_SCHEMA = {
     'type': 'object',
