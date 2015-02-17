@@ -58,7 +58,7 @@ class ComplexDateTimeField(LongField):
         """
         result = datetime.datetime.fromtimestamp(data // SECOND_TO_MICROSECONDS)
         microseconds_reminder = (data % SECOND_TO_MICROSECONDS)
-        result.replace(microsecond=microseconds_reminder)
+        result = result.replace(microsecond=microseconds_reminder)
         return result
 
     def _datetime_to_microseconds_since_epoch(self, value):
