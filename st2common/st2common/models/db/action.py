@@ -19,6 +19,7 @@ import mongoengine as me
 from st2common import log as logging
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
+from st2common.fields import ComplexDateTimeField
 
 __all__ = [
     'RunnerTypeDB',
@@ -109,10 +110,10 @@ class LiveActionDB(stormbase.StormFoundationDB):
     status = me.StringField(
         required=True,
         help_text='The current status of the liveaction.')
-    start_timestamp = me.ComplexDateTimeField(
+    start_timestamp = ComplexDateTimeField(
         default=datetime.datetime.utcnow,
         help_text='The timestamp when the liveaction was created.')
-    end_timestamp = me.ComplexDateTimeField(
+    end_timestamp = ComplexDateTimeField(
         help_text='The timestamp when the liveaction has finished.')
     action = me.StringField(
         required=True,
