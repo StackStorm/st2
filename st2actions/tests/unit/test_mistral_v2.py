@@ -465,10 +465,11 @@ class TestMistralRunner(DbTestCase):
         context = MistralRunner._build_mistral_context(parent, current)
         self.assertTrue(context is not None)
         self.assertTrue('parent' in context['mistral'].keys())
-        self.assertDictEqual(context['mistral']['parent'], {
+        parent_dict = {
             'workflow_name': parent['mistral']['workflow_name'],
             'execution_id': parent['mistral']['execution_id']
-            })
+        }
+        self.assertDictEqual(context['mistral']['parent'], parent_dict)
         self.assertEqual(context['mistral']['execution_id'], current['execution_id'])
 
         parent = None
