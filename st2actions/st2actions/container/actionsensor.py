@@ -52,7 +52,8 @@ def _do_register_internal_trigger_types():
 def register_trigger_type(trigger_definition, attempt_no=0):
     LOG.debug('Attempt no %s to register trigger %s.', attempt_no, trigger_definition['name'])
 
-    payload = json.dumps(ACTION_TRIGGER_TYPE)
+    payload = json.dumps(trigger_definition)
+
     try:
         r = requests.post(TRIGGER_TYPE_ENDPOINT,
                           data=payload,
@@ -69,7 +70,8 @@ def register_trigger_type(trigger_definition, attempt_no=0):
         if attempt_no < MAX_ATTEMPTS:
             retry_wait = RETRY_WAIT * (attempt_no + 1)
             LOG.debug('    ConnectionError. Will retry in %ss.', retry_wait)
-            eventlet.spawn_after(retry_wait, register_trigger_type, trigger_definition=trigger_definition,
+            eventlet.spawn_after(retry_wait, register_trigger_type,
+                                 trigger_definition=trigger_definition,
                                  attempt_no=(attempt_no + 1))
         else:
             LOG.warn('Failed to register trigger %s. Exceeded max attempts to register trigger.',
@@ -90,6 +92,7 @@ def register_internal_trigger_types():
 def post_trigger(liveaction):
     if not ACTION_SENSOR_ENABLED:
         return
+
     try:
         trigger = ResourceReference.to_string_reference(pack=ACTION_TRIGGER_TYPE['pack'],
                                                         name=ACTION_TRIGGER_TYPE['name'])
