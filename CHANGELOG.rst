@@ -46,6 +46,9 @@ Docs: http://docks.stackstorm.com/latest
 * Add new ``nequals`` (``neq``) rule criteria operator. This criteria operator
   performs not equals check on values of an arbitrary type. (new-feature)
 * Mistral subworkflows kicked off in st2 should include task name. (bug-fix)
+* Dispatch an internal trigger when a sensor process is spawned / started
+  (``st2.sensor.process_spawn``) and when a process exits / is stopped
+  (``st2.sensor.process_exit``).
 
 v0.7 - January 16, 2015
 -----------------------
