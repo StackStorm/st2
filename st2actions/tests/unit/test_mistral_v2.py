@@ -455,3 +455,22 @@ class TestMistralRunner(DbTestCase):
                                             data=json.dumps({'state': 'SUCCESS',
                                                              'result': NON_EMPTY_RESULT}),
                                             headers={'content-type': 'application/json'})
+
+    def test_build_context(self):
+        parent = {'mistral': {
+                  'workflow_name': 'foo', 'execution_id': 'zbbjb-r87t84-bbjd',
+                  'task_tags': None, 'task_name': 'some_fancy_wf_task',
+                  'task_id': '6c7d4334-3e7d-49c6-918d-698e846affaf'}}
+        current = {'workflow_name': 'foo.subwf', 'execution_id': 'cbjhv-csvhjvsh-vvshvc'}
+        context = MistralRunner._build_mistral_context(parent, current)
+        self.assertTrue(context is not None)
+        self.assertTrue('parent' in context['mistral'].keys())
+        self.assertDictEqual(context['mistral']['parent'], {
+            'workflow_name': parent['mistral']['workflow_name'],
+            'execution_id': parent['mistral']['execution_id']
+            })
+        self.assertEqual(context['mistral']['execution_id'], current['execution_id'])
+
+        parent = None
+        context = MistralRunner._build_mistral_context(parent, current)
+        self.assertDictEqual(context['mistral'], current)
