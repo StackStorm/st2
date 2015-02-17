@@ -267,6 +267,80 @@ Example:
 
     st2 run core.remote hosts=<host> username=<username> @private_key=/home/myuser/.ssh/id_rsa cmd=<cmd>
 
+Re-running an action
+--------------------
+
+To re-run a particular action, you can use the ``execution re-run <existing
+execution id>`` command.
+This command re-runs an action with the same set of the input parameters which
+were used for the original action.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 run core.local env=VAR=hello cmd='echo $VAR; date'
+    .
+    +-----------------+--------------------------------+
+    | Property        | Value                          |
+    +-----------------+--------------------------------+
+    | id              | 54e37a3c0640fd0bd07b1930       |
+    | context         | {                              |
+    |                 |     "user": "stanley"          |
+    |                 | }                              |
+    | parameters      | {                              |
+    |                 |     "cmd": "echo $VAR; date",  |
+    |                 |     "env": {                   |
+    |                 |         "VAR": "hello"         |
+    |                 |     }                          |
+    |                 | }                              |
+    | status          | succeeded                      |
+    | start_timestamp | Tue, 17 Feb 2015 17:28:28 UTC  |
+    | result          | {                              |
+    |                 |     "failed": false,           |
+    |                 |     "stderr": "",              |
+    |                 |     "return_code": 0,          |
+    |                 |     "succeeded": true,         |
+    |                 |     "stdout": "hello           |
+    |                 | Tue Feb 17 17:28:28 UTC 2015   |
+    |                 | "                              |
+    |                 | }                              |
+    | action          | core.local                     |
+    | callback        |                                |
+    | end_timestamp   | Tue, 17 Feb 2015 17:28:28 UTC  |
+    +-----------------+--------------------------------+
+
+    st2 run re-run 54e37a3c0640fd0bd07b1930
+    .
+    +-----------------+--------------------------------+
+    | Property        | Value                          |
+    +-----------------+--------------------------------+
+    | id              | 54e37a630640fd0bd07b1932       |
+    | context         | {                              |
+    |                 |     "user": "stanley"          |
+    |                 | }                              |
+    | parameters      | {                              |
+    |                 |     "cmd": "echo $VAR; date",  |
+    |                 |     "env": {                   |
+    |                 |         "VAR": "hello"         |
+    |                 |     }                          |
+    |                 | }                              |
+    | status          | succeeded                      |
+    | start_timestamp | Tue, 17 Feb 2015 17:29:07 UTC  |
+    | result          | {                              |
+    |                 |     "failed": false,           |
+    |                 |     "stderr": "",              |
+    |                 |     "return_code": 0,          |
+    |                 |     "succeeded": true,         |
+    |                 |     "stdout": "hello           |
+    |                 | Tue Feb 17 17:29:07 UTC 2015   |
+    |                 | "                              |
+    |                 | }                              |
+    | action          | core.local                     |
+    | callback        |                                |
+    | end_timestamp   | Tue, 17 Feb 2015 17:29:07 UTC  |
+    +-----------------+--------------------------------+
+
 Inheriting all the environment variables which are accessible to the CLI and passing them to runner as env parameter
 --------------------------------------------------------------------------------------------------------------------
 
