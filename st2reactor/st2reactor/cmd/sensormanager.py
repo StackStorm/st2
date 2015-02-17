@@ -32,6 +32,12 @@ def _setup():
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
              username=username, password=password)
 
+    # 4. Register internal triggers
+    # Note: We need to do import here because of a messed up configuration
+    # situation (this module depends on configuration being parsed)
+    from st2common.triggers import register_internal_trigger_types
+    register_internal_trigger_types()
+
 
 def _teardown():
     db_teardown()

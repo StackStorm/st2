@@ -30,14 +30,22 @@ def _setup():
 
     # 1. parse args to setup config.
     config.parse_args()
+
     # 2. setup logging.
     logging.setup(cfg.CONF.actionrunner.logging)
+
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
     username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
     password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
              username=username, password=password)
+
+    # 4. Register internal triggers
+    # Note: We need to do import here because of a messed up configuration
+    # situation (this module depends on configuration being parsed)
+    from st2common.triggers import register_internal_trigger_types
+    register_internal_trigger_types()
 
 
 def _run_worker():
