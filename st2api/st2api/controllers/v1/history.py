@@ -18,8 +18,8 @@ from pecan import rest
 from st2api.controllers import resource
 from st2api.controllers.v1.historyviews import SUPPORTED_FILTERS
 from st2api.controllers.v1.historyviews import HistoryViewsController
-from st2common.persistence.history import ActionExecutionHistory
-from st2common.models.api.history import ActionExecutionHistoryAPI
+from st2common.persistence.execution import ActionExecution
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.system.common import ResourceReference
 from st2common import log as logging
@@ -28,14 +28,14 @@ LOG = logging.getLogger(__name__)
 
 
 class ActionExecutionHistoryController(resource.ResourceController):
-    model = ActionExecutionHistoryAPI
-    access = ActionExecutionHistory
+    model = ActionExecutionAPI
+    access = ActionExecution
     views = HistoryViewsController()
 
     supported_filters = SUPPORTED_FILTERS
 
     query_options = {
-        'sort': ['-execution__start_timestamp']
+        'sort': ['-liveaction__start_timestamp']
     }
 
     def _get_executions(self, **kw):
@@ -53,14 +53,14 @@ class ActionExecutionHistoryController(resource.ResourceController):
     @jsexpose()
     def get_all(self, **kw):
         """
-            List all history for action executions.
+            List all history for action liveactions.
 
             Handles requests:
-                GET /history/executions/
+                GET /history/liveactions/
         """
-        LOG.info('GET all /history/executions/ with filters=%s', kw)
+        LOG.info('GET all /history/liveactions/ with filters=%s', kw)
         return self._get_executions(**kw)
 
 
 class HistoryController(rest.RestController):
-    executions = ActionExecutionHistoryController()
+    liveactions = ActionExecutionHistoryController()

@@ -25,7 +25,7 @@ import st2common.models.db.reactor as reactor_model
 import st2common.models.db.action as action_model
 import st2common.models.db.datastore as datastore_model
 import st2common.models.db.actionrunner as actionrunner_model
-import st2common.models.db.history as history_model
+import st2common.models.db.execution as execution_model
 
 __all__ = [
     'EventletTestCase',
@@ -39,7 +39,7 @@ ALL_MODELS.extend(reactor_model.MODELS)
 ALL_MODELS.extend(action_model.MODELS)
 ALL_MODELS.extend(datastore_model.MODELS)
 ALL_MODELS.extend(actionrunner_model.MODELS)
-ALL_MODELS.extend(history_model.MODELS)
+ALL_MODELS.extend(execution_model.MODELS)
 
 
 class EventletTestCase(TestCase):
@@ -110,7 +110,9 @@ class DbTestCase(BaseDbTestCase):
     This means database is only dropped once before all the tests from this class run. This means
     data is persited between different tests in this class.
     """
+
     db_connection = None
+    current_result = None
 
     @classmethod
     def setUpClass(cls):
@@ -119,7 +121,20 @@ class DbTestCase(BaseDbTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls._drop_db()
+        drop_db = True
+
+        if cls.current_result.errors or cls.current_result.failures:
+            # Don't drop DB on test failure
+            drop_db = False
+
+        if drop_db:
+            cls._drop_db()
+
+    def run(self, result=None):
+        # Remember result for use in tearDown and tearDownClass
+        self.current_result = result
+        self.__class__.current_result = result
+        super(DbTestCase, self).run(result=result)
 
 
 class CleanDbTestCase(BaseDbTestCase):

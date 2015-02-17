@@ -156,7 +156,7 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
             continue
 
     if len(registered_plugins) == 0:
-        raise Exception('Found no classes in plugin file ' + plugin_abs_file_path
-                        + ' matching requirements.')
+        raise Exception('Found no classes in plugin file "%s" matching requirements.' %
+                        (plugin_abs_file_path))
 
     return registered_plugins

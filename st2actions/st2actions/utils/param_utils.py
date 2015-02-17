@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ast
 import copy
 import json
+
 import six
 
 from jinja2 import Template, Environment, StrictUndefined, meta, exceptions
@@ -23,6 +23,7 @@ from st2common import log as logging
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.exceptions import actionrunner
 from st2common.services.keyvalues import KeyValueLookup
+from st2common.util.casts import get_cast
 from st2common.util.compat import to_unicode
 
 
@@ -30,8 +31,10 @@ LOG = logging.getLogger(__name__)
 
 
 def _split_params(runner_parameters, action_parameters, mixed_params):
-    pf = lambda params, skips: {k: v for k, v in six.iteritems(mixed_params)
-                                if k in params and k not in skips}
+    def pf(params, skips):
+        result = {k: v for k, v in six.iteritems(mixed_params)
+                  if k in params and k not in skips}
+        return result
     return (pf(runner_parameters, {}), pf(action_parameters, runner_parameters))
 
 
@@ -39,7 +42,7 @@ def _get_resolved_runner_params(runner_parameters, action_parameters,
                                 actionexec_runner_parameters):
     # Runner parameters should use the defaults from the RunnerType object.
     # The runner parameter defaults may be overridden by values provided in
-    # the Action and ActionExecution.
+    # the Action and liveaction.
 
     # Create runner parameter by merging default values with dynamic values
     resolved_params = {k: v['default'] if 'default' in v else None
@@ -58,7 +61,7 @@ def _get_resolved_runner_params(runner_parameters, action_parameters,
             if action_param.get('default', False):
                 resolved_params[param_name] = action_param['default']
 
-            # No further override (from actionexecution) if param is immutable
+            # No further override (from liveaction) if param is immutable
             if action_param.get('immutable', False):
                 continue
 
@@ -95,7 +98,7 @@ def get_resolved_params(runnertype_parameter_info, action_parameter_info, action
     '''
     # Runner parameters should use the defaults from the RunnerType object.
     # The runner parameter defaults may be overridden by values provided in
-    # the Action and ActionExecution.
+    # the Action and liveaction.
     actionexec_runner_parameters, actionexec_action_parameters = _split_params(
         runnertype_parameter_info, action_parameter_info, actionexec_parameters)
     runner_params = _get_resolved_runner_params(runnertype_parameter_info,
@@ -213,33 +216,55 @@ def _do_render_params(renderable_params, context):
     env = Environment(undefined=StrictUndefined)
     rendered_params = {}
     rendered_params.update(context)
+
+    # Maps parameter key to render exception
+    # We save the exception so we can throw a more meaningful exception at the end if rendering of
+    # some parameter fails
+    parameter_render_exceptions = {}
+
+    num_parameters = len(renderable_params) + len(context)
+    # After how many attempts at failing to render parameter we should bail out
+    max_rendered_parameters_unchanged_count = num_parameters
+    rendered_params_unchanged_count = 0
+
     while len(renderable_params) != 0:
+        renderable_params_pre_loop = renderable_params.copy()
         for k, v in six.iteritems(renderable_params):
             template = env.from_string(v)
+
             try:
                 rendered = template.render(rendered_params)
                 rendered_params[k] = rendered
-            except:
+
+                if k in parameter_render_exceptions:
+                    del parameter_render_exceptions[k]
+            except Exception as e:
+                # Note: This sucks, but because we support multi level and out of order
+                # rendering, we can't throw an exception here yet since the parameter could get
+                # rendered in future iteration
                 LOG.debug('Failed to render %s: %s', k, v, exc_info=True)
+                parameter_render_exceptions[k] = e
+
         for k in rendered_params:
             if k in renderable_params:
                 del renderable_params[k]
+
+        if renderable_params_pre_loop == renderable_params:
+            rendered_params_unchanged_count += 1
+
+        # Make sure we terminate and don't end up in an infinite loop if we
+        # tried to render all the parameters but rendering of some parameters
+        # still fails
+        if rendered_params_unchanged_count >= max_rendered_parameters_unchanged_count:
+            k = parameter_render_exceptions.keys()[0]
+            e = parameter_render_exceptions[k]
+            msg = 'Failed to render parameter "%s": %s' % (k, str(e))
+            raise actionrunner.ActionRunnerException(msg)
+
     return rendered_params
 
 
 def _cast_params(rendered, parameter_schemas):
-    casts = {
-        'array': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
-                  else x),
-        'boolean': (lambda x: ast.literal_eval(x.capitalize())
-                    if isinstance(x, str) or isinstance(x, unicode) else x),
-        'integer': int,
-        'number': float,
-        'object': (lambda x: json.loads(x) if isinstance(x, str) or isinstance(x, unicode)
-                   else x),
-        'string': to_unicode
-    }
-
     casted_params = {}
     for k, v in six.iteritems(rendered):
         # Add uncasted first and then override with casted param. Not all params will end up
@@ -255,7 +280,7 @@ def _cast_params(rendered, parameter_schemas):
         parameter_type = parameter_schema.get('type', None)
         if not parameter_type:
             continue
-        cast = casts.get(parameter_type, None)
+        cast = get_cast(cast_type=parameter_type)
         if not cast:
             continue
         casted_params[k] = cast(v)

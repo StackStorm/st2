@@ -93,7 +93,7 @@ ACTION_3 = {
     }
 }
 
-ACTION_EXECUTION_1 = {
+LIVE_ACTION_1 = {
     'action': 'sixpack.st2.dummy.action1',
     'parameters': {
         'hosts': 'localhost',
@@ -101,7 +101,7 @@ ACTION_EXECUTION_1 = {
     }
 }
 
-ACTION_EXECUTION_2 = {
+LIVE_ACTION_2 = {
     'action': 'familypack.st2.dummy.action2',
     'parameters': {
         'hosts': 'localhost',
@@ -109,7 +109,7 @@ ACTION_EXECUTION_2 = {
     }
 }
 
-ACTION_EXECUTION_3 = {
+LIVE_ACTION_3 = {
     'action': 'wolfpack.st2.dummy.action3',
     'parameters': {
         'hosts': 'localhost',
@@ -160,38 +160,38 @@ class TestActionExecutionController(FunctionalTest):
         super(TestActionExecutionController, cls).tearDownClass()
 
     def test_get_one(self):
-        post_resp = self._do_post(ACTION_EXECUTION_1)
+        post_resp = self._do_post(LIVE_ACTION_1)
         actionexecution_id = self._get_actionexecution_id(post_resp)
         get_resp = self._do_get_one(actionexecution_id)
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
 
     def test_get_all(self):
-        self._get_actionexecution_id(self._do_post(ACTION_EXECUTION_1))
-        self._get_actionexecution_id(self._do_post(ACTION_EXECUTION_2))
+        self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
+        self._get_actionexecution_id(self._do_post(LIVE_ACTION_2))
         resp = self.app.get('/v1/actionexecutions')
         body = resp.json
-        # Assert executions are sorted by timestamp.
-        for i in range(len(body) - 1):
-            self.assertTrue(isotime.parse(body[i]['start_timestamp']) >=
-                            isotime.parse(body[i + 1]['start_timestamp']))
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 2,
                          '/v1/actionexecutions did not return all '
                          'actionexecutions.')
+        # Assert liveactions are sorted by timestamp.
+        for i in range(len(body) - 1):
+            self.assertTrue(isotime.parse(body[i]['start_timestamp']) >=
+                            isotime.parse(body[i + 1]['start_timestamp']))
 
     def test_get_query(self):
-        actionexecution_1_id = self._get_actionexecution_id(self._do_post(ACTION_EXECUTION_1))
+        actionexecution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
 
-        resp = self.app.get('/v1/actionexecutions?action=%s' % ACTION_EXECUTION_1['action'])
+        resp = self.app.get('/v1/actionexecutions?action=%s' % LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         matching_execution = filter(lambda ae: ae['id'] == actionexecution_1_id, resp.json)
         self.assertEqual(len(list(matching_execution)), 1,
-                         '/v1/actionexecutions did not return correct actionexecution.')
+                         '/v1/actionexecutions did not return correct liveaction.')
 
     def test_get_query_with_limit(self):
-        self._get_actionexecution_id(self._do_post(ACTION_EXECUTION_1))
-        self._get_actionexecution_id(self._do_post(ACTION_EXECUTION_1))
+        self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
+        self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
 
         resp = self.app.get('/v1/actionexecutions')
         self.assertEqual(resp.status_int, 200)
@@ -205,17 +205,17 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
-        resp = self.app.get('/v1/actionexecutions?action=%s' % ACTION_EXECUTION_1['action'])
+        resp = self.app.get('/v1/actionexecutions?action=%s' % LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
         resp = self.app.get('/v1/actionexecutions?action=%s&limit=1' %
-                            ACTION_EXECUTION_1['action'])
+                            LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1)
 
         resp = self.app.get('/v1/actionexecutions?action=%s&limit=0' %
-                            ACTION_EXECUTION_1['action'])
+                            LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
@@ -224,11 +224,11 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(resp.status_int, 404)
 
     def test_post_delete(self):
-        post_resp = self._do_post(ACTION_EXECUTION_1)
+        post_resp = self._do_post(LIVE_ACTION_1)
         self.assertEqual(post_resp.status_int, 201)
 
     def test_post_parameter_validation_failed(self):
-        execution = copy.deepcopy(ACTION_EXECUTION_1)
+        execution = copy.deepcopy(LIVE_ACTION_1)
 
         # Runner type does not expects additional properties.
         execution['parameters']['foo'] = 'bar'
@@ -251,25 +251,33 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(post_resp.status_int, 400)
 
         # Runner type permits parameters with no metadata.
-        execution = copy.deepcopy(ACTION_EXECUTION_3)
+        execution = copy.deepcopy(LIVE_ACTION_3)
         post_resp = self._do_post(execution, expect_errors=False)
         self.assertEqual(post_resp.status_int, 201)
 
     def test_post_with_st2_context_in_headers(self):
-        resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1))
+        resp = self._do_post(copy.deepcopy(LIVE_ACTION_1))
         self.assertEqual(resp.status_int, 201)
         parent_user = resp.json['context']['user']
         parent_exec_id = str(resp.json['id'])
-        context = {'parent': parent_exec_id, 'user': None}
+        context = {'parent': parent_exec_id, 'user': None, 'other': {'k1': 'v1'}}
         headers = {'content-type': 'application/json', 'st2-context': json.dumps(context)}
-        resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1), headers=headers)
+        resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
         self.assertEqual(resp.json['context']['user'], parent_user, 'Should use parent\'s user.')
-        expected = {'parent': parent_exec_id, 'user': parent_user}
+        expected = {'parent': parent_exec_id, 'user': parent_user, 'other': {'k1': 'v1'}}
         self.assertDictEqual(resp.json['context'], expected)
 
+    def test_post_with_st2_context_in_headers_failed(self):
+        resp = self._do_post(copy.deepcopy(LIVE_ACTION_1))
+        self.assertEqual(resp.status_int, 201)
+        headers = {'content-type': 'application/json', 'st2-context': 'foobar'}
+        resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers, expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertIn('Unable to convert st2-context', resp.json['faultstring'])
+
     def test_update_execution(self):
-        response = self._do_post(ACTION_EXECUTION_1)
+        response = self._do_post(LIVE_ACTION_1)
         self.assertEqual(response.status_int, 201)
         execution = copy.deepcopy(response.json)
         execution.update({'status': 'succeeded', 'result': True})
@@ -277,7 +285,7 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(response.status_int, 200)
 
     def test_update_execution_with_minimum_data(self):
-        response = self._do_post(ACTION_EXECUTION_1)
+        response = self._do_post(LIVE_ACTION_1)
         self.assertEqual(response.status_int, 201)
         execution = {'action': response.json['action'],
                      'status': 'succeeded', 'result': True}
@@ -291,11 +299,11 @@ class TestActionExecutionController(FunctionalTest):
     def _do_get_one(self, actionexecution_id, *args, **kwargs):
         return self.app.get('/v1/actionexecutions/%s' % actionexecution_id, *args, **kwargs)
 
-    def _do_post(self, actionexecution, *args, **kwargs):
-        return self.app.post_json('/v1/actionexecutions', actionexecution, *args, **kwargs)
+    def _do_post(self, liveaction, *args, **kwargs):
+        return self.app.post_json('/v1/actionexecutions', liveaction, *args, **kwargs)
 
-    def _do_put(self, id, actionexecution, *args, **kwargs):
-        return self.app.put_json('/v1/actionexecutions/%s' % id, actionexecution, *args, **kwargs)
+    def _do_put(self, id, liveaction, *args, **kwargs):
+        return self.app.put_json('/v1/actionexecutions/%s' % id, liveaction, *args, **kwargs)
 
 
 NOW = isotime.add_utc_tz(datetime.datetime.utcnow())
@@ -335,22 +343,22 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
         cls.app.delete('/v1/actions/%s' % cls.action['id'], headers=headers)
         super(TestActionExecutionControllerAuthEnabled, cls).tearDownClass()
 
-    def _do_post(self, actionexecution, *args, **kwargs):
-        return self.app.post_json('/v1/actionexecutions', actionexecution, *args, **kwargs)
+    def _do_post(self, liveaction, *args, **kwargs):
+        return self.app.post_json('/v1/actionexecutions', liveaction, *args, **kwargs)
 
     @mock.patch.object(
         Token, 'get',
         mock.MagicMock(side_effect=mock_get_token))
     def test_post_with_st2_context_in_headers(self):
         headers = {'content-type': 'application/json', 'X-Auth-Token': str(USR_TOKEN.token)}
-        resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1), headers=headers)
+        resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
         self.assertEqual(resp.json['context']['user'], 'stanley')
         context = {'parent': str(resp.json['id'])}
         headers = {'content-type': 'application/json',
                    'X-Auth-Token': str(SYS_TOKEN.token),
                    'st2-context': json.dumps(context)}
-        resp = self._do_post(copy.deepcopy(ACTION_EXECUTION_1), headers=headers)
+        resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
         self.assertEqual(resp.json['context']['user'], 'stanley')
         self.assertEqual(resp.json['context']['parent'], context['parent'])

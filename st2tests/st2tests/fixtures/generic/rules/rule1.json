@@ -14,7 +14,7 @@
     "action": {
         "ref": "wolfpack.action-1",
         "parameters": {
-            "ip2": "{{rule.k1}}",
+            "ip2": "{{trigger}}",
             "ip1": "{{trigger.t1_p}}"
         }
     },

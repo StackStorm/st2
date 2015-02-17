@@ -20,13 +20,13 @@ from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.tag import TagsHelper
-from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB)
+from st2common.models.db.action import (RunnerTypeDB, ActionDB, LiveActionDB)
 from st2common.models.db.action import ActionExecutionStateDB
-from st2common.constants.action import ACTIONEXEC_STATUSES
+from st2common.constants.action import LIVEACTION_STATUSES
 
 
 __all__ = ['ActionAPI',
-           'ActionExecutionAPI',
+           'LiveActionAPI',
            'RunnerTypeAPI']
 
 
@@ -197,14 +197,14 @@ class ActionAPI(BaseAPI):
         return model
 
 
-class ActionExecutionAPI(BaseAPI):
+class LiveActionAPI(BaseAPI):
     """The system entity that represents the execution of a Stack Action/Automation
     in the system.
     """
 
-    model = ActionExecutionDB
+    model = LiveActionDB
     schema = {
-        "title": "ActionExecution",
+        "title": "liveaction",
         "description": "An execution of an action.",
         "type": "object",
         "properties": {
@@ -214,7 +214,7 @@ class ActionExecutionAPI(BaseAPI):
             },
             "status": {
                 "description": "The current status of the action execution.",
-                "enum": ACTIONEXEC_STATUSES
+                "enum": LIVEACTION_STATUSES
             },
             "start_timestamp": {
                 "description": "The start time when the action is executed.",

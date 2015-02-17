@@ -42,6 +42,7 @@ class TestTimeUtil(unittest.TestCase):
         self.assertTrue(isotime.validate('2000-01-01T12:00:00.000000Z'))
         self.assertTrue(isotime.validate('2000-01-01T12:00:00+00:00'))
         self.assertTrue(isotime.validate('2000-01-01T12:00:00.000000+00:00'))
+        self.assertTrue(isotime.validate('2015-02-10T21:21:53.399Z'))
         self.assertFalse(isotime.validate('2000-01-01', raise_exception=False))
         self.assertFalse(isotime.validate('2000-01-01T12:00:00', raise_exception=False))
         self.assertFalse(isotime.validate('2000-01-01T12:00:00+00:00Z', raise_exception=False))
@@ -64,6 +65,7 @@ class TestTimeUtil(unittest.TestCase):
         self.assertEqual(isotime.parse('2000-01-01T12:00:00+00:00'), dt)
         self.assertEqual(isotime.parse('2000-01-01T12:00:00.000000Z'), dt)
         self.assertEqual(isotime.parse('2000-01-01T12:00:00.000000+00:00'), dt)
+        self.assertEqual(isotime.parse('2000-01-01T12:00:00.000Z'), dt)
 
     def test_format(self):
         dt = isotime.add_utc_tz(datetime.datetime(2000, 1, 1, 12))

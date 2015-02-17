@@ -13,14 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import uuid
 
-from mistralclient.api import client as mistral
-from oslo.config import cfg
 import six
 import yaml
+import requests
+from mistralclient.api import client as mistral
+from oslo.config import cfg
 
-from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
+from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2actions.runners import AsyncActionRunner
 from st2actions.runners.mistral import utils
 from st2common import log as logging
@@ -120,13 +122,33 @@ class MistralRunner(AsyncActionRunner):
             raise Exception('There are no workflows in the workbook.')
 
     def run(self, action_parameters):
+        try:
+            # Test the connection
+            self._client.workflows.list()
+        except requests.exceptions.ConnectionError:
+            msg = ('Failed to connect to mistral on %s. Make sure that mistral is running '
+                   ' and that the url is set correctly in the config.' % (self.url))
+            raise Exception(msg)
+
         # Setup inputs for the workflow execution.
         inputs = self.runner_parameters.get('context', dict())
         inputs.update(action_parameters)
+
         endpoint = 'http://%s:%s/v1/actionexecutions' % (cfg.CONF.api.host, cfg.CONF.api.port)
+
+        st2_execution_context = {
+            'endpoint': endpoint,
+            'parent': self.liveaction_id
+        }
+
         options = {
-            'st2_api_url': endpoint,
-            'st2_parent': self.action_execution_id
+            'env': {
+                '__actions': {
+                    'st2.action': {
+                        'st2_context': st2_execution_context
+                    }
+                }
+            }
         }
 
         # Get workbook/workflow definition from file.
@@ -138,7 +160,7 @@ class MistralRunner(AsyncActionRunner):
 
         if not is_workbook:
             # Non-workbook definition containing multiple workflows is not supported.
-            if len([k for k, v in six.iteritems(def_dict) if k != 'version']) != 1:
+            if len([k for k, _ in six.iteritems(def_dict) if k != 'version']) != 1:
                 raise Exception('Workflow (not workbook) definition is detected. '
                                 'Multiple workflows is not supported.')
 
@@ -160,9 +182,47 @@ class MistralRunner(AsyncActionRunner):
                                                        workflow_input=inputs,
                                                        **options)
 
-        status = ACTIONEXEC_STATUS_RUNNING
-        query_context = {'mistral_execution_id': str(execution.id)}
-        LOG.info('Mistral query_context is %s' % query_context)
+        status = LIVEACTION_STATUS_RUNNING
         partial_results = {'tasks': []}
 
-        return (status, partial_results, query_context)
+        current_context = {
+            'execution_id': str(execution.id),
+            'workflow_name': execution.workflow_name
+        }
+
+        exec_context = self.context
+        exec_context = self._build_mistral_context(exec_context, current_context)
+        LOG.info('Mistral query context is %s' % exec_context)
+
+        return (status, partial_results, exec_context)
+
+    @staticmethod
+    def _build_mistral_context(parent, current):
+        """
+        Mistral workflow might be kicked off in st2 by a parent Mistral
+        workflow. In that case, we need to make sure that the existing
+        mistral 'context' is moved as 'parent' and the child workflow
+        'context' is added.
+        """
+        parent = copy.deepcopy(parent)
+        context = dict()
+
+        if not parent:
+            context['mistral'] = current
+        else:
+            if 'mistral' in parent.keys():
+                orig_parent_context = parent.get('mistral', dict())
+                actual_parent = dict()
+                if 'workflow_name' in orig_parent_context.keys():
+                    actual_parent['workflow_name'] = orig_parent_context['workflow_name']
+                    del orig_parent_context['workflow_name']
+                if 'execution_id' in orig_parent_context.keys():
+                    actual_parent['execution_id'] = orig_parent_context['execution_id']
+                    del orig_parent_context['execution_id']
+                context['mistral'] = orig_parent_context
+                context['mistral'].update(current)
+                context['mistral']['parent'] = actual_parent
+            else:
+                context['mistral'] = current
+
+        return context

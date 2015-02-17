@@ -1,0 +1,20 @@
+{
+    "start_timestamp": "2014-09-01T00:00:01.000000Z",
+    "end_timestamp": "2014-09-01T00:00:05.000000Z",
+    "parameters": {},
+    "callback": {},
+    "result": {},
+    "status": "scheduled",
+    "context": {
+        "trigger_instance": {
+            "id": "54c2f30c0640fd2b2fda03ec",
+            "name": ""
+        },
+        "user": "stanley",
+        "rule": {
+            "id": "54c2f30c0640fd2b2fda03ec",
+            "name": "st2.person.joe"
+        }
+    },
+    "action": "core.local"
+}

@@ -28,23 +28,51 @@ from os.path import join as pjoin
 from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
+from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table, execution
 from st2client.utils.date import format_isodate
 
 
 LOG = logging.getLogger(__name__)
 
-ACTIONEXEC_STATUS_SCHEDULED = 'scheduled'
-ACTIONEXEC_STATUS_RUNNING = 'running'
+LIVEACTION_STATUS_SCHEDULED = 'scheduled'
+LIVEACTION_STATUS_RUNNING = 'running'
 
+# Who parameters should be masked when displaying action execution output
 PARAMETERS_TO_MASK = [
     'password',
     'private_key'
 ]
 
+# A list of environment variables which are never inherited when using run
+# --inherit-env flag
+ENV_VARS_BLACKLIST = [
+    'pwd',
+    'mail',
+    'username',
+    'user',
+    'path',
+    'home',
+    'ps1',
+    'shell',
+    'pythonpath',
+    'ssh_tty',
+    'ssh_connection',
+    'lang',
+    'ls_colors',
+    'logname',
+    'oldpwd',
+    'term',
+    'xdg_session_id'
+]
+
 
 def format_parameters(value):
     # Mask sensitive parameters
+    if not isinstance(value, dict):
+        # No parameters, leave it as it is
+        return value
+
     for param_name, _ in value.items():
         if param_name in PARAMETERS_TO_MASK:
             value[param_name] = '********'
@@ -122,6 +150,12 @@ class ActionRunCommand(resource.ResourceCommand):
             self.parser.add_argument('-a', '--async',
                                      action='store_true', dest='async',
                                      help='Do not wait for action to finish.')
+            self.parser.add_argument('-e', '--inherit-env',
+                                     action='store_true', dest='inherit_env',
+                                     help='Pass all the environment variables '
+                                          'which are accessible to the CLI as "env" '
+                                          'parameter to the action. Note: Only works '
+                                          'with python, local and remote runners.')
         else:
             self.parser.set_defaults(async=True)
 
@@ -197,7 +231,7 @@ class ActionRunCommand(resource.ResourceCommand):
             return value
 
         action_ref = '.'.join([action.pack, action.name])
-        execution = models.ActionExecution()
+        execution = models.LiveAction()
         execution.action = action_ref
         execution.parameters = dict()
 
@@ -255,12 +289,16 @@ class ActionRunCommand(resource.ResourceCommand):
 
             del execution.parameters['_file_name']
 
-        action_exec_mgr = self.app.client.managers['ActionExecution']
+        if args.inherit_env:
+            execution.parameters['env'] = self._get_inherited_env_vars()
+
+        action_exec_mgr = self.app.client.managers['LiveAction']
+
         execution = action_exec_mgr.create(execution, **kwargs)
 
         if not args.async:
-            while execution.status == ACTIONEXEC_STATUS_SCHEDULED \
-                    or execution.status == ACTIONEXEC_STATUS_RUNNING:
+            while execution.status == LIVEACTION_STATUS_SCHEDULED \
+                    or execution.status == LIVEACTION_STATUS_RUNNING:
                 time.sleep(1)
                 if not args.json:
                     sys.stdout.write('.')
@@ -420,12 +458,23 @@ class ActionRunCommand(resource.ResourceCommand):
                 result['traceback'])
         return result
 
+    def _get_inherited_env_vars(self):
+        env_vars = os.environ.copy()
+
+        for var_name in ENV_VARS_BLACKLIST:
+            if var_name.lower() in env_vars:
+                del env_vars[var_name.lower()]
+            if var_name.upper() in env_vars:
+                del env_vars[var_name.upper()]
+
+        return env_vars
+
 
 class ActionExecutionBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
-            models.ActionExecution, description, app, subparsers,
+            models.LiveAction, description, app, subparsers,
             parent_parser=parent_parser, read_only=True,
             commands={'list': ActionExecutionListCommand,
                       'get': ActionExecutionGetCommand})
@@ -532,3 +581,4 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
             self.print_output(instance, formatter, **options)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
+            raise OperationFailureException('Execution %s not found.' % args.id)

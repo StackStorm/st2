@@ -25,7 +25,7 @@ from st2common.models.api.action import (ActionAPI, RunnerTypeAPI)
 from st2common.persistence.action import RunnerType
 import st2common.validators.api.action as action_validator
 from st2tests import DbTestCase
-from st2tests.fixtures import history as fixture
+from st2tests.fixtures import executions as fixture
 
 
 class TestActionAPIValidator(DbTestCase):

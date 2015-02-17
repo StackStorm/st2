@@ -13,19 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# All Exchanges and Queues related to ActionExecution.
+from oslo.config import cfg
 
-from kombu import Exchange, Queue
-from st2common.transport import publishers
-
-HISTORY_XCHG = Exchange('st2.history', type='topic')
-
-
-class HistoryPublisher(publishers.CUDPublisher):
-
-    def __init__(self, url):
-        super(HistoryPublisher, self).__init__(url, HISTORY_XCHG)
+from st2common import transport
+from st2common.models.db import MongoDBAccess
+from st2common.models.db.execution import ActionExecutionDB
+from st2common.persistence.base import Access
 
 
-def get_queue(name=None, routing_key=None, exclusive=False):
-    return Queue(name, HISTORY_XCHG, routing_key=routing_key, exclusive=exclusive)
+class ActionExecution(Access):
+    impl = MongoDBAccess(ActionExecutionDB)
+    publisher = None
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.execution.ActionExecutionPublisher(
+                cfg.CONF.messaging.url)
+        return cls.publisher

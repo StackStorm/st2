@@ -28,6 +28,24 @@ Docs: http://docks.stackstorm.com/latest
   ``core.local``, ``core.local_sudo`` (bug-fix)
 * Allow user to override authentication information (username, password, private key) on per
   action basis for all the remote runner actions. (new-feature)
+* Allow user to pass ``--inherit-env`` flag to the ``st2 action run`` command which causes all
+  the environment variables accessible to the CLI to be sent as ``env`` parameter to the action
+  being executed. (new-feature)
+* Cast params of an execution before scheduling in the RulesEngine. This allows non-string
+  parameters in an action. (new-feature)
+* Use QuerySet.count() instead of len(QuerySet) to avoid the caching of the entire result which
+  improve running time of API request. (bug-fix)
+* CLI commands to return non-zero exit codes for failed operations (new-feature)
+* Fix a bug with template rendering, under some conditions, ending in an infinite loop. (bug-fix)
+* Rename ActionExecution to LiveAction. (refactor)
+* Rename ActionExecutionHistory to ActionExecution. (refactor)
+* A separate history process is no longer required. ActionExecution updates are carried at time of
+  update to LiveAction. (refactor)
+* API url change /v1/history/execution to /v1/history/liveactions (refactor)
+* API url change /v1/history/execution/views/filters?execution to /v1/history/liveactions/views/filters?liveaction (refactor)
+* Add new ``nequals`` (``neq``) rule criteria operator. This criteria operator
+  performs not equals check on values of an arbitrary type. (new-feature)
+* Mistral subworkflows kicked off in st2 should include task name. (bug-fix)
 
 v0.7 - January 16, 2015
 -----------------------

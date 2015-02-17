@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ast
 import copy
+import json
 import uuid
 
 import requests
@@ -21,8 +23,9 @@ from oslo.config import cfg
 from six.moves.urllib import parse as urlparse
 
 from st2actions.runners import ActionRunner
+from st2common import __version__ as st2_version
 from st2common import log as logging
-from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 
 LOG = logging.getLogger(__name__)
 SUCCESS_STATUS_CODES = [code for code in range(200, 207)]
@@ -59,7 +62,7 @@ class HttpRunner(ActionRunner):
         self._timeout = 60
 
     def pre_run(self):
-        LOG.debug('Entering HttpRunner.pre_run() for actionexec_id="%s"', self.action_execution_id)
+        LOG.debug('Entering HttpRunner.pre_run() for liveaction_id="%s"', self.liveaction_id)
         LOG.debug('    runner_parameters = %s', self.runner_parameters)
         self._on_behalf_user = self.runner_parameters.get(RUNNER_ON_BEHALF_USER,
                                                           self._on_behalf_user)
@@ -77,7 +80,7 @@ class HttpRunner(ActionRunner):
         LOG.debug('action_parameters = %s', action_parameters)
         output = client.run()
         status = HttpRunner._get_result_status(output.get('status_code', None))
-        return (status, output)
+        return (status, output, None)
 
     def _get_http_client(self, action_parameters):
         body = action_parameters.get(ACTION_BODY, None)
@@ -93,7 +96,7 @@ class HttpRunner(ActionRunner):
 
         # Include our user agent and action name so requests can be tracked back
         headers = copy.deepcopy(self._headers) if self._headers else {}
-        headers['User-Agent'] = 'st2/v0.5.0'  # TODO: use __version__ when available
+        headers['User-Agent'] = 'st2/v%s' % (st2_version)
         headers['X-Stanley-Action'] = self.action_name
 
         if file_name and file_content:
@@ -132,8 +135,8 @@ class HttpRunner(ActionRunner):
 
     @staticmethod
     def _get_result_status(status_code):
-        return ACTIONEXEC_STATUS_SUCCEEDED if status_code in SUCCESS_STATUS_CODES \
-            else ACTIONEXEC_STATUS_FAILED
+        return LIVEACTION_STATUS_SUCCEEDED if status_code in SUCCESS_STATUS_CODES \
+            else LIVEACTION_STATUS_FAILED
 
 
 class HTTPClient(object):
@@ -170,12 +173,26 @@ class HTTPClient(object):
     def run(self):
         results = {}
         resp = None
+        json_content = self._is_json_content()
+
         try:
+            if json_content:
+                # cast params (body) to dict
+                data = self._cast_object(self.body)
+
+                try:
+                    data = json.dumps(data)
+                except ValueError:
+                    msg = 'Request body (%s) can\'t be parsed as JSON' % (data)
+                    raise ValueError(msg)
+            else:
+                data = self.body
+
             resp = requests.request(
                 self.method,
                 self.url,
                 params=self.params,
-                data=self.body,
+                data=data,
                 headers=self.headers,
                 cookies=self.cookies,
                 auth=self.auth,
@@ -184,6 +201,7 @@ class HTTPClient(object):
                 proxies=self.proxies,
                 files=self.files
             )
+
             results['status_code'] = resp.status_code
             results['body'] = resp.text
             results['headers'] = dict(resp.headers)
@@ -204,3 +222,16 @@ class HTTPClient(object):
             result[key.lower()] = value
 
         return result
+
+    def _is_json_content(self):
+        normalized = self._normalize_headers(self.headers)
+        return normalized.get('content-type', None) == 'application/json'
+
+    def _cast_object(self, value):
+        if isinstance(value, str) or isinstance(value, unicode):
+            try:
+                return json.loads(value)
+            except:
+                return ast.literal_eval(value)
+        else:
+            return value

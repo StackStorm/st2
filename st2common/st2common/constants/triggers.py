@@ -39,8 +39,8 @@ WEBHOOK_TRIGGER_TYPES = {
     ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.webhook'): {
         'name': 'st2.webhook',
         'pack': SYSTEM_PACK_NAME,
-        'description': 'Trigger type for registering webhooks that can consume'
-                       + ' arbitrary payload.',
+        'description': ('Trigger type for registering webhooks that can consume'
+                        ' arbitrary payload.'),
         'parameters_schema': WEBHOOKS_PARAMETERS_SCHEMA,
         'payload_schema': WEBHOOKS_PAYLOAD_SCHEMA
     }

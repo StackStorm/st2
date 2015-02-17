@@ -1,0 +1,7 @@
+{
+    "name": "action-chain",
+    "description": "A runner for launching linear action chains.",
+    "enabled": true,
+    "runner_parameters": {},
+    "runner_module": "st2actions.runners.actionchainrunner"
+}

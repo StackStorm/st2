@@ -19,8 +19,9 @@ from st2common import log as logging
 from st2common.util import reference
 from st2reactor.rules.datatransform import get_transformer
 from st2common.services import action as action_service
-from st2common.models.db.action import ActionExecutionDB
-from st2common.constants.action import ACTIONEXEC_STATUS_SCHEDULED
+from st2common.models.db.action import LiveActionDB
+from st2common.models.utils import action_param_utils
+from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
 from st2common.models.api.access import get_system_username
 
 
@@ -44,23 +45,25 @@ class RuleEnforcer(object):
             'user': get_system_username()
         }
 
-        action_execution = RuleEnforcer._invoke_action(self.rule.action, data, context)
-        if not action_execution:
-            LOG.audit('Rule enforcement failed. ActionExecution for Action %s failed. '
+        liveaction = RuleEnforcer._invoke_action(self.rule.action, data, context)
+        if not liveaction:
+            LOG.audit('Rule enforcement failed. liveaction for Action %s failed. '
                       'TriggerInstance: %s and Rule: %s',
                       self.rule.action.name, self.trigger_instance, self.rule)
             return None
 
-        actionexecution_db = action_execution.get('id', None)
-        LOG.audit('Rule enforced. ActionExecution %s, TriggerInstance %s and Rule %s.',
-                  actionexecution_db, self.trigger_instance, self.rule)
+        liveaction_db = liveaction.get('id', None)
+        LOG.audit('Rule enforced. liveaction %s, TriggerInstance %s and Rule %s.',
+                  liveaction_db, self.trigger_instance, self.rule)
 
-        return actionexecution_db
+        return liveaction_db
 
     @staticmethod
-    def _invoke_action(action, action_args, context=None):
+    def _invoke_action(action, params, context=None):
         action_ref = action['ref']
-        execution = ActionExecutionDB(action=action_ref, context=context, parameters=action_args)
-        execution = action_service.schedule(execution)
-        return ({'id': str(execution.id)}
-                if execution.status == ACTIONEXEC_STATUS_SCHEDULED else None)
+        # prior to shipping off the params cast them to the right type.
+        params = action_param_utils.cast_params(action_ref, params)
+        liveaction = LiveActionDB(action=action_ref, context=context, parameters=params)
+        liveaction = action_service.schedule(liveaction)
+        return ({'id': str(liveaction.id)}
+                if liveaction.status == LIVEACTION_STATUS_SCHEDULED else None)

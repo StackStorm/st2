@@ -73,6 +73,123 @@ Example output (error):
         return func(*args, **kwargs)
         ...
 
+Using CLI inside scripts
+------------------------
+
+CLI returns a non-zero return code for any erroneous operation. You can capture
+the return code of CLI commands to check whether the command succeeded.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 action get twilio.send_sms
+
+    +-------------+--------------------------------------------------------------+
+    | Property    | Value                                                        |
+    +-------------+--------------------------------------------------------------+
+    | id          | 54bfff490640fd2f6224ac1a                                     |
+    | ref         | twilio.send_sms                                              |
+    | pack        | twilio                                                       |
+    | name        | send_sms
+
+Now, let's get the exit code of the previous command.
+
+.. sourcecode:: bash
+
+    echo $?
+
+    0
+
+Now, let's run a command that we know will fail.
+
+.. sourcecode:: bash
+
+    st2 action get twilio.make_call
+
+    Action "twilio.make_call" is not found.
+
+Let's check the exit code of the last command.
+
+.. sourcecode:: bash
+
+    echo $?
+
+    2
+
+Changing the CLI output format
+------------------------------
+
+By default, CLI returns and prints results in a user-friendly table oriented
+format.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 action list --pack=slack
+
+    +--------------------+-------+--------------+-------------------------------+
+    | ref                | pack  | name         | description                   |
+    +--------------------+-------+--------------+-------------------------------+
+    | slack.post_message | slack | post_message | Post a message to the Slack   |
+    |                    |       |              | channel.                      |
+    +--------------------+-------+--------------+-------------------------------+
+
+If you want a raw JSON result as returned by the API (e.g. you are calling CLI
+as part of your script and you want raw result which you can parse), you can
+pass ``-j`` flag to the command.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 action list -j --pack=slack
+
+    [
+        {
+            "description": "Post a message to the Slack channel.",
+            "name": "post_message",
+            "pack": "slack",
+            "ref": "slack.post_message"
+        }
+    ]
+
+Only displaying a particular attribute when retrieving action result
+--------------------------------------------------------------------
+
+By default when retrieving action execution result using ``execution get``
+command, the whole result object will be printed.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 execution get 54d8c52e0640fd1c87b9443f
+
+    STATUS: succeeded
+    RESULT:
+    {
+        "failed": false,
+        "stderr": "",
+        "return_code": 0,
+        "succeeded": true,
+        "stdout": "Mon Feb  9 14:33:18 UTC 2015
+    "
+    }
+
+If you only want to retrieve and print out a specified attribute, you can do
+that using ``-k <attribute name>`` flag.
+
+For example, if you only want to print ``stdout`` attribute of the result
+object:
+
+.. sourcecode:: bash
+
+    st2 execution get -k stdout 54d8c52e0640fd1c87b9443f
+
+    Mon Feb  9 14:33:18 UTC 2015
+
 Escaping shell variables when using core.local and core.remote actions
 ----------------------------------------------------------------------
 
@@ -92,6 +209,24 @@ Example (escaping the variables):
 .. sourcecode:: bash
 
     st2 run core.remote hosts=localhost env='{"key1": "val1", "key2": "val2"}' cmd="echo ponies \${key1} \${key2}
+
+Specifying parameters which type is "array"
+--------------------------------------------
+
+When running an action using ``st2 run`` command, you specify value of
+parameters which type is ``array`` as a comma delimited string.
+
+Inside the CLI, this string gets split on comma and passed to the API as a
+list.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 run mypack.myaction parametername="value 1,value2,value3"
+
+In this case, ``parametername`` value would get passed to the API as
+a list (JSON array) with three items - ``["value 1", "value2", "value3"]``.
 
 Specifying parameters which type is "object"
 --------------------------------------------
@@ -131,3 +266,35 @@ Example:
 .. sourcecode:: bash
 
     st2 run core.remote hosts=<host> username=<username> @private_key=/home/myuser/.ssh/id_rsa cmd=<cmd>
+
+Inheriting all the environment variables which are accessible to the CLI and passing them to runner as env parameter
+--------------------------------------------------------------------------------------------------------------------
+
+Local, remote and Python runner support ``env`` parameter. This parameter tells
+the runner which environment variables should be accessible to the action which
+is being executed.
+
+User can specify environment variables manually using ``env`` parameter exactly
+the same way as other parameters.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 run core.remote hosts=localhost env="key1=val1,key2=val2" cmd="echo ponies \${key1} \${key2}
+
+In addition to that, user can pass ``-e`` / ``--inherit-env`` flag to the
+``action run`` command.
+
+This flag will cause the command to inherit all the environment variables which
+are accessible to the CLI and send them as an ``env`` parameter to the action.
+
+Keep in mind that some global shell login variables such as ``PWD``, ``PATH``
+and others are ignored and not inherited. Full list of ignored variables can
+be found in `action.py file <https://github.com/StackStorm/st2/blob/master/st2client/st2client/commands/action.py>`_.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 run --inherit-env core.remote cmd=...
