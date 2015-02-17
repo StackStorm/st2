@@ -42,13 +42,25 @@ class MistralResultsQuerier(Querier):
             status, output = self._get_workflow_result(exec_id)
             if output and 'tasks' in output:
                 LOG.warn('Key conflict with tasks in the workflow output.')
+        except requests.exceptions.ConnectionError:
+            msg = 'Unable to connect to mistral.'
+            LOG.exception(msg)
+            return (LIVEACTION_STATUS_RUNNING, {'error': msg})
         except:
             LOG.exception('Exception trying to get workflow status and output for '
                           'query context: %s. Will skip query.', query_context)
             raise
 
         result = output or {}
-        result['tasks'] = self._get_workflow_tasks(exec_id)
+        try:
+            result['tasks'] = self._get_workflow_tasks(exec_id)
+        except requests.exceptions.ConnectionError:
+            msg = 'Unable to connect to mistral.'
+            LOG.exception(msg)
+            return (LIVEACTION_STATUS_RUNNING, {'error': msg})
+        except:
+            LOG.exception('Unable to get workflow results for '
+                          'query_context: %s. Will skip query.', query_context)
 
         LOG.debug('Mistral query results: %s' % result)
 
