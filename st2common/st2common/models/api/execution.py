@@ -108,14 +108,13 @@ class ActionExecutionAPI(BaseAPI):
     @classmethod
     def from_model(cls, model):
         doc = cls._from_model(model)
-        start_timestamp = isotime.format(doc['start_timestamp'], offset=False)
+        start_timestamp = isotime.format(model.start_timestamp, offset=False)
+        doc['start_timestamp'] = start_timestamp
 
-        end_timestamp = doc.get('end_timestamp', None)
-        if end_timestamp is not None:
+        end_timestamp = model.end_timestamp
+        if end_timestamp:
             end_timestamp = isotime.format(end_timestamp, offset=False)
             doc['end_timestamp'] = end_timestamp
-
-        doc['start_timestamp'] = start_timestamp
 
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}
         return cls(**attrs)

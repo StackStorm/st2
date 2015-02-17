@@ -51,8 +51,8 @@ def _decompose_liveaction(liveaction):
     """
     Splits the liveaction into an ActionExecution compatible dict.
     """
-    decomposed = {'liveaction':{}}
-    for k,v in six.iteritems(vars(LiveActionAPI.from_model(liveaction))):
+    decomposed = {'liveaction': {}}
+    for k, v in six.iteritems(vars(LiveActionAPI.from_model(liveaction))):
         if k in SKIPPED:
             decomposed['liveaction'][k] = v
         else:
@@ -92,6 +92,11 @@ def create_execution_object(liveaction, publish=True):
     if parent:
         attrs['parent'] = str(parent.id)
 
+    print(attrs)
+    print(attrs['start_timestamp'])
+    print(attrs['end_timestamp'])
+    del attrs['start_timestamp']
+    del attrs['end_timestamp']
     execution = ActionExecutionDB(**attrs)
     execution = ActionExecution.add_or_update(execution, publish=publish)
 
@@ -106,7 +111,10 @@ def create_execution_object(liveaction, publish=True):
 def update_execution(liveaction, publish=True):
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
     decomposed = _decompose_liveaction(liveaction)
-    for k,v in six.iteritems(decomposed):
-        execution.setattr(k, v)
+    for k, v in six.iteritems(decomposed):
+        try:
+            setattr(execution, k, v)
+        except:
+            print('Failed setting attribute %s: %s' % (k, v))
     execution = ActionExecution.add_or_update(execution, publish=publish)
     return execution
