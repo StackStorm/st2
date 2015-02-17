@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import uuid
 
 import six
@@ -183,13 +184,45 @@ class MistralRunner(AsyncActionRunner):
 
         status = LIVEACTION_STATUS_RUNNING
         partial_results = {'tasks': []}
-        context = {
-            'mistral': {
-                'execution_id': str(execution.id),
-                'workflow_name': execution.workflow_name
-            }
+
+        current_context = {
+            'execution_id': str(execution.id),
+            'workflow_name': execution.workflow_name
         }
 
-        LOG.info('Mistral query context is %s' % context)
+        exec_context = self.context
+        exec_context = self._build_mistral_context(exec_context, current_context)
+        LOG.info('Mistral query context is %s' % exec_context)
 
-        return (status, partial_results, context)
+        return (status, partial_results, exec_context)
+
+    @staticmethod
+    def _build_mistral_context(parent, current):
+        """
+        Mistral workflow might be kicked off in st2 by a parent Mistral
+        workflow. In that case, we need to make sure that the existing
+        mistral 'context' is moved as 'parent' and the child workflow
+        'context' is added.
+        """
+        parent = copy.deepcopy(parent)
+        context = dict()
+
+        if not parent:
+            context['mistral'] = current
+        else:
+            if 'mistral' in parent.keys():
+                orig_parent_context = parent.get('mistral', dict())
+                actual_parent = dict()
+                if 'workflow_name' in orig_parent_context.keys():
+                    actual_parent['workflow_name'] = orig_parent_context['workflow_name']
+                    del orig_parent_context['workflow_name']
+                if 'execution_id' in orig_parent_context.keys():
+                    actual_parent['execution_id'] = orig_parent_context['execution_id']
+                    del orig_parent_context['execution_id']
+                context['mistral'] = orig_parent_context
+                context['mistral'].update(current)
+                context['mistral']['parent'] = actual_parent
+            else:
+                context['mistral'] = current
+
+        return context
