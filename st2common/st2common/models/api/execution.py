@@ -130,7 +130,6 @@ class ActionExecutionAPI(BaseAPI):
                 continue
             if attr not in ActionExecutionAPI.SKIP:
                 setattr(model, attr, value)
-
-        model.start_timestamp = isotime.parse(model.liveaction['start_timestamp'])
-        model.end_timestamp = isotime.parse(model.liveaction['end_timestamp'])
+        model.start_timestamp = isotime.parse(instance.start_timestamp)
+        model.end_timestamp = isotime.parse(instance.end_timestamp)
         return model
