@@ -1,3 +1,4 @@
+import traceback
 import uuid
 
 from oslo.config import cfg
@@ -44,8 +45,9 @@ class MistralResultsQuerier(Querier):
                 LOG.warn('Key conflict with tasks in the workflow output.')
         except requests.exceptions.ConnectionError:
             msg = 'Unable to connect to mistral.'
+            trace = traceback.format_exc(10)
             LOG.exception(msg)
-            return (LIVEACTION_STATUS_RUNNING, {'error': msg})
+            return (LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
         except:
             LOG.exception('Exception trying to get workflow status and output for '
                           'query context: %s. Will skip query.', query_context)
@@ -56,8 +58,9 @@ class MistralResultsQuerier(Querier):
             result['tasks'] = self._get_workflow_tasks(exec_id)
         except requests.exceptions.ConnectionError:
             msg = 'Unable to connect to mistral.'
+            trace = traceback.format_exc(10)
             LOG.exception(msg)
-            return (LIVEACTION_STATUS_RUNNING, {'error': msg})
+            return (LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
         except:
             LOG.exception('Unable to get workflow results for '
                           'query_context: %s. Will skip query.', query_context)
