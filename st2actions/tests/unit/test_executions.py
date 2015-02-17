@@ -34,7 +34,7 @@ from st2common.services import action as action_service
 from st2common.models.db.action import LiveActionDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
-from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
+from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 import st2common.util.action_db as action_utils
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
@@ -89,7 +89,13 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))
+        self.assertEqual(execution.start_timestamp, liveaction.start_timestamp)
+        self.assertEqual(execution.end_timestamp, liveaction.end_timestamp)
+        self.assertEqual(execution.result, liveaction.result)
+        self.assertEqual(execution.status, liveaction.status)
+        self.assertEqual(execution.liveaction['context'], liveaction.context)
+        self.assertEqual(execution.liveaction['callback'], liveaction.callback)
+        self.assertEqual(execution.liveaction['action'], liveaction.action)
 
     def test_basic_execution_history_create_failed(self):
         MOCK_FAIL_EXECUTION_CREATE = True     # noqa
@@ -106,7 +112,13 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))
+        self.assertEqual(execution.start_timestamp, liveaction.start_timestamp)
+        self.assertEqual(execution.end_timestamp, liveaction.end_timestamp)
+        self.assertEqual(execution.result, liveaction.result)
+        self.assertEqual(execution.status, liveaction.status)
+        self.assertEqual(execution.liveaction['context'], liveaction.context)
+        self.assertEqual(execution.liveaction['callback'], liveaction.callback)
+        self.assertEqual(execution.liveaction['action'], liveaction.action)
         self.assertGreater(len(execution.children), 0)
         for child in execution.children:
             record = ActionExecution.get(id=child, raise_exception=True)
@@ -149,4 +161,10 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))
+        self.assertEqual(execution.start_timestamp, liveaction.start_timestamp)
+        self.assertEqual(execution.end_timestamp, liveaction.end_timestamp)
+        self.assertEqual(execution.result, liveaction.result)
+        self.assertEqual(execution.status, liveaction.status)
+        self.assertEqual(execution.liveaction['context'], liveaction.context)
+        self.assertEqual(execution.liveaction['callback'], liveaction.callback)
+        self.assertEqual(execution.liveaction['action'], liveaction.action)
