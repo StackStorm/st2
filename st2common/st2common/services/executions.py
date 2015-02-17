@@ -47,16 +47,17 @@ LOG = logging.getLogger(__name__)
 SKIPPED = ['id', 'context', 'callback', 'action']
 
 
-def _decompose_liveaction(liveaction):
+def _decompose_liveaction(liveaction_db):
     """
     Splits the liveaction into an ActionExecution compatible dict.
     """
     decomposed = {'liveaction': {}}
-    for k, v in six.iteritems(vars(LiveActionAPI.from_model(liveaction))):
+    liveaction_api = vars(LiveActionAPI.from_model(liveaction_db))
+    for k in liveaction_api.keys():
         if k in SKIPPED:
-            decomposed['liveaction'][k] = v
+            decomposed['liveaction'][k] = liveaction_api[k]
         else:
-            decomposed[k] = v
+            decomposed[k] = getattr(liveaction_db, k)
     return decomposed
 
 
@@ -92,11 +93,6 @@ def create_execution_object(liveaction, publish=True):
     if parent:
         attrs['parent'] = str(parent.id)
 
-    print(attrs)
-    print(attrs['start_timestamp'])
-    print(attrs['end_timestamp'])
-    del attrs['start_timestamp']
-    del attrs['end_timestamp']
     execution = ActionExecutionDB(**attrs)
     execution = ActionExecution.add_or_update(execution, publish=publish)
 
@@ -108,13 +104,10 @@ def create_execution_object(liveaction, publish=True):
     return execution
 
 
-def update_execution(liveaction, publish=True):
-    execution = ActionExecution.get(liveaction__id=str(liveaction.id))
-    decomposed = _decompose_liveaction(liveaction)
+def update_execution(liveaction_db, publish=True):
+    execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+    decomposed = _decompose_liveaction(liveaction_db)
     for k, v in six.iteritems(decomposed):
-        try:
-            setattr(execution, k, v)
-        except:
-            print('Failed setting attribute %s: %s' % (k, v))
+        setattr(execution, k, v)
     execution = ActionExecution.add_or_update(execution, publish=publish)
     return execution
