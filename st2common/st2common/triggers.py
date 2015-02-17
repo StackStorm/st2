@@ -37,6 +37,7 @@ RETRY_WAIT = cfg.CONF.action_sensor.retry_wait
 TIMEOUT = cfg.CONF.action_sensor.request_timeout
 MAX_ATTEMPTS = cfg.CONF.action_sensor.max_attempts
 
+
 def _do_register_internal_trigger_types():
     LOG.debug('Registering internal trigger types...')
 
