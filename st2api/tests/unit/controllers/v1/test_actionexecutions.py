@@ -171,14 +171,14 @@ class TestActionExecutionController(FunctionalTest):
         self._get_actionexecution_id(self._do_post(LIVE_ACTION_2))
         resp = self.app.get('/v1/actionexecutions')
         body = resp.json
-        # Assert liveactions are sorted by timestamp.
-        for i in range(len(body) - 1):
-            self.assertTrue(isotime.parse(body[i]['start_timestamp']) >=
-                            isotime.parse(body[i + 1]['start_timestamp']))
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 2,
                          '/v1/actionexecutions did not return all '
                          'actionexecutions.')
+        # Assert liveactions are sorted by timestamp.
+        for i in range(len(body) - 1):
+            self.assertTrue(isotime.parse(body[i]['start_timestamp']) >=
+                            isotime.parse(body[i + 1]['start_timestamp']))
 
     def test_get_query(self):
         actionexecution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))

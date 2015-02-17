@@ -76,7 +76,10 @@ Example output (error):
 Using CLI inside scripts
 ------------------------
 
-CLI returns a non-zero return code for any erroneous operation. You can capture the return code of CLI commands to check whether the command succeeded. For example:
+CLI returns a non-zero return code for any erroneous operation. You can capture
+the return code of CLI commands to check whether the command succeeded.
+
+For example:
 
 .. sourcecode:: bash
 
@@ -187,7 +190,6 @@ object:
 
     Mon Feb  9 14:33:18 UTC 2015
 
-
 Escaping shell variables when using core.local and core.remote actions
 ----------------------------------------------------------------------
 
@@ -207,6 +209,24 @@ Example (escaping the variables):
 .. sourcecode:: bash
 
     st2 run core.remote hosts=localhost env='{"key1": "val1", "key2": "val2"}' cmd="echo ponies \${key1} \${key2}
+
+Specifying parameters which type is "array"
+--------------------------------------------
+
+When running an action using ``st2 run`` command, you specify value of
+parameters which type is ``array`` as a comma delimited string.
+
+Inside the CLI, this string gets split on comma and passed to the API as a
+list.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 run mypack.myaction parametername="value 1,value2,value3"
+
+In this case, ``parametername`` value would get passed to the API as
+a list (JSON array) with three items - ``["value 1", "value2", "value3"]``.
 
 Specifying parameters which type is "object"
 --------------------------------------------
