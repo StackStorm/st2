@@ -16,12 +16,29 @@ workflows:
           on-error:
             - fail
         tasks:
+            register_dns:
+                action: core.local
+                input:
+                    cmd: "sleep 1; printf 'registered.'"
+                publish:
+                    ip: "10.1.23.99"
+                on-success:
+                    - create_vm
             create_vm:
                 workflow: create_vm
                 input:
                     name: $.vm_name
+                    ip: $.ip
                 publish:
                     vm_id: $.create_vm.vm_id
+                on-success:
+                    - power_off_vm
+            power_off_vm:
+                action: core.local
+                input:
+                    cmd: "sleep 2; printf 'stopped'"
+                publish:
+                    vm_state: $.power_off_vm.stdout
                 on-success:
                     - reconfig_vm
             reconfig_vm:
@@ -43,6 +60,7 @@ workflows:
         type: direct
         input:
             - name
+            - ip
         output:
             vm_id: $.vm_id
         task-defaults:
@@ -52,7 +70,7 @@ workflows:
             create:
                 action: core.local
                 input:
-                    cmd: "sleep 3; printf 'vm1234'"
+                    cmd: "sleep 5; printf 'vm1234'"
                 publish:
                     vm_id: $.create.stdout
 
@@ -67,6 +85,10 @@ workflows:
             - fail
         tasks:
             add_disk:
+                action: core.local
+                input:
+                    cmd: "sleep 1; printf 'configured'"
+            add_nics:
                 action: core.local
                 input:
                     cmd: "sleep 1; printf 'configured'"
