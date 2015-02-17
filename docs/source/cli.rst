@@ -272,14 +272,20 @@ Re-running an action
 
 To re-run a particular action, you can use the ``execution re-run <existing
 execution id>`` command.
-This command re-runs an action with the same set of the input parameters which
-were used for the original action.
+
+By default, this command re-runs an action with the same set of input parameters
+which were used with the original action.
+
+The command takes the same arguments as the ``run`` / ``action execute``
+command. This means you can pass additional runner or action specific parameters
+to the command. Those parameters are then merged with the parameters from the
+original action and used to run a new action.
 
 For example:
 
 .. sourcecode:: bash
 
-    st2 run core.local env=VAR=hello cmd='echo $VAR; date'
+    st2 run core.local env="VAR=hello" cmd='echo $VAR; date'
     .
     +-----------------+--------------------------------+
     | Property        | Value                          |
@@ -339,6 +345,37 @@ For example:
     | action          | core.local                     |
     | callback        |                                |
     | end_timestamp   | Tue, 17 Feb 2015 17:29:07 UTC  |
+    +-----------------+--------------------------------+
+
+    st2 run re-run 7a3c0640fd0bd07b1930 env="VAR=world"
+    .
+    +-----------------+--------------------------------+
+    | Property        | Value                          |
+    +-----------------+--------------------------------+
+    | id              | 54e3a8f50640fd140ae20af7       |
+    | context         | {                              |
+    |                 |     "user": "stanley"          |
+    |                 | }                              |
+    | parameters      | {                              |
+    |                 |     "cmd": "echo $VAR; date",  |
+    |                 |     "env": {                   |
+    |                 |         "VAR": "world"         |
+    |                 |     }                          |
+    |                 | }                              |
+    | status          | succeeded                      |
+    | start_timestamp | Tue, 17 Feb 2015 20:47:49 UTC  |
+    | result          | {                              |
+    |                 |     "failed": false,           |
+    |                 |     "stderr": "",              |
+    |                 |     "return_code": 0,          |
+    |                 |     "succeeded": true,         |
+    |                 |     "stdout": "world           |
+    |                 | Tue Feb 17 20:47:49 UTC 2015   |
+    |                 | "                              |
+    |                 | }                              |
+    | action          | core.local                     |
+    | callback        |                                |
+    | end_timestamp   | Tue, 17 Feb 2015 20:47:49 UTC  |
     +-----------------+--------------------------------+
 
 Inheriting all the environment variables which are accessible to the CLI and passing them to runner as env parameter
