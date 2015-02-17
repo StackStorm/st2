@@ -46,6 +46,8 @@ Docs: http://docks.stackstorm.com/latest
 * Add new ``nequals`` (``neq``) rule criteria operator. This criteria operator
   performs not equals check on values of an arbitrary type. (new-feature)
 * Mistral subworkflows kicked off in st2 should include task name. (bug-fix)
+* Add new ``execution re-run <execution id>`` CLI command for re-running an
+  existing action. (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------
