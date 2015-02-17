@@ -130,6 +130,9 @@ class ActionRunCommandMixin(object):
         'parameters': format_parameters
     }
 
+    def get_resource(self, ref_or_id, **kwargs):
+        return self.get_resource_by_ref_or_id(ref_or_id=ref_or_id, **kwargs)
+
     def run_and_print(self, args, **kwargs):
         if self._print_help(args, **kwargs):
             return
@@ -179,96 +182,17 @@ class ActionRunCommandMixin(object):
                 result['traceback'])
         return result
 
-    @add_auth_token_to_kwargs_from_cli
-    def _print_help(self, args, **kwargs):
-        # Print appropriate help message if the help option is given.
-        if getattr(args, 'help', False):
-            if args.ref_or_id:
-                try:
-                    action = self.get_resource(args.ref_or_id, **kwargs)
-                    runner_mgr = self.app.client.managers['RunnerType']
-                    runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
-                    parameters, required, optional, _ = self._get_params_types(runner,
-                                                                               action)
-                    print('')
-                    print(textwrap.fill(action.description))
-                    print('')
-                    if required:
-                        required = self._sort_parameters(parameters=parameters,
-                                                         names=required)
+    def _get_action_parameters_from_args(self, action, runner, args):
+        """
+        Build a dictionary with parameters which will be passed to the action by
+        parsing parameters passed to the CLI.
 
-                        print('Required Parameters:')
-                        [self.print_param(name, parameters.get(name))
-                            for name in required]
-                    if optional:
-                        optional = self._sort_parameters(parameters=parameters,
-                                                         names=optional)
+        :param args: CLI argument.
+        :type args: ``object``
 
-                        print('Optional Parameters:')
-                        [self.print_param(name, parameters.get(name))
-                            for name in optional]
-                except resource.ResourceNotFoundError:
-                    print('Action "%s" is not found.' % args.ref_or_id)
-                except Exception as e:
-                    print('ERROR: Unable to print help for action "%s". %s' %
-                          (args.ref_or_id, e))
-            else:
-                self.parser.print_help()
-            return True
-        return False
-
-
-class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
-    def __init__(self, resource, *args, **kwargs):
-
-        super(ActionRunCommand, self).__init__(
-            resource, kwargs.pop('name', 'execute'),
-            'A command to invoke an action manually.',
-            *args, **kwargs)
-
-        self.parser.add_argument('ref_or_id', nargs='?',
-                                 metavar='ref-or-id',
-                                 help='Fully qualified name (pack.action_name) ' +
-                                 'or ID of the action.')
-        self.parser.add_argument('parameters', nargs='*',
-                                 help='List of keyword args, positional args, '
-                                      'and optional args for the action.')
-
-        self.parser.add_argument('-h', '--help',
-                                 action='store_true', dest='help',
-                                 help='Print usage for the given action.')
-
-        if self.name == 'run':
-            self.parser.add_argument('-a', '--async',
-                                     action='store_true', dest='async',
-                                     help='Do not wait for action to finish.')
-            self.parser.add_argument('-e', '--inherit-env',
-                                     action='store_true', dest='inherit_env',
-                                     help='Pass all the environment variables '
-                                          'which are accessible to the CLI as "env" '
-                                          'parameter to the action. Note: Only works '
-                                          'with python, local and remote runners.')
-        else:
-            self.parser.set_defaults(async=True)
-
-    def get_resource(self, ref_or_id, **kwargs):
-        return self.get_resource_by_ref_or_id(ref_or_id=ref_or_id, **kwargs)
-
-    @add_auth_token_to_kwargs_from_cli
-    def run(self, args, **kwargs):
-        if not args.ref_or_id:
-            self.parser.error('too few arguments')
-
-        action = self.get_resource(args.ref_or_id, **kwargs)
-        if not action:
-            raise resource.ResourceNotFoundError('Action "%s" cannot be found.'
-                                                 % args.ref_or_id)
-
-        runner_mgr = self.app.client.managers['RunnerType']
-        runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
-        if not runner:
-            raise resource.ResourceNotFoundError('Runner type "%s" for action "%s" cannot be found.'
-                                                 % (action.runner_type, action.name))
+        :rtype: ``dict``
+        """
+        action_ref_or_id = action.ref
 
         def read_file(file_path):
             if not os.path.exists(file_path):
@@ -322,13 +246,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
                     return transformer[param['type']](value)
             return value
 
-        action_ref = '.'.join([action.pack, action.name])
-        execution = models.LiveAction()
-        execution.action = action_ref
-        execution.parameters = dict()
-
-        action_ref_or_id = args.ref_or_id
-
+        result = {}
         for idx in range(len(args.parameters)):
             arg = args.parameters[idx]
             if '=' in arg:
@@ -351,12 +269,12 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
                         if action_ref_or_id == 'core.http':
                             # Special case for http runner
-                            execution.parameters['_file_name'] = file_name
-                            execution.parameters['file_content'] = content
+                            result['_file_name'] = file_name
+                            result['file_content'] = content
                         else:
-                            execution.parameters[k] = content
+                            result[k] = content
                     else:
-                        execution.parameters[k] = normalize(k, v)
+                        result[k] = normalize(k, v)
                 except Exception as e:
                     # TODO: Move transformers in a separate module and handle
                     # exceptions there
@@ -367,33 +285,76 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
                     else:
                         raise e
             else:
-                execution.parameters['cmd'] = ' '.join(args.parameters[idx:])
+                result['cmd'] = ' '.join(args.parameters[idx:])
                 break
 
-        if 'file_content' in execution.parameters:
-            if 'method' not in execution.parameters:
+        # Special case for http runner
+        if 'file_content' in result:
+            if 'method' not in result:
                 # Default to POST if a method is not provided
-                execution.parameters['method'] = 'POST'
+                result['method'] = 'POST'
 
-            if 'file_name' not in execution.parameters:
+            if 'file_name' not in result:
                 # File name not provided, use default file name
-                execution.parameters['file_name'] = execution.parameters['_file_name']
+                result['file_name'] = result['_file_name']
 
-            del execution.parameters['_file_name']
+            del result['_file_name']
 
         if args.inherit_env:
-            execution.parameters['env'] = self._get_inherited_env_vars()
+            result['env'] = self._get_inherited_env_vars()
 
+        return result
+
+    @add_auth_token_to_kwargs_from_cli
+    def _print_help(self, args, **kwargs):
+        # Print appropriate help message if the help option is given.
+        action_mgr = self.app.client.managers['Action']
         action_exec_mgr = self.app.client.managers['LiveAction']
 
-        execution = action_exec_mgr.create(execution, **kwargs)
-        execution = self._get_execution_result(execution=execution,
-                                               action_exec_mgr=action_exec_mgr,
-                                               args=args, **kwargs)
-        return execution
+        if args.help:
+            action_ref_or_id = getattr(args, 'ref_or_id', None)
+            action_exec_id = getattr(args, 'id', None)
+
+            if action_exec_id and not action_ref_or_id:
+                action_exec = action_exec_mgr.get_by_id(action_exec_id, **kwargs)
+                args.ref_or_id = action_exec.action
+
+            if args.ref_or_id:
+                try:
+                    action = action_mgr.get_by_ref_or_id(args.ref_or_id, **kwargs)
+                    runner_mgr = self.app.client.managers['RunnerType']
+                    runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
+                    parameters, required, optional, _ = self._get_params_types(runner,
+                                                                               action)
+                    print('')
+                    print(textwrap.fill(action.description))
+                    print('')
+                    if required:
+                        required = self._sort_parameters(parameters=parameters,
+                                                         names=required)
+
+                        print('Required Parameters:')
+                        [self._print_param(name, parameters.get(name))
+                            for name in required]
+                    if optional:
+                        optional = self._sort_parameters(parameters=parameters,
+                                                         names=optional)
+
+                        print('Optional Parameters:')
+                        [self._print_param(name, parameters.get(name))
+                            for name in optional]
+                except resource.ResourceNotFoundError:
+                    print('Action "%s" is not found.' % args.ref_or_id)
+                except Exception as e:
+                    print('ERROR: Unable to print help for action "%s". %s' %
+                          (args.ref_or_id, e))
+            else:
+                self.parser.print_help()
+            return True
+        return False
 
     @staticmethod
-    def print_param(name, schema):
+    def _print_param(name, schema):
         if not schema:
             raise ValueError('Missing schema for parameter "%s"' % (name))
 
@@ -481,6 +442,75 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         return env_vars
 
 
+class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+
+        super(ActionRunCommand, self).__init__(
+            resource, kwargs.pop('name', 'execute'),
+            'A command to invoke an action manually.',
+            *args, **kwargs)
+
+        self.parser.add_argument('ref_or_id', nargs='?',
+                                 metavar='ref-or-id',
+                                 help='Fully qualified name (pack.action_name) ' +
+                                 'or ID of the action.')
+        self.parser.add_argument('parameters', nargs='*',
+                                 help='List of keyword args, positional args, '
+                                      'and optional args for the action.')
+
+        self.parser.add_argument('-h', '--help',
+                                 action='store_true', dest='help',
+                                 help='Print usage for the given action.')
+
+        if self.name in ['run', 'execute']:
+            self.parser.add_argument('-a', '--async',
+                                     action='store_true', dest='async',
+                                     help='Do not wait for action to finish.')
+            self.parser.add_argument('-e', '--inherit-env',
+                                     action='store_true', dest='inherit_env',
+                                     help='Pass all the environment variables '
+                                          'which are accessible to the CLI as "env" '
+                                          'parameter to the action. Note: Only works '
+                                          'with python, local and remote runners.')
+
+        if self.name == 'run':
+            self.parser.set_defaults(async=False)
+        else:
+            self.parser.set_defaults(async=True)
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        if not args.ref_or_id:
+            self.parser.error('too few arguments')
+
+        action = self.get_resource(args.ref_or_id, **kwargs)
+        if not action:
+            raise resource.ResourceNotFoundError('Action "%s" cannot be found.'
+                                                 % args.ref_or_id)
+
+        runner_mgr = self.app.client.managers['RunnerType']
+        runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
+        if not runner:
+            raise resource.ResourceNotFoundError('Runner type "%s" for action "%s" cannot be found.'
+                                                 % (action.runner_type, action.name))
+
+        action_ref = '.'.join([action.pack, action.name])
+        action_parameters = self._get_action_parameters_from_args(action=action, runner=runner,
+                                                                  args=args)
+
+        execution = models.LiveAction()
+        execution.action = action_ref
+        execution.parameters = action_parameters
+
+        action_exec_mgr = self.app.client.managers['LiveAction']
+
+        execution = action_exec_mgr.create(execution, **kwargs)
+        execution = self._get_execution_result(execution=execution,
+                                               action_exec_mgr=action_exec_mgr,
+                                               args=args, **kwargs)
+        return execution
+
+
 class ActionExecutionBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
@@ -492,7 +522,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
         # Register extended commands
         self.commands['re-run'] = ActionExecutionReRunCommand(self.resource, self.app,
-                                                              self.subparsers)
+                                                              self.subparsers, add_help=False)
 
 
 class ActionExecutionListCommand(resource.ResourceCommand):
@@ -610,9 +640,21 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         self.parser.add_argument('id', nargs='?',
                                  metavar='id',
                                  help='ID of action execution to re-run ')
+        self.parser.add_argument('parameters', nargs='*',
+                                 help='List of keyword args, positional args, '
+                                      'and optional args for the action.')
         self.parser.add_argument('-a', '--async',
                                  action='store_true', dest='async',
                                  help='Do not wait for action to finish.')
+        self.parser.add_argument('-e', '--inherit-env',
+                                 action='store_true', dest='inherit_env',
+                                 help='Pass all the environment variables '
+                                      'which are accessible to the CLI as "env" '
+                                      'parameter to the action. Note: Only works '
+                                      'with python, local and remote runners.')
+        self.parser.add_argument('-h', '--help',
+                                 action='store_true', dest='help',
+                                 help='Print usage for the given action.')
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -622,7 +664,20 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
             raise resource.ResourceNotFoundError('Action execution with id "%s" cannot be found.' %
                                                  (args.id))
 
+        action_mgr = self.app.client.managers['Action']
+        runner_mgr = self.app.client.managers['RunnerType']
         action_exec_mgr = self.app.client.managers['LiveAction']
+
+        action = action_mgr.get_by_ref_or_id(existing_execution.action)
+        runner = runner_mgr.get_by_name(action.runner_type)
+
+        action_parameters = self._get_action_parameters_from_args(action=action, runner=runner,
+                                                                  args=args)
+
+        # If user provides parameters merge and override with the ones from the
+        # existing execution
+        existing_execution.parameters.update(action_parameters)
+
         execution = action_exec_mgr.create(existing_execution, **kwargs)
         execution = self._get_execution_result(execution=execution,
                                                action_exec_mgr=action_exec_mgr,
