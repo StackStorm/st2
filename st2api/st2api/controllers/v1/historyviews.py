@@ -31,7 +31,7 @@ SUPPORTED_FILTERS = {
     'parent': 'parent',
     'rule': 'rule.name',
     'runner': 'runner.name',
-    'timestamp': 'liveaction.start_timestamp',
+    'timestamp': 'start_timestamp',
     'trigger': 'trigger.name',
     'trigger_type': 'trigger_type.name',
     'user': 'liveaction.context.user'

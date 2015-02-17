@@ -35,7 +35,7 @@ class ActionExecutionHistoryController(resource.ResourceController):
     supported_filters = SUPPORTED_FILTERS
 
     query_options = {
-        'sort': ['-liveaction__start_timestamp']
+        'sort': ['-start_timestamp']
     }
 
     def _get_executions(self, **kw):
