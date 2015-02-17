@@ -72,10 +72,13 @@ class TestActionExecutionHistory(FunctionalTest):
             fake_type = random.choice(cls.fake_types)
             data = copy.deepcopy(fake_type)
             data['id'] = obj_id
-            data['liveaction']['start_timestamp'] = isotime.format(timestamp, offset=False)
+            data['start_timestamp'] = isotime.format(timestamp, offset=False)
+            data['status'] = data['liveaction']['status']
+            data['result'] = data['liveaction']['result']
             if fake_type['action']['name'] == 'local' and random.choice([True, False]):
                 assign_parent(data)
             wb_obj = ActionExecutionAPI(**data)
+            print(wb_obj)
             db_obj = ActionExecutionAPI.to_model(wb_obj)
             cls.refs[obj_id] = ActionExecution.add_or_update(db_obj)
 

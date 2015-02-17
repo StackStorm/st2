@@ -41,6 +41,7 @@ for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
 
 class ActionExecutionAPI(BaseAPI):
     model = ActionExecutionDB
+    SKIP = ['start_timestamp', 'end_timestamp']
     schema = {
         "title": "ActionExecution",
         "description": "Record of the execution of an action.",
@@ -127,7 +128,8 @@ class ActionExecutionAPI(BaseAPI):
             value = getattr(instance, attr, default)
             if not value and not cls.model._fields[attr].required:
                 continue
-            setattr(model, attr, value)
+            if attr not in ActionExecutionAPI.SKIP:
+                setattr(model, attr, value)
 
         model.start_timestamp = isotime.parse(model.liveaction['start_timestamp'])
         model.end_timestamp = isotime.parse(model.liveaction['end_timestamp'])
