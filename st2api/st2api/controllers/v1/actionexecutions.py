@@ -22,9 +22,10 @@ from six.moves import http_client
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
 from st2common.models.api.action import LiveActionAPI
-from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.api.base import jsexpose
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.persistence.action import LiveAction
+from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.util import jsonify
 
@@ -41,11 +42,11 @@ class ActionExecutionsController(ResourceController):
         Implements the RESTful web endpoint that handles
         the lifecycle of ActionExecutions in the system.
     """
-    model = LiveActionAPI
-    access = LiveAction
+    model = ActionExecutionAPI
+    access = ActionExecution
 
     supported_filters = {
-        'action': 'action'
+        'action': 'action.ref'
     }
 
     query_options = {
@@ -102,25 +103,6 @@ class ActionExecutionsController(ResourceController):
         except Exception as e:
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
-
-    @jsexpose(str, body=LiveActionAPI)
-    def put(self, id, liveaction):
-        try:
-            liveaction_db = LiveAction.get_by_id(id)
-        except:
-            msg = 'liveaction by id: %s not found.' % id
-            pecan.abort(http_client, msg)
-        new_liveaction_db = LiveActionAPI.to_model(liveaction)
-        if liveaction_db.status != new_liveaction_db.status:
-            liveaction_db.status = new_liveaction_db.status
-        if liveaction_db.result != new_liveaction_db.result:
-            liveaction_db.result = new_liveaction_db.result
-        if not liveaction_db.end_timestamp and new_liveaction_db.end_timestamp:
-            liveaction_db.end_timestamp = new_liveaction_db.end_timestamp
-
-        liveaction_db = LiveAction.add_or_update(liveaction_db)
-        liveaction_api = LiveActionAPI.from_model(liveaction_db)
-        return liveaction_api
 
     @jsexpose()
     def options(self):
