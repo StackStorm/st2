@@ -529,7 +529,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
 class ActionExecutionListCommand(resource.ResourceCommand):
 
-    display_attributes = ['id', 'action', 'context.user', 'status', 'start_timestamp',
+    display_attributes = ['id', 'action.ref', 'context.user', 'status', 'start_timestamp',
                           'end_timestamp']
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
