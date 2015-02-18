@@ -557,11 +557,17 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         self.parser.add_argument('-w', '--width', nargs='+', type=int,
                                  default=[28],
                                  help=('Set the width of columns in output.'))
+        self.parser.add_argument('-l', '--showall', action='store_true',
+                                 help='')
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         if args.action:
             kwargs['action'] = args.action
+        if not args.showall:
+            # null is the magic string that translates to does not exist.
+            kwargs['parent'] = 'null'
+
         return self.manager.query(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
