@@ -79,7 +79,8 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         liveaction, _ = action_service.schedule(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, LIVEACTION_STATUS_FAILED)
-        execution = self._get_action_execution(liveaction__id=str(liveaction.id), raise_exception=True)
+        execution = self._get_action_execution(liveaction__id=str(liveaction.id),
+                                               raise_exception=True)
         self.assertDictEqual(execution.trigger, {})
         self.assertDictEqual(execution.trigger_type, {})
         self.assertDictEqual(execution.trigger_instance, {})
@@ -106,7 +107,8 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         liveaction, _ = action_service.schedule(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, LIVEACTION_STATUS_FAILED)
-        execution = self._get_action_execution(liveaction__id=str(liveaction.id), raise_exception=True)
+        execution = self._get_action_execution(liveaction__id=str(liveaction.id),
+                                               raise_exception=True)
         action = action_utils.get_action_by_ref('core.chain')
         self.assertDictEqual(execution.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
@@ -150,7 +152,8 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertIsNotNone(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, LIVEACTION_STATUS_FAILED)
-        execution = self._get_action_execution(liveaction__id=str(liveaction.id), raise_exception=True)
+        execution = self._get_action_execution(liveaction__id=str(liveaction.id),
+                                               raise_exception=True)
         self.assertDictEqual(execution.trigger, vars(TriggerAPI.from_model(trigger)))
         self.assertDictEqual(execution.trigger_type, vars(TriggerTypeAPI.from_model(trigger_type)))
         self.assertDictEqual(execution.trigger_instance,
@@ -165,8 +168,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertEqual(execution.end_timestamp, liveaction.end_timestamp)
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
-        self.assertEqual(execution.context
-            , liveaction.context)
+        self.assertEqual(execution.context, liveaction.context)
         self.assertEqual(execution.liveaction['callback'], liveaction.callback)
         self.assertEqual(execution.liveaction['action'], liveaction.action)
 
