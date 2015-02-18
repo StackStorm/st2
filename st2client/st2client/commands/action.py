@@ -670,17 +670,24 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         runner_mgr = self.app.client.managers['RunnerType']
         action_exec_mgr = self.app.client.managers['LiveAction']
 
-        action = action_mgr.get_by_ref_or_id(existing_execution.action)
+        # TODO use action.ref when this attribute is added
+        action_ref = existing_execution.action['pack'] + '.' + existing_execution.action['name']
+        action = action_mgr.get_by_ref_or_id(action_ref)
         runner = runner_mgr.get_by_name(action.runner_type)
 
         action_parameters = self._get_action_parameters_from_args(action=action, runner=runner,
                                                                   args=args)
 
+        # Create new execution object
+        new_execution = models.LiveAction()
+        new_execution.action = action_ref
+        new_execution.parameters = existing_execution.parameters or {}
+
         # If user provides parameters merge and override with the ones from the
         # existing execution
-        existing_execution.parameters.update(action_parameters)
+        new_execution.parameters.update(action_parameters)
 
-        execution = action_exec_mgr.create(existing_execution, **kwargs)
+        execution = action_exec_mgr.create(new_execution, **kwargs)
         execution = self._get_execution_result(execution=execution,
                                                action_exec_mgr=action_exec_mgr,
                                                args=args, **kwargs)
