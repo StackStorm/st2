@@ -335,7 +335,7 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
         self.assertEqual(resp.json['context']['user'], 'stanley')
-        context = {'parent': str(resp.json['id'])}
+        context = {'parent': str(resp.json['liveaction']['id'])}
         headers = {'content-type': 'application/json',
                    'X-Auth-Token': str(SYS_TOKEN.token),
                    'st2-context': json.dumps(context)}
