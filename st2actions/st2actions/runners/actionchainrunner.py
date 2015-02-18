@@ -247,7 +247,7 @@ class ActionChainRunner(ActionRunner):
             'parent': str(parent_execution_id),
             'chain': vars(action_node)
         }
-        execution = action_service.schedule(execution)
+        execution, _ = action_service.schedule(execution)
         while (wait_for_completion and
                execution.status != LIVEACTION_STATUS_SUCCEEDED and
                execution.status != LIVEACTION_STATUS_FAILED):
