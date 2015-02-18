@@ -20,6 +20,7 @@ import json
 import subprocess
 
 from st2common import log as logging
+from st2common.transport.reactor import TriggerDispatcher
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
@@ -59,6 +60,7 @@ class ProcessSensorContainer(object):
         """
         self._sensors = {}  # maps sensor_id -> sensor object
         self._processes = {}  # maps sensor_id -> sensor process
+        self._dispatcher = TriggerDispatcher(LOG)
 
         for sensor_obj in sensors:
             sensor_id = self._get_sensor_id(sensor=sensor_obj)
@@ -80,6 +82,9 @@ class ProcessSensorContainer(object):
                     # Dead process detected
                     LOG.info('Process for sensor %s has exited with code %s',
                              sensor_id, status)
+                    sensor = self._sensors[sensor_id]
+                    self._dispatch_trigger_for_sensor_exit(sensor=sensor,
+                                                           exit_code=status)
 
                     del self._processes[sensor_id]
                     del self._sensors[sensor_id]
@@ -201,8 +206,8 @@ class ProcessSensorContainer(object):
         # TODO 1: Purge temporary token when service stops or sensor process dies
         # TODO 2: Store metadata (wrapper process id) with the token and delete
         # tokens for old, dead processes on startup
-
-        LOG.debug('Running sensor subprocess (cmd="%s")', ' '.join(args))
+        cmd = ' '.join(args)
+        LOG.debug('Running sensor subprocess (cmd="%s")', cmd)
 
         # TODO: Intercept stdout and stderr for aggregated logging purposes
         try:
@@ -214,6 +219,7 @@ class ProcessSensorContainer(object):
                        (sensor_id, cmd, str(e)))
             raise Exception(message)
 
+        self._dispatch_trigger_for_sensor_spawn(sensor=sensor, process=process, cmd=cmd)
         self._processes[sensor_id] = process
         return process
 
@@ -263,3 +269,24 @@ class ProcessSensorContainer(object):
         """
         sensor_id = sensor['class_name']
         return sensor_id
+
+    def _dispatch_trigger_for_sensor_spawn(self, sensor, process, cmd):
+        trigger = 'st2.sensor.process_spawn'
+        now = int(time.time())
+        payload = {
+            'id': sensor['class_name'],
+            'timestamp': now,
+            'pid': process.pid,
+            'cmd': cmd
+        }
+        self._dispatcher.dispatch(trigger, payload=payload)
+
+    def _dispatch_trigger_for_sensor_exit(self, sensor, exit_code):
+        trigger = 'st2.sensor.process_exit'
+        now = int(time.time())
+        payload = {
+            'id': sensor['class_name'],
+            'timestamp': now,
+            'exit_code': exit_code
+        }
+        self._dispatcher.dispatch(trigger, payload=payload)
