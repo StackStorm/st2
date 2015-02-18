@@ -139,8 +139,9 @@ class ActionChainRunner(ActionRunner):
             chainspec = self._meta_loader.load(chainspec_file)
             self.chain_holder = ChainHolder(chainspec, self.action_name)
         except Exception as e:
+            message = e.message or str(e)
             LOG.exception('Failed to instantiate ActionChain.')
-            raise runnerexceptions.ActionRunnerPreRunError(e.message)
+            raise runnerexceptions.ActionRunnerPreRunError(message)
 
     def run(self, action_parameters):
         action_node = self.chain_holder.get_next_node()
