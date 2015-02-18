@@ -52,22 +52,6 @@ ssh_runner_opts = [
 ]
 CONF.register_opts(ssh_runner_opts, group='ssh_runner')
 
-action_sensor_opts = [
-    cfg.BoolOpt('enable', default=True,
-                help='Whether to enable or disable the ability to post a trigger on action.'),
-    cfg.StrOpt('triggers_base_url', default='http://localhost:9101/v1/triggertypes/',
-               help='URL for action sensor to post TriggerType.'),
-    cfg.StrOpt('webhook_sensor_base_url', default='http://localhost:9101/v1/webhooks/st2/',
-               help='URL for action sensor to post TriggerInstances.'),
-    cfg.IntOpt('request_timeout', default=1,
-               help='Timeout value of all httprequests made by action sensor.'),
-    cfg.IntOpt('max_attempts', default=10,
-               help='No. of times to retry registration.'),
-    cfg.IntOpt('retry_wait', default=1,
-               help='Amount of time to wait prior to retrying a request.')
-]
-CONF.register_opts(action_sensor_opts, group='action_sensor')
-
 workflow_opts = [
     cfg.StrOpt('url', default='http://localhost:8989', help='Mistral API server root endpoint.')
 ]
