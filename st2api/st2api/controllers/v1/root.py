@@ -18,7 +18,6 @@ from pecan import expose
 from st2api.controllers.v1.actions import ActionsController
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 from st2api.controllers.v1.datastore import KeyValuePairController
-from st2api.controllers.v1.history import HistoryController
 from st2api.controllers.v1.rules import RuleController
 from st2api.controllers.v1.runnertypes import RunnerTypesController
 from st2api.controllers.v1.sensors import SensorTypeController
@@ -31,6 +30,7 @@ from st2api.controllers.v1.webhooks import WebhooksController
 class RootController(object):
     actions = ActionsController()
     actionexecutions = ActionExecutionsController()
+    executions = actionexecutions  # We should deprecate actionexecutions.
     runnertypes = RunnerTypesController()
     sensortypes = SensorTypeController()
     triggertypes = TriggerTypeController()
@@ -38,7 +38,6 @@ class RootController(object):
     triggerinstances = TriggerInstanceController()
     rules = RuleController()
     keys = KeyValuePairController()
-    history = HistoryController()
     webhooks = WebhooksController()
     stream = StreamController()
 

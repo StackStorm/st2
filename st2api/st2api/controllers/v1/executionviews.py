@@ -49,9 +49,9 @@ class FiltersController(RestController):
             List all distinct filters.
 
             Handles requests:
-                GET /history/liveactions/views/filters
+                GET /executions/views/filters
         """
-        LOG.info('GET all /history/liveactions/views/filters')
+        LOG.info('GET all /executions/views/filters')
 
         filters = {}
 
@@ -75,5 +75,5 @@ class FiltersController(RestController):
         return filters
 
 
-class HistoryViewsController(RestController):
+class ExecutionViewsController(RestController):
     filters = FiltersController()
