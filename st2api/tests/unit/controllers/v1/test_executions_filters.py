@@ -137,8 +137,8 @@ class TestActionExecutionFilters(FunctionalTest):
         self.assertListEqual(sorted(ids), sorted(refs))
 
     def test_filters(self):
-        excludes = ['parent', 'timestamp', 'action', 'liveaction', 'start_timestamp_gt',
-                    'start_timestamp_lt']
+        excludes = ['parent', 'timestamp', 'action', 'liveaction', 'timestamp_gt',
+                    'timestamp_lt']
         for param, field in six.iteritems(ActionExecutionsController.supported_filters):
             if param in excludes:
                 continue
