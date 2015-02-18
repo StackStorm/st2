@@ -49,8 +49,6 @@ class ActionExecutionsController(ResourceController):
     access = ActionExecution
     views = ExecutionViewsController()
 
-    supported_filters = SUPPORTED_FILTERS
-
     query_options = {
         'sort': ['-start_timestamp', 'action']
     }
@@ -62,6 +60,11 @@ class ActionExecutionsController(ResourceController):
         'start_timestamp_gt': lambda value: isotime.parse(value=value),
         'start_timestamp_lt': lambda value: isotime.parse(value=value)
     }
+
+    def __init__(self):
+        super(ActionExecutionsController, self).__init__()
+        # Add common execution view supported filters
+        self.supported_filters.update(SUPPORTED_FILTERS)
 
     @jsexpose()
     def get_all(self, **kw):
