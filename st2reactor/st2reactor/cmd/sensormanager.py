@@ -1,6 +1,7 @@
 import os
 import sys
 
+import eventlet
 from oslo.config import cfg
 
 from st2common import log as logging
@@ -10,6 +11,14 @@ from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2reactor.sensor import config
 from st2common.persistence.reactor import SensorType
 from st2reactor.container.manager import SensorContainerManager
+
+eventlet.monkey_patch(
+    os=True,
+    select=True,
+    socket=True,
+    thread=False if '--use-debugger' in sys.argv else True,
+    time=True)
+
 
 LOG = logging.getLogger('st2reactor.bin.sensors_manager')
 
