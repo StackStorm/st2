@@ -117,7 +117,6 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(api_opts, 'api', ignore_errors)
 
-
     # Common options (used by action runner and sensor container)
     action_sensor_opts = [
         cfg.BoolOpt('enable', default=True,
