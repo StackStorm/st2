@@ -69,8 +69,6 @@ def create_execution_object(liveaction, publish=True):
         'action': vars(ActionAPI.from_model(action_db)),
         'runner': vars(RunnerTypeAPI.from_model(runner))
     }
-    # Compute the action_ref
-    attrs['action']['ref'] = action_db.get_reference().ref
     attrs.update(_decompose_liveaction(liveaction))
 
     if 'rule' in liveaction.context:

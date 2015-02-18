@@ -120,11 +120,6 @@ class ActionExecutionAPI(BaseAPI):
             end_timestamp = isotime.format(end_timestamp, offset=False)
             doc['end_timestamp'] = end_timestamp
 
-        # Drop ref as that does not exist in ActionAPI. Ugh need a better way to handle
-        # this say by adding ref property to ActionAPI.
-        if 'action' in doc and 'ref' in doc['action']:
-            doc['action'].pop('ref')
-
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}
         return cls(**attrs)
 

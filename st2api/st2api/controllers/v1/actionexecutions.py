@@ -26,7 +26,6 @@ from st2common import log as logging
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.util import jsonify
@@ -56,15 +55,6 @@ class ActionExecutionsController(ResourceController):
 
     def _get_action_executions(self, **kw):
         kw['limit'] = int(kw.get('limit', 100))
-        action_ref = kw.get('action', None)
-
-        if action_ref:
-            action_name = ResourceReference.get_name(action_ref)
-            action_pack = ResourceReference.get_pack(action_ref)
-            del kw['action']
-            kw['action.name'] = action_name
-            kw['action.pack'] = action_pack
-
         LOG.debug('Retrieving all action liveactions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(**kw)
 
