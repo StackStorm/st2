@@ -29,6 +29,7 @@ from st2common.models.api.execution import ActionExecutionAPI
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.util import jsonify
+from st2common.util import isotime
 
 
 LOG = logging.getLogger(__name__)
@@ -47,16 +48,22 @@ class ActionExecutionsController(ResourceController):
     access = ActionExecution
     views = ExecutionViewsController()
 
-    supported_filters = SUPPORTED_FILTERS
-
     query_options = {
         'sort': ['-start_timestamp', 'action']
     }
+    supported_filters = {
+        'timestamp_gt': 'start_timestamp.gt',
+        'timestamp_lt': 'start_timestamp.lt'
+    }
+    filter_transform_functions = {
+        'timestamp_gt': lambda value: isotime.parse(value=value),
+        'timestamp_lt': lambda value: isotime.parse(value=value)
+    }
 
-    def _get_action_executions(self, **kw):
-        kw['limit'] = int(kw.get('limit', 100))
-        LOG.debug('Retrieving all action liveactions with filters=%s', kw)
-        return super(ActionExecutionsController, self)._get_all(**kw)
+    def __init__(self):
+        super(ActionExecutionsController, self).__init__()
+        # Add common execution view supported filters
+        self.supported_filters.update(SUPPORTED_FILTERS)
 
     @jsexpose()
     def get_all(self, **kw):
@@ -106,3 +113,17 @@ class ActionExecutionsController(ResourceController):
     @jsexpose()
     def options(self):
         return
+
+    def _get_action_executions(self, **kw):
+        kw['limit'] = int(kw.get('limit', 100))
+        action_ref = kw.get('action', None)
+
+        if action_ref:
+            action_name = ResourceReference.get_name(action_ref)
+            action_pack = ResourceReference.get_pack(action_ref)
+            del kw['action']
+            kw['action.name'] = action_name
+            kw['action.pack'] = action_pack
+
+        LOG.debug('Retrieving all action liveactions with filters=%s', kw)
+        return super(ActionExecutionsController, self)._get_all(**kw)
