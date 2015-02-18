@@ -53,12 +53,12 @@ class ActionExecutionsController(ResourceController):
         'sort': ['-start_timestamp', 'action']
     }
     supported_filters = {
-        'start_timestamp_gt': 'start_timestamp.gt',
-        'start_timestamp_lt': 'start_timestamp.lt'
+        'timestamp_gt': 'start_timestamp.gt',
+        'timestamp_lt': 'start_timestamp.lt'
     }
     filter_transform_functions = {
-        'start_timestamp_gt': lambda value: isotime.parse(value=value),
-        'start_timestamp_lt': lambda value: isotime.parse(value=value)
+        'timestamp_gt': lambda value: isotime.parse(value=value),
+        'timestamp_lt': lambda value: isotime.parse(value=value)
     }
 
     def __init__(self):
