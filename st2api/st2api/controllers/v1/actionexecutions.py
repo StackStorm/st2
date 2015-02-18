@@ -26,7 +26,6 @@ from st2common import log as logging
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.util import jsonify

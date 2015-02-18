@@ -24,9 +24,7 @@ from st2common.persistence.execution import ActionExecution
 LOG = logging.getLogger(__name__)
 
 SUPPORTED_FILTERS = {
-    'action': ('action.pack', 'action.name'),  # XXX: Compound filter. For aggregation only.
-    'action.name': 'action.name',
-    'action.pack': 'action.pack',
+    'action': 'action.ref',
     'liveaction': 'liveaction.id',
     'parent': 'parent',
     'rule': 'rule.name',
