@@ -81,4 +81,4 @@ def schedule(liveaction):
     ActionExecution.publish_create(execution)
     LOG.audit('Action execution scheduled. LiveAction=%s. ActionExecution=%s', liveaction,
               execution)
-    return liveaction
+    return liveaction, execution

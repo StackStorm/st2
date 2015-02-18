@@ -22,6 +22,7 @@ from six.moves import http_client
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
 from st2common.models.api.action import LiveActionAPI
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.action import LiveAction
 from st2common.services import action as action_service
@@ -89,9 +90,9 @@ class ActionExecutionsController(ResourceController):
                 execution.context.update(context)
 
             # Schedule the action execution.
-            executiondb = LiveActionAPI.to_model(execution)
-            executiondb = action_service.schedule(executiondb)
-            return LiveActionAPI.from_model(executiondb)
+            liveactiondb = LiveActionAPI.to_model(execution)
+            _, actionexecutiondb = action_service.schedule(liveactiondb)
+            return ActionExecutionAPI.from_model(actionexecutiondb)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
