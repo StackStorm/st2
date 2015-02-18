@@ -43,10 +43,12 @@ class ResourceController(rest.RestController):
     access = abc.abstractproperty
     supported_filters = abc.abstractproperty
 
+    max_limit = 100
+
     query_options = {   # Do not use options.
         'sort': []
     }
-    max_limit = 100
+    filter_transform_functions = {}
 
     def __init__(self):
         self.supported_filters = copy.deepcopy(self.__class__.supported_filters)
@@ -111,8 +113,16 @@ class ResourceController(rest.RestController):
         filters = {}
 
         for k, v in six.iteritems(self.supported_filters):
-            if kwargs.get(k):
-                filters['__'.join(v.split('.'))] = kwargs[k]
+            filter_value = kwargs.get(k, None)
+
+            if not filter_value:
+                continue
+
+            value_transform_function = self.filter_transform_functions.get(k, None)
+            value_transform_function = value_transform_function or (lambda value: value)
+            filter_value = value_transform_function(value=filter_value)
+
+            filters['__'.join(v.split('.'))] = filter_value
 
         LOG.info('GET all %s with filters=%s', pecan.request.path, filters)
 

@@ -58,6 +58,10 @@ class ActionExecutionsController(ResourceController):
         'start_timestamp_gt': 'start_timestamp.gt',
         'start_timestamp_lt': 'start_timestamp.lt'
     }
+    filter_transform_functions = {
+        'start_timestamp_gt': lambda value: isotime.parse(value=value),
+        'start_timestamp_lt': lambda value: isotime.parse(value=value)
+    }
 
     @jsexpose()
     def get_all(self, **kw):
@@ -118,12 +122,6 @@ class ActionExecutionsController(ResourceController):
             del kw['action']
             kw['action.name'] = action_name
             kw['action.pack'] = action_pack
-
-        # Correctly format started_timestamp filters
-        if 'start_timestamp_gt' in kw:
-            kw['start_timestamp_gt'] = isotime.parse(kw['start_timestamp_gt'])
-        if 'start_timestamp_lt' in kw:
-            kw['start_timestamp_lt'] = isotime.parse(kw['start_timestamp_lt'])
 
         LOG.debug('Retrieving all action liveactions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(**kw)
