@@ -39,6 +39,7 @@ RUNNER1 = {
 }
 
 ACTION1 = {
+    "ref": "mockety.mock1",
     "runner_type": "mock-runner1",
     "name": "mock1",
     "parameters": {},
@@ -54,6 +55,7 @@ RUNNER2 = {
 }
 
 ACTION2 = {
+    "ref": "mockety.mock2",
     "runner_type": "mock-runner2",
     "name": "mock2",
     "parameters": {

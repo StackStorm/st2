@@ -89,6 +89,19 @@ class TestWorkflowExecution(unittest2.TestCase):
         self.assertIn('tagline', execution.result)
         self.assertEqual(execution.result['tagline'], 'st2 is cool!')
 
+    def test_concurrent_load(self):
+        wf_name = 'examples.mistral-workbook-complex'
+        wf_params = {'vm_name': 'demo1'}
+        executions = [self._execute_workflow(wf_name, wf_params) for i in range(20)]
+
+        eventlet.sleep(10)
+
+        for execution in executions:
+            execution = self._wait_for_completion(execution)
+            self._assert_success(execution)
+            self.assertIn('vm_id', execution.result)
+            self.assertIn('vm_state', execution.result)
+
     def test_execution_failure(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'foo'})
         execution = self._wait_for_completion(execution)
