@@ -53,6 +53,9 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     result = stormbase.EscapedDynamicField(
         default={},
         help_text='Action defined result.')
+    context = me.DictField(
+        default={},
+        help_text='Contextual information on the action execution.')
     parent = me.StringField()
     children = me.ListField(field=me.StringField())
 

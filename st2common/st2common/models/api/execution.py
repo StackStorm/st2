@@ -88,6 +88,9 @@ class ActionExecutionAPI(BaseAPI):
                     }
                 }
             },
+            "context": {
+                "type": "object"
+            },
             "result": {
                 "anyOf": [{"type": "array"},
                           {"type": "boolean"},

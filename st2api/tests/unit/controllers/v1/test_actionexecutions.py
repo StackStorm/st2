@@ -259,7 +259,7 @@ class TestActionExecutionController(FunctionalTest):
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1))
         self.assertEqual(resp.status_int, 201)
         parent_user = resp.json['context']['user']
-        parent_exec_id = str(resp.json['id'])
+        parent_exec_id = str(resp.json['liveaction']['id'])
         context = {'parent': parent_exec_id, 'user': None, 'other': {'k1': 'v1'}}
         headers = {'content-type': 'application/json', 'st2-context': json.dumps(context)}
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
