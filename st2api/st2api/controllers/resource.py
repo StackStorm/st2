@@ -43,11 +43,14 @@ class ResourceController(rest.RestController):
     access = abc.abstractproperty
     supported_filters = abc.abstractproperty
 
+    # Maximum value of limit which can be specified by user
     max_limit = 100
 
-    query_options = {   # Do not use options.
+    query_options = {
         'sort': []
     }
+
+    # A list of optional transformation functions for user provided filter values
     filter_transform_functions = {}
 
     def __init__(self):
