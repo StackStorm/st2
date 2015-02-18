@@ -71,7 +71,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))
+        self.assertEquals(execution.liveaction['id'], str(liveaction.id))
 
     def test_execution_creation_action_triggered_by_rule(self):
         # Wait for the action execution to complete and then confirm outcome.
@@ -101,7 +101,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertDictEqual(execution.liveaction, vars(LiveActionAPI.from_model(liveaction)))
+        self.assertEquals(execution.liveaction['id'], str(liveaction.id))
 
     def test_execution_creation_chains(self):
         """

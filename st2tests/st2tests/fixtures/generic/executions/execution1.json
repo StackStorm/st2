@@ -1,5 +1,10 @@
 {
     "id": "54c6bb640640fd5211edef0d",
+    "start_timestamp": "2014-09-01T00:00:01.000000Z",
+    "end_timestamp": "2014-09-01T00:00:05.000000Z",
+    "parameters": {},
+    "result": {},
+    "status": "scheduled",
     "liveaction": {
         "start_timestamp": "2014-09-01T00:00:01.000000Z",
         "end_timestamp": "2014-09-01T00:00:05.000000Z",
