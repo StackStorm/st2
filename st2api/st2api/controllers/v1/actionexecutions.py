@@ -30,6 +30,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.util import jsonify
+from st2common.util import isotime
 
 
 LOG = logging.getLogger(__name__)
@@ -53,20 +54,10 @@ class ActionExecutionsController(ResourceController):
     query_options = {
         'sort': ['-start_timestamp', 'action']
     }
-
-    def _get_action_executions(self, **kw):
-        kw['limit'] = int(kw.get('limit', 100))
-        action_ref = kw.get('action', None)
-
-        if action_ref:
-            action_name = ResourceReference.get_name(action_ref)
-            action_pack = ResourceReference.get_pack(action_ref)
-            del kw['action']
-            kw['action.name'] = action_name
-            kw['action.pack'] = action_pack
-
-        LOG.debug('Retrieving all action liveactions with filters=%s', kw)
-        return super(ActionExecutionsController, self)._get_all(**kw)
+    supported_filters = {
+        'start_timestamp_gt': 'start_timestamp.gt',
+        'start_timestamp_lt': 'start_timestamp.lt'
+    }
 
     @jsexpose()
     def get_all(self, **kw):
@@ -116,3 +107,23 @@ class ActionExecutionsController(ResourceController):
     @jsexpose()
     def options(self):
         return
+
+    def _get_action_executions(self, **kw):
+        kw['limit'] = int(kw.get('limit', 100))
+        action_ref = kw.get('action', None)
+
+        if action_ref:
+            action_name = ResourceReference.get_name(action_ref)
+            action_pack = ResourceReference.get_pack(action_ref)
+            del kw['action']
+            kw['action.name'] = action_name
+            kw['action.pack'] = action_pack
+
+        # Correctly format started_timestamp filters
+        if 'start_timestamp_gt' in kw:
+            kw['start_timestamp_gt'] = isotime.parse(kw['start_timestamp_gt'])
+        if 'start_timestamp_lt' in kw:
+            kw['start_timestamp_lt'] = isotime.parse(kw['start_timestamp_lt'])
+
+        LOG.debug('Retrieving all action liveactions with filters=%s', kw)
+        return super(ActionExecutionsController, self)._get_all(**kw)
