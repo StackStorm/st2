@@ -76,7 +76,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
 
     def test_basic_execution(self):
         liveaction = LiveActionDB(action='core.local', parameters={'cmd': 'uname -a'})
-        liveaction = action_service.schedule(liveaction)
+        liveaction, _ = action_service.schedule(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, LIVEACTION_STATUS_FAILED)
         execution = ActionExecution.get(liveaction__id=str(liveaction.id), raise_exception=True)
@@ -103,7 +103,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
 
     def test_chained_executions(self):
         liveaction = LiveActionDB(action='core.chain')
-        liveaction = action_service.schedule(liveaction)
+        liveaction, _ = action_service.schedule(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, LIVEACTION_STATUS_FAILED)
         execution = ActionExecution.get(liveaction__id=str(liveaction.id), raise_exception=True)

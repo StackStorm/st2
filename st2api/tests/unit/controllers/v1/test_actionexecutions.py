@@ -276,22 +276,6 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(resp.status_int, 400)
         self.assertIn('Unable to convert st2-context', resp.json['faultstring'])
 
-    def test_update_execution(self):
-        response = self._do_post(LIVE_ACTION_1)
-        self.assertEqual(response.status_int, 201)
-        execution = copy.deepcopy(response.json)
-        execution.update({'status': 'succeeded', 'result': True})
-        response = self._do_put(execution['id'], execution)
-        self.assertEqual(response.status_int, 200)
-
-    def test_update_execution_with_minimum_data(self):
-        response = self._do_post(LIVE_ACTION_1)
-        self.assertEqual(response.status_int, 201)
-        execution = {'action': response.json['action'],
-                     'status': 'succeeded', 'result': True}
-        response = self._do_put(response.json['id'], execution)
-        self.assertEqual(response.status_int, 200)
-
     @staticmethod
     def _get_actionexecution_id(resp):
         return resp.json['id']
@@ -301,9 +285,6 @@ class TestActionExecutionController(FunctionalTest):
 
     def _do_post(self, liveaction, *args, **kwargs):
         return self.app.post_json('/v1/actionexecutions', liveaction, *args, **kwargs)
-
-    def _do_put(self, id, liveaction, *args, **kwargs):
-        return self.app.put_json('/v1/actionexecutions/%s' % id, liveaction, *args, **kwargs)
 
 
 NOW = isotime.add_utc_tz(datetime.datetime.utcnow())

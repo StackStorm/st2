@@ -78,7 +78,7 @@ class TestActionExecutionService(DbTestCase):
         context = {'user': USERNAME}
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
         request = LiveActionDB(action=ACTION_REF, context=context, parameters=parameters)
-        request = action_service.schedule(request)
+        request, _ = action_service.schedule(request)
         execution = LiveAction.get_by_id(str(request.id))
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)

@@ -97,7 +97,7 @@ class TestActionChainRunner(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
     def test_chain_runner_success_path(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
@@ -111,7 +111,7 @@ class TestActionChainRunner(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
     def test_chain_runner_no_default(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_NO_DEFAULT
@@ -133,7 +133,7 @@ class TestActionChainRunner(DbTestCase):
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
-                       return_value=DummyActionExecution(status=LIVEACTION_STATUS_RUNNING))
+                       return_value=(DummyActionExecution(status=LIVEACTION_STATUS_RUNNING), None))
     def test_chain_runner_success_path_with_wait(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
@@ -148,7 +148,7 @@ class TestActionChainRunner(DbTestCase):
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
-                       return_value=DummyActionExecution(status=LIVEACTION_STATUS_FAILED))
+                       return_value=(DummyActionExecution(status=LIVEACTION_STATUS_FAILED), None))
     def test_chain_runner_failure_path(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
@@ -186,7 +186,7 @@ class TestActionChainRunner(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
     def test_chain_runner_str_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_STR_TEMP_PATH
@@ -200,7 +200,7 @@ class TestActionChainRunner(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
     def test_chain_runner_list_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_LIST_TEMP_PATH
@@ -214,7 +214,7 @@ class TestActionChainRunner(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
     def test_chain_runner_dict_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DICT_TEMP_PATH
@@ -230,7 +230,7 @@ class TestActionChainRunner(DbTestCase):
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
-                       return_value=DummyActionExecution(result={'o1': '1'}))
+                       return_value=(DummyActionExecution(result={'o1': '1'}), None))
     def test_chain_runner_dependent_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DEP_INPUT
@@ -251,7 +251,7 @@ class TestActionChainRunner(DbTestCase):
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
-                       return_value=DummyActionExecution(result={'o1': '1'}))
+                       return_value=(DummyActionExecution(result={'o1': '1'}), None))
     def test_chain_runner_dependent_results_param(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DEP_RESULTS_INPUT
@@ -272,7 +272,7 @@ class TestActionChainRunner(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
     def test_chain_runner_missing_param_temp(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_STR_TEMP_PATH
@@ -284,7 +284,7 @@ class TestActionChainRunner(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_2))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
     def test_chain_runner_typed_params(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_TYPED_PARAMS
@@ -305,7 +305,7 @@ class TestActionChainRunner(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_2))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
     def test_chain_runner_typed_system_params(self, schedule):
         kvps = []
         try:
@@ -328,7 +328,7 @@ class TestActionChainRunner(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_2))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
+    @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
     def test_chain_runner_vars(self, schedule):
         kvps = []
         try:
@@ -352,7 +352,7 @@ class TestActionChainRunner(DbTestCase):
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_2))
     @mock.patch.object(action_service, 'schedule',
-                       return_value=DummyActionExecution(result={'raw_out': 'published'}))
+                       return_value=(DummyActionExecution(result={'raw_out': 'published'}), None))
     def test_chain_runner_publish(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_WITH_PUBLISH
