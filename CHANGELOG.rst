@@ -48,6 +48,9 @@ Docs: http://docks.stackstorm.com/latest
 * Mistral subworkflows kicked off in st2 should include task name. (bug-fix)
 * Add new ``execution re-run <execution id>`` CLI command for re-running an
   existing action. (new-feature)
+* Dispatch an internal trigger when a sensor process is spawned / started
+  (``st2.sensor.process_spawn``) and when a process exits / is stopped
+  (``st2.sensor.process_exit``).
 
 v0.7 - January 16, 2015
 -----------------------

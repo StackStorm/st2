@@ -1,6 +1,7 @@
 import os
 import sys
 
+import eventlet
 from oslo.config import cfg
 
 from st2common import log as logging
@@ -10,6 +11,14 @@ from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2reactor.sensor import config
 from st2common.persistence.reactor import SensorType
 from st2reactor.container.manager import SensorContainerManager
+
+eventlet.monkey_patch(
+    os=True,
+    select=True,
+    socket=True,
+    thread=False if '--use-debugger' in sys.argv else True,
+    time=True)
+
 
 LOG = logging.getLogger('st2reactor.bin.sensors_manager')
 
@@ -31,6 +40,12 @@ def _setup():
     password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
              username=username, password=password)
+
+    # 4. Register internal triggers
+    # Note: We need to do import here because of a messed up configuration
+    # situation (this module depends on configuration being parsed)
+    from st2common.triggers import register_internal_trigger_types
+    register_internal_trigger_types()
 
 
 def _teardown():
