@@ -116,14 +116,6 @@ class ActionExecutionsController(ResourceController):
 
     def _get_action_executions(self, **kw):
         kw['limit'] = int(kw.get('limit', 100))
-        action_ref = kw.get('action', None)
-
-        if action_ref:
-            action_name = ResourceReference.get_name(action_ref)
-            action_pack = ResourceReference.get_pack(action_ref)
-            del kw['action']
-            kw['action.name'] = action_name
-            kw['action.pack'] = action_pack
 
         LOG.debug('Retrieving all action liveactions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(**kw)
