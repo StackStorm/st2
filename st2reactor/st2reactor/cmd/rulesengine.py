@@ -12,6 +12,13 @@ from st2reactor.rules import config
 from st2reactor.rules import worker
 from st2reactor.timer.base import St2Timer
 
+eventlet.monkey_patch(
+    os=True,
+    select=True,
+    socket=True,
+    thread=False if '--use-debugger' in sys.argv else True,
+    time=True)
+
 LOG = logging.getLogger('st2reactor.bin.rulesengine')
 
 
