@@ -83,7 +83,6 @@ class TestActionExecutionHistory(FunctionalTest):
             db_obj = ActionExecutionAPI.to_model(wb_obj)
             cls.refs[obj_id] = ActionExecution.add_or_update(db_obj)
 
-
     def test_get_all(self):
         response = self.app.get('/v1/history/liveactions')
         self.assertEqual(response.status_int, 200)
