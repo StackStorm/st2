@@ -33,6 +33,10 @@ from st2common.models.api.execution import ActionExecutionAPI
 class TestActionExecutionFilters(FunctionalTest):
 
     @classmethod
+    def testDownClass(cls):
+        pass
+
+    @classmethod
     def setUpClass(cls):
         super(TestActionExecutionFilters, cls).setUpClass()
 

@@ -348,6 +348,7 @@ class ActionModelTest(DbTestCase):
         created.enabled = True
         created.entry_point = '/tmp/action.py'
         created.pack = 'wolfpack'
+        created.ref = ResourceReference(pack=created.pack, name=created.name).ref
         created.runner_type = {'name': runnertype.name}
         if not metadata:
             created.parameters = {'p1': None, 'p2': None, 'p3': None}

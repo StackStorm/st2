@@ -3,19 +3,22 @@
         "runner_type": "run-local",
         "name": "local",
         "enabled": true,
-        "pack": "core"
+        "pack": "core",
+        "ref": "core.local"
     },
     "chain": {
         "runner_type": "action-chain",
         "name": "chain",
         "enabled": true,
-        "pack": "core"
+        "pack": "core",
+        "ref": "core.chain"
     },
     "local-override-runner-immutable": {
         "runner_type": "run-local",
         "name": "local-override-runner-immutable",
         "enabled": true,
         "pack": "core",
+        "ref": "core.local-override-runner-immutable",
         "parameters": {
             "hosts": {
                 "immutable": false
@@ -27,6 +30,7 @@
         "name": "action-with-invalid-runner",
         "enabled": true,
         "pack": "core",
+        "ref": "core.action-with-invalid-runner",
         "parameters": {
             "hosts": {
                 "immutable": false
@@ -38,6 +42,7 @@
         "name": "action-immutable-param-no-default",
         "enabled": true,
         "pack": "core",
+        "ref": "core.action-immutable-param-no-default",
         "parameters": {
             "foo": {
                 "immutable": true
@@ -49,6 +54,7 @@
         "name": "action-immutable-param-no-default",
         "enabled": true,
         "pack": "core",
+        "ref": "core.action-immutable-param-no-default",
         "parameters": {
             "sudo": {
                 "immutable": true

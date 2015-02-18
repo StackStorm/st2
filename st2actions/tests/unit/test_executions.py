@@ -173,7 +173,4 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertEqual(execution.liveaction['action'], liveaction.action)
 
     def _get_action_execution(self, **kwargs):
-        execution = ActionExecution.get(**kwargs)
-        if 'ref' in execution.action:
-            execution.action.pop('ref')
-        return execution
+        return ActionExecution.get(**kwargs)

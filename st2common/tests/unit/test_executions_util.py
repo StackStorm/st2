@@ -117,7 +117,4 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         self.assertTrue(str(child_exec.id) in child_execs)
 
     def _get_action_execution(self, **kwargs):
-        execution = ActionExecution.get(**kwargs)
-        if 'ref' in execution.action:
-            execution.action.pop('ref')
-        return execution
+        return ActionExecution.get(**kwargs)
