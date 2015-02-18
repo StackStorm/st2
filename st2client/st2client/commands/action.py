@@ -122,8 +122,10 @@ class ActionRunCommandMixin(object):
     """
     Mixin class which contains utility functions related to action execution.
     """
+    display_attributes = ['id', 'ref', 'context', 'parameters', 'status',
+                          'start_timestamp', 'end_timestamp', 'result']
     attribute_display_order = ['id', 'ref', 'context', 'parameters', 'status',
-                               'start_timestamp', 'result']
+                               'start_timestamp', 'end_timestamp', 'result']
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
         'end_timestamp': format_isodate,
@@ -139,7 +141,7 @@ class ActionRunCommandMixin(object):
 
         execution = self.run(args, **kwargs)
         self.print_output(execution, table.PropertyValueTable,
-                          attributes=['all'], json=args.json,
+                          attributes=self.display_attributes, json=args.json,
                           attribute_display_order=self.attribute_display_order,
                           attribute_transform_functions=self.attribute_transform_functions)
 
