@@ -25,6 +25,7 @@ LOG = logging.getLogger(__name__)
 
 SUPPORTED_FILTERS = {
     'action': 'action.ref',
+    'status': 'status',
     'liveaction': 'liveaction.id',
     'parent': 'parent',
     'rule': 'rule.name',
