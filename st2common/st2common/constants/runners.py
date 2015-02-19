@@ -13,11 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo.config import cfg
+
 __all__ = [
     'LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT',
 
     'FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT',
-    'FABRIC_RUNNER_DEFAULT_REMOTE_DIR'
+    'FABRIC_RUNNER_DEFAULT_REMOTE_DIR',
 
     'PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT'
 ]

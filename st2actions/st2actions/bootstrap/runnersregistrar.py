@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
-
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RunnerTypeAPI
