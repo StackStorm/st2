@@ -14,18 +14,21 @@
 # limitations under the License.
 
 import copy
+import eventlet
 import uuid
 
+import requests
 import six
 import yaml
-import requests
 from mistralclient.api import client as mistral
+from mistralclient.api.base import APIException
 from oslo.config import cfg
 
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2actions.runners import AsyncActionRunner
 from st2actions.runners.mistral import utils
 from st2common import log as logging
+from st2common.util.url import get_url_without_trailing_slash
 
 
 LOG = logging.getLogger(__name__)
@@ -37,12 +40,12 @@ def get_runner():
 
 class MistralRunner(AsyncActionRunner):
 
-    url = cfg.CONF.workflow.url
+    url = get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
 
     def __init__(self, runner_id):
         super(MistralRunner, self).__init__(runner_id=runner_id)
         self._on_behalf_user = cfg.CONF.system_user.user
-        self._client = mistral.client(mistral_url='%s/v2' % self.url)
+        self._client = mistral.client(mistral_url=self.url)
 
     def pre_run(self):
         pass
@@ -121,14 +124,9 @@ class MistralRunner(AsyncActionRunner):
         else:
             raise Exception('There are no workflows in the workbook.')
 
-    def run(self, action_parameters):
-        try:
-            # Test the connection
-            self._client.workflows.list()
-        except requests.exceptions.ConnectionError:
-            msg = ('Failed to connect to mistral on %s. Make sure that mistral is running '
-                   ' and that the url is set correctly in the config.' % (self.url))
-            raise Exception(msg)
+    def try_run(self, action_parameters):
+        # Test connection
+        self._client.workflows.list()
 
         # Setup inputs for the workflow execution.
         inputs = self.runner_parameters.get('context', dict())
@@ -195,6 +193,25 @@ class MistralRunner(AsyncActionRunner):
         LOG.info('Mistral query context is %s' % exec_context)
 
         return (status, partial_results, exec_context)
+
+    def run(self, action_parameters):
+        for i in range(cfg.CONF.mistral.max_attempts):
+            try:
+                return self.try_run(action_parameters)
+            except APIException as api_exc:
+                if 'Duplicate' not in api_exc.error_message:
+                    raise
+                LOG.exception(api_exc)
+            except requests.exceptions.ConnectionError as req_exc:
+                LOG.exception(req_exc)
+            except Exception:
+                raise
+
+            if i < cfg.CONF.mistral.max_attempts:
+                eventlet.sleep(cfg.CONF.mistral.retry_wait)
+
+        raise Exception('Failed to connect to mistral on %s. Make sure that mistral is running '
+                        'and that the url is set correctly in the config.', self.url)
 
     @staticmethod
     def _build_mistral_context(parent, current):

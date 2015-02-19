@@ -1,3 +1,4 @@
+import traceback
 import uuid
 
 from oslo.config import cfg
@@ -6,6 +7,7 @@ import requests
 from st2actions.query.base import Querier
 from st2common.util import jsonify
 from st2common import log as logging
+from st2common.util.url import get_url_without_trailing_slash
 from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED,
                                         LIVEACTION_STATUS_RUNNING)
 
@@ -21,7 +23,7 @@ def get_query_instance():
 class MistralResultsQuerier(Querier):
     def __init__(self, id, *args, **kwargs):
         super(MistralResultsQuerier, self).__init__(*args, **kwargs)
-        self._base_url = cfg.CONF.mistral.v2_base_url
+        self._base_url = get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
 
     def query(self, execution_id, query_context):
         """
@@ -42,23 +44,37 @@ class MistralResultsQuerier(Querier):
             status, output = self._get_workflow_result(exec_id)
             if output and 'tasks' in output:
                 LOG.warn('Key conflict with tasks in the workflow output.')
+        except requests.exceptions.ConnectionError:
+            msg = 'Unable to connect to mistral.'
+            trace = traceback.format_exc(10)
+            LOG.exception(msg)
+            return (LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
         except:
             LOG.exception('Exception trying to get workflow status and output for '
                           'query context: %s. Will skip query.', query_context)
             raise
 
         result = output or {}
-        result['tasks'] = self._get_workflow_tasks(exec_id)
+        try:
+            result['tasks'] = self._get_workflow_tasks(exec_id)
+        except requests.exceptions.ConnectionError:
+            msg = 'Unable to connect to mistral.'
+            trace = traceback.format_exc(10)
+            LOG.exception(msg)
+            return (LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
+        except:
+            LOG.exception('Unable to get workflow results for '
+                          'query_context: %s. Will skip query.', query_context)
 
         LOG.debug('Mistral query results: %s' % result)
 
         return (status, result)
 
     def _get_execution_tasks_url(self, exec_id):
-        return self._base_url + 'executions/' + exec_id + '/tasks'
+        return self._base_url + '/executions/' + exec_id + '/tasks'
 
     def _get_execution_url(self, exec_id):
-        return self._base_url + 'executions/' + exec_id
+        return self._base_url + '/executions/' + exec_id
 
     def _get_workflow_result(self, exec_id):
         """
@@ -75,7 +91,8 @@ class MistralResultsQuerier(Querier):
         workflow_state = execution.get('state', None)
 
         if not workflow_state:
-            raise Exception('Workflow status unknown for mistral execution id %s.' % exec_id)
+            raise Exception('Workflow status unknown for mistral execution id %s. %s'
+                            % (exec_id, execution))
 
         if workflow_state in DONE_STATES:
             workflow_output = jsonify.try_loads(execution.get('output', {}))

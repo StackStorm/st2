@@ -50,7 +50,7 @@ def _register_config_opts():
     _register_api_opts()
     _register_auth_opts()
     _register_action_sensor_opts()
-    _register_workflow_opts()
+    _register_mistral_opts()
 
 
 def _override_db_opts():
@@ -141,11 +141,14 @@ def _register_action_sensor_opts():
     _register_opts(action_sensor_opts, group='action_sensor')
 
 
-def _register_workflow_opts():
-    workflow_opts = [
-        cfg.StrOpt('url', default='http://localhost:8989', help='Mistral API server root endpoint.')
+def _register_mistral_opts():
+    mistral_opts = [
+        cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2',
+                   help='Mistral v2 API server root endpoint.'),
+        cfg.IntOpt('max_attempts', default=2),
+        cfg.IntOpt('retry_wait', default=1)
     ]
-    _register_opts(workflow_opts, group='workflow')
+    _register_opts(mistral_opts, group='mistral')
 
 
 def _register_opts(opts, group=None):
