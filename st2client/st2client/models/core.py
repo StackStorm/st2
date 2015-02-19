@@ -159,6 +159,35 @@ class ResourceManager(object):
         return self.resource.deserialize(response.json())
 
     @add_auth_token_to_kwargs_from_env
+    def get_property(self, id_, property_name, self_deserialize=True, **kwargs):
+        """
+        Gets a property of a Resource.
+        id_ : Id of the resource
+        property_name: Name of the property
+        self_deserialize: #Implies use the deserialize method implemented by this resource.
+        """
+        token = None
+        if kwargs:
+            token = kwargs.pop('token', None)
+
+            url = '/%s/%s/%s/?%s' % (self.resource.get_plural_name().lower(), id_, property_name,
+                                     urllib.parse.urlencode(kwargs))
+        else:
+            url = '/%s/%s/%s/' % (self.resource.get_plural_name().lower(), id_, property_name)
+
+        response = self.client.get(url, token=token) if token else self.client.get(url)
+
+        if response.status_code == 404:
+            return None
+        if response.status_code != 200:
+            self.handle_error(response)
+
+        if self_deserialize:
+            return [self.resource.deserialize(item) for item in response.json()]
+        else:
+            return response.json()
+
+    @add_auth_token_to_kwargs_from_env
     def get_by_ref_or_id(self, ref_or_id, **kwargs):
         return self.get_by_id(id=ref_or_id, **kwargs)
 

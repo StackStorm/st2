@@ -599,16 +599,29 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
 
         root_arg_grp = self.parser.add_mutually_exclusive_group()
 
-        detail_arg_grp = root_arg_grp.add_mutually_exclusive_group()
+        #
+        task_list_arg_grp = root_arg_grp.add_argument_group()
+        task_list_arg_grp.add_argument('--tasks', action='store_true',
+                                       help='Whether to show sub-tasks of an execution.')
+        task_list_arg_grp.add_argument('--depth', type=int, default=-1,
+                                       help='Depth to which to show sub-tasks. \
+                                             By default all are shown.')
+        task_list_arg_grp.add_argument('-w', '--width', nargs='+', type=int, default=[28],
+                                       help='Set the width of columns in output.')
+
+        #
+        execution_details_arg_grp = root_arg_grp.add_mutually_exclusive_group()
+
+        detail_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
         detail_arg_grp.add_argument('-a', '--attr', nargs='+',
-                                    default=self.display_attributes,
+                                    default=ActionExecutionListCommand.display_attributes,
                                     help=('List of attributes to include in the '
                                           'output. "all" or unspecified will '
                                           'return all attributes.'))
         detail_arg_grp.add_argument('-d', '--detail', action='store_true',
                                     help='Display full detail of the execution in table format.')
 
-        result_arg_grp = root_arg_grp.add_mutually_exclusive_group()
+        result_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
         result_arg_grp.add_argument('-k', '--key',
                                     help=('If result is type of JSON, then print specific '
                                           'key-value pair; dot notation for nested JSON is '
@@ -618,7 +631,19 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
     def run(self, args, **kwargs):
         return self.manager.get_by_id(args.id, **kwargs)
 
+    @add_auth_token_to_kwargs_from_cli
+    def run_and_print_child_task_list(self, args, **kwargs):
+        kwargs['depth'] = args.depth
+        instances = self.manager.get_property(args.id, 'children', **kwargs)
+        self.print_output(reversed(instances), table.MultiColumnTable,
+                          attributes=args.attr, widths=args.width,
+                          json=args.json,
+                          attribute_transform_functions=self.attribute_transform_functions)
+
     def run_and_print(self, args, **kwargs):
+        if args.tasks:
+            self.run_and_print_child_task_list(args, **kwargs)
+            return
         try:
             instance = self.run(args, **kwargs)
             formatter = table.PropertyValueTable if args.detail else execution.ExecutionResult
