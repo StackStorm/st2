@@ -14,8 +14,11 @@
 # limitations under the License.
 
 import ast
+import eventlet
 import json
 import requests
+
+from oslo.config import cfg
 
 from st2common.constants import action
 from st2common import log as logging
@@ -62,9 +65,20 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
             v1 = 'v1' in url
             output_key = 'output' if v1 else 'result'
             data = {'state': STATUS_MAP[status], output_key: output}
-            LOG.info('Sending callback to %s with data %s.', url, data)
-            response = requests.request(method, url, data=json.dumps(data), headers=headers)
-            if response.status_code != 200:
+
+            for i in range(cfg.CONF.mistral.max_attempts):
+                try:
+                    LOG.info('Sending callback to %s with data %s.', url, data)
+                    response = requests.request(method, url, data=json.dumps(data), headers=headers)
+                    if response.status_code == 200:
+                        break
+                except requests.exceptions.ConnectionError as conn_exc:
+                    LOG.exception(conn_exc)
+                    if i < cfg.CONF.mistral.max_attempts:
+                        eventlet.sleep(cfg.CONF.mistral.retry_wait)
+
+            if response and response.status_code != 200:
                 response.raise_for_status()
+
         except Exception as e:
-            LOG.error(e)
+            LOG.exception(e)
