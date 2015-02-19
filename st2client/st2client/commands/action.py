@@ -549,6 +549,14 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                                  help=('List N most recent %s; '
                                        'list all if 0.' %
                                        resource.get_plural_display_name().lower()))
+        self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
+                                 default=None,
+                                 help=('Only return executions with timestamp '
+                                       'greater than the one provided'))
+        self.parser.add_argument('-tl', '--timestamp-lt', type=str, dest='timestamp_lt',
+                                 default=None,
+                                 help=('Only return executions with timestamp '
+                                       'lower than the one provided'))
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=self.display_attributes,
                                  help=('List of attributes to include in the '
@@ -567,6 +575,12 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         if not args.showall:
             # null is the magic string that translates to does not exist.
             kwargs['parent'] = 'null'
+
+        # Add additional timestamp filters
+        if args.timestamp_gt:
+            kwargs['timestamp_gt'] = args.timestamp_gt
+        if args.timestamp_lt:
+            kwargs['timestamp_lt'] = args.timestamp_lt
 
         return self.manager.query(limit=args.last, **kwargs)
 
