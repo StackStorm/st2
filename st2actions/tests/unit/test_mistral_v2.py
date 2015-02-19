@@ -184,7 +184,7 @@ class TestMistralRunner(DbTestCase):
     def test_launch_workflow_mistral_offline(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
         execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
-        execution = action_service.schedule(execution)
+        execution, _ = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
         self.assertEqual(execution.status, LIVEACTION_STATUS_FAILED)
         self.assertIn('Failed to connect to mistral', execution.result['message'])
@@ -204,7 +204,7 @@ class TestMistralRunner(DbTestCase):
     def test_launch_workflow_mistral_retry(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
         execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
-        execution = action_service.schedule(execution)
+        execution, _ = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
         self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
@@ -228,7 +228,7 @@ class TestMistralRunner(DbTestCase):
     def test_launch_workflow_duplicate_error(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
         execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
-        execution = action_service.schedule(execution)
+        execution, _ = action_service.schedule(execution)
         execution = LiveAction.get_by_id(str(execution.id))
         self.assertEqual(execution.status, LIVEACTION_STATUS_RUNNING)
 
