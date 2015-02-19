@@ -63,22 +63,7 @@ class ResourceController(rest.RestController):
 
     @jsexpose(str)
     def get_one(self, id):
-        LOG.info('GET %s with id=%s', pecan.request.path, id)
-
-        instance = None
-        try:
-            instance = self.access.get(id=id)
-        except ValidationError:
-            instance = None  # Someone supplied a mongo non-comformant id.
-
-        if not instance:
-            msg = 'Unable to identify resource with id "%s".' % id
-            pecan.abort(http_client.NOT_FOUND, msg)
-
-        result = self.model.from_model(instance)
-        LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
-
-        return result
+        return self._get_one(id)
 
     def _get_all(self, **kwargs):
         # TODO: Why do we use comma delimited string, user can just specify
@@ -136,6 +121,24 @@ class ResourceController(rest.RestController):
         pecan.response.headers['X-Total-Count'] = str(instances.count())
 
         return [self.model.from_model(instance) for instance in instances[offset:eop]]
+
+    def _get_one(self, id):
+        LOG.info('GET %s with id=%s', pecan.request.path, id)
+
+        instance = None
+        try:
+            instance = self.access.get(id=id)
+        except ValidationError:
+            instance = None  # Someone supplied a mongo non-comformant id.
+
+        if not instance:
+            msg = 'Unable to identify resource with id "%s".' % id
+            pecan.abort(http_client.NOT_FOUND, msg)
+
+        result = self.model.from_model(instance)
+        LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
+
+        return result
 
 
 class ContentPackResourceControler(ResourceController):

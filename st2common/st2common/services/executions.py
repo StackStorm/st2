@@ -111,3 +111,36 @@ def update_execution(liveaction_db, publish=True):
         setattr(execution, k, v)
     execution = ActionExecution.add_or_update(execution, publish=publish)
     return execution
+
+
+def get_descendants(actionexecution_id, descendant_depth=-1):
+    """
+    Returns all descendant executions upto the specified descendant_depth for
+    the supplied actionexecution_id.
+    """
+    descendants = []
+    current_level = set([actionexecution_id])
+    next_level = set()
+    remaining_depth = descendant_depth
+    # keep track of processed ActionExecution to avoid any cycles. Will raise
+    # an exception if a cycle is found.
+    processed_action_executions = set()
+
+    while current_level and remaining_depth != 0:
+        parent_id = current_level.pop()
+        processed_action_executions.add(parent_id)
+        children = ActionExecution.query(parent=parent_id)
+        LOG.debug('Found %s children for id %s.', len(children), parent_id)
+        for child in children:
+            if str(child.id) in processed_action_executions:
+                raise Exception('child with id %s appeared multiple times.', str(child.id))
+            if child.children:
+                next_level.add(str(child.id))
+        descendants.extend(children)
+        # check if current_level is complete. If so start processing the next level.
+        if not current_level:
+            current_level.update(next_level)
+            next_level.clear()
+            remaining_depth = remaining_depth - 1
+
+    return descendants

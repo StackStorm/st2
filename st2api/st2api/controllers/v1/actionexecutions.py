@@ -28,6 +28,7 @@ from st2common.models.api.base import jsexpose
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
+from st2common.services import executions as execution_service
 from st2common.util import jsonify
 from st2common.util import isotime
 
@@ -64,6 +65,17 @@ class ActionExecutionsController(ResourceController):
         super(ActionExecutionsController, self).__init__()
         # Add common execution view supported filters
         self.supported_filters.update(SUPPORTED_FILTERS)
+
+    @jsexpose(str)
+    def get_one(self, id, *args, **kwargs):
+        if args or kwargs:
+            if args[0] == 'children':
+                return self._get_children(id, **kwargs)
+            else:
+                msg = 'Unsupported id : %s, args: %s, kwargs: %s' % (id, args, kwargs)
+                abort(http_client.BAD_REQUEST, msg)
+        else:
+            return super(ActionExecutionsController, self)._get_one(id)
 
     @jsexpose()
     def get_all(self, **kw):
@@ -119,3 +131,12 @@ class ActionExecutionsController(ResourceController):
 
         LOG.debug('Retrieving all action liveactions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(**kw)
+
+    def _get_children(self, id_, depth=-1):
+        # make sure depth is int. Url encoding will make it a string and needs to
+        # be converted back in that case.
+        depth = int(depth)
+        LOG.debug('retrieving children for id: %s with depth: %s', id_, depth)
+        descendants = execution_service.get_descendants(actionexecution_id=id_,
+                                                        descendant_depth=depth)
+        return [self.model.from_model(descendant) for descendant in descendants]
