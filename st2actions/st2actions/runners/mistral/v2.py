@@ -28,6 +28,7 @@ from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2actions.runners import AsyncActionRunner
 from st2actions.runners.mistral import utils
 from st2common import log as logging
+from st2common.util.url import get_url_without_trailing_slash
 
 
 LOG = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ def get_runner():
 
 class MistralRunner(AsyncActionRunner):
 
-    url = cfg.CONF.mistral.v2_base_url
+    url = get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
 
     def __init__(self, runner_id):
         super(MistralRunner, self).__init__(runner_id=runner_id)
