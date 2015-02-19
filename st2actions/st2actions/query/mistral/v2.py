@@ -1,3 +1,4 @@
+import traceback
 import uuid
 
 from oslo.config import cfg
@@ -42,23 +43,37 @@ class MistralResultsQuerier(Querier):
             status, output = self._get_workflow_result(exec_id)
             if output and 'tasks' in output:
                 LOG.warn('Key conflict with tasks in the workflow output.')
+        except requests.exceptions.ConnectionError:
+            msg = 'Unable to connect to mistral.'
+            trace = traceback.format_exc(10)
+            LOG.exception(msg)
+            return (LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
         except:
             LOG.exception('Exception trying to get workflow status and output for '
                           'query context: %s. Will skip query.', query_context)
             raise
 
         result = output or {}
-        result['tasks'] = self._get_workflow_tasks(exec_id)
+        try:
+            result['tasks'] = self._get_workflow_tasks(exec_id)
+        except requests.exceptions.ConnectionError:
+            msg = 'Unable to connect to mistral.'
+            trace = traceback.format_exc(10)
+            LOG.exception(msg)
+            return (LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
+        except:
+            LOG.exception('Unable to get workflow results for '
+                          'query_context: %s. Will skip query.', query_context)
 
         LOG.debug('Mistral query results: %s' % result)
 
         return (status, result)
 
     def _get_execution_tasks_url(self, exec_id):
-        return self._base_url + 'executions/' + exec_id + '/tasks'
+        return self._base_url + '/executions/' + exec_id + '/tasks'
 
     def _get_execution_url(self, exec_id):
-        return self._base_url + 'executions/' + exec_id
+        return self._base_url + '/executions/' + exec_id
 
     def _get_workflow_result(self, exec_id):
         """
@@ -75,7 +90,8 @@ class MistralResultsQuerier(Querier):
         workflow_state = execution.get('state', None)
 
         if not workflow_state:
-            raise Exception('Workflow status unknown for mistral execution id %s.' % exec_id)
+            raise Exception('Workflow status unknown for mistral execution id %s. %s'
+                            % (exec_id, execution))
 
         if workflow_state in DONE_STATES:
             workflow_output = jsonify.try_loads(execution.get('output', {}))
