@@ -64,7 +64,8 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             {'fields': ['parent']},
             {'fields': ['liveaction.id']},
             {'fields': ['start_timestamp']},
-            {'fields': ['action.ref']}
+            {'fields': ['action.ref']},
+            {'fields': ['status']}
         ]
     }
 
