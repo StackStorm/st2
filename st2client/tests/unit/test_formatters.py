@@ -33,8 +33,8 @@ from st2client.utils import httpclient
 LOG = logging.getLogger(__name__)
 
 FIXTURES_MANIFEST = {
-    'liveactions': ['execution.json',
-                    'execution_result_has_carriage_return.json'],
+    'executions': ['execution.json',
+                   'execution_result_has_carriage_return.json'],
     'results': ['execution_get_default.txt',
                 'execution_get_detail.txt',
                 'execution_get_result_by_key.txt',
@@ -42,8 +42,8 @@ FIXTURES_MANIFEST = {
 }
 
 FIXTURES = loader.load_fixtures(fixtures_dict=FIXTURES_MANIFEST)
-LIVE_ACTION = FIXTURES['liveactions']['execution.json']
-HAS_CARRIAGE_RETURN = FIXTURES['liveactions']['execution_result_has_carriage_return.json']
+EXECUTION = FIXTURES['executions']['execution.json']
+HAS_CARRIAGE_RETURN = FIXTURES['executions']['execution_result_has_carriage_return.json']
 
 
 class TestExecutionResultFormatter(unittest2.TestCase):
@@ -71,7 +71,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
     def _get_execution(self, argv):
         self.assertEqual(self.shell.run(argv), 0)
         self._undo_console_redirect()
@@ -88,42 +88,42 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         self.assertEqual(content, message)
 
     def test_execution_get_default(self):
-        argv = ['execution', 'get', LIVE_ACTION['id']]
+        argv = ['execution', 'get', EXECUTION['id']]
         content = self._get_execution(argv)
         self.assertEqual(content, FIXTURES['results']['execution_get_default.txt'])
 
     def test_execution_get_default_in_json(self):
-        argv = ['execution', 'get', LIVE_ACTION['id'], '-j']
+        argv = ['execution', 'get', EXECUTION['id'], '-j']
         content = self._get_execution(argv)
         self.assertEqual(json.loads(content),
-                         jsutil.get_kvps(LIVE_ACTION, ['status', 'result']))
+                         jsutil.get_kvps(EXECUTION, ['status', 'result']))
 
     def test_execution_get_detail(self):
-        argv = ['execution', 'get', LIVE_ACTION['id'], '-d']
+        argv = ['execution', 'get', EXECUTION['id'], '-d']
         content = self._get_execution(argv)
         self.assertEqual(content, FIXTURES['results']['execution_get_detail.txt'])
 
     def test_execution_get_detail_in_json(self):
-        argv = ['execution', 'get', LIVE_ACTION['id'], '-d', '-j']
+        argv = ['execution', 'get', EXECUTION['id'], '-d', '-j']
         content = self._get_execution(argv)
         content_dict = json.loads(content)
         # Sufficient to check if output contains all expected keys. The entire result will not
         # match as content will contain characters which improve rendering.
-        for k in six.iterkeys(LIVE_ACTION):
+        for k in six.iterkeys(EXECUTION):
             if k in content:
                 continue
-            self.assertTrue(False, 'Missing key %s. %s != %s' % (k, LIVE_ACTION, content_dict))
+            self.assertTrue(False, 'Missing key %s. %s != %s' % (k, EXECUTION, content_dict))
 
     def test_execution_get_result_by_key(self):
-        argv = ['execution', 'get', LIVE_ACTION['id'], '-k', 'localhost.stdout']
+        argv = ['execution', 'get', EXECUTION['id'], '-k', 'localhost.stdout']
         content = self._get_execution(argv)
         self.assertEqual(content, FIXTURES['results']['execution_get_result_by_key.txt'])
 
     def test_execution_get_result_by_key_in_json(self):
-        argv = ['execution', 'get', LIVE_ACTION['id'], '-k', 'localhost.stdout', '-j']
+        argv = ['execution', 'get', EXECUTION['id'], '-k', 'localhost.stdout', '-j']
         content = self._get_execution(argv)
         self.assertDictEqual(json.loads(content),
-                             jsutil.get_kvps(LIVE_ACTION, ['result.localhost.stdout']))
+                             jsutil.get_kvps(EXECUTION, ['result.localhost.stdout']))
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
