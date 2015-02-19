@@ -7,6 +7,7 @@ import requests
 from st2actions.query.base import Querier
 from st2common.util import jsonify
 from st2common import log as logging
+from st2common.util.url import get_url_without_trailing_slash
 from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED,
                                         LIVEACTION_STATUS_RUNNING)
 
@@ -22,7 +23,7 @@ def get_query_instance():
 class MistralResultsQuerier(Querier):
     def __init__(self, id, *args, **kwargs):
         super(MistralResultsQuerier, self).__init__(*args, **kwargs)
-        self._base_url = cfg.CONF.mistral.v2_base_url
+        self._base_url = get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
 
     def query(self, execution_id, query_context):
         """
