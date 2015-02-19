@@ -579,8 +579,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
 
 
 class ActionExecutionGetCommand(resource.ResourceCommand):
-    display_attributes = ['id', 'action.ref', 'parameters', 'status', 'start_timestamp',
-                          'end_timestamp', 'context']
+    display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
+                          'start_timestamp', 'end_timestamp', 'result', 'liveaction']
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
         'end_timestamp': format_isodate,
@@ -614,7 +614,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
 
         detail_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
         detail_arg_grp.add_argument('-a', '--attr', nargs='+',
-                                    default=ActionExecutionListCommand.display_attributes,
+                                    default=copy.copy(self.display_attributes),
                                     help=('List of attributes to include in the '
                                           'output. "all" or unspecified will '
                                           'return all attributes.'))
