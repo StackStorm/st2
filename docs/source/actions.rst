@@ -31,7 +31,7 @@ allow the Action author to concentrate only on the implementation of the
 action itself rather than setting up the environment.
 
 Available runners
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 The environment in which the action runs is specified by the runner.
 Currently the system provides the following runners:
@@ -44,10 +44,12 @@ Currently the system provides the following runners:
 3. ``run-python`` - This is a Python runner. Actions are implemented as Python
    classes with a ``run`` method. They run locally on the same machine where
    |st2| components are running.
-4. ``action-chain`` - This runner supports executing simple linear work-flows.
+4. ``http-runner`` - HTTP client which performs HTTP requests for running HTTP
+   actions.
+5. ``action-chain`` - This runner supports executing simple linear work-flows.
    For more information, please refer to the :doc:`Workflows </workflows>`
    and :doc:`ActionChain </actionchain>` section of documentation.
-5. ``mistral-v1``, ``mistral-v2`` - Those runners are built on top of the
+6. ``mistral-v1``, ``mistral-v2`` - Those runners are built on top of the
    Mistral OpenStack project and support executing complex work-flows. For more
    information, please refer to the :doc:`Workflows </workflows>` and
    :doc:`Mistral </mistral>` section of documentation.

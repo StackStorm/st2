@@ -51,6 +51,8 @@ Docs: http://docks.stackstorm.com/latest
 * Dispatch an internal trigger when a sensor process is spawned / started
   (``st2.sensor.process_spawn``) and when a process exits / is stopped
   (``st2.sensor.process_exit``).
+* Update HTTP runner to automatically parse JSON response body if Content-Type is
+  ``application/json`` (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------
