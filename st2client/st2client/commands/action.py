@@ -543,12 +543,15 @@ class ActionExecutionListCommand(resource.ResourceCommand):
             *args, **kwargs)
 
         self.group = self.parser.add_mutually_exclusive_group()
-        self.group.add_argument('--action', help='Action reference to filter the list.')
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=50,
                                  help=('List N most recent %s; '
                                        'list all if 0.' %
                                        resource.get_plural_display_name().lower()))
+
+        # Filter options
+        self.group.add_argument('--action', help='Action reference to filter the list.')
+        self.group.add_argument('--status', help='Only return executions with the provided status.')
         self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
                                  default=None,
                                  help=('Only return executions with timestamp '
@@ -557,6 +560,10 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                                  default=None,
                                  help=('Only return executions with timestamp '
                                        'lower than the one provided'))
+        self.parser.add_argument('-l', '--showall', action='store_true',
+                                 help='')
+
+        # Display options
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=self.display_attributes,
                                  help=('List of attributes to include in the '
@@ -565,18 +572,17 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         self.parser.add_argument('-w', '--width', nargs='+', type=int,
                                  default=[28],
                                  help=('Set the width of columns in output.'))
-        self.parser.add_argument('-l', '--showall', action='store_true',
-                                 help='')
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
+        # Filtering options
         if args.action:
             kwargs['action'] = args.action
+        if args.status:
+            kwargs['status'] = args.status
         if not args.showall:
             # null is the magic string that translates to does not exist.
             kwargs['parent'] = 'null'
-
-        # Add additional timestamp filters
         if args.timestamp_gt:
             kwargs['timestamp_gt'] = args.timestamp_gt
         if args.timestamp_lt:

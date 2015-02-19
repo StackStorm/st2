@@ -52,14 +52,11 @@ ssh_runner_opts = [
 ]
 CONF.register_opts(ssh_runner_opts, group='ssh_runner')
 
-workflow_opts = [
-    cfg.StrOpt('url', default='http://localhost:8989', help='Mistral API server root endpoint.')
-]
-CONF.register_opts(workflow_opts, group='workflow')
-
 mistral_opts = [
-    cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2/',
+    cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2',
                help='Mistral v2 API server root endpoint.'),
+    cfg.IntOpt('max_attempts', default=180),
+    cfg.IntOpt('retry_wait', default=5)
 ]
 CONF.register_opts(mistral_opts, group='mistral')
 

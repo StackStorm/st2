@@ -39,7 +39,7 @@ class TestWorkflowExecution(unittest2.TestCase):
         self.assertIn(execution.status, ['scheduled', 'running'])
         return execution
 
-    def _wait_for_completion(self, execution, wait=20):
+    def _wait_for_completion(self, execution, wait=300):
         for i in range(wait):
             eventlet.sleep(1)
             execution = self.st2client.liveactions.get_by_id(execution.id)

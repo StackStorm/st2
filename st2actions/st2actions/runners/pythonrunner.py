@@ -31,12 +31,9 @@ from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
-
+from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
 
 LOG = logging.getLogger(__name__)
-
-# Default timeout (in seconds) for actions executed by Python runner
-DEFAULT_ACTION_TIMEOUT = 10 * 60
 
 # constants to lookup in runner_parameters.
 RUNNER_ENV = 'env'
@@ -92,7 +89,7 @@ class Action(object):
 
 class PythonRunner(ActionRunner):
 
-    def __init__(self, runner_id, timeout=DEFAULT_ACTION_TIMEOUT):
+    def __init__(self, runner_id, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT):
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``

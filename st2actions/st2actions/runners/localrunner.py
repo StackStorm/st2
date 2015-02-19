@@ -29,6 +29,7 @@ from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
 import st2common.util.jsonify as jsonify
 
 __all__ = [
@@ -37,7 +38,6 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-DEFAULT_ACTION_TIMEOUT = 60
 DEFAULT_KWARG_OP = '--'
 LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -76,7 +76,8 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._env = self._env or {}
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, DEFAULT_KWARG_OP)
-        self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
+        self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT,
+                                                   LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT)
 
     def run(self, action_parameters):
         LOG.debug('    action_parameters = %s', action_parameters)

@@ -36,7 +36,12 @@ def _get_immutable_params(parameters):
 
 
 def schedule(liveaction):
+    """
+    Schedule an action to be run.
 
+    :return: (liveaction, execution)
+    :rtype: tuple
+    """
     # Use the user context from the parent action execution. Subtasks in a workflow
     # action can be invoked by a system user and so we want to use the user context
     # from the original workflow action.
