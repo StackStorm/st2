@@ -50,6 +50,10 @@ FILE_NAME = 'file_name'
 FILE_CONTENT = 'file_content'
 FILE_CONTENT_TYPE = 'file_content_type'
 
+RESPONSE_BODY_PARSE_FUNCTIONS = {
+    'application/json': json.loads
+}
+
 
 def get_runner():
     return HttpRunner(str(uuid.uuid4()))
@@ -202,9 +206,13 @@ class HTTPClient(object):
                 files=self.files
             )
 
+            headers = dict(resp.headers)
+            body, parsed = self._parse_response_body(headers=headers, body=resp.text)
+
             results['status_code'] = resp.status_code
-            results['body'] = resp.text
-            results['headers'] = dict(resp.headers)
+            results['body'] = body
+            results['parsed'] = parsed  # flag which indicates if body has been parsed
+            results['headers'] = headers
             return results
         except Exception as e:
             LOG.exception('Exception making request to remote URL: %s, %s', self.url, e)
@@ -212,6 +220,38 @@ class HTTPClient(object):
         finally:
             if resp:
                 resp.close()
+
+    def _parse_response_body(self, headers, body):
+        """
+        :param body: Response body.
+        :type body: ``str``
+
+        :return: (parsed body, flag which indicates if body has been parsed)
+        :rtype: (``object``, ``bool``)
+        """
+        body = body or ''
+        headers = self._normalize_headers(headers=headers)
+        content_type = headers.get('content-type', None)
+        parsed = False
+
+        if not content_type:
+            return (body, parsed)
+
+        parse_func = RESPONSE_BODY_PARSE_FUNCTIONS.get(content_type, None)
+
+        if not parse_func:
+            return (body, parsed)
+
+        LOG.debug('Parsing body with content type: %s', content_type)
+
+        try:
+            body = parse_func(body)
+        except Exception:
+            LOG.exception('Failed to parse body')
+        else:
+            parsed = True
+
+        return (body, parsed)
 
     def _normalize_headers(self, headers):
         """

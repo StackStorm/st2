@@ -24,6 +24,7 @@ from st2actions.container.service import RunnerContainerService
 from st2actions.runners import localrunner
 from st2common.constants import action as action_constants
 from st2tests.fixturesloader import FixturesLoader
+from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
 
 
 class TestLocalShellRunner(TestCase):
@@ -87,7 +88,7 @@ class TestLocalShellRunner(TestCase):
                     on_behalf_user=None,
                     user=None,
                     kwarg_op=localrunner.DEFAULT_KWARG_OP,
-                    timeout=localrunner.DEFAULT_ACTION_TIMEOUT,
+                    timeout=LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT,
                     sudo=False):
         runner = localrunner.LocalShellRunner(uuid.uuid4().hex)
         runner.container_service = RunnerContainerService()

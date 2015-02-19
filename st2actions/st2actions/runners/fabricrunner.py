@@ -26,12 +26,11 @@ from st2common import log as logging
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
 from st2common.exceptions.fabricrunner import FabricExecutionFailureException
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
+from st2common.constants.runners import FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.models.system.action import (FabricRemoteAction, FabricRemoteScriptAction)
 
 # Replace with container call to get logger.
 LOG = logging.getLogger(__name__)
-
-DEFAULT_ACTION_TIMEOUT = 60
 
 
 # Fabric environment level settings.
@@ -47,7 +46,7 @@ if ssh_key_file and os.path.exists(ssh_key_file):
     env.key_filename = ssh_key_file
 
 env.timeout = 10  # Timeout for connections (in seconds)
-env.command_timeout = DEFAULT_ACTION_TIMEOUT  # timeout for commands (in seconds)
+env.command_timeout = FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT  # timeout for commands (in seconds)
 env.combine_stderr = False
 env.group = 'staff'
 env.abort_exception = FabricExecutionFailureException
@@ -107,7 +106,8 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
-        self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_ACTION_TIMEOUT)
+        self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT,
+                                                   FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT)
 
         LOG.info('[FabricRunner="%s", liveaction_id="%s"] Finished pre_run.',
                  self.runner_id, self.liveaction_id)
