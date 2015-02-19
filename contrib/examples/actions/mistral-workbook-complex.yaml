@@ -31,30 +31,50 @@ workflows:
                     ip: $.ip
                 publish:
                     vm_id: $.create_vm.vm_id
+                    message: "VM {$.vm_name} is created."
                 on-success:
                     - power_off_vm
+                    - notify
             power_off_vm:
                 action: core.local
                 input:
                     cmd: "sleep 2; printf 'stopped'"
                 publish:
                     vm_state: $.power_off_vm.stdout
+                    message: "VM {$.vm_name} is powered off."
                 on-success:
                     - reconfig_vm
+                    - notify
             reconfig_vm:
                 workflow: reconfig_vm
                 input:
                     vm_id: $.vm_id
                     cpu_cores: $.cpu_cores
                     memory_mb: $.memory_mb
+                publish:
+                    message: "VM {$.vm_name} is reconfigured."
                 on-success:
                     - power_on_vm
+                    - notify
             power_on_vm:
                 action: core.local
                 input:
                     cmd: "sleep 2; printf 'running'"
                 publish:
                     vm_state: $.power_on_vm.stdout
+                    message: "VM {$.vm_name} is powered on."
+                on-success:
+                    - notify_request_fulfilled
+                    - notify
+            notify_request_fulfilled:
+                publish:
+                    message: "VM request is fulfilled."
+                on-success:
+                    - notify
+            notify:
+                action: core.local
+                input:
+                    cmd: "printf '{$.message}'"
 
     create_vm:
         type: direct
