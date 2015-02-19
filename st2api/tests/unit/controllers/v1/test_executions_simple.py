@@ -13,23 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import uuid
-import copy
-import datetime
 
 import bson
+import copy
+import datetime
 import mock
-from six.moves import filter
+import six
+import uuid
 try:
     import simplejson as json
 except ImportError:
     import json
+import st2common.validators.api.action as action_validator
 
+from six.moves import filter
 from st2common.util import isotime
 from st2common.models.db.access import TokenDB
 from st2common.persistence.access import Token
 from st2common.transport.publishers import PoolPublisher
-import st2common.validators.api.action as action_validator
+from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest, AuthMiddlewareTest
 
 
@@ -343,3 +345,68 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
         self.assertEqual(resp.status_int, 201)
         self.assertEqual(resp.json['context']['user'], 'stanley')
         self.assertEqual(resp.json['context']['parent'], context['parent'])
+
+
+# descendants test section
+
+DESCENDANTS_PACK = 'descendants'
+
+DESCENDANTS_FIXTURES = {
+    'executions': ['root_execution.json', 'child1_level1.json', 'child2_level1.json',
+                   'child1_level2.json', 'child2_level2.json', 'child3_level2.json',
+                   'child1_level3.json', 'child2_level3.json', 'child3_level3.json']
+}
+
+
+class TestActionExecutionControllerDescendantsTest(FunctionalTest):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestActionExecutionControllerDescendantsTest, cls).setUpClass()
+        cls.MODELS = FixturesLoader().save_fixtures_to_db(fixtures_pack=DESCENDANTS_PACK,
+                                                          fixtures_dict=DESCENDANTS_FIXTURES)
+
+    def test_get_all_descendants(self):
+        root_execution = self.MODELS['executions']['root_execution.json']
+        resp = self.app.get('/v1/actionexecutions/%s/children' % str(root_execution.id))
+        self.assertEqual(resp.status_int, 200)
+
+        all_descendants_ids = [descendant['id'] for descendant in resp.json]
+        all_descendants_ids.sort()
+
+        # everything except the root_execution
+        expected_ids = [str(v.id) for _, v in six.iteritems(self.MODELS['executions'])
+                        if v.id != root_execution.id]
+        expected_ids.sort()
+
+        self.assertListEqual(all_descendants_ids, expected_ids)
+
+    def test_get_all_descendants_depth_neg_1(self):
+        root_execution = self.MODELS['executions']['root_execution.json']
+        resp = self.app.get('/v1/actionexecutions/%s/children?depth=-1' % str(root_execution.id))
+        self.assertEqual(resp.status_int, 200)
+
+        all_descendants_ids = [descendant['id'] for descendant in resp.json]
+        all_descendants_ids.sort()
+
+        # everything except the root_execution
+        expected_ids = [str(v.id) for _, v in six.iteritems(self.MODELS['executions'])
+                        if v.id != root_execution.id]
+        expected_ids.sort()
+
+        self.assertListEqual(all_descendants_ids, expected_ids)
+
+    def test_get_1_level_descendants(self):
+        root_execution = self.MODELS['executions']['root_execution.json']
+        resp = self.app.get('/v1/actionexecutions/%s/children?depth=1' % str(root_execution.id))
+        self.assertEqual(resp.status_int, 200)
+
+        all_descendants_ids = [descendant['id'] for descendant in resp.json]
+        all_descendants_ids.sort()
+
+        # All children of root_execution
+        expected_ids = [str(v.id) for _, v in six.iteritems(self.MODELS['executions'])
+                        if v.parent == str(root_execution.id)]
+        expected_ids.sort()
+
+        self.assertListEqual(all_descendants_ids, expected_ids)
