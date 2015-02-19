@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
@@ -118,3 +120,54 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
 
     def _get_action_execution(self, **kwargs):
         return ActionExecution.get(**kwargs)
+
+
+# descendants test section
+
+DESCENDANTS_PACK = 'descendants'
+
+DESCENDANTS_FIXTURES = {
+    'executions': ['root_execution.json', 'child1_level1.json', 'child2_level1.json',
+                   'child1_level2.json', 'child2_level2.json', 'child3_level2.json',
+                   'child1_level3.json', 'child2_level3.json', 'child3_level3.json']
+}
+
+
+class ExecutionsUtilDescendantsTestCase(CleanDbTestCase):
+    def __init__(self, *args, **kwargs):
+        super(ExecutionsUtilDescendantsTestCase, self).__init__(*args, **kwargs)
+        self.MODELS = None
+
+    def setUp(self):
+        super(ExecutionsUtilDescendantsTestCase, self).setUp()
+        self.MODELS = FixturesLoader().save_fixtures_to_db(fixtures_pack=DESCENDANTS_PACK,
+                                                           fixtures_dict=DESCENDANTS_FIXTURES)
+
+    def test_get_all_descendants(self):
+        root_execution = self.MODELS['executions']['root_execution.json']
+        all_descendants = executions_util.get_descendants(str(root_execution.id))
+
+        all_descendants_ids = [str(descendant.id) for descendant in all_descendants]
+        all_descendants_ids.sort()
+
+        # everything except the root_execution
+        expected_ids = [str(v.id) for _, v in six.iteritems(self.MODELS['executions'])
+                        if v.id != root_execution.id]
+        expected_ids.sort()
+
+        self.assertListEqual(all_descendants_ids, expected_ids)
+
+    def test_get_1_level_descendants(self):
+        root_execution = self.MODELS['executions']['root_execution.json']
+        all_descendants = executions_util.get_descendants(str(root_execution.id),
+                                                          descendant_depth=1)
+
+        all_descendants_ids = [str(descendant.id) for descendant in all_descendants]
+        all_descendants_ids.sort()
+
+        # All children of root_execution
+        expected_ids = [str(v.id) for _, v in six.iteritems(self.MODELS['executions'])
+                        if v.parent == str(root_execution.id)]
+        expected_ids.sort()
+
+        self.assertListEqual(all_descendants_ids, expected_ids)

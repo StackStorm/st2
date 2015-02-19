@@ -1,0 +1,19 @@
+{
+    "id": "54e658570640fd16887d685d",
+    "parent": "54e658290640fd16887d685a",
+    "children": ["54e6584a0640fd16887d685c", "54e6585f0640fd16887d685e"],
+    "action": {
+        "name": "pointlessaction",
+        "runner_type": "pointlessrunner"
+    },
+    "runner": {
+        "name": "pointlessrunner",
+        "runner_module": "no.module"
+    },
+    "liveaction": {
+        "action": "pointlessaction"
+    },
+    "start_timestamp": "2014-09-01T00:00:01.000000Z",
+    "end_timestamp": "2014-09-01T00:00:05.000000Z",
+    "status": "succeeded"
+}
