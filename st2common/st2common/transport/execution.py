@@ -18,14 +18,14 @@
 from kombu import Exchange, Queue
 from st2common.transport import publishers
 
-HISTORY_XCHG = Exchange('st2.execution', type='topic')
+EXECUTION_XCHG = Exchange('st2.execution', type='topic')
 
 
 class ActionExecutionPublisher(publishers.CUDPublisher):
 
     def __init__(self, url):
-        super(ActionExecutionPublisher, self).__init__(url, HISTORY_XCHG)
+        super(ActionExecutionPublisher, self).__init__(url, EXECUTION_XCHG)
 
 
 def get_queue(name=None, routing_key=None, exclusive=False):
-    return Queue(name, HISTORY_XCHG, routing_key=routing_key, exclusive=exclusive)
+    return Queue(name, EXECUTION_XCHG, routing_key=routing_key, exclusive=exclusive)
