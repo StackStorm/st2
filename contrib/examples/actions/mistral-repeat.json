@@ -4,7 +4,7 @@
     "runner_type": "mistral-v2",
     "description": "Repeat a local linux command for given number of times.",
     "enabled": true,
-    "entry_point":"mistral-repeat.yaml",
+    "entry_point":"workflows/mistral-repeat.yaml",
     "parameters": {
         "count": {
             "type": "integer",

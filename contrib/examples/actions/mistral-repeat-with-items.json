@@ -4,7 +4,7 @@
     "runner_type": "mistral-v2",
     "description": "Run several linux commands in a single task.",
     "enabled": true,
-    "entry_point":"mistral-repeat-with-items.yaml",
+    "entry_point":"workflows/mistral-repeat-with-items.yaml",
     "parameters": {
         "cmds": {
             "type": "array",
