@@ -16,15 +16,7 @@
 import logging
 import st2common.config as config
 
-from kombu import Connection
-from oslo.config import cfg
-from st2common.transport.execution import EXECUTION_XCHG
-from st2common.transport.liveaction import LIVEACTION_XCHG
-from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCES_XCHG
-
-LOG = logging.getLogger('st2common.transport.bootstrap')
-
-EXCHANGES = [EXECUTION_XCHG, LIVEACTION_XCHG, TRIGGER_CUD_XCHG, TRIGGER_INSTANCES_XCHG]
+from st2common.transport.utils import register_exchanges
 
 
 def _setup():
@@ -35,28 +27,10 @@ def _setup():
                         level=logging.DEBUG)
 
 
-def _do_register_exchange(exchange, channel):
-    try:
-        channel.exchange_declare(exchange=exchange.name, type=exchange.type,
-                                 durable=exchange.durable, auto_delete=exchange.auto_delete,
-                                 arguments=exchange.arguments, nowait=False, passive=None)
-        LOG.info('registered exchange %s.', exchange.name)
-    except Exception:
-        LOG.exception('Failed to register exchange : %s.', exchange.name)
-
-
-def _resgister_exchanges():
-    LOG.info('=========================================================')
-    LOG.info('############## Registering exchanges ####################')
-    LOG.info('=========================================================')
-    with Connection(cfg.CONF.messaging.url) as conn:
-        channel = conn.default_channel
-        for exchange in EXCHANGES:
-            _do_register_exchange(exchange, channel)
-
 def main():
     _setup()
-    _resgister_exchanges()
+    register_exchanges()
+
 
 # The scripts sets up Exchanges in RabbitMQ.
 if __name__ == '__main__':
