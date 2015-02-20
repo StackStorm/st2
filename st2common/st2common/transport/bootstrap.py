@@ -13,19 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# All Exchanges and Queues related to liveaction.
+import logging
+import st2common.config as config
 
-from kombu import Exchange, Queue
-from st2common.transport import publishers
-
-EXECUTION_XCHG = Exchange('st2.execution', type='topic')
+from st2common.transport.utils import register_exchanges
 
 
-class ActionExecutionPublisher(publishers.CUDPublisher):
+def _setup():
+    config.parse_args()
 
-    def __init__(self, url):
-        super(ActionExecutionPublisher, self).__init__(url, EXECUTION_XCHG)
+    # 2. setup logging.
+    logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s',
+                        level=logging.DEBUG)
 
 
-def get_queue(name=None, routing_key=None, exclusive=False):
-    return Queue(name, EXECUTION_XCHG, routing_key=routing_key, exclusive=exclusive)
+def main():
+    _setup()
+    register_exchanges()
+
+
+# The scripts sets up Exchanges in RabbitMQ.
+if __name__ == '__main__':
+    main()

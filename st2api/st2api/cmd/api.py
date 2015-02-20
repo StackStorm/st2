@@ -24,6 +24,7 @@ from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
+from st2common.transport.utils import register_exchanges
 from st2api.listener import get_listener_if_set
 from st2api import config
 from st2api import app
@@ -56,6 +57,7 @@ def _setup():
     password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
              username=username, password=password)
+    register_exchanges()
 
 
 def _run_server():
