@@ -49,6 +49,9 @@ def _parse_cmd_and_input(cmd_str):
         except Exception:
             pass
 
+        if isinstance(v, basestring) and (v[:1], v[-1:]) == ('{', '}'):
+            v = v.strip('{}')
+
         params[k] = v
 
     return cmd, params
