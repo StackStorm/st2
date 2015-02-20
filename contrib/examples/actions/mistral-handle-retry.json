@@ -1,0 +1,15 @@
+{
+    "name": "mistral-handle-retry",
+    "pack": "examples",
+    "runner_type": "mistral-v2",
+    "description": "Workflow example for error, rollback, and retry.",
+    "enabled": true,
+    "entry_point":"mistral-handle-retry.yaml",
+    "parameters": {
+        "workflow": {
+            "type": "string",
+            "default": "examples.mistral-handle-retry.main",
+            "immutable": true
+        }
+    }
+}
