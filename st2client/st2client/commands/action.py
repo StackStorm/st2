@@ -655,9 +655,11 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
     def run_and_print_child_task_list(self, args, **kwargs):
         kwargs['depth'] = args.depth
         instances = self.manager.get_property(args.id, 'children', **kwargs)
+        # The attributes are selected from ActionExecutionListCommand as this
+        # will be a list.
         self.print_output(reversed(instances), table.MultiColumnTable,
-                          attributes=args.attr, widths=args.width,
-                          json=args.json,
+                          attributes=ActionExecutionListCommand.display_attributes,
+                          widths=args.width, json=args.json,
                           attribute_transform_functions=self.attribute_transform_functions)
 
     def run_and_print(self, args, **kwargs):
