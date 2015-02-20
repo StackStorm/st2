@@ -123,7 +123,7 @@ class ActionExecutionsController(ResourceController):
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
     @jsexpose()
-    def options(self):
+    def options(self, *args, **kw):
         return
 
     def _get_action_executions(self, **kw):
