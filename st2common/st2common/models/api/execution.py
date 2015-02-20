@@ -17,6 +17,7 @@ import copy
 
 import six
 
+from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.execution import ActionExecutionDB
@@ -40,6 +41,7 @@ for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
 
 class ActionExecutionAPI(BaseAPI):
     model = ActionExecutionDB
+    SKIP = ['start_timestamp', 'end_timestamp']
     schema = {
         "title": "ActionExecution",
         "description": "Record of the execution of an action.",
@@ -56,6 +58,47 @@ class ActionExecutionAPI(BaseAPI):
             "action": REQUIRED_ATTR_SCHEMAS['action'],
             "runner": REQUIRED_ATTR_SCHEMAS['runner'],
             "liveaction": REQUIRED_ATTR_SCHEMAS['liveaction'],
+            "status": {
+                "description": "The current status of the action execution.",
+                "enum": LIVEACTION_STATUSES
+            },
+            "start_timestamp": {
+                "description": "The start time when the action is executed.",
+                "type": "string",
+                "pattern": isotime.ISO8601_UTC_REGEX
+            },
+            "end_timestamp": {
+                "description": "The timestamp when the action has finished.",
+                "type": "string",
+                "pattern": isotime.ISO8601_UTC_REGEX
+            },
+            "parameters": {
+                "description": "Input parameters for the action.",
+                "type": "object",
+                "patternProperties": {
+                    "^\w+$": {
+                        "anyOf": [
+                            {"type": "array"},
+                            {"type": "boolean"},
+                            {"type": "integer"},
+                            {"type": "number"},
+                            {"type": "object"},
+                            {"type": "string"}
+                        ]
+                    }
+                }
+            },
+            "context": {
+                "type": "object"
+            },
+            "result": {
+                "anyOf": [{"type": "array"},
+                          {"type": "boolean"},
+                          {"type": "integer"},
+                          {"type": "number"},
+                          {"type": "object"},
+                          {"type": "string"}]
+            },
             "parent": {"type": "string"},
             "children": {
                 "type": "array",
@@ -69,14 +112,13 @@ class ActionExecutionAPI(BaseAPI):
     @classmethod
     def from_model(cls, model):
         doc = cls._from_model(model)
-        start_timestamp = isotime.format(doc['liveaction']['start_timestamp'], offset=False)
+        start_timestamp = isotime.format(model.start_timestamp, offset=False)
+        doc['start_timestamp'] = start_timestamp
 
-        end_timestamp = doc['liveaction'].get('end_timestamp', None)
-        if end_timestamp is not None:
+        end_timestamp = model.end_timestamp
+        if end_timestamp:
             end_timestamp = isotime.format(end_timestamp, offset=False)
-            doc['liveaction']['end_timestamp'] = end_timestamp
-
-        doc['liveaction']['start_timestamp'] = start_timestamp
+            doc['end_timestamp'] = end_timestamp
 
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}
         return cls(**attrs)
@@ -89,8 +131,8 @@ class ActionExecutionAPI(BaseAPI):
             value = getattr(instance, attr, default)
             if not value and not cls.model._fields[attr].required:
                 continue
-            setattr(model, attr, value)
-
-        model.liveaction['start_timestamp'] = isotime.parse(model.liveaction['start_timestamp'])
-        model.liveaction['end_timestamp'] = isotime.parse(model.liveaction['end_timestamp'])
+            if attr not in ActionExecutionAPI.SKIP:
+                setattr(model, attr, value)
+        model.start_timestamp = isotime.parse(instance.start_timestamp)
+        model.end_timestamp = isotime.parse(instance.end_timestamp)
         return model

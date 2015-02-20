@@ -194,6 +194,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         action_db.description = 'awesomeness'
         action_db.enabled = True
         action_db.pack = 'wolfpack'
+        action_db.ref = ResourceReference(name=action_db.name, pack=action_db.pack).ref
         action_db.entry_point = ''
         action_db.runner_type = {'name': 'test-runner'}
         action_db.parameters = {
@@ -206,9 +207,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         liveaction_db = LiveActionDB()
         liveaction_db.status = 'initializing'
         liveaction_db.start_timestamp = datetime.datetime.utcnow()
-        liveaction_db.action = ResourceReference(
-            name=ActionDBUtilsTestCase.action_db.name,
-            pack=ActionDBUtilsTestCase.action_db.pack).ref
+        liveaction_db.action = ActionDBUtilsTestCase.action_db.ref
         params = {
             'actionstr': 'foo',
             'some_key_that_aint_exist_in_action_or_runner': 'bar',

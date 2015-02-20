@@ -6,7 +6,6 @@
             "sensu"
         ]
     },
-    "callback": {},
     "result": {
         "unregister": {
             "exit_code": 0,
@@ -33,6 +32,12 @@
     "context": {
         "user": "stanley"
     },
-    "action": "packs.uninstall",
-    "id": "548235439c993840e690d710"
+    "id": "548235439c993840e690d710",
+    "action": {
+        "ref": "packs.uninstall"
+    },
+    "liveaction": {
+        "callback": {},
+        "id": "1"
+    }
 }

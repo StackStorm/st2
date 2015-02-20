@@ -72,6 +72,7 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         parameters: The specification for parameters for the action.
     """
     name = me.StringField(required=True)
+    ref = me.StringField(required=True)
     description = me.StringField()
     enabled = me.BooleanField(
         required=True, default=True,

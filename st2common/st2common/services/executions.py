@@ -28,6 +28,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 from st2common.util import reference
 import st2common.util.action_db as action_utils
 from st2common.persistence.execution import ActionExecution
@@ -42,6 +44,22 @@ from st2common import log as logging
 
 LOG = logging.getLogger(__name__)
 
+SKIPPED = ['id', 'callback', 'action']
+
+
+def _decompose_liveaction(liveaction_db):
+    """
+    Splits the liveaction into an ActionExecution compatible dict.
+    """
+    decomposed = {'liveaction': {}}
+    liveaction_api = vars(LiveActionAPI.from_model(liveaction_db))
+    for k in liveaction_api.keys():
+        if k in SKIPPED:
+            decomposed['liveaction'][k] = liveaction_api[k]
+        else:
+            decomposed[k] = getattr(liveaction_db, k)
+    return decomposed
+
 
 def create_execution_object(liveaction, publish=True):
     action_db = action_utils.get_action_by_ref(liveaction.action)
@@ -49,9 +67,9 @@ def create_execution_object(liveaction, publish=True):
 
     attrs = {
         'action': vars(ActionAPI.from_model(action_db)),
-        'runner': vars(RunnerTypeAPI.from_model(runner)),
-        'liveaction': vars(LiveActionAPI.from_model(liveaction))
+        'runner': vars(RunnerTypeAPI.from_model(runner))
     }
+    attrs.update(_decompose_liveaction(liveaction))
 
     if 'rule' in liveaction.context:
         rule = reference.get_model_from_ref(Rule, liveaction.context.get('rule', {}))
@@ -86,9 +104,43 @@ def create_execution_object(liveaction, publish=True):
     return execution
 
 
-def update_execution(liveaction, publish=True):
-    execution = ActionExecution.get(liveaction__id=str(liveaction.id))
-    execution.liveaction = vars(LiveActionAPI.from_model(liveaction))
+def update_execution(liveaction_db, publish=True):
+    execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+    decomposed = _decompose_liveaction(liveaction_db)
+    for k, v in six.iteritems(decomposed):
+        setattr(execution, k, v)
     execution = ActionExecution.add_or_update(execution, publish=publish)
-
     return execution
+
+
+def get_descendants(actionexecution_id, descendant_depth=-1):
+    """
+    Returns all descendant executions upto the specified descendant_depth for
+    the supplied actionexecution_id.
+    """
+    descendants = []
+    current_level = set([actionexecution_id])
+    next_level = set()
+    remaining_depth = descendant_depth
+    # keep track of processed ActionExecution to avoid any cycles. Will raise
+    # an exception if a cycle is found.
+    processed_action_executions = set()
+
+    while current_level and remaining_depth != 0:
+        parent_id = current_level.pop()
+        processed_action_executions.add(parent_id)
+        children = ActionExecution.query(parent=parent_id)
+        LOG.debug('Found %s children for id %s.', len(children), parent_id)
+        for child in children:
+            if str(child.id) in processed_action_executions:
+                raise Exception('child with id %s appeared multiple times.', str(child.id))
+            if child.children:
+                next_level.add(str(child.id))
+        descendants.extend(children)
+        # check if current_level is complete. If so start processing the next level.
+        if not current_level:
+            current_level.update(next_level)
+            next_level.clear()
+            remaining_depth = remaining_depth - 1
+
+    return descendants

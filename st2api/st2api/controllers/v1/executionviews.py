@@ -24,14 +24,13 @@ from st2common.persistence.execution import ActionExecution
 LOG = logging.getLogger(__name__)
 
 SUPPORTED_FILTERS = {
-    'action': ('action.pack', 'action.name'),  # XXX: Compound filter. For aggregation only.
-    'action.name': 'action.name',
-    'action.pack': 'action.pack',
+    'action': 'action.ref',
+    'status': 'status',
     'liveaction': 'liveaction.id',
     'parent': 'parent',
     'rule': 'rule.name',
     'runner': 'runner.name',
-    'timestamp': 'liveaction.start_timestamp',
+    'timestamp': 'start_timestamp',
     'trigger': 'trigger.name',
     'trigger_type': 'trigger_type.name',
     'user': 'liveaction.context.user'
@@ -49,9 +48,9 @@ class FiltersController(RestController):
             List all distinct filters.
 
             Handles requests:
-                GET /history/liveactions/views/filters
+                GET /executions/views/filters
         """
-        LOG.info('GET all /history/liveactions/views/filters')
+        LOG.info('GET all /executions/views/filters')
 
         filters = {}
 
@@ -75,5 +74,5 @@ class FiltersController(RestController):
         return filters
 
 
-class HistoryViewsController(RestController):
+class ExecutionViewsController(RestController):
     filters = FiltersController()

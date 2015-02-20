@@ -122,8 +122,10 @@ class ActionRunCommandMixin(object):
     """
     Mixin class which contains utility functions related to action execution.
     """
+    display_attributes = ['id', 'ref', 'context', 'parameters', 'status',
+                          'start_timestamp', 'end_timestamp', 'result']
     attribute_display_order = ['id', 'ref', 'context', 'parameters', 'status',
-                               'start_timestamp', 'result']
+                               'start_timestamp', 'end_timestamp', 'result']
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
         'end_timestamp': format_isodate,
@@ -139,7 +141,7 @@ class ActionRunCommandMixin(object):
 
         execution = self.run(args, **kwargs)
         self.print_output(execution, table.PropertyValueTable,
-                          attributes=['all'], json=args.json,
+                          attributes=self.display_attributes, json=args.json,
                           attribute_display_order=self.attribute_display_order,
                           attribute_transform_functions=self.attribute_transform_functions)
 
@@ -526,8 +528,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
 
 class ActionExecutionListCommand(resource.ResourceCommand):
-
-    display_attributes = ['id', 'action', 'context.user', 'status', 'start_timestamp',
+    display_attributes = ['id', 'action.ref', 'context.user', 'status', 'start_timestamp',
                           'end_timestamp']
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
@@ -541,13 +542,28 @@ class ActionExecutionListCommand(resource.ResourceCommand):
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.group = self.parser.add_mutually_exclusive_group()
-        self.group.add_argument('--action', help='Action reference to filter the list.')
+        self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=50,
                                  help=('List N most recent %s; '
                                        'list all if 0.' %
                                        resource.get_plural_display_name().lower()))
+
+        # Filter options
+        self.group.add_argument('--action', help='Action reference to filter the list.')
+        self.group.add_argument('--status', help='Only return executions with the provided status.')
+        self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
+                                 default=None,
+                                 help=('Only return executions with timestamp '
+                                       'greater than the one provided'))
+        self.parser.add_argument('-tl', '--timestamp-lt', type=str, dest='timestamp_lt',
+                                 default=None,
+                                 help=('Only return executions with timestamp '
+                                       'lower than the one provided'))
+        self.parser.add_argument('-l', '--showall', action='store_true',
+                                 help='')
+
+        # Display options
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=self.display_attributes,
                                  help=('List of attributes to include in the '
@@ -559,8 +575,19 @@ class ActionExecutionListCommand(resource.ResourceCommand):
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
+        # Filtering options
         if args.action:
             kwargs['action'] = args.action
+        if args.status:
+            kwargs['status'] = args.status
+        if not args.showall:
+            # null is the magic string that translates to does not exist.
+            kwargs['parent'] = 'null'
+        if args.timestamp_gt:
+            kwargs['timestamp_gt'] = args.timestamp_gt
+        if args.timestamp_lt:
+            kwargs['timestamp_lt'] = args.timestamp_lt
+
         return self.manager.query(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
@@ -572,8 +599,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
 
 
 class ActionExecutionGetCommand(resource.ResourceCommand):
-
-    display_attributes = ['all']
+    display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
+                          'start_timestamp', 'end_timestamp', 'result', 'liveaction']
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
         'end_timestamp': format_isodate,
@@ -592,16 +619,29 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
 
         root_arg_grp = self.parser.add_mutually_exclusive_group()
 
-        detail_arg_grp = root_arg_grp.add_mutually_exclusive_group()
+        #
+        task_list_arg_grp = root_arg_grp.add_argument_group()
+        task_list_arg_grp.add_argument('--tasks', action='store_true',
+                                       help='Whether to show sub-tasks of an execution.')
+        task_list_arg_grp.add_argument('--depth', type=int, default=-1,
+                                       help='Depth to which to show sub-tasks. \
+                                             By default all are shown.')
+        task_list_arg_grp.add_argument('-w', '--width', nargs='+', type=int, default=[28],
+                                       help='Set the width of columns in output.')
+
+        #
+        execution_details_arg_grp = root_arg_grp.add_mutually_exclusive_group()
+
+        detail_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
         detail_arg_grp.add_argument('-a', '--attr', nargs='+',
-                                    default=self.display_attributes,
+                                    default=copy.copy(self.display_attributes),
                                     help=('List of attributes to include in the '
                                           'output. "all" or unspecified will '
                                           'return all attributes.'))
         detail_arg_grp.add_argument('-d', '--detail', action='store_true',
                                     help='Display full detail of the execution in table format.')
 
-        result_arg_grp = root_arg_grp.add_mutually_exclusive_group()
+        result_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
         result_arg_grp.add_argument('-k', '--key',
                                     help=('If result is type of JSON, then print specific '
                                           'key-value pair; dot notation for nested JSON is '
@@ -611,7 +651,21 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
     def run(self, args, **kwargs):
         return self.manager.get_by_id(args.id, **kwargs)
 
+    @add_auth_token_to_kwargs_from_cli
+    def run_and_print_child_task_list(self, args, **kwargs):
+        kwargs['depth'] = args.depth
+        instances = self.manager.get_property(args.id, 'children', **kwargs)
+        # The attributes are selected from ActionExecutionListCommand as this
+        # will be a list.
+        self.print_output(reversed(instances), table.MultiColumnTable,
+                          attributes=ActionExecutionListCommand.display_attributes,
+                          widths=args.width, json=args.json,
+                          attribute_transform_functions=self.attribute_transform_functions)
+
     def run_and_print(self, args, **kwargs):
+        if args.tasks:
+            self.run_and_print_child_task_list(args, **kwargs)
+            return
         try:
             instance = self.run(args, **kwargs)
             formatter = table.PropertyValueTable if args.detail else execution.ExecutionResult
@@ -668,17 +722,24 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         runner_mgr = self.app.client.managers['RunnerType']
         action_exec_mgr = self.app.client.managers['LiveAction']
 
-        action = action_mgr.get_by_ref_or_id(existing_execution.action)
+        # TODO use action.ref when this attribute is added
+        action_ref = existing_execution.action['pack'] + '.' + existing_execution.action['name']
+        action = action_mgr.get_by_ref_or_id(action_ref)
         runner = runner_mgr.get_by_name(action.runner_type)
 
         action_parameters = self._get_action_parameters_from_args(action=action, runner=runner,
                                                                   args=args)
 
+        # Create new execution object
+        new_execution = models.LiveAction()
+        new_execution.action = action_ref
+        new_execution.parameters = existing_execution.parameters or {}
+
         # If user provides parameters merge and override with the ones from the
         # existing execution
-        existing_execution.parameters.update(action_parameters)
+        new_execution.parameters.update(action_parameters)
 
-        execution = action_exec_mgr.create(existing_execution, **kwargs)
+        execution = action_exec_mgr.create(new_execution, **kwargs)
         execution = self._get_execution_result(execution=execution,
                                                action_exec_mgr=action_exec_mgr,
                                                args=args, **kwargs)

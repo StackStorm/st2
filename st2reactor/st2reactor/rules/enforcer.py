@@ -64,6 +64,6 @@ class RuleEnforcer(object):
         # prior to shipping off the params cast them to the right type.
         params = action_param_utils.cast_params(action_ref, params)
         liveaction = LiveActionDB(action=action_ref, context=context, parameters=params)
-        liveaction = action_service.schedule(liveaction)
+        liveaction, _ = action_service.schedule(liveaction)
         return ({'id': str(liveaction.id)}
                 if liveaction.status == LIVEACTION_STATUS_SCHEDULED else None)

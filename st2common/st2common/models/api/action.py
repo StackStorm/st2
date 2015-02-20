@@ -23,6 +23,7 @@ from st2common.models.api.tag import TagsHelper
 from st2common.models.db.action import (RunnerTypeDB, ActionDB, LiveActionDB)
 from st2common.models.db.action import ActionExecutionStateDB
 from st2common.constants.action import LIVEACTION_STATUSES
+from st2common.models.system.common import ResourceReference
 
 
 __all__ = ['ActionAPI',
@@ -124,6 +125,11 @@ class ActionAPI(BaseAPI):
                 "description": "The unique identifier for the action.",
                 "type": "string"
             },
+            "ref": {
+                "description": "System computed user friendly reference for the action. \
+                                Provided value will be overridden by computed value.",
+                "type": "string"
+            },
             "name": {
                 "description": "The name of the action.",
                 "type": "string",
@@ -194,6 +200,7 @@ class ActionAPI(BaseAPI):
         model.runner_type = {'name': str(action.runner_type)}
         model.parameters = getattr(action, 'parameters', dict())
         model.tags = TagsHelper.to_model(getattr(action, 'tags', []))
+        model.ref = ResourceReference.to_string_reference(pack=model.pack, name=model.name)
         return model
 
 

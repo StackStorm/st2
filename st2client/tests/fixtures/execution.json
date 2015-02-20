@@ -1,6 +1,5 @@
 {
     "id": "547e19561e2e2417d3dde398",
-    "action": "core.ping",
     "parameters": {
         "cmd": "127.0.0.1 3"
     },
@@ -18,5 +17,13 @@
         }
     },
     "status": "succeeded",
-    "start_timestamp": "2014-12-02T19:56:06.900000Z"
+    "start_timestamp": "2014-12-02T19:56:06.900000Z",
+    "end_timestamp": "2014-12-02T19:56:07.000000Z",
+    "action": {
+        "ref": "core.ping"
+    },
+    "liveaction": {
+        "callback": {},
+        "id": "1"
+    }
 }
