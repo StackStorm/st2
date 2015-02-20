@@ -41,6 +41,7 @@ def _setup():
              username=username, password=password)
     register_exchanges()
 
+
 def _run_worker():
     LOG.info('(PID=%s) Results tracker started.', os.getpid())
     tracker = resultstracker.get_tracker()
