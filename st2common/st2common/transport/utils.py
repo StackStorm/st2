@@ -36,9 +36,7 @@ def _do_register_exchange(exchange, channel):
 
 
 def register_exchanges():
-    LOG.info('=========================================================')
-    LOG.info('############## Registering exchanges ####################')
-    LOG.info('=========================================================')
+    LOG.info('Registering exchanges...')
     with Connection(cfg.CONF.messaging.url) as conn:
         channel = conn.default_channel
         for exchange in EXCHANGES:
