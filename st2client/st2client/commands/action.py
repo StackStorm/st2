@@ -542,7 +542,7 @@ class ActionExecutionListCommand(resource.ResourceCommand):
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.group = self.parser.add_mutually_exclusive_group()
+        self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=50,
                                  help=('List N most recent %s; '
