@@ -122,9 +122,9 @@ class ActionRunCommandMixin(object):
     """
     Mixin class which contains utility functions related to action execution.
     """
-    display_attributes = ['id', 'ref', 'context', 'parameters', 'status',
+    display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result']
-    attribute_display_order = ['id', 'ref', 'context', 'parameters', 'status',
+    attribute_display_order = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                                'start_timestamp', 'end_timestamp', 'result']
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
