@@ -9,14 +9,14 @@ generic.workflow_v2:
     say-greeting:
       action: core.hey
       input:
-        cmd: $.count
+        cmd: <% $.count %>
       publish:
-        greet: $.stdout
+        greet: <% $.say-greeting.stdout %>
       on-success:
         - say-friend
     say-friend:
       action: core.friend
       input:
-        cmd: $.friend
+        cmd: <% $.friend %>
       publish:
-        towhom: $.stdout
+        towhom: <% $.say-friend.stdout %>
