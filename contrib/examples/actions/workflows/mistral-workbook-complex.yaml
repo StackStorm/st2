@@ -10,8 +10,8 @@ workflows:
             - cpu_cores
             - memory_mb
         output:
-            vm_id: $.vm_id
-            vm_state: $.vm_state 
+            vm_id: <% $.vm_id %>
+            vm_state: <% $.vm_state %>
         task-defaults:
           on-error:
             - fail
@@ -27,11 +27,11 @@ workflows:
             create_vm:
                 workflow: create_vm
                 input:
-                    name: $.vm_name
-                    ip: $.ip
+                    name: <% $.vm_name %>
+                    ip: <% $.ip %>
                 publish:
-                    vm_id: $.create_vm.vm_id
-                    message: "VM {$.vm_name} is created."
+                    vm_id: <% $.create_vm.vm_id %>
+                    message: "VM <% $.vm_name %> is created."
                 on-success:
                     - power_off_vm
                     - notify
@@ -40,19 +40,19 @@ workflows:
                 input:
                     cmd: "sleep 2; printf 'stopped'"
                 publish:
-                    vm_state: $.power_off_vm.stdout
-                    message: "VM {$.vm_name} is powered off."
+                    vm_state: <% $.power_off_vm.stdout %>
+                    message: "VM <% $.vm_name %> is powered off."
                 on-success:
                     - reconfig_vm
                     - notify
             reconfig_vm:
                 workflow: reconfig_vm
                 input:
-                    vm_id: $.vm_id
-                    cpu_cores: $.cpu_cores
-                    memory_mb: $.memory_mb
+                    vm_id: <% $.vm_id %>
+                    cpu_cores: <% $.cpu_cores %>
+                    memory_mb: <% $.memory_mb %>
                 publish:
-                    message: "VM {$.vm_name} is reconfigured."
+                    message: "VM <% $.vm_name %> is reconfigured."
                 on-success:
                     - power_on_vm
                     - notify
@@ -61,8 +61,8 @@ workflows:
                 input:
                     cmd: "sleep 2; printf 'running'"
                 publish:
-                    vm_state: $.power_on_vm.stdout
-                    message: "VM {$.vm_name} is powered on."
+                    vm_state: <% $.power_on_vm.stdout %>
+                    message: "VM <% $.vm_name %> is powered on."
                 on-success:
                     - notify_request_fulfilled
                     - notify
@@ -74,7 +74,7 @@ workflows:
             notify:
                 action: core.local
                 input:
-                    cmd: "printf '{$.message}'"
+                    cmd: "printf '<% $.message %>'"
 
     create_vm:
         type: direct
@@ -82,7 +82,7 @@ workflows:
             - name
             - ip
         output:
-            vm_id: $.vm_id
+            vm_id: <% $.vm_id %>
         task-defaults:
           on-error:
             - fail
@@ -92,7 +92,7 @@ workflows:
                 input:
                     cmd: "sleep 5; printf 'vm1234'"
                 publish:
-                    vm_id: $.create.stdout
+                    vm_id: <% $.create.stdout %>
 
     reconfig_vm:
         type: direct

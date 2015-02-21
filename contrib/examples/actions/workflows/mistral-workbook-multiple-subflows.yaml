@@ -6,8 +6,8 @@ workflows:
     main:
         type: direct
         output:
-            report: $.report
-            state: $.state 
+            report: <% $.report %>
+            state: <% $.state %>
         task-defaults:
           on-error:
             - fail
@@ -15,17 +15,17 @@ workflows:
             call_internal_workflow:
                 workflow: internal_workflow
                 input:
-                    name: $.vm_name
+                    name: <% $.vm_name %>
                 publish:
-                    report: $.call_internal_workflow.report
+                    report: <% $.call_internal_workflow.report %>
                 on-success:
                     - call_internal_workflow_multiple_tasks
             call_internal_workflow_multiple_tasks:
                 workflow: internal_workflow_multiple_tasks
                 input:
-                    vm_id: $.vm_id
-                    cpu_cores: $.cpu_cores
-                    memory_mb: $.memory_mb
+                    vm_id: <% $.vm_id %>
+                    cpu_cores: <% $.cpu_cores %>
+                    memory_mb: <% $.memory_mb %>
                 on-success:
                     - call_external_workflow
             call_external_workflow:
@@ -33,7 +33,7 @@ workflows:
                 input:
                     cmd: "sleep 2; echo external workflow ok"
                 publish:
-                    state: $.call_external_workflow.stdout
+                    state: <% $.call_external_workflow.stdout %>
                 on-success:
                     - call_action_chain
             call_action_chain:
@@ -44,7 +44,7 @@ workflows:
         input:
             - name
         output:
-            report: $.report
+            report: <% $.report %>
         task-defaults:
           on-error:
             - fail
@@ -54,7 +54,7 @@ workflows:
                 input:
                     cmd: "sleep 3; echo task1 ok"
                 publish:
-                    report: $.task1.stdout
+                    report: <% $.task1.stdout %>
 
     internal_workflow_multiple_tasks:
         type: direct

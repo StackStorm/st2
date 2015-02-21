@@ -9,7 +9,7 @@ workflows:
             - subject
             - adjective
         output:
-            tagline: "{$.printed_subject} is {$.printed_adjective}!"
+            tagline: "<% $.printed_subject %> is <% $.printed_adjective %>!"
         task-defaults:
           on-error:
             - fail
@@ -17,14 +17,14 @@ workflows:
             print_subject:
                 action: examples.mistral-basic
                 input:
-                    cmd: "printf '{$.subject}'"
+                    cmd: "printf '<% $.subject %>'"
                 publish:
-                    printed_subject: $.print_subject.stdout
+                    printed_subject: <% $.print_subject.stdout %>
                 on-success:
                     - print_adjective
             print_adjective:
                 action: examples.mistral-basic
                 input:
-                    cmd: "printf '{$.adjective}'"
+                    cmd: "printf '<% $.adjective %>'"
                 publish:
-                    printed_adjective: $.print_adjective.stdout
+                    printed_adjective: <% $.print_adjective.stdout %>

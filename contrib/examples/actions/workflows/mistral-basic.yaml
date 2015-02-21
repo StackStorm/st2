@@ -5,10 +5,10 @@ examples.mistral-basic:
     input:
         - cmd
     output:
-        stdout: $.stdout
+        stdout: <% $.stdout %>
     tasks:
         task1:
-            action: core.local cmd={$.cmd}
+            action: core.local cmd=<% $.cmd %>
             publish:
-                stdout: $.task1.stdout
-                stderr: $.task1.stderr
+                stdout: <% $.task1.stdout %>
+                stderr: <% $.task1.stderr %>

@@ -9,7 +9,7 @@ examples.mistral-repeat-with-items:
         - cmds
     tasks:
         repeat:
-            with-items: cmd in $.cmds
-            action: core.local cmd={$.cmd}
+            with-items: cmd in <% $.cmds %>
+            action: core.local cmd=<% $.cmd %>
             publish:
-                resut: $.repeat.stdout
+                resut: <% $.repeat.stdout %>
