@@ -16,17 +16,17 @@ workflows:
             create_vm:
                 workflow: create_vm
                 input:
-                    name: $.vm_name
+                    name: <% $.vm_name %>
                 publish:
-                    vm_id: $.vm_id
+                    vm_id: <% $.vm_id %>
                 on-success:
                     - reconfig_vm
             reconfig_vm:
                 workflow: reconfig_vm
                 input:
-                    vm_id: $.vm_id
-                    cpu_cores: $.cpu_cores
-                    memory_mb: $.memory_mb
+                    vm_id: <% $.vm_id %>
+                    cpu_cores: <% $.cpu_cores %>
+                    memory_mb: <% $.memory_mb %>
                 on-success:
                     - power_on_vm
             power_on_vm:
@@ -36,14 +36,14 @@ workflows:
                     parameters:
                         cmd: "sleep 2; printf 'running'"
                 publish:
-                    vm_state: $.stdout
+                    vm_state: <% $.power_on_vm.stdout %>
 
     create_vm:
         type: direct
         input:
             - name
         output:
-            vm_id: $.vm_id
+            vm_id: <% $.vm_id %>
         task-defaults:
           on-error:
             - fail
@@ -55,7 +55,7 @@ workflows:
                     parameters:
                         cmd: "sleep 3; printf 'vm1234'"
                 publish:
-                    vm_id: $.stdout
+                    vm_id: <% $.create.stdout %>
 
     reconfig_vm:
         type: direct
@@ -72,10 +72,10 @@ workflows:
                 input:
                     ref: core.local
                     parameters:
-                        cmd: "sleep 1; printf '{$.vm_id}'"
+                        cmd: "sleep 1; printf '<% $.vm_id %>'"
             edit_cpu_mem:
                 action: st2.action
                 input:
                     ref: core.local
                     parameters:
-                        cmd: "sleep 1; printf '{\"vm_id\": \"{$.vm_id}\", \"cpu\": {$.cpu_cores}, \"memory\": {$.memory_mb}}'"
+                        cmd: "sleep 1; printf '{\"vm_id\": \"<% $.vm_id %>\", \"cpu\": <% $.cpu_cores %>, \"memory\": <% $.memory_mb %>}'"
