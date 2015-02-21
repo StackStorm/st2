@@ -7,12 +7,12 @@ workflows:
         input:
             - cmd
         output:
-            stdout: $.stdout
+            stdout: <% $.stdout %>
         tasks:
             task1:
                 action: core.local
                 input:
-                    cmd: $.cmd
+                    cmd: <% $.cmd %>
                 publish:
-                    stdout: $.task1.stdout
-                    stderr: $.task1.stderr
+                    stdout: <% $.task1.stdout %>
+                    stderr: <% $.task1.stderr %>

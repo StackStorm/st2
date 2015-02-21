@@ -11,19 +11,19 @@ demo:
             input:
                 ref: demo.action1
                 parameters:
-                    var1: $.var1
-                    var2: $.var2
+                    var1: <% $.var1 %>
+                    var2: <% $.var2 %>
             publish:
-                var3: $.var3
-                var4: $.var4
+                var3: <% $.var3 %>
+                var4: <% $.var4 %>
         task_with_inline_inputs:
             action: st2.action
             input:
                 ref: demo.action2
                 parameters:
-                    var1: $.var1
+                    var1: <% $.var1 %>
                     var2: some string
-                    var3: some {$.var2} string
+                    var3: some <% $.var2 %> string
         task_with_no_input:
             action: st2.action
             input:
