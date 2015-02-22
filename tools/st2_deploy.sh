@@ -18,7 +18,7 @@ else
 fi
 
 RABBIT_PUBLIC_KEY="rabbitmq-signing-key-public.asc"
-PACKAGES="st2common st2reactor st2actions st2api st2auth"
+PACKAGES="st2common st2reactor st2actions st2api st2auth st2debug"
 CLI_PACKAGE="st2client"
 PYTHON=`which python`
 BUILD="current"
