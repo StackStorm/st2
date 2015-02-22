@@ -80,4 +80,4 @@ GPG_KEY_FINGERPRINT = 'BDE9 89A1 F308 B18D 2978  9C71 7064 B11C 82F6 2D6F'
 
 # Bucket where the encrypted tarballs are uploaded (bucket is writeable
 # by everyone, but only reeadable by StackStorm)
-S3_BUCKET_URL = 'https://TODO.s3.amazonaws.com/'
+S3_BUCKET_URL = 'https://st2debuginfo.s3.amazonaws.com/'
