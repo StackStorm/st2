@@ -24,14 +24,20 @@ def get_repo_latest_revision_hash(repo_path):
     """
     Return a hash to the latest revision in the provided repo.
 
+    :param repo_path: Path to the git repository.
+    :type repo_path: ``str``
+
     :rtype: ``str``
     """
-    exit_code, stdout, _ = run_command(cmd=['git', 'rev-parse', 'HEAD'],
-                                       cwd=repo_path)
-
-    if exit_code == 0:
-        revision_hash = stdout.strip()
-    else:
+    try:
+        exit_code, stdout, _ = run_command(cmd=['git', 'rev-parse', 'HEAD'],
+                                           cwd=repo_path)
+    except Exception:
         revision_hash = 'unknown'
+    else:
+        if exit_code == 0:
+            revision_hash = stdout.strip()
+        else:
+            revision_hash = 'unknown'
 
     return revision_hash
