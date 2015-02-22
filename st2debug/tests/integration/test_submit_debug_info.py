@@ -18,6 +18,8 @@ import tarfile
 import tempfile
 
 import mock
+import unittest2
+from distutils.spawn import find_executable
 
 from st2tests.base import CleanFilesTestCase
 from st2debug.cmd.submit_debug_info import create_archive
@@ -26,8 +28,10 @@ import st2debug.cmd.submit_debug_info
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIXTURES_DIR = os.path.join(BASE_DIR, 'fixtures')
+GPG_INSTALLED = find_executable('gpg') is not None
 
 
+@unittest2.skipIf(not GPG_INSTALLED, 'gpg binary not available')
 class SubmitDebugInfoTestCase(CleanFilesTestCase):
     def setUp(self):
         super(SubmitDebugInfoTestCase, self).setUp()
