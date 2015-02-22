@@ -62,6 +62,7 @@ You will need to download the following packages:
  - st2auth
  - st2api
  - st2actions
+ - st2debug
 
 The format of the DEB packages is like this: <component>_<version>-<build>_amd64.deb
 

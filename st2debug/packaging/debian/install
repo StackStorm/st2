@@ -1,0 +1,2 @@
+st2debug usr/lib/python2.7/dist-packages/
+bin/* usr/bin/

@@ -15,11 +15,13 @@
 
 import os
 import sys
-import eventlet
+import shutil
 import st2tests.config
 
+import eventlet
 from unittest2 import TestCase
 from oslo.config import cfg
+
 from st2common.models.db import db_setup, db_teardown
 import st2common.models.db.reactor as reactor_model
 import st2common.models.db.action as action_model
@@ -30,7 +32,8 @@ import st2common.models.db.execution as execution_model
 __all__ = [
     'EventletTestCase',
     'DbTestCase',
-    'CleanDbTestCase'
+    'CleanDbTestCase',
+    'CleanFilesTestCase'
 ]
 
 
@@ -147,6 +150,27 @@ class CleanDbTestCase(BaseDbTestCase):
 
     def setUp(self):
         self._establish_connection_and_re_create_db()
+
+
+class CleanFilesTestCase(TestCase):
+    """
+    Base test class which deletes specified files and directories on tearDown.
+    """
+    to_delete_files = []
+    to_delete_directories = []
+
+    def tearDown(self):
+        for file_path in self.to_delete_files:
+            try:
+                os.remove(file_path)
+            except Exception:
+                pass
+
+        for file_path in self.to_delete_directories:
+            try:
+                shutil.rmtree(file_path)
+            except Exception:
+                pass
 
 
 def get_fixtures_path():
