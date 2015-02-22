@@ -170,10 +170,18 @@ class PropertyValueTable(formatters.Formatter):
         table.valign = 't'
 
         for attribute in attributes:
-            value = cls._get_attribute_value(subject, attribute)
+            if '.' in attribute:
+                field_names = attribute.split('.')
+                value = cls._get_attribute_value(subject, field_names.pop(0))
+                for name in field_names:
+                    value = cls._get_attribute_value(value, name)
+                    if type(value) is str:
+                        break
+            else:
+                value = cls._get_attribute_value(subject, attribute)
 
             transform_function = attribute_transform_functions.get(attribute,
-                                                                  lambda value: value)
+                                                                   lambda value: value)
             value = transform_function(value=value)
 
             if type(value) is dict or type(value) is list:
@@ -185,7 +193,10 @@ class PropertyValueTable(formatters.Formatter):
 
     @staticmethod
     def _get_attribute_value(subject, attribute):
-        r_val = getattr(subject, attribute, None)
+        if isinstance(subject, dict):
+            r_val = subject.get(attribute, None)
+        else:
+            r_val = getattr(subject, attribute, None)
         if r_val is None:
             return ''
         if isinstance(r_val, list) or isinstance(r_val, dict):

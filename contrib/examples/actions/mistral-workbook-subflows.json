@@ -4,7 +4,7 @@
     "runner_type": "mistral-v2",
     "description": "Test the output for a series of mistral-basic workflows.",
     "enabled": true,
-    "entry_point":"mistral-workbook-subflows.yaml",
+    "entry_point":"workflows/mistral-workbook-subflows.yaml",
     "parameters": {
         "subject": {
             "type": "string",

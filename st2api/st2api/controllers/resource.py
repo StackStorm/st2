@@ -43,10 +43,15 @@ class ResourceController(rest.RestController):
     access = abc.abstractproperty
     supported_filters = abc.abstractproperty
 
-    query_options = {   # Do not use options.
+    # Maximum value of limit which can be specified by user
+    max_limit = 100
+
+    query_options = {
         'sort': []
     }
-    max_limit = 100
+
+    # A list of optional transformation functions for user provided filter values
+    filter_transform_functions = {}
 
     def __init__(self):
         self.supported_filters = copy.deepcopy(self.__class__.supported_filters)
@@ -58,22 +63,7 @@ class ResourceController(rest.RestController):
 
     @jsexpose(str)
     def get_one(self, id):
-        LOG.info('GET %s with id=%s', pecan.request.path, id)
-
-        instance = None
-        try:
-            instance = self.access.get(id=id)
-        except ValidationError:
-            instance = None  # Someone supplied a mongo non-comformant id.
-
-        if not instance:
-            msg = 'Unable to identify resource with id "%s".' % id
-            pecan.abort(http_client.NOT_FOUND, msg)
-
-        result = self.model.from_model(instance)
-        LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
-
-        return result
+        return self._get_one(id)
 
     def _get_all(self, **kwargs):
         # TODO: Why do we use comma delimited string, user can just specify
@@ -111,8 +101,16 @@ class ResourceController(rest.RestController):
         filters = {}
 
         for k, v in six.iteritems(self.supported_filters):
-            if kwargs.get(k):
-                filters['__'.join(v.split('.'))] = kwargs[k]
+            filter_value = kwargs.get(k, None)
+
+            if not filter_value:
+                continue
+
+            value_transform_function = self.filter_transform_functions.get(k, None)
+            value_transform_function = value_transform_function or (lambda value: value)
+            filter_value = value_transform_function(value=filter_value)
+
+            filters['__'.join(v.split('.'))] = filter_value
 
         LOG.info('GET all %s with filters=%s', pecan.request.path, filters)
 
@@ -123,6 +121,24 @@ class ResourceController(rest.RestController):
         pecan.response.headers['X-Total-Count'] = str(instances.count())
 
         return [self.model.from_model(instance) for instance in instances[offset:eop]]
+
+    def _get_one(self, id):
+        LOG.info('GET %s with id=%s', pecan.request.path, id)
+
+        instance = None
+        try:
+            instance = self.access.get(id=id)
+        except ValidationError:
+            instance = None  # Someone supplied a mongo non-comformant id.
+
+        if not instance:
+            msg = 'Unable to identify resource with id "%s".' % id
+            pecan.abort(http_client.NOT_FOUND, msg)
+
+        result = self.model.from_model(instance)
+        LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
+
+        return result
 
 
 class ContentPackResourceControler(ResourceController):

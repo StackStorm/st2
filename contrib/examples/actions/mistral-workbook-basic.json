@@ -4,7 +4,7 @@
     "runner_type": "mistral-v2",
     "description": "Run a local linux command",
     "enabled": true,
-    "entry_point":"mistral-workbook-basic.yaml",
+    "entry_point":"workflows/mistral-workbook-basic.yaml",
     "parameters": {
         "cmd": {
             "type": "string",

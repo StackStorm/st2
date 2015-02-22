@@ -82,12 +82,6 @@ function st2start(){
         ./st2common/bin/registercontent.py \
         --config-file $ST2_CONF --register-all
 
-    # Run the history server
-    echo 'Starting screen session st2-history...'
-    screen -d -m -S st2-history ./virtualenv/bin/python \
-        ./st2actions/bin/history \
-        --config-file $ST2_CONF
-
     # Run the action runner server
     echo 'Starting screen session st2-actionrunner...'
     screen -d -m -S st2-actionrunner
@@ -123,7 +117,6 @@ function st2start(){
     # Check whether screen sessions are started
     screens=(
         "st2-api"
-        "st2-history"
         "st2-actionrunner"
         "st2-sensorcontainer"
         "st2-rulesengine"

@@ -20,7 +20,7 @@ import mock
 
 from st2actions.runners import pythonrunner
 from st2actions.container import service
-from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.pack import SYSTEM_PACK_NAME
 import st2tests.base as tests_base
 import st2tests.config as tests_config
@@ -48,8 +48,8 @@ class PythonRunnerTestCase(TestCase):
         runner.entry_point = PACAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        (status, result, context) = runner.run({'row_index': 4})
-        self.assertEqual(status, ACTIONEXEC_STATUS_SUCCEEDED)
+        (status, result, _) = runner.run({'row_index': 4})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(result is not None)
         self.assertEqual(result['result'], [1, 4, 6, 4, 1])
 
@@ -60,9 +60,9 @@ class PythonRunnerTestCase(TestCase):
         runner.entry_point = PACAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        (status, result, context) = runner.run({'row_index': '4'})
+        (status, result, _) = runner.run({'row_index': '4'})
         self.assertTrue(result is not None)
-        self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
 
     def test_simple_action_no_file(self):
         runner = pythonrunner.get_runner()
@@ -71,9 +71,9 @@ class PythonRunnerTestCase(TestCase):
         runner.entry_point = 'foo.py'
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        (status, result, context) = runner.run({})
+        (status, result, _) = runner.run({})
         self.assertTrue(result is not None)
-        self.assertEqual(status, ACTIONEXEC_STATUS_FAILED)
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
 
     def test_simple_action_no_entry_point(self):
         runner = pythonrunner.get_runner()
@@ -99,9 +99,9 @@ class PythonRunnerTestCase(TestCase):
         runner.entry_point = PACAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        (status, result, context) = runner.run({'row_index': 4})
+        (_, _, _) = runner.run({'row_index': 4})
 
-        call_args, call_kwargs = mock_popen.call_args
+        _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs['env']
 
         for key, value in env_vars.items():

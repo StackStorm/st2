@@ -4,7 +4,7 @@
     "runner_type": "mistral-v2",
     "description": "Run a series of simulated actions.",
     "enabled": true,
-    "entry_point":"mistral-workbook-complex.yaml",
+    "entry_point":"workflows/mistral-workbook-complex.yaml",
     "parameters": {
         "workflow": {
             "type": "string",

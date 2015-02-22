@@ -86,7 +86,8 @@ This section describes all the available operators which can be used in the crit
     :github_st2:`st2/st2common/st2common/operators.py </st2common/st2common/operators.py>`.
 
 * ``matchregex`` - Regular expression match.
-* ``equals`` - Equality comparison.
+* ``equals`` - Equality comparison (works on values of arbitrary type).
+* ``nequals`` - Not equal comparison (works on values of arbitrary type).
 * ``iequals`` - Case insensitive equality comparison (trigger value needs to be string).
 * ``contains`` - String contains comparison.
 * ``icontains`` - Case insensitive string contains comparison.

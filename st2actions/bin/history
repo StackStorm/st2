@@ -1,8 +1,0 @@
-#!/usr/bin/env python2.7
-
-import sys
-from st2actions.cmd import history
-
-
-if __name__ == '__main__':
-    sys.exit(history.main())

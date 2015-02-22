@@ -104,7 +104,7 @@ Lets leave these empty for now and fill them in as per requirement.
        entry_point: "hello.sh"
        parameters: {}
 
-4. Add a sensor
+4. Add a sensor (code + meta)
 
 .. code-block:: bash
 
@@ -113,7 +113,9 @@ Lets leave these empty for now and fill them in as per requirement.
     # content of sensor1.py
     import eventlet
 
-    class HelloSensor(object):
+    from st2reactor.sensor.base import Sensor
+
+    class HelloSensor(Sensor):
         def __init__(self, container_service, config=None):
             self._container_service = container_service
             self._stop = False
@@ -121,19 +123,11 @@ Lets leave these empty for now and fill them in as per requirement.
         def setup(self):
             pass
 
-        def start(self):
+        def run(self):
             eventlet.spawn_after(self._on_time, 10)
 
-        def stop(self):
+        def cleanup(self):
             self._stop = True
-
-        def get_trigger_types(self):
-            return [{
-                'name': 'event1',
-                'payload_schema': {
-                    'type': 'object'
-                }
-            }]
 
         def _on_time(self):
             if self._stop:
@@ -145,16 +139,32 @@ Lets leave these empty for now and fill them in as per requirement.
             trigger = {'trigger': 'hello-st2.event1'}
             self._container_service.dispatch(trigger, {})
 
+        # Methods required for programmable sensors.
+        def add_trigger(self, trigger):
+            pass
 
-    # Methods required for programmable sensors.
-    def add_trigger(self, trigger):
-        pass
+        def update_trigger(self, trigger):
+            pass
 
-    def update_trigger(self, trigger):
-        pass
+        def remove_trigger(self, trigger):
+            pass
 
-    def remove_trigger(self, trigger):
-        pass
+.. code-block:: bash
+
+    touch sensors/sensor1.yaml
+
+    # content of sensor1.yaml
+    ---
+    class_name: "HelloSensor"
+    entry_point: "sensor1.py"
+    description: "Simple sensor that emits triggers."
+    trigger_types:
+      -
+        name: "event1"
+        description: "An example trigger."
+        payload_schema:
+          type: "object"
+
 
 5. Add a rule
 
@@ -168,7 +178,7 @@ Lets leave these empty for now and fill them in as per requirement.
        description: "Sample rule firing on hello-st2.event1."
 
        trigger:
-           type: "hello-st2.event1
+           type: "hello-st2.event1"
 
        action:
            ref: "hello-st2.hello"

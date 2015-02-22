@@ -166,7 +166,7 @@ def create_trigger_db_from_rule(rule):
     if not trigger_dict.get('parameters', {}) and not existing_trigger_db:
         raise TriggerDoesNotExistException(
             'A simple trigger should have been created when registering '
-            + 'triggertype. Cannot create trigger: %s.' % trigger_dict)
+            'triggertype. Cannot create trigger: %s.' % (trigger_dict))
 
     if not existing_trigger_db:
         return create_or_update_trigger_db(trigger_dict)

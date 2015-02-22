@@ -17,7 +17,7 @@ import datetime
 import mock
 
 from st2common.models.db.reactor import TriggerInstanceDB
-from st2common.models.db.action import ActionExecutionDB
+from st2common.models.db.action import LiveActionDB
 from st2common.services import action as action_service
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
@@ -40,10 +40,10 @@ MOCK_TRIGGER_INSTANCE.id = 'triggerinstance-test'
 MOCK_TRIGGER_INSTANCE.payload = {'t1_p': 't1_p_v'}
 MOCK_TRIGGER_INSTANCE.occurrence_time = datetime.datetime.utcnow()
 
-MOCK_ACTION_EXECUTION = ActionExecutionDB()
-MOCK_ACTION_EXECUTION.id = 'actionexec-test-1.id'
-MOCK_ACTION_EXECUTION.name = 'actionexec-test-1.name'
-MOCK_ACTION_EXECUTION.status = 'scheduled'
+MOCK_LIVEACTION = LiveActionDB()
+MOCK_LIVEACTION.id = 'liveaction-test-1.id'
+MOCK_LIVEACTION.name = 'liveaction-test-1.name'
+MOCK_LIVEACTION.status = 'scheduled'
 
 
 class EnforceTest(DbTestCase):
@@ -63,14 +63,14 @@ class EnforceTest(DbTestCase):
             cls.models['triggers']['trigger1.json'])
 
     @mock.patch.object(action_service, 'schedule', mock.MagicMock(
-        return_value=MOCK_ACTION_EXECUTION))
+        return_value=(MOCK_LIVEACTION, None)))
     def test_ruleenforcement_occurs(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule1.json'])
         execution_id = enforcer.enforce()
         self.assertTrue(execution_id is not None)
 
     @mock.patch.object(action_service, 'schedule', mock.MagicMock(
-        return_value=MOCK_ACTION_EXECUTION))
+        return_value=(MOCK_LIVEACTION, None)))
     def test_ruleenforcement_casts(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule2.json'])
         execution_id = enforcer.enforce()

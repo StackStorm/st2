@@ -323,8 +323,9 @@ class ResourceCreateCommand(ResourceCommand):
             self.print_output(instance, table.PropertyValueTable,
                               attributes=['all'], json=args.json)
         except Exception as e:
-            print('ERROR: %s' % e.message)
-            raise OperationFailureException(e.message)
+            message = e.message or str(e)
+            print('ERROR: %s' % (message))
+            raise OperationFailureException(message)
 
 
 class ResourceUpdateCommand(ResourceCommand):

@@ -1,11 +1,20 @@
 #!/bin/bash
 set -e
 
+function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" == "$1"; }
+
 if [ -z $1 ]
 then
   VER='0.6.0'
 else
   VER=$1
+fi
+
+# Determine which mistral version to use
+if version_ge $VER "0.8"; then
+    MISTRAL_STABLE_BRANCH="st2-0.8.0"
+else
+    MISTRAL_STABLE_BRANCH="st2-0.5.1"
 fi
 
 RABBIT_PUBLIC_KEY="rabbitmq-signing-key-public.asc"
@@ -142,6 +151,9 @@ touch $config
 cat <<mistral_config >$config
 [database]
 connection=mysql://mistral:StackStorm@localhost/mistral
+max_pool_size=100
+max_overflow=400
+pool_recycle=3600
 
 [pecan]
 auth_enable=false
@@ -166,13 +178,13 @@ if [ -e "$upstart" ]; then
 fi
 touch $upstart
 cat <<mistral_upstart >$upstart
-description "OpenStack Workflow Service"
+description "Mistral Workflow Service"
+
 start on runlevel [2345]
 stop on runlevel [016]
 respawn
-script
-    /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-config-append /etc/mistral/wf_trace_logging.conf
-end script
+
+exec /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-config-append /etc/mistral/wf_trace_logging.conf
 mistral_upstart
 }
 
@@ -213,7 +225,7 @@ setup_mistral() {
   if [ -d "/opt/openstack/mistral" ]; then
     rm -r /opt/openstack/mistral
   fi
-  git clone -b st2-0.5.1 https://github.com/StackStorm/mistral.git
+  git clone -b ${MISTRAL_STABLE_BRANCH} https://github.com/StackStorm/mistral.git
 
   # Setup virtualenv for running mistral.
   cd /opt/openstack/mistral
@@ -229,7 +241,7 @@ setup_mistral() {
     rm -r /etc/mistral/actions/st2mistral
   fi
   cd /etc/mistral/actions
-  git clone -b st2-0.5.1 https://github.com/StackStorm/st2mistral.git
+  git clone -b ${MISTRAL_STABLE_BRANCH} https://github.com/StackStorm/st2mistral.git
   cd /etc/mistral/actions/st2mistral
   python setup.py develop
 
@@ -254,7 +266,7 @@ setup_mistral() {
   deactivate
 
   # Setup mistral client.
-  pip install -U git+https://github.com/StackStorm/python-mistralclient.git@st2-0.5.1
+  pip install -U git+https://github.com/StackStorm/python-mistralclient.git@${MISTRAL_STABLE_BRANCH}
 }
 
 download_pkgs() {

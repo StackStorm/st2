@@ -1,0 +1,15 @@
+{
+    "name": "mistral-handle-error",
+    "pack": "examples",
+    "runner_type": "mistral-v2",
+    "description": "Workflow example for error handling.",
+    "enabled": true,
+    "entry_point":"workflows/mistral-handle-error.yaml",
+    "parameters": {
+        "cmd": {
+            "type": "string",
+            "default": "foobar",
+            "immutable": true
+        }
+    }
+}

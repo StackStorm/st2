@@ -1,0 +1,30 @@
+version: "2.0"
+name: "examples.mistral-workbook-subflows"
+
+workflows:
+
+    main:
+        type: direct
+        input:
+            - subject
+            - adjective
+        output:
+            tagline: "<% $.printed_subject %> is <% $.printed_adjective %>!"
+        task-defaults:
+          on-error:
+            - fail
+        tasks:
+            print_subject:
+                action: examples.mistral-basic
+                input:
+                    cmd: "printf '<% $.subject %>'"
+                publish:
+                    printed_subject: <% $.print_subject.stdout %>
+                on-success:
+                    - print_adjective
+            print_adjective:
+                action: examples.mistral-basic
+                input:
+                    cmd: "printf '<% $.adjective %>'"
+                publish:
+                    printed_adjective: <% $.print_adjective.stdout %>

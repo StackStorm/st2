@@ -63,8 +63,16 @@ class DSLTransformTestCase(DbTestCase):
     def setUpClass(cls):
         super(DSLTransformTestCase, cls).setUpClass()
         runners_registrar.register_runner_types()
+
         action_local = ActionAPI(**copy.deepcopy(FIXTURES['actions']['local.json']))
         Action.add_or_update(ActionAPI.to_model(action_local))
+
+        for action_name in ['action1', 'action2', 'action3']:
+            metadata = copy.deepcopy(FIXTURES['actions']['local.json'])
+            metadata['name'] = action_name
+            metadata['pack'] = 'demo'
+            action = ActionAPI(**metadata)
+            Action.add_or_update(ActionAPI.to_model(action))
 
     @staticmethod
     def _read_file_content(path):

@@ -32,17 +32,17 @@ class TestWorkflowExecution(unittest2.TestCase):
         self.assertGreaterEqual(multiprocessing.cpu_count(), 2)
 
     def _execute_workflow(self, action, parameters):
-        execution = models.ActionExecution(action=action, parameters=parameters)
-        execution = self.st2client.executions.create(execution)
+        execution = models.LiveAction(action=action, parameters=parameters)
+        execution = self.st2client.liveactions.create(execution)
         self.assertIsNotNone(execution.id)
-        self.assertEqual(execution.action, action)
+        self.assertEqual(execution.action['ref'], action)
         self.assertIn(execution.status, ['scheduled', 'running'])
         return execution
 
-    def _wait_for_completion(self, execution, wait=20):
+    def _wait_for_completion(self, execution, wait=300):
         for i in range(wait):
             eventlet.sleep(1)
-            execution = self.st2client.executions.get_by_id(execution.id)
+            execution = self.st2client.liveactions.get_by_id(execution.id)
             if execution.status in ['succeeded', 'failed']:
                 break
         return execution
@@ -88,6 +88,19 @@ class TestWorkflowExecution(unittest2.TestCase):
         self._assert_success(execution)
         self.assertIn('tagline', execution.result)
         self.assertEqual(execution.result['tagline'], 'st2 is cool!')
+
+    def test_concurrent_load(self):
+        wf_name = 'examples.mistral-workbook-complex'
+        wf_params = {'vm_name': 'demo1'}
+        executions = [self._execute_workflow(wf_name, wf_params) for i in range(20)]
+
+        eventlet.sleep(10)
+
+        for execution in executions:
+            execution = self._wait_for_completion(execution)
+            self._assert_success(execution)
+            self.assertIn('vm_id', execution.result)
+            self.assertIn('vm_state', execution.result)
 
     def test_execution_failure(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'foo'})

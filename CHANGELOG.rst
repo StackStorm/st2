@@ -37,6 +37,27 @@ Docs: http://docks.stackstorm.com/latest
   improve running time of API request. (bug-fix)
 * CLI commands to return non-zero exit codes for failed operations (new-feature)
 * Fix a bug with template rendering, under some conditions, ending in an infinite loop. (bug-fix)
+* Rename ActionExecution to LiveAction. (refactor)
+* Rename ActionExecutionHistory to ActionExecution. (refactor)
+* A separate history process is no longer required. ActionExecution updates are carried at time of
+  update to LiveAction. (refactor)
+* Add new ``nequals`` (``neq``) rule criteria operator. This criteria operator
+  performs not equals check on values of an arbitrary type. (new-feature)
+* Mistral subworkflows kicked off in st2 should include task name. (bug-fix)
+* Add new ``execution re-run <execution id>`` CLI command for re-running an
+  existing action. (new-feature)
+* Dispatch an internal trigger when a sensor process is spawned / started
+  (``st2.sensor.process_spawn``) and when a process exits / is stopped
+  (``st2.sensor.process_exit``).
+* Update HTTP runner to automatically parse JSON response body if Content-Type is
+  ``application/json`` (new-feature)
+* API url /v1/actionexecutions/ is now deprecated in favor of /v1/executions/ (refactor)
+* API url change /v1/history/execution to /v1/executions (refactor)
+* API url change /v1/history/execution/views/filters to /v1/executions/views/filters (refactor)
+* POST to /v1/executions take LiveActionAPI but returns ActionExecutionAPI
+* Support for filtering by timestamp and status in executions list.
+* Execution list shows only top level executions by default to see full list use --showall.
+* Ability to see child tasks of any execution.
 
 v0.7 - January 16, 2015
 -----------------------

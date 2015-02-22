@@ -8,9 +8,17 @@ from st2common import log as logging
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
+from st2common.transport.utils import register_exchanges
 from st2reactor.rules import config
 from st2reactor.rules import worker
 from st2reactor.timer.base import St2Timer
+
+eventlet.monkey_patch(
+    os=True,
+    select=True,
+    socket=True,
+    thread=False if '--use-debugger' in sys.argv else True,
+    time=True)
 
 LOG = logging.getLogger('st2reactor.bin.rulesengine')
 
@@ -32,6 +40,7 @@ def _setup():
     password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
              username=username, password=password)
+    register_exchanges()
 
 
 def _teardown():

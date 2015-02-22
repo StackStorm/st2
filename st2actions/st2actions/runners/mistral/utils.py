@@ -27,27 +27,45 @@ from st2common.persistence.action import Action
 
 LOG = logging.getLogger(__name__)
 
-REGEX_ACTION = re.compile("^[\w\.]+[^=\s\"]*")
-REGEX_ACTION_PARAMS = re.compile("([\w]+)=(\"[^\"]*\"\s*|'[^']*'\s*|"
-                                 "\{[^}]*\}\s*|\[.*\]\s*|[\.,:\w\d\.]+)")
+
+CMD_PTRN = re.compile("^[\w\.]+[^=\s\"]*")
+
+INLINE_YAQL = '<%.*?%>'
+_ALL_IN_BRACKETS = "\[.*\]\s*"
+_ALL_IN_QUOTES = "\"[^\"]*\"\s*"
+_ALL_IN_APOSTROPHES = "'[^']*'\s*"
+_DIGITS = "\d+"
+_TRUE = "true"
+_FALSE = "false"
+_NULL = "null"
+
+ALL = (
+    _ALL_IN_QUOTES, _ALL_IN_APOSTROPHES, INLINE_YAQL,
+    _ALL_IN_BRACKETS, _TRUE, _FALSE, _NULL, _DIGITS
+)
+
+PARAMS_PTRN = re.compile("([\w]+)=(%s)" % "|".join(ALL))
 
 
 def _parse_cmd_and_input(cmd_str):
-    cmd_matcher = REGEX_ACTION.search(cmd_str)
+    cmd_matcher = CMD_PTRN.search(cmd_str)
 
     if not cmd_matcher:
-        raise ValueError('Invalid action/workflow task property: %s' % cmd_str)
+        raise ValueError("Invalid action/workflow task property: %s" % cmd_str)
 
     cmd = cmd_matcher.group()
 
     params = {}
-    for k, v in re.findall(REGEX_ACTION_PARAMS, cmd_str):
+    for k, v in re.findall(PARAMS_PTRN, cmd_str):
+        # Remove embracing quotes.
         v = v.strip()
-
-        try:
-            v = json.loads(v)
-        except Exception:
-            pass
+        if v[0] == '"' or v[0] == "'":
+            v = v[1:-1]
+        else:
+            try:
+                v = json.loads(v)
+            except Exception:
+                pass
 
         params[k] = v
 
@@ -96,8 +114,8 @@ def _transform_action(spec, action_key, input_key):
     #
     # action: some_action
     # input:
-    #   var1: $.value1
-    #   var2: $.value2
+    #   var1: <% $.value1 %>
+    #   var2: <% $.value2 %>
     #
     # This step to separate the action name and the input parameters is required
     # to wrap them with the st2.action proxy.
@@ -106,8 +124,8 @@ def _transform_action(spec, action_key, input_key):
     # input:
     #   ref: some_action
     #   parameters:
-    #     var1: $.value1
-    #     var2: $.value2
+    #     var1: <% $.value1 %>
+    #     var2: <% $.value2 %>
     _eval_inline_params(spec, action_key, input_key)
 
     action_ref = spec.get(action_key)

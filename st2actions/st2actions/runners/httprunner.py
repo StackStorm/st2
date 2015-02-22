@@ -25,7 +25,7 @@ from six.moves.urllib import parse as urlparse
 from st2actions.runners import ActionRunner
 from st2common import __version__ as st2_version
 from st2common import log as logging
-from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 
 LOG = logging.getLogger(__name__)
 SUCCESS_STATUS_CODES = [code for code in range(200, 207)]
@@ -50,6 +50,10 @@ FILE_NAME = 'file_name'
 FILE_CONTENT = 'file_content'
 FILE_CONTENT_TYPE = 'file_content_type'
 
+RESPONSE_BODY_PARSE_FUNCTIONS = {
+    'application/json': json.loads
+}
+
 
 def get_runner():
     return HttpRunner(str(uuid.uuid4()))
@@ -62,7 +66,7 @@ class HttpRunner(ActionRunner):
         self._timeout = 60
 
     def pre_run(self):
-        LOG.debug('Entering HttpRunner.pre_run() for actionexec_id="%s"', self.action_execution_id)
+        LOG.debug('Entering HttpRunner.pre_run() for liveaction_id="%s"', self.liveaction_id)
         LOG.debug('    runner_parameters = %s', self.runner_parameters)
         self._on_behalf_user = self.runner_parameters.get(RUNNER_ON_BEHALF_USER,
                                                           self._on_behalf_user)
@@ -135,8 +139,8 @@ class HttpRunner(ActionRunner):
 
     @staticmethod
     def _get_result_status(status_code):
-        return ACTIONEXEC_STATUS_SUCCEEDED if status_code in SUCCESS_STATUS_CODES \
-            else ACTIONEXEC_STATUS_FAILED
+        return LIVEACTION_STATUS_SUCCEEDED if status_code in SUCCESS_STATUS_CODES \
+            else LIVEACTION_STATUS_FAILED
 
 
 class HTTPClient(object):
@@ -202,9 +206,13 @@ class HTTPClient(object):
                 files=self.files
             )
 
+            headers = dict(resp.headers)
+            body, parsed = self._parse_response_body(headers=headers, body=resp.text)
+
             results['status_code'] = resp.status_code
-            results['body'] = resp.text
-            results['headers'] = dict(resp.headers)
+            results['body'] = body
+            results['parsed'] = parsed  # flag which indicates if body has been parsed
+            results['headers'] = headers
             return results
         except Exception as e:
             LOG.exception('Exception making request to remote URL: %s, %s', self.url, e)
@@ -212,6 +220,38 @@ class HTTPClient(object):
         finally:
             if resp:
                 resp.close()
+
+    def _parse_response_body(self, headers, body):
+        """
+        :param body: Response body.
+        :type body: ``str``
+
+        :return: (parsed body, flag which indicates if body has been parsed)
+        :rtype: (``object``, ``bool``)
+        """
+        body = body or ''
+        headers = self._normalize_headers(headers=headers)
+        content_type = headers.get('content-type', None)
+        parsed = False
+
+        if not content_type:
+            return (body, parsed)
+
+        parse_func = RESPONSE_BODY_PARSE_FUNCTIONS.get(content_type, None)
+
+        if not parse_func:
+            return (body, parsed)
+
+        LOG.debug('Parsing body with content type: %s', content_type)
+
+        try:
+            body = parse_func(body)
+        except Exception:
+            LOG.exception('Failed to parse body')
+        else:
+            parsed = True
+
+        return (body, parsed)
 
     def _normalize_headers(self, headers):
         """

@@ -29,6 +29,10 @@ def equals(value, criteria_pattern):
     return value == criteria_pattern
 
 
+def nequals(value, criteria_pattern):
+    return value != criteria_pattern
+
+
 def iequals(value, criteria_pattern):
     return value.lower() == criteria_pattern.lower()
 
@@ -111,6 +115,8 @@ def timediff_gt(value, criteria_pattern):
 MATCH_REGEX = 'matchregex'
 EQUALS_SHORT = 'eq'
 EQUALS_LONG = 'equals'
+NEQUALS_LONG = 'nequals'
+NEQUALS_SHORT = 'neq'
 IEQUALS_SHORT = 'ieq'
 IEQUALS_LONG = 'iequals'
 CONTAINS_LONG = 'contains'
@@ -135,6 +141,8 @@ operators = {
     MATCH_REGEX: match_regex,
     EQUALS_SHORT: equals,
     EQUALS_LONG: equals,
+    NEQUALS_SHORT: nequals,
+    NEQUALS_LONG: nequals,
     IEQUALS_SHORT: iequals,
     IEQUALS_LONG: iequals,
     CONTAINS_LONG: contains,
