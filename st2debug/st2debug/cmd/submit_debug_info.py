@@ -378,12 +378,18 @@ def create_and_upload_archive(include_logs, include_configs, include_content, in
         upload_archive(archive_file_path=encrypted_output_path)
     except Exception:
         LOG.exception('Failed to upload tarball to StackStorm', exc_info=True)
+        plain_text_output_path = None
+        encrypted_output_path = None
     else:
         LOG.info('Debug tarball successfully uploaded to StackStorm')
     finally:
         # Remove tarballs
-        remove_file(file_path=plain_text_output_path)
-        remove_file(file_path=encrypted_output_path)
+        if plain_text_output_path:
+            assert(plain_text_output_path.startswith('/tmp'))
+            remove_file(file_path=plain_text_output_path)
+        if encrypted_output_path:
+            assert(encrypted_output_path.startswith('/tmp'))
+            remove_file(file_path=encrypted_output_path)
 
 
 def main():
