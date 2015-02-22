@@ -44,6 +44,7 @@ import six
 import yaml
 import gnupg
 import requests
+from distutils.spawn import find_executable
 
 import st2common
 from st2common.content.utils import get_packs_base_paths
@@ -67,6 +68,8 @@ from st2debug.processors import process_content_pack_dir
 LOG = logging.getLogger(__name__)
 
 # Constants
+GPG_INSTALLED = find_executable('gpg') is not None
+
 ST2_LOG_FILES_PATH = '/var/log/st2/*.log'
 MISTRAL_LOG_FILES_PATH = '/var/log/mistral*.log'
 
@@ -427,6 +430,13 @@ def main():
     submited_content = ', '.join(submited_content)
 
     if not args.yes and not args.review:
+        # When not running in review mode, GPG needs to be installed and
+        # available
+        if not GPG_INSTALLED:
+            msg = ('"gpg" binary not found, can\'t proceed. Make sure "gpg" is installed '
+                   'and available in PATH.')
+            raise ValueError(msg)
+
         print('This will submit the following information to StackStorm: %s' % (submited_content))
         value = six.moves.input('Are you sure you want to proceed? [y/n] ')
         if value.strip().lower() not in ['y', 'yes']:
