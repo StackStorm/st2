@@ -60,12 +60,21 @@ class TestRuleController(FunctionalTest):
         resp = self.app.get('/v1/rules')
         self.assertEqual(resp.status_int, http_client.OK)
 
-    def test_get_one(self):
+    def test_get_one_by_id(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)
         rule_id = self.__get_rule_id(post_resp)
         get_resp = self.__do_get_one(rule_id)
         self.assertEqual(get_resp.status_int, http_client.OK)
         self.assertEqual(self.__get_rule_id(get_resp), rule_id)
+        self.__do_delete(rule_id)
+
+    def test_get_one_by_name(self):
+        post_resp = self.__do_post(TestRuleController.RULE_1)
+        rule_name = post_resp.json['name']
+        rule_id = post_resp.json['id']
+        get_resp = self.__do_get_one(rule_name)
+        self.assertEqual(get_resp.json['name'], rule_name)
+        self.assertEqual(get_resp.status_int, http_client.OK)
         self.__do_delete(rule_id)
 
     def test_get_one_fail(self):
