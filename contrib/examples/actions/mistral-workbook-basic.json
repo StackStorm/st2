@@ -6,6 +6,16 @@
     "enabled": true,
     "entry_point":"workflows/mistral-workbook-basic.yaml",
     "parameters": {
+        "workflow": {
+            "type": "string",
+            "default": null,
+            "immutable": true
+        },
+        "task": {
+            "type": "string",
+            "default": null,
+            "immutable": true
+        },
         "cmd": {
             "type": "string",
             "required": true

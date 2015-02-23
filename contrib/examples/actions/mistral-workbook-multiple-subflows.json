@@ -10,6 +10,11 @@
             "type": "string",
             "default": "examples.mistral-workbook-multiple-subflows.main",
             "immutable": true
+        },
+        "task": {
+            "type": "string",
+            "default": null,
+            "immutable": true
         }
     }
 }

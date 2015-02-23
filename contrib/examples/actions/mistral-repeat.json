@@ -6,6 +6,16 @@
     "enabled": true,
     "entry_point":"workflows/mistral-repeat.yaml",
     "parameters": {
+        "workflow": {
+            "type": "string",
+            "default": null,
+            "immutable": true
+        },
+        "task": {
+            "type": "string",
+            "default": null,
+            "immutable": true
+        },
         "count": {
             "type": "integer",
             "default": 3
