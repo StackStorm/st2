@@ -181,7 +181,7 @@ class SensorService(object):
         client.keys.update(instance=instance)
         return True
 
-    def delete_value(self, name):
+    def delete_value(self, name, local=True):
         """
         Delete the provided key.
 
