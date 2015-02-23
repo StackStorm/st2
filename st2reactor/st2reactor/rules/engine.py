@@ -37,7 +37,8 @@ class RulesEngine(object):
         trigger = trigger_instance.trigger
         trigger = get_trigger_db_by_ref(trigger_instance.trigger)
         rules = Rule.query(trigger=trigger_instance.trigger, enabled=True)
-        LOG.info('Found %d rules defined for trigger %s', len(rules), trigger['name'])
+        LOG.info('Found %d rules defined for trigger %s (type=%s)', len(rules), trigger['name'],
+                 trigger['type'])
         matcher = RulesMatcher(trigger_instance=trigger_instance,
                                trigger=trigger, rules=rules)
 
