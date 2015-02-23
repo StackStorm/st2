@@ -9,6 +9,8 @@ mysql -uroot -pStackStorm -e "DROP DATABASE IF EXISTS mistral"
 mysql -uroot -pStackStorm -e "CREATE DATABASE mistral"
 mysql -uroot -pStackStorm -e "GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'localhost' IDENTIFIED BY 'StackStorm'"
 mysql -uroot -pStackStorm -e "FLUSH PRIVILEGES"
+
+cd /opt/openstack/mistral
 python ./tools/sync_db.py --config-file /etc/mistral/mistral.conf
 
 echo "Re-initializing DBs..."
