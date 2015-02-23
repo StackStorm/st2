@@ -168,6 +168,8 @@ Custom rules can be placed in ``/opt/stackstorm/packs/default/rules`` and regist
 * Explore automations on `st2contrib`_ community repo.
 * Learn more about :doc:`sensors`.
 
+.. _testing-rules:
+
 Testing Rules
 -------------
 
