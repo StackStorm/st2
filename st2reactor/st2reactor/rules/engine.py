@@ -43,8 +43,8 @@ class RulesEngine(object):
                                trigger=trigger, rules=rules)
 
         matching_rules = matcher.get_matching_rules()
-        LOG.info('Matched %s rule(s) for trigger_instance %s.', len(matching_rules),
-                 trigger['name'])
+        LOG.info('Matched %s rule(s) for trigger_instance %s (type=%s)', len(matching_rules),
+                 trigger['name'], trigger['type'])
         return matching_rules
 
     def create_rule_enforcers(self, trigger_instance, matching_rules):
