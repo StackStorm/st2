@@ -17,7 +17,7 @@ workflows:
                     retry:
                         count: 10
                         delay: 2
-                on-complete:
+                on-success:
                     - delete-file
             create-file:
                 action: core.local
@@ -25,10 +25,7 @@ workflows:
                     cmd: "touch /tmp/done"
                 policies:
                     wait-before: 10
-                on-complete:
-                    - delete-file
             delete-file:
-                join: all
                 action: core.local
                 input:
                     cmd: "rm -f /tmp/done"
