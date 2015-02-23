@@ -58,6 +58,9 @@ Docs: http://docks.stackstorm.com/latest
 * Support for filtering by timestamp and status in executions list.
 * Execution list shows only top level executions by default to see full list use --showall.
 * Ability to see child tasks of any execution.
+* Allow sensors to manage global datastore items via sensor_service by passing ``local=False``
+  argument to the ``get_value``, ``set_value`` and ``delete_value`` methods. (new-feature)
+* Allow sensors to list datastore items using ``list_values`` sensor_service method. (new-feature)
 
 v0.7 - January 16, 2015
 -----------------------
