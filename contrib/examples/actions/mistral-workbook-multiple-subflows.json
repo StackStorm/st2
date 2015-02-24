@@ -15,6 +15,11 @@
             "type": "string",
             "default": null,
             "immutable": true
+        },
+        "context": {
+            "type": "object",
+            "default": {},
+            "immutable": true
         }
     }
 }
