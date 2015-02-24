@@ -44,29 +44,29 @@ def get_runnertype_by_id(runnertype_id):
 
 
 def get_runnertype_by_name(runnertype_name):
-        """
-            Get an runnertype by name.
-            On error, raise ST2ObjectNotFoundError.
-        """
-        try:
-            runnertypes = RunnerType.query(name=runnertype_name)
-        except (ValueError, ValidationError) as e:
-            LOG.error('Database lookup for name="%s" resulted in exception: %s',
-                      runnertype_name, e)
-            raise StackStormDBObjectNotFoundError('Unable to find runnertype with name="%s"'
-                                                  % runnertype_name)
+    """
+        Get an runnertype by name.
+        On error, raise ST2ObjectNotFoundError.
+    """
+    try:
+        runnertypes = RunnerType.query(name=runnertype_name)
+    except (ValueError, ValidationError) as e:
+        LOG.error('Database lookup for name="%s" resulted in exception: %s',
+                  runnertype_name, e)
+        raise StackStormDBObjectNotFoundError('Unable to find runnertype with name="%s"'
+                                              % runnertype_name)
 
-        if not runnertypes:
-            LOG.error('Database lookup for RunnerType with name="%s" produced no results',
-                      runnertype_name)
-            raise StackStormDBObjectNotFoundError('Unable to find RunnerType with name="%s"'
-                                                  % runnertype_name)
+    if not runnertypes:
+        LOG.error('Database lookup for RunnerType with name="%s" produced no results',
+                  runnertype_name)
+        raise StackStormDBObjectNotFoundError('Unable to find RunnerType with name="%s"'
+                                              % runnertype_name)
 
-        if len(runnertypes) > 1:
-            LOG.warning('More than one RunnerType returned from DB lookup by name. '
-                        'Result list is: %s', runnertypes)
+    if len(runnertypes) > 1:
+        LOG.warning('More than one RunnerType returned from DB lookup by name. '
+                    'Result list is: %s', runnertypes)
 
-        return runnertypes[0]
+    return runnertypes[0]
 
 
 def get_action_by_id(action_id):
