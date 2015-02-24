@@ -159,6 +159,7 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
         liveaction_db.end_timestamp = end_timestamp
 
     liveaction_db = LiveAction.add_or_update(liveaction_db)
+
     LOG.debug('Updated status for LiveAction object: %s', liveaction_db)
 
     return liveaction_db
