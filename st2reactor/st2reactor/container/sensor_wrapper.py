@@ -88,9 +88,15 @@ class SensorService(object):
     # Methods for datastore management
     ##################################
 
-    def list_values(self, local=True):
+    def list_values(self, local=True, prefix=None):
         """
         Retrieve all the datastores items.
+
+        :param local: List values from a namespace local to this sensor. Defaults to True.
+        :type: local: ``bool``
+
+        :param prefix: Optional key name prefix / startswith filter.
+        :type prefix: ``str``
 
         :rtype: ``list`` of :class:`KeyValuePair`
         """
@@ -98,14 +104,15 @@ class SensorService(object):
 
         self._logger.audit('Retrieving all the value from the datastore')
 
-        kvps = client.keys.get_all()
-
         if local:
-            # TODO: Support listing by prefix, add new api filter and use that
-            # instead of doing late filtering
             key_prefix = self._get_datastore_key_prefix() + self.DATASTORE_NAME_SEPARATOR
-            kvps = [kvp for kvp in kvps if kvp.name.startswith(key_prefix)]
 
+            if prefix:
+                key_prefix += prefix
+        else:
+            key_prefix = prefix
+
+        kvps = client.keys.get_all(prefix=prefix)
         return kvps
 
     def get_value(self, name, local=True):
