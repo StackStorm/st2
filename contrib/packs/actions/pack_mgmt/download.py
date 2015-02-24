@@ -38,8 +38,7 @@ class InstallGitRepoAction(Action):
         Repo.clone_from(repo_url, abs_local_path)
         return abs_local_path
 
-    @staticmethod
-    def _move_packs(abs_repo_base, packs, abs_local_path):
+    def _move_packs(self, abs_repo_base, packs, abs_local_path):
         result = {}
         # all_packs should be removed as a pack with that name is not expected to be found.
         if ALL_PACKS in packs:
@@ -48,7 +47,14 @@ class InstallGitRepoAction(Action):
             abs_pack_temp_location = os.path.join(abs_local_path, pack)
             desired, message = InstallGitRepoAction._is_desired_pack(abs_pack_temp_location, pack)
             if desired:
-                shutil.move(abs_pack_temp_location, os.path.join(abs_repo_base, pack))
+                to = abs_repo_base
+                dest_pack_path = os.path.join(abs_repo_base, pack)
+                if os.path.exists(dest_pack_path):
+                    self.logger.debug('Removing existing pack %s in %s to replace.', pack,
+                                      dest_pack_path)
+                    shutil.rmtree(dest_pack_path)
+                self.logger.debug('Moving pack from %s to %s.', abs_pack_temp_location, to)
+                shutil.move(abs_pack_temp_location, to)
                 message = 'Success.'
             elif message:
                 message = 'Failure : %s' % message
