@@ -101,7 +101,13 @@ use the sensor_container to run just that single sensor.
 
 ::
 
-    sensor_container --config-file=conf/st2.conf --sensor-name /path/to/sensor/file
+    sensor_container --config-file=conf/st2.conf --sensor-name=SensorClassName
+
+For example:
+
+::
+
+    sensor_container --config-file=conf/st2.conf --sensor-name=GitCommitSensor
 
 Examples
 ~~~~~~~~
