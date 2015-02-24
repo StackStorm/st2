@@ -112,7 +112,7 @@ class SensorService(object):
         else:
             key_prefix = prefix
 
-        kvps = client.keys.get_all(prefix=prefix)
+        kvps = client.keys.get_all(prefix=key_prefix)
         return kvps
 
     def get_value(self, name, local=True):
