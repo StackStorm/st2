@@ -122,3 +122,21 @@ class FilterTest(DbTestCase):
         rule.criteria = {'trigger.float': {'type': 'equals', 'pattern': 0.8}}
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), 'equals check should have passed.')
+
+    def test_exists(self):
+        rule = MOCK_RULE_1
+        rule.criteria = {'trigger.float': {'type': 'exists'}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), '"float" key exists in trigger. Should return true.')
+        rule.criteria = {'trigger.floattt': {'type': 'exists'}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertFalse(f.filter(), '"floattt" key ain\'t exist in trigger. Should return false.')
+
+    def test_nexists(self):
+        rule = MOCK_RULE_1
+        rule.criteria = {'trigger.float': {'type': 'nexists'}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertFalse(f.filter(), '"float" key exists in trigger. Should return false.')
+        rule.criteria = {'trigger.floattt': {'type': 'nexists'}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), '"floattt" key ain\'t exist in trigger. Should return true.')
