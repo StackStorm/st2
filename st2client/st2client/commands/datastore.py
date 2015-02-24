@@ -129,13 +129,12 @@ class KeyValuePairDeleteByPrefixCommand(resource.ResourceCommand):
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         prefix = args.prefix
-        key_pairs = self.manager.get_all()
+        key_pairs = self.manager.get_all(prefix=prefix)
 
         to_delete = []
         for key_pair in key_pairs:
-            if key_pair.name.startswith(prefix):
-                key_pair.id = key_pair.name
-                to_delete.append(key_pair)
+            key_pair.id = key_pair.name
+            to_delete.append(key_pair)
 
         deleted = []
         for key_pair in to_delete:
