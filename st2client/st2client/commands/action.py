@@ -570,7 +570,7 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                                        'output. "all" will return all '
                                        'attributes.'))
         self.parser.add_argument('-w', '--width', nargs='+', type=int,
-                                 default=[28],
+                                 default=None,
                                  help=('Set the width of columns in output.'))
 
     @add_auth_token_to_kwargs_from_cli
@@ -619,7 +619,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
 
         root_arg_grp = self.parser.add_mutually_exclusive_group()
 
-        #
+        # Filtering options
         task_list_arg_grp = root_arg_grp.add_argument_group()
         task_list_arg_grp.add_argument('--tasks', action='store_true',
                                        help='Whether to show sub-tasks of an execution.')
@@ -629,7 +629,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
         task_list_arg_grp.add_argument('-w', '--width', nargs='+', type=int, default=[28],
                                        help='Set the width of columns in output.')
 
-        #
+        # Display options
         execution_details_arg_grp = root_arg_grp.add_mutually_exclusive_group()
 
         detail_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
