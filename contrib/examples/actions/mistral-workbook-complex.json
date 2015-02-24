@@ -11,6 +11,16 @@
             "default": "examples.mistral-workbook-complex.main",
             "immutable": true
         },
+        "task": {
+            "type": "string",
+            "default": null,
+            "immutable": true
+        },
+        "context": {
+            "type": "object",
+            "default": {},
+            "immutable": true
+        },
         "vm_name": {
             "type": "string",
             "required": true
