@@ -63,7 +63,17 @@ class KeyValuePairListCommand(resource.ResourceListCommand):
         'expire_timestamp': format_isodate,
     }
 
+    def __init__(self, *args, **kwargs):
+        super(KeyValuePairListCommand, self).__init__(*args, **kwargs)
+
+        # Filter options
+        self.parser.add_argument('--prefix', help=('Only return values which name starts with the '
+                                                   ' provided prefix.'))
+
     def run_and_print(self, args, **kwargs):
+        if args.prefix:
+            kwargs['prefix'] = args.prefix
+
         instances = self.run(args, **kwargs)
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
@@ -129,13 +139,12 @@ class KeyValuePairDeleteByPrefixCommand(resource.ResourceCommand):
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         prefix = args.prefix
-        key_pairs = self.manager.get_all()
+        key_pairs = self.manager.get_all(prefix=prefix)
 
         to_delete = []
         for key_pair in key_pairs:
-            if key_pair.name.startswith(prefix):
-                key_pair.id = key_pair.name
-                to_delete.append(key_pair)
+            key_pair.id = key_pair.name
+            to_delete.append(key_pair)
 
         deleted = []
         for key_pair in to_delete:

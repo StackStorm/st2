@@ -84,16 +84,55 @@ class SensorService(object):
         """
         self._dispatcher.dispatch(trigger, payload=payload)
 
-    def get_value(self, name):
+    ##################################
+    # Methods for datastore management
+    ##################################
+
+    def list_values(self, local=True, prefix=None):
+        """
+        Retrieve all the datastores items.
+
+        :param local: List values from a namespace local to this sensor. Defaults to True.
+        :type: local: ``bool``
+
+        :param prefix: Optional key name prefix / startswith filter.
+        :type prefix: ``str``
+
+        :rtype: ``list`` of :class:`KeyValuePair`
+        """
+        client = self._get_api_client()
+
+        self._logger.audit('Retrieving all the value from the datastore')
+
+        if local:
+            key_prefix = self._get_datastore_key_prefix() + self.DATASTORE_NAME_SEPARATOR
+
+            if prefix:
+                key_prefix += prefix
+        else:
+            key_prefix = prefix
+
+        kvps = client.keys.get_all(prefix=key_prefix)
+        return kvps
+
+    def get_value(self, name, local=True):
         """
         Retrieve a value from the datastore for the provided key.
+
+        By default, value is retrieved from the namespace local to the sensor. If you want to
+        retrieve a global value from a datastore, pass local=False to this method.
 
         :param name: Key name.
         :type name: ``str``
 
+        :param local: Retrieve value from a namespace local to the sensor. Defaults to True.
+        :type: local: ``bool``
+
         :rtype: ``str`` or ``None``
         """
-        name = self._get_full_key_name(name=name)
+        if local:
+            name = self._get_key_name_with_sensor_prefix(name=name)
+
         client = self._get_api_client()
 
         self._logger.audit('Retrieving value from the datastore (name=%s)', name)
@@ -108,9 +147,12 @@ class SensorService(object):
 
         return None
 
-    def set_value(self, name, value, ttl=None):
+    def set_value(self, name, value, ttl=None, local=False):
         """
         Set a value for the provided key.
+
+        By default, value is set in a namespace local to the sensor. If you want to
+        set a global value, pass local=False to this method.
 
         :param name: Key name.
         :type name: ``str``
@@ -121,12 +163,16 @@ class SensorService(object):
         :param ttl: Optional TTL (in seconds).
         :type ttl: ``int``
 
-        :return: ``True`` on sucess, ``False`` otherwise.
+        :param local: Set value in a namespace local to the sensor. Defaults to True.
+        :type: local: ``bool``
+
+        :return: ``True`` on success, ``False`` otherwise.
         :rtype: ``bool``
         """
-        value = str(value)
+        if local:
+            name = self._get_key_name_with_sensor_prefix(name=name)
 
-        name = self._get_full_key_name(name=name)
+        value = str(value)
         client = self._get_api_client()
 
         self._logger.audit('Setting value in the datastore (name=%s)', name)
@@ -142,17 +188,25 @@ class SensorService(object):
         client.keys.update(instance=instance)
         return True
 
-    def delete_value(self, name):
+    def delete_value(self, name, local=True):
         """
         Delete the provided key.
+
+        By default, value is deleted from a namespace local to the sensor. If you want to
+        delete a global value, pass local=False to this method.
 
         :param name: Name of the key to delete.
         :type name: ``str``
 
-        :return: ``True`` on sucess, ``False`` otherwise.
+        :param local: Delete a value in a namespace local to the sensor. Defaults to True.
+        :type: local: ``bool``
+
+        :return: ``True`` on success, ``False`` otherwise.
         :rtype: ``bool``
         """
-        name = self._get_full_key_name(name=name)
+        if local:
+            name = self._get_key_name_with_sensor_prefix(name=name)
+
         client = self._get_api_client()
 
         instance = KeyValuePair()
@@ -186,8 +240,13 @@ class SensorService(object):
 
         return self._client
 
-    def _get_full_key_name(self, name):
+    def _get_key_name_with_sensor_prefix(self, name):
         """
+        Retrieve a full key name which is local to the current sensor.
+
+        :param name: Base datastore key name.
+        :type name: ``str``
+
         :rtype: ``str``
         """
         prefix = self._get_datastore_key_prefix()

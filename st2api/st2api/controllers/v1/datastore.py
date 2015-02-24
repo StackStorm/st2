@@ -33,6 +33,8 @@ class KeyValuePairController(RestController):
     Implements the REST endpoint for managing the key value store.
     """
 
+    # TODO: Port to use ResourceController
+
     @jsexpose(str)
     def get_one(self, name):
         """
@@ -69,6 +71,13 @@ class KeyValuePairController(RestController):
                 GET /keys/
         """
         LOG.info('GET all /keys/ with filters=%s', kw)
+
+        # Prefix filtering
+        prefix_filter = kw.get('prefix', None)
+
+        if prefix_filter:
+            kw['name__startswith'] = prefix_filter
+            del kw['prefix']
 
         kvp_dbs = KeyValuePair.get_all(**kw)
         kvps = [KeyValuePairAPI.from_model(kvp_db) for kvp_db in kvp_dbs]

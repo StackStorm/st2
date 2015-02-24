@@ -132,6 +132,7 @@ class ResourceManager(object):
         url = '/%s' % self.resource.get_plural_name().lower()
         limit = kwargs.pop('limit', None)
         pack = kwargs.pop('pack', None)
+        prefix = kwargs.pop('prefix', None)
 
         params = {}
         if limit and limit <= 0:
@@ -141,6 +142,9 @@ class ResourceManager(object):
 
         if pack:
             params['pack'] = pack
+
+        if prefix:
+            params['prefix'] = prefix
 
         response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != 200:
