@@ -42,6 +42,7 @@ class OperatorTest(unittest2.TestCase):
     def test_equals_string(self):
         op = operators.get_operator('equals')
         self.assertTrue(op('1', '1'), 'Failed equals.')
+        self.assertTrue(op('', ''), 'Failed equals.')
 
     def test_equals_fail(self):
         op = operators.get_operator('equals')
