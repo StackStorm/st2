@@ -132,11 +132,12 @@ class ActionExecutionsController(ResourceController):
         LOG.debug('Retrieving all action liveactions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(**kw)
 
-    def _get_children(self, id_, depth=-1):
+    def _get_children(self, id_, depth=-1, result_fmt=None):
         # make sure depth is int. Url encoding will make it a string and needs to
         # be converted back in that case.
         depth = int(depth)
         LOG.debug('retrieving children for id: %s with depth: %s', id_, depth)
         descendants = execution_service.get_descendants(actionexecution_id=id_,
-                                                        descendant_depth=depth)
+                                                        descendant_depth=depth,
+                                                        result_fmt=result_fmt)
         return [self.model.from_model(descendant) for descendant in descendants]
