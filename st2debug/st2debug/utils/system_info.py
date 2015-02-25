@@ -123,9 +123,9 @@ def get_package_list(name_startswith):
     rpm_exit_code, _, _ = run_command(cmd='rpm', shell=True)
 
     if dpkg_exit_code != 127:
-        result = get_rpm_package_list(name_startswith=name_startswith)
-    elif rpm_exit_code != 127:
         result = get_deb_package_list(name_startswith=name_startswith)
+    elif rpm_exit_code != 127:
+        result = get_rpm_package_list(name_startswith=name_startswith)
     else:
         raise Exception('Unsupported platform (dpkg or rpm binary not available)')
 
