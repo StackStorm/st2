@@ -27,7 +27,8 @@ from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.transport.utils import register_exchanges
 from st2api.listener import get_listener_if_set
 from st2api import config
-from st2api import app
+from st2api.app import get_api_app
+from st2api.app import get_webui_app
 
 
 eventlet.monkey_patch(
@@ -64,10 +65,25 @@ def _run_server():
     host = cfg.CONF.api.host
     port = cfg.CONF.api.port
 
-    LOG.info('(PID=%s) ST2 API is serving on http://%s:%s.', os.getpid(), host, port)
+    api_host = cfg.CONF.api.host
+    api_port = cfg.CONF.api.port
 
-    wsgi.server(eventlet.listen((host, port)), app.setup_app())
-    return 0
+    webui_host = api_host
+    webui_port = int(api_port) + 1
+
+    LOG.info('(PID=%s) ST2 API is serving on http://%s:%s.', os.getpid(), api_host, api_port)
+    LOG.info('(PID=%s) ST2 WebUI is serving on http://%s:%s.', os.getpid(), webui_host, webui_port)
+
+    def _run_api_server():
+        wsgi.server(eventlet.listen((api_host, api_port)), get_api_app())
+
+    def _run_webui_server():
+        wsgi.server(eventlet.listen((webui_host, webui_port)), get_webui_app())
+
+    api_thread = eventlet.spawn(_run_api_server)
+    webui_thread = eventlet.spawn(_run_webui_server)
+
+    return (api_thread.wait() and webui_thread.wait())
 
 
 def _teardown():

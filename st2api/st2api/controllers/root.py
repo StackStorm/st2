@@ -19,10 +19,21 @@ from st2common import __version__
 from st2common import log as logging
 import st2api.controllers.v1.root as v1_root
 
+__all__ = [
+    'WebUIRootController',
+    'APIRootController'
+]
+
 LOG = logging.getLogger(__name__)
 
 
-class RootController(object):
+class WebUIRootController(object):
+    @expose(generic=True, template='index.html')
+    def index(self):
+        return {}
+
+
+class APIRootController(object):
 
     def __init__(self):
         v1 = v1_root.RootController()
@@ -44,6 +55,7 @@ class RootController(object):
 
     @expose()
     def _lookup(self, *remainder):
+        # TODO: FIX this
         version = ''
         if len(remainder) > 0:
             version = remainder[0]
