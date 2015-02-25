@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mongoengine import ValidationError
-from pecan import abort
 import six
+import pecan
+from pecan import abort
+from mongoengine import ValidationError
 
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -31,7 +32,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class RuleController(resource.ContentPackResourceControler):
+class RuleController(resource.ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Rules in the system.
@@ -46,6 +47,18 @@ class RuleController(resource.ContentPackResourceControler):
     query_options = {
         'sort': ['name']
     }
+
+    @jsexpose(str)
+    def get_one(self, name_or_id):
+        try:
+            rule_db = self._get_by_name_or_id(name_or_id=name_or_id)
+        except Exception as e:
+            LOG.exception(e.message)
+            pecan.abort(http_client.NOT_FOUND, e.message)
+            return
+
+        result = self.model.from_model(rule_db)
+        return result
 
     @jsexpose(body=RuleAPI, status_code=http_client.CREATED)
     def post(self, rule):
@@ -146,3 +159,8 @@ class RuleController(resource.ContentPackResourceControler):
         except ValueError as e:
             LOG.debug('Database lookup for name="%s" resulted in exception : %s.', rule_name, e)
             return []
+
+    def _get_by_ref(self, resource_ref):
+        """
+        Note: We do this because rules don't have a pack attribute, only name.
+        """

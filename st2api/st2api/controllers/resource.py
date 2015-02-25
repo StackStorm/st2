@@ -140,6 +140,38 @@ class ResourceController(rest.RestController):
 
         return result
 
+    def _get_by_name_or_id(self, name_or_id):
+        """
+        Retrieve resource object by an id of a name.
+        """
+        resource_db = self._get_by_id(resource_id=name_or_id)
+
+        if not resource_db:
+            # Try name
+            resource_db = self._get_by_name(resource_name=name_or_id)
+
+        if not resource_db:
+            msg = 'Resource with a name of id "%s" not found' % (name_or_id)
+            raise Exception(msg)
+
+        return resource_db
+
+    def _get_by_id(self, resource_id):
+        try:
+            resource_db = self.access.get_by_id(resource_id)
+        except Exception:
+            resource_db = None
+
+        return resource_db
+
+    def _get_by_name(self, resource_name):
+        try:
+            resource_db = self.access.get_by_name(resource_name)
+        except Exception:
+            resource_db = None
+
+        return resource_db
+
 
 class ContentPackResourceControler(ResourceController):
     include_reference = False
