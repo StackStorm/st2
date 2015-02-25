@@ -147,7 +147,7 @@ class SensorService(object):
 
         return None
 
-    def set_value(self, name, value, ttl=None, local=False):
+    def set_value(self, name, value, ttl=None, local=True):
         """
         Set a value for the provided key.
 
