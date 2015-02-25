@@ -45,9 +45,11 @@ class ExecutionResult(formatters.Formatter):
         if key:
             output = jsutil.get_value(entry.result, key)
         else:
+            # drop entry to the dict so that jsutil can operate
+            entry = vars(entry)
             output = ''
             for attr in attrs:
-                value = getattr(entry, attr, None)
+                value = jsutil.get_value(entry, attr)
                 if (isinstance(value, basestring) and len(value) > 0 and
                         value[0] in ['{', '['] and value[len(value) - 1] in ['}', ']']):
                     new_value = ast.literal_eval(value)
