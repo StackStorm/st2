@@ -2,7 +2,7 @@ Triggers and Sensors
 =====================
 
 Sensors
-~~~~~~~~
+-------
 
 Sensors are essentially adapters that are a way to integrate |st2|
 with an external system so that triggers can be injected into |st2|
@@ -11,7 +11,7 @@ of Python code and have to follow the |st2| defined sensor interface
 requirements to be successfully run.
 
 Triggers
-~~~~~~~~
+--------
 
 Triggers are |st2| constructs that identify the incoming events to |st2|.
 A trigger is a tuple of type (string) and optional parameters (object).
@@ -22,7 +22,7 @@ registered independently. You don't have to write a sensor.
 .. _ref-sensors-authoring-a-sensor:
 
 Authoring a sensor
-~~~~~~~~~~~~~~~~~~
+------------------
 
 Authoring a sensor involves authoring a python file and a yaml meta file
 that defines the sensor. An example meta file is shown below.
@@ -34,18 +34,14 @@ Corresponding simple sensor python implementation is shown below.
 
 .. literalinclude:: ../../contrib/examples/sensors/sample_sensor.py
 
-
 It shows a bare minimum version of how a sensor would look like. Your
 sensor should generate triggers of the form (python dict):
 
-::
+.. sourcecode:: python
 
-    {
-        'name': 'name of the trigger you register in get_trigger_types() method. required.', # execution_trigger
-        'pack': 'pack that contains this sensor', # examples
-        'payload' : { # required field. contents can be empty.
-            'executed_at': '2014-08-01T00:00:00.000000Z'
-        }
+    trigger = 'pack.name'
+    payload = {
+        'executed_at': '2014-08-01T00:00:00.000000Z'
     }
 
 The sensor would inject such triggers by using the sensor\_service
@@ -53,7 +49,7 @@ passed into the sensor on instantiation.
 
 .. code:: python
 
-    self._sensor_service.dispatch(trigger, payload)
+    self._sensor_service.dispatch(trigger=trigger, payload=payload)
 
 If you want a sensor that polls an external system at regular intervals, you
 would use a PollingSensor instead of Sensor as the base class.
@@ -63,10 +59,130 @@ would use a PollingSensor instead of Sensor as the base class.
 For a complete implementation of a sensor that actually injects triggers
 into the system, look at the `examples <#Examples>`__ section.
 
+Sensor service
+--------------
 
+As you can see in the example above, each sensor class gets passed
+``sensor_service`` argument to the class constructor on instantiation.
+
+Sensor service provides different services to the sensor via public methods.
+The most important one is ``dispatch`` method which allows sensors to inject
+triggers into the system.
+
+All the provided methods are described bellow.
+
+Common operations
+-----------------
+
+1. dispatch(trigger, payload)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This method allows sensor to inject triggers into the system.
+
+For example:
+
+.. code:: python
+
+    trigger = 'pack.name'
+    payload = {
+        'executed_at': '2014-08-01T00:00:00.000000Z'
+    }
+
+    self._sensor_service.dispatch(trigger=trigger, payload=payload)
+
+2. get_logger(name)
+~~~~~~~~~~~~~~~~~~~
+
+This method allows sensor instance to retrieve logger instance which is specific
+to that sensor.
+
+For example:
+
+.. code:: python
+
+    self._logger = self._sensor_service.get_logger(name=self.__class__.__name__)
+    self._logger.debug('Polling 3rd party system for information')
+
+Datastore management operations
+-------------------------------
+
+In addition to the trigger injection, sensor service also provides
+functionality for reading and manipulating the :doc:`datastore <datastore>`.
+
+Each sensor has a namespace which is local to it and by default, all the
+datastore operations operate on  the keys in that sensor-local namespace.
+If you want to operate on a global namespace, you need to pass ``local=False``
+argument to the datastore manipulation method.
+
+Among other reasons, this functionality is useful if you want to persist
+temporary data between sensor runs.
+
+A good example of this functionality in action is ``TwitterSensor``. Twitter
+sensor persist the id of the last processed tweet after every poll in the
+datastore. This way if the sensor is restarted or if it crashes, the sensor
+can it resume from where it left off without injecting duplicated triggers into
+the system.
+
+For implementation, see the following page - https://github.com/StackStorm/st2contrib/blob/master/packs/twitter/sensors/twitter_search_sensor.py#L56
+
+1. list_values(local=True, prefix=None)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This method allows you to list the values in the datastore. You can also filter
+by key name prefix (key name starts with) by passing ``prefix`` argument to the
+method.
+
+For example:
+
+.. code:: python
+
+    kvps = self._sensor_service.list_values(local=False, prefix='cmdb.')
+
+    for kvp in kvps:
+        print(kvp.name)
+        print(kvp.value)
+
+2. get_value(name, local=True)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This method allows you to retrieve a single value from the datastore.
+
+For example:
+
+.. code:: python
+
+    kvp = self._sensor_service.get_value('cmdb.api_host')
+    print(kvp.name)
+
+3. set_value(name, value, ttl=None, local=True)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This method allows you to store (set) a value in the datastore. Optionally you
+can also specify time to live (TTL) for the stored value.
+
+.. code:: python
+
+    last_id = 12345
+    self._sensor_service.set_value(name='last_id', value=str(last_id))
+
+4. delete_value(name, local=True)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This method allows you to delete an existing value from a datastore. If a value
+is not found this method will return ``False``, ``True`` otherwise.
+
+.. code:: python
+
+    self._sensor_service.delete_value(name='my_key')
+
+API Docs
+~~~~~~~~
+
+.. autoclass:: st2reactor.container.sensor_wrapper.SensorService
+    :members:
 
 Running your first sensor
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 Once you write your own sensor, the following steps can be used to run your sensor for the first time.
 
@@ -94,7 +210,7 @@ Once you like your sensor, you can promote it to a pack (if required) by creatin
 /opt/stackstorm/packs/${pack_name}/sensors/. See :doc:`/reference/packs` for how to create a pack.
 
 Debugging a sensor from a pack
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 
 If you just want to run a single sensor from a pack and the sensor is already registered, you can
 use the sensor_container to run just that single sensor.
@@ -110,10 +226,10 @@ For example:
     sensor_container --config-file=conf/st2.conf --sensor-name=GitCommitSensor
 
 Examples
-~~~~~~~~
+--------
 
 EC2 health check sensor
-^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~
 
 This `EC2
 sensor <https://github.com/StackStorm/st2contrib/blob/master/packs/aws/sensors/ec2instancestatussensor.py>`_ uses
@@ -121,7 +237,7 @@ boto library to talk to AWS and emits the health of instances as
 triggers.
 
 Advanced examples
-~~~~~~~~~~~~~~~~~
+-----------------
 
 For more examples, please see sensors in the `st2contrib repo
 <https://github.com/StackStorm/st2contrib/tree/master/packs>`__.
