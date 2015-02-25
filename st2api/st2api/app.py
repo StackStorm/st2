@@ -63,7 +63,10 @@ def setup_app(config=None):
                          hooks=active_hooks,
                          **app_conf
                          )
-    app = StaticFileMiddleware(app=app, directory=opts.static_root)
+
+    if cfg.CONF.api.serve_webui_files:
+        LOG.info('Serving WebUi at /webui/index.html')
+        app = StaticFileMiddleware(app=app, directory=opts.static_root)
 
     LOG.info('%s app created.' % __name__)
 

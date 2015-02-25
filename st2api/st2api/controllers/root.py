@@ -15,6 +15,7 @@
 
 from pecan import expose
 from pecan.core import redirect
+from oslo.config import cfg
 
 from st2common import __version__
 from st2common import log as logging
@@ -33,11 +34,14 @@ class RootController(object):
 
     def __init__(self):
         v1_controller = v1_root.RootController()
-        webui_controller = WebUIRootController()
         self.controllers = {
-            'v1': v1_controller,
-            'webui': webui_controller
+            'v1': v1_controller
         }
+
+        if cfg.CONF.api.serve_webui_files:
+            webui_controller = WebUIRootController()
+            self.controllers['webui'] = webui_controller
+
         self.default_controller = v1_controller
 
     @expose(generic=True, template='index.html')
@@ -51,6 +55,7 @@ class RootController(object):
 
         data['version'] = __version__
         data['docs_url'] = docs_url
+        data['webui_enabled'] = cfg.CONF.api.serve_webui_files
         return data
 
     @expose()

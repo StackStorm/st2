@@ -23,7 +23,6 @@ from st2common import log as logging
 from st2common.exceptions import access as exceptions
 from st2common.util.jsonify import json_encode
 from st2common.util.auth import validate_token
-from st2common.util.api import get_full_api_url
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
 from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 
@@ -38,6 +37,7 @@ class CorsHook(PecanHook):
 
         origin = state.request.headers.get('Origin')
         origins = cfg.CONF.api.allow_origin
+        serve_webui_files = cfg.CONF.api.serve_webui_files
 
         # Build a list of the default allowed origins
         api_port = cfg.CONF.api.port
@@ -47,11 +47,12 @@ class CorsHook(PecanHook):
         # Default WebUI URL
         default_allowed_origins.append('http://localhost:3000')
 
-        # Local API URL
-        default_allowed_origins.append('http://localhost:%s' % (api_port))
-        default_allowed_origins.append('http://127.0.0.1:%s' % (api_port))
+        if serve_webui_files:
+            # Local API URL
+            default_allowed_origins.append('http://localhost:%s' % (api_port))
+            default_allowed_origins.append('http://127.0.0.1:%s' % (api_port))
 
-        if public_api_url:
+        if serve_webui_files and public_api_url:
             # Public API URL
             default_allowed_origins.append(public_api_url)
 
@@ -60,7 +61,7 @@ class CorsHook(PecanHook):
                 origin_allowed = '*'
             else:
                 # See http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
-                if origin in default_allowed_origins:
+                if serve_webui_files and origin in default_allowed_origins:
                     # Allow requests originating from the API server
                     origin_allowed = origin
                 else:
