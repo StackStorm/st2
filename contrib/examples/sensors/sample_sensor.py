@@ -5,10 +5,10 @@ class SimpleSensor(Sensor):
     """
     * self._sensor_service
         - provides utilities like
-            get_logger() for writing to logs.
-            dispatch() for dispatching triggers into the system.
+            - get_logger() - returns logger instance specific to this sensor.
+            - dispatch() for dispatching triggers into the system.
     * self._config
-        - contains configuration that was specified as
+        - contains parsed configuration that was specified as
           config.yml in the pack.
     """
 

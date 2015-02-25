@@ -34,18 +34,14 @@ Corresponding simple sensor python implementation is shown below.
 
 .. literalinclude:: ../../contrib/examples/sensors/sample_sensor.py
 
-
 It shows a bare minimum version of how a sensor would look like. Your
 sensor should generate triggers of the form (python dict):
 
-::
+.. sourcecode:: python
 
-    {
-        'name': 'name of the trigger you register in get_trigger_types() method. required.', # execution_trigger
-        'pack': 'pack that contains this sensor', # examples
-        'payload' : { # required field. contents can be empty.
-            'executed_at': '2014-08-01T00:00:00.000000Z'
-        }
+    trigger = 'pack.name'
+    payload = {
+        'executed_at': '2014-08-01T00:00:00.000000Z'
     }
 
 The sensor would inject such triggers by using the sensor\_service
@@ -53,7 +49,7 @@ passed into the sensor on instantiation.
 
 .. code:: python
 
-    self._sensor_service.dispatch(trigger, payload)
+    self._sensor_service.dispatch(trigger=trigger, payload=payload)
 
 If you want a sensor that polls an external system at regular intervals, you
 would use a PollingSensor instead of Sensor as the base class.
@@ -62,8 +58,6 @@ would use a PollingSensor instead of Sensor as the base class.
 
 For a complete implementation of a sensor that actually injects triggers
 into the system, look at the `examples <#Examples>`__ section.
-
-
 
 Running your first sensor
 ~~~~~~~~~~~~~~~~~~~~~~~~~
