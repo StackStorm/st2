@@ -634,7 +634,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
 
         detail_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
         detail_arg_grp.add_argument('-a', '--attr', nargs='+',
-                                    default=copy.copy(self.display_attributes),
+                                    default=['status', 'result'],
                                     help=('List of attributes to include in the '
                                           'output. "all" or unspecified will '
                                           'return all attributes.'))
@@ -670,13 +670,11 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
             instance = self.run(args, **kwargs)
             formatter = table.PropertyValueTable if args.detail else execution.ExecutionResult
             if args.detail:
-                options = {'attributes': args.attr}
+                options = {'attributes': copy.copy(self.display_attributes)}
             elif args.key:
                 options = {'attributes': ['result.%s' % args.key], 'key': args.key}
-            elif args.attr:
-                options = {'attributes': args.attr}
             else:
-                options = {'attributes': ['status', 'result']}
+                options = {'attributes': args.attr}
             options['json'] = args.json
             options['attribute_transform_functions'] = self.attribute_transform_functions
             self.print_output(instance, formatter, **options)
