@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
 import pecan
+from oslo.config import cfg
+from pecan.middleware.static import StaticFileMiddleware
 
 from st2common import hooks
 from st2common import log as logging
@@ -42,9 +43,11 @@ def __get_pecan_config():
 
 
 def setup_app(config=None):
-    LOG.info(VERSION_STRING)
+    opts = cfg.CONF.api_pecan
 
+    LOG.info(VERSION_STRING)
     LOG.info('Creating %s as Pecan app.' % __name__)
+
     if not config:
         config = __get_pecan_config()
 
@@ -60,6 +63,7 @@ def setup_app(config=None):
                          hooks=active_hooks,
                          **app_conf
                          )
+    app = StaticFileMiddleware(app=app, directory=opts.static_root)
 
     LOG.info('%s app created.' % __name__)
 
