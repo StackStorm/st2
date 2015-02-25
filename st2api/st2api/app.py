@@ -32,7 +32,7 @@ def __get_pecan_config():
             'root': opts.root,
             'template_path': opts.template_path,
             'modules': opts.modules,
-            'debug': False,
+            'debug': opts.debug,
             'auth_enable': opts.auth_enable,
             'errors': opts.errors
         }
