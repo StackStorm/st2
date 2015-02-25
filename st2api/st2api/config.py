@@ -17,6 +17,8 @@
 Configuration options registration and useful routines.
 """
 
+import os
+
 from oslo.config import cfg
 
 import st2common.config as common_config
@@ -42,11 +44,12 @@ def _register_app_opts():
     ]
     CONF.register_opts(api_opts, group='api')
 
+    static_root = os.path.join(cfg.CONF.system.base_path, 'static')
     pecan_opts = [
         cfg.StrOpt('root',
                    default='st2api.controllers.root.RootController',
                    help='Action root controller'),
-        cfg.StrOpt('static_root', default='/opt/stackstorm/static'),
+        cfg.StrOpt('static_root', default=static_root),
         cfg.StrOpt('template_path',
                    default='%(confdir)s/st2api/st2api/templates'),
         cfg.ListOpt('modules', default=['st2api']),
