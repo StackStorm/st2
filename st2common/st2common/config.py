@@ -117,6 +117,13 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(api_opts, 'api', ignore_errors)
 
+    # Common auth options
+    auth_opts = [
+        cfg.StrOpt('api_url', default=None,
+                   help='Base URL to the API endpoint excluding the version')
+    ]
+    do_register_opts(auth_opts, 'auth', ignore_errors)
+
     # Common options (used by action runner and sensor container)
     action_sensor_opts = [
         cfg.BoolOpt('enable', default=True,
