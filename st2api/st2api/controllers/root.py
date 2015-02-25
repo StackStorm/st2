@@ -21,6 +21,11 @@ from st2common import __version__
 from st2common import log as logging
 import st2api.controllers.v1.root as v1_root
 
+__all__ = [
+    'WebUIRootController',
+    'RootController'
+]
+
 LOG = logging.getLogger(__name__)
 
 
@@ -63,7 +68,7 @@ class RootController(object):
         version = ''
         if len(remainder) > 0:
             version = remainder[0]
-            if version == 'webui':
+            if cfg.CONF.api.serve_webui_files and version == 'webui':
                 # Special case for handling webui requests
                 return self.controllers['webui'], remainder[1:]
 
