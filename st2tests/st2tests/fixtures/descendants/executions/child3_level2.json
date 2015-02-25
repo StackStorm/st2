@@ -13,7 +13,7 @@
     "liveaction": {
         "action": "pointlessaction"
     },
-    "start_timestamp": "2014-09-01T00:00:01.000000Z",
-    "end_timestamp": "2014-09-01T00:00:05.000000Z",
+    "start_timestamp": "2014-09-01T00:00:09.000000Z",
+    "end_timestamp": "2014-09-01T00:00:55.000000Z",
     "status": "succeeded"
 }
