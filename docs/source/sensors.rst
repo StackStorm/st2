@@ -2,7 +2,7 @@ Triggers and Sensors
 =====================
 
 Sensors
-~~~~~~~~
+-------
 
 Sensors are essentially adapters that are a way to integrate |st2|
 with an external system so that triggers can be injected into |st2|
@@ -11,7 +11,7 @@ of Python code and have to follow the |st2| defined sensor interface
 requirements to be successfully run.
 
 Triggers
-~~~~~~~~
+--------
 
 Triggers are |st2| constructs that identify the incoming events to |st2|.
 A trigger is a tuple of type (string) and optional parameters (object).
@@ -22,7 +22,7 @@ registered independently. You don't have to write a sensor.
 .. _ref-sensors-authoring-a-sensor:
 
 Authoring a sensor
-~~~~~~~~~~~~~~~~~~
+------------------
 
 Authoring a sensor involves authoring a python file and a yaml meta file
 that defines the sensor. An example meta file is shown below.
@@ -60,7 +60,7 @@ For a complete implementation of a sensor that actually injects triggers
 into the system, look at the `examples <#Examples>`__ section.
 
 Running your first sensor
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 Once you write your own sensor, the following steps can be used to run your sensor for the first time.
 
@@ -88,7 +88,7 @@ Once you like your sensor, you can promote it to a pack (if required) by creatin
 /opt/stackstorm/packs/${pack_name}/sensors/. See :doc:`/reference/packs` for how to create a pack.
 
 Debugging a sensor from a pack
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 
 If you just want to run a single sensor from a pack and the sensor is already registered, you can
 use the sensor_container to run just that single sensor.
@@ -104,10 +104,10 @@ For example:
     sensor_container --config-file=conf/st2.conf --sensor-name=GitCommitSensor
 
 Examples
-~~~~~~~~
+--------
 
 EC2 health check sensor
-^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~
 
 This `EC2
 sensor <https://github.com/StackStorm/st2contrib/blob/master/packs/aws/sensors/ec2instancestatussensor.py>`_ uses
@@ -115,7 +115,7 @@ boto library to talk to AWS and emits the health of instances as
 triggers.
 
 Advanced examples
-~~~~~~~~~~~~~~~~~
+-----------------
 
 For more examples, please see sensors in the `st2contrib repo
 <https://github.com/StackStorm/st2contrib/tree/master/packs>`__.
