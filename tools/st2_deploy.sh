@@ -351,6 +351,19 @@ install_st2client() {
   popd
 }
 
+install_webui() {
+  # Download artifact
+  curl -sS -k -o /tmp/webui.tar.gz "https://ops.stackstorm.net/releases/st2/${VER}/webui/webui-${VER}-${RELEASE}.tar.gz"
+
+  # Unpack it into a temporary directory
+  temp_dir=$(mktemp -d)
+  tar -xzvf /tmp/webui.tar.gz -C ${temp_dir} --strip-components=1
+
+  # Copy the files over to the webui static root
+  mkdir -p /opt/stackstorm/webui
+  cp -R ${temp_dir}/* /opt/stackstorm/webui
+}
+
 install_st2client
 register_content
 echo "########## Starting St2 Services ##########"
