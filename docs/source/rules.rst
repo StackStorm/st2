@@ -101,6 +101,8 @@ This section describes all the available operators which can be used in the crit
 * ``greaterthan`` - Greater than comparison.
 * ``timediff_lt`` - Timestamp lower than comparison.
 * ``timediff_gt`` - Timestamp greater than comparison.
+* ``exists`` - Key exists in payload.
+* ``nexists`` - Key does not exist in payload.
 
 matchregex
 ~~~~~~~~~~
@@ -156,6 +158,16 @@ timediff_gt
 ~~~~~~~~~~~
 
 Checks that the time difference between the trigger value is greater than the provided pattern.
+
+exists
+~~~~~~
+
+Check that the value exists in the payload.
+
+nexists
+~~~~~~~
+
+Check that the value does not exist in payload.
 
 Rule location
 -------------

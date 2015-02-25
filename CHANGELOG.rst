@@ -112,6 +112,7 @@ Docs: http://docks.stackstorm.com/0.7/
 * Fix a bug where trigger objects weren't created for triggers with different parameters. (bug-fix)
 * st2api only requires st2common and dependencies defined in requirements to be available on the
   pythonpath thus making it possible to run st2api standalone.
+* Add support for 'exists' and 'nexists' operators in rule criteria. (new-feature)
 
 v0.6.0 - December 8, 2014
 -------------------------
