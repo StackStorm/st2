@@ -38,7 +38,8 @@ FIXTURES_MANIFEST = {
     'results': ['execution_get_default.txt',
                 'execution_get_detail.txt',
                 'execution_get_result_by_key.txt',
-                'execution_result_has_carriage_return.txt']
+                'execution_result_has_carriage_return.txt',
+                'execution_get_attributes.txt']
 }
 
 FIXTURES = loader.load_fixtures(fixtures_dict=FIXTURES_MANIFEST)
@@ -91,6 +92,11 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         argv = ['execution', 'get', EXECUTION['id']]
         content = self._get_execution(argv)
         self.assertEqual(content, FIXTURES['results']['execution_get_default.txt'])
+
+    def test_execution_get_attributes(self):
+        argv = ['execution', 'get', EXECUTION['id'], '-a', 'status', 'end_timestamp']
+        content = self._get_execution(argv)
+        self.assertEqual(content, FIXTURES['results']['execution_get_attributes.txt'])
 
     def test_execution_get_default_in_json(self):
         argv = ['execution', 'get', EXECUTION['id'], '-j']

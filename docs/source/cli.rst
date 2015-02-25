@@ -190,6 +190,18 @@ object:
 
     Mon Feb  9 14:33:18 UTC 2015
 
+If you only want to retrieve and print out a specified attribute of the execution,
+you can do that using ``-a <attribute name>`` flag.
+
+For example, if you only want to print ``stdout`` attribute of the result
+object:
+
+.. sourcecode:: bash
+
+    st2 execution get  54d8c52e0640fd1c87b9443f -a start_timestamp
+
+    START_TIMESTAMP: 2015-02-24T23:01:15.088293Z
+
 Escaping shell variables when using core.local and core.remote actions
 ----------------------------------------------------------------------
 
