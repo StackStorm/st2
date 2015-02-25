@@ -653,11 +653,20 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print_child_task_list(self, args, **kwargs):
+        # print root task
+        instance = self.run(args, **kwargs)
+        options = {'attributes': ['id', 'action.ref', 'status', 'start_timestamp',
+                                  'end_timestamp']}
+        options['json'] = args.json
+        options['attribute_transform_functions'] = self.attribute_transform_functions
+        formatter = execution.ExecutionResult
+        self.print_output(instance, formatter, **options)
+        # print child tasks
         kwargs['depth'] = args.depth
-        instances = self.manager.get_property(args.id, 'children', **kwargs)
+        child_instances = self.manager.get_property(args.id, 'children', **kwargs)
         # The attributes are selected from ActionExecutionListCommand as this
         # will be a list.
-        self.print_output(instances, table.MultiColumnTable,
+        self.print_output(child_instances, table.MultiColumnTable,
                           attributes=ActionExecutionListCommand.display_attributes,
                           widths=args.width, json=args.json,
                           attribute_transform_functions=self.attribute_transform_functions)
