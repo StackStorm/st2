@@ -673,6 +673,8 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
                 options = {'attributes': args.attr}
             elif args.key:
                 options = {'attributes': ['result.%s' % args.key], 'key': args.key}
+            elif args.attr:
+                options = {'attributes': args.attr}
             else:
                 options = {'attributes': ['status', 'result']}
             options['json'] = args.json
