@@ -657,7 +657,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
         instances = self.manager.get_property(args.id, 'children', **kwargs)
         # The attributes are selected from ActionExecutionListCommand as this
         # will be a list.
-        self.print_output(reversed(instances), table.MultiColumnTable,
+        self.print_output(instances, table.MultiColumnTable,
                           attributes=ActionExecutionListCommand.display_attributes,
                           widths=args.width, json=args.json,
                           attribute_transform_functions=self.attribute_transform_functions)
