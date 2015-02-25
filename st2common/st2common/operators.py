@@ -22,60 +22,6 @@ __all__ = [
     'get_allowed_operators'
 ]
 
-# Operation implementations
-
-
-def equals(value, criteria_pattern):
-    return value == criteria_pattern
-
-
-def nequals(value, criteria_pattern):
-    return value != criteria_pattern
-
-
-def iequals(value, criteria_pattern):
-    return value.lower() == criteria_pattern.lower()
-
-
-def contains(value, criteria_pattern):
-    return criteria_pattern in value
-
-
-def icontains(value, criteria_pattern):
-    return criteria_pattern.lower() in value.lower()
-
-
-def ncontains(value, criteria_pattern):
-    return criteria_pattern not in value
-
-
-def incontains(value, criteria_pattern):
-    return criteria_pattern.lower() not in value.lower()
-
-
-def startswith(value, criteria_pattern):
-    return value.startswith(criteria_pattern)
-
-
-def istartswith(value, criteria_pattern):
-    return value.lower().startswith(criteria_pattern.lower())
-
-
-def endswith(value, criteria_pattern):
-    return value.endswith(criteria_pattern)
-
-
-def iendswith(value, criteria_pattern):
-    return value.lower().endswith(criteria_pattern.lower())
-
-
-def less_than(value, criteria_pattern):
-    return value < criteria_pattern
-
-
-def greater_than(value, criteria_pattern):
-    return value > criteria_pattern
-
 
 def get_allowed_operators():
     return operators
@@ -88,8 +34,88 @@ def get_operator(op):
     else:
         raise Exception('Invalid operator: ' + op)
 
+# Operation implementations
+
+
+def equals(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+    return value == criteria_pattern
+
+
+def nequals(value, criteria_pattern):
+    return value != criteria_pattern
+
+
+def iequals(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+    return value.lower() == criteria_pattern.lower()
+
+
+def contains(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+    return criteria_pattern in value
+
+
+def icontains(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+    return criteria_pattern.lower() in value.lower()
+
+
+def ncontains(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+    return criteria_pattern not in value
+
+
+def incontains(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+    return criteria_pattern.lower() not in value.lower()
+
+
+def startswith(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+    return value.startswith(criteria_pattern)
+
+
+def istartswith(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+    return value.lower().startswith(criteria_pattern.lower())
+
+
+def endswith(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+    return value.endswith(criteria_pattern)
+
+
+def iendswith(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+    return value.lower().endswith(criteria_pattern.lower())
+
+
+def less_than(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+    return value < criteria_pattern
+
+
+def greater_than(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+    return value > criteria_pattern
+
 
 def match_regex(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
     regex = re.compile(criteria_pattern)
     # check for a match and not for details of the match.
     return regex.match(value) is not None
@@ -105,11 +131,23 @@ def _timediff(diff_target, period_seconds, operator):
 
 
 def timediff_lt(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
     return _timediff(diff_target=value, period_seconds=criteria_pattern, operator=less_than)
 
 
 def timediff_gt(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
     return _timediff(diff_target=value, period_seconds=criteria_pattern, operator=greater_than)
+
+
+def exists(value, criteria_pattern):
+    return value is not None
+
+
+def nexists(value, criteria_pattern):
+    return value is None
 
 # operator match strings
 MATCH_REGEX = 'matchregex'
@@ -135,6 +173,8 @@ TIMEDIFF_LT_SHORT = 'td_lt'
 TIMEDIFF_LT_LONG = 'timediff_lt'
 TIMEDIFF_GT_SHORT = 'td_gt'
 TIMEDIFF_GT_LONG = 'timediff_gt'
+KEY_EXISTS = 'exists'
+KEY_NOT_EXISTS = 'nexists'
 
 # operator lookups
 operators = {
@@ -160,5 +200,7 @@ operators = {
     TIMEDIFF_LT_SHORT: timediff_lt,
     TIMEDIFF_LT_LONG: timediff_lt,
     TIMEDIFF_GT_SHORT: timediff_gt,
-    TIMEDIFF_GT_LONG: timediff_gt
+    TIMEDIFF_GT_LONG: timediff_gt,
+    KEY_EXISTS: exists,
+    KEY_NOT_EXISTS: nexists
 }

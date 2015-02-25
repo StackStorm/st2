@@ -42,6 +42,7 @@ class OperatorTest(unittest2.TestCase):
     def test_equals_string(self):
         op = operators.get_operator('equals')
         self.assertTrue(op('1', '1'), 'Failed equals.')
+        self.assertTrue(op('', ''), 'Failed equals.')
 
     def test_equals_fail(self):
         op = operators.get_operator('equals')
@@ -196,7 +197,7 @@ class OperatorTest(unittest2.TestCase):
     def test_timediff_lt_fail(self):
         op = operators.get_operator('timediff_lt')
         self.assertFalse(op('2014-07-01T00:01:01.000000', 10),
-                        'Passed test_timediff_lt.')
+                         'Passed test_timediff_lt.')
 
     def test_timediff_gt(self):
         op = operators.get_operator('timediff_gt')
@@ -207,3 +208,17 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('timediff_gt')
         self.assertFalse(op(datetime.datetime.utcnow().isoformat(), 10),
                          'Passed test_timediff_gt.')
+
+    def test_exists(self):
+        op = operators.get_operator('exists')
+        self.assertTrue(op(False, None), 'Should return True')
+        self.assertTrue(op(1, None), 'Should return True')
+        self.assertTrue(op('foo', None), 'Should return True')
+        self.assertFalse(op(None, None), 'Should return False')
+
+    def test_nexists(self):
+        op = operators.get_operator('nexists')
+        self.assertFalse(op(False, None), 'Should return False')
+        self.assertFalse(op(1, None), 'Should return False')
+        self.assertFalse(op('foo', None), 'Should return False')
+        self.assertTrue(op(None, None), 'Should return True')

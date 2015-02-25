@@ -68,22 +68,28 @@ class RuleFilter(object):
         return is_rule_applicable
 
     def _check_criterion(self, criterion_k, criterion_v, payload_lookup):
-        # No payload or matching criterion_k in the payload therefore cannot apply a criteria.
-        if 'pattern' not in criterion_v or criterion_v['pattern'] is None:
+        criteria_operator = ''
+        if 'type' in criterion_v:
+            criteria_operator = criterion_v['type']
+        else:
             return False
+
+        if 'pattern' not in criterion_v:
+            criterion_v['pattern'] = None
 
         try:
             matches = payload_lookup.get_value(criterion_k)
             # pick value if only 1 matches else will end up being an array match.
-            payload_value = matches[0] if len(matches) > 0 else matches
+            if matches:
+                payload_value = matches[0] if len(matches) > 0 else matches
+            else:
+                payload_value = None
         except:
             LOG.exception('Failed transforming criteria key %s', criterion_k)
             return False
 
-        criteria_operator = ''
         criteria_pattern = criterion_v['pattern']
-        if 'type' in criterion_v:
-            criteria_operator = criterion_v['type']
+
         op_func = criteria_operators.get_operator(criteria_operator)
 
         return op_func(value=payload_value, criteria_pattern=criteria_pattern)
@@ -101,5 +107,5 @@ class PayloadLookup():
         expr = parse(lookup_key)
         matches = [match.value for match in expr.find(self._context)]
         if not matches:
-            raise ValueError('Unable to find key %s.' % lookup_key)
+            return None
         return matches
