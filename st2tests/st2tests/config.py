@@ -61,6 +61,7 @@ def _override_db_opts():
 def _override_common_opts():
     packs_base_path = get_fixtures_base_path()
     CONF.set_override(name='system_packs_base_path', override=packs_base_path, group='content')
+    CONF.set_override(name='api_url', override='http://localhost', group='auth')
 
 
 def _register_common_opts():
@@ -74,6 +75,7 @@ def _register_api_opts():
     api_opts = [
         cfg.ListOpt('allow_origin', default=['http://localhost:3000', 'http://dev'],
                     help='List of origins allowed'),
+        cfg.BoolOpt('serve_webui_files', default=False),
         cfg.IntOpt('heartbeat', default=25,
                    help='Send empty message every N seconds to keep connection open')
     ]
