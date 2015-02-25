@@ -193,7 +193,7 @@ object:
 If you only want to retrieve and print out a specified attribute of the execution,
 you can do that using ``-a <attribute name>`` flag.
 
-For example, if you only want to print ``stdout`` attribute of the result
+For example, if you only want to print ``start_timestamp`` attribute of the result
 object:
 
 .. sourcecode:: bash
@@ -201,6 +201,37 @@ object:
     st2 execution get  54d8c52e0640fd1c87b9443f -a start_timestamp
 
     START_TIMESTAMP: 2015-02-24T23:01:15.088293Z
+
+And you can also specify multiple attributes:
+
+.. sourcecode:: bash
+
+    st2 execution get  54d8c52e0640fd1c87b9443f -a status stdout stderr
+
+    STATUS: succeeded
+    STDOUT: None
+    STDERR: None
+
+Same goes for the ``execution list`` command:
+
+.. sourcecode:: bash
+
+    st2 execution list -a id status result
+
+    +--------------------------+-----------+---------------------------------+
+    | id                       | status    | result                          |
+    +--------------------------+-----------+---------------------------------+
+    | 54eb51000640fd34e0a9a2ce | succeeded | {u'succeeded': True, u'failed': |
+    |                          |           | False, u'return_code': 0,       |
+    |                          |           | u'stderr': u'', u'stdout':      |
+    |                          |           | u'2015-02-23                    |
+    |                          |           | 16:10:39.916375\n'}             |
+    | 54eb51000640fd34e0a9a2d2 | succeeded | {u'succeeded': True, u'failed': |
+    |                          |           | False, u'return_code': 0,       |
+    |                          |           | u'stderr': u'', u'stdout':      |
+    |                          |           | u'2015-02-23                    |
+    |                          |           | 16:10:40.444848\n'}             |
+
 
 Escaping shell variables when using core.local and core.remote actions
 ----------------------------------------------------------------------
