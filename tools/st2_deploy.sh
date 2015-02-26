@@ -1,6 +1,4 @@
-#!/bin/bash
-set -e
-
+#!/usr/bin/env bash
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" == "$1"; }
 
 if [ -z $1 ]
@@ -42,7 +40,16 @@ else
   exit 2
 fi
 
-RELEASE=`curl -sS -k https://ops.stackstorm.net/releases/st2/${VER}/${TYPE}/current/VERSION.txt`
+RELEASE=$(curl -sS -k -f "https://ops.stackstorm.net/releases/st2/${VER}/${TYPE}/current/VERSION.txt")
+EXIT_CODE=$?
+
+if [ ${EXIT_CODE} -ne 0 ]; then
+    echo "Invalid or unsupported version: ${VER}"
+    exit 1
+fi
+
+# From here on, fail on errors
+set -e
 
 STAN="/home/${SYSTEMUSER}/${TYPE}"
 mkdir -p ${STAN}
