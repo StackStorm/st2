@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" == "$1"; }
 
 if [ -z $1 ]
@@ -7,6 +8,9 @@ then
 else
   VER=$1
 fi
+
+INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
+INSTALL_WEBUI=${INSTALL_WEBUI:-1}
 
 # Determine which mistral version to use
 if version_ge $VER "0.8"; then
@@ -374,8 +378,14 @@ install_webui() {
   rm -f /tmp/webui.tar.gz
 }
 
-install_st2client
-install_webui
+if [ ${INSTALL_ST2CLIENT} == "1" ]; then
+    install_st2client
+fi
+
+if [ ${INSTALL_WEBUI} == "1" ]; then
+    install_webui
+fi
+
 register_content
 echo "########## Starting St2 Services ##########"
 st2ctl restart
