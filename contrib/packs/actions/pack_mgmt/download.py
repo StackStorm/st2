@@ -35,7 +35,7 @@ class InstallGitRepoAction(Action):
         # Assuming git url is of form git@github.com:user/git-repo.git
         repo_name = repo_url[repo_url.rfind('/') + 1: repo_url.rfind('.')]
         abs_local_path = os.path.join(user_home, repo_name)
-        Repo.clone_from(repo_url, abs_local_path, branch=branch))
+        Repo.clone_from(repo_url, abs_local_path, branch=branch)
         return abs_local_path
 
     def _move_packs(self, abs_repo_base, packs, abs_local_path):
