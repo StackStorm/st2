@@ -27,8 +27,14 @@ from st2client.formatters import table
 from st2client.models.datastore import KeyValuePair
 from st2client.utils.date import format_isodate
 
-
 LOG = logging.getLogger(__name__)
+
+
+class NoopCommand(object):
+    # Hack until we fix ResourceBranch API
+    # TODO: Refactor ResourceBranch and make it nicer
+    def __init__(self, *args, **kwargs):
+        pass
 
 
 class KeyValuePairBranch(resource.ResourceBranch):
@@ -40,7 +46,9 @@ class KeyValuePairBranch(resource.ResourceBranch):
             commands={
                 'list': KeyValuePairListCommand,
                 'get': KeyValuePairGetCommand,
-                'delete': KeyValuePairDeleteCommand
+                'delete': KeyValuePairDeleteCommand,
+                'create': NoopCommand,
+                'update': NoopCommand
             })
 
         # Registers extended commands
