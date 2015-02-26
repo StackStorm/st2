@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pecan import expose
-
 from st2api.controllers.v1.actions import ActionsController
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 from st2api.controllers.v1.datastore import KeyValuePairController

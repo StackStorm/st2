@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import httplib
 
 import webob
 from oslo.config import cfg
@@ -132,3 +133,36 @@ class AuthHook(PecanHook):
         token_in_query_params = query_params.get(QUERY_PARAM_ATTRIBUTE_NAME, None)
         return validate_token(token_in_headers=token_in_headers,
                               token_in_query_params=token_in_query_params)
+
+
+class JSONErrorResponseHook(PecanHook):
+    """
+    Hook which ensures that error response always contains JSON.
+    """
+
+    def on_error(self, state, exc):
+        request_path = state.request.path
+        if cfg.CONF.api.serve_webui_files and request_path.startswith('/webui'):
+            # We want to return regular error response for requests to /webui
+            return
+
+        status_code = state.response.status
+        if status_code == httplib.NOT_FOUND:
+            message = 'The resource could not be found'
+        elif status_code == httplib.INTERNAL_SERVER_ERROR:
+            message = 'Internal Server Error'
+        else:
+            message = str(exc)
+
+        response_body = json_encode({'faultstring': message})
+
+        headers = state.response.headers or {}
+        if headers.get('Content-Type', None) == 'application/json':
+            # Already a JSON response
+            return
+
+        headers['Content-Type'] = 'application/json'
+        headers['Content-Length'] = str(len(response_body))
+
+        return webob.Response(response_body, status=status_code,
+                              headers=headers)
