@@ -29,7 +29,7 @@ LOG = logging.getLogger(__name__)
 
 # Minimum width for the ID to make sure the ID column doesn't wrap across
 # multiple lines
-MIN_ID_COL_WIDTH = 24
+MIN_ID_COL_WIDTH = 26
 DEFAULT_ATTRIBUTE_DISPLAY_ORDER = ['id', 'name', 'pack', 'description']
 
 
@@ -114,7 +114,6 @@ class MultiColumnTable(formatters.Formatter):
         Format a value for a simple field.
         """
         value = getattr(entry, field_name, '')
-
         if isinstance(value, (list, tuple)):
             if len(value) == 0:
                 value = ''
