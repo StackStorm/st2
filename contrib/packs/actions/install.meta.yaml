@@ -16,6 +16,9 @@
     repo_url:
       type: "string"
       default: "https://github.com/StackStorm/st2contrib.git"
+    branch:
+      type: "string"
+      default: "master"
     register:
       type: "string"
       default: "actions"
