@@ -362,6 +362,9 @@ install_webui() {
   # Copy the files over to the webui static root
   mkdir -p /opt/stackstorm/static/webui
   cp -R ${temp_dir}/* /opt/stackstorm/static/webui
+
+  rm -r ${temp_dir}
+  rm -f /tmp/webui.tar.gz
 }
 
 install_st2client
