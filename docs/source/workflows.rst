@@ -26,8 +26,8 @@ and :doc:`mistral`.
 
 *   `Mistral <https://github.com/stackforge/mistral>`_ is a dedicated
     workflow service, integrated and bundled with |st2|. With Mistral
-    runner, you can define complex workflow logic with forks and joins,
-    retry-failure policies,  delays, resumes, restarts, and manual check-points.
+    runner, you can define complex workflow logic with nested workflows, 
+    forks, joins, and policies for error handling, retries, and delays.
     **Use Mistral when you need power**.
 
 Learn how to define and run the workflows:

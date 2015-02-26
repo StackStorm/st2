@@ -1,5 +1,6 @@
 version: "2.0"
-name: "examples.mistral-workbook-complex"
+name: examples.mistral-workbook-complex
+description: A sample workflow that demonstrates nested workflows, forks, and join.
 
 workflows:
 
@@ -12,107 +13,82 @@ workflows:
         output:
             vm_id: <% $.vm_id %>
             vm_state: <% $.vm_state %>
-        task-defaults:
-          on-error:
-            - fail
+            ip: <% $.ip %>
         tasks:
             register_dns:
                 action: core.local
                 input:
-                    cmd: "sleep 1; printf 'registered.'"
+                    cmd: "sleep 1; printf 'Registering <% $.vm_name %>...'"
                 publish:
                     ip: "10.1.23.99"
+                    status_message: "DNS for <% $.vm_name %> is registered."
                 on-success:
-                    - create_vm
+                    - configure_vm
+                    - notify
             create_vm:
                 workflow: create_vm
                 input:
                     name: <% $.vm_name %>
-                    ip: <% $.ip %>
-                publish:
-                    vm_id: <% $.create_vm.vm_id %>
-                    message: "VM <% $.vm_name %> is created."
-                on-success:
-                    - power_off_vm
-                    - notify
-            power_off_vm:
-                action: core.local
-                input:
-                    cmd: "sleep 2; printf 'stopped'"
-                publish:
-                    vm_state: <% $.power_off_vm.stdout %>
-                    message: "VM <% $.vm_name %> is powered off."
-                on-success:
-                    - reconfig_vm
-                    - notify
-            reconfig_vm:
-                workflow: reconfig_vm
-                input:
-                    vm_id: <% $.vm_id %>
                     cpu_cores: <% $.cpu_cores %>
                     memory_mb: <% $.memory_mb %>
                 publish:
-                    message: "VM <% $.vm_name %> is reconfigured."
+                    vm_id: <% $.create_vm.vm_id %>
+                    status_message: "VM <% $.vm_name %> is created."
                 on-success:
-                    - power_on_vm
+                    - configure_vm
                     - notify
-            power_on_vm:
-                action: core.local
+            configure_vm:
+                join: all
+                workflow: configure_vm
                 input:
-                    cmd: "sleep 2; printf 'running'"
+                    vm_id: <% $.vm_id %>
+                    ip: <% $.ip %>
                 publish:
-                    vm_state: <% $.power_on_vm.stdout %>
-                    message: "VM <% $.vm_name %> is powered on."
+                    status_message: "VM <% $.vm_name %> is reconfigured."
                 on-success:
-                    - notify_request_fulfilled
+                    - close_request
                     - notify
-            notify_request_fulfilled:
+            close_request:
                 publish:
-                    message: "VM request is fulfilled."
+                    status_message: "VM request is fulfilled."
                 on-success:
                     - notify
             notify:
                 action: core.local
                 input:
-                    cmd: "printf '<% $.message %>'"
+                    cmd: "printf '<% $.status_message %>'"
 
     create_vm:
         type: direct
         input:
             - name
-            - ip
+            - cpu_cores
+            - memory_mb
         output:
             vm_id: <% $.vm_id %>
-        task-defaults:
-          on-error:
-            - fail
         tasks:
             create:
                 action: core.local
                 input:
-                    cmd: "sleep 5; printf 'vm1234'"
+                    cmd: "printf 'vm1234'; sleep 5"
                 publish:
                     vm_id: <% $.create.stdout %>
 
-    reconfig_vm:
+    configure_vm:
         type: direct
         input:
             - vm_id
-            - cpu_cores
-            - memory_mb
-        task-defaults:
-          on-error:
-            - fail
+            - ip
         tasks:
-            add_disk:
+            add_disks:
                 action: core.local
                 input:
-                    cmd: "sleep 1; printf 'configured'"
+                    cmd: "sleep 1; printf 'disks created'"
             add_nics:
                 action: core.local
                 input:
-                    cmd: "sleep 1; printf 'configured'"
-            edit_cpu_mem:
+                    cmd: "sleep 1; printf 'nics created'"
+            install_apps:
                 action: core.local
                 input:
-                    cmd: "sleep 1; printf 'configured'"
+                    cmd: "sleep 1; printf 'apps installed'"
