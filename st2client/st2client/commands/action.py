@@ -30,8 +30,8 @@ from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table, execution
+from st2client.utils import jsutil
 from st2client.utils.date import format_isodate
-
 
 LOG = logging.getLogger(__name__)
 
@@ -694,12 +694,8 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
         kwargs['depth'] = args.depth
         child_instances = self.manager.get_property(args.id, 'children', **kwargs)
         child_instances = self._format_child_instances(child_instances, args.id)
-        canonical_instance = child_instances[0] if child_instances else None
-        attributes = self._get_task_list_header(canonical_instance)
-        # The attributes are selected from ActionExecutionListCommand as this
-        # will be a list.
         self.print_output(child_instances, table.MultiColumnTable,
-                          attributes=attributes,
+                          attributes=['id', 'status', 'task', 'action', 'start_timestamp'],
                           widths=args.width, json=args.json,
                           attribute_transform_functions=self.attribute_transform_functions)
 
@@ -714,6 +710,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
         children = format_wf_instances(children)
         # setup a depth lookup table
         depth = {parent_id: 0}
+        result = []
         # main loop that indents each entry correctly
         for child in children:
             # make sure child.parent is in depth and while at it compute the
@@ -733,17 +730,29 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
                     depth[child.parent] = 0
             # now ident for the right visuals
             child.id = INDENT_CHAR * depth[child.parent] + child.id
-        return children
+            result.append(self._format_for_common_representation(child))
+        return result
 
-    def _get_task_list_header(self, canonical_task):
-        attributes = ['id', 'status', 'task.name', 'action.ref', 'start_timestamp']
-        if canonical_task:
-            context = getattr(canonical_task, 'context', None)
-            if context and 'chain' in context:
-                attributes[2] = 'context.chain.name'
-            elif context and 'mistral' in context:
-                attributes[2] = 'context.mistral.task_name'
-        return attributes
+    def _format_for_common_representation(self, task):
+        '''
+        Formats a task for common representation between mistral and action-chain.
+        '''
+        # This really needs to be better handled on the back-end but that would be a bigger
+        # change so handling in cli.
+        context = getattr(task, 'context', None)
+        if context and 'chain' in context:
+            task_name_key = 'context.chain.name'
+        elif context and 'mistral' in context:
+            task_name_key = 'context.mistral.task_name'
+        # Use LiveAction as the object so that the formatter lookup does not change.
+        # AKA HACK!
+        return models.action.LiveAction(**{
+            'id': task.id,
+            'status': task.status,
+            'task': jsutil.get_value(vars(task), task_name_key),
+            'action': task.action.get('ref', None),
+            'start_timestamp': task.start_timestamp
+        })
 
     def run_and_print(self, args, **kwargs):
         if args.tasks:
