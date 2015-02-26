@@ -79,6 +79,35 @@ def format_parameters(value):
 
     return value
 
+# String for indenting etc.
+WF_PREFIX = '+ '
+NON_WF_PREFIX = '  '
+INDENT_CHAR = ' '
+
+
+def format_wf_instances(instances):
+    """
+    Adds identification characters to a workflow and appropriately shifts
+    the non-workflow instances. If no workflows are found does nothing.
+    """
+    # only add extr chars if there are workflows.
+    has_wf = False
+    for instance in instances:
+        if not getattr(instance, 'children', None):
+            continue
+        else:
+            has_wf = True
+            break
+    if not has_wf:
+        return instances
+    # Prepend wf and non_wf prefixes.
+    for instance in instances:
+        if getattr(instance, 'children', None):
+            instance.id = WF_PREFIX + instance.id
+        else:
+            instance.id = NON_WF_PREFIX + instance.id
+    return instances
+
 
 class ActionBranch(resource.ResourceBranch):
 
@@ -591,7 +620,7 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         return self.manager.query(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
-        instances = self.run(args, **kwargs)
+        instances = format_wf_instances(self.run(args, **kwargs))
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json,
@@ -653,7 +682,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print_child_task_list(self, args, **kwargs):
-        # print root task
+        # print root task.
         instance = self.run(args, **kwargs)
         options = {'attributes': ['id', 'action.ref', 'status', 'start_timestamp',
                                   'end_timestamp']}
@@ -664,12 +693,57 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
         # print child tasks
         kwargs['depth'] = args.depth
         child_instances = self.manager.get_property(args.id, 'children', **kwargs)
+        child_instances = self._format_child_instances(child_instances, args.id)
+        canonical_instance = child_instances[0] if child_instances else None
+        attributes = self._get_task_list_header(canonical_instance)
         # The attributes are selected from ActionExecutionListCommand as this
         # will be a list.
         self.print_output(child_instances, table.MultiColumnTable,
-                          attributes=ActionExecutionListCommand.display_attributes,
+                          attributes=attributes,
                           widths=args.width, json=args.json,
                           attribute_transform_functions=self.attribute_transform_functions)
+
+    def _format_child_instances(self, children, parent_id):
+        '''
+        The goal of this method is to add an indent at every level. This way the
+        WF is represented as a tree structure while in a list. For the right visuals
+        representation the list must be a DF traversal else the idents will end up
+        looking strange.
+        '''
+        # apply basic WF formating first.
+        children = format_wf_instances(children)
+        # setup a depth lookup table
+        depth = {parent_id: 0}
+        # main loop that indents each entry correctly
+        for child in children:
+            # make sure child.parent is in depth and while at it compute the
+            # right depth for indentation purposes.
+            if child.parent not in depth:
+                parent = None
+                for instance in children:
+                    if WF_PREFIX in instance.id:
+                        instance_id = instance.id[instance.id.index(WF_PREFIX) + len(WF_PREFIX):]
+                    else:
+                        instance_id = instance.id
+                    if instance_id == child.parent:
+                        parent = instance
+                if parent and parent.parent and parent.parent in depth:
+                    depth[child.parent] = depth[parent.parent] + 1
+                else:
+                    depth[child.parent] = 0
+            # now ident for the right visuals
+            child.id = INDENT_CHAR * depth[child.parent] + child.id
+        return children
+
+    def _get_task_list_header(self, canonical_task):
+        attributes = ['id', 'status', 'task.name', 'action.ref', 'start_timestamp']
+        if canonical_task:
+            context = getattr(canonical_task, 'context', None)
+            if context and 'chain' in context:
+                attributes[2] = 'context.chain.name'
+            elif context and 'mistral' in context:
+                attributes[2] = 'context.mistral.task_name'
+        return attributes
 
     def run_and_print(self, args, **kwargs):
         if args.tasks:
