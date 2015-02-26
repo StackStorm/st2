@@ -1,7 +1,7 @@
 version: '2.0'
 name: examples.mistral-handle-retry
 description: >
-    Sample workflow that demonstrates how to handle rollback and retry on error. 
+    A sample workflow that demonstrates how to handle rollback and retry on error. 
     In this example, the workflow will error and then continue to retry until the file 
     /tmp/done exists. A parallel task will wait for some time before creating the
     file. When completed, /tmp/done will be deleted.
@@ -36,12 +36,14 @@ workflows:
             do:
                 action: core.local
                 input:
-                    cmd: "if [ ! -e \"/tmp/done\" ]; then exit 1; fi"
+                    cmd: >
+                        echo 'Do something useful here.';
+                        if [ ! -e '/tmp/done' ]; then exit 1; fi
                 on-error:
                     - undo
             undo:
                 action: core.local
                 input:
-                    cmd: "echo \"Define rollback tasks here.\""
+                    cmd: "echo 'Define rollback tasks here.'"
                 on-success:
                     - fail
