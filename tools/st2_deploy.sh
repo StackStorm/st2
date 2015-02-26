@@ -365,6 +365,7 @@ install_webui() {
 }
 
 install_st2client
+install_webui
 register_content
 echo "########## Starting St2 Services ##########"
 st2ctl restart
