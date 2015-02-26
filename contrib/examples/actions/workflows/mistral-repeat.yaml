@@ -9,13 +9,8 @@ examples.mistral-repeat:
         - cmd
         - count
     tasks:
-        setup:
-            publish:
-                times_to_repeat: <% range(0, $.count).list() %> 
-            on-success:
-                - repeat
         repeat:
-            with-items: i in <% $.times_to_repeat %>
+            with-items: i in <% range(0, $.count).list() %>
             action: core.local cmd=<% $.cmd %>
             publish:
                 result: <% $.repeat.stdout %>
