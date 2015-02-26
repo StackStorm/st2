@@ -32,6 +32,7 @@ from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table, execution
 from st2client.utils import jsutil
 from st2client.utils.date import format_isodate
+from st2client.utils.color import format_status
 
 LOG = logging.getLogger(__name__)
 
@@ -562,7 +563,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
         'end_timestamp': format_isodate,
-        'parameters': format_parameters
+        'parameters': format_parameters,
+        'status': format_status
     }
 
     def __init__(self, resource, *args, **kwargs):
@@ -633,7 +635,8 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
         'end_timestamp': format_isodate,
-        'parameters': format_parameters
+        'parameters': format_parameters,
+        'status': format_status
     }
 
     def __init__(self, resource, *args, **kwargs):

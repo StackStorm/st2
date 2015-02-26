@@ -20,20 +20,10 @@ import logging
 from st2client import formatters
 from st2client.utils import jsutil
 from st2client.utils import strutil
+from st2client.utils.color import DisplayColors
 
 
 LOG = logging.getLogger(__name__)
-
-
-class DisplayColors(object):
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 
 class ExecutionResult(formatters.Formatter):
@@ -57,6 +47,6 @@ class ExecutionResult(formatters.Formatter):
                         value = new_value
                 if type(value) in [dict, list]:
                     value = ('\n' if isinstance(value, dict) else '') + json.dumps(value, indent=4)
-                output += ('\n' if output else '') + '%s%s%s: %s' % (DisplayColors.OKBLUE, attr,
-                                                                     DisplayColors.ENDC, value)
+                output += ('\n' if output else '') + '%s: %s' % \
+                    (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
         return strutil.unescape(output)
