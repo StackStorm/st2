@@ -40,7 +40,3 @@ class RootController(object):
     keys = KeyValuePairController()
     webhooks = WebhooksController()
     stream = StreamController()
-
-    @expose(generic=True, template='index.html')
-    def index(self):
-        return dict()
