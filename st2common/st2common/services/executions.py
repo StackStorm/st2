@@ -151,6 +151,7 @@ def get_descendants(actionexecution_id, descendant_depth=-1, result_fmt=None):
     descendants = DESCENDANT_VIEWS.get(result_fmt, DFSDescendantView)()
     children = ActionExecution.query(parent=actionexecution_id,
                                      **{'order_by': ['start_timestamp']})
+    LOG.debug('Found %s children for id %s.', len(children), actionexecution_id)
     current_level = [(child, 1) for child in children]
 
     while current_level:
