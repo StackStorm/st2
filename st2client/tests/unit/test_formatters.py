@@ -28,6 +28,7 @@ from tests.fixtures import loader
 from st2client import shell
 from st2client.utils import jsutil
 from st2client.utils import httpclient
+from st2client.utils import color
 
 
 LOG = logging.getLogger(__name__)
@@ -52,6 +53,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestExecutionResultFormatter, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
+        color.DISABLED = True
 
     def setUp(self):
         self.fd, self.path = tempfile.mkstemp()
