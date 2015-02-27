@@ -1,5 +1,4 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
 
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" == "$1"; }
 
@@ -9,6 +8,9 @@ then
 else
   VER=$1
 fi
+
+INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
+INSTALL_WEBUI=${INSTALL_WEBUI:-1}
 
 # Determine which mistral version to use
 if version_ge $VER "0.8"; then
@@ -42,7 +44,16 @@ else
   exit 2
 fi
 
-RELEASE=`curl -sS -k https://ops.stackstorm.net/releases/st2/${VER}/${TYPE}/current/VERSION.txt`
+RELEASE=$(curl -sS -k -f "https://ops.stackstorm.net/releases/st2/${VER}/${TYPE}/current/VERSION.txt")
+EXIT_CODE=$?
+
+if [ ${EXIT_CODE} -ne 0 ]; then
+    echo "Invalid or unsupported version: ${VER}"
+    exit 1
+fi
+
+# From here on, fail on errors
+set -e
 
 STAN="/home/${SYSTEMUSER}/${TYPE}"
 mkdir -p ${STAN}
@@ -351,7 +362,30 @@ install_st2client() {
   popd
 }
 
-install_st2client
+install_webui() {
+  # Download artifact
+  curl -sS -k -o /tmp/webui.tar.gz "https://ops.stackstorm.net/releases/st2/${VER}/webui/webui-${VER}-${RELEASE}.tar.gz"
+
+  # Unpack it into a temporary directory
+  temp_dir=$(mktemp -d)
+  tar -xzvf /tmp/webui.tar.gz -C ${temp_dir} --strip-components=1
+
+  # Copy the files over to the webui static root
+  mkdir -p /opt/stackstorm/static/webui
+  cp -R ${temp_dir}/* /opt/stackstorm/static/webui
+
+  rm -r ${temp_dir}
+  rm -f /tmp/webui.tar.gz
+}
+
+if [ ${INSTALL_ST2CLIENT} == "1" ]; then
+    install_st2client
+fi
+
+if [ ${INSTALL_WEBUI} == "1" ]; then
+    install_webui
+fi
+
 register_content
 echo "########## Starting St2 Services ##########"
 st2ctl restart

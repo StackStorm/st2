@@ -17,6 +17,8 @@
 Configuration options registration and useful routines.
 """
 
+import os
+
 from oslo.config import cfg
 
 import st2common.config as common_config
@@ -35,20 +37,23 @@ def _register_app_opts():
     api_opts = [
         cfg.ListOpt('allow_origin', default=['http://localhost:3000'],
                     help='List of origins allowed'),
+        cfg.BoolOpt('serve_webui_files', default=True,
+                    help='Enable to serve static WebUI files using the API service'),
         cfg.IntOpt('heartbeat', default=25,
                    help='Send empty message every N seconds to keep connection open')
     ]
     CONF.register_opts(api_opts, group='api')
 
+    static_root = os.path.join(cfg.CONF.system.base_path, 'static')
     pecan_opts = [
         cfg.StrOpt('root',
                    default='st2api.controllers.root.RootController',
                    help='Action root controller'),
-        cfg.StrOpt('static_root', default='%(confdir)s/public'),
+        cfg.StrOpt('static_root', default=static_root),
         cfg.StrOpt('template_path',
                    default='%(confdir)s/st2api/st2api/templates'),
         cfg.ListOpt('modules', default=['st2api']),
-        cfg.BoolOpt('debug', default=True),
+        cfg.BoolOpt('debug', default=False),
         cfg.BoolOpt('auth_enable', default=True),
         cfg.DictOpt('errors', default={'__force_dict__': True})
     ]

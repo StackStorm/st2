@@ -33,7 +33,8 @@ def _setup_config_opts():
 
     try:
         _register_config_opts()
-    except Exception:
+    except Exception as e:
+        print(e)
         # Some scripts register the options themselves which means registering them again will
         # cause a non-fatal exception
         return
@@ -60,6 +61,7 @@ def _override_db_opts():
 def _override_common_opts():
     packs_base_path = get_fixtures_base_path()
     CONF.set_override(name='system_packs_base_path', override=packs_base_path, group='content')
+    CONF.set_override(name='api_url', override='http://localhost', group='auth')
 
 
 def _register_common_opts():
@@ -73,6 +75,7 @@ def _register_api_opts():
     api_opts = [
         cfg.ListOpt('allow_origin', default=['http://localhost:3000', 'http://dev'],
                     help='List of origins allowed'),
+        cfg.BoolOpt('serve_webui_files', default=False),
         cfg.IntOpt('heartbeat', default=25,
                    help='Send empty message every N seconds to keep connection open')
     ]
@@ -118,7 +121,6 @@ def _register_auth_opts():
         cfg.StrOpt('mode', default='proxy'),
         cfg.StrOpt('logging', default='conf/logging.conf'),
         cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.'),
-        cfg.StrOpt('api_url', default='http://localhost:9101/'),
         cfg.BoolOpt('debug', default=True)
     ]
     _register_opts(auth_opts, group='auth')

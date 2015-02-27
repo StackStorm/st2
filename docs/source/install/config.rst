@@ -1,11 +1,12 @@
 Configuration
 ==============
+
 .. note:: If you are using the "all in one" :doc:`/install/index`, all configurations are already setup.
 
 |st2| configuration file is at :github_st2:`/etc/st2/st2.conf </conf/st2.conf>`
 
 SUDO Access
--------------------------
+-----------
 
 All actions run by |st2| are performed by a single user. Typically, this user is named ``stanley`` and that is configurable via :github_st2:`st2.conf </conf/st2.conf>`.
 
@@ -23,7 +24,7 @@ One option of setting up passwordless sudo is perform the below operation on eac
 .. _config-configure-ssh:
 
 Configure SSH
-----------------
+-------------
 
 To run actions on remote hosts, |st2| uses `Fabric <http://www.fabfile.org/>`_. It is required to configure identity file based SSH access on all remote hosts.
 
@@ -55,9 +56,8 @@ To verify do the following from the |st2| box
     # make sure that no password is prompted.
     sudo su
 
-
 SSH Troubleshooting
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 * Validate that passwordless SSH configuration works fine for the destination. Assuming default user `stanley`:
 
@@ -65,9 +65,9 @@ SSH Troubleshooting
 
         sudo ssh -i /home/stanley/.ssh/stanley_rsa -t stanley@host.example.com uname -a
 
-
 Configure Logging
--------------------
+-----------------
+
 By default, the logs can be found in ``/var/log/st2``.
 
 * With the standard logging setup you will notice files like ``st2*.log`` and ``st2*.audit.log`` in the log folder.
@@ -78,5 +78,14 @@ By default, the logs can be found in ``/var/log/st2``.
 
 * Check out LogStash configuration and Kibana dashboard for pretty logging and audit at :github_contrib:`st2contrib/extra/logstash </extra/logstash>`
 
+Serve WebUI files from the API server
+-------------------------------------
+
+By default, static WebUI files are served on the API server. This means you can
+access the web interface by going to ``http://<api host>:<api port>/webui``.
+
+For production deployments, we encourage you to disable this option by settings
+``api.serve_webui_files`` option to ``False`` and use nginx, Apache or a similar
+dedicated web server to serve those static files.
 
 .. include:: /engage.rst

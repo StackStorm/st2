@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import httplib
 
 import webob
 from oslo.config import cfg
@@ -37,14 +38,38 @@ class CorsHook(PecanHook):
 
         origin = state.request.headers.get('Origin')
         origins = cfg.CONF.api.allow_origin
+        serve_webui_files = cfg.CONF.api.serve_webui_files
+
+        # Build a list of the default allowed origins
+        api_port = cfg.CONF.api.port
+        public_api_url = cfg.CONF.auth.api_url
+        default_allowed_origins = []
+
+        # Default WebUI URL
+        default_allowed_origins.append('http://localhost:3000')
+
+        if serve_webui_files:
+            # Local API URL
+            default_allowed_origins.append('http://localhost:%s' % (api_port))
+            default_allowed_origins.append('http://127.0.0.1:%s' % (api_port))
+
+        if serve_webui_files and public_api_url:
+            # Public API URL
+            default_allowed_origins.append(public_api_url)
+
         if origin:
             if '*' in origins:
                 origin_allowed = '*'
             else:
                 # See http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
-                origin_allowed = origin if origin in origins else 'null'
+                if serve_webui_files and origin in default_allowed_origins:
+                    # Allow requests originating from the API server
+                    origin_allowed = origin
+                else:
+                    origin_allowed = origin if origin in origins else 'null'
         else:
-            origin_allowed = origins[0] if len(origins) > 0 else 'http://localhost:3000'
+            default_allowed_origins = ','.join(default_allowed_origins)
+            origin_allowed = origins[0] if len(origins) > 0 else default_allowed_origins
 
         methods_allowed = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
         request_headers_allowed = ['Content-Type', 'Authorization', 'X-Auth-Token']
@@ -108,3 +133,36 @@ class AuthHook(PecanHook):
         token_in_query_params = query_params.get(QUERY_PARAM_ATTRIBUTE_NAME, None)
         return validate_token(token_in_headers=token_in_headers,
                               token_in_query_params=token_in_query_params)
+
+
+class JSONErrorResponseHook(PecanHook):
+    """
+    Hook which ensures that error response always contains JSON.
+    """
+
+    def on_error(self, state, exc):
+        request_path = state.request.path
+        if cfg.CONF.api.serve_webui_files and request_path.startswith('/webui'):
+            # We want to return regular error response for requests to /webui
+            return
+
+        status_code = state.response.status
+        if status_code == httplib.NOT_FOUND:
+            message = 'The resource could not be found'
+        elif status_code == httplib.INTERNAL_SERVER_ERROR:
+            message = 'Internal Server Error'
+        else:
+            message = str(exc)
+
+        response_body = json_encode({'faultstring': message})
+
+        headers = state.response.headers or {}
+        if headers.get('Content-Type', None) == 'application/json':
+            # Already a JSON response
+            return
+
+        headers['Content-Type'] = 'application/json'
+        headers['Content-Length'] = str(len(response_body))
+
+        return webob.Response(response_body, status=status_code,
+                              headers=headers)

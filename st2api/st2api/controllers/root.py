@@ -14,20 +14,40 @@
 # limitations under the License.
 
 from pecan import expose
+from pecan.core import redirect
+from oslo.config import cfg
 
 from st2common import __version__
 from st2common import log as logging
 import st2api.controllers.v1.root as v1_root
 
+__all__ = [
+    'WebUIRootController',
+    'RootController'
+]
+
 LOG = logging.getLogger(__name__)
+
+
+class WebUIRootController(object):
+    @expose(generic=True)
+    def index(self):
+        return redirect(location='/webui/index.html')
 
 
 class RootController(object):
 
     def __init__(self):
-        v1 = v1_root.RootController()
-        self.controllers = {'v1': v1}
-        self.default_controller = v1
+        v1_controller = v1_root.RootController()
+        self.controllers = {
+            'v1': v1_controller
+        }
+
+        if cfg.CONF.api.serve_webui_files:
+            webui_controller = WebUIRootController()
+            self.controllers['webui'] = webui_controller
+
+        self.default_controller = v1_controller
 
     @expose(generic=True, template='index.html')
     def index(self):
@@ -40,6 +60,7 @@ class RootController(object):
 
         data['version'] = __version__
         data['docs_url'] = docs_url
+        data['webui_enabled'] = cfg.CONF.api.serve_webui_files
         return data
 
     @expose()
@@ -47,6 +68,10 @@ class RootController(object):
         version = ''
         if len(remainder) > 0:
             version = remainder[0]
+            if cfg.CONF.api.serve_webui_files and version == 'webui':
+                # Special case for handling webui requests
+                return self.controllers['webui'], remainder[1:]
+
             if remainder[len(remainder) - 1] == '':
                 # If the url has a trailing '/' remainder will contain an empty string.
                 # In order for further pecan routing to work this method needs to remove

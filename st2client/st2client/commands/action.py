@@ -351,7 +351,7 @@ class ActionRunCommandMixin(object):
                 action_exec = action_exec_mgr.get_by_id(action_exec_id, **kwargs)
                 args.ref_or_id = action_exec.action
 
-            if args.ref_or_id:
+            if action_ref_or_id:
                 try:
                     action = action_mgr.get_by_ref_or_id(args.ref_or_id, **kwargs)
                     runner_mgr = self.app.client.managers['RunnerType']

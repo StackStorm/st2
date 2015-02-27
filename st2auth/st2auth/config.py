@@ -51,9 +51,7 @@ def _register_app_opts():
                    (','.join(VALID_BACKEND_NAMES))),
         cfg.StrOpt('backend_kwargs', default=None,
                    help='JSON serialized arguments which are passed to the authentication backend'
-                        ' in a standalone mode.'),
-        cfg.StrOpt('api_url', default=None,
-                   help='Base URL to the API endpoint excluding the version')
+                        ' in a standalone mode.')
 
     ]
     cfg.CONF.register_cli_opts(auth_opts, group='auth')
