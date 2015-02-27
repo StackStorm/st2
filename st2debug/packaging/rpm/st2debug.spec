@@ -17,9 +17,6 @@ An automation plaform that needs a much better description than this.
 %prep
 %setup
 
-%build
-sed -i -r "s~logs~/var/log/st2~g" conf/logging.conf
-
 %install
 
 mkdir -p %{buildroot}%{python2_sitelib}
