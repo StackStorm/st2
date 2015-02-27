@@ -12,3 +12,6 @@
     pids:
       description: "List of pids"
       default: "''"
+      required: true
+    sudo:
+      default: true
