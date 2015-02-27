@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import pecan
 from oslo.config import cfg
 from pecan.middleware.static import StaticFileMiddleware
@@ -23,6 +25,7 @@ from st2common.constants.system import VERSION_STRING
 
 
 LOG = logging.getLogger(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def __get_pecan_config():
@@ -66,7 +69,12 @@ def setup_app(config=None):
                          **app_conf
                          )
 
+    # Static middleware which servers common static assets such as logos
+    static_root = os.path.join(BASE_DIR, 'public')
+    app = StaticFileMiddleware(app=app, directory=static_root)
+
     if cfg.CONF.api.serve_webui_files:
+        # Static middleware which serves webui files
         LOG.info('Serving WebUi at /webui/index.html')
         app = StaticFileMiddleware(app=app, directory=opts.static_root)
 

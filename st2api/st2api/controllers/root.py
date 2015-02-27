@@ -62,7 +62,7 @@ class RootController(object):
     def index(self):
         data = {}
 
-        if '-dev' in __version__:
+        if 'dev' in __version__:
             docs_url = 'http://docs.stackstorm.com/latest'
         else:
             docs_url = 'http://docs.stackstorm.com/%s' % (__version__)
