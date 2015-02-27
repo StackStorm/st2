@@ -4,11 +4,15 @@ function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" 
 
 if [ -z $1 ]
 then
-  VER='0.6.0'
+  VER='0.7'
+elif [[ "$1" == "latest" ]]; then
+   VER='0.8dev'
 else
   VER=$1
 fi
 
+echo "Installing version ${VER}"
+ 
 INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
 INSTALL_WEBUI=${INSTALL_WEBUI:-1}
 
@@ -31,11 +35,13 @@ STANCONF="/etc/st2/st2.conf"
 if [[ "$DEBTEST" == "Ubuntu" ]]; then
   TYPE="debs"
   PYTHONPACK="/usr/lib/python2.7/dist-packages"
-  echo "########## Detected Distro is ${DEBTEST} ##########"
+  echo "###########################################################################################"
+  echo "# Detected Distro is ${DEBTEST}"
 elif [[ -f "/etc/redhat-release" ]]; then
   TYPE="rpms"
   PYTHONPACK="/usr/lib/python2.7/site-packages"
-  echo "########## Detected linux distribution is RedHat compatible ##########"
+  echo "###########################################################################################"
+  echo "# Detected linux distribution is RedHat compatible"
   systemctl stop firewalld
   systemctl disable firewalld
   setenforce permissive
@@ -63,13 +69,15 @@ create_user() {
 
   if [ $(id -u ${SYSTEMUSER} &> /devnull; echo $?) != 0 ]
   then
-    echo "########## Creating system user: ${SYSTEMUSER} ##########"
+    echo "###########################################################################################"
+    echo "# Creating system user: ${SYSTEMUSER}"
     useradd ${SYSTEMUSER}
     mkdir -p /home/${SYSTEMUSER}/.ssh
     rm -Rf ${STAN}/*
     chmod 0700 /home/${SYSTEMUSER}/.ssh
     mkdir -p /home/${SYSTEMUSER}/${TYPE}
-    echo "########## Generating system user ssh keys ##########"
+    echo "###########################################################################################"
+    echo "# Generating system user ssh keys"
     ssh-keygen -f /home/${SYSTEMUSER}/.ssh/stanley_rsa -P ""
     cat /home/${SYSTEMUSER}/.ssh/stanley_rsa.pub >> /home/${SYSTEMUSER}/.ssh/authorized_keys
     chmod 0600 /home/${SYSTEMUSER}/.ssh/authorized_keys
@@ -82,14 +90,15 @@ create_user() {
 }
 
 install_pip() {
-
-  echo "########## Installing packages via pip ##########"
+  echo "###########################################################################################"
+  echo "# Installing packages via pip"
   curl -sS -k -o /tmp/requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/requirements.txt
-  pip install -U -r /tmp/requirements.txt
+  pip install -U -q -r /tmp/requirements.txt
 }
 
 install_apt(){
-  echo "########## Installing packages via apt-get ##########"
+  echo "###########################################################################################"
+  echo "# Installing packages via apt-get"
 
   if [ $(grep 'rabbitmq' /etc/apt/sources.list &> /dev/null; echo $?) != 0 ]
   then
@@ -112,7 +121,8 @@ install_apt(){
 }
 
 install_yum() {
-  echo "########## Installing packages via yum ##########"
+  echo "###########################################################################################"  
+  echo "# Installing packages via yum"
   rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
   curl -sS -k -o /tmp/rabbitmq-server.rpm http://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
   yum localinstall -y /tmp/rabbitmq-server.rpm
@@ -124,7 +134,8 @@ install_yum() {
 }
 
 setup_rabbitmq() {
-  echo "########## Setting up rabbitmq-server ##########"
+  echo "###########################################################################################"
+  echo "# Setting up rabbitmq-server"
   # enable rabbitmq-management plugin
   rabbitmq-plugins enable rabbitmq_management
   # Restart rabbitmq
@@ -221,7 +232,8 @@ systemctl enable mistral
 }
 
 setup_mistral() {
-  echo "########## Setting up Mistral ##########"
+  echo "###########################################################################################"
+  echo "# Setting up Mistral"
 
   # Install prerequisites.
   if [[ "$TYPE" == "debs" ]]; then
@@ -242,7 +254,7 @@ setup_mistral() {
   cd /opt/openstack/mistral
   virtualenv --no-site-packages .venv
   . /opt/openstack/mistral/.venv/bin/activate
-  pip install -r requirements.txt
+  pip install -q -r requirements.txt
   pip install -q mysql-python
   python setup.py develop
 
@@ -277,11 +289,12 @@ setup_mistral() {
   deactivate
 
   # Setup mistral client.
-  pip install -U git+https://github.com/StackStorm/python-mistralclient.git@${MISTRAL_STABLE_BRANCH}
+  pip install -q -U git+https://github.com/StackStorm/python-mistralclient.git@${MISTRAL_STABLE_BRANCH}
 }
 
 download_pkgs() {
-  echo "########## Downloading ${TYPE} packages ##########"
+  echo "###########################################################################################"
+  echo "# Downloading ${TYPE} packages"
   echo "ST2 Packages: ${PACKAGES}"
   pushd ${STAN}
   for pkg in `echo ${PACKAGES} ${CLI_PACKAGE}`
@@ -304,11 +317,13 @@ download_pkgs() {
 }
 
 deploy_rpm() {
-  echo "########## Removing any current st2 components ##########"
+  echo "###########################################################################################"
+  echo "# Removing any current st2 components"
   for i in `rpm -qa | grep st2 | grep -v common`; do rpm -e $i; done
   for i in `rpm -qa | grep st2common `; do rpm -e $i; done
 
-  echo "########## Installing st2 ${STAN} ##########"
+  echo "###########################################################################################"
+  echo "# Installing st2 ${STAN}"
   pushd ${STAN}
   yum localinstall -y *.rpm
   popd
@@ -317,16 +332,19 @@ deploy_rpm() {
 deploy_deb() {
   pushd ${STAN}
   for PACKAGE in $PACKAGES; do
-    echo "########## Removing ${PACKAGE} ##########"
+    echo "###########################################################################################"
+    echo "# Removing ${PACKAGE}"
     dpkg --purge $PACKAGE
-    echo "########## Installing ${PACKAGE} ${VER} ##########"
+    echo "###########################################################################################"
+    echo "# Installing ${PACKAGE} ${VER}"
     dpkg -i ${PACKAGE}*
   done
   popd
 }
 
 register_content() {
-  echo "########## Registering all content ##########"
+  echo "###########################################################################################"  
+  echo "# Registering all content"
   $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --register-sensors --register-actions --config-file ${STANCONF}
 }
 
@@ -345,9 +363,10 @@ fi
 
 install_st2client() {
   pushd ${STAN}
-  echo "########## Installing st2client requirements via pip ##########"
+  echo "###########################################################################################"
+  echo "# Installing st2client requirements via pip"
   curl -sS -k -o /tmp/st2client-requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/st2client/requirements.txt
-  pip install -U -r /tmp/st2client-requirements.txt
+  pip install -q -U -r /tmp/st2client-requirements.txt
   if [[ "$TYPE" == "debs" ]]; then
     echo "########## Removing st2client ##########"
     if dpkg -l | grep st2client; then
@@ -363,6 +382,8 @@ install_st2client() {
 }
 
 install_webui() {
+  echo "###########################################################################################"
+  echo "# Installing st2web"
   # Download artifact
   curl -sS -k -o /tmp/webui.tar.gz "https://ops.stackstorm.net/releases/st2/${VER}/webui/webui-${VER}-${RELEASE}.tar.gz"
 
@@ -373,6 +394,16 @@ install_webui() {
   # Copy the files over to the webui static root
   mkdir -p /opt/stackstorm/static/webui
   cp -R ${temp_dir}/* /opt/stackstorm/static/webui
+
+  # Replace config.js
+  echo -e "'use strict';
+  angular.module('main')
+    .constant('st2Config', {
+    hosts: [{
+      name: 'StackStorm',
+      url: ''
+    }]
+  });" > /opt/stackstorm/static/webui/config.js
 
   rm -r ${temp_dir}
   rm -f /tmp/webui.tar.gz
@@ -387,11 +418,12 @@ if [ ${INSTALL_WEBUI} == "1" ]; then
 fi
 
 register_content
-echo "########## Starting St2 Services ##########"
+echo "###########################################################################################"
+echo "# Starting St2 Services"
 st2ctl restart
 sleep 20
 ##This is a hack around a weird issue with actions getting stuck in scheduled state
-st2 run core.local date -a &> /dev/null
+st2 run core.local date &> /dev/null
 ACTIONEXIT=$?
 
 echo "=============================="
