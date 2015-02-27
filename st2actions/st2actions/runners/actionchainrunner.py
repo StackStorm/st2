@@ -192,7 +192,8 @@ class ActionChainRunner(ActionRunner):
 
                     # Create DB objects
                     liveaction = LiveAction.add_or_update(liveaction, publish=False)
-                    execution = executions_service.create_execution_object(liveaction, publish=False)
+                    execution = executions_service.create_execution_object(liveaction,
+                                                                           publish=False)
                     execution.status = LIVEACTION_STATUS_FAILED
 
                     # Publish creates
