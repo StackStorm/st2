@@ -149,25 +149,48 @@ class ActionChainRunner(ActionRunner):
 
         result = {'tasks': []}  # holds final result we store
         context_result = {}  # holds result which is used for the template context purposes
+        top_level_error = None  # stores a reference to a top level error
         fail = True
 
         while action_node:
-            error = None
-            liveaction = None
             fail = False
+            error = None
+            resolved_params = None
+            liveaction = None
+
             created_at = datetime.datetime.now()
 
             try:
                 resolved_params = ActionChainRunner._resolve_params(
                     action_node=action_node, original_parameters=action_parameters,
                     results=context_result, chain_vars=self.chain_holder.vars)
+            except Exception as e:
+                # Rendering parameters failed before we even got to running this action, abort and
+                # fail the whole action chain
+                LOG.exception('Failed to run action "%s".', action_node.name)
+
+                fail = True
+                error = ('Failed to run task "%s". Parameter rendering failed: %s' %
+                         (action_node.name, str(e)))
+                trace = traceback.format_exc(10)
+                top_level_error = {
+                    'error': error,
+                    'traceback': trace
+                }
+                break
+
+            try:
                 liveaction = ActionChainRunner._run_action(
                     action_node=action_node, parent_execution_id=self.liveaction_id,
                     params=resolved_params)
-            except Exception:
-                # Save the traceback and error message.
-                LOG.exception('Failure in running action %s.', action_node.name)
-                error = {'error': traceback.format_exc(10)}
+            except Exception as e:
+                # Save the traceback and error message
+                LOG.exception('Failure in running action "%s".', action_node.name)
+
+                error = {
+                    'error': 'Task "%s" failed: %s' % (action_node.name, str(e)),
+                    'traceback': traceback.format_exc(10)
+                }
                 context_result[action_node.name] = error
             else:
                 # Update context result
@@ -203,6 +226,11 @@ class ActionChainRunner(ActionRunner):
             status = LIVEACTION_STATUS_FAILED
         else:
             status = LIVEACTION_STATUS_SUCCEEDED
+
+        if top_level_error:
+            # Include top level error information
+            result['error'] = top_level_error['error']
+            result['traceback'] = top_level_error['traceback']
 
         return (status, result, None)
 
@@ -249,13 +277,14 @@ class ActionChainRunner(ActionRunner):
             'parent': str(parent_execution_id),
             'chain': vars(action_node)
         }
-        execution, _ = action_service.schedule(execution)
+
+        liveaction, _ = action_service.schedule(execution)
         while (wait_for_completion and
-               execution.status != LIVEACTION_STATUS_SUCCEEDED and
-               execution.status != LIVEACTION_STATUS_FAILED):
+               liveaction.status != LIVEACTION_STATUS_SUCCEEDED and
+               liveaction.status != LIVEACTION_STATUS_FAILED):
             eventlet.sleep(1)
-            execution = action_db_util.get_liveaction_by_id(execution.id)
-        return execution
+            liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
+        return liveaction
 
     def _format_action_exec_result(self, action_node, liveaction_db, created_at, updated_at,
                                    error=None):
@@ -282,7 +311,7 @@ class ActionChainRunner(ActionRunner):
         result['updated_at'] = isotime.format(dt=updated_at)
 
         if error or not liveaction_db:
-            result['state'] = LIVEACTION_STATUS_SUCCEEDED
+            result['state'] = LIVEACTION_STATUS_FAILED
         else:
             result['state'] = liveaction_db.status
 
