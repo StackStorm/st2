@@ -102,6 +102,9 @@ class ShellCommandAction(object):
         result = {}
         result['failed'] = True
         result['succeeded'] = False
+        exc_value = str(exc_value)
+        if 'sudo password' in exc_value:
+            exc_value = 'Passwordless sudo needs to be setup for user: %s' % self.user
         result['error'] = str(exc_value)
         result['traceback'] = ''.join(traceback.format_tb(exc_traceback))
         return result
