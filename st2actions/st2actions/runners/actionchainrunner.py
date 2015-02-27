@@ -166,7 +166,6 @@ class ActionChainRunner(ActionRunner):
                     action_node=action_node, original_parameters=action_parameters,
                     results=context_result, chain_vars=self.chain_holder.vars)
 
-                ###
                 liveaction = ActionChainRunner._run_action(
                     action_node=action_node, parent_execution_id=self.liveaction_id,
                     params=resolved_params)

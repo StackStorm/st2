@@ -24,6 +24,8 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.models.db.datastore import KeyValuePairDB
 from st2common.persistence.datastore import KeyValuePair
 from st2common.persistence.action import RunnerType
+from st2common.persistence.action import LiveAction
+from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 from st2tests import DbTestCase
@@ -284,6 +286,31 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertEqual(schedule.call_count, 0, 'No call expected.')
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(RunnerType, 'get_by_name',
+                       mock.MagicMock(return_value=RUNNER))
+    @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_failure_during_param_rendering(self, schedule):
+        # Verify that LiveAction and ActionExecutionDB objects are created for
+        # actions which fail during param rendering phase (before schedueling / running them)
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_STR_TEMP_PATH
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, result, _ = chain_runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertEqual(result['tasks'][0]['state'], LIVEACTION_STATUS_FAILED)
+        self.assertEqual(schedule.call_count, 0, 'No call expected.')
+
+        task = result['tasks'][0]
+        execution_db = ActionExecution.get_by_id(task['execution_id'])
+        self.assertTrue(execution_db)
+        live_action_db = LiveAction.get_by_id(execution_db.liveaction['id'])
+        self.assertTrue(live_action_db)
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_2))
