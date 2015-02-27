@@ -20,7 +20,7 @@ import jinja2
 from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.services.keyvalues import KeyValueLookup
-import six
+from st2common.util import jinja as jinja_utils
 
 
 class Jinja2BasedTransformer(object):
@@ -31,11 +31,7 @@ class Jinja2BasedTransformer(object):
     def __call__(self, mapping):
         context = copy.copy(self._payload_context)
         context[SYSTEM_KV_PREFIX] = KeyValueLookup()
-        resolved_mapping = {}
-        for mapping_k, mapping_v in six.iteritems(mapping):
-            template = jinja2.Template(mapping_v)
-            resolved_mapping[mapping_k] = template.render(context)
-        return resolved_mapping
+        return jinja_utils.render_values(mapping=mapping, context=context)
 
     @staticmethod
     def _construct_context(prefix, data, context):
