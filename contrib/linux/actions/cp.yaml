@@ -27,4 +27,4 @@
             position: 0
         args:
             description: 'Command line arguments passed to cp'
-            default: '-v{% if recursive == true -%} -r{% endif -%}{% if force == true -%} -f{% endif -%}'
+            default: '-v{% if recursive == true %} -r{% endif %}{% if force == true %} -f{% endif %}'
