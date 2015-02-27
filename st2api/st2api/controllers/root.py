@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from pecan import expose
 from pecan.core import redirect
 from oslo.config import cfg
@@ -32,6 +34,13 @@ LOG = logging.getLogger(__name__)
 class WebUIRootController(object):
     @expose(generic=True)
     def index(self):
+        webui_root = os.path.join(cfg.CONF.api_pecan.static_root, 'webui')
+        webui_index_file = os.path.join(webui_root, 'index.html')
+
+        if not os.path.exists(webui_index_file):
+            message = 'Cannot find WebUI files. Make sure they are located in %s.' % (webui_root)
+            return message
+
         return redirect(location='/webui/index.html')
 
 
