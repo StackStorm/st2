@@ -25,6 +25,7 @@ import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
 
 CONF = cfg.CONF
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def _register_common_opts():
@@ -45,13 +46,13 @@ def _register_app_opts():
     CONF.register_opts(api_opts, group='api')
 
     static_root = os.path.join(cfg.CONF.system.base_path, 'static')
+    template_path = os.path.join(BASE_DIR, 'templates/')
     pecan_opts = [
         cfg.StrOpt('root',
                    default='st2api.controllers.root.RootController',
                    help='Action root controller'),
         cfg.StrOpt('static_root', default=static_root),
-        cfg.StrOpt('template_path',
-                   default='%(confdir)s/st2api/st2api/templates'),
+        cfg.StrOpt('template_path', default=template_path),
         cfg.ListOpt('modules', default=['st2api']),
         cfg.BoolOpt('debug', default=False),
         cfg.BoolOpt('auth_enable', default=True),
