@@ -21,7 +21,7 @@ from st2common.persistence.datastore import KeyValuePair
 from st2reactor.rules import datatransform
 
 
-PAYLOAD = {'k1': 'v1', 'k2': 'v2'}
+PAYLOAD = {'k1': 'v1', 'k2': 'v2', 'k3': 3, 'k4': True, 'k5': {'foo': 'bar'}, 'k6': [1, 3]}
 
 PAYLOAD_WITH_KVP = copy.copy(PAYLOAD)
 PAYLOAD_WITH_KVP.update({'k5': '{{system.k5}}'})
@@ -35,6 +35,28 @@ class DataTransformTest(DbTestCase):
                    'ip2': '{{trigger.k2}} static'}
         result = transformer(mapping)
         self.assertEqual(result, {'ip1': 'v1-static', 'ip2': 'v2 static'})
+
+    def test_payload_transofrm_int_type(self):
+        transformer = datatransform.get_transformer(PAYLOAD)
+        mapping = {'int': 666}
+        result = transformer(mapping)
+        self.assertEqual(result, {'int': 666})
+
+    def test_payload_transform_bool_type(self):
+        transformer = datatransform.get_transformer(PAYLOAD)
+        mapping = {'bool': True}
+        result = transformer(mapping)
+        self.assertEqual(result, {'bool': True})
+
+    def test_payload_transform_complex_type(self):
+        transformer = datatransform.get_transformer(PAYLOAD)
+        mapping = {'complex_dict': {'bool': True, 'int': 666, 'str': '{{trigger.k1}}-string'}}
+        result = transformer(mapping)
+        expected = {'complex_dict': {'bool': True, 'int': 666, 'str': 'v1-string'}}
+        self.assertEqual(result, expected)
+        mapping = {'simple_list': [1, 2, 3]}
+        result = transformer(mapping)
+        self.assertEqual(result, mapping)
 
     def test_hypenated_payload_transform(self):
         payload = {'headers': {'hypenated-header': 'dont-care'}, 'k2': 'v2'}

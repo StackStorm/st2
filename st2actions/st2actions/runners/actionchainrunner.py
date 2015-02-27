@@ -14,9 +14,6 @@
 # limitations under the License.
 
 import eventlet
-import jinja2
-import json
-import six
 import traceback
 import uuid
 import datetime
@@ -35,33 +32,11 @@ from st2common.services import action as action_service
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import action_db as action_db_util
 from st2common.util import isotime
+from st2common.util import jinja as jinja_utils
 
 
 LOG = logging.getLogger(__name__)
 RESULTS_KEY = '__results'
-
-
-def render_values(values, context):
-    env = jinja2.Environment(undefined=jinja2.StrictUndefined)
-    rendered_values = {}
-    for k, v in six.iteritems(values):
-        # jinja2 works with string so transform list and dict to strings.
-        reverse_json_dumps = False
-        if isinstance(v, dict) or isinstance(v, list):
-            v = json.dumps(v)
-            reverse_json_dumps = True
-        else:
-            v = str(v)
-        rendered_v = env.from_string(v).render(context)
-        # no change therefore no templatization so pick params from original to retain
-        # original type
-        if rendered_v == v:
-            rendered_values[k] = values[k]
-            continue
-        if reverse_json_dumps:
-            rendered_v = json.loads(rendered_v)
-        rendered_values[k] = rendered_v
-    return rendered_values
 
 
 class ChainHolder(object):
@@ -106,7 +81,7 @@ class ChainHolder(object):
         if not vars:
             return {}
         context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
-        return render_values(vars, context)
+        return jinja_utils.render_values(mapping=vars, context=context)
 
     def get_node(self, node_name=None):
         for node in self.actionchain.chain:
@@ -252,7 +227,7 @@ class ActionChainRunner(ActionRunner):
         context.update(chain_vars)
         context.update({RESULTS_KEY: previous_execution_results})
         context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
-        rendered_result = render_values(action_node.publish, context)
+        rendered_result = jinja_utils.render_values(mapping=action_node.publish, context=context)
         return rendered_result
 
     @staticmethod
@@ -264,7 +239,7 @@ class ActionChainRunner(ActionRunner):
         context.update(chain_vars)
         context.update({RESULTS_KEY: results})
         context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
-        rendered_params = render_values(action_node.params, context)
+        rendered_params = jinja_utils.render_values(mapping=action_node.params, context=context)
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
 

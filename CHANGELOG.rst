@@ -63,6 +63,7 @@ Docs: http://docks.stackstorm.com/latest
 * Allow sensors to list datastore items using ``list_values`` sensor_service method. (new-feature)
 * Allow users to filter datastore items by name prefix by passing ``?prefix=<value>`` query
   parameter to the /keys endpoint. (new-feature)
+* Fix non-string types to be rendered correctly in action parameters when used in rule. (bug-fix)
 
 v0.7 - January 16, 2015
 -----------------------
