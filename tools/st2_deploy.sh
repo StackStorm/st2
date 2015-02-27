@@ -240,6 +240,8 @@ setup_mistral() {
     apt-get -y install libssl-dev libyaml-dev libffi-dev libxml2-dev libxslt1-dev python-dev libmysqlclient-dev
   elif [[ "$TYPE" == "rpms" ]]; then
     yum -y install openssl-devel libyaml-devel libffi-devel libxml2-devel libxslt-devel python-devel mysql-devel
+    # Needed because of mysql-python library
+    yum -y install redhat-rpm-config
   fi
 
   # Clone mistral from github.
@@ -385,7 +387,7 @@ install_webui() {
   echo "###########################################################################################"
   echo "# Installing st2web"
   # Download artifact
-  curl -sS -k -o /tmp/webui.tar.gz "https://ops.stackstorm.net/releases/st2/${VER}/webui/webui-${VER}-${RELEASE}.tar.gz"
+  curl -sS -k -f -o /tmp/webui.tar.gz "https://ops.stackstorm.net/releases/st2/${VER}/webui/webui-${VER}-${RELEASE}.tar.gz"
 
   # Unpack it into a temporary directory
   temp_dir=$(mktemp -d)
