@@ -30,6 +30,7 @@ from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.db.action import LiveActionDB
 from st2common.models.system import actionchain
 from st2common.models.utils import action_param_utils
+from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import action_db as action_db_util
@@ -268,10 +269,13 @@ class ActionChainRunner(ActionRunner):
 
         result = {}
 
+        execution_db = None
+        if liveaction_db:
+            execution_db = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+
         result['id'] = action_node.name
         result['name'] = action_node.name
-        result['execution_id'] = str(liveaction_db.id) if liveaction_db else None
-        result['mistral_execution_id'] = None
+        result['execution_id'] = str(execution_db.id) if execution_db else None
         result['workflow'] = None
 
         result['created_at'] = isotime.format(dt=created_at)
