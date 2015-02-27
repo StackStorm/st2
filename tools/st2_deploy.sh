@@ -240,6 +240,8 @@ setup_mistral() {
     apt-get -y install libssl-dev libyaml-dev libffi-dev libxml2-dev libxslt1-dev python-dev libmysqlclient-dev
   elif [[ "$TYPE" == "rpms" ]]; then
     yum -y install openssl-devel libyaml-devel libffi-devel libxml2-devel libxslt-devel python-devel mysql-devel
+    # Needed because of mysql-python library
+    yum -y install redhat-rpm-config
   fi
 
   # Clone mistral from github.
