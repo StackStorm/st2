@@ -70,8 +70,8 @@ Let's install the Docker pack:
     # Check out README.md and if necessary, adjust configuration for your environment
     less /opt/stackstorm/packs/docker/README.md
 
-    # Reloads the content
-    st2 run packs.load
+    # Reload all the content
+    st2 run packs.load register=all
 
     # To pick up sensors, need to bounce the sensor_container.
     # Note: live update coming soon and this won't be needed.
@@ -79,6 +79,7 @@ Let's install the Docker pack:
 
     # Verify that the docker pack was installed
     st2 action list --pack=docker
+    st2 sensor list --pack=docker
     st2 trigger list --pack=docker
 
 The docker pack is now installed and ready to use.
