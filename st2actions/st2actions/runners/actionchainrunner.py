@@ -271,7 +271,6 @@ class ActionChainRunner(ActionRunner):
         result['id'] = action_node.name
         result['name'] = action_node.name
         result['execution_id'] = str(liveaction_db.id) if liveaction_db else None
-        result['mistral_execution_id'] = None
         result['workflow'] = None
 
         result['created_at'] = isotime.format(dt=created_at)
