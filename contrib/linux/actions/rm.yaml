@@ -22,4 +22,4 @@
             default: 'rm {{args}} {{target}}'
         args:
             description: 'Command line arguments passed to rm'
-            default: '-v{% if recursive == true -%} -r{% endif -%}{% if force == true -%} -f{% endif -%}'
+            default: '-v{% if recursive == true %} -r{% endif %}{% if force == true %} -f{% endif %}'

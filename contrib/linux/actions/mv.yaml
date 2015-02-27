@@ -22,4 +22,4 @@
             default: 'mv {{args}} {{source}} {{destination}}'
         args:
             description: 'Command line arguments passed to mv'
-            default: '-v{% if force == true -%} -f{% endif -%}'
+            default: '-v{% if force == true %} -f{% endif %}'
