@@ -387,7 +387,7 @@ install_webui() {
   echo "###########################################################################################"
   echo "# Installing st2web"
   # Download artifact
-  curl -sS -k -o /tmp/webui.tar.gz "https://ops.stackstorm.net/releases/st2/${VER}/webui/webui-${VER}-${RELEASE}.tar.gz"
+  curl -sS -k -f -o /tmp/webui.tar.gz "https://ops.stackstorm.net/releases/st2/${VER}/webui/webui-${VER}-${RELEASE}.tar.gz"
 
   # Unpack it into a temporary directory
   temp_dir=$(mktemp -d)
