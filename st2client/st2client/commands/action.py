@@ -582,15 +582,19 @@ class ActionExecutionListCommand(resource.ResourceCommand):
 
         # Filter options
         self.group.add_argument('--action', help='Action reference to filter the list.')
-        self.group.add_argument('--status', help='Only return executions with the provided status.')
+        self.group.add_argument('--status', help=('Only return executions with the provided status.'
+                                                  ' Possible values are \'succeded\', \'running\','
+                                                  ' \'failed\' or \'scheduled\'.'))
         self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
                                  default=None,
                                  help=('Only return executions with timestamp '
-                                       'greater than the one provided'))
+                                       'greater than the one provided. '
+                                       'Use time in the format 2000-01-01T12:00:00.000Z'))
         self.parser.add_argument('-tl', '--timestamp-lt', type=str, dest='timestamp_lt',
                                  default=None,
                                  help=('Only return executions with timestamp '
-                                       'lower than the one provided'))
+                                       'lower than the one provided. '
+                                       'Use time in the format 2000-01-01T12:00:00.000Z'))
         self.parser.add_argument('-l', '--showall', action='store_true',
                                  help='')
 
