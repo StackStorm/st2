@@ -87,3 +87,64 @@ Note:
 
 * Output of an action elements is always prefixed by element name. e.g. In ``{"cmd":"echo c2 {{c1.localhost.stdout}}"}`` `c1.localhost.stdout` refers to the output of 'c1' and further drills down into properties of the output.
 * A special ``__results`` key provides access to the entire result upto that point of execution.
+
+Error Reporting
+~~~~~~~~~~~~~~~
+
+ActionChain errors are classified as:
+
+* Errors reported by a specific task in the chain. In this case the error is reported as per behavior of the particular action in the task.
+
+Sample -
+
+::
+
+   "result": {
+        "tasks": [
+            {
+                "created_at": "2015-02-27T19:29:02.057885+00:00",
+                "execution_id": "54f0c57e0640fd177f278052",
+                "id": "c1",
+                "name": "c1",
+                "result": {
+                    "failed": true,
+                    "return_code": 127,
+                    "stderr": "bash: borg: command not found\n",
+                    "stdout": "",
+                    "succeeded": false
+                },
+                "state": "failed",
+                "updated_at": "2015-02-27T19:29:03.149547+00:00",
+                "workflow": null
+            }
+        ]
+    }
+
+* Errors experienced by the ActionChain runtime while determining the flow. In this case the error is reported as the error property of the ActionChain result.
+
+Sample -
+
+::
+
+   "result": {
+        "error": "Failed to run task \"c2\". Parameter rendering failed: 's1' is undefined",
+        "tasks": [
+            {
+                "created_at": "2015-02-27T19:19:34.536558+00:00",
+                "execution_id": "54f0c3460640fd15a843957d",
+                "id": "c1",
+                "name": "c1",
+                "result": {
+                    "failed": false,
+                    "return_code": 0,
+                    "stderr": "",
+                    "stdout": "Fri Feb 27 19:19:34 UTC 2015\n",
+                    "succeeded": true
+                },
+                "state": "succeeded",
+                "updated_at": "2015-02-27T19:19:35.591297+00:00",
+                "workflow": null
+            }
+        ],
+        "traceback": "Traceback (most recent call last):..."
+    }
