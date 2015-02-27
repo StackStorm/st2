@@ -23,6 +23,7 @@ from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.models.db.datastore import KeyValuePairDB
 from st2common.persistence.datastore import KeyValuePair
+from st2common.persistence.action import RunnerType
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 from st2tests import DbTestCase
@@ -272,6 +273,8 @@ class TestActionChainRunner(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(RunnerType, 'get_by_name',
+                       mock.MagicMock(return_value=RUNNER))
     @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
     def test_chain_runner_missing_param_temp(self, schedule):
         chain_runner = acr.get_runner()
