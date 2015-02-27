@@ -249,13 +249,14 @@ class ActionChainRunner(ActionRunner):
             'parent': str(parent_execution_id),
             'chain': vars(action_node)
         }
-        execution, _ = action_service.schedule(execution)
+
+        liveaction, _ = action_service.schedule(execution)
         while (wait_for_completion and
-               execution.status != LIVEACTION_STATUS_SUCCEEDED and
-               execution.status != LIVEACTION_STATUS_FAILED):
+               liveaction.status != LIVEACTION_STATUS_SUCCEEDED and
+               liveaction.status != LIVEACTION_STATUS_FAILED):
             eventlet.sleep(1)
-            execution = action_db_util.get_liveaction_by_id(execution.id)
-        return execution
+            liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
+        return liveaction
 
     def _format_action_exec_result(self, action_node, liveaction_db, created_at, updated_at,
                                    error=None):
