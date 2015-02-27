@@ -130,6 +130,7 @@ install_yum() {
   echo "Installing ${yumlist}"
   yum install -y ${yumlist}
   setup_rabbitmq
+  setup_mongodb_systemd
   install_pip
 }
 
@@ -161,6 +162,12 @@ setup_mysql() {
   mysql -uroot -pStackStorm -e "CREATE DATABASE mistral"
   mysql -uroot -pStackStorm -e "GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'localhost' IDENTIFIED BY 'StackStorm'"
   mysql -uroot -pStackStorm -e "FLUSH PRIVILEGES"
+}
+
+setup_mongodb_systemd() {
+    # Enable and start MongoDB
+    systemctl enable mongod
+    systemctl start mongod
 }
 
 setup_mistral_config()
