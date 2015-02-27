@@ -1,0 +1,59 @@
+---
+  chain: 
+    - 
+      name: "check_load"
+      ref: "linux.check_loadavg"
+      params: 
+        hosts: "{{hostname}}"
+        period: "all"
+      on-success: "d_state_processes"
+      on-failure: "email_escalation"
+    - 
+      name: "d_state_processes"
+      ref: "linux.check_processes"
+      params: 
+        hosts: "{{hostname}}"
+        search: "state"
+        criteria: "D"
+        args: "pidlist"
+      on-success: "r_state_processes"
+      on-failure: "email_escalation"
+    - 
+      name: "r_state_processes"
+      ref: "linux.check_processes"
+      params: 
+        hosts: "{{hostname}}"
+        search: "state"
+        criteria: "R"
+        args: "pidlist"
+      on-success: "netstat"
+      on-failure: "email_escalation"
+    - 
+      name: "netstat"
+      ref: "linux.netstat_grep"
+      params: 
+        hosts: "{{hostname}}"
+        pids: "{{d_state_processes[hostname].stderr}} {{r_state_processes[hostname].stderr}}"
+      on-success: "lsof"
+      on-failure: "email_escalation"
+    - 
+      name: "lsof"
+      ref: "linux.lsof_pids"
+      params: 
+        hosts: "{{hostname}}"
+        pids: "{{d_state_processes[hostname].stderr}} {{r_state_processes[hostname].stderr}}"
+      on-success: "slack_say"
+      on-failure: "email_escalation"
+    - 
+      name: "slack_say"
+      ref: "slack.post_message"
+      params: 
+        channel: "#thunderdome"
+        message: "'\n\tLOAD: {{check_load[hostname].stdout}}\n\tState D: {{d_state_processes[hostname].stdout}}\n\tState R:{{r_state_processes[hostname].stdout}}\n\tNetstat: {{netstat[hostname].stdout}}\n\tlsof: {{lsof[hostname].stdout}}'"
+      on-failure: "email_escalation"
+    - 
+      name: "email_escalation"
+      ref: "core.local"
+      params: 
+        cmd: "echo 'ST2 Workflow Failure\tThe load_alert workflow has failed\t{{__results}}' >> /tmp/chain && echo 'Output written to file'"
+  default: "check_load"

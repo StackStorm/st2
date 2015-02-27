@@ -1,0 +1,14 @@
+---
+  name: "vmstat"
+  runner_type: "run-remote"
+  description: "Run vmstat"
+  enabled: true
+  entry_point: ""
+  parameters:
+    cmd:
+      immutable: true
+      default: "vmstat {{args}}"
+      position: 0
+    args:
+      description: "Command line arguments"
+      default: " "
