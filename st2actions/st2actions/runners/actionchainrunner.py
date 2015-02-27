@@ -170,8 +170,8 @@ class ActionChainRunner(ActionRunner):
                 LOG.exception('Failed to run action "%s".', action_node.name)
 
                 fail = True
-                error = 'Failed to run task "%s". Parameter rendering failed: %s' % (action_node.name,
-                                                                                     str(e))
+                error = ('Failed to run task "%s". Parameter rendering failed: %s' %
+                         (action_node.name, str(e)))
                 trace = traceback.format_exc(10)
                 top_level_error = {
                     'error': error,
