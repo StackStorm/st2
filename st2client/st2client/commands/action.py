@@ -557,6 +557,9 @@ class ActionExecutionBranch(resource.ResourceBranch):
                                                               self.subparsers, add_help=False)
 
 
+POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed')
+
+
 class ActionExecutionListCommand(resource.ResourceCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'status', 'start_timestamp',
                           'end_timestamp']
@@ -583,8 +586,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         # Filter options
         self.group.add_argument('--action', help='Action reference to filter the list.')
         self.group.add_argument('--status', help=('Only return executions with the provided status.'
-                                                  ' Possible values are \'succeded\', \'running\','
-                                                  ' \'failed\' or \'scheduled\'.'))
+                                                  ' Possible values are \'%s\', \'%s\', \'%s\' or'
+                                                  ' \'%s\'.' % POSSIBLE_ACTION_STATUS_VALUES))
         self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
                                  default=None,
                                  help=('Only return executions with timestamp '
