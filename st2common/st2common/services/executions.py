@@ -113,34 +113,58 @@ def update_execution(liveaction_db, publish=True):
     return execution
 
 
-def get_descendants(actionexecution_id, descendant_depth=-1):
+class AscendingSortedDescendantView(object):
+    def __init__(self):
+        self._result = []
+
+    def add(self, child):
+        self._result.append(child)
+
+    @property
+    def result(self):
+        return sorted(self._result, key=lambda execution: execution.start_timestamp)
+
+
+class DFSDescendantView(object):
+    def __init__(self):
+        self._result = []
+
+    def add(self, child):
+        self._result.append(child)
+
+    @property
+    def result(self):
+        return self._result
+
+
+DESCENDANT_VIEWS = {
+    'sorted': AscendingSortedDescendantView,
+    'default': DFSDescendantView
+}
+
+
+def get_descendants(actionexecution_id, descendant_depth=-1, result_fmt=None):
     """
     Returns all descendant executions upto the specified descendant_depth for
     the supplied actionexecution_id.
     """
-    descendants = []
-    current_level = set([actionexecution_id])
-    next_level = set()
-    remaining_depth = descendant_depth
-    # keep track of processed ActionExecution to avoid any cycles. Will raise
-    # an exception if a cycle is found.
-    processed_action_executions = set()
+    descendants = DESCENDANT_VIEWS.get(result_fmt, DFSDescendantView)()
+    children = ActionExecution.query(parent=actionexecution_id,
+                                     **{'order_by': ['start_timestamp']})
+    LOG.debug('Found %s children for id %s.', len(children), actionexecution_id)
+    current_level = [(child, 1) for child in children]
 
-    while current_level and remaining_depth != 0:
-        parent_id = current_level.pop()
-        processed_action_executions.add(parent_id)
-        children = ActionExecution.query(parent=parent_id)
+    while current_level:
+        parent, level = current_level.pop(0)
+        parent_id = str(parent.id)
+        descendants.add(parent)
+        if not parent.children:
+            continue
+        if level != -1 and level == descendant_depth:
+            continue
+        children = ActionExecution.query(parent=parent_id, **{'order_by': ['start_timestamp']})
         LOG.debug('Found %s children for id %s.', len(children), parent_id)
-        for child in children:
-            if str(child.id) in processed_action_executions:
-                raise Exception('child with id %s appeared multiple times.', str(child.id))
-            if child.children:
-                next_level.add(str(child.id))
-        descendants.extend(children)
-        # check if current_level is complete. If so start processing the next level.
-        if not current_level:
-            current_level.update(next_level)
-            next_level.clear()
-            remaining_depth = remaining_depth - 1
-
-    return descendants
+        # prepend for DFS
+        for idx in range(len(children)):
+            current_level.insert(idx, (children[idx], level + 1))
+    return descendants.result

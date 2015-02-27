@@ -1,7 +1,7 @@
 {
     "id": "54e658290640fd16887d685a",
     "parent": "54e657d60640fd16887d6855",
-    "children": ["54e657d60640fd16887d6855"],
+    "children": ["54e658570640fd16887d685d"],
     "action": {
         "name": "pointlessaction",
         "runner_type": "pointlessrunner"
@@ -13,7 +13,7 @@
     "liveaction": {
         "action": "pointlessaction"
     },
-    "start_timestamp": "2014-09-01T00:00:01.000000Z",
-    "end_timestamp": "2014-09-01T00:00:05.000000Z",
+    "start_timestamp": "2014-09-01T00:00:06.000000Z",
+    "end_timestamp": "2014-09-01T00:00:55.000000Z",
     "status": "succeeded"
 }

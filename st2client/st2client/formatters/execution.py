@@ -20,6 +20,7 @@ import logging
 from st2client import formatters
 from st2client.utils import jsutil
 from st2client.utils import strutil
+from st2client.utils.color import DisplayColors
 
 
 LOG = logging.getLogger(__name__)
@@ -34,9 +35,11 @@ class ExecutionResult(formatters.Formatter):
         if key:
             output = jsutil.get_value(entry.result, key)
         else:
+            # drop entry to the dict so that jsutil can operate
+            entry = vars(entry)
             output = ''
             for attr in attrs:
-                value = getattr(entry, attr, None)
+                value = jsutil.get_value(entry, attr)
                 if (isinstance(value, basestring) and len(value) > 0 and
                         value[0] in ['{', '['] and value[len(value) - 1] in ['}', ']']):
                     new_value = ast.literal_eval(value)
@@ -44,5 +47,6 @@ class ExecutionResult(formatters.Formatter):
                         value = new_value
                 if type(value) in [dict, list]:
                     value = ('\n' if isinstance(value, dict) else '') + json.dumps(value, indent=4)
-                output += ('\n' if output else '') + '%s: %s' % (attr.upper(), value)
+                output += ('\n' if output else '') + '%s: %s' % \
+                    (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
         return strutil.unescape(output)

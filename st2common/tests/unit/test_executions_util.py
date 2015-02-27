@@ -143,6 +143,26 @@ class ExecutionsUtilDescendantsTestCase(CleanDbTestCase):
         self.MODELS = FixturesLoader().save_fixtures_to_db(fixtures_pack=DESCENDANTS_PACK,
                                                            fixtures_dict=DESCENDANTS_FIXTURES)
 
+    def test_get_all_descendants_sorted(self):
+        root_execution = self.MODELS['executions']['root_execution.json']
+        all_descendants = executions_util.get_descendants(str(root_execution.id),
+                                                          result_fmt='sorted')
+
+        all_descendants_ids = [str(descendant.id) for descendant in all_descendants]
+        all_descendants_ids.sort()
+
+        # everything except the root_execution
+        expected_ids = [str(v.id) for _, v in six.iteritems(self.MODELS['executions'])
+                        if v.id != root_execution.id]
+        expected_ids.sort()
+
+        self.assertListEqual(all_descendants_ids, expected_ids)
+
+        # verify sort order
+        for idx in range(len(all_descendants) - 1):
+            self.assertLess(all_descendants[idx].start_timestamp,
+                            all_descendants[idx + 1].start_timestamp)
+
     def test_get_all_descendants(self):
         root_execution = self.MODELS['executions']['root_execution.json']
         all_descendants = executions_util.get_descendants(str(root_execution.id))
@@ -157,10 +177,11 @@ class ExecutionsUtilDescendantsTestCase(CleanDbTestCase):
 
         self.assertListEqual(all_descendants_ids, expected_ids)
 
-    def test_get_1_level_descendants(self):
+    def test_get_1_level_descendants_sorted(self):
         root_execution = self.MODELS['executions']['root_execution.json']
         all_descendants = executions_util.get_descendants(str(root_execution.id),
-                                                          descendant_depth=1)
+                                                          descendant_depth=1,
+                                                          result_fmt='sorted')
 
         all_descendants_ids = [str(descendant.id) for descendant in all_descendants]
         all_descendants_ids.sort()
@@ -171,3 +192,37 @@ class ExecutionsUtilDescendantsTestCase(CleanDbTestCase):
         expected_ids.sort()
 
         self.assertListEqual(all_descendants_ids, expected_ids)
+
+        # verify sort order
+        for idx in range(len(all_descendants) - 1):
+            self.assertLess(all_descendants[idx].start_timestamp,
+                            all_descendants[idx + 1].start_timestamp)
+
+    def test_get_2_level_descendants_sorted(self):
+        root_execution = self.MODELS['executions']['root_execution.json']
+        all_descendants = executions_util.get_descendants(str(root_execution.id),
+                                                          descendant_depth=2,
+                                                          result_fmt='sorted')
+
+        all_descendants_ids = [str(descendant.id) for descendant in all_descendants]
+        all_descendants_ids.sort()
+
+        # All children of root_execution
+        root_execution = self.MODELS['executions']['root_execution.json']
+        expected_ids = []
+        traverse = [(child_id, 1) for child_id in root_execution.children]
+        while traverse:
+            node_id, level = traverse.pop(0)
+            expected_ids.append(node_id)
+            children = self._get_action_execution(node_id).children
+            if children and level < 2:
+                traverse.extend([(child_id, level + 1) for child_id in children])
+        expected_ids.sort()
+
+        self.assertListEqual(all_descendants_ids, expected_ids)
+
+    def _get_action_execution(self, ae_id):
+        for _, execution in six.iteritems(self.MODELS['executions']):
+            if str(execution.id) == ae_id:
+                return execution
+        return None
