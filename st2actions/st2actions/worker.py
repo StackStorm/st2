@@ -20,7 +20,9 @@ from oslo.config import cfg
 from st2actions.container.base import RunnerContainer
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.constants.action import (LIVEACTION_STATUS_RUNNING, LIVEACTION_STATUS_FAILED)
+from st2common.constants.action import LIVEACTION_STATUS_RUNNING
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.services import executions
 from st2common.transport import liveaction, publishers
@@ -70,6 +72,11 @@ class Worker(ConsumerMixin):
             LOG.exception('execute_action failed. Message body : %s', body)
 
     def execute_action(self, liveaction):
+        # Note: We only want to execute actions which haven't completed yet
+        if liveaction.status in [LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED]:
+            LOG.info('Ignoring liveaction %s which has already finished', liveaction.id)
+            return
+
         try:
             liveaction_db = get_liveaction_by_id(liveaction.id)
         except StackStormDBObjectNotFoundError:
