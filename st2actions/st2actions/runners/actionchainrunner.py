@@ -30,10 +30,8 @@ from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.db.action import LiveActionDB
 from st2common.models.system import actionchain
 from st2common.models.utils import action_param_utils
-from st2common.persistence.action import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
-from st2common.services import executions as executions_service
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import action_db as action_db_util
 from st2common.util import isotime
@@ -151,6 +149,7 @@ class ActionChainRunner(ActionRunner):
 
         result = {'tasks': []}  # holds final result we store
         context_result = {}  # holds result which is used for the template context purposes
+        top_level_error = None  # stores a reference to a top level error
         fail = True
 
         while action_node:
@@ -165,40 +164,34 @@ class ActionChainRunner(ActionRunner):
                 resolved_params = ActionChainRunner._resolve_params(
                     action_node=action_node, original_parameters=action_parameters,
                     results=context_result, chain_vars=self.chain_holder.vars)
+            except Exception as e:
+                # Rendering parameters failed before we even got to running this action, abort and
+                # fail the whole action chain
+                LOG.exception('Failed to run action "%s".', action_node.name)
 
+                fail = True
+                error = 'Failed to run task "%s". Parameter rendering failed: %s' % (action_node.name,
+                                                                                     str(e))
+                trace = traceback.format_exc(10)
+                top_level_error = {
+                    'error': error,
+                    'traceback': trace
+                }
+                break
+
+            try:
                 liveaction = ActionChainRunner._run_action(
                     action_node=action_node, parent_execution_id=self.liveaction_id,
                     params=resolved_params)
-            except Exception:
+            except Exception as e:
                 # Save the traceback and error message
-                LOG.exception('Failure in running action %s.', action_node.name)
-                error = {'error': traceback.format_exc(10)}
+                LOG.exception('Failure in running action "%s".', action_node.name)
+
+                error = {
+                    'error': 'Task "%s" failed: %s' % (action_node.name, str(e)),
+                    'traceback': traceback.format_exc(10)
+                }
                 context_result[action_node.name] = error
-
-                if resolved_params is None:
-                    # Resolving params failed, we need to create and dispatch LiveactionDB and
-                    # ActionExecutionDB with a status of "failed" (this otherwise happens inside
-                    # services.action.schedule which is called after resolving params)
-                    # TODO: We should refactor this in a separate method
-                    liveaction = LiveActionDB(action=action_node.ref)
-                    liveaction.parameters = {}
-                    liveaction.context = {
-                        'parent': str(self.liveaction_id),
-                        'chain': vars(action_node)
-                    }
-                    liveaction.status = LIVEACTION_STATUS_FAILED
-                    liveaction.start_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
-                    liveaction.end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
-
-                    # Create DB objects
-                    liveaction = LiveAction.add_or_update(liveaction, publish=False)
-                    execution = executions_service.create_execution_object(liveaction,
-                                                                           publish=False)
-                    execution.status = LIVEACTION_STATUS_FAILED
-
-                    # Publish creates
-                    LiveAction.publish_create(liveaction)
-                    ActionExecution.publish_create(execution)
             else:
                 # Update context result
                 context_result[action_node.name] = liveaction.result
@@ -233,6 +226,11 @@ class ActionChainRunner(ActionRunner):
             status = LIVEACTION_STATUS_FAILED
         else:
             status = LIVEACTION_STATUS_SUCCEEDED
+
+        if top_level_error:
+            # Include top level error information
+            result['error'] = top_level_error['error']
+            result['traceback'] = top_level_error['traceback']
 
         return (status, result, None)
 

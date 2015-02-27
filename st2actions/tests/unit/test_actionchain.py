@@ -24,8 +24,6 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.models.db.datastore import KeyValuePairDB
 from st2common.persistence.datastore import KeyValuePair
 from st2common.persistence.action import RunnerType
-from st2common.persistence.action import LiveAction
-from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 from st2tests import DbTestCase
@@ -56,8 +54,10 @@ CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain1.json')
 CHAIN_NO_DEFAULT = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'no_default_chain.json')
-CHAIN_STR_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_str_template.json')
+CHAIN_FIRST_TASK_RENDER_FAIL_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_first_task_parameter_render_fail.json')
+CHAIN_SECOND_TASK_RENDER_FAIL_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_second_task_parameter_render_fail.json')
 CHAIN_LIST_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_list_template.json')
 CHAIN_DICT_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
@@ -192,7 +192,7 @@ class TestActionChainRunner(DbTestCase):
     @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
     def test_chain_runner_str_param_temp(self, schedule):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = CHAIN_STR_TEMP_PATH
+        chain_runner.entry_point = CHAIN_FIRST_TASK_RENDER_FAIL_PATH
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
@@ -280,7 +280,7 @@ class TestActionChainRunner(DbTestCase):
     @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
     def test_chain_runner_missing_param_temp(self, schedule):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = CHAIN_STR_TEMP_PATH
+        chain_runner.entry_point = CHAIN_FIRST_TASK_RENDER_FAIL_PATH
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
@@ -289,28 +289,46 @@ class TestActionChainRunner(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(RunnerType, 'get_by_name',
-                       mock.MagicMock(return_value=RUNNER))
     @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
-    def test_chain_runner_failure_during_param_rendering(self, schedule):
-        # Verify that LiveAction and ActionExecutionDB objects are created for
-        # actions which fail during param rendering phase (before schedueling / running them)
+    def test_chain_runner_failure_during_param_rendering_single_task(self, schedule):
+        # Parameter rendering should result in a top level error which aborts
+        # the whole chain
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = CHAIN_STR_TEMP_PATH
+        chain_runner.entry_point = CHAIN_FIRST_TASK_RENDER_FAIL_PATH
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         status, result, _ = chain_runner.run({})
 
+        # No tasks ran because rendering of parameters for the first task failed
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertEqual(result['tasks'][0]['state'], LIVEACTION_STATUS_FAILED)
-        self.assertEqual(schedule.call_count, 0, 'No call expected.')
+        self.assertEqual(result['tasks'], [])
+        self.assertTrue('error' in result)
+        self.assertTrue('traceback' in result)
+        self.assertTrue('Failed to run task "c1". Parameter rendering failed' in result['error'])
+        self.assertTrue('Traceback' in result['traceback'])
 
-        task = result['tasks'][0]
-        execution_db = ActionExecution.get_by_id(task['execution_id'])
-        self.assertTrue(execution_db)
-        live_action_db = LiveAction.get_by_id(execution_db.liveaction['id'])
-        self.assertTrue(live_action_db)
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_failure_during_param_rendering_multiple_tasks(self, schedule):
+        # Parameter rendering should result in a top level error which aborts
+        # the whole chain
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_SECOND_TASK_RENDER_FAIL_PATH
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, result, _ = chain_runner.run({})
+
+        # Verify that only first task has ran
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertEqual(len(result['tasks']), 1)
+        self.assertEqual(result['tasks'][0]['name'], 'c1')
+        self.assertTrue('error' in result)
+        self.assertTrue('traceback' in result)
+        self.assertTrue('Failed to run task "c2". Parameter rendering failed' in result['error'])
+        self.assertTrue('Traceback' in result['traceback'])
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_2))
