@@ -4,7 +4,8 @@
   runner_type: "action-chain"
   enabled: true
   entry_point: "workflows/diag_loadavg.yaml"
-  parameters: 
-    hostname: 
+  parameters:
+    hostname:
       type: "string"
       description: "Hostname of the server to perform load_alert diagnostics on"
+      required: true

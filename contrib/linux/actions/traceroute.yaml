@@ -19,3 +19,5 @@ parameters:
     description:  No. of quereies to each hop
     default: 3
     position: 3
+  hosts:
+    default: "localhost"
