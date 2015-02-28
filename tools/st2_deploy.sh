@@ -137,12 +137,21 @@ install_yum() {
 setup_rabbitmq() {
   echo "###########################################################################################"
   echo "# Setting up rabbitmq-server"
+
   # enable rabbitmq-management plugin
   rabbitmq-plugins enable rabbitmq_management
+
+  # Enable rabbit to start on boot
+  if [[ "$TYPE" == "rpms" ]]; then
+    systemctl enable rabbitmq-server
+  fi
+
   # Restart rabbitmq
   service rabbitmq-server restart
+
   # use rabbitmqctl to check status
   rabbitmqctl status
+
   # rabbitmaadmin is useful to inspect exchanges, queues etc.
   curl -sS -o /usr/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
   chmod 755 /usr/bin/rabbitmqadmin
@@ -165,9 +174,9 @@ setup_mysql() {
 }
 
 setup_mongodb_systemd() {
-    # Enable and start MongoDB
-    systemctl enable mongod
-    systemctl start mongod
+  # Enable and start MongoDB
+  systemctl enable mongod
+  systemctl start mongod
 }
 
 setup_mistral_config()
