@@ -26,8 +26,9 @@ from fabric.context_managers import shell_env
 from fabric.context_managers import settings
 from fabric.tasks import WrappedCallableTask
 
-from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common import log as logging
+from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
+from st2common.exceptions.fabricrunner import FabricExecutionFailureException
 import st2common.util.jsonify as jsonify
 
 __all__ = [
@@ -102,6 +103,10 @@ class ShellCommandAction(object):
         result = {}
         result['failed'] = True
         result['succeeded'] = False
+        is_fabric_failure = isinstance(exc_value, FabricExecutionFailureException)
+        exc_value = str(exc_value)
+        if is_fabric_failure and 'sudo password' in exc_value:
+            exc_value = 'Passwordless sudo needs to be setup for user: %s' % self.user
         result['error'] = str(exc_value)
         result['traceback'] = ''.join(traceback.format_tb(exc_traceback))
         return result
