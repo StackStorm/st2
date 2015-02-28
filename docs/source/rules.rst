@@ -322,7 +322,7 @@ Run action every 30 seconds
     type: "core.st2.IntervalTimer"
     parameters:
         unit: "seconds"
-        delta: "30"
+        delta: 30
 
   action:
     ...
@@ -339,7 +339,7 @@ Run action every 24 hours
     type: "core.st2.IntervalTimer"
     parameters:
         unit: "hours"
-        delta: "24"
+        delta: 24
 
   action:
     ...
@@ -356,7 +356,7 @@ Run action every 2 weeks
     type: "core.st2.IntervalTimer"
     parameters:
         unit: "weeks"
-        delta: "2"
+        delta: 2
 
   action:
     ...
