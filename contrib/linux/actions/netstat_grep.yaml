@@ -11,4 +11,4 @@
       position: 0
     pids:
       description: "List of pids"
-      default: "''"
+      required: true
