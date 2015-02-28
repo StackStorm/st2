@@ -9,7 +9,7 @@ class SimplePollingSensor(PollingSensor):
             dispatch() for dispatching triggers into the system.
     * self._config
         - contains configuration that was specified as
-          config.yml in the pack.
+          config.yaml in the pack.
     * self._poll_interval
         - indicates the interval between two successive poll() calls.
     """

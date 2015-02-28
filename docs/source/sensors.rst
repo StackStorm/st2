@@ -57,19 +57,19 @@ would use a PollingSensor instead of Sensor as the base class.
 .. literalinclude:: ../../contrib/examples/sensors/sample_polling_sensor.py
 
 For a complete implementation of a sensor that actually injects triggers
-into the system, look at the `examples <#Examples>`__ section.
+into the system, look at the `examples <#examples>`__ section.
 
 Sensor service
 --------------
 
-As you can see in the example above, each sensor class gets passed
-``sensor_service`` argument to the class constructor on instantiation.
+As you can see in the example above, a ``sensor_service`` is passed to each 
+sensor class constructor on instantiation.
 
 Sensor service provides different services to the sensor via public methods.
-The most important one is ``dispatch`` method which allows sensors to inject
+The most important one is the ``dispatch`` method which allows sensors to inject
 triggers into the system.
 
-All the provided methods are described bellow.
+All public methods are described below.
 
 Common operations
 -----------------
@@ -110,7 +110,7 @@ In addition to the trigger injection, sensor service also provides
 functionality for reading and manipulating the :doc:`datastore <datastore>`.
 
 Each sensor has a namespace which is local to it and by default, all the
-datastore operations operate on  the keys in that sensor-local namespace.
+datastore operations operate on the keys in that sensor-local namespace.
 If you want to operate on a global namespace, you need to pass ``local=False``
 argument to the datastore manipulation method.
 
@@ -120,7 +120,7 @@ temporary data between sensor runs.
 A good example of this functionality in action is ``TwitterSensor``. Twitter
 sensor persist the id of the last processed tweet after every poll in the
 datastore. This way if the sensor is restarted or if it crashes, the sensor
-can it resume from where it left off without injecting duplicated triggers into
+can resume from where it left off without injecting duplicated triggers into
 the system.
 
 For implementation, see the following page - https://github.com/StackStorm/st2contrib/blob/master/packs/twitter/sensors/twitter_search_sensor.py#L56
@@ -203,7 +203,7 @@ If there are errors in registration, fix the errors and re-register them using s
 
 ::
 
-    st2 restart
+    st2ctl restart
 
 Once you like your sensor, you can promote it to a pack (if required) by creating a pack in
 /opt/stackstorm/packs/${pack_name} and moving the sensor artifacts (yaml and py) to
@@ -228,16 +228,5 @@ For example:
 Examples
 --------
 
-EC2 health check sensor
-~~~~~~~~~~~~~~~~~~~~~~~
-
-This `EC2
-sensor <https://github.com/StackStorm/st2contrib/blob/master/packs/aws/sensors/ec2instancestatussensor.py>`_ uses
-boto library to talk to AWS and emits the health of instances as
-triggers.
-
-Advanced examples
------------------
-
-For more examples, please see sensors in the `st2contrib repo
+For more examples, please reference packs in the `st2contrib repo
 <https://github.com/StackStorm/st2contrib/tree/master/packs>`__.
