@@ -60,12 +60,6 @@ mistral_opts = [
 ]
 CONF.register_opts(mistral_opts, group='mistral')
 
-history_opts = [
-    cfg.StrOpt('logging', default='conf/logging.history.conf',
-               help='Location of the logging configuration file.')
-]
-CONF.register_opts(history_opts, group='history')
-
 resultstracker_opts = [
     cfg.StrOpt('logging', default='conf/logging.resultstracker.conf',
                help='Location of the logging configuration file.')
