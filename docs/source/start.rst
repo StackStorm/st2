@@ -141,7 +141,7 @@ as ``{{system.my_parameter}}``. This creates ``user=stanley`` key-value pair:
 
 .. code-block:: bash
 
-    st2 key create user stanley
+    st2 key set user stanley
     st2 key list
 
 What are the triggers availabe to use in rules? Just like with actions,
