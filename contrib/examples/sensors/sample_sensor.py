@@ -9,7 +9,7 @@ class SimpleSensor(Sensor):
             - dispatch() for dispatching triggers into the system.
     * self._config
         - contains parsed configuration that was specified as
-          config.yml in the pack.
+          config.yaml in the pack.
     """
 
     def setup(self):
