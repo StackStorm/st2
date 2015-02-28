@@ -360,7 +360,7 @@ install_st2client() {
     fi
     echo "########## Installing st2client ${VER} ##########"
     apt-get -y install gdebi-core
-    gdebi --n st2client*
+    apt-get -y install python-st2client
   elif [[ "$TYPE" == "rpms" ]]; then
     yum localinstall -y st2client-${VER}-${RELEASE}.noarch.rpm
   fi
