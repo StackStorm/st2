@@ -113,7 +113,7 @@ command to try to start all the services again. If the service still doesn't
 start after running the command, this usually means a configuration error
 (e.g. invalid database information or credentials). The best way to debug
 that is to look into the action runner service logs -
-``/var/logs/st2/logs/st2actionrunner.*.log``.
+``/var/log/st2/logs/st2actionrunner.*.log``.
 
 Submitting debugging information to StackStorm
 ----------------------------------------------
