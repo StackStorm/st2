@@ -79,6 +79,7 @@ extlinks = {
 rst_epilog = """
 .. |st2| replace:: StackStorm
 .. _st2contrib: http://www.github.com/stackstorm/st2contrib
+.. _st2incubator: http://www.github.com/stackstorm/st2incubator
 """
 
 # Show or hide TODOs. See http://sphinx-doc.org/ext/todo.html
