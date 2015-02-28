@@ -6,6 +6,7 @@ if [ -z $1 ]
 then
   VER='0.7'
 elif [[ "$1" == "latest" ]]; then
+   LATEST=1
    VER='0.8dev'
 else
   VER=$1
@@ -110,6 +111,9 @@ install_apt(){
     sudo apt-key add ${RABBIT_PUBLIC_KEY}
     rm ${RABBIT_PUBLIC_KEY}
   fi
+
+  echo "# Adding St2 Apt Repo"
+  echo "deb http://downloads.stackstorm.net/deb/ trusty main" > /etc/apt/sources.list.d/stackstorm.list
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
   # Install packages
@@ -125,6 +129,11 @@ install_yum() {
   echo "# Installing packages via yum"
   rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
   curl -sS -k -o /tmp/rabbitmq-server.rpm http://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
+  if [ -z $LATEST ]; then
+      curl -sS -k -o /etc/yum.repos.d/stackstorm.repo https://gist.githubusercontent.com/DoriftoShoes/7d674ac8c704fce90e96/raw/82fba14a5225116c3589e51ebea9bb73faf6a694/st2-fedora20-latest.repo
+  else
+      curl -sS -k -o /etc/yum.repos.d/stackstorm.repo https://gist.githubusercontent.com/DoriftoShoes/7d674ac8c704fce90e96/raw/315b8a4307cb93c81a170626832454f56b7f0afd/st2-fedora20-stable.repo
+  fi
   yum localinstall -y /tmp/rabbitmq-server.rpm
   yumlist='python-pip python-virtualenv python-devel gcc-c++ git-all mongodb mongodb-server mysql-server'
   echo "Installing ${yumlist}"
@@ -301,52 +310,21 @@ setup_mistral() {
   pip install -q -U git+https://github.com/StackStorm/python-mistralclient.git@${MISTRAL_STABLE_BRANCH}
 }
 
-download_pkgs() {
-  echo "###########################################################################################"
-  echo "# Downloading ${TYPE} packages"
-  echo "ST2 Packages: ${PACKAGES}"
-  pushd ${STAN}
-  for pkg in `echo ${PACKAGES} ${CLI_PACKAGE}`
-  do
-    if [[ "$TYPE" == "debs" ]]; then
-      PACKAGE="${pkg}_${VER}-${RELEASE}_amd64.deb"
-    elif [[ "$TYPE" == "rpms" ]]; then
-      PACKAGE="${pkg}-${VER}-${RELEASE}.noarch.rpm"
-    fi
-
-    # Clean up a bit if older versions exist
-    old_package=$(ls *${pkg}* 2> /dev/null | wc -l)
-    if [ "${old_package}" != "0" ]; then
-      rm -f *${pkg}*
-    fi
-
-    curl -sS -k -O https://ops.stackstorm.net/releases/st2/${VER}/${TYPE}/${BUILD}/${PACKAGE}
-  done
-  popd
-}
-
 deploy_rpm() {
   echo "###########################################################################################"
-  echo "# Removing any current st2 components"
-  for i in `rpm -qa | grep st2 | grep -v common`; do rpm -e $i; done
-  for i in `rpm -qa | grep st2common `; do rpm -e $i; done
-
-  echo "###########################################################################################"
-  echo "# Installing st2 ${STAN}"
-  pushd ${STAN}
-  yum localinstall -y *.rpm
-  popd
+  echo "# Installing St2"
+  for package in $PACKAGES; do
+      echo "# Installing ${PACKAGE}"
+      yum install -y $component
+  done
 }
 
 deploy_deb() {
   pushd ${STAN}
   for PACKAGE in $PACKAGES; do
     echo "###########################################################################################"
-    echo "# Removing ${PACKAGE}"
-    dpkg --purge $PACKAGE
-    echo "###########################################################################################"
-    echo "# Installing ${PACKAGE} ${VER}"
-    dpkg -i ${PACKAGE}*
+    echo "# Installing ${PACKAGE}"
+    apt-get install -y $PACKAGE
   done
   popd
 }
@@ -358,7 +336,6 @@ register_content() {
 }
 
 create_user
-download_pkgs
 
 if [[ "$TYPE" == "debs" ]]; then
   install_apt
