@@ -384,7 +384,10 @@ def create_and_upload_archive(include_logs, include_configs, include_content, in
         plain_text_output_path = None
         encrypted_output_path = None
     else:
-        LOG.info('Debug tarball successfully uploaded to StackStorm')
+        tarball_name = os.path.basename(encrypted_output_path)
+        LOG.info('Debug tarball successfully uploaded to StackStorm (name=%s)' % (tarball_name))
+        LOG.info('When communicating with support, please let them know the tarball name - %s' %
+                 (tarball_name))
     finally:
         # Remove tarballs
         if plain_text_output_path:
