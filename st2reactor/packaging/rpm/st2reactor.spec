@@ -29,10 +29,12 @@ cp -R st2reactor %{buildroot}%{python2_sitelib}/
 cp -R conf/* %{buildroot}/etc/st2reactor
 install -m755 bin/sensor_container %{buildroot}/usr/bin/sensor_container
 install -m755 bin/rules_engine %{buildroot}/usr/bin/rules_engine
+install -m755 bin/rule_tester %{buildroot}/usr/bin/rule_tester
 
 %files
 
 /usr/lib/python2.7/site-packages/st2reactor*
 /usr/bin/sensor_container
 /usr/bin/rules_engine
+/usr/bin/rule_tester
 /etc/st2reactor*
