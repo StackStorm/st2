@@ -1,5 +1,5 @@
-Troubleshooting and Debugging
-=============================
+Troubleshooting 
+================
 
 Common Troubleshooting Scenarios
 --------------------------------

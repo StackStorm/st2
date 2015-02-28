@@ -51,9 +51,10 @@ The docs are build with Sphinx. It's integrated with the main project Makefile.
  
 		:github_contrib:`Link to docker README on st2contrib<packs/docker/README.md>`
 
-* Link to st2contrib repo on Github (using a global we set up in source/conf.py)
+* Link to st2contrib and st2incubator repos on Github (using a global we set up in source/conf.py)
 
-		`st2contrib`_ or `st2contrib community repo <st2contrib>`_ 
+		`st2contrib`_
+		`st2incubator`_
 
 * The pattern to include an example from `/contrib/examples`: make example file name a reference on github. may say that it is deployed to `/usr/share/doc/st2/examples/`, and auto-include the file:
 

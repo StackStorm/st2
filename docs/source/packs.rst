@@ -42,9 +42,13 @@ Some packs can be installed and run "as is" without any configurations.
 
     st2 run packs.install packs=docker,sensu repo_url=https://github.com/StackStorm/st2contrib.git
 
-This downloads the Sensu and Docker packs from the `StackStorm community repo on GitHub <https://github.com/StackStorm/st2contrib>`__ , places them as local content under ``/opt/stackstorm/packs``, registers with |st2| and loads the content.
+This downloads the Sensu and Docker packs from the `StackStorm/st2contrib community repo on GitHub <https://github.com/StackStorm/st2contrib>`__ , places them as local content under ``/opt/stackstorm/packs``, registers with |st2| and loads the content.
 
-By default packs are installed from the |st2| community repo. Use ``repo_url`` parameter to install a pack from a fork of st2contrib, or from a custom repo. If using a custom repo make sure to place packs a top level ``packs`` directory.
+By default packs are installed from the |st2| community repo. Use ``repo_url`` parameter to install a pack from a fork of `st2contrib`_, or from a custom repo. The following example installs all the packs from `StackStorm/st2incubator <https://github.com/StackStorm/st2contrib>`__ - the repo where you find our experiments and work-in-progress:
+
+.. code-block:: bash
+
+    st2 run packs.install register=all repo_url=https://github.com/StackStorm/st2incubator.git
 
 To uninstall packs: ``st2 run packs.uninstall packs=docker,sensu``. This unloads and unregisters the content and deletes the packs from the disk.
 
@@ -52,7 +56,9 @@ The integration packs often require configurations to adjust to the environment.
 
 1. Download the pack with ``packs.download``
 2. Check out the `REAMDE.md`. Adjust configurations per your environment.
-3. Load the pack into |st2| with ``pack.load``. Sometimes components may need a restart with ``pack.restart_component`` (live reload without restart is coming soon).
+3. Run pack setup via ``packs.setup_virtualenv``. It sets up virutal environment and installs the dependencies listed in requirements.txt. 
+4. Load the pack into |st2| with ``pack.load register=all|actions|rules|sensors``.
+5. Sometimes sensor-container requires restart to pick up new sensors. Use ``pack.restart_component servicename=sensor_container``. Live sensor reload without restart is coming soon.
 
 Let's install the Docker pack:
 
@@ -95,8 +101,11 @@ See :doc:`/reference/packs` for details on how to pack your integrations and aut
 
 .. rubric:: What's Next?
 
+* Explore existing packs from `StackStorm community <http:://www.stackstorm.com/community/>`__:
+
+    - `st2contrib`_ - ready-to-use integration packs to many common products and tools.
+    - `st2incubator`_ - upcoming integration packs and productivity tools.
 * Learn how to write a pack and contribute to community  - :doc:`/reference/packs`
 * Learn how to write :ref:`custom sensors <ref-sensors-authoring-a-sensor>` and :ref:`custom actions <ref-actions-writing-custom>`
-* Explore the `StackStorm community <http:://www.stackstorm.com/community/>`__
 
 .. include:: /engage.rst

@@ -29,8 +29,11 @@ The best way to explore |st2| is to use CLI. Start by firing a few commands:
 
 The default “all-in-one” installation deploys the CLI along with the |st2|
 services. CLI can be used to access |st2| service remotely. All |st2|
-operations are also available via REST API and Python bindings.
+operations are also available via REST API, Python, and JavaScript bindings.
 Check the :doc:`CLI and Python Client </reference/cli>` reference for details.
+
+From v0.8, |st2| ships with WebUI. With the default "all-in-one" installation, you can access it at
+http://hostname:9101/webui/.
 
 Work with Actions
 ---------------------
@@ -191,10 +194,20 @@ the file and see that it appends the payload if the name=Joe.
 
 Congratulations, your first |st2| rule is up and running!
 
-Basic examples of rules, along with sample actions and sensors can be
-found at ``/usr/share/doc/st2/examples/``. To get them deployed, copy them
-to /opt/stackstorm/packs/ and reload the content by running ``st2 run packs.load``.
-For more content examples checkout `st2contrib`_ community repo on GitHub.
+Examples of rules, custom sensors, actions, and workflows are installed with |st2| and located
+at :github_st2:`/usr/share/doc/st2/examples <contrib/examples/>`. To get them deployed, copy them
+to /opt/stackstorm/packs/ and reload the content:
+
+.. code-block:: bash
+
+    # Copy examples to st2 content directory
+    sudo cp -r /usr/share/doc/st2/examples/ /opt/stackstorm/packs/
+
+    # Reload stackstorm context
+    st2ctl reload --register-all
+
+
+For more content, checkout `st2contrib`_ community repo on GitHub.
 
 
 Troubleshooting
@@ -202,9 +215,10 @@ Troubleshooting
 If something goes wrong:
 
 * Check recent executions: ``st2 execution list``
-* Check the logs at ``/var/log/st2.``
+* Inspect the logs at ``/var/log/st2.``
 * Use service control ``st2ctl`` to check service status, restart services, reload packs, or clean the db.
-* `Engage with developers <http://webchat.freenode.net/?channels=stackstorm>`__
+* Follow :doc:`/troubleshooting` guide
+* Engage with developers at `#stackstorm on irc.freenode.org <http://webchat.freenode.net/?channels=stackstorm>`__
 
 
 -------------------------------
