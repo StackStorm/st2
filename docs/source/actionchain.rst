@@ -9,8 +9,8 @@ Authoring an ActionChain
 ActionChain's are described in YAML (JSON supported for backward compatibiltiy) and placed inside a pack similar to other script or python actions. An ActionChain must also be associated with a metadata file that allows it to be registered as an Action by |st2|. This metadata contains name and parameter description of an action.
 
 
-ActionChain script
-~~~~~~~~~~~~~~~~~~
+ActionChain definition
+~~~~~~~~~~~~~~~~~~~~~~
 
 Following is sample ActionChain workflow definition named :github_st2:`echochain.yaml
 <contrib/examples/actions/chains/echochain.yaml>`:
@@ -18,29 +18,46 @@ Following is sample ActionChain workflow definition named :github_st2:`echochain
 .. literalinclude:: /../../contrib/examples/actions/chains/echochain.yaml
    :language: yaml
 
-Note:
+Details:
 
 * `chain` is the array property that contains action elements.
 * Action elements are named action execution specifications. The name is scoped to an ActionChain and is used as a reference to an action element.
 * `ref` property of an action element points to an Action registered in |st2|.
 * `on-success` is the link to action element to invoke next on a successful execution. If not provided the ActionChain will terminate with status set to success.
 * `on-failure` is the link to action element to invoke next on a failed execution. If not provided the ActionChain will terminate with the status set to error.
-* `default` is the top level property that specifies start of an ActionChain.
+* `default` is an optional top level property that specifies the start of an ActionChain.
 
 ActionChain metadata
 ~~~~~~~~~~~~~~~~~~~~
 
-The :github_st2:`metadata
-<contrib/examples/actions/echochain.meta.yaml>` for the ActionChain above looks like this:
+ActionChain action defined and operated like :doc:`any other action <actions>`.
+The action medatata schema
+is the same for any action in the system: specify ``action-chain`` as a runner,
+and point to the workflow definition file
+in the ``entry_point``. The action definition metadata :github_st2:`echochain.meta.yaml
+<contrib/examples/actions/echochain.meta.yaml>` for an ActionChain :github_st2:`echochain.yaml
+<contrib/examples/actions/chains/echochain.yaml>` looks like this:
 
 .. literalinclude:: /../../contrib/examples/actions/echochain.meta.yaml
    :language: yaml
 
-Note:
 
-* `runner_type` has value `action-chain` to identify that action is an `action-chain`.
-* `entry_point` links to the actual chain file relative to the location of the meta file.
-* Schema followed is identical to any other action i.e. echochain is now an action in the system.
+Once action definition and metadata files are created, load the action:
+
+.. code-block:: bash
+
+    # Register the action
+    st2 action create /opt/stackstorm/packs/default/actions/echochain.meta.yaml
+    # Check it is available
+    st2 action list --pack=default
+    # Run it
+    st2 run default.echochain
+
+Any changes in ActionChain workflow definition are picked up automatically.
+However if you change action metadata (e.g. rename or move , add parameters) - you will have to
+update the action with ``st2 action update <action.ref> <action.metadata.file>```.
+Alternatively, full context reload with ``st2clt reload`` will pick up all the changes.
+
 
 Providing input
 ~~~~~~~~~~~~~~~
@@ -71,18 +88,19 @@ The input parameter `input1` can now be referenced in the parameters field of an
                action1_input: "{{input1}}"
       # ...
 
-`action1_input` has value `{{input1}}`. This syntax is variable referencing as supported by Jinja2 templating. Similar constructs are also used in :doc:`Rule </rules>` criteria and action fields.
+`action1_input` has value `{{input1}}`. This syntax is variable referencing as supported
+by `Jinja templating <http://jinja.pocoo.org/docs/dev/templates/>`__.
+Similar constructs are also used in :doc:`Rule </rules>` criteria and action fields.
 
 Data passing
 ~~~~~~~~~~~~
 
-Similar to how input to an ActionChain can be referenced in an action elements; the output of previous action elements can also be referenced. Below is a version of the previously seen `echochain`, :github_st2:`echochain_param.yaml
-<contrib/examples/actions/chains/echochain_param.yaml>` with input and data passing down the flow:
+Similar to how input to an ActionChain can be referenced in an action elements; the output of previous action elements can also be referenced. Below is a version of the previously seen `echochain`, :github_st2:`echochain_param.yaml <contrib/examples/actions/chains/echochain_param.yaml>` with input and data passing down the flow:
 
 .. literalinclude:: /../../contrib/examples/actions/chains/echochain_param.yaml
    :language: yaml
 
-Note:
+Details:
 
 * Output of an action elements is always prefixed by element name. e.g. In ``{"cmd":"echo c2 {{c1.stdout}}"}`` `c1.stdout` refers to the output of 'c1' and further drills down into properties of the output.
 * A special ``__results`` key provides access to the entire result upto that point of execution.
