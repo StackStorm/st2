@@ -24,7 +24,10 @@
             immutable: true
             default: 'rsync {{args}} {{source}} {{dest_server}}:{{destination}}'
             position: 0
+        connect_timeout:
+            type: 'integer'
+            description: 'SSH connect timeout in seconds'
+            default: 30
         args:
             description: 'Command line arguments passed to rysnc'
-            default: '-avz -e ssh'
-
+            default: '-avz -e "ssh -o ConnectTimeout={{connect_timeout}}"'
