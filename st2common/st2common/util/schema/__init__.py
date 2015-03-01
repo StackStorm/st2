@@ -8,6 +8,11 @@ from jsonschema.validators import create
 
 from st2common.util import jsonify
 
+__all__ = [
+    'get_validator',
+    'get_parameter_schema',
+    'validate'
+]
 
 # https://github.com/json-schema/json-schema/blob/master/draft-04/schema
 # The source material is licensed under the AFL or BSD license.
@@ -88,6 +93,32 @@ CustomValidator = create(
     },
     version="action_param",
 )
+
+
+def validate(instance, schema, cls=None, use_default=True, *args, **kwargs):
+    """
+    Custom validate function which supports default arguments combined with the "required"
+    property.
+
+    :param use_default: True to support the use of the optional default property.
+    :type use_default: ``bool``
+    """
+    instance = copy.deepcopy(instance)
+    schema_type = schema.get('type', None)
+    instance_is_dict = isinstance(instance, dict)
+
+    if use_default and schema_type == 'object' and instance_is_dict:
+        properties = schema.get('properties', {})
+        for property_name, property_data in six.iteritems(properties):
+            default_value = property_data.get('default', None)
+
+            # Assign default value on the instance so the validation doesn't fail if requires is
+            # true but the value is not provided
+            if default_value is not None and getattr(instance, property_name, None) is None:
+                instance[property_name] = default_value
+
+    result = jsonschema.validate(instance=instance, schema=schema, cls=cls, *args, **kwargs)
+    return result
 
 
 VALIDATORS = {
