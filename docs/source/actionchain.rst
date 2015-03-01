@@ -12,8 +12,7 @@ ActionChain's are described in YAML (JSON supported for backward compatibiltiy) 
 ActionChain definition
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Following is sample ActionChain workflow definition named :github_st2:`echochain.yaml
-<contrib/examples/actions/chains/echochain.yaml>`:
+Following is sample ActionChain workflow definition named :github_st2:`echochain.yaml <contrib/examples/actions/chains/echochain.yaml>`:
 
 .. literalinclude:: /../../contrib/examples/actions/chains/echochain.yaml
    :language: yaml
