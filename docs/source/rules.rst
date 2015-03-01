@@ -79,12 +79,16 @@ If the rule with the same name already exists, the above command will return an 
     ERROR: 409 Client Error: Conflict
     MESSAGE: Tried to save duplicate unique keys (E11000 duplicate key error index: st2.rule_d_b.$name_1  dup key: { : "examples.webhook_file" })
         
-Existing rule can be updated as follows:
+To update the rule, edit the rule definition file and run ``st2 rule update`` command, as in the following example:
     
 .. code-block:: bash
     
     st2 rule update examples.webhook_file /usr/share/doc/st2/examples/rules/sample_rule_with_webhook.yaml
-    
+
+.. note::
+
+    **Hint:** It is a good practice to always edit the original rule file, so that keep your infrastructure in code. You still can get the rule definition from the system by ``st2 rule get <rule name> -j``, update it, and load it back.
+
 To see all the rules, or to get an individual rule, use commands below:
 
 .. code-block:: bash
@@ -92,12 +96,19 @@ To see all the rules, or to get an individual rule, use commands below:
     st2 rule list
     st2 rule get examples.webhook_file
 
+To undeploy a rule, run ``st2 rule delete ${RULE_NAME_OR_ID}``. For example, to undeploy the examples.webhook_file rule we deployed previously, run:
+
+.. code-block:: bash
+
+    st2 rule delete examples.webhook_file
+
+
 Rule location
 -------------
 
-Custom rules must be placed in any accessible folder on local system. Usually custom rules are placed in ``/opt/stackstorm/packs/default/rules`` folder.
+Custom rules must be placed in any accessible folder on local system. By convention, custom rules are placed in ``/opt/stackstorm/packs/default/rules`` directory.
 By default, |st2| doesn't load the rules deployed under ``/opt/stackstorm/packs/${pack_name}/rules/``. However you can force
-load them with ``st2 run packs.load register=rules``
+load them with ``st2 run packs.load register=rules`` or ``st2 run packs.load register=all``.
 
 Supported criteria comparision operators
 ----------------------------------------
@@ -233,7 +244,7 @@ contains trigger instance definition:
 
 .. code-block:: bash
 
-    rule_tester --rule={RULE_FILE} --trigger-instance={TRIGGER_INSTANCE_DEFINITION}
+    rule_tester --rule=${RULE_FILE} --trigger-instance=${TRIGGER_INSTANCE_DEFINITION}
     echo $?
 
 Both files need to contain definitions in YAML or JSON format. For the rule, you can use the same
