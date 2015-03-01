@@ -196,16 +196,18 @@ Congratulations, your first |st2| rule is up and running!
 
 Examples of rules, custom sensors, actions, and workflows are installed with |st2| and located
 at :github_st2:`/usr/share/doc/st2/examples <contrib/examples/>`. To get them deployed, copy them
-to /opt/stackstorm/packs/ and reload the content:
+to /opt/stackstorm/packs/, setup, and reload the content:
 
 .. code-block:: bash
 
     # Copy examples to st2 content directory
     sudo cp -r /usr/share/doc/st2/examples/ /opt/stackstorm/packs/
 
+    # Run setup
+    st2 run packs.setup_virtualenv packs=examples
+
     # Reload stackstorm context
     st2ctl reload --register-all
-
 
 For more content, checkout `st2contrib`_ community repo on GitHub.
 
@@ -215,8 +217,8 @@ Troubleshooting
 If something goes wrong:
 
 * Check recent executions: ``st2 execution list``
-* Inspect the logs at ``/var/log/st2.``
 * Use service control ``st2ctl`` to check service status, restart services, reload packs, or clean the db.
+* Inspect the logs at ``/var/log/st2/``
 * Follow :doc:`/troubleshooting` guide
 * Engage with developers at `#stackstorm on irc.freenode.org <http://webchat.freenode.net/?channels=stackstorm>`__
 

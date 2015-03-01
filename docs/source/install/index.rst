@@ -10,7 +10,9 @@ download and run the deployment script.
     chmod +x st2_deploy.sh
     sudo ./st2_deploy.sh
 
-This will download and install the latest release of |st2| (currently |release|). Installation should take about 5 min. Grab a coffee and watch :doc:`/video` while it is being installed.
+This will download and install the stable release of |st2| (currently |release|).
+If you want to install the latest bits, run ``sudo ./st2_deploy.sh latest``.
+Installation should take about 5 min. Grab a coffee and watch :doc:`/video` while it is being installed.
 
 .. include:: on_complete.rst
 
