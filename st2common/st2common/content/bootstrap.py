@@ -24,6 +24,7 @@ from st2common.models.db import db_teardown
 
 
 LOG = logging.getLogger('st2common.content.bootstrap')
+cfg.CONF.register_cli_opt(cfg.BoolOpt('verbose', short='v', default=False))
 
 
 def register_opts():
@@ -109,12 +110,12 @@ def register_content():
         register_rules()
 
 
-def _setup():
+def _setup(argv):
     config.parse_args()
 
     # 2. setup logging.
-    logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s',
-                        level=logging.DEBUG)
+    log_level = logging.DEBUG if cfg.CONF.verbose else logging.ERROR
+    logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s', level=log_level)
 
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
@@ -128,12 +129,12 @@ def _teardown():
     db_teardown()
 
 
-def main():
-    _setup()
+def main(argv):
+    _setup(argv)
     register_content()
     _teardown()
 
 
 # This script registers actions and rules from content-packs.
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

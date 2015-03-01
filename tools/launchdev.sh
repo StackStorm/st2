@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo $AR
+exit 1
+
 runner_count=1
 if [ "$#" -gt 1 ]; then
     runner_count=${2}
@@ -80,7 +83,7 @@ function st2start(){
     echo 'Registering sensors, actions and rules...'
     ./virtualenv/bin/python \
         ./st2common/bin/registercontent.py \
-        --config-file $ST2_CONF --register-all
+        --config-file $ST2_CONF --register-all --verbose
 
     # Run the action runner server
     echo 'Starting screen session st2-actionrunner...'
