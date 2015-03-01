@@ -78,7 +78,7 @@ Let's install the Docker pack:
 
     # Load ALL the content: actions, sensors, rules
     # If you don't want to load sample rules by default, do
-    # st2 run packs.load register=sensors & st2 run packs.load register=actions
+    # st2 run packs.load register=sensors && st2 run packs.load register=actions
     st2 run packs.load register=all
 
     # To pick up sensors, need to bounce the sensor_container.
