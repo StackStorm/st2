@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import datetime
-import jsonschema
 import six
 
 from st2common import log as logging
@@ -64,7 +63,7 @@ def schedule(liveaction):
     # Validate action parameters.
     schema = util_schema.get_parameter_schema(action_db)
     validator = util_schema.get_validator()
-    jsonschema.validate(liveaction.parameters, schema, validator)
+    util_schema.validate(liveaction.parameters, schema, validator, use_default=True)
 
     # validate that no immutable params are being overriden. Although possible to
     # ignore the override it is safer to inform the user to avoid surprises.
