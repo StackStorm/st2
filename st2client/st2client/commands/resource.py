@@ -403,10 +403,12 @@ class ResourceDeleteCommand(ResourceCommand):
         self.manager.delete(instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
+        resource_id = getattr(args, self.pk_argument_name, None)
+
         try:
             self.run(args, **kwargs)
+            print('Resource with id "%s" has been successfully deleted.' % (resource_id))
         except ResourceNotFoundError:
-            resource_id = getattr(args, self.pk_argument_name, None)
             self.print_not_found(resource_id)
             raise OperationFailureException('Resource %s not found.' % resource_id)
 
