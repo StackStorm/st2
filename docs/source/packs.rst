@@ -76,7 +76,9 @@ Let's install the Docker pack:
     # Check out README.md and if necessary, adjust configuration for your environment
     less /opt/stackstorm/packs/docker/README.md
 
-    # Reload all the content
+    # Load ALL the content: actions, sensors, rules
+    # If you don't want to load sample rules by default, do
+    # st2 run packs.load register=sensors & st2 run packs.load register=actions
     st2 run packs.load register=all
 
     # To pick up sensors, need to bounce the sensor_container.
@@ -90,7 +92,7 @@ Let's install the Docker pack:
 
 The docker pack is now installed and ready to use.
 
-Packs may contain automations - rules and workflows. Rules are not loaded by default - you may want to review and adjust them before loading. Pass ``register=rules`` option to ``packs.install`` and ``packs.load`` actions to get the rules loaded.
+Packs may contain automations - rules and workflows. Rules are not loaded by default - you may want to review and adjust them before loading. Pass ``register=all`` option to ``packs.install`` and ``packs.load`` actions to get the rules loaded. Use `st2clt reload` for fine control - packs.load is an st2 action wrapper around it.
 
 .. note:: Pack management is implemented as a pack of st2 actions. Check out :github_st2:`/opt/stackstorm/packs </contrib/packs>` for examples of defining actions and workflows.
 
