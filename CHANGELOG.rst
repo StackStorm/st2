@@ -64,6 +64,8 @@ Docs: http://docks.stackstorm.com/latest
 * Allow users to filter datastore items by name prefix by passing ``?prefix=<value>`` query
   parameter to the /keys endpoint. (new-feature)
 * Fix non-string types to be rendered correctly in action parameters when used in rule. (bug-fix)
+* Allow user to specify default value for required attributes in the definition of action
+  parameters. (bug-fix)
 
 v0.7 - January 16, 2015
 -----------------------
