@@ -47,6 +47,6 @@ def setup_app(config=None):
     return pecan.make_app(
         app_conf.pop('root'),
         logging=getattr(config, 'logging', {}),
-        hooks=[hooks.CorsHook(), hooks.JSONErrorResponseHook()],
+        hooks=[hooks.JSONErrorResponseHook(), hooks.CorsHook()],
         **app_conf
     )
