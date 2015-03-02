@@ -31,9 +31,9 @@ ActionChain metadata
 ~~~~~~~~~~~~~~~~~~~~
 
 The :github_st2:`metadata
-<contrib/examples/actions/echochain.yaml>` for the ActionChain above looks like this:
+<contrib/examples/actions/echochain.meta.yaml>` for the ActionChain above looks like this:
 
-.. literalinclude:: /../../contrib/examples/actions/echochain.yaml
+.. literalinclude:: /../../contrib/examples/actions/echochain.meta.yaml
    :language: yaml
 
 Note:
