@@ -78,7 +78,7 @@ Docs: http://docks.stackstorm.com/0.7/
   ``run-remote``, ``run-remote-script``) now expose ``timeout`` argument. With this argument
   user can specify action timeout. Previously, the action timeout was not user-configurable and
   a system-wide default value was used.
-* The time when an action execution has finished is now recorded and availabla via the
+* The time when an action execution has finished is now recorded and available via the
   ``end_timestamp`` attribute on the ``ActionExecution`` model.
 * Status code 400 (bad request) is now returned if user doesn't provide a body to API endpoints
   which require it. Previously 500 internal server error was returned (bug-fix).
