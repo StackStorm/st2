@@ -122,12 +122,18 @@ function register_content() {
   echo "Registering content..."
 
   if [ ! ${1} ]; then
-      REGISTER_FLAGS="--register-sensors --register-actions"
+    REGISTER_FLAGS="--register-sensors --register-actions"
+  elif [ ${1} == "-v" -o ${1} == "--verbose" ]; then
+    if [ ! ${2} ]; then
+      REGISTER_FLAGS="--register-sensors --register-actions --verbose"
+    else
+      REGISTER_FLAGS="${2} --verbose"
+    fi
   else
-      # Note: Scripts already call reload with "--register-<content>"
-      # TODO: Update packs. actions to only pass in a resource name excluding
-      # --register prefix
-      REGISTER_FLAGS="${1}"
+    # Note: Scripts already call reload with "--register-<content>"
+    # TODO: Update packs. actions to only pass in a resource name excluding
+    # --register prefix
+    REGISTER_FLAGS="${1} ${2}"
   fi
 
   $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF} ${REGISTER_FLAGS}
