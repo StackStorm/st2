@@ -139,9 +139,11 @@ class ActionChainRunner(ActionRunner):
 
         try:
             action_node = self.chain_holder.get_next_node()
-        except:
-            error = ('Failed to run task "%s". Parameter rendering failed: %s' %
-                         (action_node.name, str(e)))
+        except Exception as e:
+            LOG.exception('Failed to get starting node "%s".', action_node.name)
+
+            error = ('Failed to get starting node "%s". Lookup failed: %s' %
+                    (action_node.name, str(e)))
             trace = traceback.format_exc(10)
             top_level_error = {
                 'error': error,
@@ -212,11 +214,26 @@ class ActionChainRunner(ActionRunner):
                 task_result = self._format_action_exec_result(**format_kwargs)
                 result['tasks'].append(task_result)
 
-                if not liveaction or liveaction.status == LIVEACTION_STATUS_FAILED:
-                    fail = True
-                    action_node = self.chain_holder.get_next_node(action_node.name, 'on-failure')
-                elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
-                    action_node = self.chain_holder.get_next_node(action_node.name, 'on-success')
+                try:
+                    if not liveaction or liveaction.status == LIVEACTION_STATUS_FAILED:
+                        fail = True
+                        action_node = self.chain_holder.get_next_node(action_node.name,
+                                                                      condition='on-failure')
+                    elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
+                        action_node = self.chain_holder.get_next_node(action_node.name,
+                                                                      condition='on-success')
+                except Exception as e:
+                    LOG.exception('Failed to get next node "%s".', action_node.name)
+
+                    error = ('Failed to get next node "%s". Lookup failed: %s' %
+                            (action_node.name, str(e)))
+                    trace = traceback.format_exc(10)
+                    top_level_error = {
+                        'error': error,
+                        'traceback': trace
+                    }
+                    # reset action_node here so that chain breaks on failure.
+                    action_node = None
 
         if fail:
             status = LIVEACTION_STATUS_FAILED
