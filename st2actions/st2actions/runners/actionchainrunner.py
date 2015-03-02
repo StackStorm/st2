@@ -225,6 +225,7 @@ class ActionChainRunner(ActionRunner):
                 except Exception as e:
                     LOG.exception('Failed to get next node "%s".', action_node.name)
 
+                    fail = True
                     error = ('Failed to get next node "%s". Lookup failed: %s' %
                             (action_node.name, str(e)))
                     trace = traceback.format_exc(10)
