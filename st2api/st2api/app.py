@@ -57,12 +57,12 @@ def setup_app(config=None):
 
     app_conf = dict(config.app)
 
-    active_hooks = [hooks.CorsHook()]
+    active_hooks = [hooks.JSONErrorResponseHook()]
 
     if cfg.CONF.auth.enable:
         active_hooks.append(hooks.AuthHook())
 
-    active_hooks.append(hooks.JSONErrorResponseHook())
+    active_hooks.append(hooks.CorsHook())
 
     app = pecan.make_app(app_conf.pop('root'),
                          logging=getattr(config, 'logging', {}),
