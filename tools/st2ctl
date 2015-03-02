@@ -6,7 +6,12 @@ LOGFILE="/tmp/st2_startup.log"
 COMPONENTS="actionrunner st2api sensor_container rules_engine mistral st2resultstracker"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
-AR=10
+
+# AR is assumed to be an environment variable.
+if [ -z "$AR" ];
+ then
+   AR=10
+fi
 
 DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
 
