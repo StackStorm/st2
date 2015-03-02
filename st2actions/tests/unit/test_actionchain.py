@@ -56,6 +56,8 @@ CHAIN_NO_DEFAULT = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'no_default_chain.json')
 CHAIN_NO_DEFAULT_2 = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'no_default_chain_2.json')
+CHAIN_BROKEN_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_broken_paths.json')
 CHAIN_FIRST_TASK_RENDER_FAIL_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_first_task_parameter_render_fail.json')
 CHAIN_SECOND_TASK_RENDER_FAIL_PATH = FixturesLoader().get_fixture_file_path_abs(
@@ -186,6 +188,37 @@ class TestActionChainRunner(DbTestCase):
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
         self.assertEqual(schedule.call_count, 2)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'schedule',
+                       return_value=(DummyActionExecution(status=LIVEACTION_STATUS_FAILED), None))
+    def test_chain_runner_broken_success_path(self, schedule):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_BROKEN_PATH
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, _, _ = chain_runner.run({})
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # based on the chain the callcount is known to be 1. Not great but works.
+        self.assertEqual(schedule.call_count, 1)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'schedule', side_effect=RuntimeError('Test Failure.'))
+    def test_chain_runner_broken_fail_path(self, schedule):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_BROKEN_PATH
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, _, _ = chain_runner.run({})
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # based on the chain the callcount is known to be 1. Not great but works.
+        self.assertEqual(schedule.call_count, 1)
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
