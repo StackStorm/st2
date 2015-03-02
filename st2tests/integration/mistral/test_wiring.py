@@ -89,6 +89,13 @@ class TestWorkflowExecution(unittest2.TestCase):
         self.assertIn('tagline', execution.result)
         self.assertEqual(execution.result['tagline'], 'st2 is cool!')
 
+    def test_with_items(self):
+        params = {'cmd': 'date', 'count': 8}
+        execution = self._execute_workflow('examples.mistral-repeat', params)
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution)
+        self.assertEqual(len(execution.result['result']), params['count'])
+
     def test_concurrent_load(self):
         wf_name = 'examples.mistral-workbook-complex'
         wf_params = {'vm_name': 'demo1'}
