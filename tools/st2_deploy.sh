@@ -337,7 +337,7 @@ download_pkgs() {
 deploy_rpm() {
   echo "###########################################################################################"
   echo "# Removing any current st2 components"
-  for i in `rpm -qa | grep st2 | grep -v common`; do rpm -e $i; done
+  for i in `rpm -qa | grep -e "^st2" | grep -v common`; do rpm -e $i; done
   for i in `rpm -qa | grep st2common `; do rpm -e $i; done
 
   echo "###########################################################################################"
