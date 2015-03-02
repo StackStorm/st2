@@ -364,7 +364,7 @@ RUNNER_TYPES = [
 
 
 def register_runner_types():
-    LOG.info('Start : register default RunnerTypes.')
+    LOG.debug('Start : register default RunnerTypes.')
 
     for runnertype in RUNNER_TYPES:
         try:
@@ -390,4 +390,4 @@ def register_runner_types():
         except Exception:
             LOG.exception('Unable to register runner type %s.', runnertype['name'])
 
-    LOG.info('End : register default RunnerTypes.')
+    LOG.debug('End : register default RunnerTypes.')

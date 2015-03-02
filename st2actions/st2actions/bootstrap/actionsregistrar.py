@@ -102,10 +102,10 @@ class ActionsRegistrar(ResourceRegistrar):
         action_ref = ResourceReference.to_string_reference(pack=pack, name=str(content['name']))
         existing = action_utils.get_action_by_ref(action_ref)
         if not existing:
-            LOG.info('Action %s not found. Creating new one with: %s', action_ref, content)
+            LOG.debug('Action %s not found. Creating new one with: %s', action_ref, content)
         else:
-            LOG.info('Action %s found. Will be updated from: %s to: %s',
-                     action_ref, existing, model)
+            LOG.debug('Action %s found. Will be updated from: %s to: %s',
+                      action_ref, existing, model)
             model.id = existing.id
 
         try:

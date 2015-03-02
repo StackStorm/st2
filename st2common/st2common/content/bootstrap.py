@@ -54,6 +54,8 @@ def register_sensors():
         sensors_registrar.register_sensors(pack_dir=cfg.CONF.register.pack)
     except Exception as e:
         LOG.warning('Failed to register sensors: %s', e, exc_info=True)
+    else:
+        LOG.info('Sensors registered.')
 
 
 def register_actions():
@@ -78,6 +80,7 @@ def register_actions():
             actions_registrar.register_actions(pack_dir=cfg.CONF.register.pack)
         except Exception as e:
             LOG.warning('Failed to register actions: %s', e, exc_info=True)
+    LOG.info('Actions registered.')
 
 
 def register_rules():
@@ -92,6 +95,7 @@ def register_rules():
         rules_registrar.register_rules(pack_dir=cfg.CONF.register.pack)
     except Exception as e:
         LOG.warning('Failed to register rules: %s', e, exc_info=True)
+    LOG.info('Rules registered.')
 
 
 def register_content():
@@ -115,14 +119,16 @@ def _setup(argv):
     config.parse_args()
 
     # 2. setup logging
-    log_level = logging.DEBUG if cfg.CONF.verbose else logging.ERROR
+    log_level = logging.DEBUG
     logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s', level=log_level)
 
     if not cfg.CONF.verbose:
+        # Note: We still want to print things at the following log levels: INFO, ERROR, CRITICAL
+        exclude_log_levels = [logging.AUDIT, logging.DEBUG]
         handlers = logging.getLoggerClass().manager.root.handlers
 
         for handler in handlers:
-            handler.addFilter(LogLevelFilter(log_levels=[logging.AUDIT]))
+            handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
 
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
