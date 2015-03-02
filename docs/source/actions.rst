@@ -17,8 +17,9 @@ implemented as actions:
 * snapshot a VM
 * run nagios check
 
-Action is executed when a rule with a matching criteria is found. For more
-information about the rules, please see the :doc:`rules </rules>` section.
+Actions can be executed when a :doc:`Rule </rules>` with a matching criteria is triggered.
+Multiple Actions can be stringed together into a :doc:`Workflow </workflows>`. And each action can
+be executed directly from the clients via CLI, API, or UI.
 
 Action runner
 ^^^^^^^^^^^^^
@@ -114,12 +115,26 @@ the Twilio web service.
                 description: "Body of the message."
                 required: true
                 position: 2
+                default: "Hello {% if system.user %} {{ system.user }} {% else %} dude {% endif %}!"
 
 
 This action is using a Python runner (``run-python``), the class which
 implements a ``run`` method is contained in a file called ``send_sms.py`` which
 is located in the same directory as the metadata file and the action takes three
 parameters (from_number, to_number, body).
+
+
+Action Registration
+~~~~~~~~~~~~~~~~~~~~
+Once action is created 1) place it into the content location, and 2) tell the system
+that the action is avalable. The actions are grouped in :doc:`packs </packs>` and located
+at ``/opt/stackstorm/pacsk`` (default, configured, multiple locations supported).
+For hacking one-off actions, the convention is to use `default` pack - just create your action in
+``/opt/stackstorm/pack/default/actions``.
+
+Register individual action by calling `st2 action create my_action_metadata.yaml`.
+To reload all the action, use ``st2ctl reload --register-actions``
+
 
 .. _ref-actions-converting-scripts:
 
