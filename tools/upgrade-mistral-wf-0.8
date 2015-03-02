@@ -18,7 +18,7 @@
 #######################################################################
 
 function usage {
-  echo "Usage: `basename $0` <workflow file>"
+  echo "Usage: `basename $0` <mistral file>"
 }
 
 # Exit Codes
@@ -66,10 +66,11 @@ fi
 cp $WORKFLOW ${WORKFLOW}.bak
 
 cat $WORKFLOW | \
-  sed $SED_ARGS 's/{([][_$.0-9a-z]+)}/<% \1 %>/g' | \
+  sed $SED_ARGS 's/{([][_$.0-9a-z+\s]+)}/<% \1 %>/g'  | \
   sed $SED_ARGS 's/([][_$.0-9a-z]+\(.*\))/<% \1 %>/g' | \
-  sed $SED_ARGS 's/(\$\.[][a-z0-9_.]+)/<% \1 %>/g' | \
-  sed $SED_ARGS 's/<% (<% [][a-z0-9._$]+ %>) %>/\1/g' > ${WORKFLOW}.new
+  sed $SED_ARGS 's/(\$\.[][a-z0-9_.]+)/<% \1 %>/g'    | \
+  sed $SED_ARGS 's/<% (<% [][a-z0-9._$]+ %>) %>/\1/g' | \
+  sed $SED_ARGS 's/<% ([][$.a-z0-9_]+) %>\)/\1)/g' # > ${WORKFLOW}.new
 
-mv ${WORKFLOW}.new $WORKFLOW
+# mv ${WORKFLOW}.new $WORKFLOW
 
