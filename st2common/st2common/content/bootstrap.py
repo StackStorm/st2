@@ -19,6 +19,7 @@ import sys
 import st2common.config as config
 
 from oslo.config import cfg
+from st2common.log import LogLevelFilter
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 
@@ -113,9 +114,15 @@ def register_content():
 def _setup(argv):
     config.parse_args()
 
-    # 2. setup logging.
+    # 2. setup logging
     log_level = logging.DEBUG if cfg.CONF.verbose else logging.ERROR
     logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s', level=log_level)
+
+    if not cfg.CONF.verbose:
+        handlers = logging.getLoggerClass().manager.root.handlers
+
+        for handler in handlers:
+            handler.addFilter(LogLevelFilter(log_levels=[logging.AUDIT]))
 
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
