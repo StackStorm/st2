@@ -665,7 +665,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
         task_list_arg_grp.add_argument('--depth', type=int, default=-1,
                                        help='Depth to which to show sub-tasks. \
                                              By default all are shown.')
-        task_list_arg_grp.add_argument('-w', '--width', nargs='+', type=int, default=[28],
+        task_list_arg_grp.add_argument('-w', '--width', nargs='+', type=int, default=None,
                                        help='Set the width of columns in output.')
 
         # Display options

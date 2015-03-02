@@ -15,6 +15,21 @@
 
 import os
 
+__all__ = [
+    'DisplayColors',
+
+    'format_status'
+]
+
+
+TERMINAL_SUPPORTS_ANSI_CODES = [
+    'xterm',
+    'xterm-color',
+    'screen',
+    'vt100',
+    'vt100-color',
+    'xterm-256color'
+]
 
 DISABLED = os.environ.get('ST2_COLORIZE', '')
 
@@ -30,8 +45,16 @@ class DisplayColors(object):
 
     @staticmethod
     def colorize(value, color=''):
+        # TODO: use list of supported terminals
+        term = os.environ.get('TERM', None)
+
+        if term is None or term.lower() not in TERMINAL_SUPPORTS_ANSI_CODES:
+            # Terminal doesn't support colors
+            return value
+
         if DISABLED or not color:
             return value
+
         return '%s%s%s' % (color, value, DisplayColors.ENDC)
 
 
