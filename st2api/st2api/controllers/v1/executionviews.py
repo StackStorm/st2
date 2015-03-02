@@ -66,6 +66,7 @@ class FiltersController(RestController):
                     query = {'$concat': dot_notation}
 
                 aggregate = ActionExecution.aggregate([
+                    {'$match': {'parent': None}},
                     {'$group': {'_id': query}}
                 ])
 

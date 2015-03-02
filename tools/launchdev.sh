@@ -1,8 +1,5 @@
 #!/bin/bash
 
-echo $AR
-exit 1
-
 runner_count=1
 if [ "$#" -gt 1 ]; then
     runner_count=${2}
