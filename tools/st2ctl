@@ -1,8 +1,13 @@
 #!/bin/bash
+
+set -e
+
 LOGFILE="/tmp/st2_startup.log"
 COMPONENTS="actionrunner st2api sensor_container rules_engine mistral st2resultstracker"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
+
+# AR is assumed to be an environment variable.
 if [ -z "$AR" ];
  then
    AR=10
@@ -19,6 +24,55 @@ elif [[ -f "/etc/redhat-release" ]]; then
 else
   echo "Unknown Operating System"
   exit 2
+fi
+
+function print_usage() {
+    echo "usage: st2ctl {start, stop, restart, status}"
+    echo
+    echo "usage: st2ctl {restart-component}"
+    echo "positional arguments:"
+    echo "  component           Name of the st2 service to restart."
+    echo "                      ${COMPONENTS}"
+    echo
+    echo "usage: st2ctl {reload, clean}"
+    echo "optional arguments:"
+    echo "  --register-all      Register all sensors, rules, and actions."
+    echo "  --register-sensors  Register all sensors only."
+    echo "  --register-rules    Register all rules only."
+    echo "  --register-actions  Register all actions only."
+    echo "  --verbose           Output additional debug and informational messages."
+}
+
+if [ -z ${1} ] || [ ${1} != "start" -a ${1} != "stop" -a ${1} != "restart" -a ${1} != "status" -a ${1} != "restart-component" -a ${1} != "reload" -a ${1} != "clean" ]
+then
+    print_usage
+fi
+
+if [ ${1} == "restart-component" ]
+then
+    if  [ -z ${2} ] || [ ${2} != "actionrunner" -a ${2} != "st2api" -a ${2} != "sensor_container" -a ${2} != "rules_engine" -a ${2} != "mistral" -a ${2} != "st2resultstracker" ]
+    then
+        print_usage
+    fi
+fi
+
+# Note: Scripts already call reload with "--register-<content>"
+# TODO: Update packs. actions to only pass in a resource name excluding # --register prefix
+if [ ${1} == "reload" -o ${1} == "clean" ]; then
+    if [ -z ${2} ]; then
+        REGISTER_FLAGS="--register-sensors --register-actions"
+    elif [ ! -z ${2} ] && [ ${2} == "--register-all" -o ${2} == "--register-sensors"  -o ${2} == "--register-rules" -o ${2} == "--register-actions" ]; then
+        REGISTER_FLAGS=${2}
+        if [ ! -z ${3} ] && [ ${3} == "--verbose" ]; then
+            REGISTER_FLAGS="${REGISTER_FLAGS} ${3}"
+        fi
+    elif [ ${2} == "--verbose" ] && [ -z ${3} ]; then
+        REGISTER_FLAGS="--register-sensors --register-actions ${2}"
+    elif [ ${2} == "--verbose" ] && [ ${3} == "--register-all" -o ${3} == "--register-sensors"  -o ${3} == "--register-rules" -o ${3} == "--register-actions" ]; then
+        REGISTER_FLAGS="${3} ${2}"
+    else
+        print_usage
+    fi
 fi
 
 function st2start(){
@@ -120,22 +174,6 @@ function restart_component() {
 
 function register_content() {
   echo "Registering content..."
-
-  if [ ! ${1} ]; then
-    REGISTER_FLAGS="--register-sensors --register-actions"
-  elif [ ${1} == "-v" -o ${1} == "--verbose" ]; then
-    if [ ! ${2} ]; then
-      REGISTER_FLAGS="--register-sensors --register-actions --verbose"
-    else
-      REGISTER_FLAGS="${2} --verbose"
-    fi
-  else
-    # Note: Scripts already call reload with "--register-<content>"
-    # TODO: Update packs. actions to only pass in a resource name excluding
-    # --register prefix
-    REGISTER_FLAGS="${1} ${2}"
-  fi
-
   $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF} ${REGISTER_FLAGS}
 }
 
@@ -185,7 +223,7 @@ case ${1} in
     getpids
     ;;
   reload)
-    register_content ${2}
+    register_content
     getpids
     ;;
   clean)
@@ -195,7 +233,7 @@ case ${1} in
       st2stop
       clean_db
       clean_logs
-      register_content ${2}
+      register_content
       st2start
       getpids
     else
