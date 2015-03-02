@@ -1,10 +1,11 @@
 ActionChain
 ============
 
-ActionChain is a no-frills linear workflow. On completion of a constituent action the choice between on-success and on-failure is evaluated to pick the next action. This implementation allows for passing of data between actions and finally publishes the result of each of the constituent action elements. From perspective of |st2| an ActionChain is itself an action therefore all the features of an action like execution from cli, usage in Rules etc. are automatically supported.
+ActionChain is a no-frills linear workflow, a simple chain of action invocations. On completion of a constituent action the choice between on-success and on-failure is evaluated to pick the next action. This implementation allows for passing of data between actions and finally publishes the result of each of the constituent actions. From perspective of |st2| an ActionChain is itself an action, therefore all the operations and features of an action like definition, registration, execution from cli, usage in Rules etc. are the same.
 
 Authoring an ActionChain
 ------------------------
+
 
 ActionChain's are described in YAML (JSON supported for backward compatibiltiy) and placed inside a pack similar to other script or python actions. An ActionChain must also be associated with a metadata file that allows it to be registered as an Action by |st2|. This metadata contains name and parameter description of an action.
 
@@ -19,12 +20,12 @@ Following is sample ActionChain workflow definition named :github_st2:`echochain
 
 Details:
 
-* `chain` is the array property that contains action elements.
-* Action elements are named action execution specifications. The name is scoped to an ActionChain and is used as a reference to an action element.
-* `ref` property of an action element points to an Action registered in |st2|.
-* `on-success` is the link to action element to invoke next on a successful execution. If not provided the ActionChain will terminate with status set to success.
-* `on-failure` is the link to action element to invoke next on a failed execution. If not provided the ActionChain will terminate with the status set to error.
-* `default` is an optional top level property that specifies the start of an ActionChain.
+* ``chain`` is the array property that contains tasks, which incapsulate action invocation.
+* Tasks are named action execution specifications. The name is scoped to an ActionChain and is used as a reference to a task.
+* ``ref`` property of an task points to an Action registered in |st2|.
+* ``on-success`` is the link to a task to invoke next on a successful action execution. If not provided, the ActionChain will terminate with status set to `success`.
+* ``on-failure`` is an optional link to a task to invoke next on a failed action execution. If not provided, the ActionChain will terminate with the status set to `error`.
+* ``default`` is an optional top level property that specifies the start of an ActionChain. If ``default`` not explicitly specified, the ActionChanin starts from the first action.
 
 ActionChain metadata
 ~~~~~~~~~~~~~~~~~~~~
@@ -73,7 +74,7 @@ For a user to provide input to an ActionChain the input parameters must be defin
             required: true
       # ...
 
-The input parameter `input1` can now be referenced in the parameters field of an action element.
+The input parameter `input1` can now be referenced in the parameters field of a task.
 
 ::
 
@@ -94,15 +95,21 @@ Similar constructs are also used in :doc:`Rule </rules>` criteria and action fie
 Data passing
 ~~~~~~~~~~~~
 
-Similar to how input to an ActionChain can be referenced in an action elements; the output of previous action elements can also be referenced. Below is a version of the previously seen `echochain`, :github_st2:`echochain_param.yaml <contrib/examples/actions/chains/echochain_param.yaml>` with input and data passing down the flow:
+Similar to how input to an ActionChain can be referenced in a task; the output of previous tasks can also be referenced. Below is a version of the previously seen `echochain`, :github_st2:`echochain_param.yaml <contrib/examples/actions/chains/echochain_param.yaml>` with input and data passing down the flow:
 
 .. literalinclude:: /../../contrib/examples/actions/chains/echochain_param.yaml
    :language: yaml
 
 Details:
 
-* Output of an action elements is always prefixed by element name. e.g. In ``{"cmd":"echo c2 {{c1.stdout}}"}`` `c1.stdout` refers to the output of 'c1' and further drills down into properties of the output.
+* Output of a task is always prefixed by task name. e.g. In ``{"cmd":"echo c2 {{c1.stdout}}"}`` `c1.stdout` refers to the output of 'c1' and further drills down into properties of the output.
 * A special ``__results`` key provides access to the entire result upto that point of execution.
+
+Variables
+~~~~~~~~~~~~~~~
+
+.. todo:: Add description and example
+
 
 Error Reporting
 ~~~~~~~~~~~~~~~
