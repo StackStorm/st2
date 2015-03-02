@@ -1,8 +1,0 @@
----
-# Action definition metadata
-    name: "echochain"
-    runner_type: "action-chain"
-    description: "Simple Action Chain workflow"
-    enabled: true
-    entry_point: "echochain.yaml"
-    parameters: {}

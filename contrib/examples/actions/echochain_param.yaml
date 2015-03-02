@@ -1,29 +1,11 @@
 ---
-    chain:
-        -
-            name: "c1"
-            ref: "core.local"
-            params:
-                cmd: "echo c1, input {{input1}}" # Refers action input parameter
-            on-success: "c2"
-            on-failure: "c4"
-        -
-            name: "c2"
-            ref: "core.local"
-            params:
-                cmd: "echo c2 {{c1.localhost.stdout}}" # refers upsteram action parameter
-            on-success: "c3"
-            on-failure: "c4"
-        -
-            name: "c3"
-            ref: "core.local"
-            params:
-                cmd: "echo c3 {{c2.localhost.stdout}}"
-            on-failure: "c4"
-        -
-            name: "c4"
-            ref: "core.local"
-            params:
-                cmd: "echo fail c4"
-    default: "c1"
-
+# Action definition metadata
+    name: "echochain-param"
+    runner_type: "action-chain"
+    description: "Action Chain workflow passing variables"
+    enabled: true
+    entry_point: "chains/echochain_param.yaml"
+    parameters: 
+      input1: 
+        type: "string"
+        required: true
