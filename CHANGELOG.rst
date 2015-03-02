@@ -66,6 +66,8 @@ Docs: http://docks.stackstorm.com/latest
 * Fix non-string types to be rendered correctly in action parameters when used in rule. (bug-fix)
 * Allow user to specify default value for required attributes in the definition of action
   parameters. (bug-fix)
+* When running with auth enabled, correctly preserve the username of the authenticated user who
+  has triggered the action execution. (bug-fix)
 
 v0.7 - January 16, 2015
 -----------------------

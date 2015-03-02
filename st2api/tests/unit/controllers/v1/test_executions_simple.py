@@ -292,7 +292,7 @@ class TestActionExecutionController(FunctionalTest):
 NOW = isotime.add_utc_tz(datetime.datetime.utcnow())
 EXPIRY = NOW + datetime.timedelta(seconds=300)
 SYS_TOKEN = TokenDB(id=bson.ObjectId(), user='system', token=uuid.uuid4().hex, expiry=EXPIRY)
-USR_TOKEN = TokenDB(id=bson.ObjectId(), user='stanley', token=uuid.uuid4().hex, expiry=EXPIRY)
+USR_TOKEN = TokenDB(id=bson.ObjectId(), user='tokenuser', token=uuid.uuid4().hex, expiry=EXPIRY)
 
 
 def mock_get_token(*args, **kwargs):
@@ -336,14 +336,14 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
         headers = {'content-type': 'application/json', 'X-Auth-Token': str(USR_TOKEN.token)}
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json['context']['user'], 'stanley')
+        self.assertEqual(resp.json['context']['user'], 'tokenuser')
         context = {'parent': str(resp.json['liveaction']['id'])}
         headers = {'content-type': 'application/json',
                    'X-Auth-Token': str(SYS_TOKEN.token),
                    'st2-context': json.dumps(context)}
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json['context']['user'], 'stanley')
+        self.assertEqual(resp.json['context']['user'], 'tokenuser')
         self.assertEqual(resp.json['context']['parent'], context['parent'])
 
 
