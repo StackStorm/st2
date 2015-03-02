@@ -95,10 +95,15 @@ class ActionExecutionsController(ResourceController):
             if not hasattr(execution, 'context'):
                 execution.context = dict()
 
-            # Retrieve user context from the request header.
-            user = pecan.request.headers.get('X-User-Name')
-            if not user:
+            # Retrieve username of the authed user (note - if auth is disabled, user will not be
+            # set so we fall back to the system user name)
+            request_token = pecan.request.context.get('token', None)
+
+            if request_token:
+                user = request_token.user
+            else:
                 user = cfg.CONF.system_user.user
+
             execution.context['user'] = user
 
             # Retrieve other st2 context from request header.
