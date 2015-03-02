@@ -42,7 +42,12 @@ class ActionsRegistrar(ResourceRegistrar):
         """
         Discover all the packs in the provided directory and register actions from all of the
         discovered packs.
+
+        :return: Number of actions registered.
+        :rtype: ``int``
         """
+        registered_count = 0
+
         content = self._pack_loader.get_content(base_dirs=base_dirs,
                                                 content_type='actions')
 
@@ -50,29 +55,39 @@ class ActionsRegistrar(ResourceRegistrar):
             try:
                 LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
                 actions = self._get_actions_from_pack(actions_dir)
-                self._register_actions_from_pack(pack=pack, actions=actions)
+                count = self._register_actions_from_pack(pack=pack, actions=actions)
+                registered_count += count
             except:
                 LOG.exception('Failed registering all actions from pack: %s', actions_dir)
+
+        return registered_count
 
     def register_actions_from_pack(self, pack_dir):
         """
         Register all the actions from the provided pack.
+
+        :return: Number of actions registered.
+        :rtype: ``int``
         """
         pack_dir = pack_dir[:-1] if pack_dir.endswith('/') else pack_dir
         _, pack = os.path.split(pack_dir)
         actions_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
                                                               content_type='actions')
 
+        registered_count = 0
+
         if not actions_dir:
-            return None
+            return registered_count
 
         LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
 
         try:
             actions = self._get_actions_from_pack(actions_dir=actions_dir)
-            self._register_actions_from_pack(pack=pack, actions=actions)
+            registered_count = self._register_actions_from_pack(pack=pack, actions=actions)
         except:
             LOG.exception('Failed registering all actions from pack: %s', actions_dir)
+
+        return registered_count
 
     def _get_actions_from_pack(self, actions_dir):
         actions = self._get_resources_from_pack(resources_dir=actions_dir)
@@ -116,6 +131,8 @@ class ActionsRegistrar(ResourceRegistrar):
             raise
 
     def _register_actions_from_pack(self, pack, actions):
+        registered_count = 0
+
         for action in actions:
             try:
                 LOG.debug('Loading action from %s.', action)
@@ -123,6 +140,10 @@ class ActionsRegistrar(ResourceRegistrar):
             except Exception:
                 LOG.exception('Unable to register action: %s', action)
                 continue
+            else:
+                registered_count += 1
+
+        return registered_count
 
 
 def register_actions(packs_base_paths=None, pack_dir=None):

@@ -36,50 +36,69 @@ class RulesRegistrar(ResourceRegistrar):
     ALLOWED_EXTENSIONS = ALLOWED_EXTS
 
     def register_rules_from_packs(self, base_dirs):
+        """
+        :return: Number of rules registered.
+        :rtype: ``int``
+        """
+        registered_count = 0
+
         content = self._pack_loader.get_content(base_dirs=base_dirs,
                                                 content_type='rules')
         for pack, rules_dir in six.iteritems(content):
             try:
                 LOG.info('Registering rules from pack: %s', pack)
                 rules = self._get_rules_from_pack(rules_dir)
-                self._register_rules_from_pack(pack, rules)
+                count = self._register_rules_from_pack(pack, rules)
+                registered_count += count
             except:
                 LOG.exception('Failed registering all rules from pack: %s', rules_dir)
+
+        return registered_count
 
     def register_rules_from_pack(self, pack_dir):
         """
         Register all the rules from the provided pack.
+
+        :return: Number of rules registered.
+        :rtype: ``int``
         """
         pack_dir = pack_dir[:-1] if pack_dir.endswith('/') else pack_dir
         _, pack = os.path.split(pack_dir)
         rules_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
                                                             content_type='rules')
 
+        registered_count = 0
         if not rules_dir:
-            return None
+            return registered_count
 
         LOG.debug('Registering rules from pack %s:, dir: %s', pack, rules_dir)
 
         try:
             rules = self._get_rules_from_pack(rules_dir=rules_dir)
-            self._register_rules_from_pack(pack=pack, rules=rules)
+            registered_count = self._register_rules_from_pack(pack=pack, rules=rules)
         except:
             LOG.exception('Failed registering all rules from pack: %s', rules_dir)
+
+        return registered_count
 
     def _get_rules_from_pack(self, rules_dir):
         return self._get_resources_from_pack(resources_dir=rules_dir)
 
     def _register_rules_from_pack(self, pack, rules):
+        registered_count = 0
+
         for rule in rules:
             LOG.debug('Loading rule from %s.', rule)
             try:
                 content = self._meta_loader.load(rule)
                 rule_api = RuleAPI(**content)
                 rule_db = RuleAPI.to_model(rule_api)
+
                 try:
                     rule_db.id = Rule.get_by_name(rule_api.name).id
                 except ValueError:
                     LOG.info('Rule %s not found. Creating new one.', rule)
+
                 try:
                     rule_db = Rule.add_or_update(rule_db)
                     LOG.audit('Rule updated. Rule %s from %s.', rule_db, rule)
@@ -87,6 +106,10 @@ class RulesRegistrar(ResourceRegistrar):
                     LOG.exception('Failed to create rule %s.', rule_api.name)
             except:
                 LOG.exception('Failed registering rule from %s.', rule)
+            else:
+                registered_count += 1
+
+        return registered_count
 
 
 def register_rules(packs_base_paths=None, pack_dir=None):

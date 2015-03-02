@@ -51,11 +51,11 @@ def register_sensors():
         # Importing here to reduce scope of dependency. This way even if st2reactor
         # is not installed bootstrap continues.
         import st2reactor.bootstrap.sensorsregistrar as sensors_registrar
-        sensors_registrar.register_sensors(pack_dir=cfg.CONF.register.pack)
+        registered_count = sensors_registrar.register_sensors(pack_dir=cfg.CONF.register.pack)
     except Exception as e:
         LOG.warning('Failed to register sensors: %s', e, exc_info=True)
-    else:
-        LOG.info('Sensors registered.')
+
+    LOG.info('Registered %s sensors.' % (registered_count))
 
 
 def register_actions():
@@ -70,17 +70,18 @@ def register_actions():
         import st2actions.bootstrap.runnersregistrar as runners_registrar
         runners_registrar.register_runner_types()
     except Exception as e:
-        LOG.warning('Failed to register action types: %s', e, exc_info=True)
-        LOG.warning('Not registering stock actions.')
+        LOG.warning('Failed to register runner types: %s', e, exc_info=True)
+        LOG.warning('Not registering stock runners .')
     else:
         try:
             # Importing here to reduce scope of dependency. This way even if st2action
             # is not installed bootstrap continues.
             import st2actions.bootstrap.actionsregistrar as actions_registrar
-            actions_registrar.register_actions(pack_dir=cfg.CONF.register.pack)
+            registered_count = actions_registrar.register_actions(pack_dir=cfg.CONF.register.pack)
         except Exception as e:
             LOG.warning('Failed to register actions: %s', e, exc_info=True)
-    LOG.info('Actions registered.')
+
+    LOG.info('Registered %s actions.' % (registered_count))
 
 
 def register_rules():
@@ -92,10 +93,11 @@ def register_rules():
         # Importing here to reduce scope of dependency. This way even if st2reactor
         # is not installed bootstrap continues.
         import st2reactor.bootstrap.rulesregistrar as rules_registrar
-        rules_registrar.register_rules(pack_dir=cfg.CONF.register.pack)
+        registered_count = rules_registrar.register_rules(pack_dir=cfg.CONF.register.pack)
     except Exception as e:
         LOG.warning('Failed to register rules: %s', e, exc_info=True)
-    LOG.info('Rules registered.')
+
+    LOG.info('Registered %s rules.' % (registered_count))
 
 
 def register_content():
