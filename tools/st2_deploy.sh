@@ -12,7 +12,7 @@ else
 fi
 
 echo "Installing version ${VER}"
- 
+
 INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
 INSTALL_WEBUI=${INSTALL_WEBUI:-1}
 
@@ -121,7 +121,7 @@ install_apt(){
 }
 
 install_yum() {
-  echo "###########################################################################################"  
+  echo "###########################################################################################"
   echo "# Installing packages via yum"
   rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
   curl -sS -k -o /tmp/rabbitmq-server.rpm http://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
@@ -361,7 +361,7 @@ deploy_deb() {
 }
 
 register_content() {
-  echo "###########################################################################################"  
+  echo "###########################################################################################"
   echo "# Registering all content"
   $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --register-sensors --register-actions --config-file ${STANCONF}
 }
@@ -444,7 +444,9 @@ sleep 20
 st2 run core.local date &> /dev/null
 ACTIONEXIT=$?
 
-echo "=============================="
+ACTIONEXIT=$?
+
+echo "=========================================="
 echo ""
 
 if [ ! "${ACTIONEXIT}" == 0 ]
@@ -453,12 +455,16 @@ then
   echo "Something went wrong, st2 failed to start"
   exit 2
 else
-  echo "      _   ___     ____  _  __ "
-  echo "     | | |__ \   / __ \| |/ / "
-  echo "  ___| |_   ) | | |  | | ' /  "
-  echo " / __| __| / /  | |  | |  <   "
-  echo " \__ \ |_ / /_  | |__| | . \  "
-  echo " |___/\__|____|  \____/|_|\_\ "
+  echo "          _   ___     ____  _  __ "
+  echo "         | | |__ \   / __ \| |/ / "
+  echo "      ___| |_   ) | | |  | | ' /  "
+  echo "     / __| __| / /  | |  | |  <   "
+  echo "     \__ \ |_ / /_  | |__| | . \  "
+  echo "     |___/\__|____|  \____/|_|\_\ "
   echo ""
-  echo "  st2 is installed and ready  "
+  echo "  st2 is installed and ready to use."
 fi
+if [ ${INSTALL_WEBUI} == "1" ]; then
+  echo "  WebUI at http://`hostname`:9101/webui/"
+fi
+
