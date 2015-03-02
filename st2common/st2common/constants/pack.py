@@ -17,6 +17,7 @@ __all__ = [
     'PACKS_PACK_NAME',
     'SYSTEM_PACK_NAME',
     'PACKS_PACK_NAME',
+    'LINUX_PACK_NAME',
     'SYSTEM_PACK_NAMES',
     'USER_PACK_NAME_BLACKLIST',
     'BASE_PACK_REQUIREMENTS'
@@ -31,6 +32,9 @@ SYSTEM_PACK_NAME = 'core'
 # Name used for pack management pack
 PACKS_PACK_NAME = 'packs'
 
+# Name used for linux pack
+LINUX_PACK_NAME = 'linux'
+
 # Name of the default pack
 DEFAULT_PACK_NAME = 'default'
 
@@ -38,6 +42,7 @@ DEFAULT_PACK_NAME = 'default'
 SYSTEM_PACK_NAMES = [
     SYSTEM_PACK_NAME,
     PACKS_PACK_NAME,
+    LINUX_PACK_NAME
 ]
 
 # A list of pack names which can't be used by user-supplied packs
