@@ -7,7 +7,7 @@ import os, yaml, json, time
 
 class BaseAction(Action):
 
-    def run(self, keyfile, username, hostname, timeout, retries):
+    def run(self, keyfile, username, hostname, ssh_timeout, retries):
  
         key = paramiko.RSAKey.from_private_key_file(keyfile)
         client = paramiko.SSHClient()
@@ -19,7 +19,7 @@ class BaseAction(Action):
                 return True
             except Exception, e: 
                 self.logger.info(e)
-                time.sleep(timeout)
+                time.sleep(ssh_timeout)
             time.sleep(20)
         self.logger.info("Exceeded max retries")
         return False
