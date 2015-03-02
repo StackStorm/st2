@@ -4,7 +4,7 @@
     runner_type: "action-chain"
     description: "Action Chain workflow passing variables"
     enabled: true
-    entry_point: "echochain_param.yaml"
+    entry_point: "chains/echochain_param.yaml"
     parameters: 
       input1: 
         type: "string"

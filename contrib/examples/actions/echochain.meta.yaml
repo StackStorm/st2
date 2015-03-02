@@ -4,5 +4,5 @@
     runner_type: "action-chain"
     description: "Simple Action Chain workflow"
     enabled: true
-    entry_point: "echochain.yaml"
+    entry_point: "chains/echochain.yaml"
     parameters: {}

@@ -13,9 +13,9 @@ ActionChain script
 ~~~~~~~~~~~~~~~~~~
 
 Following is sample ActionChain workflow definition named :github_st2:`echochain.yaml
-<contrib/examples/actions/echochain.yaml>`:
+<contrib/examples/actions/chains/echochain.yaml>`:
 
-.. literalinclude:: /../../contrib/examples/actions/echochain.yaml
+.. literalinclude:: /../../contrib/examples/actions/chains/echochain.yaml
    :language: yaml
 
 Note:
@@ -30,9 +30,8 @@ Note:
 ActionChain metadata
 ~~~~~~~~~~~~~~~~~~~~
 
-The action definition metadata :github_st2:`echochain.meta.yaml
-<contrib/examples/actions/echochain.meta.yaml>` for an ActionChain :github_st2:`echochain.yaml
-<contrib/examples/actions/echochain.yaml>` looks like this:
+The :github_st2:`metadata
+<contrib/examples/actions/echochain.meta.yaml>` for the ActionChain above looks like this:
 
 .. literalinclude:: /../../contrib/examples/actions/echochain.meta.yaml
    :language: yaml
@@ -77,15 +76,15 @@ The input parameter `input1` can now be referenced in the parameters field of an
 Data passing
 ~~~~~~~~~~~~
 
-Similar to how input to an ActionChain can be referenced in an action elements; the output of previous action elements can also be referenced. Below is a version of the previously seen `echochain`, :github_st2:`echochain.param.yaml
-<contrib/examples/actions/echochain_param.yaml>` with input and data passing down the flow:
+Similar to how input to an ActionChain can be referenced in an action elements; the output of previous action elements can also be referenced. Below is a version of the previously seen `echochain`, :github_st2:`echochain_param.yaml
+<contrib/examples/actions/chains/echochain_param.yaml>` with input and data passing down the flow:
 
-.. literalinclude:: /../../contrib/examples/actions/echochain_param.yaml
+.. literalinclude:: /../../contrib/examples/actions/chains/echochain_param.yaml
    :language: yaml
 
 Note:
 
-* Output of an action elements is always prefixed by element name. e.g. In ``{"cmd":"echo c2 {{c1.localhost.stdout}}"}`` `c1.localhost.stdout` refers to the output of 'c1' and further drills down into properties of the output.
+* Output of an action elements is always prefixed by element name. e.g. In ``{"cmd":"echo c2 {{c1.stdout}}"}`` `c1.stdout` refers to the output of 'c1' and further drills down into properties of the output.
 * A special ``__results`` key provides access to the entire result upto that point of execution.
 
 Error Reporting
