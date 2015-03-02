@@ -15,7 +15,7 @@
     hostname: 
       type: "string"
       required: true
-    timeout: 
+    ssh_timeout: 
       type: "integer"
       default: 30
     retries: 
