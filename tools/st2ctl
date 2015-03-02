@@ -46,6 +46,7 @@ function print_usage() {
 if [ -z ${1} ] || [ ${1} != "start" -a ${1} != "stop" -a ${1} != "restart" -a ${1} != "status" -a ${1} != "restart-component" -a ${1} != "reload" -a ${1} != "clean" ]
 then
     print_usage
+    exit 1
 fi
 
 if [ ${1} == "restart-component" ]
@@ -53,6 +54,7 @@ then
     if  [ -z ${2} ] || [ ${2} != "actionrunner" -a ${2} != "st2api" -a ${2} != "sensor_container" -a ${2} != "rules_engine" -a ${2} != "mistral" -a ${2} != "st2resultstracker" ]
     then
         print_usage
+        exit 1
     fi
 fi
 
@@ -72,6 +74,7 @@ if [ ${1} == "reload" -o ${1} == "clean" ]; then
         REGISTER_FLAGS="${3} ${2}"
     else
         print_usage
+        exit 1
     fi
 fi
 
