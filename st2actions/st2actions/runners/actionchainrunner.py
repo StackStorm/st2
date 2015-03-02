@@ -66,13 +66,18 @@ class ChainHolder(object):
         # 1. There are no loops in the chain. Even if there are loops there is
         #    at least 1 node which does not end up in this loop.
         # 2. There are no fragments in the chain.
-        node_names = set([node.name for node in _actionchain.chain])
+        all_nodes = [node.name for node in _actionchain.chain]
+        node_names = set(all_nodes)
         on_success_nodes = set([node.on_success for node in _actionchain.chain])
         on_failure_nodes = set([node.on_failure for node in _actionchain.chain])
         referenced_nodes = on_success_nodes | on_failure_nodes
         possible_default_nodes = node_names - referenced_nodes
         if possible_default_nodes:
-            return possible_default_nodes.pop()
+            # This is to preserve order. set([..]) does not preserve the order so iterate
+            # over original array.
+            for node in all_nodes:
+                if node in possible_default_nodes:
+                    return node
         # If no node is found assume the first node in the chain list to be default.
         return _actionchain.chain[0].name
 
@@ -83,10 +88,15 @@ class ChainHolder(object):
         context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
         return jinja_utils.render_values(mapping=vars, context=context)
 
-    def get_node(self, node_name=None):
+    def get_node(self, node_name=None, raise_on_failure=False):
+        if not node_name:
+            return None
         for node in self.actionchain.chain:
             if node.name == node_name:
                 return node
+        if raise_on_failure:
+            raise runnerexceptions.ActionRunnerException('Unable to find node with name %s.',
+                                                         node_name)
         return None
 
     def get_next_node(self, curr_node_name=None, condition='on-success'):
@@ -94,9 +104,9 @@ class ChainHolder(object):
             return self.get_node(self.actionchain.default)
         current_node = self.get_node(curr_node_name)
         if condition == 'on-success':
-            return self.get_node(current_node.on_success)
+            return self.get_node(current_node.on_success, raise_on_failure=True)
         elif condition == 'on-failure':
-            return self.get_node(current_node.on_failure)
+            return self.get_node(current_node.on_failure, raise_on_failure=True)
         raise runnerexceptions.ActionRunnerException('Unknown condition %s.' % condition)
 
 
@@ -120,12 +130,23 @@ class ActionChainRunner(ActionRunner):
             raise runnerexceptions.ActionRunnerPreRunError(message)
 
     def run(self, action_parameters):
-        action_node = self.chain_holder.get_next_node()
 
         result = {'tasks': []}  # holds final result we store
         context_result = {}  # holds result which is used for the template context purposes
         top_level_error = None  # stores a reference to a top level error
         fail = True
+        action_node = None
+
+        try:
+            action_node = self.chain_holder.get_next_node()
+        except:
+            error = ('Failed to run task "%s". Parameter rendering failed: %s' %
+                         (action_node.name, str(e)))
+            trace = traceback.format_exc(10)
+            top_level_error = {
+                'error': error,
+                'traceback': trace
+            }
 
         while action_node:
             fail = False
