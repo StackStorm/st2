@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,24 +14,56 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-    from setuptools import setup, find_packages
+import os
+import sys
+
+from setuptools import setup, find_packages
+
+
+PKG_ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+PKG_REQ_FILE = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'requirements.txt'))
+os.chdir(PKG_ROOT_DIR)
+
+
+def get_version_string():
+    version = None
+    sys.path.insert(0, PKG_ROOT_DIR)
+    from st2actions import __version__
+    version = __version__
+    sys.path.pop(0)
+    return version
+
+
+def get_requirements():
+    with open(PKG_REQ_FILE) as f:
+        required = f.read().splitlines()
+    return required
+
 
 setup(
     name='st2actions',
-    version='0.4.0',
-    description='',
+    version=get_version_string(),
+    description='Action components for StackStorm (st2) automation platform.',
     author='StackStorm',
     author_email='info@stackstorm.com',
-    install_requires=[
-        "pecan",
+    url='http://www.stackstorm.com',
+    packages=find_packages(exclude=['tests']),
+    install_requires=get_requirements(),
+    license='Apache License (2.0)',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7'
     ],
-    test_suite='st2actions',
-    zip_safe=False,
-    include_package_data=True,
-    packages=find_packages(exclude=['ez_setup'])
+    entry_points={
+        'console_scripts': [
+            'actionrunner = st2actions.cmd.actionrunner:main',
+            'history = st2actions.cmd.history:main'
+        ]
+    }
 )
