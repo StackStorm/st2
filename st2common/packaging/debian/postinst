@@ -14,7 +14,7 @@ then
 fi
 
 PIP=`which pip`
-if [ -z $PIP ]
+if [ -z "$PIP" ]
 then
     echo 'Missing python-pip. Not installing virtualenvs for core packs.'
 else
