@@ -48,16 +48,16 @@ Docs: http://docks.stackstorm.com/latest
   existing action. (new-feature)
 * Dispatch an internal trigger when a sensor process is spawned / started
   (``st2.sensor.process_spawn``) and when a process exits / is stopped
-  (``st2.sensor.process_exit``).
+  (``st2.sensor.process_exit``). (new-feature)
 * Update HTTP runner to automatically parse JSON response body if Content-Type is
   ``application/json`` (new-feature)
 * API url /v1/actionexecutions/ is now deprecated in favor of /v1/executions/ (refactor)
 * API url change /v1/history/execution to /v1/executions (refactor)
 * API url change /v1/history/execution/views/filters to /v1/executions/views/filters (refactor)
-* POST to /v1/executions take LiveActionAPI but returns ActionExecutionAPI
-* Support for filtering by timestamp and status in executions list.
-* Execution list shows only top level executions by default to see full list use --showall.
-* Ability to see child tasks of any execution.
+* POST to /v1/executions take LiveActionAPI but returns ActionExecutionAPI (refactor)
+* Support for filtering by timestamp and status in executions list. (new-feature)
+* Execution list shows only top level executions by default to see full list use --showall. (refactor)
+* Ability to see child tasks of any execution. (new-feature)
 * Allow sensors to manage global datastore items via sensor_service by passing ``local=False``
   argument to the ``get_value``, ``set_value`` and ``delete_value`` methods. (new-feature)
 * Allow sensors to list datastore items using ``list_values`` sensor_service method. (new-feature)
