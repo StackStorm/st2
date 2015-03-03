@@ -228,7 +228,7 @@ html_context = {
     'source_suffix': source_suffix,
     'versions': [
         ('latest', 'http://docs.stackstorm.com/latest'),
-        (version, 'http://docs.stackstorm.com/%s' % latest),
+        (version, 'http://docs.stackstorm.com/latest'),
         # TODO(dzimine): get "prev stable version" from somewhere (?)
         ('0.8', 'http://docs.stackstorm.com/'),
         ('0.7', 'http://docs.stackstorm.com/0.7'),
