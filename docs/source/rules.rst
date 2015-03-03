@@ -75,14 +75,14 @@ To deploy a rule, use CLI ``st2 rule create ${PATH_TO_RULE}`` command, for examp
 If the rule with the same name already exists, the above command will return an error:
 
 .. code-block:: bash
-    
+
     ERROR: 409 Client Error: Conflict
     MESSAGE: Tried to save duplicate unique keys (E11000 duplicate key error index: st2.rule_d_b.$name_1  dup key: { : "examples.webhook_file" })
-        
+
 To update the rule, edit the rule definition file and run ``st2 rule update`` command, as in the following example:
-    
+
 .. code-block:: bash
-    
+
     st2 rule update examples.webhook_file /usr/share/doc/st2/examples/rules/sample_rule_with_webhook.yaml
 
 .. note::
@@ -196,7 +196,7 @@ startswith
 Checks that the beginning of the string trigger value matches the provided string value.
 
 istartswith
-~~~~~~~~~~
+~~~~~~~~~~~
 
 Checks that the beginning of the string trigger value matches the provided string value case insensitively.
 
@@ -248,7 +248,7 @@ contains trigger instance definition:
     echo $?
 
 Both files need to contain definitions in YAML or JSON format. For the rule, you can use the same
-file you are planning to deploy. 
+file you are planning to deploy.
 
 And for the trigger instance, the definition file needs contain the following keys:
 
@@ -464,7 +464,7 @@ Run action every sunday at midnight
 
   action:
     ...
-    
+
 -------------------------------
 
 .. rubric:: What's Next?
