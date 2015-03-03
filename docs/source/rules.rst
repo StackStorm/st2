@@ -5,9 +5,10 @@ Rules
 Rules map triggers to actions (or workflows), apply matching criteria and
 map trigger payload to action inputs.
 
-Rule spec is defined in YAML. JSON is supported for backward compatibility.
-The following is a sample rule definition structure and a listing of the
-required and optional elements.
+Writing a Rule
+--------------
+
+Rules are defined in YAML; JSON is supported for backward compatibility. Rule definition structure, as well as required and optional elements are listed below:
 
 .. code-block:: yaml
 
@@ -42,7 +43,7 @@ Criteria in the rule is expressed as:
             pattern : "watchevent"
         # more variables
 
-``type`` specifies which criteria comparison operator to use and ``pattern`` specifies the pattern
+``type`` specifies which criteria comparison operator to use and ``pattern`` specifies a pattern
 which gets passed to the operator function.
 
 In the ``matchregex`` case, ``pattern`` is a regular expression pattern which the trigger value
@@ -62,18 +63,52 @@ contain such values e.g.
             type: "eq"
             pattern : "customvalue"
 
+Managing Rules
+--------------
 
-To deploy a rule, use CLI:
+To deploy a rule, use CLI ``st2 rule create ${PATH_TO_RULE}`` command, for example:
 
 .. code-block:: bash
 
-    st2 rule create /opt/stackstorm/packs/examples/rules/sample_rule_with_webhook.yaml
-    st2 rule create /opt/stackstorm/examples/rules/sample_rule_with_webhook.yaml
+    st2 rule create /usr/share/doc/st2/examples/rules/sample_rule_with_webhook.yaml
+
+If the rule with the same name already exists, the above command will return an error:
+
+.. code-block:: bash
+    
+    ERROR: 409 Client Error: Conflict
+    MESSAGE: Tried to save duplicate unique keys (E11000 duplicate key error index: st2.rule_d_b.$name_1  dup key: { : "examples.webhook_file" })
+        
+To update the rule, edit the rule definition file and run ``st2 rule update`` command, as in the following example:
+    
+.. code-block:: bash
+    
+    st2 rule update examples.webhook_file /usr/share/doc/st2/examples/rules/sample_rule_with_webhook.yaml
+
+.. note::
+
+    **Hint:** It is a good practice to always edit the original rule file, so that keep your infrastructure in code. You still can get the rule definition from the system by ``st2 rule get <rule name> -j``, update it, and load it back.
+
+To see all the rules, or to get an individual rule, use commands below:
+
+.. code-block:: bash
+
     st2 rule list
     st2 rule get examples.webhook_file
 
+To undeploy a rule, run ``st2 rule delete ${RULE_NAME_OR_ID}``. For example, to undeploy the examples.webhook_file rule we deployed previously, run:
+
+.. code-block:: bash
+
+    st2 rule delete examples.webhook_file
+
+
+Rule location
+-------------
+
+Custom rules must be placed in any accessible folder on local system. By convention, custom rules are placed in ``/opt/stackstorm/packs/default/rules`` directory.
 By default, |st2| doesn't load the rules deployed under ``/opt/stackstorm/packs/${pack_name}/rules/``. However you can force
-load them with ``st2 run packs.load register=rules``
+load them with ``st2 run packs.load register=rules`` or ``st2 run packs.load register=all``.
 
 Supported criteria comparision operators
 ----------------------------------------
@@ -85,79 +120,105 @@ This section describes all the available operators which can be used in the crit
     **For Developers:** The criteria comparision functions are defined in
     :github_st2:`st2/st2common/st2common/operators.py </st2common/st2common/operators.py>`.
 
-* ``matchregex`` - Regular expression match.
-* ``equals`` - Equality comparison (works on values of arbitrary type).
-* ``nequals`` - Not equal comparison (works on values of arbitrary type).
-* ``iequals`` - Case insensitive equality comparison (trigger value needs to be string).
-* ``contains`` - String contains comparison.
-* ``icontains`` - Case insensitive string contains comparison.
-* ``ncontains`` - String doesn't contain comparison.
-* ``startswith`` - String startswith comparison.
-* ``istartswith`` - Case insensitive string startswith comparison.
-* ``endswith`` - String endswith comparison.
-* ``iendswith`` - Case insensitive string endswith comparison.
-* ``incontains`` - Case insensitive string doesn't contain comparison.
-* ``lessthan`` - Less than comparison.
-* ``greaterthan`` - Greater than comparison.
-* ``timediff_lt`` - Timestamp lower than comparison.
-* ``timediff_gt`` - Timestamp greater than comparison.
-* ``exists`` - Key exists in payload.
-* ``nexists`` - Key does not exist in payload.
 
-matchregex
-~~~~~~~~~~
-
-Checks that trigger value matches the provided regular expression.
+* ``equals`` - values are equal (for values of arbitrary type);
+* ``nequals`` - values are not equal (for values of arbitrary type);
+* ``lessthan`` - trigger value is less than the provided value;
+* ``greaterthan`` - trigger value is greater than the provided value;
+* ``matchregex`` - trigger value matches the provided regular expression pattern;
+* ``iequals`` - string trigger value equals the provided value case insensitively;
+* ``contains`` - string trigger value contains the provided value;
+* ``ncontains`` - string trigger value does not contain the provided value;
+* ``icontains`` - string trigger value contains the provided value case insensitively;
+* ``incontains`` - string trigger value does not contain the provided string value case insensitively;
+* ``startswith`` - beginning of the string trigger value matches the provided string value;
+* ``istartswith`` - beginning of the string trigger value matches the provided string value case insensitively;
+* ``endswith`` - end of the string trigger value matches the provided string value;
+* ``iendswith`` - end of the string trigger value matches the provided string value case insensitively;
+* ``timediff_lt`` - time difference between trigger value and current time is less than the provided value;
+* ``timediff_gt`` - time difference between trigger value and current time is greater than the provided value;
+* ``exists`` - key exists in payload;
+* ``nexists`` - key doesn't exist in payload.
 
 equals
 ~~~~~~
 
-Checks that the trigger value exactly matches the provided pattern.
+Checks that the trigger value equals the provided value (for values of arbitrary type).
 
-iequals
+nequals
 ~~~~~~~
 
-Checks that the trigger value matches the provided pattern ignoring the casing.
-
-contains
-~~~~~~~~
-
-Checks that the trigger value contains the provided pattern.
-
-icontains
-~~~~~~~~~
-
-Checks that the trigger value contains the provided pattern ignoring the casing.
-
-ncontains
-~~~~~~~~~
-
-Checks that the trigger value doesn't contains the provided pattern.
-
-incontains
-~~~~~~~~~~
-
-Checks that the trigger value doesn't contains the provided pattern ignoring the casing.
+Checks that the trigger value does not equal the provided value (for values of arbitrary type).
 
 lessthan
 ~~~~~~~~
 
-Checks that the trigger value is less than the provided pattern.
+Checks that the trigger value is less than the provided value.
 
 greaterthan
 ~~~~~~~~~~~
 
-Checks that the trigger value is greater than the provided pattern.
+Checks that the trigger value is greater than the provided value.
+
+matchregex
+~~~~~~~~~~
+
+Checks that trigger value matches the provided regular expression pattern.
+
+iequals
+~~~~~~~
+
+Checks that the string trigger value equals provided string value case insensitively.
+
+contains
+~~~~~~~~
+
+Checks that the string trigger value contains the provided string value.
+
+ncontains
+~~~~~~~~~
+
+Checks that the string trigger value does not contain the provided string value.
+
+icontains
+~~~~~~~~~
+
+Checks that the string trigger value contains the provided string value case insensitively.
+
+incontains
+~~~~~~~~~~
+
+Checks that the string trigger value does not contain the provided string value case insensitively.
+
+startswith
+~~~~~~~~~~
+
+Checks that the beginning of the string trigger value matches the provided string value.
+
+istartswith
+~~~~~~~~~~
+
+Checks that the beginning of the string trigger value matches the provided string value case insensitively.
+
+endswith
+~~~~~~~~~~
+
+Checks that the end of the string trigger value matches the provided string value.
+
+iendswith
+~~~~~~~~~~
+
+Checks that the end of the string trigger value matches the provided string value case insensitively.
 
 timediff_lt
 ~~~~~~~~~~~
 
-Checks that the time difference between the trigger value is less than the provided pattern.
+Checks that the time difference between trigger value and current time is less than the provided value.
 
 timediff_gt
 ~~~~~~~~~~~
 
-Checks that the time difference between the trigger value is greater than the provided pattern.
+Checks that the time difference between trigger value and current time is greater than the provided value.
 
 exists
 ~~~~~~
@@ -167,33 +228,27 @@ Check that the value exists in the payload.
 nexists
 ~~~~~~~
 
-Check that the value does not exist in payload.
+Check that the value does not exist in the payload.
 
-Rule location
--------------
-
-Custom rules can be placed in ``/opt/stackstorm/packs/default/rules`` and registered using ``st2 rule create ${PATH_TO_RULE}``. Placing the rule files in alternate locations is acceptable. Note that the ``st2 rule create`` command will read rule from the filesystem local to itself.
-
-.. rubric:: What's Next?
-
-* See :doc:`/start` for a simple example of creating and deploying a rule.
-* Explore automations on `st2contrib`_ community repo.
-* Learn more about :doc:`sensors`.
 
 .. _testing-rules:
 
 Testing Rules
 -------------
 
-To make testing the rules easier we provide a tool which allows you to evaluate rules against
+To make testing the rules easier we provide a ``rule_tester`` tool which allows evaluating rules against
 trigger instances without running any of the StackStorm components.
 
 The tool works by taking a path to the file which contains rule definition and a file which
-contains trigger instance definition.
+contains trigger instance definition:
+
+.. code-block:: bash
+
+    rule_tester --rule=${RULE_FILE} --trigger-instance=${TRIGGER_INSTANCE_DEFINITION}
+    echo $?
 
 Both files need to contain definitions in YAML or JSON format. For the rule, you can use the same
-file you would use to create the rule using the command line tool (the file you
-pass to ``st2 rule create``)
+file you are planning to deploy. 
 
 And for the trigger instance, the definition file needs contain the following keys:
 
@@ -289,25 +344,26 @@ Output:
 Timers
 ------
 
-Timers allows you to run a particular action repeatedly based on the defined time interval or one
-time on a particular date and time. You can think of it as cron jobs, but with additional
-flexibility and ability to run actions only once on a particular date and time.
+Timers allow running a particular action repeatedly based on a defined time interval or one
+time at a particular date and time. You can think of them as cron jobs, but with additional
+flexibility, e.g. ability to run actions only once, at the provided date and time.
 
 Currently, we support the following timer trigger types:
 
-* ``core.st2.IntervalTimer`` - Run an action on a pre-defined time intervals (e.g. every
+* ``core.st2.IntervalTimer`` - Run an action on predefined time intervals (e.g. every
   30 seconds, every 24 hours, every week, etc.).
 * ``core.st2.DateTimer`` - Run an action on the specified date and time.
-* ``core.st2.CronTimer`` - Run an action when the current time matches the time constraint
-  defined in the UNIX cron format.
+* ``core.st2.CronTimer`` - Run an action when current time matches the time constraint
+  defined in UNIX cron format.
 
-Timers are implemented as triggers which means you can use them inside the rules. In the section
+Timers are implemented as triggers, which means you can use them inside the rules. In the section
 bellow, you can find some examples on how to use timers in the rule definitions.
 
 core.st2.IntervalTimer
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Supported values for ``unit`` attribute are: ``seconds``, ``minutes``, ``hours``, ``days``,
+Available attributes: ``unit``, ``delta``.
+Supported values for ``unit`` attribute: ``seconds``, ``minutes``, ``hours``, ``days``,
 ``weeks``.
 
 Run action every 30 seconds
@@ -408,5 +464,13 @@ Run action every sunday at midnight
 
   action:
     ...
+    
+-------------------------------
+
+.. rubric:: What's Next?
+
+* Explore automations on `st2contrib`_ community repo.
+* Learn more about :doc:`sensors`.
+
 
 .. include:: engage.rst
