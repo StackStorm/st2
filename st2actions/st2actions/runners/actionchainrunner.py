@@ -95,8 +95,8 @@ class ChainHolder(object):
             if node.name == node_name:
                 return node
         if raise_on_failure:
-            raise runnerexceptions.ActionRunnerException('Unable to find node with name %s.',
-                                                         node_name)
+            raise runnerexceptions.ActionRunnerException('Unable to find node with name "%s".' %
+                                                         (node_name))
         return None
 
     def get_next_node(self, curr_node_name=None, condition='on-success'):
