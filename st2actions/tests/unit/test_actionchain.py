@@ -192,7 +192,7 @@ class TestActionChainRunner(DbTestCase):
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'schedule',
-                       return_value=(DummyActionExecution(status=LIVEACTION_STATUS_FAILED), None))
+                       return_value=(DummyActionExecution(), None))
     def test_chain_runner_broken_success_path(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_BROKEN_PATH
@@ -207,7 +207,8 @@ class TestActionChainRunner(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', side_effect=RuntimeError('Test Failure.'))
+    @mock.patch.object(action_service, 'schedule',
+                       return_value=(DummyActionExecution(status=LIVEACTION_STATUS_FAILED), None))
     def test_chain_runner_broken_fail_path(self, schedule):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_BROKEN_PATH
