@@ -4,7 +4,7 @@ function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" 
 
 if [ -z $1 ]
 then
-  VER='0.8'
+  VER='0.8.0'
 elif [[ "$1" == "latest" ]]; then
    VER='0.9dev'
 else
