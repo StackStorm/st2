@@ -71,10 +71,16 @@ class MongoDBAccess(object):
     def get_by_id(self, value):
         return self.get(id=value, raise_exception=True)
 
-    def get(self, *args, **kwargs):
+    def get(self, exclude_fields=None, *args, **kwargs):
         raise_exception = kwargs.pop('raise_exception', False)
+
         instances = self.model.objects(**kwargs)
+
+        if exclude_fields:
+            instances = instances.exclude(*exclude_fields)
+
         instance = instances[0] if instances else None
+
         if not instance and raise_exception:
             raise ValueError('Unable to find the %s instance. %s' % (self.model.__name__, kwargs))
         return instance

@@ -154,32 +154,56 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         'timestamp_lt': lambda value: isotime.parse(value=value)
     }
 
+    valid_exclude_attributes = [
+        'result',
+        'trigger_instance'
+    ]
+
     def __init__(self):
         super(ActionExecutionsController, self).__init__()
         # Add common execution view supported filters
         self.supported_filters.update(SUPPORTED_FILTERS)
 
-    @jsexpose(str)
-    def get_one(self, id, *args, **kwargs):
-        return self._get_one(id=id)
-
     @jsexpose()
-    def get_all(self, exclude_result='0', **kw):
+    def get_all(self, exclude_attributes=None, **kw):
         """
-            List all actionexecutions.
+        List all actionexecutions.
 
-            Handles requests:
-                GET /actionexecutions/
+        Handles requests:
+            GET /actionexecutions/[?exclude_attributes=result,trigger_instance]
+
+        :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
+        :type exclude_attributes: ``str``
         """
-        exclude_result = exclude_result == '1'
-
-        if exclude_result:
-            exclude_fields = ['result']
+        if exclude_attributes:
+            exclude_fields = exclude_attributes.split(',')
         else:
             exclude_fields = None
 
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
+
         LOG.info('GET all /actionexecutions/ with filters=%s', kw)
         return self._get_action_executions(exclude_fields=exclude_fields, **kw)
+
+    @jsexpose(str)
+    def get_one(self, id, exclude_attributes=None, **kwargs):
+        """
+        Retrieve a single execution.
+
+        Handles requests:
+            GET /actionexecutions/<id>[?exclude_attributes=result,trigger_instance]
+
+        :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
+        :type exclude_attributes: ``str``
+        """
+        if exclude_attributes:
+            exclude_fields = exclude_attributes.split(',')
+        else:
+            exclude_fields = None
+
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
+
+        return self._get_one(id=id, exclude_fields=exclude_fields)
 
     @jsexpose(body=LiveActionAPI, status_code=http_client.CREATED)
     def post(self, execution):
@@ -234,3 +258,17 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         LOG.debug('Retrieving all action liveactions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
                                                                 **kw)
+
+    def _validate_exclude_fields(self, exclude_fields):
+        """
+        Validate that provided exclude fields are valid.
+        """
+        if not exclude_fields:
+            return exclude_fields
+
+        for field in exclude_fields:
+            if field not in self.valid_exclude_attributes:
+                msg = 'Invalid exclude_attribute provided: %s' % (field)
+                raise ValueError(msg)
+
+        return exclude_fields

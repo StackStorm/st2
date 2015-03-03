@@ -129,12 +129,18 @@ class ResourceController(rest.RestController):
 
         return [self.model.from_model(instance) for instance in instances[offset:eop]]
 
-    def _get_one(self, id):
+    def _get_one(self, id, exclude_fields=None):
+        """
+        :param exclude_fields: A list of object fields to exclude.
+        :type exclude_fields: ``list``
+        """
+
         LOG.info('GET %s with id=%s', pecan.request.path, id)
 
         instance = None
+
         try:
-            instance = self.access.get(id=id)
+            instance = self.access.get(id=id, exclude_fields=exclude_fields)
         except ValidationError:
             instance = None  # Someone supplied a mongo non-comformant id.
 
