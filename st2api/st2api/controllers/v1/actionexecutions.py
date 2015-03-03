@@ -51,6 +51,12 @@ class ActionExecutionsControllerMixin(RestController):
     model = ActionExecutionAPI
     access = ActionExecution
 
+    # A list of attributes which can be specified using ?exclude_attributes filter
+    valid_exclude_attributes = [
+        'result',
+        'trigger_instance'
+    ]
+
     def _get_result_object(self, id):
         """
         Retrieve result object for the provided action execution.
@@ -74,6 +80,20 @@ class ActionExecutionsControllerMixin(RestController):
                                                         result_fmt=result_fmt)
         return [self.model.from_model(descendant) for descendant in descendants]
 
+    def _validate_exclude_fields(self, exclude_fields):
+        """
+        Validate that provided exclude fields are valid.
+        """
+        if not exclude_fields:
+            return exclude_fields
+
+        for field in exclude_fields:
+            if field not in self.valid_exclude_attributes:
+                msg = 'Invalid or unsupported attribute specified: %s' % (field)
+                raise ValueError(msg)
+
+        return exclude_fields
+
 
 class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
     @jsexpose(str)
@@ -86,46 +106,23 @@ class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
         return self._get_children(id_=id, **kwargs)
 
 
-class ActionExecutionResultController(ActionExecutionsControllerMixin):
-    @jsexpose(str)
-    def get(self, id):
+class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
+    @jsexpose()
+    def get(self, id, attribute, **kwargs):
         """
-        Retrieve result object for the provided action execution.
+        Retrieve a particular attribute for the provided action execution.
 
         Handles requests:
 
-            GET /actionexecutions/<id>/result
+            GET /actionexecutions/<id>/attribute/<value>
 
         :rtype: ``dict``
         """
-        result = self._get_result_object(id=id)
+        fields = [attribute]
+        fields = self._validate_exclude_fields(fields)
+        action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
+        result = getattr(action_exec_db, attribute, None)
         return result
-
-
-class ActionExecutionStdoutController(ActionExecutionsControllerMixin):
-    @jsexpose(str)
-    def get(self, id):
-        """
-        Retrieve raw stdout (if any) for the provided action execution.
-
-        :rtype: ``str`` or ``None``
-        """
-        result = self._get_result_object(id=id)
-        stdout = result.get('stdout', None)
-        return stdout
-
-
-class ActionExecutionStderrController(ActionExecutionsControllerMixin):
-    @jsexpose(str)
-    def get(self, id):
-        """
-        Retrieve raw stderr (if any) for the provided action execution.
-
-        :rtype: ``str`` or ``None``
-        """
-        result = self._get_result_object(id=id)
-        stderr = result.get('stderr', None)
-        return stderr
 
 
 class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceController):
@@ -138,9 +135,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
     views = ExecutionViewsController()
 
     children = ActionExecutionChildrenController()
-    result = ActionExecutionResultController()
-    stdout = ActionExecutionStdoutController()
-    stderr = ActionExecutionStderrController()
+    attribute = ActionExecutionAttributeController()
 
     query_options = {
         'sort': ['-start_timestamp', 'action']
@@ -153,11 +148,6 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         'timestamp_gt': lambda value: isotime.parse(value=value),
         'timestamp_lt': lambda value: isotime.parse(value=value)
     }
-
-    valid_exclude_attributes = [
-        'result',
-        'trigger_instance'
-    ]
 
     def __init__(self):
         super(ActionExecutionsController, self).__init__()
@@ -258,17 +248,3 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         LOG.debug('Retrieving all action liveactions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
                                                                 **kw)
-
-    def _validate_exclude_fields(self, exclude_fields):
-        """
-        Validate that provided exclude fields are valid.
-        """
-        if not exclude_fields:
-            return exclude_fields
-
-        for field in exclude_fields:
-            if field not in self.valid_exclude_attributes:
-                msg = 'Invalid exclude_attribute provided: %s' % (field)
-                raise ValueError(msg)
-
-        return exclude_fields
