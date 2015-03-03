@@ -142,7 +142,6 @@ class MongoDBAccess(object):
             dt1 = isotime.parse(values[0])
             dt2 = isotime.parse(values[1])
 
-
             k__gte = '%s__gte' % k
             k__lte = '%s__lte' % k
             if dt1 < dt2:

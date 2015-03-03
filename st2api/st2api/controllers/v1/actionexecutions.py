@@ -75,7 +75,6 @@ class ActionExecutionsControllerMixin(RestController):
         return [self.model.from_model(descendant) for descendant in descendants]
 
 
-
 class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
     @jsexpose(str)
     def get(self, id, **kwargs):
