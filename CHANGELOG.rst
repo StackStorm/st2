@@ -1,8 +1,11 @@
 Changelog
 =========
 
-v0.8dev - Under development
+v0.9dev - Under development
 ---------------------------
+
+v0.8 - March 2, 2015
+-----------------------
 
 Docs: http://docks.stackstorm.com/latest
 
