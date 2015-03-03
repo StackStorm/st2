@@ -14,6 +14,7 @@
 
 import sys
 import os
+import itertools
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -219,6 +220,16 @@ html_static_path = ['_static']
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'StackStormDoc'
 
+
+def previous_version(ver):
+    # XXX: on incrementing major version, minor version counter is lost!
+    major, minor = ver.split('.')
+    minor = int("".join(itertools.takewhile(str.isdigit, minor)))
+    return ".".join([major, str(minor - 1)])
+
+version_minus_1 = previous_version(version)
+version_minus_2 = previous_version(version_minus_1)
+
 # Variables to be used by templates
 html_context = {
     'github_repo': 'StackStorm/st2',
@@ -228,11 +239,9 @@ html_context = {
     'source_suffix': source_suffix,
     'versions': [
         ('latest', 'http://docs.stackstorm.com/latest'),
-        (version, 'http://docs.stackstorm.com/'),
-        # TODO(dzimine): get "prev stable version" from somewhere (?)
-        ('0.8', 'http://docs.stackstorm.com/'),
-        ('0.7', 'http://docs.stackstorm.com/0.7'),
-        ('0.6', 'http://docs.stackstorm.com/0.6.0')
+        (version, 'http://docs.stackstorm.com/latest'),
+        (version_minus_1, 'http://docs.stackstorm.com/%s' % version_minus_1),
+        (version_minus_2, 'http://docs.stackstorm.com/%s' % version_minus_2),
     ],
     'current_version': version
 }
