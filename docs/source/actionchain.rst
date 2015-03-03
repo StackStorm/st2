@@ -139,7 +139,7 @@ Gotchas
 ~~~~~~~~~~~~~~~
 Using YAML and Jinja implied some constraints on how to name and reference variables:
 
-* Variable names can use letters, underscores, and numbers. No dashes! This applies to all variables: global vars, input parameters, :ref:`DataStore keys <datastore>`, and published variables.
+* Variable names can use letters, underscores, and numbers. No dashes! This applies to all variables: global vars, input parameters, :doc:`DataStore keys <datastore>`, and published variables.
 * Same naming rules apply to task names: ``this-is-wrong-task-name``! Use ``task_names_with_underscores``.
 * Always quote variable reference "{{ my_variable.or.expression }}" (remember that ``{ }`` is a YAML dictionary). The types are respected inside the Jinja template but converted to strings outside: "{{ 1 + 2 }} + 3" resolves to "3 + 3".
 
