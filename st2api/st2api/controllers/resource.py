@@ -65,11 +65,13 @@ class ResourceController(rest.RestController):
     def get_one(self, id):
         return self._get_one(id)
 
-    def _get_all(self, exclude_fields, **kwargs):
+    def _get_all(self, exclude_fields=None, **kwargs):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
+        exclude_fields = exclude_fields or []
+
         # TODO: Why do we use comma delimited string, user can just specify
         # multiple values using ?sort=foo&sort=bar and we get a list back
         sort = kwargs.get('sort').split(',') if kwargs.get('sort') else []

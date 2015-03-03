@@ -1,5 +1,7 @@
+import copy
 import importlib
 
+import six
 import mongoengine
 
 from st2common.util import isotime
@@ -90,8 +92,11 @@ class MongoDBAccess(object):
         eop = offset + int(limit) if limit else None
 
         # Process the filters
-        filters = self._process_null_filters(filters=filters)
+        # Note: Both of those functions manipulate "filters" variable so the order in which they
+        # are called matters
         filters, order_by = self._process_datetime_range_filters(filters=filters, order_by=order_by)
+        filters = self._process_null_filters(filters=filters)
+
         result = self.model.objects(**filters)
 
         if exclude_fields:
@@ -123,20 +128,22 @@ class MongoDBAccess(object):
         instance.delete()
 
     def _process_null_filters(self, filters):
-        filters = {k: v for k, v in filters.iteritems()
-                   if v is None or (type(v) in [str, unicode] and str(v.lower()) == 'null')}
+        result = copy.deepcopy(filters)
 
-        for k, v in filters.iteritems():
-            filters['%s__exists' % k] = False
-            del filters[k]
+        null_filters = {k: v for k, v in six.iteritems(filters)
+                        if v is None or (type(v) in [str, unicode] and str(v.lower()) == 'null')}
 
-        return filters
+        for key in null_filters.keys():
+            result['%s__exists' % (key)] = False
+            del result[key]
+
+        return result
 
     def _process_datetime_range_filters(self, filters, order_by=None):
         ranges = {k: v for k, v in filters.iteritems()
                   if type(v) in [str, unicode] and '..' in v}
 
-        order_by_list = order_by or []
+        order_by_list = copy.deepcopy(order_by) if order_by else []
         for k, v in ranges.iteritems():
             values = v.split('..')
             dt1 = isotime.parse(values[0])
