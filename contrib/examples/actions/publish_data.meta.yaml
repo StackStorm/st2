@@ -1,0 +1,7 @@
+---
+# Action definition metadata
+name: "publish_data"
+description: "Example showing use of variables and data publishing in ActinoChain"
+runner_type: "action-chain"
+enabled: true
+entry_point: "chains/publish_data.yaml"

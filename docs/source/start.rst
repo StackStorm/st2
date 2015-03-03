@@ -194,8 +194,10 @@ the file and see that it appends the payload if the name=Joe.
 
 Congratulations, your first |st2| rule is up and running!
 
+Deploy Examples
+-------------------------
 Examples of rules, custom sensors, actions, and workflows are installed with |st2| and located
-at :github_st2:`/usr/share/doc/st2/examples <contrib/examples/>`. To get them deployed, copy them
+at :github_st2:`/usr/share/doc/st2/examples <contrib/examples/>`. To deployed, copy them
 to /opt/stackstorm/packs/, setup, and reload the content:
 
 .. code-block:: bash
@@ -209,7 +211,7 @@ to /opt/stackstorm/packs/, setup, and reload the content:
     # Reload stackstorm context
     st2ctl reload --register-all
 
-For more content, checkout `st2contrib`_ community repo on GitHub.
+For more content - actions, sensors, rules - checkout `st2contrib`_ community repo on GitHub.
 
 
 Troubleshooting

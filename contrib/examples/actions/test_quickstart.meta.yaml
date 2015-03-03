@@ -1,0 +1,8 @@
+---
+# Action definition metadata
+name: "test_quickstart"
+description: "Simple Action Chain workflow"
+runner_type: "action-chain"
+enabled: true
+entry_point: "chains/test_quickstart.yaml"
+parameters: {}
