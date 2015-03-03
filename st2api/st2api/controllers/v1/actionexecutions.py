@@ -68,14 +68,55 @@ class ActionExecutionsController(ResourceController):
 
     @jsexpose(str)
     def get_one(self, id, *args, **kwargs):
-        if args or kwargs:
-            if args[0] == 'children':
+        if args:
+            # TODO: This is hacky and awful fix it
+            path = args[0]
+            if path == 'children':
                 return self._get_children(id, **kwargs)
+            elif path  == 'result':
+                return self.get_result(id=id)
+            elif path  == 'stdout':
+                return self.get_stdout(id=id)
+            elif path  == 'stderr':
+                return self.get_stderr(id=id)
             else:
                 msg = 'Unsupported id : %s, args: %s, kwargs: %s' % (id, args, kwargs)
                 abort(http_client.BAD_REQUEST, msg)
         else:
-            return super(ActionExecutionsController, self)._get_one(id)
+            return self._get_one(id=id)
+
+    def get_result(self, id, *args, **kwargs):
+        """
+        Retrieve result object for the provided action execution.
+
+        Handles requests:
+
+            GET /actionexecutions/<id>/result
+
+        :rtype: ``dict``
+        """
+        result = self._get_result_object(id=id)
+        return result
+
+    def get_stdout(self, id):
+        """
+        Retrieve raw stdout (if any) for the provided action execution.
+
+        :rtype: ``str`` or ``None``
+        """
+        result = self._get_result_object(id=id)
+        stdout = result.get('stdout', None)
+        return stdout
+
+    def get_stderr(self, id):
+        """
+        Retrieve raw stderr (if any) for the provided action execution.
+
+        :rtype: ``str`` or ``None``
+        """
+        result = self._get_result_object(id=id)
+        stderr = result.get('stderr', None)
+        return stderr
 
     @jsexpose()
     def get_all(self, **kw):
@@ -136,6 +177,19 @@ class ActionExecutionsController(ResourceController):
 
         LOG.debug('Retrieving all action liveactions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(**kw)
+
+    def _get_result_object(self, id):
+        """
+        Retrieve result object for the provided action execution.
+
+        :param id: Action execution ID.
+        :type id: ``str``
+
+        :rtype: ``dict``
+        """
+        fields = ['result']
+        action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
+        return action_exec_db.result
 
     def _get_children(self, id_, depth=-1, result_fmt=None):
         # make sure depth is int. Url encoding will make it a string and needs to
