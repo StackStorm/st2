@@ -14,6 +14,7 @@
 
 import sys
 import os
+import itertools
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -60,10 +61,22 @@ copyright = u'2014, StackStorm Inc'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-# The short X.Y version.
+# the __version__ is 0.8.0 or 0.9dev
+# the version is short 0.8 version, to refer docs.
 version = '.'.join(__version__.split('.')[:2])
 # The full version, including alpha/beta/rc tags.
 release = __version__
+
+
+def previous_version(ver):
+    # XXX: on incrementing major version, minor version counter is lost!
+    major, minor = ver.split('.')
+    minor = int("".join(itertools.takewhile(str.isdigit, minor)))
+    return ".".join([major, str(minor - 1)])
+
+# The short versions of two previous releases, e.g. 0.8 and 0.7
+version_minus_1 = previous_version(version)
+version_minus_2 = previous_version(version_minus_1)
 
 # extlink configurator sphinx.ext.extlinks
 extlinks = {
@@ -229,10 +242,8 @@ html_context = {
     'versions': [
         ('latest', 'http://docs.stackstorm.com/latest'),
         (version, 'http://docs.stackstorm.com/latest'),
-        # TODO(dzimine): get "prev stable version" from somewhere (?)
-        ('0.8', 'http://docs.stackstorm.com/'),
-        ('0.7', 'http://docs.stackstorm.com/0.7'),
-        ('0.6', 'http://docs.stackstorm.com/0.6.0')
+        (version_minus_1, 'http://docs.stackstorm.com/%s' % version_minus_1),
+        (version_minus_2, 'http://docs.stackstorm.com/%s' % version_minus_2),
     ],
     'current_version': version
 }
