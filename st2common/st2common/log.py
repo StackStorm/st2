@@ -25,6 +25,19 @@ import traceback
 
 from oslo.config import cfg
 
+__all__ = [
+    'getLogger',
+    'setup',
+
+    'FormatNamedFileHandler',
+    'ConfigurableSyslogHandler',
+
+    'ExclusionFilter',
+    'LogLevelFilter',
+
+    'LoggingStream'
+]
+
 logging.AUDIT = logging.CRITICAL + 10
 logging.addLevelName(logging.AUDIT, 'AUDIT')
 
@@ -77,6 +90,22 @@ class ExclusionFilter(object):
         return not exclude
 
 
+class LogLevelFilter(logging.Filter):
+    """
+    Filter which excludes log messages which match the provided log levels.
+    """
+
+    def __init__(self, log_levels):
+        self._log_levels = log_levels
+
+    def filter(self, record):
+        level = record.levelno
+        if level in self._log_levels:
+            return False
+
+        return True
+
+
 class LoggingStream(object):
 
     def __init__(self, name, level=logging.ERROR):
@@ -106,7 +135,8 @@ def _redirect_stderr():
 
 
 def setup(config_file, disable_existing_loggers=False):
-    """Configure logging from file.
+    """
+    Configure logging from file.
     """
     try:
         logging.config.fileConfig(config_file,

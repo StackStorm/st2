@@ -42,7 +42,12 @@ class SensorsRegistrar(ResourceRegistrar):
         """
         Discover all the packs in the provided directory and register sensors from all of the
         discovered packs.
+
+        :return: Number of sensors registered.
+        :rtype: ``int``
         """
+        registered_count = 0
+
         content = self._pack_loader.get_content(base_dirs=base_dirs,
                                                 content_type='sensors')
 
@@ -50,35 +55,46 @@ class SensorsRegistrar(ResourceRegistrar):
             try:
                 LOG.debug('Registering sensors from pack %s:, dir: %s', pack, sensors_dir)
                 sensors = self._get_sensors_from_pack(sensors_dir)
-                self._register_sensors_from_pack(pack=pack, sensors=sensors)
+                count = self._register_sensors_from_pack(pack=pack, sensors=sensors)
+                registered_count += count
             except Exception as e:
                 LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir,
                               str(e))
 
+        return registered_count
+
     def register_sensors_from_pack(self, pack_dir):
         """
         Register all the sensors from the provided pack.
+
+        :return: Number of sensors registered.
+        :rtype: ``int``
         """
         pack_dir = pack_dir[:-1] if pack_dir.endswith('/') else pack_dir
         _, pack = os.path.split(pack_dir)
         sensors_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
                                                               content_type='sensors')
 
+        registered_count = 0
         if not sensors_dir:
-            return None
+            return registered_count
 
         LOG.debug('Registering sensors from pack %s:, dir: %s', pack, sensors_dir)
 
         try:
             sensors = self._get_sensors_from_pack(sensors_dir=sensors_dir)
-            self._register_sensors_from_pack(pack=pack, sensors=sensors)
+            registered_count = self._register_sensors_from_pack(pack=pack, sensors=sensors)
         except Exception as e:
             LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir, str(e))
+
+        return registered_count
 
     def _get_sensors_from_pack(self, sensors_dir):
         return self._get_resources_from_pack(resources_dir=sensors_dir)
 
     def _register_sensors_from_pack(self, pack, sensors):
+        registered_count = 0
+
         for sensor in sensors:
             try:
                 self._register_sensor_from_pack(pack=pack, sensor=sensor)
@@ -86,6 +102,9 @@ class SensorsRegistrar(ResourceRegistrar):
                 LOG.debug('Failed to register sensor "%s": %s', sensor, str(e))
             else:
                 LOG.debug('Sensor "%s" successfully registered', sensor)
+                registered_count += 1
+
+        return registered_count
 
     def _register_sensor_from_pack(self, pack, sensor):
         sensor_metadata_file_path = sensor
