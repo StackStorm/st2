@@ -165,14 +165,13 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         return self._get_one(id=id)
 
     @jsexpose()
-    def get_all(self, **kw):
+    def get_all(self, exclude_result='0', **kw):
         """
             List all actionexecutions.
 
             Handles requests:
                 GET /actionexecutions/
         """
-        exclude_result = kw.get('exclude_result', '0')
         exclude_result = exclude_result == '1'
 
         if exclude_result:
