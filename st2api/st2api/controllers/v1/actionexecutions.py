@@ -172,8 +172,16 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             Handles requests:
                 GET /actionexecutions/
         """
+        exclude_result = kw.get('exclude_result', '0')
+        exclude_result = exclude_result == '1'
+
+        if exclude_result:
+            exclude_fields = ['result']
+        else:
+            exclude_fields = None
+
         LOG.info('GET all /actionexecutions/ with filters=%s', kw)
-        return self._get_action_executions(**kw)
+        return self._get_action_executions(exclude_fields=exclude_fields, **kw)
 
     @jsexpose(body=LiveActionAPI, status_code=http_client.CREATED)
     def post(self, execution):
@@ -218,8 +226,13 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
     def options(self, *args, **kw):
         return
 
-    def _get_action_executions(self, **kw):
+    def _get_action_executions(self, exclude_fields=None, **kw):
+        """
+        :param exclude_fields: A list of object fields to exclude.
+        :type exclude_fields: ``list``
+        """
         kw['limit'] = int(kw.get('limit', 100))
 
         LOG.debug('Retrieving all action liveactions with filters=%s', kw)
-        return super(ActionExecutionsController, self)._get_all(**kw)
+        return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
+                                                                **kw)

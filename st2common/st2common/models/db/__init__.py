@@ -126,11 +126,22 @@ class MongoDBAccess(object):
     @process_null_filter
     @process_datetime_ranges
     def query(self, *args, **kwargs):
+        # TODO: Fix kwargs abuse
         offset = int(kwargs.pop('offset', 0))
         limit = kwargs.pop('limit', None)
-        eop = offset + int(limit) if limit else None
         order_by = kwargs.pop('order_by', [])
-        return self.model.objects(**kwargs).order_by(*order_by)[offset:eop]
+        exclude_fields = kwargs.pop('exclude_fields', [])
+        eop = offset + int(limit) if limit else None
+
+        result = self.model.objects(**kwargs)
+
+        if exclude_fields:
+            result = result.exclude(*exclude_fields)
+
+        result = result.order_by(*order_by)
+        result = result[offset:eop]
+
+        return result
 
     def distinct(self, *args, **kwargs):
         field = kwargs.pop('field')
