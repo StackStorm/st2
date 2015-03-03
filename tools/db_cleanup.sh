@@ -12,7 +12,7 @@ SQL_QUERY="DROP DATABASE IF EXISTS mistral; \
   GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'localhost' IDENTIFIED BY '$ROOT_PASSWORD; \
   FLUSH PRIVILEGES;"
 
-mysql -uroot -p$ROOT_PASSWORD -e "DROP DATABASE IF EXISTS mistral"
+mysql -uroot -p$ROOT_PASSWORD -e $SQL_QUERY
 
 cd /opt/openstack/mistral
 python ./tools/sync_db.py --config-file /etc/mistral/mistral.conf
