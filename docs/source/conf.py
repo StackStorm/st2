@@ -61,10 +61,22 @@ copyright = u'2014, StackStorm Inc'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-# The short X.Y version.
+# the __version__ is 0.8.0 or 0.9dev
+# the version is short 0.8 version, to refer docs.
 version = '.'.join(__version__.split('.')[:2])
 # The full version, including alpha/beta/rc tags.
 release = __version__
+
+
+def previous_version(ver):
+    # XXX: on incrementing major version, minor version counter is lost!
+    major, minor = ver.split('.')
+    minor = int("".join(itertools.takewhile(str.isdigit, minor)))
+    return ".".join([major, str(minor - 1)])
+
+# The short versions of two previous releases, e.g. 0.8 and 0.7
+version_minus_1 = previous_version(version)
+version_minus_2 = previous_version(version_minus_1)
 
 # extlink configurator sphinx.ext.extlinks
 extlinks = {
@@ -219,16 +231,6 @@ html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'StackStormDoc'
-
-
-def previous_version(ver):
-    # XXX: on incrementing major version, minor version counter is lost!
-    major, minor = ver.split('.')
-    minor = int("".join(itertools.takewhile(str.isdigit, minor)))
-    return ".".join([major, str(minor - 1)])
-
-version_minus_1 = previous_version(version)
-version_minus_2 = previous_version(version_minus_1)
 
 # Variables to be used by templates
 html_context = {
