@@ -1,19 +1,21 @@
 Changelog
 =========
 
-v0.9dev - Under development
----------------------------
+v0.8.1 - in development
+-----------------------
 
 * Allow user to exclude particular attributes from a response by passing
   ``?exclude_attributes=result,trigger_instance`` query parameter to the ``/actionexecutions/``
   and ``/actionexecutions/<execution id>/`` endpoint (new-feature)
 * Add new ``/actionexecutions/<id>/attribute/<attribute name>`` endpoint which allows user to
   retrieve a value of a particular action execution attribute. (new-feature)
+* Update ``execution get`` CLI command so it automatically detects workflows and returns more
+  user-friendly output by default. (improvement)
 
-v0.8 - March 2, 2015
------------------------
+v0.8.0 - March 2, 2015
+----------------------
 
-Docs: http://docks.stackstorm.com/latest
+Docs: http://docs.stackstorm.com/0.8/
 
 * Allow user to specify current working directory (``cwd`` parameter) when running actions using the
   local or the remote runner (``run-local``, ``run-local-script``, ``run-remote``,

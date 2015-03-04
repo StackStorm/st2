@@ -142,6 +142,14 @@ class ResourceCommand(commands.Command):
 
         return instance
 
+    def get_resource_by_id(self, id, **kwargs):
+        instance = self.get_resource_by_pk(pk=id, **kwargs)
+
+        if not instance:
+            message = ('Resource with id "%s" doesn\'t exist.' % (id))
+            raise ResourceNotFoundError(message)
+        return instance
+
     def get_resource_by_name(self, name, **kwargs):
         """
         Retrieve resource by name.
