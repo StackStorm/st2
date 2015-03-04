@@ -65,7 +65,13 @@ class ResourceController(rest.RestController):
     def get_one(self, id):
         return self._get_one(id)
 
-    def _get_all(self, **kwargs):
+    def _get_all(self, exclude_fields=None, **kwargs):
+        """
+        :param exclude_fields: A list of object fields to exclude.
+        :type exclude_fields: ``list``
+        """
+        exclude_fields = exclude_fields or []
+
         # TODO: Why do we use comma delimited string, user can just specify
         # multiple values using ?sort=foo&sort=bar and we get a list back
         sort = kwargs.get('sort').split(',') if kwargs.get('sort') else []
@@ -94,6 +100,7 @@ class ResourceController(rest.RestController):
         # TODO: To protect us from DoS, we need to make max_limit mandatory
         offset = int(kwargs.pop('offset', 0))
         limit = kwargs.pop('limit', None)
+
         if limit and int(limit) > self.max_limit:
             limit = self.max_limit
         eop = offset + int(limit) if limit else None
@@ -114,7 +121,7 @@ class ResourceController(rest.RestController):
 
         LOG.info('GET all %s with filters=%s', pecan.request.path, filters)
 
-        instances = self.access.query(**filters)
+        instances = self.access.query(exclude_fields=exclude_fields, **filters)
 
         if limit:
             pecan.response.headers['X-Limit'] = str(limit)
@@ -122,12 +129,18 @@ class ResourceController(rest.RestController):
 
         return [self.model.from_model(instance) for instance in instances[offset:eop]]
 
-    def _get_one(self, id):
+    def _get_one(self, id, exclude_fields=None):
+        """
+        :param exclude_fields: A list of object fields to exclude.
+        :type exclude_fields: ``list``
+        """
+
         LOG.info('GET %s with id=%s', pecan.request.path, id)
 
         instance = None
+
         try:
-            instance = self.access.get(id=id)
+            instance = self.access.get(id=id, exclude_fields=exclude_fields)
         except ValidationError:
             instance = None  # Someone supplied a mongo non-comformant id.
 

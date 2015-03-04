@@ -4,6 +4,12 @@ Changelog
 v0.8.1 - in development
 -----------------------
 
+* Allow user to exclude particular attributes from a response by passing
+  ``?exclude_attributes=result,trigger_instance`` query parameter to the ``/actionexecutions/``
+  and ``/actionexecutions/<execution id>/`` endpoint (new-feature)
+* Add new ``/actionexecutions/<id>/attribute/<attribute name>`` endpoint which allows user to
+  retrieve a value of a particular action execution attribute. (new-feature)
+
 v0.8.0 - March 2, 2015
 ----------------------
 
