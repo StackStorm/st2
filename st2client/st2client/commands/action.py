@@ -29,7 +29,8 @@ from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.exceptions.operations import OperationFailureException
-from st2client.formatters import table, execution
+from st2client.formatters import table
+from st2client.formatters import execution as execution_formatter
 from st2client.utils import jsutil
 from st2client.utils.date import format_isodate
 from st2client.utils.color import format_status
@@ -65,6 +66,12 @@ ENV_VARS_BLACKLIST = [
     'oldpwd',
     'term',
     'xdg_session_id'
+]
+
+WORKFLOW_RUNNER_TYPES = [
+    'action-chain',
+    'mistral-v1',
+    'mistral-v2',
 ]
 
 
@@ -658,8 +665,10 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
 
         root_arg_grp = self.parser.add_mutually_exclusive_group()
 
-        # Filtering options
+        # Display options
         task_list_arg_grp = root_arg_grp.add_argument_group()
+        task_list_arg_grp.add_argument('--raw', action='store_true',
+                                       help='Raw output, don\'t shot sub-tasks for workflows.')
         task_list_arg_grp.add_argument('--tasks', action='store_true',
                                        help='Whether to show sub-tasks of an execution.')
         task_list_arg_grp.add_argument('--depth', type=int, default=-1,
@@ -668,7 +677,6 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
         task_list_arg_grp.add_argument('-w', '--width', nargs='+', type=int, default=None,
                                        help='Set the width of columns in output.')
 
-        # Display options
         execution_details_arg_grp = root_arg_grp.add_mutually_exclusive_group()
 
         detail_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
@@ -688,7 +696,8 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.get_by_id(args.id, **kwargs)
+        execution = self.get_resource_by_id(id=args.id, **kwargs)
+        return execution
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print_child_task_list(self, args, **kwargs):
@@ -698,7 +707,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
                                   'end_timestamp']}
         options['json'] = args.json
         options['attribute_transform_functions'] = self.attribute_transform_functions
-        formatter = execution.ExecutionResult
+        formatter = execution_formatter.ExecutionResult
         self.print_output(instance, formatter, **options)
         # print child tasks
         kwargs['depth'] = args.depth
@@ -765,12 +774,29 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
         })
 
     def run_and_print(self, args, **kwargs):
-        if args.tasks:
-            self.run_and_print_child_task_list(args, **kwargs)
-            return
         try:
-            instance = self.run(args, **kwargs)
-            formatter = table.PropertyValueTable if args.detail else execution.ExecutionResult
+            execution = self.run(args, **kwargs)
+        except resource.ResourceNotFoundError:
+            self.print_not_found(args.id)
+            raise OperationFailureException('Execution %s not found.' % (args.id))
+
+        runner_type = execution.action.get('runner_type', 'unknown')
+        is_workflow_action = runner_type in WORKFLOW_RUNNER_TYPES
+
+        if args.tasks and not is_workflow_action:
+            raise ValueError('--tasks option can only be used with workflow actions')
+
+        if not args.raw and not args.detail and (args.tasks or
+                is_workflow_action):
+            self.run_and_print_child_task_list(args, **kwargs)
+        else:
+            instance = execution
+
+            if args.detail:
+                formatter = table.PropertyValueTable
+            else:
+                formatter = execution_formatter.ExecutionResult
+
             if args.detail:
                 options = {'attributes': copy.copy(self.display_attributes)}
             elif args.key:
@@ -780,9 +806,6 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
             options['json'] = args.json
             options['attribute_transform_functions'] = self.attribute_transform_functions
             self.print_output(instance, formatter, **options)
-        except resource.ResourceNotFoundError:
-            self.print_not_found(args.id)
-            raise OperationFailureException('Execution %s not found.' % args.id)
 
 
 class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
