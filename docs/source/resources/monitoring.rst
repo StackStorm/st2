@@ -13,6 +13,7 @@ Prerequisites
 
 Instructions
 ^^^^^^^^^^^^
+
 1. Install `StackStorm sensu integration pack <https://github.com/StackStorm/st2contrib/tree/master/packs/sensu>`_. If you have already installed all the packs, skip this step.
 
 ::
@@ -20,10 +21,42 @@ Instructions
     st2 run packs.install packs=sensu
 
 2. A sample sensu rule is shown below.
-Copy the sample rule to /opt/stackstorm/packs/sensu/rules/sensu_action_runners_rule.json.
 
-.. literalinclude:: /../../contrib/examples/rules/sensu_action_runners_rule.json
-    :language: json
+.. sourcecode:: json
+
+    {
+       "name": "sensu.action-runners-rule",
+       "description": "Sample rule that dogfoods st2.",
+
+       "trigger": {
+           "type": "sensu.event_handler",
+           "parameters": {
+           }
+       },
+
+       "criteria": {
+           "trigger.check.name": {
+               "pattern": "cron_check",
+               "type": "equals"
+           },
+           "trigger.check.output": {
+               "pattern": "CheckProcs CRITICAL*",
+               "type": "matchregex"
+           }
+       },
+
+       "action": {
+           "ref": "core.local",
+           "parameters": {
+               "cmd": "echo \"{{trigger}}\" >> /tmp/sensu.webhook-sample.out"
+           }
+       },
+
+       "enabled": true
+    }
+
+Copy the content of the sample rule to
+``/opt/stackstorm/packs/sensu/rules/sensu_action_runners_rule.json``.
 
 3. Now create the rule.
 
