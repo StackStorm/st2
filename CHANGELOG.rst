@@ -9,6 +9,8 @@ v0.8.1 - in development
   and ``/actionexecutions/<execution id>/`` endpoint (new-feature)
 * Add new ``/actionexecutions/<id>/attribute/<attribute name>`` endpoint which allows user to
   retrieve a value of a particular action execution attribute. (new-feature)
+* Update ``execution get`` CLI command so it automatically detects workflows and returns more
+  user-friendly output by default. (improvement)
 
 v0.8.0 - March 2, 2015
 ----------------------
