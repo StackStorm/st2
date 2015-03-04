@@ -244,6 +244,7 @@ html_context = {
         (version, 'http://docs.stackstorm.com/%s' % version),
         (version_minus_1, 'http://docs.stackstorm.com/%s' % version_minus_1),
         (version_minus_2, 'http://docs.stackstorm.com/%s' % version_minus_2),
+        (version, 'http://docs.stackstorm.com/latest'),
     ],
     'current_version': version
 }

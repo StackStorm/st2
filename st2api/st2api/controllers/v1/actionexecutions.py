@@ -17,6 +17,7 @@ import jsonschema
 from oslo.config import cfg
 import pecan
 from pecan import abort
+from pecan.rest import RestController
 from six.moves import http_client
 
 from st2api.controllers.resource import ResourceController
@@ -32,22 +33,109 @@ from st2common.services import executions as execution_service
 from st2common.util import jsonify
 from st2common.util import isotime
 
+__all__ = [
+    'ActionExecutionsController'
+]
 
 LOG = logging.getLogger(__name__)
-
 
 MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
 
 
-class ActionExecutionsController(ResourceController):
+class ActionExecutionsControllerMixin(RestController):
+    """
+    Mixin class with shared methods.
+    """
+
+    model = ActionExecutionAPI
+    access = ActionExecution
+
+    # A list of attributes which can be specified using ?exclude_attributes filter
+    valid_exclude_attributes = [
+        'result',
+        'trigger_instance'
+    ]
+
+    def _get_result_object(self, id):
+        """
+        Retrieve result object for the provided action execution.
+
+        :param id: Action execution ID.
+        :type id: ``str``
+
+        :rtype: ``dict``
+        """
+        fields = ['result']
+        action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
+        return action_exec_db.result
+
+    def _get_children(self, id_, depth=-1, result_fmt=None):
+        # make sure depth is int. Url encoding will make it a string and needs to
+        # be converted back in that case.
+        depth = int(depth)
+        LOG.debug('retrieving children for id: %s with depth: %s', id_, depth)
+        descendants = execution_service.get_descendants(actionexecution_id=id_,
+                                                        descendant_depth=depth,
+                                                        result_fmt=result_fmt)
+        return [self.model.from_model(descendant) for descendant in descendants]
+
+    def _validate_exclude_fields(self, exclude_fields):
+        """
+        Validate that provided exclude fields are valid.
+        """
+        if not exclude_fields:
+            return exclude_fields
+
+        for field in exclude_fields:
+            if field not in self.valid_exclude_attributes:
+                msg = 'Invalid or unsupported attribute specified: %s' % (field)
+                raise ValueError(msg)
+
+        return exclude_fields
+
+
+class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
+    @jsexpose(str)
+    def get(self, id, **kwargs):
+        """
+        Retrieve children for the provided action execution.
+
+        :rtype: ``list``
+        """
+        return self._get_children(id_=id, **kwargs)
+
+
+class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
+    @jsexpose()
+    def get(self, id, attribute, **kwargs):
+        """
+        Retrieve a particular attribute for the provided action execution.
+
+        Handles requests:
+
+            GET /actionexecutions/<id>/attribute/<value>
+
+        :rtype: ``dict``
+        """
+        fields = [attribute]
+        fields = self._validate_exclude_fields(fields)
+        action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
+        result = getattr(action_exec_db, attribute, None)
+        return result
+
+
+class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of ActionExecutions in the system.
     """
-    model = ActionExecutionAPI
-    access = ActionExecution
+
+    # Nested controllers
     views = ExecutionViewsController()
+
+    children = ActionExecutionChildrenController()
+    attribute = ActionExecutionAttributeController()
 
     query_options = {
         'sort': ['-start_timestamp', 'action']
@@ -66,27 +154,46 @@ class ActionExecutionsController(ResourceController):
         # Add common execution view supported filters
         self.supported_filters.update(SUPPORTED_FILTERS)
 
-    @jsexpose(str)
-    def get_one(self, id, *args, **kwargs):
-        if args or kwargs:
-            if args[0] == 'children':
-                return self._get_children(id, **kwargs)
-            else:
-                msg = 'Unsupported id : %s, args: %s, kwargs: %s' % (id, args, kwargs)
-                abort(http_client.BAD_REQUEST, msg)
-        else:
-            return super(ActionExecutionsController, self)._get_one(id)
-
     @jsexpose()
-    def get_all(self, **kw):
+    def get_all(self, exclude_attributes=None, **kw):
         """
-            List all actionexecutions.
+        List all actionexecutions.
 
-            Handles requests:
-                GET /actionexecutions/
+        Handles requests:
+            GET /actionexecutions/[?exclude_attributes=result,trigger_instance]
+
+        :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
+        :type exclude_attributes: ``str``
         """
+        if exclude_attributes:
+            exclude_fields = exclude_attributes.split(',')
+        else:
+            exclude_fields = None
+
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
+
         LOG.info('GET all /actionexecutions/ with filters=%s', kw)
-        return self._get_action_executions(**kw)
+        return self._get_action_executions(exclude_fields=exclude_fields, **kw)
+
+    @jsexpose(str)
+    def get_one(self, id, exclude_attributes=None, **kwargs):
+        """
+        Retrieve a single execution.
+
+        Handles requests:
+            GET /actionexecutions/<id>[?exclude_attributes=result,trigger_instance]
+
+        :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
+        :type exclude_attributes: ``str``
+        """
+        if exclude_attributes:
+            exclude_fields = exclude_attributes.split(',')
+        else:
+            exclude_fields = None
+
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
+
+        return self._get_one(id=id, exclude_fields=exclude_fields)
 
     @jsexpose(body=LiveActionAPI, status_code=http_client.CREATED)
     def post(self, execution):
@@ -131,18 +238,13 @@ class ActionExecutionsController(ResourceController):
     def options(self, *args, **kw):
         return
 
-    def _get_action_executions(self, **kw):
+    def _get_action_executions(self, exclude_fields=None, **kw):
+        """
+        :param exclude_fields: A list of object fields to exclude.
+        :type exclude_fields: ``list``
+        """
         kw['limit'] = int(kw.get('limit', 100))
 
         LOG.debug('Retrieving all action liveactions with filters=%s', kw)
-        return super(ActionExecutionsController, self)._get_all(**kw)
-
-    def _get_children(self, id_, depth=-1, result_fmt=None):
-        # make sure depth is int. Url encoding will make it a string and needs to
-        # be converted back in that case.
-        depth = int(depth)
-        LOG.debug('retrieving children for id: %s with depth: %s', id_, depth)
-        descendants = execution_service.get_descendants(actionexecution_id=id_,
-                                                        descendant_depth=depth,
-                                                        result_fmt=result_fmt)
-        return [self.model.from_model(descendant) for descendant in descendants]
+        return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
+                                                                **kw)
