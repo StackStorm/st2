@@ -13,7 +13,7 @@ v0.8.1 - in development
 v0.8.0 - March 2, 2015
 ----------------------
 
-Docs: http://docks.stackstorm.com/latest
+Docs: http://docs.stackstorm.com/0.8/
 
 * Allow user to specify current working directory (``cwd`` parameter) when running actions using the
   local or the remote runner (``run-local``, ``run-local-script``, ``run-remote``,
