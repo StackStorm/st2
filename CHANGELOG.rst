@@ -1,8 +1,10 @@
 Changelog
 =========
 
-v0.8.1 - in development
+v0.8.1 - March 6, 2015
 -----------------------
+
+Docs: http://docs.stackstorm.com/0.8/
 
 * Allow user to exclude particular attributes from a response by passing
   ``?exclude_attributes=result,trigger_instance`` query parameter to the ``/actionexecutions/``
