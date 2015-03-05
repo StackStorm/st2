@@ -166,8 +166,11 @@ class ActionRunCommandMixin(object):
     attribute_transform_functions = {
         'start_timestamp': format_isodate,
         'end_timestamp': format_isodate,
-        'parameters': format_parameters
+        'parameters': format_parameters,
+        'status': format_status
     }
+
+    poll_interval = 2  # how often to poll for execution completion when using sync mode
 
     def get_resource(self, ref_or_id, **kwargs):
         return self.get_resource_by_ref_or_id(ref_or_id=ref_or_id, **kwargs)
@@ -177,22 +180,113 @@ class ActionRunCommandMixin(object):
             return
 
         execution = self.run(args, **kwargs)
-        self.print_output(execution, table.PropertyValueTable,
-                          attributes=self.display_attributes, json=args.json,
-                          attribute_display_order=self.attribute_display_order,
-                          attribute_transform_functions=self.attribute_transform_functions)
-
         if args.async:
-            self.print_output('To get the results, execute: \n'
-                              '    $ st2 execution get %s' % execution.id,
-                              six.text_type)
+            self.print_output('To get the results, execute:\n st2 execution get %s' %
+                              (execution.id), six.text_type)
+        else:
+            return self._print_execution_details(execution=execution, args=args, **kwargs)
+
+    def _add_common_options(self):
+        root_arg_grp = self.parser.add_mutually_exclusive_group()
+
+        # Display options
+        task_list_arg_grp = root_arg_grp.add_argument_group()
+        task_list_arg_grp.add_argument('--raw', action='store_true',
+                                       help='Raw output, don\'t shot sub-tasks for workflows.')
+        task_list_arg_grp.add_argument('--tasks', action='store_true',
+                                       help='Whether to show sub-tasks of an execution.')
+        task_list_arg_grp.add_argument('--depth', type=int, default=-1,
+                                       help='Depth to which to show sub-tasks. \
+                                             By default all are shown.')
+        task_list_arg_grp.add_argument('-w', '--width', nargs='+', type=int, default=None,
+                                       help='Set the width of columns in output.')
+
+        execution_details_arg_grp = root_arg_grp.add_mutually_exclusive_group()
+
+        detail_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
+        detail_arg_grp.add_argument('--attr', nargs='+',
+                                    default=['id', 'status', 'result'],
+                                    help=('List of attributes to include in the '
+                                          'output. "all" or unspecified will '
+                                          'return all attributes.'))
+        detail_arg_grp.add_argument('-d', '--detail', action='store_true',
+                                    help='Display full detail of the execution in table format.')
+
+        result_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
+        result_arg_grp.add_argument('-k', '--key',
+                                    help=('If result is type of JSON, then print specific '
+                                          'key-value pair; dot notation for nested JSON is '
+                                          'supported.'))
+
+        return root_arg_grp
+
+    def _print_execution_details(self, execution, args, **kwargs):
+        """
+        Print the execution detail to stdout.
+
+        This method takes into account if an executed action was workflow or not
+        and formats the output accordingly.
+        """
+        runner_type = execution.action.get('runner_type', 'unknown')
+        is_workflow_action = runner_type in WORKFLOW_RUNNER_TYPES
+
+        tasks = getattr(args, 'tasks', False)
+        raw = getattr(args, 'raw', False)
+        detail = getattr(args, 'detail', False)
+        key = getattr(args, 'key', None)
+        attr = getattr(args, 'attr', [])
+
+        if tasks and not is_workflow_action:
+            raise ValueError('--tasks option can only be used with workflow actions')
+
+        if not raw and not detail and (tasks or is_workflow_action):
+            self._run_and_print_child_task_list(execution=execution, args=args, **kwargs)
+        else:
+            instance = execution
+
+            if detail:
+                formatter = table.PropertyValueTable
+            else:
+                formatter = execution_formatter.ExecutionResult
+
+            if detail:
+                options = {'attributes': copy.copy(self.display_attributes)}
+            elif key:
+                options = {'attributes': ['result.%s' % (key)], 'key': key}
+            else:
+                options = {'attributes': attr}
+
+            options['json'] = args.json
+            options['attribute_transform_functions'] = self.attribute_transform_functions
+            self.print_output(instance, formatter, **options)
+
+    def _run_and_print_child_task_list(self, execution, args, **kwargs):
+        action_exec_mgr = self.app.client.managers['LiveAction']
+
+        # print root task.
+        instance = execution
+        options = {'attributes': ['id', 'action.ref', 'status', 'start_timestamp',
+                                  'end_timestamp']}
+        options['json'] = args.json
+        options['attribute_transform_functions'] = self.attribute_transform_functions
+        formatter = execution_formatter.ExecutionResult
+        self.print_output(instance, formatter, **options)
+
+        # print child tasks
+        kwargs['depth'] = args.depth
+        child_instances = action_exec_mgr.get_property(execution.id, 'children')
+        child_instances = self._format_child_instances(child_instances, execution.id)
+        self.print_output(child_instances, table.MultiColumnTable,
+                          attributes=['id', 'status', 'task', 'action', 'start_timestamp'],
+                          widths=args.width, json=args.json,
+                          attribute_transform_functions=self.attribute_transform_functions)
 
     def _get_execution_result(self, execution, action_exec_mgr, args, **kwargs):
         pending_statuses = [LIVEACTION_STATUS_SCHEDULED, LIVEACTION_STATUS_RUNNING]
 
         if not args.async:
             while execution.status in pending_statuses:
-                time.sleep(1)
+                time.sleep(self.poll_interval)
                 if not args.json:
                     sys.stdout.write('.')
                 execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
@@ -439,6 +533,61 @@ class ActionRunCommandMixin(object):
 
         return parameters, required, optional, immutable
 
+    def _format_child_instances(self, children, parent_id):
+        '''
+        The goal of this method is to add an indent at every level. This way the
+        WF is represented as a tree structure while in a list. For the right visuals
+        representation the list must be a DF traversal else the idents will end up
+        looking strange.
+        '''
+        # apply basic WF formating first.
+        children = format_wf_instances(children)
+        # setup a depth lookup table
+        depth = {parent_id: 0}
+        result = []
+        # main loop that indents each entry correctly
+        for child in children:
+            # make sure child.parent is in depth and while at it compute the
+            # right depth for indentation purposes.
+            if child.parent not in depth:
+                parent = None
+                for instance in children:
+                    if WF_PREFIX in instance.id:
+                        instance_id = instance.id[instance.id.index(WF_PREFIX) + len(WF_PREFIX):]
+                    else:
+                        instance_id = instance.id
+                    if instance_id == child.parent:
+                        parent = instance
+                if parent and parent.parent and parent.parent in depth:
+                    depth[child.parent] = depth[parent.parent] + 1
+                else:
+                    depth[child.parent] = 0
+            # now ident for the right visuals
+            child.id = INDENT_CHAR * depth[child.parent] + child.id
+            result.append(self._format_for_common_representation(child))
+        return result
+
+    def _format_for_common_representation(self, task):
+        '''
+        Formats a task for common representation between mistral and action-chain.
+        '''
+        # This really needs to be better handled on the back-end but that would be a bigger
+        # change so handling in cli.
+        context = getattr(task, 'context', None)
+        if context and 'chain' in context:
+            task_name_key = 'context.chain.name'
+        elif context and 'mistral' in context:
+            task_name_key = 'context.mistral.task_name'
+        # Use LiveAction as the object so that the formatter lookup does not change.
+        # AKA HACK!
+        return models.action.LiveAction(**{
+            'id': task.id,
+            'status': task.status,
+            'task': jsutil.get_value(vars(task), task_name_key),
+            'action': task.action.get('ref', None),
+            'start_timestamp': task.start_timestamp
+        })
+
     def _sort_parameters(self, parameters, names):
         """
         Sort a provided list of action parameters.
@@ -491,7 +640,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
         self.parser.add_argument('ref_or_id', nargs='?',
                                  metavar='ref-or-id',
-                                 help='Fully qualified name (pack.action_name) ' +
+                                 help='Action reference (pack.action_name) ' +
                                  'or ID of the action.')
         self.parser.add_argument('parameters', nargs='*',
                                  help='List of keyword args, positional args, '
@@ -500,6 +649,8 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         self.parser.add_argument('-h', '--help',
                                  action='store_true', dest='help',
                                  help='Print usage for the given action.')
+
+        self._add_common_options()
 
         if self.name in ['run', 'execute']:
             self.parser.add_argument('-a', '--async',
@@ -520,12 +671,12 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         if not args.ref_or_id:
-            self.parser.error('too few arguments')
+            self.parser.error('Missing action reference or id')
 
         action = self.get_resource(args.ref_or_id, **kwargs)
         if not action:
             raise resource.ResourceNotFoundError('Action "%s" cannot be found.'
-                                                 % args.ref_or_id)
+                                                 % (args.ref_or_id))
 
         runner_mgr = self.app.client.managers['RunnerType']
         runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
@@ -643,15 +794,9 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                           attribute_transform_functions=self.attribute_transform_functions)
 
 
-class ActionExecutionGetCommand(resource.ResourceCommand):
+class ActionExecutionGetCommand(ActionRunCommandMixin, resource.ResourceCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
-    attribute_transform_functions = {
-        'start_timestamp': format_isodate,
-        'end_timestamp': format_isodate,
-        'parameters': format_parameters,
-        'status': format_status
-    }
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionGetCommand, self).__init__(
@@ -663,115 +808,12 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
                                  help=('ID of the %s.' %
                                        resource.get_display_name().lower()))
 
-        root_arg_grp = self.parser.add_mutually_exclusive_group()
-
-        # Display options
-        task_list_arg_grp = root_arg_grp.add_argument_group()
-        task_list_arg_grp.add_argument('--raw', action='store_true',
-                                       help='Raw output, don\'t shot sub-tasks for workflows.')
-        task_list_arg_grp.add_argument('--tasks', action='store_true',
-                                       help='Whether to show sub-tasks of an execution.')
-        task_list_arg_grp.add_argument('--depth', type=int, default=-1,
-                                       help='Depth to which to show sub-tasks. \
-                                             By default all are shown.')
-        task_list_arg_grp.add_argument('-w', '--width', nargs='+', type=int, default=None,
-                                       help='Set the width of columns in output.')
-
-        execution_details_arg_grp = root_arg_grp.add_mutually_exclusive_group()
-
-        detail_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
-        detail_arg_grp.add_argument('-a', '--attr', nargs='+',
-                                    default=['status', 'result'],
-                                    help=('List of attributes to include in the '
-                                          'output. "all" or unspecified will '
-                                          'return all attributes.'))
-        detail_arg_grp.add_argument('-d', '--detail', action='store_true',
-                                    help='Display full detail of the execution in table format.')
-
-        result_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
-        result_arg_grp.add_argument('-k', '--key',
-                                    help=('If result is type of JSON, then print specific '
-                                          'key-value pair; dot notation for nested JSON is '
-                                          'supported.'))
+        self._add_common_options()
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         execution = self.get_resource_by_id(id=args.id, **kwargs)
         return execution
-
-    @add_auth_token_to_kwargs_from_cli
-    def run_and_print_child_task_list(self, args, **kwargs):
-        # print root task.
-        instance = self.run(args, **kwargs)
-        options = {'attributes': ['id', 'action.ref', 'status', 'start_timestamp',
-                                  'end_timestamp']}
-        options['json'] = args.json
-        options['attribute_transform_functions'] = self.attribute_transform_functions
-        formatter = execution_formatter.ExecutionResult
-        self.print_output(instance, formatter, **options)
-        # print child tasks
-        kwargs['depth'] = args.depth
-        child_instances = self.manager.get_property(args.id, 'children', **kwargs)
-        child_instances = self._format_child_instances(child_instances, args.id)
-        self.print_output(child_instances, table.MultiColumnTable,
-                          attributes=['id', 'status', 'task', 'action', 'start_timestamp'],
-                          widths=args.width, json=args.json,
-                          attribute_transform_functions=self.attribute_transform_functions)
-
-    def _format_child_instances(self, children, parent_id):
-        '''
-        The goal of this method is to add an indent at every level. This way the
-        WF is represented as a tree structure while in a list. For the right visuals
-        representation the list must be a DF traversal else the idents will end up
-        looking strange.
-        '''
-        # apply basic WF formating first.
-        children = format_wf_instances(children)
-        # setup a depth lookup table
-        depth = {parent_id: 0}
-        result = []
-        # main loop that indents each entry correctly
-        for child in children:
-            # make sure child.parent is in depth and while at it compute the
-            # right depth for indentation purposes.
-            if child.parent not in depth:
-                parent = None
-                for instance in children:
-                    if WF_PREFIX in instance.id:
-                        instance_id = instance.id[instance.id.index(WF_PREFIX) + len(WF_PREFIX):]
-                    else:
-                        instance_id = instance.id
-                    if instance_id == child.parent:
-                        parent = instance
-                if parent and parent.parent and parent.parent in depth:
-                    depth[child.parent] = depth[parent.parent] + 1
-                else:
-                    depth[child.parent] = 0
-            # now ident for the right visuals
-            child.id = INDENT_CHAR * depth[child.parent] + child.id
-            result.append(self._format_for_common_representation(child))
-        return result
-
-    def _format_for_common_representation(self, task):
-        '''
-        Formats a task for common representation between mistral and action-chain.
-        '''
-        # This really needs to be better handled on the back-end but that would be a bigger
-        # change so handling in cli.
-        context = getattr(task, 'context', None)
-        if context and 'chain' in context:
-            task_name_key = 'context.chain.name'
-        elif context and 'mistral' in context:
-            task_name_key = 'context.mistral.task_name'
-        # Use LiveAction as the object so that the formatter lookup does not change.
-        # AKA HACK!
-        return models.action.LiveAction(**{
-            'id': task.id,
-            'status': task.status,
-            'task': jsutil.get_value(vars(task), task_name_key),
-            'action': task.action.get('ref', None),
-            'start_timestamp': task.start_timestamp
-        })
 
     def run_and_print(self, args, **kwargs):
         try:
@@ -780,32 +822,7 @@ class ActionExecutionGetCommand(resource.ResourceCommand):
             self.print_not_found(args.id)
             raise OperationFailureException('Execution %s not found.' % (args.id))
 
-        runner_type = execution.action.get('runner_type', 'unknown')
-        is_workflow_action = runner_type in WORKFLOW_RUNNER_TYPES
-
-        if args.tasks and not is_workflow_action:
-            raise ValueError('--tasks option can only be used with workflow actions')
-
-        if not args.raw and not args.detail and (args.tasks or
-                is_workflow_action):
-            self.run_and_print_child_task_list(args, **kwargs)
-        else:
-            instance = execution
-
-            if args.detail:
-                formatter = table.PropertyValueTable
-            else:
-                formatter = execution_formatter.ExecutionResult
-
-            if args.detail:
-                options = {'attributes': copy.copy(self.display_attributes)}
-            elif args.key:
-                options = {'attributes': ['result.%s' % args.key], 'key': args.key}
-            else:
-                options = {'attributes': args.attr}
-            options['json'] = args.json
-            options['attribute_transform_functions'] = self.attribute_transform_functions
-            self.print_output(instance, formatter, **options)
+        return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
 class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
@@ -835,6 +852,8 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
                                  action='store_true', dest='help',
                                  help='Print usage for the given action.')
 
+        self._add_common_options()
+
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         existing_execution = self.manager.get_by_id(args.id, **kwargs)
@@ -848,7 +867,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         action_exec_mgr = self.app.client.managers['LiveAction']
 
         # TODO use action.ref when this attribute is added
-        action_ref = existing_execution.action['pack'] + '.' + existing_execution.action['name']
+        action_ref = existing_execution.action['ref']
         action = action_mgr.get_by_ref_or_id(action_ref)
         runner = runner_mgr.get_by_name(action.runner_type)
 
@@ -858,7 +877,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         # Create new execution object
         new_execution = models.LiveAction()
         new_execution.action = action_ref
-        new_execution.parameters = existing_execution.parameters or {}
+        new_execution.parameters = getattr(existing_execution, 'parameters', {})
 
         # If user provides parameters merge and override with the ones from the
         # existing execution
