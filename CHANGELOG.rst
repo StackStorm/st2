@@ -11,6 +11,8 @@ v0.8.1 - in development
   retrieve a value of a particular action execution attribute. (new-feature)
 * Update ``execution get`` CLI command so it automatically detects workflows and returns more
   user-friendly output by default. (improvement)
+* Update ``run``, ``action execute``, ``execution get`` and ``execution re-run`` CLI commands to
+  take the same options and return output in the same consistent format.
 
 v0.8.0 - March 2, 2015
 ----------------------
