@@ -129,8 +129,8 @@ class MistralResultsQuerier(Querier):
 
         result['id'] = task['id']
         result['name'] = task['name']
-        result['execution_id'] = task.get('execution_id', None)
-        result['workflow'] = task['wf_name']
+        result['workflow_execution_id'] = task.get('workflow_execution_id', None)
+        result['workflow_name'] = task['workflow_name']
         result['created_at'] = task.get('created_at', None)
         result['updated_at'] = task.get('updated_at', None)
         result['state'] = task.get('state', None)
