@@ -15,6 +15,8 @@ Docs: http://docs.stackstorm.com/0.8/
   user-friendly output by default. (improvement)
 * Update ``run``, ``action execute``, ``execution get`` and ``execution re-run`` CLI commands to
   take the same options and return output in the same consistent format.
+* Fix a bug with http runner not parsing JSON HTTP response body if the content-type header also
+  contained a charset. (bug-fix)
 
 v0.8.0 - March 2, 2015
 ----------------------
