@@ -66,6 +66,16 @@ class HTTPRunnerTestCase(unittest2.TestCase):
         self.assertTrue(isinstance(result['body'], dict))
         self.assertEqual(result['body'], {'test1': 'val1'})
 
+        # JSON content-type with charset and JSON body
+        mock_result.text = '{"test1": "val1"}'
+        mock_result.headers = {'Content-Type': 'application/json; charset=UTF-8'}
+
+        mock_requests.request.return_value = mock_result
+        result = client.run()
+
+        self.assertTrue(isinstance(result['body'], dict))
+        self.assertEqual(result['body'], {'test1': 'val1'})
+
         # JSON content-type and invalid json body
         mock_result.text = 'not json'
         mock_result.headers = {'Content-Type': 'application/json'}
