@@ -96,7 +96,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         self.assertEqual(content, FIXTURES['results']['execution_get_default.txt'])
 
     def test_execution_get_attributes(self):
-        argv = ['execution', 'get', EXECUTION['id'], '-a', 'status', 'end_timestamp']
+        argv = ['execution', 'get', EXECUTION['id'], '--attr', 'status', 'end_timestamp']
         content = self._get_execution(argv)
         self.assertEqual(content, FIXTURES['results']['execution_get_attributes.txt'])
 
@@ -104,7 +104,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         argv = ['execution', 'get', EXECUTION['id'], '-j']
         content = self._get_execution(argv)
         self.assertEqual(json.loads(content),
-                         jsutil.get_kvps(EXECUTION, ['status', 'result']))
+                         jsutil.get_kvps(EXECUTION, ['id', 'status', 'result']))
 
     def test_execution_get_detail(self):
         argv = ['execution', 'get', EXECUTION['id'], '-d']
