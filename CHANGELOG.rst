@@ -15,6 +15,8 @@ Docs: http://docs.stackstorm.com/0.8/
   user-friendly output by default. (improvement)
 * Update ``run``, ``action execute``, ``execution get`` and ``execution re-run`` CLI commands to
   take the same options and return output in the same consistent format.
+* Indent workflow children properly in CLI (bug fix)
+* Make sure that wait indicator is visible in CLI on some systems where stdout is buffered.
 
 v0.8.0 - March 2, 2015
 ----------------------
