@@ -1,8 +1,10 @@
 Changelog
 =========
 
-v0.8.1 - in development
+v0.8.1 - March 6, 2015
 -----------------------
+
+Docs: http://docs.stackstorm.com/0.8/
 
 * Allow user to exclude particular attributes from a response by passing
   ``?exclude_attributes=result,trigger_instance`` query parameter to the ``/actionexecutions/``
@@ -13,6 +15,8 @@ v0.8.1 - in development
   user-friendly output by default. (improvement)
 * Update ``run``, ``action execute``, ``execution get`` and ``execution re-run`` CLI commands to
   take the same options and return output in the same consistent format.
+* Fix a bug with http runner not parsing JSON HTTP response body if the content-type header also
+  contained a charset. (bug-fix)
 
 v0.8.0 - March 2, 2015
 ----------------------
