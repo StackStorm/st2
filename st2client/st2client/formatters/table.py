@@ -47,10 +47,13 @@ class MultiColumnTable(formatters.Formatter):
             lines, cols = get_terminal_size()
 
             if attributes[0] == 'id':
+                # consume iterator and save as entries so collection is accessible later.
+                entries = [e for e in entries]
                 # first column contains id, make sure it's not broken up
-                cols = (cols - MIN_ID_COL_WIDTH)
+                first_col_width = cls._get_required_column_width(values=[e.id for e in entries],
+                                                                 minimum_width=MIN_ID_COL_WIDTH)
+                cols = (cols - first_col_width)
                 col_width = int(math.floor((cols / len(attributes))))
-                first_col_width = MIN_ID_COL_WIDTH
             else:
                 col_width = int(math.floor((cols / len(attributes))))
                 first_col_width = col_width
@@ -141,6 +144,12 @@ class MultiColumnTable(formatters.Formatter):
 
         friendly_name = name.replace('_', ' ').replace('.', ' ').capitalize()
         return friendly_name
+
+    @staticmethod
+    def _get_required_column_width(values, minimum_width=0):
+        width = minimum_width
+        max_width = len(max(values, key=len))
+        return max_width if max_width > width else width
 
 
 class PropertyValueTable(formatters.Formatter):

@@ -289,6 +289,7 @@ class ActionRunCommandMixin(object):
                 time.sleep(self.poll_interval)
                 if not args.json:
                     sys.stdout.write('.')
+                    sys.stdout.flush()
                 execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
 
             sys.stdout.write('\n')
