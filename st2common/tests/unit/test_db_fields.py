@@ -16,6 +16,7 @@
 import time
 import datetime
 
+import mock
 import unittest2
 
 from st2common.fields import ComplexDateTimeField
@@ -52,3 +53,21 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
             actual_value = field._microseconds_since_epoch_to_datetime(data=value)
             expected_value = datetime_values[index]
             self.assertEqual(actual_value, expected_value)
+
+    @mock.patch('st2common.fields.LongField.__get__')
+    def test_get_(self, mock_get):
+        field = ComplexDateTimeField()
+
+        # No value set
+        mock_get.return_value = None
+        self.assertEqual(field.__get__(instance=None, owner=None), None)
+
+        # Already a datetime
+        mock_get.return_value = datetime.datetime.now()
+        self.assertEqual(field.__get__(instance=None, owner=None), mock_get.return_value)
+
+        # Microseconds
+        dt = datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=500)
+        us = field._datetime_to_microseconds_since_epoch(value=dt)
+        mock_get.return_value = us
+        self.assertEqual(field.__get__(instance=None, owner=None), dt)
