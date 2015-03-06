@@ -70,7 +70,7 @@ class ComplexDateTimeField(LongField):
     def __get__(self, instance, owner):
         data = super(ComplexDateTimeField, self).__get__(instance, owner)
         if data is None:
-            return datetime.datetime.now()
+            return None
         if isinstance(data, datetime.datetime):
             return data
         return self._convert_from_db(data)
