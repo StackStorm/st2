@@ -130,12 +130,15 @@ class ActionChainRunner(ActionRunner):
             raise runnerexceptions.ActionRunnerPreRunError(message)
 
     def run(self, action_parameters):
-
         result = {'tasks': []}  # holds final result we store
         context_result = {}  # holds result which is used for the template context purposes
         top_level_error = None  # stores a reference to a top level error
         fail = True
         action_node = None
+
+        # Add action parameters to the context result so they can be accessed
+        # inside "publish"
+        context_result['parameters'] = action_parameters
 
         try:
             action_node = self.chain_holder.get_next_node()
