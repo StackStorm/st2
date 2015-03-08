@@ -9,17 +9,20 @@ st2_endpoints = {
     'datastore': 'http://localhost:9101'
 }
 
+def getRequiredKey( client, key_name ) :
+    key = client.keys.get_by_name(key_name)
+    if key is None:
+        raise Exception('Required key ' + key_name + ' does not exist.')
+    value = key.value
+    if not value:
+        raise Exception('No value for required key ' + key_name)
+    return value;
+    
 try:
   client = Client(st2_endpoints)
-  bot_host = client.keys.get_by_name('bot_host').value
-  if not bot_host:
-    raise Exception('Key error with bot_host.')
-  bot_port = client.keys.get_by_name('bot_port').value
-  if not bot_port:
-    raise Exception('Key error with bot_port.')
-  bot_endpoint = client.keys.get_by_name('bot_endpoint').value
-  if not bot_endpoint:
-    raise Exception('Key error with bot_endpoint.')
+  bot_host = getRequiredKey(client, 'bot_host')
+  bot_port = getRequiredKey(client, 'bot_port')
+  bot_endpoint = getRequiredKey(client, 'bot_endpoint')
 except Exception, e:
   print e
   sys.exit(2)
