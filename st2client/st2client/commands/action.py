@@ -263,23 +263,30 @@ class ActionRunCommandMixin(object):
     def _run_and_print_child_task_list(self, execution, args, **kwargs):
         action_exec_mgr = self.app.client.managers['LiveAction']
 
-        # print root task.
         instance = execution
         options = {'attributes': ['id', 'action.ref', 'status', 'start_timestamp',
                                   'end_timestamp']}
         options['json'] = args.json
         options['attribute_transform_functions'] = self.attribute_transform_functions
         formatter = execution_formatter.ExecutionResult
-        self.print_output(instance, formatter, **options)
 
-        # print child tasks
         kwargs['depth'] = args.depth
         child_instances = action_exec_mgr.get_property(execution.id, 'children')
         child_instances = self._format_child_instances(child_instances, execution.id)
-        self.print_output(child_instances, table.MultiColumnTable,
-                          attributes=['id', 'status', 'task', 'action', 'start_timestamp'],
-                          widths=args.width, json=args.json,
-                          attribute_transform_functions=self.attribute_transform_functions)
+
+        if not child_instances:
+            # No child error, there might be a global error, include result in the output
+            options['attributes'].append('result')
+
+        # print root task
+        self.print_output(instance, formatter, **options)
+
+        # print child tasks
+        if child_instances:
+            self.print_output(child_instances, table.MultiColumnTable,
+                              attributes=['id', 'status', 'task', 'action', 'start_timestamp'],
+                              widths=args.width, json=args.json,
+                              attribute_transform_functions=self.attribute_transform_functions)
 
     def _get_execution_result(self, execution, action_exec_mgr, args, **kwargs):
         pending_statuses = [LIVEACTION_STATUS_SCHEDULED, LIVEACTION_STATUS_RUNNING]
