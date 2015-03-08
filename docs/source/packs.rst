@@ -18,7 +18,7 @@ When |st2| searches for all the available packs it looks into the system packs d
 into any additional directories which are specified in the ``packs_base_paths`` setting.
 
 If user wants |st2| to look for packs in additional directories, they can do that by setting the
-value of ``packs_base_paths`` setting. The value must be a colon delimited string of directory
+value of ``packs_base_paths`` in ``/etc/st2/st2.conf``. The value must be a colon delimited string of directory
 paths.
 
 For example:
