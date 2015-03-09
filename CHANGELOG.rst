@@ -21,6 +21,7 @@ Docs: http://docs.stackstorm.com/0.8/
 * Make sure that wait indicator is visible in CLI on some systems where stdout is buffered. (bug-fix)
 * Fix a bug with ``end_timestamp`` attribute on the ``LiveAction`` and ``ActionExecution`` model
   containing an invalid value if the action hasn't finished yet. (bug-fix)
+* Correctly report an invalid authentication information error in the remote runner. (bug-fix)
 
 v0.8.0 - March 2, 2015
 ----------------------
