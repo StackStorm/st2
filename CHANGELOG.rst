@@ -22,6 +22,8 @@ Docs: http://docs.stackstorm.com/0.8/
 * Fix a bug with ``end_timestamp`` attribute on the ``LiveAction`` and ``ActionExecution`` model
   containing an invalid value if the action hasn't finished yet. (bug-fix)
 * Correctly report an invalid authentication information error in the remote runner. (bug-fix)
+* Throw a more friendly error in the action chain runner if it fails to parse the action chain
+  definition file. (improvement)
 
 v0.8.0 - March 2, 2015
 ----------------------
