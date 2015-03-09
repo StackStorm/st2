@@ -19,6 +19,9 @@ chain:
                 api: [ "v1/actions", "v1/triggers"]
                 webui: "webui/"
                 auth_port: "{{ port + 1 }}"
+                # This variable references "system_info_path" variable which is an action parameter
+                system_info: "{{ system_info_path }}"
+
         on-success: say_the_names
     -
         name: say_the_names

@@ -15,7 +15,8 @@
             },
             "publish":
             {
-                "o1": "{{c1.raw_out}}"
+                "o1": "{{c1.raw_out}}",
+                "published_action_param": "{{ action_param_1 }}"
             },
             "on-success": "c2"
         },
@@ -26,7 +27,8 @@
             {
                 "inttype": "{{inttype}}",
                 "strtype": "{{o1}}",
-                "booltype": true
+                "booltype": true,
+                "published_action_param": "{{ published_action_param }}"
             }
         }
     ],

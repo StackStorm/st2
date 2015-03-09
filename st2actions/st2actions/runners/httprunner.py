@@ -237,6 +237,8 @@ class HTTPClient(object):
         if not content_type:
             return (body, parsed)
 
+        # The header can also contain charset which we simply discard
+        content_type = content_type.split(';')[0]
         parse_func = RESPONSE_BODY_PARSE_FUNCTIONS.get(content_type, None)
 
         if not parse_func:

@@ -1,10 +1,36 @@
 Changelog
 =========
 
-v0.8 - March 2, 2015
---------------------
+v0.8.1 - March 6, 2015
+-----------------------
 
-Docs: http://docks.stackstorm.com/latest
+Docs: http://docs.stackstorm.com/0.8/
+
+* Allow user to exclude particular attributes from a response by passing
+  ``?exclude_attributes=result,trigger_instance`` query parameter to the ``/actionexecutions/``
+  and ``/actionexecutions/<execution id>/`` endpoint (new-feature)
+* Add new ``/actionexecutions/<id>/attribute/<attribute name>`` endpoint which allows user to
+  retrieve a value of a particular action execution attribute. (new-feature)
+* Update ``execution get`` CLI command so it automatically detects workflows and returns more
+  user-friendly output by default. (improvement)
+* Update ``run``, ``action execute``, ``execution get`` and ``execution re-run`` CLI commands to
+  take the same options and return output in the same consistent format.
+* Fix a bug with http runner not parsing JSON HTTP response body if the content-type header also
+  contained a charset. (bug-fix)
+* Indent workflow children properly in CLI (bug-fix)
+* Make sure that wait indicator is visible in CLI on some systems where stdout is buffered. (bug-fix)
+* Fix a bug with ``end_timestamp`` attribute on the ``LiveAction`` and ``ActionExecution`` model
+  containing an invalid value if the action hasn't finished yet. (bug-fix)
+* Correctly report an invalid authentication information error in the remote runner. (bug-fix)
+* Throw a more friendly error in the action chain runner if it fails to parse the action chain
+  definition file. (improvement)
+* Fix a bug in the action chain runner and make sure action parameters are also available for
+  substitution in the ``publish`` scope. (bug-fix)
+
+v0.8.0 - March 2, 2015
+----------------------
+
+Docs: http://docs.stackstorm.com/0.8/
 
 * Allow user to specify current working directory (``cwd`` parameter) when running actions using the
   local or the remote runner (``run-local``, ``run-local-script``, ``run-remote``,

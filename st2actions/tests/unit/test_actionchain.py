@@ -199,9 +199,15 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        status, _, _ = chain_runner.run({})
+        status, result, _ = chain_runner.run({})
+
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+
+        self.assertTrue('Failed to get next node "c1". Lookup failed:' in result['error'])
+        self.assertTrue('Unable to find node with name "c2"' in result['error'])
+        self.assertTrue('Traceback (most recent call last):' in result['traceback'])
+
         # based on the chain the callcount is known to be 1. Not great but works.
         self.assertEqual(schedule.call_count, 1)
 
@@ -215,9 +221,15 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        status, _, _ = chain_runner.run({})
+        status, result, _ = chain_runner.run({})
+
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+
+        self.assertTrue('Failed to get next node "c1". Lookup failed:' in result['error'])
+        self.assertTrue('Unable to find node with name "c4"' in result['error'])
+        self.assertTrue('Traceback (most recent call last):' in result['traceback'])
+
         # based on the chain the callcount is known to be 1. Not great but works.
         self.assertEqual(schedule.call_count, 1)
 
@@ -464,11 +476,17 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.action = ACTION_2
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        chain_runner.run({})
+
+        action_parameters = {'action_param_1': 'test value 1'}
+        chain_runner.run(action_parameters=action_parameters)
+
+        # We also assert that the action parameters are available in the
+        # "publish" scope
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         expected_value = {'inttype': 1,
                           'strtype': 'published',
-                          'booltype': True}
+                          'booltype': True,
+                          'published_action_param': action_parameters['action_param_1']}
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
 

@@ -95,8 +95,8 @@ class ChainHolder(object):
             if node.name == node_name:
                 return node
         if raise_on_failure:
-            raise runnerexceptions.ActionRunnerException('Unable to find node with name %s.',
-                                                         node_name)
+            raise runnerexceptions.ActionRunnerException('Unable to find node with name "%s".' %
+                                                         (node_name))
         return None
 
     def get_next_node(self, curr_node_name=None, condition='on-success'):
@@ -121,8 +121,16 @@ class ActionChainRunner(ActionRunner):
         chainspec_file = self.entry_point
         LOG.debug('Reading action chain from %s for action %s.', chainspec_file,
                   self.action)
+
         try:
             chainspec = self._meta_loader.load(chainspec_file)
+        except Exception as e:
+            message = ('Failed to parse action chain definition from "%s": %s' %
+                       (chainspec_file, str(e)))
+            LOG.exception('Failed to load action chain definition.')
+            raise runnerexceptions.ActionRunnerPreRunError(message)
+
+        try:
             self.chain_holder = ChainHolder(chainspec, self.action_name)
         except Exception as e:
             message = e.message or str(e)
@@ -130,7 +138,6 @@ class ActionChainRunner(ActionRunner):
             raise runnerexceptions.ActionRunnerPreRunError(message)
 
     def run(self, action_parameters):
-
         result = {'tasks': []}  # holds final result we store
         context_result = {}  # holds result which is used for the template context purposes
         top_level_error = None  # stores a reference to a top level error
@@ -143,7 +150,7 @@ class ActionChainRunner(ActionRunner):
             LOG.exception('Failed to get starting node "%s".', action_node.name)
 
             error = ('Failed to get starting node "%s". Lookup failed: %s' %
-                    (action_node.name, str(e)))
+                     (action_node.name, str(e)))
             trace = traceback.format_exc(10)
             top_level_error = {
                 'error': error,
@@ -196,8 +203,9 @@ class ActionChainRunner(ActionRunner):
 
                 # Render and publish variables
                 rendered_publish_vars = ActionChainRunner._render_publish_vars(
-                    action_node=action_node, execution_result=liveaction.result,
-                    previous_execution_results=context_result, chain_vars=self.chain_holder.vars)
+                    action_node=action_node, action_parameters=action_parameters,
+                    execution_result=liveaction.result, previous_execution_results=context_result,
+                    chain_vars=self.chain_holder.vars)
 
                 if rendered_publish_vars:
                     self.chain_holder.vars.update(rendered_publish_vars)
@@ -249,8 +257,8 @@ class ActionChainRunner(ActionRunner):
         return (status, result, None)
 
     @staticmethod
-    def _render_publish_vars(action_node, execution_result, previous_execution_results,
-                             chain_vars):
+    def _render_publish_vars(action_node, action_parameters, execution_result,
+                             previous_execution_results, chain_vars):
         """
         If no output is specified on the action_node the output is the entire execution_result.
         If any output is specified then only those variables are published as output of an
@@ -260,7 +268,9 @@ class ActionChainRunner(ActionRunner):
         """
         if not action_node.publish:
             return {}
+
         context = {}
+        context.update(action_parameters)
         context.update({action_node.name: execution_result})
         context.update(previous_execution_results)
         context.update(chain_vars)

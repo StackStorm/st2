@@ -5,3 +5,9 @@ description: "Example showing use of variables and data publishing in ActinoChai
 runner_type: "action-chain"
 enabled: true
 entry_point: "chains/publish_data.yaml"
+parameters:
+  system_info_path:
+      type: "string"
+      description: "Path where system info is available"
+      required: true
+      default: "/system-info"

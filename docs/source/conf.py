@@ -61,7 +61,7 @@ copyright = u'2014, StackStorm Inc'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-# the __version__ is 0.8.0 or 0.9dev
+# the __version__ is 0.8.1 or 0.9dev
 # the version is short 0.8 version, to refer docs.
 version = '.'.join(__version__.split('.')[:2])
 # The full version, including alpha/beta/rc tags.
@@ -241,7 +241,7 @@ html_context = {
     'source_suffix': source_suffix,
     'versions': [
         ('latest', 'http://docs.stackstorm.com/latest'),
-        (version, 'http://docs.stackstorm.com/%s' % version),
+        (version, 'http://docs.stackstorm.com/latest'),
         (version_minus_1, 'http://docs.stackstorm.com/%s' % version_minus_1),
         (version_minus_2, 'http://docs.stackstorm.com/%s' % version_minus_2),
     ],

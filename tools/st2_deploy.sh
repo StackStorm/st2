@@ -4,7 +4,9 @@ function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" 
 
 if [ -z $1 ]
 then
-  VER='0.8.0'
+  VER='0.8.1'
+elif [[ "$1" == "latest" ]]; then
+   VER='0.9dev'
 else
   VER=$1
 fi
@@ -15,7 +17,9 @@ INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
 INSTALL_WEBUI=${INSTALL_WEBUI:-1}
 
 # Determine which mistral version to use
-if version_ge $VER "0.8"; then
+if version_ge $VER "0.8.1"; then
+    MISTRAL_STABLE_BRANCH="st2-0.8.1"
+elif version_ge $VER "0.8"; then
     MISTRAL_STABLE_BRANCH="st2-0.8.0"
 else
     MISTRAL_STABLE_BRANCH="st2-0.5.1"
@@ -187,9 +191,7 @@ touch $config
 cat <<mistral_config >$config
 [database]
 connection=mysql://mistral:StackStorm@localhost/mistral
-max_pool_size=100
-max_overflow=400
-pool_recycle=3600
+max_pool_size=50
 
 [pecan]
 auth_enable=false
