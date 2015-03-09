@@ -8,7 +8,6 @@ Contents:
 
     overview
     install/index
-    webui
     video
     start
     packs
