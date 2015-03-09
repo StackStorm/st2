@@ -100,15 +100,24 @@ class ShellCommandAction(object):
         :rtype: ``dict``
         """
         _, exc_value, exc_traceback = sys.exc_info()
+
+        is_fabric_failure = isinstance(exc_value, FabricExecutionFailureException)
+        exc_value = str(exc_value)
+        exc_traceback = ''.join(traceback.format_tb(exc_traceback))
+
+        if is_fabric_failure:
+            # Invalid authentication information
+            if 'get_transport().open_session()' in exc_traceback:
+                exc_value = 'Cannot connect to the server - invalid authentication info provided'
+            elif 'sudo password' in exc_value:
+                # sudo is not setup or it requires password
+                exc_value = 'Passwordless sudo needs to be setup for user: %s' % (self.user)
+
         result = {}
         result['failed'] = True
         result['succeeded'] = False
-        is_fabric_failure = isinstance(exc_value, FabricExecutionFailureException)
-        exc_value = str(exc_value)
-        if is_fabric_failure and 'sudo password' in exc_value:
-            exc_value = 'Passwordless sudo needs to be setup for user: %s' % self.user
-        result['error'] = str(exc_value)
-        result['traceback'] = ''.join(traceback.format_tb(exc_traceback))
+        result['error'] = exc_value
+        result['traceback'] = exc_traceback
         return result
 
 
