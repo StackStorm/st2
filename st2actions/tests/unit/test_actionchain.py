@@ -476,11 +476,17 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.action = ACTION_2
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        chain_runner.run({})
+
+        action_parameters = {'action_param_1': 'test value 1'}
+        chain_runner.run(action_parameters=action_parameters)
+
+        # We also assert that the action parameters are available in the
+        # "publish" scope
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         expected_value = {'inttype': 1,
                           'strtype': 'published',
-                          'booltype': True}
+                          'booltype': True,
+                          'published_action_param': action_parameters['action_param_1']}
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
 

@@ -24,6 +24,8 @@ Docs: http://docs.stackstorm.com/0.8/
 * Correctly report an invalid authentication information error in the remote runner. (bug-fix)
 * Throw a more friendly error in the action chain runner if it fails to parse the action chain
   definition file. (improvement)
+* Fix a bug in the action chain runner and make sure action parameters are also available for
+  substitution in the ``publish`` scope. (bug-fix)
 
 v0.8.0 - March 2, 2015
 ----------------------

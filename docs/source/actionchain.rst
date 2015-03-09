@@ -109,7 +109,7 @@ Details:
 Variables
 ~~~~~~~~~~~~~~~
 ActionChain offers the convinience of named variables. Global vars are set at the top of the definition with the ``var`` keyword.
-Tasks publish new varialbes with the ``publish`` keyword. Variables handy when you need to mash up
+Tasks publish new variables with the ``publish`` keyword. Variables handy when you need to mash up
 a reusable value from the input, globals, DataStore values, and results of multiple actions executions.
 All variables are referred with Jinja syntax.
 
