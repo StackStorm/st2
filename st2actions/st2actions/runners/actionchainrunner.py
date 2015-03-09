@@ -121,8 +121,16 @@ class ActionChainRunner(ActionRunner):
         chainspec_file = self.entry_point
         LOG.debug('Reading action chain from %s for action %s.', chainspec_file,
                   self.action)
+
         try:
             chainspec = self._meta_loader.load(chainspec_file)
+        except Exception as e:
+            message = ('Failed to parse action chain definition from "%s": %s' %
+                       (chainspec_file, str(e)))
+            LOG.exception('Failed to load action chain definition.')
+            raise runnerexceptions.ActionRunnerPreRunError(message)
+
+        try:
             self.chain_holder = ChainHolder(chainspec, self.action_name)
         except Exception as e:
             message = e.message or str(e)
