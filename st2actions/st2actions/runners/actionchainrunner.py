@@ -136,17 +136,13 @@ class ActionChainRunner(ActionRunner):
         fail = True
         action_node = None
 
-        # Add action parameters to the context result so they can be accessed
-        # inside "publish"
-        context_result['parameters'] = action_parameters
-
         try:
             action_node = self.chain_holder.get_next_node()
         except Exception as e:
             LOG.exception('Failed to get starting node "%s".', action_node.name)
 
             error = ('Failed to get starting node "%s". Lookup failed: %s' %
-                    (action_node.name, str(e)))
+                     (action_node.name, str(e)))
             trace = traceback.format_exc(10)
             top_level_error = {
                 'error': error,
@@ -199,8 +195,9 @@ class ActionChainRunner(ActionRunner):
 
                 # Render and publish variables
                 rendered_publish_vars = ActionChainRunner._render_publish_vars(
-                    action_node=action_node, execution_result=liveaction.result,
-                    previous_execution_results=context_result, chain_vars=self.chain_holder.vars)
+                    action_node=action_node, action_parameters=action_parameters,
+                    execution_result=liveaction.result, previous_execution_results=context_result,
+                    chain_vars=self.chain_holder.vars)
 
                 if rendered_publish_vars:
                     self.chain_holder.vars.update(rendered_publish_vars)
@@ -252,8 +249,8 @@ class ActionChainRunner(ActionRunner):
         return (status, result, None)
 
     @staticmethod
-    def _render_publish_vars(action_node, execution_result, previous_execution_results,
-                             chain_vars):
+    def _render_publish_vars(action_node, action_parameters, execution_result,
+                             previous_execution_results, chain_vars):
         """
         If no output is specified on the action_node the output is the entire execution_result.
         If any output is specified then only those variables are published as output of an
@@ -263,7 +260,9 @@ class ActionChainRunner(ActionRunner):
         """
         if not action_node.publish:
             return {}
+
         context = {}
+        context.update(action_parameters)
         context.update({action_node.name: execution_result})
         context.update(previous_execution_results)
         context.update(chain_vars)
