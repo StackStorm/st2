@@ -21,6 +21,8 @@ Docs: http://docs.stackstorm.com/0.8/
 * Make sure that wait indicator is visible in CLI on some systems where stdout is buffered. (bug-fix)
 * Fix a bug with ``end_timestamp`` attribute on the ``LiveAction`` and ``ActionExecution`` model
   containing an invalid value if the action hasn't finished yet. (bug-fix)
+* Fix a bug in the action chain runner and make sure action parameters are also available for
+  substitution in the ``publish`` scope. (bug-fix)
 
 v0.8.0 - March 2, 2015
 ----------------------
