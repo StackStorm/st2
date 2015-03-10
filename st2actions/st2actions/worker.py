@@ -91,11 +91,15 @@ class Worker(ConsumerMixin):
         liveaction_db = update_liveaction_status(status=LIVEACTION_STATUS_RUNNING,
                                                  runner_info=runner_info,
                                                  liveaction_id=liveaction_db.id)
-        executions.update_execution(liveaction_db)
+        action_execution_db = executions.update_execution(liveaction_db)
+
         # Launch action
         LOG.audit('Launching action execution.',
-                  extra={'liveaction': liveaction_db.to_serializable_dict()})
-
+                  extra={'action_execution_id': str(action_execution_db.id),
+                         'liveaction': liveaction_db.to_serializable_dict()})
+        # the extra field will not be shown in non-audit logs so temporarily log at info.
+        LOG.info('{~}action_execution: %s / {~}live_action: %s',
+                 action_execution_db.id, liveaction_db.id)
         try:
             result = self.container.dispatch(liveaction_db)
             LOG.debug('Runner dispatch produced result: %s', result)
