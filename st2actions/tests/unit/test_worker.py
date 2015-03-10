@@ -28,7 +28,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.persistence import action
 from st2common.services import executions
 from st2common.transport.publishers import PoolPublisher
-from st2common.util.action_db import (get_liveaction_by_id, update_liveaction_status)
+from st2common.util.action_db import get_liveaction_by_id
 from st2tests.base import DbTestCase
 
 

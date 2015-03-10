@@ -106,8 +106,6 @@ class Worker(ConsumerMixin):
                                                      liveaction_id=liveaction_db.id)
             raise
 
-
-
         return result
 
 
