@@ -267,6 +267,9 @@ class LiveActionAPI(BaseAPI):
             },
             "callback": {
                 "type": "object"
+            },
+            "runner_info": {
+                "type": "object"
             }
         },
         "additionalProperties": False

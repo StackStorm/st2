@@ -44,7 +44,7 @@ from st2common import log as logging
 
 LOG = logging.getLogger(__name__)
 
-SKIPPED = ['id', 'callback', 'action']
+SKIPPED = ['id', 'callback', 'action', 'runner_info']
 
 
 def _decompose_liveaction(liveaction_db):
