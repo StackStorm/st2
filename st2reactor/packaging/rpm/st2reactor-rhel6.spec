@@ -36,4 +36,5 @@ install -m755 bin/rule_tester %{buildroot}/usr/bin/rule_tester
 /usr/local/lib/python2.7/site-packages/st2reactor*
 /usr/bin/sensor_container
 /usr/bin/rules_engine
+/usr/bin/rule_tester
 /etc/st2reactor*
