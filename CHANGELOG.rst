@@ -1,7 +1,15 @@
 Changelog
 =========
 
-v0.8.1 - March 6, 2015
+v0.8.2 - March 10, 2015
+-----------------------
+
+* Fix a bug with python-runner actions sometimes not correctly reporting the action's ``stdout``.
+  (bug-fix)
+* Fix a bug in the ``run-remote-script`` runner - the runner ignored environment variables and
+  authentication settings which were supplied to the action as parameters. (bug-fix)
+
+v0.8.1 - March 10, 2015
 -----------------------
 
 Docs: http://docs.stackstorm.com/0.8/

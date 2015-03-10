@@ -17,12 +17,14 @@
 import st2tests.config as tests_config
 tests_config.parse_args()
 
+import mock
 from unittest2 import TestCase
 
 from st2actions.runners.fabricrunner import get_runner
 from st2actions.runners.fabricrunner import FabricRunner
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.models.system.action import RemoteScriptAction
+from st2common.models.system.action import FabricRemoteScriptAction
 
 
 class FabricRunnerTestCase(TestCase):
@@ -141,3 +143,27 @@ class RemoteScriptActionTestCase(TestCase):
                                     remote_dir='/tmp',
                                     named_args=named_args, positional_args=None)
         self.assertEqual(action.command, '/tmp/test.py --foo1=bar1 --foo2=bar2 --foo3')
+
+
+class FabricRemoteScriptActionTestCase(TestCase):
+
+    @mock.patch('st2common.models.system.action.run')
+    @mock.patch('st2common.models.system.action.put')
+    @mock.patch('st2common.models.system.action.shell_env')
+    @mock.patch('st2common.models.system.action.settings')
+    def test_settings_are_used(self, mock_settings, mock_shell_env, mock_put, mock_run):
+        # Test that the remote script action uses fabric environment and authentication settings
+        named_args = {}
+        action = FabricRemoteScriptAction(name='foo', action_exec_id='dummy',
+                                          script_local_path_abs='test.py',
+                                          script_local_libs_path_abs='/',
+                                          remote_dir='/tmp',
+                                          named_args=named_args, positional_args=None)
+
+        task = action.get_fabric_task()
+
+        self.assertEqual(mock_settings.call_count, 0)
+        self.assertEqual(mock_shell_env.call_count, 0)
+        task.run()
+        self.assertEqual(mock_settings.call_count, 1)
+        self.assertEqual(mock_shell_env.call_count, 1)
