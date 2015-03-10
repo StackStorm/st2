@@ -408,17 +408,6 @@ class FabricRemoteAction(RemoteAction):
 
         return jsonify.json_loads(result, FabricRemoteAction.KEYS_TO_TRANSFORM)
 
-    def _cleanup(self, settings):
-        """
-        Clean function which is ran after executing a fabric command.
-
-        :param settings: Fabric settings.
-        """
-        temporary_key_file_path = settings.get('key_filename', None)
-
-        if temporary_key_file_path:
-            self._remove_private_key_file(file_path=temporary_key_file_path)
-
     def _get_settings(self):
         """
         Retrieve settings used for the fabric command execution.
@@ -446,6 +435,17 @@ class FabricRemoteAction(RemoteAction):
         """
         env_vars = self.env_vars or {}
         return env_vars
+
+    def _cleanup(self, settings):
+        """
+        Clean function which is ran after executing a fabric command.
+
+        :param settings: Fabric settings.
+        """
+        temporary_key_file_path = settings.get('key_filename', None)
+
+        if temporary_key_file_path:
+            self._remove_private_key_file(file_path=temporary_key_file_path)
 
     def _write_private_key(self, private_key_material):
         """
@@ -477,11 +477,19 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         return self._get_script_action_method()
 
     def _get_script_action_method(self):
-        task = WrappedCallableTask(self._run_script, name=self.name, alias=self.action_exec_id,
-                                   parallel=self.parallel, sudo=self.sudo)
+        task = WrappedCallableTask(self._run_script_with_settings, name=self.name,
+                                   alias=self.action_exec_id, parallel=self.parallel,
+                                   sudo=self.sudo)
         task.parallel = self.parallel
         task.serial = not self.parallel
         return task
+
+    def _run_script_with_settings(self):
+        fabric_env_vars = self.env_vars
+        fabric_settings = self._get_settings()
+
+        with shell_env(**fabric_env_vars), settings(**fabric_settings):
+            return self._run_script()
 
     def _run_script(self):
         try:
@@ -491,7 +499,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             output_put = self._put(self.script_local_path_abs,
                                    mirror_local_mode=False, mode=0744)
             if output_put.get('failed'):
-                return output_put
+                return output_putric_settings
 
             # Copy libs.
             if self.script_local_libs_path_abs and os.path.exists(self.script_local_libs_path_abs):
@@ -511,6 +519,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         except Exception:
             LOG.exception('Failed executing remote action.')
             result = self._get_error_result()
+
         return result
 
     def _get_command_string(self, cmd, args):
