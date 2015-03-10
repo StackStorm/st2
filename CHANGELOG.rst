@@ -1,8 +1,8 @@
 Changelog
 =========
 
-In development
----------------
+v0.8.2 - TBD
+------------
 
 * Fix a bug with python-runner actions sometimes not correctly reporting the action's ``stdout``.
   (bug-fix)
