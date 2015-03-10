@@ -92,7 +92,7 @@ class FabricRemoteActionTestCase(unittest2.TestCase):
         self.assertEqual(remote_action.get_on_behalf_user(), 'stan')
         fabric_task = remote_action.get_fabric_task()
         self.assertTrue(fabric_task is not None)
-        self.assertTrue(fabric_task.wrapped == remote_action._run_script)
+        self.assertTrue(fabric_task.wrapped == remote_action._run_script_with_settings)
 
     def test_remote_dir_script_action_method_default(self):
         remote_action = FabricRemoteScriptAction('foo', 'foo-id', '/tmp/st2.py',
