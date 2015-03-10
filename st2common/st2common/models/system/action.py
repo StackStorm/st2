@@ -499,7 +499,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             output_put = self._put(self.script_local_path_abs,
                                    mirror_local_mode=False, mode=0744)
             if output_put.get('failed'):
-                return output_putric_settings
+                return output_put
 
             # Copy libs.
             if self.script_local_libs_path_abs and os.path.exists(self.script_local_libs_path_abs):
