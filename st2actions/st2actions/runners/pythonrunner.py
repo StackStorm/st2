@@ -158,7 +158,7 @@ class PythonRunner(ActionRunner):
             split = stdout.split(ACTION_OUTPUT_RESULT_DELIMITER)
             assert len(split) == 3
             result = split[1].strip()
-            stdout = split[0] = split[2]
+            stdout = split[0] + split[2]
         else:
             result = None
 
