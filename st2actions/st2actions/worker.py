@@ -99,13 +99,14 @@ class Worker(ConsumerMixin):
         try:
             result = self.container.dispatch(liveaction_db)
             LOG.debug('Runner dispatch produced result: %s', result)
+            if not result:
+                raise ActionRunnerException('Failed to execute action.')
         except Exception:
             liveaction_db = update_liveaction_status(status=LIVEACTION_STATUS_FAILED,
                                                      liveaction_id=liveaction_db.id)
             raise
 
-        if not result:
-            raise ActionRunnerException('Failed to execute action.')
+
 
         return result
 
