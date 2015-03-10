@@ -1,9 +1,8 @@
 Changelog
 =========
 
-<<<<<<< HEAD
-v0.8.2 - TBD
-------------
+v0.8.2 - March 10, 2015
+-----------------------
 
 * Fix a bug with python-runner actions sometimes not correctly reporting the action's ``stdout``.
   (bug-fix)
