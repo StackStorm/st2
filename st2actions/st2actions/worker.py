@@ -26,6 +26,7 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.services import executions
 from st2common.transport import liveaction, publishers
+from st2common.util import system_info
 from st2common.util.action_db import (get_liveaction_by_id, update_liveaction_status)
 from st2common.util.greenpooldispatch import BufferedDispatcher
 
@@ -83,9 +84,12 @@ class Worker(ConsumerMixin):
             LOG.exception('Failed to find liveaction %s in the database.',
                           liveaction.id)
             raise
+        # stamp liveaction with process_info
+        runner_info = system_info.get_process_info()
 
         # Update liveaction status to "running"
         liveaction_db = update_liveaction_status(status=LIVEACTION_STATUS_RUNNING,
+                                                 runner_info=runner_info,
                                                  liveaction_id=liveaction_db.id)
         executions.update_execution(liveaction_db)
         # Launch action

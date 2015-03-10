@@ -125,7 +125,7 @@ def get_liveaction_by_id(liveaction_id):
 
 
 def update_liveaction_status(status=None, result=None, context=None, end_timestamp=None,
-                             liveaction_id=None, liveaction_db=None):
+                             liveaction_id=None, runner_info=None, liveaction_db=None):
     """
         Update the status of the specified LiveAction to the value provided in
         new_status.
@@ -157,6 +157,9 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
 
     if end_timestamp:
         liveaction_db.end_timestamp = end_timestamp
+
+    if runner_info:
+        liveaction_db.runner_info = runner_info
 
     liveaction_db = LiveAction.add_or_update(liveaction_db)
 
