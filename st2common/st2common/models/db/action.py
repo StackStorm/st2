@@ -131,6 +131,9 @@ class LiveActionDB(stormbase.StormFoundationDB):
     callback = me.DictField(
         default={},
         help_text='Callback information for the on completion of action execution.')
+    runner_info = me.DictField(
+        default={},
+        help_text='Reference to the runner that executed this liveaction.')
 
     meta = {
         'indexes': ['-start_timestamp', 'action']

@@ -26,6 +26,7 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.services import executions
 from st2common.transport import liveaction, publishers
+from st2common.util import system_info
 from st2common.util.action_db import (get_liveaction_by_id, update_liveaction_status)
 from st2common.util.greenpooldispatch import BufferedDispatcher
 
@@ -83,25 +84,31 @@ class Worker(ConsumerMixin):
             LOG.exception('Failed to find liveaction %s in the database.',
                           liveaction.id)
             raise
+        # stamp liveaction with process_info
+        runner_info = system_info.get_process_info()
 
         # Update liveaction status to "running"
         liveaction_db = update_liveaction_status(status=LIVEACTION_STATUS_RUNNING,
+                                                 runner_info=runner_info,
                                                  liveaction_id=liveaction_db.id)
-        executions.update_execution(liveaction_db)
+        action_execution_db = executions.update_execution(liveaction_db)
+
         # Launch action
         LOG.audit('Launching action execution.',
-                  extra={'liveaction': liveaction_db.to_serializable_dict()})
-
+                  extra={'action_execution_id': str(action_execution_db.id),
+                         'liveaction': liveaction_db.to_serializable_dict()})
+        # the extra field will not be shown in non-audit logs so temporarily log at info.
+        LOG.info('{~}action_execution: %s / {~}live_action: %s',
+                 action_execution_db.id, liveaction_db.id)
         try:
             result = self.container.dispatch(liveaction_db)
             LOG.debug('Runner dispatch produced result: %s', result)
+            if not result:
+                raise ActionRunnerException('Failed to execute action.')
         except Exception:
             liveaction_db = update_liveaction_status(status=LIVEACTION_STATUS_FAILED,
                                                      liveaction_id=liveaction_db.id)
             raise
-
-        if not result:
-            raise ActionRunnerException('Failed to execute action.')
 
         return result
 
