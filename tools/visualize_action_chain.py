@@ -32,7 +32,7 @@ from st2common.content.loader import MetaLoader
 from st2actions.runners.actionchainrunner import ChainHolder
 
 
-def main(metadata_path, print_source=False):
+def main(metadata_path, output_path, print_source=False):
     metadata_path = os.path.abspath(metadata_path)
     metadata_dir = os.path.dirname(metadata_path)
 
@@ -57,7 +57,7 @@ def main(metadata_path, print_source=False):
     }
     node_attr = {}
     dot = Digraph(comment='Action chain work-flow visualization',
-                  node_attr=node_attr, graph_attr=graph_attr)
+                  node_attr=node_attr, graph_attr=graph_attr, format='png')
     #  dot.body.extend(['rankdir=TD', 'size="10,5"'])
 
     # Add all nodes
@@ -95,18 +95,25 @@ def main(metadata_path, print_source=False):
     if print_source:
         print(dot.source)
 
-    dot.format = 'png'
-    dot.render(action_name)
+    if output_path:
+        output_path = os.path.join(output_path, action_name)
+    else:
+        output_path = output_path or os.path.join(os.getcwd(), action_name)
 
-    graph_path = os.path.join(os.getcwd(), '%s.png' % (action_name))
-    print('Graph saved at %s' % (graph_path))
+    dot.format = 'png'
+    dot.render(output_path)
+
+    print('Graph saved at %s' % (output_path + '.png'))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Action chain visualization')
     parser.add_argument('--metadata-path', action='store', required=True,
                         help='Path to the workflow action metadata file')
+    parser.add_argument('--output-path', action='store', required=False,
+                        help='Output directory for the generated image')
     parser.add_argument('--print-source', action='store_true', default=False,
                         help='Print graphviz source code to the stdout')
     args = parser.parse_args()
 
-    main(metadata_path=args.metadata_path, print_source=args.print_source)
+    main(metadata_path=args.metadata_path, output_path=args.output_path,
+         print_source=args.print_source)
