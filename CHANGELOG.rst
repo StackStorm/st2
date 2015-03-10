@@ -1,6 +1,12 @@
 Changelog
 =========
 
+In development
+--------------
+
+* Fix a bug in the ``run-remote-script`` runner - the runner ignored environment variables and
+  authentication settings which were supplied to the action as parameters. (bug-fix)
+
 v0.8.1 - March 6, 2015
 -----------------------
 
