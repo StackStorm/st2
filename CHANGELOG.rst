@@ -1,7 +1,13 @@
 Changelog
 =========
 
-v0.8.1 - March 6, 2015
+In development
+---------------
+
+* Fix a bug with python-runner actions sometimes not correctly reporting the action's ``stdout``.
+  (bug-fix)
+
+v0.8.1 - March 10, 2015
 -----------------------
 
 Docs: http://docs.stackstorm.com/0.8/
