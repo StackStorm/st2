@@ -69,7 +69,7 @@ The format of the DEB packages is like this: <component>_<version>-<build>_amd64
 You can download the packages from this URL:
 ::
 
-    https://ops.stackstorm.net/releases/st2/0.8.1/debs/current/
+    https://ops.stackstorm.net/releases/st2/0.8.2/debs/current/
 
 --------------
 
