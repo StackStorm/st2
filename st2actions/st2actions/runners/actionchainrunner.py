@@ -184,6 +184,23 @@ class ActionChainRunner(ActionRunner):
                 }
                 break
 
+            # Verify that the referenced action exists
+            # TODO: We do another lookup in cast_param, refactor to reduce number of lookups
+            action_ref = action_node.ref
+            action_db = action_db_util.get_action_by_ref(ref=action_ref)
+
+            if not action_db:
+                error = ('Failed to run task "%s". Action with reference "%s" doesn\'t exist.' %
+                         (action_node.name, action_ref))
+                LOG.exception(error)
+
+                fail = True
+                top_level_error = {
+                    'error': error,
+                    'traceback': error
+                }
+                break
+
             try:
                 liveaction = ActionChainRunner._run_action(
                     action_node=action_node, parent_execution_id=self.liveaction_id,
