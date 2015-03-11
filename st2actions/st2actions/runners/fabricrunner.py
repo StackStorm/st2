@@ -114,9 +114,16 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
 
     def run(self, action_parameters):
         LOG.debug('    action_parameters = %s', action_parameters)
-        remote_action = self._get_fabric_remote_action(action_parameters) \
-            if self.entry_point is None or len(self.entry_point) < 1 \
-            else self._get_fabric_remote_script_action(action_parameters)
+
+        runner_type = self.action.runner_type['name']
+
+        if runner_type == 'run-remote-script':
+            remote_action = self._get_fabric_remote_script_action(action_parameters)
+        elif runner_type == 'run-remote':
+            remote_action = self._get_fabric_remote_action(action_parameters)
+        else:
+            raise Exception('Invalid runner: %s' % (runner_type))
+
         LOG.debug('Will execute remote_action : %s.', str(remote_action))
         result = self._run(remote_action)
         LOG.debug('Executed remote_action : %s. Result is : %s.', remote_action, result)
