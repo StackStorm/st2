@@ -142,7 +142,7 @@ class ContentPackLoader(object):
 
 
 class MetaLoader(object):
-    def load(self, file_path):
+    def load(self, file_path, expected_type=None):
         """
         Loads content from file_path if file_path's extension
         is one of allowed ones (See ALLOWED_EXTS).
@@ -153,6 +153,9 @@ class MetaLoader(object):
         :param file_path: Absolute path to the file to load content from.
         :type file_path: ``str``
 
+        :param expected_type: Expected type for the loaded and parsed content (optional).
+        :type expected_type: ``object``
+
         :rtype: ``dict``
         """
         file_name, file_ext = os.path.splitext(file_path)
@@ -161,7 +164,14 @@ class MetaLoader(object):
             raise Exception('Unsupported meta type %s, file %s. Allowed: %s' %
                             (file_ext, file_path, ALLOWED_EXTS))
 
-        return self._load(PARSER_FUNCS[file_ext], file_path)
+        result = self._load(PARSER_FUNCS[file_ext], file_path)
+
+        if expected_type and not isinstance(result, expected_type):
+            actual_type = type(result).__name__
+            error = 'Expected "%s", got "%s"' % (expected_type.__name__, actual_type)
+            raise ValueError(error)
+
+        return result
 
     def _load(self, parser_func, file_path):
         with open(file_path, 'r') as fd:

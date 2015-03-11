@@ -123,7 +123,8 @@ class ActionChainRunner(ActionRunner):
                   self.action)
 
         try:
-            chainspec = self._meta_loader.load(chainspec_file)
+            chainspec = self._meta_loader.load(file_path=chainspec_file,
+                                               expected_type=dict)
         except Exception as e:
             message = ('Failed to parse action chain definition from "%s": %s' %
                        (chainspec_file, str(e)))
