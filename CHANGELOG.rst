@@ -8,6 +8,8 @@ in development
   action. Also treat invalid / inexistent action as a top-level action-chain error. (improvement)
 * Report a more user-friendly error if an action-chain definition contains an invalid type.
   (improvements)
+* Don't allow ``run-remote-script`` actions without an ``entry_point`` attribute - throw an
+  exception when running an action. (improvement)
 
 v0.8.2 - March 10, 2015
 -----------------------
