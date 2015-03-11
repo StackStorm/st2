@@ -80,6 +80,8 @@ CHAIN_VARS = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_vars.json')
 CHAIN_WITH_PUBLISH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_publish.json')
+CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_with_invalid_action.json')
 
 
 @mock.patch.object(action_db_util, 'get_runnertype_by_name',
@@ -489,6 +491,26 @@ class TestActionChainRunner(DbTestCase):
                           'published_action_param': action_parameters['action_param_1']}
         mock_args, _ = schedule.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=None))
+    @mock.patch.object(action_service, 'schedule',
+                       return_value=(DummyActionExecution(result={'raw_out': 'published'}), None))
+    def test_action_chain_runner_referenced_action_doesnt_exist(self, mock_schedule):
+        # Action referenced by a task doesn't exist, should result in a top level error
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_INVALID_ACTION
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+
+        action_parameters = {}
+        status, output, _ = chain_runner.run(action_parameters=action_parameters)
+
+        expected_error = 'Failed to run action "c1". Action with ref "wolfpack.a2" doesn\'t exist.'
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertTrue(expected_error in output['error'])
+        self.assertTrue(expected_error in output['traceback'])
 
     @classmethod
     def tearDownClass(cls):
