@@ -56,11 +56,13 @@ function st2start(){
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
+    cp -Rp ./contrib/examples $PACKS_BASE_DIR
 
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate
 
     # Kill existing st2 screens
+    screen -wipe
     screen -ls | grep st2 &> /dev/null
     if [ $? == 0 ]; then
         echo 'Killing existing st2 screen sessions...'

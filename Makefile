@@ -206,7 +206,10 @@ unit-tests-coverage:
 	done
 
 .PHONY: itests
-itests:
+itests: requirements .itests
+
+.PHONY: .itests
+.itests:
 	@echo
 	@echo "==================== integration tests ===================="
 	@echo
@@ -220,9 +223,12 @@ itests:
 	done
 
 .PHONY: mistral-itests
-mistral-itests:
+mistral-itests: requirements .mistral-itests
+
+.PHONY: .mistral-itests
+.mistral-itests:
 	@echo
-	@echo "==================== integration tests ===================="
+	@echo "==================== MISTRAL integration tests ===================="
 	@echo "The tests assume both st2 and mistral are running on localhost."
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration || exit 1;
