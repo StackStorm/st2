@@ -507,7 +507,8 @@ class TestActionChainRunner(DbTestCase):
         action_parameters = {}
         status, output, _ = chain_runner.run(action_parameters=action_parameters)
 
-        expected_error = 'Failed to run action "c1". Action with ref "wolfpack.a2" doesn\'t exist.'
+        expected_error = ('Failed to run task "c1". Action with reference "wolfpack.a2" '
+                          'doesn\'t exist.')
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertTrue(expected_error in output['error'])
         self.assertTrue(expected_error in output['traceback'])
