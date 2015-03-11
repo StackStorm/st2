@@ -162,6 +162,13 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
                                   cwd=self._cwd)
 
     def _get_fabric_remote_script_action(self, action_parameters):
+        # remote script actions without entry_point don't make sense, user probably wanted to use
+        # "run-remote" action
+        if not self.entry_point:
+            msg = ('Action "%s" is missing entry_point attribute. Perhaps wanted to use '
+                   '"run-remote" runner?')
+            raise Exception(msg % (self.action_name))
+
         script_local_path_abs = self.entry_point
         pos_args, named_args = self._get_script_args(action_parameters)
         named_args = self._transform_named_args(named_args)
