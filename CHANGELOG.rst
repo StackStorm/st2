@@ -1,6 +1,12 @@
 Changelog
 =========
 
+in development
+--------------
+
+* Report a more user-friendly error if an action-chain definition contains an invalid type.
+  (improvements)
+
 v0.8.2 - March 10, 2015
 -----------------------
 
