@@ -190,7 +190,7 @@ class ActionChainRunner(ActionRunner):
             action_db = action_db_util.get_action_by_ref(ref=action_ref)
 
             if not action_db:
-                error = ('Failed to run task "%s". Action with ref "%s" doesn\'t exist.' %
+                error = ('Failed to run task "%s". Action with reference "%s" doesn\'t exist.' %
                          (action_node.name, action_ref))
                 LOG.exception(error)
 
