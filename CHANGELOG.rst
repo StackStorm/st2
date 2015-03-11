@@ -5,7 +5,7 @@ in development
 --------------
 
 * Report a more user-friendly error if an action-chain task references an invalid or inexistent
-  action. (improvement)
+  action. Also treat invalid / inexistent action as a top-level action-chain error. (improvement)
 
 v0.8.2 - March 10, 2015
 -----------------------
