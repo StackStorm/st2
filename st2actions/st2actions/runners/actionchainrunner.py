@@ -184,8 +184,8 @@ class ActionChainRunner(ActionRunner):
                 }
                 break
 
-            # Verify that the referenced task exists - note we do another lookup in cast_params -
-            # refactor and improve that
+            # Verify that the referenced action exists
+            # TODO: We do another lookup in cast_param, refactor to reduce number of lookups
             action_ref = action_node.ref
             action_db = action_db_util.get_action_by_ref(ref=action_ref)
 
