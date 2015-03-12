@@ -28,6 +28,7 @@ Installation should take about 5 min. Grab a coffee and watch :doc:`/video` whil
     Docker <docker>
     deploy
     sources
+    webui
 
 
 .. note::

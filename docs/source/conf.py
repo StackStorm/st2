@@ -84,7 +84,10 @@ extlinks = {
     'github_mistral': ('https://github.com/StackStorm/mistral/blob/master/%s', None),
     'github_contrib':
         ('https://github.com/StackStorm/st2contrib/blob/master/%s', None),
-    'github_devenv': ('https://github.com/StackStorm/devenv/blob/master/%s', None)
+    'github_devenv': ('https://github.com/StackStorm/devenv/blob/master/%s', None),
+    'github_st2web': ('https://github.com/StackStorm/st2web/blob/master/%s', None),
+    'ops_latest':
+        ('https://ops.stackstorm.net/releases/st2/' + release + '/%s/', None)
 }
 
 # Inserted at the bottom of all rst files.
