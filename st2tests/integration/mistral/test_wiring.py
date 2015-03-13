@@ -27,6 +27,7 @@ class TestWorkflowExecution(unittest2.TestCase):
     def setUpClass(cls):
         cls.st2client = st2.Client(base_url='http://localhost')
 
+    @unittest2.skip('multiprocessing.cpu_count isn\'t reliable')
     def test_cpu_count(self):
         # Ensure tests are run on multi-processor system to catch race conditions
         self.assertGreaterEqual(multiprocessing.cpu_count(), 2)
