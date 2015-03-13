@@ -463,6 +463,8 @@ class ActionRunCommandMixin(object):
             if action_ref_or_id:
                 try:
                     action = action_mgr.get_by_ref_or_id(args.ref_or_id, **kwargs)
+                    if not action:
+                        raise resource.ResourceNotFoundError('Action %s not found', args.ref_or_id)
                     runner_mgr = self.app.client.managers['RunnerType']
                     runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
                     parameters, required, optional, _ = self._get_params_types(runner,
@@ -485,7 +487,8 @@ class ActionRunCommandMixin(object):
                         [self._print_param(name, parameters.get(name))
                             for name in optional]
                 except resource.ResourceNotFoundError:
-                    print('Action "%s" is not found.' % args.ref_or_id)
+                    print(('Action "%s" is not found. ' % args.ref_or_id) +
+                          'Do "st2 action list" to see list of available actions.')
                 except Exception as e:
                     print('ERROR: Unable to print help for action "%s". %s' %
                           (args.ref_or_id, e))
