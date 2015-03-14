@@ -167,8 +167,12 @@ def jsexpose(*argtypes, **opts):
                         return json_encode(result)
                     else:
                         return result
+                except exc.HTTPUnauthorized as e:
+                    LOG.debug('API call failed: %s' % (str(e)))
+                    return _handle_error(e, e.wsgi_response.status_code, e.wsgi_response.body,
+                                         e.headers)
                 except exc.HTTPException as e:
-                    LOG.exception('API call failed.')
+                    LOG.exception('API call failed: %s' % (str(e)))
                     # Exception contains pecan.response.header + more. This is per implementation
                     # of the WSGIHTTPException type from WebOb.
                     return _handle_error(e, e.wsgi_response.status_code, e.wsgi_response.body,
