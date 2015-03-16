@@ -31,11 +31,11 @@ __all__ = [
 HOSTNAME = socket.gethostname()
 COMMON_ATTRIBUTE_NAMES = [
     'process',
+    'processName',
     'module',
     'filename',
     'funcName',
     'lineno'
-    'processName',
 ]
 
 
@@ -149,7 +149,7 @@ class GelfLogFormatter(BaseExtraLogFormatter):
             data['_exception'] = str(exc_value)
             data['_traceback'] = tb_str
 
-        # Include common Python process attributes
+        # Include common Python log record attributes
         data['_python'] = common_attributes
 
         # Include user extra attributes
