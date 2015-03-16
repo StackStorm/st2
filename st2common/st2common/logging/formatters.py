@@ -19,6 +19,7 @@ import logging
 import socket
 import time
 import json
+import traceback
 
 import six
 
@@ -113,19 +114,32 @@ class GelfLogFormatter(BaseExtraLogFormatter):
         attributes = self._format_extra_attributes(attributes=attributes)
 
         msg = record.msg
+        exc_info = record.exc_info
         now = int(time.time())
 
         common_attributes = self._get_common_extra_attributes(record=record)
+        full_msg = super(GelfLogFormatter, self).format(record)
 
         data = {
             'version': '1.1',
             'host': HOSTNAME,
             'short_message': msg,
-            'full_message': msg,
+            'full_message': full_msg,
             'timestamp': now,
             'level': record.levelno
         }
+
+        if exc_info:
+            # Include exception information
+            exc_type, exc_value, exc_tb = exc_info
+            tb_str = ''.join(traceback.format_tb(exc_tb))
+            data['_exception'] = str(exc_value)
+            data['_traceback'] = tb_str
+
+        # Include common Python process attributes
         data['_python'] = common_attributes
+
+        # Include user extra attributes
         data.update(attributes)
 
         msg = json.dumps(data)
