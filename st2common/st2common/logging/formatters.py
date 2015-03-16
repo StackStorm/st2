@@ -109,6 +109,18 @@ class GelfLogFormatter(BaseExtraLogFormatter):
     """
     Formatter which formats messages as GELF 2 - https://www.graylog.org/resources/gelf-2/
     """
+
+    # Maps python log level to syslog / gelf log level
+    PYTHON_TO_GELF_LEVEL_MAP = {
+        50: 2,  # critical -> critical
+        40: 3,  # error -> error
+        30: 4,  # warning -> warning
+        20: 6,  # info -> informational
+        10: 7,  # debug -> debug
+        0: 6,  # notset -> information
+    }
+    DEFAULT_LOG_LEVEL = 6  # info
+
     def format(self, record):
         attributes = self._get_extra_attributes(record=record)
         attributes = self._format_extra_attributes(attributes=attributes)
@@ -116,6 +128,7 @@ class GelfLogFormatter(BaseExtraLogFormatter):
         msg = record.msg
         exc_info = record.exc_info
         now = int(time.time())
+        level = self.PYTHON_TO_GELF_LEVEL_MAP.get(record.levelno, self.DEFAULT_LOG_LEVEL)
 
         common_attributes = self._get_common_extra_attributes(record=record)
         full_msg = super(GelfLogFormatter, self).format(record)
@@ -126,7 +139,7 @@ class GelfLogFormatter(BaseExtraLogFormatter):
             'short_message': msg,
             'full_message': full_msg,
             'timestamp': now,
-            'level': record.levelno
+            'level': level
         }
 
         if exc_info:
