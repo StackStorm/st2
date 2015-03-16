@@ -43,8 +43,6 @@ def format(gen):
 class StreamController(RestController):
     @jsexpose(content_type='text/event-stream')
     def get_all(self):
-        LOG.info('GET /stream/')
-
         def make_response():
             res = Response(content_type='text/event-stream',
                            app_iter=format(get_listener().generator()))

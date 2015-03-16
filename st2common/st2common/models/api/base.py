@@ -199,7 +199,7 @@ def jsexpose(*argtypes, **opts):
                                          e.headers)
 
             except Exception as e:
-                LOG.exception('API call failed.')
+                LOG.exception('API call failed: %s' % (str(e)))
                 return _handle_error(e, http_client.INTERNAL_SERVER_ERROR)
 
         pecan_json_decorate(callfunction)

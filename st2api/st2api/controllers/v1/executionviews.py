@@ -50,8 +50,6 @@ class FiltersController(RestController):
             Handles requests:
                 GET /executions/views/filters
         """
-        LOG.info('GET all /executions/views/filters')
-
         filters = {}
 
         for name, field in six.iteritems(SUPPORTED_FILTERS):

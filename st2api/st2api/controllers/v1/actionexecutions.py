@@ -172,7 +172,6 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
 
-        LOG.info('GET all /actionexecutions/ with filters=%s', kw)
         return self._get_action_executions(exclude_fields=exclude_fields, **kw)
 
     @jsexpose(str)

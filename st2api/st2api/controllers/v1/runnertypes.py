@@ -59,10 +59,8 @@ class RunnerTypesController(RestController):
             Handle:
                 GET /runnertypes/1
         """
-        LOG.info('GET /runnertypes/ with id=%s', id)
         runnertype_db = RunnerTypesController.__get_by_id(id)
         runnertype_api = RunnerTypeAPI.from_model(runnertype_db)
-        LOG.debug('GET /runnertypes/ with id=%s, client_result=%s', id, runnertype_api)
         return runnertype_api
 
     @jsexpose(str)
@@ -73,9 +71,7 @@ class RunnerTypesController(RestController):
             Handles requests:
                 GET /runnertypes/
         """
-        LOG.info('GET all /runnertypes/ with filters=%s', kw)
         runnertype_dbs = RunnerType.get_all(**kw)
         runnertype_apis = [RunnerTypeAPI.from_model(runnertype_db)
                            for runnertype_db in runnertype_dbs]
-        LOG.debug('GET all /runnertypes/ client_result=%s', runnertype_apis)
         return runnertype_apis

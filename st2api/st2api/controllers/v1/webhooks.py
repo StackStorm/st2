@@ -70,7 +70,6 @@ class WebhooksController(RestController):
     @jsexpose(str, status_code=http_client.ACCEPTED)
     def post(self, *args, **kwargs):
         hook = '/'.join(args)  # TODO: There must be a better way to do this.
-        LOG.info('POST /webhooks/ with hook=%s', hook)
         body = pecan.request.body
         try:
             body = json.loads(body)
