@@ -114,7 +114,7 @@ class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
 
         Handles requests:
 
-            GET /actionexecutions/<id>/attribute/<value>
+            GET /actionexecutions/<id>/<attribute>/<value>
 
         :rtype: ``dict``
         """
