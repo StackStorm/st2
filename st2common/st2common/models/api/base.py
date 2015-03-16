@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import abc
+import copy
 import functools
 import inspect
 
@@ -27,6 +28,7 @@ import pecan.jsonify
 from st2common.util import mongoescape as util_mongodb
 from st2common.util import schema as util_schema
 from st2common.util.jsonify import json_encode
+from st2common.util.misc import prefix_with_underscore
 from st2common import log as logging
 from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 
@@ -109,6 +111,16 @@ def jsexpose(*argtypes, **opts):
         def callfunction(*args, **kwargs):
             params = getattr(pecan.request, 'params', {})
 
+            # Common request information included in the log context
+            request_info = {'method': pecan.request.method, 'path': pecan.request.path,
+                            'remote_addr': pecan.request.remote_addr}
+
+            # Log the incoming request
+            values = copy.copy(request_info)
+            values['filters'] = kwargs
+            extra = prefix_with_underscore(values)
+            LOG.info('%(method)s %(path)s with filters=%(filters)s' % values, extra=extra)
+
             if QUERY_PARAM_ATTRIBUTE_NAME in params and QUERY_PARAM_ATTRIBUTE_NAME in kwargs:
                 # Remove auth token if one is provided via query params
                 del kwargs[QUERY_PARAM_ATTRIBUTE_NAME]
@@ -161,6 +173,14 @@ def jsexpose(*argtypes, **opts):
 
                 try:
                     result = f(*args, **kwargs)
+
+                    # Log the outgoing response
+                    values = copy.copy(request_info)
+                    values['status_code'] = status_code or pecan.response.status
+                    values['result'] = result
+                    extra = prefix_with_underscore(values)
+                    LOG.info('%(method)s %(path)s result=%(result)s' % values, extra=extra)
+
                     if status_code:
                         pecan.response.status = status_code
                     if content_type == 'application/json':
