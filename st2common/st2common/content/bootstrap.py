@@ -19,7 +19,7 @@ import sys
 import st2common.config as config
 
 from oslo.config import cfg
-from st2common.log import LogLevelFilter
+from st2common.logging.filters import LogLevelFilter
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 
