@@ -51,7 +51,7 @@ class RunnerTypesController(RestController):
             LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
             return []
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, id):
         """
             List RunnerType objects by id.
@@ -63,7 +63,7 @@ class RunnerTypesController(RestController):
         runnertype_api = RunnerTypeAPI.from_model(runnertype_db)
         return runnertype_api
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_all(self, **kw):
         """
             List all RunnerType objects.

@@ -69,7 +69,7 @@ class ActionsController(resource.ContentPackResourceControler):
             LOG.error(msg)
             abort(http_client.CONFLICT, msg)
 
-    @jsexpose(body=ActionAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=ActionAPI, status_code=http_client.CREATED)
     def post(self, action):
         """
             Create a new action.
@@ -118,7 +118,7 @@ class ActionsController(resource.ContentPackResourceControler):
 
         return action_api
 
-    @jsexpose(str, body=ActionAPI)
+    @jsexpose(arg_types=[str], body_cls=ActionAPI)
     def put(self, action_ref_or_id, action):
         try:
             action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
@@ -157,7 +157,7 @@ class ActionsController(resource.ContentPackResourceControler):
 
         return action_api
 
-    @jsexpose(str, status_code=http_client.NO_CONTENT)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, action_ref_or_id):
         """
             Delete an action.

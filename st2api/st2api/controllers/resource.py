@@ -61,7 +61,7 @@ class ResourceController(rest.RestController):
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, id):
         return self._get_one(id)
 
@@ -189,7 +189,7 @@ class ResourceController(rest.RestController):
 class ContentPackResourceControler(ResourceController):
     include_reference = False
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return self._get_one(ref_or_id)
 

@@ -48,7 +48,7 @@ class RuleController(resource.ResourceController):
         'sort': ['name']
     }
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, name_or_id):
         try:
             rule_db = self._get_by_name_or_id(name_or_id=name_or_id)
@@ -60,7 +60,7 @@ class RuleController(resource.ResourceController):
         result = self.model.from_model(rule_db)
         return result
 
-    @jsexpose(body=RuleAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
     def post(self, rule):
         """
             Create a new rule.
@@ -96,7 +96,7 @@ class RuleController(resource.ResourceController):
 
         return rule_api
 
-    @jsexpose(str, body=RuleAPI)
+    @jsexpose(arg_types=[str], body_cls=RuleAPI)
     def put(self, rule_id, rule):
         rule_db = RuleController.__get_by_id(rule_id)
         LOG.debug('PUT /rules/ lookup with id=%s found object: %s', rule_id, rule_db)
@@ -118,7 +118,7 @@ class RuleController(resource.ResourceController):
 
         return rule_api
 
-    @jsexpose(str, status_code=http_client.NO_CONTENT)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, rule_id):
         """
             Delete a rule.

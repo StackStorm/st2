@@ -35,7 +35,7 @@ class KeyValuePairController(RestController):
 
     # TODO: Port to use ResourceController
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, name):
         """
             List key by name.
@@ -58,7 +58,7 @@ class KeyValuePairController(RestController):
 
         return kvp_api
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_all(self, **kw):
         """
             List all keys.
@@ -78,7 +78,7 @@ class KeyValuePairController(RestController):
 
         return kvps
 
-    @jsexpose(str, body=KeyValuePairAPI)
+    @jsexpose(arg_types=[str], body_cls=KeyValuePairAPI)
     def put(self, name, kvp):
         """
         Create a new entry or update an existing one.
@@ -106,7 +106,7 @@ class KeyValuePairController(RestController):
 
         return kvp_api
 
-    @jsexpose(str, status_code=http_client.NO_CONTENT)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, name):
         """
             Delete the key value pair.

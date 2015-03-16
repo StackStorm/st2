@@ -52,7 +52,7 @@ class TriggerTypeController(resource.ContentPackResourceControler):
 
     include_reference = True
 
-    @jsexpose(body=TriggerTypeAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=TriggerTypeAPI, status_code=http_client.CREATED)
     def post(self, triggertype):
         """
             Create a new triggertype.
@@ -82,7 +82,7 @@ class TriggerTypeController(resource.ContentPackResourceControler):
 
         return triggertype_api
 
-    @jsexpose(str, body=TriggerTypeAPI)
+    @jsexpose(arg_types=[str], body_cls=TriggerTypeAPI)
     def put(self, triggertype_ref_or_id, triggertype):
         try:
             triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
@@ -117,7 +117,7 @@ class TriggerTypeController(resource.ContentPackResourceControler):
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
         return triggertype_api
 
-    @jsexpose(str, status_code=http_client.NO_CONTENT)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, triggertype_ref_or_id):
         """
             Delete a triggertype.
@@ -197,7 +197,7 @@ class TriggerController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of Triggers in the system.
     """
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, trigger_id):
 
         """
@@ -210,7 +210,7 @@ class TriggerController(RestController):
         trigger_api = TriggerAPI.from_model(trigger_db)
         return trigger_api
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_all(self, **kw):
         """
             List all triggers.
@@ -222,7 +222,7 @@ class TriggerController(RestController):
         trigger_apis = [TriggerAPI.from_model(trigger_db) for trigger_db in trigger_dbs]
         return trigger_apis
 
-    @jsexpose(body=TriggerAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=TriggerAPI, status_code=http_client.CREATED)
     def post(self, trigger):
         """
             Create a new trigger.
@@ -247,7 +247,7 @@ class TriggerController(RestController):
 
         return trigger_api
 
-    @jsexpose(str, body=TriggerAPI)
+    @jsexpose(arg_types=[str], body_cls=TriggerAPI)
     def put(self, trigger_id, trigger):
         trigger_db = TriggerController.__get_by_id(trigger_id)
         try:
@@ -267,7 +267,7 @@ class TriggerController(RestController):
 
         return trigger_api
 
-    @jsexpose(str, status_code=http_client.NO_CONTENT)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, trigger_id):
         """
             Delete a trigger.
@@ -310,7 +310,7 @@ class TriggerInstanceController(RestController):
         the lifecycle of TriggerInstances in the system.
     """
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, id):
         """
             List triggerinstance by id.

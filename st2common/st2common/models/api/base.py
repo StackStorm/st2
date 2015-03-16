@@ -111,9 +111,21 @@ def _handle_error(e, status_code, body=None, headers=None):
     return json_encode(error_body)
 
 
-def jsexpose(*argtypes, **opts):
-    content_type = opts.get('content_type', 'application/json')
+def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='application/json'):
+    """
+    :param arg_types: A list of types for the function arguments.
+    :type arg_types: ``list``
 
+    :param body_cls: Request body class. If provided, this class will be used to create an instance
+                     out of the request body.
+    :type body_cls: :class:`object`
+
+    :param status_code: Response status code.
+    :type status_code: ``int``
+
+    :param content_type: Response content type.
+    :type content_type: ``str``
+    """
     pecan_json_decorate = pecan.expose(
         content_type=content_type,
         generic=False)
@@ -144,10 +156,10 @@ def jsexpose(*argtypes, **opts):
 
             try:
                 args = list(args)
-                types = list(argtypes)
+                types = copy.copy(arg_types)
                 more = [args.pop(0)]
 
-                if len(types):
+                if types:
                     argspec = inspect.getargspec(f)
                     names = argspec.args[1:]
 
@@ -164,7 +176,6 @@ def jsexpose(*argtypes, **opts):
                             except KeyError:
                                 pass
 
-                body_cls = opts.get('body')
                 if body_cls:
                     if pecan.request.body:
                         data = pecan.request.json
@@ -177,8 +188,6 @@ def jsexpose(*argtypes, **opts):
                     more.append(obj)
 
                 args = tuple(more) + tuple(args)
-
-                status_code = opts.get('status_code')
 
                 noop_codes = [http_client.NOT_IMPLEMENTED,
                               http_client.METHOD_NOT_ALLOWED,
