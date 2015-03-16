@@ -177,9 +177,16 @@ def jsexpose(*argtypes, **opts):
                     # Log the outgoing response
                     values = copy.copy(request_info)
                     values['status_code'] = status_code or pecan.response.status
-                    values['result'] = result
+
+                    if f.__name__ not in ['get_all']:
+                        # Note: We don't want to include a result for get_all since it could be huge
+                        values['result'] = result
+                        log_msg = '%(method)s %(path)s result=%(result)s' % values
+                    else:
+                        log_msg = '%(method)s %(path)s' % values
+
                     extra = prefix_with_underscore(values)
-                    LOG.info('%(method)s %(path)s result=%(result)s' % values, extra=extra)
+                    LOG.info(log_msg, extra=extra)
 
                     if status_code:
                         pecan.response.status = status_code
