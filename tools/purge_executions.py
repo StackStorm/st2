@@ -33,8 +33,11 @@ from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2common.persistence.action import LiveAction
 from st2common.persistence.execution import ActionExecution
+from st2common.util import isotime
+
 
 DEFAULT_TIMEDELTA_DAYS = 2  # in days
+DELETED_COUNT = 0
 
 
 def _monkey_patch():
@@ -57,13 +60,19 @@ def do_register_cli_opts(opts, ignore_errors=False):
 
 def _purge_action_models(execution_db):
     liveaction_id = execution_db.liveaction['id']
+
     if not liveaction_id:
         print('Invalid LiveAction id. Skipping delete: %s', execution_db)
+
     liveaction_db = None
     try:
         liveaction_db = LiveAction.get_by_id(liveaction_id)
     except:
         print('LiveAction with id: %s not found. Skipping delete.', liveaction_id)
+    else:
+        global DELETED_COUNT
+        DELETED_COUNT += 1
+
     try:
         ActionExecution.delete(execution_db)
     except Exception as e:
@@ -79,26 +88,34 @@ def _purge_action_models(execution_db):
 
 def _purge_executions(timestamp=None, action_ref=None):
     if not timestamp:
-        print('Specify a timestamp to purge.')
+        print('Specify a valid timestamp to purge.')
         return
 
     if not action_ref:
         action_ref = ''
 
-    print('Purging executions older than timestamp: %s',
-          timestamp.strftime('%Y-%m-%d %H:%M:%S.%f'))
-    # XXX: Replace with fancy pantsy query based on timestamp.
+    print('Purging executions older than timestamp: %s' %
+          timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'))
+
+    def should_delete(execution_db):
+        if action_ref != '':
+            return (execution_db.liveaction['action'] == action_ref
+                    and execution_db.start_timestamp < timestamp)
+        else:
+            return execution_db.start_timestamp < timestamp
+
     # XXX: Think about paginating this call.
-    executions = ActionExecution.get_all()
-    for execution_db in executions:
-        if execution_db.start_timestamp < timestamp:
-            if action_ref != '':
-                if execution_db.liveaction['action'] == action_ref:
-                    print('Deleting execution: %s ' % execution_db)
-                    _purge_action_models(execution_db)
-            else:
-                print('Deleting execution: %s' % execution_db)
-                _purge_action_models(execution_db)
+    filters = {'start_timestamp__lt': isotime.parse(timestamp)}
+    executions = ActionExecution.query(**filters)
+    executions_to_delete = filter(should_delete, executions)
+    print('#### Total number of executions to delete: %d' % len(executions_to_delete))
+
+    # Purge execution and liveaction models now
+    for execution_db in executions_to_delete:
+        _purge_action_models(execution_db)
+
+    # Print stats
+    print('#### Total execution models deleted: %d' % DELETED_COUNT)
 
 
 def main():
@@ -108,7 +125,7 @@ def main():
         cfg.StrOpt('timestamp', default=None,
                    help='Will delete data older than ' +
                    'this timestamp. (default 48 hours). ' +
-                   'Example value: 2015-03-13 19:01:27.255542'),
+                   'Example value: 2015-03-13T19:01:27.255542Z'),
         cfg.StrOpt('action-ref', default='',
                    help='action-ref to delete executions for.')
     ]
@@ -129,7 +146,7 @@ def main():
         now = datetime.now()
         timestamp = now - timedelta(days=DEFAULT_TIMEDELTA_DAYS)
     else:
-        timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
+        timestamp = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
 
     # Purge models.
     _purge_executions(timestamp=timestamp, action_ref=action_ref)
