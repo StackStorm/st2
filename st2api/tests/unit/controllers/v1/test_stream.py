@@ -22,6 +22,7 @@ from tests import FunctionalTest
 
 
 @mock.patch.object(pecan, 'request', type('request', (object,), {'environ': {}}))
+@mock.patch.object(pecan, 'response', mock.MagicMock())
 class TestStreamController(FunctionalTest):
 
     @mock.patch.object(stream, 'format', mock.Mock())

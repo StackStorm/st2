@@ -35,6 +35,7 @@ class FakeModel(base.BaseAPI):
 
 
 @mock.patch.object(pecan, 'request', mock.MagicMock(json={'a': 'b'}))
+@mock.patch.object(pecan, 'response', mock.MagicMock())
 class TestModelBase(unittest.TestCase):
 
     def setUp(self):

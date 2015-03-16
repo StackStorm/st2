@@ -109,11 +109,14 @@ def jsexpose(*argtypes, **opts):
     def decorate(f):
         @functools.wraps(f)
         def callfunction(*args, **kwargs):
+            # Note: We use getattr since in some places (tests) request is mocked
             params = getattr(pecan.request, 'params', {})
+            method = getattr(pecan.request, 'method', None)
+            path = getattr(pecan.request, 'path', None)
+            remote_addr = getattr(pecan.request, 'remote_addr', None)
 
             # Common request information included in the log context
-            request_info = {'method': pecan.request.method, 'path': pecan.request.path,
-                            'remote_addr': pecan.request.remote_addr}
+            request_info = {'method': method, 'path': path, 'remote_addr': remote_addr}
 
             # Log the incoming request
             values = copy.copy(request_info)
