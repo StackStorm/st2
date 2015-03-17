@@ -39,7 +39,7 @@ class TokenController(rest.RestController):
         else:
             self._auth_backend = None
 
-    @jsexpose(body=TokenAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=TokenAPI, status_code=http_client.CREATED)
     def post(self, request, **kwargs):
         if cfg.CONF.auth.mode == 'proxy':
             return self._handle_proxy_auth(request=request, **kwargs)

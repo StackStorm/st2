@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import abc
+import copy
 import functools
 import inspect
 
@@ -33,6 +34,18 @@ from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 
 LOG = logging.getLogger(__name__)
 VALIDATOR = util_schema.get_validator(assign_property_default=False)
+
+# A list of method names for which we don't want to log the result / response
+RESPONSE_LOGGING_METHOD_NAME_BLACKLIST = [
+    'get_all'
+]
+
+# A list of controller classes for which we don't want to log the result / response
+RESPONSE_LOGGING_CONTROLLER_NAME_BLACKLIST = [
+    'ActionExecutionChildrenController',  # action executions can be big
+    'ActionExecutionAttributeController',  # result can be big
+    'ActionExecutionsController'  # action executions can be big
+]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -97,9 +110,21 @@ def _handle_error(e, status_code, body=None, headers=None):
     return json_encode(error_body)
 
 
-def jsexpose(*argtypes, **opts):
-    content_type = opts.get('content_type', 'application/json')
+def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='application/json'):
+    """
+    :param arg_types: A list of types for the function arguments.
+    :type arg_types: ``list``
 
+    :param body_cls: Request body class. If provided, this class will be used to create an instance
+                     out of the request body.
+    :type body_cls: :class:`object`
+
+    :param status_code: Response status code.
+    :type status_code: ``int``
+
+    :param content_type: Response content type.
+    :type content_type: ``str``
+    """
     pecan_json_decorate = pecan.expose(
         content_type=content_type,
         generic=False)
@@ -107,7 +132,21 @@ def jsexpose(*argtypes, **opts):
     def decorate(f):
         @functools.wraps(f)
         def callfunction(*args, **kwargs):
+            controller = args[0] if args else None
+
+            # Note: We use getattr since in some places (tests) request is mocked
             params = getattr(pecan.request, 'params', {})
+            method = getattr(pecan.request, 'method', None)
+            path = getattr(pecan.request, 'path', None)
+            remote_addr = getattr(pecan.request, 'remote_addr', None)
+
+            # Common request information included in the log context
+            request_info = {'method': method, 'path': path, 'remote_addr': remote_addr}
+
+            # Log the incoming request
+            values = copy.copy(request_info)
+            values['filters'] = kwargs
+            LOG.info('%(method)s %(path)s with filters=%(filters)s' % values, extra=values)
 
             if QUERY_PARAM_ATTRIBUTE_NAME in params and QUERY_PARAM_ATTRIBUTE_NAME in kwargs:
                 # Remove auth token if one is provided via query params
@@ -115,10 +154,10 @@ def jsexpose(*argtypes, **opts):
 
             try:
                 args = list(args)
-                types = list(argtypes)
+                types = copy.copy(arg_types)
                 more = [args.pop(0)]
 
-                if len(types):
+                if types:
                     argspec = inspect.getargspec(f)
                     names = argspec.args[1:]
 
@@ -135,7 +174,6 @@ def jsexpose(*argtypes, **opts):
                             except KeyError:
                                 pass
 
-                body_cls = opts.get('body')
                 if body_cls:
                     if pecan.request.body:
                         data = pecan.request.json
@@ -149,8 +187,6 @@ def jsexpose(*argtypes, **opts):
 
                 args = tuple(more) + tuple(args)
 
-                status_code = opts.get('status_code')
-
                 noop_codes = [http_client.NOT_IMPLEMENTED,
                               http_client.METHOD_NOT_ALLOWED,
                               http_client.FORBIDDEN]
@@ -161,6 +197,28 @@ def jsexpose(*argtypes, **opts):
 
                 try:
                     result = f(*args, **kwargs)
+
+                    # Log the outgoing response
+                    values = copy.copy(request_info)
+                    values['status_code'] = status_code or pecan.response.status
+
+                    function_name = f.__name__
+                    controller_name = controller.__class__.__name__
+
+                    log_result = True
+                    log_result &= function_name not in RESPONSE_LOGGING_METHOD_NAME_BLACKLIST
+                    log_result &= controller_name not in RESPONSE_LOGGING_CONTROLLER_NAME_BLACKLIST
+
+                    if log_result:
+                        values['result'] = result
+                        log_msg = '%(method)s %(path)s result=%(result)s' % values
+                    else:
+                        # Note: We don't want to include a result for some
+                        # methods which have a large result
+                        log_msg = '%(method)s %(path)s' % values
+
+                    LOG.info(log_msg, extra=values)
+
                     if status_code:
                         pecan.response.status = status_code
                     if content_type == 'application/json':
@@ -179,7 +237,7 @@ def jsexpose(*argtypes, **opts):
                                          e.headers)
 
             except Exception as e:
-                LOG.exception('API call failed.')
+                LOG.exception('API call failed: %s' % (str(e)))
                 return _handle_error(e, http_client.INTERNAL_SERVER_ERROR)
 
         pecan_json_decorate(callfunction)

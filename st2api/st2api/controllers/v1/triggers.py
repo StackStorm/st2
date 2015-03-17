@@ -52,7 +52,7 @@ class TriggerTypeController(resource.ContentPackResourceControler):
 
     include_reference = True
 
-    @jsexpose(body=TriggerTypeAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=TriggerTypeAPI, status_code=http_client.CREATED)
     def post(self, triggertype):
         """
             Create a new triggertype.
@@ -60,7 +60,7 @@ class TriggerTypeController(resource.ContentPackResourceControler):
             Handles requests:
                 POST /triggertypes/
         """
-        LOG.info('POST /triggertypes/ with triggertype data=%s', triggertype)
+
         try:
             triggertype_db = TriggerTypeAPI.to_model(triggertype)
             triggertype_db = TriggerType.add_or_update(triggertype_db)
@@ -79,15 +79,11 @@ class TriggerTypeController(resource.ContentPackResourceControler):
                 TriggerTypeController._create_shadow_trigger(triggertype_db)
 
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
-        LOG.debug('POST /triggertypes/ client_result=%s', triggertype_api)
 
         return triggertype_api
 
-    @jsexpose(str, body=TriggerTypeAPI)
+    @jsexpose(arg_types=[str], body_cls=TriggerTypeAPI)
     def put(self, triggertype_ref_or_id, triggertype):
-        LOG.info('PUT /triggertypes/ with triggertype ref_or_id=%s and data=%s',
-                 triggertype_ref_or_id, triggertype)
-
         try:
             triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
         except Exception as e:
@@ -119,11 +115,9 @@ class TriggerTypeController(resource.ContentPackResourceControler):
         LOG.audit('TriggerType updated. TriggerType=%s and original TriggerType=%s',
                   triggertype_db, old_triggertype_db)
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
-        LOG.debug('PUT /triggertypes/ client_result=%s', triggertype_api)
-
         return triggertype_api
 
-    @jsexpose(str, status_code=http_client.NO_CONTENT)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, triggertype_ref_or_id):
         """
             Delete a triggertype.
@@ -203,7 +197,7 @@ class TriggerController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of Triggers in the system.
     """
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, trigger_id):
 
         """
@@ -212,13 +206,11 @@ class TriggerController(RestController):
             Handle:
                 GET /triggers/1
         """
-        LOG.info('GET /triggers/ with id=%s', id)
         trigger_db = TriggerController.__get_by_id(trigger_id)
         trigger_api = TriggerAPI.from_model(trigger_db)
-        LOG.debug('GET /triggers/ with id=%s, client_result=%s', id, trigger_api)
         return trigger_api
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_all(self, **kw):
         """
             List all triggers.
@@ -226,12 +218,11 @@ class TriggerController(RestController):
             Handles requests:
                 GET /triggers/
         """
-        LOG.info('GET all /triggers/ with filters=%s', kw)
         trigger_dbs = Trigger.get_all(**kw)
         trigger_apis = [TriggerAPI.from_model(trigger_db) for trigger_db in trigger_dbs]
         return trigger_apis
 
-    @jsexpose(body=TriggerAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=TriggerAPI, status_code=http_client.CREATED)
     def post(self, trigger):
         """
             Create a new trigger.
@@ -239,8 +230,6 @@ class TriggerController(RestController):
             Handles requests:
                 POST /triggers/
         """
-        LOG.info('POST /triggers/ with trigger data=%s', trigger)
-
         try:
             trigger_db = TriggerService.create_trigger_db(trigger)
         except (ValidationError, ValueError) as e:
@@ -255,13 +244,11 @@ class TriggerController(RestController):
 
         LOG.audit('Trigger created. Trigger=%s', trigger_db)
         trigger_api = TriggerAPI.from_model(trigger_db)
-        LOG.debug('POST /triggers/ client_result=%s', trigger_api)
 
         return trigger_api
 
-    @jsexpose(str, body=TriggerAPI)
+    @jsexpose(arg_types=[str], body_cls=TriggerAPI)
     def put(self, trigger_id, trigger):
-        LOG.info('PUT /triggers/ with trigger id=%s and data=%s', trigger_id, trigger)
         trigger_db = TriggerController.__get_by_id(trigger_id)
         try:
             if trigger.id is not None and trigger.id is not '' and trigger.id != trigger_id:
@@ -277,11 +264,10 @@ class TriggerController(RestController):
 
         LOG.audit('Trigger updated. Trigger=%s and original Trigger=%s.', trigger, trigger_db)
         trigger_api = TriggerAPI.from_model(trigger_db)
-        LOG.debug('PUT /triggers/ client_result=%s', trigger_api)
 
         return trigger_api
 
-    @jsexpose(str, status_code=http_client.NO_CONTENT)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, trigger_id):
         """
             Delete a trigger.
@@ -324,7 +310,7 @@ class TriggerInstanceController(RestController):
         the lifecycle of TriggerInstances in the system.
     """
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, id):
         """
             List triggerinstance by id.
@@ -332,8 +318,6 @@ class TriggerInstanceController(RestController):
             Handle:
                 GET /triggerinstances/1
         """
-        LOG.info('GET /triggerinstances/ with id=%s', id)
-
         try:
             trigger_instance_db = TriggerInstance.get_by_id(id)
         except (ValueError, ValidationError):
@@ -342,8 +326,6 @@ class TriggerInstanceController(RestController):
             return
 
         trigger_instance_api = TriggerInstanceAPI.from_model(trigger_instance_db)
-        LOG.debug('GET /triggerinstances/ with id=%s, client_result=%s', id, trigger_instance_api)
-
         return trigger_instance_api
 
     @jsexpose()
@@ -354,7 +336,6 @@ class TriggerInstanceController(RestController):
             Handles requests:
                 GET /triggerinstances/
         """
-        LOG.info('GET all /triggerinstances/')
         trigger_instance_apis = [TriggerInstanceAPI.from_model(trigger_instance_db)
                                  for trigger_instance_db in TriggerInstance.get_all(**kw)]
         return trigger_instance_apis

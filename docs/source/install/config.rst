@@ -72,7 +72,9 @@ By default, the logs can be found in ``/var/log/st2``.
 
 * With the standard logging setup you will notice files like ``st2*.log`` and ``st2*.audit.log`` in the log folder.
 
-* Per component logging configuration can be found in ``/etc/st2*/logging.conf``. If you desire to change location of the log files the paths can be modified in these files.
+* Per component logging configuration can be found in ``/etc/st2*/logging.conf``. Those files use `Python logging configuration format
+  <https://docs.python.org/2/library/logging.config.html#configuration-file-format>`_. If you desire to change location of the log files,
+  the paths and other settings can be modified in these files.
 
 * To configure logging with syslog, grab the configuration and follow instructions at :github_contrib:`st2contrib/extra/syslog </extra/syslog>`
 

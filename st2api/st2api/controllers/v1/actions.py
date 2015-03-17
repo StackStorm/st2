@@ -69,7 +69,7 @@ class ActionsController(resource.ContentPackResourceControler):
             LOG.error(msg)
             abort(http_client.CONFLICT, msg)
 
-    @jsexpose(body=ActionAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=ActionAPI, status_code=http_client.CREATED)
     def post(self, action):
         """
             Create a new action.
@@ -77,9 +77,6 @@ class ActionsController(resource.ContentPackResourceControler):
             Handles requests:
                 POST /actions/
         """
-
-        LOG.info('POST /actions/ with action data=%s', action)
-
         if not hasattr(action, 'enabled'):
             LOG.debug('POST /actions/ incoming action data has enabled field unset. '
                       'Defaulting enabled to True.')
@@ -119,10 +116,9 @@ class ActionsController(resource.ContentPackResourceControler):
         LOG.audit('Action created. Action=%s', action_db)
         action_api = ActionAPI.from_model(action_db)
 
-        LOG.debug('POST /actions/ client_result=%s', action_api)
         return action_api
 
-    @jsexpose(str, body=ActionAPI)
+    @jsexpose(arg_types=[str], body_cls=ActionAPI)
     def put(self, action_ref_or_id, action):
         try:
             action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
@@ -161,7 +157,7 @@ class ActionsController(resource.ContentPackResourceControler):
 
         return action_api
 
-    @jsexpose(str, status_code=http_client.NO_CONTENT)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, action_ref_or_id):
         """
             Delete an action.
@@ -171,9 +167,6 @@ class ActionsController(resource.ContentPackResourceControler):
                 DELETE /actions/1
                 DELETE /actions/mypack.myaction
         """
-
-        LOG.info('DELETE /actions/ with ref_or_id="%s"', action_ref_or_id)
-
         try:
             action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
         except Exception as e:
@@ -200,6 +193,4 @@ class ActionsController(resource.ContentPackResourceControler):
             return
 
         LOG.audit('Action deleted. Action=%s', action_db)
-        LOG.info('DELETE /actions/ with ref_or_id="%s" completed',
-                 action_ref_or_id)
         return None

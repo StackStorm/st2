@@ -64,7 +64,7 @@ class LookupUtils(object):
 
 class ParametersViewController(RestController):
 
-    @jsexpose(str, status_code=http_client.OK)
+    @jsexpose(arg_types=[str], status_code=http_client.OK)
     def get_one(self, action_id):
         return self._get_one(action_id)
 
@@ -97,7 +97,7 @@ class OverviewController(resource.ContentPackResourceControler):
 
     include_reference = True
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         """
             List action by id.
@@ -108,7 +108,7 @@ class OverviewController(resource.ContentPackResourceControler):
         action_api = super(OverviewController, self)._get_one(ref_or_id)
         return self._transform_action_api(action_api)
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_all(self, **kwargs):
         """
             List all actions.
@@ -136,7 +136,7 @@ class EntryPointController(resource.ContentPackResourceControler):
     def get_all(self, **kwargs):
         return abort(404)
 
-    @jsexpose(str, content_type='text/plain', status_code=http_client.OK)
+    @jsexpose(arg_types=[str], content_type='text/plain', status_code=http_client.OK)
     def get_one(self, ref_or_id):
         """
             Outputs the file associated with action entry_point

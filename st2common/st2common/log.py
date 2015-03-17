@@ -13,17 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import socket
-import datetime
+from __future__ import absolute_import
+
+import sys
 import logging
 import logging.config
 import logging.handlers
-import os
-import six
-import sys
 import traceback
+from functools import wraps
 
+import six
 from oslo.config import cfg
+
+from st2common.logging.filters import ExclusionFilter
+
+# Those are here for backward compatibility reasons
+from st2common.logging.handlers import FormatNamedFileHandler
+from st2common.logging.handlers import ConfigurableSyslogHandler
+from st2common.util.misc import prefix_dict_keys
 
 __all__ = [
     'getLogger',
@@ -32,78 +39,52 @@ __all__ = [
     'FormatNamedFileHandler',
     'ConfigurableSyslogHandler',
 
-    'ExclusionFilter',
-    'LogLevelFilter',
-
     'LoggingStream'
 ]
 
 logging.AUDIT = logging.CRITICAL + 10
 logging.addLevelName(logging.AUDIT, 'AUDIT')
 
+LOGGER_KEYS = [
+    'debug',
+    'info',
+    'warning',
+    'error',
+    'critical',
+    'exception',
+    'log'
+]
+
+
+def decorate_log_method(func):
+    @wraps(func)
+    def func_wrapper(*args, **kwargs):
+        # Prefix extra keys with underscore
+        if 'extra' in kwargs:
+            kwargs['extra'] = prefix_dict_keys(dictionary=kwargs['extra'], prefix='_')
+        return func(*args, **kwargs)
+    return func_wrapper
+
+
+def decorate_logger_methods(logger):
+    """
+    Decorate all the logger methods so all the keys in the extra dictionary are
+    automatically prefixed with an underscore to avoid clashes with standard log
+    record attributes.
+    """
+    for key in LOGGER_KEYS:
+        log_method = getattr(logger, key)
+        log_method = decorate_log_method(log_method)
+        setattr(logger, key, log_method)
+
+    return logger
+
 
 def getLogger(name):
     logger_name = 'st2.{}'.format(name)
-    return logging.getLogger(logger_name)
-
-
-class FormatNamedFileHandler(logging.FileHandler):
-    def __init__(self, filename, mode='a', encoding=None, delay=False):
-        # Include timestamp in the name.
-        filename = filename.format(ts=str(datetime.datetime.utcnow()).replace(' ', '_'),
-                                   pid=os.getpid())
-        super(FormatNamedFileHandler, self).__init__(filename, mode, encoding, delay)
-
-
-class ConfigurableSyslogHandler(logging.handlers.SysLogHandler):
-    def __init__(self, address=None, facility=None, socktype=None):
-        if not address:
-            address = (cfg.CONF.syslog.host, cfg.CONF.syslog.port)
-        if not facility:
-            facility = cfg.CONF.syslog.facility
-        if not socktype:
-            protocol = cfg.CONF.syslog.protocol.lower()
-
-            if protocol == 'udp':
-                socktype = socket.SOCK_DGRAM
-            elif protocol == 'tcp':
-                socktype = socket.SOCK_STREAM
-            else:
-                raise ValueError('Unsupported protocol: %s' % (protocol))
-
-        if socktype:
-            super(ConfigurableSyslogHandler, self).__init__(address, facility, socktype)
-        else:
-            super(ConfigurableSyslogHandler, self).__init__(address, facility)
-
-
-class ExclusionFilter(object):
-
-    def __init__(self, exclusions):
-        self._exclusions = set(exclusions)
-
-    def filter(self, record):
-        if len(self._exclusions) < 1:
-            return True
-        module_decomposition = record.name.split('.')
-        exclude = len(module_decomposition) > 0 and module_decomposition[0] in self._exclusions
-        return not exclude
-
-
-class LogLevelFilter(logging.Filter):
-    """
-    Filter which excludes log messages which match the provided log levels.
-    """
-
-    def __init__(self, log_levels):
-        self._log_levels = log_levels
-
-    def filter(self, record):
-        level = record.levelno
-        if level in self._log_levels:
-            return False
-
-        return True
+    logger = logging.getLogger(logger_name)
+    logger = decorate_logger_methods(logger=logger)
+    return logger
 
 
 class LoggingStream(object):

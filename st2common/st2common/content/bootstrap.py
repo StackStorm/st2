@@ -19,7 +19,7 @@ import sys
 import st2common.config as config
 
 from oslo.config import cfg
-from st2common.log import LogLevelFilter
+from st2common.logging.filters import LogLevelFilter
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 
@@ -88,7 +88,7 @@ def register_rules():
     # Register rules.
     try:
         LOG.info('=========================================================')
-        LOG.info('############## Registering rules ######################')
+        LOG.info('############## Registering rules ########################')
         LOG.info('=========================================================')
         # Importing here to reduce scope of dependency. This way even if st2reactor
         # is not installed bootstrap continues.

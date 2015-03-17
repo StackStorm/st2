@@ -35,7 +35,7 @@ class KeyValuePairController(RestController):
 
     # TODO: Port to use ResourceController
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, name):
         """
             List key by name.
@@ -43,13 +43,10 @@ class KeyValuePairController(RestController):
             Handle:
                 GET /keys/key1
         """
-        LOG.info('GET /keys/ with name=%s', name)
-
         kvp_db = self.__get_by_name(name=name)
 
         if not kvp_db:
-            LOG.exception('Database lookup for name="%s" '
-                          'resulted in exception.', name)
+            LOG.exception('Database lookup for name="%s" resulted in exception.', name)
             abort(http_client.NOT_FOUND)
             return
 
@@ -59,10 +56,9 @@ class KeyValuePairController(RestController):
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
 
-        LOG.debug('GET /keys/ with name=%s, client_result=%s', name, kvp_api)
         return kvp_api
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_all(self, **kw):
         """
             List all keys.
@@ -70,8 +66,6 @@ class KeyValuePairController(RestController):
             Handles requests:
                 GET /keys/
         """
-        LOG.info('GET all /keys/ with filters=%s', kw)
-
         # Prefix filtering
         prefix_filter = kw.get('prefix', None)
 
@@ -81,17 +75,14 @@ class KeyValuePairController(RestController):
 
         kvp_dbs = KeyValuePair.get_all(**kw)
         kvps = [KeyValuePairAPI.from_model(kvp_db) for kvp_db in kvp_dbs]
-        LOG.debug('GET all /keys/ client_result=%s', kvps)
 
         return kvps
 
-    @jsexpose(str, body=KeyValuePairAPI)
+    @jsexpose(arg_types=[str], body_cls=KeyValuePairAPI)
     def put(self, name, kvp):
         """
         Create a new entry or update an existing one.
         """
-        LOG.info('PUT /keys/ with key name=%s and data=%s', name, kvp)
-
         # TODO: There is a race, add custom add_or_update which updates by non
         # id field
         existing_kvp = self.__get_by_name(name=name)
@@ -112,11 +103,10 @@ class KeyValuePairController(RestController):
 
         LOG.audit('KeyValuePair updated. KeyValuePair=%s', kvp_db)
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
-        LOG.debug('PUT /keys/ client_result=%s', kvp_api)
 
         return kvp_api
 
-    @jsexpose(str, status_code=http_client.NO_CONTENT)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, name):
         """
             Delete the key value pair.
@@ -124,17 +114,14 @@ class KeyValuePairController(RestController):
             Handles requests:
                 DELETE /keys/1
         """
-        LOG.info('DELETE /keys/ with id=%s', id)
         kvp_db = self.__get_by_name(name=name)
 
         if not kvp_db:
-            LOG.exception('Database lookup for name="%s" '
-                          'resulted in exception.', name)
             abort(http_client.NOT_FOUND)
             return
 
-        LOG.debug('DELETE /keys/ lookup with name=%s found '
-                  'object: %s', name, kvp_db)
+        LOG.debug('DELETE /keys/ lookup with name=%s found object: %s', name, kvp_db)
+
         try:
             KeyValuePair.delete(kvp_db)
         except Exception as e:
@@ -150,6 +137,5 @@ class KeyValuePairController(RestController):
         try:
             return KeyValuePair.get_by_name(name)
         except ValueError as e:
-            LOG.debug('Database lookup for name="%s" '
-                      'resulted in exception : %s.', name, e)
+            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
             return None

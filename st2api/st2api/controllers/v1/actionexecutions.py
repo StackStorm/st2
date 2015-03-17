@@ -96,7 +96,7 @@ class ActionExecutionsControllerMixin(RestController):
 
 
 class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get(self, id, **kwargs):
         """
         Retrieve children for the provided action execution.
@@ -114,7 +114,7 @@ class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
 
         Handles requests:
 
-            GET /actionexecutions/<id>/attribute/<value>
+            GET /actionexecutions/<id>/<attribute>/<value>
 
         :rtype: ``dict``
         """
@@ -172,10 +172,9 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
 
-        LOG.info('GET all /actionexecutions/ with filters=%s', kw)
         return self._get_action_executions(exclude_fields=exclude_fields, **kw)
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, id, exclude_attributes=None, **kwargs):
         """
         Retrieve a single execution.
@@ -195,7 +194,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         return self._get_one(id=id, exclude_fields=exclude_fields)
 
-    @jsexpose(body=LiveActionAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=LiveActionAPI, status_code=http_client.CREATED)
     def post(self, execution):
         try:
             # Initialize execution context if it does not exist.

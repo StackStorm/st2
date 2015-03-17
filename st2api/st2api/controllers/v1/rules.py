@@ -48,7 +48,7 @@ class RuleController(resource.ResourceController):
         'sort': ['name']
     }
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, name_or_id):
         try:
             rule_db = self._get_by_name_or_id(name_or_id=name_or_id)
@@ -60,7 +60,7 @@ class RuleController(resource.ResourceController):
         result = self.model.from_model(rule_db)
         return result
 
-    @jsexpose(body=RuleAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
     def post(self, rule):
         """
             Create a new rule.
@@ -68,8 +68,6 @@ class RuleController(resource.ResourceController):
             Handles requests:
                 POST /rules/
         """
-        LOG.info('POST /rules/ with rule data=%s', rule)
-
         try:
             rule_db = RuleAPI.to_model(rule)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
@@ -95,13 +93,11 @@ class RuleController(resource.ResourceController):
 
         LOG.audit('Rule created. Rule=%s', rule_db)
         rule_api = RuleAPI.from_model(rule_db)
-        LOG.debug('POST /rules/ client_result=%s', rule_api)
 
         return rule_api
 
-    @jsexpose(str, body=RuleAPI)
+    @jsexpose(arg_types=[str], body_cls=RuleAPI)
     def put(self, rule_id, rule):
-        LOG.info('PUT /rules/ with rule id=%s and data=%s', rule_id, rule)
         rule_db = RuleController.__get_by_id(rule_id)
         LOG.debug('PUT /rules/ lookup with id=%s found object: %s', rule_id, rule_db)
 
@@ -119,11 +115,10 @@ class RuleController(resource.ResourceController):
             return
         LOG.audit('Rule updated. Rule=%s and original Rule=%s.', rule_db, old_rule_db)
         rule_api = RuleAPI.from_model(rule_db)
-        LOG.debug('PUT /rules/ client_result=%s', rule_api)
 
         return rule_api
 
-    @jsexpose(str, status_code=http_client.NO_CONTENT)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, rule_id):
         """
             Delete a rule.
@@ -131,7 +126,6 @@ class RuleController(resource.ResourceController):
             Handles requests:
                 DELETE /rules/1
         """
-        LOG.info('DELETE /rules/ with id=%s', rule_id)
         rule_db = RuleController.__get_by_id(rule_id)
         LOG.debug('DELETE /rules/ lookup with id=%s found object: %s', rule_id, rule_db)
         try:

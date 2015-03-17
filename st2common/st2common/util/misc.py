@@ -13,22 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
-import pecan
+import six
 
-from st2api.controllers.v1 import stream
-from st2api import listener
-from tests import FunctionalTest
+__all__ = [
+    'prefix_dict_keys'
+]
 
 
-@mock.patch.object(pecan, 'request', type('request', (object,), {'environ': {}}))
-@mock.patch.object(pecan, 'response', mock.MagicMock())
-class TestStreamController(FunctionalTest):
+def prefix_dict_keys(dictionary, prefix='_'):
+    """
+    Prefix dictionary keys with a provided prefix.
 
-    @mock.patch.object(stream, 'format', mock.Mock())
-    @mock.patch.object(listener, 'get_listener', mock.Mock())
-    def test_get_all(self):
-        resp = stream.StreamController().get_all()
-        self.assertIsInstance(resp._app_iter, mock.Mock)
-        self.assertEqual(resp._status, '200 OK')
-        self.assertIn(('Content-Type', 'text/event-stream; charset=UTF-8'), resp._headerlist)
+    :param dictionary: Dictionary whose keys to prefix.
+    :type dictionary: ``dict``
+
+    :param prefix: Key prefix.
+    :type prefix: ``str``
+
+    :rtype: ``dict``:
+    """
+    result = {}
+
+    for key, value in six.iteritems(dictionary):
+        result['%s%s' % (prefix, key)] = value
+
+    return result
