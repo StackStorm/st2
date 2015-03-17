@@ -15,11 +15,12 @@
 
 from __future__ import absolute_import
 
+import sys
 import logging
 import logging.config
 import logging.handlers
-import sys
 import traceback
+from functools import wraps
 
 import six
 from oslo.config import cfg
@@ -29,6 +30,7 @@ from st2common.logging.filters import ExclusionFilter
 # Those are here for backward compatibility reasons
 from st2common.logging.handlers import FormatNamedFileHandler
 from st2common.logging.handlers import ConfigurableSyslogHandler
+from st2common.util.misc import prefix_with_underscore
 
 __all__ = [
     'getLogger',
@@ -43,10 +45,45 @@ __all__ = [
 logging.AUDIT = logging.CRITICAL + 10
 logging.addLevelName(logging.AUDIT, 'AUDIT')
 
+LOGGER_KEYS = [
+    'debug',
+    'info',
+    'warning',
+    'error',
+    'critical',
+    'exception',
+]
+
+
+def decorate_log_method(func):
+    @wraps(func)
+    def func_wrapper(*args, **kwargs):
+        # Prefix extra keys with underscore
+        if 'extra' in kwargs:
+            kwargs['extra'] = prefix_with_underscore(kwargs['extra'])
+        return func(*args, **kwargs)
+    return func_wrapper
+
+
+def decorate_logger_methods(logger):
+    """
+    Decorate all the logger methods so all the keys in the extra dictionary are
+    automatically prefixed with an underscore to avoid clashes with standard log
+    record attributes.
+    """
+    for key in LOGGER_KEYS:
+        log_method = getattr(logger, key)
+        log_method = decorate_log_method(log_method)
+        setattr(logger, key, log_method)
+
+    return logger
+
 
 def getLogger(name):
     logger_name = 'st2.{}'.format(name)
-    return logging.getLogger(logger_name)
+    logger = logging.getLogger(logger_name)
+    logger = decorate_logger_methods(logger=logger)
+    return logger
 
 
 class LoggingStream(object):
