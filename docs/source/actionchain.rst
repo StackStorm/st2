@@ -68,7 +68,7 @@ For a user to provide input to an ActionChain the input parameters must be defin
 
    ---
       # ...
-      parameters:
+      params:
          input1:
             type: "string"
             required: true
@@ -84,7 +84,7 @@ The input parameter ``input1`` can now be referenced in the parameters field of 
          -
             name: "action1"
             ref: "core.local"
-            parameters:
+            params:
                action1_input: "{{input1}}"
       # ...
 
