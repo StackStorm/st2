@@ -40,9 +40,23 @@ COMMON_ATTRIBUTE_NAMES = [
 
 
 class BaseExtraLogFormatter(logging.Formatter):
+    """
+    Base class for the log formatters which expect additional context to be passed in the "extra"
+    dictionary.
+
+    For example:
+
+    extra={'_id': 'user-1', '_path': '/foo/bar'}
+
+    Note: To avoid clashes with standard Python log record attributes, all the keys in the extra
+    dictionary need to be prefixed with a slash ('_').
+    """
+
+    PREFIX = '_'
+
     def _get_extra_attributes(self, record):
         attributes = dict([(k, v) for k, v in six.iteritems(record.__dict__)
-                           if k.startswith('_')])
+                           if k.startswith(self.PREFIX)])
         return attributes
 
     def _get_common_extra_attributes(self, record):
@@ -80,10 +94,16 @@ class BaseExtraLogFormatter(logging.Formatter):
 
 class ConsoleLogFormatter(BaseExtraLogFormatter):
     """
-    Custom log formatter which attaches all the attributes from the "extra"
-    dictionary which start with an underscore to the end of the log message.
+    Formatter which attaches all the attributes from the "extra" dictionary as key=value pairs to
+    the end of the log message.
+
     For example:
-    extra={'_id': 'user-1', '_path': '/foo/bar'}
+
+        LOG.info('Hello world', extra={'_id': 1, '_path': '/fooo'})
+
+    Result:
+
+        Hello World (id=1,path=foo)
     """
 
     def format(self, record):
@@ -91,6 +111,8 @@ class ConsoleLogFormatter(BaseExtraLogFormatter):
         attributes = self._format_extra_attributes(attributes=attributes)
         attributes = self._dict_to_str(attributes=attributes)
 
+        # Call the parent format method so the final message is formed based on the "format"
+        # attribute in the config
         msg = super(ConsoleLogFormatter, self).format(record)
         msg = '%s (%s)' % (msg, attributes)
         return msg
@@ -108,6 +130,31 @@ class ConsoleLogFormatter(BaseExtraLogFormatter):
 class GelfLogFormatter(BaseExtraLogFormatter):
     """
     Formatter which formats messages as GELF 2 - https://www.graylog.org/resources/gelf-2/
+
+    For example:
+
+        LOG.info('Hello world', extra={'_id': 1, '_path': '/fooo'})
+
+    Result:
+
+        {
+            "version": "1.1",
+            "level": 6,
+            "timestamp": 1426590583,
+            "_python": {
+                "process": 11277,
+                "module": "__init__",
+                "funcName": "db_setup",
+                "processName": "MainProcess",
+                "lineno": 28,
+                "filename": "__init__.py"
+            },
+            "host": "vagrant-ubuntu-trusty-64",
+            "full_message": "2015-03-17 11:09:43,507 INFO [-] Hello world",
+            "_path": "/fooo",
+            "_id": 1,
+            "short_message": "Hello world"
+        }
     """
 
     # Maps python log level to syslog / gelf log level
