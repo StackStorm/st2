@@ -20,6 +20,7 @@ import tempfile
 import logging as logbase
 
 from st2common import log as logging
+from st2common.logging.formatters import ConsoleLogFormatter
 import st2tests.config as tests_config
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -27,13 +28,19 @@ RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
 CONFIG_FILE_PATH = os.path.join(RESOURCES_DIR, 'logging.conf')
 
 
-class TestLogger(unittest.TestCase):
+class MockRecord(object):
+    levelno = 40
+    exc_info = None
+    exc_text = None
+
+
+class LoggerTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         tests_config.parse_args()
 
     def setUp(self):
-        super(TestLogger, self).setUp()
+        super(LoggerTestCase, self).setUp()
         self.config_text = open(CONFIG_FILE_PATH).read()
         self.cfg_fd, self.cfg_path = tempfile.mkstemp()
         self.info_log_fd, self.info_log_path = tempfile.mkstemp()
@@ -46,7 +53,7 @@ class TestLogger(unittest.TestCase):
         self._remove_tempfile(self.cfg_fd, self.cfg_path)
         self._remove_tempfile(self.info_log_fd, self.info_log_path)
         self._remove_tempfile(self.audit_log_fd, self.audit_log_path)
-        super(TestLogger, self).tearDown()
+        super(LoggerTestCase, self).tearDown()
 
     def _remove_tempfile(self, fd, path):
         os.close(fd)
@@ -104,3 +111,35 @@ class TestLogger(unittest.TestCase):
         self.assertIn(msg, info_log_entries)
         audit_log_entries = open(self.audit_log_path).read()
         self.assertIn(msg, audit_log_entries)
+
+
+class ConsoleLogFormatterTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        tests_config.parse_args()
+
+    def test_format(self):
+        formatter = ConsoleLogFormatter()
+
+        # No extra attributes
+        mock_message = 'test message 1'
+
+        record = MockRecord()
+        record.getMessage = lambda: mock_message
+
+        message = formatter.format(record=record)
+        self.assertEqual(message, mock_message)
+
+        # Some extra attributes
+        mock_message = 'test message 2'
+        record = MockRecord()
+
+        # Add "extra" attributes
+        record._user_id = 1
+        record._value = 'bar'
+        record.ignored = 'foo'  # this one is ignored since it doesnt have a prefix
+        record.getMessage = lambda: mock_message
+
+        message = formatter.format(record=record)
+        expected = 'test message 2 (value=\'bar\',user_id=1)'
+        self.assertEqual(message, expected)
