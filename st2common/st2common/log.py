@@ -52,6 +52,7 @@ LOGGER_KEYS = [
     'error',
     'critical',
     'exception',
+    'log'
 ]
 
 
