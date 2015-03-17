@@ -26,6 +26,12 @@ PYTHON_TARGET := 2.7
 
 REQUIREMENTS := requirements.txt test-requirements.txt st2client/requirements.txt
 
+PIP_OPTIONS := $(ST2_PIP_OPTIONS)
+
+ifndef PIP_OPTIONS
+	PIP_OPTIONS := -U -q -r
+endif
+
 .PHONY: all
 all: requirements check tests docs
 
@@ -127,7 +133,7 @@ requirements: virtualenv $(REQUIREMENTS)
 	@echo
 	for req in $(REQUIREMENTS); do \
 		echo "Installing $$req..." ; \
-		. $(VIRTUALENV_DIR)/bin/activate && pip install -U -q -r $$req ; \
+		. $(VIRTUALENV_DIR)/bin/activate && pip install $(PIP_OPTIONS) $$req ; \
 	done
 
 .PHONY: virtualenv
