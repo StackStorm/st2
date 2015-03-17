@@ -28,7 +28,6 @@ import pecan.jsonify
 from st2common.util import mongoescape as util_mongodb
 from st2common.util import schema as util_schema
 from st2common.util.jsonify import json_encode
-from st2common.util.misc import prefix_with_underscore
 from st2common import log as logging
 from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 
@@ -147,8 +146,7 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
             # Log the incoming request
             values = copy.copy(request_info)
             values['filters'] = kwargs
-            extra = prefix_with_underscore(values)
-            LOG.info('%(method)s %(path)s with filters=%(filters)s' % values, extra=extra)
+            LOG.info('%(method)s %(path)s with filters=%(filters)s' % values, extra=values)
 
             if QUERY_PARAM_ATTRIBUTE_NAME in params and QUERY_PARAM_ATTRIBUTE_NAME in kwargs:
                 # Remove auth token if one is provided via query params
@@ -219,8 +217,7 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                         # methods which have a large result
                         log_msg = '%(method)s %(path)s' % values
 
-                    extra = prefix_with_underscore(values)
-                    LOG.info(log_msg, extra=extra)
+                    LOG.info(log_msg, extra=values)
 
                     if status_code:
                         pecan.response.status = status_code
