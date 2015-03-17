@@ -46,7 +46,7 @@ class RulesRegistrar(ResourceRegistrar):
                                                 content_type='rules')
         for pack, rules_dir in six.iteritems(content):
             try:
-                LOG.info('Registering rules from pack: %s', pack)
+                LOG.debug('Registering rules from pack: %s', pack)
                 rules = self._get_rules_from_pack(rules_dir)
                 count = self._register_rules_from_pack(pack, rules)
                 registered_count += count
