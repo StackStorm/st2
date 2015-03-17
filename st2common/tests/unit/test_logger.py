@@ -15,6 +15,7 @@
 
 import unittest
 import os
+import sys
 import json
 import uuid
 import tempfile
@@ -200,3 +201,30 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         self.assertEqual(parsed['_user_id'], 1)
         self.assertEqual(parsed['_value'], 'bar')
         self.assertTrue('ignored' not in parsed)
+
+        # Record with an exception
+        mock_exception = Exception('mock exception bar')
+
+        try:
+            raise mock_exception
+        except Exception:
+            mock_exc_info = sys.exc_info()
+
+        # Some extra attributes
+        mock_message = 'test message 3'
+
+        record = MockRecord()
+        record.msg = mock_message
+        record.exc_info = mock_exc_info
+
+        message = formatter.format(record=record)
+        parsed = json.loads(message)
+
+        for key in expected_keys:
+            self.assertTrue(key in parsed)
+
+        self.assertEqual(parsed['short_message'], mock_message)
+        self.assertTrue(mock_message in parsed['full_message'])
+        self.assertTrue('Traceback' in parsed['full_message'])
+        self.assertTrue('_exception' in parsed)
+        self.assertTrue('_traceback' in parsed)
