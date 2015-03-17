@@ -29,6 +29,8 @@ __all__ = [
 ]
 
 HOSTNAME = socket.gethostname()
+GELF_SPEC_VERSION = '1.1'
+
 COMMON_ATTRIBUTE_NAMES = [
     'process',
     'processName',
@@ -184,7 +186,7 @@ class GelfLogFormatter(BaseExtraLogFormatter):
         full_msg = super(GelfLogFormatter, self).format(record)
 
         data = {
-            'version': '1.1',
+            'version': GELF_SPEC_VERSION,
             'host': HOSTNAME,
             'short_message': msg,
             'full_message': full_msg,
