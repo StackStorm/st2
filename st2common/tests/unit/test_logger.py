@@ -20,7 +20,7 @@ import tempfile
 import logging as logbase
 
 from st2common import log as logging
-
+import st2tests.config as tests_config
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
@@ -28,6 +28,9 @@ CONFIG_FILE_PATH = os.path.join(RESOURCES_DIR, 'logging.conf')
 
 
 class TestLogger(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        tests_config.parse_args()
 
     def setUp(self):
         super(TestLogger, self).setUp()
