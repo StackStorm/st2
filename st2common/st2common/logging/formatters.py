@@ -114,7 +114,10 @@ class ConsoleLogFormatter(BaseExtraLogFormatter):
         # Call the parent format method so the final message is formed based on the "format"
         # attribute in the config
         msg = super(ConsoleLogFormatter, self).format(record)
-        msg = '%s (%s)' % (msg, attributes)
+
+        if attributes:
+            msg = '%s (%s)' % (msg, attributes)
+
         return msg
 
     def _dict_to_str(self, attributes):
