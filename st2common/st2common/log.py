@@ -30,7 +30,7 @@ from st2common.logging.filters import ExclusionFilter
 # Those are here for backward compatibility reasons
 from st2common.logging.handlers import FormatNamedFileHandler
 from st2common.logging.handlers import ConfigurableSyslogHandler
-from st2common.util.misc import prefix_with_underscore
+from st2common.util.misc import prefix_dict_keys
 
 __all__ = [
     'getLogger',
@@ -60,7 +60,7 @@ def decorate_log_method(func):
     def func_wrapper(*args, **kwargs):
         # Prefix extra keys with underscore
         if 'extra' in kwargs:
-            kwargs['extra'] = prefix_with_underscore(kwargs['extra'])
+            kwargs['extra'] = prefix_dict_keys(dictionary=kwargs['extra'], prefix='_')
         return func(*args, **kwargs)
     return func_wrapper
 

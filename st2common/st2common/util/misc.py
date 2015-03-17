@@ -16,19 +16,25 @@
 import six
 
 __all__ = [
-    'prefix_with_underscore'
+    'prefix_dict_keys'
 ]
 
 
-def prefix_with_underscore(dictionary):
+def prefix_dict_keys(dictionary, prefix='_'):
     """
-    Prefix dictionary keys with an underscore.
+    Prefix dictionary keys with a provided prefix.
+
+    :param dictionary: Dictionary whose keys to prefix.
+    :type dictionary: ``dict``
+
+    :param prefix: Key prefix.
+    :type prefix: ``str``
 
     :rtype: ``dict``:
     """
     result = {}
 
     for key, value in six.iteritems(dictionary):
-        result['_%s' % (key)] = value
+        result['%s%s' % (prefix, key)] = value
 
     return result
