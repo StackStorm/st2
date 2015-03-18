@@ -383,10 +383,11 @@ def register_runner_types():
         try:
             runnertype_db = RunnerType.add_or_update(runner_type_model)
 
+            extra = {'runnertype': runnertype_db}
             if update:
-                LOG.audit('RunnerType updated. RunnerType %s', runnertype_db)
+                LOG.audit('RunnerType updated. RunnerType %s', runnertype_db, extra=extra)
             else:
-                LOG.audit('RunnerType created. RunnerType %s', runnertype_db)
+                LOG.audit('RunnerType created. RunnerType %s', runnertype_db, extra=extra)
         except Exception:
             LOG.exception('Unable to register runner type %s.', runnertype['name'])
 

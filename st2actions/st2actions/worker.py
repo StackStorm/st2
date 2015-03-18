@@ -94,9 +94,9 @@ class Worker(ConsumerMixin):
         action_execution_db = executions.update_execution(liveaction_db)
 
         # Launch action
-        LOG.audit('Launching action execution.',
-                  extra={'action_execution_id': str(action_execution_db.id),
-                         'liveaction': liveaction_db.to_serializable_dict()})
+        extra = {'action_execution_id': action_execution_db.id, 'liveaction': liveaction_db}
+        LOG.audit('Launching action execution.', extra=extra)
+
         # the extra field will not be shown in non-audit logs so temporarily log at info.
         LOG.info('{~}action_execution: %s / {~}live_action: %s',
                  action_execution_db.id, liveaction_db.id)

@@ -65,8 +65,9 @@ class RunnerContainer(object):
 
         actionsensor.post_trigger(liveaction_db)
         liveaction_serializable = liveaction_db.to_serializable_dict()
-        LOG.audit('liveaction complete.',
-                  extra={'liveaction': liveaction_serializable})
+
+        extra = {'liveaction': liveaction_db}
+        LOG.audit('liveaction complete.', extra=extra)
         LOG.info('result :\n%s.', json.dumps(liveaction_serializable.get('result', None), indent=4))
 
         return liveaction_db.result
