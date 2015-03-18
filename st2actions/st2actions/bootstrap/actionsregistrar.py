@@ -126,7 +126,7 @@ class ActionsRegistrar(ResourceRegistrar):
         try:
             model = Action.add_or_update(model)
             extra = {'action': model}
-            LOG.audit('Action created. Action %s from %s.', model, action, extra=extra)
+            LOG.audit('Action updated. Action %s from %s.', model, action, extra=extra)
         except Exception:
             LOG.exception('Failed to write action to db %s.', model.name)
             raise
