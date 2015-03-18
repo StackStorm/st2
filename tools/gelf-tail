@@ -93,7 +93,11 @@ def main():
     line = sys.stdin.readline()
 
     while line:
-        process_line(line=line)
+        try:
+            process_line(line=line)
+        except Exception:
+            pass
+
         line = sys.stdin.readline()
 
 
