@@ -3,7 +3,7 @@
 set -e
 
 LOGFILE="/tmp/st2_startup.log"
-COMPONENTS="actionrunner st2api sensor_container rules_engine mistral st2resultstracker"
+COMPONENTS="st2actionrunner st2api st2sensorcontainer st2rulesengine mistral st2resultstracker"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
 
@@ -51,7 +51,7 @@ fi
 
 if [ ${1} == "restart-component" ]
 then
-    if  [ -z ${2} ] || [ ${2} != "actionrunner" -a ${2} != "st2api" -a ${2} != "sensor_container" -a ${2} != "rules_engine" -a ${2} != "mistral" -a ${2} != "st2resultstracker" ]
+    if  [ -z ${2} ] || [ ${2} != "st2actionrunner" -a ${2} != "st2api" -a ${2} != "st2sensorcontainer" -a ${2} != "st2rulesengine" -a ${2} != "mistral" -a ${2} != "st2resultstracker" ]
     then
         print_usage
         exit 1
@@ -81,12 +81,12 @@ fi
 function st2start(){
   for i in `seq 1 ${AR}`
   do
-    nohup actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
+    nohup st2actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
   done
   nohup st2api --config-file ${STANCONF} &>> ${LOGFILE} &
-  nohup sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup st2sensorcontainer --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup /usr/bin/st2resultstracker --config-file ${STANCONF} &>> ${LOGFILE} &
-  nohup rules_engine --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup st2rulesengine --config-file ${STANCONF} &>> ${LOGFILE} &
   if [[ "${CONTAINER}" == "DOCKER" ]]
   then
     /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
@@ -136,7 +136,7 @@ function restart_component() {
   COM=${1}
   if [[ ! -z $COM ]]
   then
-    if [[ "${COM}" == "actionrunner" ]]
+    if [[ "${COM}" == "st2actionrunner" ]]
     then
       PROC_COUNT=${AR}
     else

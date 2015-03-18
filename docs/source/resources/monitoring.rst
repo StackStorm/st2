@@ -86,7 +86,7 @@ You should see sensu.action-runners-rule listed.
     +--------------------------+--------------------------------+--------------------------------+
 
 5. Create a sensu check json like below in the exact path specified.
-(The sensu check monitors for exactly 10 |st2| actionrunners and alerts if the number of runners is less than 10.)
+(The sensu check monitors for exactly 10 |st2| action runners and alerts if the number of runners is less than 10.)
 
 ::
 
@@ -95,7 +95,7 @@ You should see sensu.action-runners-rule listed.
       "checks": {
         "cron_check": {
           "handlers": ["default", "st2"],
-          "command": "/etc/sensu/plugins/check-procs.rb -p actionrunner -C 10 ",
+          "command": "/etc/sensu/plugins/check-procs.rb -p st2actionrunner -C 10 ",
           "interval": 60,
           "subscribers": [ "webservers" ]
         }
@@ -151,7 +151,7 @@ You should see sensu.action-runners-rule listed.
 
 ::
 
-    ps auxww | grep actionrunner
+    ps auxww | grep st2actionrunner
 
 Pick any pid. Kill it like so.
 
@@ -190,7 +190,7 @@ You should see sensu.event_handler in the output.
 ::
 
     cat /tmp/sensu.webhook-sample.out
-    {u'action': u'create', u'check': {u'status': 2, u'executed': 1414603271, u'name': u'cron_check', u'handlers': [u'default', u'st2'], u'issued': 1414603271, u'interval': 60, u'command': u'/etc/sensu/plugins/check-procs.rb -p actionrunner -C 10 ', u'subscribers': [u'webservers'], u'duration': 0.046, u'output': u'CheckProcs CRITICAL: Found 9 matching processes; cmd /actionrunner/\n', u'history': [u'0', u'0', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2']}, u'client': {u'timestamp': 1414603261, u'version': u'0.14.0', u'name': u'st2express', u'subscriptions': [u'all', u'webservers'], u'address': u'172.168.90.50'}, u'occurrences': 1, u'id': u'e056509c-9728-48cd-95cc-c41a4b62ae0e'}
+    {u'action': u'create', u'check': {u'status': 2, u'executed': 1414603271, u'name': u'cron_check', u'handlers': [u'default', u'st2'], u'issued': 1414603271, u'interval': 60, u'command': u'/etc/sensu/plugins/check-procs.rb -p st2actionrunner -C 10 ', u'subscribers': [u'webservers'], u'duration': 0.046, u'output': u'CheckProcs CRITICAL: Found 9 matching processes; cmd /st2actionrunner/\n', u'history': [u'0', u'0', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2']}, u'client': {u'timestamp': 1414603261, u'version': u'0.14.0', u'name': u'st2express', u'subscriptions': [u'all', u'webservers'], u'address': u'172.168.90.50'}, u'occurrences': 1, u'id': u'e056509c-9728-48cd-95cc-c41a4b62ae0e'}
 
 15. Reset |st2| so you can bring back all the runners.
 
