@@ -54,13 +54,13 @@ class RuleEnforcer(object):
                       extra=extra)
             return None
 
-        liveaction_db = liveaction.get('id', None)
+        liveaction_id = liveaction.get('id', None)
         extra = {'trigger_instance': self.trigger_instance, 'rule': self.rule,
                  'liveaction': liveaction}
         LOG.audit('Rule enforced. Liveaction %s, TriggerInstance %s and Rule %s.',
-                  liveaction_db, self.trigger_instance, self.rule, extra=extra)
+                  liveaction_id, self.trigger_instance, self.rule, extra=extra)
 
-        return liveaction_db
+        return liveaction_id
 
     @staticmethod
     def _invoke_action(action, params, context=None):
