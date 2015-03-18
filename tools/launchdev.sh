@@ -59,7 +59,7 @@ function st2start(){
     cp -Rp ./contrib/examples $PACKS_BASE_DIR
 
     # activate virtualenv to set PYTHONPATH
-    source ./virtualenv/bin/activate
+    source $ST2_REPO/virtualenv/bin/activate
 
     # Kill existing st2 screens
     screen -wipe
