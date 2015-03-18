@@ -383,7 +383,7 @@ def register_runner_types():
         try:
             runnertype_db = RunnerType.add_or_update(runner_type_model)
 
-            extra = {'runnertype': runnertype_db}
+            extra = {'runnertype_db': runnertype_db}
             if update:
                 LOG.audit('RunnerType updated. RunnerType %s', runnertype_db, extra=extra)
             else:

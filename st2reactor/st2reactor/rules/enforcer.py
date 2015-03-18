@@ -47,7 +47,7 @@ class RuleEnforcer(object):
 
         liveaction_db = RuleEnforcer._invoke_action(self.rule.action, data, context)
         if not liveaction_db:
-            extra = {'trigger_instance': self.trigger_instance, 'rule': self.rule}
+            extra = {'trigger_instance_db': self.trigger_instance, 'rule_db': self.rule}
             LOG.audit('Rule enforcement failed. Liveaction for Action %s failed. '
                       'TriggerInstance: %s and Rule: %s',
                       self.rule.action.name, self.trigger_instance, self.rule,

@@ -149,7 +149,7 @@ def create_or_update_trigger_db(trigger):
 
     trigger_db = Trigger.add_or_update(trigger_db)
 
-    extra = {'trigger': trigger_db}
+    extra = {'trigger_db': trigger_db}
 
     if is_update:
         LOG.audit('Trigger updated. Trigger.id=%s' % (trigger_db.id), extra=extra)
@@ -225,7 +225,7 @@ def create_or_update_trigger_type_db(trigger_type):
 
     trigger_type_db = TriggerType.add_or_update(trigger_type_api)
 
-    extra = {'trigger_type': trigger_type_db}
+    extra = {'trigger_type_db': trigger_type_db}
 
     if is_update:
         LOG.audit('TriggerType updated. TriggerType.id=%s' % (trigger_type_db.id), extra=extra)

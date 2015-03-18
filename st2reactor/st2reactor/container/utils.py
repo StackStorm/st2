@@ -181,7 +181,7 @@ def _create_sensor_type(pack, name, description, artifact_uri, entry_point,
 
     sensor_type_db = SensorType.add_or_update(sensor_type)
 
-    extra = {'sensor_type': sensor_type_db}
+    extra = {'sensor_type_db': sensor_type_db}
     if is_update:
         LOG.audit('SensorType updated. SensorType.id=%s' % (sensor_type_db.id), extra=extra)
     else:

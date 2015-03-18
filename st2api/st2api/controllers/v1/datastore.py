@@ -101,7 +101,7 @@ class KeyValuePairController(RestController):
             abort(http_client.BAD_REQUEST, str(e))
             return
 
-        extra = {'kvp': kvp_db}
+        extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair updated. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
 
@@ -131,7 +131,7 @@ class KeyValuePairController(RestController):
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
 
-        extra = {'kvp': kvp_db}
+        extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair deleted. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
 
     @staticmethod

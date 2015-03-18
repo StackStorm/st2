@@ -101,7 +101,7 @@ class RulesRegistrar(ResourceRegistrar):
 
                 try:
                     rule_db = Rule.add_or_update(rule_db)
-                    extra = {'rule': rule_db}
+                    extra = {'rule_db': rule_db}
                     LOG.audit('Rule updated. Rule %s from %s.', rule_db, rule, extra=extra)
                 except Exception:
                     LOG.exception('Failed to create rule %s.', rule_api.name)

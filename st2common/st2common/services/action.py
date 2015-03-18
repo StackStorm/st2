@@ -84,7 +84,7 @@ def schedule(liveaction):
     LiveAction.publish_create(liveaction)
     ActionExecution.publish_create(execution)
 
-    extra = {'liveaction': liveaction, 'execution': execution}
+    extra = {'liveaction_db': liveaction, 'execution_db': execution}
     LOG.audit('Action execution scheduled. LiveAction.id=%s, ActionExecution.id=%s' %
               (liveaction.id, execution.id), extra=extra)
     return liveaction, execution

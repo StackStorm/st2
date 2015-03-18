@@ -91,7 +91,7 @@ class RuleController(resource.ResourceController):
             abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
             return
 
-        extra = {'rule': rule_db}
+        extra = {'rule_db': rule_db}
         LOG.audit('Rule created. Rule.id=%s' % (rule_db.id), extra=extra)
         rule_api = RuleAPI.from_model(rule_db)
 
@@ -115,7 +115,7 @@ class RuleController(resource.ResourceController):
             abort(http_client.BAD_REQUEST, str(e))
             return
 
-        extra = {'old_rule': old_rule_db, 'new_rule': rule_db}
+        extra = {'old_rule_db': old_rule_db, 'new_rule_db': rule_db}
         LOG.audit('Rule updated. Rule.id=%s.' % (rule_db.id), extra=extra)
         rule_api = RuleAPI.from_model(rule_db)
 
@@ -139,7 +139,7 @@ class RuleController(resource.ResourceController):
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
 
-        extra = {'rule': rule_db}
+        extra = {'rule_db': rule_db}
         LOG.audit('Rule deleted. Rule.id=%s.' % (rule_db.id), extra=extra)
 
     @staticmethod
