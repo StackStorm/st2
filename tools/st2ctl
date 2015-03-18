@@ -117,7 +117,25 @@ function st2stop(){
         echo "${COM} is not running"
       fi
     else
-      PID=`ps ax | grep -v grep | grep ${COM} | awk '{print $1}'`
+      ALT_COM=$COM
+      if [ "$COM" == "st2actionrunner" ]
+      then
+        ALT_COM="actionrunner"
+      fi
+
+      if [ "$COM" == "st2sensorcontainer" ]
+      then
+        ALT_COM="sensor_container"
+      fi
+
+      if [ "$COM" == "st2rulesengine" ]
+      then
+        ALT_COM="rules_engine"
+      fi
+
+      echo "Stopping $COM | $ALT_COM."
+
+      PID=`ps ax | grep -v grep | egrep "${COM}|${ALT_COM}" | awk '{print $1}'`
       if [[ ! -z $PID ]]
       then
         for p in $PID
@@ -134,6 +152,22 @@ function st2stop(){
 
 function restart_component() {
   COM=${1}
+  ALT_COM=$COM
+  if [ "$COM" == "st2actionrunner" ]
+  then
+    ALT_COM="actionrunner"
+  fi
+
+  if [ "$COM" == "st2sensorcontainer" ]
+  then
+    ALT_COM="sensor_container"
+  fi
+
+  if [ "$COM" == "st2rulesengine" ]
+  then
+    ALT_COM="rules_engine"
+  fi
+
   if [[ ! -z $COM ]]
   then
     if [[ "${COM}" == "st2actionrunner" ]]
@@ -142,7 +176,7 @@ function restart_component() {
     else
       PROC_COUNT=1
     fi
-    echo "restarting service ${COM} with ${PROC_COUNT} process(es)."
+    echo "Restarting service ${COM}|${ALT_COM} with ${PROC_COUNT} process(es)."
     if [[ "${COM}" == "mistral" ]]
     then
       if [[ "${CONTAINER}" == "DOCKER" ]]
@@ -154,7 +188,7 @@ function restart_component() {
         service mistral restart
       fi
     else
-      PID=`ps ax | grep -v grep | grep -v st2ctl | grep ${COM} | awk '{print $1}'`
+      PID=`ps ax | grep -v grep | grep -v st2ctl | egrep "${COM}|${ALT_COM}" | awk '{print $1}'`
       if [[ ! -z $PID ]]
       then
         for p in $PID
@@ -177,7 +211,7 @@ function restart_component() {
 
 function register_content() {
   echo "Registering content..."
-  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF} ${REGISTER_FLAGS}
+  $PYTHON ${PYTHONPACK}/st2common/bin/st2-register-content.py --config-file ${STANCONF} ${REGISTER_FLAGS}
 }
 
 clean_db() {
@@ -191,6 +225,8 @@ clean_logs() {
 }
 
 function getpids(){
+  echo "##### st2 components status #####"
+
   for COM in $COMPONENTS
   do
     PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
