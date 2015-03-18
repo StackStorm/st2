@@ -54,8 +54,8 @@ class RuleEnforcer(object):
                       extra=extra)
             return None
 
-        extra = {'trigger_instance': self.trigger_instance, 'rule': self.rule,
-                 'liveaction': liveaction_db}
+        extra = {'trigger_instance_db': self.trigger_instance, 'rule_db': self.rule,
+                 'liveaction_db': liveaction_db}
         LOG.audit('Rule enforced. Liveaction %s, TriggerInstance %s and Rule %s.',
                   liveaction_db, self.trigger_instance, self.rule, extra=extra)
 
