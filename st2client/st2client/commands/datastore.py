@@ -128,6 +128,10 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         instance = self.get_resource(resource_id, **kwargs)
+
+        if not instance:
+            raise resource.ResourceNotFoundError('KeyValuePair with id "%s" not found', resource_id)
+
         instance.id = resource_id  # TODO: refactor and get rid of id
         self.manager.delete(instance, **kwargs)
 

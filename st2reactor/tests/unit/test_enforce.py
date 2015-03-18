@@ -66,15 +66,15 @@ class EnforceTest(DbTestCase):
         return_value=(MOCK_LIVEACTION, None)))
     def test_ruleenforcement_occurs(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule1.json'])
-        execution_id = enforcer.enforce()
-        self.assertTrue(execution_id is not None)
+        liveaction_db = enforcer.enforce()
+        self.assertTrue(liveaction_db is not None)
 
     @mock.patch.object(action_service, 'schedule', mock.MagicMock(
         return_value=(MOCK_LIVEACTION, None)))
     def test_ruleenforcement_casts(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule2.json'])
-        execution_id = enforcer.enforce()
-        self.assertTrue(execution_id is not None)
+        liveaction_db = enforcer.enforce()
+        self.assertTrue(liveaction_db is not None)
         self.assertTrue(action_service.schedule.called)
         self.assertTrue(isinstance(action_service.schedule.call_args[0][0].parameters['objtype'],
                                    dict))

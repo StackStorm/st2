@@ -47,38 +47,46 @@ class TokenController(rest.RestController):
             return self._handle_standalone_auth(request=request, **kwargs)
 
     def _handle_proxy_auth(self, request, **kwargs):
+        remote_addr = pecan.request.headers.get('x-forwarded-for', pecan.request.remote_addr)
+        extra = {'remote_addr': remote_addr}
+
         if pecan.request.remote_user:
             ttl = getattr(request, 'ttl', None)
             token = self._create_token_for_user(username=pecan.request.remote_user, ttl=ttl)
             return self._process_successful_response(token=token)
 
-        LOG.audit('Access denied to anonymous user.')
+        LOG.audit('Access denied to anonymous user.', extra=extra)
         self._abort_request()
 
     def _handle_standalone_auth(self, request, **kwargs):
         authorization = pecan.request.authorization
 
+        auth_backend = self._auth_backend.__class__.__name__
+        remote_addr = pecan.request.remote_addr
+        extra = {'auth_backend': auth_backend, 'remote_addr': remote_addr}
+
         if not authorization:
-            LOG.audit('Authorization header not provided')
+            LOG.audit('Authorization header not provided', extra=extra)
             self._abort_request()
             return
 
         auth_type, auth_value = authorization
         if auth_type.lower() not in ['basic']:
-            LOG.audit('Unsupported authorization type: %s' % (auth_type))
+            extra['auth_type'] = auth_type
+            LOG.audit('Unsupported authorization type: %s' % (auth_type), extra=extra)
             self._abort_request()
             return
 
         try:
             auth_value = base64.b64decode(auth_value)
         except Exception:
-            LOG.audit('Invalid authorization header')
+            LOG.audit('Invalid authorization header', extra=extra)
             self._abort_request()
             return
 
         split = auth_value.split(':')
         if len(split) != 2:
-            LOG.audit('Invalid authorization header')
+            LOG.audit('Invalid authorization header', extra=extra)
             self._abort_request()
             return
 
@@ -91,7 +99,7 @@ class TokenController(rest.RestController):
             token = self._create_token_for_user(username=username, ttl=ttl)
             return self._process_successful_response(token=token)
 
-        LOG.audit('Invalid credentials provided')
+        LOG.audit('Invalid credentials provided', extra=extra)
         self._abort_request()
 
     def _abort_request(self, status_code=http_client.UNAUTHORIZED,

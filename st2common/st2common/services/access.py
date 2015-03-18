@@ -52,16 +52,22 @@ def create_token(username, ttl=None, metadata=None):
         except:
             user = UserDB(name=username)
             User.add_or_update(user)
-            LOG.audit('Registered new user "%s".' % username)
+
+            extra = {'username': username, 'user': user}
+            LOG.audit('Registered new user "%s".' % (username), extra=extra)
 
     token = uuid.uuid4().hex
     expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
     expiry = isotime.add_utc_tz(expiry)
     token = TokenDB(user=username, token=token, expiry=expiry, metadata=metadata)
     Token.add_or_update(token)
-    LOG.audit('Access granted to %s with the token set to expire at "%s".' %
-              ('user "%s"' % username if username else "an anonymous user",
-               isotime.format(expiry, offset=False)))
+
+    username_string = username if username else 'an anonymous user'
+    token_expire_string = isotime.format(expiry, offset=False)
+    extra = {'username': username, 'token_expiration': token_expire_string}
+
+    LOG.audit('Access granted to "%s" with the token set to expire at "%s".' %
+              (username_string, token_expire_string), extra=extra)
 
     return token
 
