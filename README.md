@@ -7,6 +7,7 @@
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/StackStorm/st2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## StackStorm Overview
+
 ### About
 
 StackStorm is a platform for integration and automation across services and tools. It ties together your existing infrastructure and application environment so you can more easily automate that environment -- with a particular focus on taking actions in response to events.
@@ -50,9 +51,13 @@ StackStorm is new and under active development. We are opening it early to engag
 
 Additional documentation describing installation proceduces, action/rule/workflow authoring, and how to setup and use triggers/sensors can be found at [StackStorm Docs](http://docs.stackstorm.com).
 
-## Hacking
+## Hacking / Contributing
 
 To set up dev environment and run StackStorm from sources, follow [these instructions](docs/source/install/sources.rst).
+
+For information on how to contribute, style guide, coding conventions and more,
+please visit the [Development section](http://docs.stackstorm.com/development/index.html)
+in our documentation.
 
 ## Copyright, License, and Contributors Agreement
 
