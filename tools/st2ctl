@@ -43,6 +43,27 @@ function print_usage() {
     echo "  --verbose           Output additional debug and informational messages."
 }
 
+function service_map() {
+  COM=$1
+  case $COM in
+  st2actionrunner)
+    ALT_COM="actionrunner"
+    ;;
+  st2sensorcontainer)
+    ALT_COM="sensor_container"
+    ;;
+  st2rulesengine)
+    ALT_COM="rules_engine"
+    ;;
+  *)
+    ALT_COM=$COM
+    ;;
+  esac
+
+  echo $ALT_COM
+}
+
+
 if [ -z ${1} ] || [ ${1} != "start" -a ${1} != "stop" -a ${1} != "restart" -a ${1} != "status" -a ${1} != "restart-component" -a ${1} != "reload" -a ${1} != "clean" ]
 then
     print_usage
@@ -117,21 +138,7 @@ function st2stop(){
         echo "${COM} is not running"
       fi
     else
-      ALT_COM=$COM
-      if [ "$COM" == "st2actionrunner" ]
-      then
-        ALT_COM="actionrunner"
-      fi
-
-      if [ "$COM" == "st2sensorcontainer" ]
-      then
-        ALT_COM="sensor_container"
-      fi
-
-      if [ "$COM" == "st2rulesengine" ]
-      then
-        ALT_COM="rules_engine"
-      fi
+      ALT_COM=`service_map $COM`
 
       echo "Stopping $COM | $ALT_COM."
 
@@ -152,21 +159,7 @@ function st2stop(){
 
 function restart_component() {
   COM=${1}
-  ALT_COM=$COM
-  if [ "$COM" == "st2actionrunner" ]
-  then
-    ALT_COM="actionrunner"
-  fi
-
-  if [ "$COM" == "st2sensorcontainer" ]
-  then
-    ALT_COM="sensor_container"
-  fi
-
-  if [ "$COM" == "st2rulesengine" ]
-  then
-    ALT_COM="rules_engine"
-  fi
+  ALT_COM=`service_map $COM`
 
   if [[ ! -z $COM ]]
   then
