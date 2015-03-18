@@ -74,7 +74,8 @@ class TriggerTypeController(resource.ContentPackResourceControler):
             abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
             return
         else:
-            LOG.audit('TriggerType created. TriggerType=%s', triggertype_db)
+            extra = {'triggertype': triggertype_db}
+            LOG.audit('TriggerType created. TriggerType.id=%s' % (triggertype_db.id), extra=extra)
             if not triggertype_db.parameters_schema:
                 TriggerTypeController._create_shadow_trigger(triggertype_db)
 
@@ -112,8 +113,9 @@ class TriggerTypeController(resource.ContentPackResourceControler):
             abort(http_client.BAD_REQUEST, str(e))
             return
 
-        LOG.audit('TriggerType updated. TriggerType=%s and original TriggerType=%s',
-                  triggertype_db, old_triggertype_db)
+        extra = {'old_triggertype': old_triggertype_db, 'new_triggertype': triggertype_db}
+        LOG.audit('TriggerType updated. TriggerType.id=%s' % (triggertype_db.id), extra=extra)
+
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
         return triggertype_api
 
@@ -151,7 +153,8 @@ class TriggerTypeController(resource.ContentPackResourceControler):
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
         else:
-            LOG.audit('TriggerType deleted. TriggerType=%s', triggertype_db)
+            extra = {'triggertype': triggertype_db}
+            LOG.audit('TriggerType deleted. TriggerType.id=%s' % (triggertype_db.id), extra=extra)
             if not triggertype_db.parameters_schema:
                 TriggerTypeController._delete_shadow_trigger(triggertype_db)
 
@@ -164,14 +167,16 @@ class TriggerTypeController(resource.ContentPackResourceControler):
                        'type': trigger_type_ref,
                        'parameters': {}}
             trigger_db = TriggerService.create_or_update_trigger_db(trigger)
-            LOG.audit('Trigger created for parameter-less TriggerType. Trigger=%s',
-                      trigger_db)
+
+            extra = {'trigger': trigger_db}
+            LOG.audit('Trigger created for parameter-less TriggerType. Trigger.id=%s' %
+                      (trigger_db.id), extra=extra)
         except (ValidationError, ValueError) as e:
                 LOG.exception('Validation failed for trigger data=%s.', trigger)
                 # Not aborting as this is convenience.
                 return
         except StackStormDBObjectConflictError as e:
-            LOG.warn('Trigger creation of %s failed with uniqueness conflict. Exception %s',
+            LOG.warn('Trigger creation of "%s" failed with uniqueness conflict. Exception: %s',
                      trigger, str(e))
             # Not aborting as this is convenience.
             return
@@ -189,7 +194,9 @@ class TriggerTypeController(resource.ContentPackResourceControler):
         except Exception:
             LOG.exception('Database delete encountered exception during delete of id="%s". ',
                           trigger_db.id)
-        LOG.audit('Trigger deleted. Trigger=%s', trigger_db)
+
+        extra = {'trigger': trigger_db}
+        LOG.audit('Trigger deleted. Trigger.id=%s' % (trigger_db.id), extra=extra)
 
 
 class TriggerController(RestController):
@@ -242,7 +249,8 @@ class TriggerController(RestController):
             abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
             return
 
-        LOG.audit('Trigger created. Trigger=%s', trigger_db)
+        extra = {'trigger': trigger_db}
+        LOG.audit('Trigger created. Trigger.id=%s' % (trigger_db.id), extra=extra)
         trigger_api = TriggerAPI.from_model(trigger_db)
 
         return trigger_api
@@ -262,7 +270,8 @@ class TriggerController(RestController):
             abort(http_client.BAD_REQUEST, str(e))
             return
 
-        LOG.audit('Trigger updated. Trigger=%s and original Trigger=%s.', trigger, trigger_db)
+        extra = {'old_trigger': trigger, 'new_trigger': trigger_db}
+        LOG.audit('Trigger updated. Trigger.id=%s' % (trigger.id), extra=extra)
         trigger_api = TriggerAPI.from_model(trigger_db)
 
         return trigger_api
@@ -285,7 +294,8 @@ class TriggerController(RestController):
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
 
-        LOG.audit('Trigger deleted. Trigger=%s', trigger_db)
+        extra = {'trigger': trigger_db}
+        LOG.audit('Trigger deleted. Trigger.id=%s' % (trigger_db.id), extra=extra)
 
     @staticmethod
     def __get_by_id(trigger_id):
