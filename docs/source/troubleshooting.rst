@@ -34,7 +34,7 @@ The easiest way to do that is to check the rules engine (st2rulesengine process)
 
 By default, rules engine logs are stored in ``/var/log/st2rulesengine.log``
 file. You should inspect this file (``cat``, ``grep`` and ``tail`` are your
-friends) and look for a line similar to the one bellow.
+friends) and look for a line similar to the one below.
 
 .. code-block:: bash
 
