@@ -32,7 +32,7 @@ LOG = logging.getLogger(__name__)
 
 
 class PythonActionWrapper(object):
-    def __init__(self, pack, file_path, parameters=None):
+    def __init__(self, pack, file_path, parameters=None, parent_args=None):
         """
         :param pack: Name of the pack this action belongs to.
         :type pack: ``str``
@@ -42,13 +42,17 @@ class PythonActionWrapper(object):
 
         :param parameters: action parameters.
         :type parameters: ``dict`` or ``None``
+
+        :param parent_args: Command line arguments passed to the parent process.
+        :type parse_args: ``list``
         """
         self._pack = pack
         self._file_path = file_path
         self._parameters = parameters or {}
+        self._parent_args = parent_args or []
 
         try:
-            config.parse_args(args=[])
+            config.parse_args(args=self._parent_args)
         except Exception:
             pass
 
@@ -95,12 +99,18 @@ if __name__ == '__main__':
                         help='Path to the action module')
     parser.add_argument('--parameters', required=False,
                         help='Serialized action parameters')
+    parser.add_argument('--parent-args', required=False,
+                        help='Command line arguments passed to the parent process')
     args = parser.parse_args()
 
     parameters = args.parameters
     parameters = json.loads(parameters) if parameters else {}
+    parent_args = json.loads(args.parent_args) if args.parent_args else []
+    assert isinstance(parent_args, list)
 
     obj = PythonActionWrapper(pack=args.pack,
                               file_path=args.file_path,
-                              parameters=parameters)
+                              parameters=parameters,
+                              parent_args=parent_args)
+
     obj.run()

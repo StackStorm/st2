@@ -25,6 +25,7 @@ __all__ = [
     'get_system_packs_base_path',
     'get_packs_base_paths',
     'get_pack_base_path',
+    'get_pack_directory',
     'check_pack_directory_exists',
     'check_pack_content_directory_exists'
 ]
@@ -136,6 +137,32 @@ def get_pack_base_path(pack_name):
     pack_base_path = os.path.join(packs_base_paths[0], pipes.quote(pack_name))
     pack_base_path = os.path.abspath(pack_base_path)
     return pack_base_path
+
+
+def get_pack_directory(pack_name):
+    """
+    Retrieve a directory for the provided pack.
+
+    If a directory for the provided pack doesn't exist in any of the search paths, None
+    is returned instead.
+
+    Note: If same pack exists in multiple search path, path to the first one is returned.
+
+    :param pack_name: Pack name.
+    :type pack_name: ``str``
+
+    :return: Pack to the pack directory.
+    :rtype: ``str`` or ``None``
+    """
+    packs_base_paths = get_packs_base_paths()
+    for packs_base_path in packs_base_paths:
+        pack_base_path = os.path.join(packs_base_path, pipes.quote(pack_name))
+        pack_base_path = os.path.abspath(pack_base_path)
+
+        if os.path.isdir(pack_base_path):
+            return pack_base_path
+
+    return None
 
 
 def get_entry_point_abs_path(pack=None, entry_point=None):
