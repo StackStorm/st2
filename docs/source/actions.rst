@@ -349,8 +349,8 @@ a ``run`` method.
 Sample Python action
 ~~~~~~~~~~~~~~~~~~~~
 
-below is an example of a Python action which prints text provided via the
-``message`` parameter to the standard output.
+An example of a Python action that prints text provided via the
+``message`` parameter to the standard output is given below.
 
 Metadata file (``my_echo_action.yaml``):
 
