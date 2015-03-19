@@ -83,7 +83,7 @@ attributes to be dispatched:
 Listing registered webhooks
 ---------------------------
 
-To list all the registered webhooks you can use the CLI as shown bellow:
+To list all the registered webhooks you can use the CLI as shown below:
 
 ::
 

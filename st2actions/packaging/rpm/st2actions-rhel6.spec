@@ -27,11 +27,11 @@ mkdir -p %{buildroot}/usr/local/lib/python2.7/site-packages
 mkdir -p %{buildroot}/usr/bin
 cp -R st2actions %{buildroot}/usr/local/lib/python2.7/site-packages/
 cp -R conf/* %{buildroot}/etc/st2actions
-install -m755 bin/actionrunner %{buildroot}/usr/bin/actionrunner
+install -m755 bin/st2actionrunner %{buildroot}/usr/bin/st2actionrunner
 install -m755 bin/st2resultstracker %{buildroot}/usr/bin/st2resultstracker
 %files
 
 /usr/local/lib/python2.7/site-packages/st2actions*
-/usr/bin/actionrunner
+/usr/bin/st2actionrunner
 /usr/bin/st2resultstracker
 /etc/st2actions*

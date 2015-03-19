@@ -81,7 +81,7 @@ function st2start(){
 
     echo 'Registering sensors, actions and rules...'
     ./virtualenv/bin/python \
-        ./st2common/bin/registercontent.py \
+        ./st2common/bin/st2-register-content.py \
         --config-file $ST2_CONF --register-all --verbose
 
     # Run the action runner server
@@ -94,20 +94,20 @@ function st2start(){
         # a screen for every runner
         echo '    starting runner ' $i '...'
         screen -S st2-actionrunner -X screen -t runner-$i ./virtualenv/bin/python \
-            ./st2actions/bin/actionrunner \
+            ./st2actions/bin/st2actionrunner \
             --config-file $ST2_CONF
     done
 
     # Run the sensor container server
     echo 'Starting screen session st2-sensorcontainer'
     screen -d -m -S st2-sensorcontainer ./virtualenv/bin/python \
-        ./st2reactor/bin/sensor_container \
+        ./st2reactor/bin/st2sensorcontainer \
         --config-file $ST2_CONF
 
     # Run the rules engine server
     echo 'Starting screen session st2-rulesengine...'
     screen -d -m -S st2-rulesengine ./virtualenv/bin/python \
-        ./st2reactor/bin/rules_engine \
+        ./st2reactor/bin/st2rulesengine \
         --config-file $ST2_CONF
 
     # Run the results tracker

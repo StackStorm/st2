@@ -29,5 +29,5 @@
       name: "restart-sensor-container"
       ref: "packs.restart_component"
       params:
-        servicename: "sensor_container"
+        servicename: "st2sensorcontainer"
   default: "download"
