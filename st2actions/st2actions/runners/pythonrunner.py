@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import sys
 import abc
 import json
 import uuid
@@ -122,7 +123,8 @@ class PythonRunner(ActionRunner):
             WRAPPER_SCRIPT_PATH,
             '--pack=%s' % (pack),
             '--file-path=%s' % (self.entry_point),
-            '--parameters=%s' % (serialized_parameters)
+            '--parameters=%s' % (serialized_parameters),
+            '--parent-args=%s' % (json.dumps(sys.argv[1:]))
         ]
 
         # We need to ensure all the st2 dependencies are also available to the
