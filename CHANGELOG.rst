@@ -6,6 +6,8 @@ v0.8.3 - TBD
 
 * Don't allow ``run-remote-script`` actions without an ``entry_point`` attribute - throw an
   exception when running an action. (improvement)
+* Fix ``packs.setup_virtualenv`` command so it works correctly if user specified multiple packs
+  search paths. (bug-fix)
 
 v0.8.2 - March 10, 2015
 -----------------------
