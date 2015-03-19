@@ -50,6 +50,8 @@ Code style guide
 * Use 4 spaces for a tab
 * Use 100 characters in a line
 * Make sure edited file doesn't contain any trailing whitespace
+* Make sure that all the source files contains an Apache 2.0 license header.
+  For example, see one of the existing Python files with source code.
 * You can verify that your modifications don't break any rules by running the
   lint script - ``make flake8``
 
