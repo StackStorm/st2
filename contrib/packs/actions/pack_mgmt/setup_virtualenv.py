@@ -4,7 +4,6 @@ import pipes
 
 from oslo.config import cfg
 
-import st2common.config as config
 from st2common.util.shell import run_command
 from st2actions.runners.pythonrunner import Action
 from st2common.constants.pack import PACK_NAME_WHITELIST
@@ -26,16 +25,8 @@ class SetupVirtualEnvironmentAction(Action):
 
     def __init__(self, config=None):
         super(SetupVirtualEnvironmentAction, self).__init__(config=config)
-        self.initialize()
-
         self._base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path,
                                                    'virtualenvs/')
-
-    def initialize(self):
-        try:
-            config.parse_args()
-        except:
-            pass
 
     def run(self, packs):
         """

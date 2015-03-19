@@ -4,7 +4,6 @@ import shutil
 
 from oslo.config import cfg
 
-import st2common.config as config
 from st2actions.runners.pythonrunner import Action
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 
@@ -14,16 +13,8 @@ BLOCKED_PACKS = frozenset(SYSTEM_PACK_NAMES)
 class UninstallPackAction(Action):
     def __init__(self, config=None):
         super(UninstallPackAction, self).__init__(config=config)
-        self.initialize()
-
         self._base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path,
                                                    'virtualenvs/')
-
-    def initialize(self):
-        try:
-            config.parse_args()
-        except:
-            pass
 
     def run(self, packs, abs_repo_base):
         intersection = BLOCKED_PACKS & frozenset(packs)
