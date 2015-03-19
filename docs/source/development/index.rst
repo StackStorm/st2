@@ -17,6 +17,20 @@ assist you.
 For information on contributing an integration pack, please refer to the
 :doc:`Create and Contribute a Pack </packs>` page.
 
+Setting up a development environment
+------------------------------------
+
+There are multiple ways for you to set up a development environment and get
+started with StackStorm development.
+
+The best and easiest approach is to use our Vagrant images which contains all
+the dependencies you need to get started. For more information, see
+:doc:`Using Vagrant </install/vagrant>`.
+
+Another approach is to install StackStorm and all the dependencies from source
+on a server or VM of your liking. For more information about this approach, see
+:doc:`Installing StackStorm from sources </install/sources>`.
+
 General contribution guidelines
 -------------------------------
 
@@ -58,6 +72,13 @@ product easier to debug and support.
 Every log statement should also include as much as useful additional context as
 possible. This context should be included in the dictionary which is passed via
 ``extra`` keyword argument to the logger method as shown bellow.
+
+Default log formatters we use include this additional context as part of the
+message which makes it easier for user to find the relevant information.
+
+On top of that, we also offer Gelf log formatters which outputs log messages in
+GELF format (structured JSON). Users can use this formatter to ship structured
+logs to Graylog2, loggly, logstash or a similar service.
 
 Obtaining a reference to the logger object
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
