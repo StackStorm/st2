@@ -231,6 +231,13 @@ function getpids(){
       done
     else
       echo "${COM} is not running"
+      if [ "$COM" == "st2sensorcontainer" ] || [ "$COM" == "sensor_container" ]
+      then
+        echo "Sensor container did not detect valid sensors to run."
+        echo "Please install sensors or check sensors configuration for existing ones."
+        echo "See http://docs.stackstorm.com/sensors.html."
+        echo "Use 'st2ctl restart-component st2sensorcontainer' to restart after you fix the problems."
+      fi
     fi
   done
 }
