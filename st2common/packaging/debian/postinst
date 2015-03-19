@@ -3,6 +3,9 @@
 if [ -d /etc/st2 ]; then
   sed -i -r "s~(st2.*)/conf~/etc/\1~g" /etc/st2/st2.conf
   sed -i "s~vagrant~/home/stanley~g" /etc/st2/st2.conf
+
+  # Enable auth by default
+  sed -i "s~enable = False~enable = True~g" /etc/st2/st2.conf
 fi
 
 chmod 755 /usr/bin/st2ctl
