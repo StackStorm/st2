@@ -51,7 +51,7 @@ install -m755 tools/st2ctl %{buildroot}/usr/bin/st2ctl
 %files
 %{python2_sitelib}/st2common*
 /usr/share/doc/st2/*
-/usr/share/doc/stackstorm/*
+/usr/share/stackstorm/*
 /etc/st2/*
 /opt/stackstorm/*
 /var/log/st2
