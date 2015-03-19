@@ -24,6 +24,6 @@ Contents:
     resources/index
     reference/index
     changelog
-    upgradenotes
+    upgrade_notes
     development/index
     roadmap
