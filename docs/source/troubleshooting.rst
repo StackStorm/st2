@@ -88,7 +88,7 @@ to the :ref:`testing-rules` section.
 You have now fixed your your rule criteria (or there was nothing wrong with it),
 but for some reason action is still not being fired / executed.
 
-If you see message similar to the one bellow in your rules engine service log,
+If you see message similar to the one below in your rules engine service log,
 this mean that everything is indeed working as it should - trigger is
 successfully matched against the rule criteria and an action execution is
 scheduled.
@@ -141,7 +141,7 @@ is only accessible to the StackStorm employees and it's used solely for
 debugging purposes.
 
 To send debug information to StackStorm, simply invoke the command shown
-bellow:
+below:
 
 .. sourcecode:: bash
 

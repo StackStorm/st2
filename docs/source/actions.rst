@@ -21,14 +21,14 @@ Actions can be executed when a :doc:`Rule </rules>` with a matching criteria is 
 Multiple Actions can be stringed together into a :doc:`Workflow </workflows>`. And each action can
 be executed directly from the clients via CLI, API, or UI.
 
-Managing and Running Actions 
+Managing and Running Actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 CLI interface provides an access to action management commands using ``st2 action <command>`` format. The list of available commands and their description can be obtained via
 
 .. code-block:: bash
 
    st2 action --help
-   
+
 To get more information on a praticular action command, run ``st2 action <command> -h`` command. For example the following will provide help for action list command:
 
 .. code-block:: bash
@@ -41,13 +41,13 @@ The following commands show examples on how to obtain information on available a
 
    # List all available actions (note that output may be lengthy)
    st2 action list
-   
+
    # List all actions in "linux" pack
    st2 action list -p linux
-   
+
    # Display information for a particular action linux.check_loadavg
    st2 action get linux.check_loadavg
-   
+
    # Alternatively, use CLI's run script to obtain information on action's arguments:
    st2 run linux.check_loadavg -h
 
@@ -57,7 +57,7 @@ To execute an action manually, you can use ``st2 run <action with parameters>`` 
 
    # Execute action immediately and display the results
    st2 run core.http url="http://localhost:9101"
-   
+
    # Schedule action execution
    st2 action execute core.http url="http://localhost:9101"
    # Obtain execution results (the command below is provided as a tip in the output of the above command):
@@ -111,7 +111,7 @@ Action is composed from two parts:
 2. A YAML metadata file which describes the action
 
 As noted above, action script can be written in an arbitrary programming
-language, as long as it follows some simple conventions described bellow:
+language, as long as it follows some simple conventions described below:
 
 1. Script should exit with ``0`` status code on success and non-zero on error
    (e.g. ``1``)
@@ -122,7 +122,7 @@ Action metadata
 
 Action metadata is used to describe the action and is defined as YAML (JSON is supported for backward
 compatibility). A list
-of attributes which can be present in the metadata file is included bellow.
+of attributes which can be present in the metadata file is included below.
 
 * ``name`` - Name of the action.
 * ``runner_type`` - The type of runner to execute the action.
@@ -130,7 +130,7 @@ of attributes which can be present in the metadata file is included bellow.
 * ``entry_point`` - Location of the action launch script relative to the /opt/stackstorm/packs/${pack_name}/actions/.
 * ``parameters`` - A dictionary of parameters and optional metadata describing type and default. The metadata is structured data following the [jsonschema][1] specification draft 4. If metadata is provided, input args are validated on action execution. Otherwise, validation is skipped.
 
-Bellow you can find a sample metadata for a Python action which sends an SMS via
+below you can find a sample metadata for a Python action which sends an SMS via
 the Twilio web service.
 
 .. code-block:: yaml
@@ -208,7 +208,7 @@ If you have an existing standalone script written in an arbitrary programming
 or scripting language and you want to convert it to an action, the process is
 very simple.
 
-You just need to follow the steps described bellow:
+You just need to follow the steps described below:
 
 1. Make sure the script comforms to the conventions described above
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -349,7 +349,7 @@ a ``run`` method.
 Sample Python action
 ~~~~~~~~~~~~~~~~~~~~
 
-Bellow is an example of a Python action which prints text provided via the
+below is an example of a Python action which prints text provided via the
 ``message`` parameter to the standard output.
 
 Metadata file (``my_echo_action.yaml``):
@@ -457,7 +457,7 @@ executed from the |st2| box.
 
     st2 run core.http url="http://localhost:9101/v1/actions" method="GET"
 
-To see other available predefined actions, run the command bellow.
+To see other available predefined actions, run the command below.
 
 ::
 

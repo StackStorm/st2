@@ -5,7 +5,7 @@ st2auth service is responsible for handling user authentication and generating
 user-scoped temporary access tokens. Those access tokens are used to
 authenticate against the st2api service.
 
-The service can run in two different modes which are described bellow.
+The service can run in two different modes which are described below.
 
 Configuring the service
 -----------------------
@@ -19,7 +19,7 @@ arguments.
     prefix them with ``auth-``. For example
     ``st2auth --auth-mode=standalone ...``
 
-The available options are described bellow:
+The available options are described below:
 
 * ``host`` - Hostname for the service to listen on.
 * ``port`` - Port for the service to listen on.

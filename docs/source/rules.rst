@@ -49,7 +49,7 @@ which gets passed to the operator function.
 In the ``matchregex`` case, ``pattern`` is a regular expression pattern which the trigger value
 needs to match.
 
-A list of all the available criteria operators is described bellow. If you are missing some
+A list of all the available criteria operators is described below. If you are missing some
 operator, you are welcome to code it up and submit a patch :)
 
 If the criteria key contains an operator like (-) then use the dictionary lookup format for specifying
@@ -357,7 +357,7 @@ Currently, we support the following timer trigger types:
   defined in UNIX cron format.
 
 Timers are implemented as triggers, which means you can use them inside the rules. In the section
-bellow, you can find some examples on how to use timers in the rule definitions.
+below, you can find some examples on how to use timers in the rule definitions.
 
 core.st2.IntervalTimer
 ~~~~~~~~~~~~~~~~~~~~~~

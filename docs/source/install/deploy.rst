@@ -17,7 +17,7 @@ arguments.
     prefix them with ``auth-``. For example
     ``st2auth --auth-mode=standalone ...``
 
-The available options are described bellow:
+The available options are described below:
 
 * ``host`` - Hostname for the service to listen on.
 * ``port`` - Port for the service to listen on.
