@@ -30,7 +30,13 @@ import st2tests.config as tests_config
 PACAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                      'pythonactions/actions/pascal_row.py')
 
+# Note: runner inherits parent args which doesn't work with tests since test pass additional
+# unrecognized args
+mock_sys = mock.Mock()
+mock_sys.argv = []
 
+
+@mock.patch('st2actions.runners.pythonrunner.sys', mock_sys)
 class PythonRunnerTestCase(TestCase):
 
     @classmethod
