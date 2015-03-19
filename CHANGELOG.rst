@@ -11,6 +11,8 @@ in development
 * Don't allow ``run-remote-script`` actions without an ``entry_point`` attribute - throw an
   exception when running an action. (improvement)
 * Rename all st2 processes to be prefixed by st2. (sensor_container is now st2sensorcontainer, rules_engine is now st2rulesengine, actionrunner is now st2actionrunner) (improvement)
+* Return a user friendly error on no sensors found or typo in sensor class name in single 
+  sensor mode. (improvement)
 
 v0.8.2 - March 10, 2015
 -----------------------
