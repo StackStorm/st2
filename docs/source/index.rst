@@ -25,4 +25,5 @@ Contents:
     reference/index
     changelog
     upgradenotes
+    development/index
     roadmap

@@ -45,25 +45,37 @@ class RuleEnforcer(object):
             'user': get_system_username()
         }
 
-        liveaction = RuleEnforcer._invoke_action(self.rule.action, data, context)
-        if not liveaction:
-            LOG.audit('Rule enforcement failed. liveaction for Action %s failed. '
+        liveaction_db = RuleEnforcer._invoke_action(self.rule.action, data, context)
+        if not liveaction_db:
+            extra = {'trigger_instance_db': self.trigger_instance, 'rule_db': self.rule}
+            LOG.audit('Rule enforcement failed. Liveaction for Action %s failed. '
                       'TriggerInstance: %s and Rule: %s',
-                      self.rule.action.name, self.trigger_instance, self.rule)
+                      self.rule.action.name, self.trigger_instance, self.rule,
+                      extra=extra)
             return None
 
-        liveaction_db = liveaction.get('id', None)
-        LOG.audit('Rule enforced. liveaction %s, TriggerInstance %s and Rule %s.',
-                  liveaction_db, self.trigger_instance, self.rule)
+        extra = {'trigger_instance_db': self.trigger_instance, 'rule_db': self.rule,
+                 'liveaction_db': liveaction_db}
+        LOG.audit('Rule enforced. Liveaction %s, TriggerInstance %s and Rule %s.',
+                  liveaction_db, self.trigger_instance, self.rule, extra=extra)
 
         return liveaction_db
 
     @staticmethod
     def _invoke_action(action, params, context=None):
+        """
+        Schedule an action execution.
+
+        :rtype: :class:`LiveActionDB` on successful schedueling, None otherwise.
+        """
         action_ref = action['ref']
+
         # prior to shipping off the params cast them to the right type.
         params = action_param_utils.cast_params(action_ref, params)
         liveaction = LiveActionDB(action=action_ref, context=context, parameters=params)
         liveaction, _ = action_service.schedule(liveaction)
-        return ({'id': str(liveaction.id)}
-                if liveaction.status == LIVEACTION_STATUS_SCHEDULED else None)
+
+        if liveaction.status == LIVEACTION_STATUS_SCHEDULED:
+            return liveaction
+        else:
+            return None

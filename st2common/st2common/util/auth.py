@@ -41,7 +41,7 @@ def validate_token(token_in_headers, token_in_query_params):
     :rtype: :class:`.TokenDB`
     """
     if not token_in_headers and not token_in_query_params:
-        LOG.audit('Token is not found in header or query parameyers.')
+        LOG.audit('Token is not found in header or query parameters.')
         raise exceptions.TokenNotProvidedError('Token is not provided.')
 
     if token_in_headers:

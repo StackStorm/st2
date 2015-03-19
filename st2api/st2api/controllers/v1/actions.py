@@ -113,7 +113,8 @@ class ActionsController(resource.ContentPackResourceControler):
 
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
 
-        LOG.audit('Action created. Action=%s', action_db)
+        extra = {'action_db': action_db}
+        LOG.audit('Action created. Action.id=%s' % (action_db.id), extra=extra)
         action_api = ActionAPI.from_model(action_db)
 
         return action_api
@@ -192,5 +193,6 @@ class ActionsController(resource.ContentPackResourceControler):
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
 
-        LOG.audit('Action deleted. Action=%s', action_db)
+        extra = {'action_db': action_db}
+        LOG.audit('Action deleted. Action.id=%s' % (action_db.id), extra=extra)
         return None

@@ -83,9 +83,11 @@ class BaseExtraLogFormatter(logging.Formatter):
                 # Leave simple types as is
                 value = value
             elif isinstance(value, object):
+                # Check for a custom serialization method
                 if getattr(value, 'to_dict', None):
-                    # Check for a custom serialization method
                     value = value.to_dict()
+                elif getattr(value, 'to_serializable_dict', None):
+                    value = value.to_serializable_dict()
                 else:
                     value = repr(value)
 

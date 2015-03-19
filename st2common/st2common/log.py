@@ -52,7 +52,9 @@ LOGGER_KEYS = [
     'error',
     'critical',
     'exception',
-    'log'
+    'log',
+
+    'audit'
 ]
 
 
