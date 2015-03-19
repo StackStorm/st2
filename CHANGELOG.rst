@@ -10,6 +10,7 @@ in development
   (improvements)
 * Don't allow ``run-remote-script`` actions without an ``entry_point`` attribute - throw an
   exception when running an action. (improvement)
+* Enable authentication by default for package based installations.
 
 v0.8.2 - March 10, 2015
 -----------------------
