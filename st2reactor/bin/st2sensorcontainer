@@ -18,4 +18,4 @@ if DEVEL:
     sys.path.append(python_lib_dir)
 
 if __name__ == '__main__':
-    sensormanager.main()
+    sys.exit(sensormanager.main())
