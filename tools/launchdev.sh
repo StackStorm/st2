@@ -28,7 +28,7 @@ function st2start(){
     cd ${ST2_REPO}
 
     if [ -z "$ST2_CONF" ]; then
-        ST2_CONF=${ST2_REPO}/conf/st2.conf
+        ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
     fi
     echo "Using st2 config file: $ST2_CONF"
 

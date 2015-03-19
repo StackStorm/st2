@@ -4,6 +4,7 @@ import unittest2
 import mock
 
 import st2tests.config as tests_config
+from st2tests.base import TESTS_CONFIG_PATH
 from st2reactor.container.sensor_wrapper import SensorWrapper
 from st2reactor.container.sensor_wrapper import SensorService
 from st2client.models.datastore import KeyValuePair
@@ -29,7 +30,7 @@ class SensorWrapperTestCase(unittest2.TestCase):
     def test_trigger_cud_event_handlers(self):
         file_path = os.path.join(RESOURCES_DIR, 'test_sensor.py')
         trigger_types = ['trigger1', 'trigger2']
-        parent_args = ['--config-file', 'conf/st2.conf']
+        parent_args = ['--config-file', TESTS_CONFIG_PATH]
 
         wrapper = SensorWrapper(pack='core', file_path=file_path,
                                 class_name='TestSensor',
@@ -78,7 +79,7 @@ class SensorServiceTestCase(unittest2.TestCase):
 
         file_path = os.path.join(RESOURCES_DIR, 'test_sensor.py')
         trigger_types = ['trigger1', 'trigger2']
-        parent_args = ['--config-file', 'conf/st2.conf']
+        parent_args = ['--config-file', TESTS_CONFIG_PATH]
         wrapper = SensorWrapper(pack='core', file_path=file_path,
                                 class_name='TestSensor',
                                 trigger_types=trigger_types,

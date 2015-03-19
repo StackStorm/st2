@@ -44,6 +44,9 @@ ALL_MODELS.extend(datastore_model.MODELS)
 ALL_MODELS.extend(actionrunner_model.MODELS)
 ALL_MODELS.extend(execution_model.MODELS)
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TESTS_CONFIG_PATH = os.path.join(BASE_DIR, '../conf/st2.conf')
+
 
 class EventletTestCase(TestCase):
     """
