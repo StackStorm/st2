@@ -18,6 +18,9 @@ An automation plaform that needs a much better description than this.
 %prep
 %setup
 
+%build
+# Empty section.
+
 %install
 
 mkdir -p %{buildroot}/usr/bin
