@@ -12,6 +12,7 @@ in development
   rules_engine is now st2rulesengine, actionrunner is now st2actionrunner) (improvement)
 * Return a user friendly error on no sensors found or typo in sensor class name in single
   sensor mode. (improvement)
+* Sensor container now returns non-zero exit codes for errors. (bug-fix)
 
 v0.8.3 - TBD
 ------------
