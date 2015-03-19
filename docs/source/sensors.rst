@@ -62,7 +62,7 @@ into the system, look at the `examples <#examples>`__ section.
 Sensor service
 --------------
 
-As you can see in the example above, a ``sensor_service`` is passed to each 
+As you can see in the example above, a ``sensor_service`` is passed to each
 sensor class constructor on instantiation.
 
 Sensor service provides different services to the sensor via public methods.
@@ -213,17 +213,17 @@ Debugging a sensor from a pack
 ------------------------------
 
 If you just want to run a single sensor from a pack and the sensor is already registered, you can
-use the sensor_container to run just that single sensor.
+use the st2sensorcontainer to run just that single sensor.
 
 ::
 
-    sensor_container --config-file=/etc/st2/st2.conf --sensor-name=SensorClassName
+    st2sensorcontainer --config-file=/etc/st2/st2.conf --sensor-name=SensorClassName
 
 For example:
 
 ::
 
-    sensor_container --config-file=/etc/st2/st2.conf --sensor-name=GitCommitSensor
+    st2sensorcontainer --config-file=/etc/st2/st2.conf --sensor-name=GitCommitSensor
 
 Examples
 --------

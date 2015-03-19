@@ -49,7 +49,7 @@ which gets passed to the operator function.
 In the ``matchregex`` case, ``pattern`` is a regular expression pattern which the trigger value
 needs to match.
 
-A list of all the available criteria operators is described bellow. If you are missing some
+A list of all the available criteria operators is described below. If you are missing some
 operator, you are welcome to code it up and submit a patch :)
 
 If the criteria key contains an operator like (-) then use the dictionary lookup format for specifying
@@ -236,7 +236,7 @@ Check that the value does not exist in the payload.
 Testing Rules
 -------------
 
-To make testing the rules easier we provide a ``rule_tester`` tool which allows evaluating rules against
+To make testing the rules easier we provide a ``st2-rule-tester`` tool which allows evaluating rules against
 trigger instances without running any of the StackStorm components.
 
 The tool works by taking a path to the file which contains rule definition and a file which
@@ -244,7 +244,7 @@ contains trigger instance definition:
 
 .. code-block:: bash
 
-    rule_tester --rule=${RULE_FILE} --trigger-instance=${TRIGGER_INSTANCE_DEFINITION}
+    st2-rule-tester --rule=${RULE_FILE} --trigger-instance=${TRIGGER_INSTANCE_DEFINITION}
     echo $?
 
 Both files need to contain definitions in YAML or JSON format. For the rule, you can use the same
@@ -319,7 +319,7 @@ trigger_instance_2.yaml:
 
 .. code-block:: bash
 
-    rule_tester --rule=./my_rule.yaml --trigger-instance=./trigger_instance_1.yaml
+    st2-rule-tester --rule=./my_rule.yaml --trigger-instance=./trigger_instance_1.yaml
     echo $?
 
 Output:
@@ -331,7 +331,7 @@ Output:
 
 .. code-block:: bash
 
-    rule_tester --rule=./my_rule.yaml --trigger-instance=./trigger_instance_2.yaml
+    st2-rule-tester --rule=./my_rule.yaml --trigger-instance=./trigger_instance_2.yaml
     echo $?
 
 Output:
@@ -357,7 +357,7 @@ Currently, we support the following timer trigger types:
   defined in UNIX cron format.
 
 Timers are implemented as triggers, which means you can use them inside the rules. In the section
-bellow, you can find some examples on how to use timers in the rule definitions.
+below, you can find some examples on how to use timers in the rule definitions.
 
 core.st2.IntervalTimer
 ~~~~~~~~~~~~~~~~~~~~~~

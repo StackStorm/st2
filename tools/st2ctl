@@ -3,7 +3,7 @@
 set -e
 
 LOGFILE="/tmp/st2_startup.log"
-COMPONENTS="actionrunner st2api sensor_container rules_engine mistral st2resultstracker"
+COMPONENTS="st2actionrunner st2api st2sensorcontainer st2rulesengine mistral st2resultstracker"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
 
@@ -43,6 +43,27 @@ function print_usage() {
     echo "  --verbose           Output additional debug and informational messages."
 }
 
+function service_map() {
+  COM=$1
+  case $COM in
+  st2actionrunner)
+    ALT_COM="actionrunner"
+    ;;
+  st2sensorcontainer)
+    ALT_COM="sensor_container"
+    ;;
+  st2rulesengine)
+    ALT_COM="rules_engine"
+    ;;
+  *)
+    ALT_COM=$COM
+    ;;
+  esac
+
+  echo $ALT_COM
+}
+
+
 if [ -z ${1} ] || [ ${1} != "start" -a ${1} != "stop" -a ${1} != "restart" -a ${1} != "status" -a ${1} != "restart-component" -a ${1} != "reload" -a ${1} != "clean" ]
 then
     print_usage
@@ -51,7 +72,7 @@ fi
 
 if [ ${1} == "restart-component" ]
 then
-    if  [ -z ${2} ] || [ ${2} != "actionrunner" -a ${2} != "st2api" -a ${2} != "sensor_container" -a ${2} != "rules_engine" -a ${2} != "mistral" -a ${2} != "st2resultstracker" ]
+    if  [ -z ${2} ] || [ ${2} != "st2actionrunner" -a ${2} != "st2api" -a ${2} != "st2sensorcontainer" -a ${2} != "st2rulesengine" -a ${2} != "mistral" -a ${2} != "st2resultstracker" ]
     then
         print_usage
         exit 1
@@ -81,12 +102,12 @@ fi
 function st2start(){
   for i in `seq 1 ${AR}`
   do
-    nohup actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
+    nohup st2actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
   done
   nohup st2api --config-file ${STANCONF} &>> ${LOGFILE} &
-  nohup sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup st2sensorcontainer --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup /usr/bin/st2resultstracker --config-file ${STANCONF} &>> ${LOGFILE} &
-  nohup rules_engine --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup st2rulesengine --config-file ${STANCONF} &>> ${LOGFILE} &
   if [[ "${CONTAINER}" == "DOCKER" ]]
   then
     /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
@@ -117,7 +138,11 @@ function st2stop(){
         echo "${COM} is not running"
       fi
     else
-      PID=`ps ax | grep -v grep | grep ${COM} | awk '{print $1}'`
+      ALT_COM=`service_map $COM`
+
+      echo "Stopping $COM | $ALT_COM."
+
+      PID=`ps ax | grep -v grep | egrep "${COM}|${ALT_COM}" | awk '{print $1}'`
       if [[ ! -z $PID ]]
       then
         for p in $PID
@@ -134,15 +159,17 @@ function st2stop(){
 
 function restart_component() {
   COM=${1}
+  ALT_COM=`service_map $COM`
+
   if [[ ! -z $COM ]]
   then
-    if [[ "${COM}" == "actionrunner" ]]
+    if [[ "${COM}" == "st2actionrunner" ]]
     then
       PROC_COUNT=${AR}
     else
       PROC_COUNT=1
     fi
-    echo "restarting service ${COM} with ${PROC_COUNT} process(es)."
+    echo "Restarting service ${COM}|${ALT_COM} with ${PROC_COUNT} process(es)."
     if [[ "${COM}" == "mistral" ]]
     then
       if [[ "${CONTAINER}" == "DOCKER" ]]
@@ -154,7 +181,7 @@ function restart_component() {
         service mistral restart
       fi
     else
-      PID=`ps ax | grep -v grep | grep -v st2ctl | grep ${COM} | awk '{print $1}'`
+      PID=`ps ax | grep -v grep | grep -v st2ctl | egrep "${COM}|${ALT_COM}" | awk '{print $1}'`
       if [[ ! -z $PID ]]
       then
         for p in $PID
@@ -177,7 +204,7 @@ function restart_component() {
 
 function register_content() {
   echo "Registering content..."
-  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF} ${REGISTER_FLAGS}
+  $PYTHON ${PYTHONPACK}/st2common/bin/st2-register-content.py --config-file ${STANCONF} ${REGISTER_FLAGS}
 }
 
 clean_db() {
@@ -191,6 +218,8 @@ clean_logs() {
 }
 
 function getpids(){
+  echo "##### st2 components status #####"
+
   for COM in $COMPONENTS
   do
     PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
