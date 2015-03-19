@@ -9,7 +9,8 @@ from st2common.util.shell import run_command
 from st2actions.runners.pythonrunner import Action
 from st2common.constants.pack import PACK_NAME_WHITELIST
 from st2common.constants.pack import BASE_PACK_REQUIREMENTS
-from st2common.content.utils import get_system_packs_base_path
+from st2common.content.utils import get_packs_base_paths
+from st2common.content.utils import get_pack_directory
 
 
 class SetupVirtualEnvironmentAction(Action):
@@ -27,7 +28,6 @@ class SetupVirtualEnvironmentAction(Action):
         super(SetupVirtualEnvironmentAction, self).__init__(config=config)
         self.initialize()
 
-        self._base_packs_path = get_system_packs_base_path()
         self._base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path,
                                                    'virtualenvs/')
 
@@ -51,6 +51,8 @@ class SetupVirtualEnvironmentAction(Action):
 
     def _setup_pack_virtualenv(self, pack_name):
         """
+        Setup virtual environment for the provided pack.
+
         :param pack_name: Pack name.
         :type pack_name: ``str``
         """
@@ -61,13 +63,16 @@ class SetupVirtualEnvironmentAction(Action):
 
         self.logger.debug('Setting up virtualenv for pack "%s"' % (pack_name))
 
-        pack_name = pipes.quote(pack_name)
-        pack_path = os.path.join(self._base_packs_path, pack_name)
-        virtualenv_path = os.path.join(self._base_virtualenvs_path, pack_name)
+        virtualenv_path = os.path.join(self._base_virtualenvs_path, pipes.quote(pack_name))
 
-        # Ensure virtualenvs directory exists
-        if not os.path.isdir(pack_path):
-            raise Exception('Pack "%s" is not installed' % (pack_name))
+        # Ensure pack directory exists in one of the search paths
+        pack_path = get_pack_directory(pack_name=pack_name)
+
+        if not pack_path:
+            packs_base_paths = get_packs_base_paths()
+            search_paths = ', '.join(packs_base_paths)
+            msg = 'Pack "%s" is not installed. Looked in: %s' % (pack_name, search_paths)
+            raise Exception(msg)
 
         if not os.path.exists(self._base_virtualenvs_path):
             os.makedirs(self._base_virtualenvs_path)
