@@ -204,7 +204,7 @@ function restart_component() {
 
 function register_content() {
   echo "Registering content..."
-  $PYTHON ${PYTHONPACK}/st2common/bin/st2-register-content.py --config-file ${STANCONF} ${REGISTER_FLAGS}
+  $PYTHON ${PYTHONPACK}/st2common/bin/st2-register-content --config-file ${STANCONF} ${REGISTER_FLAGS}
 }
 
 clean_db() {

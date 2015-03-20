@@ -81,7 +81,7 @@ function st2start(){
 
     echo 'Registering sensors, actions and rules...'
     ./virtualenv/bin/python \
-        ./st2common/bin/st2-register-content.py \
+        ./st2common/bin/st2-register-content \
         --config-file $ST2_CONF --register-all --verbose
 
     # Run the action runner server
