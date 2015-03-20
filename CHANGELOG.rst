@@ -8,6 +8,9 @@ v0.8.3 - TBD
   exception when running an action. (improvement)
 * Fix ``packs.setup_virtualenv`` command so it works correctly if user specified multiple packs
   search paths. (bug-fix)
+* Update sensor container to use ``auth.api_url`` setting when talking to the API (e.g. when
+  accessing a datastore, etc.). This way it also works correctly if sensor container is running
+  on a different host than the API. (bug-fix)
 
 v0.8.2 - March 10, 2015
 -----------------------
