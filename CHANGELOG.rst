@@ -19,6 +19,7 @@ v0.8.3 - TBD
 
 * Don't allow ``run-remote-script`` actions without an ``entry_point`` attribute - throw an
   exception when running an action. (improvement)
+* Enable authentication by default for package based installations.
 * Fix ``packs.setup_virtualenv`` command so it works correctly if user specified multiple packs
   search paths. (bug-fix)
 

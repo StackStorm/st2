@@ -2,8 +2,9 @@ Authentication
 ==============
 
 |st2| includes an auth service that is responsible for handling user authentication and generating
-time limited access tokens. When authentication mode is enabled, those access tokens are used to
-authenticate against the |st2| REST APIs.
+time limited access tokens. When authentication mode is enabled (authentication mode is enabled by
+default for package based installations), those access tokens are used to authenticate against the
+|st2| REST APIs.
 
 Configuring the service
 -----------------------
@@ -95,14 +96,8 @@ Run the following curl commands to test. ::
 Usage
 -----
 
-Once st2auth is setup, to enable st2api for authentication, change enable to True in
-the auth section at :github_st2:`st2.conf <conf/st2.conf>` and restart the st2api service. ::
-
-    [auth]
-    enable = True
-
-Once auth is enabled for st2api, API calls require token to be pass via the headers and CLI
-calls requires the token to be included as CLI argument or be stored in the environment.
+Once st2auth is setup, API calls require token to be passed via the headers and the CLI calls
+require the token to be included as a CLI argument or be provided as an environment variable.
 
 To acquire a new token via the CLI, run the ``st2 auth`` command.  If password is not provided,
 then ``st2 auth`` will prompt for the password. If successful, a token is returned in the

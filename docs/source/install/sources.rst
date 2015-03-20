@@ -57,7 +57,7 @@ and install required dependencies, and run tests.
 Configuration
 ~~~~~~~~~~~~~
 
-Specify a user for running local and remote SSH actions. In conf/st2.conf, change ``ssh_key_file``
+Specify a user for running local and remote SSH actions. In conf/st2.dev.conf, change ``ssh_key_file``
 to point to the user's key file:
 
 ::

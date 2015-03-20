@@ -19,8 +19,7 @@ An automation plaform that needs a much better description than this.
 %setup
 
 %build
-sed -i -r "s~(st2.*)/conf~/etc/\1~g" st2/st2.conf
-sed -i "s~vagrant~/home/stanley~g" st2/st2.conf
+# Empty section.
 
 %install
 
