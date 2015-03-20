@@ -16,17 +16,36 @@
 from oslo.config import cfg
 
 from st2common.constants.api import DEFAULT_API_VERSION
+from st2common.util.url import get_url_without_trailing_slash
 
 __all__ = [
-    'get_full_api_url'
+    'get_base_public_api_url',
+    'get_full_public_api_url'
 ]
 
 
-def get_full_api_url(api_version=DEFAULT_API_VERSION):
+def get_base_public_api_url():
     """
-    Return full URL to the API endpoint.
+    Return full public URL to the API endpoint (excluding the API version).
 
     :rtype: ``str``
     """
-    api_url = 'http://%s:%s/%s' % (cfg.CONF.api.host, cfg.CONF.api.port, api_version)
+    # Note: This is here for backward compatibility reasons - if api_url is not set we fall back
+    # to the old approach (using api listen host and port)
+    if cfg.CONF.auth.api_url:
+        api_url = get_url_without_trailing_slash(cfg.CONF.auth.api_url)
+    else:
+        api_url = 'http://%s:%s' % (cfg.CONF.api.host, cfg.CONF.api.port)
+
+    return api_url
+
+
+def get_full_public_api_url(api_version=DEFAULT_API_VERSION):
+    """
+    Return full public URL to the API endpoint (including the API version).
+
+    :rtype: ``str``
+    """
+    api_url = get_base_public_api_url()
+    api_url = '%s/%s' % (api_url, api_version)
     return api_url
