@@ -25,7 +25,7 @@ from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.services.access import create_token
-from st2common.util.api import get_full_api_url
+from st2common.util.api import get_full_public_api_url
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
@@ -200,7 +200,7 @@ class ProcessSensorContainer(object):
         ttl = (24 * 60 * 60)
         temporary_token = create_token(username='sensors_container', ttl=ttl)
 
-        env[API_URL_ENV_VARIABLE_NAME] = get_full_api_url()
+        env[API_URL_ENV_VARIABLE_NAME] = get_full_public_api_url()
         env[AUTH_TOKEN_ENV_VARIABLE_NAME] = temporary_token.token
 
         # TODO 1: Purge temporary token when service stops or sensor process dies
