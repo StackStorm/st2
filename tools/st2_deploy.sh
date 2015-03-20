@@ -4,7 +4,7 @@ function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" 
 
 if [ -z $1 ]
 then
-  VER='0.8.0'
+  VER='0.8.2'
 elif [[ "$1" == "latest" ]]; then
    VER='0.9dev'
 else
@@ -363,7 +363,7 @@ deploy_deb() {
 register_content() {
   echo "###########################################################################################"
   echo "# Registering all content"
-  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --register-sensors --register-actions --config-file ${STANCONF}
+  $PYTHON ${PYTHONPACK}/st2common/bin/st2-register-content --register-sensors --register-actions --config-file ${STANCONF}
 }
 
 create_user

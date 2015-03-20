@@ -5,6 +5,8 @@ import eventlet
 from oslo.config import cfg
 
 from st2common import log as logging
+from st2common.exceptions.sensors import NoSensorsFoundException
+from st2common.exceptions.sensors import SensorNotFoundException
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
@@ -70,11 +72,24 @@ def main():
             # Only run a single sensor
             sensors = [sensor for sensor in sensors if
                        sensor.name == cfg.CONF.sensor_name]
+            if not sensors:
+                raise SensorNotFoundException('Sensor %s not found in db.' % cfg.CONF.sensor_name)
+
+        if not sensors:
+            msg = 'No sensors configured to run. See http://docs.stackstorm.com/sensors.html.'
+            raise NoSensorsFoundException(msg)
+
         return container_manager.run_sensors(sensors=sensors)
     except SystemExit as exit_code:
-        sys.exit(exit_code)
+        return exit_code
+    except NoSensorsFoundException as e:
+        LOG.exception(e)
+        return 0
+    except SensorNotFoundException as e:
+        LOG.exception(e)
+        return 1
     except:
         LOG.exception('(PID:%s) SensorContainer quit due to exception.', os.getpid())
-        return 1
+        return 2
     finally:
         _teardown()

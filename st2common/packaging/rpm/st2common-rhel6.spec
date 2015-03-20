@@ -33,10 +33,12 @@ mkdir -p %{buildroot}/opt/stackstorm/packs/default/actions
 mkdir -p %{buildroot}/opt/stackstorm/packs/default/sensors
 mkdir -p %{buildroot}/opt/stackstorm/packs/default/rules
 mkdir -p %{buildroot}/usr/share/doc/st2
+mkdir -p %{buildroot}/usr/share/stackstorm
 cp -R contrib/core %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/packs %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/linux %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/examples %{buildroot}/usr/share/doc/st2/
+cp -R contrib/tests %{buildroot}/usr/share/stackstorm/
 cp -R docs/* %{buildroot}/usr/share/doc/st2/
 cp -R st2common %{buildroot}//usr/local/lib/python2.7/site-packages/
 cp -R bin %{buildroot}/usr/local/lib/python2.7/site-packages/st2common/
@@ -46,6 +48,7 @@ install -m755 tools/st2ctl %{buildroot}/usr/bin/st2ctl
 %files
 /usr/local/lib/python2.7/site-packages/st2common*
 /usr/share/doc/st2/*
+/usr/share/stackstorm/*
 /etc/st2/*
 /opt/stackstorm/*
 /var/log/st2
