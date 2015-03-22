@@ -13,10 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Shell utility functions which use non-blocking and eventlet friendly code.
+"""
+
 import os
-import subprocess
 
 import six
+from eventlet.green import subprocess
 
 __all__ = [
     'run_command'
@@ -24,7 +28,7 @@ __all__ = [
 
 
 def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
-                cwd=None, env=None):
+                cwd=None, env=None, timeout=60):
     """
     Run the provided command in a subprocess and wait until it completes.
 
@@ -50,16 +54,33 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 environment from the current process is inherited.
     :type env: ``dict``
 
-    :rtype: ``tuple`` (exit_code, stdout, stderr)
+    :param timeout: How long to wait before timing out.
+    :type timeout: ``float``
+
+    :rtype: ``tuple`` (exit_code, stdout, stderr, timed_out)
     """
     assert isinstance(cmd, (list, tuple) + six.string_types)
 
     if not env:
         env = os.environ.copy()
 
-    process = subprocess.Popen(cmd, stdin=stdin, stdout=stdout, stderr=stderr,
+    # Note: We are using eventlet friendly implementation of subprocess
+    # which uses GreenPipe so it doesn't block
+    process = subprocess.Popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
                                env=env, cwd=cwd, shell=shell)
+
+    try:
+        exit_code = process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        # Command has timed out, kill the process and propagate the error
+        # Note: process.kill() will set the returncode to -9 so we don't
+        # need to explicitly set it to some non-zero value
+        process.kill()
+        timed_out = True
+    else:
+        timed_out = False
+
     stdout, stderr = process.communicate()
     exit_code = process.returncode
 
-    return (exit_code, stdout, stderr)
+    return (exit_code, stdout, stderr, timed_out)
