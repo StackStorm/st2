@@ -14,19 +14,17 @@
 # limitations under the License.
 
 import uuid
-from distutils.spawn import find_executable
 
 from eventlet.green import subprocess
 
 from st2common import log as logging
-from st2actions.runners.windows_runner import BaseWindowsRunner
 from st2common.util.green_shell import run_command
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
+from st2actions.runners.windows_runner import BaseWindowsRunner
+from st2actions.runners.windows_runner import WINEXE_EXISTS
 
 LOG = logging.getLogger(__name__)
-
-WINEXE_EXISTS = find_executable('winexe') is not None
 
 # constants to lookup in runner_parameters
 RUNNER_HOST = 'host'
@@ -57,9 +55,9 @@ class WindowsCommandRunner(BaseWindowsRunner):
         # TODO :This is awful, but the way "runner_parameters" and other variables get
         # assigned on the runner instance is even worse. Those arguments should
         # be passed to the constructor.
+        self._host = self.runner_parameters.get(RUNNER_HOST, None)
         self._username = self.runner_parameters.get(RUNNER_USERNAME, None)
         self._password = self.runner_parameters.get(RUNNER_PASSWORD, None)
-        self._host = self.runner_parameters.get(RUNNER_HOST, None)
         self._command = self.runner_parameters.get(RUNNER_COMMAND, None)
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
 
