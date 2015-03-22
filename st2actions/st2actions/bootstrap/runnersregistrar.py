@@ -396,7 +396,7 @@ RUNNER_TYPES = [
                 'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
         },
-        'runner_module': 'st2actions.runners.windows_runner'
+        'runner_module': 'st2actions.runners.windows_command_runner'
     },
 
 ]

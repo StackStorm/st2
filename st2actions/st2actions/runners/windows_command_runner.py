@@ -36,17 +36,20 @@ RUNNER_TIMEOUT = 'timeout'
 
 
 def get_runner():
-    return WindowsRunner(str(uuid.uuid4()))
+    return WindowsCommandRunner(str(uuid.uuid4()))
 
 
-class WindowsRunner(ActionRunner):
+class WindowsCommandRunner(ActionRunner):
+    """
+    Runner which executes commands on a remote Windows machine.
+    """
 
     def __init__(self, runner_id, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT):
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``
         """
-        super(WindowsRunner, self).__init__(runner_id=runner_id)
+        super(WindowsCommandRunner, self).__init__(runner_id=runner_id)
         self._timeout = timeout
 
     def pre_run(self):
@@ -105,6 +108,9 @@ class WindowsRunner(ActionRunner):
 
     def _get_winexe_command_args(self, host, username, password, command, domain=None):
         args = ['winexe']
+
+        # Disable interactive mode
+        arg += ['--interactive', '0']
 
         if domain:
             args += ['-U', '%s\%s' % (domain, username)]
