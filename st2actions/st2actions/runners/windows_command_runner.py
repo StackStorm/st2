@@ -18,7 +18,7 @@ from distutils.spawn import find_executable
 
 from eventlet.green import subprocess
 
-from st2actions.runners import ActionRunner
+from st2actions.runners.windows_runner import BaseWindowsRunner
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
@@ -39,7 +39,7 @@ def get_runner():
     return WindowsCommandRunner(str(uuid.uuid4()))
 
 
-class WindowsCommandRunner(ActionRunner):
+class WindowsCommandRunner(BaseWindowsRunner):
     """
     Runner which executes commands on a remote Windows machine.
     """
@@ -105,20 +105,3 @@ class WindowsCommandRunner(ActionRunner):
         status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
         LOG.debug('Action output : %s. exit_code : %s. status : %s', str(output), exit_code, status)
         return (status, output, None)
-
-    def _get_winexe_command_args(self, host, username, password, command, domain=None):
-        args = ['winexe']
-
-        # Disable interactive mode
-        arg += ['--interactive', '0']
-
-        if domain:
-            args += ['-U', '%s\%s' % (domain, username)]
-        else:
-            args += ['-U', username]
-
-        args += ['--password', password]
-        args += ['//%s' % (host)]
-        args += [command]
-
-        return args
