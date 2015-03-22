@@ -18,8 +18,9 @@ from distutils.spawn import find_executable
 
 from eventlet.green import subprocess
 
-from st2actions.runners.windows_runner import BaseWindowsRunner
 from st2common import log as logging
+from st2actions.runners.windows_runner import BaseWindowsRunner
+from st2common.util.green_shell import run_command
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
 
@@ -28,9 +29,9 @@ LOG = logging.getLogger(__name__)
 WINEXE_EXISTS = find_executable('winexe') is not None
 
 # constants to lookup in runner_parameters
+RUNNER_HOST = 'host'
 RUNNER_USERNAME = 'username'
 RUNNER_PASSWORD = 'password'
-RUNNER_HOST = 'host'
 RUNNER_COMMAND = 'cmd'
 RUNNER_TIMEOUT = 'timeout'
 
@@ -71,24 +72,14 @@ class WindowsCommandRunner(BaseWindowsRunner):
                                              password=self._password,
                                              command=self._command)
 
-        # Note: We are using eventlet friendly implementation of subprocess
-        # which uses GreenPipe so it doesn't block
-        process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, shell=False)
+        exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE, shell=False,
+                                                           timeout=self._timeout)
 
-        try:
-            exit_code = process.wait(timeout=self._timeout)
-        except subprocess.TimeoutExpired:
-            # Action has timed out, kill the process and propagate the error
-            # Note: process.kill() will set the returncode to -9 so we don't
-            # need to explicitly set it to some non-zero value
-            process.kill()
+        if timed_out:
             error = 'Action failed to complete in %s seconds' % (self._timeout)
         else:
             error = None
-
-        stdout, stderr = process.communicate()
-        exit_code = process.returncode
 
         result = stdout
 
