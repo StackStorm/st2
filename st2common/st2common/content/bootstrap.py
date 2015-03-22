@@ -70,6 +70,7 @@ def register_actions():
         import st2actions.bootstrap.runnersregistrar as runners_registrar
         runners_registrar.register_runner_types()
     except Exception as e:
+        registered_count = 0
         LOG.warning('Failed to register runner types: %s', e, exc_info=True)
         LOG.warning('Not registering stock runners .')
     else:
