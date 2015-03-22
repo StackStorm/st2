@@ -359,7 +359,46 @@ RUNNER_TYPES = [
             }
         },
         'runner_module': 'st2actions.runners.pythonrunner'
-    }
+    },
+
+    # Experimental runners below
+    {
+        'name': 'run-windows-cmd',
+        'description': 'A remote execution runner that executes commands'
+                       'on Windows hosts.',
+        'enabled': True,
+        'runner_parameters': {
+            'host': {
+                'description': 'Host to execute the command on',
+                'type': 'string',
+                'required': True
+            },
+            'username': {
+                'description': 'Username used to log-in.',
+                'type': 'string',
+                'default': 'Administrator',
+                'required': True,
+            },
+            'password': {
+                'description': 'Password used to log in.',
+                'type': 'string',
+                'required': True
+            },
+            'cmd': {
+                'description': 'Arbitrary command to be executed on the '
+                               'remote host.',
+                'type': 'string'
+            },
+            'timeout': {
+                'description': ('Action timeout in seconds. Action will get killed if it '
+                                'doesn\'t finish in timeout seconds.'),
+                'type': 'integer',
+                'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+            }
+        },
+        'runner_module': 'st2actions.runners.windows_runner'
+    },
+
 ]
 
 
