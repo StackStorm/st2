@@ -15,7 +15,7 @@
 
 import os
 import uuid
-import pipes
+from subprocess import list2cmdline
 
 from eventlet.green import subprocess
 
@@ -23,6 +23,7 @@ from st2common import log as logging
 from st2common.util.green_shell import run_command
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2actions.runners.windows_runner import BaseWindowsRunner
 from st2actions.runners.windows_runner import WINEXE_EXISTS
 from st2actions.runners.windows_runner import SMBCLIENT_EXISTS
@@ -45,6 +46,16 @@ RUNNER_COMMAND = 'cmd'
 RUNNER_TIMEOUT = 'timeout'
 RUNNER_SHARE_NAME = 'share'
 
+UPLOAD_FILE_TIMEOUT = 30
+CREATE_DIRECTORY_TIMEOUT = 10
+DELETE_FILE_TIMEOUT = 10
+DELETE_DIRECTORY_TIMEOUT = 10
+
+def quote(value):
+    # Note: pipes.quote only work on Linux
+    result = list2cmdline([value])
+    return result
+
 
 def get_runner():
     return WindowsScriptRunner(str(uuid.uuid4()))
@@ -54,6 +65,14 @@ class WindowsScriptRunner(BaseWindowsRunner):
     """
     Runner which executes power shell scripts on a remote Windows machine.
     """
+
+    def __init__(self, runner_id, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT):
+        """
+        :param timeout: Action execution timeout in seconds.
+        :type timeout: ``int``
+        """
+        super(WindowsScriptRunner, self).__init__(runner_id=runner_id)
+        self._timeout = timeout
 
     def pre_run(self):
         # TODO :This is awful, but the way "runner_parameters" and other variables get
@@ -114,14 +133,19 @@ class WindowsScriptRunner(BaseWindowsRunner):
         :param script_path: Full path to the script on the remote server.
         :type script_path: ``str``
         """
-        command = 'powershell.exe %s' % (pipes.quote(script_path))
+        command = 'powershell.exe %s' % (quote(script_path))
         args = self._get_winexe_command_args(host=self._host, username=self._username,
                                              password=self._password,
                                              command=command)
 
+        LOG.debug('Running script "%s"' % (script_path))
+
         exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
                                                            stderr=subprocess.PIPE, shell=False,
                                                            timeout=self._timeout)
+
+        extra = {'exit_code': exit_code, 'stdout': stdout, 'stderr': stderr}
+        LOG.debug('Command returned', extra=extra)
 
         return exit_code, stdout, stderr, timed_out
 
@@ -135,7 +159,7 @@ class WindowsScriptRunner(BaseWindowsRunner):
         file_name = os.path.basename(local_path)
 
         temporary_directory_name = str(uuid.uuid4())
-        command = 'mkdir %s' % (pipes.quote(temporary_directory_name))
+        command = 'mkdir %s' % (quote(temporary_directory_name))
 
         # 1. Create a temporary dir for out scripts (ignore errors if it already exists)
         # Note: We don't necessary have access to $TEMP so we create a temporary directory for our
@@ -144,22 +168,33 @@ class WindowsScriptRunner(BaseWindowsRunner):
                                                 password=self._password, command=command,
                                                 share=self._share)
 
+        LOG.debug('Creating temp directory "%s"' % (temporary_directory_name))
+
         exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
                                                            stderr=subprocess.PIPE, shell=False,
-                                                           timeout=10)
+                                                           timeout=CREATE_DIRECTORY_TIMEOUT)
+
+        extra = {'exit_code': exit_code, 'stdout': stdout, 'stderr': stderr}
+        LOG.debug('Directory created', extra=extra)
 
         # 2. Upload file to temporary directory
         remote_path = PATH_SEPARATOR.join([temporary_directory_name, file_name])
 
-        values = {'local_path': pipes.quote(local_path), 'remote_path': pipes.quote(remote_path)}
-        command = 'put %(local_path)s %(remote_paths)' % values
+        values = {'local_path': quote(local_path), 'remote_path': quote(remote_path)}
+        command = 'put %(local_path)s %(remote_path)s' % values
         args = self._get_smbclient_command_args(host=self._host, username=self._username,
                                                 password=self._password, command=command,
                                                 share=self._share)
 
+        extra = {'local_path': local_path, 'remote_path': remote_path}
+        LOG.debug('Uploading file to "%s"' % (remote_path))
+
         exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
                                                            stderr=subprocess.PIPE, shell=False,
-                                                           timeout=60)
+                                                           timeout=UPLOAD_FILE_TIMEOUT)
+
+        extra = {'exit_code': exit_code, 'stdout': stdout, 'stderr': stderr}
+        LOG.debug('File uploaded to "%s"' % (remote_path), extra=extra)
 
         # TODO: Get full path, use share name, etc.
         full_remote_file_path = 'C:\\\\' + remote_path
@@ -168,25 +203,26 @@ class WindowsScriptRunner(BaseWindowsRunner):
         return full_remote_file_path, full_temporary_directory_path
 
     def _delete_file(self, file_path):
-        command = 'rm %(file_path)s' % {'file_path': pipes.quote(file_path)}
+        command = 'rm %(file_path)s' % {'file_path': quote(file_path)}
         args = self._get_smbclient_command_args(host=self._host, username=self._username,
                                                 password=self._password, command=command,
                                                 share=self._share)
 
         exit_code, _, _, _ = run_command(cmd=args, stdout=subprocess.PIPE,
                                          stderr=subprocess.PIPE, shell=False,
-                                         timeout=15)
+                                         timeout=DELETE_FILE_TIMEOUT)
 
-        return exit.code == 0
+        return exit_code == 0
 
     def _delete_directory(self, directory_path):
-        command = 'rmdir %(directory_path)s' % {'directory_path': pipes.quote(directory_path)}
+        command = 'rmdir %(directory_path)s' % {'directory_path': quote(directory_path)}
         args = self._get_smbclient_command_args(host=self._host, username=self._username,
                                                 password=self._password, command=command,
                                                 share=self._share)
 
+        LOG.debug('Removing directory "%s"' % (directory_path))
         exit_code, _, _, _ = run_command(cmd=args, stdout=subprocess.PIPE,
                                          stderr=subprocess.PIPE, shell=False,
-                                         timeout=15)
+                                         timeout=DELETE_DIRECTORY_TIMEOUT)
 
-        return exit.code == 0
+        return exit_code == 0

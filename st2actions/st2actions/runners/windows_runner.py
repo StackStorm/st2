@@ -61,13 +61,13 @@ class BaseWindowsRunner(ActionRunner):
         if domain:
             auth_string = '%(domains)s\%(username)s%%(password)s' % values
         else:
-            auth_string = '(username)s%%(password)s' % values
+            auth_string = '%(username)s%%%(password)s' % values
 
         # Authentication info
         args += ['-U', auth_string]
 
         # Host and share
-        args += ['//%(host)s/$(share)s' % {'host': host, 'share': share}]
+        args += ['//%(host)s/%(share)s' % {'host': host, 'share': share}]
 
         # Command
         args += ['-c', command]
