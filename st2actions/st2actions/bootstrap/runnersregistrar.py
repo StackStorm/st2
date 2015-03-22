@@ -398,7 +398,43 @@ RUNNER_TYPES = [
         },
         'runner_module': 'st2actions.runners.windows_command_runner'
     },
-
+    {
+        'name': 'run-windows-script',
+        'description': 'A remote execution runner that executes power shell scripts'
+                       'on Windows hosts.',
+        'enabled': True,
+        'runner_parameters': {
+            'host': {
+                'description': 'Host to execute the command on',
+                'type': 'string',
+                'required': True
+            },
+            'username': {
+                'description': 'Username used to log-in.',
+                'type': 'string',
+                'default': 'Administrator',
+                'required': True,
+            },
+            'password': {
+                'description': 'Password used to log in.',
+                'type': 'string',
+                'required': True
+            },
+            'share': {
+                'description': 'Name of the Windows share where script files are uploaded',
+                'type': 'string',
+                'required': True,
+                'default': 'C$'
+            },
+            'timeout': {
+                'description': ('Action timeout in seconds. Action will get killed if it '
+                                'doesn\'t finish in timeout seconds.'),
+                'type': 'integer',
+                'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+            }
+        },
+        'runner_module': 'st2actions.runners.windows_script_runner'
+    }
 ]
 
 
