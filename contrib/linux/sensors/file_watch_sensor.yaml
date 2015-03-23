@@ -4,6 +4,18 @@
   description: "Sensor which monitors files for new lines"
   trigger_types:
     -
+      name: "file_watch.file_path"
+      description: "Trigger which represents a file path to be monitored"
+      parameters_schema:
+        type: "object"
+        properties:
+          file_path:
+            description: "Path to the file to monitor"
+            type: "string"
+        required:
+          - "file_path"
+        additionalProperties: false
+    -
       name: "file_watch.line"
       description: "Trigger which indicates a new line has been detected"
       payload_schema:
