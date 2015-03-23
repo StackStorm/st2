@@ -5,7 +5,7 @@ Rules
 Rules map triggers to actions (or workflows), apply matching criteria and
 map trigger payload to action inputs.
 
-Writing a Rule
+Rule Structure
 --------------
 
 Rules are defined in YAML; JSON is supported for backward compatibility. Rule definition structure, as well as required and optional elements are listed below:
@@ -21,27 +21,88 @@ Rules are defined in YAML; JSON is supported for backward compatibility. Rule de
             type: "trigger_type_ref"
 
         criteria:                              # optional
-            # See below ...
+            trigger.payload_parameter_name1:
+                type: "matchregex"
+                pattern : "^value$"
+            trigger.payload_parameter_name2:
+                type: "iequals"
+                pattern : "watchevent"
 
         action:                                # required
             ref: "action_ref"
             parameters:                        # optional
                 foo: "bar"
-                baz: 1
+                baz: "{{trigger.payload_parameter_1}}"
+
+The generic form of a rule is:
+
+* The ``name`` of the rule.
+* The ``description`` of the rule
+* The ``enabled`` state of a rule (``true`` or ``false``)
+* The type of ``trigger`` emitted from sensors to monitor, which may consist of:
+  * parameters associated with a sensor/trigger
+* An optional set of **criteria**, consisting of:
+  * An attribute of the trigger payload
+  * The ``type`` of criteria comparision
+  * The ``pattern`` to match against
+* The ``action`` to execute when a rule is matched, consisting of:
+  * The ``ref`` (action/workflow) to execute
+  * An optional set of ``parameters`` to pass to the action execution.
 
 
-Criteria in the rule is expressed as:
+Trigger
+-------
+
+The trigger in a rule specifies which incoming events should be inspected for potential match against this rule.
+It is possible to view all the triggers configured on a system via the command line with the ``st2 trigger list``
+command
+
+.. code-block:: shell
+
+    vagrant@st2express:~$ st2 trigger list
+    +--------------------------------+-----------+---------------------------+---------------------------------------------------------------------------------+
+    | ref                            | pack      | name                      | description                                                                     |
+    +--------------------------------+-----------+---------------------------+---------------------------------------------------------------------------------+
+    | core.st2.webhook               | core      | st2.webhook               | Trigger type for registering webhooks that can consume arbitrary payload.       |
+    | core.st2.generic.actiontrigger | core      | st2.generic.actiontrigger | Trigger encapsulating the completion of an action execution.                    |
+    | core.st2.IntervalTimer         | core      | st2.IntervalTimer         | Triggers on specified intervals. e.g. every 30s, 1week etc.                     |
+    | core.st2.DateTimer             | core      | st2.DateTimer             | Triggers exactly once when the current time matches the specified time. e.g.    |
+    |                                |           |                           | timezone:UTC date:2014-12-31 23:59:59.                                          |
+    | core.st2.CronTimer             | core      | st2.CronTimer             | Triggers whenever current time matches the specified time constaints like a     |
+    |                                |           |                           | UNIX cron scheduler.                                                            |
+    | core.st2.sensor.process_spawn  | core      | st2.sensor.process_spawn  | Trigger encapsulating spawning of a sensor process.                             |
+    | autoscale.ScaleDownPulse       | autoscale | ScaleDownPulse            | Pulse trigger emitted when an ASG is eligible for deflation                     |
+    | autoscale.ScaleUpPulse         | autoscale | ScaleUpPulse              | Pulse trigger emitted when an ASG is eligible for expansion                     |
+    | slack.message                  | slack     | message                   | Trigger which indicates a new message has been posted to a channel              |
+    | linux.file_watch.line          | linux     | file_watch.line           | Trigger which indicates a new line has been detected                            |
+    | core.st2.sensor.process_exit   | core      | st2.sensor.process_exit   | Trigger encapsulating exit of a sensor process.                                 |
+    | newrelic.WebAppAlertTrigger    | newrelic  | WebAppAlertTrigger        |                                                                                 |
+    | newrelic.WebAppNormalTrigger   | newrelic  | WebAppNormalTrigger       |                                                                                 |
+    | newrelic.ServerAlertTrigger    | newrelic  | ServerAlertTrigger        |                                                                                 |
+    | newrelic.ServerNormalTrigger   | newrelic  | ServerNormalTrigger       |                                                                                 |
+    | dripstat.alert                 | dripstat  | alert                     | Trigger representing an active alert                                            |
+    +--------------------------------+-----------+---------------------------+---------------------------------------------------------------------------------+
+
+
+To learn more about Sensors/Triggers, take a look at the :doc:`sensors` page.
+
+
+Criteria
+--------
+
+Rule criteria are the rule(s) needed to be matched against (Logical ``AND``). Criteria in the rule is expressed as:
 
 .. code-block:: yaml
 
-    criteria:
-        trigger.payload_parameter_name1:
-            type: "matchregex"
-            pattern : "^value$"
-        trigger.payload_parameter_name2:
-            type: "iequals"
-            pattern : "watchevent"
         # more variables
+        criteria:
+            trigger.payload_parameter_name1:
+                type: "matchregex"
+                pattern : "^value$"
+            trigger.payload_parameter_name2:
+                type: "iequals"
+                pattern : "watchevent"
+
 
 ``type`` specifies which criteria comparison operator to use and ``pattern`` specifies a pattern
 which gets passed to the operator function.
@@ -52,7 +113,7 @@ needs to match.
 A list of all the available criteria operators is described below. If you are missing some
 operator, you are welcome to code it up and submit a patch :)
 
-If the criteria key contains an operator like (-) then use the dictionary lookup format for specifying
+If the criteria key contains an special characters (like ``-``) then use the dictionary lookup format for specifying
 the criteria key. In case of a webhook based rule it is typical for the header of the posted event to
 contain such values e.g.
 
@@ -62,6 +123,81 @@ contain such values e.g.
         trigger.headers['X-Custom-Header']:
             type: "eq"
             pattern : "customvalue"
+
+
+Critera Comparision
+-------------------
+
+This section describes all the available operators which can be used in the criteria.
+
+.. note::
+
+    **For Developers:** The criteria comparision functions are defined in
+    :github_st2:`st2/st2common/st2common/operators.py </st2common/st2common/operators.py>`.
+
+===============  ===============================================================
+ Operator         Description
+===============  ===============================================================
+``equals``       values are equal (for values of arbitrary type);
+``nequals``      values are not equal (for values of arbitrary type);
+``lessthan``     trigger value is less than the provided value;
+``greaterthan``  trigger value is greater than the provided value;
+``matchregex``   trigger value matches the provided regular expression
+                 pattern;
+``iequals``      string trigger value equals the provided value case
+                 insensitively;
+``contains``     string trigger value contains the provided value;
+``ncontains``    string trigger value does not contain the provided value;
+``icontains``    string trigger value contains the provided value case
+                 insensitively;
+``incontains``   string trigger value does not contain the provided string
+                 value case insensitively;
+``startswith``   beginning of the string trigger value matches the provided
+                 string value;
+``istartswith``  beginning of the string trigger value matches the provided
+                 string value case insensitively;
+``endswith``     end of the string trigger value matches the provided string
+                 value;
+``iendswith``    end of the string trigger value matches the provided string
+                 value case insensitively;
+``timediff_lt``  time difference between trigger value and current time is
+                 less than the provided value;
+``timediff_gt``  time difference between trigger value and current time is
+                 greater than the provided value;
+``exists``       key exists in payload;
+``nexists``      key doesn't exist in payload.
+===============  ===============================================================
+
+Action
+------
+
+This section describes the subsequent action/workflow to be executed on a successful match of a trigger
+and an optional set of criteria. At a minimum, a rule should specify the action to execute. Additionally,
+a rule can also specify parameters that will be supplied to an action upon execution.
+
+
+.. code-block:: yaml
+
+        action:                                # required
+            ref: "action_ref"
+            parameters:                        # optional
+                foo: "bar"
+                baz: 1
+
+Variable Interpolation
+----------------------
+
+Occasionally, it will be necessary to pass along context of a trigger to an action when a rule is matched.
+The rules engine is able to interpolate variables by leveraging Jinja templating syntax `Jinja templating <http://jinja.pocoo.org/docs/dev/templates/>`__.
+
+.. code-block:: yaml
+
+        action:
+            ref: "action_ref"
+            parameters:
+                foo: "bar"
+                baz: "{{trigger.payload_parameter_1}}"
+
 
 Managing Rules
 --------------
@@ -109,126 +245,6 @@ Rule location
 Custom rules must be placed in any accessible folder on local system. By convention, custom rules are placed in ``/opt/stackstorm/packs/default/rules`` directory.
 By default, |st2| doesn't load the rules deployed under ``/opt/stackstorm/packs/${pack_name}/rules/``. However you can force
 load them with ``st2 run packs.load register=rules`` or ``st2 run packs.load register=all``.
-
-Supported criteria comparision operators
-----------------------------------------
-
-This section describes all the available operators which can be used in the criteria.
-
-.. note::
-
-    **For Developers:** The criteria comparision functions are defined in
-    :github_st2:`st2/st2common/st2common/operators.py </st2common/st2common/operators.py>`.
-
-
-* ``equals`` - values are equal (for values of arbitrary type);
-* ``nequals`` - values are not equal (for values of arbitrary type);
-* ``lessthan`` - trigger value is less than the provided value;
-* ``greaterthan`` - trigger value is greater than the provided value;
-* ``matchregex`` - trigger value matches the provided regular expression pattern;
-* ``iequals`` - string trigger value equals the provided value case insensitively;
-* ``contains`` - string trigger value contains the provided value;
-* ``ncontains`` - string trigger value does not contain the provided value;
-* ``icontains`` - string trigger value contains the provided value case insensitively;
-* ``incontains`` - string trigger value does not contain the provided string value case insensitively;
-* ``startswith`` - beginning of the string trigger value matches the provided string value;
-* ``istartswith`` - beginning of the string trigger value matches the provided string value case insensitively;
-* ``endswith`` - end of the string trigger value matches the provided string value;
-* ``iendswith`` - end of the string trigger value matches the provided string value case insensitively;
-* ``timediff_lt`` - time difference between trigger value and current time is less than the provided value;
-* ``timediff_gt`` - time difference between trigger value and current time is greater than the provided value;
-* ``exists`` - key exists in payload;
-* ``nexists`` - key doesn't exist in payload.
-
-equals
-~~~~~~
-
-Checks that the trigger value equals the provided value (for values of arbitrary type).
-
-nequals
-~~~~~~~
-
-Checks that the trigger value does not equal the provided value (for values of arbitrary type).
-
-lessthan
-~~~~~~~~
-
-Checks that the trigger value is less than the provided value.
-
-greaterthan
-~~~~~~~~~~~
-
-Checks that the trigger value is greater than the provided value.
-
-matchregex
-~~~~~~~~~~
-
-Checks that trigger value matches the provided regular expression pattern.
-
-iequals
-~~~~~~~
-
-Checks that the string trigger value equals provided string value case insensitively.
-
-contains
-~~~~~~~~
-
-Checks that the string trigger value contains the provided string value.
-
-ncontains
-~~~~~~~~~
-
-Checks that the string trigger value does not contain the provided string value.
-
-icontains
-~~~~~~~~~
-
-Checks that the string trigger value contains the provided string value case insensitively.
-
-incontains
-~~~~~~~~~~
-
-Checks that the string trigger value does not contain the provided string value case insensitively.
-
-startswith
-~~~~~~~~~~
-
-Checks that the beginning of the string trigger value matches the provided string value.
-
-istartswith
-~~~~~~~~~~~
-
-Checks that the beginning of the string trigger value matches the provided string value case insensitively.
-
-endswith
-~~~~~~~~~~
-
-Checks that the end of the string trigger value matches the provided string value.
-
-iendswith
-~~~~~~~~~~
-
-Checks that the end of the string trigger value matches the provided string value case insensitively.
-
-timediff_lt
-~~~~~~~~~~~
-
-Checks that the time difference between trigger value and current time is less than the provided value.
-
-timediff_gt
-~~~~~~~~~~~
-
-Checks that the time difference between trigger value and current time is greater than the provided value.
-
-exists
-~~~~~~
-
-Check that the value exists in the payload.
-
-nexists
-~~~~~~~
-
-Check that the value does not exist in the payload.
 
 
 .. _testing-rules:
