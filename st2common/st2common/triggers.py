@@ -24,6 +24,7 @@ from oslo.config import cfg
 from st2common import log as logging
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.system.common import ResourceReference
+from st2common.util.url import get_url_without_trailing_slash
 
 __all__ = [
     'register_internal_trigger_types'
@@ -40,10 +41,8 @@ MAX_ATTEMPTS = cfg.CONF.action_sensor.max_attempts
 
 
 def _get_trigger_type_url(triggertype_ref):
-    if TRIGGER_TYPE_ENDPOINT.endswith('/'):
-        return TRIGGER_TYPE_ENDPOINT + triggertype_ref
-    else:
-        return '%s/%s' % (TRIGGER_TYPE_ENDPOINT, triggertype_ref)
+    base_url = get_url_without_trailing_slash(TRIGGER_TYPE_ENDPOINT)
+    return '%s/%s' % (base_url, triggertype_ref)
 
 
 def _do_register_internal_trigger_types():
