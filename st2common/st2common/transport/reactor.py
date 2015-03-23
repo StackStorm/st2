@@ -33,10 +33,13 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 # Exchange for Trigger CUD events
-TRIGGER_CUD_XCHG = Exchange('st2.trigger', type='topic')
+TRIGGERS_CUD_XCHG = Exchange('st2.trigger', type='topic')
 
 # Exchange for TriggerInstance events
 TRIGGER_INSTANCES_XCHG = Exchange('st2.trigger_instances_dispatch', type='topic')
+
+# Exchane for Sensor CUD events
+SENSORS_CUD_XCHG = Exchange('st2.sensor', type='topic')
 
 
 class TriggerCUDPublisher(publishers.CUDPublisher):
@@ -45,7 +48,7 @@ class TriggerCUDPublisher(publishers.CUDPublisher):
     """
 
     def __init__(self, url):
-        super(TriggerCUDPublisher, self).__init__(url, TRIGGER_CUD_XCHG)
+        super(TriggerCUDPublisher, self).__init__(url, TRIGGERS_CUD_XCHG)
 
 
 class TriggerInstancePublisher(object):
@@ -89,8 +92,12 @@ class TriggerDispatcher(object):
 
 
 def get_trigger_cud_queue(name, routing_key):
-    return Queue(name, TRIGGER_CUD_XCHG, routing_key=routing_key)
+    return Queue(name, TRIGGERS_CUD_XCHG, routing_key=routing_key)
 
 
 def get_trigger_instances_queue(name, routing_key):
     return Queue(name, TRIGGER_INSTANCES_XCHG, routing_key=routing_key)
+
+
+def get_sensor_cud_queue(name, routing_key):
+    return Queue(name, SENSORS_CUD_XCHG, routing_key=routing_key)
