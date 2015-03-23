@@ -1,8 +1,8 @@
 Changelog
 =========
 
-v0.8.3 - TBD
-------------
+v0.8.3 - March 23, 2015
+-----------------------
 
 * Don't allow ``run-remote-script`` actions without an ``entry_point`` attribute - throw an
   exception when running an action. (improvement)
