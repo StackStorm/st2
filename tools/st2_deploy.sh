@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 
+read -r -d '' WARNING_MSG << EOM
+######################################################################
+######                       WARNING                           #######
+######################################################################
+
+This scripts allows you to evaluate StackStorm on a single server and
+is not intended to be used for production deployments.
+
+For more information, see http://docs.stackstorm.com/TODO
+EOM
+
+echo "${WARNING_MSG}"
+sleep 2
+
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" == "$1"; }
 
 if [ -z $1 ]
