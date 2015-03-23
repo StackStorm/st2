@@ -13,6 +13,8 @@ in development
 * Return a user friendly error on no sensors found or typo in sensor class name in single
   sensor mode. (improvement)
 * Sensor container now returns non-zero exit codes for errors. (bug-fix)
+* Check if internal trigger types are already registered before registering
+  them again. (improvement)
 
 v0.8.3 - TBD
 ------------
