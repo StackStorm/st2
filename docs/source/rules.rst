@@ -43,20 +43,22 @@ The generic form of a rule is:
   * parameters associated with a sensor/trigger
 * An optional set of **criteria**, consisting of:
   * An attribute of the trigger payload
-    * The ``type`` of criteria comparision
-    * The ``pattern`` to match against
+  * The ``type`` of criteria comparision
+  * The ``pattern`` to match against
 * The ``action`` to execute when a rule is matched, consisting of:
   * The ``ref`` (action/workflow) to execute
   * An optional set of ``parameters`` to pass to the action execution.
 
 
-h2. Trigger
+Trigger
+-------
 
 The trigger in a rule specifies which incoming events should be inspected for potential match against this rule.
 It is possible to view all the triggers configured on a system via the command line with the ``st2 trigger list``
 command
 
 .. code-block:: shell
+
     vagrant@st2express:~$ st2 trigger list
     +--------------------------------+-----------+---------------------------+---------------------------------------------------------------------------------+
     | ref                            | pack      | name                      | description                                                                     |
@@ -85,7 +87,8 @@ command
 To learn more about Sensors/Triggers, take a look at the :doc:`sensors` page.
 
 
-h2. Criteria
+Criteria
+--------
 
 Rule criteria are the rule(s) needed to be matched against (Logical ``AND``). Criteria in the rule is expressed as:
 
@@ -122,7 +125,8 @@ contain such values e.g.
             pattern : "customvalue"
 
 
-h3. Critera Comparision
+Critera Comparision
+-------------------
 
 This section describes all the available operators which can be used in the criteria.
 
@@ -131,29 +135,41 @@ This section describes all the available operators which can be used in the crit
     **For Developers:** The criteria comparision functions are defined in
     :github_st2:`st2/st2common/st2common/operators.py </st2common/st2common/operators.py>`.
 
-==========       =============
+===============  ===============================================================
  Operator         Description
-==========       =============
+===============  ===============================================================
 ``equals``       values are equal (for values of arbitrary type);
 ``nequals``      values are not equal (for values of arbitrary type);
 ``lessthan``     trigger value is less than the provided value;
 ``greaterthan``  trigger value is greater than the provided value;
-``matchregex``   trigger value matches the provided regular expression pattern;
-``iequals``      string trigger value equals the provided value case insensitively;
+``matchregex``   trigger value matches the provided regular expression
+                 pattern;
+``iequals``      string trigger value equals the provided value case
+                 insensitively;
 ``contains``     string trigger value contains the provided value;
 ``ncontains``    string trigger value does not contain the provided value;
-``icontains``    string trigger value contains the provided value case insensitively;
-``incontains``   string trigger value does not contain the provided string value case insensitively;
-``startswith``   beginning of the string trigger value matches the provided string value;
-``istartswith``  beginning of the string trigger value matches the provided string value case insensitively;
-``endswith``     end of the string trigger value matches the provided string value;
-``iendswith``    end of the string trigger value matches the provided string value case insensitively;
-``timediff_lt``  time difference between trigger value and current time is less than the provided value;
-``timediff_gt``  time difference between trigger value and current time is greater than the provided value;
+``icontains``    string trigger value contains the provided value case
+                 insensitively;
+``incontains``   string trigger value does not contain the provided string
+                 value case insensitively;
+``startswith``   beginning of the string trigger value matches the provided
+                 string value;
+``istartswith``  beginning of the string trigger value matches the provided
+                 string value case insensitively;
+``endswith``     end of the string trigger value matches the provided string
+                 value;
+``iendswith``    end of the string trigger value matches the provided string
+                 value case insensitively;
+``timediff_lt``  time difference between trigger value and current time is
+                 less than the provided value;
+``timediff_gt``  time difference between trigger value and current time is
+                 greater than the provided value;
 ``exists``       key exists in payload;
 ``nexists``      key doesn't exist in payload.
+===============  ===============================================================
 
-h2. Action
+Action
+------
 
 This section describes the subsequent action/workflow to be executed on a successful match of a trigger
 and an optional set of criteria. At a minimum, a rule should specify the action to execute. Additionally,
@@ -161,6 +177,7 @@ a rule can also specify parameters that will be supplied to an action upon execu
 
 
 .. code-block:: yaml
+
         action:                                # required
             ref: "action_ref"
             parameters:                        # optional
@@ -174,6 +191,7 @@ Occasionally, it will be necessary to pass along context of a trigger to an acti
 The rules engine is able to interpolate variables by leveraging Jinja templating syntax `Jinja templating <http://jinja.pocoo.org/docs/dev/templates/>`__.
 
 .. code-block:: yaml
+
         action:
             ref: "action_ref"
             parameters:
