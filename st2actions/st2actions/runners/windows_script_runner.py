@@ -51,6 +51,7 @@ CREATE_DIRECTORY_TIMEOUT = 10
 DELETE_FILE_TIMEOUT = 10
 DELETE_DIRECTORY_TIMEOUT = 10
 
+
 def quote(value):
     # Note: pipes.quote only work on Linux
     result = list2cmdline([value])
