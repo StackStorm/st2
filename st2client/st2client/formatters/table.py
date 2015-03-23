@@ -147,9 +147,8 @@ class MultiColumnTable(formatters.Formatter):
 
     @staticmethod
     def _get_required_column_width(values, minimum_width=0):
-        width = minimum_width
-        max_width = len(max(values, key=len))
-        return max_width if max_width > width else width
+        max_width = len(max(values, key=len)) if values else minimum_width
+        return max_width if max_width > minimum_width else minimum_width
 
 
 class PropertyValueTable(formatters.Formatter):
