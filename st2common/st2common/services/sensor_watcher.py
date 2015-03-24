@@ -30,8 +30,6 @@ LOG = logging.getLogger(__name__)
 
 class SensorWatcher(ConsumerMixin):
 
-    sleep_interval = 4  # how long to sleep after processing each message
-
     def __init__(self, create_handler, update_handler, delete_handler,
                  queue_suffix=None):
         """
@@ -60,9 +58,10 @@ class SensorWatcher(ConsumerMixin):
         }
 
     def get_consumers(self, Consumer, channel):
-        return [Consumer(queues=[self._sensor_watch_q],
-                         accept=['pickle'],
-                         callbacks=[self.process_task])]
+        consumers = [Consumer(queues=[self._sensor_watcher_q],
+                              accept=['pickle'],
+                              callbacks=[self.process_task])]
+        return consumers
 
     def process_task(self, body, message):
         LOG.debug('process_task')
@@ -75,7 +74,7 @@ class SensorWatcher(ConsumerMixin):
 
         try:
             if not handler:
-                LOG.debug('Skipping message %s as no handler was found.', message)
+                LOG.info('Skipping message %s as no handler was found.', message)
                 return
 
             try:
@@ -85,8 +84,6 @@ class SensorWatcher(ConsumerMixin):
                               body, e.message)
         finally:
             message.ack()
-
-        eventlet.sleep(self.sleep_interval)
 
     def start(self):
         try:
@@ -101,19 +98,6 @@ class SensorWatcher(ConsumerMixin):
             self._updates_thread = eventlet.kill(self._updates_thread)
         finally:
             self.connection.release()
-
-    # Note: We sleep after we consume a message so we give a chance to other
-    # green threads to run. If we don't do that, ConsumerMixin will block on
-    # waiting for a message on the queue.
-
-    def on_consume_end(self, connection, channel):
-        super(SensorWatcher, self).on_consume_end(connection=connection,
-                                                  channel=channel)
-        eventlet.sleep(seconds=self.sleep_interval)
-
-    def on_iteration(self):
-        super(SensorWatcher, self).on_iteration()
-        eventlet.sleep(seconds=self.sleep_interval)
 
     @staticmethod
     def _get_queue(queue_suffix):
