@@ -75,15 +75,6 @@ function st2start(){
         ./st2api/bin/st2api \
         --config-file $ST2_CONF
 
-    # Register sensors, actions and rules
-    # Note: Sensor container pulls sensors from the DB so sensors need to be
-    # registered before sensor container can be started
-
-    echo 'Registering sensors, actions and rules...'
-    ./virtualenv/bin/python \
-        ./st2common/bin/st2-register-content \
-        --config-file $ST2_CONF --register-all --verbose
-
     # Run the action runner server
     echo 'Starting screen session st2-actionrunner...'
     screen -d -m -S st2-actionrunner
@@ -133,6 +124,12 @@ function st2start(){
             echo "ERROR: Unable to start screen session for $s."
         fi
     done
+
+    # Register sensors, actions and rules
+    echo 'Registering sensors, actions and rules...'
+    ./virtualenv/bin/python \
+        ./st2common/bin/st2-register-content \
+        --config-file $ST2_CONF --register-all
 
     # List screen sessions
     screen -ls
