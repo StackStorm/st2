@@ -12,6 +12,8 @@ is not intended to be used for production deployments.
 For more information, see http://docs.stackstorm.com/install/index.html
 EOM
 
+WARNING_SLEEP_DELAY=5
+
 # Common variables
 RABBIT_PUBLIC_KEY="rabbitmq-signing-key-public.asc"
 PACKAGES="st2common st2reactor st2actions st2api st2auth st2debug"
@@ -40,7 +42,9 @@ function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" 
 # Actual code starts here
 
 echo "${WARNING_MSG}"
-sleep 2
+echo ""
+echo "To abort press CTRL-C otherwise installation will continue in ${WARNING_SLEEP_DELAY} seconds"
+sleep ${WARNING_SLEEP_DELAY}
 
 if [ -z $1 ]
 then
