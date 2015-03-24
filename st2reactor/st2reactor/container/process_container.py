@@ -19,6 +19,8 @@ import time
 import json
 import subprocess
 
+import eventlet
+
 from st2common import log as logging
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
@@ -37,7 +39,7 @@ __all__ = [
 LOG = logging.getLogger('st2reactor.process_sensor_container')
 
 PROCESS_EXIT_TIMEOUT = 5  # how long to wait for process to exit after sending SIGKILL (in seconds)
-SUCCESS_EXIT_CODE = 0
+FAILURE_EXIT_CODE = 1
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WRAPPER_SCRIPT_NAME = 'sensor_wrapper.py'
@@ -69,31 +71,36 @@ class ProcessSensorContainer(object):
     def run(self):
         self._run_all_sensors()
 
-        # Poll for all running processes
-        sensor_ids = self._sensors.keys()
-        poll_interval = 5
+        try:
+            while True:
+                # Poll for all running processes
+                sensor_ids = self._sensors.keys()
+                poll_interval = 5
 
-        while len(sensor_ids) >= 1:
-            for sensor_id in sensor_ids:
-                process = self._processes[sensor_id]
-                status = process.poll()
+                if len(sensor_ids) >= 1:
+                    self._poll_sensors_for_results(sensor_ids)
 
-                if status is not None:
-                    # Dead process detected
-                    LOG.info('Process for sensor %s has exited with code %s',
-                             sensor_id, status)
-                    sensor = self._sensors[sensor_id]
-                    self._dispatch_trigger_for_sensor_exit(sensor=sensor,
-                                                           exit_code=status)
+                eventlet.sleep(poll_interval)
+        except:
+            LOG.exception('Container failed to run sensors.')
+            return FAILURE_EXIT_CODE
 
-                    del self._processes[sensor_id]
-                    del self._sensors[sensor_id]
+        LOG.error('Process container quit. It shouldn\'t.')
 
-            sensor_ids = self._sensors.keys()
-            time.sleep(poll_interval)
+    def _poll_sensors_for_results(self, sensor_ids):
+        for sensor_id in sensor_ids:
+            process = self._processes[sensor_id]
+            status = process.poll()
 
-        LOG.info('Container has no active sensors running.')
-        return SUCCESS_EXIT_CODE
+            if status is not None:
+                # Dead process detected
+                LOG.info('Process for sensor %s has exited with code %s',
+                         self._sensors[sensor_id]['ref'], status)
+                sensor = self._sensors[sensor_id]
+                self._dispatch_trigger_for_sensor_exit(sensor=sensor,
+                                                       exit_code=status)
+                del self._processes[sensor_id]
+                del self._sensors[sensor_id]
 
     def running(self):
         return len(self._processes)
@@ -123,6 +130,7 @@ class ProcessSensorContainer(object):
             return False
 
         self._spawn_sensor_process(sensor=sensor)
+        LOG.debug('Sensor %s started.', sensor_id)
         self._sensors[sensor_id] = sensor
         return True
 
@@ -139,6 +147,7 @@ class ProcessSensorContainer(object):
             return False
 
         self._stop_sensor_process(sensor_id=sensor_id)
+        LOG.debug('Sesnor %s stopped.', sensor_id)
         return True
 
     def _run_all_sensors(self):
@@ -258,7 +267,12 @@ class ProcessSensorContainer(object):
             # Process hasn't exited yet, forcefully kill it
             process.kill()
 
-        del self._processes[sensor_id]
+        try:
+            del self._processes[sensor_id]
+        except:
+            # XXX: It is rare but sometimes, an exception gets thrown. The following log line
+            # will help chase the problem.
+            LOG.info('Processes: %s, sensors: %s', self._processes.keys(), self._sensors.keys())
         del self._sensors[sensor_id]
 
     def _get_sensor_id(self, sensor):
@@ -267,7 +281,7 @@ class ProcessSensorContainer(object):
 
         :type sensor: ``dict``
         """
-        sensor_id = sensor['class_name']
+        sensor_id = sensor['ref']
         return sensor_id
 
     def _dispatch_trigger_for_sensor_spawn(self, sensor, process, cmd):
