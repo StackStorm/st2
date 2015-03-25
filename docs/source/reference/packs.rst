@@ -116,10 +116,6 @@ Copy the following content to rules/rule1.yaml
    # Reloads the content
    st2 run packs.load register=all
 
-   # To pick up new sensors, bounce the st2sensorcontainer process.
-   # Note: live update is coming soon and this won't be needed.
-   st2 run packs.restart_component servicename=st2sensorcontainer
-
 Once you follow steps 1-5 you will have created your first pack. Commands like ``st2 action list``, ``st2 rule list`` and ``st2 trigger list`` will show you the loaded content. To check if the sensor triggering action is working, run ``st2 execution list``, there should be an entry for executing ``hello-st2.greet`` every minute.
 
 Next steps would be to create an integration pack for you favorite tool or service that you would like to use with |st2|. Happy hacking!

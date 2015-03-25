@@ -58,7 +58,6 @@ The integration packs often require configurations to adjust to the environment.
 2. Check out the `REAMDE.md`. Adjust configurations per your environment.
 3. Run pack setup via ``packs.setup_virtualenv``. It sets up virtual environment and installs the dependencies listed in requirements.txt.
 4. Load the pack into |st2| with ``pack.load register=all|actions|rules|sensors``.
-5. Sometimes sensor-container requires restart to pick up new sensors. Use ``pack.restart_component servicename=st2sensorcontainer``. Live sensor reload without restart is coming soon.
 
 Let's install the Docker pack:
 
