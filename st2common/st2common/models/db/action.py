@@ -24,7 +24,9 @@ from st2common.fields import ComplexDateTimeField
 __all__ = [
     'RunnerTypeDB',
     'ActionDB',
-    'LiveActionDB'
+    'LiveActionDB',
+    'ActionExecutionStateDB',
+    'ActionAliasDB'
 ]
 
 
@@ -160,10 +162,29 @@ class ActionExecutionStateDB(stormbase.StormFoundationDB):
         'indexes': ['query_module']
     }
 
+
+class ActionAliasDB(stormbase.StormBaseDB):
+    """
+        Database entity that represent an Alias for an action.
+    """
+    action_ref = me.StringField(
+        required=True,
+        help_text='Reference of the Action map this alias.')
+    formats = me.ListField(
+        field=me.StringField(),
+        help_text='Possible parameter formats that an alias supports.')
+
+    meta = {
+        'indexes': ['name']
+    }
+
+
 # specialized access objects
 runnertype_access = MongoDBAccess(RunnerTypeDB)
 action_access = MongoDBAccess(ActionDB)
 liveaction_access = MongoDBAccess(LiveActionDB)
 actionexecstate_access = MongoDBAccess(ActionExecutionStateDB)
+actionalias_access = MongoDBAccess(ActionAliasDB)
 
-MODELS = [RunnerTypeDB, ActionDB, LiveActionDB, ActionExecutionStateDB]
+
+MODELS = [RunnerTypeDB, ActionDB, LiveActionDB, ActionExecutionStateDB, ActionAliasDB]
