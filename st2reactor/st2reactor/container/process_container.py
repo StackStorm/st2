@@ -55,7 +55,7 @@ class ProcessSensorContainer(object):
     Sensor container which runs sensors in a separate process.
     """
 
-    def __init__(self, sensors):
+    def __init__(self, sensors, poll_interval=5):
         """
         :param sensors: A list of sensor dicts.
         :type sensors: ``list`` of ``dict``
@@ -63,6 +63,10 @@ class ProcessSensorContainer(object):
         self._sensors = {}  # maps sensor_id -> sensor object
         self._processes = {}  # maps sensor_id -> sensor process
         self._dispatcher = TriggerDispatcher(LOG)
+        self.poll_interval = poll_interval
+        self.stopped = False
+
+        sensors = sensors or []
 
         for sensor_obj in sensors:
             sensor_id = self._get_sensor_id(sensor=sensor_obj)
@@ -75,16 +79,17 @@ class ProcessSensorContainer(object):
             while True:
                 # Poll for all running processes
                 sensor_ids = self._sensors.keys()
-                poll_interval = 5
 
                 if len(sensor_ids) >= 1:
                     self._poll_sensors_for_results(sensor_ids)
 
-                eventlet.sleep(poll_interval)
+                eventlet.sleep(self.poll_interval)
         except:
             LOG.exception('Container failed to run sensors.')
+            self.stopped = True
             return FAILURE_EXIT_CODE
 
+        self.stopped = True
         LOG.error('Process container quit. It shouldn\'t.')
 
     def _poll_sensors_for_results(self, sensor_ids):
