@@ -21,37 +21,49 @@ from st2client import models
 
 LOG = logging.getLogger(__name__)
 
+# Default values for the options not explicitly specified by the user
+DEFAULT_API_PORT = 9101
+DEFAULT_AUTH_PORT = 9100
+
+DEFAULT_BASE_URL = 'http://localhost'
+DEFAULT_API_VERSION = 'v1'
+
 
 class Client(object):
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, base_url=None, auth_url=None, api_url=None, api_version=None, cacert=None,
+                 debug=False):
         # Get CLI options. If not given, then try to get it from the environment.
-        self.debug = kwargs.get('debug', False)
-
         self.endpoints = dict()
-        self.endpoints['base'] = kwargs.get('base_url')
-        if not self.endpoints['base']:
-            self.endpoints['base'] = os.environ.get(
-                'ST2_BASE_URL', 'http://localhost')
 
-        self.endpoints['auth'] = kwargs.get('auth_url')
-        if not self.endpoints['auth']:
-            base_https_url = self.endpoints['base'].replace('http://', 'https://')
-            self.endpoints['auth'] = os.environ.get(
-                'ST2_AUTH_URL', '%s:%s' % (base_https_url, 9100))
+        # Populate the endpoints
+        if base_url:
+            self.endpoints['base'] = base_url
+        else:
+            self.endpoints['base'] = os.environ.get('ST2_BASE_URL', DEFAULT_BASE_URL)
 
-        api_version = kwargs.get('api_version') or os.environ.get('ST2_API_VERSION', 'v1')
+        api_version = api_version or os.environ.get('ST2_API_VERSION', DEFAULT_API_VERSION)
 
-        self.endpoints['api'] = kwargs.get('api_url')
-        if not self.endpoints['api']:
+        if api_url:
+            self.endpoints['api'] = api_url
+        else:
             self.endpoints['api'] = os.environ.get(
-                'ST2_API_URL', '%s:%s/%s' % (self.endpoints['base'], 9101, api_version))
+                'ST2_API_URL', '%s:%s/%s' % (self.endpoints['base'], DEFAULT_API_PORT, api_version))
 
-        self.cacert = kwargs.get('cacert')
-        if not self.cacert:
+        if auth_url:
+            self.endpoints['auth'] = auth_url
+        else:
+            self.endpoints['auth'] = os.environ.get(
+                'ST2_AUTH_URL', '%s:%s' % (self.endpoints['base'], DEFAULT_AUTH_PORT))
+
+        if cacert:
+            self.cacert = cacert
+        else:
             self.cacert = os.environ.get('ST2_CACERT', None)
+
         if self.cacert and not os.path.isfile(self.cacert):
-            raise ValueError('CA cert file "%s" does not exist.' % self.cacert)
+            raise ValueError('CA cert file "%s" does not exist.' % (self.cacert))
+
+        self.debug = debug
 
         # Instantiate resource managers and assign appropriate API endpoint.
         self.managers = dict()
