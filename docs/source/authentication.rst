@@ -103,4 +103,32 @@ Example usage
     st2auth --config-file /etc/stanley/st2.conf --auth-use_ssl --auth-mode=standalone \
         --auth-backend=flat_file --auth-backend_kwargs='{"file_path": "/etc/private/htpaswd"}'
 
+MongoDB backend
+~~~~~~~~~~~~~~~
+
+MongoDB backend supports reading credentials from a MongoDB collection called
+``users``.
+
+Entries in this collection need to have the following attributes:
+
+* ``username`` - Username
+* ``salt`` - Password salt
+* ``password`` - SHA256 hash for the salt+password - SHA256(<salt><password>)
+
+Configuration options
+^^^^^^^^^^^^^^^^^^^^^
+
+* ``db_host`` - MongoDB server host.
+* ``db_port`` - MongoDB server port.
+* ``db_name`` - Name of the database to use.
+
+Example usage
+^^^^^^^^^^^^^^
+
+.. sourcecode:: bash
+
+    st2auth --config-file /etc/stanley/st2.conf --auth-use_ssl--auth-mode=standalone \
+        --auth-backend=mongodb \
+        --auth-backend_kwargs='{"db_host": "196.168.100.10", "db_port": 27017, "db_name": "st2auth"}'
+
 .. _htpasswd: https://httpd.apache.org/docs/2.2/programs/htpasswd.html

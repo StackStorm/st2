@@ -30,6 +30,10 @@ The available options are described below:
 * ``backend_kwargs`` - JSON serialized keyword arguments which are passed to
   the authentication backend.
 
+For more information about authentication service and different authentication
+backends available in the standalone mode, see
+:doc:`Authentication Service </authentication>` page.
+
 Setup the service using proxy mode
 ----------------------------------
 
