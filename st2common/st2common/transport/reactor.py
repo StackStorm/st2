@@ -34,13 +34,13 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 # Exchange for Trigger CUD events
-TRIGGERS_CUD_XCHG = Exchange('st2.trigger', type='topic')
+TRIGGER_CUD_XCHG = Exchange('st2.trigger', type='topic')
 
 # Exchange for TriggerInstance events
-TRIGGER_INSTANCES_XCHG = Exchange('st2.trigger_instances_dispatch', type='topic')
+TRIGGER_INSTANCE_XCHG = Exchange('st2.trigger_instances_dispatch', type='topic')
 
 # Exchane for Sensor CUD events
-SENSORS_CUD_XCHG = Exchange('st2.sensor', type='topic')
+SENSOR_CUD_XCHG = Exchange('st2.sensor', type='topic')
 
 
 class SensorCUDPublisher(publishers.CUDPublisher):
@@ -49,7 +49,7 @@ class SensorCUDPublisher(publishers.CUDPublisher):
     """
 
     def __init__(self, url):
-        super(SensorCUDPublisher, self).__init__(url, SENSORS_CUD_XCHG)
+        super(SensorCUDPublisher, self).__init__(url, SENSOR_CUD_XCHG)
 
 
 class TriggerCUDPublisher(publishers.CUDPublisher):
@@ -58,7 +58,7 @@ class TriggerCUDPublisher(publishers.CUDPublisher):
     """
 
     def __init__(self, url):
-        super(TriggerCUDPublisher, self).__init__(url, TRIGGERS_CUD_XCHG)
+        super(TriggerCUDPublisher, self).__init__(url, TRIGGER_CUD_XCHG)
 
 
 class TriggerInstancePublisher(object):
@@ -67,7 +67,7 @@ class TriggerInstancePublisher(object):
 
     def publish_trigger(self, payload=None, routing_key=None):
         # TODO: We should use trigger reference as a routing key
-        self._publisher.publish(payload, TRIGGER_INSTANCES_XCHG, routing_key)
+        self._publisher.publish(payload, TRIGGER_INSTANCE_XCHG, routing_key)
 
 
 class TriggerDispatcher(object):
@@ -102,12 +102,12 @@ class TriggerDispatcher(object):
 
 
 def get_trigger_cud_queue(name, routing_key):
-    return Queue(name, TRIGGERS_CUD_XCHG, routing_key=routing_key)
+    return Queue(name, TRIGGER_CUD_XCHG, routing_key=routing_key)
 
 
 def get_trigger_instances_queue(name, routing_key):
-    return Queue(name, TRIGGER_INSTANCES_XCHG, routing_key=routing_key)
+    return Queue(name, TRIGGER_INSTANCE_XCHG, routing_key=routing_key)
 
 
 def get_sensor_cud_queue(name, routing_key):
-    return Queue(name, SENSORS_CUD_XCHG, routing_key=routing_key)
+    return Queue(name, SENSOR_CUD_XCHG, routing_key=routing_key)
