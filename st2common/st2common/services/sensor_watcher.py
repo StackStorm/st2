@@ -90,14 +90,16 @@ class SensorWatcher(ConsumerMixin):
             self.connection = Connection(cfg.CONF.messaging.url)
             self._updates_thread = eventlet.spawn(self.run)
         except:
-            LOG.exception('Failed to start watcher.')
+            LOG.exception('Failed to start sensor_watcher.')
             self.connection.release()
 
     def stop(self):
         try:
-            self._updates_thread = eventlet.kill(self._updates_thread)
+            if self._updates_thread:
+                self._updates_thread = eventlet.kill(self._updates_thread)
         finally:
-            self.connection.release()
+            if self.connection:
+                self.connection.release()
 
     @staticmethod
     def _get_queue(queue_suffix):
