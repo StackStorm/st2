@@ -1,6 +1,17 @@
 Installation
 ============
 
+.. note::
+
+    st2_deploy.sh script allows you to easily install and run |st2| with all the
+    dependencies on a single server. It's only intented to be used for testing,
+    evaluation and demonstration purposes (it doesn't use HTTPS, it uses flat file
+    htpasswd based authentication, etc.) - you should **not** use it for production
+    deployments.
+
+    For production deployments you follow deb / rpm installation methods linked
+    at the bottom of the page or use our puppet module.
+
 To install and run |st2| on Ubuntu/Debian or RedHat/Fedora with all dependencies,
 download and run the deployment script.
 
@@ -11,7 +22,7 @@ download and run the deployment script.
     sudo ./st2_deploy.sh
 
 This will download and install the stable release of |st2| (currently |release|).
-If you want to install the latest bits, run ``sudo ./st2_deploy.sh latest``.
+If you want to install the latest development version, run ``sudo ./st2_deploy.sh latest``.
 Installation should take about 5 min. Grab a coffee and watch :doc:`/video` while it is being installed.
 
 .. include:: on_complete.rst
