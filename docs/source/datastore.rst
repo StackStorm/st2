@@ -65,7 +65,7 @@ the Client init (base\_url) or from environment variable
     >>> from st2client.client import Client
     >>> from st2client.models import KeyValuePair
     >>> client = Client(base_url='http://localhost')
-    >>> client.keys.create(models.KeyValuePair(name='os_keystone_endpoint', value='http://localhost:5000/v2.0'))
+    >>> client.keys.update(models.KeyValuePair(name='os_keystone_endpoint', value='http://localhost:5000/v2.0'))
 
 Get individual key value pair or list all.
 
