@@ -498,7 +498,8 @@ echo "# Starting St2 Services"
 st2ctl restart
 sleep 20
 ##This is a hack around a weird issue with actions getting stuck in scheduled state
-st2 run core.local date &> /dev/null
+TOKEN=`st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD} | grep token | awk '{print $4}'`
+ST2_AUTH_TOKEN=${TOKEN} st2 run core.local date &> /dev/null
 ACTIONEXIT=$?
 
 echo "=========================================="
