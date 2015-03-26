@@ -18,11 +18,13 @@ from oslo.config import cfg
 from st2common import log as logging
 from st2common.transport.execution import EXECUTION_XCHG
 from st2common.transport.liveaction import LIVEACTION_XCHG
-from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCES_XCHG
+from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG
+from st2common.transport.reactor import SENSOR_CUD_XCHG
 
 LOG = logging.getLogger('st2common.transport.bootstrap')
 
-EXCHANGES = [EXECUTION_XCHG, LIVEACTION_XCHG, TRIGGER_CUD_XCHG, TRIGGER_INSTANCES_XCHG]
+EXCHANGES = [EXECUTION_XCHG, LIVEACTION_XCHG, TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG,
+             SENSOR_CUD_XCHG]
 
 
 def _do_register_exchange(exchange, channel):

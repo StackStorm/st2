@@ -24,10 +24,17 @@ from st2common.persistence.base import (Access, ContentPackResource)
 
 class SensorType(ContentPackResource):
     impl = sensor_type_access
+    publisher = None
 
     @classmethod
     def _get_impl(cls):
         return cls.impl
+
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.reactor.SensorCUDPublisher(cfg.CONF.messaging.url)
+        return cls.publisher
 
 
 class TriggerType(ContentPackResource):

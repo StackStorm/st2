@@ -15,6 +15,7 @@ in development
 * Sensor container now returns non-zero exit codes for errors. (bug-fix)
 * Check if internal trigger types are already registered before registering
   them again. (improvement)
+* Sensor container now can dynamically load/reload/unload sensors on data model changes. (new-feature)
 
 v0.8.3 - TBD
 ------------

@@ -18,6 +18,10 @@ import sys
 import time
 import json
 import subprocess
+import threading
+
+import eventlet
+from eventlet.support import greenlets as greenlet
 
 from st2common import log as logging
 from st2common.transport.reactor import TriggerDispatcher
@@ -38,6 +42,7 @@ LOG = logging.getLogger('st2reactor.process_sensor_container')
 
 PROCESS_EXIT_TIMEOUT = 5  # how long to wait for process to exit after sending SIGKILL (in seconds)
 SUCCESS_EXIT_CODE = 0
+FAILURE_EXIT_CODE = 1
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WRAPPER_SCRIPT_NAME = 'sensor_wrapper.py'
@@ -53,7 +58,7 @@ class ProcessSensorContainer(object):
     Sensor container which runs sensors in a separate process.
     """
 
-    def __init__(self, sensors):
+    def __init__(self, sensors, poll_interval=5):
         """
         :param sensors: A list of sensor dicts.
         :type sensors: ``list`` of ``dict``
@@ -61,6 +66,11 @@ class ProcessSensorContainer(object):
         self._sensors = {}  # maps sensor_id -> sensor object
         self._processes = {}  # maps sensor_id -> sensor process
         self._dispatcher = TriggerDispatcher(LOG)
+        self.poll_interval = poll_interval
+        self.stopped = False
+        self.lock = threading.Lock()
+
+        sensors = sensors or []
 
         for sensor_obj in sensors:
             sensor_id = self._get_sensor_id(sensor=sensor_obj)
@@ -69,31 +79,41 @@ class ProcessSensorContainer(object):
     def run(self):
         self._run_all_sensors()
 
-        # Poll for all running processes
-        sensor_ids = self._sensors.keys()
-        poll_interval = 5
+        try:
+            while True:
+                # Poll for all running processes
+                sensor_ids = self._sensors.keys()
 
-        while len(sensor_ids) >= 1:
-            for sensor_id in sensor_ids:
-                process = self._processes[sensor_id]
-                status = process.poll()
+                if len(sensor_ids) >= 1:
+                    self._poll_sensors_for_results(sensor_ids)
 
-                if status is not None:
-                    # Dead process detected
-                    LOG.info('Process for sensor %s has exited with code %s',
-                             sensor_id, status)
-                    sensor = self._sensors[sensor_id]
-                    self._dispatch_trigger_for_sensor_exit(sensor=sensor,
-                                                           exit_code=status)
+                eventlet.sleep(self.poll_interval)
+        except greenlet.GreenletExit:
+            # This exception is thrown when sensor container manager
+            # kills the thread which runs process container. Not sure
+            # if this is the best thing to do.
+            return SUCCESS_EXIT_CODE
+        except:
+            LOG.exception('Container failed to run sensors.')
+            self.stopped = True
+            return FAILURE_EXIT_CODE
 
-                    del self._processes[sensor_id]
-                    del self._sensors[sensor_id]
+        self.stopped = True
+        LOG.error('Process container quit. It shouldn\'t.')
 
-            sensor_ids = self._sensors.keys()
-            time.sleep(poll_interval)
+    def _poll_sensors_for_results(self, sensor_ids):
+        for sensor_id in sensor_ids:
+            process = self._processes[sensor_id]
+            status = process.poll()
 
-        LOG.info('Container has no active sensors running.')
-        return SUCCESS_EXIT_CODE
+            if status is not None:
+                # Dead process detected
+                LOG.info('Process for sensor %s has exited with code %s',
+                         self._sensors[sensor_id]['ref'], status)
+                sensor = self._sensors[sensor_id]
+                self._dispatch_trigger_for_sensor_exit(sensor=sensor,
+                                                       exit_code=status)
+                self._delete_sensors(sensor_id)
 
     def running(self):
         return len(self._processes)
@@ -123,6 +143,7 @@ class ProcessSensorContainer(object):
             return False
 
         self._spawn_sensor_process(sensor=sensor)
+        LOG.debug('Sensor %s started.', sensor_id)
         self._sensors[sensor_id] = sensor
         return True
 
@@ -139,6 +160,7 @@ class ProcessSensorContainer(object):
             return False
 
         self._stop_sensor_process(sensor_id=sensor_id)
+        LOG.debug('Sesnor %s stopped.', sensor_id)
         return True
 
     def _run_all_sensors(self):
@@ -258,8 +280,7 @@ class ProcessSensorContainer(object):
             # Process hasn't exited yet, forcefully kill it
             process.kill()
 
-        del self._processes[sensor_id]
-        del self._sensors[sensor_id]
+        self._delete_sensors(sensor_id)
 
     def _get_sensor_id(self, sensor):
         """
@@ -267,7 +288,7 @@ class ProcessSensorContainer(object):
 
         :type sensor: ``dict``
         """
-        sensor_id = sensor['class_name']
+        sensor_id = sensor['ref']
         return sensor_id
 
     def _dispatch_trigger_for_sensor_spawn(self, sensor, process, cmd):
@@ -290,3 +311,10 @@ class ProcessSensorContainer(object):
             'exit_code': exit_code
         }
         self._dispatcher.dispatch(trigger, payload=payload)
+
+    def _delete_sensors(self, sensor_id):
+        with self.lock:
+            if self._processes.get(sensor_id, None):
+                del self._processes[sensor_id]
+            if self._sensors.get(sensor_id, None):
+                del self._sensors[sensor_id]

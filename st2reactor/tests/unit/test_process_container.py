@@ -13,17 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.exceptions import StackStormBaseException
-from st2common.exceptions import StackStormPluginException
+import eventlet
+import unittest2
+
+from st2reactor.container.process_container import ProcessSensorContainer
+
+import st2tests.config as tests_config
+tests_config.parse_args()
 
 
-class SensorPluginException(StackStormPluginException):
-    pass
+class ProcessContainerTests(unittest2.TestCase):
 
-
-class TriggerTypeRegistrationException(SensorPluginException):
-    pass
-
-
-class SensorNotFoundException(StackStormBaseException):
-    pass
+    def test_no_sensors_dont_quit(self):
+        process_container = ProcessSensorContainer(None, poll_interval=0.1)
+        process_container_thread = eventlet.spawn(process_container.run)
+        eventlet.sleep(0.5)
+        self.assertEqual(process_container.running(), 0)
+        self.assertEqual(process_container.stopped, False)
+        process_container.shutdown()
+        process_container_thread.kill()

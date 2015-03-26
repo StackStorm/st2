@@ -199,11 +199,8 @@ with appropriate pack structure (see :doc:`/reference/packs`) and place the sens
 
 If there are errors in registration, fix the errors and re-register them using st2ctl reload.
 
-3. If registration is successful, you can run the sensor by restarting st2.
+3. If registration is successful, the sensor would be automatically run.
 
-::
-
-    st2ctl restart
 
 Once you like your sensor, you can promote it to a pack (if required) by creating a pack in
 /opt/stackstorm/packs/${pack_name} and moving the sensor artifacts (yaml and py) to

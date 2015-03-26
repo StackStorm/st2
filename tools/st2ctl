@@ -232,22 +232,7 @@ function getpids(){
         echo "${COM} PID: ${p}"
       done
     else
-      echo "${COM} is not running"
-      if [ "$COM" == "st2sensorcontainer" ] || [ "$COM" == "sensor_container" ]
-      then
-        msg="
-  Sensor container service was unable to load any sensors from packs in
-  the 'base_pack' (See st2 config file) directory. This may be caused due to not having any
-  sensors installed, or the sensors that are installed are misconfigured.
-
-  Take a moment and review http://docs.stackstorm.com/sensors.html
-  for more information.
-
-  Once resolved, you can simply restart the service with the
-  'st2ctl restart-component st2sensorcontainer' command."
-        echo "$msg" | fmt -w 72
-        echo
-      fi
+      echo "${COM} is not running."
     fi
   done
 }
