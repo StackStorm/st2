@@ -543,9 +543,16 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         output = action_method(command, combine_stderr=False, pty=False, quiet=True)
 
         if output.failed:
-            msg = 'Remote command %s failed.\n\nstdout:\n%s\n\nstderr:\n%s' % (command,
-                                                                               output.stderr,
-                                                                               output.stdout)
+            msg = 'Remote command %s failed.' % command
+            # XXX: Note Fabric doesn't handle unicode correctly if stdout or stderr contains
+            # unicode and action fails. For now, just log stdout and stderr so we can debug
+            # from logs.
+            # Fabric will show an exception traceback like:
+            # 'ascii' codec can't encode character u'\u2018' in position 93:
+            # ordinal not in range(128)
+            #
+            LOG.error('stderr: %s', output.stderr)
+            LOG.error('stdout: %s', output.stdout)
             LOG.error(msg)
             raise Exception(msg)
 
