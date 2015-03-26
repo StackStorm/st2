@@ -18,6 +18,7 @@ in development
 * Sensor container now can dynamically load/reload/unload sensors on data model changes.
   (new-feature)
 * Fix a bug in datastore operations exposed in st2client. (bug-fix)
+* Catch exception if rule operator functions throw excepton and ignore the rule. (bug-fix)
 
 v0.8.3 - TBD
 ------------

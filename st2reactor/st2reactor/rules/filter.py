@@ -92,7 +92,11 @@ class RuleFilter(object):
 
         op_func = criteria_operators.get_operator(criteria_operator)
 
-        return op_func(value=payload_value, criteria_pattern=criteria_pattern)
+        try:
+            return op_func(value=payload_value, criteria_pattern=criteria_pattern)
+        except:
+            LOG.exception('There might be a problem with critera in rule %s.', self.rule)
+            False
 
 
 class PayloadLookup():
