@@ -18,8 +18,10 @@ import sys
 import time
 import json
 import subprocess
+import threading
 
 import eventlet
+from eventlet.support import greenlets as greenlet
 
 from st2common import log as logging
 from st2common.transport.reactor import TriggerDispatcher
@@ -39,6 +41,7 @@ __all__ = [
 LOG = logging.getLogger('st2reactor.process_sensor_container')
 
 PROCESS_EXIT_TIMEOUT = 5  # how long to wait for process to exit after sending SIGKILL (in seconds)
+SUCCESS_EXIT_CODE = 0
 FAILURE_EXIT_CODE = 1
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -65,6 +68,7 @@ class ProcessSensorContainer(object):
         self._dispatcher = TriggerDispatcher(LOG)
         self.poll_interval = poll_interval
         self.stopped = False
+        self.lock = threading.Lock()
 
         sensors = sensors or []
 
@@ -84,6 +88,11 @@ class ProcessSensorContainer(object):
                     self._poll_sensors_for_results(sensor_ids)
 
                 eventlet.sleep(self.poll_interval)
+        except greenlet.GreenletExit:
+            # This exception is thrown when sensor container manager
+            # kills the thread which runs process container. Not sure
+            # if this is the best thing to do.
+            return SUCCESS_EXIT_CODE
         except:
             LOG.exception('Container failed to run sensors.')
             self.stopped = True
@@ -104,8 +113,7 @@ class ProcessSensorContainer(object):
                 sensor = self._sensors[sensor_id]
                 self._dispatch_trigger_for_sensor_exit(sensor=sensor,
                                                        exit_code=status)
-                del self._processes[sensor_id]
-                del self._sensors[sensor_id]
+                self._delete_sensors(sensor_id)
 
     def running(self):
         return len(self._processes)
@@ -272,13 +280,7 @@ class ProcessSensorContainer(object):
             # Process hasn't exited yet, forcefully kill it
             process.kill()
 
-        try:
-            del self._processes[sensor_id]
-        except:
-            # XXX: It is rare but sometimes, an exception gets thrown. The following log line
-            # will help chase the problem.
-            LOG.info('Processes: %s, sensors: %s', self._processes.keys(), self._sensors.keys())
-        del self._sensors[sensor_id]
+        self._delete_sensors(sensor_id)
 
     def _get_sensor_id(self, sensor):
         """
@@ -309,3 +311,10 @@ class ProcessSensorContainer(object):
             'exit_code': exit_code
         }
         self._dispatcher.dispatch(trigger, payload=payload)
+
+    def _delete_sensors(self, sensor_id):
+        with self.lock:
+            if self._processes.get(sensor_id, None):
+                del self._processes[sensor_id]
+            if self._sensors.get(sensor_id, None):
+                del self._sensors[sensor_id]
