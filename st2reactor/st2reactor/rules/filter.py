@@ -96,7 +96,7 @@ class RuleFilter(object):
             return op_func(value=payload_value, criteria_pattern=criteria_pattern)
         except:
             LOG.exception('There might be a problem with critera in rule %s.', self.rule)
-            False
+            return False
 
 
 class PayloadLookup():
