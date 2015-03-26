@@ -512,7 +512,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             result = action_method()
 
             # Cleanup.
-            cmd1 = self._get_command_string(cmd='rm', args=[self.remote_script])
+            cmd1 = self._get_command_string(cmd='rm -f', args=[self.remote_script])
             cmd2 = self._get_command_string(cmd='rm -rf', args=[self.remote_dir])
             self._execute_remote_command(cmd1)
             self._execute_remote_command(cmd2)
@@ -543,7 +543,9 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         output = action_method(command, combine_stderr=False, pty=False, quiet=True)
 
         if output.failed:
-            msg = 'Remote command %s failed.' % command
+            msg = 'Remote command %s failed.\n\nstdout:\n%s\n\nstderr:\n%s' % (command,
+                                                                               output.stderr,
+                                                                               output.stdout)
             LOG.error(msg)
             raise Exception(msg)
 
