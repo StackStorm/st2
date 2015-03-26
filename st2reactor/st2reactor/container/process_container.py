@@ -18,7 +18,6 @@ import sys
 import time
 import json
 import subprocess
-import threading
 
 import eventlet
 from eventlet.support import greenlets as greenlet
@@ -68,7 +67,6 @@ class ProcessSensorContainer(object):
         self._dispatcher = TriggerDispatcher(LOG)
         self.poll_interval = poll_interval
         self.stopped = False
-        self.lock = threading.Lock()
 
         sensors = sensors or []
 
@@ -80,7 +78,7 @@ class ProcessSensorContainer(object):
         self._run_all_sensors()
 
         try:
-            while True:
+            while not self.stopped:
                 # Poll for all running processes
                 sensor_ids = self._sensors.keys()
 
@@ -92,6 +90,7 @@ class ProcessSensorContainer(object):
             # This exception is thrown when sensor container manager
             # kills the thread which runs process container. Not sure
             # if this is the best thing to do.
+            self.stopped = True
             return SUCCESS_EXIT_CODE
         except:
             LOG.exception('Container failed to run sensors.')
@@ -120,6 +119,7 @@ class ProcessSensorContainer(object):
 
     def shutdown(self):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
+        self.stopped = True
 
         sensor_ids = self._sensors.keys()
         for sensor_id in sensor_ids:
@@ -313,8 +313,7 @@ class ProcessSensorContainer(object):
         self._dispatcher.dispatch(trigger, payload=payload)
 
     def _delete_sensors(self, sensor_id):
-        with self.lock:
-            if self._processes.get(sensor_id, None):
-                del self._processes[sensor_id]
-            if self._sensors.get(sensor_id, None):
-                del self._sensors[sensor_id]
+        if sensor_id in self._processes:
+            del self._processes[sensor_id]
+        if sensor_id in self._sensors:
+            del self._sensors[sensor_id]
