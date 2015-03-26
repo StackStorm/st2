@@ -23,6 +23,7 @@ Contents:
     troubleshooting
     resources/index
     reference/index
+    authentication
     changelog
     upgrade_notes
     development/index

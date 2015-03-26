@@ -23,6 +23,8 @@ from oslo.config import cfg
 
 from st2common import log as logging
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
+from st2common.models.system.common import ResourceReference
+from st2common.util.url import get_url_without_trailing_slash
 
 __all__ = [
     'register_internal_trigger_types'
@@ -38,6 +40,11 @@ TIMEOUT = cfg.CONF.action_sensor.request_timeout
 MAX_ATTEMPTS = cfg.CONF.action_sensor.max_attempts
 
 
+def _get_trigger_type_url(triggertype_ref):
+    base_url = get_url_without_trailing_slash(TRIGGER_TYPE_ENDPOINT)
+    return '%s/%s' % (base_url, triggertype_ref)
+
+
 def _do_register_internal_trigger_types():
     LOG.debug('Registering internal trigger types...')
 
@@ -47,8 +54,22 @@ def _do_register_internal_trigger_types():
             register_trigger_type(trigger_definition=trigger_definition, attempt_no=0)
 
 
+def _is_triggertype_exists(ref):
+    try:
+        r = requests.get(url=_get_trigger_type_url(ref))
+        if r.status_code == httplib.OK:
+            return True
+    except:
+        return False
+
+
 def register_trigger_type(trigger_definition, attempt_no=0):
     LOG.debug('Attempt no %s to register trigger %s.', attempt_no, trigger_definition['name'])
+
+    ref = ResourceReference.to_string_reference(pack=trigger_definition['pack'],
+                                                name=trigger_definition['name'])
+    if _is_triggertype_exists(ref):
+        return
 
     payload = json.dumps(trigger_definition)
 
