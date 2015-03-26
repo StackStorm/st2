@@ -366,6 +366,10 @@ class ActionAliasAPI(BaseAPI):
                 "description": "Name of the action alias.",
                 "required": True
             },
+            "description": {
+                "type": "string",
+                "description": "Description of the action alias."
+            },
             "action_ref": {
                 "type": "string",
                 "description": "Reference to the aliased action.",
