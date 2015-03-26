@@ -27,3 +27,8 @@ class KeyValuePair(core.Resource):
     _plural = 'Keys'
     _plural_display_name = 'Key Value Pairs'
     _repr_attributes = ['name', 'value']
+
+    @property
+    def id(self):
+        # Note: This is a temporary hack until we refactor client and make it support non id PKs
+        return self.name
