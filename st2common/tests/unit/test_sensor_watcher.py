@@ -19,6 +19,7 @@ import unittest2
 
 from st2common.services.sensor_watcher import SensorWatcher
 from st2common.models.db.reactor import SensorTypeDB
+from st2common.transport.publishers import PoolPublisher
 
 MOCK_SENSOR_DB = SensorTypeDB(name='foo', pack='test')
 
@@ -26,6 +27,7 @@ MOCK_SENSOR_DB = SensorTypeDB(name='foo', pack='test')
 class SensorWatcherTests(unittest2.TestCase):
 
     @mock.patch.object(Message, 'ack', mock.MagicMock())
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def test_assert_handlers_called(self):
         handler_vars = {
             'create_handler_called': False,
