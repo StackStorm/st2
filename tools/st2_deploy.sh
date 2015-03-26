@@ -15,6 +15,7 @@ EOM
 WARNING_SLEEP_DELAY=5
 
 # Common variables
+DOWNLOAD_SERVER="https://downloads.stackstorm.net"
 RABBIT_PUBLIC_KEY="rabbitmq-signing-key-public.asc"
 PACKAGES="st2common st2reactor st2actions st2api st2auth st2debug"
 CLI_PACKAGE="st2client"
@@ -87,7 +88,7 @@ else
   exit 2
 fi
 
-RELEASE=$(curl -sS -k -f "https://ops.stackstorm.net/releases/st2/${VER}/${TYPE}/current/VERSION.txt")
+RELEASE=$(curl -sS -k -f "${DOWNLOAD_SERVER}/releases/st2/${VER}/${TYPE}/current/VERSION.txt")
 EXIT_CODE=$?
 
 if [ ${EXIT_CODE} -ne 0 ]; then
@@ -381,7 +382,7 @@ download_pkgs() {
       rm -f *${pkg}*
     fi
 
-    curl -sS -k -O https://ops.stackstorm.net/releases/st2/${VER}/${TYPE}/${BUILD}/${PACKAGE}
+    curl -sS -k -O ${DOWNLOAD_SERVER}/releases/st2/${VER}/${TYPE}/${BUILD}/${PACKAGE}
   done
   popd
 }
@@ -455,7 +456,7 @@ install_webui() {
   echo "###########################################################################################"
   echo "# Installing st2web"
   # Download artifact
-  curl -sS -k -f -o /tmp/webui.tar.gz "https://ops.stackstorm.net/releases/st2/${VER}/webui/webui-${VER}.tar.gz"
+  curl -sS -k -f -o /tmp/webui.tar.gz "${DOWNLOAD_SERVER}/releases/st2/${VER}/webui/webui-${VER}.tar.gz"
 
   # Unpack it into a temporary directory
   temp_dir=$(mktemp -d)
