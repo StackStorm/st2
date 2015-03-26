@@ -19,6 +19,9 @@ in development
   (new-feature)
 * Fix a bug in datastore operations exposed in st2client. (bug-fix)
 * Catch exception if rule operator functions throw excepton and ignore the rule. (bug-fix)
+* Remove expected "runnertype not found" error logs on action registration
+  in clean db. (improvement)
+* Clean up rule registrar logging. (improvement)
 
 v0.8.3 - TBD
 ------------
