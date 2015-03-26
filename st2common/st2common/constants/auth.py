@@ -32,4 +32,4 @@ QUERY_PARAM_ATTRIBUTE_NAME = 'x-auth-token'
 
 DEFAULT_MODE = 'proxy'
 
-DEFAULT_BACKEND = 'file'
+DEFAULT_BACKEND = 'flat_file'
