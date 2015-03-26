@@ -81,7 +81,7 @@ Python Client
     >>> from st2client import models
     >>> client = Client(base_url='http://localhost')
     >>> rules = client.rules.get_all()
-    >>> key_value_pair = client.keys.create(models.KeyValuePair(name='k1', value='v1'))
+    >>> key_value_pair = client.keys.update(models.KeyValuePair(name='k1', value='v1'))
 
 The models Trigger, Rule, Action, Execution, and KeyValuePair are
 defined under st2client.models. Please refer to the respective README

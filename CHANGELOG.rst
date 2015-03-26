@@ -15,7 +15,9 @@ in development
 * Sensor container now returns non-zero exit codes for errors. (bug-fix)
 * Check if internal trigger types are already registered before registering
   them again. (improvement)
-* Sensor container now can dynamically load/reload/unload sensors on data model changes. (new-feature)
+* Sensor container now can dynamically load/reload/unload sensors on data model changes.
+  (new-feature)
+* Fix a bug in datastore operations exposed in st2client. (bug-fix)
 
 v0.8.3 - TBD
 ------------
