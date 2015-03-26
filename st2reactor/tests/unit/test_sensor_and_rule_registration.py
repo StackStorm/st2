@@ -15,11 +15,14 @@
 
 import os
 
+import mock
+
 from st2tests import DbTestCase
 from st2common.persistence.reactor import SensorType
 from st2common.persistence.reactor import Trigger
 from st2common.persistence.reactor import TriggerType
 from st2common.persistence.reactor import Rule
+from st2common.transport.publishers import PoolPublisher
 from st2reactor.bootstrap.sensorsregistrar import SensorsRegistrar
 from st2reactor.bootstrap.rulesregistrar import RulesRegistrar
 
@@ -28,6 +31,8 @@ PACKS_DIR = os.path.join(CURRENT_DIR, '../fixtures/packs')
 
 
 class SensorRegistrationTestCase(DbTestCase):
+
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def test_register_sensors(self):
         # Verify DB is empty at the beginning
         self.assertEqual(len(SensorType.get_all()), 0)
