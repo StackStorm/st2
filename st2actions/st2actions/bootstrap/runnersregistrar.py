@@ -366,6 +366,7 @@ RUNNER_TYPES = [
         'name': 'run-windows-cmd',
         'description': 'A remote execution runner that executes commands'
                        'on Windows hosts.',
+        'experimental': True,
         'enabled': True,
         'runner_parameters': {
             'host': {
@@ -403,6 +404,7 @@ RUNNER_TYPES = [
         'description': 'A remote execution runner that executes power shell scripts'
                        'on Windows hosts.',
         'enabled': True,
+        'experimental': True,
         'runner_parameters': {
             'host': {
                 'description': 'Host to execute the command on',
@@ -438,12 +440,26 @@ RUNNER_TYPES = [
 ]
 
 
-def register_runner_types():
+def register_runner_types(experimental=False):
+    """
+    :param experimental: True to also register experimental runners.
+    :type experimental: ``bool``
+    """
     LOG.debug('Start : register default RunnerTypes.')
 
     for runnertype in RUNNER_TYPES:
+        runner_name = runnertype['name']
+        runner_experimental = runnertype.get('experimental', False)
+
+        if runner_experimental and not experimental:
+            LOG.debug('Skipping experimental runner "%s"' % (runner_name))
+            continue
+
+        if 'experimental' in runnertype:
+            del runnertype['experimental']
+
         try:
-            runnertype_db = get_runnertype_by_name(runnertype['name'])
+            runnertype_db = get_runnertype_by_name(runner_name)
             update = True
         except StackStormDBObjectNotFoundError:
             runnertype_db = None
