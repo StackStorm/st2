@@ -8,6 +8,7 @@ in development
   action. Also treat invalid / inexistent action as a top-level action-chain error. (improvement)
 * Report a more user-friendly error if an action-chain definition contains an invalid type.
   (improvement)
+* Enable authentication by default for package based installations.
 * Rename all st2 processes to be prefixed by st2. (sensor_container is now st2sensorcontainer,
   rules_engine is now st2rulesengine, actionrunner is now st2actionrunner) (improvement)
 * Return a user friendly error on no sensors found or typo in sensor class name in single
@@ -23,12 +24,11 @@ in development
   in clean db. (improvement)
 * Clean up rule registrar logging. (improvement)
 
-v0.8.3 - TBD
-------------
+v0.8.3 - March 23, 2015
+-----------------------
 
 * Don't allow ``run-remote-script`` actions without an ``entry_point`` attribute - throw an
   exception when running an action. (improvement)
-* Enable authentication by default for package based installations.
 * Fix ``packs.setup_virtualenv`` command so it works correctly if user specified multiple packs
   search paths. (bug-fix)
 * Update sensor container to use ``auth.api_url`` setting when talking to the API (e.g. when
