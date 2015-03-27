@@ -13,23 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = [
-    'VALID_MODES',
-    'DEFAULT_MODE',
-    'DEFAULT_BACKEND',
+import eventlet
+import unittest2
 
-    'HEADER_ATTRIBUTE_NAME',
-    'QUERY_PARAM_ATTRIBUTE_NAME'
-]
+from st2reactor.container.process_container import ProcessSensorContainer
 
-VALID_MODES = [
-    'proxy',
-    'standalone'
-]
+import st2tests.config as tests_config
+tests_config.parse_args()
 
-HEADER_ATTRIBUTE_NAME = 'X-Auth-Token'
-QUERY_PARAM_ATTRIBUTE_NAME = 'x-auth-token'
 
-DEFAULT_MODE = 'proxy'
+class ProcessContainerTests(unittest2.TestCase):
 
-DEFAULT_BACKEND = 'flat_file'
+    def test_no_sensors_dont_quit(self):
+        process_container = ProcessSensorContainer(None, poll_interval=0.1)
+        process_container_thread = eventlet.spawn(process_container.run)
+        eventlet.sleep(0.5)
+        self.assertEqual(process_container.running(), 0)
+        self.assertEqual(process_container.stopped, False)
+        process_container.shutdown()
+        process_container_thread.kill()

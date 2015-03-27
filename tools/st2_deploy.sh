@@ -1,6 +1,51 @@
 #!/usr/bin/env bash
 
+# Constants
+read -r -d '' WARNING_MSG << EOM
+######################################################################
+######                       WARNING                           #######
+######################################################################
+
+This scripts allows you to evaluate StackStorm on a single server and
+is not intended to be used for production deployments.
+
+For more information, see http://docs.stackstorm.com/install/index.html
+EOM
+
+WARNING_SLEEP_DELAY=5
+
+# Common variables
+DOWNLOAD_SERVER="https://downloads.stackstorm.net"
+RABBIT_PUBLIC_KEY="rabbitmq-signing-key-public.asc"
+PACKAGES="st2common st2reactor st2actions st2api st2auth st2debug"
+CLI_PACKAGE="st2client"
+PYTHON=`which python`
+BUILD="current"
+DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
+SYSTEMUSER='stanley'
+STANCONF="/etc/st2/st2.conf"
+
+# Information about a test account which used by st2_deploy
+TEST_ACCOUNT_USERNAME="testu"
+TEST_ACCOUNT_PASSWORD="testp"
+
+# Content for the test htpasswd file used by auth
+AUTH_FILE_PATH="/etc/st2/htpasswd"
+HTPASSWD_FILE_CONTENT="testu:{SHA}V1t6eZLxnehb7CTBuj61Nq3lIh4="
+
+# WebUI
+WEBUI_CONFIG_PATH="/opt/stackstorm/static/webui/config.js"
+
+# Common utility functions
+
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" == "$1"; }
+
+# Actual code starts here
+
+echo "${WARNING_MSG}"
+echo ""
+echo "To abort press CTRL-C otherwise installation will continue in ${WARNING_SLEEP_DELAY} seconds"
+sleep ${WARNING_SLEEP_DELAY}
 
 if [ -z $1 ]
 then
@@ -25,15 +70,6 @@ else
     MISTRAL_STABLE_BRANCH="st2-0.5.1"
 fi
 
-RABBIT_PUBLIC_KEY="rabbitmq-signing-key-public.asc"
-PACKAGES="st2common st2reactor st2actions st2api st2auth st2debug"
-CLI_PACKAGE="st2client"
-PYTHON=`which python`
-BUILD="current"
-DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
-SYSTEMUSER='stanley'
-STANCONF="/etc/st2/st2.conf"
-
 if [[ "$DEBTEST" == "Ubuntu" ]]; then
   TYPE="debs"
   PYTHONPACK="/usr/lib/python2.7/dist-packages"
@@ -52,7 +88,7 @@ else
   exit 2
 fi
 
-RELEASE=$(curl -sS -k -f "https://ops.stackstorm.net/releases/st2/${VER}/${TYPE}/current/VERSION.txt")
+RELEASE=$(curl -sS -k -f "${DOWNLOAD_SERVER}/releases/st2/${VER}/${TYPE}/current/VERSION.txt")
 EXIT_CODE=$?
 
 if [ ${EXIT_CODE} -ne 0 ]; then
@@ -68,7 +104,6 @@ mkdir -p ${STAN}
 mkdir -p /var/log/st2
 
 create_user() {
-
   if [ $(id -u ${SYSTEMUSER} &> /devnull; echo $?) != 0 ]
   then
     echo "###########################################################################################"
@@ -98,7 +133,7 @@ install_pip() {
   pip install -U -q -r /tmp/requirements.txt
 }
 
-install_apt(){
+install_apt() {
   echo "###########################################################################################"
   echo "# Installing packages via apt-get"
 
@@ -310,6 +345,24 @@ setup_mistral() {
   pip install -q -U git+https://github.com/StackStorm/python-mistralclient.git@${MISTRAL_STABLE_BRANCH}
 }
 
+function setup_auth() {
+    echo "###########################################################################################"
+    echo "# Setting up authentication service"
+
+    # Install test htpasswd file
+    if [[ ! -f ${AUTH_FILE_PATH} ]]; then
+        # File doesn't exist yet
+        echo "${HTPASSWD_FILE_CONTENT}" >> ${AUTH_FILE_PATH}
+    elif [ -f ${AUTH_FILE_PATH} ] && [ ! `grep -Fxq "${HTPASSWD_FILE_CONTENT}" ${AUTH_FILE_PATH}` ]; then
+        # File exists, but the line is not present yet
+        echo "${HTPASSWD_FILE_CONTENT}" >> ${AUTH_FILE_PATH}
+    fi
+
+    # Configure st2auth to run in standalone mode with the created htpasswd file
+    sed -i "s#^mode = proxy\$#mode = standalone#g" ${STANCONF}
+    sed -i "s#^backend_kwargs =\$#backend_kwargs = {\"file_path\": \"${AUTH_FILE_PATH}\"}#g" ${STANCONF}
+}
+
 download_pkgs() {
   echo "###########################################################################################"
   echo "# Downloading ${TYPE} packages"
@@ -329,7 +382,7 @@ download_pkgs() {
       rm -f *${pkg}*
     fi
 
-    curl -sS -k -O https://ops.stackstorm.net/releases/st2/${VER}/${TYPE}/${BUILD}/${PACKAGE}
+    curl -sS -k -O ${DOWNLOAD_SERVER}/releases/st2/${VER}/${TYPE}/${BUILD}/${PACKAGE}
   done
   popd
 }
@@ -403,7 +456,7 @@ install_webui() {
   echo "###########################################################################################"
   echo "# Installing st2web"
   # Download artifact
-  curl -sS -k -f -o /tmp/webui.tar.gz "https://ops.stackstorm.net/releases/st2/${VER}/webui/webui-${VER}.tar.gz"
+  curl -sS -k -f -o /tmp/webui.tar.gz "${DOWNLOAD_SERVER}/releases/st2/${VER}/webui/webui-${VER}.tar.gz"
 
   # Unpack it into a temporary directory
   temp_dir=$(mktemp -d)
@@ -419,13 +472,17 @@ install_webui() {
     .constant('st2Config', {
     hosts: [{
       name: 'StackStorm',
-      url: ''
+      url: '',  # use current url from the address bar
+      auth: true  # use current url from the address bar, replace the port with default st2auth port
     }]
-  });" > /opt/stackstorm/static/webui/config.js
+  });" > ${WEBUI_CONFIG_PATH}
 
+  # Cleanup
   rm -r ${temp_dir}
   rm -f /tmp/webui.tar.gz
 }
+
+setup_auth
 
 if [ ${INSTALL_ST2CLIENT} == "1" ]; then
     install_st2client
@@ -441,9 +498,8 @@ echo "# Starting St2 Services"
 st2ctl restart
 sleep 20
 ##This is a hack around a weird issue with actions getting stuck in scheduled state
-st2 run core.local date &> /dev/null
-ACTIONEXIT=$?
-
+TOKEN=`st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD} | grep token | awk '{print $4}'`
+ST2_AUTH_TOKEN=${TOKEN} st2 run core.local date &> /dev/null
 ACTIONEXIT=$?
 
 echo "=========================================="
@@ -464,7 +520,21 @@ else
   echo ""
   echo "  st2 is installed and ready to use."
 fi
+
 if [ ${INSTALL_WEBUI} == "1" ]; then
   echo "  WebUI at http://`hostname`:9101/webui/"
 fi
+echo "=========================================="
+echo ""
 
+echo "Test StackStorm user account details"
+echo ""
+echo "Username: ${TEST_ACCOUNT_USERNAME}"
+echo "Password: ${TEST_ACCOUNT_PASSWORD}"
+echo ""
+echo "To login and obtain an authentication token, run the following command:"
+echo ""
+echo "st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD}"
+echo ""
+echo "For more information see http://docs.stackstorm.com/install/deploy.html#usage"
+exit 0

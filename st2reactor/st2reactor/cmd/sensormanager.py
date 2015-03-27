@@ -5,7 +5,6 @@ import eventlet
 from oslo.config import cfg
 
 from st2common import log as logging
-from st2common.exceptions.sensors import NoSensorsFoundException
 from st2common.exceptions.sensors import SensorNotFoundException
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
@@ -58,7 +57,7 @@ def _teardown():
 
 def _get_all_sensors():
     sensors = SensorType.get_all()
-    LOG.info('Found %d sensors.', len(sensors))
+    LOG.info('Found %d registered sensors in db scan.', len(sensors))
     return sensors
 
 
@@ -76,15 +75,13 @@ def main():
                 raise SensorNotFoundException('Sensor %s not found in db.' % cfg.CONF.sensor_name)
 
         if not sensors:
-            msg = 'No sensors configured to run. See http://docs.stackstorm.com/sensors.html.'
-            raise NoSensorsFoundException(msg)
+            msg = 'No sensors configured to run. See http://docs.stackstorm.com/sensors.html. ' + \
+                  'Register some sensors and a container will pick them to run.'
+            LOG.info(msg)
 
         return container_manager.run_sensors(sensors=sensors)
     except SystemExit as exit_code:
         return exit_code
-    except NoSensorsFoundException as e:
-        LOG.exception(e)
-        return 0
     except SensorNotFoundException as e:
         LOG.exception(e)
         return 1

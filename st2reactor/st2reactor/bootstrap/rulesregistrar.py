@@ -97,7 +97,7 @@ class RulesRegistrar(ResourceRegistrar):
                 try:
                     rule_db.id = Rule.get_by_name(rule_api.name).id
                 except ValueError:
-                    LOG.info('Rule %s not found. Creating new one.', rule)
+                    LOG.debug('Rule %s not found. Creating new one.', rule)
 
                 try:
                     rule_db = Rule.add_or_update(rule_db)

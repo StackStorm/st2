@@ -8,18 +8,28 @@ in development
   action. Also treat invalid / inexistent action as a top-level action-chain error. (improvement)
 * Report a more user-friendly error if an action-chain definition contains an invalid type.
   (improvement)
+* Enable authentication by default for package based installations.
 * Rename all st2 processes to be prefixed by st2. (sensor_container is now st2sensorcontainer,
   rules_engine is now st2rulesengine, actionrunner is now st2actionrunner) (improvement)
 * Return a user friendly error on no sensors found or typo in sensor class name in single
   sensor mode. (improvement)
 * Sensor container now returns non-zero exit codes for errors. (bug-fix)
+* Check if internal trigger types are already registered before registering
+  them again. (improvement)
+* Sensor container now can dynamically load/reload/unload sensors on data model changes.
+  (new-feature)
+* Fix a bug in datastore operations exposed in st2client. (bug-fix)
+* Catch exception if rule operator functions throw excepton and ignore the rule. (bug-fix)
+* Remove expected "runnertype not found" error logs on action registration
+  in clean db. (improvement)
+* Clean up rule registrar logging. (improvement)
+* Add ``-t`` / ``--only-token`` flag to the ``st2 auth`` command. (new-feature)
 
-v0.8.3 - TBD
-------------
+v0.8.3 - March 23, 2015
+-----------------------
 
 * Don't allow ``run-remote-script`` actions without an ``entry_point`` attribute - throw an
   exception when running an action. (improvement)
-* Enable authentication by default for package based installations.
 * Fix ``packs.setup_virtualenv`` command so it works correctly if user specified multiple packs
   search paths. (bug-fix)
 * Update sensor container to use ``auth.api_url`` setting when talking to the API (e.g. when

@@ -117,6 +117,35 @@ Let's check the exit code of the last command.
 
     2
 
+Obtaining authentication token inside scripts
+---------------------------------------------
+
+If you want to authenticate and obtain an authentication token inside your
+(shell) scripts, you can use `st2 auth` CLI command in combination with ``-t``
+flag to do that.
+
+This flag will cause the command to only print the token to the stdout on
+successful authentication - this means you don't need to deal with parsing
+JSON or CLI output format.
+
+Example command usage:
+
+.. sourcecode:: bash
+
+    st2 auth test1 -p testpassword -t
+
+    0280826688c74bb9bd541c26631df298
+
+Example usage inside a bash script:
+
+.. sourcecode:: bash
+
+    TOKEN=$(st2 auth test1 -p testpassword -t)
+
+    # Now you can use the token (e.g. pass it to other commands, set an
+    # environment variable, etc.)
+    echo ${TOKEN}
+
 Changing the CLI output format
 ------------------------------
 

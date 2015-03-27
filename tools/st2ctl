@@ -3,7 +3,7 @@
 set -e
 
 LOGFILE="/tmp/st2_startup.log"
-COMPONENTS="st2actionrunner st2api st2sensorcontainer st2rulesengine mistral st2resultstracker"
+COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine mistral st2resultstracker"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
 
@@ -104,6 +104,8 @@ function st2start(){
   do
     nohup st2actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
   done
+
+  nohup st2auth --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup st2api --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup st2sensorcontainer --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup /usr/bin/st2resultstracker --config-file ${STANCONF} &>> ${LOGFILE} &
@@ -230,22 +232,7 @@ function getpids(){
         echo "${COM} PID: ${p}"
       done
     else
-      echo "${COM} is not running"
-      if [ "$COM" == "st2sensorcontainer" ] || [ "$COM" == "sensor_container" ]
-      then
-        msg="
-  Sensor container service was unable to load any sensors from packs in
-  the 'base_pack' (See st2 config file) directory. This may be caused due to not having any
-  sensors installed, or the sensors that are installed are misconfigured.
-
-  Take a moment and review http://docs.stackstorm.com/sensors.html
-  for more information.
-
-  Once resolved, you can simply restart the service with the
-  'st2ctl restart-component st2sensorcontainer' command."
-        echo "$msg" | fmt -w 72
-        echo
-      fi
+      echo "${COM} is not running."
     fi
   done
 }

@@ -57,8 +57,6 @@ def get_runnertype_by_name(runnertype_name):
                                               % runnertype_name)
 
     if not runnertypes:
-        LOG.error('Database lookup for RunnerType with name="%s" produced no results',
-                  runnertype_name)
         raise StackStormDBObjectNotFoundError('Unable to find RunnerType with name="%s"'
                                               % runnertype_name)
 
