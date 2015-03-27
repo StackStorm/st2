@@ -23,6 +23,7 @@ in development
 * Remove expected "runnertype not found" error logs on action registration
   in clean db. (improvement)
 * Clean up rule registrar logging. (improvement)
+* Add ``-t`` / ``--only-token`` flag to the ``st2 auth`` command. (new-feature)
 
 v0.8.3 - March 23, 2015
 -----------------------
