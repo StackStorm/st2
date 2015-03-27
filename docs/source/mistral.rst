@@ -46,10 +46,71 @@ To display subtasks, run ``st2 execution get <execution-id> --tasks``.
 |                          |            |              |           | UTC                          | UTC                          |
 +--------------------------+------------+--------------+-----------+------------------------------+------------------------------+
 
+Publishing variables in mistral workflows
++++++++++++++++++++++++++++++++++++++++++
+
+A mistral task can publish results from a task as variables that can be consumed in other tasks.
+
+A simple examples is show below:
+
+.. sourcecode:: YAML
+
+    tasks:
+        get_hostname:
+            action: core.local
+            input:
+                cmd: "hostname"
+            publish:
+                hostname: <% $.get_hostname.stdout %>
+
+In the above example, get_hostname is a core.local action which runs the command hostname.
+core.local action produces an output consisting of fields ``stdout``, ``stderr``, ``exit_code`` etc.
+We just want to publish the variable ``stdout`` from it so rest of tasks can consume.
+
+Another example is shown below:
+
+.. sourcecode:: YAML
+
+    tasks:
+        create_new_node:
+            action: rackspace.create_vm
+            input:
+              name: <% $.hostname %>
+              flavor_id: <% $.vm_size_id %>
+              image_id: <% $.vm_image_id %>
+              key_material: <% $.ssh_pub_key %>
+              metadata:
+                asg: <% $.asg %>
+            publish:
+              ipv4_address: '<% $.create_new_node.result.public_ips[1] %>'
+              ipv6_address: '<% $.create_new_node.result.public_ips[0] %>'
+
+In the above example, action rackspace.create_vm produces a results object. We just want to publish
+the IP addresses from ``public_ips`` list field in results object.
+
+Such published variables are accessible as input parameters to other tasks in the workflow. An
+example of using ``ipv4_address`` from the above example in another task is shown below:
+
+.. sourcecode:: YAML
+
+    tasks:
+        # ... <snap>
+
+        setup_ipv4_dns:
+            action: rackspace.create_dns_record
+            policies:
+              wait-before: 1
+            input:
+              name: '<% $.hostname %>.<% $.asg %>.<% $.domain %>'
+              zone_id: <% $.dns_zone_id %>
+              type: 'A'
+              data: <% $.ipv4_address %>
+
+        # .... </snap>
 
 Stitching a more Complex Workflow
 +++++++++++++++++++++++++++++++++
-The following is a mock up of a more complex workflow. In this mock up running simple printf and sleep commands, the workflow demonstrates nested workflows, fork, and join. 
+The following is a mock up of a more complex workflow. In this mock up running simple printf and sleep commands, the workflow demonstrates nested workflows, fork, and join.
 
 .. literalinclude:: /../../contrib/examples/actions/workflows/mistral-workbook-complex.yaml
 
@@ -57,7 +118,7 @@ Since there are multiple workflows defined in this workbook, workflow author has
 
 .. literalinclude:: /../../contrib/examples/actions/mistral-workbook-complex.json
 
-To test out this workflow, save the metadata file to /opt/stackstorm/packs/examples/actions/ and the workflow file to /opt/stackstorm/packs/examples/actions/workflows. Run ``st2 action create /opt/stackstorm/packs/examples/actions/mistral-workbook-complex.json`` to create the action and run ``st2 run examples.mistral-workbook-complex vm_name="vmtest1" -a`` to test. 
+To test out this workflow, save the metadata file to /opt/stackstorm/packs/examples/actions/ and the workflow file to /opt/stackstorm/packs/examples/actions/workflows. Run ``st2 action create /opt/stackstorm/packs/examples/actions/mistral-workbook-complex.json`` to create the action and run ``st2 run examples.mistral-workbook-complex vm_name="vmtest1" -a`` to test.
 
 More Examples
 +++++++++++++++++++
