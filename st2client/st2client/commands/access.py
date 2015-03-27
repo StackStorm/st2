@@ -45,6 +45,10 @@ class TokenCreateCommand(resource.ResourceCommand):
         self.parser.add_argument('-l', '--ttl', type=int, dest='ttl', default=None,
                                  help='The life span of the token in seconds. '
                                       'Max TTL configured by the admin supersedes this.')
+        self.parser.add_argument('-t', '--only-token', action='store_true', dest='only_token',
+                                 default=False,
+                                 help='Only print token to the console on successful '
+                                      'authentication.')
 
     def run(self, args, **kwargs):
         if not args.password:
@@ -54,5 +58,9 @@ class TokenCreateCommand(resource.ResourceCommand):
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
-        self.print_output(instance, table.PropertyValueTable,
-                          attributes=self.display_attributes, json=args.json)
+
+        if args.only_token:
+            print(instance.token)
+        else:
+            self.print_output(instance, table.PropertyValueTable,
+                              attributes=self.display_attributes, json=args.json)
