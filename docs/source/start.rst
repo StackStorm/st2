@@ -126,7 +126,7 @@ Sample rule: :github_st2:`sample_rule_with_webhook.yaml
     :language: yaml
 
 
-The rule definition is a YAML spec with thee sections: trigger, criteria, and action.
+The rule definition is a YAML spec with three sections: trigger, criteria, and action.
 It configures the webhook trigger with url, applies filtering criteria based trigger
 parameters. This one configures a webhook with ``sample`` sub-url so it listens
 on ``http://{host}:9101/v1/webhooks/sample``.
@@ -197,7 +197,7 @@ Congratulations, your first |st2| rule is up and running!
 Deploy Examples
 -------------------------
 Examples of rules, custom sensors, actions, and workflows are installed with |st2| and located
-at :github_st2:`/usr/share/doc/st2/examples <contrib/examples/>`. To deployed, copy them
+at :github_st2:`/usr/share/doc/st2/examples <contrib/examples/>`. To deploy, copy them
 to /opt/stackstorm/packs/, setup, and reload the content:
 
 .. code-block:: bash
