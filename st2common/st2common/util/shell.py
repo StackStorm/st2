@@ -15,11 +15,15 @@
 
 import os
 import subprocess
+from subprocess import list2cmdline
 
 import six
 
 __all__ = [
-    'run_command'
+    'run_command',
+
+    'quote_unix',
+    'quote_windows'
 ]
 
 
@@ -63,3 +67,34 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     exit_code = process.returncode
 
     return (exit_code, stdout, stderr)
+
+
+def quote_unix(value):
+    """
+    Return a quoted (shell-escaped) version of the value which can be used as one token in a shell
+    command line.
+
+    :param value: Value to quote.
+    :type value: ``str``
+
+    :rtype: ``str``
+    """
+    value = six.moves.shlex_quote(value)
+    return value
+
+
+def quote_windows(value):
+    """
+    Return a quoted (shell-escaped) version of the value which can be used as one token in a
+    Windows command line.
+
+    Note (from stdlib): note that not all MS Windows applications interpret the command line the
+    same way: list2cmdline() is designed for applications using the same rules as the MS C runtime.
+
+    :param value: Value to quote.
+    :type value: ``str``
+
+    :rtype: ``str``
+    """
+    value = list2cmdline([value])
+    return value
