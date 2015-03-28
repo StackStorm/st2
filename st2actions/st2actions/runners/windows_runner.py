@@ -59,7 +59,7 @@ class BaseWindowsRunner(ActionRunner):
 
         values = {'domain': domain, 'username': username, 'password': password}
         if domain:
-            auth_string = '%(domains)s\%(username)s%%%(password)s' % values
+            auth_string = '%(domain)s\%(username)s%%%(password)s' % values
         else:
             auth_string = '%(username)s%%%(password)s' % values
 
