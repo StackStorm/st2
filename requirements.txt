@@ -6,7 +6,7 @@ gitpython==0.3.2.1
 jinja2
 jsonschema>=2.3.0
 kombu
-mongoengine
+mongoengine>=0.8.7,<0.9
 oslo.config
 paramiko
 pecan==0.7.0
