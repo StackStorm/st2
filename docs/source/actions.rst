@@ -170,9 +170,9 @@ Action Registration
 ~~~~~~~~~~~~~~~~~~~~
 Once action is created 1) place it into the content location, and 2) tell the system
 that the action is avalable. The actions are grouped in :doc:`packs </packs>` and located
-at ``/opt/stackstorm/pacsk`` (default, configured, multiple locations supported).
+at ``/opt/stackstorm/packs`` (default, configured, multiple locations supported).
 For hacking one-off actions, the convention is to use `default` pack - just create your action in
-``/opt/stackstorm/pack/default/actions``.
+``/opt/stackstorm/packs/default/actions``.
 
 Register individual action by calling `st2 action create my_action_metadata.yaml`.
 To reload all the action, use ``st2ctl reload --register-actions``
