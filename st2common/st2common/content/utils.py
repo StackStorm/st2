@@ -14,12 +14,12 @@
 # limitations under the License.
 
 import os
-import pipes
 
 from oslo.config import cfg
 
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common.util.types import OrderedSet
+from st2common.util.shell import quote_unix
 
 __all__ = [
     'get_system_packs_base_path',
@@ -127,14 +127,14 @@ def get_pack_base_path(pack_name):
 
     packs_base_paths = get_packs_base_paths()
     for packs_base_path in packs_base_paths:
-        pack_base_path = os.path.join(packs_base_path, pipes.quote(pack_name))
+        pack_base_path = os.path.join(packs_base_path, quote_unix(pack_name))
         pack_base_path = os.path.abspath(pack_base_path)
 
         if os.path.isdir(pack_base_path):
             return pack_base_path
 
     # Path with the provided name not found
-    pack_base_path = os.path.join(packs_base_paths[0], pipes.quote(pack_name))
+    pack_base_path = os.path.join(packs_base_paths[0], quote_unix(pack_name))
     pack_base_path = os.path.abspath(pack_base_path)
     return pack_base_path
 
@@ -156,7 +156,7 @@ def get_pack_directory(pack_name):
     """
     packs_base_paths = get_packs_base_paths()
     for packs_base_path in packs_base_paths:
-        pack_base_path = os.path.join(packs_base_path, pipes.quote(pack_name))
+        pack_base_path = os.path.join(packs_base_path, quote_unix(pack_name))
         pack_base_path = os.path.abspath(pack_base_path)
 
         if os.path.isdir(pack_base_path):
@@ -181,7 +181,7 @@ def get_entry_point_abs_path(pack=None, entry_point=None):
             return entry_point
 
         pack_base_path = get_pack_base_path(pack_name=pack)
-        entry_point_abs_path = os.path.join(pack_base_path, 'actions', pipes.quote(entry_point))
+        entry_point_abs_path = os.path.join(pack_base_path, 'actions', quote_unix(entry_point))
         return entry_point_abs_path
     else:
         return None

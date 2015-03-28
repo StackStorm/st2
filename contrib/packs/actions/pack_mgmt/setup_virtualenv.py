@@ -1,6 +1,5 @@
 import os
 import re
-import pipes
 
 from oslo.config import cfg
 
@@ -10,6 +9,7 @@ from st2common.constants.pack import PACK_NAME_WHITELIST
 from st2common.constants.pack import BASE_PACK_REQUIREMENTS
 from st2common.content.utils import get_packs_base_paths
 from st2common.content.utils import get_pack_directory
+from st2common.util.shell import quote_unix
 
 
 class SetupVirtualEnvironmentAction(Action):
@@ -54,7 +54,7 @@ class SetupVirtualEnvironmentAction(Action):
 
         self.logger.debug('Setting up virtualenv for pack "%s"' % (pack_name))
 
-        virtualenv_path = os.path.join(self._base_virtualenvs_path, pipes.quote(pack_name))
+        virtualenv_path = os.path.join(self._base_virtualenvs_path, quote_unix(pack_name))
 
         # Ensure pack directory exists in one of the search paths
         pack_path = get_pack_directory(pack_name=pack_name)

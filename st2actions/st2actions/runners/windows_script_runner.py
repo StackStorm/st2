@@ -15,12 +15,12 @@
 
 import os
 import uuid
-from subprocess import list2cmdline
 
 from eventlet.green import subprocess
 
 from st2common import log as logging
 from st2common.util.green_shell import run_command
+from st2common.util.shell import quote_windows
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
@@ -50,12 +50,6 @@ UPLOAD_FILE_TIMEOUT = 30
 CREATE_DIRECTORY_TIMEOUT = 10
 DELETE_FILE_TIMEOUT = 10
 DELETE_DIRECTORY_TIMEOUT = 10
-
-
-def quote(value):
-    # Note: pipes.quote only work on Linux
-    result = list2cmdline([value])
-    return result
 
 
 def get_runner():
@@ -134,7 +128,7 @@ class WindowsScriptRunner(BaseWindowsRunner):
         :param script_path: Full path to the script on the remote server.
         :type script_path: ``str``
         """
-        command = 'powershell.exe %s' % (quote(script_path))
+        command = 'powershell.exe %s' % (quote_windows(script_path))
         args = self._get_winexe_command_args(host=self._host, username=self._username,
                                              password=self._password,
                                              command=command)
@@ -160,7 +154,7 @@ class WindowsScriptRunner(BaseWindowsRunner):
         file_name = os.path.basename(local_path)
 
         temporary_directory_name = str(uuid.uuid4())
-        command = 'mkdir %s' % (quote(temporary_directory_name))
+        command = 'mkdir %s' % (quote_windows(temporary_directory_name))
 
         # 1. Create a temporary dir for out scripts (ignore errors if it already exists)
         # Note: We don't necessary have access to $TEMP so we create a temporary directory for our
@@ -181,7 +175,10 @@ class WindowsScriptRunner(BaseWindowsRunner):
         # 2. Upload file to temporary directory
         remote_path = PATH_SEPARATOR.join([temporary_directory_name, file_name])
 
-        values = {'local_path': quote(local_path), 'remote_path': quote(remote_path)}
+        values = {
+            'local_path': quote_windows(local_path),
+            'remote_path': quote_windows(remote_path)
+        }
         command = 'put %(local_path)s %(remote_path)s' % values
         args = self._get_smbclient_command_args(host=self._host, username=self._username,
                                                 password=self._password, command=command,
@@ -204,7 +201,7 @@ class WindowsScriptRunner(BaseWindowsRunner):
         return full_remote_file_path, full_temporary_directory_path
 
     def _delete_file(self, file_path):
-        command = 'rm %(file_path)s' % {'file_path': quote(file_path)}
+        command = 'rm %(file_path)s' % {'file_path': quote_windows(file_path)}
         args = self._get_smbclient_command_args(host=self._host, username=self._username,
                                                 password=self._password, command=command,
                                                 share=self._share)
@@ -216,7 +213,7 @@ class WindowsScriptRunner(BaseWindowsRunner):
         return exit_code == 0
 
     def _delete_directory(self, directory_path):
-        command = 'rmdir %(directory_path)s' % {'directory_path': quote(directory_path)}
+        command = 'rmdir %(directory_path)s' % {'directory_path': quote_windows(directory_path)}
         args = self._get_smbclient_command_args(host=self._host, username=self._username,
                                                 password=self._password, command=command,
                                                 share=self._share)
