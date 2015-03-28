@@ -1,22 +1,29 @@
 ---
 chain:
     -
-        name: "test_basics"
-        ref: "core.local"
+        name: test_version
+        ref: core.local
         params:
-            cmd: "st2 --version; st2 -h"
+            cmd: "st2 --version 2>&1 | grep 'st2'"
+        on-success: test_help
+        on-failure: error_handler
+    -
+        name: test_help
+        ref: core.local
+        params:
+            cmd: "st2 -h | grep 'usage: st2'"
         on-success: test_action_list
-        on-failure: "error_handler"
+        on-failure: error_handler
     -
         name: test_action_list
-        ref: "core.local"
+        ref: core.local
         params:
             cmd: "st2 action list -j --pack=core | egrep -w 'core.local|core.remote'"
         on-success: test_action_get
         on-failure: error_handler
     -
         name: test_action_get
-        ref: "core.local"
+        ref: core.local
         params:
             cmd: "st2 action get -j core.http"
         on-success: test_run_action
@@ -26,48 +33,48 @@ chain:
         ref: core.local
         params:
             # Funny inception - core.local calls core.local :)
-            cmd: st2 run core.local -- date -R
+            cmd: "st2 run core.local -- date -R"
         on-success: test_execution_list
-        on-failure: "error_handler"
+        on-failure: error_handler
     -
         name: test_execution_list
         ref: core.local
         params:
-            cmd: st2 execution list -n 1
+            cmd: "st2 execution list -n 1"
         on-success: test_sensor_list
-        on-failure: "error_handler"
+        on-failure: error_handler
     -
         name: test_sensor_list
         ref: core.local
         params:
-            cmd: st2 sensor list -j
+            cmd: "st2 sensor list -j"
         on-success: test_trigger_list
-        on-failure: "error_handler"
+        on-failure: error_handler
     -
         name: test_trigger_list
+        description: Get the trigger list as JSON with all attributes
         ref: core.local
         params:
-            # get the trigger list as JSON with all attributes
-            cmd: st2 trigger list -j -a=all
+            cmd: "st2 trigger list -j -a=all"
         on-success: test_trigger_get
-        on-failure: "error_handler"
+        on-failure: error_handler
     -
         name: test_trigger_get
         ref: core.local
         params:
             cmd: "st2 trigger get -j {{test_trigger_list.stdout[0].id}}"
         on-success: test_run_remote
-        on-failure: "error_handler"
+        on-failure: error_handler
     -
         name: test_run_remote
         ref: core.local
         params:
-            cmd: st2 run core.remote hosts='localhost' -- uname -a
-        on-failure: "error_handler"
+            cmd: "st2 run core.remote hosts='localhost' -- uname -a"
+        on-failure: error_handler
     -
         name: error_handler
         description: Error handler
         ref: "core.local"
         params:
-            cmd: "echo fail c4"
+            cmd: "echo quickstart test failed; exit 1"
 
