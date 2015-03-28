@@ -93,7 +93,7 @@ class TestTokenController(FunctionalTest):
         mock.MagicMock(side_effect=Exception()))
     @mock.patch.object(
         User, 'add_or_update',
-        mock.Mock(return_value=UserDB(user=USERNAME)))
+        mock.Mock(return_value=UserDB(name=USERNAME)))
     def test_token_post_new_user(self):
         self._test_token_post()
 
