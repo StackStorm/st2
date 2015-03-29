@@ -42,8 +42,17 @@ class RuleFilter(object):
         self.trigger = trigger
         self.rule = rule
 
+        # Base context used with a logger
+        self._base_logger_context = {
+            'rule': self.rule,
+            'trigger': self.trigger,
+            'trigger_instance': self.trigger_instance
+        }
+
     def filter(self):
-        LOG.info('Validating rule %s for %s.', self.rule.id, self.trigger['name'])
+        LOG.info('Validating rule %s for %s.', self.rule.id, self.trigger['name'],
+                 extra=self._base_logger_context)
+
         if not self.rule.enabled:
             return False
 
@@ -55,7 +64,9 @@ class RuleFilter(object):
 
         payload_lookup = PayloadLookup(self.trigger_instance.payload)
 
-        LOG.debug('Trigger payload: %s', self.trigger_instance.payload)
+        LOG.debug('Trigger payload: %s', self.trigger_instance.payload,
+                  extra=self._base_logger_context)
+
         for criterion_k in criteria.keys():
             criterion_v = criteria[criterion_k]
             is_rule_applicable = self._check_criterion(criterion_k, criterion_v, payload_lookup)
@@ -63,8 +74,8 @@ class RuleFilter(object):
                 break
 
         if not is_rule_applicable:
-            LOG.debug('Rule %s not applicable for %s.', self.rule.id,
-                      self.trigger['name'])
+            LOG.debug('Rule %s not applicable for %s.', self.rule.id, self.trigger['name'],
+                      extra=self._base_logger_context)
 
         return is_rule_applicable
 
@@ -85,7 +96,8 @@ class RuleFilter(object):
             try:
                 criterion_v['pattern'] = render_template_with_system_context(value=value)
             except Exception:
-                LOG.exception('Failed to render pattern value for key %s' % (criterion_k))
+                LOG.exception('Failed to render pattern value for key %s' % (criterion_k),
+                              extra=self._base_logger_context)
                 return False
 
         try:
@@ -96,7 +108,8 @@ class RuleFilter(object):
             else:
                 payload_value = None
         except:
-            LOG.exception('Failed transforming criteria key %s', criterion_k)
+            LOG.exception('Failed transforming criteria key %s', criterion_k,
+                          extra=self._base_logger_context)
             return False
 
         criteria_pattern = criterion_v['pattern']
@@ -106,7 +119,8 @@ class RuleFilter(object):
         try:
             return op_func(value=payload_value, criteria_pattern=criteria_pattern)
         except:
-            LOG.exception('There might be a problem with critera in rule %s.', self.rule)
+            LOG.exception('There might be a problem with critera in rule %s.', self.rule,
+                          extra=self._base_logger_context)
             return False
 
 
