@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
 from jinja2 import Environment, StrictUndefined
 
 from st2common.constants.system import SYSTEM_KV_PREFIX
@@ -34,6 +35,7 @@ def render_template(value, context=None):
     :param context: Template context.
     :type context: ``dict``
     """
+    assert isinstance(value, six.string_types)
     context = context or {}
 
     env = Environment(undefined=StrictUndefined)

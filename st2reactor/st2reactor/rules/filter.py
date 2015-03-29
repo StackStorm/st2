@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import st2common.operators as criteria_operators
-
+import six
 from jsonpath_rw import parse
+
 from st2common import log as logging
+import st2common.operators as criteria_operators
 from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.services.keyvalues import KeyValueLookup
@@ -127,8 +128,14 @@ class RuleFilter(object):
         if not criteria_pattern:
             return None
 
+        if not isinstance(criteria_pattern, six.string_types):
+            # We only perform rendering if value is a string - rendering a string value makes no
+            # sense
+            return criteria_pattern
+
         criteria_pattern = render_template_with_system_context(value=criteria_pattern)
         return criteria_pattern
+
 
 class PayloadLookup():
 
