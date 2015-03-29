@@ -20,6 +20,7 @@ from st2common import log as logging
 from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.services.keyvalues import KeyValueLookup
+from st2common.util.templating import render_template_with_system_context
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.filter')
@@ -69,6 +70,7 @@ class RuleFilter(object):
 
     def _check_criterion(self, criterion_k, criterion_v, payload_lookup):
         criteria_operator = ''
+
         if 'type' in criterion_v:
             criteria_operator = criterion_v['type']
         else:
@@ -76,6 +78,15 @@ class RuleFilter(object):
 
         if 'pattern' not in criterion_v:
             criterion_v['pattern'] = None
+        else:
+            # Render the pattern (it can contain jinja expressions)
+            value = criterion_v['pattern']
+
+            try:
+                criterion_v['pattern'] = render_template_with_system_context(value=value)
+            except Exception:
+                LOG.exception('Failed to render pattern value for key %s' % (criterion_k))
+                return False
 
         try:
             matches = payload_lookup.get_value(criterion_k)
