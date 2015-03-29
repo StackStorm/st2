@@ -4,7 +4,7 @@ RedHat / Fedora
 |st2| RPMs have been tested and precompiled for Fedora 20.
 
 Deployment Script Installation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 
 You can download and install the |st2| components, core content, and the accompanying control script by using our one step installer script.  You can download that script from our downloads site with the following command.
@@ -12,6 +12,7 @@ You can download and install the |st2| components, core content, and the accompa
 ::
 
     curl -q -k -O https://ops.stackstorm.net/releases/st2/scripts/st2_deploy.sh
+    sudo chmod +x st2_deploy.sh
 
 You can then run the script to download and install the |st2| packages
 by simply passing in the version number. If no version number is given, it will default to the latest stable version.
@@ -24,6 +25,8 @@ This will download the latest stable build of |st2|.
 
 ---------------
 
+Manual Installation
+-------------------
 Prerequisites
 ^^^^^^^^^^^^^
 
@@ -71,8 +74,8 @@ You will also want to download the rabbitmqadmin script to make troubleshooting 
     chmod 755 /usr/bin/rabbitmqadmin
 
 
-Manual Installation
-^^^^^^^^^^^^^^^^^^^
+Installation
+^^^^^^^^^^^^
 
 You will need to download the following packages:
 

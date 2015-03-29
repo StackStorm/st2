@@ -228,3 +228,30 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         self.assertTrue('Traceback' in parsed['full_message'])
         self.assertTrue('_exception' in parsed)
         self.assertTrue('_traceback' in parsed)
+
+    def test_extra_object_serialization(self):
+        class MyClass1(object):
+            def __repr__(self):
+                return 'repr'
+
+        class MyClass2(object):
+            def to_dict(self):
+                return 'to_dict'
+
+        class MyClass3(object):
+            def to_serializable_dict(self):
+                return 'to_serializable_dict'
+
+        formatter = GelfLogFormatter()
+
+        record = MockRecord()
+        record.msg = 'message'
+        record._obj1 = MyClass1()
+        record._obj2 = MyClass2()
+        record._obj3 = MyClass3()
+
+        message = formatter.format(record=record)
+        parsed = json.loads(message)
+        self.assertEqual(parsed['_obj1'], 'repr')
+        self.assertEqual(parsed['_obj2'], 'to_dict')
+        self.assertEqual(parsed['_obj3'], 'to_serializable_dict')
