@@ -41,6 +41,40 @@ COMMON_ATTRIBUTE_NAMES = [
 ]
 
 
+def serialize_object(obj):
+    """
+    Serialize the provided object.
+
+    We look for "to_dict" and "to_serializable_dict" methods. If none of those methods is
+    available, we fall back to "repr(obj)".
+
+    :rtype: ``str``
+    """
+    # Try to serialize the object
+    if getattr(obj, 'to_dict', None):
+        value = obj.to_dict()
+    elif getattr(obj, 'to_serializable_dict', None):
+        value = obj.to_serializable_dict()
+    else:
+        value = repr(obj)
+
+    return value
+
+
+class ObjectJSONEncoder(json.JSONEncoder):
+    """
+    Custom JSON encoder which also knows how to encode objects.
+    """
+
+    def default(self, obj):
+        if isinstance(obj, object):
+            value = serialize_object(obj=obj)
+            return value
+
+        # Let the base class default method raise the TypeError
+        return json.JSONEncoder.default(self, obj)
+
+
 class BaseExtraLogFormatter(logging.Formatter):
     """
     Base class for the log formatters which expect additional context to be passed in the "extra"
@@ -84,12 +118,7 @@ class BaseExtraLogFormatter(logging.Formatter):
                 value = value
             elif isinstance(value, object):
                 # Check for a custom serialization method
-                if getattr(value, 'to_dict', None):
-                    value = value.to_dict()
-                elif getattr(value, 'to_serializable_dict', None):
-                    value = value.to_serializable_dict()
-                else:
-                    value = repr(value)
+                value = serialize_object(obj=value)
 
             result[key] = value
 
@@ -209,5 +238,5 @@ class GelfLogFormatter(BaseExtraLogFormatter):
         # Include user extra attributes
         data.update(attributes)
 
-        msg = json.dumps(data)
+        msg = json.dumps(data, cls=ObjectJSONEncoder)
         return msg
