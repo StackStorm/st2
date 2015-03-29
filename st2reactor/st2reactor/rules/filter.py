@@ -50,6 +50,11 @@ class RuleFilter(object):
         }
 
     def filter(self):
+        """
+        Return true if the rule is applicable to the provided trigger instance.
+
+        :rtype: ``bool``
+        """
         LOG.info('Validating rule %s for %s.', self.rule.id, self.trigger['name'],
                  extra=self._base_logger_context)
 
@@ -80,25 +85,20 @@ class RuleFilter(object):
         return is_rule_applicable
 
     def _check_criterion(self, criterion_k, criterion_v, payload_lookup):
-        criteria_operator = ''
-
-        if 'type' in criterion_v:
-            criteria_operator = criterion_v['type']
-        else:
+        if 'type' not in criterion_v:
+            # Comparison operator type not specified, can't perform a comparison
             return False
 
-        if 'pattern' not in criterion_v:
-            criterion_v['pattern'] = None
-        else:
-            # Render the pattern (it can contain jinja expressions)
-            value = criterion_v['pattern']
+        criteria_operator = criterion_v['type']
+        criteria_pattern = criterion_v.get('pattern', None)
 
-            try:
-                criterion_v['pattern'] = render_template_with_system_context(value=value)
-            except Exception:
-                LOG.exception('Failed to render pattern value for key %s' % (criterion_k),
-                              extra=self._base_logger_context)
-                return False
+        # Render the pattern (it can contain a jinja expressions)
+        try:
+            criteria_pattern = self._render_criteria_pattern(criteria_pattern=criteria_pattern)
+        except Exception:
+            LOG.exception('Failed to render pattern value for key %s' % (criterion_k),
+                          extra=self._base_logger_context)
+            return False
 
         try:
             matches = payload_lookup.get_value(criterion_k)
@@ -112,17 +112,23 @@ class RuleFilter(object):
                           extra=self._base_logger_context)
             return False
 
-        criteria_pattern = criterion_v['pattern']
-
         op_func = criteria_operators.get_operator(criteria_operator)
 
         try:
-            return op_func(value=payload_value, criteria_pattern=criteria_pattern)
+            result = op_func(value=payload_value, criteria_pattern=criteria_pattern)
         except:
             LOG.exception('There might be a problem with critera in rule %s.', self.rule,
                           extra=self._base_logger_context)
             return False
 
+        return result
+
+    def _render_criteria_pattern(self, criteria_pattern):
+        if not criteria_pattern:
+            return None
+
+        criteria_pattern = render_template_with_system_context(value=criteria_pattern)
+        return criteria_pattern
 
 class PayloadLookup():
 
