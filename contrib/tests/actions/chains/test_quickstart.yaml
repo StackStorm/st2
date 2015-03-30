@@ -1,6 +1,10 @@
 ---
 chain:
     -
+        name: "setup_tests"
+        ref: "tests.setup_test_quickstart"
+        on-success: "test_basics"
+    -
         name: "test_basics"
         ref: "core.local"
         params:
@@ -70,4 +74,6 @@ chain:
         ref: "core.local"
         params:
             cmd: "echo fail c4"
+
+    default: "setup_tests"
 

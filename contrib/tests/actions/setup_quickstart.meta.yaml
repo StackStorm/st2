@@ -1,0 +1,8 @@
+---
+# Action definition metadata
+name: "setup_test_quickstart"
+description: "Prepare system to run quickstart test workflow"
+runner_type: "action-chain"
+enabled: true
+entry_point: "chains/setup_test_quickstart.yaml"
+parameters: {}
