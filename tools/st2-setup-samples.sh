@@ -16,10 +16,10 @@ else
     st2ctl reload
 fi
 
-if [ -f /${PATH}/${PACK}/requirements.txt ]; then
+if [ -f ${PATH}/${PACK}/requirements.txt ]; then
     echo "Creating virtualenv for ${PACK}..."
     mkdir -p /opt/stackstorm/virtualenvs
     virtualenv --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
     echo "Installing requirements.txt for ${PACK}..."
-    pip install -r /opt/stackstorm/virtualenvs/${PACK}/requirements.txt -E /opt/stackstorm/virtualenvs/${PACK}
+    pip install -r ${PATH}/${PACK}/requirements.txt -E /opt/stackstorm/virtualenvs/${PACK}
 fi
