@@ -1,3 +1,31 @@
 #!/bin/bash
 
 chmod 755 /usr/bin/st2ctl
+
+PYTHON_BIN=`grep "python_binary" /etc/st2/st2.conf | head -n 1 | awk '{print $3}'`
+if [ -z "$PYTHON_BIN" ]
+then
+    PYTHON_BIN=`which python`
+fi
+
+PIP=`which pip`
+if [ -z "$PIP" ]
+then
+    echo 'Missing python-pip. Not installing virtualenvs for core packs.'
+else
+    LINUX_PACK_DIR=/opt/stackstorm/packs/linux
+    LINUX_PACK_VENV_DIR=/opt/stackstorm/virtualenvs/linux
+    if [ ! -d "$LINUX_PACK_VENV_DIR" ]
+    then
+    mkdir -p $LINUX_PACK_VENV_DIR
+    fi
+    virtualenv -p $PYTHON_BIN --system-site-packages $LINUX_PACK_VENV_DIR
+
+    if [ -d $LINUX_PACK_VENV_DIR ]
+    then
+        if [ -f $LINUX_PACK_VENV_DIR/requirements.txt ]
+        then
+            pip install -r $LINUX_PACK_DIR/requirements.txt -E $LINUX_PACK_VENV_DIR
+        fi
+    fi
+fi
