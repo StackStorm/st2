@@ -1,14 +1,7 @@
 #!/bin/bash
 
-PACK=$1
-if [[ "$PACK" == "examples" ]]; then
-    PATH="/usr/share/doc/st2"
-elif [[ "$PACK" == "tests" ]]; then
-    PATH="/usr/share/stackstorm"
-else
-    echo "Invalid pack: ${PACK}"
-    exit 2
-fi
+PACK=tests
+PATH="/usr/share/stackstorm"
 
 echo -e "Adding packs_base_paths for ${PATH}/${PACK}..."
 grep packs_base_path /etc/st2/st2.conf || echo -e "\n[content]\npacks_base_paths = ${PATH}/${PACK}" >> /etc/st2/st2.conf
