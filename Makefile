@@ -119,6 +119,25 @@ clean: .cleanpycs .cleandocs
 	@echo "Removing generated documentation"
 	rm -rf $(DOC_BUILD_DIR)
 
+.PHONY: .cleanmongodb
+.cleanmongodb:
+	@echo "==================== cleanmongodb ===================="
+	@echo "----- Dropping all MongoDB databases -----"
+	@sudo service mongodb force-stop
+	@sudo rm -rf /var/lib/mongodb/*
+	@sudo chown -R mongodb:mongodb /var/lib/mongodb/
+	@sudo service mongodb start
+	@mongo --eval "rs.initiate()"
+	@sleep 5
+
+.PHONY: .cleanrabbitmq
+.cleanrabbitmq:
+	@echo "==================== cleanrabbitmq ===================="
+	@echo "Deleting all RabbitMQ queue and exchanges"
+	@sudo rabbitmqctl stop_app
+	@sudo rabbitmqctl reset
+	@sudo rabbitmqctl start_app
+
 .PHONY: distclean
 distclean: clean
 	@echo
