@@ -46,6 +46,7 @@ cp -R st2common %{buildroot}/%{python2_sitelib}/
 cp -R bin %{buildroot}/%{python2_sitelib}/st2common/
 install st2/st2.conf %{buildroot}/etc/st2/st2.conf
 install -m755 tools/st2ctl %{buildroot}/usr/bin/st2ctl
+install -m755 tools/st2-setup-samples.sh %{buildroot}/usr/bin/st2-setup-samples
 
 %files
 %{python2_sitelib}/st2common*

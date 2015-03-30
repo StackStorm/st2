@@ -1,3 +1,4 @@
 #!/bin/bash
 
 chmod 755 /usr/bin/st2ctl
+chmod 755 /usr/bin/st2-setup-samples
