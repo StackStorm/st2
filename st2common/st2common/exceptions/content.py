@@ -18,3 +18,7 @@ from st2common.exceptions import StackStormBaseException
 
 class UnsupportedMetaException(StackStormBaseException):
     pass
+
+
+class ParseException(StackStormBaseException):
+    pass
