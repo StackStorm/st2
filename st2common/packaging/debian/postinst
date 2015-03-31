@@ -1,3 +1,4 @@
 #!/bin/bash
 
 chmod 755 /usr/bin/st2ctl
+chmod 755 /usr/local/lib/python2.7/dist-packages/st2common/bin/st2-setup-tests
