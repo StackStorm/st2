@@ -1,10 +1,19 @@
 #!/bin/bash
 
-PACK=tests
-PATH="/usr/share/stackstorm"
+PACK="tests"
+USRPATH="/usr/share/stackstorm"
+TESTSPATH="/opt/stackstorm/tests"
 
-echo -e "Adding packs_base_paths for ${PATH}/${PACK}..."
-grep packs_base_path /etc/st2/st2.conf || echo -e "\n[content]\npacks_base_paths = ${PATH}/${PACK}" >> /etc/st2/st2.conf
+if [ -d ${USRPATH}/${PACK} ]; then
+    mkdir -p ${TESTSPATH}/packs
+    cp -Rf ${USRPATH}/${PACK} ${TESTSPATH}/packs/
+else
+    echo "${PACK} does not exist in ${USRPATH}"
+    exit 2
+fi
+
+echo -e "Adding packs_base_paths for ${TESTSPATH}..."
+grep packs_base_path /etc/st2/st2.conf || echo -e "\n[content]\npacks_base_paths = ${TESTSPATH}" >> /etc/st2/st2.conf
 
 if [[ $? -ne 0 ]]; then
     echo "Failed to add pack path!"
@@ -16,10 +25,10 @@ else
     st2ctl reload
 fi
 
-if [ -f ${PATH}/${PACK}/requirements.txt ]; then
+if [ -f ${TESTSPATH}/packs/${PACK}requirements.txt ]; then
     echo "Creating virtualenv for ${PACK}..."
     mkdir -p /opt/stackstorm/virtualenvs
     virtualenv --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
     echo "Installing requirements.txt for ${PACK}..."
-    pip install -r ${PATH}/${PACK}/requirements.txt -E /opt/stackstorm/virtualenvs/${PACK}
+    pip install -r ${TESTSPATH}/packs/${PACK}requirements.txt -E /opt/stackstorm/virtualenvs/${PACK}
 fi
