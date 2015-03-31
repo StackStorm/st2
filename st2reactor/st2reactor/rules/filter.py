@@ -129,8 +129,8 @@ class RuleFilter(object):
             return None
 
         if not isinstance(criteria_pattern, six.string_types):
-            # We only perform rendering if value is a string - rendering a string value makes no
-            # sense
+            # We only perform rendering if value is a string - rendering a non-string value
+            # makes no sense
             return criteria_pattern
 
         criteria_pattern = render_template_with_system_context(value=criteria_pattern)
