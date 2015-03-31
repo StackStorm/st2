@@ -2,11 +2,11 @@
 
 PACK="tests"
 USRPATH="/usr/share/stackstorm"
-TESTSPATH="/opt/stackstorm/tests"
+TESTSPATH="/opt/stackstorm/tests/packs"
 
 if [ -d ${USRPATH}/${PACK} ]; then
-    mkdir -p ${TESTSPATH}/packs
-    cp -Rf ${USRPATH}/${PACK} ${TESTSPATH}/packs/
+    mkdir -p ${TESTSPATH}
+    cp -Rf ${USRPATH}/${PACK} ${TESTSPATH}
 else
     echo "${PACK} does not exist in ${USRPATH}"
     exit 2
@@ -25,10 +25,10 @@ else
     st2ctl reload
 fi
 
-if [ -f ${TESTSPATH}/packs/${PACK}requirements.txt ]; then
+if [ -f ${TESTSPATH}/${PACK}requirements.txt ]; then
     echo "Creating virtualenv for ${PACK}..."
     mkdir -p /opt/stackstorm/virtualenvs
     virtualenv --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
     echo "Installing requirements.txt for ${PACK}..."
-    pip install -r ${TESTSPATH}/packs/${PACK}requirements.txt -E /opt/stackstorm/virtualenvs/${PACK}
+    pip install -r ${TESTSPATH}/${PACK}requirements.txt -E /opt/stackstorm/virtualenvs/${PACK}
 fi
