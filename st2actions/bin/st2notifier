@@ -1,0 +1,8 @@
+#!/usr/bin/env python2.7
+
+import sys
+from st2actions.cmd import st2notifier
+
+
+if __name__ == '__main__':
+    sys.exit(st2notifier.main())

@@ -107,6 +107,13 @@ function st2start(){
         ./st2actions/bin/st2resultstracker \
         --config-file $ST2_CONF
 
+    # Run the actions notifier
+    echo 'Starting screen session st2-notifier...'
+    screen -d -m -S st2-notifier ./virtualenv/bin/python \
+        ./st2actions/bin/st2notifier \
+        --config-file $ST2_CONF
+
+
     # Check whether screen sessions are started
     screens=(
         "st2-api"
@@ -114,6 +121,7 @@ function st2start(){
         "st2-sensorcontainer"
         "st2-rulesengine"
         "st2-resultstracker"
+        "st2-notifier"
     )
 
     echo
