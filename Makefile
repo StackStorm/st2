@@ -123,7 +123,7 @@ clean: .cleanpycs .cleandocs
 .cleanmongodb:
 	@echo "==================== cleanmongodb ===================="
 	@echo "----- Dropping all MongoDB databases -----"
-	@sudo service mongodb force-stop
+	@sudo pkill -9 mongod
 	@sudo rm -rf /var/lib/mongodb/*
 	@sudo chown -R mongodb:mongodb /var/lib/mongodb/
 	@sudo service mongodb start
