@@ -95,6 +95,44 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     }
 
 
+class NotificationSubSchema(me.EmbeddedDocument):
+    """
+        Schema for notification settings to be specified for action success/failure.
+    """
+    message = me.StringField()
+    data = stormbase.EscapedDynamicField(
+        default={},
+        help_text='Payload to be sent as part of notification.')
+    triggers = me.ListField(
+        default=['notify.default'],
+        help_text='Triggers to be emitted for notifications.')
+
+    def __str__(self):
+        result = []
+        result.append('NotificationSubSchema@')
+        result.append(str(id(self)))
+        result.append('(message="%s", ' % self.message)
+        result.append('data="%s", ' % self.data)
+        result.append('triggers="%s")' % self.triggers)
+        return ''.join(result)
+
+
+class NotificationSchema(me.EmbeddedDocument):
+    """
+        Schema for notification settings to be specified for actions.
+    """
+    on_success = NotificationSubSchema
+    on_failure = NotificationSubSchema
+
+    def __str__(self):
+        result = []
+        result.append('NotifySchema@')
+        result.append(str(id(self)))
+        result.append('(on_success="%s", ' % str(self.on_success))
+        result.append('on_failure="%s")' % str(self.on_failure))
+        return ''.join(result)
+
+
 class LiveActionDB(stormbase.StormFoundationDB):
     """
         The databse entity that represents a Stack Action/Automation in
@@ -134,6 +172,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
     runner_info = me.DictField(
         default={},
         help_text='Reference to the runner that executed this liveaction.')
+    notify = me.EmbeddedDocumentField(NotificationSchema)
 
     meta = {
         'indexes': ['-start_timestamp', 'action']
