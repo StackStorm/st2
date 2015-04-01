@@ -22,6 +22,8 @@ from st2common import log as logging
 from st2common.transport import liveaction, publishers
 from st2common.util.greenpooldispatch import BufferedDispatcher
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
+from st2common.transport.reactor import TriggerDispatcher
+
 LOG = logging.getLogger(__name__)
 
 ACTIONUPDATE_WORK_Q = liveaction.get_queue('st2.notifiers.work',
@@ -69,6 +71,7 @@ class Notifier(object):
     def __init__(self, q_connection=None):
         self._queue_consumer = LiveActionUpdateQueueConsumer(q_connection, self)
         self._consumer_thread = None
+        self._trigger_dispatcher = TriggerDispatcher(LOG)
 
     def start(self):
         self._consumer_thread = eventlet.spawn(self._queue_consumer.run)
@@ -76,6 +79,7 @@ class Notifier(object):
 
     def handle_action_complete(self, liveaction):
         print(liveaction)
+        # XXX: self._trigger_dispatcher.dispatch(trigger, payload)
 
 
 def get_notifier():
