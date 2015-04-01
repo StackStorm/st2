@@ -4,6 +4,8 @@ mongo:
     - "27017:27017"
 rabbitmq:
   image: rabbitmq:3
+  ports:
+    - "5672:5672"
 mongoready:
   image: aanand/wait
   links:
