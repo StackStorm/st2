@@ -21,11 +21,12 @@ from oslo.config import cfg
 from st2common import log as logging
 from st2common.transport import liveaction, publishers
 from st2common.util.greenpooldispatch import BufferedDispatcher
-
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 LOG = logging.getLogger(__name__)
 
 ACTIONUPDATE_WORK_Q = liveaction.get_queue('st2.notifiers.work',
                                            routing_key=publishers.UPDATE_RK)
+ACTION_COMPLETE_STATES = [LIVEACTION_STATUS_FAILED, LIVEACTION_STATUS_SUCCEEDED]
 
 
 class LiveActionUpdateQueueConsumer(ConsumerMixin):
@@ -58,8 +59,8 @@ class LiveActionUpdateQueueConsumer(ConsumerMixin):
 
     def _do_process_task(self, body):
         try:
-            # XXX: Check if action status is complete and then call this method
-            self._notifier.handle_action_complete(body)
+            if body.status in ACTION_COMPLETE_STATES:
+                self._notifier.handle_action_complete(body)
         except:
             LOG.exception('Add query_context failed. Message body : %s', body)
 
