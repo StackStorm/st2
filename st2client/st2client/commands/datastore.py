@@ -18,8 +18,6 @@ import json
 import logging
 from os.path import join as pjoin
 
-import six
-
 from st2client.models import datastore
 from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
@@ -203,7 +201,10 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             kvps = json.loads(f.read())
 
         instances = []
-        for name, value in six.iteritems(kvps):
+        for item in kvps:
+            name = item['name']
+            value = item['value']
+
             instance = KeyValuePair()
             instance.id = name  # TODO: refactor and get rid of id
             instance.name = name
