@@ -238,7 +238,7 @@ If something goes wrong:
 
 * Connect with your monitoring system: - :doc:`resources/monitoring`.
 * Configure SSH for `remote` actions  - :ref:`config-configure-ssh`.
-* Use worklows to stitch actions into higher level automations - :doc:`/workflows`.
+* Use workflows to stitch actions into higher level automations - :doc:`/workflows`.
 
 
 .. include:: engage.rst
