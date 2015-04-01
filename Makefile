@@ -130,6 +130,16 @@ clean: .cleanpycs .cleandocs
 	@mongo --eval "rs.initiate()"
 	@sleep 5
 
+.PHONY: .cleanmysql
+.cleanmysql:
+	@echo "==================== cleanmysql ===================="
+	@echo "----- Dropping all Mistral MYSQL databases -----"
+	@mysql -uroot -pStackStorm -e "DROP DATABASE IF EXISTS mistral"
+	@mysql -uroot -pStackStorm -e "CREATE DATABASE mistral"
+	@mysql -uroot -pStackStorm -e "GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'localhost' IDENTIFIED BY 'StackStorm'"
+	@mysql -uroot -pStackStorm -e "FLUSH PRIVILEGES"
+	@/opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/tools/sync_db.py --config-file /etc/mistral/mistral.conf
+
 .PHONY: .cleanrabbitmq
 .cleanrabbitmq:
 	@echo "==================== cleanrabbitmq ===================="
