@@ -117,7 +117,7 @@ class ActionAliasController(resource.ResourceController):
             Handles requests:
                 DELETE /actionalias/1
         """
-        action_alias_db = self.__get_by_id(action_alias_id)
+        action_alias_db = self._get_by_id(action_alias_id)
         LOG.debug('DELETE /actionalias/ lookup with id=%s found object: %s', action_alias_id,
                   action_alias_db)
         try:

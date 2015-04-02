@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from st2api.controllers.exp.actionalias import ActionAliasController
+from st2api.controllers.exp.aliasexecution import ActionAliasExecutionController
 
 
 class RootController(object):
 
     actionalias = ActionAliasController()
+    aliasexecution = ActionAliasExecutionController()
