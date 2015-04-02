@@ -23,7 +23,8 @@
     -
       name: "reload"
       ref: "packs.load"
-      params: {}
+      params:
+        register: "{{register}}"
       on-success: "restart-sensor-container"
     -
       name: "restart-sensor-container"
