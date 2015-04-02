@@ -22,7 +22,7 @@ from pecan import rest
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.models.db.action import LiveActionDB
-from st2common.models.utils import action_param_utils
+from st2common.models.utils import action_alias_utils, action_param_utils
 from st2common.persistence.action import ActionAlias
 from st2common.services import action as action_service
 
@@ -65,7 +65,7 @@ class ActionAliasExecutionController(rest.RestController):
 
     def _extract_parameters(self, action_alias_db, param_stream):
         alias_format = action_alias_db.formats[0]
-        parser = action_param_utils.ActionAliasFormatParser(alias_format=alias_format,
+        parser = action_alias_utils.ActionAliasFormatParser(alias_format=alias_format,
                                                             param_stream=param_stream)
         return parser.get_extracted_param_value()
 

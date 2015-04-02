@@ -154,8 +154,8 @@ class ActionAliasFormatParser(object):
     def _get_param_name_default_value(self, param_format):
         if not param_format:
             return None, None
-        values = param_format.split(self.param_default_value_separator)
-        return values[0], values[1] if len(param_format) > 1 else None
+        values = param_format.split(self.PARAM_DEFAULT_VALUE_SEPARATOR)
+        return values[0], values[1] if len(values) > 1 else None
 
     def _get_next_value(self, start):
         parser = self._get_parser(self._param_stream[start])
