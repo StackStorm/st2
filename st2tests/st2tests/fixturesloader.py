@@ -21,28 +21,29 @@ import six
 from st2common.content.loader import MetaLoader
 
 from st2common.models.api.action import (ActionAPI, LiveActionAPI, ActionExecutionStateAPI,
-                                         RunnerTypeAPI)
+                                         RunnerTypeAPI, ActionAliasAPI)
 from st2common.models.api.execution import (ActionExecutionAPI)
 from st2common.models.api.reactor import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
 from st2common.models.api.rule import (RuleAPI)
 
 from st2common.models.db.action import (ActionDB, LiveActionDB, ActionExecutionStateDB,
-                                        RunnerTypeDB)
+                                        RunnerTypeDB, ActionAliasDB)
 from st2common.models.db.execution import (ActionExecutionDB)
 from st2common.models.db.reactor import (RuleDB, TriggerDB, TriggerTypeDB, TriggerInstanceDB)
 
 from st2common.persistence.action import (Action, LiveAction, ActionExecutionState,
-                                          RunnerType)
+                                          RunnerType, ActionAlias)
 from st2common.persistence.execution import (ActionExecution)
 from st2common.persistence.reactor import (Rule, Trigger, TriggerType, TriggerInstance)
 
 ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'executions', 'liveactions', 'rules', 'runners',
-                       'triggertypes', 'triggers', 'triggerinstances']
+                       'triggertypes', 'triggers', 'triggerinstances', 'actionaliases']
 ALLOWED_FIXTURES = copy.copy(ALLOWED_DB_FIXTURES)
 ALLOWED_FIXTURES.extend(['actionchains', 'workflows'])
 
 FIXTURE_DB_MODEL = {
     'actions': ActionDB,
+    'actionaliases': ActionAliasDB,
     'actionstates': ActionExecutionStateDB,
     'executions': ActionExecutionDB,
     'liveactions': LiveActionDB,
@@ -55,6 +56,7 @@ FIXTURE_DB_MODEL = {
 
 FIXTURE_API_MODEL = {
     'actions': ActionAPI,
+    'actionaliases': ActionAliasAPI,
     'actionstates': ActionExecutionStateAPI,
     'executions': ActionExecutionAPI,
     'liveactions': LiveActionAPI,
@@ -68,6 +70,7 @@ FIXTURE_API_MODEL = {
 
 FIXTURE_PERSISTENCE_MODEL = {
     'actions': Action,
+    'actionaliases': ActionAlias,
     'actionstates': ActionExecutionState,
     'executions': ActionExecution,
     'liveactions': LiveAction,

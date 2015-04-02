@@ -1,0 +1,7 @@
+---
+    name: "alias3"
+    description: "DON'T CARE"
+    action_ref: "core.remote"
+    formats:
+        - "format1"
+        - "format2"
