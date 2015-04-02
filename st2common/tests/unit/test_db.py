@@ -180,6 +180,7 @@ class ReactorModelTest(DbTestCase):
         created = TriggerTypeDB()
         created.pack = 'dummy_pack_1'
         created.name = 'triggertype-1'
+        created.stupid = 'stupid'
         created.description = ''
         created.payload_schema = {}
         created.parameters_schema = {}

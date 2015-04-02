@@ -111,9 +111,9 @@ class NotificationSubSchema(me.EmbeddedDocument):
         result = []
         result.append('NotificationSubSchema@')
         result.append(str(id(self)))
-        result.append('(message="%s", ' % self.message)
-        result.append('data="%s", ' % self.data)
-        result.append('triggers="%s")' % self.triggers)
+        result.append('(message="%s", ' % str(self.message))
+        result.append('data="%s", ' % str(self.data))
+        result.append('triggers="%s")' % str(self.triggers))
         return ''.join(result)
 
 
@@ -121,14 +121,27 @@ class NotificationSchema(me.EmbeddedDocument):
     """
         Schema for notification settings to be specified for actions.
     """
-    on_success = NotificationSubSchema
-    on_failure = NotificationSubSchema
+    on_success = me.EmbeddedDocumentField(NotificationSubSchema)
+    on_failure = me.EmbeddedDocumentField(NotificationSubSchema)
+
+    # XXX: This is nasty. I don't see an easy way to get fields from
+    # NotificationSubSchema and make it members of this Document.
+    message = me.StringField()
+    data = stormbase.EscapedDynamicField(
+        default={},
+        help_text='Payload to be sent as part of notification.')
+    triggers = me.ListField(
+        default=['notify.default'],
+        help_text='Triggers to be emitted for notifications.')
 
     def __str__(self):
         result = []
         result.append('NotifySchema@')
         result.append(str(id(self)))
-        result.append('(on_success="%s", ' % str(self.on_success))
+        result.append('(message="%s", ' % self.message)
+        result.append('data="%s", ' % str(self.data))
+        result.append('triggers="%s", ' % str(self.triggers))
+        result.append('on_success="%s", ' % str(self.on_success))
         result.append('on_failure="%s")' % str(self.on_failure))
         return ''.join(result)
 
