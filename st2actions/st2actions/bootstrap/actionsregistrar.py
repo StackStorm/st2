@@ -111,6 +111,7 @@ class ActionsRegistrar(ResourceRegistrar):
                             (pack, pack_field))
 
         action_api = ActionAPI(**content)
+        action_api.validate()
         action_validator.validate_action(action_api)
         model = ActionAPI.to_model(action_api)
 

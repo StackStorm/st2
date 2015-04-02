@@ -142,6 +142,7 @@ def create_or_update_trigger_db(trigger):
         is_update = False
 
     trigger_api = TriggerAPI(**trigger)
+    trigger_api.validate()
     trigger_db = TriggerAPI.to_model(trigger_api)
 
     if is_update:
@@ -186,6 +187,7 @@ def create_trigger_type_db(trigger_type):
     :rtype: ``object``
     """
     trigger_type_api = TriggerTypeAPI(**trigger_type)
+    trigger_type_api.validate()
     ref = ResourceReference.to_string_reference(name=trigger_type_api.name,
                                                 pack=trigger_type_api.pack)
     trigger_type_db = get_trigger_type_db(ref)
@@ -209,6 +211,7 @@ def create_or_update_trigger_type_db(trigger_type):
     assert isinstance(trigger_type, dict)
 
     trigger_type_api = TriggerTypeAPI(**trigger_type)
+    trigger_type_api.validate()
     trigger_type_api = TriggerTypeAPI.to_model(trigger_type_api)
 
     ref = ResourceReference.to_string_reference(name=trigger_type_api.name,
