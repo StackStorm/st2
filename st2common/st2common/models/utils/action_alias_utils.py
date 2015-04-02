@@ -16,10 +16,6 @@
 from st2common.exceptions import content
 
 
-FORMAT_MARKER_START = '{{'
-FORMAT_MARKER_END = '}}'
-
-
 class JsonValueParser(object):
     """
     Sort of but not really JSON parsing. This parser only really cares if there are matching
@@ -104,7 +100,9 @@ PARSERS = [JsonValueParser, StringValueParser, DefaultParser]
 
 class ActionAliasFormatParser(object):
 
-    param_default_value_separator = '='
+    FORMAT_MARKER_START = '{{'
+    FORMAT_MARKER_END = '}}'
+    PARAM_DEFAULT_VALUE_SEPARATOR = '='
 
     def __init__(self, alias_format, param_stream):
         self._format = alias_format
@@ -144,14 +142,14 @@ class ActionAliasFormatParser(object):
         return {name: value for name, value in self}
 
     def _get_next_param_format(self):
-        mrkr_strt_ps = self._format.index(FORMAT_MARKER_START, self._alias_fmt_ptr)
+        mrkr_strt_ps = self._format.index(self.FORMAT_MARKER_START, self._alias_fmt_ptr)
         try:
-            mrkr_end_ps = self._format.index(FORMAT_MARKER_END, mrkr_strt_ps)
+            mrkr_end_ps = self._format.index(self.FORMAT_MARKER_END, mrkr_strt_ps)
         except ValueError:
             # A start marker was found but end is not therefore this is a Parser exception.
             raise content.ParseException('Expected end marker.')
-        param_format = self._format[mrkr_strt_ps + len(FORMAT_MARKER_START): mrkr_end_ps]
-        return mrkr_strt_ps, param_format.strip(), mrkr_end_ps + len(FORMAT_MARKER_END)
+        param_format = self._format[mrkr_strt_ps + len(self.FORMAT_MARKER_START): mrkr_end_ps]
+        return mrkr_strt_ps, param_format.strip(), mrkr_end_ps + len(self.FORMAT_MARKER_END)
 
     def _get_param_name_default_value(self, param_format):
         if not param_format:
