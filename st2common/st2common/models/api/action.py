@@ -111,6 +111,21 @@ class RunnerTypeAPI(BaseAPI):
         model.runner_parameters = getattr(runnertype, 'runner_parameters', dict())
         return model
 
+NotificationSubSchema = {
+    "message": {
+        "type": "string",
+        "description": "Message to use for notification"
+    },
+    "data": {
+        "type": "object",
+        "description": "Data to be sent as part of notification"
+    },
+    "triggers": {
+        "type": "array",
+        "description": "List of triggers to be emitted on action completion."
+    }
+}
+
 
 class ActionAPI(BaseAPI):
     """The system entity that represents a Stack Action/Automation in the system."""
@@ -170,6 +185,15 @@ class ActionAPI(BaseAPI):
                 "description": "User associated metadata assigned to this object.",
                 "type": "array",
                 "items": {"type": "object"}
+            },
+            "notify": {
+                "description": "Notification settings for action.",
+                "type": "object",
+                "properties": {
+                    "on_complete": NotificationSubSchema,
+                    "on_failure": NotificationSubSchema,
+                    "on_success": NotificationSubSchema
+                }
             }
         },
         "additionalProperties": False

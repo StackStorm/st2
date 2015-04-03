@@ -50,6 +50,11 @@ ACTION = {
             'type': 'string',
             'default': 'abc'
         }
+    },
+    'notify': {
+        'on_complete': {
+            'message': 'My awesome action is complete. Party time!!!'
+        }
     }
 }
 

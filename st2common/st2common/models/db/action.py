@@ -60,41 +60,6 @@ class RunnerTypeDB(stormbase.StormBaseDB):
         help_text='The python module that implements the query module for this runner.')
 
 
-class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
-               stormbase.ContentPackResourceMixin):
-    """
-    The system entity that represents a Stack Action/Automation in the system.
-
-    Attribute:
-        enabled: A flag indicating whether this action is enabled in the system.
-        entry_point: The entry point to the action.
-        runner_type: The actionrunner is used to execute the action.
-        parameters: The specification for parameters for the action.
-    """
-    name = me.StringField(required=True)
-    ref = me.StringField(required=True)
-    description = me.StringField()
-    enabled = me.BooleanField(
-        required=True, default=True,
-        help_text='A flag indicating whether the action is enabled.')
-    entry_point = me.StringField(
-        required=True,
-        help_text='The entry point to the action.')
-    pack = me.StringField(
-        required=False,
-        help_text='Name of the content pack.',
-        unique_with='name')
-    runner_type = me.DictField(
-        required=True, default={},
-        help_text='The action runner to use for executing the action.')
-    parameters = me.DictField(
-        help_text='The specification for parameters for the action.')
-
-    meta = {
-        'indexes': stormbase.TagsMixin.get_indices()
-    }
-
-
 class NotificationSubSchema(me.EmbeddedDocument):
     """
         Schema for notification settings to be specified for action success/failure.
@@ -129,13 +94,46 @@ class NotificationSchema(me.EmbeddedDocument):
         result = []
         result.append('NotifySchema@')
         result.append(str(id(self)))
-        result.append('(message="%s", ' % self.message)
-        result.append('data="%s", ' % str(self.data))
-        result.append('triggers="%s", ' % str(self.triggers))
-        result.append('on_complete="%s", ' % str(self.on_complete))
+        result.append('(on_complete="%s", ' % str(self.on_complete))
         result.append('on_success="%s", ' % str(self.on_success))
         result.append('on_failure="%s")' % str(self.on_failure))
         return ''.join(result)
+
+
+class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
+               stormbase.ContentPackResourceMixin):
+    """
+    The system entity that represents a Stack Action/Automation in the system.
+
+    Attribute:
+        enabled: A flag indicating whether this action is enabled in the system.
+        entry_point: The entry point to the action.
+        runner_type: The actionrunner is used to execute the action.
+        parameters: The specification for parameters for the action.
+    """
+    name = me.StringField(required=True)
+    ref = me.StringField(required=True)
+    description = me.StringField()
+    enabled = me.BooleanField(
+        required=True, default=True,
+        help_text='A flag indicating whether the action is enabled.')
+    entry_point = me.StringField(
+        required=True,
+        help_text='The entry point to the action.')
+    pack = me.StringField(
+        required=False,
+        help_text='Name of the content pack.',
+        unique_with='name')
+    runner_type = me.DictField(
+        required=True, default={},
+        help_text='The action runner to use for executing the action.')
+    parameters = me.DictField(
+        help_text='The specification for parameters for the action.')
+    notify = me.EmbeddedDocumentField(NotificationSchema)
+
+    meta = {
+        'indexes': stormbase.TagsMixin.get_indices()
+    }
 
 
 class LiveActionDB(stormbase.StormFoundationDB):
