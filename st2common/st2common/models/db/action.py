@@ -123,16 +123,7 @@ class NotificationSchema(me.EmbeddedDocument):
     """
     on_success = me.EmbeddedDocumentField(NotificationSubSchema)
     on_failure = me.EmbeddedDocumentField(NotificationSubSchema)
-
-    # XXX: This is nasty. I don't see an easy way to get fields from
-    # NotificationSubSchema and make it members of this Document.
-    message = me.StringField()
-    data = stormbase.EscapedDynamicField(
-        default={},
-        help_text='Payload to be sent as part of notification.')
-    triggers = me.ListField(
-        default=['notify.default'],
-        help_text='Triggers to be emitted for notifications.')
+    on_complete = me.EmbeddedDocumentField(NotificationSubSchema)
 
     def __str__(self):
         result = []
@@ -141,6 +132,7 @@ class NotificationSchema(me.EmbeddedDocument):
         result.append('(message="%s", ' % self.message)
         result.append('data="%s", ' % str(self.data))
         result.append('triggers="%s", ' % str(self.triggers))
+        result.append('on_complete="%s", ' % str(self.on_complete))
         result.append('on_success="%s", ' % str(self.on_success))
         result.append('on_failure="%s")' % str(self.on_failure))
         return ''.join(result)
@@ -187,34 +179,9 @@ class LiveActionDB(stormbase.StormFoundationDB):
         help_text='Reference to the runner that executed this liveaction.')
     notify = me.EmbeddedDocumentField(NotificationSchema)
 
-    def __init__(self, *args, **kwargs):
-        super(LiveActionDB, self).__init__(*args, **kwargs)
-        self.notify = self.get_default_notification_settings()
-
     meta = {
         'indexes': ['-start_timestamp', 'action']
     }
-
-    def get_default_notification_settings(self):
-        print('Constructing default notification settings.')
-        notification_schema = NotificationSchema()
-        on_success_default = NotificationSubSchema()
-        if self.action:
-            on_success_default.message = 'Action ' + self.action + ' succeeded.'
-        else:
-            # XXX: This is a problem. Sometimes we don't set the action name until later.
-            # See for example, executions API. We can use something like
-            # http://mongoengine-odm.readthedocs.org/guide/signals.html but it will be mongo
-            # specific.
-            on_success_default.message = 'Action succeeded.'
-        on_failure_default = NotificationSubSchema()
-        if self.action:
-            on_failure_default.message = 'Action ' + self.action + ' failed.'
-        else:
-            on_failure_default.message = 'Action failed.'
-        notification_schema.on_success = on_success_default
-        notification_schema.on_failure = on_failure_default
-        return notification_schema
 
 
 class ActionExecutionStateDB(stormbase.StormFoundationDB):

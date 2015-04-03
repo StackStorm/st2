@@ -38,13 +38,13 @@ class LiveActionModelTest(DbTestCase):
         retrieved = LiveAction.get_by_id(saved.id)
         self.assertEqual(saved.action, retrieved.action,
                          'Same triggertype was not returned.')
+        self.assertEqual(retrieved.notify, None)
 
         # Test update
         self.assertTrue(retrieved.end_timestamp is None)
         retrieved.end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
         updated = LiveAction.add_or_update(retrieved)
         self.assertTrue(updated.end_timestamp == retrieved.end_timestamp)
-
         # Test delete
         LiveActionModelTest._delete([retrieved])
         try:
@@ -53,20 +53,32 @@ class LiveActionModelTest(DbTestCase):
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
-    def test_liveaction_create_with_notify_simple_case(self):
+    def test_liveaction_create_with_notify_on_complete_only(self):
         created = LiveActionDB()
         created.action = 'core.local'
         created.description = ''
         created.status = 'running'
         created.parameters = {}
-        message_str = 'Action complete.'
-        created.notify = NotificationSchema(message=message_str)
+
+        notify_db = NotificationSchema()
+        notify_sub_schema = NotificationSubSchema()
+        notify_sub_schema.message = 'Action complete.'
+        notify_sub_schema.data = {
+            'foo': 'bar',
+            'bar': 1,
+            'baz': {'k1': 'v1'}
+        }
+        notify_db.on_complete = notify_sub_schema
+        created.notify = notify_db
+
         saved = LiveActionModelTest._save_liveaction(created)
         retrieved = LiveAction.get_by_id(saved.id)
         self.assertEqual(saved.action, retrieved.action,
                          'Same triggertype was not returned.')
         # Assert notify settings saved are right.
-        self.assertEqual(message_str, retrieved.notify.message)
+        self.assertEqual(notify_sub_schema.message, retrieved.notify.on_complete.message)
+        self.assertDictEqual(notify_sub_schema.data, retrieved.notify.on_complete.data)
+        self.assertListEqual(notify_sub_schema.triggers, retrieved.notify.on_complete.triggers)
         self.assertEqual(retrieved.notify.on_success, None)
         self.assertEqual(retrieved.notify.on_failure, None)
 
@@ -78,7 +90,7 @@ class LiveActionModelTest(DbTestCase):
         created.parameters = {}
         notify_db = NotificationSchema()
         notify_sub_schema = NotificationSubSchema()
-        notify_sub_schema.message = 'Foo'
+        notify_sub_schema.message = 'Action succeeded.'
         notify_sub_schema.data = {
             'foo': 'bar',
             'bar': 1,
@@ -96,13 +108,11 @@ class LiveActionModelTest(DbTestCase):
                          retrieved.notify.on_success.message)
         self.assertDictEqual(notify_sub_schema.data, retrieved.notify.on_success.data)
         self.assertListEqual(notify_sub_schema.triggers, retrieved.notify.on_success.triggers)
-        self.assertEqual(retrieved.notify.message, None)
-        self.assertDictEqual(retrieved.notify.data, {})
-        self.assertListEqual(retrieved.notify.triggers, ['notify.default'])
+        self.assertEqual(retrieved.notify.on_failure, None)
+        self.assertEqual(retrieved.notify.on_complete, None)
 
     def test_liveaction_create_with_notify_both_on_success_and_on_error(self):
         created = LiveActionDB()
-        print('\nBefore: %s' % created.notify)
         created.action = 'core.local'
         created.description = ''
         created.status = 'running'
@@ -111,19 +121,14 @@ class LiveActionModelTest(DbTestCase):
         on_failure = NotificationSubSchema(message='Action failed.')
         created.notify = NotificationSchema(on_success=on_success,
                                             on_failure=on_failure)
-        print('After: %s' % created.notify)
         saved = LiveActionModelTest._save_liveaction(created)
-        print('Saved notify: %s' % saved.notify)
         retrieved = LiveAction.get_by_id(saved.id)
-        print('Retrieved notify: %s' % retrieved.notify)
         self.assertEqual(saved.action, retrieved.action,
                          'Same triggertype was not returned.')
         # Assert notify settings saved are right.
         self.assertEqual(on_success.message, retrieved.notify.on_success.message)
         self.assertEqual(on_failure.message, retrieved.notify.on_failure.message)
-        self.assertEqual(retrieved.notify.message, None)
-        self.assertDictEqual(retrieved.notify.data, {})
-        self.assertListEqual(retrieved.notify.triggers, ['notify.default'])
+        self.assertEqual(retrieved.notify.on_complete, None)
 
     @staticmethod
     def _save_liveaction(liveaction):
