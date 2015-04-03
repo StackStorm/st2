@@ -187,9 +187,34 @@ class LiveActionDB(stormbase.StormFoundationDB):
         help_text='Reference to the runner that executed this liveaction.')
     notify = me.EmbeddedDocumentField(NotificationSchema)
 
+    def __init__(self, *args, **kwargs):
+        super(LiveActionDB, self).__init__(*args, **kwargs)
+        self.notify = self.get_default_notification_settings()
+
     meta = {
         'indexes': ['-start_timestamp', 'action']
     }
+
+    def get_default_notification_settings(self):
+        print('Constructing default notification settings.')
+        notification_schema = NotificationSchema()
+        on_success_default = NotificationSubSchema()
+        if self.action:
+            on_success_default.message = 'Action ' + self.action + ' succeeded.'
+        else:
+            # XXX: This is a problem. Sometimes we don't set the action name until later.
+            # See for example, executions API. We can use something like
+            # http://mongoengine-odm.readthedocs.org/guide/signals.html but it will be mongo
+            # specific.
+            on_success_default.message = 'Action succeeded.'
+        on_failure_default = NotificationSubSchema()
+        if self.action:
+            on_failure_default.message = 'Action ' + self.action + ' failed.'
+        else:
+            on_failure_default.message = 'Action failed.'
+        notification_schema.on_success = on_success_default
+        notification_schema.on_failure = on_failure_default
+        return notification_schema
 
 
 class ActionExecutionStateDB(stormbase.StormFoundationDB):

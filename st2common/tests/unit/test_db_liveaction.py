@@ -102,6 +102,7 @@ class LiveActionModelTest(DbTestCase):
 
     def test_liveaction_create_with_notify_both_on_success_and_on_error(self):
         created = LiveActionDB()
+        print('\nBefore: %s' % created.notify)
         created.action = 'core.local'
         created.description = ''
         created.status = 'running'
@@ -110,8 +111,11 @@ class LiveActionModelTest(DbTestCase):
         on_failure = NotificationSubSchema(message='Action failed.')
         created.notify = NotificationSchema(on_success=on_success,
                                             on_failure=on_failure)
+        print('After: %s' % created.notify)
         saved = LiveActionModelTest._save_liveaction(created)
+        print('Saved notify: %s' % saved.notify)
         retrieved = LiveAction.get_by_id(saved.id)
+        print('Retrieved notify: %s' % retrieved.notify)
         self.assertEqual(saved.action, retrieved.action,
                          'Same triggertype was not returned.')
         # Assert notify settings saved are right.
