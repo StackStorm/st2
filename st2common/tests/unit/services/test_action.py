@@ -53,7 +53,8 @@ ACTION = {
     },
     'notify': {
         'on_complete': {
-            'message': 'My awesome action is complete. Party time!!!'
+            'message': 'My awesome action is complete. Party time!!!',
+            'triggers': ['notify.slack']
         }
     }
 }

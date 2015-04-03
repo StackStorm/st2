@@ -193,7 +193,8 @@ class ActionAPI(BaseAPI):
                     "on_complete": NotificationSubSchema,
                     "on_failure": NotificationSubSchema,
                     "on_success": NotificationSubSchema
-                }
+                },
+                "additionalProperties": False
             }
         },
         "additionalProperties": False

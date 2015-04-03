@@ -308,7 +308,7 @@ class ActionModelTest(DbTestCase):
 
         # Check if notification settings were set correctly.
         retrieved = Action.get_by_id(saved.id)
-        self.assertEqual(retrieved.notify.message, on_complete.message)
+        self.assertEqual(retrieved.notify.on_complete.message, on_complete.message)
 
         # cleanup
         self._delete([retrieved])
