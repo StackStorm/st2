@@ -19,7 +19,7 @@ from st2common.content import aliasesregistrar
 from st2tests import DbTestCase, fixturesloader
 
 
-ALIASES_FIXTURE_PATH = os.path.join(fixturesloader.get_fixtures_base_path(), 'aliases')
+ALIASES_FIXTURE_PATH = os.path.join(fixturesloader.get_fixtures_base_path(), 'alias_registrar')
 
 
 class TestAliasRegistrar(DbTestCase):

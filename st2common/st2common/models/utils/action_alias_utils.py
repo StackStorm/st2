@@ -47,7 +47,7 @@ class JsonValueParser(object):
                 if char_idx == len(stream):
                     raise content.ParseException('What sort of messed up stream did you provide!')
         # preserve the start and end chars
-        return start, stream[start:end+1], end+1
+        return start, stream[start:end + 1], end + 1
 
 
 class StringValueParser(object):
@@ -72,7 +72,7 @@ class StringValueParser(object):
                 if char_idx == len(stream):
                     raise content.ParseException('What sort of messed up stream did you provide!')
         # skip the start and end chars
-        return start, stream[start+1:end], end+1
+        return start, stream[start + 1:end], end + 1
 
 
 class DefaultParser(object):

@@ -71,8 +71,8 @@ class TestStringValueParser(TestCase):
         self.assertEqual(value, 'spaced value1')
 
     def testEscapedStringParsing(self):
-        stream = 'some meaningful "spaced \\"value1" something else skippable "double spaced value2"' \
-                 'still more skip.'
+        stream = 'some meaningful "spaced \\"value1" something else skippable ' \
+                 '"double spaced value2" still more skip.'
 
         start = len('some meaningful ')
         self.assertTrue(StringValueParser.is_applicable(stream[start]), 'Should be parsable.')
