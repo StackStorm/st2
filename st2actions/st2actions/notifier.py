@@ -19,16 +19,20 @@ from kombu.mixins import ConsumerMixin
 from oslo.config import cfg
 
 from st2common import log as logging
-from st2common.transport import liveaction, publishers
-from st2common.util.greenpooldispatch import BufferedDispatcher
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
+from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
+from st2common.models.system.common import ResourceReference
+from st2common.transport import liveaction, publishers
 from st2common.transport.reactor import TriggerDispatcher
+from st2common.util.greenpooldispatch import BufferedDispatcher
 
 LOG = logging.getLogger(__name__)
 
 ACTIONUPDATE_WORK_Q = liveaction.get_queue('st2.notifiers.work',
                                            routing_key=publishers.UPDATE_RK)
 ACTION_COMPLETE_STATES = [LIVEACTION_STATUS_FAILED, LIVEACTION_STATUS_SUCCEEDED]
+ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
+ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][0]
 
 
 class LiveActionUpdateQueueConsumer(ConsumerMixin):
@@ -78,8 +82,62 @@ class Notifier(object):
         self._consumer_thread.wait()
 
     def handle_action_complete(self, liveaction):
-        print(liveaction)
-        # XXX: self._trigger_dispatcher.dispatch(trigger, payload)
+        if liveaction.notify is not None:
+            self._post_notify_triggers()
+        else:
+            self._post_generic_trigger(liveaction)
+
+    def _post_notify_triggers(self, liveaction):
+        if not liveaction.notify:
+            return
+        if liveaction.on_complete:
+            self._post_notify_subsection_triggers(
+                liveaction.on_complete, default_message_suffix='completed.')
+        if liveaction.status == LIVEACTION_STATUS_SUCCEEDED and liveaction.on_success:
+            self._post_notify_subsection_triggers(
+                liveaction.on_success, default_message_suffix='succeeded.')
+        if liveaction.status == LIVEACTION_STATUS_FAILED and liveaction.on_failure:
+            self._post_notify_subsection_triggers(
+                liveaction.on_failure, default_message_suffix='failed.')
+
+    def _post_notify_subsection_triggers(self, notify_subsection, default_message_suffix):
+        if liveaction.notify.triggers and len(liveaction.notify.triggers) > 1:
+            message = liveaction.notify.message or (
+                'Action ' + liveaction.action + ' ' + default_message_suffix)
+            data = liveaction.notify.data  # XXX: Handle Jinja
+            if not data:
+                data = {'result': liveaction.result}
+            data['execution_id'] = str(liveaction.id)
+            data['status'] = liveaction.status
+
+            payload = {}
+            payload['message'] = message
+            payload['data'] = data
+
+            for trigger in liveaction.notify.triggers:
+                try:
+                    self._trigger_dispatcher.dispatch(trigger, payload=payload)
+                except:
+                    LOG.exception('Failed to fire trigger for liveaction %s.', str(liveaction.id))
+
+    def _post_generic_trigger(self, liveaction):
+        if not ACTION_SENSOR_ENABLED:
+            return
+
+        try:
+            trigger = ResourceReference.to_string_reference(pack=ACTION_TRIGGER_TYPE['pack'],
+                                                            name=ACTION_TRIGGER_TYPE['name'])
+            payload = {'execution_id': str(liveaction.id),
+                       'status': liveaction.status,
+                       'start_timestamp': str(liveaction.start_timestamp),
+                       'action_name': liveaction.action,
+                       'parameters': liveaction.parameters,
+                       'result': liveaction.result}
+            LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
+                      liveaction.id, payload)
+            self._trigger_dispatcher.dispatch(trigger, payload=payload)
+        except:
+            LOG.exception('Failed to fire trigger for liveaction %s.', str(liveaction.id))
 
 
 def get_notifier():
