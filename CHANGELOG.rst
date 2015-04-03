@@ -25,6 +25,7 @@ in development
 * Clean up rule registrar logging. (improvement)
 * Add ``-t`` / ``--only-token`` flag to the ``st2 auth`` command. (new-feature)
 * ``register`` param in packs.install should be passed to packs.load. (bug-fix)
+* Fix validation code to validate value types correctly. (bug-fix)
 
 v0.8.3 - March 23, 2015
 -----------------------
