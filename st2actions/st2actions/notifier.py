@@ -82,6 +82,7 @@ class Notifier(object):
         self._consumer_thread.wait()
 
     def handle_action_complete(self, liveaction):
+        print(liveaction.notify)
         if liveaction.notify is not None:
             self._post_notify_triggers()
         else:

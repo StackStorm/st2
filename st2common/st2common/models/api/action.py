@@ -20,6 +20,7 @@ from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.tag import TagsHelper
+from st2common.models.api.notification import NotificationsHelper
 from st2common.models.db.action import (RunnerTypeDB, ActionDB, LiveActionDB)
 from st2common.models.db.action import ActionExecutionStateDB
 from st2common.constants.action import LIVEACTION_STATUSES
@@ -111,19 +112,23 @@ class RunnerTypeAPI(BaseAPI):
         model.runner_parameters = getattr(runnertype, 'runner_parameters', dict())
         return model
 
-NotificationSubSchema = {
-    "message": {
-        "type": "string",
-        "description": "Message to use for notification"
+NotificationSubSchemaJSON = {
+    "type": "object",
+    "properties": {
+        "message": {
+            "type": "string",
+            "description": "Message to use for notification"
+        },
+        "data": {
+            "type": "object",
+            "description": "Data to be sent as part of notification"
+        },
+        "triggers": {
+            "type": "array",
+            "description": "List of triggers to be emitted on action completion."
+        },
     },
-    "data": {
-        "type": "object",
-        "description": "Data to be sent as part of notification"
-    },
-    "triggers": {
-        "type": "array",
-        "description": "List of triggers to be emitted on action completion."
-    }
+    "additionalProperties": False
 }
 
 
@@ -190,9 +195,9 @@ class ActionAPI(BaseAPI):
                 "description": "Notification settings for action.",
                 "type": "object",
                 "properties": {
-                    "on_complete": NotificationSubSchema,
-                    "on_failure": NotificationSubSchema,
-                    "on_success": NotificationSubSchema
+                    "on_complete": NotificationSubSchemaJSON,
+                    "on_failure": NotificationSubSchemaJSON,
+                    "on_success": NotificationSubSchemaJSON
                 },
                 "additionalProperties": False
             }
@@ -214,6 +219,10 @@ class ActionAPI(BaseAPI):
         action = cls._from_model(model)
         action['runner_type'] = action['runner_type']['name']
         action['tags'] = TagsHelper.from_model(model.tags)
+
+        if getattr(model, 'notify', None):
+            action['notify'] = NotificationsHelper.from_model(model.notify)
+
         return cls(**action)
 
     @classmethod
@@ -226,6 +235,9 @@ class ActionAPI(BaseAPI):
         model.parameters = getattr(action, 'parameters', dict())
         model.tags = TagsHelper.to_model(getattr(action, 'tags', []))
         model.ref = ResourceReference.to_string_reference(pack=model.pack, name=model.name)
+        if getattr(action, 'notify', None):
+            model.notify = NotificationsHelper.to_model(action.notify)
+
         return model
 
 
@@ -295,6 +307,16 @@ class LiveActionAPI(BaseAPI):
             },
             "runner_info": {
                 "type": "object"
+            },
+            "notify": {
+                "description": "Notification settings for liveaction.",
+                "type": "object",
+                "properties": {
+                    "on_complete": NotificationSubSchemaJSON,
+                    "on_failure": NotificationSubSchemaJSON,
+                    "on_success": NotificationSubSchemaJSON
+                },
+                "additionalProperties": False
             }
         },
         "additionalProperties": False
@@ -307,24 +329,32 @@ class LiveActionAPI(BaseAPI):
             doc['start_timestamp'] = isotime.format(model.start_timestamp, offset=False)
         if model.end_timestamp:
             doc['end_timestamp'] = isotime.format(model.end_timestamp, offset=False)
+
+        if getattr(model, 'notify', None):
+            doc['notify'] = NotificationsHelper.from_model(model.notify)
+
         return cls(**doc)
 
     @classmethod
-    def to_model(cls, execution):
-        model = super(cls, cls).to_model(execution)
-        model.action = execution.action
+    def to_model(cls, liveaction):
+        model = super(cls, cls).to_model(liveaction)
+        model.action = liveaction.action
 
-        if getattr(execution, 'start_timestamp', None):
-            model.start_timestamp = isotime.parse(execution.start_timestamp)
+        if getattr(liveaction, 'start_timestamp', None):
+            model.start_timestamp = isotime.parse(liveaction.start_timestamp)
 
-        if getattr(execution, 'end_timestamp', None):
-            model.end_timestamp = isotime.parse(execution.end_timestamp)
+        if getattr(liveaction, 'end_timestamp', None):
+            model.end_timestamp = isotime.parse(liveaction.end_timestamp)
 
-        model.status = getattr(execution, 'status', None)
-        model.parameters = getattr(execution, 'parameters', dict())
-        model.context = getattr(execution, 'context', dict())
-        model.callback = getattr(execution, 'callback', dict())
-        model.result = getattr(execution, 'result', None)
+        model.status = getattr(liveaction, 'status', None)
+        model.parameters = getattr(liveaction, 'parameters', dict())
+        model.context = getattr(liveaction, 'context', dict())
+        model.callback = getattr(liveaction, 'callback', dict())
+        model.result = getattr(liveaction, 'result', None)
+
+        if getattr(liveaction, 'notify', None):
+            model.notify = NotificationsHelper.to_model(liveaction.notify)
+
         return model
 
 

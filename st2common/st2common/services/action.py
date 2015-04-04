@@ -80,6 +80,8 @@ def schedule(liveaction):
     # and not set liveaction.notify.
     if action_db.notify:
         liveaction.notify = action_db.notify
+    else:
+        print(action_db)
 
     # Write to database and send to message queue.
     liveaction.status = LIVEACTION_STATUS_SCHEDULED
