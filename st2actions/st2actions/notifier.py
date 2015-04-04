@@ -82,30 +82,33 @@ class Notifier(object):
         self._consumer_thread.wait()
 
     def handle_action_complete(self, liveaction):
-        print(liveaction.notify)
         if liveaction.notify is not None:
-            self._post_notify_triggers()
+            self._post_notify_triggers(liveaction)
         else:
             self._post_generic_trigger(liveaction)
 
     def _post_notify_triggers(self, liveaction):
-        if not liveaction.notify:
-            return
-        if liveaction.on_complete:
-            self._post_notify_subsection_triggers(
-                liveaction.on_complete, default_message_suffix='completed.')
-        if liveaction.status == LIVEACTION_STATUS_SUCCEEDED and liveaction.on_success:
-            self._post_notify_subsection_triggers(
-                liveaction.on_success, default_message_suffix='succeeded.')
-        if liveaction.status == LIVEACTION_STATUS_FAILED and liveaction.on_failure:
-            self._post_notify_subsection_triggers(
-                liveaction.on_failure, default_message_suffix='failed.')
+        notify = getattr(liveaction, 'notify', None)
 
-    def _post_notify_subsection_triggers(self, notify_subsection, default_message_suffix):
-        if liveaction.notify.triggers and len(liveaction.notify.triggers) > 1:
-            message = liveaction.notify.message or (
+        if not notify:
+            return
+
+        if notify.on_complete:
+            self._post_notify_subsection_triggers(
+                liveaction, notify.on_complete, default_message_suffix='completed.')
+        if liveaction.status == LIVEACTION_STATUS_SUCCEEDED and notify.on_success:
+            self._post_notify_subsection_triggers(
+                liveaction, notify.on_success, default_message_suffix='succeeded.')
+        if liveaction.status == LIVEACTION_STATUS_FAILED and notify.on_failure:
+            self._post_notify_subsection_triggers(
+                liveaction, notify.on_failure, default_message_suffix='failed.')
+
+    def _post_notify_subsection_triggers(self, liveaction, notify_subsection,
+                                         default_message_suffix):
+        if notify_subsection.triggers and len(notify_subsection.triggers) >= 1:
+            message = notify_subsection.message or (
                 'Action ' + liveaction.action + ' ' + default_message_suffix)
-            data = liveaction.notify.data  # XXX: Handle Jinja
+            data = notify_subsection.data  # XXX: Handle Jinja
             if not data:
                 data = {'result': liveaction.result}
             data['execution_id'] = str(liveaction.id)
@@ -115,7 +118,7 @@ class Notifier(object):
             payload['message'] = message
             payload['data'] = data
 
-            for trigger in liveaction.notify.triggers:
+            for trigger in notify_subsection.triggers:
                 try:
                     self._trigger_dispatcher.dispatch(trigger, payload=payload)
                 except:

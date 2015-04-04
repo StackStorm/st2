@@ -63,6 +63,6 @@ class NotificationsHelper(object):
         if getattr(notify_sub_schema_model, 'message', None):
             notify_sub_schema_model['data'] = notify_sub_schema_model.data
         if getattr(notify_sub_schema_model, 'triggers', None):
-            notify_sub_schema_model['triggers'] = notify_sub_schema_model.message
+            notify_sub_schema_model['triggers'] = notify_sub_schema_model.triggers
 
         return notify_sub_schema
