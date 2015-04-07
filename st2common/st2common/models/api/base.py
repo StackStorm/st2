@@ -35,18 +35,6 @@ from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 LOG = logging.getLogger(__name__)
 VALIDATOR = util_schema.get_validator(assign_property_default=False)
 
-# A list of method names for which we don't want to log the result / response
-RESPONSE_LOGGING_METHOD_NAME_BLACKLIST = [
-    'get_all'
-]
-
-# A list of controller classes for which we don't want to log the result / response
-RESPONSE_LOGGING_CONTROLLER_NAME_BLACKLIST = [
-    'ActionExecutionChildrenController',  # action executions can be big
-    'ActionExecutionAttributeController',  # result can be big
-    'ActionExecutionsController'  # action executions can be big
-]
-
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseAPI(object):
@@ -118,21 +106,7 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
     def decorate(f):
         @functools.wraps(f)
         def callfunction(*args, **kwargs):
-            controller = args[0] if args else None
-
-            # Note: We use getattr since in some places (tests) request is mocked
             params = getattr(pecan.request, 'params', {})
-            method = getattr(pecan.request, 'method', None)
-            path = getattr(pecan.request, 'path', None)
-            remote_addr = getattr(pecan.request, 'remote_addr', None)
-
-            # Common request information included in the log context
-            request_info = {'method': method, 'path': path, 'remote_addr': remote_addr}
-
-            # Log the incoming request
-            values = copy.copy(request_info)
-            values['filters'] = kwargs
-            LOG.info('%(method)s %(path)s with filters=%(filters)s' % values, extra=values)
 
             if QUERY_PARAM_ATTRIBUTE_NAME in params and QUERY_PARAM_ATTRIBUTE_NAME in kwargs:
                 # Remove auth token if one is provided via query params
@@ -184,31 +158,10 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
 
             result = f(*args, **kwargs)
 
-            # Log the outgoing response
-            values = copy.copy(request_info)
-            values['status_code'] = status_code or pecan.response.status
-
-            function_name = f.__name__
-            controller_name = controller.__class__.__name__
-
-            log_result = True
-            log_result &= function_name not in RESPONSE_LOGGING_METHOD_NAME_BLACKLIST
-            log_result &= controller_name not in RESPONSE_LOGGING_CONTROLLER_NAME_BLACKLIST
-
-            if log_result:
-                values['result'] = result
-                log_msg = '%(method)s %(path)s result=%(result)s' % values
-            else:
-                # Note: We don't want to include a result for some
-                # methods which have a large result
-                log_msg = '%(method)s %(path)s' % values
-
-            LOG.info(log_msg, extra=values)
-
             if status_code:
                 pecan.response.status = status_code
             if content_type == 'application/json':
-                return json_encode(result)
+                return json_encode(result, indent=None)
             else:
                 return result
 
