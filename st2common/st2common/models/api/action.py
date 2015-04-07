@@ -20,7 +20,7 @@ from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.tag import TagsHelper
-from st2common.models.api.notification import NotificationsHelper
+from st2common.models.api.notification import (NotificationSubSchemaAPI, NotificationsHelper)
 from st2common.models.db.action import (RunnerTypeDB, ActionDB, LiveActionDB)
 from st2common.models.db.action import ActionExecutionStateDB
 from st2common.constants.action import LIVEACTION_STATUSES
@@ -112,25 +112,6 @@ class RunnerTypeAPI(BaseAPI):
         model.runner_parameters = getattr(runnertype, 'runner_parameters', dict())
         return model
 
-NotificationSubSchemaJSON = {
-    "type": "object",
-    "properties": {
-        "message": {
-            "type": "string",
-            "description": "Message to use for notification"
-        },
-        "data": {
-            "type": "object",
-            "description": "Data to be sent as part of notification"
-        },
-        "triggers": {
-            "type": "array",
-            "description": "List of triggers to be emitted on action completion."
-        },
-    },
-    "additionalProperties": False
-}
-
 
 class ActionAPI(BaseAPI):
     """The system entity that represents a Stack Action/Automation in the system."""
@@ -195,9 +176,9 @@ class ActionAPI(BaseAPI):
                 "description": "Notification settings for action.",
                 "type": "object",
                 "properties": {
-                    "on_complete": NotificationSubSchemaJSON,
-                    "on_failure": NotificationSubSchemaJSON,
-                    "on_success": NotificationSubSchemaJSON
+                    "on_complete": NotificationSubSchemaAPI,
+                    "on_failure": NotificationSubSchemaAPI,
+                    "on_success": NotificationSubSchemaAPI
                 },
                 "additionalProperties": False
             }
@@ -312,9 +293,9 @@ class LiveActionAPI(BaseAPI):
                 "description": "Notification settings for liveaction.",
                 "type": "object",
                 "properties": {
-                    "on_complete": NotificationSubSchemaJSON,
-                    "on_failure": NotificationSubSchemaJSON,
-                    "on_success": NotificationSubSchemaJSON
+                    "on_complete": NotificationSubSchemaAPI,
+                    "on_failure": NotificationSubSchemaAPI,
+                    "on_success": NotificationSubSchemaAPI
                 },
                 "additionalProperties": False
             }

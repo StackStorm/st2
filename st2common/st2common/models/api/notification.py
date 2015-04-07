@@ -15,6 +15,25 @@
 
 from st2common.models.db.action import NotificationSchema, NotificationSubSchema
 
+NotificationSubSchemaAPI = {
+    "type": "object",
+    "properties": {
+        "message": {
+            "type": "string",
+            "description": "Message to use for notification"
+        },
+        "data": {
+            "type": "object",
+            "description": "Data to be sent as part of notification"
+        },
+        "triggers": {
+            "type": "array",
+            "description": "List of triggers to be emitted on action completion."
+        },
+    },
+    "additionalProperties": False
+}
+
 
 class NotificationsHelper(object):
 
@@ -59,10 +78,10 @@ class NotificationsHelper(object):
         notify_sub_schema = {}
 
         if getattr(notify_sub_schema_model, 'message', None):
-            notify_sub_schema_model['message'] = notify_sub_schema_model.message
+            notify_sub_schema['message'] = notify_sub_schema_model.message
         if getattr(notify_sub_schema_model, 'message', None):
-            notify_sub_schema_model['data'] = notify_sub_schema_model.data
+            notify_sub_schema['data'] = notify_sub_schema_model.data
         if getattr(notify_sub_schema_model, 'triggers', None):
-            notify_sub_schema_model['triggers'] = notify_sub_schema_model.triggers
+            notify_sub_schema['triggers'] = notify_sub_schema_model.triggers
 
         return notify_sub_schema
