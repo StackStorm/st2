@@ -97,8 +97,8 @@ class RuleFilter(object):
         try:
             criteria_pattern = self._render_criteria_pattern(criteria_pattern=criteria_pattern)
         except Exception:
-            LOG.exception('Failed to render pattern value for key %s' % (criterion_k),
-                          extra=self._base_logger_context)
+            LOG.exception('Failed to render pattern value "%s" for key "%s"' %
+                          (criteria_pattern, criterion_k), extra=self._base_logger_context)
             return False
 
         try:
