@@ -19,6 +19,7 @@ import webob
 from oslo.config import cfg
 from pecan.hooks import PecanHook
 from six.moves.urllib import parse as urlparse
+from webob import exc
 
 from st2common import log as logging
 from st2common.exceptions import access as exceptions
@@ -137,32 +138,33 @@ class AuthHook(PecanHook):
 
 class JSONErrorResponseHook(PecanHook):
     """
-    Hook which ensures that error response always contains JSON.
+    Handle all the errors and respond with JSON.
     """
 
-    def on_error(self, state, exc):
+    def on_error(self, state, e):
         request_path = state.request.path
         if cfg.CONF.api.serve_webui_files and request_path.startswith('/webui'):
             # We want to return regular error response for requests to /webui
             return
 
-        status_code = state.response.status
-        if status_code == httplib.NOT_FOUND:
-            message = 'The resource could not be found'
-        elif status_code == httplib.INTERNAL_SERVER_ERROR:
-            message = 'Internal Server Error'
-        else:
-            message = str(exc)
+        LOG.debug('API call failed: %s' % (str(e)))
 
-        response_body = json_encode({'faultstring': message})
+        body = e.body or {}
+
+        if isinstance(e, exc.HTTPException):
+            status_code = state.response.status
+            message = str(e)
+        else:
+            status_code = httplib.INTERNAL_SERVER_ERROR
+            message = 'Internal Server Error'
+
+        body['faultstring'] = message
+
+        response_body = json_encode(body)
 
         headers = state.response.headers or {}
-        if headers.get('Content-Type', None) == 'application/json':
-            # Already a JSON response
-            return
 
         headers['Content-Type'] = 'application/json'
         headers['Content-Length'] = str(len(response_body))
 
-        return webob.Response(response_body, status=status_code,
-                              headers=headers)
+        return webob.Response(response_body, status=status_code, headers=headers)
