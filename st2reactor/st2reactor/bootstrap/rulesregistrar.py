@@ -92,6 +92,7 @@ class RulesRegistrar(ResourceRegistrar):
             try:
                 content = self._meta_loader.load(rule)
                 rule_api = RuleAPI(**content)
+                rule_api.validate()
                 rule_db = RuleAPI.to_model(rule_api)
 
                 try:

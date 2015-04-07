@@ -71,3 +71,5 @@ chain:
         params:
             cmd: "echo fail c4"
 
+    default: "test_basics"
+

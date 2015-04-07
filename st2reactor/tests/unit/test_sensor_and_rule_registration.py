@@ -126,10 +126,11 @@ class RuleRegistrationTestCase(DbTestCase):
         # Verify modeles are created
         rule_dbs = Rule.get_all()
         trigger_dbs = Trigger.get_all()
-        self.assertEqual(len(rule_dbs), 1)
+        self.assertEqual(len(rule_dbs), 2)
         self.assertEqual(len(trigger_dbs), 1)
 
-        self.assertEqual(rule_dbs[0].name, 'sample.with_timer')
+        self.assertEqual(rule_dbs[0].name, 'sample.with_the_same_timer')
+        self.assertEqual(rule_dbs[1].name, 'sample.with_timer')
         self.assertTrue(trigger_dbs[0].name is not None)
 
         # Verify second register call updates existing models
@@ -137,5 +138,5 @@ class RuleRegistrationTestCase(DbTestCase):
 
         rule_dbs = Rule.get_all()
         trigger_dbs = Trigger.get_all()
-        self.assertEqual(len(rule_dbs), 1)
+        self.assertEqual(len(rule_dbs), 2)
         self.assertEqual(len(trigger_dbs), 1)

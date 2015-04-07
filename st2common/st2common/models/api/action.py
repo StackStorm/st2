@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import jsonschema
-
 from st2common.util import isotime
 from st2common.util import schema as util_schema
 from st2common import log as logging
@@ -95,7 +93,6 @@ class RunnerTypeAPI(BaseAPI):
         # default values from draft schema, but, either because of a bug or some weird intention, it
         # has continued to resolve $ref'erenced properties against the initial draft schema, not the
         # modified one
-        jsonschema.validate(kw, self.schema, util_schema.get_validator())
         for key, value in kw.items():
             setattr(self, key, value)
         if not hasattr(self, 'runner_parameters'):
@@ -176,7 +173,6 @@ class ActionAPI(BaseAPI):
     }
 
     def __init__(self, **kw):
-        jsonschema.validate(kw, self.schema, util_schema.get_validator())
         for key, value in kw.items():
             setattr(self, key, value)
         if not hasattr(self, 'parameters'):

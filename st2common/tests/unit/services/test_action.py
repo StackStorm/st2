@@ -94,8 +94,8 @@ class TestActionExecutionService(DbTestCase):
 
     def test_schedule_invalid_parameters(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'a': 123}
-        execution = LiveActionDB(action=ACTION_REF, parameters=parameters)
-        self.assertRaises(jsonschema.ValidationError, action_service.schedule, execution)
+        liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
+        self.assertRaises(jsonschema.ValidationError, action_service.schedule, liveaction)
 
     def test_schedule_nonexistent_action(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
