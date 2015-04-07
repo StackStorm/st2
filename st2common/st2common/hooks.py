@@ -110,6 +110,9 @@ class AuthHook(PecanHook):
 
         state.request.context['token'] = self._validate_token(request=state.request)
 
+        if QUERY_PARAM_ATTRIBUTE_NAME in state.arguments.keywords:
+            del state.arguments.keywords[QUERY_PARAM_ATTRIBUTE_NAME]
+
     def on_error(self, state, e):
         if isinstance(e, exceptions.TokenNotProvidedError):
             LOG.exception('Token is not provided.')
@@ -161,7 +164,10 @@ class JSONErrorResponseHook(PecanHook):
 
         LOG.debug('API call failed: %s' % (str(e)))
 
-        body = e.body or {}
+        if hasattr(e, 'body') and isinstance(e.body, dict):
+            body = e.body
+        else:
+            body = {}
 
         if isinstance(e, exc.HTTPException):
             status_code = state.response.status
