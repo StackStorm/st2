@@ -32,7 +32,9 @@ ACTIONUPDATE_WORK_Q = liveaction.get_queue('st2.notifiers.work',
                                            routing_key=publishers.UPDATE_RK)
 ACTION_COMPLETE_STATES = [LIVEACTION_STATUS_FAILED, LIVEACTION_STATUS_SUCCEEDED]
 ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
+# XXX: Fix this nasty positional dependency.
 ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][0]
+NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][1]
 
 
 class LiveActionUpdateQueueConsumer(ConsumerMixin):
@@ -68,24 +70,34 @@ class LiveActionUpdateQueueConsumer(ConsumerMixin):
             if body.status in ACTION_COMPLETE_STATES:
                 self._notifier.handle_action_complete(body)
         except:
-            LOG.exception('Add query_context failed. Message body : %s', body)
+            LOG.exception('Sending notifications/action trigger failed. Message body : %s', body)
 
 
 class Notifier(object):
-    def __init__(self, q_connection=None):
+    def __init__(self, q_connection=None, trigger_dispatcher=None):
         self._queue_consumer = LiveActionUpdateQueueConsumer(q_connection, self)
         self._consumer_thread = None
-        self._trigger_dispatcher = TriggerDispatcher(LOG)
+        self._trigger_dispatcher = trigger_dispatcher
+        self._notify_trigger = ResourceReference.to_string_reference(
+            pack=NOTIFY_TRIGGER_TYPE['pack'],
+            name=NOTIFY_TRIGGER_TYPE['name'])
+        self._action_trigger = ResourceReference.to_string_reference(
+            pack=ACTION_TRIGGER_TYPE['pack'],
+            name=ACTION_TRIGGER_TYPE['name'])
 
     def start(self):
         self._consumer_thread = eventlet.spawn(self._queue_consumer.run)
         self._consumer_thread.wait()
 
     def handle_action_complete(self, liveaction):
+        if liveaction.status not in ACTION_COMPLETE_STATES:
+            LOG.exception('Received incorrect notification complete event. LiveAction=%s',
+                          liveaction)
+            return
+
         if liveaction.notify is not None:
             self._post_notify_triggers(liveaction)
-        else:
-            self._post_generic_trigger(liveaction)
+        self._post_generic_trigger(liveaction)
 
     def _post_notify_triggers(self, liveaction):
         notify = getattr(liveaction, 'notify', None)
@@ -105,46 +117,48 @@ class Notifier(object):
 
     def _post_notify_subsection_triggers(self, liveaction, notify_subsection,
                                          default_message_suffix):
-        if notify_subsection.triggers and len(notify_subsection.triggers) >= 1:
+        if notify_subsection.channels and len(notify_subsection.channels) >= 1:
+            payload = {}
             message = notify_subsection.message or (
                 'Action ' + liveaction.action + ' ' + default_message_suffix)
-            data = notify_subsection.data  # XXX: Handle Jinja
-            if not data:
-                data = {'result': liveaction.result}
-            data['execution_id'] = str(liveaction.id)
-            data['status'] = liveaction.status
+            data = notify_subsection.data or {}  # XXX: Handle Jinja
+            data = {'result': liveaction.result}
 
-            payload = {}
             payload['message'] = message
             payload['data'] = data
+            payload['execution_id'] = str(liveaction.id)
+            payload['status'] = liveaction.status
+            payload['start_timestamp'] = str(liveaction.start_timestamp)
+            payload['end_timestamp'] = str(liveaction.end_timestamp)
+            payload['action_ref'] = liveaction.action
 
-            for trigger in notify_subsection.triggers:
+            failed_channels = []
+            for channel in notify_subsection.channels:
                 try:
-                    self._trigger_dispatcher.dispatch(trigger, payload=payload)
+                    payload['channel'] = channel
+                    self._trigger_dispatcher.dispatch(self._notify_trigger, payload=payload)
                 except:
-                    LOG.exception('Failed to fire trigger for liveaction %s.', str(liveaction.id))
+                    failed_channels.append(channel)
+
+            if len(failed_channels) > 0:
+                raise Exception('Failed notifications to channels: %s' % ', '.join(failed_channels))
 
     def _post_generic_trigger(self, liveaction):
         if not ACTION_SENSOR_ENABLED:
             return
 
-        try:
-            trigger = ResourceReference.to_string_reference(pack=ACTION_TRIGGER_TYPE['pack'],
-                                                            name=ACTION_TRIGGER_TYPE['name'])
-            payload = {'execution_id': str(liveaction.id),
-                       'status': liveaction.status,
-                       'start_timestamp': str(liveaction.start_timestamp),
-                       'action_name': liveaction.action,
-                       'parameters': liveaction.parameters,
-                       'result': liveaction.result}
-            LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
-                      liveaction.id, payload)
-            self._trigger_dispatcher.dispatch(trigger, payload=payload)
-        except:
-            LOG.exception('Failed to fire trigger for liveaction %s.', str(liveaction.id))
+        payload = {'execution_id': str(liveaction.id),
+                   'status': liveaction.status,
+                   'start_timestamp': str(liveaction.start_timestamp),
+                   'action_name': liveaction.action,
+                   'parameters': liveaction.parameters,
+                   'result': liveaction.result}
+        LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
+                  liveaction.id, payload)
+        self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload)
 
 
 def get_notifier():
     with Connection(cfg.CONF.messaging.url) as conn:
-        notifier = Notifier(q_connection=conn)
+        notifier = Notifier(q_connection=conn, trigger_dispatcher=TriggerDispatcher(LOG))
         return notifier
