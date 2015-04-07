@@ -34,7 +34,13 @@ MOCK_TRIGGER.type = 'system.test'
 MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
 MOCK_TRIGGER_INSTANCE.id = bson.ObjectId()
 MOCK_TRIGGER_INSTANCE.trigger = MOCK_TRIGGER.get_reference().ref
-MOCK_TRIGGER_INSTANCE.payload = {'p1': 'v1', 'bool': True, 'int': 1, 'float': 0.8}
+MOCK_TRIGGER_INSTANCE.payload = {
+    'p1': 'v1',
+    'p2': 'preYYYpost',
+    'bool': True,
+    'int': 1,
+    'float': 0.8
+}
 MOCK_TRIGGER_INSTANCE.occurrence_time = datetime.datetime.utcnow()
 
 MOCK_ACTION = ActionDB()
@@ -140,3 +146,60 @@ class FilterTest(DbTestCase):
         rule.criteria = {'trigger.floattt': {'type': 'nexists'}}
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), '"floattt" key ain\'t exist in trigger. Should return true.')
+
+    @mock.patch('st2common.util.templating.KeyValueLookup')
+    def test_criteria_pattern_references_a_datastore_item(self, mock_KeyValueLookup):
+        class MockResultLookup(object):
+            pass
+
+        class MockSystemLookup(object):
+            system = MockResultLookup()
+
+        rule = MOCK_RULE_2
+
+        # Using a variable in pattern, referencing an inexistent datastore value
+        rule.criteria = {'trigger.p1': {
+            'type': 'equals',
+            'pattern': '{{ system.inexistent_value }}'}
+        }
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertFalse(f.filter())
+
+        # Using a variable in pattern, referencing an existing value which doesn't match
+        mock_result = MockSystemLookup()
+        mock_result.test_value_1 = 'non matching'
+        mock_KeyValueLookup.return_value = mock_result
+
+        rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': '{{ system.test_value_1 }}'}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertFalse(f.filter())
+
+        # Using a variable in pattern, referencing an existing value which does match
+        mock_result = MockSystemLookup()
+        mock_result.test_value_2 = 'v1'
+        mock_KeyValueLookup.return_value = mock_result
+
+        rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': '{{ system.test_value_2 }}'}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter())
+
+        # Using a variable in pattern, referencing an existing value which matches partially
+        mock_result = MockSystemLookup()
+        mock_result.test_value_3 = 'YYY'
+        mock_KeyValueLookup.return_value = mock_result
+
+        rule.criteria = {'trigger.p2': {'type': 'equals', 'pattern': '{{ system.test_value_3 }}'}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertFalse(f.filter())
+
+        # Using a variable in pattern, referencing an existing value which matches partially
+        mock_result = MockSystemLookup()
+        mock_result.test_value_3 = 'YYY'
+        mock_KeyValueLookup.return_value = mock_result
+
+        rule.criteria = {'trigger.p2': {
+            'type': 'equals',
+            'pattern': 'pre{{ system.test_value_3 }}post'}
+        }
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter())
