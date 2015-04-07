@@ -78,7 +78,7 @@ class LiveActionModelTest(DbTestCase):
         # Assert notify settings saved are right.
         self.assertEqual(notify_sub_schema.message, retrieved.notify.on_complete.message)
         self.assertDictEqual(notify_sub_schema.data, retrieved.notify.on_complete.data)
-        self.assertListEqual(notify_sub_schema.triggers, retrieved.notify.on_complete.triggers)
+        self.assertListEqual(notify_sub_schema.channels, retrieved.notify.on_complete.channels)
         self.assertEqual(retrieved.notify.on_success, None)
         self.assertEqual(retrieved.notify.on_failure, None)
 
@@ -107,7 +107,7 @@ class LiveActionModelTest(DbTestCase):
         self.assertEqual(notify_sub_schema.message,
                          retrieved.notify.on_success.message)
         self.assertDictEqual(notify_sub_schema.data, retrieved.notify.on_success.data)
-        self.assertListEqual(notify_sub_schema.triggers, retrieved.notify.on_success.triggers)
+        self.assertListEqual(notify_sub_schema.channels, retrieved.notify.on_success.channels)
         self.assertEqual(retrieved.notify.on_failure, None)
         self.assertEqual(retrieved.notify.on_complete, None)
 

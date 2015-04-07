@@ -26,9 +26,9 @@ NotificationSubSchemaAPI = {
             "type": "object",
             "description": "Data to be sent as part of notification"
         },
-        "triggers": {
+        "channels": {
             "type": "array",
-            "description": "List of triggers to be emitted on action completion."
+            "description": "Channels to post notifications to."
         },
     },
     "additionalProperties": False
@@ -56,7 +56,7 @@ class NotificationsHelper(object):
         notify_sub_schema = NotificationSubSchema()
         notify_sub_schema.message = notification_settings_json.get('message' or None)
         notify_sub_schema.data = notification_settings_json.get('data' or {})
-        notify_sub_schema.triggers = notification_settings_json.get('triggers' or [])
+        notify_sub_schema.channels = notification_settings_json.get('channels' or [])
         return notify_sub_schema
 
     @staticmethod
@@ -81,7 +81,7 @@ class NotificationsHelper(object):
             notify_sub_schema['message'] = notify_sub_schema_model.message
         if getattr(notify_sub_schema_model, 'message', None):
             notify_sub_schema['data'] = notify_sub_schema_model.data
-        if getattr(notify_sub_schema_model, 'triggers', None):
-            notify_sub_schema['triggers'] = notify_sub_schema_model.triggers
+        if getattr(notify_sub_schema_model, 'channels', None):
+            notify_sub_schema['channels'] = notify_sub_schema_model.channels
 
         return notify_sub_schema
