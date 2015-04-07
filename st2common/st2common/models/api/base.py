@@ -53,7 +53,6 @@ class BaseAPI(object):
     schema = abc.abstractproperty
 
     def __init__(self, **kw):
-        VALIDATOR(getattr(self, 'schema', {})).validate(kw)
 
         for key, value in kw.items():
             setattr(self, key, value)
@@ -72,6 +71,9 @@ class BaseAPI(object):
 
     def __json__(self):
         return vars(self)
+
+    def validate(self):
+        VALIDATOR(getattr(self, 'schema', {})).validate(vars(self))
 
     @classmethod
     def _from_model(cls, model):
@@ -179,8 +181,10 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                         data = pecan.request.json
                     else:
                         data = {}
+
+                    obj = body_cls(**data)
                     try:
-                        obj = body_cls(**data)
+                        obj.validate()
                     except jsonschema.exceptions.ValidationError as e:
                         return _handle_error(e, http_client.BAD_REQUEST)
                     more.append(obj)
