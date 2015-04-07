@@ -124,6 +124,18 @@ contain such values e.g.
             type: "eq"
             pattern : "customvalue"
 
+The ``pattern`` value can also reference a datastore value using a Jinja
+variable access syntax as shown below.
+
+.. code-block:: yaml
+
+    criteria:
+        trigger.payload.build_number:
+            type: "equals"
+            pattern : "{{ system.current_build_number }}"
+
+In this example we are referencing a value of a datastore item with the name
+``current_build_number``.
 
 Critera Comparision
 -------------------
