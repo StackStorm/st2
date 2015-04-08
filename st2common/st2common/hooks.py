@@ -19,6 +19,7 @@ import webob
 from oslo.config import cfg
 from pecan.hooks import PecanHook
 from six.moves.urllib import parse as urlparse
+from webob import exc
 
 from st2common import log as logging
 from st2common.exceptions import access as exceptions
@@ -29,6 +30,18 @@ from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 
 
 LOG = logging.getLogger(__name__)
+
+# A list of method names for which we don't want to log the result / response
+RESPONSE_LOGGING_METHOD_NAME_BLACKLIST = [
+    'get_all'
+]
+
+# A list of controller classes for which we don't want to log the result / response
+RESPONSE_LOGGING_CONTROLLER_NAME_BLACKLIST = [
+    'ActionExecutionChildrenController',  # action executions can be big
+    'ActionExecutionAttributeController',  # result can be big
+    'ActionExecutionsController'  # action executions can be big
+]
 
 
 class CorsHook(PecanHook):
@@ -97,6 +110,9 @@ class AuthHook(PecanHook):
 
         state.request.context['token'] = self._validate_token(request=state.request)
 
+        if QUERY_PARAM_ATTRIBUTE_NAME in state.arguments.keywords:
+            del state.arguments.keywords[QUERY_PARAM_ATTRIBUTE_NAME]
+
     def on_error(self, state, e):
         if isinstance(e, exceptions.TokenNotProvidedError):
             LOG.exception('Token is not provided.')
@@ -137,32 +153,83 @@ class AuthHook(PecanHook):
 
 class JSONErrorResponseHook(PecanHook):
     """
-    Hook which ensures that error response always contains JSON.
+    Handle all the errors and respond with JSON.
     """
 
-    def on_error(self, state, exc):
+    def on_error(self, state, e):
         request_path = state.request.path
         if cfg.CONF.api.serve_webui_files and request_path.startswith('/webui'):
             # We want to return regular error response for requests to /webui
             return
 
-        status_code = state.response.status
-        if status_code == httplib.NOT_FOUND:
-            message = 'The resource could not be found'
-        elif status_code == httplib.INTERNAL_SERVER_ERROR:
-            message = 'Internal Server Error'
-        else:
-            message = str(exc)
+        LOG.debug('API call failed: %s' % (str(e)))
 
-        response_body = json_encode({'faultstring': message})
+        if hasattr(e, 'body') and isinstance(e.body, dict):
+            body = e.body
+        else:
+            body = {}
+
+        if isinstance(e, exc.HTTPException):
+            status_code = state.response.status
+            message = str(e)
+        else:
+            status_code = httplib.INTERNAL_SERVER_ERROR
+            message = 'Internal Server Error'
+
+        body['faultstring'] = message
+
+        response_body = json_encode(body)
 
         headers = state.response.headers or {}
-        if headers.get('Content-Type', None) == 'application/json':
-            # Already a JSON response
-            return
 
         headers['Content-Type'] = 'application/json'
         headers['Content-Length'] = str(len(response_body))
 
-        return webob.Response(response_body, status=status_code,
-                              headers=headers)
+        return webob.Response(response_body, status=status_code, headers=headers)
+
+
+class LoggingHook(PecanHook):
+    """
+    Logs all incoming requests and outgoing responses
+    """
+
+    def before(self, state):
+        # Note: We use getattr since in some places (tests) request is mocked
+        method = getattr(state.request, 'method', None)
+        path = getattr(state.request, 'path', None)
+        remote_addr = getattr(state.request, 'remote_addr', None)
+
+        # Log the incoming request
+        values = {'method': method, 'path': path, 'remote_addr': remote_addr}
+        values['filters'] = state.arguments.keywords
+        LOG.info('%(method)s %(path)s with filters=%(filters)s' % values, extra=values)
+
+    def after(self, state):
+        # Note: We use getattr since in some places (tests) request is mocked
+        method = getattr(state.request, 'method', None)
+        path = getattr(state.request, 'path', None)
+        remote_addr = getattr(state.request, 'remote_addr', None)
+
+        # Log the outgoing response
+        values = {'method': method, 'path': path, 'remote_addr': remote_addr}
+        values['status_code'] = state.response.status
+
+        if hasattr(state.controller, 'im_self'):
+            function_name = state.controller.im_func.__name__
+            controller_name = state.controller.im_class.__name__
+
+            log_result = True
+            log_result &= function_name not in RESPONSE_LOGGING_METHOD_NAME_BLACKLIST
+            log_result &= controller_name not in RESPONSE_LOGGING_CONTROLLER_NAME_BLACKLIST
+        else:
+            log_result = False
+
+        if log_result:
+            values['result'] = state.response.body
+            log_msg = '%(method)s %(path)s result=%(result)s' % values
+        else:
+            # Note: We don't want to include a result for some
+            # methods which have a large result
+            log_msg = '%(method)s %(path)s' % values
+
+        LOG.info(log_msg, extra=values)

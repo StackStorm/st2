@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 import mock
 import pecan
 import unittest
+from webob import exc
 
 from st2common.models.api import base
 
@@ -190,6 +189,4 @@ class TestModelBase(unittest.TestCase):
         rtn_val = f(self)
         self.assertEqual(rtn_val, 'null')
         pecan.request.json = {'a': '123', 'b': '456'}
-        rtn_val = json.loads(f(self))
-        self.assertIn('faultstring', rtn_val)
-        self.assertIn("'b' was unexpected", rtn_val['faultstring'])
+        self.assertRaisesRegexp(exc.HTTPBadRequest, ''b' was unexpected', f, self)
