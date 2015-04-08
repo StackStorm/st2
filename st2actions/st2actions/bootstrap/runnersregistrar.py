@@ -375,6 +375,7 @@ def register_runner_types():
             update = False
 
         runnertype_api = RunnerTypeAPI(**runnertype)
+        runnertype_api.validate()
         runner_type_model = RunnerTypeAPI.to_model(runnertype_api)
 
         if runnertype_db:
