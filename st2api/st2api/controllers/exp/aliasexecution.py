@@ -21,6 +21,7 @@ from mongoengine import ValidationError
 from pecan import rest
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
+from st2common.models.api.action import AliasExecutionAPI
 from st2common.models.db.action import LiveActionDB
 from st2common.models.utils import action_alias_utils, action_param_utils
 from st2common.persistence.action import ActionAlias
@@ -34,11 +35,11 @@ LOG = logging.getLogger(__name__)
 
 class ActionAliasExecutionController(rest.RestController):
 
-    @jsexpose(body_cls=dict, status_code=http_client.OK)
+    @jsexpose(body_cls=AliasExecutionAPI, status_code=http_client.OK)
     def post(self, payload):
-        alias_execution = payload.get('command', None) if payload else None
+        alias_execution = payload.command if payload else None
         if not alias_execution:
-            pecan.abort(http_client.BAD_REQUEST, 'Alias execution should no non-empty.')
+            pecan.abort(http_client.BAD_REQUEST, 'Alias execution command should no non-empty.')
 
         action_alias_name, leftover = self._tokenize_alias_execution(alias_execution)
 

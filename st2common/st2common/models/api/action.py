@@ -387,3 +387,32 @@ class ActionAliasAPI(BaseAPI):
         model.action_ref = alias.action_ref
         model.formats = alias.formats
         return model
+
+
+class AliasExecutionAPI(BaseAPI):
+    """
+    Alias for an action in the system.
+    """
+    model = None
+    schema = {
+        "title": "AliasExecution",
+        "description": "Execution of an ActionAlias.",
+        "type": "object",
+        "properties": {
+            "command": {
+                "type": "string",
+                "description": "Name of the action alias.",
+                "required": True
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, aliasexecution):
+        # probably should be unsupported
+        raise NotImplementedError()
+
+    @classmethod
+    def from_model(cls, aliasexecution):
+        raise NotImplementedError()
