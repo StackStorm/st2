@@ -8,6 +8,8 @@ chain:
         name: setup_sample_rule_with_webhook_exists
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 rule get {{ tested_rule }}"
         on-success: setup_delete_rule
         on-failure: test_create_rule
@@ -16,6 +18,8 @@ chain:
         description: Remove tested rule so we can test its creation
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 rule delete {{ tested_rule }} "
         on-success: test_create_rule
         on-failure: error_handler
@@ -23,6 +27,8 @@ chain:
         name: test_create_rule
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 rule create /usr/share/doc/st2/examples/rules/sample_rule_with_webhook.yaml"
         on-success: test_rule_list
         on-failure: error_handler
@@ -30,6 +36,8 @@ chain:
         name: test_rule_list
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 rule list | grep webhook"
         on-success: test_rule_get
         on-failure: error_handler
@@ -37,6 +45,8 @@ chain:
         name: test_rule_get
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 rule get {{ tested_rule }}"
         on-success: setup_post_to_web_hook_via_curl
         on-failure: error_handler
@@ -44,6 +54,8 @@ chain:
         name: setup_post_to_web_hook_via_curl
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "curl http://localhost:9101/v1/webhooks/sample -d '{\"foo\": \"bar\", \"name\": \"st2\"}' -H 'Content-Type: application/json'"
         on-success: test_get_execution_list
         on-failure: error_handler
@@ -51,6 +63,8 @@ chain:
         name: test_get_execution_list
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 execution list -n 1 | grep 'core.local'"
         on-success: test_check_output_after_post_via_wget
         on-failure: error_handler
@@ -58,6 +72,8 @@ chain:
         name: test_check_output_after_post_via_wget
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "tail -1 /tmp/st2.webhook_sample.out | grep 'foo' | grep 'bar' | grep 'name' | grep 'st2'"
         on-success: setup_post_to_web_hook_via_st2
         on-failure: error_handler
@@ -65,6 +81,8 @@ chain:
         name: setup_post_to_web_hook_via_st2
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 run core.http method=POST body='{\"you\": \"too\", \"name\": \"st2\"}' url=http://localhost:9101/v1/webhooks/sample"
         on-success: test_check_output_after_post_via_st2
         on-failure: error_handler
@@ -72,6 +90,8 @@ chain:
         name: test_check_output_after_post_via_st2
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "tail -1 /tmp/st2.webhook_sample.out | grep 'you' | grep 'too' | grep 'name' | grep 'st2'"
         on-success: test_delete_rule
         on-failure: error_handler
@@ -80,6 +100,8 @@ chain:
         description: Remove tested rule so we can test its creation
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 rule delete {{ tested_rule }} | grep 'Resource with id \"{{ tested_rule }}\" has been successfully deleted.'"
         on-success: test_rule_deleted
         on-failure: error_handler
@@ -87,6 +109,8 @@ chain:
         name: test_rule_deleted
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 rule get {{ tested_rule }}"
         on-success: error_handler
         on-failure: success_handler
@@ -94,6 +118,8 @@ chain:
         name: success_handler
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "echo quickstart rules test failed; exit 0"
 
     -
@@ -101,4 +127,6 @@ chain:
         description: Error handler
         ref: "core.local"
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
            cmd: "echo quickstart rules test failed; exit 1"
