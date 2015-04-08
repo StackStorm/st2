@@ -32,6 +32,7 @@ import six
 
 from st2common.util import reference
 import st2common.util.action_db as action_utils
+from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.action import RunnerType
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
@@ -111,6 +112,14 @@ def update_execution(liveaction_db, publish=True):
         setattr(execution, k, v)
     execution = ActionExecution.add_or_update(execution, publish=publish)
     return execution
+
+
+def is_execution_canceled(execution_id):
+    try:
+        execution = ActionExecution.get_by_id(execution_id)
+        return execution.status == LIVEACTION_STATUS_CANCELED
+    except:
+        return False  # XXX: What to do here?
 
 
 class AscendingSortedDescendantView(object):

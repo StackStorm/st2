@@ -30,6 +30,7 @@ from st2common.models.system import actionchain
 from st2common.models.utils import action_param_utils
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
+from st2common.services import execution as execution_service
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import action_db as action_db_util
 from st2common.util import isotime
@@ -313,22 +314,28 @@ class ActionChainRunner(ActionRunner):
 
     @staticmethod
     def _run_action(action_node, parent_execution_id, params, wait_for_completion=True):
-        execution = LiveActionDB(action=action_node.ref)
-        execution.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
+        liveaction = LiveActionDB(action=action_node.ref)
+        liveaction.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
                                                               params=params)
         if action_node.notify:
-            execution.notify = NotificationsHelper.to_model(action_node.notify)
-        execution.context = {
+            liveaction.notify = NotificationsHelper.to_model(action_node.notify)
+                                                             params=params)
+        liveaction.context = {
             'parent': str(parent_execution_id),
             'chain': vars(action_node)
         }
 
-        liveaction, _ = action_service.schedule(execution)
+        liveaction, execution = action_service.schedule(liveaction)
+        stopped = False
         while (wait_for_completion and
                liveaction.status != LIVEACTION_STATUS_SUCCEEDED and
-               liveaction.status != LIVEACTION_STATUS_FAILED):
+               liveaction.status != LIVEACTION_STATUS_FAILED
+               and not stopped):
             eventlet.sleep(1)
             liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
+            stopped = execution_service.is_execution_canceled(execution.id)
+            stopped = stopped or execution_service.is_execution_canceled(parent_execution_id)
+
         return liveaction
 
     def _format_action_exec_result(self, action_node, liveaction_db, created_at, updated_at,
