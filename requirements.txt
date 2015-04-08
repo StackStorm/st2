@@ -10,7 +10,7 @@ mongoengine>=0.8.7,<0.9
 oslo.config
 paramiko
 pecan==0.7.0
-pymongo
+pymongo<3.0
 python-dateutil
 python-json-logger
 pyyaml

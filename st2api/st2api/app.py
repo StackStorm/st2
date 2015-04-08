@@ -57,7 +57,7 @@ def setup_app(config=None):
 
     app_conf = dict(config.app)
 
-    active_hooks = [hooks.JSONErrorResponseHook()]
+    active_hooks = [hooks.JSONErrorResponseHook(), hooks.LoggingHook()]
 
     if cfg.CONF.auth.enable:
         active_hooks.append(hooks.AuthHook())
