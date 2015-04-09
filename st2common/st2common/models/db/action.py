@@ -60,6 +60,46 @@ class RunnerTypeDB(stormbase.StormBaseDB):
         help_text='The python module that implements the query module for this runner.')
 
 
+class NotificationSubSchema(me.EmbeddedDocument):
+    """
+        Schema for notification settings to be specified for action success/failure.
+    """
+    message = me.StringField()
+    data = stormbase.EscapedDynamicField(
+        default={},
+        help_text='Payload to be sent as part of notification.')
+    channels = me.ListField(
+        default=['notify.default'],
+        help_text='Channels to post notifications to.')
+
+    def __str__(self):
+        result = []
+        result.append('NotificationSubSchema@')
+        result.append(str(id(self)))
+        result.append('(message="%s", ' % str(self.message))
+        result.append('data="%s", ' % str(self.data))
+        result.append('channels="%s")' % str(self.channels))
+        return ''.join(result)
+
+
+class NotificationSchema(me.EmbeddedDocument):
+    """
+        Schema for notification settings to be specified for actions.
+    """
+    on_success = me.EmbeddedDocumentField(NotificationSubSchema)
+    on_failure = me.EmbeddedDocumentField(NotificationSubSchema)
+    on_complete = me.EmbeddedDocumentField(NotificationSubSchema)
+
+    def __str__(self):
+        result = []
+        result.append('NotifySchema@')
+        result.append(str(id(self)))
+        result.append('(on_complete="%s", ' % str(self.on_complete))
+        result.append('on_success="%s", ' % str(self.on_success))
+        result.append('on_failure="%s")' % str(self.on_failure))
+        return ''.join(result)
+
+
 class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
                stormbase.ContentPackResourceMixin):
     """
@@ -89,6 +129,7 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         help_text='The action runner to use for executing the action.')
     parameters = me.DictField(
         help_text='The specification for parameters for the action.')
+    notify = me.EmbeddedDocumentField(NotificationSchema)
 
     meta = {
         'indexes': stormbase.TagsMixin.get_indices()
@@ -134,6 +175,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
     runner_info = me.DictField(
         default={},
         help_text='Reference to the runner that executed this liveaction.')
+    notify = me.EmbeddedDocumentField(NotificationSchema)
 
     meta = {
         'indexes': ['-start_timestamp', 'action']

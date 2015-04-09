@@ -24,6 +24,7 @@ from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
 from st2common.exceptions import actionrunner as runnerexceptions
+from st2common.models.api.notification import NotificationsHelper
 from st2common.models.db.action import LiveActionDB
 from st2common.models.system import actionchain
 from st2common.models.utils import action_param_utils
@@ -315,6 +316,8 @@ class ActionChainRunner(ActionRunner):
         execution = LiveActionDB(action=action_node.ref)
         execution.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
                                                               params=params)
+        if action_node.notify:
+            execution.notify = NotificationsHelper.to_model(action_node.notify)
         execution.context = {
             'parent': str(parent_execution_id),
             'chain': vars(action_node)

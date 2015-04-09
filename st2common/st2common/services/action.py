@@ -74,6 +74,15 @@ def schedule(liveaction):
         raise ValueError('Override of immutable parameter(s) %s is unsupported.'
                          % str(overridden_immutables))
 
+    # Set notification settings for action.
+    # XXX: There are cases when we don't want notifications to be sent for a particular
+    # execution. So we should look at liveaction.parameters['notify']
+    # and not set liveaction.notify.
+    if action_db.notify:
+        liveaction.notify = action_db.notify
+    else:
+        print(action_db)
+
     # Write to database and send to message queue.
     liveaction.status = LIVEACTION_STATUS_SCHEDULED
     liveaction.start_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())

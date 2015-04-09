@@ -50,6 +50,12 @@ ACTION = {
             'type': 'string',
             'default': 'abc'
         }
+    },
+    'notify': {
+        'on_complete': {
+            'message': 'My awesome action is complete. Party time!!!',
+            'channels': ['notify.slack']
+        }
     }
 }
 
@@ -88,6 +94,7 @@ class TestActionExecutionService(DbTestCase):
         self.assertEqual(execution.context['user'], request.context['user'])
         self.assertDictEqual(execution.parameters, request.parameters)
         self.assertEqual(execution.status, LIVEACTION_STATUS_SCHEDULED)
+        self.assertTrue(execution.notify is not None)
         # mongoengine DateTimeField stores datetime only up to milliseconds
         self.assertEqual(isotime.format(execution.start_timestamp, usec=False),
                          isotime.format(request.start_timestamp, usec=False))

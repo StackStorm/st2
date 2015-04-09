@@ -47,6 +47,24 @@ INTERNAL_TRIGGER_TYPES = {
                     'result': {}
                 }
             }
+        },
+        {
+            'name': 'st2.generic.notifytrigger',
+            'pack': SYSTEM_PACK_NAME,
+            'description': 'Notification trigger.',
+            'payload_schema': {
+                'type': 'object',
+                'properties': {
+                    'execution_id': {},
+                    'status': {},
+                    'start_timestamp': {},
+                    'end_timestamp': {},
+                    'action_ref': {},
+                    'channel': {},
+                    'message': {},
+                    'data': {}
+                }
+            }
         }
     ],
     'sensor': [
