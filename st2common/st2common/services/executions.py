@@ -42,6 +42,14 @@ from st2common.models.api.rule import RuleAPI
 from st2common.models.db.execution import ActionExecutionDB
 from st2common import log as logging
 
+__all__ = [
+    'create_execution_object',
+    'update_execution',
+    'is_execution_canceled',
+    'AscendingSortedDescendantView',
+    'DFSDescendantView',
+    'get_descendants'
+]
 
 LOG = logging.getLogger(__name__)
 

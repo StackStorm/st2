@@ -23,6 +23,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.services import executions
 from st2common.transport import liveaction, publishers
@@ -74,6 +75,8 @@ class Worker(ConsumerMixin):
 
     def execute_action(self, liveaction):
         # Note: We only want to execute actions which haven't completed yet
+        if liveaction.status == LIVEACTION_STATUS_CANCELED:
+            LOG.info('Not executing liveaction %s. User canceled execution.', liveaction.id)
         if liveaction.status in [LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED]:
             LOG.info('Ignoring liveaction %s which has already finished', liveaction.id)
             return
@@ -84,6 +87,7 @@ class Worker(ConsumerMixin):
             LOG.exception('Failed to find liveaction %s in the database.',
                           liveaction.id)
             raise
+
         # stamp liveaction with process_info
         runner_info = system_info.get_process_info()
 
