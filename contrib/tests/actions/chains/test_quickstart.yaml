@@ -90,6 +90,3 @@ chain:
             env:
               ST2_AUTH_TOKEN: "{{token}}"
             cmd: "echo fail c4"
-
-    default: "test_basics"
-
