@@ -10,7 +10,6 @@ chain:
         publish:
             uid: "{{ setup_uid.stdout }}"
         on-success: test_set_key
-        on-failure: error_handler
     -
         name: test_set_key
         ref: core.local
@@ -19,7 +18,6 @@ chain:
               ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 key set user{{uid}} stanley{{uid}}"
         on-success: test_list_keys
-        on-failure: error_handler
     -
         name: test_list_keys
         ref: core.local
@@ -28,7 +26,6 @@ chain:
               ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 key list | grep user"
         on-success: test_get_key
-        on-failure: error_handler
     -
         name: test_get_key
         ref: core.local
@@ -36,20 +33,3 @@ chain:
             env:
               ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 key get user{{uid}} | grep {{uid}}"
-        on-success: success_handler
-        on-failure: error_handler
-    -
-        name: success_handler
-        ref: core.local
-        params:
-            env:
-              ST2_AUTH_TOKEN: "{{token}}"
-            cmd: "echo quickstart key test succeed; exit 0"
-    -
-        name: error_handler
-        description: Error handler
-        ref: "core.local"
-        params:
-            env:
-              ST2_AUTH_TOKEN: "{{token}}"
-           cmd: "echo quickstart key test failed; exit 1"
