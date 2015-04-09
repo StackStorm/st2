@@ -24,6 +24,7 @@ from six.moves import http_client
 from webob import exc
 import pecan
 import pecan.jsonify
+import traceback
 
 from st2common.util import mongoescape as util_mongodb
 from st2common.util import schema as util_schema
@@ -136,7 +137,11 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                 try:
                     obj.validate()
                 except jsonschema.ValidationError as e:
-                    raise exc.HTTPBadRequest(e.message)
+                    raise exc.HTTPBadRequest(detail=e.message,
+                                             comment=traceback.format_exc())
+                except Exception as e:
+                    raise exc.HTTPInternalServerError(detail=e.message,
+                                                      comment=traceback.format_exc())
                 more.append(obj)
 
             args = tuple(more) + tuple(args)

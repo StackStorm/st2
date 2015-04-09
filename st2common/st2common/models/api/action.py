@@ -21,6 +21,7 @@ from st2common.models.api.tag import TagsHelper
 from st2common.models.api.notification import (NotificationSubSchemaAPI, NotificationsHelper)
 from st2common.models.db.action import (RunnerTypeDB, ActionDB, LiveActionDB)
 from st2common.models.db.action import ActionExecutionStateDB
+from st2common.models.db.action import ActionAliasDB
 from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.models.system.common import ResourceReference
 
@@ -376,3 +377,78 @@ class ActionExecutionStateAPI(BaseAPI):
         model.execution_id = state.execution_id
         model.query_context = state.query_context
         return model
+
+
+class ActionAliasAPI(BaseAPI):
+    """
+    Alias for an action in the system.
+    """
+    model = ActionAliasDB
+    schema = {
+        "title": "ActionAlias",
+        "description": "Alias for an action.",
+        "type": "object",
+        "properties": {
+            "id": {
+                "description": "The unique identifier for the action alias.",
+                "type": "string"
+            },
+            "name": {
+                "type": "string",
+                "description": "Name of the action alias.",
+                "required": True
+            },
+            "description": {
+                "type": "string",
+                "description": "Description of the action alias."
+            },
+            "action_ref": {
+                "type": "string",
+                "description": "Reference to the aliased action.",
+                "required": True
+            },
+            "formats": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Possible parameter format."
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, alias):
+        model = super(cls, cls).to_model(alias)
+        model.name = alias.name
+        model.action_ref = alias.action_ref
+        model.formats = alias.formats
+        return model
+
+
+class AliasExecutionAPI(BaseAPI):
+    """
+    Alias for an action in the system.
+    """
+    model = None
+    schema = {
+        "title": "AliasExecution",
+        "description": "Execution of an ActionAlias.",
+        "type": "object",
+        "properties": {
+            "command": {
+                "type": "string",
+                "description": "Name of the action alias.",
+                "required": True
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, aliasexecution):
+        # probably should be unsupported
+        raise NotImplementedError()
+
+    @classmethod
+    def from_model(cls, aliasexecution):
+        raise NotImplementedError()

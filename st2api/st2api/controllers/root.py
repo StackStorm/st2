@@ -22,6 +22,7 @@ from oslo.config import cfg
 from st2common import __version__
 from st2common import log as logging
 import st2api.controllers.v1.root as v1_root
+import st2api.controllers.exp.root as exp_root
 
 __all__ = [
     'WebUIRootController',
@@ -48,8 +49,10 @@ class RootController(object):
 
     def __init__(self):
         v1_controller = v1_root.RootController()
+        exp_controller = exp_root.RootController()
         self.controllers = {
-            'v1': v1_controller
+            'v1': v1_controller,
+            'exp': exp_controller
         }
 
         if cfg.CONF.api.serve_webui_files:

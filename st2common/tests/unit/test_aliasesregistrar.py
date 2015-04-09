@@ -13,12 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.exceptions import StackStormBaseException
+import os
+
+from st2common.content import aliasesregistrar
+from st2tests import DbTestCase, fixturesloader
 
 
-class UnsupportedMetaException(StackStormBaseException):
-    pass
+ALIASES_FIXTURE_PATH = os.path.join(fixturesloader.get_fixtures_base_path(), 'alias_registrar')
 
 
-class ParseException(StackStormBaseException):
-    pass
+class TestAliasRegistrar(DbTestCase):
+
+    def test_alias_registration(self):
+        count = aliasesregistrar.register_aliases(aliases_dir=ALIASES_FIXTURE_PATH)
+        # expect all files to contain be aliases
+        self.assertEqual(count, len(os.listdir(ALIASES_FIXTURE_PATH)))

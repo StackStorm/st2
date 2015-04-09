@@ -18,6 +18,7 @@ from oslo.config import cfg
 from st2common import transport
 from st2common.models.db.action import (runnertype_access, action_access, liveaction_access)
 from st2common.models.db.action import actionexecstate_access
+from st2common.models.db.action import actionalias_access
 from st2common.persistence.base import (Access, ContentPackResource)
 
 
@@ -73,3 +74,11 @@ class ActionExecutionState(Access):
             cls.publisher = transport.actionexecutionstate.ActionExecutionStatePublisher(
                 cfg.CONF.messaging.url)
         return cls.publisher
+
+
+class ActionAlias(Access):
+    impl = actionalias_access
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl

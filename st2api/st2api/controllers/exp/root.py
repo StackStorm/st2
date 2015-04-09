@@ -13,12 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.exceptions import StackStormBaseException
+from st2api.controllers.exp.actionalias import ActionAliasController
+from st2api.controllers.exp.aliasexecution import ActionAliasExecutionController
 
 
-class UnsupportedMetaException(StackStormBaseException):
-    pass
+class RootController(object):
 
-
-class ParseException(StackStormBaseException):
-    pass
+    actionalias = ActionAliasController()
+    aliasexecution = ActionAliasExecutionController()

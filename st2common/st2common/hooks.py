@@ -162,7 +162,8 @@ class JSONErrorResponseHook(PecanHook):
             # We want to return regular error response for requests to /webui
             return
 
-        LOG.debug('API call failed: %s' % (str(e)))
+        error_msg = getattr(e, 'comment', str(e))
+        LOG.debug('API call failed: %s', error_msg)
 
         if hasattr(e, 'body') and isinstance(e.body, dict):
             body = e.body
