@@ -266,7 +266,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         if liveaction_db.status not in CANCELABLE_STATES:
             abort(http_client.OK,
-                  {'error': 'Action cannot be canceled. State=%s' % liveaction_db.status})
+                  'Action cannot be canceled. State = %s.' % liveaction_db.status)
             return
 
         liveaction_db.status = 'canceled'
