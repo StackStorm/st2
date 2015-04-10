@@ -40,48 +40,48 @@ class DummyActionExecution(object):
 FIXTURES_PACK = 'generic'
 
 TEST_MODELS = {
-    'actions': ['a1.json', 'a2.json'],
-    'runners': ['testrunner1.json']
+    'actions': ['a1.yaml', 'a2.yaml'],
+    'runners': ['testrunner1.yaml']
 }
 
 MODELS = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
                                       fixtures_dict=TEST_MODELS)
-ACTION_1 = MODELS['actions']['a1.json']
-ACTION_2 = MODELS['actions']['a2.json']
-RUNNER = MODELS['runners']['testrunner1.json']
+ACTION_1 = MODELS['actions']['a1.yaml']
+ACTION_2 = MODELS['actions']['a2.yaml']
+RUNNER = MODELS['runners']['testrunner1.yaml']
 
 CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain1.json')
+    FIXTURES_PACK, 'actionchains', 'chain1.yaml')
 CHAIN_NO_DEFAULT = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'no_default_chain.json')
+    FIXTURES_PACK, 'actionchains', 'no_default_chain.yaml')
 CHAIN_NO_DEFAULT_2 = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'no_default_chain_2.json')
+    FIXTURES_PACK, 'actionchains', 'no_default_chain_2.yaml')
 CHAIN_BROKEN_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_broken_paths.json')
+    FIXTURES_PACK, 'actionchains', 'chain_broken_paths.yaml')
 CHAIN_FIRST_TASK_RENDER_FAIL_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_first_task_parameter_render_fail.json')
+    FIXTURES_PACK, 'actionchains', 'chain_first_task_parameter_render_fail.yaml')
 CHAIN_SECOND_TASK_RENDER_FAIL_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_second_task_parameter_render_fail.json')
+    FIXTURES_PACK, 'actionchains', 'chain_second_task_parameter_render_fail.yaml')
 CHAIN_LIST_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_list_template.json')
+    FIXTURES_PACK, 'actionchains', 'chain_list_template.yaml')
 CHAIN_DICT_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_dict_template.json')
+    FIXTURES_PACK, 'actionchains', 'chain_dict_template.yaml')
 CHAIN_DEP_INPUT = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_dependent_input.json')
+    FIXTURES_PACK, 'actionchains', 'chain_dependent_input.yaml')
 CHAIN_DEP_RESULTS_INPUT = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_dep_result_input.json')
+    FIXTURES_PACK, 'actionchains', 'chain_dep_result_input.yaml')
 MALFORMED_CHAIN_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'malformedchain.json')
+    FIXTURES_PACK, 'actionchains', 'malformedchain.yaml')
 CHAIN_TYPED_PARAMS = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_typed_params.json')
+    FIXTURES_PACK, 'actionchains', 'chain_typed_params.yaml')
 CHAIN_SYSTEM_PARAMS = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_typed_system_params.json')
+    FIXTURES_PACK, 'actionchains', 'chain_typed_system_params.yaml')
 CHAIN_VARS = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_vars.json')
+    FIXTURES_PACK, 'actionchains', 'chain_vars.yaml')
 CHAIN_WITH_PUBLISH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_with_publish.json')
+    FIXTURES_PACK, 'actionchains', 'chain_with_publish.yaml')
 CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_with_invalid_action.json')
+    FIXTURES_PACK, 'actionchains', 'chain_with_invalid_action.yaml')
 
 
 @mock.patch.object(action_db_util, 'get_runnertype_by_name',
@@ -336,7 +336,7 @@ class TestActionChainRunner(DbTestCase):
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         expected_values = [{u'p1': u'1'},
                            {u'p1': u'1'},
-                           {u'out': u"{u'c2': {'o1': '1'}, u'c1': {'o1': '1'}}"}]
+                           {u'out': u"{'c2': {'o1': '1'}, 'c1': {'o1': '1'}}"}]
         # Each of the call_args must be one of
         self.assertEqual(schedule.call_count, 3)
         for call_args in schedule.call_args_list:

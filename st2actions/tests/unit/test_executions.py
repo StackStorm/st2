@@ -67,7 +67,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         action_local = ActionAPI(**copy.deepcopy(fixture.ARTIFACTS['actions']['local']))
         Action.add_or_update(ActionAPI.to_model(action_local))
         action_chain = ActionAPI(**copy.deepcopy(fixture.ARTIFACTS['actions']['chain']))
-        action_chain.entry_point = fixture.PATH + '/chain.json'
+        action_chain.entry_point = fixture.PATH + '/chain.yaml'
         Action.add_or_update(ActionAPI.to_model(action_chain))
 
     def tearDown(self):

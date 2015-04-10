@@ -34,15 +34,15 @@ class DummyActionExecution(object):
 FIXTURES_PACK = 'generic'
 
 TEST_MODELS = {
-    'actions': ['a1.json', 'a2.json'],
-    'runners': ['testrunner1.json']
+    'actions': ['a1.yaml', 'a2.yaml'],
+    'runners': ['testrunner1.yaml']
 }
 
 MODELS = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
                                       fixtures_dict=TEST_MODELS)
-ACTION_1 = MODELS['actions']['a1.json']
-ACTION_2 = MODELS['actions']['a2.json']
-RUNNER = MODELS['runners']['testrunner1.json']
+ACTION_1 = MODELS['actions']['a1.yaml']
+ACTION_2 = MODELS['actions']['a2.yaml']
+RUNNER = MODELS['runners']['testrunner1.yaml']
 
 CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_notifications.yaml')

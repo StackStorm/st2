@@ -58,14 +58,14 @@ TEST_FIXTURES = {
         'workflow_v2_many_workflows.yaml'
     ],
     'actions': [
-        'workbook_v2.json',
-        'workbook_v2_many_workflows.json',
-        'workbook_v2_many_workflows_no_default.json',
-        'workflow_v2.json',
-        'workflow_v2_many_workflows.json',
-        'workbook_v2_name_mismatch.json',
-        'workflow_v2_name_mismatch.json',
-        'local.json'
+        'workbook_v2.yaml',
+        'workbook_v2_many_workflows.yaml',
+        'workbook_v2_many_workflows_no_default.yaml',
+        'workflow_v2.yaml',
+        'workflow_v2_many_workflows.yaml',
+        'workbook_v2_name_mismatch.yaml',
+        'workflow_v2_name_mismatch.yaml',
+        'local.yaml'
     ]
 }
 

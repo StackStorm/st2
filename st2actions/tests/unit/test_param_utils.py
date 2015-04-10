@@ -31,8 +31,8 @@ from st2tests.fixturesloader import FixturesLoader
 FIXTURES_PACK = 'generic'
 
 TEST_MODELS = {
-    'actions': ['action1.json', 'action_system_default.json'],
-    'runners': ['testrunner1.json']
+    'actions': ['action1.yaml', 'action_system_default.yaml'],
+    'runners': ['testrunner1.yaml']
 }
 
 FIXTURES = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
@@ -41,9 +41,9 @@ FIXTURES = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class ParamsUtilsTest(DbTestCase):
-    action_db = FIXTURES['actions']['action1.json']
-    action_system_default_db = FIXTURES['actions']['action_system_default.json']
-    runnertype_db = FIXTURES['runners']['testrunner1.json']
+    action_db = FIXTURES['actions']['action1.yaml']
+    action_system_default_db = FIXTURES['actions']['action_system_default.yaml']
+    runnertype_db = FIXTURES['runners']['testrunner1.yaml']
 
     def test_get_resolved_params(self):
         params = {

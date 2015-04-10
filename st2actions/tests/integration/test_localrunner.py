@@ -33,8 +33,8 @@ class TestLocalShellRunner(TestCase):
 
     def test_shell_command_action_basic(self):
         models = TestLocalShellRunner.fixtures_loader.load_models(
-            fixtures_pack='generic', fixtures_dict={'actions': ['local.json']})
-        action_db = models['actions']['local.json']
+            fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
+        action_db = models['actions']['local.yaml']
         runner = TestLocalShellRunner._get_runner(action_db, cmd='echo 10')
         runner.pre_run()
         status, result, _ = runner.run({})
@@ -58,8 +58,8 @@ class TestLocalShellRunner(TestCase):
     @unittest2.skip
     def test_timeout(self):
         models = TestLocalShellRunner.fixtures_loader.load_models(
-            fixtures_pack='generic', fixtures_dict={'actions': ['local.json']})
-        action_db = models['actions']['local.json']
+            fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
+        action_db = models['actions']['local.yaml']
         # smaller timeout == faster tests.
         runner = TestLocalShellRunner._get_runner(action_db, cmd='sleep 10', timeout=0.01)
         runner.pre_run()
