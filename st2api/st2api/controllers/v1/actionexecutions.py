@@ -26,6 +26,7 @@ from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
+from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.constants.action import CANCELABLE_STATES
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.base import jsexpose
@@ -263,6 +264,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             abort(http_client.INTERNAL_SERVER_ERROR,
                   'Execution object missing link to liveaction %s.' % liveaction_id)
             return
+
+        if liveaction_db.status == LIVEACTION_STATUS_CANCELED:
+            abort(http_client.OK,
+                  'Action is already in "canceled" state.')
 
         if liveaction_db.status not in CANCELABLE_STATES:
             abort(http_client.OK,
