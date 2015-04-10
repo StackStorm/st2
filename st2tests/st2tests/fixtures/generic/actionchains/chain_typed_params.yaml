@@ -1,0 +1,16 @@
+---
+chain:
+- name: c1
+  params:
+    arrtype:
+    - '{{s1}}'
+    - '{{s2}}'
+    booltype: true
+    inttype: '{{s1}}'
+    numbertype: '{{s3}}'
+    objtype:
+      k1: '{{s1}}'
+      s2: '{{s2}}'
+    strtype: '{{s2}}'
+  ref: wolfpack.a2
+default: c1

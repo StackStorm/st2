@@ -1,0 +1,25 @@
+---
+chain:
+- name: c1
+  on-failure: c4
+  on-success: c2
+  params:
+    p1: v1
+  ref: wolfpack.a1
+- name: c2
+  on-failure: c4
+  on-success: c3
+  params:
+    p1: v1
+  ref: wolfpack.a2
+- name: c3
+  on-failure: c4
+  params: {}
+  ref: wolfpack.a3
+- name: c4
+  params: {}
+  ref: wolfpack.a1
+default: c1
+vars:
+  var1: '1'
+  var2: 2
