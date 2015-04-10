@@ -323,8 +323,7 @@ class ActionRunCommandMixin(object):
         return True
 
     def _format_error_result(self, result):
-        result = 'Message: %s\nTraceback: %s' % (result['message'],
-                result['traceback'])
+        result = 'Message: %s\nTraceback: %s' % (result['message'], result['traceback'])
         return result
 
     def _get_action_parameters_from_args(self, action, runner, args):
@@ -759,8 +758,9 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         # Filter options
         self.group.add_argument('--action', help='Action reference to filter the list.')
         self.group.add_argument('--status', help=('Only return executions with the provided status.'
-                                                  ' Possible values are \'%s\', \'%s\', \'%s\' or'
-                                                  ' \'%s\'.' % POSSIBLE_ACTION_STATUS_VALUES))
+                                                  ' Possible values are \'%s\', \'%s\', \'%s\','
+                                                  '\'%s\' or \'%s\''
+                                                  '.' % POSSIBLE_ACTION_STATUS_VALUES))
         self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
                                  default=None,
                                  help=('Only return executions with timestamp '
