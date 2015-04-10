@@ -26,13 +26,13 @@ from st2tests.fixturesloader import FixturesLoader
 
 PACK = 'generic'
 FIXTURES_1 = {
-    'runners': ['testrunner1.json', 'testrunner2.json'],
-    'actions': ['action1.json', 'a2.json'],
-    'triggertypes': ['triggertype1.json'],
-    'triggers': ['trigger1.json']
+    'runners': ['testrunner1.yaml', 'testrunner2.yaml'],
+    'actions': ['action1.yaml', 'a2.yaml'],
+    'triggertypes': ['triggertype1.yaml'],
+    'triggers': ['trigger1.yaml']
 }
 FIXTURES_2 = {
-    'rules': ['rule1.json', 'rule2.json']
+    'rules': ['rule1.yaml', 'rule2.yaml']
 }
 
 MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
@@ -60,19 +60,19 @@ class EnforceTest(DbTestCase):
         cls.models.update(FixturesLoader().save_fixtures_to_db(
             fixtures_pack=PACK, fixtures_dict=FIXTURES_2))
         MOCK_TRIGGER_INSTANCE.trigger = reference.get_ref_from_model(
-            cls.models['triggers']['trigger1.json'])
+            cls.models['triggers']['trigger1.yaml'])
 
     @mock.patch.object(action_service, 'schedule', mock.MagicMock(
         return_value=(MOCK_LIVEACTION, None)))
     def test_ruleenforcement_occurs(self):
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule1.json'])
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule1.yaml'])
         liveaction_db = enforcer.enforce()
         self.assertTrue(liveaction_db is not None)
 
     @mock.patch.object(action_service, 'schedule', mock.MagicMock(
         return_value=(MOCK_LIVEACTION, None)))
     def test_ruleenforcement_casts(self):
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule2.json'])
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule2.yaml'])
         liveaction_db = enforcer.enforce()
         self.assertTrue(liveaction_db is not None)
         self.assertTrue(action_service.schedule.called)
