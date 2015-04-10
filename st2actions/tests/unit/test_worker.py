@@ -56,6 +56,21 @@ class TestWorker(DbTestCase):
         self.assertEqual(updated_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_FAILED)
 
+    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock())
+    def test_basic_execution_canceled(self):
+        testworker = worker.Worker(None)
+        live_action_db = self._get_execution_db_model(
+            status=action_constants.LIVEACTION_STATUS_CANCELED)
+        result = getattr(live_action_db, 'result', None)
+        self.assertTrue(result == {},
+                        getattr(live_action_db, 'result', None))
+        testworker.execute_action(live_action_db)
+        updated_live_action_db = get_liveaction_by_id(live_action_db.id)
+        self.assertEqual(updated_live_action_db.status,
+                         action_constants.LIVEACTION_STATUS_CANCELED)
+        result = getattr(updated_live_action_db, 'result', None)
+        self.assertTrue(result['message'] is not None)
+
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
     def test_basic_execution_no_result(self):
         testworker = worker.Worker(None)

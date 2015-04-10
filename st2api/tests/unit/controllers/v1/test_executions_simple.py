@@ -228,6 +228,9 @@ class TestActionExecutionController(FunctionalTest):
     def test_post_delete(self):
         post_resp = self._do_post(LIVE_ACTION_1)
         self.assertEqual(post_resp.status_int, 201)
+        delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
+        self.assertEqual(delete_resp.status_int, 200)
+        self.assertEqual(delete_resp.json['status'], 'canceled')
 
     def test_post_parameter_validation_failed(self):
         execution = copy.deepcopy(LIVE_ACTION_1)
@@ -288,6 +291,9 @@ class TestActionExecutionController(FunctionalTest):
     def _do_post(self, liveaction, *args, **kwargs):
         return self.app.post_json('/v1/actionexecutions', liveaction, *args, **kwargs)
 
+    def _do_delete(self, actionexecution_id, expect_errors=False):
+        return self.app.delete('/v1/actionexecutions/%s' % actionexecution_id,
+                               expect_errors=expect_errors)
 
 NOW = isotime.add_utc_tz(datetime.datetime.utcnow())
 EXPIRY = NOW + datetime.timedelta(seconds=300)

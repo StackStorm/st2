@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+
 import jsonschema
 from oslo.config import cfg
 import pecan
@@ -24,9 +26,12 @@ from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
+from st2common.constants.action import LIVEACTION_STATUS_CANCELED
+from st2common.constants.action import CANCELABLE_STATES
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.api.execution import ActionExecutionAPI
+from st2common.persistence.action import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
@@ -232,6 +237,56 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         except Exception as e:
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+
+    @jsexpose(arg_types=[str])
+    def delete(self, exec_id):
+        """
+        Stops a single execution.
+
+        Handles requests:
+            DELETE /actionexecutions/<id>
+
+        """
+        execution_api = self._get_one(id=exec_id)
+
+        if not execution_api:
+            abort(http_client.NOT_FOUND, 'Execution with id %s not found.' % exec_id)
+            return
+
+        liveaction_id = execution_api.liveaction['id']
+        if not liveaction_id:
+            abort(http_client.INTERNAL_SERVER_ERROR,
+                  'Execution object missing link to liveaction %s.' % liveaction_id)
+
+        try:
+            liveaction_db = LiveAction.get_by_id(liveaction_id)
+        except:
+            abort(http_client.INTERNAL_SERVER_ERROR,
+                  'Execution object missing link to liveaction %s.' % liveaction_id)
+            return
+
+        if liveaction_db.status == LIVEACTION_STATUS_CANCELED:
+            abort(http_client.OK,
+                  'Action is already in "canceled" state.')
+
+        if liveaction_db.status not in CANCELABLE_STATES:
+            abort(http_client.OK,
+                  'Action cannot be canceled. State = %s.' % liveaction_db.status)
+            return
+
+        liveaction_db.status = 'canceled'
+        liveaction_db.end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+        liveaction_db.result = {'message': 'Action canceled by user.'}
+        try:
+            LiveAction.add_or_update(liveaction_db)
+        except:
+            LOG.exception('Failed updating status to canceled for liveaction %s.',
+                          liveaction_db.id)
+            abort(http_client.INTERNAL_SERVER_ERROR, 'Failed canceling execution.')
+            return
+
+        execution_db = execution_service.update_execution(liveaction_db)
+        return ActionExecutionAPI.from_model(execution_db)
 
     @jsexpose()
     def options(self, *args, **kw):

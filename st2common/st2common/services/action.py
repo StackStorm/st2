@@ -23,7 +23,12 @@ from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
 from st2common.persistence.action import LiveAction
 from st2common.persistence.execution import ActionExecution
-from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
+from st2common.constants.action import (LIVEACTION_STATUS_SCHEDULED, LIVEACTION_STATUS_CANCELED)
+
+__all__ = [
+    'schedule',
+    'is_action_canceled'
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -80,8 +85,6 @@ def schedule(liveaction):
     # and not set liveaction.notify.
     if action_db.notify:
         liveaction.notify = action_db.notify
-    else:
-        print(action_db)
 
     # Write to database and send to message queue.
     liveaction.status = LIVEACTION_STATUS_SCHEDULED
@@ -97,3 +100,8 @@ def schedule(liveaction):
     LOG.audit('Action execution scheduled. LiveAction.id=%s, ActionExecution.id=%s' %
               (liveaction.id, execution.id), extra=extra)
     return liveaction, execution
+
+
+def is_action_canceled(liveaction_id):
+    liveaction_db = LiveAction.get_by_id(liveaction_id)
+    return liveaction_db.status == LIVEACTION_STATUS_CANCELED
