@@ -245,13 +245,13 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             DELETE /actionexecutions/<id>
 
         """
-        execution_obj = self._get_one(exec_id)
+        execution_api = self._get_one(id=exec_id)
 
-        if not execution_obj:
+        if not execution_api:
             abort(http_client.NOT_FOUND, 'Execution with id %s not found.' % exec_id)
             return
 
-        liveaction_id = execution_obj.liveaction['id']
+        liveaction_id = execution_api.liveaction['id']
         if not liveaction_id:
             abort(http_client.INTERNAL_SERVER_ERROR,
                   'Execution object missing link to liveaction %s.' % liveaction_id)
@@ -273,7 +273,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             abort(http_client.INTERNAL_SERVER_ERROR, 'Failed canceling execution.')
             return
 
-        return execution_service.update_execution(liveaction_db)
+        execution_db = execution_service.update_execution(liveaction_db)
+        return ActionExecutionAPI.from_model(execution_db)
 
     @jsexpose()
     def options(self, *args, **kw):
