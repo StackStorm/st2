@@ -26,6 +26,7 @@ from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
+from st2common.constants.action import CANCELABLE_STATES
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.api.execution import ActionExecutionAPI
@@ -263,8 +264,14 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                   'Execution object missing link to liveaction %s.' % liveaction_id)
             return
 
+        if liveaction_db.status not in CANCELABLE_STATES:
+            abort(http_client.OK,
+                  {'error': 'Action cannot be canceled. State=%s' % liveaction_db.status})
+            return
+
         liveaction_db.status = 'canceled'
         liveaction_db.end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+        liveaction_db.result = {'message': 'Action canceled by user.'}
         try:
             LiveAction.add_or_update(liveaction_db)
         except:

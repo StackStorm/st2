@@ -39,6 +39,7 @@ LOG = logging.getLogger(__name__)
 
 LIVEACTION_STATUS_SCHEDULED = 'scheduled'
 LIVEACTION_STATUS_RUNNING = 'running'
+LIVEACTION_STATUS_CANCELED = 'canceled'
 
 # Who parameters should be masked when displaying action execution output
 PARAMETERS_TO_MASK = [
@@ -300,6 +301,9 @@ class ActionRunCommandMixin(object):
                 execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
 
             sys.stdout.write('\n')
+
+            if execution.status == 'LIVEACTION_STATUS_CANCELED':
+                return execution
 
             if self._is_error_result(result=execution.result):
                 execution.result = self._format_error_result(execution.result)
@@ -726,7 +730,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
                                                               self.subparsers, add_help=False)
 
 
-POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed')
+POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceled')
 
 
 class ActionExecutionListCommand(resource.ResourceCommand):
