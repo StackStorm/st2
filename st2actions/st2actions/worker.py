@@ -77,6 +77,8 @@ class Worker(ConsumerMixin):
         # Note: We only want to execute actions which haven't completed yet
         if liveaction.status == LIVEACTION_STATUS_CANCELED:
             LOG.info('Not executing liveaction %s. User canceled execution.', liveaction.id)
+            return
+
         if liveaction.status in [LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED]:
             LOG.info('Ignoring liveaction %s which has already finished', liveaction.id)
             return
