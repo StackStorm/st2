@@ -82,14 +82,40 @@ Runner parameters
 * ``cwd`` (string) - Working directory where the script will be executed in.
 * ``dir`` (string) - The working directory where the script will be copied to on the remote host.
 
+Windows command runner (run-windows-cmd)
+----------------------------------------
+
+Windows command runner allows you to run you to run command-line interpreter
+(cmd) and PowerShell commands on Windows hosts.
+
+For more information on enabling and setting up the Windows runner, please see
+the following section - TODO.
+
 Runner parameters
 ~~~~~~~~~~~~~~~~~
 
-* ``kwarg_op`` (string) - Operator to use in front of keyword args i.e. "--" or "-".
+* ``host`` (string) - Hostname or IP address of a host to execute the command on.
+* ``username`` (string) - Username used to authenticate.
+* ``password`` (string) - Password used to authenticate.
+* ``cmd`` (object) - Command to run.
 * ``timeout`` (integer) - Action timeout in seconds. Action will get killed if it doesn't finish in timeout seconds.
-* ``sudo`` (boolean) - The command will be executed with sudo.
-* ``cwd`` (string) - Working directory where the script will be executed in
-* ``env`` (object) - Environment variables which will be available to the script(e.g. key1=val1,key2=val2)
+
+Windows script runner (run-windows-script)
+------------------------------------------
+
+Windows script runner allows you to run PowerShell scripts on Windows hosts.
+
+For more information on enabling and setting up the Windows runner, please see
+the following section - TODO.
+
+Runner parameters
+~~~~~~~~~~~~~~~~~
+
+* ``host`` (string) - Hostname or IP address of a host to execute the script on.
+* ``username`` (string) - Username used to authenticate.
+* ``password`` (string) - Password used to authenticate.
+* ``share`` (object) - Name of the share where action script files are uploaded. Defaults to C$.
+* ``timeout`` (integer) - Action timeout in seconds. Action will get killed if it doesn't finish in timeout seconds.
 
 HTTP runner (http-runner)
 -------------------------
