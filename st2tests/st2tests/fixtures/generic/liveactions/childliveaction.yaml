@@ -1,0 +1,11 @@
+---
+action: core.local
+callback: {}
+context:
+  parent: 54c6b6d60640fd4f5354e74a
+  user: system
+end_timestamp: '2014-09-01T00:00:05.000000Z'
+parameters: {}
+result: {}
+start_timestamp: '2014-09-01T00:00:01.000000Z'
+status: scheduled

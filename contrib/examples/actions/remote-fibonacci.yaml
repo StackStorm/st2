@@ -1,0 +1,7 @@
+---
+description: Action that returns fibonacci numbers in a range.
+enabled: true
+entry_point: pythonactions/fibonacci.py
+name: remote-fib
+parameters: {}
+runner_type: run-remote

@@ -358,9 +358,9 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
 DESCENDANTS_PACK = 'descendants'
 
 DESCENDANTS_FIXTURES = {
-    'executions': ['root_execution.json', 'child1_level1.json', 'child2_level1.json',
-                   'child1_level2.json', 'child2_level2.json', 'child3_level2.json',
-                   'child1_level3.json', 'child2_level3.json', 'child3_level3.json']
+    'executions': ['root_execution.yaml', 'child1_level1.yaml', 'child2_level1.yaml',
+                   'child1_level2.yaml', 'child2_level2.yaml', 'child3_level2.yaml',
+                   'child1_level3.yaml', 'child2_level3.yaml', 'child3_level3.yaml']
 }
 
 
@@ -373,7 +373,7 @@ class TestActionExecutionControllerDescendantsTest(FunctionalTest):
                                                           fixtures_dict=DESCENDANTS_FIXTURES)
 
     def test_get_all_descendants(self):
-        root_execution = self.MODELS['executions']['root_execution.json']
+        root_execution = self.MODELS['executions']['root_execution.yaml']
         resp = self.app.get('/v1/actionexecutions/%s/children' % str(root_execution.id))
         self.assertEqual(resp.status_int, 200)
 
@@ -388,7 +388,7 @@ class TestActionExecutionControllerDescendantsTest(FunctionalTest):
         self.assertListEqual(all_descendants_ids, expected_ids)
 
     def test_get_all_descendants_depth_neg_1(self):
-        root_execution = self.MODELS['executions']['root_execution.json']
+        root_execution = self.MODELS['executions']['root_execution.yaml']
         resp = self.app.get('/v1/actionexecutions/%s/children?depth=-1' % str(root_execution.id))
         self.assertEqual(resp.status_int, 200)
 
@@ -403,7 +403,7 @@ class TestActionExecutionControllerDescendantsTest(FunctionalTest):
         self.assertListEqual(all_descendants_ids, expected_ids)
 
     def test_get_1_level_descendants(self):
-        root_execution = self.MODELS['executions']['root_execution.json']
+        root_execution = self.MODELS['executions']['root_execution.yaml']
         resp = self.app.get('/v1/actionexecutions/%s/children?depth=1' % str(root_execution.id))
         self.assertEqual(resp.status_int, 200)
 

@@ -36,7 +36,7 @@ TEST_FIXTURES = {
         WF_PRE_XFORM_FILE,
         WF_POST_XFORM_FILE
     ],
-    'actions': ['local.json']
+    'actions': ['local.yaml']
 }
 
 PACK = 'generic'
@@ -64,11 +64,11 @@ class DSLTransformTestCase(DbTestCase):
         super(DSLTransformTestCase, cls).setUpClass()
         runners_registrar.register_runner_types()
 
-        action_local = ActionAPI(**copy.deepcopy(FIXTURES['actions']['local.json']))
+        action_local = ActionAPI(**copy.deepcopy(FIXTURES['actions']['local.yaml']))
         Action.add_or_update(ActionAPI.to_model(action_local))
 
         for action_name in ['action1', 'action2', 'action3']:
-            metadata = copy.deepcopy(FIXTURES['actions']['local.json'])
+            metadata = copy.deepcopy(FIXTURES['actions']['local.yaml'])
             metadata['name'] = action_name
             metadata['pack'] = 'demo'
             action = ActionAPI(**metadata)

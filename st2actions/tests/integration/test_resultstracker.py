@@ -9,8 +9,8 @@ from st2tests.base import (DbTestCase, EventletTestCase)
 from st2tests.fixturesloader import FixturesLoader
 
 FIXTURES_PACK = 'generic'
-FIXTURES = {'actionstates': ['state1.json', 'state2.json'],
-            'liveactions': ['liveaction1.json', 'liveaction2.json']}
+FIXTURES = {'actionstates': ['state1.yaml', 'state2.yaml'],
+            'liveactions': ['liveaction1.yaml', 'liveaction2.yaml']}
 loader = FixturesLoader()
 
 
@@ -33,11 +33,11 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         tracker = results_tracker.ResultsTracker()
         tracker._bootstrap()
         eventlet.sleep(0.2)
-        exec_id = str(ResultsTrackerTests.states['state1.json'].execution_id)
+        exec_id = str(ResultsTrackerTests.states['state1.yaml'].execution_id)
         exec_db = LiveAction.get_by_id(exec_id)
         self.assertTrue(exec_db.result['called_with'][exec_id] is not None,
                         exec_db.result)
-        exec_id = str(ResultsTrackerTests.states['state2.json'].execution_id)
+        exec_id = str(ResultsTrackerTests.states['state2.yaml'].execution_id)
         exec_db = LiveAction.get_by_id(exec_id)
         self.assertTrue(exec_db.result['called_with'][exec_id] is not None,
                         exec_db.result)
@@ -68,9 +68,9 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
     @classmethod
     def _update_state_models(cls):
         states = ResultsTrackerTests.states
-        state1 = ActionExecutionState.get_by_id(states['state1.json'].id)
-        state1.execution_id = ResultsTrackerTests.liveactions['liveaction1.json'].id
-        state2 = ActionExecutionState.get_by_id(states['state2.json'].id)
-        state2.execution_id = ResultsTrackerTests.liveactions['liveaction2.json'].id
-        ResultsTrackerTests.states['state1.json'] = ActionExecutionState.add_or_update(state1)
-        ResultsTrackerTests.states['state2.json'] = ActionExecutionState.add_or_update(state2)
+        state1 = ActionExecutionState.get_by_id(states['state1.yaml'].id)
+        state1.execution_id = ResultsTrackerTests.liveactions['liveaction1.yaml'].id
+        state2 = ActionExecutionState.get_by_id(states['state2.yaml'].id)
+        state2.execution_id = ResultsTrackerTests.liveactions['liveaction2.yaml'].id
+        ResultsTrackerTests.states['state1.yaml'] = ActionExecutionState.add_or_update(state1)
+        ResultsTrackerTests.states['state2.yaml'] = ActionExecutionState.add_or_update(state2)

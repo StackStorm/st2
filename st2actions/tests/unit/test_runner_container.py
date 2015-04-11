@@ -37,8 +37,8 @@ from st2tests.fixturesloader import FixturesLoader
 from st2actions.container.base import get_runner_container
 
 TEST_FIXTURES = {
-    'runners': ['testrunner1.json', 'testfailingrunner1.json', 'testasyncrunner1.json'],
-    'actions': ['action1.json', 'async_action1.json', 'action-invalid-runner.json']
+    'runners': ['testrunner1.yaml', 'testfailingrunner1.yaml', 'testasyncrunner1.yaml'],
+    'actions': ['action1.yaml', 'async_action1.yaml', 'action-invalid-runner.yaml']
 }
 
 FIXTURES_PACK = 'generic'
@@ -57,10 +57,10 @@ class RunnerContainerTest(DbTestCase):
         super(RunnerContainerTest, cls).setUpClass()
         models = RunnerContainerTest.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
-        RunnerContainerTest.runnertype_db = models['runners']['testrunner1.json']
-        RunnerContainerTest.action_db = models['actions']['action1.json']
-        RunnerContainerTest.async_action_db = models['actions']['async_action1.json']
-        RunnerContainerTest.failingaction_db = models['actions']['action-invalid-runner.json']
+        RunnerContainerTest.runnertype_db = models['runners']['testrunner1.yaml']
+        RunnerContainerTest.action_db = models['actions']['action1.yaml']
+        RunnerContainerTest.async_action_db = models['actions']['async_action1.yaml']
+        RunnerContainerTest.failingaction_db = models['actions']['action-invalid-runner.yaml']
 
     def test_get_runner_module(self):
         runnertype_db = RunnerContainerTest.runnertype_db

@@ -1,0 +1,13 @@
+---
+name: st2.webhook
+pack: dummy_pack_1
+parameters_schema:
+  additionalProperties: false
+  properties:
+    url:
+      type: string
+  required:
+  - url
+  type: object
+payload_schema:
+  type: object
