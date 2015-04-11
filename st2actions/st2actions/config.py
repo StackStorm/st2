@@ -66,6 +66,12 @@ resultstracker_opts = [
 ]
 CONF.register_opts(resultstracker_opts, group='resultstracker')
 
+notifier_opts = [
+    cfg.StrOpt('logging', default='conf/logging.notifier.conf',
+               help='Location of the logging configuration file.')
+]
+CONF.register_opts(notifier_opts, group='notifier')
+
 
 def parse_args(args=None):
     CONF(args=args, version=VERSION_STRING)

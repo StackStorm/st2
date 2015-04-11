@@ -16,7 +16,7 @@
 import unittest2
 from oslo.config import cfg
 
-from st2common.content.utils import get_packs_base_paths
+from st2common.content.utils import get_packs_base_paths, get_aliases_base_paths
 from st2tests import config as tests_config
 
 
@@ -51,3 +51,23 @@ class ContentUtilsTestCase(unittest2.TestCase):
         cfg.CONF.content.packs_base_paths = '/opt/path2:/opt/path1'
         result = get_packs_base_paths()
         self.assertEqual(result, ['/opt/system', '/opt/path2', '/opt/path1'])
+
+    def test_get_aliases_base_paths(self):
+        cfg.CONF.content.aliases_base_paths = '/opt/path1'
+        result = get_aliases_base_paths()
+        self.assertEqual(result, ['/opt/path1'])
+
+        # Multiple paths, no trailing colon
+        cfg.CONF.content.aliases_base_paths = '/opt/path1:/opt/path2'
+        result = get_aliases_base_paths()
+        self.assertEqual(result, ['/opt/path1', '/opt/path2'])
+
+        # Multiple paths, trailing colon
+        cfg.CONF.content.aliases_base_paths = '/opt/path1:/opt/path2:'
+        result = get_aliases_base_paths()
+        self.assertEqual(result, ['/opt/path1', '/opt/path2'])
+
+        # Multiple same paths
+        cfg.CONF.content.aliases_base_paths = '/opt/path1:/opt/path2:/opt/path1:/opt/path2'
+        result = get_aliases_base_paths()
+        self.assertEqual(result, ['/opt/path1', '/opt/path2'])

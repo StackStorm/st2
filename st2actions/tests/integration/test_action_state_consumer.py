@@ -10,7 +10,7 @@ from st2tests.fixturesloader import FixturesLoader
 from tests.resources.test_querymodule import TestQuerier
 
 FIXTURES_PACK = 'generic'
-FIXTURES = {'liveactions': ['liveaction1.json']}
+FIXTURES = {'liveactions': ['liveaction1.yaml']}
 loader = FixturesLoader()
 
 
@@ -34,7 +34,7 @@ class ActionStateConsumerTests(EventletTestCase, DbTestCase):
             tracker._bootstrap()
             consumer = ActionStateQueueConsumer(conn, tracker)
             state = ActionStateConsumerTests.get_state(
-                ActionStateConsumerTests.liveactions['liveaction1.json'])
+                ActionStateConsumerTests.liveactions['liveaction1.yaml'])
             consumer._do_process_task(state)
             querier = tracker.get_querier('tests.resources.test_querymodule')
             self.assertEqual(querier._query_contexts.qsize(), 1)

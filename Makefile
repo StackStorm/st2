@@ -119,6 +119,36 @@ clean: .cleanpycs .cleandocs
 	@echo "Removing generated documentation"
 	rm -rf $(DOC_BUILD_DIR)
 
+.PHONY: .cleanmongodb
+.cleanmongodb:
+	@echo "==================== cleanmongodb ===================="
+	@echo "----- Dropping all MongoDB databases -----"
+	@sudo pkill -9 mongod
+	@sudo rm -rf /var/lib/mongodb/*
+	@sudo chown -R mongodb:mongodb /var/lib/mongodb/
+	@sudo service mongodb start
+	@sleep 1
+	@mongo --eval "rs.initiate()"
+	@sleep 5
+
+.PHONY: .cleanmysql
+.cleanmysql:
+	@echo "==================== cleanmysql ===================="
+	@echo "----- Dropping all Mistral MYSQL databases -----"
+	@mysql -uroot -pStackStorm -e "DROP DATABASE IF EXISTS mistral"
+	@mysql -uroot -pStackStorm -e "CREATE DATABASE mistral"
+	@mysql -uroot -pStackStorm -e "GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'localhost' IDENTIFIED BY 'StackStorm'"
+	@mysql -uroot -pStackStorm -e "FLUSH PRIVILEGES"
+	@/opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/tools/sync_db.py --config-file /etc/mistral/mistral.conf
+
+.PHONY: .cleanrabbitmq
+.cleanrabbitmq:
+	@echo "==================== cleanrabbitmq ===================="
+	@echo "Deleting all RabbitMQ queue and exchanges"
+	@sudo rabbitmqctl stop_app
+	@sudo rabbitmqctl reset
+	@sudo rabbitmqctl start_app
+
 .PHONY: distclean
 distclean: clean
 	@echo

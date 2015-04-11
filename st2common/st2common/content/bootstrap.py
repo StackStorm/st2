@@ -35,6 +35,7 @@ def register_opts():
         cfg.BoolOpt('sensors', default=False, help='Register sensors.'),
         cfg.BoolOpt('actions', default=False, help='Register actions.'),
         cfg.BoolOpt('rules', default=False, help='Register rules.'),
+        cfg.BoolOpt('aliases', default=False, help='Register aliases.'),
         cfg.StrOpt('pack', default=None, help='Directory to the pack to register content from.')
     ]
     try:
@@ -102,11 +103,28 @@ def register_rules():
     LOG.info('Registered %s rules.' % (registered_count))
 
 
+def register_aliases():
+    # Register rules.
+    try:
+        LOG.info('=========================================================')
+        LOG.info('############## Registering aliases ######################')
+        LOG.info('=========================================================')
+        import st2common.content.aliasesregistrar as aliases_registrar
+        # This count is broken. If register_aliases throws an exception it has
+        # no assigned value. (FIX ME!)
+        registered_count = aliases_registrar.register_aliases()
+    except Exception:
+        LOG.warning('Failed to register aliases.', exc_info=True)
+
+    LOG.info('Registered %s aliases.', registered_count)
+
+
 def register_content():
     if cfg.CONF.register.all:
         register_sensors()
         register_actions()
         register_rules()
+        register_aliases()
         return
 
     if cfg.CONF.register.sensors:
@@ -117,6 +135,9 @@ def register_content():
 
     if cfg.CONF.register.rules:
         register_rules()
+
+    if cfg.CONF.register.aliases:
+        register_aliases()
 
 
 def _setup(argv):

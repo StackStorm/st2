@@ -1,0 +1,7 @@
+---
+    name: "alias2"
+    description: "DON'T CARE"
+    action_ref: "core.local"
+    formats:
+        - "format1"
+        - "format2"

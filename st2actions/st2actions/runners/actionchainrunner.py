@@ -21,9 +21,11 @@ import datetime
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED)
+from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
 from st2common.exceptions import actionrunner as runnerexceptions
+from st2common.models.api.notification import NotificationsHelper
 from st2common.models.db.action import LiveActionDB
 from st2common.models.system import actionchain
 from st2common.models.utils import action_param_utils
@@ -116,6 +118,7 @@ class ActionChainRunner(ActionRunner):
         super(ActionChainRunner, self).__init__(runner_id=runner_id)
         self.chain_holder = None
         self._meta_loader = MetaLoader()
+        self._stopped = False
 
     def pre_run(self):
         chainspec_file = self.entry_point
@@ -203,7 +206,7 @@ class ActionChainRunner(ActionRunner):
                 break
 
             try:
-                liveaction = ActionChainRunner._run_action(
+                liveaction = self._run_action(
                     action_node=action_node, parent_execution_id=self.liveaction_id,
                     params=resolved_params)
             except Exception as e:
@@ -240,27 +243,35 @@ class ActionChainRunner(ActionRunner):
                 task_result = self._format_action_exec_result(**format_kwargs)
                 result['tasks'].append(task_result)
 
-                try:
-                    if not liveaction or liveaction.status == LIVEACTION_STATUS_FAILED:
-                        fail = True
-                        action_node = self.chain_holder.get_next_node(action_node.name,
-                                                                      condition='on-failure')
-                    elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
-                        action_node = self.chain_holder.get_next_node(action_node.name,
-                                                                      condition='on-success')
-                except Exception as e:
-                    LOG.exception('Failed to get next node "%s".', action_node.name)
+                if self.liveaction_id:
+                    self._stopped = action_service.is_action_canceled(self.liveaction_id)
 
-                    fail = True
-                    error = ('Failed to get next node "%s". Lookup failed: %s' %
-                            (action_node.name, str(e)))
-                    trace = traceback.format_exc(10)
-                    top_level_error = {
-                        'error': error,
-                        'traceback': trace
-                    }
-                    # reset action_node here so that chain breaks on failure.
-                    action_node = None
+                if not self._stopped:
+                    try:
+                        if not liveaction or liveaction.status == LIVEACTION_STATUS_FAILED:
+                            fail = True
+                            action_node = self.chain_holder.get_next_node(action_node.name,
+                                                                          condition='on-failure')
+                        elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
+                            action_node = self.chain_holder.get_next_node(action_node.name,
+                                                                          condition='on-success')
+                    except Exception as e:
+                        LOG.exception('Failed to get next node "%s".', action_node.name)
+
+                        fail = True
+                        error = ('Failed to get next node "%s". Lookup failed: %s' %
+                                 (action_node.name, str(e)))
+                        trace = traceback.format_exc(10)
+                        top_level_error = {
+                            'error': error,
+                            'traceback': trace
+                        }
+                        # reset action_node here so that chain breaks on failure.
+                        action_node = None
+                else:
+                    LOG.info('Chain execution (%s) canceled by user.', self.liveaction_id)
+                    status = LIVEACTION_STATUS_CANCELED
+                    return (status, result, None)
 
         if fail:
             status = LIVEACTION_STATUS_FAILED
@@ -310,22 +321,26 @@ class ActionChainRunner(ActionRunner):
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
 
-    @staticmethod
-    def _run_action(action_node, parent_execution_id, params, wait_for_completion=True):
-        execution = LiveActionDB(action=action_node.ref)
-        execution.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
-                                                              params=params)
-        execution.context = {
+    def _run_action(self, action_node, parent_execution_id, params, wait_for_completion=True):
+        liveaction = LiveActionDB(action=action_node.ref)
+        liveaction.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
+                                                               params=params)
+        if action_node.notify:
+            liveaction.notify = NotificationsHelper.to_model(action_node.notify)
+
+        liveaction.context = {
             'parent': str(parent_execution_id),
             'chain': vars(action_node)
         }
 
-        liveaction, _ = action_service.schedule(execution)
+        liveaction, _ = action_service.schedule(liveaction)
+
         while (wait_for_completion and
                liveaction.status != LIVEACTION_STATUS_SUCCEEDED and
                liveaction.status != LIVEACTION_STATUS_FAILED):
             eventlet.sleep(1)
             liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
+
         return liveaction
 
     def _format_action_exec_result(self, action_node, liveaction_db, created_at, updated_at,

@@ -203,3 +203,25 @@ def get_action_libs_abs_path(pack=None, entry_point=None):
         return os.path.join(os.path.dirname(entry_point_abs_path), ACTION_LIBS_DIR)
     else:
         return None
+
+
+def get_aliases_base_paths():
+    """
+    Return a list of base paths which are searched for action aliases.
+
+    :rtype: ``list``
+    """
+    aliases_base_paths = cfg.CONF.content.aliases_base_paths or ''
+
+    # Remove trailing colon (if present)
+    if aliases_base_paths.endswith(':'):
+        aliases_base_paths = aliases_base_paths[:-1]
+
+    result = []
+
+    aliases_base_paths = aliases_base_paths.split(':')
+
+    result = aliases_base_paths
+    result = [path for path in result if path]
+    result = list(OrderedSet(result))
+    return result

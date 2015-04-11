@@ -28,7 +28,6 @@ from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
 
-from st2actions.container import actionsensor
 from st2actions.container.service import RunnerContainerService
 from st2actions.runners import get_runner, AsyncActionRunner
 from st2actions.utils import param_utils
@@ -63,7 +62,6 @@ class RunnerContainer(object):
         liveaction_db = self._do_run(runner, runnertype_db, action_db, liveaction_db)
         LOG.debug('runner do_run result: %s', liveaction_db.result)
 
-        actionsensor.post_trigger(liveaction_db)
         liveaction_serializable = liveaction_db.to_serializable_dict()
 
         extra = {'liveaction_db': liveaction_db}

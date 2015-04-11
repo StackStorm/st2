@@ -205,7 +205,7 @@ function restart_component() {
 }
 
 function register_content() {
-  echo "Registering content..."
+  echo "Registering content...[flags = ${REGISTER_FLAGS}]"
   $PYTHON ${PYTHONPACK}/st2common/bin/st2-register-content --config-file ${STANCONF} ${REGISTER_FLAGS}
 }
 

@@ -1,0 +1,35 @@
+---
+    chain:
+        -
+            name: "c1"
+            ref: "wolfpack.a1"
+            params:
+                p1: "v1"
+            on-success: "c2"
+            on-failure: "c4"
+            notify:
+                on_complete:
+                    message: "on_complete"
+                    data: {}
+                    channels:
+                        - "channel1"
+                on_failure:
+                    message: "on_failure"
+                    data: {}
+                    channels:
+                        - "channel1"
+                on_success:
+                    message: "on_success"
+                    data: {}
+                    channels:
+                        - "channel1"
+        -
+            name: "c2"
+            ref: "wolfpack.a2"
+            params:
+                p1: "v1"
+            on-failure: "c4"
+        -
+            name: "c4"
+            ref: "wolfpack.a1"
+            params: {}

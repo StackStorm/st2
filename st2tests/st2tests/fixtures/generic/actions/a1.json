@@ -1,9 +1,0 @@
-{
-    "name": "a1",
-    "description": "test description",
-    "enabled": true,
-    "runner_type": "test-runner-2",
-    "pack": "wolfpack",
-    "entry_point": "/tmp/test/action1.sh",
-    "parameters": {}
-}

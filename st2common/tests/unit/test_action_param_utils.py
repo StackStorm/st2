@@ -24,8 +24,8 @@ from st2tests.fixturesloader import FixturesLoader
 FIXTURES_PACK = 'generic'
 
 TEST_MODELS = {
-    'actions': ['action1.json'],
-    'runners': ['testrunner1.json']
+    'actions': ['action1.yaml'],
+    'runners': ['testrunner1.yaml']
 }
 
 FIXTURES = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
@@ -33,8 +33,8 @@ FIXTURES = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
 
 
 class ActionParamsUtilsTest(TestCase):
-    action_db = FIXTURES['actions']['action1.json']
-    runnertype_db = FIXTURES['runners']['testrunner1.json']
+    action_db = FIXTURES['actions']['action1.yaml']
+    runnertype_db = FIXTURES['runners']['testrunner1.yaml']
 
     def test_merge_action_runner_params_meta(self):
         required, optional, immutable = action_param_utils.get_params_view(

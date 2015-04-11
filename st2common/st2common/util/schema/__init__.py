@@ -114,7 +114,7 @@ def validate(instance, schema, cls=None, use_default=True, *args, **kwargs):
 
             # Assign default value on the instance so the validation doesn't fail if requires is
             # true but the value is not provided
-            if default_value is not None and getattr(instance, property_name, None) is None:
+            if default_value is not None and instance.get(property_name, None) is None:
                 instance[property_name] = default_value
 
     result = jsonschema.validate(instance=instance, schema=schema, cls=cls, *args, **kwargs)

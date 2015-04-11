@@ -1,9 +1,0 @@
-{
-    "name": "env_reader",
-    "runner_type": "run-local-script",
-    "description": "Reads env vars.",
-    "enabled": true,
-    "entry_point":"env_reader.sh",
-    "parameters": {
-    }
-}

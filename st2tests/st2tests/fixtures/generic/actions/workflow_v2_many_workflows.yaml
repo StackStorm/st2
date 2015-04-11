@@ -1,0 +1,14 @@
+---
+description: Say hi to friend!
+enabled: true
+entry_point: workflow_v2_many_workflows.yaml
+name: workflow_v2_many_workflows
+pack: generic
+parameters:
+  count:
+    default: '3'
+    type: string
+  friend:
+    required: true
+    type: string
+runner_type: mistral-v2

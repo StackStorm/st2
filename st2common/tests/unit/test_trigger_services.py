@@ -28,80 +28,80 @@ class TriggerServiceTests(CleanDbTestCase):
 
     def test_create_trigger_db_from_rule(self):
         test_fixtures = {
-            'rules': ['cron_timer_rule_1.json', 'cron_timer_rule_3.json']
+            'rules': ['cron_timer_rule_1.yaml', 'cron_timer_rule_3.yaml']
         }
         loader = FixturesLoader()
         fixtures = loader.load_fixtures(fixtures_pack='generic', fixtures_dict=test_fixtures)
         rules = fixtures['rules']
 
         trigger_db_ret_1 = trigger_service.create_trigger_db_from_rule(
-            RuleAPI(**rules['cron_timer_rule_1.json']))
+            RuleAPI(**rules['cron_timer_rule_1.yaml']))
         self.assertTrue(trigger_db_ret_1 is not None)
         trigger_db = Trigger.get_by_id(trigger_db_ret_1.id)
         self.assertDictEqual(trigger_db.parameters,
-                             rules['cron_timer_rule_1.json']['trigger']['parameters'])
+                             rules['cron_timer_rule_1.yaml']['trigger']['parameters'])
 
         trigger_db_ret_2 = trigger_service.create_trigger_db_from_rule(
-            RuleAPI(**rules['cron_timer_rule_3.json']))
+            RuleAPI(**rules['cron_timer_rule_3.yaml']))
         self.assertTrue(trigger_db_ret_2 is not None)
         self.assertTrue(trigger_db_ret_2.id != trigger_db_ret_1.id)
 
     def test_create_trigger_db_from_rule_duplicate(self):
         test_fixtures = {
-            'rules': ['cron_timer_rule_1.json', 'cron_timer_rule_2.json']
+            'rules': ['cron_timer_rule_1.yaml', 'cron_timer_rule_2.yaml']
         }
         loader = FixturesLoader()
         fixtures = loader.load_fixtures(fixtures_pack='generic', fixtures_dict=test_fixtures)
         rules = fixtures['rules']
 
         trigger_db_ret_1 = trigger_service.create_trigger_db_from_rule(
-            RuleAPI(**rules['cron_timer_rule_1.json']))
+            RuleAPI(**rules['cron_timer_rule_1.yaml']))
         self.assertTrue(trigger_db_ret_1 is not None)
         trigger_db_ret_2 = trigger_service.create_trigger_db_from_rule(
-            RuleAPI(**rules['cron_timer_rule_2.json']))
+            RuleAPI(**rules['cron_timer_rule_2.yaml']))
         self.assertTrue(trigger_db_ret_2 is not None)
         self.assertEqual(trigger_db_ret_1, trigger_db_ret_2, 'Should reuse same trigger.')
         trigger_db = Trigger.get_by_id(trigger_db_ret_1.id)
         self.assertDictEqual(trigger_db.parameters,
-                             rules['cron_timer_rule_1.json']['trigger']['parameters'])
+                             rules['cron_timer_rule_1.yaml']['trigger']['parameters'])
 
     def test_create_or_update_trigger_db_simple_triggers(self):
         test_fixtures = {
-            'triggertypes': ['triggertype1.json']
+            'triggertypes': ['triggertype1.yaml']
         }
         loader = FixturesLoader()
         fixtures = loader.save_fixtures_to_db(fixtures_pack='generic', fixtures_dict=test_fixtures)
         triggertypes = fixtures['triggertypes']
         trigger_type_ref = ResourceReference.to_string_reference(
-            name=triggertypes['triggertype1.json']['name'],
-            pack=triggertypes['triggertype1.json']['pack'])
+            name=triggertypes['triggertype1.yaml']['name'],
+            pack=triggertypes['triggertype1.yaml']['pack'])
 
         trigger = {
-            'name': triggertypes['triggertype1.json']['name'],
-            'pack': triggertypes['triggertype1.json']['pack'],
+            'name': triggertypes['triggertype1.yaml']['name'],
+            'pack': triggertypes['triggertype1.yaml']['pack'],
             'type': trigger_type_ref
         }
         trigger_service.create_or_update_trigger_db(trigger)
         triggers = Trigger.get_all()
         self.assertTrue(len(triggers) == 1, 'Only one trigger should be created.')
-        self.assertTrue(triggers[0]['name'] == triggertypes['triggertype1.json']['name'])
+        self.assertTrue(triggers[0]['name'] == triggertypes['triggertype1.yaml']['name'])
 
         # Try adding duplicate
         trigger_service.create_or_update_trigger_db(trigger)
         triggers = Trigger.get_all()
         self.assertTrue(len(triggers) == 1, 'Only one trigger should be present.')
-        self.assertTrue(triggers[0]['name'] == triggertypes['triggertype1.json']['name'])
+        self.assertTrue(triggers[0]['name'] == triggertypes['triggertype1.yaml']['name'])
 
     def test_exception_thrown_when_rule_creation_no_trigger_yes_triggertype(self):
         test_fixtures = {
-            'triggertypes': ['triggertype1.json']
+            'triggertypes': ['triggertype1.yaml']
         }
         loader = FixturesLoader()
         fixtures = loader.save_fixtures_to_db(fixtures_pack='generic', fixtures_dict=test_fixtures)
         triggertypes = fixtures['triggertypes']
         trigger_type_ref = ResourceReference.to_string_reference(
-            name=triggertypes['triggertype1.json']['name'],
-            pack=triggertypes['triggertype1.json']['pack'])
+            name=triggertypes['triggertype1.yaml']['name'],
+            pack=triggertypes['triggertype1.yaml']['pack'])
 
         rule = {
             'name': 'fancyrule',

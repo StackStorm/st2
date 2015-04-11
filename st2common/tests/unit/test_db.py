@@ -180,6 +180,7 @@ class ReactorModelTest(DbTestCase):
         created = TriggerTypeDB()
         created.pack = 'dummy_pack_1'
         created.name = 'triggertype-1'
+        created.stupid = 'stupid'
         created.description = ''
         created.payload_schema = {}
         created.parameters_schema = {}
@@ -228,6 +229,7 @@ class ReactorModelTest(DbTestCase):
 
 
 from st2common.models.db.action import ActionDB, RunnerTypeDB
+from st2common.models.db.action import NotificationSchema, NotificationSubSchema
 from st2common.persistence.action import Action, RunnerType
 
 
@@ -286,6 +288,27 @@ class ActionModelTest(DbTestCase):
         saved = Action.add_or_update(retrieved)
         retrieved = Action.get_by_id(saved.id)
         self.assertEqual(retrieved.description, DUMMY_DESCRIPTION, 'Update to action failed.')
+
+        # cleanup
+        self._delete([retrieved])
+        try:
+            retrieved = Action.get_by_id(saved.id)
+        except ValueError:
+            retrieved = None
+        self.assertIsNone(retrieved, 'managed to retrieve after failure.')
+
+    def test_action_with_notify_crud(self):
+        runnertype = self._create_save_runnertype(metadata=False)
+        saved = self._create_save_action(runnertype, metadata=False)
+
+        # Update action with notification settings
+        on_complete = NotificationSubSchema(message='Action complete.')
+        saved.notify = NotificationSchema(on_complete=on_complete)
+        saved = Action.add_or_update(saved)
+
+        # Check if notification settings were set correctly.
+        retrieved = Action.get_by_id(saved.id)
+        self.assertEqual(retrieved.notify.on_complete.message, on_complete.message)
 
         # cleanup
         self._delete([retrieved])
