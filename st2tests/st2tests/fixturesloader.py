@@ -101,9 +101,9 @@ class FixturesLoader(object):
 
         fixtures_dict should be of the form:
         {
-            'actions': ['action-1.json', 'action-2.json'],
-            'rules': ['rule-1.json'],
-            'liveactions': ['execution-1.json']
+            'actions': ['action-1.yaml', 'action-2.yaml'],
+            'rules': ['rule-1.yaml'],
+            'liveactions': ['execution-1.yaml']
         }
 
         :param fixtures_pack: Name of the pack to load fixtures from.
@@ -145,7 +145,7 @@ class FixturesLoader(object):
 
         fixtures_dict should be of the form:
         {
-            'actionchains': ['actionchain1.json', 'actionchain2.json'],
+            'actionchains': ['actionchain1.yaml', 'actionchain2.yaml'],
             'workflows': ['workflow.yaml']
         }
 
@@ -179,9 +179,9 @@ class FixturesLoader(object):
 
         fixtures_dict should be of the form:
         {
-            'actions': ['action-1.json', 'action-2.json'],
-            'rules': ['rule-1.json'],
-            'liveactions': ['execution-1.json']
+            'actions': ['action-1.yaml', 'action-2.yaml'],
+            'rules': ['rule-1.yaml'],
+            'liveactions': ['execution-1.yaml']
         }
 
         :param fixtures_pack: Name of the pack to load fixtures from.
@@ -217,9 +217,9 @@ class FixturesLoader(object):
 
         fixtures_dict should be of the form:
         {
-            'actions': ['action-1.json', 'action-2.json'],
-            'rules': ['rule-1.json'],
-            'liveactions': ['execution-1.json']
+            'actions': ['action-1.yaml', 'action-2.yaml'],
+            'rules': ['rule-1.yaml'],
+            'liveactions': ['execution-1.yaml']
         }
 
         :param fixtures_pack: Name of the pack to delete fixtures from.

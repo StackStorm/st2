@@ -8,9 +8,9 @@ Let's start with a very basic workflow that calls a |st2| action and notifies |s
 
 .. literalinclude:: /../../contrib/examples/actions/workflows/mistral-basic.yaml
 
-The following is the corresponding |st2| action metadata for example above. The |st2| pack for this workflow action is named "examples". Please note that the workflow is named fully qualified as "<pack>.<action>" in the definition above. The |st2| action runner is "mistral-v2". The entry point for the |st2| action refers to the YAML file of the workflow definition. Let's save this metadata as mistral-basic.json at /opt/stackstorm/packs/examples/actions/.
+The following is the corresponding |st2| action metadata for example above. The |st2| pack for this workflow action is named "examples". Please note that the workflow is named fully qualified as "<pack>.<action>" in the definition above. The |st2| action runner is "mistral-v2". The entry point for the |st2| action refers to the YAML file of the workflow definition. Let's save this metadata as mistral-basic.yaml at /opt/stackstorm/packs/examples/actions/.
 
-.. literalinclude:: /../../contrib/examples/actions/mistral-basic.json
+.. literalinclude:: /../../contrib/examples/actions/mistral-basic.yaml
 
 The following table list optional parameters that can be defined in the workflow action. In the example, these optional parameters are set to immutable. It is good practice to set them to immutable even if they are empty since these are mistral specific parameters for workflow author.
 
@@ -27,7 +27,7 @@ The following table list optional parameters that can be defined in the workflow
 |            | parameters.                                            |
 +------------+--------------------------------------------------------+
 
-Next, run ``st2 action create /opt/stackstorm/packs/examples/actions/mistral-basic.json`` to create this workflow action. This will register the workflow as examples.mistral-basic in |st2|. Then to execute the workflow, run ``st2 run examples.mistral-basic cmd=date -a`` where -a tells the command to return and not wait for the workflow to complete. If the workflow completed successfully, both the workflow **examples.mistral-basic** and the action **core.local** would have a **succeeded** status in the |st2| action execution list. By default, ``st2 execution list`` only returns top level executions. This means subtasks are not displayed.
+Next, run ``st2 action create /opt/stackstorm/packs/examples/actions/mistral-basic.yaml`` to create this workflow action. This will register the workflow as examples.mistral-basic in |st2|. Then to execute the workflow, run ``st2 run examples.mistral-basic cmd=date -a`` where -a tells the command to return and not wait for the workflow to complete. If the workflow completed successfully, both the workflow **examples.mistral-basic** and the action **core.local** would have a **succeeded** status in the |st2| action execution list. By default, ``st2 execution list`` only returns top level executions. This means subtasks are not displayed.
 
 +--------------------------+--------------+--------------+-----------+-----------------+---------------+
 | id                       | action.ref   | context.user | status    | start_timestamp | end_timestamp |
@@ -116,9 +116,9 @@ The following is a mock up of a more complex workflow. In this mock up running s
 
 Since there are multiple workflows defined in this workbook, workflow author has to specify which workflow to execute in the metadata as shown in the workflow parameters below.
 
-.. literalinclude:: /../../contrib/examples/actions/mistral-workbook-complex.json
+.. literalinclude:: /../../contrib/examples/actions/mistral-workbook-complex.yaml
 
-To test out this workflow, save the metadata file to /opt/stackstorm/packs/examples/actions/ and the workflow file to /opt/stackstorm/packs/examples/actions/workflows. Run ``st2 action create /opt/stackstorm/packs/examples/actions/mistral-workbook-complex.json`` to create the action and run ``st2 run examples.mistral-workbook-complex vm_name="vmtest1" -a`` to test.
+To test out this workflow, save the metadata file to /opt/stackstorm/packs/examples/actions/ and the workflow file to /opt/stackstorm/packs/examples/actions/workflows. Run ``st2 action create /opt/stackstorm/packs/examples/actions/mistral-workbook-complex.yaml`` to create the action and run ``st2 run examples.mistral-workbook-complex vm_name="vmtest1" -a`` to test.
 
 More Examples
 +++++++++++++++++++
