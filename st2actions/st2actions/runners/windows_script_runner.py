@@ -107,6 +107,9 @@ class WindowsScriptRunner(BaseWindowsRunner):
         else:
             error = None
 
+        if exit_code != 0:
+            error = self._parse_winexe_error(stdout=stdout, stderr=stderr)
+
         result = stdout
 
         output = {

@@ -27,6 +27,13 @@ __all__ = [
 WINEXE_EXISTS = find_executable('winexe') is not None
 SMBCLIENT_EXISTS = find_executable('smbclient') is not None
 
+ERROR_CODE_TO_MESSAGE_MAP = {
+    'NT_STATUS_LOGON_FAILURE': 'Invalid or missing authentication credentials.',
+    'NT_STATUS_IO_TIMEOUT': 'Connection timeout.',
+    'NT_STATUS_NETWORK_UNREACHABLE': 'Network unavailable, unable to connect.',
+    'NT_STATUS_NO_MEMORY': 'Failed to run the command.'
+}
+
 
 class BaseWindowsRunner(ActionRunner):
     def _get_winexe_command_args(self, host, username, password, command, domain=None):
@@ -72,3 +79,10 @@ class BaseWindowsRunner(ActionRunner):
         # Command
         args += ['-c', command]
         return args
+
+    def _parse_winexe_error(self, stdout, stderr):
+        for code, message in ERROR_CODE_TO_MESSAGE_MAP.items():
+            if code in stdout:
+                return message
+
+        return None
