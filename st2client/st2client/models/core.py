@@ -251,7 +251,7 @@ class ResourceManager(object):
         url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance.id)
         response = self.client.delete(url, **kwargs)
 
-        if response.status_code not in (200, 204, 404):
+        if response.status_code not in [200, 204, 404]:
             self.handle_error(response)
             return False
 
@@ -261,7 +261,7 @@ class ResourceManager(object):
     def delete_by_id(self, instance_id, **kwargs):
         url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance_id)
         response = self.client.delete(url, **kwargs)
-        if response.status_code not in (200, 204, 404):
+        if response.status_code not in [200, 204, 404]:
             self.handle_error(response)
             return False
         try:
