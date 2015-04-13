@@ -1,6 +1,6 @@
 ---
   name: "delete"
-  runner_type: "run-python"
+  runner_type: "python-script"
   description: "Deletes the pack from local content repository."
   enabled: true
   entry_point: "pack_mgmt/delete.py"

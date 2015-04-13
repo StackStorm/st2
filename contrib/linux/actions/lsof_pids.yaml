@@ -1,6 +1,6 @@
 ---
   name: "lsof_pids"
-  runner_type: "run-remote"
+  runner_type: "remote-shell-cmd"
   description: "Run lsof for a group of PIDs"
   enabled: true
   entry_point: ""

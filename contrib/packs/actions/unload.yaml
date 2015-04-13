@@ -1,6 +1,6 @@
 ---
   name: "unload"
-  runner_type: "run-python"
+  runner_type: "python-script"
   description: "Unregisters all content from a pack."
   enabled: true
   entry_point: "pack_mgmt/unload.py"

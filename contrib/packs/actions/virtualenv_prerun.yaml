@@ -1,6 +1,6 @@
 ---
   name: "virtualenv_prerun"
-  runner_type: "run-python"
+  runner_type: "python-script"
   description: "Transformation step to conver packs_status to list of packs."
   enabled: true
   entry_point: "pack_mgmt/virtualenv_setup_prerun.py"

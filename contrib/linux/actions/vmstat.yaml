@@ -1,6 +1,6 @@
 ---
   name: "vmstat"
-  runner_type: "run-remote"
+  runner_type: "remote-shell-cmd"
   description: "Run vmstat"
   enabled: true
   entry_point: ""

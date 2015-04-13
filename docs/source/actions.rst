@@ -137,7 +137,7 @@ the Twilio web service.
 
     ---
         name: "send_sms"
-        runner_type: "run-python"
+        runner_type: "python-script"
         description: "This sends a SMS using twilio."
         enabled: true
         entry_point: "send_sms.py"
@@ -160,7 +160,7 @@ the Twilio web service.
                 default: "Hello {% if system.user %} {{ system.user }} {% else %} dude {% endif %}!"
 
 
-This action is using a Python runner (``run-python``), the class which
+This action is using a Python runner (``python-script``), the class which
 implements a ``run`` method is contained in a file called ``send_sms.py`` which
 is located in the same directory as the metadata file and the action takes three
 parameters (from_number, to_number, body).
@@ -187,17 +187,17 @@ When configuring the metadata, there exists several built-in parameters that
 can be used and overwritten to change the default functionality of the
 various runners.
 
-* ``args`` - (``run-local``, ``run-remote``) By default, |st2| will assemble
+* ``args`` - (``local-shell-script``, ``remote-shell-script``) By default, |st2| will assemble
   arguments based on whether a user defines named or positional arguments.
   Adjusts the format of arguments passed to ``cmd``.
-* ``cmd``  - (``run-local``, ``run-remote``) Configure the command to be run
+* ``cmd``  - (``local-shell-script``, ``remote-shell-script``) Configure the command to be run
   on the target system.
-* ``cwd``  - (``run-local``, ``run-remote``) Configure the directory where
+* ``cwd``  - (``local-shell-script``, ``remote-shell-script``) Configure the directory where
   remote commands will be executed from.
-* ``env``  - (``run-local``, ``run-local-script``, ``run-remote``,
-  ``run-remote-script``, ``run-python``) Environment variables which will be
+* ``env``  - (``local-shell-script``, ``local-shell-script-script``, ``remote-shell-script``,
+  ``remote-shell-script-script``, ``python-script``) Environment variables which will be
   available to the executed command / script.
-* ``dir``  - (``run-local``, ``run-remote``) Configure the directory where
+* ``dir``  - (``local-shell-script``, ``remote-shell-script``) Configure the directory where
   scripts are copied from a pack to the target machine prior to execution.
   Defaults to ``/tmp``.
 
@@ -223,8 +223,8 @@ determine if the script has finished successfully.
 You need to add a metadata file which describes the script name, description,
 entry point, which runner to use and script parameters (if any).
 
-When converting an existing script, you will want to either use ``run-local``
-or ``run-remote`` runner.
+When converting an existing script, you will want to either use ``local-shell-script``
+or ``remote-shell-script`` runner.
 
 2. Update argument parsing in the script
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -256,7 +256,7 @@ For example:
 
     ---
         name: "my_script"
-        runner_type: "run-remote"
+        runner_type: "remote-shell-script"
         description: "Script which prints arguments to stdout."
         enabled: true
         entry_point: "script.sh"
@@ -318,7 +318,7 @@ them in the metadata file:
 
     ---
         name: "send_to_syslog.log"
-        runner_type: "run-remote"
+        runner_type: "remote-shell-script"
         description: "Send a message to a provided syslog server."
         enabled: true
         entry_point: "send_to_syslog.sh"
@@ -358,7 +358,7 @@ Metadata file (``my_echo_action.yaml``):
 
     ---
         name: "echo_action"
-        runner_type: "run-python"
+        runner_type: "python-script"
         description: "Print message to standard output."
         enabled: true
         entry_point: "my_echo_action.py"

@@ -352,7 +352,7 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.actionchainrunner'
     },
     {
-        'name': 'run-python',
+        'name': 'python-script',
         'aliases': ['run-python'],
         'description': 'A runner for launching python actions.',
         'enabled': True,

@@ -1,6 +1,6 @@
 ---
   name: "download"
-  runner_type: "run-python"
+  runner_type: "python-script"
   description: "Downloads packs and places it in the local content repository."
   enabled: true
   entry_point: "pack_mgmt/download.py"
