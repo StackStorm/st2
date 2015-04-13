@@ -21,6 +21,8 @@ In `/etc/st2/st2.conf </conf/st2.prod.conf>` include the following section :
     username = <username for db login>
     password = <password for db login>
 
+.. note:: The username and password properties are optional.
+
 Configure RabbitMQ
 ------------------
 StackStorm uses RabbitMQ for messaging between its services.
