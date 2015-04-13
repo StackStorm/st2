@@ -1,0 +1,5 @@
+---
+payload:
+  result: 10
+  work: done
+type: st2.trigger

@@ -1,0 +1,25 @@
+---
+description: Run several linux commands in a single task.
+enabled: true
+entry_point: workflows/mistral-repeat-with-items.yaml
+name: mistral-repeat-with-items
+pack: examples
+parameters:
+  cmds:
+    items:
+      type: string
+    minItems: 1
+    type: array
+  context:
+    default: {}
+    immutable: true
+    type: object
+  task:
+    default: null
+    immutable: true
+    type: string
+  workflow:
+    default: null
+    immutable: true
+    type: string
+runner_type: mistral-v2

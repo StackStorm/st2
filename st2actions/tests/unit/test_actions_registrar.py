@@ -13,12 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    import simplejson as json
-except ImportError:
-    import json
 import jsonschema
 import mock
+import yaml
 
 import st2actions.bootstrap.actionsregistrar as actions_registrar
 from st2common.persistence.action import Action
@@ -63,11 +60,11 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         registrar = actions_registrar.ActionsRegistrar()
         loader = fixtures_loader.FixturesLoader()
         action_file = loader.get_fixture_file_path_abs(
-            'generic', 'actions', 'action_3_pack_missing.json')
+            'generic', 'actions', 'action_3_pack_missing.yaml')
         registrar._register_action('dummy', action_file)
         action_name = None
         with open(action_file, 'r') as fd:
-            content = json.load(fd)
+            content = yaml.safe_load(fd)
             action_name = str(content['name'])
             action_db = Action.get_by_name(action_name)
             self.assertEqual(action_db.pack, 'dummy', 'Content pack must be ' +
@@ -106,13 +103,13 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         registrar = actions_registrar.ActionsRegistrar()
         loader = fixtures_loader.FixturesLoader()
         action_file = loader.get_fixture_file_path_abs(
-            'generic', 'actions', 'action1.json')
+            'generic', 'actions', 'action1.yaml')
         registrar._register_action('wolfpack', action_file)
         # try registering again. this should not throw errors.
         registrar._register_action('wolfpack', action_file)
         action_name = None
         with open(action_file, 'r') as fd:
-            content = json.load(fd)
+            content = yaml.safe_load(fd)
             action_name = str(content['name'])
             action_db = Action.get_by_name(action_name)
             self.assertEqual(action_db.pack, 'wolfpack', 'Content pack must be ' +

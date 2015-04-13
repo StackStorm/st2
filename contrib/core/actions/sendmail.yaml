@@ -1,0 +1,24 @@
+---
+description: This sends an email
+enabled: true
+entry_point: send_mail/send_mail
+name: sendmail
+parameters:
+  body:
+    description: Body of the email.
+    position: 2
+    required: true
+    type: string
+  subject:
+    description: Subject of the email.
+    position: 1
+    required: true
+    type: string
+  sudo:
+    immutable: true
+  to:
+    description: Recipient email address.
+    position: 0
+    required: true
+    type: string
+runner_type: run-local-script

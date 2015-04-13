@@ -17,6 +17,7 @@ import six
 import string
 
 from st2common.util import schema as util_schema
+from st2common.models.api.notification import NotificationSubSchemaAPI
 
 VALIDATOR = util_schema.get_validator(assign_property_default=False)
 
@@ -64,6 +65,16 @@ class Node(object):
                 "patternProperties": {
                     "^\w+$": {}
                 }
+            },
+            "notify": {
+                "description": "Notification settings for action.",
+                "type": "object",
+                "properties": {
+                    "on_complete": NotificationSubSchemaAPI,
+                    "on_failure": NotificationSubSchemaAPI,
+                    "on_success": NotificationSubSchemaAPI
+                },
+                "additionalProperties": False
             }
         },
         "additionalProperties": False

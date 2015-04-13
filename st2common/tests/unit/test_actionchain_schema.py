@@ -21,16 +21,16 @@ from st2tests.fixturesloader import FixturesLoader
 
 FIXTURES_PACK = 'generic'
 TEST_FIXTURES = {
-    'actionchains': ['chain1.json', 'malformedchain.json', 'no_default_chain.json',
-                     'chain_with_vars.json', 'chain_with_publish.json']
+    'actionchains': ['chain1.yaml', 'malformedchain.yaml', 'no_default_chain.yaml',
+                     'chain_with_vars.yaml', 'chain_with_publish.yaml']
 }
 FIXTURES = FixturesLoader().load_fixtures(fixtures_pack=FIXTURES_PACK,
                                           fixtures_dict=TEST_FIXTURES)
-CHAIN_1 = FIXTURES['actionchains']['chain1.json']
-MALFORMED_CHAIN = FIXTURES['actionchains']['malformedchain.json']
-NO_DEFAULT_CHAIN = FIXTURES['actionchains']['no_default_chain.json']
-CHAIN_WITH_VARS = FIXTURES['actionchains']['chain_with_vars.json']
-CHAIN_WITH_PUBLISH = FIXTURES['actionchains']['chain_with_publish.json']
+CHAIN_1 = FIXTURES['actionchains']['chain1.yaml']
+MALFORMED_CHAIN = FIXTURES['actionchains']['malformedchain.yaml']
+NO_DEFAULT_CHAIN = FIXTURES['actionchains']['no_default_chain.yaml']
+CHAIN_WITH_VARS = FIXTURES['actionchains']['chain_with_vars.yaml']
+CHAIN_WITH_PUBLISH = FIXTURES['actionchains']['chain_with_publish.yaml']
 
 
 class ActionChainSchemaTest(unittest2.TestCase):

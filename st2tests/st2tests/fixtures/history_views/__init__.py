@@ -1,14 +1,15 @@
 import os
-import json
+import yaml
 import glob
 
 
 PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)))
-FILES = glob.glob('%s/*.json' % PATH)
+FILES = glob.glob('%s/*.yaml' % PATH)
 ARTIFACTS = {}
 
 
 for f in FILES:
-    name = unicode(f.replace(PATH + '/', '').replace('.json', ''))
+    f_name = os.path.split(f)[1]
+    name = unicode(os.path.splitext(f_name)[0])
     with open(f, 'r') as fd:
-        ARTIFACTS[name] = json.load(fd)
+        ARTIFACTS[name] = yaml.safe_load(fd)

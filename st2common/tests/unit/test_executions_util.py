@@ -33,18 +33,18 @@ tests_config.parse_args()
 FIXTURES_PACK = 'generic'
 
 TEST_FIXTURES = {
-    'liveactions': ['liveaction1.json', 'parentliveaction.json', 'childliveaction.json'],
-    'actions': ['local.json'],
-    'executions': ['execution1.json'],
-    'runners': ['run-local.json'],
-    'triggertypes': ['triggertype2.json'],
-    'rules': ['rule3.json'],
-    'triggers': ['trigger2.json'],
-    'triggerinstances': ['trigger_instance_1.json']
+    'liveactions': ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml'],
+    'actions': ['local.yaml'],
+    'executions': ['execution1.yaml'],
+    'runners': ['run-local.yaml'],
+    'triggertypes': ['triggertype2.yaml'],
+    'rules': ['rule3.yaml'],
+    'triggers': ['trigger2.yaml'],
+    'triggerinstances': ['trigger_instance_1.yaml']
 }
 
 DYNAMIC_FIXTURES = {
-    'liveactions': ['liveaction3.json']
+    'liveactions': ['liveaction3.yaml']
 }
 
 
@@ -61,7 +61,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
                                                        fixtures_dict=DYNAMIC_FIXTURES)
 
     def test_execution_creation_manual_action_run(self):
-        liveaction = self.MODELS['liveactions']['liveaction1.json']
+        liveaction = self.MODELS['liveactions']['liveaction1.yaml']
         executions_util.create_execution_object(liveaction)
         execution = self._get_action_execution(liveaction__id=str(liveaction.id),
                                                raise_exception=True)
@@ -78,11 +78,11 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
 
     def test_execution_creation_action_triggered_by_rule(self):
         # Wait for the action execution to complete and then confirm outcome.
-        trigger_type = self.MODELS['triggertypes']['triggertype2.json']
-        trigger = self.MODELS['triggers']['trigger2.json']
-        trigger_instance = self.MODELS['triggerinstances']['trigger_instance_1.json']
-        test_liveaction = self.FIXTURES['liveactions']['liveaction3.json']
-        rule = self.MODELS['rules']['rule3.json']
+        trigger_type = self.MODELS['triggertypes']['triggertype2.yaml']
+        trigger = self.MODELS['triggers']['trigger2.yaml']
+        trigger_instance = self.MODELS['triggerinstances']['trigger_instance_1.yaml']
+        test_liveaction = self.FIXTURES['liveactions']['liveaction3.yaml']
+        rule = self.MODELS['rules']['rule3.yaml']
         # Setup LiveAction to point to right rule and trigger_instance.
         # XXX: We need support for dynamic fixtures.
         test_liveaction['context']['rule']['id'] = str(rule.id)
@@ -111,7 +111,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         """
         Test children and parent relationship is established.
         """
-        childliveaction = self.MODELS['liveactions']['childliveaction.json']
+        childliveaction = self.MODELS['liveactions']['childliveaction.yaml']
         child_exec = executions_util.create_execution_object(childliveaction)
         parent_exection = self._get_action_execution(
             liveaction__id=childliveaction.context.get('parent', ''))
@@ -127,9 +127,9 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
 DESCENDANTS_PACK = 'descendants'
 
 DESCENDANTS_FIXTURES = {
-    'executions': ['root_execution.json', 'child1_level1.json', 'child2_level1.json',
-                   'child1_level2.json', 'child2_level2.json', 'child3_level2.json',
-                   'child1_level3.json', 'child2_level3.json', 'child3_level3.json']
+    'executions': ['root_execution.yaml', 'child1_level1.yaml', 'child2_level1.yaml',
+                   'child1_level2.yaml', 'child2_level2.yaml', 'child3_level2.yaml',
+                   'child1_level3.yaml', 'child2_level3.yaml', 'child3_level3.yaml']
 }
 
 
@@ -144,7 +144,7 @@ class ExecutionsUtilDescendantsTestCase(CleanDbTestCase):
                                                            fixtures_dict=DESCENDANTS_FIXTURES)
 
     def test_get_all_descendants_sorted(self):
-        root_execution = self.MODELS['executions']['root_execution.json']
+        root_execution = self.MODELS['executions']['root_execution.yaml']
         all_descendants = executions_util.get_descendants(str(root_execution.id),
                                                           result_fmt='sorted')
 
@@ -164,7 +164,7 @@ class ExecutionsUtilDescendantsTestCase(CleanDbTestCase):
                             all_descendants[idx + 1].start_timestamp)
 
     def test_get_all_descendants(self):
-        root_execution = self.MODELS['executions']['root_execution.json']
+        root_execution = self.MODELS['executions']['root_execution.yaml']
         all_descendants = executions_util.get_descendants(str(root_execution.id))
 
         all_descendants_ids = [str(descendant.id) for descendant in all_descendants]
@@ -178,7 +178,7 @@ class ExecutionsUtilDescendantsTestCase(CleanDbTestCase):
         self.assertListEqual(all_descendants_ids, expected_ids)
 
     def test_get_1_level_descendants_sorted(self):
-        root_execution = self.MODELS['executions']['root_execution.json']
+        root_execution = self.MODELS['executions']['root_execution.yaml']
         all_descendants = executions_util.get_descendants(str(root_execution.id),
                                                           descendant_depth=1,
                                                           result_fmt='sorted')
@@ -199,7 +199,7 @@ class ExecutionsUtilDescendantsTestCase(CleanDbTestCase):
                             all_descendants[idx + 1].start_timestamp)
 
     def test_get_2_level_descendants_sorted(self):
-        root_execution = self.MODELS['executions']['root_execution.json']
+        root_execution = self.MODELS['executions']['root_execution.yaml']
         all_descendants = executions_util.get_descendants(str(root_execution.id),
                                                           descendant_depth=2,
                                                           result_fmt='sorted')
@@ -208,7 +208,7 @@ class ExecutionsUtilDescendantsTestCase(CleanDbTestCase):
         all_descendants_ids.sort()
 
         # All children of root_execution
-        root_execution = self.MODELS['executions']['root_execution.json']
+        root_execution = self.MODELS['executions']['root_execution.yaml']
         expected_ids = []
         traverse = [(child_id, 1) for child_id in root_execution.children]
         while traverse:

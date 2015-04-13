@@ -4,6 +4,8 @@ chain:
         name: "test_basics"
         ref: "core.local"
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 --version; st2 -h"
         on-success: test_action_list
         on-failure: "error_handler"
@@ -11,6 +13,8 @@ chain:
         name: test_action_list
         ref: "core.local"
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 action list -j --pack=core | egrep -w 'core.local|core.remote'"
         on-success: test_action_get
         on-failure: error_handler
@@ -18,6 +22,8 @@ chain:
         name: test_action_get
         ref: "core.local"
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 action get -j core.http"
         on-success: test_run_action
         on-failure: error_handler
@@ -25,6 +31,8 @@ chain:
         name: test_run_action
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             # Funny inception - core.local calls core.local :)
             cmd: st2 run core.local -- date -R
         on-success: test_execution_list
@@ -33,6 +41,8 @@ chain:
         name: test_execution_list
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: st2 execution list -n 1
         on-success: test_sensor_list
         on-failure: "error_handler"
@@ -40,6 +50,8 @@ chain:
         name: test_sensor_list
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: st2 sensor list -j
         on-success: test_trigger_list
         on-failure: "error_handler"
@@ -47,6 +59,8 @@ chain:
         name: test_trigger_list
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             # get the trigger list as JSON with all attributes
             cmd: st2 trigger list -j -a=all
         on-success: test_trigger_get
@@ -55,6 +69,8 @@ chain:
         name: test_trigger_get
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "st2 trigger get -j {{test_trigger_list.stdout[0].id}}"
         on-success: test_run_remote
         on-failure: "error_handler"
@@ -62,6 +78,8 @@ chain:
         name: test_run_remote
         ref: core.local
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: st2 run core.remote hosts='localhost' -- uname -a
         on-failure: "error_handler"
     -
@@ -69,7 +87,6 @@ chain:
         description: Error handler
         ref: "core.local"
         params:
+            env:
+              ST2_AUTH_TOKEN: "{{token}}"
             cmd: "echo fail c4"
-
-    default: "test_basics"
-

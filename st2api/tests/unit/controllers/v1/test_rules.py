@@ -22,10 +22,10 @@ from tests import FunctionalTest
 http_client = six.moves.http_client
 
 TEST_FIXTURES = {
-    'runners': ['testrunner1.json'],
-    'actions': ['action1.json'],
-    'triggers': ['trigger1.json'],
-    'triggertypes': ['triggertype1.json']
+    'runners': ['testrunner1.yaml'],
+    'actions': ['action1.yaml'],
+    'triggers': ['trigger1.yaml'],
+    'triggertypes': ['triggertype1.yaml']
 }
 
 FIXTURES_PACK = 'generic'
@@ -41,14 +41,14 @@ class TestRuleController(FunctionalTest):
         super(TestRuleController, cls).setUpClass()
         models = TestRuleController.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
-        TestRuleController.RUNNER_TYPE = models['runners']['testrunner1.json']
-        TestRuleController.ACTION = models['actions']['action1.json']
-        TestRuleController.TRIGGER = models['triggers']['trigger1.json']
+        TestRuleController.RUNNER_TYPE = models['runners']['testrunner1.yaml']
+        TestRuleController.ACTION = models['actions']['action1.yaml']
+        TestRuleController.TRIGGER = models['triggers']['trigger1.yaml']
 
         # Don't load rule into DB as that is what is being tested.
         TestRuleController.RULE_1 = TestRuleController.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
-            fixtures_dict={'rules': ['rule1.json']})['rules']['rule1.json']
+            fixtures_dict={'rules': ['rule1.yaml']})['rules']['rule1.yaml']
 
     @classmethod
     def tearDownClass(cls):

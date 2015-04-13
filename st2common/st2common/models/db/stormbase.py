@@ -30,7 +30,7 @@ __all__ = [
     'ContentPackResourceMixin'
 ]
 
-JSON_UNFRIENDLY_TYPES = (datetime.datetime, bson.ObjectId)
+JSON_UNFRIENDLY_TYPES = (datetime.datetime, bson.ObjectId, me.EmbeddedDocument)
 
 
 class StormFoundationDB(me.Document):

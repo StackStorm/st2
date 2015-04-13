@@ -1,0 +1,49 @@
+---
+action-immutable-param-no-default:
+  enabled: true
+  name: action-immutable-param-no-default
+  pack: core
+  parameters:
+    foo:
+      immutable: true
+  ref: core.action-immutable-param-no-default
+  runner_type: run-local
+action-immutable-runner-param-no-default:
+  enabled: true
+  name: action-immutable-param-no-default
+  pack: core
+  parameters:
+    sudo:
+      immutable: true
+  ref: core.action-immutable-param-no-default
+  runner_type: run-local
+action-with-invalid-runner:
+  enabled: true
+  name: action-with-invalid-runner
+  pack: core
+  parameters:
+    hosts:
+      immutable: false
+  ref: core.action-with-invalid-runner
+  runner_type: invalid-runner
+chain:
+  enabled: true
+  name: chain
+  pack: core
+  ref: core.chain
+  runner_type: action-chain
+local:
+  enabled: true
+  name: local
+  pack: core
+  ref: core.local
+  runner_type: run-local
+local-override-runner-immutable:
+  enabled: true
+  name: local-override-runner-immutable
+  pack: core
+  parameters:
+    hosts:
+      immutable: false
+  ref: core.local-override-runner-immutable
+  runner_type: run-local
