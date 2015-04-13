@@ -27,4 +27,4 @@ parameters:
     type: string
   zip:
     type: string
-runner_type: http-runner
+runner_type: "http-request"

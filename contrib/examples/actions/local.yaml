@@ -15,4 +15,4 @@ parameters:
     type: string
   sudo:
     immutable: true
-runner_type: run-local
+runner_type: "local-shell-cmd"

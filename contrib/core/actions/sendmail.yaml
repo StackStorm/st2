@@ -21,4 +21,4 @@ parameters:
     position: 0
     required: true
     type: string
-runner_type: run-local-script
+runner_type: "local-shell-script"
