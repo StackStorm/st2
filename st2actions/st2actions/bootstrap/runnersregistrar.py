@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RunnerTypeAPI
@@ -33,7 +35,8 @@ LOG = logging.getLogger(__name__)
 
 RUNNER_TYPES = [
     {
-        'name': 'run-local',
+        'name': 'local-shell-cmd',
+        'aliases': ['run-local'],
         'description': 'A runner to execute local actions as a fixed user.',
         'enabled': True,
         'runner_parameters': {
@@ -71,7 +74,8 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.localrunner'
     },
     {
-        'name': 'run-local-script',
+        'name': 'local-shell-script',
+        'aliases': ['run-local-script'],
         'description': 'A runner to execute local actions as a fixed user.',
         'enabled': True,
         'runner_parameters': {
@@ -104,7 +108,8 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.localrunner'
     },
     {
-        'name': 'run-remote',
+        'name': 'remote-shell-cmd',
+        'aliases': ['run-remote'],
         'description': 'A remote execution runner that executes actions '
                        'as a fixed system user.',
         'enabled': True,
@@ -180,7 +185,8 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.fabricrunner'
     },
     {
-        'name': 'run-remote-script',
+        'name': 'remote-shell-script',
+        'aliases': ['run-remote-script'],
         'description': 'A remote execution runner that executes actions '
                        'as a fixed system user.',
         'enabled': True,
@@ -251,7 +257,8 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.fabricrunner'
     },
     {
-        'name': 'http-runner',
+        'name': 'http-request',
+        'aliases': ['http-runner'],
         'description': 'A HTTP client for running HTTP actions.',
         'enabled': True,
         'runner_parameters': {
@@ -286,6 +293,7 @@ RUNNER_TYPES = [
     },
     {
         'name': 'mistral-v1',
+        'aliases': [],
         'description': 'A runner for executing mistral v1 workflow.',
         'enabled': True,
         'runner_parameters': {
@@ -309,6 +317,7 @@ RUNNER_TYPES = [
     },
     {
         'name': 'mistral-v2',
+        'aliases': [],
         'description': 'A runner for executing mistral v2 workflow.',
         'enabled': True,
         'runner_parameters': {
@@ -336,6 +345,7 @@ RUNNER_TYPES = [
     },
     {
         'name': 'action-chain',
+        'aliases': [],
         'description': 'A runner for launching linear action chains.',
         'enabled': True,
         'runner_parameters': {},
@@ -343,6 +353,7 @@ RUNNER_TYPES = [
     },
     {
         'name': 'run-python',
+        'aliases': ['run-python'],
         'description': 'A runner for launching python actions.',
         'enabled': True,
         'runner_parameters': {
@@ -363,7 +374,8 @@ RUNNER_TYPES = [
 
     # Experimental runners below
     {
-        'name': 'run-windows-cmd',
+        'name': 'windows-cmd',
+        'aliases': [],
         'description': 'A remote execution runner that executes commands'
                        'on Windows hosts.',
         'experimental': True,
@@ -400,7 +412,8 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.windows_command_runner'
     },
     {
-        'name': 'run-windows-script',
+        'name': 'windows-script',
+        'aliases': [],
         'description': 'A remote execution runner that executes power shell scripts'
                        'on Windows hosts.',
         'enabled': True,
@@ -448,39 +461,46 @@ def register_runner_types(experimental=False):
     LOG.debug('Start : register default RunnerTypes.')
 
     for runnertype in RUNNER_TYPES:
-        runner_name = runnertype['name']
-        runner_experimental = runnertype.get('experimental', False)
+        runnertype = copy.deepcopy(runnertype)
 
-        if runner_experimental and not experimental:
-            LOG.debug('Skipping experimental runner "%s"' % (runner_name))
-            continue
+        # For backward compatibility reasons, we also register runners under the old names
+        runner_names = [runnertype['name']] + runnertype.get('aliases', [])
+        for runner_name in runner_names:
+            runner_experimental = runnertype.get('experimental', False)
 
-        if 'experimental' in runnertype:
-            del runnertype['experimental']
+            if runner_experimental and not experimental:
+                LOG.debug('Skipping experimental runner "%s"' % (runner_name))
+                continue
 
-        try:
-            runnertype_db = get_runnertype_by_name(runner_name)
-            update = True
-        except StackStormDBObjectNotFoundError:
-            runnertype_db = None
-            update = False
+            # Remove additional, non db-model attributes
+            non_db_attributes = ['experimental', 'aliases']
+            for attribute in non_db_attributes:
+                if attribute in runnertype:
+                    del runnertype[attribute]
 
-        runnertype_api = RunnerTypeAPI(**runnertype)
-        runnertype_api.validate()
-        runner_type_model = RunnerTypeAPI.to_model(runnertype_api)
+            try:
+                runnertype_db = get_runnertype_by_name(runner_name)
+                update = True
+            except StackStormDBObjectNotFoundError:
+                runnertype_db = None
+                update = False
 
-        if runnertype_db:
-            runner_type_model.id = runnertype_db.id
+            runnertype_api = RunnerTypeAPI(**runnertype)
+            runnertype_api.validate()
+            runner_type_model = RunnerTypeAPI.to_model(runnertype_api)
 
-        try:
-            runnertype_db = RunnerType.add_or_update(runner_type_model)
+            if runnertype_db:
+                runner_type_model.id = runnertype_db.id
 
-            extra = {'runnertype_db': runnertype_db}
-            if update:
-                LOG.audit('RunnerType updated. RunnerType %s', runnertype_db, extra=extra)
-            else:
-                LOG.audit('RunnerType created. RunnerType %s', runnertype_db, extra=extra)
-        except Exception:
-            LOG.exception('Unable to register runner type %s.', runnertype['name'])
+            try:
+                runnertype_db = RunnerType.add_or_update(runner_type_model)
+
+                extra = {'runnertype_db': runnertype_db}
+                if update:
+                    LOG.audit('RunnerType updated. RunnerType %s', runnertype_db, extra=extra)
+                else:
+                    LOG.audit('RunnerType created. RunnerType %s', runnertype_db, extra=extra)
+            except Exception:
+                LOG.exception('Unable to register runner type %s.', runnertype['name'])
 
     LOG.debug('End : register default RunnerTypes.')
