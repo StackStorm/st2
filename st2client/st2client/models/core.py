@@ -251,8 +251,23 @@ class ResourceManager(object):
         url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance.id)
         response = self.client.delete(url, **kwargs)
 
-        if response.status_code not in (204, 404):
+        if response.status_code not in (200, 204, 404):
             self.handle_error(response)
             return False
 
+        return True
+
+    @add_auth_token_to_kwargs_from_env
+    def delete_by_id(self, instance_id, **kwargs):
+        url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance_id)
+        response = self.client.delete(url, **kwargs)
+        if response.status_code not in (200, 204, 404):
+            self.handle_error(response)
+            return False
+        try:
+            resp_json = response.json()
+            if resp_json:
+                return resp_json
+        except:
+            pass
         return True
