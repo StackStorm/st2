@@ -460,13 +460,14 @@ def register_runner_types(experimental=False):
     """
     LOG.debug('Start : register default RunnerTypes.')
 
-    for runnertype in RUNNER_TYPES:
-        runnertype = copy.deepcopy(runnertype)
+    for runner_type in RUNNER_TYPES:
+        runner_type = copy.deepcopy(runner_type)
 
         # For backward compatibility reasons, we also register runners under the old names
-        runner_names = [runnertype['name']] + runnertype.get('aliases', [])
+        runner_names = [runner_type['name']] + runner_type.get('aliases', [])
         for runner_name in runner_names:
-            runner_experimental = runnertype.get('experimental', False)
+            runner_type['name'] = runner_name
+            runner_experimental = runner_type.get('experimental', False)
 
             if runner_experimental and not experimental:
                 LOG.debug('Skipping experimental runner "%s"' % (runner_name))
@@ -475,32 +476,32 @@ def register_runner_types(experimental=False):
             # Remove additional, non db-model attributes
             non_db_attributes = ['experimental', 'aliases']
             for attribute in non_db_attributes:
-                if attribute in runnertype:
-                    del runnertype[attribute]
+                if attribute in runner_type:
+                    del runner_type[attribute]
 
             try:
-                runnertype_db = get_runnertype_by_name(runner_name)
+                runner_type_db = get_runnertype_by_name(runner_name)
                 update = True
             except StackStormDBObjectNotFoundError:
-                runnertype_db = None
+                runner_type_db = None
                 update = False
 
-            runnertype_api = RunnerTypeAPI(**runnertype)
-            runnertype_api.validate()
-            runner_type_model = RunnerTypeAPI.to_model(runnertype_api)
+            runner_type_api = RunnerTypeAPI(**runner_type)
+            runner_type_api.validate()
+            runner_type_model = RunnerTypeAPI.to_model(runner_type_api)
 
-            if runnertype_db:
-                runner_type_model.id = runnertype_db.id
+            if runner_type_db:
+                runner_type_model.id = runner_type_db.id
 
             try:
-                runnertype_db = RunnerType.add_or_update(runner_type_model)
+                runner_type_db = RunnerType.add_or_update(runner_type_model)
 
-                extra = {'runnertype_db': runnertype_db}
+                extra = {'runner_type_db': runner_type_db}
                 if update:
-                    LOG.audit('RunnerType updated. RunnerType %s', runnertype_db, extra=extra)
+                    LOG.audit('RunnerType updated. RunnerType %s', runner_type_db, extra=extra)
                 else:
-                    LOG.audit('RunnerType created. RunnerType %s', runnertype_db, extra=extra)
+                    LOG.audit('RunnerType created. RunnerType %s', runner_type_db, extra=extra)
             except Exception:
-                LOG.exception('Unable to register runner type %s.', runnertype['name'])
+                LOG.exception('Unable to register runner type %s.', runner_type['name'])
 
     LOG.debug('End : register default RunnerTypes.')
