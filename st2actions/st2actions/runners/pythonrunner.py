@@ -24,7 +24,7 @@ import six
 from eventlet.green import subprocess
 
 from st2actions.runners import ActionRunner
-from st2common.util.green_shell import run_command
+from st2common.util.green.shell import run_command
 from st2common import log as logging
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
