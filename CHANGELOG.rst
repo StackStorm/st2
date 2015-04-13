@@ -1,7 +1,7 @@
 Changelog
 =========
 
-in development
+In development
 --------------
 
 * Report a more user-friendly error if an action-chain task references an invalid or inexistent
