@@ -27,6 +27,8 @@ in development
 * ``register`` param in packs.install should be passed to packs.load. (bug-fix)
 * Fix validation code to validate value types correctly. (bug-fix)
 * Add ability to best-effort cancel actions and actionchain via API. (new-feature)
+* Add new ``windows-cmd`` and ``windows-script`` runners for executing commands
+  and PowerShell scripts on Windows hosts. (new-feature)
 
 v0.8.3 - March 23, 2015
 -----------------------
