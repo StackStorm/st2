@@ -5,6 +5,35 @@ Configuration
 
 |st2| configuration file is at :github_st2:`/etc/st2/st2.conf </conf/st2.prod.conf>`
 
+Configure MongoDB
+-----------------
+StackStorm requires a connection to MongoDB to operate.
+
+
+In `/etc/st2/st2.conf </conf/st2.prod.conf>` include the following section :
+
+.. code-block:: bash
+
+    [database]
+    host = <MongoDB host>
+    port = <MongoDB server port>
+    db_name = <User define database name, usually st2>
+    username = <username for db login>
+    password = <password for db login>
+
+Configure RabbitMQ
+------------------
+StackStorm uses RabbitMQ for messaging between its services.
+
+In `/etc/st2/st2.conf </conf/st2.prod.conf>` include the following section :
+
+.. code-block:: bash
+
+    [messaging]
+    url = <amqp://#RMQ_USER:#RMQ_PASSWD@#RMQ_HOST:#RMQ_PORT/#RMQ_VHOST>
+
+.. note:: The #RMQ_VHOST property is optional and can be left blank.
+
 SUDO Access
 -----------
 
