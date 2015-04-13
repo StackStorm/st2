@@ -79,15 +79,15 @@ Available runners
 The environment in which the action runs is specified by the runner.
 Currently the system provides the following runners:
 
-1. ``run-local`` - This is the local runner. Actions are implemented as
+1. ``local-script`` - This is the local runner. Actions are implemented as
    scripts. They are executed on the same hosts where |st2| components are
    running.
-2. ``run-remote`` - This is a remote runner. Actions are implemented as scripts.
+2. ``remote-script`` - This is a remote runner. Actions are implemented as scripts.
    They run on one or more remote hosts provided by the user.
-3. ``run-python`` - This is a Python runner. Actions are implemented as Python
+3. ``python-script`` - This is a Python runner. Actions are implemented as Python
    classes with a ``run`` method. They run locally on the same machine where
    |st2| components are running.
-4. ``http-runner`` - HTTP client which performs HTTP requests for running HTTP
+4. ``http-request`` - HTTP client which performs HTTP requests for running HTTP
    actions.
 5. ``action-chain`` - This runner supports executing simple linear work-flows.
    For more information, please refer to the :doc:`Workflows </workflows>`
