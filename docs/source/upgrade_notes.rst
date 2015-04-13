@@ -14,3 +14,16 @@ Upgrade Notes
 
 * Authentication is now enabled by default for production (package based) deployments. For
   information on how to configure auth, see http://docs.stackstorm.com/install/deploy.html.
+
+* For consistency reasons, rename existing runners as described below:
+
+  * ``run-local`` -> ``local-shell-cmd``
+  * ``run-local-script`` -> ``local-shell-script``
+  * ``run-remote`` -> ``remote-shell-cmd``
+  * ``run-remote-script`` -> ``remote-shell-script``
+  * ``run-python`` -> ``python-script``
+  * ``run-http`` -> ``http-request``
+
+  Note: For backward compatibility reasons, those runners are still available
+  and can be referenced through their old names, but you are encouraged to
+  update your actions to use the new names.
