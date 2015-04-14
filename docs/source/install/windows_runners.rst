@@ -12,6 +12,20 @@ Windows Runners Configuration
 Windows Runners are currently in experimental / beta phase which means they need
 to be explicitly enabled for you to use them.
 
+Pre-requisites
+--------------
+
+Server which is running action runner service which is used for executing
+Windows runners actions needs to have the following dependencies installed:
+
+* ``smbclient`` >= 4.1 - Command line SMB (samba) client.
+* ``winexe`` >= 1.1 - Command line tool for executing commands remotely on
+  Windows hosts.
+
+Both of those dependencies are available in our APT and Yum repositories and
+are installed by default when using ``st2_deploy.sh`` script or puppet based
+installation.
+
 Supported Windows Versions
 --------------------------
 
