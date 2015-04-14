@@ -3,12 +3,43 @@ Configuration
 
 .. note:: If you are using the "all in one" :doc:`/install/index`, all configurations are already setup.
 
-|st2| configuration file is at :github_st2:`/etc/st2/st2.conf </conf/st2.prod.conf>`
+|st2| configuration file is at :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>`
+
+Configure MongoDB
+-----------------
+StackStorm requires a connection to MongoDB to operate.
+
+
+In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following section :
+
+.. code-block:: bash
+
+    [database]
+    host = <MongoDB host>
+    port = <MongoDB server port>
+    db_name = <User define database name, usually st2>
+    username = <username for db login>
+    password = <password for db login>
+
+.. note:: The username and password properties are optional.
+
+Configure RabbitMQ
+------------------
+StackStorm uses RabbitMQ for messaging between its services.
+
+In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following section :
+
+.. code-block:: bash
+
+    [messaging]
+    url = <amqp://#RMQ_USER:#RMQ_PASSWD@#RMQ_HOST:#RMQ_PORT/#RMQ_VHOST>
+
+.. note:: The #RMQ_VHOST property is optional and can be left blank.
 
 SUDO Access
 -----------
 
-All actions run by |st2| are performed by a single user. Typically, this user is named ``stanley`` and that is configurable via :github_st2:`st2.conf </conf/st2.prod.conf>`.
+All actions run by |st2| are performed by a single user. Typically, this user is named ``stanley`` and that is configurable via :github_st2:`st2.conf <conf/st2.prod.conf>`.
 
 .. note:: `stanley` user requires the following access -
 
@@ -76,9 +107,14 @@ By default, the logs can be found in ``/var/log/st2``.
   <https://docs.python.org/2/library/logging.config.html#configuration-file-format>`_. If you desire to change location of the log files,
   the paths and other settings can be modified in these files.
 
-* To configure logging with syslog, grab the configuration and follow instructions at :github_contrib:`st2contrib/extra/syslog </extra/syslog>`
+* To configure logging with syslog, grab the configuration and follow instructions at :github_contrib:`st2contrib/extra/syslog <extra/syslog>`
 
-* Check out LogStash configuration and Kibana dashboard for pretty logging and audit at :github_contrib:`st2contrib/extra/logstash </extra/logstash>`
+* Check out LogStash configuration and Kibana dashboard for pretty logging and audit at :github_contrib:`st2contrib/extra/logstash <extra/logstash>`
+
+Sample configuration file
+-------------------------
+
+A sample config file with all the configuration options can be found at :github_st2:`st2.conf.sample <conf/st2.conf.sample>`.
 
 Serve WebUI files from the API server
 -------------------------------------

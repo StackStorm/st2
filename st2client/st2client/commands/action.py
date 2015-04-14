@@ -727,6 +727,8 @@ class ActionExecutionBranch(resource.ResourceBranch):
         # Register extended commands
         self.commands['re-run'] = ActionExecutionReRunCommand(self.resource, self.app,
                                                               self.subparsers, add_help=False)
+        self.commands['cancel'] = ActionExecutionCancelCommand(self.resource, self.app,
+                                                               self.subparsers, add_help=False)
 
 
 POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceled')
@@ -838,6 +840,37 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, resource.ResourceCommand)
             raise OperationFailureException('Execution %s not found.' % (args.id))
 
         return self._print_execution_details(execution=execution, args=args, **kwargs)
+
+
+class ActionExecutionCancelCommand(resource.ResourceCommand):
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionExecutionCancelCommand, self).__init__(
+            resource, 'cancel', 'Cancel an %s.' %
+            resource.get_plural_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('id',
+                                 help=('ID of the %s.' %
+                                       resource.get_display_name().lower()))
+
+    def run(self, args, **kwargs):
+        return self.manager.delete_by_id(args.id)
+
+    @add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        response = self.run(args, **kwargs)
+        if response and 'faultstring' in response:
+            message = response.get('faultstring', '%s with id %s canceled.' %
+                                   (self.resource.get_display_name().lower(), args.id))
+
+        elif response:
+            message = '%s with id %s canceled.' % (self.resource.get_display_name().lower(),
+                                                   args.id)
+        else:
+            message = 'Cannot cancel %s with id %s.' % (self.resource.get_display_name().lower(),
+                                                        args.id)
+        print(message)
 
 
 class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceCommand):

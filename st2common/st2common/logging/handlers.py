@@ -26,12 +26,14 @@ __all__ = [
 ]
 
 
-class FormatNamedFileHandler(logging.FileHandler):
-    def __init__(self, filename, mode='a', encoding=None, delay=False):
+class FormatNamedFileHandler(logging.handlers.RotatingFileHandler):
+    def __init__(self, filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=False):
         # Include timestamp in the name.
         filename = filename.format(ts=str(datetime.datetime.utcnow()).replace(' ', '_'),
                                    pid=os.getpid())
-        super(FormatNamedFileHandler, self).__init__(filename, mode, encoding, delay)
+        super(FormatNamedFileHandler, self).__init__(filename, mode=mode, maxBytes=maxBytes,
+                                                     backupCount=backupCount, encoding=encoding,
+                                                     delay=delay)
 
 
 class ConfigurableSyslogHandler(logging.handlers.SysLogHandler):
