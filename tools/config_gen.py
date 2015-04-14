@@ -30,6 +30,8 @@ CONFIGS = ['st2common.config',
            'st2reactor.rules.config',
            'st2reactor.sensor.config']
 
+SKIP_GROUPS = ['api_pecan']
+
 
 def _import_config(config):
     try:
@@ -41,6 +43,8 @@ def _import_config(config):
 
 def _read_current_config(opt_groups):
     for k, v in six.iteritems(cfg.CONF._groups):
+        if k in SKIP_GROUPS:
+            continue
         if k not in opt_groups:
             opt_groups[k] = v
     return opt_groups
