@@ -28,11 +28,13 @@ meaningful work.
 """
 
 import datetime
+import os
 import random
 import sys
 
 import eventlet
 from oslo.config import cfg
+import yaml
 
 from st2common import config
 from st2common.transport.reactor import TriggerDispatcher
@@ -70,7 +72,7 @@ def _inject_instances(trigger, rate_per_trigger, duration, payload={}):
         elapsed = (datetime.datetime.now() - start).seconds/60.0
         count += 1
 
-    print('%s: Emitted %d triggers in %d seconds', trigger, count, elapsed)
+    print('%s: Emitted %d triggers in %d seconds' % (trigger, count, elapsed))
 
 
 def main():
@@ -80,10 +82,12 @@ def main():
         cfg.IntOpt('rate', default=100,
                    help='Rate of trigger injection measured in instances in per sec.' +
                    ' Assumes a default exponential distribution in time so arrival is poisson.'),
-        cfg.ListOpt('triggers', required=True,
+        cfg.ListOpt('triggers', required=False,
                     help='List of triggers for which instances should be fired.' +
                     ' Uniform distribution will be followed if there is more than one' +
                     'trigger.'),
+        cfg.StrOpt('schema_file', default=None,
+                   help='Path to schema file defining trigger and payload.'),
         cfg.IntOpt('duration', default=1,
                    help='Duration of stress test in minutes.')
     ]
@@ -91,15 +95,30 @@ def main():
     config.parse_args()
 
     # Get config values
-    rate = cfg.CONF.rate
     triggers = cfg.CONF.triggers
+    trigger_payload_schema = {}
+
+    if not triggers:
+        if (cfg.CONF.schema_file is None or cfg.CONF.schema_file == '' or
+                not os.path.exists(cfg.CONF.schema_file)):
+            print('Either "triggers" need to be provided or a schema file containing' +
+                  ' triggers should be provided.')
+            return
+        with open(cfg.CONF.schema_file) as fd:
+            trigger_payload_schema = yaml.safe_load(fd)
+            triggers = trigger_payload_schema.keys()
+            print('Triggers=%s' % triggers)
+
+    rate = cfg.CONF.rate
     rate_per_trigger = int(rate/len(triggers))
     duration = cfg.CONF.duration
 
     dispatcher_pool = eventlet.GreenPool(len(triggers))
 
     for trigger in triggers:
-        dispatcher_pool.spawn(_inject_instances, trigger, rate_per_trigger, duration)
+        payload = trigger_payload_schema.get(trigger, {})
+        dispatcher_pool.spawn(_inject_instances, trigger, rate_per_trigger, duration,
+                              payload=payload)
         eventlet.sleep(random.uniform(0, 1))
     dispatcher_pool.waitall()
 
