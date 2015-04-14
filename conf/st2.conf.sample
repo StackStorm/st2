@@ -1,0 +1,166 @@
+[action_sensor]
+# Timeout value of all httprequests made by action sensor.
+request_timeout = 1
+# Amount of time to wait prior to retrying a request.
+retry_wait = 1
+# Whether to enable or disable the ability to post a trigger on action.
+enable = True
+# URL for action sensor to post TriggerType.
+triggers_base_url = http://localhost:9101/v1/triggertypes/
+# No. of times to retry registration.
+max_attempts = 10
+
+[actionrunner]
+# Python binary which will be used by Python actions.
+python_binary = /mnt/st2repos/st2/virtualenv/bin/python
+# location of the logging.conf file
+logging = conf/logging.conf
+
+[api]
+# List of origins allowed
+allow_origin = ['http://localhost:3000']
+# location of the logging.conf file
+logging = conf/logging.conf
+# Enable to serve static WebUI files using the API service
+serve_webui_files = True
+# StackStorm API server host
+host = 0.0.0.0
+# Send empty message every N seconds to keep connection open
+heartbeat = 25
+# StackStorm API server port
+port = 9101
+
+[auth]
+# Enable authentication middleware.
+enable = True
+# Path to the logging config.
+logging = conf/logging.conf
+# Base URL to the API endpoint excluding the version
+api_url = None
+# Access token ttl in seconds.
+token_ttl = 86400
+# Path to the SSL certificate file. Only used when "use_ssl" is specified.
+cert = /etc/apache2/ssl/mycert.crt
+# JSON serialized arguments which are passed to the authentication backend in a standalone mode.
+backend_kwargs = None
+# Host on which the service should listen on.
+host = 0.0.0.0
+# Authentication mode (proxy,standalone)
+mode = proxy
+# Path to the SSL private key file. Only used when "use_ssl" is specified.
+key = /etc/apache2/ssl/mycert.key
+# Specify to enable debug mode.
+debug = False
+# Specify to enable SSL / TLS mode
+use_ssl = False
+# Port on which the service should listen on.
+port = 9100
+# Authentication backend to use in a standalone mode (mongodb,flat_file).
+backend = flat_file
+
+[content]
+# Paths which will be searched for aliases.
+aliases_base_paths = /opt/stackstorm/aliases
+# Path to the directory which contains system packs.
+system_packs_base_path = /opt/stackstorm/packs
+# Paths which will be searched for integration packs.
+packs_base_paths = None
+
+[database]
+# username for db login
+username = None
+# password for db login
+password = None
+# host of db server
+host = 0.0.0.0
+# name of database
+db_name = st2
+# port of db server
+port = 27017
+
+[generic_webhook_sensor]
+# URL of the st2 webhook endpoint.
+url = /webhooks/generic/
+# Host for the generic webhook endpoint.
+host = 0.0.0.0
+# Port for the generic webhook endpoint.
+port = 6001
+
+[log]
+# Controls if stderr should be redirected to the logs.
+redirect_stderr = False
+# Exclusion list of loggers to omit.
+excludes = 
+
+[messaging]
+# URL of the messaging server.
+url = amqp://guest:guest@localhost:5672//
+
+[mistral]
+# Time in seconds to wait before retrying connection to Mistral.
+retry_wait = 5
+# Mistral v2 API server root endpoint.
+v2_base_url = http://localhost:8989/v2
+# Maximum no of attempts made to connect to Mistral.
+max_attempts = 180
+
+[notifier]
+# Location of the logging configuration file.
+logging = conf/logging.notifier.conf
+
+[resultstracker]
+# Location of the logging configuration file.
+logging = conf/logging.resultstracker.conf
+
+[rulesengine]
+# Location of the logging configuration file.
+logging = conf/logging.rulesengine.conf
+
+[schema]
+# Version of JSON schema to use.
+version = 4
+# URL to the JSON schema draft.
+draft = http://json-schema.org/draft-04/schema#
+
+[sensorcontainer]
+# location of the logging.conf file
+logging = conf/logging.sensorcontainer.conf
+
+[ssh_runner]
+# Location of the script on the remote filesystem.
+remote_dir = /tmp
+# How partial success of actions run on multiple nodes should be treated.
+allow_partial_failure = False
+
+[st2_webhook_sensor]
+# URL of the st2 webhook endpoint.
+url = /webhooks/st2/
+# Host for the st2 webhook endpoint.
+host = 0.0.0.0
+# Port for the st2 webhook endpoint.
+port = 6000
+
+[syslog]
+# Host for the syslog server.
+host = localhost
+# Transport protocol to use (udp / tcp).
+protocol = udp
+# Port for the syslog server.
+port = 514
+# Syslog facility level.
+facility = local7
+
+[system]
+# Base path to all st2 artifacts.
+base_path = /opt/stackstorm
+
+[system_user]
+# SSH private key for the system user.
+ssh_key_file = /home/vagrant/.ssh/stanley_rsa
+# Default system user.
+user = stanley
+
+[timer]
+# Timezone pertaining to the location where st2 is run.
+local_timezone = America/Los_Angeles
+
