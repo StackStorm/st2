@@ -15,7 +15,6 @@
 
 import os
 import sys
-import logging as stdlib_logging
 
 import eventlet
 from oslo.config import cfg
