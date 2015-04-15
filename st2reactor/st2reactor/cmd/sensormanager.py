@@ -10,6 +10,7 @@ from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.transport.utils import register_exchanges
+from st2common.signal_handlers import register_common_signal_handlers
 from st2reactor.sensor import config
 from st2common.persistence.reactor import SensorType
 from st2reactor.container.manager import SensorContainerManager
@@ -43,6 +44,7 @@ def _setup():
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
              username=username, password=password)
     register_exchanges()
+    register_common_signal_handlers()
 
     # 4. Register internal triggers
     # Note: We need to do import here because of a messed up configuration
