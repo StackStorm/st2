@@ -78,6 +78,23 @@ class StormBaseDB(StormFoundationDB):
     }
 
 
+class StormContentDB(StormBaseDB):
+    """Abstraction for a user content model from a pack."""
+    name = me.StringField(required=True)
+    pack = pack = me.StringField(
+        required=False,
+        help_text='Name of the content pack.',
+        unique_with='name')
+    file_uri = me.StringField(
+        required=False,
+        help_text='Location of the content metadata file.')
+
+    # see http://docs.mongoengine.org/guide/defining-documents.html#abstract-classes
+    meta = {
+        'abstract': True
+    }
+
+
 class EscapedDictField(me.DictField):
 
     def to_mongo(self, value):

@@ -27,7 +27,7 @@ __all__ = [
 ]
 
 
-class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin):
+class SensorTypeDB(stormbase.StormContentDB, stormbase.ContentPackResourceMixin):
     """
     Description of a specific type of a sensor (think of it as a sensor
     template).
@@ -39,8 +39,6 @@ class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin):
         trigger_type - A list of references to the TriggerTypeDB objects exposed by this sensor.
         poll_interval - Poll interval for this sensor.
     """
-    name = me.StringField(required=True)
-    pack = me.StringField(required=True, unique_with='name')
     artifact_uri = me.StringField()
     entry_point = me.StringField()
     trigger_types = me.ListField(field=me.StringField())
@@ -108,7 +106,7 @@ class ActionExecutionSpecDB(me.EmbeddedDocument):
         return ''.join(result)
 
 
-class RuleDB(stormbase.StormBaseDB, stormbase.TagsMixin):
+class RuleDB(stormbase.StormContentDB, stormbase.TagsMixin):
     """Specifies the action to invoke on the occurrence of a Trigger. It
     also includes the transformation to perform to match the impedance
     between the payload of a TriggerInstance and input of a action.

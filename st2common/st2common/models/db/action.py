@@ -102,7 +102,7 @@ class NotificationSchema(me.EmbeddedDocument):
         return ''.join(result)
 
 
-class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
+class ActionDB(stormbase.StormContentDB, stormbase.TagsMixin,
                stormbase.ContentPackResourceMixin):
     """
     The system entity that represents a Stack Action/Automation in the system.
@@ -113,19 +113,13 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         runner_type: The actionrunner is used to execute the action.
         parameters: The specification for parameters for the action.
     """
-    name = me.StringField(required=True)
     ref = me.StringField(required=True)
-    description = me.StringField()
     enabled = me.BooleanField(
         required=True, default=True,
         help_text='A flag indicating whether the action is enabled.')
     entry_point = me.StringField(
         required=True,
         help_text='The entry point to the action.')
-    pack = me.StringField(
-        required=False,
-        help_text='Name of the content pack.',
-        unique_with='name')
     runner_type = me.DictField(
         required=True, default={},
         help_text='The action runner to use for executing the action.')
@@ -215,6 +209,9 @@ class ActionAliasDB(stormbase.StormBaseDB):
     formats = me.ListField(
         field=me.StringField(),
         help_text='Possible parameter formats that an alias supports.')
+    file_uri = me.StringField(
+        required=False,
+        help_text='Location of the content metadata file.')
 
     meta = {
         'indexes': ['name']
