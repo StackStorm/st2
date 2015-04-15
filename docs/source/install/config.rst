@@ -7,6 +7,7 @@ Configuration
 
 Configure MongoDB
 -----------------
+
 StackStorm requires a connection to MongoDB to operate.
 
 
@@ -25,6 +26,7 @@ In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following se
 
 Configure RabbitMQ
 ------------------
+
 StackStorm uses RabbitMQ for messaging between its services.
 
 In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following section :
@@ -101,15 +103,40 @@ Configure Logging
 
 By default, the logs can be found in ``/var/log/st2``.
 
-* With the standard logging setup you will notice files like ``st2*.log`` and ``st2*.audit.log`` in the log folder.
+* With the standard logging setup you will notice files like ``st2*.log`` and
+  ``st2*.audit.log`` in the log folder.
 
-* Per component logging configuration can be found in ``/etc/st2*/logging.conf``. Those files use `Python logging configuration format
-  <https://docs.python.org/2/library/logging.config.html#configuration-file-format>`_. If you desire to change location of the log files,
-  the paths and other settings can be modified in these files.
+* Per component logging configuration can be found in ``/etc/st2*/logging.conf``.
+  Those files use `Python logging configuration format <https://docs.python.org/2/library/logging.config.html#configuration-file-format>`_.
+  If you desire to change location of the log files, the paths and other
+  settings can be modified in these files.
 
-* To configure logging with syslog, grab the configuration and follow instructions at :github_contrib:`st2contrib/extra/syslog <extra/syslog>`
+* By default, log rotation is handled via logrotate. Default log rotation config
+  (:github_st2:`logrotate.conf <conf/logrotate.conf>`) is included with all the
+  package based installations. If you want Python services instead of logrotate
+  to handle the log rotation for you, you can update the logging configs as
+  shown below:
 
-* Check out LogStash configuration and Kibana dashboard for pretty logging and audit at :github_contrib:`st2contrib/extra/logstash <extra/logstash>`
+  .. code-block:: ini
+
+      [handler_fileHandler]
+      class=handlers.RotatingFileHandler
+      level=DEBUG
+      formatter=verboseConsoleFormatter
+      args=("logs/st2api.log", , "a", 100000000, 5)
+
+  In this case the log file will be rotated when it reaches 100000000 bytes (100
+  MB) and a maximum of 5 old log files will be kept. For more information, see
+  `RotatingFileHandler <https://docs.python.org/2/library/logging.handlers.html#rotatingfilehandler>`_
+  docs.
+
+* To configure logging with syslog, grab the configuration and follow
+  instructions at :github_contrib:`st2contrib/extra/syslog <extra/syslog>`
+
+* Check out LogStash configuration and Kibana dashboard for pretty logging and
+  audit at :github_contrib:`st2contrib/extra/logstash <extra/logstash>`
+
+  logrotate log rotation
 
 Sample configuration file
 -------------------------
