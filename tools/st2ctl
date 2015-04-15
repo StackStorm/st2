@@ -34,6 +34,11 @@ function print_usage() {
     echo "  component           Name of the st2 service to restart."
     echo "                      ${COMPONENTS}"
     echo
+    echo "usage: st2ctl {reopen-log-files}"
+    echo "positional arguments:"
+    echo "  component           Name of the st2 service to reopen the log files for."
+    echo "                      ${COMPONENTS}"
+    echo
     echo "usage: st2ctl {reload, clean}"
     echo "optional arguments:"
     echo "  --register-all      Register all sensors, rules, and actions."
@@ -64,7 +69,7 @@ function service_map() {
 }
 
 
-if [ -z ${1} ] || [ ${1} != "start" -a ${1} != "stop" -a ${1} != "restart" -a ${1} != "status" -a ${1} != "restart-component" -a ${1} != "reload" -a ${1} != "clean" ]
+if [ -z ${1} ] || [ ${1} != "start" -a ${1} != "stop" -a ${1} != "restart" -a ${1} != "status" -a ${1} != "restart-component" -a ${1} != "reopen-log-files" -a ${1} != "-component" -a ${1} != "reload" -a ${1} != "clean" ]
 then
     print_usage
     exit 1
@@ -204,6 +209,37 @@ function restart_component() {
   fi
 }
 
+function reopen_component_log_files() {
+  COM=${1}
+  ALT_COM=`service_map $COM`
+
+  if [[ ! -z $COM ]]
+  then
+    if [[ "${COM}" == "st2actionrunner" ]]
+    then
+      PROC_COUNT=${AR}
+    else
+      PROC_COUNT=1
+    fi
+
+    echo "Sending SIGUSR1 to service ${COM}|${ALT_COM} with ${PROC_COUNT} process(es)."
+
+    PID=`ps ax | grep -v grep | grep -v st2ctl | egrep "${COM}|${ALT_COM}" | awk '{print $1}'`
+    if [[ ! -z $PID ]]
+    then
+      for p in $PID
+      do
+        echo "Sending SIGUSR1 to ${COM} PID: ${p}"
+        kill -USR1 $p
+      done
+    else
+      echo "${COM} is not running"
+    fi
+  else
+    echo "No component specified to reopen the log files for."
+  fi
+}
+
 function register_content() {
   echo "Registering content...[flags = ${REGISTER_FLAGS}]"
   $PYTHON ${PYTHONPACK}/st2common/bin/st2-register-content --config-file ${STANCONF} ${REGISTER_FLAGS}
@@ -256,6 +292,11 @@ case ${1} in
     sleep 1
     getpids
     ;;
+  reopen-log-files)
+    reopen_component_log_files ${2}
+    sleep 1
+    getpids
+    ;;
   reload)
     register_content
     getpids
@@ -278,6 +319,6 @@ case ${1} in
     getpids
     ;;
   *)
-    echo "Valid actions: start|stop|restart|restart-component|reload|clean|status"
+    echo "Valid actions: start|stop|restart|restart-component|reopen-log-files|reload|clean|status"
     ;;
 esac
