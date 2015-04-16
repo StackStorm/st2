@@ -27,6 +27,7 @@ __all__ = [
 WINEXE_EXISTS = find_executable('winexe') is not None
 SMBCLIENT_EXISTS = find_executable('smbclient') is not None
 
+# Constants which map winexe error codes to user-friendly error messages
 ERROR_CODE_TO_MESSAGE_MAP = {
     'NT_STATUS_LOGON_FAILURE': 'Invalid or missing authentication credentials.',
     'NT_STATUS_IO_TIMEOUT': 'Connection timeout.',
@@ -36,6 +37,18 @@ ERROR_CODE_TO_MESSAGE_MAP = {
 
 
 class BaseWindowsRunner(ActionRunner):
+    def _verify_winexe_exists(self):
+        if not WINEXE_EXISTS:
+            msg = ('Could not find "winexe" binary. Make sure it\'s installed and available'
+                   'in $PATH')
+            raise Exception(msg)
+
+    def _verify_smbclient_exists(self):
+        if not SMBCLIENT_EXISTS:
+            msg = ('Could not find "smbclient" binary. Make sure it\'s installed and available'
+                   'in $PATH')
+            raise Exception(msg)
+
     def _get_winexe_command_args(self, host, username, password, command, domain=None):
         args = ['winexe']
 

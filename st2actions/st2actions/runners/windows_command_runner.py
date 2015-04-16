@@ -22,7 +22,6 @@ from st2common.util.green.shell import run_command
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2actions.runners.windows_runner import BaseWindowsRunner
-from st2actions.runners.windows_runner import WINEXE_EXISTS
 
 LOG = logging.getLogger(__name__)
 
@@ -62,9 +61,8 @@ class WindowsCommandRunner(BaseWindowsRunner):
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
 
     def run(self, action_parameters):
-        if not WINEXE_EXISTS:
-            msg = 'Could not find "winexe" binary. Make sure it\'s installed and available.'
-            raise Exception(msg)
+        # Make sure the dependencies are available
+        self._verify_winexe_exists()
 
         args = self._get_winexe_command_args(host=self._host, username=self._username,
                                              password=self._password,

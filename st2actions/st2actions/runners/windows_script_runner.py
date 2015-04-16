@@ -25,8 +25,6 @@ from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2actions.runners.windows_runner import BaseWindowsRunner
-from st2actions.runners.windows_runner import WINEXE_EXISTS
-from st2actions.runners.windows_runner import SMBCLIENT_EXISTS
 
 __all__ = [
     'get_runner',
@@ -82,15 +80,9 @@ class WindowsScriptRunner(BaseWindowsRunner):
         self._share = self.runner_parameters.get(RUNNER_SHARE_NAME, 'C$')
 
     def run(self, action_parameters):
-        if not WINEXE_EXISTS:
-            msg = ('Could not find "winexe" binary. Make sure it\'s installed and available'
-                   'in $PATH')
-            raise Exception(msg)
-
-        if not SMBCLIENT_EXISTS:
-            msg = ('Could not find "smbclient" binary. Make sure it\'s installed and available'
-                   'in $PATH')
-            raise Exception(msg)
+        # Make sure the dependencies are available
+        self._verify_winexe_exists()
+        self._verify_smbclient_exists()
 
         # 1. Upload script file to a temporary location
         local_path = self.entry_point
