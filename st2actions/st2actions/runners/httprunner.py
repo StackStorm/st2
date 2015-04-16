@@ -84,6 +84,7 @@ class HttpRunner(ActionRunner):
         LOG.debug('action_parameters = %s', action_parameters)
         output = client.run()
         status = HttpRunner._get_result_status(output.get('status_code', None))
+        self._log_action_completion(logger=LOG, result=output, status=status)
         return (status, output, None)
 
     def _get_http_client(self, action_parameters):

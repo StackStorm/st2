@@ -174,4 +174,5 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             result['error'] = error
 
         status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
+        self._log_action_completion(logger=LOG, result=result, status=status, exit_code=exit_code)
         return (status, jsonify.json_loads(result, LocalShellRunner.KEYS_TO_TRANSFORM), None)
