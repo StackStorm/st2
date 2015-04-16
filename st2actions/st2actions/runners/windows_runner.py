@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 from distutils.spawn import find_executable
+
+import six
 
 from st2actions.runners import ActionRunner
 
@@ -36,6 +39,7 @@ ERROR_CODE_TO_MESSAGE_MAP = {
 }
 
 
+@six.add_metaclass(abc.ABCMeta)
 class BaseWindowsRunner(ActionRunner):
     def _verify_winexe_exists(self):
         if not WINEXE_EXISTS:
