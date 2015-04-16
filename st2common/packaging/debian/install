@@ -7,5 +7,6 @@ docs usr/share/doc/st2/
 st2common usr/lib/python2.7/dist-packages/
 bin usr/lib/python2.7/dist-packages/st2common/
 st2/st2.conf etc/st2
+logrotate.d/st2.conf etc/logrotate.d/
 tools/st2ctl usr/bin/
 tools/st2-setup-tests usr/lib/python2.7/dist-packages/st2common/bin/
