@@ -44,6 +44,7 @@ RUNNER_COMMAND = 'cmd'
 RUNNER_TIMEOUT = 'timeout'
 RUNNER_SHARE_NAME = 'share'
 
+# Timeouts for different steps
 UPLOAD_FILE_TIMEOUT = 30
 CREATE_DIRECTORY_TIMEOUT = 10
 DELETE_FILE_TIMEOUT = 10
@@ -56,7 +57,7 @@ def get_runner():
 
 class WindowsScriptRunner(BaseWindowsRunner):
     """
-    Runner which executes power shell scripts on a remote Windows machine.
+    Runner which executes PowerShell scripts on a remote Windows machine.
     """
 
     def __init__(self, runner_id, timeout=WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT):
