@@ -13,8 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+import socket
+
+
 __all__ = [
-    'get_url_without_trailing_slash'
+    'get_url_without_trailing_slash',
+    'get_file_uri'
 ]
 
 
@@ -29,3 +34,11 @@ def get_url_without_trailing_slash(value):
     """
     result = value[:-1] if value.endswith('/') else value
     return result
+
+
+def get_file_uri(file_path):
+    scheme = 'file'
+    netloc = socket.gethostname()
+    file_path = six.moves.urllib.request.pathname2url(file_path)
+
+    return six.moves.urllib_parse.urljoin('%s://%s' % (scheme, netloc), file_path)

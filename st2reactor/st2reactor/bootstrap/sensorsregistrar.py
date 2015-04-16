@@ -19,6 +19,7 @@ import six
 
 from st2common import log as logging
 from st2common.bootstrap.base import ResourceRegistrar
+from st2common.util.url import get_file_uri
 import st2reactor.container.utils as container_utils
 import st2common.content.utils as content_utils
 
@@ -118,6 +119,7 @@ class SensorsRegistrar(ResourceRegistrar):
         trigger_types = metadata.get('trigger_types', [])
         poll_interval = metadata.get('poll_interval', None)
         enabled = metadata.get('enabled', True)
+        metadata_file_uri = get_file_uri(sensor_metadata_file_path)
 
         # Add pack to each trigger type item
         for trigger_type in trigger_types:
@@ -144,7 +146,8 @@ class SensorsRegistrar(ResourceRegistrar):
                 'file_path': sensor_file_path,
                 'trigger_types': trigger_type_refs,
                 'poll_interval': poll_interval,
-                'enabled': enabled
+                'enabled': enabled,
+                'file_uri': metadata_file_uri
             }
             container_utils.add_sensor_model(pack=pack, sensor=sensor_obj)
 

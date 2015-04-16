@@ -153,7 +153,7 @@ def add_trigger_models(trigger_types):
     return result
 
 
-def _create_sensor_type(pack, name, description, artifact_uri, entry_point,
+def _create_sensor_type(pack, name, description, artifact_uri, entry_point, file_uri,
                         trigger_types=None, poll_interval=10, enabled=True):
     sensor_types = SensorType.query(pack=pack, name=name)
     is_update = False
@@ -175,6 +175,7 @@ def _create_sensor_type(pack, name, description, artifact_uri, entry_point,
     sensor_type.description = description
     sensor_type.artifact_uri = artifact_uri
     sensor_type.entry_point = entry_point
+    sensor_type.file_uri = file_uri
     sensor_type.trigger_types = trigger_types
     sensor_type.poll_interval = poll_interval
     sensor_type.enabled = enabled
@@ -214,12 +215,14 @@ def _add_sensor_model(pack, sensor):
     trigger_types = sensor['trigger_types'] or []
     poll_interval = sensor['poll_interval']
     enabled = sensor['enabled']
+    file_uri = sensor['file_uri']
 
     obj = _create_sensor_type(pack=pack,
                               name=name,
                               description=description,
                               artifact_uri=artifact_uri,
                               entry_point=entry_point,
+                              file_uri=file_uri,
                               trigger_types=trigger_types,
                               poll_interval=poll_interval,
                               enabled=enabled)

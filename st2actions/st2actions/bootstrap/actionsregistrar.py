@@ -25,6 +25,7 @@ from st2common.models.api.action import ActionAPI
 from st2common.models.system.common import ResourceReference
 import st2common.content.utils as content_utils
 import st2common.util.action_db as action_utils
+from st2common.util.url import get_file_uri
 import st2common.validators.api.action as action_validator
 
 __all__ = [
@@ -114,6 +115,7 @@ class ActionsRegistrar(ResourceRegistrar):
         action_api.validate()
         action_validator.validate_action(action_api)
         model = ActionAPI.to_model(action_api)
+        model.file_uri = get_file_uri(action)
 
         action_ref = ResourceReference.to_string_reference(pack=pack, name=str(content['name']))
         existing = action_utils.get_action_by_ref(action_ref)

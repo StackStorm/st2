@@ -23,6 +23,7 @@ from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.rule import RuleAPI
 from st2common.persistence.reactor import Rule
 import st2common.content.utils as content_utils
+from st2common.util.url import get_file_uri
 
 __all__ = [
     'RulesRegistrar',
@@ -94,6 +95,7 @@ class RulesRegistrar(ResourceRegistrar):
                 rule_api = RuleAPI(**content)
                 rule_api.validate()
                 rule_db = RuleAPI.to_model(rule_api)
+                rule_db.file_uri = get_file_uri(rule)
 
                 try:
                     rule_db.id = Rule.get_by_name(rule_api.name).id

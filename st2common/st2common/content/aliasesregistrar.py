@@ -20,6 +20,7 @@ from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.action import ActionAliasAPI
 from st2common.persistence.action import ActionAlias
+from st2common.util.url import get_file_uri
 
 __all__ = [
     'AliasesRegistrar',
@@ -55,6 +56,7 @@ class AliasesRegistrar(ResourceRegistrar):
                 content = self._meta_loader.load(alias)
                 action_alias_api = ActionAliasAPI(**content)
                 action_alias_db = ActionAliasAPI.to_model(action_alias_api)
+                action_alias_db.file_uri = get_file_uri(alias)
 
                 try:
                     action_alias_db.id = ActionAlias.get_by_name(action_alias_api.name).id
