@@ -43,6 +43,7 @@ cp -R docs/* %{buildroot}/usr/share/doc/st2/
 cp -R st2common %{buildroot}//usr/local/lib/python2.7/site-packages/
 cp -R bin %{buildroot}/usr/local/lib/python2.7/site-packages/st2common/
 install st2/st2.conf %{buildroot}/etc/st2/st2.conf
+install logrotate.d/st2.conf %{buildroot}/etc/logrotate.d/st2.conf
 install -m755 tools/st2ctl %{buildroot}/usr/bin/st2ctl
 install -m755 tools/st2-setup-tests %{buildroot}/usr/local/lib/python2.7/site-packages/st2common/bin/st2-setup-tests
 

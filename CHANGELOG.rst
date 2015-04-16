@@ -32,6 +32,7 @@ in development
 * Update runner names so they follow a consistent naming pattern. For backward
   compatibility reasons, runners can still be referenced using their old names.
   (improvement)
+* Update all the Python services to re-open log files on the ``SIGUSR1`` signal. (new-feature)
 
 v0.8.3 - March 23, 2015
 -----------------------
