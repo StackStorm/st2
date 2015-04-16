@@ -23,7 +23,7 @@ from st2common.util.green.shell import run_command
 from st2common.util.shell import quote_windows
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
-from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
+from st2common.constants.runners import WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2actions.runners.windows_runner import BaseWindowsRunner
 from st2actions.runners.windows_runner import WINEXE_EXISTS
 from st2actions.runners.windows_runner import SMBCLIENT_EXISTS
@@ -61,7 +61,7 @@ class WindowsScriptRunner(BaseWindowsRunner):
     Runner which executes power shell scripts on a remote Windows machine.
     """
 
-    def __init__(self, runner_id, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT):
+    def __init__(self, runner_id, timeout=WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT):
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``
