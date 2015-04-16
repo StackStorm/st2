@@ -21,14 +21,9 @@ from oslo.config import cfg
 from eventlet import wsgi
 
 from st2common import log as logging
-from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
-from st2common.transport.utils import register_exchanges
-from st2common.signal_handlers import register_common_signal_handlers
 from st2api.listener import get_listener_if_set
-from st2api import config
-from st2api import app
+from st2api import wsgi as app
 
 
 eventlet.monkey_patch(
@@ -41,34 +36,13 @@ eventlet.monkey_patch(
 LOG = logging.getLogger(__name__)
 
 
-def _setup():
-    # Set up logger which logs everything which happens during and before config
-    # parsing to sys.stdout
-    logging.setup(DEFAULT_LOGGING_CONF_PATH)
-
-    # 1. parse args to setup config.
-    config.parse_args()
-
-    # 2. setup logging.
-    logging.setup(cfg.CONF.api.logging)
-
-    # 3. all other setup which requires config to be parsed and logging to
-    # be correctly setup.
-    username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
-    password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-             username=username, password=password)
-    register_exchanges()
-    register_common_signal_handlers()
-
-
 def _run_server():
     host = cfg.CONF.api.host
     port = cfg.CONF.api.port
 
     LOG.info('(PID=%s) ST2 API is serving on http://%s:%s.', os.getpid(), host, port)
 
-    wsgi.server(eventlet.listen((host, port)), app.setup_app())
+    wsgi.server(eventlet.listen((host, port)), app.setup())
     return 0
 
 
@@ -78,7 +52,6 @@ def _teardown():
 
 def main():
     try:
-        _setup()
         return _run_server()
     except SystemExit as exit_code:
         sys.exit(exit_code)
