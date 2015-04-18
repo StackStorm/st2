@@ -472,8 +472,8 @@ install_webui() {
     .constant('st2Config', {
     hosts: [{
       name: 'StackStorm',
-      url: '',  # use current url from the address bar
-      auth: true  # use current url from the address bar, replace the port with default st2auth port
+      url: '',
+      auth: true 
     }]
   });" > ${WEBUI_CONFIG_PATH}
 
