@@ -468,37 +468,37 @@ class TestMistralRunner(DbTestCase):
         requests, 'request',
         mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
     def test_callback_handler_with_result_as_text(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
+        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
                                         LIVEACTION_STATUS_SUCCEEDED, '<html></html>')
 
     @mock.patch.object(
         requests, 'request',
         mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
     def test_callback_handler_with_result_as_dict(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
+        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
                                         LIVEACTION_STATUS_SUCCEEDED, {'a': 1})
 
     @mock.patch.object(
         requests, 'request',
         mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
     def test_callback_handler_with_result_as_json_str(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
+        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
                                         LIVEACTION_STATUS_SUCCEEDED, '{"a": 1}')
-        MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
+        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
                                         LIVEACTION_STATUS_SUCCEEDED, "{'a': 1}")
 
     @mock.patch.object(
         requests, 'request',
         mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
     def test_callback_handler_with_result_as_list(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
+        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
                                         LIVEACTION_STATUS_SUCCEEDED, ["a", "b", "c"])
 
     @mock.patch.object(
         requests, 'request',
         mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
     def test_callback_handler_with_result_as_list_str(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/tasks/12345', {},
+        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
                                         LIVEACTION_STATUS_SUCCEEDED, '["a", "b", "c"]')
 
     @mock.patch.object(
@@ -507,30 +507,49 @@ class TestMistralRunner(DbTestCase):
     def test_callback(self):
         execution = LiveActionDB(
             action='core.local', parameters={'cmd': 'uname -a'},
-            callback={'source': 'mistral', 'url': 'http://localhost:8989/v2/tasks/12345'})
+            callback={
+                'source': 'mistral',
+                'url': 'http://localhost:8989/v2/action_executions/12345'
+            }
+        )
+
         liveaction, _ = action_service.schedule(execution)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, LIVEACTION_STATUS_SUCCEEDED)
         requests.request.assert_called_with('PUT', liveaction.callback['url'],
                                             data=json.dumps({'state': 'SUCCESS',
-                                                             'result': NON_EMPTY_RESULT}),
+                                                             'output': NON_EMPTY_RESULT}),
                                             headers={'content-type': 'application/json'})
 
     def test_build_context(self):
-        parent = {'mistral': {
-                  'workflow_name': 'foo', 'execution_id': 'zbbjb-r87t84-bbjd',
-                  'task_tags': None, 'task_name': 'some_fancy_wf_task',
-                  'task_id': '6c7d4334-3e7d-49c6-918d-698e846affaf'}}
-        current = {'workflow_name': 'foo.subwf', 'execution_id': 'cbjhv-csvhjvsh-vvshvc'}
+        parent = {
+            'mistral': {
+                'workflow_name': 'foo',
+                'workflow_execution_id': 'b222b934-7473-4cd4-a2ec-e204a8c93848',
+                'task_tags': None,
+                'task_name': 'some_fancy_wf_task',
+                'task_id': '6c7d4334-3e7d-49c6-918d-698e846affaf',
+                'action_execution_id': '24da5c88-834c-4a65-8b56-4ddbd654eb68'
+            }
+        }
+
+        current = {
+            'workflow_name': 'foo.subwf',
+            'workflow_execution_id': '135e3446-4c89-4afe-821f-6ec6a0849b27'
+        }
+
         context = MistralRunner._build_mistral_context(parent, current)
         self.assertTrue(context is not None)
         self.assertTrue('parent' in context['mistral'].keys())
+
         parent_dict = {
             'workflow_name': parent['mistral']['workflow_name'],
-            'execution_id': parent['mistral']['execution_id']
+            'workflow_execution_id': parent['mistral']['workflow_execution_id']
         }
+
         self.assertDictEqual(context['mistral']['parent'], parent_dict)
-        self.assertEqual(context['mistral']['execution_id'], current['execution_id'])
+        self.assertEqual(context['mistral']['workflow_execution_id'],
+                         current['workflow_execution_id'])
 
         parent = None
         context = MistralRunner._build_mistral_context(parent, current)

@@ -61,10 +61,7 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
                 result.pop('tasks', None)
 
             output = json.dumps(result) if type(result) in [dict, list] else str(result)
-
-            v1 = 'v1' in url
-            output_key = 'output' if v1 else 'result'
-            data = {'state': STATUS_MAP[status], output_key: output}
+            data = {'state': STATUS_MAP[status], 'output': output}
 
             for i in range(cfg.CONF.mistral.max_attempts):
                 try:
