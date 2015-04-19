@@ -23,6 +23,10 @@ by simply passing in the version number. If no version number is given, it will 
 
 This will download the latest stable build of |st2|.
 
+.. note::
+
+    On Fedora, starting from version 19, MySQL was replaced with MariaDB, a community developed fork of MySQL. It's recommended that you restore MySQL, as described on `Fedora Features/ReplaceMySQLwithMariaDB <http://fedoraproject.org/wiki/Features/ReplaceMySQLwithMariaDB>`_ page.
+
 ---------------
 
 Manual Installation
