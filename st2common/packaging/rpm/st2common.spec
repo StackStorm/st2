@@ -57,3 +57,4 @@ install -m755 tools/st2-setup-tests %{buildroot}/usr/lib/python2.7/site-packages
 /opt/stackstorm/*
 /var/log/st2
 /usr/bin/st2ctl
+/etc/logrotate.d/st2.conf
