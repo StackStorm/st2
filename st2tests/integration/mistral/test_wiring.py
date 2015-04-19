@@ -93,7 +93,7 @@ class TestWorkflowExecution(unittest2.TestCase):
     def test_concurrent_load(self):
         wf_name = 'examples.mistral-workbook-complex'
         wf_params = {'vm_name': 'demo1'}
-        executions = [self._execute_workflow(wf_name, wf_params) for i in range(10)]
+        executions = [self._execute_workflow(wf_name, wf_params) for i in range(5)]
 
         def assert_successful_completion(execution):
             eventlet.sleep(30)
