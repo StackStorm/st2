@@ -25,7 +25,7 @@ tests_config.parse_args()
 from st2tests.fixtures import executions as fixture
 from st2tests import DbTestCase
 import st2actions.bootstrap.runnersregistrar as runners_registrar
-from st2actions import worker
+from st2actions.container.base import RunnerContainer
 from st2actions.runners.localrunner import LocalShellRunner
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2common.util import reference
@@ -42,14 +42,13 @@ from st2common.persistence.action import RunnerType, Action, LiveAction
 from st2common.persistence.execution import ActionExecution
 
 
-CHAMPION = worker.Worker(None)
 MOCK_FAIL_EXECUTION_CREATE = False
 
 
 def process_create(payload):
     try:
         if isinstance(payload, LiveActionDB):
-            CHAMPION.execute_action(payload)
+            action_service.execute(payload, RunnerContainer())
     except Exception:
         traceback.print_exc()
         print(payload)

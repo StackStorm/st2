@@ -22,7 +22,6 @@ import mock
 from st2actions import worker
 from st2actions.container.base import RunnerContainer
 from st2common.constants import action as action_constants
-from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.models.db.action import LiveActionDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence import action
@@ -41,7 +40,7 @@ class TestWorker(DbTestCase):
         testworker = worker.Worker(None)
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        testworker.execute_action(live_action_db)
+        testworker._do_process_task(live_action_db)
         updated_live_action_db = get_liveaction_by_id(live_action_db.id)
         self.assertEqual(updated_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -51,7 +50,7 @@ class TestWorker(DbTestCase):
         testworker = worker.Worker(None)
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_FAILED)
-        testworker.execute_action(live_action_db)
+        testworker._do_process_task(live_action_db)
         updated_live_action_db = get_liveaction_by_id(live_action_db.id)
         self.assertEqual(updated_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_FAILED)
@@ -64,7 +63,7 @@ class TestWorker(DbTestCase):
         result = getattr(live_action_db, 'result', None)
         self.assertTrue(result == {},
                         getattr(live_action_db, 'result', None))
-        testworker.execute_action(live_action_db)
+        testworker._do_process_task(live_action_db)
         updated_live_action_db = get_liveaction_by_id(live_action_db.id)
         self.assertEqual(updated_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_CANCELED)
@@ -75,11 +74,7 @@ class TestWorker(DbTestCase):
     def test_basic_execution_no_result(self):
         testworker = worker.Worker(None)
         live_action_db = self._get_execution_db_model()
-        try:
-            testworker.execute_action(live_action_db)
-            self.assertTrue(False, 'Exception expected.')
-        except ActionRunnerException:
-            self.assertTrue(True)
+        testworker._do_process_task(live_action_db)
         updated_live_action_db = get_liveaction_by_id(live_action_db.id)
         self.assertEqual(updated_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_FAILED)
@@ -88,11 +83,7 @@ class TestWorker(DbTestCase):
     def test_failed_execution_handling(self):
         testworker = worker.Worker(None)
         live_action_db = self._get_execution_db_model()
-        try:
-            testworker.execute_action(live_action_db)
-            self.assertTrue(False, 'Exception expected.')
-        except Exception:
-            self.assertTrue(True)
+        testworker._do_process_task(live_action_db)
         updated_live_action_db = get_liveaction_by_id(live_action_db.id)
         self.assertEqual(updated_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_FAILED)
@@ -101,7 +92,7 @@ class TestWorker(DbTestCase):
     def test_succeeded_execution_handling(self):
         testworker = worker.Worker(None)
         live_action_db = self._get_execution_db_model()
-        testworker.execute_action(live_action_db)
+        testworker._do_process_task(live_action_db)
         updated_live_action_db = get_liveaction_by_id(live_action_db.id)
         self.assertEqual(updated_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_RUNNING)
@@ -110,7 +101,7 @@ class TestWorker(DbTestCase):
     def test_runner_info(self):
         testworker = worker.Worker(None)
         live_action_db = self._get_execution_db_model()
-        testworker.execute_action(live_action_db)
+        testworker._do_process_task(live_action_db)
         updated_live_action_db = get_liveaction_by_id(live_action_db.id)
         self.assertEqual(updated_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_RUNNING)

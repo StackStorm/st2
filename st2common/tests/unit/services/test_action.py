@@ -16,15 +16,18 @@
 import mock
 import jsonschema
 
-from st2tests import DbTestCase
-from st2common.util import isotime
-from st2common.transport.publishers import PoolPublisher
-from st2common.services import action as action_service
-from st2common.persistence.action import RunnerType, Action, LiveAction
+from st2actions.container.base import RunnerContainer
+from st2common.constants import action as action_constants
+from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.models.db.action import LiveActionDB
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.models.system.common import ResourceReference
-from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
+from st2common.persistence.action import RunnerType, Action
+from st2common.services import action as action_service
+from st2common.transport.publishers import PoolPublisher
+from st2common.util import isotime
+from st2common.util import action_db
+from st2tests import DbTestCase
 
 
 RUNNER = {
@@ -73,6 +76,7 @@ class TestActionExecutionService(DbTestCase):
         cls.runnerdb = RunnerType.add_or_update(RunnerTypeAPI.to_model(cls.runner))
         cls.action = ActionAPI(**ACTION)
         cls.actiondb = Action.add_or_update(ActionAPI.to_model(cls.action))
+        cls.container = RunnerContainer()
 
     @classmethod
     def tearDownClass(cls):
@@ -80,20 +84,22 @@ class TestActionExecutionService(DbTestCase):
         RunnerType.delete(cls.runnerdb)
         super(TestActionExecutionService, cls).tearDownClass()
 
-    def test_schedule(self):
+    def _schedule(self):
         context = {'user': USERNAME}
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
         request = LiveActionDB(action=ACTION_REF, context=context, parameters=parameters)
         request, _ = action_service.schedule(request)
-        execution = LiveAction.get_by_id(str(request.id))
+        execution = action_db.get_liveaction_by_id(str(request.id))
+        return request, execution
+
+    def test_schedule(self):
+        request, execution = self._schedule()
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
-        action = '.'.join([self.actiondb.pack, self.actiondb.name])
-        actual_action = execution.action
-        self.assertEqual(actual_action, action)
+        self.assertEqual(execution.action, '.'.join([self.actiondb.pack, self.actiondb.name]))
         self.assertEqual(execution.context['user'], request.context['user'])
         self.assertDictEqual(execution.parameters, request.parameters)
-        self.assertEqual(execution.status, LIVEACTION_STATUS_SCHEDULED)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
         self.assertTrue(execution.notify is not None)
         # mongoengine DateTimeField stores datetime only up to milliseconds
         self.assertEqual(isotime.format(execution.start_timestamp, usec=False),
@@ -118,3 +124,33 @@ class TestActionExecutionService(DbTestCase):
         self.assertRaises(ValueError, action_service.schedule, execution)
         self.actiondb.enabled = True
         Action.add_or_update(self.actiondb)
+
+    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value={'key': 'value'}))
+    def test_execute(self):
+        request, execution = self._schedule()
+        self.assertIsNotNone(execution)
+        self.assertEqual(execution.id, request.id)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
+        action_service.execute(execution, self.container)
+        updated_execution = action_db.get_liveaction_by_id(str(request.id))
+        self.assertEqual(updated_execution.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(side_effect=Exception('Boom!')))
+    def test_execute_failure(self):
+        request, execution = self._schedule()
+        self.assertIsNotNone(execution)
+        self.assertEqual(execution.id, request.id)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
+        self.assertRaises(Exception, action_service.execute, execution, self.container)
+        updated_execution = action_db.get_liveaction_by_id(str(request.id))
+        self.assertEqual(updated_execution.status, action_constants.LIVEACTION_STATUS_FAILED)
+
+    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
+    def test_execute_no_result(self):
+        request, execution = self._schedule()
+        self.assertIsNotNone(execution)
+        self.assertEqual(execution.id, request.id)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
+        self.assertRaises(ActionRunnerException, action_service.execute, execution, self.container)
+        updated_execution = action_db.get_liveaction_by_id(str(request.id))
+        self.assertEqual(updated_execution.status, action_constants.LIVEACTION_STATUS_FAILED)

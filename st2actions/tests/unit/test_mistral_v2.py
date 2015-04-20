@@ -32,8 +32,8 @@ from mistralclient.api.v2 import executions
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from st2actions import worker
 import st2actions.bootstrap.runnersregistrar as runners_registrar
+from st2actions.container.base import RunnerContainer
 from st2actions.handlers.mistral import MistralCallbackHandler
 from st2actions.runners.mistral.v2 import MistralRunner
 from st2actions.runners.localrunner import LocalShellRunner
@@ -134,7 +134,6 @@ WF2_EXEC['workflow_name'] = WF2_NAME
 # Action executions requirements
 ACTION_CONTEXT = {'user': 'stanley'}
 ACTION_PARAMS = {'friend': 'Rocky'}
-CHAMPION = worker.Worker(None)
 
 # Token for auth test cases
 TOKEN_API = TokenAPI(
@@ -147,7 +146,7 @@ NON_EMPTY_RESULT = 'non-empty'
 
 def process_create(payload):
     if isinstance(payload, LiveActionDB):
-        CHAMPION.execute_action(payload)
+        action_service.execute(payload, RunnerContainer())
 
 
 @mock.patch.object(LocalShellRunner, 'run', mock.

@@ -19,16 +19,8 @@ from oslo.config import cfg
 
 from st2actions.container.base import RunnerContainer
 from st2common import log as logging
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.constants.action import LIVEACTION_STATUS_RUNNING
-from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
-from st2common.constants.action import LIVEACTION_STATUS_FAILED
-from st2common.constants.action import LIVEACTION_STATUS_CANCELED
-from st2common.exceptions.actionrunner import ActionRunnerException
-from st2common.services import executions
+from st2common.services import action as action_service
 from st2common.transport import liveaction, publishers
-from st2common.util import system_info
-from st2common.util.action_db import (get_liveaction_by_id, update_liveaction_status)
 from st2common.util.greenpooldispatch import BufferedDispatcher
 
 LOG = logging.getLogger(__name__)
@@ -69,58 +61,9 @@ class Worker(ConsumerMixin):
 
     def _do_process_task(self, body):
         try:
-            self.execute_action(body)
+            action_service.execute(body, self.container)
         except Exception:
-            LOG.exception('execute_action failed. Message body : %s', body)
-
-    def execute_action(self, liveaction):
-        # Note: We only want to execute actions which haven't completed yet
-        if liveaction.status == LIVEACTION_STATUS_CANCELED:
-            LOG.info('Not executing liveaction %s. User canceled execution.', liveaction.id)
-            if not liveaction.result:
-                update_liveaction_status(status=LIVEACTION_STATUS_CANCELED,
-                                         result={'message': 'Action execution canceled by user.'},
-                                         liveaction_id=liveaction.id)
-            return
-
-        if liveaction.status in [LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED]:
-            LOG.info('Ignoring liveaction %s which has already finished', liveaction.id)
-            return
-
-        try:
-            liveaction_db = get_liveaction_by_id(liveaction.id)
-        except StackStormDBObjectNotFoundError:
-            LOG.exception('Failed to find liveaction %s in the database.',
-                          liveaction.id)
-            raise
-
-        # stamp liveaction with process_info
-        runner_info = system_info.get_process_info()
-
-        # Update liveaction status to "running"
-        liveaction_db = update_liveaction_status(status=LIVEACTION_STATUS_RUNNING,
-                                                 runner_info=runner_info,
-                                                 liveaction_id=liveaction_db.id)
-        action_execution_db = executions.update_execution(liveaction_db)
-
-        # Launch action
-        extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
-        LOG.audit('Launching action execution.', extra=extra)
-
-        # the extra field will not be shown in non-audit logs so temporarily log at info.
-        LOG.info('{~}action_execution: %s / {~}live_action: %s',
-                 action_execution_db.id, liveaction_db.id)
-        try:
-            result = self.container.dispatch(liveaction_db)
-            LOG.debug('Runner dispatch produced result: %s', result)
-            if not result:
-                raise ActionRunnerException('Failed to execute action.')
-        except Exception:
-            liveaction_db = update_liveaction_status(status=LIVEACTION_STATUS_FAILED,
-                                                     liveaction_id=liveaction_db.id)
-            raise
-
-        return result
+            LOG.exception('Action execution failed. Message body : %s', body)
 
 
 def work():

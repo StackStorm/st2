@@ -17,16 +17,20 @@ import datetime
 import six
 
 from st2common import log as logging
-from st2common.services import executions
-from st2common.util import isotime
-from st2common.util import action_db as action_utils
-from st2common.util import schema as util_schema
+from st2common.constants import action as action_constants
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.persistence.action import LiveAction
 from st2common.persistence.execution import ActionExecution
-from st2common.constants.action import (LIVEACTION_STATUS_SCHEDULED, LIVEACTION_STATUS_CANCELED)
+from st2common.services import executions
+from st2common.util import isotime, system_info
+from st2common.util import action_db as action_utils
+from st2common.util import schema as util_schema
+
 
 __all__ = [
     'schedule',
+    'execute',
     'is_action_canceled'
 ]
 
@@ -87,7 +91,7 @@ def schedule(liveaction):
         liveaction.notify = action_db.notify
 
     # Write to database and send to message queue.
-    liveaction.status = LIVEACTION_STATUS_SCHEDULED
+    liveaction.status = action_constants.LIVEACTION_STATUS_SCHEDULED
     liveaction.start_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
@@ -102,6 +106,67 @@ def schedule(liveaction):
     return liveaction, execution
 
 
+def execute(liveaction, container):
+    """
+    Execute an action.
+
+    :return: result
+    :rtype: dict
+    """
+    # Only execution actions which haven't completed yet.
+    if liveaction.status == action_constants.LIVEACTION_STATUS_CANCELED:
+        LOG.info('Not executing liveaction %s. User canceled execution.', liveaction.id)
+        if not liveaction.result:
+            action_utils.update_liveaction_status(
+                status=action_constants.LIVEACTION_STATUS_CANCELED,
+                result={'message': 'Action execution canceled by user.'},
+                liveaction_id=liveaction.id)
+        return
+
+    if liveaction.status in [action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                             action_constants.LIVEACTION_STATUS_FAILED]:
+        LOG.info('Ignoring liveaction %s which has already finished.', liveaction.id)
+        return
+
+    try:
+        liveaction_db = action_utils.get_liveaction_by_id(liveaction.id)
+    except StackStormDBObjectNotFoundError:
+        LOG.exception('Failed to find liveaction %s in the database.',
+                      liveaction.id)
+        raise
+
+    # stamp liveaction with process_info
+    runner_info = system_info.get_process_info()
+
+    # Update liveaction status to "running"
+    liveaction_db = action_utils.update_liveaction_status(
+        status=action_constants.LIVEACTION_STATUS_RUNNING,
+        runner_info=runner_info,
+        liveaction_id=liveaction_db.id)
+    action_execution_db = executions.update_execution(liveaction_db)
+
+    # Launch action
+    extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
+    LOG.audit('Launching action execution.', extra=extra)
+
+    # the extra field will not be shown in non-audit logs so temporarily log at info.
+    LOG.info('{~}action_execution: %s / {~}live_action: %s',
+             action_execution_db.id, liveaction_db.id)
+    try:
+        result = container.dispatch(liveaction_db)
+        LOG.debug('Runner dispatch produced result: %s', result)
+        if not result:
+            raise ActionRunnerException('Failed to execute action.')
+    except Exception:
+        liveaction_db = action_utils.update_liveaction_status(
+            status=action_constants.LIVEACTION_STATUS_FAILED,
+            liveaction_id=liveaction_db.id)
+
+        raise
+
+    return result
+
+
 def is_action_canceled(liveaction_id):
-    liveaction_db = LiveAction.get_by_id(liveaction_id)
-    return liveaction_db.status == LIVEACTION_STATUS_CANCELED
+    liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
+    return liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELED
