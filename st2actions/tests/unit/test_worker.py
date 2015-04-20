@@ -107,7 +107,7 @@ class TestWorker(DbTestCase):
                          action_constants.LIVEACTION_STATUS_RUNNING)
         self.assertTrue(updated_live_action_db.runner_info, 'runner_info should have value.')
 
-    def _get_execution_db_model(self, status=action_constants.LIVEACTION_STATUS_SCHEDULED):
+    def _get_execution_db_model(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
         live_action_db = LiveActionDB()
         live_action_db.status = status
         live_action_db.start_timestamp = datetime.datetime.utcnow()

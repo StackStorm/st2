@@ -54,14 +54,14 @@ class TestAliasExecution(FunctionalTest):
         cls.alias1 = cls.models['aliases']['alias1.yaml']
         cls.alias2 = cls.models['aliases']['alias2.yaml']
 
-    @mock.patch.object(action_service, 'schedule',
+    @mock.patch.object(action_service, 'request',
                        return_value=(None, DummyActionExecution(id_=1)))
-    def testBasicExecution(self, schedule):
+    def testBasicExecution(self, request):
         alias_execution = 'alias1 Lorem ipsum value1 dolor sit "value2 value3" amet.'
         post_resp = self._do_post(alias_execution)
         self.assertEqual(post_resp.status_int, 200)
         expected_parameters = {'param1': 'value1', 'param2': 'value2 value3'}
-        self.assertEquals(schedule.call_args[0][0].parameters, expected_parameters)
+        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
 
     def _do_post(self, execution, expect_errors=False):
         execution = {'command': execution,

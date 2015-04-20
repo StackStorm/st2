@@ -37,6 +37,8 @@ from st2client.utils.color import format_status
 
 LOG = logging.getLogger(__name__)
 
+LIVEACTION_STATUS_REQUESTED = 'requested'
+LIVEACTION_STATUS_DELAYED = 'delayed'
 LIVEACTION_STATUS_SCHEDULED = 'scheduled'
 LIVEACTION_STATUS_RUNNING = 'running'
 LIVEACTION_STATUS_CANCELED = 'canceled'
@@ -291,7 +293,12 @@ class ActionRunCommandMixin(object):
                               attribute_transform_functions=self.attribute_transform_functions)
 
     def _get_execution_result(self, execution, action_exec_mgr, args, **kwargs):
-        pending_statuses = [LIVEACTION_STATUS_SCHEDULED, LIVEACTION_STATUS_RUNNING]
+        pending_statuses = [
+            LIVEACTION_STATUS_REQUESTED,
+            LIVEACTION_STATUS_DELAYED,
+            LIVEACTION_STATUS_SCHEDULED,
+            LIVEACTION_STATUS_RUNNING
+        ]
 
         if not args.async:
             while execution.status in pending_statuses:

@@ -84,73 +84,73 @@ class TestActionExecutionService(DbTestCase):
         RunnerType.delete(cls.runnerdb)
         super(TestActionExecutionService, cls).tearDownClass()
 
-    def _schedule(self):
+    def _submit_request(self):
         context = {'user': USERNAME}
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
         request = LiveActionDB(action=ACTION_REF, context=context, parameters=parameters)
-        request, _ = action_service.schedule(request)
+        request, _ = action_service.request(request)
         execution = action_db.get_liveaction_by_id(str(request.id))
         return request, execution
 
-    def test_schedule(self):
-        request, execution = self._schedule()
+    def test_request(self):
+        request, execution = self._submit_request()
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
         self.assertEqual(execution.action, '.'.join([self.actiondb.pack, self.actiondb.name]))
         self.assertEqual(execution.context['user'], request.context['user'])
         self.assertDictEqual(execution.parameters, request.parameters)
-        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
         self.assertTrue(execution.notify is not None)
         # mongoengine DateTimeField stores datetime only up to milliseconds
         self.assertEqual(isotime.format(execution.start_timestamp, usec=False),
                          isotime.format(request.start_timestamp, usec=False))
 
-    def test_schedule_invalid_parameters(self):
+    def test_request_invalid_parameters(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'a': 123}
         liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
-        self.assertRaises(jsonschema.ValidationError, action_service.schedule, liveaction)
+        self.assertRaises(jsonschema.ValidationError, action_service.request, liveaction)
 
-    def test_schedule_nonexistent_action(self):
+    def test_request_nonexistent_action(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
         action_ref = ResourceReference(name='i.action', pack='default').ref
         execution = LiveActionDB(action=action_ref, parameters=parameters)
-        self.assertRaises(ValueError, action_service.schedule, execution)
+        self.assertRaises(ValueError, action_service.request, execution)
 
-    def test_schedule_disabled_action(self):
+    def test_request_disabled_action(self):
         self.actiondb.enabled = False
         Action.add_or_update(self.actiondb)
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
         execution = LiveActionDB(action=ACTION_REF, parameters=parameters)
-        self.assertRaises(ValueError, action_service.schedule, execution)
+        self.assertRaises(ValueError, action_service.request, execution)
         self.actiondb.enabled = True
         Action.add_or_update(self.actiondb)
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value={'key': 'value'}))
     def test_execute(self):
-        request, execution = self._schedule()
+        request, execution = self._submit_request()
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
-        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
         action_service.execute(execution, self.container)
         updated_execution = action_db.get_liveaction_by_id(str(request.id))
         self.assertEqual(updated_execution.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(side_effect=Exception('Boom!')))
     def test_execute_failure(self):
-        request, execution = self._schedule()
+        request, execution = self._submit_request()
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
-        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
         self.assertRaises(Exception, action_service.execute, execution, self.container)
         updated_execution = action_db.get_liveaction_by_id(str(request.id))
         self.assertEqual(updated_execution.status, action_constants.LIVEACTION_STATUS_FAILED)
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
     def test_execute_no_result(self):
-        request, execution = self._schedule()
+        request, execution = self._submit_request()
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
-        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
         self.assertRaises(ActionRunnerException, action_service.execute, execution, self.container)
         updated_execution = action_db.get_liveaction_by_id(str(request.id))
         self.assertEqual(updated_execution.status, action_constants.LIVEACTION_STATUS_FAILED)

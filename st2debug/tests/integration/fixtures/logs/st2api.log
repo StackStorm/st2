@@ -121,7 +121,7 @@ HTTPConflict: Tried to save duplicate unique keys (E11000 duplicate key error in
 2015-02-20 19:37:31,466 140682270350544 ERROR actionexecutions [-] Unable to execute action. Parameter validation failed.
 Traceback (most recent call last):
   File "/data/stanley/st2api/st2api/controllers/v1/actionexecutions.py", line 113, in post
-    _, actionexecutiondb = action_service.schedule(liveactiondb)
+    _, actionexecutiondb = action_service.request(liveactiondb)
   File "/data/stanley/st2common/st2common/services/action.py", line 67, in schedule
     jsonschema.validate(liveaction.parameters, schema, validator)
   File "/data/stanley/virtualenv/local/lib/python2.7/site-packages/jsonschema/validators.py", line 428, in validate

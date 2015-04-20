@@ -29,7 +29,7 @@ from st2common.util import schema as util_schema
 
 
 __all__ = [
-    'schedule',
+    'request',
     'execute',
     'is_action_canceled'
 ]
@@ -43,9 +43,9 @@ def _get_immutable_params(parameters):
     return [k for k, v in six.iteritems(parameters) if v.get('immutable', False)]
 
 
-def schedule(liveaction):
+def request(liveaction):
     """
-    Schedule an action to be run.
+    Request an action execution.
 
     :return: (liveaction, execution)
     :rtype: tuple
@@ -91,7 +91,7 @@ def schedule(liveaction):
         liveaction.notify = action_db.notify
 
     # Write to database and send to message queue.
-    liveaction.status = action_constants.LIVEACTION_STATUS_SCHEDULED
+    liveaction.status = action_constants.LIVEACTION_STATUS_REQUESTED
     liveaction.start_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
@@ -101,7 +101,7 @@ def schedule(liveaction):
     ActionExecution.publish_create(execution)
 
     extra = {'liveaction_db': liveaction, 'execution_db': execution}
-    LOG.audit('Action execution scheduled. LiveAction.id=%s, ActionExecution.id=%s' %
+    LOG.audit('Action execution requested. LiveAction.id=%s, ActionExecution.id=%s' %
               (liveaction.id, execution.id), extra=extra)
     return liveaction, execution
 

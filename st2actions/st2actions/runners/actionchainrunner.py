@@ -333,7 +333,7 @@ class ActionChainRunner(ActionRunner):
             'chain': vars(action_node)
         }
 
-        liveaction, _ = action_service.schedule(liveaction)
+        liveaction, _ = action_service.request(liveaction)
 
         while (wait_for_completion and
                liveaction.status != LIVEACTION_STATUS_SUCCEEDED and

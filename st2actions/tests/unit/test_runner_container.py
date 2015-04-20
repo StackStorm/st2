@@ -156,7 +156,7 @@ class RunnerContainerTest(DbTestCase):
 
     def _get_action_exec_db_model(self, action_db, params):
         liveaction_db = LiveActionDB()
-        liveaction_db.status = action_constants.LIVEACTION_STATUS_SCHEDULED
+        liveaction_db.status = action_constants.LIVEACTION_STATUS_REQUESTED
         liveaction_db.start_timestamp = datetime.datetime.utcnow()
         liveaction_db.action = ResourceReference(
             name=action_db.name,
@@ -167,7 +167,7 @@ class RunnerContainerTest(DbTestCase):
 
     def _get_failingaction_exec_db_model(self, params):
         liveaction_db = LiveActionDB()
-        liveaction_db.status = action_constants.LIVEACTION_STATUS_SCHEDULED
+        liveaction_db.status = action_constants.LIVEACTION_STATUS_REQUESTED
         liveaction_db.start_timestamp = datetime.datetime.now()
         liveaction_db.action = ResourceReference(
             name=RunnerContainerTest.failingaction_db.name,
