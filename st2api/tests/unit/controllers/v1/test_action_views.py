@@ -26,7 +26,7 @@ ACTION_1 = {
     'enabled': True,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -40,7 +40,7 @@ ACTION_2 = {
     'enabled': True,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action2.py',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'c': {'type': 'string', 'default': 'C1', 'position': 0},
         'd': {'type': 'string', 'default': 'D1', 'immutable': True}

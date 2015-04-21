@@ -27,7 +27,12 @@ in development
 * ``register`` param in packs.install should be passed to packs.load. (bug-fix)
 * Fix validation code to validate value types correctly. (bug-fix)
 * Add ability to best-effort cancel actions and actionchain via API. (new-feature)
-* Update all the Python services to re-open log files on the ``SIGUSR`` signal. (new-feature)
+* Add new ``windows-cmd`` and ``windows-script`` runners for executing commands
+  and PowerShell scripts on Windows hosts. (new-feature)
+* Update runner names so they follow a consistent naming pattern. For backward
+  compatibility reasons, runners can still be referenced using their old names.
+  (improvement)
+* Update all the Python services to re-open log files on the ``SIGUSR1`` signal. (new-feature)
 
 v0.8.3 - March 23, 2015
 -----------------------

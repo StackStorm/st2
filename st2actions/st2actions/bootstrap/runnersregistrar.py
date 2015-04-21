@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RunnerTypeAPI
@@ -33,7 +35,8 @@ LOG = logging.getLogger(__name__)
 
 RUNNER_TYPES = [
     {
-        'name': 'run-local',
+        'name': 'local-shell-cmd',
+        'aliases': ['run-local'],
         'description': 'A runner to execute local actions as a fixed user.',
         'enabled': True,
         'runner_parameters': {
@@ -71,7 +74,8 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.localrunner'
     },
     {
-        'name': 'run-local-script',
+        'name': 'local-shell-script',
+        'aliases': ['run-local-script'],
         'description': 'A runner to execute local actions as a fixed user.',
         'enabled': True,
         'runner_parameters': {
@@ -104,7 +108,8 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.localrunner'
     },
     {
-        'name': 'run-remote',
+        'name': 'remote-shell-cmd',
+        'aliases': ['run-remote'],
         'description': 'A remote execution runner that executes actions '
                        'as a fixed system user.',
         'enabled': True,
@@ -180,7 +185,8 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.fabricrunner'
     },
     {
-        'name': 'run-remote-script',
+        'name': 'remote-shell-script',
+        'aliases': ['run-remote-script'],
         'description': 'A remote execution runner that executes actions '
                        'as a fixed system user.',
         'enabled': True,
@@ -251,7 +257,8 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.fabricrunner'
     },
     {
-        'name': 'http-runner',
+        'name': 'http-request',
+        'aliases': ['http-runner'],
         'description': 'A HTTP client for running HTTP actions.',
         'enabled': True,
         'runner_parameters': {
@@ -286,6 +293,7 @@ RUNNER_TYPES = [
     },
     {
         'name': 'mistral-v1',
+        'aliases': [],
         'description': 'A runner for executing mistral v1 workflow.',
         'enabled': True,
         'runner_parameters': {
@@ -309,6 +317,7 @@ RUNNER_TYPES = [
     },
     {
         'name': 'mistral-v2',
+        'aliases': [],
         'description': 'A runner for executing mistral v2 workflow.',
         'enabled': True,
         'runner_parameters': {
@@ -336,13 +345,15 @@ RUNNER_TYPES = [
     },
     {
         'name': 'action-chain',
+        'aliases': [],
         'description': 'A runner for launching linear action chains.',
         'enabled': True,
         'runner_parameters': {},
         'runner_module': 'st2actions.runners.actionchainrunner'
     },
     {
-        'name': 'run-python',
+        'name': 'python-script',
+        'aliases': ['run-python'],
         'description': 'A runner for launching python actions.',
         'enabled': True,
         'runner_parameters': {
@@ -359,37 +370,138 @@ RUNNER_TYPES = [
             }
         },
         'runner_module': 'st2actions.runners.pythonrunner'
+    },
+
+    # Experimental runners below
+    {
+        'name': 'windows-cmd',
+        'aliases': [],
+        'description': 'A remote execution runner that executes commands'
+                       'on Windows hosts.',
+        'experimental': True,
+        'enabled': True,
+        'runner_parameters': {
+            'host': {
+                'description': 'Host to execute the command on',
+                'type': 'string',
+                'required': True
+            },
+            'username': {
+                'description': 'Username used to log-in.',
+                'type': 'string',
+                'default': 'Administrator',
+                'required': True,
+            },
+            'password': {
+                'description': 'Password used to log in.',
+                'type': 'string',
+                'required': True
+            },
+            'cmd': {
+                'description': 'Arbitrary command to be executed on the '
+                               'remote host.',
+                'type': 'string'
+            },
+            'timeout': {
+                'description': ('Action timeout in seconds. Action will get killed if it '
+                                'doesn\'t finish in timeout seconds.'),
+                'type': 'integer',
+                'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+            }
+        },
+        'runner_module': 'st2actions.runners.windows_command_runner'
+    },
+    {
+        'name': 'windows-script',
+        'aliases': [],
+        'description': 'A remote execution runner that executes power shell scripts'
+                       'on Windows hosts.',
+        'enabled': True,
+        'experimental': True,
+        'runner_parameters': {
+            'host': {
+                'description': 'Host to execute the command on',
+                'type': 'string',
+                'required': True
+            },
+            'username': {
+                'description': 'Username used to log-in.',
+                'type': 'string',
+                'default': 'Administrator',
+                'required': True,
+            },
+            'password': {
+                'description': 'Password used to log in.',
+                'type': 'string',
+                'required': True
+            },
+            'share': {
+                'description': 'Name of the Windows share where script files are uploaded',
+                'type': 'string',
+                'required': True,
+                'default': 'C$'
+            },
+            'timeout': {
+                'description': ('Action timeout in seconds. Action will get killed if it '
+                                'doesn\'t finish in timeout seconds.'),
+                'type': 'integer',
+                'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+            }
+        },
+        'runner_module': 'st2actions.runners.windows_script_runner'
     }
 ]
 
 
-def register_runner_types():
+def register_runner_types(experimental=False):
+    """
+    :param experimental: True to also register experimental runners.
+    :type experimental: ``bool``
+    """
     LOG.debug('Start : register default RunnerTypes.')
 
-    for runnertype in RUNNER_TYPES:
-        try:
-            runnertype_db = get_runnertype_by_name(runnertype['name'])
-            update = True
-        except StackStormDBObjectNotFoundError:
-            runnertype_db = None
-            update = False
+    for runner_type in RUNNER_TYPES:
+        runner_type = copy.deepcopy(runner_type)
 
-        runnertype_api = RunnerTypeAPI(**runnertype)
-        runnertype_api.validate()
-        runner_type_model = RunnerTypeAPI.to_model(runnertype_api)
+        # For backward compatibility reasons, we also register runners under the old names
+        runner_names = [runner_type['name']] + runner_type.get('aliases', [])
+        for runner_name in runner_names:
+            runner_type['name'] = runner_name
+            runner_experimental = runner_type.get('experimental', False)
 
-        if runnertype_db:
-            runner_type_model.id = runnertype_db.id
+            if runner_experimental and not experimental:
+                LOG.debug('Skipping experimental runner "%s"' % (runner_name))
+                continue
 
-        try:
-            runnertype_db = RunnerType.add_or_update(runner_type_model)
+            # Remove additional, non db-model attributes
+            non_db_attributes = ['experimental', 'aliases']
+            for attribute in non_db_attributes:
+                if attribute in runner_type:
+                    del runner_type[attribute]
 
-            extra = {'runnertype_db': runnertype_db}
-            if update:
-                LOG.audit('RunnerType updated. RunnerType %s', runnertype_db, extra=extra)
-            else:
-                LOG.audit('RunnerType created. RunnerType %s', runnertype_db, extra=extra)
-        except Exception:
-            LOG.exception('Unable to register runner type %s.', runnertype['name'])
+            try:
+                runner_type_db = get_runnertype_by_name(runner_name)
+                update = True
+            except StackStormDBObjectNotFoundError:
+                runner_type_db = None
+                update = False
+
+            runner_type_api = RunnerTypeAPI(**runner_type)
+            runner_type_api.validate()
+            runner_type_model = RunnerTypeAPI.to_model(runner_type_api)
+
+            if runner_type_db:
+                runner_type_model.id = runner_type_db.id
+
+            try:
+                runner_type_db = RunnerType.add_or_update(runner_type_model)
+
+                extra = {'runner_type_db': runner_type_db}
+                if update:
+                    LOG.audit('RunnerType updated. RunnerType %s', runner_type_db, extra=extra)
+                else:
+                    LOG.audit('RunnerType created. RunnerType %s', runner_type_db, extra=extra)
+            except Exception:
+                LOG.exception('Unable to register runner type %s.', runner_type['name'])
 
     LOG.debug('End : register default RunnerTypes.')

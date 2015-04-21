@@ -6,4 +6,4 @@ name: ping
 parameters:
   count:
     type: integer
-runner_type: run-local
+runner_type: "local-shell-cmd"

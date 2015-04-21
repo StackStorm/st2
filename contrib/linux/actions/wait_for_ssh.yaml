@@ -1,6 +1,6 @@
 ---
   name: "wait_for_ssh"
-  runner_type: "run-python"
+  runner_type: "python-script"
   description: "Wait for SSH"
   enabled: true
   entry_point: "wait_for_ssh.py"

@@ -92,7 +92,7 @@ class PythonRunnerTestCase(TestCase):
         expected_msg = 'Action .*? is missing entry_point attribute'
         self.assertRaisesRegexp(Exception, expected_msg, runner.run, {})
 
-    @mock.patch('st2actions.runners.pythonrunner.subprocess.Popen')
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
     def test_action_with_user_supplied_env_vars(self, mock_popen):
         env_vars = {'key1': 'val1', 'key2': 'val2', 'PYTHONPATH': 'foobar'}
 
@@ -118,7 +118,7 @@ class PythonRunnerTestCase(TestCase):
             else:
                 self.assertEqual(actual_env[key], value)
 
-    @mock.patch('st2actions.runners.pythonrunner.subprocess.Popen')
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
     def test_stdout_interception_and_parsing(self, mock_popen):
         values = {'delimiter': ACTION_OUTPUT_RESULT_DELIMITER}
 

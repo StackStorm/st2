@@ -1,6 +1,6 @@
 ---
   name: "check_processes"
-  runner_type: "run-remote-script"
+  runner_type: "remote-shell-script"
   description: "Check Interesting Processes"
   enabled: true
   entry_point: "checks/check_processes.py"

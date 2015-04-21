@@ -1,6 +1,6 @@
 ---
   name: "pkill"
-  runner_type: "run-remote"
+  runner_type: "remote-shell-cmd"
   description: "Kill processes using pkill"
   enabled: true
   entry_point: ""

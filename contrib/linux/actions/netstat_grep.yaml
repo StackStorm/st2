@@ -1,6 +1,6 @@
 ---
   name: "netstat_grep"
-  runner_type: "run-remote"
+  runner_type: "remote-shell-cmd"
   description: "Grep netstat results"
   enabled: true
   entry_point: ""

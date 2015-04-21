@@ -1,6 +1,6 @@
 ---
 name: greet
-runner_type: run-local
+runner_type: "local-shell-cmd"
 description: Greet StackStorm!
 enabled: true
 entry_point: greet.sh

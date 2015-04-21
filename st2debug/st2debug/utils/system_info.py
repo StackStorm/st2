@@ -14,9 +14,9 @@
 # limitations under the License.
 
 import re
-import pipes
 
 from st2common.util.shell import run_command
+from st2common.util.shell import quote_unix
 
 __all__ = [
     'get_cpu_info',
@@ -133,7 +133,7 @@ def get_package_list(name_startswith):
 
 
 def get_deb_package_list(name_startswith):
-    cmd = 'dpkg -l | grep %s' % (pipes.quote(name_startswith))
+    cmd = 'dpkg -l | grep %s' % (quote_unix(name_startswith))
     exit_code, stdout, _ = run_command(cmd=cmd, shell=True)
 
     lines = stdout.split('\n')
@@ -162,7 +162,7 @@ def get_deb_package_list(name_startswith):
 
 
 def get_rpm_package_list(name_startswith):
-    cmd = 'rpm -qa | grep %s' % (pipes.quote(name_startswith))
+    cmd = 'rpm -qa | grep %s' % (quote_unix(name_startswith))
     exit_code, stdout, _ = run_command(cmd=cmd, shell=True)
 
     lines = stdout.split('\n')

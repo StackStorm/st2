@@ -4,4 +4,4 @@ enabled: true
 entry_point: pythonactions/fibonacci.py
 name: remote-fib
 parameters: {}
-runner_type: run-remote
+runner_type: "remote-shell-cmd"

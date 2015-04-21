@@ -1,11 +1,11 @@
 import os
-import pipes
 import shutil
 
 from oslo.config import cfg
 
 from st2actions.runners.pythonrunner import Action
 from st2common.constants.pack import SYSTEM_PACK_NAMES
+from st2common.util.shell import quote_unix
 
 BLOCKED_PACKS = frozenset(SYSTEM_PACK_NAMES)
 
@@ -31,7 +31,7 @@ class UninstallPackAction(Action):
 
         # 2. Delete pack virtual environment
         for pack_name in packs:
-            pack_name = pipes.quote(pack_name)
+            pack_name = quote_unix(pack_name)
             virtualenv_path = os.path.join(self._base_virtualenvs_path, pack_name)
 
             if os.path.isdir(virtualenv_path):

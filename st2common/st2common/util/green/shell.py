@@ -13,22 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Shell utility functions which use non-blocking and eventlet friendly code.
+"""
+
 import os
-import subprocess
-from subprocess import list2cmdline
 
 import six
+from eventlet.green import subprocess
 
 __all__ = [
-    'run_command',
-
-    'quote_unix',
-    'quote_windows'
+    'run_command'
 ]
 
 
 def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
-                cwd=None, env=None):
+                cwd=None, env=None, timeout=60):
     """
     Run the provided command in a subprocess and wait until it completes.
 
@@ -54,47 +54,33 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 environment from the current process is inherited.
     :type env: ``dict``
 
-    :rtype: ``tuple`` (exit_code, stdout, stderr)
+    :param timeout: How long to wait before timing out.
+    :type timeout: ``float``
+
+    :rtype: ``tuple`` (exit_code, stdout, stderr, timed_out)
     """
     assert isinstance(cmd, (list, tuple) + six.string_types)
 
     if not env:
         env = os.environ.copy()
 
-    process = subprocess.Popen(cmd, stdin=stdin, stdout=stdout, stderr=stderr,
+    # Note: We are using eventlet friendly implementation of subprocess
+    # which uses GreenPipe so it doesn't block
+    process = subprocess.Popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
                                env=env, cwd=cwd, shell=shell)
+
+    try:
+        exit_code = process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        # Command has timed out, kill the process and propagate the error
+        # Note: process.kill() will set the returncode to -9 so we don't
+        # need to explicitly set it to some non-zero value
+        process.kill()
+        timed_out = True
+    else:
+        timed_out = False
+
     stdout, stderr = process.communicate()
     exit_code = process.returncode
 
-    return (exit_code, stdout, stderr)
-
-
-def quote_unix(value):
-    """
-    Return a quoted (shell-escaped) version of the value which can be used as one token in a shell
-    command line.
-
-    :param value: Value to quote.
-    :type value: ``str``
-
-    :rtype: ``str``
-    """
-    value = six.moves.shlex_quote(value)
-    return value
-
-
-def quote_windows(value):
-    """
-    Return a quoted (shell-escaped) version of the value which can be used as one token in a
-    Windows command line.
-
-    Note (from stdlib): note that not all MS Windows applications interpret the command line the
-    same way: list2cmdline() is designed for applications using the same rules as the MS C runtime.
-
-    :param value: Value to quote.
-    :type value: ``str``
-
-    :rtype: ``str``
-    """
-    value = list2cmdline([value])
-    return value
+    return (exit_code, stdout, stderr, timed_out)

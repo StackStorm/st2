@@ -1,6 +1,6 @@
 ---
   name: "load"
-  runner_type: "run-local"
+  runner_type: "local-shell-cmd"
   description: "Action that reloads all st2 content."
   enabled: true
   entry_point: ""

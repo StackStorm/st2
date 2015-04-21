@@ -26,6 +26,7 @@ import st2common.util.action_db as action_utils
 
 __all__ = [
     'ActionRunner',
+    'AsyncActionRunner',
     'ShellRunnerMixin'
 ]
 
@@ -95,6 +96,25 @@ class ActionRunner(object):
                              self.context,
                              status,
                              result)
+
+    def _log_action_completion(self, logger, result, status, exit_code=None):
+        """
+        Log action completion event.
+
+        :param result: Action result / output.
+        :param status: Action status.
+        :param exit_code: Action exit code (optional).
+        """
+        name = self.action_name
+        extra = {
+            'result': result,
+            'status': status
+        }
+
+        if exit_code is not None:
+            extra['exit_code'] = exit_code
+
+        logger.debug('Action "%s" completed.' % (name), extra=extra)
 
     def __str__(self):
         attrs = ', '.join(['%s=%s' % (k, v) for k, v in six.iteritems(self.__dict__)])

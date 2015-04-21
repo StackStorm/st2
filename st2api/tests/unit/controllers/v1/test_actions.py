@@ -35,7 +35,7 @@ ACTION_1 = {
     'enabled': True,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -52,7 +52,7 @@ ACTION_2 = {
     'description': 'test description',
     'enabled': True,
     'entry_point': '/tmp/test/action2.py',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'c': {'type': 'string', 'default': 'C1', 'position': 0},
         'd': {'type': 'string', 'default': 'D1', 'immutable': True}
@@ -65,7 +65,7 @@ ACTION_3 = {
     'description': 'test description',
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -79,7 +79,7 @@ ACTION_4 = {
     'enabled': False,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -106,7 +106,7 @@ ACTION_6 = {
     'enabled': False,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -121,7 +121,7 @@ ACTION_7 = {
     'enabled': False,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -135,7 +135,7 @@ ACTION_8 = {
     'enabled': True,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'cmd': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -149,7 +149,7 @@ ACTION_9 = {
     'enabled': True,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1', 'dummyfield': True},  # dummyfield is invalid.
         'b': {'type': 'string', 'default': 'B1'}
@@ -163,7 +163,7 @@ ACTION_10 = {
     'enabled': True,
     'pack': 'wolfpack1',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -177,7 +177,7 @@ ACTION_11 = {
     'description': 'test description',
     'enabled': True,
     'entry_point': '/tmp/test/action2.py',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'c': {'type': 'string', 'default': 'C1', 'position': 0},
         'd': {'type': 'string', 'default': 'D1', 'immutable': True}

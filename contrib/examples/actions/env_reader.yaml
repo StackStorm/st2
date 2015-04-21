@@ -4,4 +4,4 @@ enabled: true
 entry_point: env_reader.sh
 name: env_reader
 parameters: {}
-runner_type: run-local-script
+runner_type: "local-shell-script"

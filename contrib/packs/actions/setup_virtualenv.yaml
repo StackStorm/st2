@@ -1,6 +1,6 @@
 ---
   name: "setup_virtualenv"
-  runner_type: "run-python"
+  runner_type: "python-script"
   description: "Set up virtual environment for the provided packs"
   enabled: true
   entry_point: "pack_mgmt/setup_virtualenv.py"

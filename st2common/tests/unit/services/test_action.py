@@ -28,7 +28,7 @@ from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
 
 
 RUNNER = {
-    'name': 'run-local',
+    'name': 'local-shell-script',
     'description': 'A runner to execute local command.',
     'enabled': True,
     'runner_parameters': {
@@ -44,7 +44,7 @@ ACTION = {
     'enabled': True,
     'entry_point': '/tmp/test/action.sh',
     'pack': 'default',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {
             'type': 'string',

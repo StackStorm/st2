@@ -1,5 +1,5 @@
 name: get_open_ports
-runner_type: run-python
+runner_type: "python-script"
 description: Retrieve open ports for a given host
 enabled: true
 entry_point: get_open_ports.py

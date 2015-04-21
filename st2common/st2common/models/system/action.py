@@ -15,7 +15,6 @@
 
 import os
 import pwd
-import pipes
 import six
 import sys
 import traceback
@@ -27,6 +26,7 @@ from fabric.context_managers import settings
 from fabric.tasks import WrappedCallableTask
 
 from st2common import log as logging
+from st2common.util.shell import quote_unix
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common.exceptions.fabricrunner import FabricExecutionFailureException
 import st2common.util.jsonify as jsonify
@@ -62,13 +62,13 @@ class ShellCommandAction(object):
         # Note: We pass -E to sudo because we want to preserve user provided
         # environment variables
         if self.sudo:
-            command = pipes.quote(self.command)
+            command = quote_unix(self.command)
             command = 'sudo -E -- bash -c %s' % (command)
         else:
             if self.user and self.user != LOGGED_USER_USERNAME:
                 # Need to use sudo to run as a different user
-                user = pipes.quote(self.user)
-                command = pipes.quote(self.command)
+                user = quote_unix(self.user)
+                command = quote_unix(self.command)
                 command = 'sudo -E -u %s -- bash -c %s' % (user, command)
             else:
                 command = self.command
@@ -86,7 +86,7 @@ class ShellCommandAction(object):
         """
         assert isinstance(args, (list, tuple))
 
-        args = [pipes.quote(arg) for arg in args]
+        args = [quote_unix(arg) for arg in args]
         args = ' '.join(args)
         result = '%s %s' % (cmd, args)
         return result
@@ -138,24 +138,24 @@ class ShellScriptAction(ShellCommandAction):
 
         if self.sudo:
             if script_arguments:
-                command = pipes.quote('%s %s' % (self.script_local_path_abs, script_arguments))
+                command = quote_unix('%s %s' % (self.script_local_path_abs, script_arguments))
             else:
-                command = pipes.quote(self.script_local_path_abs)
+                command = quote_unix(self.script_local_path_abs)
 
             command = 'sudo -E -- bash -c %s' % (command)
         else:
             if self.user and self.user != LOGGED_USER_USERNAME:
                 # Need to use sudo to run as a different user
-                user = pipes.quote(self.user)
+                user = quote_unix(self.user)
 
                 if script_arguments:
-                    command = pipes.quote('%s %s' % (self.script_local_path_abs, script_arguments))
+                    command = quote_unix('%s %s' % (self.script_local_path_abs, script_arguments))
                 else:
-                    command = pipes.quote(self.script_local_path_abs)
+                    command = quote_unix(self.script_local_path_abs)
 
                 command = 'sudo -E -u %s -- bash -c %s' % (user, command)
             else:
-                script_path = pipes.quote(self.script_local_path_abs)
+                script_path = quote_unix(self.script_local_path_abs)
 
                 if script_arguments:
                     command = '%s %s' % (script_path, script_arguments)
@@ -190,7 +190,7 @@ class ShellScriptAction(ShellCommandAction):
                     if value is True:
                         command_parts.append(arg)
                 else:
-                    command_parts.append('%s=%s' % (arg, pipes.quote(str(value))))
+                    command_parts.append('%s=%s' % (arg, quote_unix(str(value))))
 
         # add the positional args
         if positional_args:
@@ -293,7 +293,7 @@ class RemoteScriptAction(ShellScriptAction):
         self.on_behalf_user = on_behalf_user
         self.password = password
         self.private_key = private_key
-        self.remote_script = os.path.join(self.remote_dir, pipes.quote(self.script_name))
+        self.remote_script = os.path.join(self.remote_dir, quote_unix(self.script_name))
         self.hosts = hosts
         self.parallel = parallel
         self.command = self._format_command()
@@ -533,7 +533,7 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
         """
         assert isinstance(args, (list, tuple))
 
-        args = [pipes.quote(arg) for arg in args]
+        args = [quote_unix(arg) for arg in args]
         args = ' '.join(args)
         result = '%s %s' % (cmd, args)
         return result

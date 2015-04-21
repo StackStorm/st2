@@ -1,0 +1,12 @@
+
+---
+  name: "windows_cmd"
+  runner_type: "run-windows-cmd"
+  description: "Action to execute arbitrary Windows command remotely."
+  enabled: true
+  entry_point: ""
+  parameters:
+    cmd:
+      description: "Arbitrary Windows command to be executed on the remote host."
+      type: "string"
+      required: true

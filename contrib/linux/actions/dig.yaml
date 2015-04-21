@@ -17,4 +17,4 @@ parameters:
   count:
     type: integer
     default: 0
-runner_type: run-python
+runner_type: "python-script"

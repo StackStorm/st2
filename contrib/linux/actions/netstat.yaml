@@ -1,6 +1,6 @@
 ---
   name: "netstat"
-  runner_type: "run-remote"
+  runner_type: "remote-shell-cmd"
   description: "Run netstat"
   enabled: true
   entry_point: ""

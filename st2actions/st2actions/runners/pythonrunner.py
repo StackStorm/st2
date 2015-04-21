@@ -24,6 +24,7 @@ import six
 from eventlet.green import subprocess
 
 from st2actions.runners import ActionRunner
+from st2common.util.green.shell import run_command
 from st2common import log as logging
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
@@ -137,24 +138,14 @@ class PythonRunner(ActionRunner):
         user_env_vars = self._get_env_vars()
         env.update(user_env_vars)
 
-        # Note: We are using eventlet friendly implementation of subprocess
-        # which uses GreenPipe so it doesn't block
-        process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, shell=False, env=env)
+        exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE, shell=False,
+                                                           env=env, timeout=self._timeout)
 
-        try:
-            exit_code = process.wait(timeout=self._timeout)
-        except subprocess.TimeoutExpired:
-            # Action has timed out, kill the process and propagate the error
-            # Note: process.kill() will set the returncode to -9 so we don't
-            # need to explicitly set it to some non-zero value
-            process.kill()
+        if timed_out:
             error = 'Action failed to complete in %s seconds' % (self._timeout)
         else:
             error = None
-
-        stdout, stderr = process.communicate()
-        exit_code = process.returncode
 
         if ACTION_OUTPUT_RESULT_DELIMITER in stdout:
             split = stdout.split(ACTION_OUTPUT_RESULT_DELIMITER)
@@ -180,7 +171,7 @@ class PythonRunner(ActionRunner):
             output['error'] = error
 
         status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
-        LOG.debug('Action output : %s. exit_code : %s. status : %s', str(output), exit_code, status)
+        self._log_action_completion(logger=LOG, result=output, status=status, exit_code=exit_code)
         return (status, output, None)
 
     def _get_env_vars(self):

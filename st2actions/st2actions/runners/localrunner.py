@@ -122,6 +122,10 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         # Include user provided env vars (if any)
         env.update(env_vars)
 
+        LOG.info('Executing action via LocalRunner: %s', self.runner_id)
+        LOG.info('[Action info] name: %s, Id: %s, command: %s, user: %s, sudo: %s' %
+                 (action.name, action.action_exec_id, args, action.user, action.sudo))
+
         # Make sure os.setsid is called on each spawned process so that all processes
         # are in the same group.
         process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
@@ -170,4 +174,5 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             result['error'] = error
 
         status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
+        self._log_action_completion(logger=LOG, result=result, status=status, exit_code=exit_code)
         return (status, jsonify.json_loads(result, LocalShellRunner.KEYS_TO_TRANSFORM), None)

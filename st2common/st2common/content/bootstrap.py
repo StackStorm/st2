@@ -26,6 +26,7 @@ from st2common.models.db import db_teardown
 
 LOG = logging.getLogger('st2common.content.bootstrap')
 cfg.CONF.register_cli_opt(cfg.BoolOpt('verbose', short='v', default=False))
+cfg.CONF.register_cli_opt(cfg.BoolOpt('experimental', default=False))
 
 
 def register_opts():
@@ -69,8 +70,9 @@ def register_actions():
         # Importing here to reduce scope of dependency. This way even if st2action
         # is not installed bootstrap continues.
         import st2actions.bootstrap.runnersregistrar as runners_registrar
-        runners_registrar.register_runner_types()
+        runners_registrar.register_runner_types(experimental=cfg.CONF.experimental)
     except Exception as e:
+        registered_count = 0
         LOG.warning('Failed to register runner types: %s', e, exc_info=True)
         LOG.warning('Not registering stock runners .')
     else:

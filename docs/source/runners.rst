@@ -8,8 +8,8 @@ actions to be run remotely (via SSH) and locally. The objective is to
 allow the Action author to concentrate only on the implementation of the
 action itself rather than setting up the environment.
 
-Local command runner (run-local)
---------------------------------
+Local command runner (local-script-cmd)
+---------------------------------------
 
 This is the local runner. This runner executes a Linux command on the same host
 where |st2| components are running.
@@ -24,8 +24,8 @@ Runner parameters
 * ``timeout`` (integer) - Action timeout in seconds. Action will get killed if it doesn't finish in timeout seconds.
 * ``cwd`` (string) - Working directory where the command will be executed in
 
-Local script runner (run-local-script)
---------------------------------------
+Local script runner (local-shell-script)
+----------------------------------------
 
 This is the local runner. Actions are implemented as scripts. They are executed
 on the same hosts where |st2| components are running.
@@ -39,8 +39,8 @@ Runner parameters
 * ``cwd`` (string) - Working directory where the script will be executed in
 * ``env`` (object) - Environment variables which will be available to the script(e.g. key1=val1,key2=val2)
 
-Remote command runner (run-remote)
-----------------------------------
+Remote command runner (remote-shell-cmd)
+----------------------------------------
 
 This is a remote runner. This runner executes a Linux command on one or more
 remote hosts provided by the user.
@@ -61,8 +61,8 @@ Runner parameters
 * ``cwd`` (string) - Working directory where the script will be executed in
 * ``dir`` (string) - The working directory where the script will be copied to on the remote host.
 
-Remote script runner (run-remote-script)
-----------------------------------------
+Remote script runner (remote-shell-script)
+------------------------------------------
 
 This is a remote runner. Actions are implemented as scripts. They run on one or
 more remote hosts provided by the user.
@@ -82,17 +82,43 @@ Runner parameters
 * ``cwd`` (string) - Working directory where the script will be executed in.
 * ``dir`` (string) - The working directory where the script will be copied to on the remote host.
 
+Windows command runner (windows-cmd)
+------------------------------------
+
+Windows command runner allows you to run you to run command-line interpreter
+(cmd) and PowerShell commands on Windows hosts.
+
+For more information on enabling and setting up the Windows runner, please see
+the following section - TODO.
+
 Runner parameters
 ~~~~~~~~~~~~~~~~~
 
-* ``kwarg_op`` (string) - Operator to use in front of keyword args i.e. "--" or "-".
+* ``host`` (string) - Hostname or IP address of a host to execute the command on.
+* ``username`` (string) - Username used to authenticate.
+* ``password`` (string) - Password used to authenticate.
+* ``cmd`` (object) - Command to run.
 * ``timeout`` (integer) - Action timeout in seconds. Action will get killed if it doesn't finish in timeout seconds.
-* ``sudo`` (boolean) - The command will be executed with sudo.
-* ``cwd`` (string) - Working directory where the script will be executed in
-* ``env`` (object) - Environment variables which will be available to the script(e.g. key1=val1,key2=val2)
 
-HTTP runner (http-runner)
--------------------------
+Windows script runner (windows-script)
+--------------------------------------
+
+Windows script runner allows you to run PowerShell scripts on Windows hosts.
+
+For more information on enabling and setting up the Windows runner, please see
+the following section - TODO.
+
+Runner parameters
+~~~~~~~~~~~~~~~~~
+
+* ``host`` (string) - Hostname or IP address of a host to execute the script on.
+* ``username`` (string) - Username used to authenticate.
+* ``password`` (string) - Password used to authenticate.
+* ``share`` (object) - Name of the share where action script files are uploaded. Defaults to C$.
+* ``timeout`` (integer) - Action timeout in seconds. Action will get killed if it doesn't finish in timeout seconds.
+
+HTTP runner (http-request)
+--------------------------
 
 HTTP runner works by performing HTTP request to the provided URL.
 
@@ -118,8 +144,8 @@ Result object from this runner contains the following keys:
 * ``parsed`` (boolean) - Flag which indicates if the response body has been parsed.
 * ``headers`` - Response headers.
 
-Python runner (run-python)
---------------------------
+Python runner (python-script)
+-----------------------------
 
 This is a Python runner. Actions are implemented as Python classes with a
 ``run`` method. They run locally on the same machine where |st2| components are

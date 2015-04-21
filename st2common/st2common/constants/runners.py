@@ -21,7 +21,9 @@ __all__ = [
     'FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT',
     'FABRIC_RUNNER_DEFAULT_REMOTE_DIR',
 
-    'PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT'
+    'PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT',
+
+    'WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT'
 ]
 
 # Local runner
@@ -38,3 +40,6 @@ except:
 # Python runner
 # Default timeout (in seconds) for actions executed by Python runner
 PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60
+
+# Windows runner
+WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60

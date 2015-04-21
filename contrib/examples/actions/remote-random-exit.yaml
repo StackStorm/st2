@@ -6,4 +6,4 @@ name: remote-random-exit
 parameters:
   count:
     type: integer
-runner_type: run-remote
+runner_type: "remote-shell-cmd"
