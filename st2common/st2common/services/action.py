@@ -30,6 +30,7 @@ from st2common.util import schema as util_schema
 
 __all__ = [
     'request',
+    'schedule',
     'execute',
     'is_action_canceled'
 ]
@@ -106,6 +107,43 @@ def request(liveaction):
     return liveaction, execution
 
 
+def schedule(liveaction):
+    """
+    Schedule an action to run.
+    """
+    if liveaction.status != action_constants.LIVEACTION_STATUS_REQUESTED:
+        LOG.info('Action scheduling service is ignoring liveaction %s with "%s" status.',
+                 liveaction.id, liveaction.status)
+        return
+
+    try:
+        liveaction_db = action_utils.get_liveaction_by_id(liveaction.id)
+    except StackStormDBObjectNotFoundError:
+        LOG.exception('Failed to find liveaction %s in the database.',
+                      liveaction.id)
+        raise
+
+    # stamp liveaction with process_info
+    runner_info = system_info.get_process_info()
+
+    # Update liveaction status to "scheduled"
+    liveaction_db = action_utils.update_liveaction_status(
+        status=action_constants.LIVEACTION_STATUS_SCHEDULED,
+        runner_info=runner_info,
+        liveaction_id=liveaction_db.id)
+
+    action_execution_db = executions.update_execution(liveaction_db)
+
+    extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
+    LOG.audit('Scheduled action execution.', extra=extra)
+
+    # the extra field will not be shown in non-audit logs so temporarily log at info.
+    LOG.info('Scheduled {~}action_execution: %s / {~}live_action: %s with "%s" status.',
+             action_execution_db.id, liveaction_db.id, liveaction.status)
+
+    LiveAction.publish_schedule(liveaction_db)
+
+
 def execute(liveaction, container):
     """
     Execute an action.
@@ -123,9 +161,9 @@ def execute(liveaction, container):
                 liveaction_id=liveaction.id)
         return
 
-    if liveaction.status in [action_constants.LIVEACTION_STATUS_SUCCEEDED,
-                             action_constants.LIVEACTION_STATUS_FAILED]:
-        LOG.info('Ignoring liveaction %s which has already finished.', liveaction.id)
+    if liveaction.status != action_constants.LIVEACTION_STATUS_SCHEDULED:
+        LOG.info('Action dispatching service is ignoring liveaction %s with "%s" status.',
+                 liveaction.id, liveaction.status)
         return
 
     try:
@@ -143,6 +181,7 @@ def execute(liveaction, container):
         status=action_constants.LIVEACTION_STATUS_RUNNING,
         runner_info=runner_info,
         liveaction_id=liveaction_db.id)
+
     action_execution_db = executions.update_execution(liveaction_db)
 
     # Launch action
@@ -150,8 +189,8 @@ def execute(liveaction, container):
     LOG.audit('Launching action execution.', extra=extra)
 
     # the extra field will not be shown in non-audit logs so temporarily log at info.
-    LOG.info('{~}action_execution: %s / {~}live_action: %s',
-             action_execution_db.id, liveaction_db.id)
+    LOG.info('Dispatched {~}action_execution: %s / {~}live_action: %s with "%s" status.',
+             action_execution_db.id, liveaction_db.id, liveaction.status)
     try:
         result = container.dispatch(liveaction_db)
         LOG.debug('Runner dispatch produced result: %s', result)

@@ -29,6 +29,7 @@ from st2actions.container.base import RunnerContainer
 from st2actions.runners.localrunner import LocalShellRunner
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2common.util import reference
+from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.services import action as action_service
 from st2common.models.db.action import LiveActionDB
@@ -48,6 +49,15 @@ MOCK_FAIL_EXECUTION_CREATE = False
 def process_create(payload):
     try:
         if isinstance(payload, LiveActionDB):
+            action_service.schedule(payload)
+    except Exception:
+        traceback.print_exc()
+        print(payload)
+
+
+def process_schedule(payload):
+    try:
+        if isinstance(payload, LiveActionDB):
             action_service.execute(payload, RunnerContainer())
     except Exception:
         traceback.print_exc()
@@ -57,6 +67,8 @@ def process_create(payload):
 @mock.patch.object(LocalShellRunner, 'run',
                    mock.MagicMock(return_value=(LIVEACTION_STATUS_FAILED, 'Non-empty', None)))
 @mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
+@mock.patch.object(LiveActionPublisher, 'publish_schedule',
+                   mock.MagicMock(side_effect=process_schedule))
 class TestActionExecutionHistoryWorker(DbTestCase):
 
     @classmethod

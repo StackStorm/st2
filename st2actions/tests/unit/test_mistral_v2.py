@@ -21,6 +21,7 @@ import uuid
 import mock
 import requests
 import six
+import traceback
 import yaml
 
 from mistralclient.api.base import APIException
@@ -35,8 +36,8 @@ tests_config.parse_args()
 import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2actions.container.base import RunnerContainer
 from st2actions.handlers.mistral import MistralCallbackHandler
-from st2actions.runners.mistral.v2 import MistralRunner
 from st2actions.runners.localrunner import LocalShellRunner
+from st2actions.runners.mistral.v2 import MistralRunner
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
@@ -46,6 +47,7 @@ from st2common.models.db.action import LiveActionDB
 from st2common.persistence.action import Action, LiveAction
 from st2common.services import access as access_service
 from st2common.services import action as action_service
+from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.util import isotime
 from st2tests import DbTestCase
@@ -145,14 +147,29 @@ NON_EMPTY_RESULT = 'non-empty'
 
 
 def process_create(payload):
-    if isinstance(payload, LiveActionDB):
-        action_service.execute(payload, RunnerContainer())
+    try:
+        if isinstance(payload, LiveActionDB):
+            action_service.schedule(payload)
+    except Exception:
+        traceback.print_exc()
+        print(payload)
+
+
+def process_schedule(payload):
+    try:
+        if isinstance(payload, LiveActionDB):
+            action_service.execute(payload, RunnerContainer())
+    except Exception:
+        traceback.print_exc()
+        print(payload)
 
 
 @mock.patch.object(LocalShellRunner, 'run', mock.
                    MagicMock(return_value=(LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)))
 @mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
 @mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(return_value=None))
+@mock.patch.object(LiveActionPublisher, 'publish_schedule',
+                   mock.MagicMock(side_effect=process_schedule))
 class TestMistralRunner(DbTestCase):
 
     @classmethod
@@ -223,7 +240,7 @@ class TestMistralRunner(DbTestCase):
     def test_launch_workflow_with_auth(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
         execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ACTION_CONTEXT)
-        liveaction, _ = action_service.schedule(execution)
+        liveaction, _ = action_service.request(execution)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, LIVEACTION_STATUS_RUNNING)
 

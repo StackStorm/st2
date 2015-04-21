@@ -18,14 +18,18 @@
 from kombu import Exchange, Queue
 from st2common.transport import publishers
 
-LIVEACTION_XCHG = Exchange('st2.liveaction',
-                           type='topic')
+
+LIVEACTION_XCHG = Exchange('st2.liveaction', type='topic')
+SCHEDULE_RK = 'schedule'
 
 
 class LiveActionPublisher(publishers.CUDPublisher):
 
     def __init__(self, url):
         super(LiveActionPublisher, self).__init__(url, LIVEACTION_XCHG)
+
+    def publish_schedule(self, payload):
+        self._publisher.publish(payload, self._exchange, SCHEDULE_RK)
 
 
 def get_queue(name, routing_key):

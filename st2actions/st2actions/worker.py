@@ -23,11 +23,13 @@ from st2common.services import action as action_service
 from st2common.transport import liveaction, publishers
 from st2common.util.greenpooldispatch import BufferedDispatcher
 
+
 LOG = logging.getLogger(__name__)
 
-
-ACTIONRUNNER_WORK_Q = liveaction.get_queue('st2.actionrunner.work',
-                                           routing_key=publishers.CREATE_RK)
+ACTIONRUNNER_QUEUES = {
+    'schedule': liveaction.get_queue('st2.actionrunner.req', routing_key=publishers.CREATE_RK),
+    'execute': liveaction.get_queue('st2.actionrunner.work', routing_key=liveaction.SCHEDULE_RK)
+}
 
 
 class Worker(ConsumerMixin):
@@ -41,29 +43,44 @@ class Worker(ConsumerMixin):
         self._dispatcher.shutdown()
 
     def get_consumers(self, Consumer, channel):
-        consumer = Consumer(queues=[ACTIONRUNNER_WORK_Q],
-                            accept=['pickle'],
-                            callbacks=[self.process_task])
+        consumers = [
+            Consumer(queues=[ACTIONRUNNER_QUEUES['schedule']],
+                     accept=['pickle'],
+                     callbacks=[self.schedule_request]),
+            Consumer(queues=[ACTIONRUNNER_QUEUES['execute']],
+                     accept=['pickle'],
+                     callbacks=[self.execute_request])
+        ]
+
         # use prefetch_count=1 for fair dispatch. This way workers that finish an item get the next
         # task and the work does not get queued behind any single large item.
-        consumer.qos(prefetch_count=1)
-        return [consumer]
+        [consumer.qos(prefetch_count=1) for consumer in consumers]
 
-    def process_task(self, body, message):
-        # LOG.debug('process_task')
-        # LOG.debug('     body: %s', body)
-        # LOG.debug('     message.properties: %s', message.properties)
-        # LOG.debug('     message.delivery_info: %s', message.delivery_info)
+        return consumers
+
+    def _schedule_request(self, body):
         try:
-            self._dispatcher.dispatch(self._do_process_task, body)
+            action_service.schedule(body)
+        except Exception:
+            LOG.exception('Scheduling of action execution failed. Message body : %s', body)
+
+    def schedule_request(self, body, message):
+        try:
+            self._dispatcher.dispatch(self._schedule_request, body)
         finally:
             message.ack()
 
-    def _do_process_task(self, body):
+    def _execute_request(self, body):
         try:
             action_service.execute(body, self.container)
         except Exception:
             LOG.exception('Action execution failed. Message body : %s', body)
+
+    def execute_request(self, body, message):
+        try:
+            self._dispatcher.dispatch(self._execute_request, body)
+        finally:
+            message.ack()
 
 
 def work():

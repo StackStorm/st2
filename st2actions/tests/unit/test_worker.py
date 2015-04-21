@@ -18,6 +18,7 @@ tests_config.parse_args()
 
 import datetime
 import mock
+from kombu.message import Message
 
 from st2actions import worker
 from st2actions.container.base import RunnerContainer
@@ -27,85 +28,18 @@ from st2common.models.system.common import ResourceReference
 from st2common.persistence import action
 from st2common.services import executions
 from st2common.transport.publishers import PoolPublisher
-from st2common.util.action_db import get_liveaction_by_id
+from st2common.util import action_db
 from st2tests.base import DbTestCase
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 @mock.patch.object(executions, 'update_execution', mock.MagicMock())
+@mock.patch.object(Message, 'ack', mock.MagicMock())
 class TestWorker(DbTestCase):
 
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock())
-    def test_basic_execution_success(self):
-        testworker = worker.Worker(None)
-        live_action_db = self._get_execution_db_model(
-            status=action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        testworker._do_process_task(live_action_db)
-        updated_live_action_db = get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(updated_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_SUCCEEDED)
-
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock())
-    def test_basic_execution_fail(self):
-        testworker = worker.Worker(None)
-        live_action_db = self._get_execution_db_model(
-            status=action_constants.LIVEACTION_STATUS_FAILED)
-        testworker._do_process_task(live_action_db)
-        updated_live_action_db = get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(updated_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_FAILED)
-
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock())
-    def test_basic_execution_canceled(self):
-        testworker = worker.Worker(None)
-        live_action_db = self._get_execution_db_model(
-            status=action_constants.LIVEACTION_STATUS_CANCELED)
-        result = getattr(live_action_db, 'result', None)
-        self.assertTrue(result == {},
-                        getattr(live_action_db, 'result', None))
-        testworker._do_process_task(live_action_db)
-        updated_live_action_db = get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(updated_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_CANCELED)
-        result = getattr(updated_live_action_db, 'result', None)
-        self.assertTrue(result['message'] is not None)
-
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
-    def test_basic_execution_no_result(self):
-        testworker = worker.Worker(None)
-        live_action_db = self._get_execution_db_model()
-        testworker._do_process_task(live_action_db)
-        updated_live_action_db = get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(updated_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_FAILED)
-
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(side_effect=Exception('Boom!')))
-    def test_failed_execution_handling(self):
-        testworker = worker.Worker(None)
-        live_action_db = self._get_execution_db_model()
-        testworker._do_process_task(live_action_db)
-        updated_live_action_db = get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(updated_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_FAILED)
-
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value='dont_care'))
-    def test_succeeded_execution_handling(self):
-        testworker = worker.Worker(None)
-        live_action_db = self._get_execution_db_model()
-        testworker._do_process_task(live_action_db)
-        updated_live_action_db = get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(updated_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_RUNNING)
-
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value='dont_care'))
-    def test_runner_info(self):
-        testworker = worker.Worker(None)
-        live_action_db = self._get_execution_db_model()
-        testworker._do_process_task(live_action_db)
-        updated_live_action_db = get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(updated_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_RUNNING)
-        self.assertTrue(updated_live_action_db.runner_info, 'runner_info should have value.')
+    def __init__(self, *args, **kwargs):
+        super(TestWorker, self).__init__(*args, **kwargs)
+        self.worker = worker.Worker(None)
 
     def _get_execution_db_model(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
         live_action_db = LiveActionDB()
@@ -116,3 +50,69 @@ class TestWorker(DbTestCase):
             pack='test_pack').ref
         live_action_db.parameters = None
         return action.LiveAction.add_or_update(live_action_db, publish=False)
+
+    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value={'key': 'value'}))
+    def test_execute(self):
+        live_action_db = self._get_execution_db_model(
+            status=action_constants.LIVEACTION_STATUS_REQUESTED)
+
+        self.worker._schedule_request(live_action_db)
+        scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        self.assertEqual(scheduled_live_action_db.status,
+                         action_constants.LIVEACTION_STATUS_SCHEDULED)
+
+        self.worker._execute_request(scheduled_live_action_db)
+        dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        self.assertEqual(dispatched_live_action_db.status,
+                         action_constants.LIVEACTION_STATUS_RUNNING)
+
+    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(side_effect=Exception('Boom!')))
+    def test_execute_failure(self):
+        live_action_db = self._get_execution_db_model(
+            status=action_constants.LIVEACTION_STATUS_REQUESTED)
+
+        self.worker._schedule_request(live_action_db)
+        scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        self.assertEqual(scheduled_live_action_db.status,
+                         action_constants.LIVEACTION_STATUS_SCHEDULED)
+
+        self.worker._execute_request(scheduled_live_action_db)
+        dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        self.assertEqual(dispatched_live_action_db.status,
+                         action_constants.LIVEACTION_STATUS_FAILED)
+
+    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
+    def test_execute_no_result(self):
+        live_action_db = self._get_execution_db_model(
+            status=action_constants.LIVEACTION_STATUS_REQUESTED)
+
+        self.worker._schedule_request(live_action_db)
+        scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        self.assertEqual(scheduled_live_action_db.status,
+                         action_constants.LIVEACTION_STATUS_SCHEDULED)
+
+        self.worker._execute_request(scheduled_live_action_db)
+        dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        self.assertEqual(dispatched_live_action_db.status,
+                         action_constants.LIVEACTION_STATUS_FAILED)
+
+    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
+    def test_execute_cancelation(self):
+        live_action_db = self._get_execution_db_model(
+            status=action_constants.LIVEACTION_STATUS_REQUESTED)
+
+        self.worker._schedule_request(live_action_db)
+        scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        self.assertEqual(scheduled_live_action_db.status,
+                         action_constants.LIVEACTION_STATUS_SCHEDULED)
+
+        action_db.update_liveaction_status(status=action_constants.LIVEACTION_STATUS_CANCELED,
+                                           liveaction_id=live_action_db.id)
+        canceled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+
+        self.worker._execute_request(canceled_live_action_db)
+        dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        self.assertEqual(dispatched_live_action_db.status,
+                         action_constants.LIVEACTION_STATUS_CANCELED)
+        self.assertDictEqual(dispatched_live_action_db.result,
+                             {'message': 'Action execution canceled by user.'})

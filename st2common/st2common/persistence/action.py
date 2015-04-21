@@ -59,6 +59,12 @@ class LiveAction(Access):
                 cfg.CONF.messaging.url)
         return cls.publisher
 
+    @classmethod
+    def publish_schedule(cls, model_object):
+        publisher = cls._get_publisher()
+        if publisher:
+            publisher.publish_schedule(model_object)
+
 
 class ActionExecutionState(Access):
     impl = actionexecstate_access
