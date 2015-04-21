@@ -78,7 +78,7 @@ class KeyValuePairController(RestController):
 
         return kvps
 
-    @jsexpose(arg_types=[str], body_cls=KeyValuePairAPI)
+    @jsexpose(arg_types=[str, object], body_cls=KeyValuePairAPI)
     def put(self, name, kvp):
         """
         Create a new entry or update an existing one.

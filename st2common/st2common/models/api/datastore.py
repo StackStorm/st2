@@ -37,7 +37,6 @@ class KeyValuePairAPI(BaseAPI):
                 'type': 'string'
             },
             'value': {
-                'type': 'string',
                 'required': True
             },
             'expire_timestamp': {
