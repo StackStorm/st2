@@ -22,7 +22,7 @@ from pecan import rest
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.models.api.action import AliasExecutionAPI
-from st2common.models.db.action import LiveActionDB
+from st2common.models.db.action import LiveActionDB, NotificationSchema, NotificationSubSchema
 from st2common.models.utils import action_alias_utils, action_param_utils
 from st2common.persistence.action import ActionAlias
 from st2common.services import action as action_service
@@ -54,9 +54,10 @@ class ActionAliasExecutionController(rest.RestController):
 
         execution_parameters = self._extract_parameters(action_alias_db=action_alias_db,
                                                         param_stream=leftover)
-
+        notify = self._get_notify_field(payload)
         execution = self._schedule_execution(action_alias_db=action_alias_db,
-                                             params=execution_parameters)
+                                             params=execution_parameters,
+                                             notify=notify)
 
         return str(execution.id)
 
@@ -70,13 +71,21 @@ class ActionAliasExecutionController(rest.RestController):
                                                             param_stream=param_stream)
         return parser.get_extracted_param_value()
 
-    def _schedule_execution(self, action_alias_db, params):
+    def _get_notify_field(self, payload):
+        on_complete = NotificationSubSchema()
+        on_complete.message = "@%s action complete." % payload.user
+        on_complete.channels = [payload.channel]
+        notify = NotificationSchema()
+        notify.on_complete = on_complete
+        return notify
+
+    def _schedule_execution(self, action_alias_db, params, notify):
         try:
             # prior to shipping off the params cast them to the right type.
             params = action_param_utils.cast_params(action_ref=action_alias_db.action_ref,
                                                     params=params)
             liveaction = LiveActionDB(action=action_alias_db.action_ref, context={},
-                                      parameters=params)
+                                      parameters=params, notify=notify)
             _, action_execution_db = action_service.schedule(liveaction)
             return action_execution_db
         except ValueError as e:

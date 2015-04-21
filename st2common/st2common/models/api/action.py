@@ -439,6 +439,17 @@ class AliasExecutionAPI(BaseAPI):
                 "type": "string",
                 "description": "Name of the action alias.",
                 "required": True
+            },
+            "user": {
+                "type": "string",
+                "description": "User that requested the execution.",
+                "default": "channel"
+            },
+            "channel": {
+                "type": "string",
+                "description": "Channel from which the execution was requested. This is not the channel \
+                                as defined by the notification system.",
+                "required": True
             }
         },
         "additionalProperties": False
