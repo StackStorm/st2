@@ -72,9 +72,9 @@ below in the command prompt:
 Configuring the administrator user account
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|st2| requires an administrator account to be able to upload and run the
-scripts on your server. By default, it tries to use ``Administrator`` account
-to log in to your server.
+|st2| requires an administrator account on the Windows host where the actions
+are executed to be able to upload and run the scripts there. By default, it
+tries to use ``Administrator`` account to log in to your server.
 
 Configuring the file share
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
