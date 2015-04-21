@@ -29,6 +29,7 @@ mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/var/log/st2
 mkdir -p %{buildroot}/etc/st2
+mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/opt/stackstorm/packs
 mkdir -p %{buildroot}/opt/stackstorm/packs/default
 mkdir -p %{buildroot}/opt/stackstorm/packs/default/actions
@@ -57,3 +58,4 @@ install -m755 tools/st2-setup-tests %{buildroot}/usr/lib/python2.7/site-packages
 /opt/stackstorm/*
 /var/log/st2
 /usr/bin/st2ctl
+/etc/logrotate.d/st2.conf

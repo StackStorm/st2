@@ -1,0 +1,8 @@
+---
+# Action definition metadata
+name: "test_packs_pack"
+description: "Workflow tests functionality provided by Packs pack"
+runner_type: "action-chain"
+enabled: true
+entry_point: "chains/test_packs_pack.yaml"
+parameters: {}

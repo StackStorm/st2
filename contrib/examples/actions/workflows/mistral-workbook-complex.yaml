@@ -12,7 +12,6 @@ workflows:
             - memory_mb
         output:
             vm_id: <% $.vm_id %>
-            vm_state: <% $.vm_state %>
             ip: <% $.ip %>
         tasks:
             register_dns:

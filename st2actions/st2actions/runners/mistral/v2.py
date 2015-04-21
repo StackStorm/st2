@@ -233,9 +233,10 @@ class MistralRunner(AsyncActionRunner):
                 if 'workflow_name' in orig_parent_context.keys():
                     actual_parent['workflow_name'] = orig_parent_context['workflow_name']
                     del orig_parent_context['workflow_name']
-                if 'execution_id' in orig_parent_context.keys():
-                    actual_parent['execution_id'] = orig_parent_context['execution_id']
-                    del orig_parent_context['execution_id']
+                if 'workflow_execution_id' in orig_parent_context.keys():
+                    actual_parent['workflow_execution_id'] = \
+                        orig_parent_context['workflow_execution_id']
+                    del orig_parent_context['workflow_execution_id']
                 context['mistral'] = orig_parent_context
                 context['mistral'].update(current)
                 context['mistral']['parent'] = actual_parent

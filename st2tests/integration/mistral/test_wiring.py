@@ -15,7 +15,6 @@
 
 import eventlet
 import unittest2
-import multiprocessing
 
 from st2client import client as st2
 from st2client import models
@@ -27,11 +26,6 @@ class TestWorkflowExecution(unittest2.TestCase):
     def setUpClass(cls):
         cls.st2client = st2.Client(base_url='http://localhost')
 
-    @unittest2.skip('multiprocessing.cpu_count isn\'t reliable')
-    def test_cpu_count(self):
-        # Ensure tests are run on multi-processor system to catch race conditions
-        self.assertGreaterEqual(multiprocessing.cpu_count(), 2)
-
     def _execute_workflow(self, action, parameters):
         execution = models.LiveAction(action=action, parameters=parameters)
         execution = self.st2client.liveactions.create(execution)
@@ -42,7 +36,7 @@ class TestWorkflowExecution(unittest2.TestCase):
 
     def _wait_for_completion(self, execution, wait=300):
         for i in range(wait):
-            eventlet.sleep(1)
+            eventlet.sleep(3)
             execution = self.st2client.liveactions.get_by_id(execution.id)
             if execution.status in ['succeeded', 'failed']:
                 break
@@ -80,7 +74,6 @@ class TestWorkflowExecution(unittest2.TestCase):
         execution = self._wait_for_completion(execution)
         self._assert_success(execution)
         self.assertIn('vm_id', execution.result)
-        self.assertIn('vm_state', execution.result)
 
     def test_complex_workbook_subflow_actions(self):
         execution = self._execute_workflow(
@@ -100,15 +93,18 @@ class TestWorkflowExecution(unittest2.TestCase):
     def test_concurrent_load(self):
         wf_name = 'examples.mistral-workbook-complex'
         wf_params = {'vm_name': 'demo1'}
-        executions = [self._execute_workflow(wf_name, wf_params) for i in range(20)]
+        executions = [self._execute_workflow(wf_name, wf_params) for i in range(5)]
 
-        eventlet.sleep(10)
-
-        for execution in executions:
+        def assert_successful_completion(execution):
+            eventlet.sleep(30)
             execution = self._wait_for_completion(execution)
             self._assert_success(execution)
             self.assertIn('vm_id', execution.result)
-            self.assertIn('vm_state', execution.result)
+
+        threads = [eventlet.spawn(assert_successful_completion, execution)
+                   for execution in executions]
+
+        [thread.wait() for thread in threads]
 
     def test_execution_failure(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'foo'})
