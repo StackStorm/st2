@@ -20,6 +20,26 @@ KVP = {
     'value': 'http://localhost:5000/v3'
 }
 
+KVP_INT = {
+    'name': 'foo',
+    'value': 666
+}
+
+KVP_BOOL = {
+    'name': 'foo',
+    'value': True
+}
+
+KVP_LIST = {
+    'name': 'foo',
+    'value': [1, 2, 3]
+}
+
+KVP_DICT = {
+    'name': 'foo',
+    'value': {'foo': 'bar', 'int': 1, 'bool': True}
+}
+
 KVP_2 = {
     'name': 'keystone_version',
     'value': 'v3'
@@ -77,6 +97,17 @@ class TestKeyValuePairController(FunctionalTest):
         update_input['value'] = 'http://localhost:35357/v3'
         put_resp = self.__do_put(self.__get_kvp_id(put_resp), update_input)
         self.assertEqual(put_resp.status_int, 200)
+        self.__do_delete(self.__get_kvp_id(put_resp))
+
+    def test_put_types(self):
+        put_resp = self.__do_put('key1', KVP_INT)
+        self.assertEqual(KVP_INT['value'], put_resp.json['value'])
+        put_resp = self.__do_put('key1', KVP_BOOL)
+        self.assertEqual(KVP_BOOL['value'], put_resp.json['value'])
+        put_resp = self.__do_put('key1', KVP_LIST)
+        self.assertEqual(KVP_LIST['value'], put_resp.json['value'])
+        put_resp = self.__do_put('key1', KVP_DICT)
+        self.assertEqual(KVP_DICT['value'], put_resp.json['value'])
         self.__do_delete(self.__get_kvp_id(put_resp))
 
     def test_put_with_ttl(self):
