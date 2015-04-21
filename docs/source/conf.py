@@ -87,7 +87,7 @@ extlinks = {
     'github_devenv': ('https://github.com/StackStorm/devenv/blob/master/%s', None),
     'github_st2web': ('https://github.com/StackStorm/st2web/blob/master/%s', None),
     'ops_latest':
-        ('https://ops.stackstorm.net/releases/st2/' + release + '/%s/', None)
+        ('https://downloads.stackstorm.net/releases/st2/' + release + '/%s/', None)
 }
 
 # Inserted at the bottom of all rst files.

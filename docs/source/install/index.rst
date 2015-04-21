@@ -17,7 +17,7 @@ download and run the deployment script.
 
 ::
 
-    curl -q -k -O https://ops.stackstorm.net/releases/st2/scripts/st2_deploy.sh
+    curl -q -k -O https://downloads.stackstorm.net/releases/st2/scripts/st2_deploy.sh
     chmod +x st2_deploy.sh
     sudo ./st2_deploy.sh
 

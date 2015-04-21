@@ -11,7 +11,7 @@ You can download and install the |st2| components, core content, and the accompa
 
 ::
 
-    curl -q -k -O https://ops.stackstorm.net/releases/st2/scripts/st2_deploy.sh
+    curl -q -k -O https://downloads.stackstorm.net/releases/st2/scripts/st2_deploy.sh
     sudo chmod +x st2_deploy.sh
 
 You can then run the script to download and install the |st2| packages
@@ -48,7 +48,7 @@ The easiest way to install these is to use the requirements.txt file from the |s
 
 ::
 
-    https://ops.stackstorm.net/releases/st2/<VERSION>/requirements.txt
+    https://downloads.stackstorm.net/releases/st2/<VERSION>/requirements.txt
 
 RabbitMQ
 ''''''''
@@ -92,7 +92,7 @@ The format of the RPM packages is like this: <component>-<version>-<build>.noarc
 You can download the packages from this URL:
 ::
 
-    https://ops.stackstorm.net/releases/st2/0.9dev/rpms/current/
+    https://downloads.stackstorm.net/releases/st2/0.9dev/rpms/current/
 
 --------------
 
