@@ -29,7 +29,7 @@ class KeyValuePairDB(stormbase.StormBaseDB):
         value: Arbitrary value to be stored.
     """
     name = me.StringField(required=True, unique=True)
-    value = me.StringField()
+    value = me.DynamicField()
     expire_timestamp = me.DateTimeField()
 
     meta = {
