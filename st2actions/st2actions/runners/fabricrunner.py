@@ -66,6 +66,10 @@ RUNNER_ENV = 'env'
 RUNNER_KWARG_OP = 'kwarg_op'
 RUNNER_TIMEOUT = 'timeout'
 
+# Other constants
+CMD_RUNNER_NAMES = ['remote-shell-cmd', 'run-remote']
+SCRIPT_RUNNER_NAMES = ['remote-shell-script', 'run-remote-script']
+
 
 def get_runner():
     return FabricRunner(str(uuid.uuid4()))
@@ -117,9 +121,9 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
 
         runner_type = self.action.runner_type['name']
 
-        if runner_type in ['remote-shell-script', 'run-remote-script']:
+        if runner_type in SCRIPT_RUNNER_NAMES:
             remote_action = self._get_fabric_remote_script_action(action_parameters)
-        elif runner_type in ['remote-shell-cmd', 'run-remote']:
+        elif runner_type in CMD_RUNNER_NAMES:
             remote_action = self._get_fabric_remote_action(action_parameters)
         else:
             raise Exception('Invalid runner: %s' % (runner_type))
