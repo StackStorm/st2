@@ -62,7 +62,9 @@ INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
 INSTALL_WEBUI=${INSTALL_WEBUI:-1}
 
 # Determine which mistral version to use
-if version_ge $VER "0.8.1"; then
+if version_ge $VER "0.9"; then
+    MISTRAL_STABLE_BRANCH="st2-0.9.0"
+elif version_ge $VER "0.8.1"; then
     MISTRAL_STABLE_BRANCH="st2-0.8.1"
 elif version_ge $VER "0.8"; then
     MISTRAL_STABLE_BRANCH="st2-0.8.0"
