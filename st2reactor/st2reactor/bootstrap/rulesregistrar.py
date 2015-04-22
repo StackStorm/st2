@@ -21,6 +21,7 @@ from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.rule import RuleAPI
+from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import Rule
 import st2common.content.utils as content_utils
 
@@ -91,12 +92,21 @@ class RulesRegistrar(ResourceRegistrar):
             LOG.debug('Loading rule from %s.', rule)
             try:
                 content = self._meta_loader.load(rule)
+                pack_field = content.get('pack', None)
+                if not pack_field:
+                    content['pack'] = pack
+                    pack_field = pack
+                if pack_field != pack:
+                    raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
+                                    (pack, pack_field))
                 rule_api = RuleAPI(**content)
                 rule_api.validate()
                 rule_db = RuleAPI.to_model(rule_api)
 
                 try:
-                    rule_db.id = Rule.get_by_name(rule_api.name).id
+                    rule_ref = ResourceReference.to_string_reference(name=content['name'],
+                                                                     pack=content['pack'])
+                    Rule.get_by_ref(rule_ref)
                 except ValueError:
                     LOG.debug('Rule %s not found. Creating new one.', rule)
 
