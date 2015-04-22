@@ -270,7 +270,7 @@ For example:
             key3:
                 type: "string"
                 required: true
-           kwarg_op:
+            kwarg_op:
                 type: "string"
                 immutable: true
                 default: "-"
@@ -328,7 +328,7 @@ them in the metadata file:
                 description: "Address of the syslog server"
                 required: true
                 position: 0
-          message:
+            message:
                 type: "string"
                 description: "Message to write"
                 required: true
@@ -364,10 +364,10 @@ Metadata file (``my_echo_action.yaml``):
         entry_point: "my_echo_action.py"
         parameters:
             message:
-              type: "string"
-              description: "Message to print."
-              required: true
-              position: 0
+                type: "string"
+                description: "Message to print."
+                required: true
+                position: 0
 
 
 Action script file (``my_echo_action.py``):
