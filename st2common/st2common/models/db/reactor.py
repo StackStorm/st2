@@ -108,7 +108,8 @@ class ActionExecutionSpecDB(me.EmbeddedDocument):
         return ''.join(result)
 
 
-class RuleDB(stormbase.StormBaseDB, stormbase.TagsMixin):
+class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
+             stormbase.ContentPackResourceMixin):
     """Specifies the action to invoke on the occurrence of a Trigger. It
     also includes the transformation to perform to match the impedance
     between the payload of a TriggerInstance and input of a action.
@@ -119,6 +120,12 @@ class RuleDB(stormbase.StormBaseDB, stormbase.TagsMixin):
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
+    name = me.StringField(required=True)
+    ref = me.StringField(required=True)
+    pack = me.StringField(
+        required=False,
+        help_text='Name of the content pack.',
+        unique_with='name')
     trigger = me.StringField()
     criteria = stormbase.EscapedDictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)

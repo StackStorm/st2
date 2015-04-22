@@ -21,6 +21,7 @@ from st2common.models.api.base import BaseAPI
 from st2common.models.api.reactor import TriggerAPI
 from st2common.models.api.tag import TagsHelper
 from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB
+from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import Trigger
 import st2common.services.triggers as TriggerService
 from st2common.util import reference
@@ -89,6 +90,14 @@ class RuleAPI(BaseAPI):
                 'type': 'string',
                 'required': True
             },
+            'pack': {
+                'type': 'string'
+            },
+            "ref": {
+                "description": "System computed user friendly reference for the action. \
+                                Provided value will be overridden by computed value.",
+                "type": "string"
+            },
             'description': {
                 'type': 'string'
             },
@@ -149,6 +158,8 @@ class RuleAPI(BaseAPI):
         trigger_db = TriggerService.create_trigger_db_from_rule(rule)
         model.trigger = reference.get_str_resource_ref_from_model(trigger_db)
         model.criteria = dict(getattr(rule, 'criteria', {}))
+        model.pack = str(rule.pack)
+        model.ref = ResourceReference.to_string_reference(pack=model.pack, name=model.name)
         validator.validate_criteria(model.criteria)
         model.action = ActionExecutionSpecDB()
         model.action.ref = rule.action['ref']

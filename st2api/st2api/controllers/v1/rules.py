@@ -14,11 +14,11 @@
 # limitations under the License.
 
 import six
-import pecan
 from pecan import abort
 from mongoengine import ValidationError
 
 from st2common import log as logging
+from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.exceptions.triggers import TriggerDoesNotExistException
@@ -32,7 +32,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class RuleController(resource.ResourceController):
+class RuleController(resource.ContentPackResourceControler):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Rules in the system.
@@ -41,24 +41,15 @@ class RuleController(resource.ResourceController):
     model = RuleAPI
     access = Rule
     supported_filters = {
-        'name': 'name'
+        'name': 'name',
+        'pack': 'pack'
     }
 
     query_options = {
-        'sort': ['name']
+        'sort': ['pack', 'name']
     }
 
-    @jsexpose(arg_types=[str])
-    def get_one(self, name_or_id):
-        try:
-            rule_db = self._get_by_name_or_id(name_or_id=name_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            pecan.abort(http_client.NOT_FOUND, e.message)
-            return
-
-        result = self.model.from_model(rule_db)
-        return result
+    include_reference = True
 
     @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
     def post(self, rule):
@@ -69,6 +60,8 @@ class RuleController(resource.ResourceController):
                 POST /rules/
         """
         try:
+            if not hasattr(rule, 'pack'):
+                setattr(rule, 'pack', DEFAULT_PACK_NAME)
             rule_db = RuleAPI.to_model(rule)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
             rule_db = Rule.add_or_update(rule_db)
@@ -98,17 +91,23 @@ class RuleController(resource.ResourceController):
         return rule_api
 
     @jsexpose(arg_types=[str], body_cls=RuleAPI)
-    def put(self, rule_id, rule):
-        rule_db = RuleController.__get_by_id(rule_id)
-        LOG.debug('PUT /rules/ lookup with id=%s found object: %s', rule_id, rule_db)
+    def put(self, rule_ref_or_id, rule):
+        try:
+            rule_db = self._get_by_ref_or_id(rule_ref_or_id)
+        except Exception as e:
+            LOG.exception(e.message)
+            abort(http_client.NOT_FOUND, e.message)
+            return
+
+        LOG.debug('PUT /rules/ lookup with id=%s found object: %s', rule_ref_or_id, rule_db)
 
         try:
-            if rule.id is not None and rule.id is not '' and rule.id != rule_id:
+            if rule.id is not None and rule.id is not '' and rule.id != rule_ref_or_id:
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
-                            rule.id, rule_id)
+                            rule.id, rule_ref_or_id)
             old_rule_db = rule_db
             rule_db = RuleAPI.to_model(rule)
-            rule_db.id = rule_id
+            rule_db.id = rule_ref_or_id
             rule_db = Rule.add_or_update(rule_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s', rule)
@@ -122,43 +121,22 @@ class RuleController(resource.ResourceController):
         return rule_api
 
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
-    def delete(self, rule_id):
+    def delete(self, rule_ref_or_id):
         """
             Delete a rule.
 
             Handles requests:
                 DELETE /rules/1
         """
-        rule_db = RuleController.__get_by_id(rule_id)
-        LOG.debug('DELETE /rules/ lookup with id=%s found object: %s', rule_id, rule_db)
+        rule_db = self._get_by_ref_or_id(ref_or_id=rule_ref_or_id)
+        LOG.debug('DELETE /rules/ lookup with id=%s found object: %s', rule_ref_or_id, rule_db)
         try:
             Rule.delete(rule_db)
         except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s".',
-                          rule_id)
+                          rule_ref_or_id)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
 
         extra = {'rule_db': rule_db}
         LOG.audit('Rule deleted. Rule.id=%s.' % (rule_db.id), extra=extra)
-
-    @staticmethod
-    def __get_by_id(rule_id):
-        try:
-            return Rule.get_by_id(rule_id)
-        except (ValueError, ValidationError) as e:
-            LOG.exception('Database lookup for id="%s" resulted in exception.', rule_id)
-            abort(http_client.NOT_FOUND, str(e))
-
-    @staticmethod
-    def __get_by_name(rule_name):
-        try:
-            return [Rule.get_by_name(rule_name)]
-        except ValueError as e:
-            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', rule_name, e)
-            return []
-
-    def _get_by_ref(self, resource_ref):
-        """
-        Note: We do this because rules don't have a pack attribute, only name.
-        """
