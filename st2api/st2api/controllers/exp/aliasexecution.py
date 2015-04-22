@@ -73,8 +73,8 @@ class ActionAliasExecutionController(rest.RestController):
 
     def _get_notify_field(self, payload):
         on_complete = NotificationSubSchema()
-        on_complete.message = "@%s action complete." % payload.user
         on_complete.channels = [payload.channel]
+        on_complete.data = {'user': payload.user}
         notify = NotificationSchema()
         notify.on_complete = on_complete
         return notify
