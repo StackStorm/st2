@@ -150,11 +150,10 @@ A sample config file with all the configuration options can be found at :github_
 Serve WebUI files from the API server
 -------------------------------------
 
-By default, static WebUI files are served on the API server. This means you can
-access the web interface by going to ``http://<api host>:<api port>/webui``.
+By default, static WebUI files are served by python SimpleHTTPServer. This means you can
+access the web interface by going to ``http://<api host>/``.
 
-For production deployments, we encourage you to disable this option by settings
-``api.serve_webui_files`` option to ``False`` and use nginx, Apache or a similar
+For production deployments, we encourage you use nginx, Apache or a similar
 dedicated web server to serve those static files.
 
 .. include:: /engage.rst

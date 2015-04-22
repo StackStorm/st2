@@ -22,7 +22,7 @@ class TestBase(FunctionalTest):
         response = self.app.get('/')
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.headers['Access-Control-Allow-Origin'],
-                         'http://localhost:3000')
+                         'http://localhost')
         self.assertEqual(response.headers['Access-Control-Allow-Methods'],
                          'GET,POST,PUT,DELETE,OPTIONS')
         self.assertEqual(response.headers['Access-Control-Allow-Headers'],

@@ -50,39 +50,29 @@ class CorsHook(PecanHook):
         headers = state.response.headers
 
         origin = state.request.headers.get('Origin')
-        origins = cfg.CONF.api.allow_origin
-        serve_webui_files = cfg.CONF.api.serve_webui_files
+        origins = set(cfg.CONF.api.allow_origin)
 
         # Build a list of the default allowed origins
-        api_port = cfg.CONF.api.port
         public_api_url = cfg.CONF.auth.api_url
-        default_allowed_origins = []
 
         # Default WebUI URL
-        default_allowed_origins.append('http://localhost:3000')
+        origins.add('http://localhost:3000')
 
-        if serve_webui_files:
-            # Local API URL
-            default_allowed_origins.append('http://localhost:%s' % (api_port))
-            default_allowed_origins.append('http://127.0.0.1:%s' % (api_port))
+        origins.add('http://localhost')
+        origins.add('http://127.0.0.1')
 
-        if serve_webui_files and public_api_url:
+        if public_api_url:
             # Public API URL
-            default_allowed_origins.append(public_api_url)
+            origins.add(public_api_url)
 
         if origin:
             if '*' in origins:
                 origin_allowed = '*'
             else:
                 # See http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
-                if serve_webui_files and origin in default_allowed_origins:
-                    # Allow requests originating from the API server
-                    origin_allowed = origin
-                else:
-                    origin_allowed = origin if origin in origins else 'null'
+                origin_allowed = origin if origin in origins else 'null'
         else:
-            default_allowed_origins = ','.join(default_allowed_origins)
-            origin_allowed = origins[0] if len(origins) > 0 else default_allowed_origins
+            origin_allowed = list(origins)[0]
 
         methods_allowed = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
         request_headers_allowed = ['Content-Type', 'Authorization', 'X-Auth-Token']
@@ -157,10 +147,6 @@ class JSONErrorResponseHook(PecanHook):
     """
 
     def on_error(self, state, e):
-        request_path = state.request.path
-        if cfg.CONF.api.serve_webui_files and request_path.startswith('/webui'):
-            # We want to return regular error response for requests to /webui
-            return
 
         error_msg = getattr(e, 'comment', str(e))
         LOG.debug('API call failed: %s', error_msg)

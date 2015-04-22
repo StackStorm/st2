@@ -21,8 +21,6 @@ logging = conf/logging.conf
 allow_origin = ['http://localhost:3000']
 # location of the logging.conf file
 logging = conf/logging.conf
-# Enable to serve static WebUI files using the API service
-serve_webui_files = True
 # StackStorm API server host
 host = 0.0.0.0
 # Send empty message every N seconds to keep connection open
