@@ -117,9 +117,9 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
 
         runner_type = self.action.runner_type['name']
 
-        if runner_type == 'run-remote-script':
+        if runner_type in ['remote-shell-script', 'run-remote-script']:
             remote_action = self._get_fabric_remote_script_action(action_parameters)
-        elif runner_type == 'run-remote':
+        elif runner_type in ['remote-shell-cmd', 'run-remote']:
             remote_action = self._get_fabric_remote_action(action_parameters)
         else:
             raise Exception('Invalid runner: %s' % (runner_type))
