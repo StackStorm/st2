@@ -445,10 +445,14 @@ class AliasExecutionAPI(BaseAPI):
                 "description": "User that requested the execution.",
                 "default": "channel"
             },
-            "channel": {
+            "source_channel": {
                 "type": "string",
                 "description": "Channel from which the execution was requested. This is not the channel \
-                                as defined by the notification system.",
+                                as defined by the notification system."
+            },
+            "notification_channel": {
+                "type": "string",
+                "description": "StackStorm notification channel to use to respond.",
                 "required": True
             }
         },
