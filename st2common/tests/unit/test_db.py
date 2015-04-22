@@ -208,6 +208,9 @@ class ReactorModelTest(DbTestCase):
     def _create_save_rule(trigger, action=None, enabled=True):
         created = RuleDB()
         created.name = 'rule-1'
+        created.pack = 'default'
+        created.ref = ResourceReference.to_string_reference(name=created.name,
+                                                            pack=created.pack)
         created.description = ''
         created.enabled = enabled
         created.trigger = reference.get_str_resource_ref_from_model(trigger)

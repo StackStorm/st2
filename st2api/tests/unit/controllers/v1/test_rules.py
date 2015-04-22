@@ -15,6 +15,8 @@
 
 import mock
 import six
+
+from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
@@ -68,11 +70,13 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(self.__get_rule_id(get_resp), rule_id)
         self.__do_delete(rule_id)
 
-    def test_get_one_by_name(self):
+    def test_get_one_by_ref(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)
         rule_name = post_resp.json['name']
+        rule_pack = post_resp.json['pack']
+        ref = ResourceReference.to_string_reference(name=rule_name, pack=rule_pack)
         rule_id = post_resp.json['id']
-        get_resp = self.__do_get_one(rule_name)
+        get_resp = self.__do_get_one(ref)
         self.assertEqual(get_resp.json['name'], rule_name)
         self.assertEqual(get_resp.status_int, http_client.OK)
         self.__do_delete(rule_id)
