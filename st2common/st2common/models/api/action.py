@@ -393,10 +393,19 @@ class ActionAliasAPI(BaseAPI):
                 "description": "The unique identifier for the action alias.",
                 "type": "string"
             },
+            "ref": {
+                "description": "System computed user friendly reference for the alias. \
+                                Provided value will be overridden by computed value.",
+                "type": "string"
+            },
             "name": {
                 "type": "string",
                 "description": "Name of the action alias.",
                 "required": True
+            },
+            "pack": {
+                "description": "The content pack this actionalias belongs to.",
+                "type": "string"
             },
             "description": {
                 "type": "string",
@@ -420,6 +429,8 @@ class ActionAliasAPI(BaseAPI):
     def to_model(cls, alias):
         model = super(cls, cls).to_model(alias)
         model.name = alias.name
+        model.pack = alias.pack
+        model.ref = ResourceReference.to_string_reference(pack=model.pack, name=model.name)
         model.action_ref = alias.action_ref
         model.formats = alias.formats
         return model

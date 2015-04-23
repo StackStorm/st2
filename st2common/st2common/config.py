@@ -67,14 +67,11 @@ def register_opts(ignore_errors=False):
     do_register_opts(system_opts, 'system', ignore_errors)
 
     system_packs_base_path = os.path.join(cfg.CONF.system.base_path, 'packs')
-    default_aliases_path = os.path.join(cfg.CONF.system.base_path, 'aliases')
     content_opts = [
         cfg.StrOpt('system_packs_base_path', default=system_packs_base_path,
                    help='Path to the directory which contains system packs.'),
         cfg.StrOpt('packs_base_paths', default=None,
-                   help='Paths which will be searched for integration packs.'),
-        cfg.StrOpt('aliases_base_paths', default=default_aliases_path,
-                   help='Paths which will be searched for aliases.')
+                   help='Paths which will be searched for integration packs.')
     ]
     do_register_opts(content_opts, 'content', ignore_errors)
 
