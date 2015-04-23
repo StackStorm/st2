@@ -64,6 +64,9 @@ class TestAliasExecution(FunctionalTest):
         self.assertEquals(schedule.call_args[0][0].parameters, expected_parameters)
 
     def _do_post(self, execution, expect_errors=False):
-        execution = {'command': execution}
+        execution = {'command': execution,
+                     'user': 'stanley',
+                     'source_channel': 'test',
+                     'notification_channel': 'test'}
         return self.app.post_json('/exp/aliasexecution', execution,
                                   expect_errors=expect_errors)

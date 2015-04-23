@@ -405,7 +405,8 @@ class ActionAliasAPI(BaseAPI):
             },
             "pack": {
                 "description": "The content pack this actionalias belongs to.",
-                "type": "string"
+                "type": "string",
+                "required": True
             },
             "description": {
                 "type": "string",
