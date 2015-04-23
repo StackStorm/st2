@@ -138,6 +138,10 @@ By default, the logs can be found in ``/var/log/st2``.
 
   logrotate log rotation
 
+Authentication
+--------------
+Please refer to the main :doc:`/../authentication` section.
+
 Sample configuration file
 -------------------------
 
