@@ -499,7 +499,7 @@ install_webui() {
     }]
   });" > ${WEBUI_CONFIG_PATH}
 
-  sed -i "s%^# allow_origin =\$%allow_origin = *%g" ${STANCONF}
+  sed -i "s%^# allow_origin =.*\$%allow_origin = *%g" ${STANCONF}
 
   # Cleanup
   rm -r ${temp_dir}
