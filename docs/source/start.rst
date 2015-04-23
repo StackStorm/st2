@@ -33,7 +33,7 @@ operations are also available via REST API, Python, and JavaScript bindings.
 Check the :doc:`CLI and Python Client </reference/cli>` reference for details.
 
 From v0.8, |st2| ships with WebUI. With the default "all-in-one" installation, you can access it at
-http://hostname:9101/webui/.
+http://hostname/.
 
 Work with Actions
 ---------------------

@@ -6,7 +6,7 @@ st2web is an Angular-based web application. It allows you to control the whole p
 Express installation
 --------------------
 
-Production version of st2web is pre-installed on st2express and any other st2_deploy installation. You can access the UI by accessing ``/webui`` endpoint of st2api server. For vagrant deployment of st2express, it would be http://172.168.90.50:9101/webui.
+Production version of st2web is pre-installed on st2express and any other st2_deploy installation. You can access the UI by pointing your browser to the default http port of your server. For vagrant deployment of st2express, it would be http://172.168.90.50/.
 
 It can also be installed by extracting the latest tar-ball from :ops_latest:`webui` into ``/opt/stackstorm/static/webui``.
 
