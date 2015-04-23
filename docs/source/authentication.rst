@@ -45,8 +45,7 @@ it.
 Standalone mode
 ---------------
 
-In the standalone mode, st2auth service handles the authentication itself
-using a backend which is specified in the config file.
+In the standalone mode, st2auth service handles the authentication itself using a backend which is specified in the config file.
 
 .. figure:: /_static/images/st2auth_standalone_mode.png
     :align: center
@@ -56,51 +55,7 @@ using a backend which is specified in the config file.
 In this mode, the service should listen on https (this means setting the
 ``use_ssl`` configuration option) and be accessible to the st2 clients.
 
-The following is a list of different authentication backends that can be configured with standalone mode.
-
-Flat file backend
-~~~~~~~~~~~~~~~~~
-
-Flat file backend supports reading credentials from an Apache HTTPd htpasswd
-formatted file. To manage this file you can use `htpasswd`_ utility which comes
-with a standard Apache httpd distribution.
-
-**Configuration options:**
-
-    * ``file_path`` - Path to the file containing credentials.
-
-**Example usage:**
-
-.. sourcecode:: bash
-
-    st2auth --config-file /etc/st2/st2.conf --auth-use_ssl --auth-mode=standalone \
-        --auth-backend=flat_file --auth-backend_kwargs='{"file_path": "/etc/private/htpaswd"}'
-
-MongoDB backend
-~~~~~~~~~~~~~~~
-
-MongoDB backend supports reading credentials from a MongoDB collection called
-``users``.
-
-Entries in this collection need to have the following attributes:
-
-* ``username`` - Username
-* ``salt`` - Password salt
-* ``password`` - SHA256 hash for the salt+password - SHA256(<salt><password>)
-
-**Configuration options:**
-
-* ``db_host`` - MongoDB server host.
-* ``db_port`` - MongoDB server port.
-* ``db_name`` - Name of the database to use.
-
-**Example usage:**
-
-.. sourcecode:: bash
-
-    st2auth --config-file /etc/st2/st2.conf --auth-use_ssl--auth-mode=standalone \
-        --auth-backend=mongodb \
-        --auth-backend_kwargs='{"db_host": "196.168.100.10", "db_port": 27017, "db_name": "st2auth"}'
+|st2| ships with a flat file and a mongodb authentication backends that can be configured in standalone mode. Please refer to the configuration section below on how to configure these backends.
 
 Configuring the service
 -----------------------
@@ -120,7 +75,7 @@ By default, the |st2| configuration file is located at /etc/st2/st2.conf. The av
 * ``enable`` - Authentication is not enabled for the |st2| API until this is set to True. If running |st2| on multiple servers, please ensure that this is set to True on all |st2| configuration files.
 * ``debug`` - Specify to enable debug mode.
 
-Setup the service in proxy mode
+Setup proxy mode
 ----------------------------------
 
 The following example hosts the |st2| auth service in Apache and configures Apache to authenticates users.
@@ -170,6 +125,56 @@ Enable SSL and st2-auth and restart Apache. ::
     sudo ln -s /etc/apache2/sites-available/st2-auth.conf /etc/apache2/sites-enabled/st2-auth.conf
     sudo a2enmod ssl
     sudo service apache2 restart
+
+Setup standalone mode
+------------------------------------
+
+The following is a list of authentication backends that is available to configure in standalone mode.
+
+Flat file backend
+~~~~~~~~~~~~~~~~~
+
+Flat file backend supports reading credentials from an Apache HTTPd htpasswd
+formatted file. To manage this file you can use `htpasswd`_ utility which comes
+with a standard Apache httpd distribution.
+
+    **Backend configuration options:**
+    
+    * ``file_path`` - Path to the file containing credentials.
+
+Example ``auth`` section in the |st2| configuration file. ::
+ 
+    [auth]
+    mode = standalone
+    backend = flat_file
+    backend_kwargs = {"file_path": "/path/to/htpaswd"}
+    enable = True
+    debug = False
+    logging = /etc/st2/st2auth.logging.conf
+    api_url = http://myhost.example.com:9101/
+
+MongoDB backend
+~~~~~~~~~~~~~~~
+
+MongoDB backend supports reading credentials from a MongoDB collection called
+``users``.
+
+    **Backend configuration options:**
+
+    * ``db_host`` - MongoDB server host.
+    * ``db_port`` - MongoDB server port.
+    * ``db_name`` - Name of the database to use.
+
+Example ``auth`` section in the |st2| configuration file. :: 
+
+    [auth]
+    mode = standalone
+    backend = mongodb
+    backend_kwargs = {"db_host": "196.168.100.10", "db_port": 27017, "db_name": "st2auth"}
+    enable = True
+    debug = False
+    logging = /etc/st2/st2auth.logging.conf
+    api_url = http://myhost.example.com:9101/
 
 Testing
 -------
