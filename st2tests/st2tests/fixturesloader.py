@@ -37,13 +37,13 @@ from st2common.persistence.execution import (ActionExecution)
 from st2common.persistence.reactor import (Rule, Trigger, TriggerType, TriggerInstance)
 
 ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'executions', 'liveactions', 'rules', 'runners',
-                       'triggertypes', 'triggers', 'triggerinstances', 'actionaliases']
+                       'triggertypes', 'triggers', 'triggerinstances', 'aliases']
 ALLOWED_FIXTURES = copy.copy(ALLOWED_DB_FIXTURES)
 ALLOWED_FIXTURES.extend(['actionchains', 'workflows'])
 
 FIXTURE_DB_MODEL = {
     'actions': ActionDB,
-    'actionaliases': ActionAliasDB,
+    'aliases': ActionAliasDB,
     'actionstates': ActionExecutionStateDB,
     'executions': ActionExecutionDB,
     'liveactions': LiveActionDB,
@@ -56,7 +56,7 @@ FIXTURE_DB_MODEL = {
 
 FIXTURE_API_MODEL = {
     'actions': ActionAPI,
-    'actionaliases': ActionAliasAPI,
+    'aliases': ActionAliasAPI,
     'actionstates': ActionExecutionStateAPI,
     'executions': ActionExecutionAPI,
     'liveactions': LiveActionAPI,
@@ -70,7 +70,7 @@ FIXTURE_API_MODEL = {
 
 FIXTURE_PERSISTENCE_MODEL = {
     'actions': Action,
-    'actionaliases': ActionAlias,
+    'aliases': ActionAlias,
     'actionstates': ActionExecutionState,
     'executions': ActionExecution,
     'liveactions': LiveAction,

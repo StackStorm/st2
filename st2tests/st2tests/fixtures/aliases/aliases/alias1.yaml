@@ -1,5 +1,6 @@
 ---
     name: "alias1"
+    pack: "aliases"
     description: "DON'T CARE"
     action_ref: "wolfpack.action1"
     formats:
