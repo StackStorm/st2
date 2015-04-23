@@ -245,6 +245,7 @@ class ContentPackResourceListCommand(ResourceListCommand):
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         filters = {'pack': args.pack}
+        filters.update(**kwargs)
         return self.manager.get_all(**filters)
 
 
