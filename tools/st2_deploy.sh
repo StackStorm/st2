@@ -60,6 +60,7 @@ echo "Installing version ${VER}"
 
 INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
 INSTALL_WEBUI=${INSTALL_WEBUI:-1}
+INSTALL_MISTRAL=${INSTALL_MISTRAL:-1}
 
 # Determine which mistral version to use
 if version_ge $VER "0.9"; then
@@ -426,11 +427,19 @@ download_pkgs
 
 if [[ "$TYPE" == "debs" ]]; then
   install_apt
-  setup_mistral
+
+  if [ ${INSTALL_MISTRAL} == "1" ]; then
+    setup_mistral
+  fi
+
   deploy_deb
 elif [[ "$TYPE" == "rpms" ]]; then
   install_yum
-  setup_mistral
+
+  if [ ${INSTALL_MISTRAL} == "1" ]; then
+    setup_mistral
+  fi
+
   deploy_rpm
 fi
 
