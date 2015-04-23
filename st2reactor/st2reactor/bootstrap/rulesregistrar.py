@@ -106,7 +106,9 @@ class RulesRegistrar(ResourceRegistrar):
                 try:
                     rule_ref = ResourceReference.to_string_reference(name=content['name'],
                                                                      pack=content['pack'])
-                    Rule.get_by_ref(rule_ref)
+                    existing = Rule.get_by_ref(rule_ref)
+                    if existing:
+                        rule_db.id = existing.id
                 except ValueError:
                     LOG.debug('Rule %s not found. Creating new one.', rule)
 
