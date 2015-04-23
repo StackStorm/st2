@@ -499,6 +499,8 @@ install_webui() {
     }]
   });" > ${WEBUI_CONFIG_PATH}
 
+  sed -i "s%^# allow_origin =\$%allow_origin = *%g" ${STANCONF}
+
   # Cleanup
   rm -r ${temp_dir}
   rm -f /tmp/webui.tar.gz
@@ -543,9 +545,6 @@ else
   echo "  st2 is installed and ready to use."
 fi
 
-if [ ${INSTALL_WEBUI} == "1" ]; then
-  echo "  WebUI at http://`hostname`:9101/webui/"
-fi
 echo "=========================================="
 echo ""
 
