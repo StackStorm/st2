@@ -14,6 +14,11 @@ EOM
 
 WARNING_SLEEP_DELAY=5
 
+# Options which can be provied by the user via env variables
+INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
+INSTALL_WEBUI=${INSTALL_WEBUI:-1}
+INSTALL_MISTRAL=${INSTALL_MISTRAL:-1}
+
 # Common variables
 DOWNLOAD_SERVER="https://downloads.stackstorm.net"
 RABBIT_PUBLIC_KEY="rabbitmq-signing-key-public.asc"
@@ -37,8 +42,20 @@ HTPASSWD_FILE_CONTENT="testu:{SHA}V1t6eZLxnehb7CTBuj61Nq3lIh4="
 WEBUI_CONFIG_PATH="/opt/stackstorm/static/webui/config.js"
 
 # Common utility functions
-
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" == "$1"; }
+function join { local IFS="$1"; shift; echo "$*"; }
+
+# Distribution specific variables
+APT_PACKAGE_LIST=("rabbitmq-server" "make" "python-virtualenv" "python-dev" "realpath" "python-pip" "mongodb" "mongodb-server" "gcc" "git")
+YUM_PACKAGE_LIST=("python-pip" "python-virtualenv" "python-devel" "gcc-c++" "git-all" "mongodb" "mongodb-server")
+
+if [ ${INSTALL_MISTRAL} == "1" ]; then
+    APT_PACKAGE_LIST+=("mysql-server")
+    YUM_PACKAGE_LIST+=("mysql-server")
+fi
+
+APT_PACKAGE_LIST=$(join " " ${APT_PACKAGE_LIST[@]})
+YUM_PACKAGE_LIST=$(join " " ${YUM_PACKAGE_LIST[@]})
 
 # Actual code starts here
 
@@ -57,10 +74,6 @@ else
 fi
 
 echo "Installing version ${VER}"
-
-INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
-INSTALL_WEBUI=${INSTALL_WEBUI:-1}
-INSTALL_MISTRAL=${INSTALL_MISTRAL:-1}
 
 # Determine which mistral version to use
 if version_ge $VER "0.9"; then
@@ -153,9 +166,8 @@ install_apt() {
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
   # Install packages
-  aptlist='rabbitmq-server make python-virtualenv python-dev realpath python-pip mongodb mongodb-server gcc git mysql-server'
-  echo "Installing ${aptlist}"
-  apt-get install -y ${aptlist}
+  echo "Installing ${APT_PACKAGE_LIST}"
+  apt-get install -y ${APT_PACKAGE_LIST}
   setup_rabbitmq
   install_pip
 }
@@ -166,9 +178,8 @@ install_yum() {
   rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
   curl -sS -k -o /tmp/rabbitmq-server.rpm http://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
   yum localinstall -y /tmp/rabbitmq-server.rpm
-  yumlist='python-pip python-virtualenv python-devel gcc-c++ git-all mongodb mongodb-server mysql-server'
-  echo "Installing ${yumlist}"
-  yum install -y ${yumlist}
+  echo "Installing ${YUM_PACKAGE_LIST}"
+  yum install -y ${YUM_PACKAGE_LIST}
   setup_rabbitmq
   setup_mongodb_systemd
   install_pip
