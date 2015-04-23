@@ -112,7 +112,7 @@ def register_aliases():
         import st2common.content.aliasesregistrar as aliases_registrar
         # This count is broken. If register_aliases throws an exception it has
         # no assigned value. (FIX ME!)
-        registered_count = aliases_registrar.register_aliases()
+        registered_count = aliases_registrar.register_aliases(pack_dir=cfg.CONF.register.pack)
     except Exception:
         LOG.warning('Failed to register aliases.', exc_info=True)
 

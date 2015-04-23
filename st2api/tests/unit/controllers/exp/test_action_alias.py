@@ -21,11 +21,11 @@ from tests import FunctionalTest
 FIXTURES_PACK = 'aliases'
 
 TEST_MODELS = {
-    'actionaliases': ['alias1.yaml', 'alias2.yaml']
+    'aliases': ['alias1.yaml', 'alias2.yaml']
 }
 
 TEST_LOAD_MODELS = {
-    'actionaliases': ['alias3.yaml']
+    'aliases': ['alias3.yaml']
 }
 
 
@@ -41,12 +41,12 @@ class TestActionAlias(FunctionalTest):
         super(TestActionAlias, cls).setUpClass()
         cls.models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                           fixtures_dict=TEST_MODELS)
-        cls.alias1 = cls.models['actionaliases']['alias1.yaml']
-        cls.alias2 = cls.models['actionaliases']['alias2.yaml']
+        cls.alias1 = cls.models['aliases']['alias1.yaml']
+        cls.alias2 = cls.models['aliases']['alias2.yaml']
 
         loaded_models = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
                                                      fixtures_dict=TEST_LOAD_MODELS)
-        cls.alias3 = loaded_models['actionaliases']['alias3.yaml']
+        cls.alias3 = loaded_models['aliases']['alias3.yaml']
 
     def test_get_all(self):
         resp = self.app.get('/exp/actionalias')

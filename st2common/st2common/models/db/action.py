@@ -188,7 +188,6 @@ class ActionExecutionStateDB(stormbase.StormFoundationDB):
     """
         Database entity that represents the state of Action execution.
     """
-
     execution_id = me.ObjectIdField(
         required=True,
         unique=True,
@@ -209,6 +208,10 @@ class ActionAliasDB(stormbase.StormBaseDB):
     """
         Database entity that represent an Alias for an action.
     """
+    ref = me.StringField(required=True)
+    pack = me.StringField(
+        required=True,
+        help_text='Name of the content pack.')
     action_ref = me.StringField(
         required=True,
         help_text='Reference of the Action map this alias.')

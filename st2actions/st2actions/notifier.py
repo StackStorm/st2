@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import eventlet
+import json
 from kombu import Connection
 from kombu.mixins import ConsumerMixin
 from oslo.config import cfg
@@ -122,7 +123,12 @@ class Notifier(object):
             message = notify_subsection.message or (
                 'Action ' + liveaction.action + ' ' + default_message_suffix)
             data = notify_subsection.data or {}  # XXX: Handle Jinja
-            data = {'result': liveaction.result}
+            # At this point convert result to a string. This restricts the rulesengines
+            # ability to introspect the result. On the other handle atleast a json usable
+            # result is sent as part of the notification. If jinja is required to convert
+            # to a string representation it uses str(...) which make it impossible to
+            # parse the result as json any longer.
+            data['result'] = json.dumps(liveaction.result)
 
             payload['message'] = message
             payload['data'] = data
@@ -136,6 +142,8 @@ class Notifier(object):
             for channel in notify_subsection.channels:
                 try:
                     payload['channel'] = channel
+                    LOG.debug('POSTing %s for %s. Payload - %s.', NOTIFY_TRIGGER_TYPE['name'],
+                              liveaction.id, payload)
                     self._trigger_dispatcher.dispatch(self._notify_trigger, payload=payload)
                 except:
                     failed_channels.append(channel)

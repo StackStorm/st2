@@ -59,8 +59,6 @@ port = 9100
 backend = flat_file
 
 [content]
-# Paths which will be searched for aliases.
-aliases_base_paths = /opt/stackstorm/aliases
 # Path to the directory which contains system packs.
 system_packs_base_path = /opt/stackstorm/packs
 # Paths which will be searched for integration packs.
@@ -90,7 +88,7 @@ port = 6001
 # Controls if stderr should be redirected to the logs.
 redirect_stderr = False
 # Exclusion list of loggers to omit.
-excludes = 
+excludes =
 
 [messaging]
 # URL of the messaging server.

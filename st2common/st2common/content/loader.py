@@ -30,7 +30,7 @@ LOG = logging.getLogger(__name__)
 
 
 class ContentPackLoader(object):
-    ALLOWED_CONTENT_TYPES = ['sensors', 'actions', 'rules']
+    ALLOWED_CONTENT_TYPES = ['sensors', 'actions', 'rules', 'aliases']
 
     def get_content(self, base_dirs, content_type):
         """
@@ -118,6 +118,8 @@ class ContentPackLoader(object):
             get_func = self._get_actions
         elif content_type == 'rules':
             get_func = self._get_rules
+        elif content_type == 'aliases':
+            get_func = self._get_aliases
 
         if not os.path.isdir(pack_dir):
             raise ValueError('Directory "%s" doesn\'t exist' % (pack_dir))
@@ -126,19 +128,22 @@ class ContentPackLoader(object):
         return pack_content
 
     def _get_sensors(self, pack_dir):
-        if 'sensors' not in os.listdir(pack_dir):
-            raise ValueError('No sensors found in "%s".' % (pack_dir))
-        return os.path.join(pack_dir, 'sensors')
+        return self._get_folder(pack_dir=pack_dir, content_type='sensors')
 
     def _get_actions(self, pack_dir):
-        if 'actions' not in os.listdir(pack_dir):
-            raise ValueError('No actions found in "%s".' % (pack_dir))
-        return os.path.join(pack_dir, 'actions')
+        return self._get_folder(pack_dir=pack_dir, content_type='actions')
 
     def _get_rules(self, pack_dir):
-        if 'rules' not in os.listdir(pack_dir):
-            raise ValueError('No rules found in "%s".' % (pack_dir))
-        return os.path.join(pack_dir, 'rules')
+        return self._get_folder(pack_dir=pack_dir, content_type='rules')
+
+    def _get_aliases(self, pack_dir):
+        return self._get_folder(pack_dir=pack_dir, content_type='aliases')
+
+    def _get_folder(self, pack_dir, content_type):
+        path = os.path.join(pack_dir, content_type)
+        if not os.path.isdir(path):
+            raise ValueError('No %s found in "%s".' % (content_type, pack_dir))
+        return path
 
 
 class MetaLoader(object):

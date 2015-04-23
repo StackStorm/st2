@@ -23,13 +23,13 @@ from tests import FunctionalTest
 FIXTURES_PACK = 'aliases'
 
 TEST_MODELS = {
-    'actionaliases': ['alias1.yaml', 'alias2.yaml'],
+    'aliases': ['alias1.yaml', 'alias2.yaml'],
     'actions': ['action1.yaml'],
     'runners': ['runner1.yaml']
 }
 
 TEST_LOAD_MODELS = {
-    'actionaliases': ['alias3.yaml']
+    'aliases': ['alias3.yaml']
 }
 
 
@@ -51,8 +51,8 @@ class TestAliasExecution(FunctionalTest):
         super(TestAliasExecution, cls).setUpClass()
         cls.models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                           fixtures_dict=TEST_MODELS)
-        cls.alias1 = cls.models['actionaliases']['alias1.yaml']
-        cls.alias2 = cls.models['actionaliases']['alias2.yaml']
+        cls.alias1 = cls.models['aliases']['alias1.yaml']
+        cls.alias2 = cls.models['aliases']['alias2.yaml']
 
     @mock.patch.object(action_service, 'schedule',
                        return_value=(None, DummyActionExecution(id_=1)))
@@ -64,6 +64,9 @@ class TestAliasExecution(FunctionalTest):
         self.assertEquals(schedule.call_args[0][0].parameters, expected_parameters)
 
     def _do_post(self, execution, expect_errors=False):
-        execution = {'command': execution}
+        execution = {'command': execution,
+                     'user': 'stanley',
+                     'source_channel': 'test',
+                     'notification_channel': 'test'}
         return self.app.post_json('/exp/aliasexecution', execution,
                                   expect_errors=expect_errors)
