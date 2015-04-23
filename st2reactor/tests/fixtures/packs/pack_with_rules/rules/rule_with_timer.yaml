@@ -1,7 +1,7 @@
 
 ---
   name: "sample.with_timer"
-  pack: goofy
+  pack: "pack_with_rules"
   description: "Sample rule using an Interval Timer."
   trigger:
     type: "core.st2.IntervalTimer"
