@@ -35,6 +35,7 @@ from st2client.commands import trigger
 from st2client.commands import action
 from st2client.commands import datastore
 from st2client.commands import webhook
+from st2client.commands import rule
 from st2client.exceptions.operations import OperationFailureException
 
 
@@ -134,8 +135,7 @@ class Shell(object):
             'st2 invocation point.',
             self, self.subparsers)
 
-        self.commands['rule'] = resource.ResourceBranch(
-            models.Rule,
+        self.commands['rule'] = rule.RuleBranch(
             'A specification to invoke an "action" on a "trigger" selectively '
             'based on some criteria.',
             self, self.subparsers)
