@@ -52,8 +52,9 @@ class Client(object):
         if auth_url:
             self.endpoints['auth'] = auth_url
         else:
+            base_https_url = self.endpoints['base'].replace('http://', 'https://')
             self.endpoints['auth'] = os.environ.get(
-                'ST2_AUTH_URL', '%s:%s' % (self.endpoints['base'], DEFAULT_AUTH_PORT))
+                'ST2_AUTH_URL', '%s:%s' % (base_https_url, DEFAULT_AUTH_PORT))
 
         if cacert:
             self.cacert = cacert
