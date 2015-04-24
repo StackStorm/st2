@@ -136,28 +136,41 @@ Flat file backend
 
 Flat file backend supports reading credentials from an Apache HTTPd htpasswd
 formatted file. To manage this file you can use `htpasswd`_ utility which comes
-with a standard Apache httpd distribution.
+with a standard Apache httpd distribution or by installing apache2-utils.
 
     **Backend configuration options:**
     
     * ``file_path`` - Path to the file containing credentials.
+
+Example htpasswd command to generate a password file with a user entry. ::
+
+    htpasswd -cm /path/to/.htpasswd stark
 
 Example ``auth`` section in the |st2| configuration file. ::
  
     [auth]
     mode = standalone
     backend = flat_file
-    backend_kwargs = {"file_path": "/path/to/htpaswd"}
+    backend_kwargs = {"file_path": "/path/to/.htpasswd"}
     enable = True
     debug = False
-    logging = /etc/st2/st2auth.logging.conf
+    use_ssl = True
+    cert = /path/to/mycert.crt
+    key = /path/to/mycert.key
+    logging = /path/to/st2auth.logging.conf
     api_url = http://myhost.example.com:9101/
 
 MongoDB backend
 ~~~~~~~~~~~~~~~
 
-MongoDB backend supports reading credentials from a MongoDB collection called
-``users``.
+MongoDB backend supports reading credentials from a MongoDB collection called ``users``. This
+backend is supported only if debug in the |st2| configuration file is set to True. Currently,
+the MongoDB collection and the user entries will have to be generated manually. Entries in this
+``users`` collection need to have the following attributes:
+
+    * ``username`` - Username
+    * ``salt`` - Password salt
+    * ``password`` - SHA256 hash for the salt+password - SHA256(<salt><password>)
 
     **Backend configuration options:**
 
@@ -170,11 +183,18 @@ Example ``auth`` section in the |st2| configuration file. ::
     [auth]
     mode = standalone
     backend = mongodb
-    backend_kwargs = {"db_host": "196.168.100.10", "db_port": 27017, "db_name": "st2auth"}
+    backend_kwargs = {"db_host": "127.0.0.1", "db_port": 27017, "db_name": "st2auth"}
     enable = True
-    debug = False
-    logging = /etc/st2/st2auth.logging.conf
+    debug = True
+    use_ssl = True
+    cert = /path/to/mycert.crt
+    key = /path/to/mycert.key
+    logging = /path/to/st2auth.logging.conf
     api_url = http://myhost.example.com:9101/
+
+After the configuration change, restart all st2 components. ::
+
+    st2ctl restart
 
 Testing
 -------
