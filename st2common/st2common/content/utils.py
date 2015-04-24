@@ -23,7 +23,7 @@ from st2common.util.shell import quote_unix
 
 __all__ = [
     'get_system_packs_base_path',
-    'get_packs_base_paths',
+    'get_deployed_packs_base_paths',
     'get_pack_base_path',
     'get_pack_directory',
     'check_pack_directory_exists',
@@ -40,7 +40,17 @@ def get_system_packs_base_path():
     return cfg.CONF.content.system_packs_base_path
 
 
-def get_packs_base_paths():
+def get_packs_path():
+    """
+    Return a path to directory containing all packs.
+    Example: /opt/stackstorm/runtimes/current/packs
+
+    :rtype: ``str``
+    """
+    return cfg.CONF.content.packs_path
+
+
+def get_deployed_packs_base_paths():
     """
     Return a list of base paths which are searched for integration packs.
 
@@ -75,14 +85,8 @@ def check_pack_directory_exists(pack):
 
     :rtype: ``bool``
     """
-    packs_base_paths = get_packs_base_paths()
-
-    for base_dir in packs_base_paths:
-        pack_path = os.path.join(base_dir, pack)
-        if os.path.exists(pack_path):
-            return True
-
-    return False
+    pack_path = os.path.join(get_packs_path(), pack)
+    return os.path.exists(pack_path)
 
 
 def check_pack_content_directory_exists(pack, content_type):
@@ -97,25 +101,13 @@ def check_pack_content_directory_exists(pack, content_type):
 
     :rtype: ``bool``
     """
-    packs_base_paths = get_packs_base_paths()
-
-    for base_dir in packs_base_paths:
-        pack_content_pack = os.path.join(base_dir, pack, content_type)
-        if os.path.exists(pack_content_pack):
-            return True
-
-    return False
+    pack_content_pack = os.path.join(get_packs_path(), pack, content_type)
+    return os.path.exists(pack_content_pack)
 
 
 def get_pack_base_path(pack_name):
     """
     Return full absolute base path to the content pack directory.
-
-    Note: This function looks for a pack in all the load paths and return path to the first pack
-    which matched the provided name.
-
-    If a pack is not found, we return a pack which points to the first packs directory (this is
-    here for backward compatibility reasons).
 
     :param pack_name: Content pack name.
     :type pack_name: ``str``
@@ -125,17 +117,9 @@ def get_pack_base_path(pack_name):
     if not pack_name:
         return None
 
-    packs_base_paths = get_packs_base_paths()
-    for packs_base_path in packs_base_paths:
-        pack_base_path = os.path.join(packs_base_path, quote_unix(pack_name))
-        pack_base_path = os.path.abspath(pack_base_path)
-
-        if os.path.isdir(pack_base_path):
-            return pack_base_path
-
-    # Path with the provided name not found
-    pack_base_path = os.path.join(packs_base_paths[0], quote_unix(pack_name))
+    pack_base_path = os.path.join(get_packs_path(), quote_unix(pack_name))
     pack_base_path = os.path.abspath(pack_base_path)
+
     return pack_base_path
 
 
@@ -154,13 +138,11 @@ def get_pack_directory(pack_name):
     :return: Pack to the pack directory.
     :rtype: ``str`` or ``None``
     """
-    packs_base_paths = get_packs_base_paths()
-    for packs_base_path in packs_base_paths:
-        pack_base_path = os.path.join(packs_base_path, quote_unix(pack_name))
-        pack_base_path = os.path.abspath(pack_base_path)
+    pack_base_path = os.path.join(get_packs_path(), quote_unix(pack_name))
+    pack_base_path = os.path.abspath(pack_base_path)
 
-        if os.path.isdir(pack_base_path):
-            return pack_base_path
+    if os.path.isdir(pack_base_path):
+        return pack_base_path
 
     return None
 
