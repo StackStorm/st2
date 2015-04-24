@@ -139,6 +139,9 @@ class MistralRunner(AsyncActionRunner):
             'parent': self.liveaction_id
         }
 
+        if self.auth_token:
+            st2_execution_context['auth_token'] = self.auth_token.token
+
         options = {
             'env': {
                 '__actions': {

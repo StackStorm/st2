@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import copy
+import datetime
 import json
 import uuid
 
@@ -31,22 +32,25 @@ from mistralclient.api.v2 import executions
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from st2tests.fixturesloader import FixturesLoader
-from st2tests import http
-from st2tests import DbTestCase
-import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2actions import worker
+import st2actions.bootstrap.runnersregistrar as runners_registrar
+from st2actions.handlers.mistral import MistralCallbackHandler
 from st2actions.runners.mistral.v2 import MistralRunner
 from st2actions.runners.localrunner import LocalShellRunner
-from st2actions.handlers.mistral import MistralCallbackHandler
-from st2common.transport.publishers import CUDPublisher
-from st2common.services import action as action_service
-from st2common.models.db.action import LiveActionDB
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.models.api.access import TokenAPI
 from st2common.models.api.action import ActionAPI
+from st2common.models.db.action import LiveActionDB
 from st2common.persistence.action import Action, LiveAction
+from st2common.services import access as access_service
+from st2common.services import action as action_service
+from st2common.transport.publishers import CUDPublisher
+from st2common.util import isotime
+from st2tests import DbTestCase
+from st2tests import http
+from st2tests.fixturesloader import FixturesLoader
 
 
 TEST_FIXTURES = {
@@ -127,9 +131,16 @@ WF2 = workflows.Workflow(None, {'name': WF2_NAME, 'definition': WF2_YAML})
 WF2_EXEC = copy.deepcopy(MISTRAL_EXECUTION)
 WF2_EXEC['workflow_name'] = WF2_NAME
 
-# Action executions' requirements
+# Action executions requirements
+ACTION_CONTEXT = {'user': 'stanley'}
 ACTION_PARAMS = {'friend': 'Rocky'}
 CHAMPION = worker.Worker(None)
+
+# Token for auth test cases
+TOKEN_API = TokenAPI(
+    user=ACTION_CONTEXT['user'], token=uuid.uuid4().hex,
+    expiry=isotime.format(isotime.add_utc_tz(datetime.datetime.utcnow()), offset=False))
+TOKEN_DB = TokenAPI.to_model(TOKEN_API)
 
 NON_EMPTY_RESULT = 'non-empty'
 
@@ -177,6 +188,68 @@ class TestMistralRunner(DbTestCase):
         self.assertIsNotNone(mistral_context)
         self.assertEqual(mistral_context['execution_id'], WF1_EXEC.get('id'))
         self.assertEqual(mistral_context['workflow_name'], WF1_EXEC.get('workflow_name'))
+
+        workflow_input = copy.deepcopy(ACTION_PARAMS)
+        workflow_input.update({'count': '3'})
+
+        env = {
+            '__actions': {
+                'st2.action': {
+                    'st2_context': {
+                        'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
+                        'parent': str(liveaction.id)
+                    }
+                }
+            }
+        }
+
+        executions.ExecutionManager.create.assert_called_with(
+            WF1_NAME, workflow_input=workflow_input, env=env)
+
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF1))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
+    @mock.patch.object(
+        access_service, 'create_token',
+        mock.MagicMock(return_value=TOKEN_DB))
+    def test_launch_workflow_with_auth(self):
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
+        execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ACTION_CONTEXT)
+        liveaction, _ = action_service.schedule(execution)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, LIVEACTION_STATUS_RUNNING)
+
+        mistral_context = liveaction.context.get('mistral', None)
+        self.assertIsNotNone(mistral_context)
+        self.assertEqual(mistral_context['execution_id'], WF1_EXEC.get('id'))
+        self.assertEqual(mistral_context['workflow_name'], WF1_EXEC.get('workflow_name'))
+
+        workflow_input = copy.deepcopy(ACTION_PARAMS)
+        workflow_input.update({'count': '3'})
+
+        env = {
+            '__actions': {
+                'st2.action': {
+                    'st2_context': {
+                        'auth_token': TOKEN_DB.token,
+                        'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
+                        'parent': str(liveaction.id)
+                    }
+                }
+            }
+        }
+
+        executions.ExecutionManager.create.assert_called_with(
+            WF1_NAME, workflow_input=workflow_input, env=env)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
