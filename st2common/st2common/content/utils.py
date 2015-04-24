@@ -47,7 +47,7 @@ def get_packs_path():
 
     :rtype: ``str``
     """
-    return cfg.CONF.content.packs_path
+    return cfg.CONF.content.runtime_packs_path
 
 
 def get_deployed_packs_base_paths():

@@ -69,14 +69,14 @@ def register_opts(ignore_errors=False):
     runtimes_default_path = os.path.join(cfg.CONF.system.base_path,
                                          'runtimes')
     runtimes_opts = [
-        cfg.StrOpt('runtimes_path', runtimes_default_path)
+        cfg.StrOpt('runtimes_path', default=runtimes_default_path)
     ]
     do_register_opts(runtimes_opts, 'content', ignore_errors)
 
     default_packs_path = os.path.join(cfg.CONF.content.runtimes_path,
                                       'current/packs')
     runtimes_packs_opts = [
-        cfg.StrOpt('packs_path', default_packs_path)
+        cfg.StrOpt('runtime_packs_path', default=default_packs_path)
     ]
     do_register_opts(runtimes_packs_opts, 'content', ignore_errors)
 

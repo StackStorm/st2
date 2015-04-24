@@ -19,7 +19,7 @@ from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
 from st2common.util.action_db import get_runnertype_by_name
-from st2common.content.utils import get_packs_base_paths
+from st2common.content.utils import get_packs_path
 from st2common.content.utils import check_pack_content_directory_exists
 
 
@@ -31,11 +31,10 @@ def validate_action(action_api):
 
     # Check if pack is valid.
     if not _is_valid_pack(action_api.pack):
-        packs_base_paths = get_packs_base_paths()
-        packs_base_paths = ','.join(packs_base_paths)
+        packs_base_path = get_packs_path()
         msg = ('Content pack "%s" is not found or doesn\'t contain actions directory. '
                'Searched in: %s' %
-               (action_api.pack, packs_base_paths))
+               (action_api.pack, packs_base_path))
         raise ValueValidationException(msg)
 
     # Check if parameters defined are valid.

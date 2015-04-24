@@ -138,7 +138,7 @@ def register_aliases(packs_base_paths=None, pack_dir=None):
         assert(isinstance(packs_base_paths, list))
 
     if not packs_base_paths:
-        packs_base_paths = content_utils.get_packs_base_paths()
+        packs_base_paths = [content_utils.get_packs_path()]
 
     registrar = AliasesRegistrar()
 
