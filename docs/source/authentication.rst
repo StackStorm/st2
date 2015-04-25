@@ -219,28 +219,6 @@ Usage
 Once st2auth is setup, API calls require token to be passed via the headers and the CLI calls
 require the token to be included as a CLI argument or be provided as an environment variable.
 
-To acquire a new token via the CLI, run the ``st2 auth`` command.  If password is not provided,
-then ``st2 auth`` will prompt for the password. If successful, a token is returned in the
-response. ::
-
-    # with password
-    st2 auth yourusername -p yourpassword
-
-    # without password
-    st2 auth yourusename
-    Password:
-
-The following is a sample API call via curl using the token. ::
-
-    curl -H "X-Auth-Token: 4d76e023841a4a91a9c66aa4541156fe" http://myhost.example.com:9101/v1/actions
-
-The following is the equivalent for CLI. ::
-
-    # Include the token as command line argument.
-    st2 action list -t 4d76e023841a4a91a9c66aa4541156fe
-
-    # Or set the token as an environment variable.
-    export ST2_AUTH_TOKEN=4d76e023841a4a91a9c66aa4541156fe
-    st2 action list
+.. include:: auth_usage.rst
 
 .. _htpasswd: https://httpd.apache.org/docs/2.2/programs/htpasswd.html
