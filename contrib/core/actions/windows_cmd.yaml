@@ -1,7 +1,7 @@
 
 ---
   name: "windows_cmd"
-  runner_type: "run-windows-cmd"
+  runner_type: "windows-cmd"
   description: "Action to execute arbitrary Windows command remotely."
   enabled: true
   entry_point: ""
