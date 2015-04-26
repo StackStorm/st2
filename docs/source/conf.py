@@ -117,7 +117,8 @@ todo_include_todos = True
 exclude_patterns = [
     '**/._*',
     'engage.rst',  # included file
-    'install/on_complete.rst',  # included file
+    'install/on_complete.rst', # included file
+    'auth_usage.rst',
     'todo.rst',  # included file
 ]
 
