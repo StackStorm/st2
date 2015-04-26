@@ -1,6 +1,6 @@
 {
     "name": "get_windows_uptime",
-    "runner_type": "run-windows-script",
+    "runner_type": "windows-script",
     "description": "Action that returns Windows host's uptime.",
     "enabled": true,
     "entry_point": "windows/get_uptime.ps1",
