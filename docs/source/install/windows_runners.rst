@@ -9,9 +9,6 @@ Windows Runners Configuration
     If you do encounter an issue, please get in touch and we will do our best to
     assist you.
 
-Windows Runners are currently in experimental / beta phase which means they need
-to be explicitly enabled for you to use them.
-
 Pre-requisites
 --------------
 
@@ -37,16 +34,6 @@ Windows runners have been tested on the following versions of Windows:
 Underlying library we use to talk to the Windows hosts also supports other
 versions (2000 / XP / 2003 / Vista / 2003 / 2008), but we haven't tested our
 runners with those versions so we can't guarantee that runners will work there.
-
-Registering Windows Runners
----------------------------
-
-To register Windows runners and make them available for you to use, run the
-command listed below:
-
-.. sourcecode:: bash
-
-    st2-register-content --config-file conf/st2.dev.conf --register-actions --experimental
 
 Configuring your Window Server for remote access
 ------------------------------------------------
