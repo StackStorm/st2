@@ -248,13 +248,18 @@ class WindowsScriptRunner(BaseWindowsRunner):
             line = line.strip()
             split = re.split('\s{3,}', line)
 
-            if len(split) != 2:
+            if len(split) not in [1, 2]:
                 # Invalid line, skip it
                 continue
 
             key = split[0]
-            key = key.lower().replace(' ', '')
-            value = split[1].strip()
+            key = key.lower().replace(' ', '_')
+
+            if len(split) == 2:
+                value = split[1].strip()
+            else:
+                value = None
+
             result[key] = value
 
         return result

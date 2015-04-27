@@ -13,9 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from unittest2 import TestCase
 
 from st2actions.runners.windows_runner import BaseWindowsRunner
+from st2actions.runners.windows_script_runner import WindowsScriptRunner
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, '../fixtures/windows'))
 
 
 class WindowsRunnerTestCase(TestCase):
@@ -123,6 +129,24 @@ class WindowsRunnerTestCase(TestCase):
         for arguments, expected_value in zip(arguments, expected_values):
             actual_value = runner._get_smbclient_command_args(**arguments)
             self.assertEqual(actual_value, expected_value)
+
+    def test_parse_share_information(self):
+        runner = WindowsScriptRunner('id')
+
+        fixture_path = os.path.join(FIXTURES_DIR, 'net_share_C_stdout.txt')
+        with open(fixture_path, 'r') as fp:
+            stdout = fp.read()
+
+        result = runner._parse_share_information(stdout=stdout)
+
+        expected_keys = ['share_name', 'path', 'remark', 'maximum_users', 'users', 'caching',
+                         'permission']
+        for key in expected_keys:
+            self.assertTrue(key in result)
+
+        self.assertEqual(result['share_name'], 'C$')
+        self.assertEqual(result['path'], 'C:\\')
+        self.assertEqual(result['users'], None)
 
     def test_shell_command_parameter_escaping(self):
         pass
