@@ -6,3 +6,6 @@ script: make tests-travis
 services:
   - mongodb
   - rabbitmq
+notifications:
+  slack:
+    secure: qb7xnj1Xwu1GkD56uygReCHG9v6ftTESC9LsE6T5U8M4kioTx0Nn1gOyMXZgMlxuF7Nw7wBTgUl/pDdPZr2PFj1rx4TmZ/s9qgdp48UJ6v6NlJEzCDpPBqpU/DW9xi6/IkIHnucFFYmwot8eYg+aejh5jHyAqVvQg1Z+Fley4WE=
