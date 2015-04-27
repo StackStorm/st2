@@ -151,7 +151,7 @@ Serve WebUI files from the API server
 -------------------------------------
 
 By default, static WebUI files are served by python SimpleHTTPServer. This means you can
-access the web interface by going to ``http://<api host>/``.
+access the web interface by going to ``http://<api host>:8080/``.
 
 For production deployments, we encourage you use nginx, Apache or a similar
 dedicated web server to serve those static files.

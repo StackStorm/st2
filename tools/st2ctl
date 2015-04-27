@@ -15,7 +15,7 @@ fi
 
 if [ -z "$WEBUI_PORT" ];
  then
-   WEBUI_PORT=9191
+   WEBUI_PORT=8080
 fi
 
 DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
