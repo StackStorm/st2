@@ -204,7 +204,7 @@ setup_rabbitmq() {
   rabbitmqctl status
 
   # rabbitmaadmin is useful to inspect exchanges, queues etc.
-  curl -sS -o /usr/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
+  curl -sS -o /usr/bin/rabbitmqadmin http://127.0.0.1:15672/cli/rabbitmqadmin
   chmod 755 /usr/bin/rabbitmqadmin
 }
 
