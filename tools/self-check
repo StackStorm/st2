@@ -2,9 +2,9 @@
 
 ## Script to install samples, tests, and run all workflows in tests pack.
 
-USER='testu'
-PASS='testp'
+PACKS="tests examples"
 
+#Determine Distro
 DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
 
 if [[ "$DEBTEST" == "Ubuntu" ]]; then
@@ -18,28 +18,30 @@ else
   exit 2
 fi
 
-INSTALL=`${PYTHONPACK}/st2common/bin/st2-setup-tests`
+# Install required packs if necessary
+for PACK in $PACKS; do
+  CHECK=`st2 action list --pack=${PACK} | grep ${PACK}`
+  if [ $? -ne 0 ]; then
+    INSTALL=`${PYTHONPACK}/st2common/bin/st2-setup-${PACK}`
 
-EXITCODE=$?
-echo $INSTALL
+    EXITCODE=$?
+    echo $INSTALL
+  fi
+done
 
-INSTALL=`${PYTHONPACK}/st2common/bin/st2-setup-examples`
-
-EXITCODE=$?
-echo $INSTALL
-
-ST2_AUTH_TOKEN=`st2 auth ${USER} -p ${PASS} | grep token | awk '{ print $4 }'`
-export ST2_AUTH_TOKEN=${ST2_AUTH_TOKEN}
-
+# Retrieve test action list
 TEST_ACTION_LIST=`st2 action list --pack=tests | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`
 
+# Run all the tests
 for TEST in $TEST_ACTION_LIST
     do
-        TEST_OUTPUT=`st2 run ${TEST}`
+        echo -n "Attempting to run ${TEST}..."
+        TEST_OUTPUT=`st2 run ${TEST} token=${ST2_AUTH_TOKEN}`
         if [ $? -ne 0 ]; then
-            echo "FAILED: ${TEST} failed! OUTPUT: ${TEST_OUTPUT}"
+            echo "FAILED!\n${TEST} failed! OUTPUT: ${TEST_OUTPUT}"
             exit 2
         fi
+        echo "OK!"
     done
 
 echo "SUCCESS: All tests passed!"
