@@ -1,0 +1,43 @@
+#!/bin/bash
+
+USER='testu'
+PASS='testp'
+
+DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
+
+if [[ "$DEBTEST" == "Ubuntu" ]]; then
+  TYPE="debs"
+  PYTHONPACK="/usr/lib/python2.7/dist-packages"
+elif [[ -f "/etc/redhat-release" ]]; then
+  TYPE="rpms"
+  PYTHONPACK="/usr/lib/python2.7/site-packages"
+else
+  echo "Unknown Operating System"
+  exit 2
+fi
+
+INSTALL=`${PYTHONPACK}/st2common/bin/st2-setup-tests`
+
+EXITCODE=$?
+echo $INSTALL
+
+INSTALL=`${PYTHONPACK}/st2common/bin/st2-setup-examples`
+
+EXITCODE=$?
+echo $INSTALL
+
+ST2_AUTH_TOKEN=`st2 auth ${USER} -p ${PASS} | grep token | awk '{ print $4 }'`
+export ST2_AUTH_TOKEN=${ST2_AUTH_TOKEN}
+
+TEST_ACTION_LIST=`st2 action list --pack=tests | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`
+
+for TEST in $TEST_ACTION_LIST
+    do
+        TEST_OUTPUT=`st2 run ${TEST}`
+        if [ $? -ne 0 ]; then
+            echo "FAILED: ${TEST} failed! OUTPUT: ${TEST_OUTPUT}"
+            exit 2
+        fi
+    done
+
+echo "SUCCESS: All tests passed!"
