@@ -49,6 +49,11 @@ function join { local IFS="$1"; shift; echo "$*"; }
 APT_PACKAGE_LIST=("rabbitmq-server" "make" "python-virtualenv" "python-dev" "realpath" "python-pip" "mongodb" "mongodb-server" "gcc" "git")
 YUM_PACKAGE_LIST=("python-pip" "python-virtualenv" "python-devel" "gcc-c++" "git-all" "mongodb" "mongodb-server")
 
+# Add windows runner dependencies
+# Note: winexe is provided by Stackstorm repos
+APT_PACKAGE_LIST+=("smbclient" "winexe")
+YUM_PACKAGE_LIST+=("samba-client" "winexe")
+
 if [ ${INSTALL_MISTRAL} == "1" ]; then
     APT_PACKAGE_LIST+=("mysql-server")
     YUM_PACKAGE_LIST+=("mariadb" "mariadb-libs" "mariadb-devel" "mariadb-server")
@@ -163,6 +168,9 @@ install_apt() {
     sudo apt-key add ${RABBIT_PUBLIC_KEY}
     rm ${RABBIT_PUBLIC_KEY}
   fi
+
+  # Add StackStorm APT repo
+
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
   # Install packages
@@ -178,6 +186,9 @@ install_yum() {
   rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
   curl -sS -k -o /tmp/rabbitmq-server.rpm http://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
   yum localinstall -y /tmp/rabbitmq-server.rpm
+
+  # Add StackStorm YUM repo
+
   echo "Installing ${YUM_PACKAGE_LIST}"
   yum install -y ${YUM_PACKAGE_LIST}
   setup_rabbitmq
@@ -495,7 +506,7 @@ install_webui() {
     hosts: [{
       name: 'StackStorm',
       url: '',
-      auth: true 
+      auth: true
     }]
   });" > ${WEBUI_CONFIG_PATH}
 
