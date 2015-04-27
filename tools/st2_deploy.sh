@@ -18,6 +18,7 @@ WARNING_SLEEP_DELAY=5
 INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
 INSTALL_WEBUI=${INSTALL_WEBUI:-1}
 INSTALL_MISTRAL=${INSTALL_MISTRAL:-1}
+INSTALL_WINDOWS_RUNNER_DEPENDENCIES=${INSTALL_WINDOWS_RUNNER_DEPENDENCIES:-1}
 
 # Common variables
 DOWNLOAD_SERVER="https://downloads.stackstorm.net"
@@ -51,8 +52,10 @@ YUM_PACKAGE_LIST=("python-pip" "python-virtualenv" "python-devel" "gcc-c++" "git
 
 # Add windows runner dependencies
 # Note: winexe is provided by Stackstorm repos
-APT_PACKAGE_LIST+=("smbclient" "winexe")
-YUM_PACKAGE_LIST+=("samba-client" "winexe")
+if [ ${INSTALL_WINDOWS_RUNNER_DEPENDENCIES} == "1" ]; then
+  APT_PACKAGE_LIST+=("smbclient" "winexe")
+  YUM_PACKAGE_LIST+=("samba-client" "winexe")
+fi
 
 if [ ${INSTALL_MISTRAL} == "1" ]; then
     APT_PACKAGE_LIST+=("mysql-server")
