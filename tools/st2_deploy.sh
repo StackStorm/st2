@@ -51,7 +51,7 @@ YUM_PACKAGE_LIST=("python-pip" "python-virtualenv" "python-devel" "gcc-c++" "git
 
 if [ ${INSTALL_MISTRAL} == "1" ]; then
     APT_PACKAGE_LIST+=("mysql-server")
-    YUM_PACKAGE_LIST+=("mysql-server")
+    YUM_PACKAGE_LIST+=("mariadb" "mariadb-libs" "mariadb-devel" "mariadb-server")
 fi
 
 APT_PACKAGE_LIST=$(join " " ${APT_PACKAGE_LIST[@]})
