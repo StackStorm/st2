@@ -194,7 +194,7 @@ setup_rabbitmq() {
 
   # Enable rabbit to start on boot
   if [[ "$TYPE" == "rpms" ]]; then
-    systemctl enable rabbitmq-server
+    chkconfig rabbitmq-server on
   fi
 
   # Restart rabbitmq
