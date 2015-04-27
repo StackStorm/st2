@@ -47,11 +47,11 @@ Once action definition and metadata files are created, load the action:
 .. code-block:: bash
 
     # Register the action
-    st2 action create /opt/stackstorm/packs/default/actions/echochain.meta.yaml
+    st2 action create /opt/stackstorm/packs/examples/actions/echochain.meta.yaml
     # Check it is available
-    st2 action list --pack=default
+    st2 action list --pack=examples
     # Run it
-    st2 run default.echochain
+    st2 run examples.echochain
 
 Any changes in ActionChain workflow definition are picked up automatically.
 However if you change action metadata (e.g. rename or move , add parameters) - you will have to
