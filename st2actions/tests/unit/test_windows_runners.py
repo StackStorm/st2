@@ -13,9 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 from unittest2 import TestCase
 
+import mock
+
 from st2actions.runners.windows_runner import BaseWindowsRunner
+from st2actions.runners.windows_script_runner import WindowsScriptRunner
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, '../fixtures/windows'))
 
 
 class WindowsRunnerTestCase(TestCase):
@@ -124,6 +131,45 @@ class WindowsRunnerTestCase(TestCase):
             actual_value = runner._get_smbclient_command_args(**arguments)
             self.assertEqual(actual_value, expected_value)
 
+    def test_parse_share_information(self):
+        runner = self._get_script_runner()
+
+        fixture_path = os.path.join(FIXTURES_DIR, 'net_share_C_stdout.txt')
+        with open(fixture_path, 'r') as fp:
+            stdout = fp.read()
+
+        result = runner._parse_share_information(stdout=stdout)
+
+        expected_keys = ['share_name', 'path', 'remark', 'maximum_users', 'users', 'caching',
+                         'permission']
+        for key in expected_keys:
+            self.assertTrue(key in result)
+
+        self.assertEqual(result['share_name'], 'C$')
+        self.assertEqual(result['path'], 'C:\\')
+        self.assertEqual(result['users'], None)
+
+    @mock.patch('st2actions.runners.windows_script_runner.run_command')
+    def test_get_share_absolute_path(self, mock_run_command):
+        runner = self._get_script_runner()
+
+        fixture_path = os.path.join(FIXTURES_DIR, 'net_share_C_stdout.txt')
+        with open(fixture_path, 'r') as fp:
+            stdout = fp.read()
+
+        # Failure, non-zero status code
+        mock_run_command.return_value = (2, '', '', False)
+        self.assertRaises(Exception, runner._get_share_absolute_path, share='C$')
+
+        # Failure, missing / corrupted data
+        mock_run_command.return_value = (0, '', '', False)
+        self.assertRaises(Exception, runner._get_share_absolute_path, share='C$')
+
+        # Success, everything OK
+        mock_run_command.return_value = (0, stdout, '', False)
+        share_path = runner._get_share_absolute_path(share='C$')
+        self.assertEqual(share_path, 'C:\\')
+
     def test_shell_command_parameter_escaping(self):
         pass
 
@@ -136,4 +182,13 @@ class WindowsRunnerTestCase(TestCase):
                 pass
 
         runner = Runner('id')
+        return runner
+
+    def _get_script_runner(self):
+        runner = WindowsScriptRunner('id')
+        runner._host = None
+        runner._username = None
+        runner._password = None
+        runner._timeout = None
+
         return runner

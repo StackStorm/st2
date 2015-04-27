@@ -505,10 +505,12 @@ install_webui() {
     .constant('st2Config', {
     hosts: [{
       name: 'StackStorm',
-      url: '',
+      url: '//:9101',
       auth: true
     }]
   });" > ${WEBUI_CONFIG_PATH}
+
+  sed -i "s%^# allow_origin =.*\$%allow_origin = *%g" ${STANCONF}
 
   # Cleanup
   rm -r ${temp_dir}
@@ -554,9 +556,6 @@ else
   echo "  st2 is installed and ready to use."
 fi
 
-if [ ${INSTALL_WEBUI} == "1" ]; then
-  echo "  WebUI at http://`hostname`:9101/webui/"
-fi
 echo "=========================================="
 echo ""
 

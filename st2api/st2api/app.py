@@ -47,8 +47,6 @@ def __get_pecan_config():
 
 
 def setup_app(config=None):
-    opts = cfg.CONF.api_pecan
-
     LOG.info(VERSION_STRING)
     LOG.info('Creating %s as Pecan app.' % __name__)
 
@@ -73,11 +71,6 @@ def setup_app(config=None):
     # Static middleware which servers common static assets such as logos
     static_root = os.path.join(BASE_DIR, 'public')
     app = StaticFileMiddleware(app=app, directory=static_root)
-
-    if cfg.CONF.api.serve_webui_files:
-        # Static middleware which serves webui files
-        LOG.info('Serving WebUi at /webui/index.html')
-        app = StaticFileMiddleware(app=app, directory=opts.static_root)
 
     LOG.info('%s app created.' % __name__)
 

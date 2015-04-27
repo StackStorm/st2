@@ -38,8 +38,6 @@ def _register_app_opts():
     api_opts = [
         cfg.ListOpt('allow_origin', default=['http://localhost:3000'],
                     help='List of origins allowed'),
-        cfg.BoolOpt('serve_webui_files', default=True,
-                    help='Enable to serve static WebUI files using the API service'),
         cfg.IntOpt('heartbeat', default=25,
                    help='Send empty message every N seconds to keep connection open')
     ]

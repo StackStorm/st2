@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import re
 import uuid
 
 from eventlet.green import subprocess
@@ -85,14 +86,19 @@ class WindowsScriptRunner(BaseWindowsRunner):
         self._verify_winexe_exists()
         self._verify_smbclient_exists()
 
-        # 1. Upload script file to a temporary location
-        local_path = self.entry_point
-        script_path, temporary_directory_path = self._upload_file(local_path=local_path)
+        # 1. Retrieve full absolute path for the share name
+        # TODO: Cache resolved paths
+        base_path = self._get_share_absolute_path(share=self._share)
 
-        # 2. Execute the script
+        # 2. Upload script file to a temporary location
+        local_path = self.entry_point
+        script_path, temporary_directory_path = self._upload_file(local_path=local_path,
+                                                                  base_path=base_path)
+
+        # 3. Execute the script
         exit_code, stdout, stderr, timed_out = self._run_script(script_path=script_path)
 
-        # 3. Delete temporary directory
+        # 4. Delete temporary directory
         self._delete_directory(directory_path=temporary_directory_path)
 
         if timed_out:
@@ -140,12 +146,15 @@ class WindowsScriptRunner(BaseWindowsRunner):
 
         return exit_code, stdout, stderr, timed_out
 
-    def _upload_file(self, local_path):
+    def _upload_file(self, local_path, base_path):
         """
         Upload provided file to the remote server in a temporary directory.
 
         :param local_path: Local path to the file to upload.
         :type local_path: ``str``
+
+        :param base_path: Absolute base path for the share.
+        :type base_path: ``str``
         """
         file_name = os.path.basename(local_path)
 
@@ -190,11 +199,70 @@ class WindowsScriptRunner(BaseWindowsRunner):
         extra = {'exit_code': exit_code, 'stdout': stdout, 'stderr': stderr}
         LOG.debug('File uploaded to "%s"' % (remote_path), extra=extra)
 
-        # TODO: Get full path, use share name, etc.
-        full_remote_file_path = 'C:\\\\' + remote_path
-        full_temporary_directory_path = 'C:\\\\' + temporary_directory_name
+        full_remote_file_path = base_path + '\\' + remote_path
+        full_temporary_directory_path = base_path + '\\' + temporary_directory_name
 
         return full_remote_file_path, full_temporary_directory_path
+
+    def _get_share_absolute_path(self, share):
+        """
+        Retrieve full absolute path for a share with the provided name.
+
+        :param share: Share name.
+        :type share: ``str``
+        """
+        command = 'net share %s' % (quote_windows(share))
+        args = self._get_winexe_command_args(host=self._host, username=self._username,
+                                             password=self._password,
+                                             command=command)
+
+        LOG.debug('Retrieving full absolute path for share "%s"' % (share))
+        exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE, shell=False,
+                                                           timeout=self._timeout)
+
+        if exit_code != 0:
+            msg = 'Failed to retrieve absolute path for share "%s"' % (share)
+            raise Exception(msg)
+
+        share_info = self._parse_share_information(stdout=stdout)
+        share_path = share_info.get('path', None)
+
+        if not share_path:
+            msg = 'Failed to retrieve absolute path for share "%s"' % (share)
+            raise Exception(msg)
+
+        return share_path
+
+    def _parse_share_information(self, stdout):
+        """
+        Parse share information retrieved using "net share <share name>".
+
+        :rtype: ``dict``
+        """
+        lines = stdout.split('\n')
+
+        result = {}
+
+        for line in lines:
+            line = line.strip()
+            split = re.split('\s{3,}', line)
+
+            if len(split) not in [1, 2]:
+                # Invalid line, skip it
+                continue
+
+            key = split[0]
+            key = key.lower().replace(' ', '_')
+
+            if len(split) == 2:
+                value = split[1].strip()
+            else:
+                value = None
+
+            result[key] = value
+
+        return result
 
     def _delete_file(self, file_path):
         command = 'rm %(file_path)s' % {'file_path': quote_windows(file_path)}

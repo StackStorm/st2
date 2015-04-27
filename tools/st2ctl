@@ -3,7 +3,7 @@
 set -e
 
 LOGFILE="/tmp/st2_startup.log"
-COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine mistral st2resultstracker st2notifier"
+COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine mistral st2web st2resultstracker st2notifier"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
 
@@ -11,6 +11,11 @@ PYTHON=`which python`
 if [ -z "$AR" ];
  then
    AR=10
+fi
+
+if [ -z "$WEBUI_PORT" ];
+ then
+   WEBUI_PORT=8080
 fi
 
 DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
@@ -122,6 +127,7 @@ function st2start(){
   else
     service mistral start
   fi
+  (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${LOGFILE} &
 }
 
 function st2stop(){
@@ -142,6 +148,19 @@ function st2stop(){
         else
           service mistral stop
         fi
+      else
+        echo "${COM} is not running"
+      fi
+    elif [[ "${COM}" == "st2web" ]]
+    then
+      PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
+      if [[ ! -z $PID ]]
+      then
+        for p in $PID
+        do
+           echo "Killing ${COM} PID: ${p}"
+           kill $p
+        done
       else
         echo "${COM} is not running"
       fi
@@ -187,6 +206,20 @@ function restart_component() {
         /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
       else
         service mistral restart
+      fi
+    elif [[ "${COM}" == "st2web" ]]
+    then
+      PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
+      if [[ ! -z $PID ]]
+      then
+        for p in $PID
+        do
+           kill $p
+           sleep 1
+           (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${LOGFILE} &
+        done
+      else
+        echo "${COM} is not running"
       fi
     else
       PID=`ps ax | grep -v grep | grep -v st2ctl | egrep "${COM}|${ALT_COM}" | awk '{print $1}'`
@@ -261,7 +294,12 @@ function getpids(){
 
   for COM in $COMPONENTS
   do
-    PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
+    if [[ "${COM}" == "st2web" ]]
+    then
+      PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
+    else
+      PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
+    fi
     if [[ ! -z $PID ]]
     then
       for p in $PID
@@ -274,10 +312,19 @@ function getpids(){
   done
 }
 
+function geturl(){
+if [ ${WEBUI_PORT} == "80" ]; then
+  echo "WebUI at http://`hostname`/"
+else
+  echo "WebUI at http://`hostname`:$WEBUI_PORT/"
+fi
+}
+
 case ${1} in
   start)
     st2start
     getpids
+    geturl
     ;;
   stop)
     st2stop
@@ -287,6 +334,7 @@ case ${1} in
     sleep 1
     st2start
     getpids
+    geturl
     ;;
   restart-component)
     restart_component ${2}
