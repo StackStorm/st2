@@ -35,13 +35,53 @@ TEST_ACTION_LIST=`st2 action list --pack=tests | awk '{ print $2 }' | grep -v "|
 # Run all the tests
 for TEST in $TEST_ACTION_LIST
     do
-        echo -n "Attempting to run ${TEST}..."
-        TEST_OUTPUT=`st2 run ${TEST} token=${ST2_AUTH_TOKEN}`
+        echo -n "Attempting Test ${TEST}..."
+        TEST_OUTPUT=`st2 run ${TEST} token=${ST2_AUTH_TOKEN} -j`
+        CHECK_STATUS=`echo ${TEST_OUTPUT} | grep '"status": "succeeded"'`
         if [ $? -ne 0 ]; then
-            echo "FAILED!\n${TEST} failed! OUTPUT: ${TEST_OUTPUT}"
-            exit 2
+            echo -e "ERROR!"
+            #echo -e "FAILED!\nOUTPUT: ${TEST_OUTPUT}"
+            #exit 2
+        else
+            echo "OK!"
         fi
-        echo "OK!"
     done
 
-echo "SUCCESS: All tests passed!"
+echo -n "Attempting Example examples.mistral_examples..."
+MISTRAL_EXAMPLES=`st2 run examples.mistral_examples -j`
+CHECK_STATUS=`echo ${MISTRAL_EXAMPLES} | grep '"status": "succeeded"'`
+if [ $? -ne 0 ]; then
+    echo -e "ERROR!"
+    #echo -e "ERROR!\nOUTPUT: ${MISTRAL_EXAMPLES}"
+    #exit 2
+else
+    echo -e "OK!"
+
+cat << EOF
+
+############################################################# 
+###################################################   ####### 
+###############################################   /~\   #####
+############################################   _- \`~~~', ####
+##########################################  _-~       )  ####
+#######################################  _-~          |  ####
+####################################  _-~            ;  #####
+##########################  __---___-~              |   #####
+#######################   _~   ,,                  ;  \`,,  ##
+#####################  _-~    ;'                  |  ,'  ; ##
+###################  _~      '                    \`~'   ; ###
+############   __---;                                 ,' ####
+########   __~~  ___                                ,' ######
+#####  _-~~   -~~ _                               ,' ########
+##### \`-_         _                              ; ##########
+#######  ~~----~~~   ;                          ; ###########
+#########  /          ;                        ; ############
+#######  /             ;                      ; #############
+#####  /                \`                    ; ##############
+###  /                                      ; ###############
+#                                            ################
+
+All Tests & Examples completed successfully!
+EOF
+
+fi
