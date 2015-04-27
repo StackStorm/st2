@@ -1,0 +1,47 @@
+#!/bin/bash
+
+## Script to install samples, tests, and run all workflows in tests pack.
+
+PACKS="tests examples"
+
+#Determine Distro
+DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
+
+if [[ "$DEBTEST" == "Ubuntu" ]]; then
+  TYPE="debs"
+  PYTHONPACK="/usr/lib/python2.7/dist-packages"
+elif [[ -f "/etc/redhat-release" ]]; then
+  TYPE="rpms"
+  PYTHONPACK="/usr/lib/python2.7/site-packages"
+else
+  echo "Unknown Operating System"
+  exit 2
+fi
+
+# Install required packs if necessary
+for PACK in $PACKS; do
+  CHECK=`st2 action list --pack=${PACK} | grep ${PACK}`
+  if [ $? -ne 0 ]; then
+    INSTALL=`${PYTHONPACK}/st2common/bin/st2-setup-${PACK}`
+
+    EXITCODE=$?
+    echo $INSTALL
+  fi
+done
+
+# Retrieve test action list
+TEST_ACTION_LIST=`st2 action list --pack=tests | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`
+
+# Run all the tests
+for TEST in $TEST_ACTION_LIST
+    do
+        echo -n "Attempting to run ${TEST}..."
+        TEST_OUTPUT=`st2 run ${TEST} token=${ST2_AUTH_TOKEN}`
+        if [ $? -ne 0 ]; then
+            echo "FAILED!\n${TEST} failed! OUTPUT: ${TEST_OUTPUT}"
+            exit 2
+        fi
+        echo "OK!"
+    done
+
+echo "SUCCESS: All tests passed!"
