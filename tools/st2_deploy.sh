@@ -18,6 +18,7 @@ WARNING_SLEEP_DELAY=5
 INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
 INSTALL_WEBUI=${INSTALL_WEBUI:-1}
 INSTALL_MISTRAL=${INSTALL_MISTRAL:-1}
+INSTALL_WINDOWS_RUNNER_DEPENDENCIES=${INSTALL_WINDOWS_RUNNER_DEPENDENCIES:-1}
 
 # Common variables
 DOWNLOAD_SERVER="https://downloads.stackstorm.net"
@@ -49,6 +50,13 @@ function join { local IFS="$1"; shift; echo "$*"; }
 APT_PACKAGE_LIST=("rabbitmq-server" "make" "python-virtualenv" "python-dev" "realpath" "python-pip" "mongodb" "mongodb-server" "gcc" "git")
 YUM_PACKAGE_LIST=("python-pip" "python-virtualenv" "python-devel" "gcc-c++" "git-all" "mongodb" "mongodb-server")
 
+# Add windows runner dependencies
+# Note: winexe is provided by Stackstorm repos
+if [ ${INSTALL_WINDOWS_RUNNER_DEPENDENCIES} == "1" ]; then
+  APT_PACKAGE_LIST+=("smbclient" "winexe")
+  YUM_PACKAGE_LIST+=("samba-client" "winexe")
+fi
+
 if [ ${INSTALL_MISTRAL} == "1" ]; then
     APT_PACKAGE_LIST+=("mysql-server")
     YUM_PACKAGE_LIST+=("mariadb" "mariadb-libs" "mariadb-devel" "mariadb-server")
@@ -66,7 +74,7 @@ sleep ${WARNING_SLEEP_DELAY}
 
 if [ -z $1 ]
 then
-  VER='0.8.2'
+  VER='0.8.3'
 elif [[ "$1" == "latest" ]]; then
    VER='0.9dev'
 else
@@ -163,6 +171,12 @@ install_apt() {
     sudo apt-key add ${RABBIT_PUBLIC_KEY}
     rm ${RABBIT_PUBLIC_KEY}
   fi
+
+  # Add StackStorm APT repo
+  echo "deb https://downloads.stackstorm.net/deb/ trusty_unstable main" > /etc/apt/sources.list.d/stackstorm.list
+  curl -Ss -k https://downloads.stackstorm.net/deb/pubkey.gpg -o /tmp/stackstorm.repo.pubkey.gpg
+  sudo apt-key add /tmp/stackstorm.repo.pubkey.gpg
+
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
   # Install packages
@@ -178,6 +192,16 @@ install_yum() {
   rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
   curl -sS -k -o /tmp/rabbitmq-server.rpm http://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
   yum localinstall -y /tmp/rabbitmq-server.rpm
+
+  # Add StackStorm YUM repo
+  sudo bash -c "cat > /etc/yum.repos.d/stackstorm.repo" <<EOL
+[st2-f20-deps]
+Name=StackStorm Dependencies Fedora repository
+baseurl=https://downloads.stackstorm.net/rpm/fedora/20/deps/
+enabled=1
+gpgcheck=0
+EOL
+
   echo "Installing ${YUM_PACKAGE_LIST}"
   yum install -y ${YUM_PACKAGE_LIST}
   setup_rabbitmq
