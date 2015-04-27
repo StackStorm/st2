@@ -173,8 +173,8 @@ install_apt() {
   fi
 
   # Add StackStorm APT repo
-  echo "http://downloads.stackstorm.net/deb/ trusty_unstable main" > /etc/apt/sources.list.d/stackstorm.list
-  curl -Ss -k http://downloads.stackstorm.net/deb/pubkey.gpg -o /tmp/stackstorm.repo.pubkey.gpg
+  echo "https://downloads.stackstorm.net/deb/ trusty_unstable main" > /etc/apt/sources.list.d/stackstorm.list
+  curl -Ss -k https://downloads.stackstorm.net/deb/pubkey.gpg -o /tmp/stackstorm.repo.pubkey.gpg
   sudo apt-key add /tmp/stackstorm.repo.pubkey.gpg
 
   export DEBIAN_FRONTEND=noninteractive
@@ -197,7 +197,7 @@ install_yum() {
   sudo bash -c "cat > /etc/yum.repos.d/stackstorm.repo" <<EOL
 [st2-f20-deps]
 Name=StackStorm Dependencies Fedora repository
-baseurl=http://downloads.stackstorm.net/rpm/fedora/20/deps/
+baseurl=https://downloads.stackstorm.net/rpm/fedora/20/deps/
 enabled=1
 gpgcheck=0
 EOL
