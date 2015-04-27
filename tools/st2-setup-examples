@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## Installer for the examples pack
+
 PACK="examples"
 USRPATH="/usr/share/doc/st2"
 PACKSPATH="/opt/stackstorm/packs"

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## Installer for tests pack
+
 PACK="tests"
 USRPATH="/usr/share/stackstorm"
 TESTSPATH="/opt/stackstorm/tests/packs"
