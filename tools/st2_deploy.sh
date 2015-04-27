@@ -51,7 +51,7 @@ YUM_PACKAGE_LIST=("python-pip" "python-virtualenv" "python-devel" "gcc-c++" "git
 
 if [ ${INSTALL_MISTRAL} == "1" ]; then
     APT_PACKAGE_LIST+=("mysql-server")
-    YUM_PACKAGE_LIST+=("mysql-server")
+    YUM_PACKAGE_LIST+=("mariadb" "mariadb-libs" "mariadb-devel" "mariadb-server")
 fi
 
 APT_PACKAGE_LIST=$(join " " ${APT_PACKAGE_LIST[@]})
@@ -194,7 +194,7 @@ setup_rabbitmq() {
 
   # Enable rabbit to start on boot
   if [[ "$TYPE" == "rpms" ]]; then
-    systemctl enable rabbitmq-server
+    chkconfig rabbitmq-server on
   fi
 
   # Restart rabbitmq
@@ -204,7 +204,7 @@ setup_rabbitmq() {
   rabbitmqctl status
 
   # rabbitmaadmin is useful to inspect exchanges, queues etc.
-  curl -sS -o /usr/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
+  curl -sS -o /usr/bin/rabbitmqadmin http://127.0.0.1:15672/cli/rabbitmqadmin
   chmod 755 /usr/bin/rabbitmqadmin
 }
 
