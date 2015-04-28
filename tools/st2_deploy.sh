@@ -177,7 +177,7 @@ install_apt() {
 
   # Add StackStorm APT repo
   echo "deb http://${DOWNLOAD_SERVER}/deb/ trusty_unstable main" > /etc/apt/sources.list.d/stackstorm.list
-  curl -Ss -k http://${DOWNLOAD_SERVER}/deb/pubkey.gpg -o /tmp/stackstorm.repo.pubkey.gpg
+  curl -Ss -k https://${DOWNLOAD_SERVER}/deb/pubkey.gpg -o /tmp/stackstorm.repo.pubkey.gpg
   sudo apt-key add /tmp/stackstorm.repo.pubkey.gpg
 
   export DEBIAN_FRONTEND=noninteractive
