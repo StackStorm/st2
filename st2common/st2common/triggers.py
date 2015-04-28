@@ -46,7 +46,7 @@ class InternalTriggerTypesRegistrar(object):
                                         ttl=(1 * 60 * 60))
         self._http_post_headers = {'content-type': 'application/json',
                                    'X-Auth-Token': self._auth_creds.token}
-        self._get_headers = {'X-Auth-Token': self._auth_creds.token}
+        self._http_get_headers = {'X-Auth-Token': self._auth_creds.token}
 
     def register_internal_trigger_types(self):
         LOG.debug('Registering internal trigger types...')
@@ -101,7 +101,7 @@ class InternalTriggerTypesRegistrar(object):
     def _is_triggertype_exists(self, ref):
         try:
             r = requests.get(url=self._get_trigger_type_url(ref),
-                             headers=self._get_headers)
+                             headers=self._http_get_headers)
             if r.status_code == httplib.OK:
                 return True
         except:
