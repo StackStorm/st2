@@ -42,8 +42,12 @@ class TestWorkflowExecution(unittest2.TestCase):
         for i in range(wait):
             eventlet.sleep(3)
             execution = self.st2client.liveactions.get_by_id(execution.id)
+
             if execution.status in ['succeeded', 'failed']:
-                break
+                if hasattr(execution, 'result') and 'tasks' in execution.result:
+                    if ([task for task in execution.result['tasks']
+                         if task['state'] in ['SUCCESS', 'ERROR']]):
+                        break
 
         return execution
 
