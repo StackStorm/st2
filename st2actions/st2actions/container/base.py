@@ -20,8 +20,7 @@ import datetime
 
 from st2common import log as logging
 from st2common.util import isotime
-from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED,
-                                        LIVEACTION_STATUS_FAILED)
+from st2common.constants import action as action_constants
 from st2common.models.db.action import ActionExecutionStateDB
 from st2common.persistence.action import ActionExecutionState
 from st2common.services import access, executions
@@ -33,7 +32,6 @@ from st2actions.runners import get_runner, AsyncActionRunner
 from st2actions.utils import param_utils
 
 LOG = logging.getLogger(__name__)
-DONE_STATES = [LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED]
 
 
 class RunnerContainer(object):
@@ -106,13 +104,14 @@ class RunnerContainer(object):
             except:
                 pass
 
-            if isinstance(runner, AsyncActionRunner) and status not in DONE_STATES:
+            if (isinstance(runner, AsyncActionRunner) and
+                    status not in action_constants.COMPLETED_STATES):
                 self._setup_async_query(liveaction_db.id, runnertype_db, context)
         except:
             LOG.exception('Failed to run action.')
             _, ex, tb = sys.exc_info()
             # mark execution as failed.
-            status = LIVEACTION_STATUS_FAILED
+            status = action_constants.LIVEACTION_STATUS_FAILED
             # include the error message and traceback to try and provide some hints.
             result = {'message': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
             context = None
@@ -122,10 +121,18 @@ class RunnerContainer(object):
                                                                 result, context)
             executions.update_execution(updated_liveaction_db)
             LOG.debug('Updated liveaction after run: %s', updated_liveaction_db)
-            try:
-                self._delete_auth_token(runner.auth_token)
-            except:
-                LOG.warn('Unable to clean-up auth_token.')
+
+            # Deletion of the runner generated auth token is delayed until the token expires.
+            # Async actions such as Mistral workflows uses the auth token to launch other
+            # actions in the workflow. If the auth token is deleted here, then the actions
+            # in the workflow will fail with unauthorized exception.
+            if (not isinstance(runner, AsyncActionRunner) or
+                    (isinstance(runner, AsyncActionRunner) and
+                     status in action_constants.COMPLETED_STATES)):
+                try:
+                    self._delete_auth_token(runner.auth_token)
+                except:
+                    LOG.warn('Unable to clean-up auth_token.')
 
         LOG.debug('Performing post_run for runner: %s', runner)
         runner.post_run(status, result)
@@ -135,7 +142,7 @@ class RunnerContainer(object):
 
     def _update_live_action_db(self, liveaction_id, status, result, context):
         liveaction_db = get_liveaction_by_id(liveaction_id)
-        if status in DONE_STATES:
+        if status in action_constants.COMPLETED_STATES:
             end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
         else:
             end_timestamp = None

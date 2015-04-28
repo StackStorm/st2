@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import datetime
+import uuid
 
 from oslo.config import cfg
 from st2tests.base import DbTestCase
@@ -24,6 +25,9 @@ from st2common.services import access
 import st2tests.config as tests_config
 
 
+USERNAME = 'manas'
+
+
 class AccessServiceTest(DbTestCase):
 
     @classmethod
@@ -32,10 +36,10 @@ class AccessServiceTest(DbTestCase):
         tests_config.parse_args()
 
     def test_create_token(self):
-        token = access.create_token('manas')
+        token = access.create_token(USERNAME)
         self.assertTrue(token is not None)
         self.assertTrue(token.token is not None)
-        self.assertEqual(token.user, 'manas')
+        self.assertEqual(token.user, USERNAME)
 
     def test_create_token_fail(self):
         try:
@@ -45,7 +49,7 @@ class AccessServiceTest(DbTestCase):
             self.assertTrue(True)
 
     def test_delete_token(self):
-        token = access.create_token('manas')
+        token = access.create_token(USERNAME)
         access.delete_token(token.token)
         try:
             token = Token.get(token.token)
@@ -53,12 +57,17 @@ class AccessServiceTest(DbTestCase):
         except TokenNotFoundError:
             self.assertTrue(True)
 
+    def test_delete_non_existent_token(self):
+        token = uuid.uuid4().hex
+        self.assertRaises(TokenNotFoundError, Token.get, token)
+        access.delete_token(token)
+
     def test_create_token_ttl_ok(self):
         ttl = 10
-        token = access.create_token('manas', 10)
+        token = access.create_token(USERNAME, 10)
         self.assertTrue(token is not None)
         self.assertTrue(token.token is not None)
-        self.assertEqual(token.user, 'manas')
+        self.assertEqual(token.user, USERNAME)
         expected_expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
         expected_expiry = isotime.add_utc_tz(expected_expiry)
         self.assertLess(isotime.parse(token.expiry), expected_expiry)
@@ -67,8 +76,8 @@ class AccessServiceTest(DbTestCase):
         ttl = cfg.CONF.auth.token_ttl + 10
         expected_expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
         expected_expiry = isotime.add_utc_tz(expected_expiry)
-        token = access.create_token('manas', 10)
+        token = access.create_token(USERNAME, 10)
         self.assertTrue(token is not None)
         self.assertTrue(token.token is not None)
-        self.assertEqual(token.user, 'manas')
+        self.assertEqual(token.user, USERNAME)
         self.assertLess(isotime.parse(token.expiry), expected_expiry)
