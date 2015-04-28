@@ -26,11 +26,23 @@ JSON example using the same keys from the create examples above.
 
 ::
 
-    {
-        "os_keystone_endpoint": "http://localhost:5000/v2.0",
-        "aws_cfn_endpoint": "https://cloudformation.us-west-1.amazonaws.com"
-    }
+    [
+        {
+            "os_keystone_endpoint": "http://localhost:5000/v2.0",
+            "aws_cfn_endpoint": "https://cloudformation.us-west-1.amazonaws.com"
+        }
+    ]
 
+    st2 key load mydata.json
+
+The load command also allows you to directly load the output of "key list -j"
+command. This is useful if you want to migrate datastore items from a different
+cluster or if you want to version control the datastore items and load the from
+version controlled files.
+
+::
+
+    st2 key list -j > mydata.json
     st2 key load mydata.json
 
 Get individual key value pair or list all.

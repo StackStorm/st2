@@ -183,10 +183,14 @@ class Shell(object):
                 self._print_debug_info()
             return 2
         except Exception as e:
+            # We allow exception to define custom exit codes
+            exit_code = getattr(e, 'exit_code', 1)
+
             print('ERROR: %s\n' % e)
             if debug:
                 self._print_debug_info()
-            return 1
+
+            return exit_code
 
     def _print_debug_info(self):
         # Print client settings
