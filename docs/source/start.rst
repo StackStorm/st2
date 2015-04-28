@@ -74,7 +74,7 @@ as described in :ref:`config-configure-ssh` section.
 
 .. code-block:: bash
 
-    st2 run core.remote host='abc.example.com, cde.example.com' user='mysshuser' -- ls -l
+    st2 run core.remote hosts='abc.example.com, cde.example.com' username='mysshuser' -- ls -l
 
 .. note::
 

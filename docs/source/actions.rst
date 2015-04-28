@@ -448,7 +448,7 @@ on a set of boxes. Via the CLI executing this command would be -
 
 ::
 
-    st2 run core.remote cmd='ls -l' host='host1,host2' user='user1'
+    st2 run core.remote cmd='ls -l' hosts='host1,host2' username='user1'
 
 ``core.http`` : This action allows execution of http requests. Think curl
 executed from the |st2| box.
