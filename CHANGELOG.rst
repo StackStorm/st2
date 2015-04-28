@@ -33,6 +33,7 @@ in development
   compatibility reasons, runners can still be referenced using their old names.
   (improvement)
 * Update all the Python services to re-open log files on the ``SIGUSR1`` signal. (new-feature)
+* Internal trigger types registered using APIs should use auth token. (bug-fix)
 
 v0.8.3 - March 23, 2015
 -----------------------
