@@ -147,9 +147,9 @@ create_user() {
     then
       echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/st2
     fi
+
     # make sure requiretty is disabled.
-    # unable to get ^Defaults[\s]+requiretty to work.
-    sed -i "s/^Defaults    requiretty/# Defaults    requiretty/g" /etc/sudoers
+    sed -i "s/^Defaults\s\+requiretty/# Defaults requiretty/g" /etc/sudoers
   fi
 }
 
