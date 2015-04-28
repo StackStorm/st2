@@ -42,11 +42,11 @@ class InternalTriggerTypesRegistrar(object):
         self._retry_wait = cfg.CONF.action_sensor.retry_wait
         self._timeout = cfg.CONF.action_sensor.request_timeout
         self._max_attempts = cfg.CONF.action_sensor.max_attempts
-        self._temporary_token = create_token('system.internal_trigger_registrar',
-                                             ttl=(24 * 60 * 60)).token
+        self._auth_creds = create_token('system.internal_trigger_registrar',
+                                        ttl=(1 * 60 * 60))
         self._http_post_headers = {'content-type': 'application/json',
-                                   'X-Auth-Token': self._temporary_token}
-        self._get_headers = {'X-Auth-Token': self._temporary_token}
+                                   'X-Auth-Token': self._auth_creds.token}
+        self._get_headers = {'X-Auth-Token': self._auth_creds.token}
 
     def register_internal_trigger_types(self):
         LOG.debug('Registering internal trigger types...')
@@ -59,7 +59,7 @@ class InternalTriggerTypesRegistrar(object):
                     continue
                 self._register_trigger_type(trigger_definition=trigger_definition, attempt_no=0)
 
-        delete_token(self._temporary_token)
+        delete_token(self._auth_creds.token)
 
     def _register_trigger_type(self, trigger_definition, attempt_no=0):
         LOG.debug('Attempt no %s to register trigger %s.', attempt_no, trigger_definition['name'])
@@ -106,6 +106,8 @@ class InternalTriggerTypesRegistrar(object):
                 return True
         except:
             return False
+
+        return False
 
 
 def register_internal_trigger_types():
