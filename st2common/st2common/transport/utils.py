@@ -32,13 +32,13 @@ def _do_register_exchange(exchange, channel):
         channel.exchange_declare(exchange=exchange.name, type=exchange.type,
                                  durable=exchange.durable, auto_delete=exchange.auto_delete,
                                  arguments=exchange.arguments, nowait=False, passive=None)
-        LOG.info('registered exchange %s.', exchange.name)
+        LOG.debug('registered exchange %s.', exchange.name)
     except Exception:
         LOG.exception('Failed to register exchange : %s.', exchange.name)
 
 
 def register_exchanges():
-    LOG.info('Registering exchanges...')
+    LOG.debug('Registering exchanges...')
     with Connection(cfg.CONF.messaging.url) as conn:
         channel = conn.default_channel
         for exchange in EXCHANGES:
