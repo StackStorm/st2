@@ -176,6 +176,7 @@ class ActionRunCommandMixin(object):
     def get_resource(self, ref_or_id, **kwargs):
         return self.get_resource_by_ref_or_id(ref_or_id=ref_or_id, **kwargs)
 
+    @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         if self._print_help(args, **kwargs):
             return
@@ -272,7 +273,7 @@ class ActionRunCommandMixin(object):
         formatter = execution_formatter.ExecutionResult
 
         kwargs['depth'] = args.depth
-        child_instances = action_exec_mgr.get_property(execution.id, 'children')
+        child_instances = action_exec_mgr.get_property(execution.id, 'children', **kwargs)
         child_instances = self._format_child_instances(child_instances, execution.id)
 
         if not child_instances:
@@ -832,6 +833,7 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, resource.ResourceCommand)
         execution = self.get_resource_by_id(id=args.id, **kwargs)
         return execution
 
+    @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         try:
             execution = self.run(args, **kwargs)
