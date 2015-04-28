@@ -12,4 +12,4 @@ examples.mistral-repeat-with-items:
             with-items: cmd in <% $.cmds %>
             action: core.local cmd=<% $.cmd %>
             publish:
-                resut: <% $.repeat.stdout %>
+                result: <% $.repeat.stdout %>
