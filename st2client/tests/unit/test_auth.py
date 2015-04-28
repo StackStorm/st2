@@ -51,8 +51,6 @@ class TestAuthToken(base.BaseCLITestCase):
 
         # Setup environment.
         os.environ['ST2_BASE_URL'] = 'http://localhost'
-        if 'ST2_AUTH_TOKEN' in os.environ:
-            del os.environ['ST2_AUTH_TOKEN']
 
     def tearDown(self):
         super(TestAuthToken, self).tearDown()
