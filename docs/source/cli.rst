@@ -220,26 +220,27 @@ object:
     Mon Feb  9 14:33:18 UTC 2015
 
 If you only want to retrieve and print out a specified attribute of the execution,
-you can do that using ``-a <attribute name>`` flag.
+you can do that using ``--attr <attribute name>`` flag.
 
 For example, if you only want to print ``start_timestamp`` attribute of the result
 object:
 
 .. sourcecode:: bash
 
-    st2 execution get  54d8c52e0640fd1c87b9443f -a start_timestamp
+    st2 execution get 54d8c52e0640fd1c87b9443f -a start_timestamp
 
-    START_TIMESTAMP: 2015-02-24T23:01:15.088293Z
+    start_timestamp: 2015-02-24T23:01:15.088293Z
 
 And you can also specify multiple attributes:
 
 .. sourcecode:: bash
 
-    st2 execution get  54d8c52e0640fd1c87b9443f -a status stdout stderr
+    st2 execution get 54d8c52e0640fd1c87b9443f --attr status result.stdout result.stderr
 
-    STATUS: succeeded
-    STDOUT: None
-    STDERR: None
+    status: succeeded
+    result.stdout: Mon Feb  9 14:33:18 UTC 2015
+
+    result.stderr:
 
 Same goes for the ``execution list`` command:
 
@@ -321,7 +322,7 @@ are simple strings), you should use this notation.
 
 .. sourcecode:: bash
 
-    st2 run core.remote hosts=localhost env="key1=val1,key2=val2" cmd="echo ponies \${key1} \${key2}
+    st2 run core.remote hosts=localhost env="key1=val1,key2=val2" cmd="echo ponies \${key1} \${key2}"
 
 Reading parameter value from a file
 -----------------------------------
@@ -450,6 +451,18 @@ For example:
     | end_timestamp   | Tue, 17 Feb 2015 20:47:49 UTC  |
     +-----------------+--------------------------------+
 
+Cancel an execution
+-------------------
+
+When dealing with long running executions, you may want to cancel some of them before they are done.
+
+To cancel an execution, run:
+
+.. sourcecode:: bash
+
+    st2 execution cancel <existing execution id>
+
+
 Inheriting all the environment variables which are accessible to the CLI and passing them to runner as env parameter
 --------------------------------------------------------------------------------------------------------------------
 
@@ -464,7 +477,7 @@ For example:
 
 .. sourcecode:: bash
 
-    st2 run core.remote hosts=localhost env="key1=val1,key2=val2" cmd="echo ponies \${key1} \${key2}
+    st2 run core.remote hosts=localhost env="key1=val1,key2=val2" cmd="echo ponies \${key1} \${key2}"
 
 In addition to that, user can pass ``-e`` / ``--inherit-env`` flag to the
 ``action run`` command.
