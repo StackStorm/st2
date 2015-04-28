@@ -82,7 +82,7 @@ fi
 
 if [ ${1} == "restart-component" ]
 then
-    if  [ -z ${2} ] || [ ${2} != "st2actionrunner" -a ${2} != "st2api" -a ${2} != "st2sensorcontainer" -a ${2} != "st2rulesengine" -a ${2} != "mistral" -a ${2} != "st2resultstracker" ]
+    if  [ -z ${2} ] || [ ${2} != "st2actionrunner" -a ${2} != "st2api" -a ${2} != "st2sensorcontainer" -a ${2} != "st2rulesengine" -a ${2} != "mistral" -a ${2} != "st2resultstracker" -a ${2} != "st2web" ]
     then
         print_usage
         exit 1
