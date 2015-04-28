@@ -75,6 +75,9 @@ class BaseCLITestCase(unittest2.TestCase):
     def setUp(self):
         super(BaseCLITestCase, self).setUp()
 
+        if 'ST2_AUTH_TOKEN' in os.environ:
+            del os.environ['ST2_AUTH_TOKEN']
+
         if self.hide_output:
             # Redirect standard output and error to null. If not, then
             # some of the print output from shell commands will pollute
