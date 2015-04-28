@@ -21,3 +21,12 @@ The following is the equivalent for CLI. ::
     # Or set the token as an environment variable.
     export ST2_AUTH_TOKEN=4d76e023841a4a91a9c66aa4541156fe
     st2 action list
+
+Note that there can be use cases when you want the TTL to be different from default.
+You can specify a TTL (in seconds) when you request a token. To get a token that is valid
+for 10 minutes, use the following:
+
+::
+
+    # with TTL and password
+    st2 auth yourusername -p yourpassword -t 600
