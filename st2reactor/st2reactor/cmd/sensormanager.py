@@ -5,14 +5,15 @@ import eventlet
 from oslo.config import cfg
 
 from st2common import log as logging
+from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.exceptions.sensors import SensorNotFoundException
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
-from st2common.transport.utils import register_exchanges
+from st2common.persistence.reactor import SensorType
 from st2common.signal_handlers import register_common_signal_handlers
 from st2reactor.sensor import config
-from st2common.persistence.reactor import SensorType
+from st2common.transport.utils import register_exchanges
+from st2common.triggers import register_internal_trigger_types
 from st2reactor.container.manager import SensorContainerManager
 
 eventlet.monkey_patch(
@@ -47,9 +48,6 @@ def _setup():
     register_common_signal_handlers()
 
     # 4. Register internal triggers
-    # Note: We need to do import here because of a messed up configuration
-    # situation (this module depends on configuration being parsed)
-    from st2common.triggers import register_internal_trigger_types
     register_internal_trigger_types()
 
 
