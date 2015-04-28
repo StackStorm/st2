@@ -81,7 +81,6 @@ cat << EOF
 ###  /                                      ; ###############
 #                                            ################
 
-All Tests & Examples completed successfully!
 EOF
 
 fi
