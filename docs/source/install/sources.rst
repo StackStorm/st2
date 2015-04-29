@@ -10,8 +10,19 @@ Requirements:
 -  python, pip, virtualenv, tox
 -  MongoDB (http://docs.mongodb.org/manual/installation)
 -  RabbitMQ (http://www.rabbitmq.com/download.html)
+-  screen
 
-To setup the development environment starting from a vanilla Fedora image:
+Ubuntu
+------
+
+::
+
+    apt-get install python-pip python-virtualenv python-dev gcc git make realpath screen
+    apt-get install mongodb mongodb-server
+    apt-get install rabbitmq-server
+
+Fedora
+------
 
 ::
 
@@ -25,24 +36,16 @@ To setup the development environment starting from a vanilla Fedora image:
     systemctl enable rabbitmq-server
     systemctl restart rabbitmq-server
 
+Optional Requirements
+~~~~~~~~~~~~~~~~~~~~~
+
+Mistral
+-------
 Mistral workflow engine also has its own requirements to the environment. For more information,
 please refer to :github_mistral:`Mistral README <README.rst>`.
 
-To setup the development environment via Vagrant:
-
-::
-
-    git clone https://github.com/StackStorm/devenv.git
-    cd devenv
-    ./configure.sh dev
-    vagrant up
-    vagrant ssh
-
-Refer to the :github_devenv:`README <README.md>` under
-`StackStorm devenv <http://github.com/StackStorm/devenv>`__ for additional details.
-
-Project Prerequisites
-~~~~~~~~~~~~~~~~~~~~~
+Project Requirements
+~~~~~~~~~~~~~~~~~~~~
 
 Once the environment is setup, clone the git repo, and make the project.
 This will create the python virtual environment under |st2|, download
@@ -52,63 +55,48 @@ and install required dependencies, and run tests.
 
     git clone https://github.com/StackStorm/st2.git
     cd st2
-    make all
+    make requirements
 
-Configuration
-~~~~~~~~~~~~~
+Configure System User
+~~~~~~~~~~~~~~~~~~~~~
+Specify a user for running local and remote SSH actions. See :ref:`config-configure-ssh`. In st2/conf/st2.dev.conf, change ``ssh_key_file`` to point to the user's key file. ::
 
-Specify a user for running local and remote SSH actions. In conf/st2.dev.conf, change ``ssh_key_file``
-to point to the user's key file:
-
-::
-
-    [ssh_runner]
+    [system_user]
     user = stanley
     ssh_key_file = /home/[current user]/.ssh/stanley_rsa
 
-If you don't have a user for this purpose (as in case of devenv), there are a number of steps you
-need to perform to create and setup one that works with fabric\_runner. For more information, see
-:ref:`config-configure-ssh`.
-
 Running
 ~~~~~~~
+Run the following to start |st2|. The script will start |st2| components in screen sessions. ::
 
-To run |st2| from source, it's assumed that python virtual environment
-is activated and in use.
+    ./tools/launchdev.sh start
 
-::
+Additional commands: ::
 
     source virtualenv/bin/activate  # Activates the python virtual environment
+    tools/lauchdev.sh startclean    # Reset and launches all |st2| services in screen sessions
     tools/lauchdev.sh start         # Launches all |st2| services in screen sessions
     tools/lauchdev.sh stop          # Stops all |st2| screen sessions and services
 
 If the services are started successfully, you will see the following
-output.
-
-::
+output. ::
 
     Starting all st2 servers...
-    Changing working directory to /home/stanley/st2...
-    Starting screen session st2-actionrunner...
+    Changing working directory to /home/vagrant/st2/./tools/.....
+    Using st2 config file: /home/vagrant/st2/./tools/../conf/st2.dev.conf
+    Using content packs base dir: /opt/stackstorm/packs
+    No Sockets found in /var/run/screen/S-vagrant.
+
     Starting screen session st2-api...
-    Starting screen session st2-reactor...
+    Starting screen session st2-actionrunner...
+        starting runner  1 ...
+    No screen session found.
+    Starting screen session st2-sensorcontainer
+    Starting screen session st2-rulesengine...
+    Starting screen session st2-resultstracker...
+    Starting screen session st2-notifier...
 
-    There are screens on:
-        28158.st2-reactor   (09/25/2014 12:36:43 AM)    (Detached)
-        28154.st2-api   (09/25/2014 12:36:43 AM)    (Detached)
-        28143.st2-actionrunner  (09/25/2014 12:36:43 AM)    (Detached)
-    3 Sockets in /var/run/screen/S-st2.
-
-    Registering actions and rules...
-    2014-09-25 00:36:44,670 INFO [-] Database details - dbname:st2, host:0.0.0.0, port:27017
-    2014-09-25 00:36:44,676 INFO [-] Start : register default RunnerTypes.
-    2014-09-25 00:36:44,689 INFO [-] RunnerType name=run-local exists.
-    2014-09-25 00:36:44,697 INFO [-] RunnerType name=run-remote exists.
-    2014-09-25 00:36:44,708 INFO [-] RunnerType name=http-runner exists.
-    2014-09-25 00:36:44,720 INFO [-] RunnerType name=workflow exists.
-    2014-09-25 00:36:44,729 INFO [-] RunnerType name=action-chain exists.
-    2014-09-25 00:36:44,732 INFO [-] End : register default RunnerTypes.
-    ...
+    Registering sensors, actions, rules and aliases...
     ...
 
 |st2| can now be operated using the REST API, |st2| CLI, and the
@@ -116,28 +104,21 @@ st2client python client library.
 
 .. _setup-st2-cli:
 
-Setup |st2| CLI
-~~~~~~~~~~~~~~~
+Install |st2| CLI
+~~~~~~~~~~~~~~~~~
+The |st2| CLI client needs to be installed. It's not necessary to install this into the virtualenv. However, the client may need to be installed with sudo if not in the virtualenv. ::
 
-If installed from source, the CLI client needs to be installed into the
-virtualenv:
-
-::
-
-    cd st2/st2client
-    python setup.py install
+    cd ./st2client
+    python setup.py develop
 
 Verify Installation
 ~~~~~~~~~~~~~~~~~~~
+To make sure all the components are installed correctly... ::
 
-To make sure all the components were installed correctly:
-
-::
-
+    st2 --version
     st2 --help
     st2 action list
     st2 run core.local uname
-
 
 Additional Makefile targets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
