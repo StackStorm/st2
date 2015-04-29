@@ -4,7 +4,7 @@
 
 PACK="examples"
 USRPATH="/usr/share/doc/st2"
-PACKSPATH="/opt/stackstorm/packs"
+TESTSPATH="/opt/stackstorm/packs"
 
 if [ -d ${USRPATH}/${PACK} ]; then
     mkdir -p ${TESTSPATH}
@@ -19,7 +19,7 @@ st2ctl restart
 echo -e "Reloading St2 content..."
 st2ctl reload
 
-if [ -f ${PACKSPATH}/${PACK}/requirements.txt ]; then
+if [ -f ${TESTSPATH}/${PACK}/requirements.txt ]; then
     echo "Creating virtualenv for ${PACK}..."
     mkdir -p /opt/stackstorm/virtualenvs
     virtualenv --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
