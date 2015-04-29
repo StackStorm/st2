@@ -20,9 +20,26 @@ Windows runners actions needs to have the following dependencies installed:
 * ``winexe`` >= 1.1 - Command line tool for executing commands remotely on
   Windows hosts.
 
-Both of those dependencies are available in our APT and Yum repositories and
-are installed by default when using ``st2_deploy.sh`` script or puppet based
-installation.
+Samba client is available in standard APT and Yum repositories and winexe is
+available in our repositories. Both of those dependencies are installed by
+default when using ``st2_deploy.sh`` script or a pupped based installation.
+
+For information on configuring and enabling StackStorm repository, see
+:ref:`stackstorm-repos`.
+
+Installing on Ubuntu
+~~~~~~~~~~~~~~~~~~~~
+
+.. sourcecode:: bash
+
+    sudo apt-get install smbclient winexe
+
+Installing on Fedora
+~~~~~~~~~~~~~~~~~~~~
+
+.. sourcecode:: bash
+
+    sudo yum install samba-client winexe
 
 Supported Windows Versions
 --------------------------
