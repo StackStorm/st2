@@ -48,7 +48,7 @@ function join { local IFS="$1"; shift; echo "$*"; }
 
 # Distribution specific variables
 APT_PACKAGE_LIST=("rabbitmq-server" "make" "python-virtualenv" "python-dev" "realpath" "python-pip" "mongodb" "mongodb-server" "gcc" "git")
-YUM_PACKAGE_LIST=("python-pip" "python-virtualenv" "python-devel" "gcc-c++" "git-all" "mongodb" "mongodb-server")
+YUM_PACKAGE_LIST=("python-pip" "python-virtualenv" "python-devel" "gcc-c++" "git-all" "mongodb" "mongodb-server" "mailcap")
 
 # Add windows runner dependencies
 # Note: winexe is provided by Stackstorm repos
@@ -522,7 +522,7 @@ install_webui() {
     hosts: [{
       name: 'StackStorm',
       url: '//:9101',
-      auth: true
+      auth: '//:9100'
     }]
   });" > ${WEBUI_CONFIG_PATH}
 
