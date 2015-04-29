@@ -2,3 +2,5 @@
 
 chmod 755 /usr/bin/st2ctl
 chmod 755 /usr/lib/python2.7/dist-packages/st2common/bin/st2-setup-tests
+chmod 755 /usr/lib/python2.7/dist-packages/st2common/bin/st2-setup-examples
+chmod 755 /usr/lib/python2.7/dist-packages/st2common/bin/st2-self-check
