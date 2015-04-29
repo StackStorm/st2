@@ -15,7 +15,8 @@ Pre-requisites
 Server which is running action runner service which is used for executing
 Windows runners actions needs to have the following dependencies installed:
 
-* ``smbclient`` >= 4.1 - Command line SMB (samba) client.
+* ``smbclient`` >= 4.1 - Command line Samba client (``smbclient`` package on
+  Ubuntu and ``samba-client`` package on Fedora).
 * ``winexe`` >= 1.1 - Command line tool for executing commands remotely on
   Windows hosts.
 
