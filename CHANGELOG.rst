@@ -4,6 +4,9 @@ Changelog
 in development
 --------------
 
+v0.9.0 - April 29, 2015
+-----------------------
+
 * Report a more user-friendly error if an action-chain task references an invalid or inexistent
   action. Also treat invalid / inexistent action as a top-level action-chain error. (improvement)
 * Report a more user-friendly error if an action-chain definition contains an invalid type.
