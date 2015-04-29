@@ -1,11 +1,12 @@
 #!/bin/bash
 
-## Installer for the examples pack
+echo "Installer for the examples pack..."
 
 PACK="examples"
 USRPATH="/usr/share/doc/st2"
 TESTSPATH="/opt/stackstorm/packs"
 
+echo -e "Checking ${USRPATH}/${PACK}..."
 if [ -d ${USRPATH}/${PACK} ]; then
     mkdir -p ${TESTSPATH}
     cp -Rf ${USRPATH}/${PACK} ${TESTSPATH}
@@ -19,6 +20,7 @@ st2ctl restart
 echo -e "Reloading St2 content..."
 st2ctl reload
 
+echo -e "Bootstrapping virtualenv for ${PACK} pack..."
 if [ -f ${TESTSPATH}/${PACK}/requirements.txt ]; then
     echo "Creating virtualenv for ${PACK}..."
     mkdir -p /opt/stackstorm/virtualenvs
