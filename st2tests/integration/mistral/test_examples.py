@@ -29,7 +29,7 @@ class ExamplesTest(base.TestWorkflowExecution):
         self.assertEqual(execution.status, 'failed')
         tasks = {t['name']: t for t in execution.result['tasks']}
         self.assertEqual(tasks['task1']['state'], 'ERROR')
-        self.assertEqual(tasks['notify_on_error']['state'], 'SUCCESS')
+        self.assertIn(tasks['notify_on_error']['state'], ['RUNNING', 'SUCCESS'])
 
     def test_handle_retry(self):
         execution = self._execute_workflow('examples.mistral-handle-retry')
