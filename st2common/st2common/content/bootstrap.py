@@ -22,6 +22,7 @@ from oslo.config import cfg
 from st2common.logging.filters import LogLevelFilter
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
+from st2common.transport.utils import register_exchanges
 
 
 LOG = logging.getLogger('st2common.content.bootstrap')
@@ -161,6 +162,7 @@ def _setup(argv):
     password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
     db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
              username=username, password=password)
+    register_exchanges()
 
 
 def _teardown():
