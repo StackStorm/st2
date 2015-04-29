@@ -68,8 +68,13 @@ class WindowsCommandRunner(BaseWindowsRunner):
                                              password=self._password,
                                              command=self._command)
 
-        exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
-                                                           stderr=subprocess.PIPE, shell=False,
+        # Note: We don't send anything over stdin, we just create an unused pipe
+        # to avoid some obscure failures
+        exit_code, stdout, stderr, timed_out = run_command(cmd=args,
+                                                           stdin=subprocess.PIPE,
+                                                           stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE,
+                                                           shell=False,
                                                            timeout=self._timeout)
 
         if timed_out:

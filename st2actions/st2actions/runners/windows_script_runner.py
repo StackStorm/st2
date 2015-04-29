@@ -137,8 +137,13 @@ class WindowsScriptRunner(BaseWindowsRunner):
 
         LOG.debug('Running script "%s"' % (script_path))
 
-        exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
-                                                           stderr=subprocess.PIPE, shell=False,
+        # Note: We don't send anything over stdin, we just create an unused pipe
+        # to avoid some obscure failures
+        exit_code, stdout, stderr, timed_out = run_command(cmd=args,
+                                                           stdin=subprocess.PIPE,
+                                                           stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE,
+                                                           shell=False,
                                                            timeout=self._timeout)
 
         extra = {'exit_code': exit_code, 'stdout': stdout, 'stderr': stderr}
