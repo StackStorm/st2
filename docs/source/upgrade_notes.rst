@@ -1,7 +1,7 @@
 Upgrade Notes
 =============
 
-|st2| 0.9dev
+|st2| 0.9.0
 ------------
 
 * Process names for all |st2| services now start with "st2". sensor_container now runs as
