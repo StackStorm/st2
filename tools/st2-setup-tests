@@ -1,11 +1,12 @@
 #!/bin/bash
 
-## Installer for tests pack
+echo -e "Installer for tests pack..."
 
 PACK="tests"
 USRPATH="/usr/share/stackstorm"
 TESTSPATH="/opt/stackstorm/tests/packs"
 
+echo -e "Checking ${USRPATH}/${PACK}..."
 if [ -d ${USRPATH}/${PACK} ]; then
     mkdir -p ${TESTSPATH}
     cp -Rf ${USRPATH}/${PACK} ${TESTSPATH}
@@ -27,6 +28,7 @@ else
     st2ctl reload
 fi
 
+echo -e "Bootstrapping virtualenv for ${PACK} pack..."
 if [ -f ${TESTSPATH}/${PACK}/requirements.txt ]; then
     echo "Creating virtualenv for ${PACK}..."
     mkdir -p /opt/stackstorm/virtualenvs
