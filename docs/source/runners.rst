@@ -89,7 +89,7 @@ Windows command runner allows you to run you to run command-line interpreter
 (cmd) and PowerShell commands on Windows hosts.
 
 For more information on enabling and setting up the Windows runner, please see
-the following section - TODO.
+the following section - :doc:`./install/windows_runners`.
 
 Runner parameters
 ~~~~~~~~~~~~~~~~~
@@ -106,7 +106,7 @@ Windows script runner (windows-script)
 Windows script runner allows you to run PowerShell scripts on Windows hosts.
 
 For more information on enabling and setting up the Windows runner, please see
-the following section - TODO.
+the following section - :doc:`./install/windows_runners`.
 
 Runner parameters
 ~~~~~~~~~~~~~~~~~
