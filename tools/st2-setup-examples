@@ -15,8 +15,6 @@ else
     exit 2
 fi
 
-echo -e "Restarting St2 for new path to take affect..."
-st2ctl restart
 echo -e "Reloading St2 content..."
 st2ctl reload
 
