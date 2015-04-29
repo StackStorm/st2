@@ -24,48 +24,55 @@ __all__ = [
     'CRON_PARAMETERS_SCHEMA',
     'TIMER_PAYLOAD_SCHEMA',
 
+    'ACTION_SENSOR_TRIGGER',
+    'NOTIFY_TRIGGER',
+
     'TIMER_TRIGGER_TYPES',
     'INTERNAL_TRIGGER_TYPES',
     'SYSTEM_TRIGGER_TYPES'
 ]
 
+ACTION_SENSOR_TRIGGER = {
+    'name': 'st2.generic.actiontrigger',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating the completion of an action execution.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'execution_id': {},
+            'status': {},
+            'start_timestamp': {},
+            'action_name': {},
+            'parameters': {},
+            'result': {}
+        }
+    }
+}
+
+NOTIFY_TRIGGER = {
+    'name': 'st2.generic.notifytrigger',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Notification trigger.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'execution_id': {},
+            'status': {},
+            'start_timestamp': {},
+            'end_timestamp': {},
+            'action_ref': {},
+            'channel': {},
+            'message': {},
+            'data': {}
+        }
+    }
+}
+
 # Internal system triggers which are available for each resource
 INTERNAL_TRIGGER_TYPES = {
     'action': [
-        {
-            'name': 'st2.generic.actiontrigger',
-            'pack': SYSTEM_PACK_NAME,
-            'description': 'Trigger encapsulating the completion of an action execution.',
-            'payload_schema': {
-                'type': 'object',
-                'properties': {
-                    'execution_id': {},
-                    'status': {},
-                    'start_timestamp': {},
-                    'action_name': {},
-                    'parameters': {},
-                    'result': {}
-                }
-            }
-        },
-        {
-            'name': 'st2.generic.notifytrigger',
-            'pack': SYSTEM_PACK_NAME,
-            'description': 'Notification trigger.',
-            'payload_schema': {
-                'type': 'object',
-                'properties': {
-                    'execution_id': {},
-                    'status': {},
-                    'start_timestamp': {},
-                    'end_timestamp': {},
-                    'action_ref': {},
-                    'channel': {},
-                    'message': {},
-                    'data': {}
-                }
-            }
-        }
+        ACTION_SENSOR_TRIGGER,
+        NOTIFY_TRIGGER
     ],
     'sensor': [
         {
