@@ -144,7 +144,7 @@ You should see sensu.action-runners-rule listed.
 Set the st2 credentials (username and password) in the config file. This is required for the
 handler to work. The configuration file looks like below:
 
-::
+.. code-block:: yaml
 
   ---
     st2_username: "testu"
