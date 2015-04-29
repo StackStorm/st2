@@ -22,7 +22,7 @@ Pip
 The easiest way to install these is to use the requirements.txt file from the |st2| downloads server.  This is kept up to date for the version specified in the path.
 
 ::
-    curl -q -k -O https://raw.githubusercontent.com/StackStorm/st2/0.8.3/requirements.txt
+    curl -q -k -O https://raw.githubusercontent.com/StackStorm/st2/v0.8.3/requirements.txt
     pip install -r requirements.txt
 
 RabbitMQ
