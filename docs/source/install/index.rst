@@ -40,6 +40,7 @@ Installation should take about 5 min. Grab a coffee and watch :doc:`/video` whil
     config
     webui
     windows_runners
+    StackStorm Repositories <stackstorm_repos>
 
 .. note::
   We compile, build and test on Fedora 20 and Ubuntu 14.04. The `st2_deploy.sh <https://github.com/StackStorm/st2sandbox/blob/master/scripts/deploy_stan.sh>`_ script should work for other versions, but if you find a problem, let us know. Fixes welcome :)
