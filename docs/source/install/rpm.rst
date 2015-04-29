@@ -92,7 +92,7 @@ The format of the RPM packages is like this: <component>-<version>-<build>.noarc
 You can download the packages from this URL:
 ::
 
-    https://downloads.stackstorm.net/releases/st2/0.9dev/rpms/current/
+    https://downloads.stackstorm.net/releases/st2/0.10dev/rpms/current/
 
 --------------
 
