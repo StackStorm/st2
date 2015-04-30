@@ -19,3 +19,6 @@
       type: "string"
       default: "/opt/stackstorm/packs/"
       immutable: true
+    verifyssl:
+      type: "boolean"
+      default: true
