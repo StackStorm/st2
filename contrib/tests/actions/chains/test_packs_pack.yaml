@@ -135,6 +135,6 @@ chain:
         description: Error handler
         ref: "core.local"
         params:
-            env:
+           env:
               ST2_AUTH_TOKEN: "{{token}}"
            cmd: "echo packs pack test failed; exit 1"
