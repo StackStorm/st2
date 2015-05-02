@@ -144,3 +144,12 @@ class ContentPackResource(Access):
         name = getattr(object, 'name', '')
         pack = getattr(object, 'pack', '')
         return cls.get_by_ref(ResourceReference.to_string_reference(pack=pack, name=name))
+
+
+class StatusBasedResource(Access):
+
+    @classmethod
+    def publish_status(cls, model_object):
+        publisher = cls._get_publisher()
+        if publisher:
+            publisher.publish_state(model_object, getattr(model_object, 'status', None))

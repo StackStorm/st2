@@ -141,7 +141,7 @@ def schedule(liveaction):
     LOG.info('Scheduled {~}action_execution: %s / {~}live_action: %s with "%s" status.',
              action_execution_db.id, liveaction_db.id, liveaction.status)
 
-    LiveAction.publish_schedule(liveaction_db)
+    LiveAction.publish_status(liveaction_db)
 
 
 def execute(liveaction, container):

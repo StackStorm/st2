@@ -20,17 +20,19 @@ from st2common.transport import publishers
 
 
 LIVEACTION_XCHG = Exchange('st2.liveaction', type='topic')
-SCHEDULE_RK = 'schedule'
+LIVEACTION_STATUS_MGMT_XCHG = Exchange('st2.liveaction.status', type='topic')
 
 
-class LiveActionPublisher(publishers.CUDPublisher):
+class LiveActionPublisher(publishers.CUDPublisher, publishers.StatePublisherMixin):
 
     def __init__(self, url):
-        super(LiveActionPublisher, self).__init__(url, LIVEACTION_XCHG)
-
-    def publish_schedule(self, payload):
-        self._publisher.publish(payload, self._exchange, SCHEDULE_RK)
+        publishers.CUDPublisher.__init__(self, url, LIVEACTION_XCHG)
+        publishers.StatePublisherMixin.__init__(self, url, LIVEACTION_STATUS_MGMT_XCHG)
 
 
 def get_queue(name, routing_key):
     return Queue(name, LIVEACTION_XCHG, routing_key=routing_key)
+
+
+def get_status_management_queue(name, routing_key):
+    return Queue(name, LIVEACTION_STATUS_MGMT_XCHG, routing_key=routing_key)
