@@ -9,6 +9,7 @@ debug = True
 
 [api]
 url = http://localhost:9101/v1
+token = 
 
 [auth]
 url = http://localhost:9100/v1

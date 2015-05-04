@@ -75,14 +75,18 @@ RC_FILE_OPTIONS = {
     },
     'api': {
         'url': {
-            'type': 'str',
+            'type': 'string',
             'default': ''
+        },
+        'token': {
+            'type': 'string',
+            'default': None
         }
     },
     'auth': {
         'url': {
-            'type': 'str',
-            'default': ''
+            'type': 'string',
+            'default': None
         }
     }
 }
@@ -93,7 +97,8 @@ RC_OPTION_TO_CLIENT_KWARGS_MAP = {
     'api_url': ['api', 'url'],
     'api_version': ['general', 'api_version'],
     'cacert': ['general', 'cacert'],
-    'debug': ['cli', 'debug']
+    'debug': ['cli', 'debug'],
+    'token': ['api', 'token']
 }
 
 
@@ -279,6 +284,7 @@ class Shell(object):
         print('ST2_BASE_URL: %s' % (client.endpoints['base']))
         print('ST2_AUTH_URL: %s' % (client.endpoints['auth']))
         print('ST2_API_URL: %s' % (client.endpoints['api']))
+        print('ST2_AUTH_TOKEN: %s' % (os.environ.get('ST2_AUTH_TOKEN')))
         print('')
         print('Proxy settings:')
         print('---------------')
@@ -333,7 +339,7 @@ class Shell(object):
 
         result = {}
         for kwarg_name, (section, option) in six.iteritems(RC_OPTION_TO_CLIENT_KWARGS_MAP):
-            result[kwarg_name] = rc_options[section][option]
+            result[kwarg_name] = rc_options.get(section, {}).get(option, None)
 
         return result
 
