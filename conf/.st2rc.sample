@@ -1,0 +1,14 @@
+# Configuration file for StackStorm CLI
+[general]
+base_url = http://localhost
+api_version = v1
+cacert =
+
+[cli]
+debug = True
+
+[api]
+url = http://localhost:9101/v1
+
+[auth]
+url = http://localhost:9100/v1
