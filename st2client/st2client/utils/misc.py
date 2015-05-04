@@ -35,8 +35,8 @@ def merge_dicts(d1, d2):
 
     for key, value in six.iteritems(d2):
         if isinstance(value, dict):
-            result[key] = merge_dicts(result, value)
-        elif value is not None:
+            result[key] = merge_dicts(result[key], value)
+        elif key not in result or value is not None:
             result[key] = value
 
     return result
