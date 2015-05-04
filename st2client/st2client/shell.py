@@ -14,14 +14,17 @@
 # limitations under the License.
 
 """
-Command-line interface to Stanley
+Command-line interface to StackStorm.
 """
 
 from __future__ import print_function
 
 import os
 import sys
+import json
+import time
 import argparse
+import calendar
 import logging
 import traceback
 from collections import defaultdict
@@ -40,6 +43,7 @@ from st2client.commands import action
 from st2client.commands import datastore
 from st2client.commands import webhook
 from st2client.exceptions.operations import OperationFailureException
+from st2client.utils.date import parse as parse_isotime
 from st2client.utils.misc import merge_dicts
 
 __all__ = [
@@ -51,6 +55,11 @@ LOG = logging.getLogger(__name__)
 
 DEFAULT_RC_FILE_PATH = '~/.st2rc'
 DEFAULT_RC_FILE_PATH = os.path.expanduser(DEFAULT_RC_FILE_PATH)
+
+ST2_CONFIG_DIRECTORY = '~/.st2'
+ST2_CONFIG_DIRECTORY = os.path.expanduser(ST2_CONFIG_DIRECTORY)
+CACHED_TOKEN_PATH = os.path.join(ST2_CONFIG_DIRECTORY, 'token')
+
 
 RC_FILE_OPTIONS = {
     'general': {
@@ -71,6 +80,10 @@ RC_FILE_OPTIONS = {
         'debug': {
             'type': 'bool',
             'default': False
+        },
+        'cache_token': {
+            'type': 'boolean',
+            'default': True
         }
     },
     'credentials': {
@@ -87,10 +100,6 @@ RC_FILE_OPTIONS = {
         'url': {
             'type': 'string',
             'default': ''
-        },
-        'token': {
-            'type': 'string',
-            'default': None
         }
     },
     'auth': {
@@ -107,8 +116,7 @@ RC_OPTION_TO_CLIENT_KWARGS_MAP = {
     'api_url': ['api', 'url'],
     'api_version': ['general', 'api_version'],
     'cacert': ['general', 'cacert'],
-    'debug': ['cli', 'debug'],
-    'token': ['api', 'token']
+    'debug': ['cli', 'debug']
 }
 
 
@@ -244,15 +252,19 @@ class Shell(object):
 
         # If credentials are provided use them and try to authenticate
         rc_config = self._parse_rc_file()
+
         credentials = rc_config.get('credentials', {})
         username = credentials.get('username', None)
         password = credentials.get('password', None)
+        cache_token = rc_config.get('cli', {}).get('cache_token', False)
 
         if username and password:
+            # Credentials are provided, try to authenticate agaist the API
             try:
-                token = self._get_auth_token(client=client, username=username, password=password)
+                token = self._get_auth_token(client=client, username=username, password=password,
+                                             cache_token=cache_token)
             except Exception as e:
-                print('Failed to authenticate with credentials provided in the config')
+                print('Failed to authenticate with credentials provided in the config.')
                 raise e
 
             client.token = token
@@ -321,16 +333,97 @@ class Shell(object):
         print('HTTPS_PROXY: %s' % (os.environ.get('HTTPS_PROXY', '')))
         print('')
 
-    def _get_auth_token(self, client, username, password):
+    def _get_auth_token(self, client, username, password, cache_token):
+        """
+        Retrieve a valid auth token.
+
+        If caching is enabled, we will first try to retrieve cached token from a
+        file system. If cached token is expired or not available, we will try to
+        authenticate using the provided credentials and retrieve a new auth
+        token.
+
+        :rtype: ``str``
+        """
+        if cache_token:
+            token = self._get_cached_auth_token(client=client, username=username,
+                                                password=password)
+        else:
+            token = None
+
+        if not token:
+            # Token is either expired or not available
+            token_obj = self._authenticate_and_retrieve_auth_token(client=client,
+                                                                   username=username,
+                                                                   password=password)
+            self._cache_auth_token(token_obj=token_obj)
+            token = token_obj.token
+
+        return token
+
+    def _get_cached_auth_token(self, client, username, password):
+        """
+        Retrieve cached auth token from the file in the config directory.
+        """
+        if not os.path.isdir(ST2_CONFIG_DIRECTORY):
+            os.makedirs(ST2_CONFIG_DIRECTORY)
+
+        if not os.path.isfile(CACHED_TOKEN_PATH):
+            return None
+
+        with open(CACHED_TOKEN_PATH) as fp:
+            data = fp.read()
+
+        try:
+            data = json.loads(data)
+
+            token = data['token']
+            expire_timestamp = data['expire_timestamp']
+        except Exception as e:
+            msg = 'File with cached token is corrupted: %s' % (str(e))
+            raise ValueError(msg)
+
+        now = int(time.time())
+        if (expire_timestamp + 15) < now:
+            # Token has expired
+            return None
+
+        return token
+
+    def _cache_auth_token(self, token_obj):
+        """
+        Cache auth token in the config directory.
+
+        :param token_obj: Token object.
+        :type token_obj: ``object``
+        """
+        if not os.path.isdir(ST2_CONFIG_DIRECTORY):
+            os.makedirs(ST2_CONFIG_DIRECTORY)
+
+        token = token_obj.token
+        expire_timestamp = parse_isotime(token_obj.expiry)
+        expire_timestamp = calendar.timegm(expire_timestamp.timetuple())
+
+        data = {}
+        data['token'] = token
+        data['expire_timestamp'] = expire_timestamp
+        data = json.dumps(data)
+
+        # Note: We explictly use fdopen instead of open + chmod to avoid a security issue.
+        # open + chmod are two operations which means that during a short time frame (between
+        # open and chmod) when file can potentially be read by other users if the default
+        # permissions used during create allow that.
+        fd = os.open(CACHED_TOKEN_PATH, os.O_WRONLY | os.O_CREAT, 0600)
+        with os.fdopen(fd, 'w') as fp:
+            fp.write(data)
+
+        return True
+
+    def _authenticate_and_retrieve_auth_token(self, client, username, password):
         manager = models.ResourceManager(models.Token, client.endpoints['auth'],
                                          cacert=client.cacert, debug=client.debug)
         instance = models.Token()
         instance = manager.create(instance, auth=(username, password))
-
-        if instance and instance.token:
-            return instance.token
-
-        return None
+        return instance
 
     def _get_rc_file_path(self):
         path = os.environ.get('ST2_RC_FILE', DEFAULT_RC_FILE_PATH)

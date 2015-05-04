@@ -13,11 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import dateutil.tz
 import dateutil.parser
 
 __all__ = [
+    'parse',
     'format_isodate'
 ]
+
+
+def add_utc_tz(dt):
+    return dt.replace(tzinfo=dateutil.tz.tzutc())
+
+
+def parse(value):
+    dt = dateutil.parser.parse(str(value))
+    return dt if dt.tzinfo else add_utc_tz(dt)
 
 
 def format_isodate(value):
