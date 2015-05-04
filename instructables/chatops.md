@@ -68,7 +68,7 @@ Open up the file `hieradata/workroom.yaml` in your favorite text editor. In here
 ```yaml
 # hieradata/workroom.yaml
 ---
-st2::version: 0.9dev
+st2::version: 0.9.0
 st2::mistral_git_branch: st2-0.8.1
 ```
 
@@ -110,14 +110,14 @@ This process will take a few minutes, and when completed, a new Hubot should be 
 
 To get started, you will need:
 
-* StackStorm v0.9dev
+* StackStorm v0.9.0
 * Hubot
 * StackStorm Hubot adapter
 
 First, start by updating your version of StackStorm. This is typically done by re-running `st2_deploy.sh` with the updated version code.
 
 ```
-$ st2_deploy.sh 0.9dev
+$ st2_deploy.sh 0.9.0
 ```
 
 Currently, this feature requires `st2auth` to be disabled. This will be fixed before production release. In the meantime, ensure `st2auth` is disabled by doing the following:
