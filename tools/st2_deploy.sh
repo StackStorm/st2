@@ -342,6 +342,7 @@ setup_mistral() {
   if [ -d "/opt/openstack/mistral" ]; then
     rm -r /opt/openstack/mistral
   fi
+  echo "Cloning Mistral branch: ${MISTRAL_STABLE_BRANCH}..."
   git clone -b ${MISTRAL_STABLE_BRANCH} https://github.com/StackStorm/mistral.git
 
   # Setup virtualenv for running mistral.
@@ -357,6 +358,7 @@ setup_mistral() {
   if [ -d "/etc/mistral/actions/st2mistral" ]; then
     rm -r /etc/mistral/actions/st2mistral
   fi
+  echo "Cloning St2mistral branch: ${MISTRAL_STABLE_BRANCH}..."
   cd /etc/mistral/actions
   git clone -b ${MISTRAL_STABLE_BRANCH} https://github.com/StackStorm/st2mistral.git
   cd /etc/mistral/actions/st2mistral
