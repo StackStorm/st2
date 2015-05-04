@@ -30,6 +30,7 @@ BUILD="current"
 DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
 SYSTEMUSER='stanley'
 STANCONF="/etc/st2/st2.conf"
+CLI_CONFIG_PATH=${HOME}/config
 
 # Information about a test account which used by st2_deploy
 TEST_ACCOUNT_USERNAME="testu"
@@ -499,6 +500,13 @@ install_st2client() {
     yum localinstall -y st2client-${VER}-${RELEASE}.noarch.rpm
   fi
   popd
+
+  # Write the CLI config file with the default credentials
+  bash -c "cat > ${CLI_CONFIG_PATH}" <<EOL
+[credentials]
+username = ${TEST_ACCOUNT_USERNAME}
+password = ${TEST_ACCOUNT_PASSWORD}
+EOL
 }
 
 install_webui() {
@@ -579,6 +587,8 @@ echo "Test StackStorm user account details"
 echo ""
 echo "Username: ${TEST_ACCOUNT_USERNAME}"
 echo "Password: ${TEST_ACCOUNT_PASSWORD}"
+echo ""
+echo "Test account credentials were also written to the default CLI config at ${CLI_CONFIG_PATH}."
 echo ""
 echo "To login and obtain an authentication token, run the following command:"
 echo ""
