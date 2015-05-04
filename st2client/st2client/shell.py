@@ -60,6 +60,11 @@ ST2_CONFIG_DIRECTORY = '~/.st2'
 ST2_CONFIG_DIRECTORY = os.path.expanduser(ST2_CONFIG_DIRECTORY)
 CACHED_TOKEN_PATH = os.path.join(ST2_CONFIG_DIRECTORY, 'token')
 
+# How many seconds before the token actual expiration date we should consider the token as
+# expired. This is used to prevent the operation from failing durig the API request because the
+# token was just about to expire.
+TOKEN_EXPIRATION_GRACE_PERIOD_SECONDS = 15
+
 
 RC_FILE_OPTIONS = {
     'general': {
@@ -383,7 +388,7 @@ class Shell(object):
             raise ValueError(msg)
 
         now = int(time.time())
-        if (expire_timestamp + 15) < now:
+        if (expire_timestamp + TOKEN_EXPIRATION_GRACE_PERIOD_SECONDS) < now:
             # Token has expired
             return None
 
