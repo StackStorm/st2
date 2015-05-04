@@ -4,7 +4,9 @@ Changelog
 in development
 --------------
 
-* Allow user to configure the CLI using a rc config file located at ``~/.st2rc``. (new-feature)
+* Allow user to configure the CLI using an ini style config file located at ``~/.st2rc``.
+  (new-feature)
+* Add support for caching of the retrieved auth tokens to the CLI. (new-feature)
 
 v0.9.0 - April 29, 2015
 -----------------------
