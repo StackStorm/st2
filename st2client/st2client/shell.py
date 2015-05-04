@@ -53,8 +53,8 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-DEFAULT_RC_FILE_PATH = '~/.st2rc'
-DEFAULT_RC_FILE_PATH = os.path.expanduser(DEFAULT_RC_FILE_PATH)
+DEFAULT_CONFIG_FILE_PATH = '~/.st2rc'
+DEFAULT_CONFIG_FILE_PATH = os.path.expanduser(DEFAULT_CONFIG_FILE_PATH)
 
 ST2_CONFIG_DIRECTORY = '~/.st2'
 ST2_CONFIG_DIRECTORY = os.path.expanduser(ST2_CONFIG_DIRECTORY)
@@ -66,7 +66,7 @@ CACHED_TOKEN_PATH = os.path.join(ST2_CONFIG_DIRECTORY, 'token')
 TOKEN_EXPIRATION_GRACE_PERIOD_SECONDS = 15
 
 
-RC_FILE_OPTIONS = {
+CONFIG_FILE_OPTIONS = {
     'general': {
         'base_url': {
             'type': 'string',
@@ -190,6 +190,14 @@ class Shell(object):
         )
 
         self.parser.add_argument(
+            '--config-file',
+            action='store',
+            dest='config_file',
+            default=None,
+            help='Path to the CLI config file'
+        )
+
+        self.parser.add_argument(
             '--debug',
             action='store_true',
             dest='debug',
@@ -246,7 +254,7 @@ class Shell(object):
         # Precedence order: cli arguments > environment variables > rc file variables
         cli_options = ['base_url', 'auth_url', 'api_url', 'api_version', 'cacert']
         cli_options = {opt: getattr(args, opt) for opt in cli_options}
-        rc_file_options = self._get_rc_file_options()
+        rc_file_options = self._get_rc_file_options(args=args)
 
         kwargs = {}
         kwargs = merge_dicts(kwargs, rc_file_options)
@@ -256,7 +264,7 @@ class Shell(object):
         client = Client(**kwargs)
 
         # If credentials are provided use them and try to authenticate
-        rc_config = self._parse_rc_file()
+        rc_config = self._parse_rc_file(args=args)
 
         credentials = rc_config.get('credentials', {})
         username = credentials.get('username', None)
@@ -280,10 +288,10 @@ class Shell(object):
 
     def run(self, argv):
         debug = False
-        try:
-            # Parse command line arguments.
-            args = self.parser.parse_args(args=argv)
+        # Parse command line arguments.
+        args = self.parser.parse_args(args=argv)
 
+        try:
             debug = getattr(args, 'debug', False)
 
             # Set up client.
@@ -295,7 +303,7 @@ class Shell(object):
             return 0
         except OperationFailureException as e:
             if debug:
-                self._print_debug_info()
+                self._print_debug_info(args=args)
             return 2
         except Exception as e:
             # We allow exception to define custom exit codes
@@ -303,24 +311,24 @@ class Shell(object):
 
             print('ERROR: %s\n' % e)
             if debug:
-                self._print_debug_info()
+                self._print_debug_info(args=args)
 
             return exit_code
 
-    def _print_debug_info(self):
+    def _print_debug_info(self, args):
         # Print client settings
-        self._print_client_settings()
+        self._print_client_settings(args=args)
 
         # Print exception traceback
         traceback.print_exc()
 
-    def _print_client_settings(self):
+    def _print_client_settings(self, args):
         client = self.client
 
         if not client:
             return
 
-        rc_file_path = self._get_rc_file_path()
+        rc_file_path = self._get_rc_file_path(args=args)
 
         print('CLI settings:')
         print('----------------')
@@ -430,13 +438,25 @@ class Shell(object):
         instance = manager.create(instance, auth=(username, password))
         return instance
 
-    def _get_rc_file_path(self):
-        path = os.environ.get('ST2_RC_FILE', DEFAULT_RC_FILE_PATH)
+    def _get_rc_file_path(self, args):
+        """
+        Retrieve path to the CLI configuration file.
+
+        :rtype: ``str``
+        """
+        path = os.environ.get('ST2_CONFIG_FILE', DEFAULT_CONFIG_FILE_PATH)
+
+        if args.config_file:
+            if not os.path.isfile(args.config_file):
+                raise ValueError('Config "%s" not found' % (args.config_file))
+
+            path = args.config_file
+
         path = os.path.abspath(path)
         return path
 
-    def _parse_rc_file(self):
-        rc_file_path = self._get_rc_file_path()
+    def _parse_rc_file(self, args):
+        rc_file_path = self._get_rc_file_path(args=args)
 
         result = defaultdict(dict)
         if not os.path.isfile(rc_file_path):
@@ -447,7 +467,7 @@ class Shell(object):
         with open(rc_file_path, 'r') as fp:
             config.readfp(fp)
 
-        for section, keys in six.iteritems(RC_FILE_OPTIONS):
+        for section, keys in six.iteritems(CONFIG_FILE_OPTIONS):
             for key, options in six.iteritems(keys):
                 key_type = options['type']
                 key_default_value = options['default']
@@ -472,8 +492,8 @@ class Shell(object):
 
         return dict(result)
 
-    def _get_rc_file_options(self):
-        rc_options = self._parse_rc_file()
+    def _get_rc_file_options(self, args):
+        rc_options = self._parse_rc_file(args=args)
 
         result = {}
         for kwarg_name, (section, option) in six.iteritems(RC_OPTION_TO_CLIENT_KWARGS_MAP):
