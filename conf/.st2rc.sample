@@ -7,9 +7,13 @@ cacert =
 [cli]
 debug = True
 
+[credentials]
+username = testu
+password = testp
+
 [api]
 url = http://localhost:9101/v1
 token = 
 
 [auth]
-url = http://localhost:9100/v1
+url = http://localhost:9100/

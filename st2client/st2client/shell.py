@@ -73,6 +73,16 @@ RC_FILE_OPTIONS = {
             'default': False
         }
     },
+    'credentials': {
+        'username': {
+            'type': 'string',
+            'default': None
+        },
+        'password': {
+            'type': 'string',
+            'default': None
+        }
+    },
     'api': {
         'url': {
             'type': 'string',
@@ -230,7 +240,26 @@ class Shell(object):
         kwargs = merge_dicts(kwargs, cli_options)
         kwargs['debug'] = debug
 
-        return Client(**kwargs)
+        client = Client(**kwargs)
+
+        # If credentials are provided use them and try to authenticate
+        rc_config = self._parse_rc_file()
+        credentials = rc_config.get('credentials', {})
+        username = credentials.get('username', None)
+        password = credentials.get('password', None)
+
+        if username and password:
+            try:
+                token = self._get_auth_token(client=client, username=username, password=password)
+            except Exception as e:
+                print('Failed to authenticate with credentials provided in the config')
+                raise e
+
+            client.token = token
+            # TODO: Hack, refactor when splitting out the client
+            os.environ['ST2_AUTH_TOKEN'] = token
+
+        return client
 
     def run(self, argv):
         debug = False
@@ -291,6 +320,17 @@ class Shell(object):
         print('HTTP_PROXY: %s' % (os.environ.get('HTTP_PROXY', '')))
         print('HTTPS_PROXY: %s' % (os.environ.get('HTTPS_PROXY', '')))
         print('')
+
+    def _get_auth_token(self, client, username, password):
+        manager = models.ResourceManager(models.Token, client.endpoints['auth'],
+                                         cacert=client.cacert, debug=client.debug)
+        instance = models.Token()
+        instance = manager.create(instance, auth=(username, password))
+
+        if instance and instance.token:
+            return instance.token
+
+        return None
 
     def _get_rc_file_path(self):
         path = os.environ.get('ST2_RC_FILE', DEFAULT_RC_FILE_PATH)
