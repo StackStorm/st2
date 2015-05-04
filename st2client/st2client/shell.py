@@ -24,6 +24,10 @@ import sys
 import argparse
 import logging
 import traceback
+from collections import defaultdict
+
+import six
+from six.moves.configparser import ConfigParser
 
 from st2client import __version__
 from st2client import models
@@ -36,9 +40,61 @@ from st2client.commands import action
 from st2client.commands import datastore
 from st2client.commands import webhook
 from st2client.exceptions.operations import OperationFailureException
+from st2client.utils.misc import merge_dicts
+
+__all__ = [
+    'Shell'
+]
 
 
 LOG = logging.getLogger(__name__)
+
+DEFAULT_RC_FILE_PATH = '~/.st2rc'
+DEFAULT_RC_FILE_PATH = os.path.expanduser(DEFAULT_RC_FILE_PATH)
+
+RC_FILE_OPTIONS = {
+    'general': {
+        'base_url': {
+            'type': 'string',
+            'default': None
+        },
+        'api_version': {
+            'type': 'string',
+            'default': None
+        },
+        'cacert': {
+            'type': 'string',
+            'default': None
+        }
+    },
+    'cli': {
+        'debug': {
+            'type': 'bool',
+            'default': False
+        }
+    },
+    'api': {
+        'url': {
+            'type': 'str',
+            'default': ''
+        }
+    },
+    'auth': {
+        'url': {
+            'type': 'str',
+            'default': ''
+        }
+    }
+}
+
+RC_OPTION_TO_CLIENT_KWARGS_MAP = {
+    'base_url': ['general', 'base_url'],
+    'auth_url': ['auth', 'url'],
+    'api_url': ['api', 'url'],
+    'api_version': ['general', 'api_version'],
+    'cacert': ['general', 'cacert'],
+    'debug': ['cli', 'debug']
+}
 
 
 class Shell(object):
@@ -158,9 +214,17 @@ class Shell(object):
             self, self.subparsers)
 
     def get_client(self, args, debug=False):
-        options = ['base_url', 'auth_url', 'api_url', 'api_version', 'cacert']
-        kwargs = {opt: getattr(args, opt) for opt in options}
+        # Note: Options provided as the CLI argument have the highest precedence
+        # Precedence order: cli arguments > environment variables > rc file variables
+        cli_options = ['base_url', 'auth_url', 'api_url', 'api_version', 'cacert']
+        cli_options = {opt: getattr(args, opt) for opt in cli_options}
+        rc_file_options = self._get_rc_file_options()
+
+        kwargs = {}
+        kwargs = merge_dicts(kwargs, rc_file_options)
+        kwargs = merge_dicts(kwargs, cli_options)
         kwargs['debug'] = debug
+
         return Client(**kwargs)
 
     def run(self, argv):
@@ -205,6 +269,11 @@ class Shell(object):
         if not client:
             return
 
+        rc_file_path = self._get_rc_file_path()
+
+        print('CLI settings:')
+        print('----------------')
+        print('Config / rc file path: %s' % (rc_file_path))
         print('Client settings:')
         print('----------------')
         print('ST2_BASE_URL: %s' % (client.endpoints['base']))
@@ -216,6 +285,57 @@ class Shell(object):
         print('HTTP_PROXY: %s' % (os.environ.get('HTTP_PROXY', '')))
         print('HTTPS_PROXY: %s' % (os.environ.get('HTTPS_PROXY', '')))
         print('')
+
+    def _get_rc_file_path(self):
+        path = os.environ.get('ST2_RC_FILE', DEFAULT_RC_FILE_PATH)
+        path = os.path.abspath(path)
+        return path
+
+    def _parse_rc_file(self):
+        rc_file_path = self._get_rc_file_path()
+
+        result = defaultdict(dict)
+        if not os.path.isfile(rc_file_path):
+            return dict(result)
+
+        config = ConfigParser()
+
+        with open(rc_file_path, 'r') as fp:
+            config.readfp(fp)
+
+        for section, keys in six.iteritems(RC_FILE_OPTIONS):
+            for key, options in six.iteritems(keys):
+                key_type = options['type']
+                key_default_value = options['default']
+
+                if config.has_option(section, key):
+                    if key_type in ['str', 'string']:
+                        get_func = config.get
+                    elif key_type in ['int', 'integer']:
+                        get_func = config.getint
+                    elif key_type in ['float']:
+                        get_func = config.getfloat
+                    elif key_type in ['bool', 'boolean']:
+                        get_func = config.getboolean
+                    else:
+                        msg = 'Invalid type "%s" for option "%s"' % (key_type, key)
+                        raise ValueError(msg)
+
+                    value = get_func(section, key)
+                    result[section][key] = value
+                else:
+                    result[section][key] = key_default_value
+
+        return dict(result)
+
+    def _get_rc_file_options(self):
+        rc_options = self._parse_rc_file()
+
+        result = {}
+        for kwarg_name, (section, option) in six.iteritems(RC_OPTION_TO_CLIENT_KWARGS_MAP):
+            result[kwarg_name] = rc_options[section][option]
+
+        return result
 
 
 def main(argv=sys.argv[1:]):
