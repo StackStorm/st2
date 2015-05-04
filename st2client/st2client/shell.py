@@ -53,12 +53,11 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-DEFAULT_CONFIG_FILE_PATH = '~/.st2rc'
-DEFAULT_CONFIG_FILE_PATH = os.path.expanduser(DEFAULT_CONFIG_FILE_PATH)
-
 ST2_CONFIG_DIRECTORY = '~/.st2'
-ST2_CONFIG_DIRECTORY = os.path.expanduser(ST2_CONFIG_DIRECTORY)
-CACHED_TOKEN_PATH = os.path.join(ST2_CONFIG_DIRECTORY, 'token')
+ST2_CONFIG_DIRECTORY = os.path.abspath(os.path.expanduser(ST2_CONFIG_DIRECTORY))
+
+ST2_CONFIG_PATH = os.path.abspath(os.path.join(ST2_CONFIG_DIRECTORY, 'config'))
+CACHED_TOKEN_PATH = os.path.abspath(os.path.join(ST2_CONFIG_DIRECTORY, 'token'))
 
 # How many seconds before the token actual expiration date we should consider the token as
 # expired. This is used to prevent the operation from failing durig the API request because the
@@ -444,15 +443,15 @@ class Shell(object):
 
         :rtype: ``str``
         """
-        path = os.environ.get('ST2_CONFIG_FILE', DEFAULT_CONFIG_FILE_PATH)
+        path = os.environ.get('ST2_CONFIG_FILE', ST2_CONFIG_PATH)
 
         if args.config_file:
-            if not os.path.isfile(args.config_file):
-                raise ValueError('Config "%s" not found' % (args.config_file))
-
             path = args.config_file
 
         path = os.path.abspath(path)
+        if path != ST2_CONFIG_PATH and not os.path.isfile(path):
+                raise ValueError('Config "%s" not found' % (path))
+
         return path
 
     def _parse_rc_file(self, args):
