@@ -4,6 +4,8 @@ Changelog
 in development
 --------------
 
+* Allow user to configure the CLI using a rc config file located at ``~/.st2rc``. (new-feature)
+
 v0.9.0 - April 29, 2015
 -----------------------
 
