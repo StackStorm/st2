@@ -20,7 +20,7 @@ import datetime
 import mock
 from kombu.message import Message
 
-from st2actions import worker
+from st2actions import scheduler, worker
 from st2actions.container.base import RunnerContainer
 from st2common.constants import action as action_constants
 from st2common.models.db.action import LiveActionDB
@@ -35,11 +35,14 @@ from st2tests.base import DbTestCase
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 @mock.patch.object(executions, 'update_execution', mock.MagicMock())
 @mock.patch.object(Message, 'ack', mock.MagicMock())
-class TestWorker(DbTestCase):
+class QueueConsumerTest(DbTestCase):
 
     def __init__(self, *args, **kwargs):
-        super(TestWorker, self).__init__(*args, **kwargs)
-        self.worker = worker.Worker(None)
+        super(QueueConsumerTest, self).__init__(*args, **kwargs)
+        self.scheduler = scheduler.ActionExecutionScheduler()
+        self.scheduler_q_consumer = scheduler.ActionSchedulerQueueConsumer(None, self.scheduler)
+        self.dispatcher = worker.ActionExecutionDispatcher()
+        self.dispatcher_q_consumer = worker.ActionRunnerQueueConsumer(None, self.dispatcher)
 
     def _get_execution_db_model(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
         live_action_db = LiveActionDB()
@@ -56,12 +59,12 @@ class TestWorker(DbTestCase):
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
-        self.worker._schedule_request(live_action_db)
+        self.scheduler_q_consumer._do_process_task(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
 
-        self.worker._execute_request(scheduled_live_action_db)
+        self.dispatcher_q_consumer._do_process_task(scheduled_live_action_db)
         dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(dispatched_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_RUNNING)
@@ -71,12 +74,12 @@ class TestWorker(DbTestCase):
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
-        self.worker._schedule_request(live_action_db)
+        self.scheduler_q_consumer._do_process_task(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
 
-        self.worker._execute_request(scheduled_live_action_db)
+        self.dispatcher_q_consumer._do_process_task(scheduled_live_action_db)
         dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(dispatched_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_FAILED)
@@ -86,12 +89,12 @@ class TestWorker(DbTestCase):
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
-        self.worker._schedule_request(live_action_db)
+        self.scheduler_q_consumer._do_process_task(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
 
-        self.worker._execute_request(scheduled_live_action_db)
+        self.dispatcher_q_consumer._do_process_task(scheduled_live_action_db)
         dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(dispatched_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_FAILED)
@@ -101,7 +104,7 @@ class TestWorker(DbTestCase):
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
-        self.worker._schedule_request(live_action_db)
+        self.scheduler_q_consumer._do_process_task(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
@@ -110,7 +113,7 @@ class TestWorker(DbTestCase):
                                            liveaction_id=live_action_db.id)
         canceled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
 
-        self.worker._execute_request(canceled_live_action_db)
+        self.dispatcher_q_consumer._do_process_task(canceled_live_action_db)
         dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(dispatched_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_CANCELED)

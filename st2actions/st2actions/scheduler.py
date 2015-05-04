@@ -18,13 +18,12 @@ from kombu import Connection
 from kombu.mixins import ConsumerMixin
 from oslo.config import cfg
 
-from st2actions.container.base import RunnerContainer
 from st2common import log as logging
 from st2common.constants import action as action_constants
-from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.persistence.action import LiveAction
 from st2common.services import executions
-from st2common.transport import liveaction
+from st2common.transport import liveaction, publishers
 from st2common.util import action_db as action_utils
 from st2common.util import system_info
 from st2common.util.greenpooldispatch import BufferedDispatcher
@@ -32,12 +31,11 @@ from st2common.util.greenpooldispatch import BufferedDispatcher
 
 LOG = logging.getLogger(__name__)
 
-ACTIONRUNNER_WORK_Q = liveaction.get_status_management_queue(
-    'st2.actionrunner.work', routing_key=action_constants.LIVEACTION_STATUS_SCHEDULED)
+ACTIONRUNNER_REQUEST_Q = liveaction.get_queue('st2.actionrunner.req',
+                                              routing_key=publishers.CREATE_RK)
 
 
-class ActionRunnerQueueConsumer(ConsumerMixin):
-
+class ActionSchedulerQueueConsumer(ConsumerMixin):
     def __init__(self, connection, handler):
         self.connection = connection
         self._dispatcher = BufferedDispatcher()
@@ -47,7 +45,7 @@ class ActionRunnerQueueConsumer(ConsumerMixin):
         self._dispatcher.shutdown()
 
     def get_consumers(self, Consumer, channel):
-        consumer = Consumer(queues=[ACTIONRUNNER_WORK_Q],
+        consumer = Consumer(queues=[ACTIONRUNNER_REQUEST_Q],
                             accept=['pickle'],
                             callbacks=[self.process_task])
 
@@ -70,11 +68,10 @@ class ActionRunnerQueueConsumer(ConsumerMixin):
             LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
 
 
-class ActionExecutionDispatcher(object):
+class ActionExecutionScheduler(object):
     def __init__(self, q_connection=None):
-        self._queue_consumer = ActionRunnerQueueConsumer(q_connection, self)
+        self._queue_consumer = ActionSchedulerQueueConsumer(q_connection, self)
         self._consumer_thread = None
-        self.container = RunnerContainer()
 
     def start(self):
         LOG.info('Starting %s...', self.__class__.__name__)
@@ -87,60 +84,39 @@ class ActionExecutionDispatcher(object):
         LOG.info('Shutting down %s...', self.__class__.__name__)
         self._queue_consumer.shutdown()
 
-    def process(self, liveaction):
-        if liveaction.status != action_constants.LIVEACTION_STATUS_SCHEDULED:
-            LOG.info('%s is not executing %s (id=%s) with "%s" status.',
-                     self.__class__.__name__, type(liveaction), liveaction.id, liveaction.status)
-
-            if (not liveaction.result and
-                    liveaction.status == action_constants.LIVEACTION_STATUS_CANCELED):
-                action_utils.update_liveaction_status(
-                    status=liveaction.status,
-                    result={'message': 'Action execution canceled by user.'},
-                    liveaction_id=liveaction.id)
-
+    def process(self, request):
+        if request.status != action_constants.LIVEACTION_STATUS_REQUESTED:
+            LOG.info('%s is ignoring %s (id=%s) with "%s" status.',
+                     self.__class__.__name__, type(request), request.id, request.status)
             return
 
         try:
-            liveaction_db = action_utils.get_liveaction_by_id(liveaction.id)
+            liveaction_db = action_utils.get_liveaction_by_id(request.id)
         except StackStormDBObjectNotFoundError:
-            LOG.exception('Failed to find liveaction %s in the database.', liveaction.id)
+            LOG.exception('Failed to find liveaction %s in the database.', request.id)
             raise
 
         # stamp liveaction with process_info
         runner_info = system_info.get_process_info()
 
-        # Update liveaction status to "running"
+        # Update liveaction status to "scheduled"
         liveaction_db = action_utils.update_liveaction_status(
-            status=action_constants.LIVEACTION_STATUS_RUNNING,
+            status=action_constants.LIVEACTION_STATUS_SCHEDULED,
             runner_info=runner_info,
             liveaction_id=liveaction_db.id)
 
         action_execution_db = executions.update_execution(liveaction_db)
 
-        # Launch action
         extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
-        LOG.audit('Launching action execution.', extra=extra)
+        LOG.audit('Scheduled action execution.', extra=extra)
 
         # the extra field will not be shown in non-audit logs so temporarily log at info.
-        LOG.info('Dispatched {~}action_execution: %s / {~}live_action: %s with "%s" status.',
-                 action_execution_db.id, liveaction_db.id, liveaction.status)
+        LOG.info('Scheduled {~}action_execution: %s / {~}live_action: %s with "%s" status.',
+                 action_execution_db.id, liveaction_db.id, request.status)
 
-        try:
-            result = self.container.dispatch(liveaction_db)
-            LOG.debug('Runner dispatch produced result: %s', result)
-            if not result:
-                raise ActionRunnerException('Failed to execute action.')
-        except Exception:
-            liveaction_db = action_utils.update_liveaction_status(
-                status=action_constants.LIVEACTION_STATUS_FAILED,
-                liveaction_id=liveaction_db.id)
-
-            raise
-
-        return result
+        LiveAction.publish_status(liveaction_db)
 
 
-def get_worker():
+def get_scheduler():
     with Connection(cfg.CONF.messaging.url) as conn:
-        return ActionExecutionDispatcher(q_connection=conn)
+        return ActionExecutionScheduler(q_connection=conn)

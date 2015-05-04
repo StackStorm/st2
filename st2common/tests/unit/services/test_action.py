@@ -18,7 +18,6 @@ import jsonschema
 
 from st2actions.container.base import RunnerContainer
 from st2common.constants import action as action_constants
-from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.models.db.action import LiveActionDB
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.models.system.common import ResourceReference
@@ -124,93 +123,3 @@ class TestActionExecutionService(DbTestCase):
         self.assertRaises(ValueError, action_service.request, execution)
         self.actiondb.enabled = True
         Action.add_or_update(self.actiondb)
-
-    def test_schedule(self):
-        request, execution = self._submit_request()
-        self.assertIsNotNone(execution)
-        self.assertEqual(execution.id, request.id)
-        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
-
-        action_service.schedule(execution)
-        scheduled_execution = action_db.get_liveaction_by_id(str(request.id))
-        self.assertIsNotNone(scheduled_execution)
-        self.assertEqual(scheduled_execution.id, request.id)
-        self.assertEqual(scheduled_execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
-
-        self.assertIsInstance(scheduled_execution.runner_info, dict)
-        self.assertIn('hostname', scheduled_execution.runner_info)
-        self.assertIn('pid', scheduled_execution.runner_info)
-
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value={'key': 'value'}))
-    def test_execute(self):
-        request, execution = self._submit_request()
-        self.assertIsNotNone(execution)
-        self.assertEqual(execution.id, request.id)
-        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
-
-        action_service.schedule(execution)
-        scheduled_execution = action_db.get_liveaction_by_id(str(request.id))
-        self.assertIsNotNone(scheduled_execution)
-        self.assertEqual(scheduled_execution.id, request.id)
-        self.assertEqual(scheduled_execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
-
-        action_service.execute(scheduled_execution, self.container)
-        dispatched_execution = action_db.get_liveaction_by_id(str(request.id))
-        self.assertEqual(dispatched_execution.status, action_constants.LIVEACTION_STATUS_RUNNING)
-
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(side_effect=Exception('Boom!')))
-    def test_execute_failure(self):
-        request, execution = self._submit_request()
-        self.assertIsNotNone(execution)
-        self.assertEqual(execution.id, request.id)
-        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
-
-        action_service.schedule(execution)
-        scheduled_execution = action_db.get_liveaction_by_id(str(request.id))
-        self.assertIsNotNone(scheduled_execution)
-        self.assertEqual(scheduled_execution.id, request.id)
-        self.assertEqual(scheduled_execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
-
-        self.assertRaises(Exception, action_service.execute, scheduled_execution, self.container)
-        dispatched_execution = action_db.get_liveaction_by_id(str(request.id))
-        self.assertEqual(dispatched_execution.status, action_constants.LIVEACTION_STATUS_FAILED)
-
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
-    def test_execute_no_result(self):
-        request, execution = self._submit_request()
-        self.assertIsNotNone(execution)
-        self.assertEqual(execution.id, request.id)
-        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
-
-        action_service.schedule(execution)
-        scheduled_execution = action_db.get_liveaction_by_id(str(request.id))
-        self.assertIsNotNone(scheduled_execution)
-        self.assertEqual(scheduled_execution.id, request.id)
-        self.assertEqual(scheduled_execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
-
-        self.assertRaises(ActionRunnerException, action_service.execute,
-                          scheduled_execution, self.container)
-        dispatched_execution = action_db.get_liveaction_by_id(str(request.id))
-        self.assertEqual(dispatched_execution.status, action_constants.LIVEACTION_STATUS_FAILED)
-
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
-    def test_execute_cancelation(self):
-        request, execution = self._submit_request()
-        self.assertIsNotNone(execution)
-        self.assertEqual(execution.id, request.id)
-        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
-
-        action_service.schedule(execution)
-        scheduled_execution = action_db.get_liveaction_by_id(str(request.id))
-        self.assertIsNotNone(scheduled_execution)
-        self.assertEqual(scheduled_execution.id, request.id)
-        self.assertEqual(scheduled_execution.status, action_constants.LIVEACTION_STATUS_SCHEDULED)
-
-        action_db.update_liveaction_status(status=action_constants.LIVEACTION_STATUS_CANCELED,
-                                           liveaction_id=str(request.id))
-        canceled_execution = action_db.get_liveaction_by_id(str(request.id))
-        action_service.execute(canceled_execution, self.container)
-        dispatched_execution = action_db.get_liveaction_by_id(str(request.id))
-        self.assertEqual(dispatched_execution.status, action_constants.LIVEACTION_STATUS_CANCELED)
-        self.assertDictEqual(dispatched_execution.result,
-                             {'message': 'Action execution canceled by user.'})

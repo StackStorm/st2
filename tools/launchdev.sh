@@ -75,16 +75,15 @@ function st2start(){
         ./st2api/bin/st2api \
         --config-file $ST2_CONF
 
-    # Run the action runner server
-    echo 'Starting screen session st2-actionrunner...'
-    screen -d -m -S st2-actionrunner
-
-    # start each runner in its own nested screen tab
+    # Start a screen for every runner
+    echo 'Starting screen sessions for st2-actionrunner(s)...'
+    RUNNER_SCREENS=()
     for i in $(seq 1 $runner_count)
     do
-        # a screen for every runner
-        echo '    starting runner ' $i '...'
-        screen -S st2-actionrunner -X screen -t runner-$i ./virtualenv/bin/python \
+        RUNNER_NAME=st2-actionrunner-$i
+        RUNNER_SCREENS+=($RUNNER_NAME)
+        echo '  starting '$RUNNER_NAME'...'
+        screen -d -m -S $RUNNER_NAME ./virtualenv/bin/python \
             ./st2actions/bin/st2actionrunner \
             --config-file $ST2_CONF
     done
@@ -115,9 +114,9 @@ function st2start(){
 
 
     # Check whether screen sessions are started
-    screens=(
+    SCREENS=(
         "st2-api"
-        "st2-actionrunner"
+        "${RUNNER_SCREENS[@]}"
         "st2-sensorcontainer"
         "st2-rulesengine"
         "st2-resultstracker"
@@ -125,7 +124,7 @@ function st2start(){
     )
 
     echo
-    for s in "${screens[@]}"
+    for s in "${SCREENS[@]}"
     do
         screen -ls | grep "${s}[[:space:]]" &> /dev/null
         if [ $? != 0 ]; then

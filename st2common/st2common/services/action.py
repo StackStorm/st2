@@ -18,20 +18,16 @@ import six
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.persistence.action import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
-from st2common.util import isotime, system_info
+from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
 
 
 __all__ = [
     'request',
-    'schedule',
-    'execute',
     'is_action_canceled'
 ]
 
@@ -105,105 +101,6 @@ def request(liveaction):
     LOG.audit('Action execution requested. LiveAction.id=%s, ActionExecution.id=%s' %
               (liveaction.id, execution.id), extra=extra)
     return liveaction, execution
-
-
-def schedule(liveaction):
-    """
-    Schedule an action to run.
-    """
-    if liveaction.status != action_constants.LIVEACTION_STATUS_REQUESTED:
-        LOG.info('Action scheduling service is ignoring liveaction %s with "%s" status.',
-                 liveaction.id, liveaction.status)
-        return
-
-    try:
-        liveaction_db = action_utils.get_liveaction_by_id(liveaction.id)
-    except StackStormDBObjectNotFoundError:
-        LOG.exception('Failed to find liveaction %s in the database.',
-                      liveaction.id)
-        raise
-
-    # stamp liveaction with process_info
-    runner_info = system_info.get_process_info()
-
-    # Update liveaction status to "scheduled"
-    liveaction_db = action_utils.update_liveaction_status(
-        status=action_constants.LIVEACTION_STATUS_SCHEDULED,
-        runner_info=runner_info,
-        liveaction_id=liveaction_db.id)
-
-    action_execution_db = executions.update_execution(liveaction_db)
-
-    extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
-    LOG.audit('Scheduled action execution.', extra=extra)
-
-    # the extra field will not be shown in non-audit logs so temporarily log at info.
-    LOG.info('Scheduled {~}action_execution: %s / {~}live_action: %s with "%s" status.',
-             action_execution_db.id, liveaction_db.id, liveaction.status)
-
-    LiveAction.publish_status(liveaction_db)
-
-
-def execute(liveaction, container):
-    """
-    Execute an action.
-
-    :return: result
-    :rtype: dict
-    """
-    # Only execution actions which haven't completed yet.
-    if liveaction.status == action_constants.LIVEACTION_STATUS_CANCELED:
-        LOG.info('Not executing liveaction %s. User canceled execution.', liveaction.id)
-        if not liveaction.result:
-            action_utils.update_liveaction_status(
-                status=action_constants.LIVEACTION_STATUS_CANCELED,
-                result={'message': 'Action execution canceled by user.'},
-                liveaction_id=liveaction.id)
-        return
-
-    if liveaction.status != action_constants.LIVEACTION_STATUS_SCHEDULED:
-        LOG.info('Action dispatching service is ignoring liveaction %s with "%s" status.',
-                 liveaction.id, liveaction.status)
-        return
-
-    try:
-        liveaction_db = action_utils.get_liveaction_by_id(liveaction.id)
-    except StackStormDBObjectNotFoundError:
-        LOG.exception('Failed to find liveaction %s in the database.',
-                      liveaction.id)
-        raise
-
-    # stamp liveaction with process_info
-    runner_info = system_info.get_process_info()
-
-    # Update liveaction status to "running"
-    liveaction_db = action_utils.update_liveaction_status(
-        status=action_constants.LIVEACTION_STATUS_RUNNING,
-        runner_info=runner_info,
-        liveaction_id=liveaction_db.id)
-
-    action_execution_db = executions.update_execution(liveaction_db)
-
-    # Launch action
-    extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
-    LOG.audit('Launching action execution.', extra=extra)
-
-    # the extra field will not be shown in non-audit logs so temporarily log at info.
-    LOG.info('Dispatched {~}action_execution: %s / {~}live_action: %s with "%s" status.',
-             action_execution_db.id, liveaction_db.id, liveaction.status)
-    try:
-        result = container.dispatch(liveaction_db)
-        LOG.debug('Runner dispatch produced result: %s', result)
-        if not result:
-            raise ActionRunnerException('Failed to execute action.')
-    except Exception:
-        liveaction_db = action_utils.update_liveaction_status(
-            status=action_constants.LIVEACTION_STATUS_FAILED,
-            liveaction_id=liveaction_db.id)
-
-        raise
-
-    return result
 
 
 def is_action_canceled(liveaction_id):
