@@ -80,6 +80,12 @@ option to ``False``.
     [cli]
     cache_token = False
 
+CLI will by default also try to retrieve a new token if an existing one has
+expired.
+
+If you have manually deleted or revoked a token before the expiration you can
+clean the token cached by the CLI by removing ``~/.st2/token`` file.
+
 Using debug mode
 ----------------
 
