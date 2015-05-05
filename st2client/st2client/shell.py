@@ -144,6 +144,14 @@ class Shell(object):
         )
 
         self.parser.add_argument(
+            '--print-config',
+            action='store_true',
+            dest='print_config',
+            default=False,
+            help='Parse the config file and print the values'
+        )
+
+        self.parser.add_argument(
             '--debug',
             action='store_true',
             dest='debug',
@@ -234,8 +242,14 @@ class Shell(object):
 
     def run(self, argv):
         debug = False
+
         # Parse command line arguments.
         args = self.parser.parse_args(args=argv)
+
+        print_config = args.print_config
+        if print_config:
+            self._print_config(args=args)
+            return 3
 
         try:
             debug = getattr(args, 'debug', False)
@@ -261,6 +275,15 @@ class Shell(object):
 
             return exit_code
 
+    def _print_config(self, args):
+        config = self._parse_config_file(args=args)
+
+        for section, options in six.iteritems(config):
+            print('[%s]' % (section))
+
+            for name, value in six.iteritems(options):
+                print('%s = %s' % (name, value))
+
     def _print_debug_info(self, args):
         # Print client settings
         self._print_client_settings(args=args)
@@ -278,7 +301,7 @@ class Shell(object):
 
         print('CLI settings:')
         print('----------------')
-        print('Config / rc file path: %s' % (config_file_path))
+        print('Config file path: %s' % (config_file_path))
         print('Client settings:')
         print('----------------')
         print('ST2_BASE_URL: %s' % (client.endpoints['base']))
