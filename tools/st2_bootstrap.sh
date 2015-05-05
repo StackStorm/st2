@@ -4,10 +4,10 @@ BASE_URL="https://downloads.stackstorm.net/releases/st2"
 BOOTSTRAP_FILE="/tmp/st2_boostrap.sh"
 
 STABLE=`curl -Ss -q https://downloads.stackstorm.net/deb/pool/trusty_stable/main/s/st2api/ | grep 'amd64.deb' | sed -e "s~.*>st2api_\(.*\)-.*<.*~\1~g" | sort | uniq | head -n 1`
-LATEST=`curl -Ss -q https://downloads.stackstorm.net/deb/pool/trusty_unstable/main/s/st2api/ | grep 'amd64.deb' | sed -e "s~.*>st2api_\(.*\)-.*<.*~\1~g" | sort | uniq head -n 1`
+LATEST=`curl -Ss -q https://downloads.stackstorm.net/deb/pool/trusty_unstable/main/s/st2api/ | grep 'amd64.deb' | sed -e "s~.*>st2api_\(.*\)-.*<.*~\1~g" | sort | uniq | head -n 1`
 
 if [ -z $1 ]; then
-    ST2VER=0.8.3
+    ST2VER=0.9.0
 else
     if [[ "$1" == "stable" ]]; then
         ST2VER=${STABLE}
