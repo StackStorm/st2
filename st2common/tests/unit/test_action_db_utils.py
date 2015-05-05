@@ -25,6 +25,7 @@ from st2common.models.api.action import RunnerTypeAPI
 from st2common.models.db.action import (ActionDB, LiveActionDB)
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import (Action, LiveAction, RunnerType)
+from st2common.transport.liveaction import LiveActionPublisher
 import st2common.util.action_db as action_db_utils
 from st2tests.base import DbTestCase
 
@@ -84,6 +85,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         liveaction = action_db_utils.get_liveaction_by_id(ActionDBUtilsTestCase.liveaction_db.id)
         self.assertEqual(liveaction, ActionDBUtilsTestCase.liveaction_db)
 
+    @mock.patch.object(LiveActionPublisher, 'publish_state', mock.MagicMock())
     def test_update_liveaction_status(self):
         liveaction_db = LiveActionDB()
         liveaction_db.status = 'initializing'
@@ -103,9 +105,14 @@ class ActionDBUtilsTestCase(DbTestCase):
         # Update by id.
         newliveaction_db = action_db_utils.update_liveaction_status(
             status='running', liveaction_id=liveaction_db.id)
+
         # Verify id didn't change.
         self.assertEqual(origliveaction_db.id, newliveaction_db.id)
         self.assertEqual(newliveaction_db.status, 'running')
+
+        # Verify that state is published.
+        self.assertTrue(LiveActionPublisher.publish_state.called)
+        LiveActionPublisher.publish_state.assert_called_once_with(newliveaction_db, 'running')
 
         # Update status, result, context, and end timestamp.
         now = datetime.datetime.utcnow()
@@ -122,6 +129,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         self.assertDictEqual(newliveaction_db.context, context)
         self.assertEqual(newliveaction_db.end_timestamp, now)
 
+    @mock.patch.object(LiveActionPublisher, 'publish_state', mock.MagicMock())
     def test_update_LiveAction_status_invalid(self):
         liveaction_db = LiveActionDB()
         liveaction_db.status = 'initializing'
@@ -140,6 +148,37 @@ class ActionDBUtilsTestCase(DbTestCase):
         # Update by id.
         self.assertRaises(ValueError, action_db_utils.update_liveaction_status,
                           status='mea culpa', liveaction_id=liveaction_db.id)
+
+        # Verify that state is not published.
+        self.assertFalse(LiveActionPublisher.publish_state.called)
+
+    @mock.patch.object(LiveActionPublisher, 'publish_state', mock.MagicMock())
+    def test_update_same_liveaction_status(self):
+        liveaction_db = LiveActionDB()
+        liveaction_db.status = 'requested'
+        liveaction_db.start_timestamp = datetime.datetime.utcnow()
+        liveaction_db.action = ResourceReference(
+            name=ActionDBUtilsTestCase.action_db.name,
+            pack=ActionDBUtilsTestCase.action_db.pack).ref
+        params = {
+            'actionstr': 'foo',
+            'some_key_that_aint_exist_in_action_or_runner': 'bar',
+            'runnerint': 555
+        }
+        liveaction_db.parameters = params
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        origliveaction_db = copy.copy(liveaction_db)
+
+        # Update by id.
+        newliveaction_db = action_db_utils.update_liveaction_status(
+            status='requested', liveaction_id=liveaction_db.id)
+
+        # Verify id didn't change.
+        self.assertEqual(origliveaction_db.id, newliveaction_db.id)
+        self.assertEqual(newliveaction_db.status, 'requested')
+
+        # Verify that state is not published.
+        self.assertFalse(LiveActionPublisher.publish_state.called)
 
     def test_get_args(self):
         params = {

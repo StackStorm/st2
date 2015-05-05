@@ -21,8 +21,8 @@ from oslo.config import cfg
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.persistence.action import LiveAction
 from st2common.services import executions
+from st2common.persistence.action import LiveAction
 from st2common.transport import liveaction, publishers
 from st2common.util import action_db as action_utils
 from st2common.util import system_info
@@ -103,9 +103,15 @@ class ActionExecutionScheduler(object):
         liveaction_db = action_utils.update_liveaction_status(
             status=action_constants.LIVEACTION_STATUS_SCHEDULED,
             runner_info=runner_info,
-            liveaction_id=liveaction_db.id)
+            liveaction_id=liveaction_db.id,
+            publish=False)
 
         action_execution_db = executions.update_execution(liveaction_db)
+
+        # Publish the "scheduled" status here manually. Otherwise, there could be a
+        # race condition with the update of the action_execution_db if the execution
+        # of the liveaction is completes first.
+        LiveAction.publish_status(liveaction_db)
 
         extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
         LOG.audit('Scheduled action execution.', extra=extra)
@@ -113,8 +119,6 @@ class ActionExecutionScheduler(object):
         # the extra field will not be shown in non-audit logs so temporarily log at info.
         LOG.info('Scheduled {~}action_execution: %s / {~}live_action: %s with "%s" status.',
                  action_execution_db.id, liveaction_db.id, request.status)
-
-        LiveAction.publish_status(liveaction_db)
 
 
 def get_scheduler():
