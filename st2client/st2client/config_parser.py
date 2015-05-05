@@ -28,7 +28,9 @@ __all__ = [
     'CLIConfigParser',
 
     'ST2_CONFIG_DIRECTORY',
-    'ST2_CONFIG_PATH'
+    'ST2_CONFIG_PATH',
+
+    'CONFIG_DEFAULT_VALUES'
 ]
 
 ST2_CONFIG_DIRECTORY = '~/.st2'
@@ -74,7 +76,7 @@ CONFIG_FILE_OPTIONS = {
     'api': {
         'url': {
             'type': 'string',
-            'default': ''
+            'default': None
         }
     },
     'auth': {
@@ -84,6 +86,15 @@ CONFIG_FILE_OPTIONS = {
         }
     }
 }
+
+CONFIG_DEFAULT_VALUES = {}
+
+for section, keys in six.iteritems(CONFIG_FILE_OPTIONS):
+    CONFIG_DEFAULT_VALUES[section] = {}
+
+    for key, options in six.iteritems(keys):
+        default_value = options['default']
+        CONFIG_DEFAULT_VALUES[section][key] = default_value
 
 
 class CLIConfigParser(object):
@@ -102,7 +113,8 @@ class CLIConfigParser(object):
         result = defaultdict(dict)
 
         if not os.path.isfile(self.config_file_path):
-            return dict(result)
+            # Config doesn't exist, return the default values
+            return CONFIG_DEFAULT_VALUES
 
         config = ConfigParser()
         with open(self.config_file_path, 'r') as fp:

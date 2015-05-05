@@ -18,6 +18,7 @@ import os
 import unittest2
 
 from st2client.config_parser import CLIConfigParser
+from st2client.config_parser import CONFIG_DEFAULT_VALUES
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE_PATH_FULL = os.path.join(BASE_DIR, '../fixtures/st2rc.full.ini')
@@ -37,7 +38,7 @@ class CLIConfigParserTestCase(unittest2.TestCase):
         parser = CLIConfigParser(config_file_path='doesnotexist', validate_config_exists=False)
         result = parser.parse()
 
-        self.assertEqual(result, {})
+        self.assertEqual(CONFIG_DEFAULT_VALUES, result)
 
         # File exists - all the options specified
         expected = {
