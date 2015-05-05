@@ -1,4 +1,4 @@
-Hi, and thanks for helping us try out our private ChatOps beta. We value your feedback, and would love to hear it. Please send us a note at `support@stackstorm.com`, or come chat with us on IRC at irc://irc.freenode.net/#stackstorm.
+Hi, and thanks for helping us try out our ChatOps beta. We value your feedback, and would love to hear it. Please send us a note at `support@stackstorm.com`, or come chat with us on IRC at irc://irc.freenode.net/#stackstorm.
 
 ## What is ChatOps
 
@@ -69,7 +69,7 @@ Open up the file `hieradata/workroom.yaml` in your favorite text editor. In here
 # hieradata/workroom.yaml
 ---
 st2::version: 0.9.0
-st2::mistral_git_branch: st2-0.8.1
+st2::mistral_git_branch: st2-0.9.0
 ```
 
 Next, configure Hubot. Take a look at the commented lines. At the minimum, you must provide:
