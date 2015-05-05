@@ -51,8 +51,9 @@ __all__ = [
     'Shell'
 ]
 
-
 LOG = logging.getLogger(__name__)
+
+CLI_DESCRIPTION = 'CLI for StackStorm event-driven automation platform. http://stackstorm.com'
 
 CACHED_TOKEN_PATH = os.path.abspath(os.path.join(ST2_CONFIG_DIRECTORY, 'token'))
 
@@ -78,9 +79,7 @@ class Shell(object):
         self.client = None
 
         # Set up the main parser.
-        self.parser = argparse.ArgumentParser(
-            description='CLI for Stanley, an automation platform by '
-                        'StackStorm. http://stackstorm.com')
+        self.parser = argparse.ArgumentParser(description=CLI_DESCRIPTION)
 
         # Set up general program options.
         self.parser.add_argument(
@@ -242,6 +241,10 @@ class Shell(object):
 
     def run(self, argv):
         debug = False
+
+        if '--print-config' in argv:
+            # Hack because --print-config requires no command to be specified
+            argv = argv + ['action', 'list']
 
         # Parse command line arguments.
         args = self.parser.parse_args(args=argv)
