@@ -39,10 +39,8 @@ class QueueConsumerTest(DbTestCase):
 
     def __init__(self, *args, **kwargs):
         super(QueueConsumerTest, self).__init__(*args, **kwargs)
-        self.scheduler = scheduler.ActionExecutionScheduler()
-        self.scheduler_q_consumer = scheduler.ActionSchedulerQueueConsumer(None, self.scheduler)
-        self.dispatcher = worker.ActionExecutionDispatcher()
-        self.dispatcher_q_consumer = worker.ActionRunnerQueueConsumer(None, self.dispatcher)
+        self.scheduler = scheduler.get_scheduler()
+        self.dispatcher = worker.get_worker()
 
     def _get_execution_db_model(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
         live_action_db = LiveActionDB()
@@ -59,12 +57,12 @@ class QueueConsumerTest(DbTestCase):
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
-        self.scheduler_q_consumer._do_process_task(live_action_db)
+        self.scheduler._queue_consumer._process_message(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
 
-        self.dispatcher_q_consumer._do_process_task(scheduled_live_action_db)
+        self.dispatcher._queue_consumer._process_message(scheduled_live_action_db)
         dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(dispatched_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_RUNNING)
@@ -74,12 +72,12 @@ class QueueConsumerTest(DbTestCase):
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
-        self.scheduler_q_consumer._do_process_task(live_action_db)
+        self.scheduler._queue_consumer._process_message(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
 
-        self.dispatcher_q_consumer._do_process_task(scheduled_live_action_db)
+        self.dispatcher._queue_consumer._process_message(scheduled_live_action_db)
         dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(dispatched_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_FAILED)
@@ -89,12 +87,12 @@ class QueueConsumerTest(DbTestCase):
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
-        self.scheduler_q_consumer._do_process_task(live_action_db)
+        self.scheduler._queue_consumer._process_message(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
 
-        self.dispatcher_q_consumer._do_process_task(scheduled_live_action_db)
+        self.dispatcher._queue_consumer._process_message(scheduled_live_action_db)
         dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(dispatched_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_FAILED)
@@ -104,7 +102,7 @@ class QueueConsumerTest(DbTestCase):
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
-        self.scheduler_q_consumer._do_process_task(live_action_db)
+        self.scheduler._queue_consumer._process_message(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
@@ -113,7 +111,7 @@ class QueueConsumerTest(DbTestCase):
                                            liveaction_id=live_action_db.id)
         canceled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
 
-        self.dispatcher_q_consumer._do_process_task(canceled_live_action_db)
+        self.dispatcher._queue_consumer._process_message(canceled_live_action_db)
         dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
         self.assertEqual(dispatched_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_CANCELED)

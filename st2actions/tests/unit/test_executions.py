@@ -22,10 +22,9 @@ import traceback
 import st2tests.config as tests_config
 tests_config.parse_args()
 
+from st2actions import scheduler, worker
 import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2actions.runners.localrunner import LocalShellRunner
-from st2actions.scheduler import ActionExecutionScheduler
-from st2actions.worker import ActionExecutionDispatcher
 from st2common.constants import action as action_constants
 from st2common.models.db.action import LiveActionDB
 from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
@@ -50,7 +49,7 @@ MOCK_FAIL_EXECUTION_CREATE = False
 def process_create(payload):
     try:
         if isinstance(payload, LiveActionDB):
-            ActionExecutionScheduler().process(payload)
+            scheduler.get_scheduler().process(payload)
     except Exception:
         traceback.print_exc()
         print(payload)
@@ -59,7 +58,7 @@ def process_create(payload):
 def process_schedule(payload, state):
     try:
         if isinstance(payload, LiveActionDB):
-            ActionExecutionDispatcher().process(payload)
+            worker.get_worker().process(payload)
     except Exception:
         traceback.print_exc()
         print(payload)

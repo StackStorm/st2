@@ -49,6 +49,7 @@ def _run_worker():
     tracker = resultstracker.get_tracker()
     try:
         tracker.start()
+        tracker.wait()
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Results tracker stopped.', os.getpid())
         tracker.shutdown()
