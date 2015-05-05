@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import os
-import sys
 import json
 import mock
 import logging
