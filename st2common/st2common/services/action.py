@@ -90,16 +90,20 @@ def request(liveaction):
     # Write to database and send to message queue.
     liveaction.status = action_constants.LIVEACTION_STATUS_REQUESTED
     liveaction.start_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
     execution = executions.create_execution_object(liveaction, publish=False)
-    # assume that this is a creation.
+
+    # Assume that this is a creation.
     LiveAction.publish_create(liveaction)
+    LiveAction.publish_status(liveaction)
     ActionExecution.publish_create(execution)
 
     extra = {'liveaction_db': liveaction, 'execution_db': execution}
     LOG.audit('Action execution requested. LiveAction.id=%s, ActionExecution.id=%s' %
               (liveaction.id, execution.id), extra=extra)
+
     return liveaction, execution
 
 

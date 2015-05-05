@@ -21,15 +21,15 @@ from st2common.constants import action as action_constants
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.services import executions
 from st2common.persistence.action import LiveAction
-from st2common.transport import consumers, liveaction, publishers
+from st2common.transport import consumers, liveaction
 from st2common.util import action_db as action_utils
 from st2common.util import system_info
 
 
 LOG = logging.getLogger(__name__)
 
-ACTIONRUNNER_REQUEST_Q = liveaction.get_queue('st2.actionrunner.req',
-                                              routing_key=publishers.CREATE_RK)
+ACTIONRUNNER_REQUEST_Q = liveaction.get_status_management_queue(
+    'st2.actionrunner.req', routing_key=action_constants.LIVEACTION_STATUS_REQUESTED)
 
 
 class ActionExecutionScheduler(consumers.MessageHandler):
@@ -59,7 +59,7 @@ class ActionExecutionScheduler(consumers.MessageHandler):
 
         # Publish the "scheduled" status here manually. Otherwise, there could be a
         # race condition with the update of the action_execution_db if the execution
-        # of the liveaction is completes first.
+        # of the liveaction completes first.
         LiveAction.publish_status(liveaction_db)
 
         extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
