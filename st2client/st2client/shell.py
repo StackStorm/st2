@@ -27,10 +27,8 @@ import argparse
 import calendar
 import logging
 import traceback
-from collections import defaultdict
 
 import six
-from six.moves.configparser import ConfigParser
 
 from st2client import __version__
 from st2client import models
@@ -43,6 +41,9 @@ from st2client.commands import action
 from st2client.commands import datastore
 from st2client.commands import webhook
 from st2client.exceptions.operations import OperationFailureException
+from st2client.config_parser import CLIConfigParser
+from st2client.config_parser import ST2_CONFIG_DIRECTORY
+from st2client.config_parser import ST2_CONFIG_PATH
 from st2client.utils.date import parse as parse_isotime
 from st2client.utils.misc import merge_dicts
 
@@ -53,10 +54,6 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-ST2_CONFIG_DIRECTORY = '~/.st2'
-ST2_CONFIG_DIRECTORY = os.path.abspath(os.path.expanduser(ST2_CONFIG_DIRECTORY))
-
-ST2_CONFIG_PATH = os.path.abspath(os.path.join(ST2_CONFIG_DIRECTORY, 'config'))
 CACHED_TOKEN_PATH = os.path.abspath(os.path.join(ST2_CONFIG_DIRECTORY, 'token'))
 
 # How many seconds before the token actual expiration date we should consider the token as
@@ -64,57 +61,7 @@ CACHED_TOKEN_PATH = os.path.abspath(os.path.join(ST2_CONFIG_DIRECTORY, 'token'))
 # token was just about to expire.
 TOKEN_EXPIRATION_GRACE_PERIOD_SECONDS = 15
 
-
-CONFIG_FILE_OPTIONS = {
-    'general': {
-        'base_url': {
-            'type': 'string',
-            'default': None
-        },
-        'api_version': {
-            'type': 'string',
-            'default': None
-        },
-        'cacert': {
-            'type': 'string',
-            'default': None
-        }
-    },
-    'cli': {
-        'debug': {
-            'type': 'bool',
-            'default': False
-        },
-        'cache_token': {
-            'type': 'boolean',
-            'default': True
-        }
-    },
-    'credentials': {
-        'username': {
-            'type': 'string',
-            'default': None
-        },
-        'password': {
-            'type': 'string',
-            'default': None
-        }
-    },
-    'api': {
-        'url': {
-            'type': 'string',
-            'default': ''
-        }
-    },
-    'auth': {
-        'url': {
-            'type': 'string',
-            'default': None
-        }
-    }
-}
-
-RC_OPTION_TO_CLIENT_KWARGS_MAP = {
+CONFIG_OPTION_TO_CLIENT_KWARGS_MAP = {
     'base_url': ['general', 'base_url'],
     'auth_url': ['auth', 'url'],
     'api_url': ['api', 'url'],
@@ -253,17 +200,17 @@ class Shell(object):
         # Precedence order: cli arguments > environment variables > rc file variables
         cli_options = ['base_url', 'auth_url', 'api_url', 'api_version', 'cacert']
         cli_options = {opt: getattr(args, opt) for opt in cli_options}
-        rc_file_options = self._get_rc_file_options(args=args)
+        config_file_options = self._get_config_file_options(args=args)
 
         kwargs = {}
-        kwargs = merge_dicts(kwargs, rc_file_options)
+        kwargs = merge_dicts(kwargs, config_file_options)
         kwargs = merge_dicts(kwargs, cli_options)
         kwargs['debug'] = debug
 
         client = Client(**kwargs)
 
         # If credentials are provided use them and try to authenticate
-        rc_config = self._parse_rc_file(args=args)
+        rc_config = self._parse_config_file(args=args)
 
         credentials = rc_config.get('credentials', {})
         username = credentials.get('username', None)
@@ -327,11 +274,11 @@ class Shell(object):
         if not client:
             return
 
-        rc_file_path = self._get_rc_file_path(args=args)
+        config_file_path = self._get_config_file_path(args=args)
 
         print('CLI settings:')
         print('----------------')
-        print('Config / rc file path: %s' % (rc_file_path))
+        print('Config / rc file path: %s' % (config_file_path))
         print('Client settings:')
         print('----------------')
         print('ST2_BASE_URL: %s' % (client.endpoints['base']))
@@ -375,6 +322,8 @@ class Shell(object):
     def _get_cached_auth_token(self, client, username, password):
         """
         Retrieve cached auth token from the file in the config directory.
+
+        :rtype: ``str``
         """
         if not os.path.isdir(ST2_CONFIG_DIRECTORY):
             os.makedirs(ST2_CONFIG_DIRECTORY)
@@ -437,7 +386,7 @@ class Shell(object):
         instance = manager.create(instance, auth=(username, password))
         return instance
 
-    def _get_rc_file_path(self, args):
+    def _get_config_file_path(self, args):
         """
         Retrieve path to the CLI configuration file.
 
@@ -454,48 +403,24 @@ class Shell(object):
 
         return path
 
-    def _parse_rc_file(self, args):
-        rc_file_path = self._get_rc_file_path(args=args)
+    def _parse_config_file(self, args):
+        config_file_path = self._get_config_file_path(args=args)
 
-        result = defaultdict(dict)
-        if not os.path.isfile(rc_file_path):
-            return dict(result)
+        parser = CLIConfigParser(config_file_path=config_file_path, validate_config_exists=False)
+        result = parser.parse()
+        return result
 
-        config = ConfigParser()
+    def _get_config_file_options(self, args):
+        """
+        Parse the config and return kwargs which can be passed to the Client
+        constructor.
 
-        with open(rc_file_path, 'r') as fp:
-            config.readfp(fp)
-
-        for section, keys in six.iteritems(CONFIG_FILE_OPTIONS):
-            for key, options in six.iteritems(keys):
-                key_type = options['type']
-                key_default_value = options['default']
-
-                if config.has_option(section, key):
-                    if key_type in ['str', 'string']:
-                        get_func = config.get
-                    elif key_type in ['int', 'integer']:
-                        get_func = config.getint
-                    elif key_type in ['float']:
-                        get_func = config.getfloat
-                    elif key_type in ['bool', 'boolean']:
-                        get_func = config.getboolean
-                    else:
-                        msg = 'Invalid type "%s" for option "%s"' % (key_type, key)
-                        raise ValueError(msg)
-
-                    value = get_func(section, key)
-                    result[section][key] = value
-                else:
-                    result[section][key] = key_default_value
-
-        return dict(result)
-
-    def _get_rc_file_options(self, args):
-        rc_options = self._parse_rc_file(args=args)
+        :rtype: ``dict``
+        """
+        rc_options = self._parse_config_file(args=args)
 
         result = {}
-        for kwarg_name, (section, option) in six.iteritems(RC_OPTION_TO_CLIENT_KWARGS_MAP):
+        for kwarg_name, (section, option) in six.iteritems(CONFIG_OPTION_TO_CLIENT_KWARGS_MAP):
             result[kwarg_name] = rc_options.get(section, {}).get(option, None)
 
         return result
