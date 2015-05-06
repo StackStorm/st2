@@ -40,9 +40,9 @@ class ResultsTracker(consumers.MessageHandler):
         self._query_threads = []
         self._failed_imports = set()
 
-    def start(self):
+    def start(self, wait=False):
         self._bootstrap()
-        super(ResultsTracker, self).start()
+        super(ResultsTracker, self).start(wait=wait)
 
     def wait(self):
         super(ResultsTracker, self).wait()

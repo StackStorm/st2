@@ -64,9 +64,12 @@ class MessageHandler(object):
         self._queue_consumer = QueueConsumer(connection, queues, self)
         self._consumer_thread = None
 
-    def start(self):
+    def start(self, wait=False):
         LOG.info('Starting %s...', self.__class__.__name__)
         self._consumer_thread = eventlet.spawn(self._queue_consumer.run)
+
+        if wait:
+            self.wait()
 
     def wait(self):
         self._consumer_thread.wait()

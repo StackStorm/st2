@@ -48,8 +48,7 @@ def _run_worker():
     LOG.info('(PID=%s) Actions notifier started.', os.getpid())
     actions_notifier = notifier.get_notifier()
     try:
-        actions_notifier.start()
-        actions_notifier.wait()
+        actions_notifier.start(wait=True)
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Actions notifier stopped.', os.getpid())
         actions_notifier.shutdown()
