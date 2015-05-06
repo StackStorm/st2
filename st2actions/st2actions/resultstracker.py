@@ -46,7 +46,8 @@ class ResultsTracker(consumers.MessageHandler):
 
     def wait(self):
         super(ResultsTracker, self).wait()
-        [thread.wait() for thread in self._query_threads()]
+        for thread in self._query_threads():
+            thread.wait()
 
     def shutdown(self):
         super(ResultsTracker, self).shutdown()

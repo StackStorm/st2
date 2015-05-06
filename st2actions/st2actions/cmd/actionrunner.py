@@ -58,13 +58,28 @@ def _run_worker():
     ]
 
     try:
-        [component.start() for component in components]
-        [component.wait() for component in components]
+        for component in components:
+            component.start()
+
+        for component in components:
+            component.wait()
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Worker stopped.', os.getpid())
-        [component.shutdown() for component in components]
+
+        errors = False
+
+        for component in components:
+            try:
+                component.shutdown()
+            except:
+                LOG.exception('Unable to shutdown %s.', component.__class__.__name__)
+                errors = True
+
+        if errors:
+            return 1
     except:
         return 1
+
     return 0
 
 
