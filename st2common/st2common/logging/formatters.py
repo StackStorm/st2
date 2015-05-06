@@ -25,9 +25,27 @@ import six
 
 __all__ = [
     'ConsoleLogFormatter',
-    'GelfLogFormatter'
+    'GelfLogFormatter',
+
+    'MASKED_ATTRIBUTES',
+    'MASKED_ATTRIBUTE_VALUE'
 ]
 
+SIMPLE_TYPES = (int, float) + six.string_types
+NON_OBJECT_TYPES = SIMPLE_TYPES + (list, dict) + six.string_types
+
+# A list of attributes which should be masked in the log messages.
+# Note: If an attribute is an object or a dict, we try to recursively process it and mask the
+# values.
+MASKED_ATTRIBUTES = [
+    'password',
+    'token'
+]
+
+# Value with which the masked attribute values are replaced
+MASKED_ATTRIBUTE_VALUE = '********'
+
+# GELF logger specific constants
 HOSTNAME = socket.gethostname()
 GELF_SPEC_VERSION = '1.1'
 
@@ -61,6 +79,21 @@ def serialize_object(obj):
     return value
 
 
+def process_attribute_value(key, value):
+    """
+    Format and process the extra attribute value.
+    """
+    # NOTE: This can be expensive when processing large dicts or objects
+    if isinstance(value, SIMPLE_TYPES):
+        if key in MASKED_ATTRIBUTES:
+            value = MASKED_ATTRIBUTE_VALUE
+    elif isinstance(value, dict):
+        for dict_key, dict_value in six.iteritems(value):
+            value[dict_key] = process_attribute_value(key=dict_key, value=dict_value)
+
+    return value
+
+
 class ObjectJSONEncoder(json.JSONEncoder):
     """
     Custom JSON encoder which also knows how to encode objects.
@@ -88,7 +121,7 @@ class BaseExtraLogFormatter(logging.Formatter):
     dictionary need to be prefixed with a slash ('_').
     """
 
-    PREFIX = '_'
+    PREFIX = '_'  # Prefix for user provided attributes in the extra dict
 
     def _get_extra_attributes(self, record):
         attributes = dict([(k, v) for k, v in six.iteritems(record.__dict__)
@@ -109,17 +142,17 @@ class BaseExtraLogFormatter(logging.Formatter):
         return result
 
     def _format_extra_attributes(self, attributes):
-        simple_types = (list, dict, int, float) + six.string_types
-
         result = {}
         for key, value in six.iteritems(attributes):
-            if isinstance(value, simple_types):
-                # Leave simple types as is
+            if isinstance(value, NON_OBJECT_TYPES):
+                # Leave non-object types as is
                 value = value
             elif isinstance(value, object):
-                # Check for a custom serialization method
+                # Check for a custom serialization method and serialize the value
                 value = serialize_object(obj=value)
 
+            # Note: We remove leading _ from the key
+            value = process_attribute_value(key=key[1:], value=value)
             result[key] = value
 
         return result
