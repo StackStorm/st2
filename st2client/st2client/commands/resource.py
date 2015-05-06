@@ -88,6 +88,7 @@ class ResourceBranch(commands.Branch):
 
 @six.add_metaclass(abc.ABCMeta)
 class ResourceCommand(commands.Command):
+    pk_argument_name = None
 
     def __init__(self, resource, *args, **kwargs):
 

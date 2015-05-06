@@ -81,6 +81,7 @@ class MistralRunner(AsyncActionRunner):
             wb = self._client.workbooks.create(def_yaml)
 
         # Update the workbook definition.
+        # pylint: disable=no-member
         if wb.definition != def_yaml:
             self._client.workbooks.update(def_yaml)
 
@@ -101,6 +102,7 @@ class MistralRunner(AsyncActionRunner):
             wf = self._client.workflows.create(def_yaml)[0]
 
         # Update the workflow definition.
+        # pylint: disable=no-member
         if wf.definition != def_yaml:
             self._client.workflows.update(def_yaml)
 
@@ -186,6 +188,7 @@ class MistralRunner(AsyncActionRunner):
         status = LIVEACTION_STATUS_RUNNING
         partial_results = {'tasks': []}
 
+        # pylint: disable=no-member
         current_context = {
             'execution_id': str(execution.id),
             'workflow_name': execution.workflow_name

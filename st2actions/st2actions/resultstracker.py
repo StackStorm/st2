@@ -87,7 +87,7 @@ class ResultsTracker(object):
         self._bootstrap()
         self._consumer_thread = eventlet.spawn(self._queue_consumer.run)
         self._consumer_thread.wait()
-        for thread in self._query_threads():
+        for thread in self._query_threads:
             thread.wait()
 
     def shutdown(self):

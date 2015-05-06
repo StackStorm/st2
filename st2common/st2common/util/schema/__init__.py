@@ -117,6 +117,7 @@ def validate(instance, schema, cls=None, use_default=True, *args, **kwargs):
             if default_value is not None and instance.get(property_name, None) is None:
                 instance[property_name] = default_value
 
+    # pylint: disable=assignment-from-no-return
     result = jsonschema.validate(instance=instance, schema=schema, cls=cls, *args, **kwargs)
     return result
 

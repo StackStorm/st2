@@ -331,6 +331,7 @@ def encrypt_archive(archive_file_path, debug=False):
 
     # Import our public key
     import_result = gpg.import_keys(GPG_KEY)
+    # pylint: disable=no-member
     assert(import_result.count == 1)
 
     encrypted_archive_output_file_path = archive_file_path + '.asc'

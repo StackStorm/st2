@@ -31,6 +31,8 @@ def format_isodate(value):
     if not value:
         return ''
 
+    # pylint: disable=no-member
+    # For some reason pylint thinks it returns a tuple but it returns a datetime object
     date = dateutil.parser.parse(str(value))
     value = date.strftime('%a, %d %b %Y %H:%M:%S %Z')
     return value
