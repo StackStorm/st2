@@ -59,11 +59,13 @@ class QueueConsumerTest(DbTestCase):
 
         self.scheduler._queue_consumer._process_message(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        self.assertDictEqual(scheduled_live_action_db.runner_info, {})
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
 
         self.dispatcher._queue_consumer._process_message(scheduled_live_action_db)
         dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        self.assertGreater(len(dispatched_live_action_db.runner_info.keys()), 0)
         self.assertEqual(dispatched_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_RUNNING)
 

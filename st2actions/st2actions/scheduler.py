@@ -23,7 +23,6 @@ from st2common.services import executions
 from st2common.persistence.action import LiveAction
 from st2common.transport import consumers, liveaction
 from st2common.util import action_db as action_utils
-from st2common.util import system_info
 
 
 LOG = logging.getLogger(__name__)
@@ -45,13 +44,9 @@ class ActionExecutionScheduler(consumers.MessageHandler):
             LOG.exception('Failed to find liveaction %s in the database.', request.id)
             raise
 
-        # stamp liveaction with process_info
-        runner_info = system_info.get_process_info()
-
         # Update liveaction status to "scheduled"
         liveaction_db = action_utils.update_liveaction_status(
             status=action_constants.LIVEACTION_STATUS_SCHEDULED,
-            runner_info=runner_info,
             liveaction_id=liveaction_db.id,
             publish=False)
 
