@@ -129,6 +129,10 @@ class ActionExecutionAPI(BaseAPI):
         for attr, meta in six.iteritems(cls.schema.get('properties', dict())):
             default = copy.deepcopy(meta.get('default', None))
             value = getattr(instance, attr, default)
+
+            # pylint: disable=no-member
+            # TODO: Add plugin which lets pylint know each MongoEngine document has _fields
+            # attribute
             if not value and not cls.model._fields[attr].required:
                 continue
             if attr not in ActionExecutionAPI.SKIP:

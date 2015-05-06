@@ -78,6 +78,9 @@ class BaseAPI(object):
 
     @classmethod
     def to_model(cls, doc):
+        # pylint: disable=no-member
+        # TODO: Add plugin which lets pylint know each MongoEngine document has model
+        # method
         model = cls.model()
         setattr(model, 'name', getattr(doc, 'name', None))
         setattr(model, 'description', getattr(doc, 'description', None))
