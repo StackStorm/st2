@@ -322,11 +322,17 @@ class ActionChainRunner(ActionRunner):
         return rendered_params
 
     def _run_action(self, action_node, parent_execution_id, params, wait_for_completion=True):
+        parent_notify = None
+        if getattr(self, 'liveaction', None):
+            parent_notify = getattr(self.liveaction, 'notify', None)
         liveaction = LiveActionDB(action=action_node.ref)
         liveaction.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
                                                                params=params)
         if action_node.notify:
             liveaction.notify = NotificationsHelper.to_model(action_node.notify)
+        elif parent_notify:
+            print('Parent_notify = %s', parent_notify)
+            liveaction.notify = parent_notify
 
         liveaction.context = {
             'parent': str(parent_execution_id),
