@@ -90,6 +90,9 @@ class Notifier(object):
         self._consumer_thread = eventlet.spawn(self._queue_consumer.run)
         self._consumer_thread.wait()
 
+    def shutdown(self):
+        self._consumer_thread.kill()
+
     def handle_action_complete(self, liveaction):
         if liveaction.status not in ACTION_COMPLETE_STATES:
             LOG.exception('Received incorrect notification complete event. LiveAction=%s',
