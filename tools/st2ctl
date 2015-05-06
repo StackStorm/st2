@@ -217,7 +217,7 @@ function restart_component() {
         do
            kill $p
            sleep 1
-           (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${LOGFILE} &
+           (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
         done
       else
         echo "${COM} is not running"
