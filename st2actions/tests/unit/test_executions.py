@@ -16,13 +16,11 @@
 import copy
 
 import mock
-import traceback
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from st2actions import scheduler, worker
 import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2actions.runners.localrunner import LocalShellRunner
 from st2common.constants import action as action_constants
@@ -41,35 +39,19 @@ from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2tests.fixtures import executions as fixture
 from st2tests import DbTestCase
+from tests.unit.base import MockLiveActionPublisher
 
 
 MOCK_FAIL_EXECUTION_CREATE = False
 
 
-def process_create(payload):
-    try:
-        if isinstance(payload, LiveActionDB):
-            scheduler.get_scheduler().process(payload)
-    except Exception:
-        traceback.print_exc()
-        print(payload)
-
-
-def process_schedule(payload, state):
-    try:
-        if isinstance(payload, LiveActionDB):
-            worker.get_worker().process(payload)
-    except Exception:
-        traceback.print_exc()
-        print(payload)
-
-
 @mock.patch.object(LocalShellRunner, 'run',
                    mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_FAILED,
                                                 'Non-empty', None)))
-@mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
+@mock.patch.object(CUDPublisher, 'publish_create',
+                   mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
 @mock.patch.object(LiveActionPublisher, 'publish_state',
-                   mock.MagicMock(side_effect=process_schedule))
+                   mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class TestActionExecutionHistoryWorker(DbTestCase):
 
     @classmethod

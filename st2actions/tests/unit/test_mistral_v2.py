@@ -21,7 +21,6 @@ import uuid
 import mock
 import requests
 import six
-import traceback
 import yaml
 
 from mistralclient.api.base import APIException
@@ -33,7 +32,6 @@ from mistralclient.api.v2 import executions
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from st2actions import scheduler, worker
 import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2actions.handlers.mistral import MistralCallbackHandler
 from st2actions.runners.localrunner import LocalShellRunner
@@ -51,6 +49,7 @@ from st2common.util import isotime
 from st2tests import DbTestCase
 from st2tests import http
 from st2tests.fixturesloader import FixturesLoader
+from tests.unit.base import MockLiveActionPublisher
 
 
 TEST_FIXTURES = {
@@ -144,31 +143,14 @@ TOKEN_DB = TokenAPI.to_model(TOKEN_API)
 NON_EMPTY_RESULT = 'non-empty'
 
 
-def process_create(payload):
-    try:
-        if isinstance(payload, LiveActionDB):
-            scheduler.get_scheduler().process(payload)
-    except Exception:
-        traceback.print_exc()
-        print(payload)
-
-
-def process_schedule(payload, state):
-    try:
-        if isinstance(payload, LiveActionDB):
-            worker.get_worker().process(payload)
-    except Exception:
-        traceback.print_exc()
-        print(payload)
-
-
 @mock.patch.object(LocalShellRunner, 'run', mock.
                    MagicMock(return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                            NON_EMPTY_RESULT, None)))
-@mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
 @mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(return_value=None))
+@mock.patch.object(CUDPublisher, 'publish_create',
+                   mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
 @mock.patch.object(LiveActionPublisher, 'publish_state',
-                   mock.MagicMock(side_effect=process_schedule))
+                   mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class TestMistralRunner(DbTestCase):
 
     @classmethod
