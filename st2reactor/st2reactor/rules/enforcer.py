@@ -17,6 +17,7 @@ import json
 
 from st2common import log as logging
 from st2common.util import reference
+from st2common.util import action_db as action_db_util
 from st2reactor.rules.datatransform import get_transformer
 from st2common.services import action as action_service
 from st2common.models.db.action import LiveActionDB
@@ -35,10 +36,18 @@ class RuleEnforcer(object):
         self.data_transformer = get_transformer(trigger_instance.payload)
 
     def enforce(self):
+        # TODO: Refactor this to avoid additiona lookup in cast_params
+        # TODO: rename self.rule.action -> self.rule.action_exec_spec
+        action_ref = self.rule.action['ref']
+        action_db = action_db_util.get_action_by_ref(action_ref)
+        if not action_db:
+            raise ValueError('Action "%s" doesn\'t exist' % (action_ref))
+
         data = self.data_transformer(self.rule.action.parameters)
         LOG.info('Invoking action %s for trigger_instance %s with data %s.',
                  self.rule.action.ref, self.trigger_instance.id,
                  json.dumps(data))
+
         context = {
             'trigger_instance': reference.get_ref_from_model(self.trigger_instance),
             'rule': reference.get_ref_from_model(self.rule),
@@ -62,13 +71,18 @@ class RuleEnforcer(object):
         return liveaction_db
 
     @staticmethod
-    def _invoke_action(action, params, context=None):
+    def _invoke_action(action_exec_spec, params, context=None):
         """
         Schedule an action execution.
 
+        :type action_exec_spec: :class:`ActionExecutionSpecDB`
+
+        :param params: Parameters to execute the action with.
+        :type params: ``dict``
+
         :rtype: :class:`LiveActionDB` on successful schedueling, None otherwise.
         """
-        action_ref = action['ref']
+        action_ref = action_exec_spec['ref']
 
         # prior to shipping off the params cast them to the right type.
         params = action_param_utils.cast_params(action_ref, params)
