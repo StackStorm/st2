@@ -53,6 +53,9 @@ class QueueConsumer(ConsumerMixin):
 
     def _process_message(self, body):
         try:
+            if not isinstance(body, self._handler.message_type):
+                raise TypeError('Received an unexpected type "%s" for payload.' % type(body))
+
             self._handler.process(body)
         except:
             LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
@@ -60,6 +63,8 @@ class QueueConsumer(ConsumerMixin):
 
 @six.add_metaclass(abc.ABCMeta)
 class MessageHandler(object):
+    message_type = None
+
     def __init__(self, connection, queues):
         self._queue_consumer = QueueConsumer(connection, queues, self)
         self._consumer_thread = None

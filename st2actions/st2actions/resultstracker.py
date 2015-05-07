@@ -23,6 +23,7 @@ from oslo.config import cfg
 
 from st2actions.query.base import QueryContext
 from st2common import log as logging
+from st2common.models.db import action as action_models
 from st2common.persistence.action import ActionExecutionState
 from st2common.transport import actionexecutionstate, consumers, publishers
 
@@ -34,6 +35,8 @@ ACTIONSTATE_WORK_Q = actionexecutionstate.get_queue('st2.resultstracker.work',
 
 
 class ResultsTracker(consumers.MessageHandler):
+    message_type = action_models.ActionExecutionStateDB
+
     def __init__(self, connection, queues):
         super(ResultsTracker, self).__init__(connection, queues)
         self._queriers = {}

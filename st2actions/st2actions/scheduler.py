@@ -19,6 +19,7 @@ from oslo.config import cfg
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.models.db import action as action_models
 from st2common.services import executions
 from st2common.persistence.action import LiveAction
 from st2common.transport import consumers, liveaction
@@ -32,6 +33,8 @@ ACTIONRUNNER_REQUEST_Q = liveaction.get_status_management_queue(
 
 
 class ActionExecutionScheduler(consumers.MessageHandler):
+    message_type = action_models.LiveActionDB
+
     def process(self, request):
         if request.status != action_constants.LIVEACTION_STATUS_REQUESTED:
             LOG.info('%s is ignoring %s (id=%s) with "%s" status.',

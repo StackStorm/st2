@@ -16,6 +16,8 @@ RULESENGINE_WORK_Q = reactor.get_trigger_instances_queue(
 
 
 class TriggerInstanceDispatcher(consumers.MessageHandler):
+    message_type = dict
+
     def __init__(self, connection, queues):
         super(TriggerInstanceDispatcher, self).__init__(connection, queues)
         self.rules_engine = RulesEngine()

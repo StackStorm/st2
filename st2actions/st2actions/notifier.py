@@ -21,6 +21,7 @@ from oslo.config import cfg
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
+from st2common.models.db import action as action_models
 from st2common.models.system.common import ResourceReference
 from st2common.transport import consumers, liveaction, publishers
 from st2common.transport.reactor import TriggerDispatcher
@@ -38,6 +39,8 @@ NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][1]
 
 
 class Notifier(consumers.MessageHandler):
+    message_type = action_models.LiveActionDB
+
     def __init__(self, connection, queues, trigger_dispatcher=None):
         super(Notifier, self).__init__(connection, queues)
         self._trigger_dispatcher = trigger_dispatcher
