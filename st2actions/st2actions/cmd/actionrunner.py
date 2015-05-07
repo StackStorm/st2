@@ -78,6 +78,7 @@ def _run_worker():
         if errors:
             return 1
     except:
+        LOG.exception('(PID=%s) Worker unexpectedly stopped.', os.getpid())
         return 1
 
     return 0
