@@ -16,4 +16,5 @@ parameters:
 notify:
   on_complete:
     message: "\"@channel: Action succeeded.\""
-    channels: ["slack"]
+    channels:
+      - "slack"
