@@ -126,7 +126,7 @@ function st2start(){
   then
     /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
   else
-    service mistral start
+    sudo service mistral start
   fi
   (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
 }
@@ -147,7 +147,7 @@ function st2stop(){
         then
           kill $p
         else
-          service mistral stop
+          sudo service mistral stop
         fi
       else
         echo "${COM} is not running"
@@ -206,7 +206,7 @@ function restart_component() {
         sleep 1
         /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
       else
-        service mistral restart
+        sudo service mistral restart
       fi
     elif [[ "${COM}" == "st2web" ]]
     then
@@ -233,7 +233,7 @@ function restart_component() {
         done
         for i in `seq 1 ${PROC_COUNT}`
         do
-          ${COM} --config-file ${STANCONF} &>> ${LOGFILE} &
+          nohup ${COM} --config-file ${STANCONF} &>> ${LOGFILE} &
         done
       else
         echo "${COM} is not running"
