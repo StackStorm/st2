@@ -42,6 +42,18 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
         self.container = RunnerContainer()
 
     def process(self, liveaction):
+        """Dispatches the LiveAction to appropriate action runner.
+
+        LiveAction in statuses other than "scheduled" are ignored. If
+        LiveAction is already canceled and result is empty, the LiveAction
+        is updated with a generic exception message.
+
+        :param liveaction: Scheduled action execution request.
+        :type liveaction: ``st2common.models.db.action.LiveActionDB``
+
+        :rtype: ``dict``
+        """
+
         if liveaction.status == action_constants.LIVEACTION_STATUS_CANCELED:
             LOG.info('%s is not executing %s (id=%s) with "%s" status.',
                      self.__class__.__name__, type(liveaction), liveaction.id, liveaction.status)

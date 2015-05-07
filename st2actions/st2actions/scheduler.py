@@ -36,6 +36,15 @@ class ActionExecutionScheduler(consumers.MessageHandler):
     message_type = action_models.LiveActionDB
 
     def process(self, request):
+        """Schedules the LiveAction and publishes the request
+        to the appropriate action runner(s).
+
+        LiveAction in statuses other than "requested" are ignored.
+
+        :param request: Action execution request.
+        :type request: ``st2common.models.db.action.LiveActionDB``
+        """
+
         if request.status != action_constants.LIVEACTION_STATUS_REQUESTED:
             LOG.info('%s is ignoring %s (id=%s) with "%s" status.',
                      self.__class__.__name__, type(request), request.id, request.status)

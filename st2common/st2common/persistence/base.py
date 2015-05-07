@@ -147,9 +147,18 @@ class ContentPackResource(Access):
 
 
 class StatusBasedResource(Access):
+    """Persistence layer for models that needs to publish status to the message queue."""
 
     @classmethod
     def publish_status(cls, model_object):
+        """Publish the object status to the messgae queue.
+
+        Publish the instance of the model as payload with the status
+        as routing key to the message queue via the StatePublisher.
+
+        :param model_object: An instance of the model.
+        :type model_object: ``object``
+        """
         publisher = cls._get_publisher()
         if publisher:
             publisher.publish_state(model_object, getattr(model_object, 'status', None))
