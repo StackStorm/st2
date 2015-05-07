@@ -119,14 +119,8 @@ class ActionChainRunner(ActionRunner):
         self.chain_holder = None
         self._meta_loader = MetaLoader()
         self._stopped = False
-        if self.runner_parameters:
-            self._skip_notify_tasks = self.runner_parameters.get('skip_notify', '')
-            self._skip_notify_tasks = [x.strip() for x in self._skip_notify_tasks.split(',')]
-        else:
-            self._skip_notify_tasks = []
+        self._skip_notify_tasks = []
         self._chain_notify = None
-        if getattr(self, 'liveaction', None):
-            self._chain_notify = getattr(self.liveaction, 'notify', None)
 
     def pre_run(self):
         chainspec_file = self.entry_point
@@ -148,6 +142,14 @@ class ActionChainRunner(ActionRunner):
             message = e.message or str(e)
             LOG.exception('Failed to instantiate ActionChain.')
             raise runnerexceptions.ActionRunnerPreRunError(message)
+
+        # Runner attributes are set lazily. So these steps
+        # should happen outside the constructor.
+        if getattr(self, 'liveaction', None):
+            self._chain_notify = getattr(self.liveaction, 'notify', None)
+        if self.runner_parameters:
+            self._skip_notify_tasks = self.runner_parameters.get('skip_notify', '')
+            self._skip_notify_tasks = [x.strip() for x in self._skip_notify_tasks.split(',')]
 
     def run(self, action_parameters):
         result = {'tasks': []}  # holds final result we store
@@ -341,6 +343,7 @@ class ActionChainRunner(ActionRunner):
                 liveaction.notify = task_notify
             elif self._chain_notify:
                 liveaction.notify = self._chain_notify
+            LOG.debug('%s: Task notify set to: %s', action_node.name, liveaction.notify)
 
         liveaction.context = {
             'parent': str(parent_execution_id),
