@@ -71,3 +71,15 @@ class CUDPublisher(object):
 
     def publish_delete(self, payload):
         self._publisher.publish(payload, self._exchange, DELETE_RK)
+
+
+class StatePublisherMixin(object):
+    def __init__(self, url, exchange):
+        self._state_publisher = PoolPublisher(url)
+        self._state_exchange = exchange
+
+    def publish_state(self, payload, state):
+        if not state:
+            raise Exception('Unable to publish unassigned state.')
+
+        self._state_publisher.publish(payload, self._state_exchange, state)

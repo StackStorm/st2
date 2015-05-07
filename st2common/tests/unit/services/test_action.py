@@ -16,15 +16,17 @@
 import mock
 import jsonschema
 
-from st2tests import DbTestCase
-from st2common.util import isotime
-from st2common.transport.publishers import PoolPublisher
-from st2common.services import action as action_service
-from st2common.persistence.action import RunnerType, Action, LiveAction
+from st2actions.container.base import RunnerContainer
+from st2common.constants import action as action_constants
 from st2common.models.db.action import LiveActionDB
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.models.system.common import ResourceReference
-from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
+from st2common.persistence.action import RunnerType, Action
+from st2common.services import action as action_service
+from st2common.transport.publishers import PoolPublisher
+from st2common.util import isotime
+from st2common.util import action_db
+from st2tests import DbTestCase
 
 
 RUNNER = {
@@ -73,6 +75,7 @@ class TestActionExecutionService(DbTestCase):
         cls.runnerdb = RunnerType.add_or_update(RunnerTypeAPI.to_model(cls.runner))
         cls.action = ActionAPI(**ACTION)
         cls.actiondb = Action.add_or_update(ActionAPI.to_model(cls.action))
+        cls.container = RunnerContainer()
 
     @classmethod
     def tearDownClass(cls):
@@ -80,41 +83,43 @@ class TestActionExecutionService(DbTestCase):
         RunnerType.delete(cls.runnerdb)
         super(TestActionExecutionService, cls).tearDownClass()
 
-    def test_schedule(self):
+    def _submit_request(self):
         context = {'user': USERNAME}
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
         request = LiveActionDB(action=ACTION_REF, context=context, parameters=parameters)
-        request, _ = action_service.schedule(request)
-        execution = LiveAction.get_by_id(str(request.id))
+        request, _ = action_service.request(request)
+        execution = action_db.get_liveaction_by_id(str(request.id))
+        return request, execution
+
+    def test_request(self):
+        request, execution = self._submit_request()
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
-        action = '.'.join([self.actiondb.pack, self.actiondb.name])
-        actual_action = execution.action
-        self.assertEqual(actual_action, action)
+        self.assertEqual(execution.action, '.'.join([self.actiondb.pack, self.actiondb.name]))
         self.assertEqual(execution.context['user'], request.context['user'])
         self.assertDictEqual(execution.parameters, request.parameters)
-        self.assertEqual(execution.status, LIVEACTION_STATUS_SCHEDULED)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
         self.assertTrue(execution.notify is not None)
         # mongoengine DateTimeField stores datetime only up to milliseconds
         self.assertEqual(isotime.format(execution.start_timestamp, usec=False),
                          isotime.format(request.start_timestamp, usec=False))
 
-    def test_schedule_invalid_parameters(self):
+    def test_request_invalid_parameters(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'a': 123}
         liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
-        self.assertRaises(jsonschema.ValidationError, action_service.schedule, liveaction)
+        self.assertRaises(jsonschema.ValidationError, action_service.request, liveaction)
 
-    def test_schedule_nonexistent_action(self):
+    def test_request_nonexistent_action(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
         action_ref = ResourceReference(name='i.action', pack='default').ref
         execution = LiveActionDB(action=action_ref, parameters=parameters)
-        self.assertRaises(ValueError, action_service.schedule, execution)
+        self.assertRaises(ValueError, action_service.request, execution)
 
-    def test_schedule_disabled_action(self):
+    def test_request_disabled_action(self):
         self.actiondb.enabled = False
         Action.add_or_update(self.actiondb)
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
         execution = LiveActionDB(action=ACTION_REF, parameters=parameters)
-        self.assertRaises(ValueError, action_service.schedule, execution)
+        self.assertRaises(ValueError, action_service.request, execution)
         self.actiondb.enabled = True
         Action.add_or_update(self.actiondb)

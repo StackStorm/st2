@@ -13,26 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# All Exchanges and Queues related to liveaction.
+import mongoengine
 
-from kombu import Exchange, Queue
-from st2common.transport import publishers
-
-
-LIVEACTION_XCHG = Exchange('st2.liveaction', type='topic')
-LIVEACTION_STATUS_MGMT_XCHG = Exchange('st2.liveaction.status', type='topic')
+from st2common.models import db
+from st2common.models.db import stormbase
+from st2common.persistence.base import Access
 
 
-class LiveActionPublisher(publishers.CUDPublisher, publishers.StatePublisherMixin):
-
-    def __init__(self, url):
-        publishers.CUDPublisher.__init__(self, url, LIVEACTION_XCHG)
-        publishers.StatePublisherMixin.__init__(self, url, LIVEACTION_STATUS_MGMT_XCHG)
-
-
-def get_queue(name, routing_key):
-    return Queue(name, LIVEACTION_XCHG, routing_key=routing_key)
+class FakeModelDB(stormbase.StormBaseDB):
+    context = stormbase.EscapedDictField()
+    index = mongoengine.IntField(min_value=0)
+    category = mongoengine.StringField()
+    timestamp = mongoengine.DateTimeField()
 
 
-def get_status_management_queue(name, routing_key):
-    return Queue(name, LIVEACTION_STATUS_MGMT_XCHG, routing_key=routing_key)
+class FakeModel(Access):
+    impl = db.MongoDBAccess(FakeModelDB)
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl

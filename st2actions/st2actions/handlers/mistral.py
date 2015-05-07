@@ -20,7 +20,7 @@ import requests
 
 from oslo.config import cfg
 
-from st2common.constants import action
+from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2actions import handlers
 
@@ -29,10 +29,11 @@ LOG = logging.getLogger(__name__)
 
 
 STATUS_MAP = dict()
-STATUS_MAP[action.LIVEACTION_STATUS_SCHEDULED] = 'RUNNING'
-STATUS_MAP[action.LIVEACTION_STATUS_RUNNING] = 'RUNNING'
-STATUS_MAP[action.LIVEACTION_STATUS_SUCCEEDED] = 'SUCCESS'
-STATUS_MAP[action.LIVEACTION_STATUS_FAILED] = 'ERROR'
+STATUS_MAP[action_constants.LIVEACTION_STATUS_REQUESTED] = 'RUNNING'
+STATUS_MAP[action_constants.LIVEACTION_STATUS_SCHEDULED] = 'RUNNING'
+STATUS_MAP[action_constants.LIVEACTION_STATUS_RUNNING] = 'RUNNING'
+STATUS_MAP[action_constants.LIVEACTION_STATUS_SUCCEEDED] = 'SUCCESS'
+STATUS_MAP[action_constants.LIVEACTION_STATUS_FAILED] = 'ERROR'
 
 
 def get_handler():
@@ -43,7 +44,8 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
 
     @staticmethod
     def callback(url, context, status, result):
-        if status not in [action.LIVEACTION_STATUS_SUCCEEDED, action.LIVEACTION_STATUS_FAILED]:
+        if status not in [action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                          action_constants.LIVEACTION_STATUS_FAILED]:
             return
 
         try:

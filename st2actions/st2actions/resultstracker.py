@@ -13,20 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import defaultdict
-
 import eventlet
 import importlib
-from kombu import Connection
-from kombu.mixins import ConsumerMixin
-from oslo.config import cfg
 import six
+
+from collections import defaultdict
+from kombu import Connection
+from oslo.config import cfg
 
 from st2actions.query.base import QueryContext
 from st2common import log as logging
+from st2common.models.db import action as action_models
 from st2common.persistence.action import ActionExecutionState
-from st2common.transport import actionexecutionstate, publishers
-from st2common.util.greenpooldispatch import BufferedDispatcher
+from st2common.transport import actionexecutionstate, consumers, publishers
+
 
 LOG = logging.getLogger(__name__)
 
@@ -34,66 +34,28 @@ ACTIONSTATE_WORK_Q = actionexecutionstate.get_queue('st2.resultstracker.work',
                                                     routing_key=publishers.CREATE_RK)
 
 
-class ActionStateQueueConsumer(ConsumerMixin):
-    def __init__(self, connection, tracker):
-        self.connection = connection
-        self._dispatcher = BufferedDispatcher()
-        self._tracker = tracker
+class ResultsTracker(consumers.MessageHandler):
+    message_type = action_models.ActionExecutionStateDB
 
-    def shutdown(self):
-        self._dispatcher.shutdown()
-
-    def get_consumers(self, Consumer, channel):
-        consumer = Consumer(queues=[ACTIONSTATE_WORK_Q],
-                            accept=['pickle'],
-                            callbacks=[self.process_task])
-        # use prefetch_count=1 for fair dispatch. This way workers that finish an item get the next
-        # task and the work does not get queued behind any single large item.
-        consumer.qos(prefetch_count=1)
-        return [consumer]
-
-    def process_task(self, body, message):
-        LOG.debug('process_task')
-        LOG.debug('     body: %s', body)
-        LOG.debug('     message.properties: %s', message.properties)
-        LOG.debug('     message.delivery_info: %s', message.delivery_info)
-        try:
-            self._dispatcher.dispatch(self._do_process_task, body)
-        finally:
-            message.ack()
-
-    def _do_process_task(self, body):
-        try:
-            self._add_to_querier(body)
-        except:
-            LOG.exception('Add query_context failed. Message body : %s', body)
-
-    def _add_to_querier(self, body):
-        querier = self._tracker.get_querier(body.query_module)
-        context = QueryContext.from_model(body)
-        querier.add_queries(query_contexts=[context])
-        return
-
-
-class ResultsTracker(object):
-    def __init__(self, q_connection=None):
-        self._queue_consumer = ActionStateQueueConsumer(q_connection, self)
-        self._consumer_thread = None
+    def __init__(self, connection, queues):
+        super(ResultsTracker, self).__init__(connection, queues)
         self._queriers = {}
         self._query_threads = []
         self._failed_imports = set()
 
-    def start(self):
+    def start(self, wait=False):
         self._bootstrap()
-        self._consumer_thread = eventlet.spawn(self._queue_consumer.run)
-        self._consumer_thread.wait()
-        for thread in self._query_threads:
+        super(ResultsTracker, self).start(wait=wait)
+
+    def wait(self):
+        super(ResultsTracker, self).wait()
+        for thread in self._query_threads():
             thread.wait()
 
     def shutdown(self):
-        LOG.info('Tracker shutting down. Stats from queriers:')
+        super(ResultsTracker, self).shutdown()
+        LOG.info('Stats from queriers:')
         self._print_stats()
-        self._queue_consumer.shutdown()
 
     def _print_stats(self):
         for name, querier in six.iteritems(self._queriers):
@@ -121,6 +83,12 @@ class ResultsTracker(object):
             LOG.info('Found %d pending actions for query module %s', len(contexts), querier)
             querier.add_queries(query_contexts=contexts)
 
+    def process(self, query_context):
+        querier = self.get_querier(query_context.query_module)
+        context = QueryContext.from_model(query_context)
+        querier.add_queries(query_contexts=[context])
+        return
+
     def get_querier(self, query_module_name):
         if (query_module_name not in self._queriers and
                 query_module_name not in self._failed_imports):
@@ -143,5 +111,4 @@ class ResultsTracker(object):
 
 def get_tracker():
     with Connection(cfg.CONF.messaging.url) as conn:
-        tracker = ResultsTracker(q_connection=conn)
-        return tracker
+        return ResultsTracker(conn, [ACTIONSTATE_WORK_Q])

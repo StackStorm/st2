@@ -19,10 +19,10 @@ from st2common import transport
 from st2common.models.db.action import (runnertype_access, action_access, liveaction_access)
 from st2common.models.db.action import actionexecstate_access
 from st2common.models.db.action import actionalias_access
-from st2common.persistence.base import (Access, ContentPackResource)
+from st2common.persistence import base as persistence
 
 
-class RunnerType(Access):
+class RunnerType(persistence.Access):
     impl = runnertype_access
 
     @classmethod
@@ -36,7 +36,7 @@ class RunnerType(Access):
         return cls.get_by_name(name)
 
 
-class Action(ContentPackResource):
+class Action(persistence.ContentPackResource):
     impl = action_access
 
     @classmethod
@@ -44,7 +44,7 @@ class Action(ContentPackResource):
         return cls.impl
 
 
-class LiveAction(Access):
+class LiveAction(persistence.StatusBasedResource):
     impl = liveaction_access
     publisher = None
 
@@ -60,7 +60,7 @@ class LiveAction(Access):
         return cls.publisher
 
 
-class ActionExecutionState(Access):
+class ActionExecutionState(persistence.Access):
     impl = actionexecstate_access
     publisher = None
 
@@ -76,7 +76,7 @@ class ActionExecutionState(Access):
         return cls.publisher
 
 
-class ActionAlias(Access):
+class ActionAlias(persistence.Access):
     impl = actionalias_access
 
     @classmethod

@@ -13,26 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# All Exchanges and Queues related to liveaction.
+import traceback
 
-from kombu import Exchange, Queue
-from st2common.transport import publishers
-
-
-LIVEACTION_XCHG = Exchange('st2.liveaction', type='topic')
-LIVEACTION_STATUS_MGMT_XCHG = Exchange('st2.liveaction.status', type='topic')
+from st2actions import scheduler, worker
+from st2common.models.db.action import LiveActionDB
 
 
-class LiveActionPublisher(publishers.CUDPublisher, publishers.StatePublisherMixin):
+class MockLiveActionPublisher(object):
 
-    def __init__(self, url):
-        publishers.CUDPublisher.__init__(self, url, LIVEACTION_XCHG)
-        publishers.StatePublisherMixin.__init__(self, url, LIVEACTION_STATUS_MGMT_XCHG)
+    @classmethod
+    def publish_create(cls, payload):
+        try:
+            if isinstance(payload, LiveActionDB):
+                scheduler.get_scheduler().process(payload)
+        except Exception:
+            traceback.print_exc()
+            print(payload)
 
-
-def get_queue(name, routing_key):
-    return Queue(name, LIVEACTION_XCHG, routing_key=routing_key)
-
-
-def get_status_management_queue(name, routing_key):
-    return Queue(name, LIVEACTION_STATUS_MGMT_XCHG, routing_key=routing_key)
+    @classmethod
+    def publish_state(cls, payload, state):
+        try:
+            if isinstance(payload, LiveActionDB):
+                worker.get_worker().process(payload)
+        except Exception:
+            traceback.print_exc()
+            print(payload)

@@ -22,7 +22,7 @@ from st2reactor.rules.datatransform import get_transformer
 from st2common.services import action as action_service
 from st2common.models.db.action import LiveActionDB
 from st2common.models.utils import action_param_utils
-from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
+from st2common.constants import action as action_constants
 from st2common.models.api.access import get_system_username
 
 
@@ -87,9 +87,9 @@ class RuleEnforcer(object):
         # prior to shipping off the params cast them to the right type.
         params = action_param_utils.cast_params(action_ref, params)
         liveaction = LiveActionDB(action=action_ref, context=context, parameters=params)
-        liveaction, _ = action_service.schedule(liveaction)
+        liveaction, _ = action_service.request(liveaction)
 
-        if liveaction.status == LIVEACTION_STATUS_SCHEDULED:
+        if liveaction.status == action_constants.LIVEACTION_STATUS_REQUESTED:
             return liveaction
         else:
             return None
