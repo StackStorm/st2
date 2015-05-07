@@ -46,11 +46,33 @@ Body of this request needs to be JSON and contain the following attributes:
 * ``trigger`` - Name of the trigger (e.g. ``mypack.mytrigger``)
 * ``payload`` - Object with a trigger payload.
 
-Here is an example of how to send a trigger using a generic webhook via cURL:
+Here is an example which shows how to send data to the generic webhook using
+cURL and how to match on this data inside the rule criteria.
 
-::
+.. sourcecode:: bash
 
-    curl -X POST http://127.0.0.1:9101/webhooks/st2 -H "X-Auth-Token: matoken" -H "Content-Type: application/json" --data '{"trigger": "mypack.mytrigger", "payload": {"attribute1": "value1"}}'
+    curl -X POST http://127.0.0.1:9101/v1/webhooks/st2 -H "X-Auth-Token: matoken" -H "Content-Type: application/json" --data '{"trigger": "mypack.mytrigger", "payload": {"attribute1": "value1"}}'
+
+Rule:
+
+.. sourcecode:: yaml
+
+    ...
+    trigger:
+            type: "mypack.mytrigger"
+
+    criteria:
+        trigger.attribute1
+            type: "equals"
+            pattern: "value1"
+
+    action:
+        ref: "mypack.myaction"
+        parameters:
+    ...
+
+Keep in mind that the ``trigger.type`` attribute inside the rule definition
+needs to be the same as the trigger name defined in the webhook payload body.
 
 Registering a custom webhook
 ----------------------------
@@ -79,6 +101,33 @@ attributes to be dispatched:
 * ``trigger`` - Trigger name.
 * ``payload.headers`` - Dictionary containing the request headers.
 * ``payload.body`` - Dictionary containing the request body.
+
+Here is an example which shows how to send data to a custom webhook using
+cURL and how to match on this data inside the rule criteria.
+
+.. sourcecode:: bash
+
+    curl -X POST http://127.0.0.1:9101/v1/webhooks/sample -H "X-Auth-Token: matoken" -H "Content-Type: application/json" --data '{"key1": "value1"}'
+
+Rule:
+
+.. sourcecode:: yaml
+
+    ...
+    trigger:
+            type: "core.st2.webhook"
+            parameters:
+                url: "sample"
+
+    criteria:
+        trigger.body.key1:
+            type: "equals"
+            pattern: "value1"
+
+    action:
+        ref: "mypack.myaction"
+        parameters:
+    ...
 
 Listing registered webhooks
 ---------------------------
