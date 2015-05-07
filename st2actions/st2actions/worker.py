@@ -42,17 +42,19 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
         self.container = RunnerContainer()
 
     def process(self, liveaction):
-        if liveaction.status != action_constants.LIVEACTION_STATUS_SCHEDULED:
+        if liveaction.status == action_constants.LIVEACTION_STATUS_CANCELED:
             LOG.info('%s is not executing %s (id=%s) with "%s" status.',
                      self.__class__.__name__, type(liveaction), liveaction.id, liveaction.status)
-
-            if (not liveaction.result and
-                    liveaction.status == action_constants.LIVEACTION_STATUS_CANCELED):
+            if not liveaction.result:
                 action_utils.update_liveaction_status(
                     status=liveaction.status,
                     result={'message': 'Action execution canceled by user.'},
                     liveaction_id=liveaction.id)
+            return
 
+        if liveaction.status != action_constants.LIVEACTION_STATUS_SCHEDULED:
+            LOG.info('%s is not executing %s (id=%s) with "%s" status.',
+                     self.__class__.__name__, type(liveaction), liveaction.id, liveaction.status)
             return
 
         try:
