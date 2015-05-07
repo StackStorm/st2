@@ -166,6 +166,7 @@ as ``{{system.my_parameter}}``. This creates ``user=stanley`` key-value pair:
     st2 key set user stanley
     st2 key list
 
+For more information on datastore, check :doc:`datastore`
 
 Deploy a Rule
 -------------------------
