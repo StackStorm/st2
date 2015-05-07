@@ -14,7 +14,7 @@ All tests utilize [ActionChain](http://docs.stackstorm.com/actionchain.html).
 
 Usage
 -----
-When |st2| is installed using all-in-one installation with [st2_deploy.sh](http://docs.stackstorm.com/install/index.html), the test pack can be used as part of the [self-check script](http://docs.stackstorm.com/install/index.html#self-check). Alternatively, each of the tests can be executed as follows:
+When |st2| is installed using all-in-one installation with [st2_deploy.sh](http://docs.stackstorm.com/install/index.html), the test pack can be used as part of the [self-check script](http://docs.stackstorm.com/troubleshooting.html#running-self-verification). Alternatively, each of the tests can be executed as follows:
 
 1. Switch to `root` user and save an authentication token into `ST2_AUTH_TOKEN` variable:
 
