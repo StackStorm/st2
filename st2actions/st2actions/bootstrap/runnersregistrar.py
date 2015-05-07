@@ -348,7 +348,13 @@ RUNNER_TYPES = [
         'aliases': [],
         'description': 'A runner for launching linear action chains.',
         'enabled': True,
-        'runner_parameters': {},
+        'runner_parameters': {
+            'skip_notify': {
+                'description': 'Comma separated list of tasks to skip notifications for.',
+                'type': 'string',
+                'default': ''
+            }
+        },
         'runner_module': 'st2actions.runners.actionchainrunner'
     },
     {

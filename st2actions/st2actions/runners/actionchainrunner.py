@@ -119,6 +119,10 @@ class ActionChainRunner(ActionRunner):
         self.chain_holder = None
         self._meta_loader = MetaLoader()
         self._stopped = False
+        self._skip_notify_tasks = self.runner_parameters.get('skip_notify', None)
+        self._chain_notify = None
+        if getattr(self, 'liveaction', None):
+            self._chain_notify = getattr(self.liveaction, 'notify', None)
 
     def pre_run(self):
         chainspec_file = self.entry_point
@@ -328,11 +332,13 @@ class ActionChainRunner(ActionRunner):
         liveaction = LiveActionDB(action=action_node.ref)
         liveaction.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
                                                                params=params)
-        if action_node.notify:
-            liveaction.notify = NotificationsHelper.to_model(action_node.notify)
-        elif parent_notify:
-            print('Parent_notify = %s', parent_notify)
-            liveaction.notify = parent_notify
+        # Setup notify for task in chain.
+        if action_node.name not in self._skip_notify_tasks:
+            task_notify = NotificationsHelper.to_model(action_node.notify)
+            notify = self._get_notify(self._chain_notify, task_notify)
+
+            if notify:
+                liveaction.notify = notify
 
         liveaction.context = {
             'parent': str(parent_execution_id),
@@ -348,6 +354,10 @@ class ActionChainRunner(ActionRunner):
             liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
 
         return liveaction
+
+    def _get_notify(self, chain_notify, task_notify):
+        # XXX: Implement notify merge
+        pass
 
     def _format_action_exec_result(self, action_node, liveaction_db, created_at, updated_at,
                                    error=None):
