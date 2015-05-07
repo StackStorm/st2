@@ -79,5 +79,5 @@ class NotifierTestCase(unittest2.TestCase):
         liveaction.start_timestamp = datetime.datetime.utcnow()
 
         dispatcher = NotifierTestCase.MockDispatcher(self)
-        notifier = Notifier(None, [], trigger_dispatcher=dispatcher)
+        notifier = Notifier(connection=None, queues=[], trigger_dispatcher=dispatcher)
         notifier.process(liveaction)
