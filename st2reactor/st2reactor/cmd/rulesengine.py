@@ -49,26 +49,40 @@ def _teardown():
     db_teardown()
 
 
-def _kickoff_rules_worker(worker):
-    worker.work()
-
-
 def _kickoff_timer(timer):
     timer.start()
 
 
-def main():
+def _run_worker():
+    LOG.info('(PID=%s) RulesEngine started.', os.getpid())
+
     timer = St2Timer(local_timezone=cfg.CONF.timer.local_timezone)
+    rules_engine_worker = worker.get_worker()
+
     try:
-        _setup()
         timer_thread = eventlet.spawn(_kickoff_timer, timer)
-        worker_thread = eventlet.spawn(_kickoff_rules_worker, worker)
-        return (timer_thread.wait() and worker_thread.wait())
-    except SystemExit as exit_code:
-        sys.exit(exit_code)
+        rules_engine_worker.start()
+        return (timer_thread.wait() and rules_engine_worker.wait())
+    except (KeyboardInterrupt, SystemExit):
+        LOG.info('(PID=%s) RulesEngine stopped.', os.getpid())
+        rules_engine_worker.shutdown()
     except:
         LOG.exception('(PID:%s) RulesEngine quit due to exception.', os.getpid())
         return 1
     finally:
         timer.cleanup()
+
+    return 0
+
+
+def main():
+    try:
+        _setup()
+        return _run_worker()
+    except SystemExit as exit_code:
+        sys.exit(exit_code)
+    except:
+        LOG.exception('(PID=%s) RulesEngine quit due to exception.', os.getpid())
+        return 1
+    finally:
         _teardown()

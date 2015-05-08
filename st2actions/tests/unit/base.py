@@ -13,37 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import dateutil.tz
-import dateutil.parser
+import traceback
 
-__all__ = [
-    'parse',
-    'format_isodate'
-]
+from st2actions import scheduler, worker
+from st2common.models.db.action import LiveActionDB
 
 
-def add_utc_tz(dt):
-    return dt.replace(tzinfo=dateutil.tz.tzutc())
+class MockLiveActionPublisher(object):
 
+    @classmethod
+    def publish_create(cls, payload):
+        try:
+            if isinstance(payload, LiveActionDB):
+                scheduler.get_scheduler().process(payload)
+        except Exception:
+            traceback.print_exc()
+            print(payload)
 
-def parse(value):
-    dt = dateutil.parser.parse(str(value))
-    return dt if dt.tzinfo else add_utc_tz(dt)
-
-
-def format_isodate(value):
-    """
-    Make a ISO date time string human friendly.
-
-    :type value: ``str``
-
-    :rtype: ``str``
-    """
-    if not value:
-        return ''
-
-    # pylint: disable=no-member
-    # For some reason pylint thinks it returns a tuple but it returns a datetime object
-    date = dateutil.parser.parse(str(value))
-    value = date.strftime('%a, %d %b %Y %H:%M:%S %Z')
-    return value
+    @classmethod
+    def publish_state(cls, payload, state):
+        try:
+            if isinstance(payload, LiveActionDB):
+                worker.get_worker().process(payload)
+        except Exception:
+            traceback.print_exc()
+            print(payload)

@@ -17,28 +17,10 @@ import uuid
 import datetime
 
 import bson
-import mongoengine
 
 from st2tests import DbTestCase
 from st2common.util import isotime
-from st2common.models import db
-from st2common.persistence.base import Access
-from st2common.models.db import stormbase
-
-
-class FakeModelDB(stormbase.StormBaseDB):
-    context = stormbase.EscapedDictField()
-    index = mongoengine.IntField(min_value=0)
-    category = mongoengine.StringField()
-    timestamp = mongoengine.DateTimeField()
-
-
-class FakeModel(Access):
-    impl = db.MongoDBAccess(FakeModelDB)
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
+from tests.unit.base import FakeModel, FakeModelDB
 
 
 class TestPersistence(DbTestCase):

@@ -66,6 +66,7 @@ class ObjectJSONEncoder(json.JSONEncoder):
     Custom JSON encoder which also knows how to encode objects.
     """
 
+    # pylint: disable=method-hidden
     def default(self, obj):
         if isinstance(obj, object):
             value = serialize_object(obj=obj)

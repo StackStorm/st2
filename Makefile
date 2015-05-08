@@ -90,7 +90,7 @@ pylint: requirements .pylint
 		echo "==========================================================="; \
 		echo "Running pylint on" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc $$component/$$component; \
+		. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models $$component/$$component; \
 	done
 
 .PHONY: flake8
@@ -202,10 +202,10 @@ tests: pytests
 # Travis cannot run itests since those require users to be configured etc.
 # Creating special travis target. (Yuck!)
 .PHONY: tests-travis
-tests-travis: requirements .flake8 unit-tests-coverage
+tests-travis: requirements .flake8 .pylint unit-tests-coverage
 
 .PHONY: pytests
-pytests: requirements .flake8 .pytests-coverage
+pytests: requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
 .pytests: unit-tests itests clean

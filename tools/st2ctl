@@ -3,6 +3,7 @@
 set -e
 
 LOGFILE="/tmp/st2_startup.log"
+WEBUI_LOG_FILE="/var/log/st2/st2web.log"
 COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine mistral st2web st2resultstracker st2notifier"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
@@ -127,7 +128,7 @@ function st2start(){
   else
     service mistral start
   fi
-  (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${LOGFILE} &
+  (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
 }
 
 function st2stop(){
@@ -216,7 +217,7 @@ function restart_component() {
         do
            kill $p
            sleep 1
-           (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${LOGFILE} &
+           (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
         done
       else
         echo "${COM} is not running"

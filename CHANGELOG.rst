@@ -7,6 +7,8 @@ in development
 * Allow user to configure the CLI using an ini style config file located at ``~/.st2rc``.
   (new-feature)
 * Add support for caching of the retrieved auth tokens to the CLI. (new-feature)
+* Throw a more-user friendly exception when enforcing a rule if an action referenced inside
+  the rule definition doesn't exist. (improvement)
 
 v0.9.0 - April 29, 2015
 -----------------------

@@ -1,4 +1,4 @@
-Hi, and thanks for helping us try out our private ChatOps beta. We value your feedback, and would love to hear it. Please send us a note at `support@stackstorm.com`, or come chat with us on IRC at irc://irc.freenode.net/#stackstorm.
+Hi, and thanks for helping us try out our ChatOps beta. We value your feedback, and would love to hear it. Please send us a note at `support@stackstorm.com`, or come chat with us on IRC at irc://irc.freenode.net/#stackstorm.
 
 ## What is ChatOps
 
@@ -68,8 +68,8 @@ Open up the file `hieradata/workroom.yaml` in your favorite text editor. In here
 ```yaml
 # hieradata/workroom.yaml
 ---
-st2::version: 0.9dev
-st2::mistral_git_branch: st2-0.8.1
+st2::version: 0.9.0
+st2::mistral_git_branch: st2-0.9.0
 ```
 
 Next, configure Hubot. Take a look at the commented lines. At the minimum, you must provide:
@@ -110,14 +110,14 @@ This process will take a few minutes, and when completed, a new Hubot should be 
 
 To get started, you will need:
 
-* StackStorm v0.9dev
+* StackStorm v0.9.0
 * Hubot
 * StackStorm Hubot adapter
 
 First, start by updating your version of StackStorm. This is typically done by re-running `st2_deploy.sh` with the updated version code.
 
 ```
-$ st2_deploy.sh 0.9dev
+$ st2_deploy.sh 0.9.0
 ```
 
 Currently, this feature requires `st2auth` to be disabled. This will be fixed before production release. In the meantime, ensure `st2auth` is disabled by doing the following:

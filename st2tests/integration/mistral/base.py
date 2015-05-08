@@ -34,7 +34,7 @@ class TestWorkflowExecution(unittest2.TestCase):
         execution = self.st2client.liveactions.create(execution)
         self.assertIsNotNone(execution.id)
         self.assertEqual(execution.action['ref'], action)
-        self.assertIn(execution.status, ['scheduled', 'running'])
+        self.assertIn(execution.status, ['requested', 'scheduled', 'running'])
 
         return execution
 

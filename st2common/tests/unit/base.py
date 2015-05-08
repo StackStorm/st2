@@ -13,37 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import dateutil.tz
-import dateutil.parser
+import mongoengine
 
-__all__ = [
-    'parse',
-    'format_isodate'
-]
+from st2common.models import db
+from st2common.models.db import stormbase
+from st2common.persistence.base import Access
 
 
-def add_utc_tz(dt):
-    return dt.replace(tzinfo=dateutil.tz.tzutc())
+class FakeModelDB(stormbase.StormBaseDB):
+    context = stormbase.EscapedDictField()
+    index = mongoengine.IntField(min_value=0)
+    category = mongoengine.StringField()
+    timestamp = mongoengine.DateTimeField()
 
 
-def parse(value):
-    dt = dateutil.parser.parse(str(value))
-    return dt if dt.tzinfo else add_utc_tz(dt)
+class FakeModel(Access):
+    impl = db.MongoDBAccess(FakeModelDB)
 
-
-def format_isodate(value):
-    """
-    Make a ISO date time string human friendly.
-
-    :type value: ``str``
-
-    :rtype: ``str``
-    """
-    if not value:
-        return ''
-
-    # pylint: disable=no-member
-    # For some reason pylint thinks it returns a tuple but it returns a datetime object
-    date = dateutil.parser.parse(str(value))
-    value = date.strftime('%a, %d %b %Y %H:%M:%S %Z')
-    return value
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
