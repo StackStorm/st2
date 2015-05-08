@@ -31,7 +31,7 @@ DEFAULT_API_VERSION = 'v1'
 
 class Client(object):
     def __init__(self, base_url=None, auth_url=None, api_url=None, api_version=None, cacert=None,
-                 debug=False):
+                 debug=False, token=None):
         # Get CLI options. If not given, then try to get it from the environment.
         self.endpoints = dict()
 
@@ -64,6 +64,12 @@ class Client(object):
             raise ValueError('CA cert file "%s" does not exist.' % (self.cacert))
 
         self.debug = debug
+
+        # Note: This is a nasty hack for now, but we need to get rid of the decrator abuse
+        if token:
+            os.environ['ST2_AUTH_TOKEN'] = token
+
+        self.token = token
 
         # Instantiate resource managers and assign appropriate API endpoint.
         self.managers = dict()

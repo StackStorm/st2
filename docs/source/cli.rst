@@ -13,6 +13,79 @@ should already be available. On the other hand, if you used the run from
 sources method, see :ref:`setup-st2-cli` section for information how to
 install and set up the client.
 
+Configuration
+-------------
+
+The command line client can be configured using one or a mix of approaches
+listed below.
+
+* Configuration file (``~/.st2/config``)
+* Environment variables (``ST2_API_URL``, etc.)
+* Command line arguments (``st2 --cacert=... action list``, etc.)
+
+Approaches have the following precedence from the higest to the lowests:
+command line arguments, environment variables, configuration file. This means
+that the values specified as command line arguments have the higest precedence
+and the values specified in the configuration file have the lowest precedence.
+
+If the same value is specified in multiple places, the value with the higest
+precedence will be used. For example, if api url is specified in the
+configuration file and inside the environment variable, value from the
+environment variable will be used.
+
+Configuration file
+~~~~~~~~~~~~~~~~~~
+
+The CLI can be configure through an ini-style configuration file which is by
+default located at ``~/.st2/config``.
+
+If you want to use configuration from a different file (e.g. you have one
+config per deployment or environment) you can select which file to use using
+``ST2_CONFIG_FILE`` environment variable or ``--config-file`` command line
+argument.
+
+For example (environment variable):
+
+.. sourcecode:: bash
+
+    ST2_CONFIG_FILE=~/.st2/prod-config st2 action list
+
+For example (command line argument):
+
+.. sourcecode:: bash
+
+    st2 --config-file=~/.st2/prod-config  action list
+
+An example configuration file with all the options and the corresponding
+explanation is included below.
+
+.. literalinclude:: ../../conf/st2rc.sample.ini
+    :language: ini
+
+Authentication and auth token caching
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you specify authentication credentials in the configuration file, the CLI
+will try to use those credentials to authenticate and retrieve an auth token.
+
+This auth token is by default cached on the local filesystem (``~/.st2/token``
+file``) and re-used on the subsequent requests to the API service.
+
+If you want to disable auth token caching and want the CLI to retrieve a new
+auth token on each invocation, you can do that by setting ``cache_token``
+option to ``False``.
+
+.. sourcecode:: ini
+
+    [cli]
+    cache_token = False
+
+CLI will by default also try to retrieve a new token if an existing one has
+expired.
+
+If you have manually deleted or revoked a token before the expiration you can
+clean the token cached by the CLI by removing ``~/.st2/token`` file.
+
 Using debug mode
 ----------------
 

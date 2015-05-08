@@ -23,24 +23,19 @@ from tests import base
 from st2client import shell
 from st2client.utils import httpclient
 
-
 LOG = logging.getLogger(__name__)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE_PATH_FULL = os.path.join(BASE_DIR, '../fixtures/st2rc.full.ini')
+CONFIG_FILE_PATH_PARTIAL = os.path.join(BASE_DIR, '../fixtures/st2rc.partial.ini')
 
 
 class TestShell(base.BaseCLITestCase):
-    hide_output = True
+    capture_output = True
 
     def __init__(self, *args, **kwargs):
         super(TestShell, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
-
-    def setUp(self):
-        super(TestShell, self).setUp()
-
-        # Setup environment.
-        for var in ['ST2_BASE_URL', 'ST2_AUTH_URL', 'ST2_API_URL']:
-            if var in os.environ:
-                del os.environ[var]
 
     def test_endpoints_default(self):
         base_url = 'http://localhost'
@@ -198,3 +193,34 @@ class TestShell(base.BaseCLITestCase):
             ['key', 'load', '/tmp/keys.json']
         ]
         self._validate_parser(args_list)
+
+    def test_print_config_default_config_no_config(self):
+        argv = ['--print-config']
+        self.assertEqual(self.shell.run(argv), 3)
+
+        self.stdout.seek(0)
+        stdout = self.stdout.read()
+
+        self.assertTrue('username = None' in stdout)
+        self.assertTrue('cache_token = True' in stdout)
+
+    def test_print_config_custom_config_as_env_variable(self):
+        os.environ['ST2_CONFIG_FILE'] = CONFIG_FILE_PATH_FULL
+        argv = ['--print-config']
+        self.assertEqual(self.shell.run(argv), 3)
+
+        self.stdout.seek(0)
+        stdout = self.stdout.read()
+
+        self.assertTrue('username = test1' in stdout)
+        self.assertTrue('cache_token = False' in stdout)
+
+    def test_print_config_custom_config_as_command_line_argument(self):
+        argv = ['--print-config', '--config-file=%s' % (CONFIG_FILE_PATH_FULL)]
+        self.assertEqual(self.shell.run(argv), 3)
+
+        self.stdout.seek(0)
+        stdout = self.stdout.read()
+
+        self.assertTrue('username = test1' in stdout)
+        self.assertTrue('cache_token = False' in stdout)

@@ -13,37 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import dateutil.tz
-import dateutil.parser
+import copy
+
+import six
 
 __all__ = [
-    'parse',
-    'format_isodate'
+    'merge_dicts'
 ]
 
 
-def add_utc_tz(dt):
-    return dt.replace(tzinfo=dateutil.tz.tzutc())
-
-
-def parse(value):
-    dt = dateutil.parser.parse(str(value))
-    return dt if dt.tzinfo else add_utc_tz(dt)
-
-
-def format_isodate(value):
+def merge_dicts(d1, d2):
     """
-    Make a ISO date time string human friendly.
+    Merge values from d2 into d1 ignoring empty / None values.
 
-    :type value: ``str``
+    :type d1: ``dict``
+    :type d2: ``dict``
 
-    :rtype: ``str``
+    :rtype: ``dict``
     """
-    if not value:
-        return ''
+    result = copy.deepcopy(d1)
 
-    # pylint: disable=no-member
-    # For some reason pylint thinks it returns a tuple but it returns a datetime object
-    date = dateutil.parser.parse(str(value))
-    value = date.strftime('%a, %d %b %Y %H:%M:%S %Z')
-    return value
+    for key, value in six.iteritems(d2):
+        if isinstance(value, dict):
+            result[key] = merge_dicts(result[key], value)
+        elif key not in result or value is not None:
+            result[key] = value
+
+    return result
