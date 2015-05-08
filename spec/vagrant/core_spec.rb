@@ -53,7 +53,7 @@ end
 
 # Check version of Python is supported version
 describe command('python --version') do
-  its(:stdout) { should match /Python 2\.7\./ }
+  its(:stdout) { should match(/Python 2.7./) }
 end
 
 # MongoDB
@@ -94,7 +94,6 @@ RABBITMQ_DEBIAN_PACKAGES.each do |package|
 end
 
 describe service('rabbitmq') do
-  it { should be_enabled }
   it { should be_running }
 end
 
@@ -140,44 +139,6 @@ end
 describe user('stanley') do
   it { should exist }
   it { should have_home_directory '/home/stanley' }
-end
-
-## Python Setup
-describe command('pip list') do
-  its(:stdout) { should match /APscheduler (3.0.3)/ }
-#   }
-#   #   should match /eventlet (0.17.3)/
-#   #   should match /Flask (0.10.1)/
-#   #   should match /FlaskJsonSchema (0.1.1)/
-#   #   should match /GitPython (0.3.2.1)/
-#   #   should match /Jinja2 (2.7.3)/
-#   #   should match /jsonschema (2.4.0)/
-#   #   should match /kombu (3.0.26)/
-#   #   should match /mongoengine (0.8.8)/
-#   #   should match /oslo.config (1.11.0)/
-#   #   should match /paramiko (1.15.2)/
-#   #   should match /pecan (0.7.0)/
-#   #   should match /pymongo (2.8)/
-# 
-#     ## These still need to be codified
-#     # python-dateutil
-#     # python-json-logger
-#     # pyyaml
-#     # requests
-#     # setuptools==11.1
-#     # six==1.9.0
-#     # git+https://github.com/StackStorm/python-mistralclient.git@st2-0.9.0
-#     # git+https://github.com/StackStorm/fabric.git@stanley-patched
-#     # passlib>=1.6.2,<1.7
-#     # lockfile>=0.10.2,<0.11
-#     # python-gnupg>=0.3.7,<0.4
-#     # jsonpath-rw>=1.3.0
-#     # # Requirements for linux pack
-#     # # used by file watcher sensor
-#     # pyinotify>=0.9.5,<=0.10
-#     # -e git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
-#     # # used by nmap actions
-#     # python-nmap>=0.3.4,<0.4
 end
 
 ## Sudoers Setup
@@ -270,7 +231,7 @@ describe service('st2api') do
 end
 
 describe command('ps ax') do
-  its(:stdout) { should match /st2api/ }
+  its(:stdout) { should match(/st2api/) }
 end
 
 # st2auth
@@ -285,12 +246,12 @@ describe service('st2auth') do
 end
 
 describe command('ps ax') do
-  its(:stdout) { should match /st2auth/ }
+  its(:stdout) { should match(/st2auth/) }
 end
 
 describe command('st2 auth testu -p testp') do
   its(:exit_status) { should eq 0 }
-  its(:stdout) { should match /token/ }
+  its(:stdout) { should match(/token/) }
 end
 
 # actionrunner
@@ -301,7 +262,7 @@ describe service('st2actionrunner') do
 end
 
 describe command('ps ax') do
-  its(:stdout) { should match /st2actionrunner/ }
+  its(:stdout) { should match(/st2actionrunner/) }
 end
 
 # notifier
@@ -312,7 +273,7 @@ describe service('st2notifier') do
 end
 
 describe command('ps ax') do
-  its(:stdout) { should match /st2notifier/ }
+  its(:stdout) { should match(/st2notifier/) }
 end
 
 # rules engine
@@ -323,7 +284,7 @@ describe service('st2rulesengine') do
 end
 
 describe command('ps ax') do
-  its(:stdout) { should match /st2rulesengine/ }
+  its(:stdout) { should match(/st2rulesengine/) }
 end
 
 # sensor container
@@ -334,7 +295,7 @@ describe service('st2sensorcontainer') do
 end
 
 describe command('ps ax') do
-  its(:stdout) { should match /st2sensorcontainer/ }
+  its(:stdout) { should match(/st2sensorcontainer/) }
 end
 
 # results tracker
@@ -345,7 +306,7 @@ describe service('st2resultstracker') do
 end
 
 describe command('ps ax') do
-  its(:stdout) { should match /st2resultstracker/ }
+  its(:stdout) { should match(/st2resultstracker/) }
 end
 
 # st2web
@@ -370,7 +331,7 @@ describe service('st2web') do
 end
 
 describe command('ps ax') do
-  its(:stdout) { should match /SimpleHTTPServer/ }
+  its(:stdout) { should match(/SimpleHTTPServer/) }
 end
 
 # st2client
@@ -378,14 +339,3 @@ describe file('/usr/bin/st2') do
   it { should be_file }
   it { should be_executable }
 end
-
-describe command('pip list') do
-  its(:stdout) { should match /APscheduler (3.0.3)/ }
-end
-
-# prettytable
-# pyyaml
-# requests
-# six
-# python-dateutil
-# jsonpath-rw
