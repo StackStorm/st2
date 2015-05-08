@@ -25,3 +25,4 @@ class Token(core.Resource):
     _display_name = 'Access Token'
     _plural = 'Tokens'
     _plural_display_name = 'Access Tokens'
+    _repr_attributes = ['user', 'expiry', 'metadata']

@@ -26,6 +26,7 @@ class RunnerType(core.Resource):
     _display_name = 'Runner'
     _plural = 'RunnerTypes'
     _plural_display_name = 'Runners'
+    _repr_attributes = ['name', 'enabled', 'description']
 
 
 class Action(core.Resource):
@@ -38,3 +39,4 @@ class LiveAction(core.Resource):
     _display_name = 'Action Execution'
     _plural = 'ActionExecutions'
     _plural_display_name = 'Action executions'
+    _repr_attributes = ['status', 'action', 'start_timestamp', 'end_timestamp', 'parameters']
