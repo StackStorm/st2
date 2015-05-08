@@ -202,7 +202,7 @@ tests: pytests
 # Travis cannot run itests since those require users to be configured etc.
 # Creating special travis target. (Yuck!)
 .PHONY: tests-travis
-tests-travis: requirements .flake8 .pylint unit-tests-coverage
+tests-travis: requirements unit-tests-coverage
 
 .PHONY: pytests
 pytests: requirements .flake8 .pylint .pytests-coverage

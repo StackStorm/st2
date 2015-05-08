@@ -3,7 +3,13 @@ sudo: false
 python:
   - "2.6"
   - "2.7"
-script: make tests-travis
+env:
+  - "TASK=flake8"
+  - "TASK=pylint"
+  - "TASK=docs"
+  - "TASK=tests"
+script:
+  - ./scripts/travis.sh
 services:
   - mongodb
   - rabbitmq
