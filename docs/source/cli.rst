@@ -13,6 +13,8 @@ should already be available. On the other hand, if you used the run from
 sources method, see :ref:`setup-st2-cli` section for information how to
 install and set up the client.
 
+.. _cli-configuration:
+
 Configuration
 -------------
 
@@ -61,6 +63,8 @@ explanation is included below.
 
 .. literalinclude:: ../../conf/st2rc.sample.ini
     :language: ini
+
+.. _cli-auth-token-caching:
 
 Authentication and auth token caching
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
