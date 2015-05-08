@@ -57,6 +57,22 @@ class Resource(object):
         for k, v in six.iteritems(kwargs):
             setattr(self, k, v)
 
+    def to_dict(self):
+        """
+        Return a dictionary representation of this object.
+
+        :rtype: ``dict``
+        """
+        attributes = self.__dict__.keys()
+        attributes = [attr for attr in attributes if not attr.startswith('__')]
+
+        result = {}
+        for attribute in attributes:
+            value = getattr(self, attribute, None)
+            result[attribute] = value
+
+        return result
+
     @classmethod
     def get_alias(cls):
         return cls._alias if cls._alias else cls.__name__
