@@ -266,11 +266,11 @@ fi
 touch $config
 cat <<mistral_config >$config
 [database]
-connection=mysql://mistral:StackStorm@localhost/mistral
-max_pool_size=50
+connection = mysql://mistral:StackStorm@localhost/mistral
+max_pool_size = 100
 
 [pecan]
-auth_enable=false
+auth_enable = false
 mistral_config
 }
 
