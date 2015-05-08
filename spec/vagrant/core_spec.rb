@@ -288,7 +288,7 @@ describe command('ps ax') do
   its(:stdout) { should match /st2auth/ }
 end
 
-describe command('st2 auth testu -p testu') do
+describe command('st2 auth testu -p testp') do
   its(:exit_status) { should eq 0 }
   its(:stdout) { should match /token/ }
 end
