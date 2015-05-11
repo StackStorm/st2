@@ -17,6 +17,7 @@ from unittest2 import TestCase
 from st2common.exceptions import content
 from st2common.models.utils.action_alias_utils import DefaultParser, StringValueParser
 from st2common.models.utils.action_alias_utils import JsonValueParser, ActionAliasFormatParser
+from st2common.exceptions.content import ParseException
 
 
 class TestDefaultParser(TestCase):
@@ -181,3 +182,26 @@ class TestActionAliasParser(TestCase):
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {'a': '{"a": "b", "c": "d"}', 'b': 'x'})
+
+    def test_stream_is_none_with_all_default_values(self):
+        alias_format = 'skip {{d=test}} more skip {{e=test}}.'
+        param_stream = None
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'d': 'test', 'e': 'test'})
+
+    def test_stream_is_not_none_some_default_values(self):
+        alias_format = 'skip {{d=test}} more skip {{e=test}}.'
+        param_stream = 'skip ponies'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'d': 'ponies', 'e': 'test'})
+
+    def test_stream_is_none_no_default_values(self):
+        alias_format = 'skip {{d}} more skip {{e}}.'
+        param_stream = None
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+
+        expected_msg = 'No value supplied and no default value found.'
+        self.assertRaisesRegexp(ParseException, expected_msg,
+                                parser.get_extracted_param_value)

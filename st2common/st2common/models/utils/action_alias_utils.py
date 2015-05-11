@@ -106,7 +106,7 @@ class ActionAliasFormatParser(object):
 
     def __init__(self, alias_format, param_stream):
         self._format = alias_format
-        self._param_stream = param_stream
+        self._param_stream = param_stream or ''
         self._alias_fmt_ptr = 0
         self._param_strm_ptr = 0
 
@@ -132,6 +132,12 @@ class ActionAliasFormatParser(object):
             # move the alias_fmt_ptr to one beyond the end of each
             self._alias_fmt_ptr = p_end
             self._param_strm_ptr = v_end
+        elif v_start < len(self._format):
+            # Advance in the format string
+            # Note: We still want to advance in the format string even though
+            # there is nothing left in the param stream since we support default
+            # values and param_stream can be empty
+            self._alias_fmt_ptr = p_end
 
         if not value and not default_value:
             raise content.ParseException('No value supplied and no default value found.')
