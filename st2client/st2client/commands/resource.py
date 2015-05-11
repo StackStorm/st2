@@ -19,6 +19,7 @@ import six
 import json
 import logging
 import httplib
+from functools import wraps
 
 import yaml
 
@@ -32,6 +33,7 @@ LOG = logging.getLogger(__name__)
 
 
 def add_auth_token_to_kwargs_from_cli(func):
+    @wraps(func)
     def decorate(*args, **kwargs):
         ns = args[1]
         if getattr(ns, 'token', None):
