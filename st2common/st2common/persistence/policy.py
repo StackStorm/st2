@@ -13,6 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2tests.base import EventletTestCase, DbTestCase, DbModelTestCase
+from st2common.models.db import MongoDBAccess
+from st2common.models.db.policy import PolicyTypeDB, PolicyDB
+from st2common.persistence.base import Access
 
-__all__ = ['EventletTestCase', 'DbTestCase', 'DbModelTestCase']
+
+class PolicyType(Access):
+    impl = MongoDBAccess(PolicyTypeDB)
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_by_object(cls, object):
+        # PolicyType name is unique.
+        name = getattr(object, 'name', '')
+        return cls.get_by_name(name)
+
+
+class Policy(Access):
+    impl = MongoDBAccess(PolicyDB)
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
