@@ -34,7 +34,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class TriggerTypeController(resource.ContentPackResourceControler):
+class TriggerTypeController(resource.ContentPackResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of TriggerTypes in the system.

@@ -24,7 +24,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class SensorTypeController(resource.ContentPackResourceControler):
+class SensorTypeController(resource.ContentPackResourceController):
     model = SensorTypeAPI
     access = SensorType
     supported_filters = {
