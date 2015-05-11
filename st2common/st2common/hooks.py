@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import httplib
+import traceback
 
 import webob
 from oslo.config import cfg
@@ -148,9 +149,9 @@ class JSONErrorResponseHook(PecanHook):
     """
 
     def on_error(self, state, e):
-
         error_msg = getattr(e, 'comment', str(e))
         LOG.debug('API call failed: %s', error_msg)
+        LOG.debug(traceback.format_exc())
 
         if hasattr(e, 'body') and isinstance(e.body, dict):
             body = e.body
