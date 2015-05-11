@@ -25,12 +25,28 @@ from st2tests.base import DbTestCase
 
 
 class RuleMatcherTest(DbTestCase):
+    rules = []
 
     def test_get_matching_rules(self):
         self._setup_sample_trigger('st2.test.trigger1')
         trigger_instance = container_utils.create_trigger_instance(
             'dummy_pack_1.st2.test.trigger1',
             {'k1': 't1_p_v', 'k2': 'v2'},
+            datetime.datetime.utcnow()
+        )
+        trigger = get_trigger_db_by_ref(trigger_instance.trigger)
+        rules = self._get_sample_rules()
+        rules_matcher = RulesMatcher(trigger_instance, trigger, rules)
+        matching_rules = rules_matcher.get_matching_rules()
+        self.assertTrue(matching_rules is not None)
+        self.assertEqual(len(matching_rules), 1)
+
+    def test_trigger_instance_payload_with_special_values(self):
+        # Test a rule where TriggerInstance payload contains a dot (".")
+        self._setup_sample_trigger('st2.test.trigger2')
+        trigger_instance = container_utils.create_trigger_instance(
+            'dummy_pack_1.st2.test.trigger2',
+            {'k1': 't1_p_v', 'k2.k2': 'v2', 'k3.more.nested.deep': 'some.value'},
             datetime.datetime.utcnow()
         )
         trigger = get_trigger_db_by_ref(trigger_instance.trigger)
@@ -58,7 +74,9 @@ class RuleMatcherTest(DbTestCase):
         Trigger.add_or_update(created)
 
     def _get_sample_rules(self):
-        rules = []
+        if self.rules:
+            # Make sure rules are created only once
+            return self.rules
 
         RULE_1 = {
             'enabled': True,
@@ -85,7 +103,7 @@ class RuleMatcherTest(DbTestCase):
         rule_api = RuleAPI(**RULE_1)
         rule_db = RuleAPI.to_model(rule_api)
         rule_db = Rule.add_or_update(rule_db)
-        rules.append(rule_db)
+        self.rules.append(rule_db)
 
         RULE_2 = {                      # Rule should match.
             'enabled': True,
@@ -112,7 +130,7 @@ class RuleMatcherTest(DbTestCase):
         rule_api = RuleAPI(**RULE_2)
         rule_db = RuleAPI.to_model(rule_api)
         rule_db = Rule.add_or_update(rule_db)
-        rules.append(rule_db)
+        self.rules.append(rule_db)
 
         RULE_3 = {
             'enabled': False,         # Disabled rule shouldn't match.
@@ -139,6 +157,6 @@ class RuleMatcherTest(DbTestCase):
         rule_api = RuleAPI(**RULE_3)
         rule_db = RuleAPI.to_model(rule_api)
         rule_db = Rule.add_or_update(rule_db)
-        rules.append(rule_db)
+        self.rules.append(rule_db)
 
-        return rules
+        return self.rules
