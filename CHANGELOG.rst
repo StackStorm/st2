@@ -9,6 +9,8 @@ in development
 * Add support for caching of the retrieved auth tokens to the CLI. (new-feature)
 * Throw a more-user friendly exception when enforcing a rule if an action referenced inside
   the rule definition doesn't exist. (improvement)
+* Fix a bug with the rule evaluation failing if the trigger payload contained a key with a
+  dot in the name. (bug-fix)
 
 v0.9.0 - April 29, 2015
 -----------------------
