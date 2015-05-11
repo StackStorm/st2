@@ -16,6 +16,7 @@
 import os
 import json
 import logging
+from functools import wraps
 
 import six
 
@@ -27,6 +28,7 @@ LOG = logging.getLogger(__name__)
 
 
 def add_auth_token_to_kwargs_from_env(func):
+    @wraps(func)
     def decorate(*args, **kwargs):
         if not kwargs.get('token') and os.environ.get('ST2_AUTH_TOKEN', None):
             kwargs['token'] = os.environ.get('ST2_AUTH_TOKEN')
