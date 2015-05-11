@@ -14,6 +14,12 @@ EOM
 
 WARNING_SLEEP_DELAY=5
 
+# Options which can be provied by the user via env variables
+INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
+INSTALL_WEBUI=${INSTALL_WEBUI:-1}
+INSTALL_MISTRAL=${INSTALL_MISTRAL:-1}
+INSTALL_WINDOWS_RUNNER_DEPENDENCIES=${INSTALL_WINDOWS_RUNNER_DEPENDENCIES:-1}
+
 # Common variables
 DOWNLOAD_SERVER="https://downloads.stackstorm.net"
 RABBIT_PUBLIC_KEY="rabbitmq-signing-key-public.asc"
@@ -24,6 +30,9 @@ BUILD="current"
 DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
 SYSTEMUSER='stanley'
 STANCONF="/etc/st2/st2.conf"
+
+CLI_CONFIG_DIRECTORY_PATH=${HOME}/.st2
+CLI_CONFIG_RC_FILE_PATH=${CLI_CONFIG_DIRECTORY_PATH}/config
 
 # Information about a test account which used by st2_deploy
 TEST_ACCOUNT_USERNAME="testu"
@@ -37,8 +46,27 @@ HTPASSWD_FILE_CONTENT="testu:{SHA}V1t6eZLxnehb7CTBuj61Nq3lIh4="
 WEBUI_CONFIG_PATH="/opt/stackstorm/static/webui/config.js"
 
 # Common utility functions
-
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" == "$1"; }
+function join { local IFS="$1"; shift; echo "$*"; }
+
+# Distribution specific variables
+APT_PACKAGE_LIST=("rabbitmq-server" "make" "python-virtualenv" "python-dev" "realpath" "python-pip" "mongodb" "mongodb-server" "gcc" "git")
+YUM_PACKAGE_LIST=("python-pip" "python-virtualenv" "python-devel" "gcc-c++" "git-all" "mongodb" "mongodb-server" "mailcap")
+
+# Add windows runner dependencies
+# Note: winexe is provided by Stackstorm repos
+if [ ${INSTALL_WINDOWS_RUNNER_DEPENDENCIES} == "1" ]; then
+  APT_PACKAGE_LIST+=("smbclient" "winexe")
+  YUM_PACKAGE_LIST+=("samba-client" "winexe")
+fi
+
+if [ ${INSTALL_MISTRAL} == "1" ]; then
+    APT_PACKAGE_LIST+=("mysql-server")
+    YUM_PACKAGE_LIST+=("mariadb" "mariadb-libs" "mariadb-devel" "mariadb-server")
+fi
+
+APT_PACKAGE_LIST=$(join " " ${APT_PACKAGE_LIST[@]})
+YUM_PACKAGE_LIST=$(join " " ${YUM_PACKAGE_LIST[@]})
 
 # Actual code starts here
 
@@ -49,20 +77,19 @@ sleep ${WARNING_SLEEP_DELAY}
 
 if [ -z $1 ]
 then
-  VER='0.8.2'
+  VER='0.9.0'
 elif [[ "$1" == "latest" ]]; then
-   VER='0.9dev'
+   VER='0.10dev'
 else
   VER=$1
 fi
 
 echo "Installing version ${VER}"
 
-INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
-INSTALL_WEBUI=${INSTALL_WEBUI:-1}
-
 # Determine which mistral version to use
-if version_ge $VER "0.8.1"; then
+if version_ge $VER "0.9"; then
+    MISTRAL_STABLE_BRANCH="st2-0.9.0"
+elif version_ge $VER "0.8.1"; then
     MISTRAL_STABLE_BRANCH="st2-0.8.1"
 elif version_ge $VER "0.8"; then
     MISTRAL_STABLE_BRANCH="st2-0.8.0"
@@ -123,6 +150,9 @@ create_user() {
     then
       echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/st2
     fi
+
+    # make sure requiretty is disabled.
+    sed -i "s/^Defaults\s\+requiretty/# Defaults requiretty/g" /etc/sudoers
   fi
 }
 
@@ -147,12 +177,17 @@ install_apt() {
     sudo apt-key add ${RABBIT_PUBLIC_KEY}
     rm ${RABBIT_PUBLIC_KEY}
   fi
+
+  # Add StackStorm APT repo
+  echo "deb http://downloads.stackstorm.net/deb/ trusty_unstable main" > /etc/apt/sources.list.d/stackstorm.list
+  curl -Ss -k ${DOWNLOAD_SERVER}/deb/pubkey.gpg -o /tmp/stackstorm.repo.pubkey.gpg
+  sudo apt-key add /tmp/stackstorm.repo.pubkey.gpg
+
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
   # Install packages
-  aptlist='rabbitmq-server make python-virtualenv python-dev realpath python-pip mongodb mongodb-server gcc git mysql-server'
-  echo "Installing ${aptlist}"
-  apt-get install -y ${aptlist}
+  echo "Installing ${APT_PACKAGE_LIST}"
+  apt-get install -y ${APT_PACKAGE_LIST}
   setup_rabbitmq
   install_pip
 }
@@ -163,9 +198,18 @@ install_yum() {
   rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
   curl -sS -k -o /tmp/rabbitmq-server.rpm http://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
   yum localinstall -y /tmp/rabbitmq-server.rpm
-  yumlist='python-pip python-virtualenv python-devel gcc-c++ git-all mongodb mongodb-server mysql-server'
-  echo "Installing ${yumlist}"
-  yum install -y ${yumlist}
+
+  # Add StackStorm YUM repo
+  sudo bash -c "cat > /etc/yum.repos.d/stackstorm.repo" <<EOL
+[st2-f20-deps]
+Name=StackStorm Dependencies Fedora repository
+baseurl=${DOWNLOAD_SERVER}/rpm/fedora/20/deps/
+enabled=1
+gpgcheck=0
+EOL
+
+  echo "Installing ${YUM_PACKAGE_LIST}"
+  yum install -y ${YUM_PACKAGE_LIST}
   setup_rabbitmq
   setup_mongodb_systemd
   install_pip
@@ -180,7 +224,7 @@ setup_rabbitmq() {
 
   # Enable rabbit to start on boot
   if [[ "$TYPE" == "rpms" ]]; then
-    systemctl enable rabbitmq-server
+    chkconfig rabbitmq-server on
   fi
 
   # Restart rabbitmq
@@ -190,7 +234,7 @@ setup_rabbitmq() {
   rabbitmqctl status
 
   # rabbitmaadmin is useful to inspect exchanges, queues etc.
-  curl -sS -o /usr/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
+  curl -sS -o /usr/bin/rabbitmqadmin http://127.0.0.1:15672/cli/rabbitmqadmin
   chmod 755 /usr/bin/rabbitmqadmin
 }
 
@@ -424,11 +468,19 @@ download_pkgs
 
 if [[ "$TYPE" == "debs" ]]; then
   install_apt
-  setup_mistral
+
+  if [ ${INSTALL_MISTRAL} == "1" ]; then
+    setup_mistral
+  fi
+
   deploy_deb
 elif [[ "$TYPE" == "rpms" ]]; then
   install_yum
-  setup_mistral
+
+  if [ ${INSTALL_MISTRAL} == "1" ]; then
+    setup_mistral
+  fi
+
   deploy_rpm
 fi
 
@@ -450,6 +502,20 @@ install_st2client() {
     yum localinstall -y st2client-${VER}-${RELEASE}.noarch.rpm
   fi
   popd
+
+  # Delete existing config directory (if exists)
+  if [ -e "${CLI_CONFIG_DIRECTORY_PATH}" ]; then
+    rm -r ${CLI_CONFIG_DIRECTORY_PATH}
+  fi
+
+  # Write the CLI config file with the default credentials
+  mkdir -p ${CLI_CONFIG_DIRECTORY_PATH}
+
+  bash -c "cat > ${CLI_CONFIG_RC_FILE_PATH}" <<EOL
+[credentials]
+username = ${TEST_ACCOUNT_USERNAME}
+password = ${TEST_ACCOUNT_PASSWORD}
+EOL
 }
 
 install_webui() {
@@ -472,10 +538,12 @@ install_webui() {
     .constant('st2Config', {
     hosts: [{
       name: 'StackStorm',
-      url: '',
-      auth: true 
+      url: '//:9101',
+      auth: '//:9100'
     }]
   });" > ${WEBUI_CONFIG_PATH}
+
+  sed -i "s%^# allow_origin =.*\$%allow_origin = *%g" ${STANCONF}
 
   # Cleanup
   rm -r ${temp_dir}
@@ -521,9 +589,6 @@ else
   echo "  st2 is installed and ready to use."
 fi
 
-if [ ${INSTALL_WEBUI} == "1" ]; then
-  echo "  WebUI at http://`hostname`:9101/webui/"
-fi
 echo "=========================================="
 echo ""
 
@@ -531,6 +596,8 @@ echo "Test StackStorm user account details"
 echo ""
 echo "Username: ${TEST_ACCOUNT_USERNAME}"
 echo "Password: ${TEST_ACCOUNT_PASSWORD}"
+echo ""
+echo "Test account credentials were also written to the default CLI config at ${CLI_CONFIG_PATH}."
 echo ""
 echo "To login and obtain an authentication token, run the following command:"
 echo ""

@@ -4,6 +4,15 @@ Changelog
 in development
 --------------
 
+* Allow user to configure the CLI using an ini style config file located at ``~/.st2rc``.
+  (new-feature)
+* Add support for caching of the retrieved auth tokens to the CLI. (new-feature)
+* Throw a more-user friendly exception when enforcing a rule if an action referenced inside
+  the rule definition doesn't exist. (improvement)
+
+v0.9.0 - April 29, 2015
+-----------------------
+
 * Report a more user-friendly error if an action-chain task references an invalid or inexistent
   action. Also treat invalid / inexistent action as a top-level action-chain error. (improvement)
 * Report a more user-friendly error if an action-chain definition contains an invalid type.
@@ -33,6 +42,7 @@ in development
   compatibility reasons, runners can still be referenced using their old names.
   (improvement)
 * Update all the Python services to re-open log files on the ``SIGUSR1`` signal. (new-feature)
+* Internal trigger types registered using APIs should use auth token. (bug-fix)
 
 v0.8.3 - March 23, 2015
 -----------------------

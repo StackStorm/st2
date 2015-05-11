@@ -18,6 +18,7 @@ import abc
 import six
 import json
 import logging
+import httplib
 
 import yaml
 
@@ -87,6 +88,7 @@ class ResourceBranch(commands.Branch):
 
 @six.add_metaclass(abc.ABCMeta)
 class ResourceCommand(commands.Command):
+    pk_argument_name = None
 
     def __init__(self, resource, *args, **kwargs):
 
@@ -137,7 +139,13 @@ class ResourceCommand(commands.Command):
         """
         try:
             instance = self.manager.get_by_id(pk, **kwargs)
-        except Exception:
+        except Exception as e:
+            # Hack for "Unauthorized" exceptions, we do want to propagate those
+            response = getattr(e, 'response', None)
+            status_code = getattr(response, 'status_code', None)
+            if status_code and status_code == httplib.UNAUTHORIZED:
+                raise e
+
             instance = None
 
         return instance

@@ -1,7 +1,8 @@
 ---
 vars:
     domain: "{{ system.domain }}" # `system` references DataStore key-values. Null if not set.
-    port: 9101
+    api_port: 9101
+    webui_port: 8080
 chain:
     -
         name: "get_host"
@@ -10,15 +11,16 @@ chain:
             cmd: hostname | tr -d ' \n'
         publish:
             # Publish a variable to shortcut a long expression
-            url: "http://{{ get_host.stdout }}:{{ port }}"
+            api_url: "http://{{ get_host.stdout }}:{{ api_port }}"
+            webui_url: "http://{{ get_host.stdout }}:{{ webui_port }}"
             host: "{{ get_host.stdout }}"
             # Jinja woodoo used for basic logic
             fqdn: "{{ get_host.stdout }}{% if domain %}.{{ domain }}{% endif %}"
             # A complex object can be published
             paths:
                 api: [ "v1/actions", "v1/triggers"]
-                webui: "webui/"
-                auth_port: "{{ port + 1 }}"
+                webui: "/"
+                auth_port: "{{ api_port + 1 }}"
                 # This variable references "system_info_path" variable which is an action parameter
                 system_info: "{{ system_info_path }}"
 
@@ -28,7 +30,7 @@ chain:
         description: Print out all the interesting stuff. In real life we post to chatops.
         ref: "core.local"
         params:
-            cmd: "echo host={{host}}, domain={{domain}}, fqdn={{fqdn}}, url={{url}}"
+            cmd: "echo host={{host}}, domain={{domain}}, fqdn={{fqdn}}, api_url={{api_url}}, webui_url={{webui_url}}"
         on-success: call_api
     -
         name: call_api
@@ -36,7 +38,7 @@ chain:
         ref: "core.http"
         params:
             method: GET
-            url: "{{ url }}/{{paths.api[0]}}"
+            url: "{{ api_url }}/{{paths.api[0]}}"
         on-success: call_webui
     -
         name: call_webui
@@ -44,5 +46,5 @@ chain:
         ref: "core.http"
         params:
             method: GET
-            url: "{{ url }}/{{paths.webui}}"
+            url: "{{ webui_url }}/{{paths.webui}}"
             allow_redirects: True

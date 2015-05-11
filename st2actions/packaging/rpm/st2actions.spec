@@ -29,9 +29,11 @@ cp -R st2actions %{buildroot}%{python2_sitelib}/
 cp -R conf/* %{buildroot}/etc/st2actions
 install -m755 bin/st2actionrunner %{buildroot}/usr/bin/st2actionrunner
 install -m755 bin/st2resultstracker %{buildroot}/usr/bin/st2resultstracker
+install -m755 bin/st2notifier %{buildroot}/usr/bin/st2notifier
 %files
 
 /usr/lib/python2.7/site-packages/st2actions*
 /usr/bin/st2actionrunner
 /usr/bin/st2resultstracker
+/usr/bin/st2notifier
 /etc/st2actions*

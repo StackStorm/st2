@@ -33,7 +33,7 @@ operations are also available via REST API, Python, and JavaScript bindings.
 Check the :doc:`CLI and Python Client </reference/cli>` reference for details.
 
 From v0.8, |st2| ships with WebUI. With the default "all-in-one" installation, you can access it at
-http://hostname:9101/webui/.
+http://hostname:8080/.
 
 Work with Actions
 ---------------------
@@ -74,7 +74,7 @@ as described in :ref:`config-configure-ssh` section.
 
 .. code-block:: bash
 
-    st2 run core.remote host='abc.example.com, cde.example.com' user='mysshuser' -- ls -l
+    st2 run core.remote hosts='abc.example.com, cde.example.com' username='mysshuser' -- ls -l
 
 .. note::
 

@@ -11,24 +11,23 @@ workflows:
     main:
         type: direct
         tasks:
+            init:
+                action: core.local cmd="rm -f /tmp/done"
+                on-success:
+                    - create-file
+                    - test-error-undo-retry
+            create-file:
+                action: core.local cmd="touch /tmp/done"
+                wait-before: 10
             test-error-undo-retry:
                 workflow: work
-                policies:
-                    retry:
-                        count: 10
-                        delay: 2
+                retry:
+                    count: 30
+                    delay: 1
                 on-success:
                     - delete-file
-            create-file:
-                action: core.local
-                input:
-                    cmd: "touch /tmp/done"
-                policies:
-                    wait-before: 10
             delete-file:
-                action: core.local
-                input:
-                    cmd: "rm -f /tmp/done"
+                action: core.local cmd="rm -f /tmp/done"
 
     work:
         type: direct
@@ -45,5 +44,7 @@ workflows:
                 action: core.local
                 input:
                     cmd: "echo 'Define rollback tasks here.'"
-                on-success:
-                    - fail
+                on-complete:
+                    - throw
+            throw:
+                action: std.fail

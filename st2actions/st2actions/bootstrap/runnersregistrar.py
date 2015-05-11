@@ -378,7 +378,7 @@ RUNNER_TYPES = [
         'aliases': [],
         'description': 'A remote execution runner that executes commands'
                        'on Windows hosts.',
-        'experimental': True,
+        'experimental': False,
         'enabled': True,
         'runner_parameters': {
             'host': {
@@ -417,7 +417,7 @@ RUNNER_TYPES = [
         'description': 'A remote execution runner that executes power shell scripts'
                        'on Windows hosts.',
         'enabled': True,
-        'experimental': True,
+        'experimental': False,
         'runner_parameters': {
             'host': {
                 'description': 'Host to execute the command on',

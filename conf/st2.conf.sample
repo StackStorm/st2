@@ -21,8 +21,6 @@ logging = conf/logging.conf
 allow_origin = ['http://localhost:3000']
 # location of the logging.conf file
 logging = conf/logging.conf
-# Enable to serve static WebUI files using the API service
-serve_webui_files = True
 # StackStorm API server host
 host = 0.0.0.0
 # Send empty message every N seconds to keep connection open
@@ -59,8 +57,6 @@ port = 9100
 backend = flat_file
 
 [content]
-# Paths which will be searched for aliases.
-aliases_base_paths = /opt/stackstorm/aliases
 # Path to the directory which contains system packs.
 system_packs_base_path = /opt/stackstorm/packs
 # Paths which will be searched for integration packs.
@@ -90,7 +86,7 @@ port = 6001
 # Controls if stderr should be redirected to the logs.
 redirect_stderr = False
 # Exclusion list of loggers to omit.
-excludes = 
+excludes =
 
 [messaging]
 # URL of the messaging server.

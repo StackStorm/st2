@@ -1,0 +1,10 @@
+Share name        C$
+Path              C:\
+Remark            Default share
+Maximum users     No limit
+Users             
+Caching           Manual caching of documents
+Permission        Everyone, FULL
+
+The command completed successfully.
+

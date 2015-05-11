@@ -19,12 +19,13 @@ from st2common.content import aliasesregistrar
 from st2tests import DbTestCase, fixturesloader
 
 
-ALIASES_FIXTURE_PATH = os.path.join(fixturesloader.get_fixtures_base_path(), 'alias_registrar')
+ALIASES_FIXTURE_PACK_PATH = os.path.join(fixturesloader.get_fixtures_base_path(), 'dummy_pack_1')
+ALIASES_FIXTURE_PATH = os.path.join(ALIASES_FIXTURE_PACK_PATH, 'aliases')
 
 
 class TestAliasRegistrar(DbTestCase):
 
     def test_alias_registration(self):
-        count = aliasesregistrar.register_aliases(aliases_dir=ALIASES_FIXTURE_PATH)
+        count = aliasesregistrar.register_aliases(pack_dir=ALIASES_FIXTURE_PACK_PATH)
         # expect all files to contain be aliases
         self.assertEqual(count, len(os.listdir(ALIASES_FIXTURE_PATH)))

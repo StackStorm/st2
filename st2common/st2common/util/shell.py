@@ -27,6 +27,7 @@ __all__ = [
 ]
 
 
+# pylint: disable=too-many-function-args
 def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
                 cwd=None, env=None):
     """

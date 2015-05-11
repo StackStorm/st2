@@ -15,12 +15,13 @@ PACK_RESERVE_CHARACTER = '.'
 
 
 class InstallGitRepoAction(Action):
-    def run(self, packs, repo_url, abs_repo_base, branch='master'):
+    def run(self, packs, repo_url, abs_repo_base, verifyssl=True, branch='master'):
         repo_name = repo_url[repo_url.rfind('/') + 1: repo_url.rfind('.')]
         lock_name = hashlib.md5(repo_name).hexdigest() + '.lock'
 
         with LockFile('/tmp/%s' % (lock_name)):
-            abs_local_path = self._clone_repo(repo_url, branch=branch)
+            abs_local_path = self._clone_repo(repo_url=repo_url, verifyssl=verifyssl,
+                                              branch=branch)
             try:
                 # st2-contrib repo has a top-level packs folder that actually contains the
                 pack_abs_local_path = os.path.join(abs_local_path, PACK_REPO_ROOT)
@@ -30,11 +31,16 @@ class InstallGitRepoAction(Action):
         return self._validate_result(result=result, packs=packs, repo_url=repo_url)
 
     @staticmethod
-    def _clone_repo(repo_url, branch='master'):
+    def _clone_repo(repo_url, verifyssl=True, branch='master'):
         user_home = os.path.expanduser('~')
         # Assuming git url is of form git@github.com:user/git-repo.git
         repo_name = repo_url[repo_url.rfind('/') + 1: repo_url.rfind('.')]
         abs_local_path = os.path.join(user_home, repo_name)
+
+        # Disable SSL cert checking if explictly asked
+        if not verifyssl:
+            os.environ['GIT_SSL_NO_VERIFY'] = 'true'
+
         Repo.clone_from(repo_url, abs_local_path, branch=branch)
         return abs_local_path
 

@@ -226,7 +226,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
             # Schedule the action execution.
             liveactiondb = LiveActionAPI.to_model(execution)
-            _, actionexecutiondb = action_service.schedule(liveactiondb)
+            _, actionexecutiondb = action_service.request(liveactiondb)
             return ActionExecutionAPI.from_model(actionexecutiondb)
         except ValueError as e:
             LOG.exception('Unable to execute action.')

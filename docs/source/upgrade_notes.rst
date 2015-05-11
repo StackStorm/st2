@@ -1,8 +1,8 @@
 Upgrade Notes
 =============
 
-|st2| 0.9dev
-------------
+|st2| 0.9
+---------
 
 * Process names for all |st2| services now start with "st2". sensor_container now runs as
   st2sensorcontainer, rules_engine runs as st2rulesengine, actionrunner now runs as

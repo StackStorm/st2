@@ -19,11 +19,11 @@ Contents:
     datastore
     workflows
     history
+    authentication
     cli
     troubleshooting
     resources/index
     reference/index
-    authentication
     changelog
     upgrade_notes
     development/index

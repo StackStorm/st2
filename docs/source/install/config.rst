@@ -70,14 +70,18 @@ Follow these steps on a remote box to setup `stanley` user on remote boxes.
     useradd stanley
     mkdir -p /home/stanley/.ssh
     chmod 0700 /home/stanley/.ssh
+
     # generate ssh keys on |st2| box and copy over public key into remote box.
     # ssh-keygen -f /home/stanley/.ssh/stanley_rsa -P ""
     cp ${KEY_LOCATION}/stanley_rsa.pub /home/stanley/.ssh/stanley_rsa.pub
+
     # authorize key-base acces.
     cat /home/stanley/.ssh/stanley_rsa.pub >> /home/stanley/.ssh/authorized_keys
     chmod 0600 /home/stanley/.ssh/authorized_keys
     chown -R stanley:stanley /home/stanley
     echo "stanley    ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/st2
+
+    # ensure requiretty is not set to default in the /etc/sudoers file.
 
 To verify do the following from the |st2| box
 
@@ -138,6 +142,10 @@ By default, the logs can be found in ``/var/log/st2``.
 
   logrotate log rotation
 
+Authentication
+--------------
+Please refer to the main :doc:`/../authentication` section.
+
 Sample configuration file
 -------------------------
 
@@ -146,11 +154,10 @@ A sample config file with all the configuration options can be found at :github_
 Serve WebUI files from the API server
 -------------------------------------
 
-By default, static WebUI files are served on the API server. This means you can
-access the web interface by going to ``http://<api host>:<api port>/webui``.
+By default, static WebUI files are served by python SimpleHTTPServer. This means you can
+access the web interface by going to ``http://<api host>:8080/``.
 
-For production deployments, we encourage you to disable this option by settings
-``api.serve_webui_files`` option to ``False`` and use nginx, Apache or a similar
+For production deployments, we encourage you use nginx, Apache or a similar
 dedicated web server to serve those static files.
 
 .. include:: /engage.rst

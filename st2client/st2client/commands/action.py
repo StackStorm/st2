@@ -37,6 +37,7 @@ from st2client.utils.color import format_status
 
 LOG = logging.getLogger(__name__)
 
+LIVEACTION_STATUS_REQUESTED = 'requested'
 LIVEACTION_STATUS_SCHEDULED = 'scheduled'
 LIVEACTION_STATUS_RUNNING = 'running'
 LIVEACTION_STATUS_CANCELED = 'canceled'
@@ -176,6 +177,7 @@ class ActionRunCommandMixin(object):
     def get_resource(self, ref_or_id, **kwargs):
         return self.get_resource_by_ref_or_id(ref_or_id=ref_or_id, **kwargs)
 
+    @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         if self._print_help(args, **kwargs):
             return
@@ -272,7 +274,7 @@ class ActionRunCommandMixin(object):
         formatter = execution_formatter.ExecutionResult
 
         kwargs['depth'] = args.depth
-        child_instances = action_exec_mgr.get_property(execution.id, 'children')
+        child_instances = action_exec_mgr.get_property(execution.id, 'children', **kwargs)
         child_instances = self._format_child_instances(child_instances, execution.id)
 
         if not child_instances:
@@ -290,7 +292,11 @@ class ActionRunCommandMixin(object):
                               attribute_transform_functions=self.attribute_transform_functions)
 
     def _get_execution_result(self, execution, action_exec_mgr, args, **kwargs):
-        pending_statuses = [LIVEACTION_STATUS_SCHEDULED, LIVEACTION_STATUS_RUNNING]
+        pending_statuses = [
+            LIVEACTION_STATUS_REQUESTED,
+            LIVEACTION_STATUS_SCHEDULED,
+            LIVEACTION_STATUS_RUNNING
+        ]
 
         if not args.async:
             while execution.status in pending_statuses:
@@ -832,6 +838,7 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, resource.ResourceCommand)
         execution = self.get_resource_by_id(id=args.id, **kwargs)
         return execution
 
+    @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         try:
             execution = self.run(args, **kwargs)

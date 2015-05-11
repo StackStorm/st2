@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+try:
+    import simplejson as json
+except ImportError:
+    import json
 import os
 import sys
 import shutil
@@ -174,6 +178,20 @@ class CleanFilesTestCase(TestCase):
                 shutil.rmtree(file_path)
             except Exception:
                 pass
+
+
+class FakeResponse(object):
+
+    def __init__(self, text, status_code, reason):
+        self.text = text
+        self.status_code = status_code
+        self.reason = reason
+
+    def json(self):
+        return json.loads(self.text)
+
+    def raise_for_status(self):
+        raise Exception(self.reason)
 
 
 def get_fixtures_path():

@@ -123,7 +123,8 @@ def get_liveaction_by_id(liveaction_id):
 
 
 def update_liveaction_status(status=None, result=None, context=None, end_timestamp=None,
-                             liveaction_id=None, runner_info=None, liveaction_db=None):
+                             liveaction_id=None, runner_info=None, liveaction_db=None,
+                             publish=True):
     """
         Update the status of the specified LiveAction to the value provided in
         new_status.
@@ -145,6 +146,7 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
                          liveaction_db, status)
 
     LOG.debug('Updating ActionExection: "%s" with status="%s"', liveaction_db, status)
+    old_status = liveaction_db.status
     liveaction_db.status = status
 
     if result:
@@ -162,6 +164,10 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
     liveaction_db = LiveAction.add_or_update(liveaction_db)
 
     LOG.debug('Updated status for LiveAction object: %s', liveaction_db)
+
+    if publish and status != old_status:
+        LiveAction.publish_status(liveaction_db)
+        LOG.debug('Published status for LiveAction object: %s', liveaction_db)
 
     return liveaction_db
 

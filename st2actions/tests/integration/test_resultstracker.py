@@ -1,8 +1,5 @@
 import eventlet
 
-from kombu import Connection
-from oslo.config import cfg
-
 import st2actions.resultstracker as results_tracker
 from st2common.persistence.action import LiveAction, ActionExecutionState
 from st2tests.base import (DbTestCase, EventletTestCase)
@@ -30,7 +27,7 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         ResultsTrackerTests._update_state_models()
 
     def test_bootstrap(self):
-        tracker = results_tracker.ResultsTracker()
+        tracker = results_tracker.get_tracker()
         tracker._bootstrap()
         eventlet.sleep(0.2)
         exec_id = str(ResultsTrackerTests.states['state1.yaml'].execution_id)
@@ -44,19 +41,18 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         tracker.shutdown()
 
     def test_start_shutdown(self):
-        with Connection(cfg.CONF.messaging.url) as conn:
-            tracker = results_tracker.ResultsTracker(q_connection=conn)
-            eventlet.spawn(tracker.start)
-            eventlet.sleep(0.1)
-            eventlet.spawn(tracker.shutdown)
+        tracker = results_tracker.get_tracker()
+        tracker.start()
+        eventlet.sleep(0.1)
+        tracker.shutdown()
 
     def test_get_querier(self):
-        tracker = results_tracker.ResultsTracker()
+        tracker = results_tracker.get_tracker()
         self.assertEqual(tracker.get_querier('this_module_aint_exist'), None)
         self.assertTrue(tracker.get_querier('tests.resources.test_querymodule') is not None)
 
     def test_querier_started(self):
-        tracker = results_tracker.ResultsTracker()
+        tracker = results_tracker.get_tracker()
         querier = tracker.get_querier('tests.resources.test_querymodule')
         eventlet.sleep(0.1)
         self.assertTrue(querier.is_started(), 'querier must have been started.')

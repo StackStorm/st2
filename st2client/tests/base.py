@@ -17,6 +17,8 @@ import os
 import sys
 import json
 import logging
+
+import six
 import unittest2
 
 from st2client import models
@@ -70,22 +72,28 @@ class FakeApp(object):
 
 
 class BaseCLITestCase(unittest2.TestCase):
-    hide_output = False  # if True, stdout and stderr will be redirected to /dev/null
+    capture_output = True  # if True, stdout and stderr are saved to self.stdout and self.stderr
+
+    stdout = six.moves.StringIO()
+    stderr = six.moves.StringIO()
 
     def setUp(self):
         super(BaseCLITestCase, self).setUp()
 
-        if self.hide_output:
-            # Redirect standard output and error to null. If not, then
-            # some of the print output from shell commands will pollute
-            # the test output.
-            sys.stdout = open(os.devnull, 'w')
-            sys.stderr = open(os.devnull, 'w')
+        # Setup environment
+        for var in ['ST2_BASE_URL', 'ST2_AUTH_URL', 'ST2_API_URL',
+                    'ST2_AUTH_TOKEN', 'ST2_CONFIG_FILE']:
+            if var in os.environ:
+                del os.environ[var]
+
+        if self.capture_output:
+            sys.stdout = self.stdout
+            sys.stderr = self.stderr
 
     def tearDown(self):
         super(BaseCLITestCase, self).tearDown()
 
-        if self.hide_output:
+        if self.capture_output:
             # Reset to original stdout and stderr.
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__

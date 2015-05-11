@@ -9,22 +9,37 @@ Windows Runners Configuration
     If you do encounter an issue, please get in touch and we will do our best to
     assist you.
 
-Windows Runners are currently in experimental / beta phase which means they need
-to be explicitly enabled for you to use them.
-
 Pre-requisites
 --------------
 
 Server which is running action runner service which is used for executing
 Windows runners actions needs to have the following dependencies installed:
 
-* ``smbclient`` >= 4.1 - Command line SMB (samba) client.
+* ``smbclient`` >= 4.1 - Command line Samba client (``smbclient`` package on
+  Ubuntu and ``samba-client`` package on Fedora).
 * ``winexe`` >= 1.1 - Command line tool for executing commands remotely on
   Windows hosts.
 
-Both of those dependencies are available in our APT and Yum repositories and
-are installed by default when using ``st2_deploy.sh`` script or puppet based
-installation.
+Samba client is available in standard APT and Yum repositories and winexe is
+available in our repositories. Both of those dependencies are installed by
+default when using ``st2_deploy.sh`` script or a pupped based installation.
+
+For information on configuring and enabling StackStorm repository, see
+:ref:`stackstorm-repos`.
+
+Installing on Ubuntu
+~~~~~~~~~~~~~~~~~~~~
+
+.. sourcecode:: bash
+
+    sudo apt-get install smbclient winexe
+
+Installing on Fedora
+~~~~~~~~~~~~~~~~~~~~
+
+.. sourcecode:: bash
+
+    sudo yum install samba-client winexe
 
 Supported Windows Versions
 --------------------------
@@ -37,16 +52,6 @@ Windows runners have been tested on the following versions of Windows:
 Underlying library we use to talk to the Windows hosts also supports other
 versions (2000 / XP / 2003 / Vista / 2003 / 2008), but we haven't tested our
 runners with those versions so we can't guarantee that runners will work there.
-
-Registering Windows Runners
----------------------------
-
-To register Windows runners and make them available for you to use, run the
-command listed below:
-
-.. sourcecode:: bash
-
-    st2-register-content --config-file conf/st2.dev.conf --register-actions --experimental
 
 Configuring your Window Server for remote access
 ------------------------------------------------

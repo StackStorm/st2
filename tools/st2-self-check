@@ -1,0 +1,86 @@
+#!/bin/bash
+
+## Script to install samples, tests, and run all workflows in tests pack.
+
+PACKS="tests examples"
+
+#Determine Distro
+DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
+
+if [[ "$DEBTEST" == "Ubuntu" ]]; then
+  TYPE="debs"
+  PYTHONPACK="/usr/lib/python2.7/dist-packages"
+elif [[ -f "/etc/redhat-release" ]]; then
+  TYPE="rpms"
+  PYTHONPACK="/usr/lib/python2.7/site-packages"
+else
+  echo "Unknown Operating System"
+  exit 2
+fi
+
+# Install required packs if necessary
+for PACK in $PACKS; do
+  CHECK=`st2 action list --pack=${PACK} | grep ${PACK}`
+  if [ $? -ne 0 ]; then
+    INSTALL=`${PYTHONPACK}/st2common/bin/st2-setup-${PACK}`
+
+    EXITCODE=$?
+    echo $INSTALL
+  fi
+done
+
+# Retrieve test action list
+TEST_ACTION_LIST=`st2 action list --pack=tests | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`
+
+# Run all the tests
+for TEST in $TEST_ACTION_LIST
+    do
+        echo -n "Attempting Test ${TEST}..."
+        TEST_OUTPUT=`st2 run ${TEST} token=${ST2_AUTH_TOKEN} -j`
+        CHECK_STATUS=`echo ${TEST_OUTPUT} | grep '"status": "succeeded"'`
+        if [ $? -ne 0 ]; then
+            echo -e "ERROR!"
+            #echo -e "FAILED!\nOUTPUT: ${TEST_OUTPUT}"
+            #exit 2
+        else
+            echo "OK!"
+        fi
+    done
+
+echo -n "Attempting Example examples.mistral_examples..."
+MISTRAL_EXAMPLES=`st2 run examples.mistral_examples -j`
+CHECK_STATUS=`echo ${MISTRAL_EXAMPLES} | grep '"status": "succeeded"'`
+if [ $? -ne 0 ]; then
+    echo -e "ERROR!"
+    #echo -e "ERROR!\nOUTPUT: ${MISTRAL_EXAMPLES}"
+    #exit 2
+else
+    echo -e "OK!"
+
+cat << EOF
+
+############################################################# 
+###################################################   ####### 
+###############################################   /~\   #####
+############################################   _- \`~~~', ####
+##########################################  _-~       )  ####
+#######################################  _-~          |  ####
+####################################  _-~            ;  #####
+##########################  __---___-~              |   #####
+#######################   _~   ,,                  ;  \`,,  ##
+#####################  _-~    ;'                  |  ,'  ; ##
+###################  _~      '                    \`~'   ; ###
+############   __---;                                 ,' ####
+########   __~~  ___                                ,' ######
+#####  _-~~   -~~ _                               ,' ########
+##### \`-_         _                              ; ##########
+#######  ~~----~~~   ;                          ; ###########
+#########  /          ;                        ; ############
+#######  /             ;                      ; #############
+#####  /                \`                    ; ##############
+###  /                                      ; ###############
+#                                            ################
+
+EOF
+
+fi

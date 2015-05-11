@@ -22,8 +22,9 @@ import requests.exceptions
 from oslo.config import cfg
 
 from st2common import log as logging
-from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
+from st2common.constants.triggers import (INTERNAL_TRIGGER_TYPES, ACTION_SENSOR_TRIGGER)
 from st2common.models.system.common import ResourceReference
+from st2common.services.access import (create_token, delete_token)
 from st2common.util.url import get_url_without_trailing_slash
 
 __all__ = [
@@ -32,75 +33,85 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
-TRIGGER_TYPE_ENDPOINT = cfg.CONF.action_sensor.triggers_base_url
-HTTP_POST_HEADER = {'content-type': 'application/json'}
-RETRY_WAIT = cfg.CONF.action_sensor.retry_wait
-TIMEOUT = cfg.CONF.action_sensor.request_timeout
-MAX_ATTEMPTS = cfg.CONF.action_sensor.max_attempts
 
+class InternalTriggerTypesRegistrar(object):
 
-def _get_trigger_type_url(triggertype_ref):
-    base_url = get_url_without_trailing_slash(TRIGGER_TYPE_ENDPOINT)
-    return '%s/%s' % (base_url, triggertype_ref)
+    def __init__(self):
+        self._action_sensor_enabled = cfg.CONF.action_sensor.enable
+        self._trigger_type_endpoint = cfg.CONF.action_sensor.triggers_base_url
+        self._retry_wait = cfg.CONF.action_sensor.retry_wait
+        self._timeout = cfg.CONF.action_sensor.request_timeout
+        self._max_attempts = cfg.CONF.action_sensor.max_attempts
+        self._auth_creds = create_token('system.internal_trigger_registrar',
+                                        ttl=(1 * 60 * 60))
+        self._http_post_headers = {'content-type': 'application/json',
+                                   'X-Auth-Token': self._auth_creds.token}
+        self._http_get_headers = {'X-Auth-Token': self._auth_creds.token}
 
+    def register_internal_trigger_types(self):
+        LOG.debug('Registering internal trigger types...')
 
-def _do_register_internal_trigger_types():
-    LOG.debug('Registering internal trigger types...')
+        for resource_name, trigger_definitions in INTERNAL_TRIGGER_TYPES.items():
+            for trigger_definition in trigger_definitions:
+                LOG.debug('Registering internal trigger: %s', trigger_definition['name'])
+                if (trigger_definition['name'] == ACTION_SENSOR_TRIGGER['name'] and
+                        not self._action_sensor_enabled):
+                    continue
+                self._register_trigger_type(trigger_definition=trigger_definition, attempt_no=0)
 
-    for resource_name, trigger_definitions in INTERNAL_TRIGGER_TYPES.items():
-        for trigger_definition in trigger_definitions:
-            LOG.debug('Registering internal trigger: %s', trigger_definition['name'])
-            register_trigger_type(trigger_definition=trigger_definition, attempt_no=0)
+        delete_token(self._auth_creds.token)
 
+    def _register_trigger_type(self, trigger_definition, attempt_no=0):
+        LOG.debug('Attempt no %s to register trigger %s.', attempt_no, trigger_definition['name'])
 
-def _is_triggertype_exists(ref):
-    try:
-        r = requests.get(url=_get_trigger_type_url(ref))
-        if r.status_code == httplib.OK:
-            return True
-    except:
+        ref = ResourceReference.to_string_reference(pack=trigger_definition['pack'],
+                                                    name=trigger_definition['name'])
+        if self._is_triggertype_exists(ref):
+            return
+
+        payload = json.dumps(trigger_definition)
+
+        try:
+            r = requests.post(url=self._trigger_type_endpoint, data=payload,
+                              headers=self._http_post_headers, timeout=self._timeout)
+            if r.status_code == httplib.CREATED:
+                LOG.info('Registered trigger %s.', trigger_definition['name'])
+            elif r.status_code == httplib.CONFLICT:
+                LOG.info('Trigger %s is already registered.', trigger_definition['name'])
+            else:
+                LOG.error('Seeing status code %s on an attempt to register trigger %s.',
+                          r.status_code, trigger_definition['name'])
+        except requests.exceptions.ConnectionError:
+            if attempt_no < self._max_attempts:
+                self._retry_wait = self._retry_wait * (attempt_no + 1)
+                LOG.debug('    ConnectionError. Will retry in %ss.', self._retry_wait)
+                eventlet.spawn_after(self._retry_wait, self._register_trigger_type,
+                                     trigger_definition=trigger_definition,
+                                     attempt_no=(attempt_no + 1))
+            else:
+                LOG.warn('Failed to register trigger %s. ' % trigger_definition['name'] +
+                         ' Exceeded max attempts to register trigger.')
+        except:
+            LOG.exception('Failed to register trigger %s.', trigger_definition['name'])
+
+    def _get_trigger_type_url(self, triggertype_ref):
+        base_url = get_url_without_trailing_slash(self._trigger_type_endpoint)
+        return '%s/%s' % (base_url, triggertype_ref)
+
+    def _is_triggertype_exists(self, ref):
+        try:
+            r = requests.get(url=self._get_trigger_type_url(ref),
+                             headers=self._http_get_headers)
+            if r.status_code == httplib.OK:
+                return True
+        except:
+            return False
+
         return False
 
 
-def register_trigger_type(trigger_definition, attempt_no=0):
-    LOG.debug('Attempt no %s to register trigger %s.', attempt_no, trigger_definition['name'])
-
-    ref = ResourceReference.to_string_reference(pack=trigger_definition['pack'],
-                                                name=trigger_definition['name'])
-    if _is_triggertype_exists(ref):
-        return
-
-    payload = json.dumps(trigger_definition)
-
-    try:
-        r = requests.post(url=TRIGGER_TYPE_ENDPOINT, data=payload,
-                          headers=HTTP_POST_HEADER, timeout=TIMEOUT)
-        if r.status_code == httplib.CREATED:
-            LOG.info('Registered trigger %s.', trigger_definition['name'])
-        elif r.status_code == httplib.CONFLICT:
-            LOG.info('Trigger %s is already registered.', trigger_definition['name'])
-        else:
-            LOG.error('Seeing status code %s on an attempt to register trigger %s.',
-                      r.status_code, trigger_definition['name'])
-    except requests.exceptions.ConnectionError:
-        if attempt_no < MAX_ATTEMPTS:
-            retry_wait = RETRY_WAIT * (attempt_no + 1)
-            LOG.debug('    ConnectionError. Will retry in %ss.', retry_wait)
-            eventlet.spawn_after(retry_wait, register_trigger_type,
-                                 trigger_definition=trigger_definition,
-                                 attempt_no=(attempt_no + 1))
-        else:
-            LOG.warn('Failed to register trigger %s. Exceeded max attempts to register trigger.',
-                     trigger_definition['name'])
-    except:
-        LOG.exception('Failed to register trigger %s.', trigger_definition['name'])
-
-
 def register_internal_trigger_types():
-    if not ACTION_SENSOR_ENABLED:
-        return
-
+    trigger_types_registrar = InternalTriggerTypesRegistrar()
     # spawn a thread to process this in order to unblock the main thread which at this point could
     # be in the middle of bootstraping the process.
-    eventlet.greenthread.spawn(_do_register_internal_trigger_types)
+    eventlet.greenthread.spawn(trigger_types_registrar.register_internal_trigger_types)
