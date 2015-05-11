@@ -42,11 +42,12 @@ class RuleMatcherTest(DbTestCase):
         self.assertEqual(len(matching_rules), 1)
 
     def test_trigger_instance_payload_with_special_values(self):
-        # Test a rule where TriggerInstance payload contains a dot (".")
+        # Test a rule where TriggerInstance payload contains a dot (".") and $
         self._setup_sample_trigger('st2.test.trigger2')
         trigger_instance = container_utils.create_trigger_instance(
             'dummy_pack_1.st2.test.trigger2',
-            {'k1': 't1_p_v', 'k2.k2': 'v2', 'k3.more.nested.deep': 'some.value'},
+            {'k1': 't1_p_v', 'k2.k2': 'v2', 'k3.more.nested.deep': 'some.value',
+             'k4.even.more.nested$': 'foo', 'yep$aaa': 'b'},
             datetime.datetime.utcnow()
         )
         trigger = get_trigger_db_by_ref(trigger_instance.trigger)
