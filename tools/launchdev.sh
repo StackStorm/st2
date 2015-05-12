@@ -112,6 +112,11 @@ function st2start(){
         ./st2actions/bin/st2notifier \
         --config-file $ST2_CONF
 
+    # Run the auth API server
+    echo 'Starting screen session st2-auth...'
+    screen -d -m -S st2-auth ./virtualenv/bin/python \
+        ./st2auth/bin/st2auth \
+        --config-file $ST2_CONF
 
     # Check whether screen sessions are started
     SCREENS=(
@@ -121,6 +126,7 @@ function st2start(){
         "st2-rulesengine"
         "st2-resultstracker"
         "st2-notifier"
+        "st2-auth"
     )
 
     echo
