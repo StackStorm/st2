@@ -28,7 +28,7 @@ def _cast_object(x):
 
     Note: String can be either serialized as JSON or a raw Python output.
     """
-    if isinstance(x, str) or isinstance(x, unicode):
+    if isinstance(x, six.string_types):
         try:
             return json.loads(x)
         except:
