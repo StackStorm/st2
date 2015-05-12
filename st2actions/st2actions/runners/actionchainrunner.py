@@ -360,10 +360,6 @@ class ActionChainRunner(ActionRunner):
 
         return liveaction
 
-    def _get_notify(self, chain_notify, task_notify):
-        # XXX: Implement notify merge
-        pass
-
     def _format_action_exec_result(self, action_node, liveaction_db, created_at, updated_at,
                                    error=None):
         """
