@@ -77,6 +77,7 @@ class RunnerContainer(object):
         runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
+        runner.liveaction = liveaction_db
         runner.liveaction_id = str(liveaction_db.id)
         runner.entry_point = resolved_entry_point
         runner.runner_parameters = runner_params
