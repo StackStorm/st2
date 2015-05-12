@@ -11,6 +11,8 @@ in development
   the rule definition doesn't exist. (improvement)
 * Fix a bug with the rule evaluation failing if the trigger payload contained a key with a
   dot in the name. (bug-fix)
+* Fix a bug with publishing array (list) values as strings inside the action chain workflows.
+  (bug-fix)
 
 v0.9.0 - April 29, 2015
 -----------------------
