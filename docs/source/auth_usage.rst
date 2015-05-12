@@ -29,4 +29,7 @@ for 10 minutes, use the following:
 ::
 
     # with TTL and password
-    st2 auth yourusername -p yourpassword -t 600
+    st2 auth yourusername -p yourpassword -l 600
+
+Note that if TTL requested is larger than maximum allowed (set in st2 configuration), an
+error would be returned to the user.
