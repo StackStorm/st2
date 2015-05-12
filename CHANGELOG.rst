@@ -34,8 +34,6 @@ v0.9.0 - April 29, 2015
   (improvement)
 * Update all the Python services to re-open log files on the ``SIGUSR1`` signal. (new-feature)
 * Internal trigger types registered using APIs should use auth token. (bug-fix)
-* Throw a HTTP BAD REQUEST when TTL requested for a token is larger than max configured in st2
-  system. (improvement)
 
 v0.8.3 - March 23, 2015
 -----------------------
