@@ -12,7 +12,8 @@ entry_point: "chains/echochain.yaml"
 enabled: true
 parameters:
   skip_notify:
-    default: c2
+    default:
+      - c2
 notify:
   on_complete:
     message: "\"@channel: Action succeeded.\""

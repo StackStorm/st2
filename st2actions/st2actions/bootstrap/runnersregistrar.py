@@ -351,8 +351,8 @@ RUNNER_TYPES = [
         'runner_parameters': {
             'skip_notify': {
                 'description': 'Comma separated list of tasks to skip notifications for.',
-                'type': 'string',
-                'default': ''
+                'type': 'array',
+                'default': []
             }
         },
         'runner_module': 'st2actions.runners.actionchainrunner'

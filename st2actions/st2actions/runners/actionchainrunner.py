@@ -148,8 +148,7 @@ class ActionChainRunner(ActionRunner):
         if getattr(self, 'liveaction', None):
             self._chain_notify = getattr(self.liveaction, 'notify', None)
         if self.runner_parameters:
-            self._skip_notify_tasks = self.runner_parameters.get('skip_notify', '')
-            self._skip_notify_tasks = [x.strip() for x in self._skip_notify_tasks.split(',')]
+            self._skip_notify_tasks = self.runner_parameters.get('skip_notify', [])
 
     def run(self, action_parameters):
         result = {'tasks': []}  # holds final result we store
@@ -337,12 +336,9 @@ class ActionChainRunner(ActionRunner):
                                                                params=params)
 
         # Setup notify for task in chain.
-        if action_node.name not in self._skip_notify_tasks:
-            if action_node.notify:
-                task_notify = NotificationsHelper.to_model(action_node.notify)
-                liveaction.notify = task_notify
-            elif self._chain_notify:
-                liveaction.notify = self._chain_notify
+        notify = self._get_notify(action_node)
+        if notify:
+            liveaction.notify = notify
             LOG.debug('%s: Task notify set to: %s', action_node.name, liveaction.notify)
 
         liveaction.context = {
@@ -359,6 +355,16 @@ class ActionChainRunner(ActionRunner):
             liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
 
         return liveaction
+
+    def _get_notify(self, action_node):
+        if action_node.name not in self._skip_notify_tasks:
+            if action_node.notify:
+                task_notify = NotificationsHelper.to_model(action_node.notify)
+                return task_notify
+            elif self._chain_notify:
+                return self._chain_notify
+
+        return None
 
     def _format_action_exec_result(self, action_node, liveaction_db, created_at, updated_at,
                                    error=None):
