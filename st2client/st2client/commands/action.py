@@ -281,6 +281,13 @@ class ActionRunCommandMixin(object):
             # No child error, there might be a global error, include result in the output
             options['attributes'].append('result')
 
+        # On failure we also want to include error message and traceback at the top level view
+        if instance.status == 'failed':
+            # TODO: If there is no top level error, retrieve error from the last task
+            status_index = options['attributes'].index('status')
+            options['attributes'].insert(status_index + 1, 'result.error')
+            options['attributes'].insert(status_index + 2, 'result.traceback')
+
         # print root task
         self.print_output(instance, formatter, **options)
 
