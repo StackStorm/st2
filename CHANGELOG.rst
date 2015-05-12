@@ -1,5 +1,11 @@
 Changelog
 =========
+v0.9.1 - May 12, 2015
+---------------------
+
+* Allow option to bypass SSL Certificate Check (improvement)
+* Fix a bug with alias parser to support empty formats (bug-fix)
+* Return HTTP BAD REQUEST when TTL requested for token > Max configured TTL (improvement)
 
 v0.9.0 - April 29, 2015
 -----------------------
