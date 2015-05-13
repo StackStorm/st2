@@ -72,6 +72,7 @@ class ActionRunner(object):
         self.runner_parameters = None
         self.action = None
         self.action_name = None
+        self.liveaction = None
         self.liveaction_id = None
         self.entry_point = None
         self.libs_dir_path = None

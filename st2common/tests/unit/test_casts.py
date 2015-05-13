@@ -13,21 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.exceptions import StackStormBaseException
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
+import json
+
+import unittest2
+
+from st2common.util.casts import get_cast
 
 
-class TokenNotProvidedError(StackStormBaseException):
-    pass
+class CastsTestCase(unittest2.TestCase):
+    def test_cast_array(self):
+        cast_func = get_cast('array')
 
+        # Python literal
+        value = str([1, 2, 3])
+        result = cast_func(value)
+        self.assertEqual(result, [1, 2, 3])
 
-class TokenNotFoundError(StackStormDBObjectNotFoundError):
-    pass
+        # JSON serialized
+        value = json.dumps([4, 5, 6])
+        result = cast_func(value)
+        self.assertEqual(result, [4, 5, 6])
 
-
-class TokenExpiredError(StackStormBaseException):
-    pass
-
-
-class TTLTooLargeException(StackStormBaseException):
-    pass
+        # Can't cast, should throw
+        value = "\\invalid"
+        self.assertRaises(SyntaxError, cast_func, value)
