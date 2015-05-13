@@ -1,0 +1,6 @@
+---
+name: "echochain_top_level_failure"
+description: "Simple Action Chain workflow with a top level (chain) failure"
+runner_type: "action-chain"
+entry_point: "chains/echochain_top_level_failure.yaml"
+enabled: true

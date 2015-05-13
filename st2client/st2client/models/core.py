@@ -59,14 +59,20 @@ class Resource(object):
         for k, v in six.iteritems(kwargs):
             setattr(self, k, v)
 
-    def to_dict(self):
+    def to_dict(self, exclude_attributes=None):
         """
         Return a dictionary representation of this object.
 
+        :param exclude_attributes: Optional list of attributes to exclude.
+        :type exclude_attributes: ``list``
+
         :rtype: ``dict``
         """
+        exclude_attributes = exclude_attributes or []
+
         attributes = self.__dict__.keys()
-        attributes = [attr for attr in attributes if not attr.startswith('__')]
+        attributes = [attr for attr in attributes if not attr.startswith('__') and
+                      attr not in exclude_attributes]
 
         result = {}
         for attribute in attributes:

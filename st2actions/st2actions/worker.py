@@ -99,7 +99,10 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
             LOG.debug('Runner dispatch produced result: %s', result)
             if not result:
                 raise ActionRunnerException('Failed to execute action.')
-        except Exception:
+        except Exception as e:
+            extra['error'] = str(e)
+            LOG.info('Action "%s" failed: %s' % (liveaction_db.action, str(e)), extra=extra)
+
             liveaction_db = action_utils.update_liveaction_status(
                 status=action_constants.LIVEACTION_STATUS_FAILED,
                 liveaction_id=liveaction_db.id)
