@@ -84,17 +84,19 @@ Currently the system provides the following runners:
 2. ``local-shell-script`` - This is the local runner. Actions are implemented as
    scripts. They are executed on the same hosts where |st2| components are
    running.
-3. ``remote-script`` - This is a remote runner. Actions are implemented as scripts.
+3. ``remote-shell-cmd`` - This is a remote runner. This runner executes
+   a Linux command on one or more remote hosts provided by the user.
+4. ``remote-shell-script`` - This is a remote runner. Actions are implemented as scripts.
    They run on one or more remote hosts provided by the user.
-4. ``python-script`` - This is a Python runner. Actions are implemented as Python
+5. ``python-script`` - This is a Python runner. Actions are implemented as Python
    classes with a ``run`` method. They run locally on the same machine where
    |st2| components are running.
-5. ``http-request`` - HTTP client which performs HTTP requests for running HTTP
+6. ``http-request`` - HTTP client which performs HTTP requests for running HTTP
    actions.
-6. ``action-chain`` - This runner supports executing simple linear work-flows.
+7. ``action-chain`` - This runner supports executing simple linear work-flows.
    For more information, please refer to the :doc:`Workflows </workflows>`
    and :doc:`ActionChain </actionchain>` section of documentation.
-7. ``mistral-v1``, ``mistral-v2`` - Those runners are built on top of the
+8. ``mistral-v1``, ``mistral-v2`` - Those runners are built on top of the
    Mistral OpenStack project and support executing complex work-flows. For more
    information, please refer to the :doc:`Workflows </workflows>` and
    :doc:`Mistral </mistral>` section of documentation.
