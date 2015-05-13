@@ -121,7 +121,9 @@ class Notifier(consumers.MessageHandler):
         payload = {'execution_id': str(liveaction.id),
                    'status': liveaction.status,
                    'start_timestamp': str(liveaction.start_timestamp),
+                   # deprecate 'action_name' at some point and switch to 'action_ref'
                    'action_name': liveaction.action,
+                   'action_ref': liveaction.action,
                    'runner_ref': self._get_runner(liveaction.action),
                    'parameters': liveaction.parameters,
                    'result': liveaction.result}

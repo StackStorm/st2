@@ -64,6 +64,7 @@ class NotifierTestCase(unittest2.TestCase):
                     self.tester.assertTrue('execution_id' in payload)
                     self.tester.assertTrue('start_timestamp' in payload)
                     self.tester.assertEqual('core.local', payload['action_name'])
+                    self.tester.assertEqual('core.local', payload['action_ref'])
                     self.tester.assertTrue('result' in payload)
                     self.tester.assertTrue('parameters' in payload)
                     self.tester.assertTrue('run-local-cmd', payload['runner_ref'])
