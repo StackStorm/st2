@@ -15,6 +15,7 @@ in development
   (bug-fix)
 * Throw a HTTP BAD REQUEST when TTL requested for a token is larger than max configured in st2
   system. (improvement)
+* Action trigger now contains execution id as opposed to liveaction id. (bug-fix)
 
 v0.9.0 - April 29, 2015
 -----------------------
