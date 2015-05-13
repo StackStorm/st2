@@ -20,6 +20,7 @@ from pecan import rest
 from six.moves import http_client
 from oslo.config import cfg
 
+from st2common.exceptions.access import TTLTooLargeException
 from st2common.models.api.base import jsexpose
 from st2common.models.api.access import TokenAPI
 from st2common.services.access import create_token
@@ -52,7 +53,11 @@ class TokenController(rest.RestController):
 
         if pecan.request.remote_user:
             ttl = getattr(request, 'ttl', None)
-            token = self._create_token_for_user(username=pecan.request.remote_user, ttl=ttl)
+            try:
+                token = self._create_token_for_user(username=pecan.request.remote_user, ttl=ttl)
+            except TTLTooLargeException as e:
+                self._abort_request(status_code=http_client.BAD_REQUEST,
+                                    message=e.message)
             return self._process_successful_response(token=token)
 
         LOG.audit('Access denied to anonymous user.', extra=extra)
@@ -96,8 +101,13 @@ class TokenController(rest.RestController):
         result = self._auth_backend.authenticate(username=username, password=password)
         if result is True:
             ttl = getattr(request, 'ttl', None)
-            token = self._create_token_for_user(username=username, ttl=ttl)
-            return self._process_successful_response(token=token)
+            try:
+                token = self._create_token_for_user(username=username, ttl=ttl)
+                return self._process_successful_response(token=token)
+            except TTLTooLargeException as e:
+                self._abort_request(status_code=http_client.BAD_REQUEST,
+                                    message=e.message)
+                return
 
         LOG.audit('Invalid credentials provided', extra=extra)
         self._abort_request()
