@@ -15,6 +15,9 @@ in development
   (bug-fix)
 * Throw a HTTP BAD REQUEST when TTL requested for a token is larger than max configured in st2
   system. (improvement)
+* Update CLI so it displays the error at the top level when using ``run``, ``execution run`` or
+  ``execution get`` when executed workflow fails. (improvement)
+* Action trigger now contains execution id as opposed to liveaction id. (bug-fix)
 
 v0.9.0 - April 29, 2015
 -----------------------
