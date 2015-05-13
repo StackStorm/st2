@@ -137,4 +137,4 @@ chain:
         params:
             env:
               ST2_AUTH_TOKEN: "{{token}}"
-           cmd: "echo packs pack test failed; exit 1"
+            cmd: "echo packs pack test failed; exit 1"
