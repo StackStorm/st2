@@ -137,16 +137,6 @@ Trigger payload is referred with ``{{trigger}}``. If trigger payload is valid JS
 it is parsed and can be accessed like ``{{trigger.path.to.parameter}}`` (it's
 `Jinja template syntax <http://jinja.pocoo.org/docs/dev/templates/>`__).
 
-While the most data are retrieved as needed by |st2|, you may need to
-store and share some common variables. Use |st2| datastore service to store
-the values and reference them in rules and workflows
-as ``{{system.my_parameter}}``. This creates ``user=stanley`` key-value pair:
-
-.. code-block:: bash
-
-    st2 key set user stanley
-    st2 key list
-
 What are the triggers availabe to use in rules? Just like with actions,
 use the CLI to browse triggers, learn what the trigger does,
 how to configure it, and what is it’s payload structure:
@@ -162,6 +152,21 @@ how to configure it, and what is it’s payload structure:
     # Check details on the Webhook trigger
     st2 trigger get core.st2.webhook
 
+
+Datastore
+-------------------------
+
+While the most data are retrieved as needed by |st2|, you may need to
+store and share some common variables. Use |st2| datastore service to store
+the values and reference them in rules and workflows
+as ``{{system.my_parameter}}``. This creates ``user=stanley`` key-value pair:
+
+.. code-block:: bash
+
+    st2 key set user stanley
+    st2 key list
+
+For more information on datastore, check :doc:`datastore`
 
 Deploy a Rule
 -------------------------
