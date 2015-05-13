@@ -281,6 +281,29 @@ class ActionRunCommandMixin(object):
             # No child error, there might be a global error, include result in the output
             options['attributes'].append('result')
 
+        # On failure we also want to include error message and traceback at the top level
+        if instance.status == 'failed':
+            status_index = options['attributes'].index('status')
+            tasks = instance.result.get('tasks', [])
+
+            top_level_error, top_level_traceback = self._get_top_level_error(live_action=instance)
+            task_error, task_traceback = self._get_task_error(task=tasks[-1])
+
+            if top_level_error:
+                # Top-level error
+                instance.error = top_level_error
+                instance.traceback = top_level_traceback
+                options['attributes'].insert(status_index + 1, 'error')
+                options['attributes'].insert(status_index + 2, 'traceback')
+            elif task_error:
+                # Task error
+                instance.error = task_error
+                instance.traceback = task_traceback
+                instance.failed_on = tasks[-1].get('name', 'unknown')
+                options['attributes'].insert(status_index + 1, 'error')
+                options['attributes'].insert(status_index + 2, 'traceback')
+                options['attributes'].insert(status_index + 3, 'failed_on')
+
         # print root task
         self.print_output(instance, formatter, **options)
 
@@ -315,6 +338,34 @@ class ActionRunCommandMixin(object):
                 execution.result = self._format_error_result(execution.result)
 
         return execution
+
+    def _get_top_level_error(self, live_action):
+        """
+        Retrieve a top level workflow error.
+
+        :return: (error, traceback)
+        """
+        error = live_action.result.get('error', None)
+        traceback = live_action.result.get('traceback', None)
+
+        return error, traceback
+
+    def _get_task_error(self, task):
+        """
+        Retrieve error message from the provided task.
+
+        :return: (error, traceback)
+        """
+        if not task:
+            return None, None
+
+        result = task['result']
+        stderr = result.get('stderr', None)
+        error = result.get('error', None)
+        traceback = result.get('traceback', None)
+        error = error if error else stderr
+
+        return error, traceback
 
     def _is_error_result(self, result):
         if not isinstance(result, dict):
