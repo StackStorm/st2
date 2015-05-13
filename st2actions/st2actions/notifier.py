@@ -22,6 +22,7 @@ from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.db import action as action_models
+from st2common.persistence.action import Action
 from st2common.models.system.common import ResourceReference
 from st2common.transport import consumers, liveaction, publishers
 from st2common.transport.reactor import TriggerDispatcher
@@ -98,6 +99,7 @@ class Notifier(consumers.MessageHandler):
             payload['start_timestamp'] = str(liveaction.start_timestamp)
             payload['end_timestamp'] = str(liveaction.end_timestamp)
             payload['action_ref'] = liveaction.action
+            payload['runner_ref'] = self._get_runner(liveaction.action)
 
             failed_channels = []
             for channel in notify_subsection.channels:
@@ -120,11 +122,16 @@ class Notifier(consumers.MessageHandler):
                    'status': liveaction.status,
                    'start_timestamp': str(liveaction.start_timestamp),
                    'action_name': liveaction.action,
+                   'runner_ref': self._get_runner(liveaction.action),
                    'parameters': liveaction.parameters,
                    'result': liveaction.result}
         LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
                   liveaction.id, payload)
         self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload)
+
+    def _get_runner(self, action_ref):
+        action = Action.get_by_ref(action_ref)
+        return action['runner_type']['name']
 
 
 def get_notifier():
