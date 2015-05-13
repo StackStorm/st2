@@ -23,6 +23,7 @@ from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_S
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.db import action as action_models
 from st2common.models.system.common import ResourceReference
+from st2common.persistence.execution import ActionExecution
 from st2common.transport import consumers, liveaction, publishers
 from st2common.transport.reactor import TriggerDispatcher
 
@@ -53,15 +54,25 @@ class Notifier(consumers.MessageHandler):
 
     def process(self, liveaction):
         if liveaction.status not in ACTION_COMPLETE_STATES:
-            LOG.warn('Received incorrect notification complete event. LiveAction=%s', liveaction)
             return
 
+        execution_id = self._get_execution_id(liveaction)
+
         if liveaction.notify is not None:
-            self._post_notify_triggers(liveaction)
+            self._post_notify_triggers(liveaction, execution_id)
 
-        self._post_generic_trigger(liveaction)
+        self._post_generic_trigger(liveaction, execution_id)
 
-    def _post_notify_triggers(self, liveaction):
+    def _get_execution_id(self, liveaction):
+        try:
+            execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+            return str(execution.id)
+        except:
+            LOG.exception('Execution object corresponding to LiveAction %s not found.',
+                          str(liveaction.id))
+            return None
+
+    def _post_notify_triggers(self, liveaction, execution_id):
         notify = getattr(liveaction, 'notify', None)
 
         if not notify:
@@ -69,15 +80,15 @@ class Notifier(consumers.MessageHandler):
 
         if notify.on_complete:
             self._post_notify_subsection_triggers(
-                liveaction, notify.on_complete, default_message_suffix='completed.')
+                liveaction, execution_id, notify.on_complete, default_message_suffix='completed.')
         if liveaction.status == LIVEACTION_STATUS_SUCCEEDED and notify.on_success:
             self._post_notify_subsection_triggers(
-                liveaction, notify.on_success, default_message_suffix='succeeded.')
+                liveaction, execution_id, notify.on_success, default_message_suffix='succeeded.')
         if liveaction.status == LIVEACTION_STATUS_FAILED and notify.on_failure:
             self._post_notify_subsection_triggers(
-                liveaction, notify.on_failure, default_message_suffix='failed.')
+                liveaction, execution_id, notify.on_failure, default_message_suffix='failed.')
 
-    def _post_notify_subsection_triggers(self, liveaction, notify_subsection,
+    def _post_notify_subsection_triggers(self, liveaction, execution_id, notify_subsection,
                                          default_message_suffix):
         if notify_subsection.channels and len(notify_subsection.channels) >= 1:
             payload = {}
@@ -93,7 +104,7 @@ class Notifier(consumers.MessageHandler):
 
             payload['message'] = message
             payload['data'] = data
-            payload['execution_id'] = str(liveaction.id)
+            payload['execution_id'] = execution_id
             payload['status'] = liveaction.status
             payload['start_timestamp'] = str(liveaction.start_timestamp)
             payload['end_timestamp'] = str(liveaction.end_timestamp)
@@ -112,11 +123,11 @@ class Notifier(consumers.MessageHandler):
             if len(failed_channels) > 0:
                 raise Exception('Failed notifications to channels: %s' % ', '.join(failed_channels))
 
-    def _post_generic_trigger(self, liveaction):
+    def _post_generic_trigger(self, liveaction, execution_id):
         if not ACTION_SENSOR_ENABLED:
             return
 
-        payload = {'execution_id': str(liveaction.id),
+        payload = {'execution_id': execution_id,
                    'status': liveaction.status,
                    'start_timestamp': str(liveaction.start_timestamp),
                    'action_name': liveaction.action,
