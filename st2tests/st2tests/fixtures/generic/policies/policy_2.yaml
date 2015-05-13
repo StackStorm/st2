@@ -1,0 +1,11 @@
+---
+name: local.concurrency_by_cmd
+pack: core
+description: Limits the concurrent executions of a specific command for the core.local action.
+enabled: true
+resource_ref: core.local
+policy_type: action.concurrency_by_target
+parameters:
+    threshold: 10
+    target:
+        - cmd
