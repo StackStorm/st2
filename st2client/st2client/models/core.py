@@ -71,8 +71,8 @@ class Resource(object):
         exclude_attributes = exclude_attributes or []
 
         attributes = self.__dict__.keys()
-        attributes = [attr for attr in attributes if not attr.startswith('__')
-                      and attr not in exclude_attributes]
+        attributes = [attr for attr in attributes if not attr.startswith('__') and
+                      attr not in exclude_attributes]
 
         result = {}
         for attribute in attributes:
