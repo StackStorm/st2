@@ -6,11 +6,11 @@ gitpython==0.3.2.1
 jinja2
 jsonschema>=2.3.0
 kombu
-mongoengine>=0.8.7,<0.9
+pymongo<3.0
+mongoengine==0.9.0
 oslo.config
 paramiko
 pecan==0.7.0
-pymongo<3.0
 python-dateutil
 python-json-logger
 pyyaml

@@ -53,7 +53,7 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-SKIPPED = ['id', 'callback', 'action', 'runner_info']
+SKIPPED = ['id', 'callback', 'action', 'runner_info', 'notify']
 
 
 def _decompose_liveaction(liveaction_db):
