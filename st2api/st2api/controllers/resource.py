@@ -188,7 +188,7 @@ class ResourceController(rest.RestController):
         return resource_db
 
 
-class ContentPackResourceControler(ResourceController):
+class ContentPackResourceController(ResourceController):
     include_reference = False
 
     @jsexpose(arg_types=[str])
@@ -221,7 +221,7 @@ class ContentPackResourceControler(ResourceController):
         return result
 
     def _get_all(self, **kwargs):
-        result = super(ContentPackResourceControler, self)._get_all(**kwargs)
+        result = super(ContentPackResourceController, self)._get_all(**kwargs)
 
         if self.include_reference:
             for item in result:

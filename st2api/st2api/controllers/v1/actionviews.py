@@ -86,7 +86,7 @@ class ParametersViewController(RestController):
         return {'parameters': all_params}
 
 
-class OverviewController(resource.ContentPackResourceControler):
+class OverviewController(resource.ContentPackResourceController):
     model = ActionAPI
     access = Action
     supported_filters = {}
@@ -126,7 +126,7 @@ class OverviewController(resource.ContentPackResourceControler):
         return action_api
 
 
-class EntryPointController(resource.ContentPackResourceControler):
+class EntryPointController(resource.ContentPackResourceController):
     model = ActionAPI
     access = Action
 

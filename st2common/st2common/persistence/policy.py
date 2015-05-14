@@ -13,10 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models.core import *         # noqa
-from st2client.models.access import *       # noqa
-from st2client.models.action import *       # noqa
-from st2client.models.datastore import *    # noqa
-from st2client.models.policy import *       # noqa
-from st2client.models.reactor import *      # noqa
-from st2client.models.webhook import *      # noqa
+from st2common.models.db import MongoDBAccess
+from st2common.models.db.policy import PolicyTypeDB, PolicyDB
+from st2common.persistence.base import Access
+
+
+class PolicyType(Access):
+    impl = MongoDBAccess(PolicyTypeDB)
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_by_object(cls, object):
+        # PolicyType name is unique.
+        name = getattr(object, 'name', '')
+        return cls.get_by_name(name)
+
+
+class Policy(Access):
+    impl = MongoDBAccess(PolicyDB)
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
