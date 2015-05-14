@@ -16,6 +16,7 @@
 import mongoengine as me
 
 from st2common import log as logging
+from st2common.constants import pack as pack_constants
 from st2common.models.db import stormbase
 from st2common.models.system import common as common_models
 
@@ -154,6 +155,7 @@ class PolicyDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMixin):
     ref = me.StringField(required=True)
     pack = me.StringField(
         required=False,
+        default=pack_constants.DEFAULT_PACK_NAME,
         unique_with='name',
         help_text='Name of the content pack.')
     description = me.StringField()

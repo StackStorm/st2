@@ -22,7 +22,6 @@ from six.moves import http_client
 
 from st2api.controllers import resource
 from st2common import log as logging
-from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.api.base import jsexpose
@@ -156,16 +155,6 @@ class PolicyController(resource.ContentPackResourceController):
                 POST /policies/
         """
         op = 'POST /policies/'
-
-        if not hasattr(instance, 'enabled'):
-            LOG.debug('%s default unset "enabled" to True.', op)
-            setattr(instance, 'enabled', True)
-        else:
-            instance.enabled = bool(instance.enabled)
-
-        if not hasattr(instance, 'pack'):
-            LOG.debug('%s default unset "pack" to %s.', op, DEFAULT_PACK_NAME)
-            setattr(instance, 'pack', DEFAULT_PACK_NAME)
 
         db_model = self.model.to_model(instance)
         LOG.debug('%s verified object: %s', op, db_model)

@@ -15,6 +15,7 @@
 
 import unittest2
 
+from st2common.constants import pack as pack_constants
 from st2common.models.db.policy import PolicyTypeReference, PolicyTypeDB, PolicyDB
 from st2common.models.system.common import InvalidReferenceError
 from st2common.persistence.policy import PolicyType, Policy
@@ -96,6 +97,8 @@ class PolicyTypeTest(DbModelTestCase):
 
         instance = PolicyTypeDB(name='concurrency',
                                 description='TBD',
+                                enabled=None,
+                                ref=None,
                                 resource_type='action',
                                 module='st2action.policies.concurrency',
                                 parameters=parameters)
@@ -126,9 +129,11 @@ class PolicyTest(DbModelTestCase):
 
     @staticmethod
     def _create_instance():
-        instance = PolicyDB(pack='core',
+        instance = PolicyDB(pack=None,
                             name='local.concurrency',
                             description='TBD',
+                            enabled=None,
+                            ref=None,
                             resource_ref='core.local',
                             policy_type='action.concurrency',
                             parameters={
@@ -141,7 +146,8 @@ class PolicyTest(DbModelTestCase):
         instance = self._create_instance()
 
         defaults = {
-            'ref': 'core.local.concurrency',
+            'pack': pack_constants.DEFAULT_PACK_NAME,
+            'ref': '%s.local.concurrency' % pack_constants.DEFAULT_PACK_NAME,
             'enabled': True
         }
 
