@@ -281,6 +281,48 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(resp.status_int, 400)
         self.assertIn('Unable to convert st2-context', resp.json['faultstring'])
 
+    def test_re_run_success(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (no parameters overrides)
+        data = {}
+        re_run_resp = self.app.post_json('/v1/actionexecutions/%s/re_run' %
+                (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+
+        # Re-run created execution (with parameters overrides)
+        data = {'parameters': {'a': 'val1'}}
+        re_run_resp = self.app.post_json('/v1/actionexecutions/%s/re_run' % (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+
+    def test_re_run_failure_execution_doesnt_exist(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (override parameter with an invalid value)
+        data = {}
+        re_run_resp = self.app.post_json('/v1/actionexecutions/doesntexist/re_run',
+                                         data, expect_errors=True)
+        self.assertEqual(re_run_resp.status_int, 404)
+
+    def test_re_run_failure_parameter_override_invalid_type(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (override parameter with an invalid value)
+        data = {'parameters': {'a': 1000}}
+        re_run_resp = self.app.post_json('/v1/actionexecutions/%s/re_run' % (execution_id),
+                                         data, expect_errors=True)
+        self.assertEqual(re_run_resp.status_int, 400)
+        self.assertIn('1000 is not of type u\'string\'', re_run_resp.json['faultstring'])
+
     @staticmethod
     def _get_actionexecution_id(resp):
         return resp.json['id']
