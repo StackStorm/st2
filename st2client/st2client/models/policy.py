@@ -13,10 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models.core import *         # noqa
-from st2client.models.access import *       # noqa
-from st2client.models.action import *       # noqa
-from st2client.models.datastore import *    # noqa
-from st2client.models.policy import *       # noqa
-from st2client.models.reactor import *      # noqa
-from st2client.models.webhook import *      # noqa
+import logging
+
+from st2client.models import core
+
+
+LOG = logging.getLogger(__name__)
+
+
+class PolicyType(core.Resource):
+    _alias = 'Policy-Type'
+    _display_name = 'Policy type'
+    _plural = 'PolicyTypes'
+    _plural_display_name = 'Policy types'
+    _repr_attributes = ['ref', 'enabled', 'description']
+
+
+class Policy(core.Resource):
+    _plural = 'Policies'
+    _repr_attributes = ['name', 'pack', 'enabled', 'policy_type', 'resource_ref']

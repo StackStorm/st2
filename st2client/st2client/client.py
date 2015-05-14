@@ -73,55 +73,79 @@ class Client(object):
 
         # Instantiate resource managers and assign appropriate API endpoint.
         self.managers = dict()
-        self.managers['Token'] = models.ResourceManager(
-            models.Token, self.endpoints['auth'], cacert=self.cacert, debug=self.debug)
-        self.managers['RunnerType'] = models.ResourceManager(
-            models.RunnerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
         self.managers['Action'] = models.ResourceManager(
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['LiveAction'] = models.ResourceManager(
-            models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['Rule'] = models.ResourceManager(
-            models.Rule, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['Sensor'] = models.ResourceManager(
-            models.Sensor, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['TriggerType'] = models.ResourceManager(
-            models.TriggerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['Trigger'] = models.ResourceManager(
-            models.Trigger, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
         self.managers['KeyValuePair'] = models.ResourceManager(
             models.KeyValuePair, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
+        self.managers['LiveAction'] = models.ResourceManager(
+            models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
+        self.managers['Policy'] = models.ResourceManager(
+            models.Policy, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
+        self.managers['PolicyType'] = models.ResourceManager(
+            models.PolicyType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
+        self.managers['Rule'] = models.ResourceManager(
+            models.Rule, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
+        self.managers['RunnerType'] = models.ResourceManager(
+            models.RunnerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
+        self.managers['Sensor'] = models.ResourceManager(
+            models.Sensor, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
+        self.managers['Token'] = models.ResourceManager(
+            models.Token, self.endpoints['auth'], cacert=self.cacert, debug=self.debug)
+
+        self.managers['TriggerType'] = models.ResourceManager(
+            models.TriggerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
+        self.managers['Trigger'] = models.ResourceManager(
+            models.Trigger, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
         self.managers['Webhook'] = models.ResourceManager(
             models.Webhook, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-
-    @property
-    def tokens(self):
-        return self.managers['Token']
-
-    @property
-    def runners(self):
-        return self.managers['RunnerType']
 
     @property
     def actions(self):
         return self.managers['Action']
 
     @property
+    def keys(self):
+        return self.managers['KeyValuePair']
+
+    @property
     def liveactions(self):
         return self.managers['LiveAction']
+
+    @property
+    def policies(self):
+        return self.managers['Policy']
+
+    @property
+    def policytypes(self):
+        return self.managers['PolicyType']
 
     @property
     def rules(self):
         return self.managers['Rule']
 
     @property
+    def runners(self):
+        return self.managers['RunnerType']
+
+    @property
     def sensors(self):
         return self.managers['Sensor']
 
     @property
-    def triggertypes(self):
-        return self.managers['TriggerType']
+    def tokens(self):
+        return self.managers['Token']
 
     @property
-    def keys(self):
-        return self.managers['KeyValuePair']
+    def triggertypes(self):
+        return self.managers['TriggerType']
