@@ -161,6 +161,8 @@ class TestShell(base.BaseCLITestCase):
     def test_policy(self):
         args_list = [
             ['policy', 'list'],
+            ['policy', 'list', '-p', 'core'],
+            ['policy', 'list', '--pack', 'core'],
             ['policy', 'list', '-r', 'core.local'],
             ['policy', 'list', '--resource-ref', 'core.local'],
             ['policy', 'get', 'abc'],
@@ -173,6 +175,8 @@ class TestShell(base.BaseCLITestCase):
     def test_policy_type(self):
         args_list = [
             ['policy-type', 'list'],
+            ['policy-type', 'list', '-r', 'action'],
+            ['policy-type', 'list', '--resource-type', 'action'],
             ['policy-type', 'get', 'abc']
         ]
         self._validate_parser(args_list)
