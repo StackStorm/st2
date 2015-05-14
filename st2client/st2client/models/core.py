@@ -295,3 +295,20 @@ class ResourceManager(object):
         except:
             pass
         return True
+
+
+class LiveActionResourceManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def re_run(self, execution_id, parameters=None, **kwargs):
+        url = '/%s/%s/re_run' % (self.resource.get_plural_name().lower(), execution_id)
+
+        data = {}
+        if parameters:
+            data['parameters'] = parameters
+
+        response = self.client.post(url, data, **kwargs)
+        if response.status_code != 200:
+            self.handle_error(response)
+
+        instance = self.resource.deserialize(response.json())
+        return instance
