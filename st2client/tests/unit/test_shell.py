@@ -161,6 +161,8 @@ class TestShell(base.BaseCLITestCase):
     def test_policy(self):
         args_list = [
             ['policy', 'list'],
+            ['policy', 'list', '-r', 'core.local'],
+            ['policy', 'list', '--resource-ref', 'core.local'],
             ['policy', 'get', 'abc'],
             ['policy', 'create', '/tmp/policy.json'],
             ['policy', 'update', '123', '/tmp/policy.json'],

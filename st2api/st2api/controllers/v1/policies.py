@@ -140,7 +140,8 @@ class PolicyController(resource.ContentPackResourceController):
     access = Policy
 
     supported_filters = {
-        'pack': 'pack'
+        'pack': 'pack',
+        'resource_ref': 'resource_ref'
     }
 
     query_options = {
