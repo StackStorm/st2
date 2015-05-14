@@ -302,7 +302,6 @@ class TestActionExecutionController(FunctionalTest):
         # Create a new execution
         post_resp = self._do_post(LIVE_ACTION_1)
         self.assertEqual(post_resp.status_int, 201)
-        execution_id = self._get_actionexecution_id(post_resp)
 
         # Re-run created execution (override parameter with an invalid value)
         data = {}
