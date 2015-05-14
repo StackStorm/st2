@@ -18,6 +18,8 @@ in development
 * Update CLI so it displays the error at the top level when using ``run``, ``execution run`` or
   ``execution get`` when executed workflow fails. (improvement)
 * Action trigger now contains execution id as opposed to liveaction id. (bug-fix)
+* Add new API endpoint for re-running an execution (``POST /actionexecutions/<id>/re_run/``).
+  (new-feature)
 
 v0.9.0 - April 29, 2015
 -----------------------
