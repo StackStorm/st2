@@ -83,6 +83,10 @@ class Client(object):
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['LiveAction'] = LiveActionResourceManager(
             models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Policy'] = ResourceManager(
+            models.Policy, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['PolicyType'] = ResourceManager(
+            models.PolicyType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Rule'] = ResourceManager(
             models.Rule, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Sensor'] = ResourceManager(
@@ -97,33 +101,41 @@ class Client(object):
             models.Webhook, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
 
     @property
-    def tokens(self):
-        return self.managers['Token']
-
-    @property
-    def runners(self):
-        return self.managers['RunnerType']
-
-    @property
     def actions(self):
         return self.managers['Action']
+
+    @property
+    def keys(self):
+        return self.managers['KeyValuePair']
 
     @property
     def liveactions(self):
         return self.managers['LiveAction']
 
     @property
+    def policies(self):
+        return self.managers['Policy']
+
+    @property
+    def policytypes(self):
+        return self.managers['PolicyType']
+
+    @property
     def rules(self):
         return self.managers['Rule']
+
+    @property
+    def runners(self):
+        return self.managers['RunnerType']
 
     @property
     def sensors(self):
         return self.managers['Sensor']
 
     @property
-    def triggertypes(self):
-        return self.managers['TriggerType']
+    def tokens(self):
+        return self.managers['Token']
 
     @property
-    def keys(self):
-        return self.managers['KeyValuePair']
+    def triggertypes(self):
+        return self.managers['TriggerType']

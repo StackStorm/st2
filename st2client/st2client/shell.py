@@ -33,17 +33,18 @@ import six
 from st2client import __version__
 from st2client import models
 from st2client.client import Client
-from st2client.commands import resource
 from st2client.commands import access
-from st2client.commands import sensor
-from st2client.commands import trigger
 from st2client.commands import action
 from st2client.commands import datastore
+from st2client.commands import policy
+from st2client.commands import resource
+from st2client.commands import sensor
+from st2client.commands import trigger
 from st2client.commands import webhook
-from st2client.exceptions.operations import OperationFailureException
 from st2client.config_parser import CLIConfigParser
 from st2client.config_parser import ST2_CONFIG_DIRECTORY
 from st2client.config_parser import ST2_CONFIG_PATH
+from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.date import parse as parse_isotime
 from st2client.utils.misc import merge_dicts
 
@@ -162,21 +163,28 @@ class Shell(object):
         self.subparsers = self.parser.add_subparsers()
         self.commands = dict()
 
+        self.commands['action'] = action.ActionBranch(
+            'An activity that happens as a response to the external event.',
+            self, self.subparsers)
+
         self.commands['auth'] = access.TokenCreateCommand(
             models.Token, self, self.subparsers, name='auth')
+
+        self.commands['execution'] = action.ActionExecutionBranch(
+            'An invocation of an action.',
+            self, self.subparsers)
 
         self.commands['key'] = datastore.KeyValuePairBranch(
             'Key value pair is used to store commonly used configuration '
             'for reuse in sensors, actions, and rules.',
             self, self.subparsers)
 
-        self.commands['sensor'] = sensor.SensorBranch(
-            'An adapter which allows you to integrate Stanley with external system ',
+        self.commands['policy'] = policy.PolicyBranch(
+            'Policy that is enforced on a resource.',
             self, self.subparsers)
 
-        self.commands['trigger'] = trigger.TriggerTypeBranch(
-            'An external event that is mapped to a st2 input. It is the '
-            'st2 invocation point.',
+        self.commands['policy-type'] = policy.PolicyTypeBranch(
+            'Type of policy that can be applied to resources.',
             self, self.subparsers)
 
         self.commands['rule'] = resource.ResourceBranch(
@@ -185,17 +193,21 @@ class Shell(object):
             'based on some criteria.',
             self, self.subparsers)
 
-        self.commands['action'] = action.ActionBranch(
-            'An activity that happens as a response to the external event.',
-            self, self.subparsers)
+        self.commands['run'] = action.ActionRunCommand(
+            models.Action, self, self.subparsers, name='run', add_help=False)
+
         self.commands['runner'] = resource.ResourceBranch(
             models.RunnerType,
             'Runner is a type of handler for a specific class of actions.',
             self, self.subparsers, read_only=True)
-        self.commands['run'] = action.ActionRunCommand(
-            models.Action, self, self.subparsers, name='run', add_help=False)
-        self.commands['execution'] = action.ActionExecutionBranch(
-            'An invocation of an action.',
+
+        self.commands['sensor'] = sensor.SensorBranch(
+            'An adapter which allows you to integrate Stanley with external system ',
+            self, self.subparsers)
+
+        self.commands['trigger'] = trigger.TriggerTypeBranch(
+            'An external event that is mapped to a st2 input. It is the '
+            'st2 invocation point.',
             self, self.subparsers)
 
         self.commands['webhook'] = webhook.WebhookBranch(
