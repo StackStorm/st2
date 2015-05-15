@@ -192,6 +192,13 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
     @jsexpose(body_cls=ExecutionParameters, status_code=http_client.CREATED)
     def post(self, execution_parameters, execution_id):
+        """
+        Re-run the provided action execution optionally specifying override parameters.
+
+        Handles requests:
+
+            POST /executions/<id>/re_run
+        """
         parameters = execution_parameters.parameters
 
         # Note: We only really need parameters here
