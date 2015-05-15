@@ -45,6 +45,9 @@ class Resource(object):
     # name specifically when the resource name is composed of multiple words.
     _display_name = None
 
+    # URL path for the resource.
+    _url_path = None
+
     # Plural form of the resource name. This will be used to build the
     # latter part of the REST URL.
     _plural = None
@@ -102,6 +105,13 @@ class Resource(object):
                 if cls._plural_display_name
                 else cls._plural)
 
+    @classmethod
+    def get_url_path_name(cls):
+        if cls._url_path:
+            return cls._url_path
+
+        return cls.get_plural_name().lower()
+
     def serialize(self):
         return dict((k, v)
                     for k, v in six.iteritems(self.__dict__)
@@ -153,7 +163,7 @@ class ResourceManager(object):
     @add_auth_token_to_kwargs_from_env
     def get_all(self, **kwargs):
         # TODO: This is ugly, stop abusing kwargs
-        url = '/%s' % self.resource.get_plural_name().lower()
+        url = '/%s' % self.resource.get_url_path_name()
         limit = kwargs.pop('limit', None)
         pack = kwargs.pop('pack', None)
         prefix = kwargs.pop('prefix', None)
@@ -178,7 +188,7 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def get_by_id(self, id, **kwargs):
-        url = '/%s/%s' % (self.resource.get_plural_name().lower(), id)
+        url = '/%s/%s' % (self.resource.get_url_path_name(), id)
         response = self.client.get(url, **kwargs)
         if response.status_code == 404:
             return None
@@ -198,10 +208,10 @@ class ResourceManager(object):
         if kwargs:
             token = kwargs.pop('token', None)
 
-            url = '/%s/%s/%s/?%s' % (self.resource.get_plural_name().lower(), id_, property_name,
+            url = '/%s/%s/%s/?%s' % (self.resource.get_url_path_name(), id_, property_name,
                                      urllib.parse.urlencode(kwargs))
         else:
-            url = '/%s/%s/%s/' % (self.resource.get_plural_name().lower(), id_, property_name)
+            url = '/%s/%s/%s/' % (self.resource.get_url_path_name(), id_, property_name)
 
         response = self.client.get(url, token=token) if token else self.client.get(url)
 
@@ -230,7 +240,7 @@ class ResourceManager(object):
         for k, v in six.iteritems(kwargs):
             if k != 'token':
                 params[k] = v
-        url = '/%s/?%s' % (self.resource.get_plural_name().lower(),
+        url = '/%s/?%s' % (self.resource.get_url_path_name(),
                            urllib.parse.urlencode(params))
         response = self.client.get(url, token=token) if token else self.client.get(url)
         if response.status_code == 404:
@@ -254,7 +264,7 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def create(self, instance, **kwargs):
-        url = '/%s' % self.resource.get_plural_name().lower()
+        url = '/%s' % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
@@ -263,7 +273,7 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def update(self, instance, **kwargs):
-        url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance.id)
+        url = '/%s/%s' % (self.resource.get_url_path_name(), instance.id)
         response = self.client.put(url, instance.serialize(), **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
@@ -272,7 +282,7 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def delete(self, instance, **kwargs):
-        url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance.id)
+        url = '/%s/%s' % (self.resource.get_url_path_name(), instance.id)
         response = self.client.delete(url, **kwargs)
 
         if response.status_code not in [200, 204, 404]:
@@ -283,7 +293,7 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def delete_by_id(self, instance_id, **kwargs):
-        url = '/%s/%s' % (self.resource.get_plural_name().lower(), instance_id)
+        url = '/%s/%s' % (self.resource.get_url_path_name(), instance_id)
         response = self.client.delete(url, **kwargs)
         if response.status_code not in [200, 204, 404]:
             self.handle_error(response)
@@ -295,3 +305,20 @@ class ResourceManager(object):
         except:
             pass
         return True
+
+
+class LiveActionResourceManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def re_run(self, execution_id, parameters=None, **kwargs):
+        url = '/%s/%s/re_run' % (self.resource.get_url_path_name(), execution_id)
+
+        data = {}
+        if parameters:
+            data['parameters'] = parameters
+
+        response = self.client.post(url, data, **kwargs)
+        if response.status_code != 200:
+            self.handle_error(response)
+
+        instance = self.resource.deserialize(response.json())
+        return instance
