@@ -46,7 +46,8 @@ class RootController(object):
         if 'dev' in __version__:
             docs_url = 'http://docs.stackstorm.com/latest'
         else:
-            docs_url = 'http://docs.stackstorm.com/%s' % (__version__)
+            docs_version = '.'.join(__version__.split('.')[:2])
+            docs_url = 'http://docs.stackstorm.com/%s' % docs_version
 
         data['version'] = __version__
         data['docs_url'] = docs_url
