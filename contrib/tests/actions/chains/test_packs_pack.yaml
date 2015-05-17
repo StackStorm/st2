@@ -57,7 +57,7 @@ chain:
         params:
             env:
               ST2_AUTH_TOKEN: "{{token}}"
-            cmd: "st2 action list --pack {{ pack_to_install_1 }} | grep '{{ pack_to_install_1 }}'"
+            cmd: "st2 action list -j --pack {{ pack_to_install_1 }} | grep '{{ pack_to_install_1 }}'"
         on-success: test_check_pack_to_install_2_installed
         on-failure: error_handler
     -
@@ -66,7 +66,7 @@ chain:
         params:
             env:
               ST2_AUTH_TOKEN: "{{token}}"
-            cmd: "st2 action list --pack {{ pack_to_install_2 }} | grep '{{ pack_to_install_2 }}'"
+            cmd: "st2 action list -j --pack {{ pack_to_install_2 }} | grep '{{ pack_to_install_2 }}'"
         on-success: test_packs_uninstall_multiple_packs
         on-failure: error_handler
     -
@@ -111,7 +111,7 @@ chain:
         params:
             env:
               ST2_AUTH_TOKEN: "{{token}}"
-            cmd: "st2 run packs.setup_virtualenv packs={{ pack_to_install_1 }} | grep 'successfully created'"
+            cmd: "st2 run packs.setup_virtualenv packs={{ pack_to_install_1 }} | grep 'Successfuly set up'"
         on-success: test_packs_load_register_all
         on-failure: error_handler
     -
@@ -120,7 +120,7 @@ chain:
         params:
             env:
               ST2_AUTH_TOKEN: "{{token}}"
-            cmd: "st2 run packs.load register=all | grep -c 'Registered' | grep 3"
+            cmd: "st2 run packs.load register=all | grep -c 'Registered' | grep 4"
         on-success: success_handler
         on-failure: error_handler
     -
