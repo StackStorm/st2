@@ -43,18 +43,21 @@ class BaseSensor(object):
     @abc.abstractmethod
     def add_trigger(self, trigger):
         """
+        Runs when trigger is created 
         """
         pass
 
     @abc.abstractmethod
     def update_trigger(self, trigger):
         """
+        Runs when trigger is updated
         """
         pass
 
     @abc.abstractmethod
     def remove_trigger(self, trigger):
         """
+        Runs when trigger is deleted
         """
         pass
 
