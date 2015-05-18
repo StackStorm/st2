@@ -122,6 +122,7 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     """
     name = me.StringField(required=True)
     ref = me.StringField(required=True)
+    description = me.StringField()
     pack = me.StringField(
         required=False,
         help_text='Name of the content pack.',
