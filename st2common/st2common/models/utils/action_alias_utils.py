@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
+import shlex
 
 from st2common.exceptions import content
 
@@ -122,7 +122,22 @@ class KeyValueActionAliasFormatParser(object):
         self._param_stream = param_stream or ''
 
     def parse(self):
-        result = dict(re.findall(r'([^=\s,]+)=([^=\s,]+)', self._param_stream))
+        result = {}
+
+        try:
+            tokens = shlex.split(self._param_stream)
+        except ValueError:
+            return result
+
+        for token in tokens:
+            split = token.split('=', 1)
+
+            if len(split) != 2:
+                continue
+
+            key, value = split
+
+            result[key] = value
         return result
 
 

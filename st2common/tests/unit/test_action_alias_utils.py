@@ -189,6 +189,34 @@ class TestActionAliasParser(TestCase):
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {'a': 'foobar1', 'b': 'boobar2', 'c': 'coobar3'})
 
+        # Param with quotes, make sure they are stripped
+        alias_format = ''
+        param_stream = 'mixed a="foobar1"'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'foobar1'})
+
+        # Param with quotes, make sure they are stripped
+        alias_format = ''
+        param_stream = 'mixed a="foobar test" ponies a'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'foobar test'})
+
+        # Param with quotes, make sure they are stripped
+        alias_format = ''
+        param_stream = "mixed a='foobar1 ponies' test"
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'foobar1 ponies'})
+
+        # Param with quotes, make sure they are stripped
+        alias_format = ''
+        param_stream = 'mixed a="foobar1"'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'foobar1'})
+
     def testSimpleParsing(self):
         alias_format = 'skip {{a}} more skip {{b}} and skip more.'
         param_stream = 'skip a1 more skip b1 and skip more.'
