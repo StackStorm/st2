@@ -43,7 +43,7 @@ class BaseSensor(object):
     @abc.abstractmethod
     def add_trigger(self, trigger):
         """
-        Runs when trigger is created 
+        Runs when trigger is created
         """
         pass
 
