@@ -14,11 +14,20 @@
 # limitations under the License.
 
 __all__ = [
+    'InvalidReferenceError',
     'InvalidResourceReferenceError',
     'ResourceReference',
 ]
 
 PACK_SEPARATOR = '.'
+
+
+class InvalidReferenceError(ValueError):
+    def __init__(self, ref):
+        message = 'Invalid reference: %s' % (ref)
+        self.ref = ref
+        self.message = message
+        super(InvalidReferenceError, self).__init__(message)
 
 
 class InvalidResourceReferenceError(ValueError):

@@ -9,6 +9,17 @@ in development
 * Add support for caching of the retrieved auth tokens to the CLI. (new-feature)
 * Throw a more-user friendly exception when enforcing a rule if an action referenced inside
   the rule definition doesn't exist. (improvement)
+* Fix a bug with the rule evaluation failing if the trigger payload contained a key with a
+  dot in the name. (bug-fix)
+* Fix a bug with publishing array (list) values as strings inside the action chain workflows.
+  (bug-fix)
+* Throw a HTTP BAD REQUEST when TTL requested for a token is larger than max configured in st2
+  system. (improvement)
+* Update CLI so it displays the error at the top level when using ``run``, ``execution run`` or
+  ``execution get`` when executed workflow fails. (improvement)
+* Action trigger now contains execution id as opposed to liveaction id. (bug-fix)
+* Add new API endpoint for re-running an execution (``POST /executions/<id>/re_run/``).
+  (new-feature)
 
 v0.9.0 - April 29, 2015
 -----------------------

@@ -8,7 +8,7 @@ actions to be run remotely (via SSH) and locally. The objective is to
 allow the Action author to concentrate only on the implementation of the
 action itself rather than setting up the environment.
 
-Local command runner (local-script-cmd)
+Local command runner (local-shell-cmd)
 ---------------------------------------
 
 This is the local runner. This runner executes a Linux command on the same host

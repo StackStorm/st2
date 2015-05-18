@@ -37,6 +37,7 @@ class Action(core.Resource):
 class LiveAction(core.Resource):
     _alias = 'Execution'
     _display_name = 'Action Execution'
+    _url_path = 'executions'
     _plural = 'ActionExecutions'
     _plural_display_name = 'Action executions'
     _repr_attributes = ['status', 'action', 'start_timestamp', 'end_timestamp', 'parameters']

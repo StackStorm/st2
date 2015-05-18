@@ -56,7 +56,7 @@ Once action definition and metadata files are created, load the action:
 Any changes in ActionChain workflow definition are picked up automatically.
 However if you change action metadata (e.g. rename or move , add parameters) - you will have to
 update the action with ``st2 action update <action.ref> <action.metadata.file>```.
-Alternatively, full context reload with ``st2clt reload`` will pick up all the changes.
+Alternatively, full context reload with ``st2ctl reload`` will pick up all the changes.
 
 
 Providing input

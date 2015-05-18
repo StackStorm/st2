@@ -182,7 +182,7 @@ RUNNER_TYPES = [
                 'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
         },
-        'runner_module': 'st2actions.runners.fabricrunner'
+        'runner_module': 'st2actions.runners.remote_command_runner'
     },
     {
         'name': 'remote-shell-script',
@@ -254,7 +254,7 @@ RUNNER_TYPES = [
                 'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
         },
-        'runner_module': 'st2actions.runners.fabricrunner'
+        'runner_module': 'st2actions.runners.remote_script_runner'
     },
     {
         'name': 'http-request',
@@ -348,7 +348,13 @@ RUNNER_TYPES = [
         'aliases': [],
         'description': 'A runner for launching linear action chains.',
         'enabled': True,
-        'runner_parameters': {},
+        'runner_parameters': {
+            'skip_notify': {
+                'description': 'Comma separated list of tasks to skip notifications for.',
+                'type': 'array',
+                'default': []
+            }
+        },
         'runner_module': 'st2actions.runners.actionchainrunner'
     },
     {

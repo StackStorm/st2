@@ -119,6 +119,8 @@ class ActionChainRunner(ActionRunner):
         self.chain_holder = None
         self._meta_loader = MetaLoader()
         self._stopped = False
+        self._skip_notify_tasks = []
+        self._chain_notify = None
 
     def pre_run(self):
         chainspec_file = self.entry_point
@@ -140,6 +142,13 @@ class ActionChainRunner(ActionRunner):
             message = e.message or str(e)
             LOG.exception('Failed to instantiate ActionChain.')
             raise runnerexceptions.ActionRunnerPreRunError(message)
+
+        # Runner attributes are set lazily. So these steps
+        # should happen outside the constructor.
+        if getattr(self, 'liveaction', None):
+            self._chain_notify = getattr(self.liveaction, 'notify', None)
+        if self.runner_parameters:
+            self._skip_notify_tasks = self.runner_parameters.get('skip_notify', [])
 
     def run(self, action_parameters):
         result = {'tasks': []}  # holds final result we store
@@ -325,8 +334,12 @@ class ActionChainRunner(ActionRunner):
         liveaction = LiveActionDB(action=action_node.ref)
         liveaction.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
                                                                params=params)
-        if action_node.notify:
-            liveaction.notify = NotificationsHelper.to_model(action_node.notify)
+
+        # Setup notify for task in chain.
+        notify = self._get_notify(action_node)
+        if notify:
+            liveaction.notify = notify
+            LOG.debug('%s: Task notify set to: %s', action_node.name, liveaction.notify)
 
         liveaction.context = {
             'parent': str(parent_execution_id),
@@ -342,6 +355,16 @@ class ActionChainRunner(ActionRunner):
             liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
 
         return liveaction
+
+    def _get_notify(self, action_node):
+        if action_node.name not in self._skip_notify_tasks:
+            if action_node.notify:
+                task_notify = NotificationsHelper.to_model(action_node.notify)
+                return task_notify
+            elif self._chain_notify:
+                return self._chain_notify
+
+        return None
 
     def _format_action_exec_result(self, action_node, liveaction_db, created_at, updated_at,
                                    error=None):

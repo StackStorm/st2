@@ -27,3 +27,7 @@ class TokenNotFoundError(StackStormDBObjectNotFoundError):
 
 class TokenExpiredError(StackStormBaseException):
     pass
+
+
+class TTLTooLargeException(StackStormBaseException):
+    pass

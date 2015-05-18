@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import datetime
-
+import mock
 import unittest2
 
 import st2tests.config as tests_config
@@ -24,10 +24,12 @@ from st2actions.notifier import Notifier
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.db.action import LiveActionDB, NotificationSchema
 from st2common.models.db.action import NotificationSubSchema
+from st2common.persistence.action import Action
 from st2common.models.system.common import ResourceReference
 
 ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][0]
 NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][1]
+MOCK_EXECUTION_ID = '287r8383t5BDSVBNVDNBVD'
 
 
 class NotifierTestCase(unittest2.TestCase):
@@ -51,22 +53,32 @@ class NotifierTestCase(unittest2.TestCase):
                 if args[0] == self.notify_trigger:
                     self.tester.assertEqual(payload['status'], 'succeeded')
                     self.tester.assertTrue('execution_id' in payload)
+                    self.tester.assertEqual(payload['execution_id'], MOCK_EXECUTION_ID)
                     self.tester.assertTrue('start_timestamp' in payload)
                     self.tester.assertTrue('end_timestamp' in payload)
                     self.tester.assertEqual('core.local', payload['action_ref'])
                     self.tester.assertEqual('Action succeeded.', payload['message'])
                     self.tester.assertTrue('data' in payload)
+                    self.tester.assertTrue('run-local-cmd', payload['runner_ref'])
 
                 if args[0] == self.action_trigger:
                     self.tester.assertEqual(payload['status'], 'succeeded')
                     self.tester.assertTrue('execution_id' in payload)
+                    self.tester.assertEqual(payload['execution_id'], MOCK_EXECUTION_ID)
                     self.tester.assertTrue('start_timestamp' in payload)
                     self.tester.assertEqual('core.local', payload['action_name'])
+                    self.tester.assertEqual('core.local', payload['action_ref'])
                     self.tester.assertTrue('result' in payload)
                     self.tester.assertTrue('parameters' in payload)
+                    self.tester.assertTrue('run-local-cmd', payload['runner_ref'])
+
             except Exception:
                 self.tester.fail('Test failed')
 
+    @mock.patch.object(Action, 'get_by_ref', mock.MagicMock(
+        return_value={'runner_type': {'name': 'run-local-cmd'}}))
+    @mock.patch.object(Notifier, '_get_execution_id', mock.MagicMock(
+        return_value=MOCK_EXECUTION_ID))
     def test_notify_triggers(self):
         liveaction = LiveActionDB(action='core.local')
         liveaction.description = ''

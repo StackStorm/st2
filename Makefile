@@ -90,7 +90,7 @@ pylint: requirements .pylint
 		echo "==========================================================="; \
 		echo "Running pylint on" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models $$component/$$component; \
+		. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models $$component/$$component || exit 1; \
 	done
 
 .PHONY: flake8

@@ -1,0 +1,9 @@
+---
+name: local.concurrency
+pack: core
+description: Limits the concurrent executions for the core.local action.
+enabled: true
+resource_ref: core.local
+policy_type: action.concurrency
+parameters:
+    threshold: 25
