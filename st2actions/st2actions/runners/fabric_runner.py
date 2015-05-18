@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import os
-import uuid
+import abc
 
 from fabric.api import (env, execute)
 from oslo.config import cfg
@@ -27,7 +27,6 @@ from st2common.exceptions.actionrunner import ActionRunnerPreRunError
 from st2common.exceptions.fabricrunner import FabricExecutionFailureException
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
-from st2common.models.system.action import (FabricRemoteAction, FabricRemoteScriptAction)
 
 # Replace with container call to get logger.
 LOG = logging.getLogger(__name__)
@@ -66,18 +65,11 @@ RUNNER_ENV = 'env'
 RUNNER_KWARG_OP = 'kwarg_op'
 RUNNER_TIMEOUT = 'timeout'
 
-# Other constants
-CMD_RUNNER_NAMES = ['remote-shell-cmd', 'run-remote']
-SCRIPT_RUNNER_NAMES = ['remote-shell-script', 'run-remote-script']
 
-
-def get_runner():
-    return FabricRunner(str(uuid.uuid4()))
-
-
-class FabricRunner(ActionRunner, ShellRunnerMixin):
+@six.add_metaclass(abc.ABCMeta)
+class BaseFabricRunner(ActionRunner, ShellRunnerMixin):
     def __init__(self, runner_id):
-        super(FabricRunner, self).__init__(runner_id=runner_id)
+        super(BaseFabricRunner, self).__init__(runner_id=runner_id)
         self._hosts = None
         self._parallel = True
         self._sudo = False
@@ -116,28 +108,6 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
         LOG.info('[FabricRunner="%s", liveaction_id="%s"] Finished pre_run.',
                  self.runner_id, self.liveaction_id)
 
-    def run(self, action_parameters):
-        LOG.debug('    action_parameters = %s', action_parameters)
-
-        runner_type = self.action.runner_type['name']
-
-        if runner_type in SCRIPT_RUNNER_NAMES:
-            remote_action = self._get_fabric_remote_script_action(action_parameters)
-        elif runner_type in CMD_RUNNER_NAMES:
-            remote_action = self._get_fabric_remote_action(action_parameters)
-        else:
-            raise Exception('Invalid runner: %s' % (runner_type))
-
-        LOG.debug('Will execute remote_action : %s.', str(remote_action))
-        result = self._run(remote_action)
-        LOG.debug('Executed remote_action : %s. Result is : %s.', remote_action, result)
-        status = FabricRunner._get_result_status(
-            result, cfg.CONF.ssh_runner.allow_partial_failure)
-
-        # TODO (manas) : figure out the right boolean representation.
-        self._log_action_completion(logger=LOG, result=result, status=status)
-        return (status, result, None)
-
     def _run(self, remote_action):
         LOG.info('Executing action via FabricRunner :%s for user: %s.',
                  self.runner_id, remote_action.get_on_behalf_user())
@@ -148,56 +118,6 @@ class FabricRunner(ActionRunner, ShellRunnerMixin):
                  remote_action.is_sudo())
         results = execute(remote_action.get_fabric_task(), hosts=remote_action.hosts)
         return results
-
-    def _get_fabric_remote_action(self, action_paramaters):
-        command = self.runner_parameters.get(RUNNER_COMMAND, None)
-        env_vars = self._get_env_vars()
-        return FabricRemoteAction(self.action_name,
-                                  str(self.liveaction_id),
-                                  command,
-                                  env_vars=env_vars,
-                                  on_behalf_user=self._on_behalf_user,
-                                  user=self._username,
-                                  password=self._password,
-                                  private_key=self._private_key,
-                                  hosts=self._hosts,
-                                  parallel=self._parallel,
-                                  sudo=self._sudo,
-                                  timeout=self._timeout,
-                                  cwd=self._cwd)
-
-    def _get_fabric_remote_script_action(self, action_parameters):
-        # remote script actions without entry_point don't make sense, user probably wanted to use
-        # "run-remote" action
-        if not self.entry_point:
-            msg = ('Action "%s" is missing entry_point attribute. Perhaps wanted to use '
-                   '"run-remote" runner?')
-            raise Exception(msg % (self.action_name))
-
-        script_local_path_abs = self.entry_point
-        pos_args, named_args = self._get_script_args(action_parameters)
-        named_args = self._transform_named_args(named_args)
-        env_vars = self._get_env_vars()
-        remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
-                                                cfg.CONF.ssh_runner.remote_dir)
-        remote_dir = os.path.join(remote_dir, self.liveaction_id)
-        return FabricRemoteScriptAction(self.action_name,
-                                        str(self.liveaction_id),
-                                        script_local_path_abs,
-                                        self.libs_dir_path,
-                                        named_args=named_args,
-                                        positional_args=pos_args,
-                                        env_vars=env_vars,
-                                        on_behalf_user=self._on_behalf_user,
-                                        user=self._username,
-                                        password=self._password,
-                                        private_key=self._private_key,
-                                        remote_dir=remote_dir,
-                                        hosts=self._hosts,
-                                        parallel=self._parallel,
-                                        sudo=self._sudo,
-                                        timeout=self._timeout,
-                                        cwd=self._cwd)
 
     def _get_env_vars(self):
         """
