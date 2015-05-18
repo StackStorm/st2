@@ -183,6 +183,35 @@ class TestActionAliasParser(TestCase):
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {'a': '{"a": "b", "c": "d"}', 'b': 'x'})
 
+    def test_mixed_parsing_with_default_values(self):
+        # All default values
+        alias_format = '!foo a={{ a=None }} b={{ b=10 }} c={{ c=foo }}'
+        param_stream = '!foo'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': None, 'b': '10', 'c': 'foo'})
+
+        # a provided
+        alias_format = '!foo a={{ a=None }} b={{ b=10 }} c={{ c=foo }}'
+        param_stream = '!foo a=ponies'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'ponies', 'b': '10', 'c': 'foo'})
+
+        # b provided
+        alias_format = '!foo a={{ a=None }} b={{ b=10 }} c={{ c=foo }}'
+        param_stream = '!foo b=20'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': None, 'b': '20', 'c': 'foo'})
+
+        # All values provided
+        alias_format = '!foo a={{ a=None }} b={{ b=10 }} c={{ c=foo }}'
+        param_stream = '!foo a=ponies b=5 c=bar'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'ponies', 'b': '5', 'c': 'bar'})
+
     def test_stream_is_none_with_all_default_values(self):
         alias_format = 'skip {{d=test}} more skip {{e=test}}.'
         param_stream = None
