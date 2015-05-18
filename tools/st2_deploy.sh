@@ -457,6 +457,12 @@ deploy_deb() {
   popd
 }
 
+migrate_rules() {
+  echo "###########################################################################################"
+  echo "# Migrating rules (pack inclusion)."
+  $PYTHON ${PYTHONPACK}/st2common/bin/migrate_rules_to_include_pack.py
+}
+
 register_content() {
   echo "###########################################################################################"
   echo "# Registering all content"
@@ -560,6 +566,9 @@ if [ ${INSTALL_WEBUI} == "1" ]; then
     install_webui
 fi
 
+if version_ge $VER "0.9"; then
+  migrate_rules
+fi
 register_content
 echo "###########################################################################################"
 echo "# Starting St2 Services"

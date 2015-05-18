@@ -109,23 +109,26 @@ class RuleWithPack(ContentPackResource):
 
 
 def migrate_rules():
-    existing_rules = RuleWithoutPack.get_all()
+    try:
+        existing_rules = RuleWithoutPack.get_all()
 
-    for rule in existing_rules:
-        rule_with_pack = Migration.RuleDB(
-            id=rule.id,
-            name=rule.name,
-            description=rule.description,
-            trigger=rule.trigger,
-            criteria=rule.criteria,
-            action=rule.action,
-            enabled=rule.enabled,
-            pack=DEFAULT_PACK_NAME,
-            ref=ResourceReference.to_string_reference(pack=DEFAULT_PACK_NAME,
-                                                      name=rule.name)
-        )
-        print('Migrating rule: %s to rule: %s' % (rule.name, rule_with_pack.ref))
-        RuleWithPack.add_or_update(rule_with_pack)
+        for rule in existing_rules:
+            rule_with_pack = Migration.RuleDB(
+                id=rule.id,
+                name=rule.name,
+                description=rule.description,
+                trigger=rule.trigger,
+                criteria=rule.criteria,
+                action=rule.action,
+                enabled=rule.enabled,
+                pack=DEFAULT_PACK_NAME,
+                ref=ResourceReference.to_string_reference(pack=DEFAULT_PACK_NAME,
+                                                          name=rule.name)
+            )
+            print('Migrating rule: %s to rule: %s' % (rule.name, rule_with_pack.ref))
+            RuleWithPack.add_or_update(rule_with_pack)
+    except Exception as e:
+        print('Migration failed. %s' % str(e))
 
 
 def main():
