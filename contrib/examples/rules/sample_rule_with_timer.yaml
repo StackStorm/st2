@@ -6,7 +6,7 @@ action:
 criteria: {}
 description: Sample rule using an Interval Timer.
 enabled: false
-name: sample_with_timer
+name: sample.with_timer
 pack: "examples"
 trigger:
   parameters:
