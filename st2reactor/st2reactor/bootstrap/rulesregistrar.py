@@ -19,6 +19,7 @@ import six
 
 from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
+from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.rule import RuleAPI
 from st2common.models.system.common import ResourceReference
@@ -103,12 +104,31 @@ class RulesRegistrar(ResourceRegistrar):
                 rule_api.validate()
                 rule_db = RuleAPI.to_model(rule_api)
 
+                # Migration from rule without pack to rule with pack.
+                # There might be a rule with same name but in pack `default`
+                # generated in migration script. In this case, we want to
+                # delete so we don't have duplicates.
+                if pack_field != DEFAULT_PACK_NAME:
+                    try:
+                        rule_ref = ResourceReference.to_string_reference(name=content['name'],
+                                                                         pack=DEFAULT_PACK_NAME)
+                        LOG.debug('Looking for rule %s in pack %s', content['name'],
+                                  DEFAULT_PACK_NAME)
+                        existing = Rule.get_by_ref(rule_ref)
+                        LOG.debug('Existing = %s', existing)
+                        if existing:
+                            LOG.debug('Found rule in pack default: %s; Deleting.', rule_ref)
+                            Rule.delete(existing)
+                    except:
+                        LOG.exception('Exception deleting rule from %s pack.', DEFAULT_PACK_NAME)
+
                 try:
                     rule_ref = ResourceReference.to_string_reference(name=content['name'],
                                                                      pack=content['pack'])
                     existing = Rule.get_by_ref(rule_ref)
                     if existing:
                         rule_db.id = existing.id
+                        LOG.debug('Found existing rule: %s with id: %s', rule_ref, existing.id)
                 except ValueError:
                     LOG.debug('Rule %s not found. Creating new one.', rule)
 
