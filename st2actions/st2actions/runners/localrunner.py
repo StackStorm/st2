@@ -54,7 +54,7 @@ RUNNER_TIMEOUT = 'timeout'
 def get_runner():
     return LocalShellRunner(str(uuid.uuid4()))
 
-""" change to CloudSlangRunner ? """
+
 class LocalShellRunner(ActionRunner, ShellRunnerMixin):
     """
     Runner which executes actions locally using the user under which the action runner service is
