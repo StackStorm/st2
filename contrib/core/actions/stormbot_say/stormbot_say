@@ -21,12 +21,6 @@ import requests
 
 from st2client.client import Client
 
-st2_endpoints = {
-    'action': 'http://localhost:9101',
-    'reactor': 'http://localhost:9101',
-    'datastore': 'http://localhost:9101'
-}
-
 def get_required_key(client, key_name) :
     key = client.keys.get_by_name(key_name)
 
@@ -40,7 +34,7 @@ def get_required_key(client, key_name) :
     return value
 
 try:
-  client = Client(st2_endpoints)
+  client = Client()
   bot_host = get_required_key(client, 'bot_host')
   bot_port = get_required_key(client, 'bot_port')
   bot_endpoint = get_required_key(client, 'bot_endpoint')
