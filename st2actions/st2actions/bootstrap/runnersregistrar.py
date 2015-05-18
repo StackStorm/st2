@@ -182,7 +182,7 @@ RUNNER_TYPES = [
                 'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
         },
-        'runner_module': 'st2actions.runners.fabricrunner'
+        'runner_module': 'st2actions.runners.remote_command_runner'
     },
     {
         'name': 'remote-shell-script',
@@ -254,7 +254,7 @@ RUNNER_TYPES = [
                 'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
         },
-        'runner_module': 'st2actions.runners.fabricrunner'
+        'runner_module': 'st2actions.runners.remote_script_runner'
     },
     {
         'name': 'http-request',
