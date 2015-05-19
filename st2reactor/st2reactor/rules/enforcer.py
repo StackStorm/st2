@@ -33,7 +33,14 @@ class RuleEnforcer(object):
     def __init__(self, trigger_instance, rule):
         self.trigger_instance = trigger_instance
         self.rule = rule
-        self.data_transformer = get_transformer(trigger_instance.payload)
+
+        try:
+            self.data_transformer = get_transformer(trigger_instance.payload)
+        except Exception as e:
+            message = ('Failed to template-ize trigger payload: %s. If the payload contains'
+                       'special characters such as "{{" which dont\'t reference value in '
+                       'a datastore, those characters need to be escaped' % (str(e)))
+            raise ValueError(message)
 
     def enforce(self):
         # TODO: Refactor this to avoid additiona lookup in cast_params
