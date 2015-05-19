@@ -452,6 +452,11 @@ class AliasExecutionAPI(BaseAPI):
                 "description": "Name of the action alias.",
                 "required": True
             },
+            "arguments":{
+                "type": "string",
+                "description": "Command (action alias) arguments",
+                "required": False
+            },
             "user": {
                 "type": "string",
                 "description": "User that requested the execution.",

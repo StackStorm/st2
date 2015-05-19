@@ -37,11 +37,12 @@ class ActionAliasExecutionController(rest.RestController):
 
     @jsexpose(body_cls=AliasExecutionAPI, status_code=http_client.OK)
     def post(self, payload):
-        alias_execution = payload.command if payload else None
-        if not alias_execution:
+        action_alias_name = payload.command if payload else None
+
+        if not action_alias_name:
             pecan.abort(http_client.BAD_REQUEST, 'Alias execution command should no non-empty.')
 
-        action_alias_name, leftover = self._tokenize_alias_execution(alias_execution)
+        arguments = payload.arguments or ''
 
         try:
             action_alias_db = ActionAlias.get_by_name(action_alias_name)
@@ -53,7 +54,7 @@ class ActionAliasExecutionController(rest.RestController):
             pecan.abort(http_client.NOT_FOUND, msg)
 
         execution_parameters = self._extract_parameters(action_alias_db=action_alias_db,
-                                                        param_stream=leftover)
+                                                        param_stream=arguments)
         notify = self._get_notify_field(payload)
         execution = self._schedule_execution(action_alias_db=action_alias_db,
                                              params=execution_parameters,
