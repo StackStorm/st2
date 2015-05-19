@@ -190,15 +190,15 @@ class ActionAliasFormatParser(object):
     def get_extracted_param_value(self):
         result = {}
 
-        # First extract key=value params provided in the param string
+        # First extract format params provided in the string (if any)
+        format_params = {name: value for name, value in self}
+        result.update(format_params)
+
+        # Second extract key=value params provided in the param string
         kv_parser = KeyValueActionAliasFormatParser(alias_format=self._format,
                                                     param_stream=self._param_stream)
         kv_params = kv_parser.parse()
         result.update(kv_params)
-
-        # Second extract params using the defined param formats
-        other_params = {name: value for name, value in self}
-        result.update(other_params)
 
         return result
 
