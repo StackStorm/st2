@@ -41,6 +41,7 @@ from st2client.commands import resource
 from st2client.commands import sensor
 from st2client.commands import trigger
 from st2client.commands import webhook
+from st2client.commands import rule
 from st2client.config_parser import CLIConfigParser
 from st2client.config_parser import ST2_CONFIG_DIRECTORY
 from st2client.config_parser import ST2_CONFIG_PATH
@@ -187,8 +188,7 @@ class Shell(object):
             'Type of policy that can be applied to resources.',
             self, self.subparsers)
 
-        self.commands['rule'] = resource.ResourceBranch(
-            models.Rule,
+        self.commands['rule'] = rule.RuleBranch(
             'A specification to invoke an "action" on a "trigger" selectively '
             'based on some criteria.',
             self, self.subparsers)

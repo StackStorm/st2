@@ -68,15 +68,9 @@ class TriggerInstance(Access):
         return cls.impl
 
 
-class Rule(Access):
+class Rule(ContentPackResource):
     impl = rule_access
 
     @classmethod
     def _get_impl(cls):
         return cls.impl
-
-    @classmethod
-    def _get_by_object(cls, object):
-        # For Rule name is unique.
-        name = getattr(object, 'name', '')
-        return cls.get_by_name(name)

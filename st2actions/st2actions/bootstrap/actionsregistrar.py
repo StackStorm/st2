@@ -90,7 +90,7 @@ class ActionsRegistrar(ResourceRegistrar):
         return registered_count
 
     def _get_actions_from_pack(self, actions_dir):
-        actions = self._get_resources_from_pack(resources_dir=actions_dir)
+        actions = self.get_resources_from_pack(resources_dir=actions_dir)
 
         # Exclude global actions configuration file
         config_files = ['actions/config' + ext for ext in self.ALLOWED_EXTENSIONS]

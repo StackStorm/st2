@@ -14,6 +14,7 @@ Rules are defined in YAML; JSON is supported for backward compatibility. Rule de
 
     ---
         name: "rule_name"                      # required
+        pack: "examples"                       # optional
         description: "Rule description."       # optional
         enabled: true                          # required
 
@@ -37,6 +38,7 @@ Rules are defined in YAML; JSON is supported for backward compatibility. Rule de
 The generic form of a rule is:
 
 * The ``name`` of the rule.
+* The ``pack`` that the rule belongs to. `default` is assumed if a pack is not specified.
 * The ``description`` of the rule
 * The ``enabled`` state of a rule (``true`` or ``false``)
 * The type of ``trigger`` emitted from sensors to monitor, which may consist of:
@@ -299,6 +301,7 @@ my_rule.yaml:
 
     ---
       name: "relayed_matched_irc_message"
+      pack: "irc"
       description: "Relay IRC message to Slack if the message contains word StackStorm"
       enabled: true
 

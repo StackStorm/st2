@@ -9,6 +9,7 @@ criteria:
     type: equals
 enabled: true
 name: st2.person.joe
+pack: executions
 trigger:
   parameters:
     url: person

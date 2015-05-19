@@ -11,6 +11,7 @@ criteria:
 description: ''
 enabled: true
 name: rule1
+pack: wolfpack
 tags:
 - name: tag1
   value: dont-care

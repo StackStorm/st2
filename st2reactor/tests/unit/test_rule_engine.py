@@ -138,6 +138,7 @@ class RuleEngineTest(DbTestCase):
         RULE_1 = {
             'enabled': True,
             'name': 'st2.test.rule1',
+            'pack': 'sixpack',
             'trigger': {
                 'type': 'dummy_pack_1.st2.test.trigger1'
             },
@@ -165,6 +166,7 @@ class RuleEngineTest(DbTestCase):
         RULE_2 = {                      # Rule should match.
             'enabled': True,
             'name': 'st2.test.rule2',
+            'pack': 'sixpack',
             'trigger': {
                 'type': 'dummy_pack_1.st2.test.trigger1'
             },
@@ -192,6 +194,7 @@ class RuleEngineTest(DbTestCase):
         RULE_3 = {
             'enabled': False,         # Disabled rule shouldn't match.
             'name': 'st2.test.rule3',
+            'pack': 'sixpack',
             'trigger': {
                 'type': 'dummy_pack_1.st2.test.trigger1'
             },
@@ -220,6 +223,7 @@ class RuleEngineTest(DbTestCase):
         RULE_4 = {
             'enabled': True,
             'name': 'st2.test.rule4',
+            'pack': 'sixpack',
             'trigger': {
                 'type': 'dummy_pack_1.st2.test.trigger2'
             },

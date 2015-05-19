@@ -33,8 +33,9 @@ LOG = logging.getLogger(__name__)
 
 RULE = {
     'id': uuid.uuid4().hex,
+    'description': 'i am THE rule.',
     'name': 'drule',
-    'description': 'i am THE rule.'
+    'pack': 'cli',
 }
 
 
@@ -131,25 +132,26 @@ class TestAuthToken(base.BaseCLITestCase):
 
     @mock.patch.object(
         requests, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([RULE]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
     def test_decorate_resource_get(self):
-        url = 'http://localhost:9101/v1/rules/?name=%s' % RULE['name']
+        rule_ref = '%s.%s' % (RULE['pack'], RULE['name'])
+        url = 'http://localhost:9101/v1/rules/%s' % rule_ref
 
         # Test without token.
-        self.shell.run(['rule', 'get', RULE['name']])
+        self.shell.run(['rule', 'get', rule_ref])
         kwargs = {}
         requests.get.assert_called_with(url, **kwargs)
 
         # Test with token from cli.
         token = uuid.uuid4().hex
-        self.shell.run(['rule', 'get', RULE['name'], '-t', token])
+        self.shell.run(['rule', 'get', rule_ref, '-t', token])
         kwargs = {'headers': {'X-Auth-Token': token}}
         requests.get.assert_called_with(url, **kwargs)
 
         # Test with token from env.
         token = uuid.uuid4().hex
         os.environ['ST2_AUTH_TOKEN'] = token
-        self.shell.run(['rule', 'get', RULE['name']])
+        self.shell.run(['rule', 'get', rule_ref])
         kwargs = {'headers': {'X-Auth-Token': token}}
         requests.get.assert_called_with(url, **kwargs)
 
@@ -188,14 +190,16 @@ class TestAuthToken(base.BaseCLITestCase):
 
     @mock.patch.object(
         requests, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([RULE]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
     @mock.patch.object(
         requests, 'put',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
     def test_decorate_resource_put(self):
-        get_url = 'http://localhost:9101/v1/rules/?name=%s' % RULE['name']
+        rule_ref = '%s.%s' % (RULE['pack'], RULE['name'])
+
+        get_url = 'http://localhost:9101/v1/rules/%s' % rule_ref
         put_url = 'http://localhost:9101/v1/rules/%s' % RULE['id']
-        data = {'name': RULE['name'], 'description': RULE['description']}
+        data = {'name': RULE['name'], 'description': RULE['description'], 'pack': RULE['pack']}
 
         fd, path = tempfile.mkstemp(suffix='.json')
         try:
@@ -203,7 +207,7 @@ class TestAuthToken(base.BaseCLITestCase):
                 f.write(json.dumps(data, indent=4))
 
             # Test without token.
-            self.shell.run(['rule', 'update', RULE['name'], path])
+            self.shell.run(['rule', 'update', rule_ref, path])
             kwargs = {}
             requests.get.assert_called_with(get_url, **kwargs)
             kwargs = {'headers': {'content-type': 'application/json'}}
@@ -211,7 +215,7 @@ class TestAuthToken(base.BaseCLITestCase):
 
             # Test with token from cli.
             token = uuid.uuid4().hex
-            self.shell.run(['rule', 'update', RULE['name'], path, '-t', token])
+            self.shell.run(['rule', 'update', rule_ref, path, '-t', token])
             kwargs = {'headers': {'X-Auth-Token': token}}
             requests.get.assert_called_with(get_url, **kwargs)
             kwargs = {'headers': {'content-type': 'application/json', 'X-Auth-Token': token}}
@@ -220,7 +224,7 @@ class TestAuthToken(base.BaseCLITestCase):
             # Test with token from env.
             token = uuid.uuid4().hex
             os.environ['ST2_AUTH_TOKEN'] = token
-            self.shell.run(['rule', 'update', RULE['name'], path])
+            self.shell.run(['rule', 'update', rule_ref, path])
             kwargs = {'headers': {'X-Auth-Token': token}}
             requests.get.assert_called_with(get_url, **kwargs)
             kwargs = {'headers': {'content-type': 'application/json', 'X-Auth-Token': token}}
@@ -231,23 +235,24 @@ class TestAuthToken(base.BaseCLITestCase):
 
     @mock.patch.object(
         requests, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([RULE]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
     @mock.patch.object(
         requests, 'delete',
         mock.MagicMock(return_value=base.FakeResponse('', 204, 'OK')))
     def test_decorate_resource_delete(self):
-        get_url = 'http://localhost:9101/v1/rules/?name=%s' % RULE['name']
+        rule_ref = '%s.%s' % (RULE['pack'], RULE['name'])
+        get_url = 'http://localhost:9101/v1/rules/%s' % rule_ref
         del_url = 'http://localhost:9101/v1/rules/%s' % RULE['id']
 
         # Test without token.
-        self.shell.run(['rule', 'delete', RULE['name']])
+        self.shell.run(['rule', 'delete', rule_ref])
         kwargs = {}
         requests.get.assert_called_with(get_url, **kwargs)
         requests.delete.assert_called_with(del_url, **kwargs)
 
         # Test with token from cli.
         token = uuid.uuid4().hex
-        self.shell.run(['rule', 'delete', RULE['name'], '-t', token])
+        self.shell.run(['rule', 'delete', rule_ref, '-t', token])
         kwargs = {'headers': {'X-Auth-Token': token}}
         requests.get.assert_called_with(get_url, **kwargs)
         requests.delete.assert_called_with(del_url, **kwargs)
@@ -255,7 +260,7 @@ class TestAuthToken(base.BaseCLITestCase):
         # Test with token from env.
         token = uuid.uuid4().hex
         os.environ['ST2_AUTH_TOKEN'] = token
-        self.shell.run(['rule', 'delete', RULE['name']])
+        self.shell.run(['rule', 'delete', rule_ref])
         kwargs = {'headers': {'X-Auth-Token': token}}
         requests.get.assert_called_with(get_url, **kwargs)
         requests.delete.assert_called_with(del_url, **kwargs)

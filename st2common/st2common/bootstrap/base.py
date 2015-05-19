@@ -30,7 +30,7 @@ class ResourceRegistrar(object):
         self._meta_loader = MetaLoader()
         self._pack_loader = ContentPackLoader()
 
-    def _get_resources_from_pack(self, resources_dir):
+    def get_resources_from_pack(self, resources_dir):
         resources = []
         for ext in self.ALLOWED_EXTENSIONS:
             resources_glob = resources_dir

@@ -1,5 +1,6 @@
 ---
     name: "sample.on_actiontrigger"
+    pack: "examples"
     description: "Sample rule firing on action completion."
     enabled: true
 
