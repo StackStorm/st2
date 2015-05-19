@@ -84,7 +84,7 @@ class RulesRegistrar(ResourceRegistrar):
         return registered_count
 
     def _get_rules_from_pack(self, rules_dir):
-        return self._get_resources_from_pack(resources_dir=rules_dir)
+        return self.get_resources_from_pack(resources_dir=rules_dir)
 
     def _register_rules_from_pack(self, pack, rules):
         registered_count = 0
