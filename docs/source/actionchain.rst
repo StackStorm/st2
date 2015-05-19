@@ -91,19 +91,6 @@ The input parameter ``input1`` can now be referenced in the parameters field of 
 by `Jinja templating <http://jinja.pocoo.org/docs/dev/templates/>`__.
 Similar constructs are also used in :doc:`Rule </rules>` criteria and action fields.
 
-Data passing
-~~~~~~~~~~~~
-
-Similar to how input to an ActionChain can be referenced in a task; the output of previous tasks can also be referenced. Below is a version of the previously seen `echochain`, :github_st2:`echochain_param.yaml <contrib/examples/actions/chains/echochain_param.yaml>` with input and data passing down the flow:
-
-.. literalinclude:: /../../contrib/examples/actions/chains/echochain_param.yaml
-   :language: yaml
-
-Details:
-
-* Output of a task is always prefixed by task name. e.g. In ``{"cmd":"echo c2 {{c1.stdout}}"}`` ``c1.stdout`` refers to the output of 'c1' and further drills down into properties of the output. The reference point is the ``result`` field of ``action execution`` object.
-* A special ``__results`` key provides access to the entire result of the whole chain upto that point of execution.
-
 Variables
 ~~~~~~~~~
 
@@ -131,6 +118,96 @@ The :github_st2:`publish_data.yaml <contrib/examples/actions/chains/publish_data
 .. literalinclude:: /../../contrib/examples/actions/chains/publish_data.yaml
    :language: yaml
    :lines: 1-29
+
+Passing data between worklows tasks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Similar to how input to an ActionChain can be referenced in a task; the output of previous tasks can also be referenced. Below is a version of the previously seen `echochain`, :github_st2:`echochain_param.yaml <contrib/examples/actions/chains/echochain_param.yaml>` with input and data passing down the flow:
+
+.. literalinclude:: /../../contrib/examples/actions/chains/echochain_param.yaml
+   :language: yaml
+
+Details:
+
+* Output of a task is always prefixed by task name. e.g. In ``{"cmd":"echo c2 {{c1.stdout}}"}`` ``c1.stdout`` refers to the output of 'c1' and further drills down into properties of the output. The reference point is the ``result`` field of ``action execution`` object.
+* A special ``__results`` key provides access to the entire result of the whole chain upto that point of execution.
+
+Passing data between different workflows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In StackStorm, workflow is just an action which means you pass data from one
+workflow to another in exactly the same manner was you would pass data to an
+action - you use action parameters.
+
+In the example below, we have two workflows - ``workflow1`` and ``workflow2``.
+Task named ``task2`` inside the ``workflow1`` calls ``workflow2`` and passes
+variable ``date`` to it as an action parameter. ``workflow2`` then uses value
+and prints it to standard output.
+
+``workflow1.yaml``
+
+.. code-block:: yaml
+
+    ---
+        chain:
+            -
+                name: "task1"
+                ref: "core.local"
+                params:
+                    cmd: "date"
+                on-success: "task2"
+            -
+                name: "task2"
+                ref: "mypack.workflow2"
+                params:
+                    date: "{{ task1.stdout }}"  # Here we pass result from "task1" as a "date" action parameter to the action "workflow2"
+
+``workflow2.meta.yaml``
+
+.. code-block:: yaml
+
+    ---
+    name: "workflow2"
+    description: "..."
+    runner_type: "action-chain"
+    entry_point: "workflow2.yaml"
+    enabled: true
+    parameters:
+     date:
+        type: "string"
+        description: "Date which show be printed to stdout"
+        required: True
+
+``workflow2.yaml``
+
+.. code-block:: yaml
+
+    ---
+        chain:
+            -
+                name: "task1"
+                ref: "core.local"
+                params:
+                    cmd: "echo {{ date }}"  # Here we echo the variable "date" which was passed to the workflow as an action parameter
+
+The example above applies to a scenario where you have two related workflows
+where one calls another.
+
+If you have two independent workflows and you want to pass data between them or
+use data from one workflow in another, the most common approach to that is using
+built-in key value datastore.
+
+Inside the first workflow you store data in the datastore and inside the second
+workflow you retrieve this data from a datastore.
+
+This approach creates more tight coupling between two workflows and makes them
+less re-usable and harder to run independently of each other. Because of that,
+you are encouraged to (where possible) design the workflow in a way so you can
+pass data using action parameters.
+
+Using action parameters means second workflow which is called from the
+first one can still be re-used and ran independently of the first one - you
+simply need to pass the required parameters to it.
 
 Gotchas
 ~~~~~~~
