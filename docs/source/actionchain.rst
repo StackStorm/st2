@@ -58,7 +58,6 @@ However if you change action metadata (e.g. rename or move , add parameters) - y
 update the action with ``st2 action update <action.ref> <action.metadata.file>```.
 Alternatively, full context reload with ``st2ctl reload`` will pick up all the changes.
 
-
 Providing input
 ~~~~~~~~~~~~~~~
 
@@ -105,9 +104,9 @@ Details:
 * Output of a task is always prefixed by task name. e.g. In ``{"cmd":"echo c2 {{c1.stdout}}"}`` ``c1.stdout`` refers to the output of 'c1' and further drills down into properties of the output. The reference point is the ``result`` field of ``action execution`` object.
 * A special ``__results`` key provides access to the entire result of the whole chain upto that point of execution.
 
-
 Variables
-~~~~~~~~~~~~~~~
+~~~~~~~~~
+
 ActionChain offers the convinience of named variables. Global vars are set at the top of the definition with the ``var`` keyword.
 Tasks publish new variables with the ``publish`` keyword. Variables handy when you need to mash up
 a reusable value from the input, globals, DataStore values, and results of multiple actions executions.
@@ -127,22 +126,20 @@ All variables are referred with Jinja syntax.
             publish:
                 url_1: http://"{{ get_service_data.result[0].host.name }}.{{ domain }}:{{ port }}"
 
-
 The :github_st2:`publish_data.yaml <contrib/examples/actions/chains/publish_data.yaml>` from `examples` shows a complete working examples of using ``vars`` and ``publish``.
 
 .. literalinclude:: /../../contrib/examples/actions/chains/publish_data.yaml
    :language: yaml
    :lines: 1-29
 
-
 Gotchas
-~~~~~~~~~~~~~~~
+~~~~~~~
+
 Using YAML and Jinja implied some constraints on how to name and reference variables:
 
 * Variable names can use letters, underscores, and numbers. No dashes! This applies to all variables: global vars, input parameters, :doc:`DataStore keys <datastore>`, and published variables.
 * Same naming rules apply to task names: ``this-is-wrong-task-name``! Use ``task_names_with_underscores``.
 * Always quote variable reference "{{ my_variable.or.expression }}" (remember that ``{ }`` is a YAML dictionary). The types are respected inside the Jinja template but converted to strings outside: "{{ 1 + 2 }} + 3" resolves to "3 + 3".
-
 
 Error Reporting
 ~~~~~~~~~~~~~~~
@@ -184,6 +181,7 @@ Sample -
 
    "result": {
         "error": "Failed to run task \"c2\". Parameter rendering failed: 's1' is undefined",
+        "traceback": "Traceback (most recent call last):...",
         "tasks": [
             {
                 "created_at": "2015-02-27T19:19:34.536558+00:00",
@@ -201,6 +199,5 @@ Sample -
                 "updated_at": "2015-02-27T19:19:35.591297+00:00",
                 "workflow": null
             }
-        ],
-        "traceback": "Traceback (most recent call last):..."
+        ]
     }
