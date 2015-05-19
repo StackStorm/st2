@@ -66,7 +66,10 @@ class ActionAliasExecutionController(rest.RestController):
         return (tokens[0], tokens[1] if len(tokens) > 1 else None)
 
     def _extract_parameters(self, action_alias_db, param_stream):
-        alias_format = action_alias_db.formats[0]
+        if action_alias_db.formats:
+            alias_format = action_alias_db.formats[0]
+        else:
+            alias_format = None
         parser = action_alias_utils.ActionAliasFormatParser(alias_format=alias_format,
                                                             param_stream=param_stream)
         return parser.get_extracted_param_value()

@@ -13,7 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import shlex
+
 from st2common.exceptions import content
+
+__all__ = [
+    'JsonValueParser',
+    'StringValueParser',
+    'DefaultParser',
+
+    'KeyValueActionAliasFormatParser',
+    'ActionAliasFormatParser'
+]
 
 
 class JsonValueParser(object):
@@ -98,14 +109,46 @@ class DefaultParser(object):
 PARSERS = [JsonValueParser, StringValueParser, DefaultParser]
 
 
+class KeyValueActionAliasFormatParser(object):
+    """
+    Parser which parses action parameters in the format of "key=value" from the provided param
+    string.
+    """
+
+    delimiter = '='
+
+    def __init__(self, alias_format, param_stream=None):
+        self._format_stream = alias_format
+        self._param_stream = param_stream or ''
+
+    def parse(self):
+        result = {}
+
+        try:
+            tokens = shlex.split(self._param_stream)
+        except ValueError:
+            return result
+
+        for token in tokens:
+            split = token.split('=', 1)
+
+            if len(split) != 2:
+                continue
+
+            key, value = split
+
+            result[key] = value
+        return result
+
+
 class ActionAliasFormatParser(object):
 
     FORMAT_MARKER_START = '{{'
     FORMAT_MARKER_END = '}}'
     PARAM_DEFAULT_VALUE_SEPARATOR = '='
 
-    def __init__(self, alias_format, param_stream):
-        self._format = alias_format
+    def __init__(self, alias_format=None, param_stream=None):
+        self._format = alias_format or ''
         self._param_stream = param_stream or ''
         self._alias_fmt_ptr = 0
         self._param_strm_ptr = 0
@@ -145,7 +188,19 @@ class ActionAliasFormatParser(object):
         return param_name, value if value else default_value
 
     def get_extracted_param_value(self):
-        return {name: value for name, value in self}
+        result = {}
+
+        # First extract key=value params provided in the param string
+        kv_parser = KeyValueActionAliasFormatParser(alias_format=self._format,
+                                                    param_stream=self._param_stream)
+        kv_params = kv_parser.parse()
+        result.update(kv_params)
+
+        # Second extract params using the defined param formats
+        other_params = {name: value for name, value in self}
+        result.update(other_params)
+
+        return result
 
     def _get_next_param_format(self):
         mrkr_strt_ps = self._format.index(self.FORMAT_MARKER_START, self._alias_fmt_ptr)
