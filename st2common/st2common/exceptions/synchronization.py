@@ -16,22 +16,9 @@
 from st2common.exceptions import StackStormBaseException
 
 
-class StackStormDBObjectNotFoundError(StackStormBaseException):
+class LockTimeoutError(StackStormBaseException):
     pass
 
 
-class StackStormDBObjectFoundError(StackStormBaseException):
+class LockReleaseError(StackStormBaseException):
     pass
-
-
-class StackStormDBObjectMalformedError(StackStormBaseException):
-    pass
-
-
-class StackStormDBObjectConflictError(StackStormBaseException):
-    """
-    Exception that captures a DB object conflict error.
-    """
-    def __init__(self, message, conflict_id):
-        super(StackStormDBObjectConflictError, self).__init__(message)
-        self.conflict_id = conflict_id

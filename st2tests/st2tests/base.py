@@ -28,12 +28,13 @@ import six
 from unittest2 import TestCase
 
 from st2common.exceptions.db import StackStormDBObjectConflictError
-from st2common.models.db import db_setup, db_teardown
+from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
 import st2common.models.db.reactor as reactor_model
 import st2common.models.db.action as action_model
 import st2common.models.db.datastore as datastore_model
 import st2common.models.db.actionrunner as actionrunner_model
 import st2common.models.db.execution as execution_model
+import st2common.models.db.synchronization as sync_model
 import st2tests.config
 
 
@@ -52,6 +53,7 @@ ALL_MODELS.extend(action_model.MODELS)
 ALL_MODELS.extend(datastore_model.MODELS)
 ALL_MODELS.extend(actionrunner_model.MODELS)
 ALL_MODELS.extend(execution_model.MODELS)
+ALL_MODELS.extend(sync_model.MODELS)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_CONFIG_PATH = os.path.join(BASE_DIR, '../conf/st2.conf')
@@ -98,6 +100,7 @@ class BaseDbTestCase(TestCase):
             username=username, password=password)
         cls._drop_collections()
         cls.db_connection.drop_database(cfg.CONF.database.db_name)
+        db_ensure_indexes()
 
     @classmethod
     def _drop_db(cls):
