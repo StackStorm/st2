@@ -217,6 +217,25 @@ class TestActionAliasParser(TestCase):
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {'a': 'foobar1'})
 
+        # Mixed format and kv params
+        alias_format = 'somestuff {{a}} more stuff {{b}}'
+        param_stream = 'somestuff a=foobar more stuff coobar'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'foobar', 'b': 'coobar'})
+
+        alias_format = 'somestuff {{a}} more stuff {{b}}'
+        param_stream = 'somestuff ponies more stuff coobar'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'ponies', 'b': 'coobar'})
+
+        alias_format = 'somestuff {{a}} more stuff {{b}}'
+        param_stream = 'somestuff ponies more stuff coobar b=foo'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'ponies', 'b': 'foo'})
+
     def testSimpleParsing(self):
         alias_format = 'skip {{a}} more skip {{b}} and skip more.'
         param_stream = 'skip a1 more skip b1 and skip more.'
