@@ -122,6 +122,9 @@ def _get_api_models_from_disk(artifact_type, pack_dir=None):
             ref = ResourceReference.to_string_reference(name=name,
                                                         pack=pack_name)
             API_MODEL = API_MODELS_ARTIFACT_TYPES[artifact_type]
+            # Following conversions are required because we add some fields with
+            # default values in db model. If we don't do these conversions,
+            # we'll see a unnecessary diff for those fields.
             artifact_api = API_MODEL(**artifact)
             artifact_db = API_MODEL.to_model(artifact_api)
             artifact_api = API_MODEL.from_model(artifact_db)
@@ -196,9 +199,11 @@ def _diff(persistence_model, artifact_type, pack_dir=None, verbose=True,
             continue
         if verbose:
             print('Artifact %s exists in both disk and db.' % artifact)
+
         if content_diff:
             if verbose:
                 print('Performing content diff for artifact %s.' % artifact)
+
             _content_diff(artifact_type=artifact_type,
                           artifact_in_disk=artifact_in_disk,
                           artifact_in_db=artifact_in_db)
