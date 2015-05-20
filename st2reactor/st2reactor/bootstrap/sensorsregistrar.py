@@ -90,7 +90,7 @@ class SensorsRegistrar(ResourceRegistrar):
         return registered_count
 
     def _get_sensors_from_pack(self, sensors_dir):
-        return self._get_resources_from_pack(resources_dir=sensors_dir)
+        return self.get_resources_from_pack(resources_dir=sensors_dir)
 
     def _register_sensors_from_pack(self, pack, sensors):
         registered_count = 0
