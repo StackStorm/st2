@@ -44,4 +44,4 @@ class Trigger(core.Resource):
 
 class Rule(core.Resource):
     _plural = 'Rules'
-    _repr_attributes = ['name', 'trigger', 'criteria', 'enabled']
+    _repr_attributes = ['name', 'pack', 'trigger', 'criteria', 'enabled']

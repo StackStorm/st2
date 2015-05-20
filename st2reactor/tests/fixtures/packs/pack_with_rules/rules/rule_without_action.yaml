@@ -1,6 +1,7 @@
 
 ---
   name: "sample.without_action"
+  pack: "pack_with_rules"
   description: "Sample rule using an Interval Timer."
   trigger:
     type: "core.st2.IntervalTimer"

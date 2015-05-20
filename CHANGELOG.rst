@@ -20,6 +20,7 @@ in development
 * Action trigger now contains execution id as opposed to liveaction id. (bug-fix)
 * Add new API endpoint for re-running an execution (``POST /executions/<id>/re_run/``).
   (new-feature)
+* Rules should be part of a pack. (improvement)
 
 v0.9.0 - April 29, 2015
 -----------------------
