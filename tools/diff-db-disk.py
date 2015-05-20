@@ -84,10 +84,11 @@ def _monkey_patch():
         time=True)
 
 
-def _get_api_models_from_db(persistence_model, pack=None):
+def _get_api_models_from_db(persistence_model, pack_dir=None):
     filters = {}
-    if pack:
-        filters = {'pack': os.path.basename(os.path.normpath(pack))}
+    if pack_dir:
+        pack_name = os.path.basename(os.path.normpath(pack_dir))
+        filters = {'pack': pack_name}
     models = persistence_model.query(**filters)
     models_dict = {}
     for model in models:
@@ -100,12 +101,14 @@ def _get_api_models_from_db(persistence_model, pack=None):
     return models_dict
 
 
-def _get_api_models_from_disk(artifact_type, pack=None):
+def _get_api_models_from_disk(artifact_type, pack_dir=None):
     loader = ContentPackLoader()
     artifacts = None
 
-    if pack:
-        artifacts = loader.get_content_from_pack(pack, artifact_type)
+    if pack_dir:
+        artifacts_dir = loader.get_content_from_pack(pack_dir, artifact_type)
+        pack_name = os.path.basename(os.path.normpath(pack_dir))
+        artifacts = {pack_name: artifacts_dir}
     else:
         packs_dirs = content_utils.get_packs_base_paths()
         artifacts = loader.get_content(packs_dirs, artifact_type)
@@ -153,10 +156,10 @@ def _content_diff(artifact_type=None, artifact_in_disk=None, artifact_in_db=None
         print(diff)
 
 
-def _diff(persistence_model, artifact_type, pack=None, verbose=True,
+def _diff(persistence_model, artifact_type, pack_dir=None, verbose=True,
           content_diff=True):
-    artifacts_in_db_dict = _get_api_models_from_db(persistence_model, pack)
-    artifacts_in_disk_dict = _get_api_models_from_disk(artifact_type, pack=pack)
+    artifacts_in_db_dict = _get_api_models_from_db(persistence_model, pack_dir=pack_dir)
+    artifacts_in_disk_dict = _get_api_models_from_disk(artifact_type, pack_dir=pack_dir)
 
     # print(artifacts_in_disk_dict)
     all_artifacts = set(artifacts_in_db_dict.keys() + artifacts_in_disk_dict.keys())
@@ -203,18 +206,18 @@ def _diff(persistence_model, artifact_type, pack=None, verbose=True,
                           artifact_in_db=artifact_in_db)
 
 
-def _diff_actions(pack=None, verbose=False, content_diff=True):
-    _diff(Action, 'actions', pack=pack,
+def _diff_actions(pack_dir=None, verbose=False, content_diff=True):
+    _diff(Action, 'actions', pack_dir=pack_dir,
           verbose=verbose, content_diff=content_diff)
 
 
-def _diff_sensors(pack=None, verbose=False, content_diff=True):
-    _diff(SensorType, 'sensors', pack=pack,
+def _diff_sensors(pack_dir=None, verbose=False, content_diff=True):
+    _diff(SensorType, 'sensors', pack_dir=pack_dir,
           verbose=verbose, content_diff=content_diff)
 
 
-def _diff_rules(pack=None, verbose=True, content_diff=True):
-    _diff(Rule, 'rules', pack=pack,
+def _diff_rules(pack_dir=None, verbose=True, content_diff=True):
+    _diff(Rule, 'rules', pack_dir=pack_dir,
           verbose=verbose, content_diff=content_diff)
 
 
@@ -234,7 +237,7 @@ def main():
         cfg.BoolOpt('simple', default=False,
                     help='In simple mode, tool only tells you if content is missing.' +
                          'It doesn\'t show you content diff between disk and db.'),
-        cfg.StrOpt('pack', default=None, help='Path to specific pack to diff.')
+        cfg.StrOpt('pack-dir', default=None, help='Path to specific pack to diff.')
     ]
     do_register_cli_opts(cli_opts)
     config.parse_args()
@@ -247,23 +250,23 @@ def main():
              username=username, password=password)
 
     # Diff content
-    pack = cfg.CONF.pack or None
+    pack_dir = cfg.CONF.pack_dir or None
     content_diff = not cfg.CONF.simple
 
     if cfg.CONF.all:
-        _diff_sensors(pack=pack, verbose=cfg.CONF.verbose, content_diff=content_diff)
-        _diff_actions(pack=pack, verbose=cfg.CONF.verbose, content_diff=content_diff)
-        _diff_rules(pack=pack, verbose=cfg.CONF.verbose, content_diff=content_diff)
+        _diff_sensors(pack_dir=pack_dir, verbose=cfg.CONF.verbose, content_diff=content_diff)
+        _diff_actions(pack_dir=pack_dir, verbose=cfg.CONF.verbose, content_diff=content_diff)
+        _diff_rules(pack_dir=pack_dir, verbose=cfg.CONF.verbose, content_diff=content_diff)
         return
 
     if cfg.CONF.sensors:
-        _diff_sensors(pack=pack, verbose=cfg.CONF.verbose, content_diff=content_diff)
+        _diff_sensors(pack_dir=pack_dir, verbose=cfg.CONF.verbose, content_diff=content_diff)
 
     if cfg.CONF.actions:
-        _diff_actions(pack=pack, verbose=cfg.CONF.verbose, content_diff=content_diff)
+        _diff_actions(pack_dir=pack_dir, verbose=cfg.CONF.verbose, content_diff=content_diff)
 
     if cfg.CONF.rules:
-        _diff_rules(pack=pack, verbose=cfg.CONF.verbose, content_diff=content_diff)
+        _diff_rules(pack_dir=pack_dir, verbose=cfg.CONF.verbose, content_diff=content_diff)
 
     # Disconnect from db.
     db_teardown()
