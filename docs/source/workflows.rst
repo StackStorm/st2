@@ -1,5 +1,5 @@
 Workflows
-======================================
+=========
 
 Typical datacenter operations and processes involve taking multiple actions
 across various systems. To capture and automate these operations,
@@ -14,7 +14,6 @@ and can be called manually, or triggered by the rules.
 To create a workflow action, choose a workflow runner,
 connect the actions in a workflow definition,
 and provide the usual action meta data.
-
 
 |st2| offers two types of workflows - :doc:`ActionChain <actionchain>`
 and :doc:`mistral`.
