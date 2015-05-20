@@ -77,6 +77,25 @@ class Access(object):
         return cls._get_impl().aggregate(*args, **kwargs)
 
     @classmethod
+    def add(cls, model_object, publish=True):
+        try:
+            model_object = cls._get_impl().add(model_object)
+        except NotUniqueError as e:
+            LOG.exception('Conflict while trying to save in DB.')
+            # On a conflict determine the conflicting object and return its id in the exception.
+            conflict_object = cls._get_by_object(model_object)
+            conflict_id = str(conflict_object.id) if conflict_object else None
+            raise StackStormDBObjectConflictError(str(e), conflict_id)
+
+        if publish:
+            try:
+                cls.publish_create(model_object)
+            except:
+                LOG.exception('Publish failed.')
+
+        return model_object
+
+    @classmethod
     def add_or_update(cls, model_object, publish=True):
         pre_persist_id = model_object.id
         try:

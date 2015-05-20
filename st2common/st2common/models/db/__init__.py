@@ -17,7 +17,8 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.actionrunner',
     'st2common.models.db.datastore',
     'st2common.models.db.execution',
-    'st2common.models.db.reactor'
+    'st2common.models.db.reactor',
+    'st2common.models.db.synchronization'
 ]
 
 
@@ -57,6 +58,13 @@ def db_ensure_indexes():
 
 def db_teardown():
     mongoengine.connection.disconnect()
+
+
+def convert_to_python(instance):
+    for attr, field in instance._fields.iteritems():
+        if isinstance(field, stormbase.EscapedDictField):
+            value = getattr(instance, attr)
+            setattr(instance, attr, field.to_python(value))
 
 
 class MongoDBAccess(object):
@@ -121,12 +129,15 @@ class MongoDBAccess(object):
         return self.model.objects(**kwargs)._collection.aggregate(*args, **kwargs)
 
     @staticmethod
+    def add(instance):
+        instance.save(force_insert=True)
+        convert_to_python(instance)
+        return instance
+
+    @staticmethod
     def add_or_update(instance):
         instance.save()
-        for attr, field in instance._fields.iteritems():
-            if isinstance(field, stormbase.EscapedDictField):
-                value = getattr(instance, attr)
-                setattr(instance, attr, field.to_python(value))
+        convert_to_python(instance)
         return instance
 
     @staticmethod

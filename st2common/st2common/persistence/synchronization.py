@@ -13,25 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.exceptions import StackStormBaseException
+from st2common import log as logging
+from st2common.models.db import synchronization as sync_models
+from st2common.persistence import base as persistence
 
 
-class StackStormDBObjectNotFoundError(StackStormBaseException):
-    pass
+LOG = logging.getLogger(__name__)
 
 
-class StackStormDBObjectFoundError(StackStormBaseException):
-    pass
+class Lock(persistence.Access):
+    impl = sync_models.LockAccess(sync_models.LockDB)
 
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
 
-class StackStormDBObjectMalformedError(StackStormBaseException):
-    pass
+    @classmethod
+    def _get_by_object(cls, instance):
+        return cls.get_by_name(getattr(instance, 'name', ''))
 
-
-class StackStormDBObjectConflictError(StackStormBaseException):
-    """
-    Exception that captures a DB object conflict error.
-    """
-    def __init__(self, message, conflict_id):
-        super(StackStormDBObjectConflictError, self).__init__(message)
-        self.conflict_id = conflict_id
+    @classmethod
+    def add_or_update(cls, model_object, publish=True):
+        raise NotImplementedError('Use the "add" method. Update is not supported for locks.')
