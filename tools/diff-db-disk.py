@@ -26,7 +26,6 @@ A utility script that diffs models registered in st2 db versus what's on disk.
 import difflib
 import json
 import os
-import pprint
 import sys
 
 import eventlet
@@ -51,7 +50,6 @@ registrar = ResourceRegistrar()
 registrar.ALLOWED_EXTENSIONS = ['.yaml', '.yml', '.json']
 
 meta_loader = MetaLoader()
-PP = pprint.PrettyPrinter(indent=2, depth=6, width=80)
 
 API_MODELS_ARTIFACT_TYPES = {
     'actions': ActionAPI,
