@@ -369,6 +369,10 @@ class Shell(object):
         if not os.path.isfile(CACHED_TOKEN_PATH):
             return None
 
+        if not os.access(CACHED_TOKEN_PATH, os.R_OK):
+            # We don't have read access to the file with a cached token
+            return None
+
         with open(CACHED_TOKEN_PATH) as fp:
             data = fp.read()
 
@@ -397,6 +401,10 @@ class Shell(object):
         """
         if not os.path.isdir(ST2_CONFIG_DIRECTORY):
             os.makedirs(ST2_CONFIG_DIRECTORY)
+
+        if not os.access(CACHED_TOKEN_PATH, os.W_OK):
+            # We don't have write access to the file with a cached token
+            return None
 
         token = token_obj.token
         expire_timestamp = parse_isotime(token_obj.expiry)
