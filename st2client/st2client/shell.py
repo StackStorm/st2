@@ -476,7 +476,19 @@ class Shell(object):
         return result
 
 
+def setup_logging():
+    root = LOG
+    root.setLevel(logging.WARNING)
+
+    ch = logging.StreamHandler(sys.stderr)
+    ch.setLevel(logging.WARNING)
+    formatter = logging.Formatter('%(asctime)s  %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    root.addHandler(ch)
+
+
 def main(argv=sys.argv[1:]):
+    setup_logging()
     return Shell().run(argv)
 
 
