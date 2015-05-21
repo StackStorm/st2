@@ -37,10 +37,10 @@ class ActionAliasExecutionController(rest.RestController):
 
     @jsexpose(body_cls=AliasExecutionAPI, status_code=http_client.OK)
     def post(self, payload):
-        action_alias_name = payload.command if payload else None
+        action_alias_name = payload.name if payload else None
 
         if not action_alias_name:
-            pecan.abort(http_client.BAD_REQUEST, 'Alias execution command should no non-empty.')
+            pecan.abort(http_client.BAD_REQUEST, 'Alias execution "name" is required')
 
         arguments = payload.arguments or ''
 
