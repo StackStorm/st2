@@ -455,12 +455,12 @@ class AliasExecutionAPI(BaseAPI):
             "format": {
                 "type": "string",
                 "description": "Format string which matched.",
-                "required": False
+                "required": True
             },
             "command": {
                 "type": "string",
                 "description": "Command used in chat.",
-                "required": False
+                "required": True
             },
             "user": {
                 "type": "string",
