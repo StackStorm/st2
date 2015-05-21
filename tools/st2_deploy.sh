@@ -615,4 +615,4 @@ echo "st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD}"
 echo ""
 echo "For more information see http://docs.stackstorm.com/install/deploy.html#usage"
 exit 0
-exit 0
+
