@@ -26,6 +26,7 @@ from st2common.models.db.action import LiveActionDB, NotificationSchema, Notific
 from st2common.models.utils import action_alias_utils, action_param_utils
 from st2common.persistence.action import ActionAlias
 from st2common.services import action as action_service
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 
 http_client = six.moves.http_client
@@ -47,7 +48,7 @@ class ActionAliasExecutionController(rest.RestController):
 
         try:
             action_alias_db = ActionAlias.get_by_name(action_alias_name)
-        except ValidationError:
+        except ValueError:
             action_alias_db = None
 
         if not action_alias_db:
