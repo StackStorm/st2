@@ -1,6 +1,6 @@
 ---
 vars:
-        tested_rule: examples.webhook_file
+        tested_rule: examples.examples.webhook_file
 
 chain:
     -
