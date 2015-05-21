@@ -20,6 +20,7 @@ from st2common.models.api.base import BaseAPI
 from st2common.models.api.tag import TagsHelper
 from st2common.models.db.reactor import SensorTypeDB, TriggerTypeDB, TriggerDB, TriggerInstanceDB
 from st2common.models.system.common import ResourceReference
+from st2common.models.utils import sensor_type_utils
 
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 
@@ -64,6 +65,11 @@ class SensorTypeAPI(BaseAPI):
         },
         'additionalProperties': False
     }
+
+    @classmethod
+    def to_model(cls, sensor_type):
+        model = sensor_type_utils.to_sensor_db_model(sensor_api_model=sensor_type)
+        return model
 
 
 class TriggerTypeAPI(BaseAPI):

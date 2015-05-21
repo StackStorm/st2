@@ -14,12 +14,15 @@
 # limitations under the License.
 
 from st2common import log as logging
+from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2common.models.api.reactor import (TriggerAPI, TriggerTypeAPI)
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import (Trigger, TriggerType)
 
 __all__ = [
+    'add_trigger_models',
+
     'get_trigger_db_by_ref',
     'get_trigger_db_given_type_and_params',
     'get_trigger_type_db',
@@ -236,3 +239,91 @@ def create_or_update_trigger_type_db(trigger_type):
         LOG.audit('TriggerType created. TriggerType.id=%s' % (trigger_type_db.id), extra=extra)
 
     return trigger_type_db
+
+
+def _create_trigger_type(pack, name, description=None, payload_schema=None,
+                         parameters_schema=None):
+    trigger_type = {
+        'name': name,
+        'pack': pack,
+        'description': description,
+        'payload_schema': payload_schema,
+        'parameters_schema': parameters_schema
+    }
+
+    return create_or_update_trigger_type_db(trigger_type=trigger_type)
+
+
+def _validate_trigger_type(trigger_type):
+    """
+    XXX: We need validator objects that define the required and optional fields.
+    For now, manually check them.
+    """
+    required_fields = ['name']
+    for field in required_fields:
+        if field not in trigger_type:
+            raise TriggerTypeRegistrationException('Invalid trigger type. Missing field %s' % field)
+
+
+def _create_trigger(trigger_type):
+    """
+    :param trigger_type: TriggerType db object.
+    :type trigger_type: :class:`TriggerTypeDB`
+    """
+    if hasattr(trigger_type, 'parameters_schema') and not trigger_type['parameters_schema']:
+        trigger_dict = {
+            'name': trigger_type.name,
+            'pack': trigger_type.pack,
+            'type': trigger_type.get_reference().ref
+        }
+
+        try:
+            return create_or_update_trigger_db(trigger=trigger_dict)
+        except:
+            LOG.exception('Validation failed for Trigger=%s.', trigger_dict)
+            raise TriggerTypeRegistrationException(
+                'Unable to create Trigger for TriggerType=%s.' % trigger_type.name)
+    else:
+        LOG.debug('Won\'t create Trigger object as TriggerType %s expects ' +
+                  'parameters.', trigger_type)
+        return None
+
+
+def _add_trigger_models(trigger_type):
+    pack = trigger_type['pack']
+    description = trigger_type['description'] if 'description' in trigger_type else ''
+    payload_schema = trigger_type['payload_schema'] if 'payload_schema' in trigger_type else {}
+    parameters_schema = trigger_type['parameters_schema'] \
+        if 'parameters_schema' in trigger_type else {}
+
+    trigger_type = _create_trigger_type(
+        pack=pack,
+        name=trigger_type['name'],
+        description=description,
+        payload_schema=payload_schema,
+        parameters_schema=parameters_schema
+    )
+    trigger = _create_trigger(trigger_type=trigger_type)
+    return (trigger_type, trigger)
+
+
+def add_trigger_models(trigger_types):
+    """
+    Register trigger types.
+
+    :param trigger_types: A list of triggers to register.
+    :type trigger_types: ``list`` of ``dict``
+
+    :rtype: ``list`` of ``tuple`` (trigger_type, trigger)
+    """
+    [r for r in (_validate_trigger_type(trigger_type)
+     for trigger_type in trigger_types) if r is not None]
+
+    result = []
+    for trigger_type in trigger_types:
+        item = _add_trigger_models(trigger_type=trigger_type)
+
+        if item:
+            result.append(item)
+
+    return result
