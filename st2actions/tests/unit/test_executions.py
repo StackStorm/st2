@@ -25,7 +25,7 @@ import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2actions.runners.localrunner import LocalShellRunner
 from st2common.constants import action as action_constants
 from st2common.models.db.action import LiveActionDB
-from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
+from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule

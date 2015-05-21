@@ -16,7 +16,7 @@
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
-from st2common.models.api.reactor import (TriggerAPI, TriggerTypeAPI)
+from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI)
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import (Trigger, TriggerType)
 

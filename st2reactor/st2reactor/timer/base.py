@@ -26,9 +26,9 @@ import jsonschema
 
 from st2common import log as logging
 from st2common.constants.triggers import TIMER_TRIGGER_TYPES
+import st2common.services.triggers as trigger_services
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
-import st2reactor.container.utils as container_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -133,7 +133,7 @@ class St2Timer(object):
         self._trigger_dispatcher.dispatch(trigger, payload)
 
     def _register_timer_trigger_types(self):
-        return container_utils.add_trigger_models(TIMER_TRIGGER_TYPES.values())
+        return trigger_services.add_trigger_models(TIMER_TRIGGER_TYPES.values())
 
     ##############################################
     # Event handler methods for the trigger events

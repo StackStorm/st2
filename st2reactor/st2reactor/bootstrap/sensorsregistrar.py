@@ -20,7 +20,7 @@ import six
 from st2common import log as logging
 from st2common.bootstrap.base import ResourceRegistrar
 import st2common.content.utils as content_utils
-from st2common.models.api.reactor import SensorTypeAPI
+from st2common.models.api.sensor import SensorTypeAPI
 from st2common.persistence.reactor import SensorType
 
 __all__ = [

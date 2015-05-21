@@ -37,8 +37,8 @@ from st2common.persistence.execution import ActionExecution
 from st2common.persistence.action import RunnerType
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
-from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
+from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.db.execution import ActionExecutionDB
 from st2common import log as logging
 

@@ -16,7 +16,10 @@
 import mock
 
 from st2common.persistence.reactor import (Trigger, TriggerType)
+from st2common.models.api.sensor import SensorTypeAPI
 from st2common.models.db.reactor import TriggerDB
+from st2common.models.utils import sensor_type_utils
+import st2common.services.triggers as trigger_services
 from st2common.transport.publishers import PoolPublisher
 import st2reactor.container.utils as container_utils
 from st2tests.base import CleanDbTestCase
@@ -60,7 +63,7 @@ class ContainerUtilsTest(CleanDbTestCase):
                 ]
 
         try:
-            container_utils.add_trigger_models(FailTestSensor().get_trigger_types())
+            trigger_services.add_trigger_models(FailTestSensor().get_trigger_types())
             self.assertTrue(False, 'Trigger type doesn\'t have \'name\' field. Should have thrown.')
         except Exception:
             self.assertTrue(True)
@@ -79,7 +82,7 @@ class ContainerUtilsTest(CleanDbTestCase):
             'parameters_schema': {},
             'payload_schema': {}
         }
-        trigtype_dbs = container_utils.add_trigger_models(trigger_types=[trig_type])
+        trigtype_dbs = trigger_services.add_trigger_models(trigger_types=[trig_type])
         trigger_type, trigger = trigtype_dbs[0]
 
         trigtype_db = TriggerType.get_by_id(trigger_type.id)
@@ -89,7 +92,7 @@ class ContainerUtilsTest(CleanDbTestCase):
         self.assertEqual(trigger.name, trigtype_db.name)
 
         # Add duplicate
-        trigtype_dbs = container_utils.add_trigger_models(trigger_types=[trig_type])
+        trigtype_dbs = trigger_services.add_trigger_models(trigger_types=[trig_type])
         triggers = Trigger.get_all()
         self.assertTrue(len(triggers) == 1)
 
@@ -111,7 +114,7 @@ class ContainerUtilsTest(CleanDbTestCase):
             'parameters_schema': PARAMETERS_SCHEMA,
             'payload_schema': {}
         }
-        trigtype_dbs = container_utils.add_trigger_models(trigger_types=[trig_type])
+        trigtype_dbs = trigger_services.add_trigger_models(trigger_types=[trig_type])
         trigger_type, trigger = trigtype_dbs[0]
 
         trigtype_db = TriggerType.get_by_id(trigger_type.id)
@@ -123,22 +126,26 @@ class ContainerUtilsTest(CleanDbTestCase):
         # System packs
         file_path = '/data/st/st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.py'
         class_name = 'St2GenericWebhooksSensor'
-        sensor = {'file_path': file_path, 'class_name': class_name}
 
-        entry_point = container_utils.get_sensor_entry_point(pack='core', sensor=sensor)
+        sensor = {'artifact_uri': file_path, 'class_name': class_name, 'pack': 'core'}
+        sensor_api = SensorTypeAPI(**sensor)
+
+        entry_point = sensor_type_utils.get_sensor_entry_point(sensor_api)
         self.assertEqual(entry_point, class_name)
 
         # Non system packs
         file_path = '/data/st2contrib/packs/jira/sensors/jira_sensor.py'
         class_name = 'JIRASensor'
-        sensor = {'file_path': file_path, 'class_name': class_name}
+        sensor = {'artifact_uri': file_path, 'class_name': class_name, 'pack': 'jira'}
+        sensor_api = SensorTypeAPI(**sensor)
 
-        entry_point = container_utils.get_sensor_entry_point(pack='jira', sensor=sensor)
+        entry_point = sensor_type_utils.get_sensor_entry_point(sensor_api)
         self.assertEqual(entry_point, 'sensors.jira_sensor.JIRASensor')
 
         file_path = '/data/st2contrib/packs/docker/sensors/docker_container_sensor.py'
         class_name = 'DockerSensor'
-        sensor = {'file_path': file_path, 'class_name': class_name}
+        sensor = {'artifact_uri': file_path, 'class_name': class_name, 'pack': 'docker'}
+        sensor_api = SensorTypeAPI(**sensor)
 
-        entry_point = container_utils.get_sensor_entry_point(pack='docker', sensor=sensor)
+        entry_point = sensor_type_utils.get_sensor_entry_point(sensor_api)
         self.assertEqual(entry_point, 'sensors.docker_container_sensor.DockerSensor')

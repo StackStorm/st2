@@ -24,7 +24,7 @@ from st2common.models.api.action import (ActionAPI, LiveActionAPI, ActionExecuti
                                          RunnerTypeAPI, ActionAliasAPI)
 from st2common.models.api.execution import (ActionExecutionAPI)
 from st2common.models.api.policy import (PolicyTypeAPI, PolicyAPI)
-from st2common.models.api.reactor import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
+from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
 from st2common.models.api.rule import (RuleAPI)
 
 from st2common.models.db.action import (ActionDB, LiveActionDB, ActionExecutionStateDB,
