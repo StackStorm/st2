@@ -449,10 +449,15 @@ class AliasExecutionAPI(BaseAPI):
         "properties": {
             "name": {
                 "type": "string",
-                "description": "Name of the action alias.",
+                "description": "Name of the action alias which matched.",
                 "required": True
             },
-            "command":{
+            "format": {
+                "type": "string",
+                "description": "Format string which matched.",
+                "required": False
+            },
+            "command": {
                 "type": "string",
                 "description": "Command used in chat.",
                 "required": False
