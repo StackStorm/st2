@@ -46,26 +46,27 @@ def to_sensor_db_model(sensor_api_model=None):
         raise ValueError('Minimum possible poll_interval is %s seconds' %
                          (MINIMUM_POLL_INTERVAL))
 
-    # Add pack to each trigger type item
-    for trigger_type in trigger_types:
-        trigger_type['pack'] = pack
-
-    # Add TrigerType models to the DB
-    trigger_type_dbs = trigger_service.add_trigger_models(trigger_types=trigger_types)
-
-    # Populate a list of references belonging to this sensor
     trigger_type_refs = []
-    for trigger_type_db, _ in trigger_type_dbs:
-        ref_obj = trigger_type_db.get_reference()
-        trigger_type_ref = ref_obj.ref
-        trigger_type_refs.append(trigger_type_ref)
+    if len(trigger_types) > 0:
+        # Add pack to each trigger type item
+        for trigger_type in trigger_types:
+            trigger_type['pack'] = pack
+
+        # Add TrigerType models to the DB
+        trigger_type_dbs = trigger_service.add_trigger_models(trigger_types=trigger_types)
+
+        # Populate a list of references belonging to this sensor
+        for trigger_type_db, _ in trigger_type_dbs:
+            ref_obj = trigger_type_db.get_reference()
+            trigger_type_ref = ref_obj.ref
+            trigger_type_refs.append(trigger_type_ref)
 
     return _create_sensor_type(pack=pack,
                                name=class_name,
                                description=description,
                                artifact_uri=artifact_uri,
                                entry_point=entry_point,
-                               trigger_types=trigger_types,
+                               trigger_types=trigger_type_refs,
                                poll_interval=poll_interval,
                                enabled=enabled)
 

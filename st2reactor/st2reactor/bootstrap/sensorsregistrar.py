@@ -111,21 +111,28 @@ class SensorsRegistrar(ResourceRegistrar):
         sensor_metadata_file_path = sensor
 
         LOG.debug('Loading sensor from %s.', sensor_metadata_file_path)
-        metadata = self._meta_loader.load(file_path=sensor_metadata_file_path)
+        content = self._meta_loader.load(file_path=sensor_metadata_file_path)
 
-        entry_point = metadata.get('entry_point', None)
+        pack_field = content.get('pack', None)
+        if not pack_field:
+            content['pack'] = pack
+            pack_field = pack
+        if pack_field != pack:
+            raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
+                            (pack, pack_field))
 
+        entry_point = content.get('entry_point', None)
         if not entry_point:
             raise ValueError('Sensor definition missing entry_point')
 
         sensors_dir = os.path.dirname(sensor_metadata_file_path)
         sensor_file_path = os.path.join(sensors_dir, entry_point)
         artifact_uri = 'file://%s' % (sensor_file_path)
-        metadata['artifact_uri'] = artifact_uri
-        metadata['entry_point'] = entry_point
+        content['artifact_uri'] = artifact_uri
+        content['entry_point'] = entry_point
 
-        sensor_api = SensorTypeAPI(**metadata)
-        sensor_model = sensor_api.to_model()
+        sensor_api = SensorTypeAPI(**content)
+        sensor_model = SensorTypeAPI.to_model(sensor_api)
 
         sensor_types = SensorType.query(pack=sensor_model.pack, name=sensor_model.name)
         if len(sensor_types) >= 1:
