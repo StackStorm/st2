@@ -369,6 +369,12 @@ class Shell(object):
         if not os.path.isfile(CACHED_TOKEN_PATH):
             return None
 
+        if not os.access(CACHED_TOKEN_PATH, os.R_OK):
+            # We don't have read access to the file with a cached token
+            LOG.warn('User "%s" doesn\'t have read access to file "%s"' % (os.getlogin(),
+                                                                           CACHED_TOKEN_PATH))
+            return None
+
         with open(CACHED_TOKEN_PATH) as fp:
             data = fp.read()
 
@@ -397,6 +403,12 @@ class Shell(object):
         """
         if not os.path.isdir(ST2_CONFIG_DIRECTORY):
             os.makedirs(ST2_CONFIG_DIRECTORY)
+
+        if not os.access(CACHED_TOKEN_PATH, os.W_OK):
+            # We don't have write access to the file with a cached token
+            LOG.warn('User "%s" doesn\'t have write access to file "%s"' % (os.getlogin(),
+                                                                            CACHED_TOKEN_PATH))
+            return None
 
         token = token_obj.token
         expire_timestamp = parse_isotime(token_obj.expiry)
@@ -464,7 +476,19 @@ class Shell(object):
         return result
 
 
+def setup_logging():
+    root = LOG
+    root.setLevel(logging.WARNING)
+
+    ch = logging.StreamHandler(sys.stderr)
+    ch.setLevel(logging.WARNING)
+    formatter = logging.Formatter('%(asctime)s  %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    root.addHandler(ch)
+
+
 def main(argv=sys.argv[1:]):
+    setup_logging()
     return Shell().run(argv)
 
 
