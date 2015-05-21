@@ -17,7 +17,6 @@ import jsonschema
 import pecan
 import six
 
-from mongoengine import ValidationError
 from pecan import rest
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
@@ -26,7 +25,6 @@ from st2common.models.db.action import LiveActionDB, NotificationSchema, Notific
 from st2common.models.utils import action_alias_utils, action_param_utils
 from st2common.persistence.action import ActionAlias
 from st2common.services import action as action_service
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 
 http_client = six.moves.http_client
