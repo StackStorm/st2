@@ -452,9 +452,9 @@ class AliasExecutionAPI(BaseAPI):
                 "description": "Name of the action alias.",
                 "required": True
             },
-            "arguments":{
+            "command":{
                 "type": "string",
-                "description": "Command (action alias) arguments",
+                "description": "Command used in chat.",
                 "required": False
             },
             "user": {

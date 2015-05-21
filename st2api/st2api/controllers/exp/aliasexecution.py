@@ -42,7 +42,7 @@ class ActionAliasExecutionController(rest.RestController):
         if not action_alias_name:
             pecan.abort(http_client.BAD_REQUEST, 'Alias execution "name" is required')
 
-        arguments = payload.arguments or ''
+        command = payload.command or ''
 
         try:
             action_alias_db = ActionAlias.get_by_name(action_alias_name)
@@ -54,7 +54,7 @@ class ActionAliasExecutionController(rest.RestController):
             pecan.abort(http_client.NOT_FOUND, msg)
 
         execution_parameters = self._extract_parameters(action_alias_db=action_alias_db,
-                                                        param_stream=arguments)
+                                                        param_stream=command)
         notify = self._get_notify_field(payload)
         execution = self._schedule_execution(action_alias_db=action_alias_db,
                                              params=execution_parameters,
