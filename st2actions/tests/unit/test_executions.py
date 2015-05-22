@@ -24,7 +24,7 @@ tests_config.parse_args()
 import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2actions.runners.localrunner import LocalShellRunner
 from st2common.constants import action as action_constants
-from st2common.models.db.action import LiveActionDB
+from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI

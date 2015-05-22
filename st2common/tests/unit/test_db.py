@@ -232,8 +232,9 @@ class ReactorModelTest(DbTestCase):
             model_object.delete()
 
 
-from st2common.models.db.action import ActionDB, RunnerTypeDB
-from st2common.models.db.action import NotificationSchema, NotificationSubSchema
+from st2common.models.db.action import ActionDB
+from st2common.models.db.runner import RunnerTypeDB
+from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 from st2common.persistence.action import Action
 from st2common.persistence.runner import RunnerType
 

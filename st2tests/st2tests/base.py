@@ -34,8 +34,14 @@ import st2common.models.db.sensor as sensor_model
 import st2common.models.db.trigger as trigger_model
 import st2common.models.db.action as action_model
 import st2common.models.db.datastore as datastore_model
-import st2common.models.db.actionrunner as actionrunner_model
+import st2common.models.db.runner as runner_model
 import st2common.models.db.execution as execution_model
+import st2common.models.db.executionstate as executionstate_model
+import st2common.models.db.liveaction as liveaction_model
+import st2common.models.db.actionalias as actionalias_model
+import st2common.models.db.policy as policy_model
+
+
 import st2tests.config
 
 
@@ -54,8 +60,12 @@ ALL_MODELS.extend(sensor_model.MODELS)
 ALL_MODELS.extend(trigger_model.MODELS)
 ALL_MODELS.extend(action_model.MODELS)
 ALL_MODELS.extend(datastore_model.MODELS)
-ALL_MODELS.extend(actionrunner_model.MODELS)
+ALL_MODELS.extend(runner_model.MODELS)
 ALL_MODELS.extend(execution_model.MODELS)
+ALL_MODELS.extend(executionstate_model.MODELS)
+ALL_MODELS.extend(liveaction_model.MODELS)
+ALL_MODELS.extend(actionalias_model.MODELS)
+ALL_MODELS.extend(policy_model.MODELS)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_CONFIG_PATH = os.path.join(BASE_DIR, '../conf/st2.conf')

@@ -21,7 +21,8 @@ from st2common.constants import action as action_constants
 from st2actions.runners import get_runner
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.system.common import ResourceReference
-from st2common.models.db.action import (LiveActionDB, RunnerTypeDB)
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.runner import RunnerTypeDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import executions

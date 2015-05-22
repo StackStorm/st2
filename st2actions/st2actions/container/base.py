@@ -21,7 +21,7 @@ import datetime
 from st2common import log as logging
 from st2common.util import isotime
 from st2common.constants import action as action_constants
-from st2common.models.db.action import ActionExecutionStateDB
+from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)

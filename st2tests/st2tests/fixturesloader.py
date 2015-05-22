@@ -27,8 +27,11 @@ from st2common.models.api.policy import (PolicyTypeAPI, PolicyAPI)
 from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
 from st2common.models.api.rule import (RuleAPI)
 
-from st2common.models.db.action import (ActionDB, LiveActionDB, ActionExecutionStateDB,
-                                        RunnerTypeDB, ActionAliasDB)
+from st2common.models.db.action import ActionDB
+from st2common.models.db.actionalias import ActionAliasDB
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.executionstate import ActionExecutionStateDB
+from st2common.models.db.runner import RunnerTypeDB
 from st2common.models.db.execution import (ActionExecutionDB)
 from st2common.models.db.policy import (PolicyTypeDB, PolicyDB)
 from st2common.models.db.rule import RuleDB

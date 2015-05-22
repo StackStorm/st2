@@ -21,7 +21,7 @@ from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.db import action as action_models
+from st2common.models.db.liveaction import LiveActionDB
 from st2common.services import executions
 from st2common.transport import consumers, liveaction
 from st2common.util import action_db as action_utils
@@ -35,7 +35,7 @@ ACTIONRUNNER_WORK_Q = liveaction.get_status_management_queue(
 
 
 class ActionExecutionDispatcher(consumers.MessageHandler):
-    message_type = action_models.LiveActionDB
+    message_type = LiveActionDB
 
     def __init__(self, connection, queues):
         super(ActionExecutionDispatcher, self).__init__(connection, queues)
@@ -49,7 +49,7 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
         is updated with a generic exception message.
 
         :param liveaction: Scheduled action execution request.
-        :type liveaction: ``st2common.models.db.action.LiveActionDB``
+        :type liveaction: ``st2common.models.db.liveaction.LiveActionDB``
 
         :rtype: ``dict``
         """

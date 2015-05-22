@@ -19,7 +19,7 @@ from kombu import Connection
 from oslo.config import cfg
 
 from st2actions.resultstracker import ACTIONSTATE_WORK_Q, ResultsTracker
-from st2common.models.db.action import ActionExecutionStateDB
+from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.persistence.executionstate import ActionExecutionState
 from st2tests.base import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader

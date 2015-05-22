@@ -16,7 +16,7 @@
 from oslo.config import cfg
 
 from st2common import transport
-from st2common.models.db.action import liveaction_access
+from st2common.models.db.liveaction import liveaction_access
 from st2common.persistence import base as persistence
 
 

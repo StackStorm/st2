@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.models.db.action import actionalias_access
+from st2common.models.db.actionalias import actionalias_access
 from st2common.persistence import base as persistence
 
 

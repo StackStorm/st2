@@ -20,7 +20,7 @@ from st2common.util import reference
 from st2common.util import action_db as action_db_util
 from st2reactor.rules.datatransform import get_transformer
 from st2common.services import action as action_service
-from st2common.models.db.action import LiveActionDB
+from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.utils import action_param_utils
 from st2common.constants import action as action_constants
 from st2common.models.api.access import get_system_username

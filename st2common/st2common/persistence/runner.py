@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from st2common.persistence import base as persistence
-from st2common.models.db.action import runnertype_access
+from st2common.models.db.runner import runnertype_access
 
 
 class RunnerType(persistence.Access):
