@@ -17,9 +17,12 @@ import six
 
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.persistence.policy import PolicyType, Policy
+from st2common.policies import ResourcePolicy, get_driver
 from st2tests.fixturesloader import FixturesLoader
 from st2tests import DbTestCase
 
+
+TEST_POLICY_MODULE = 'st2tests.policies.concurrency'
 
 TEST_FIXTURES = {
     'policytypes': [
@@ -44,6 +47,7 @@ class PolicyTest(DbTestCase):
         super(PolicyTest, cls).setUpClass()
 
         for _, fixture in six.iteritems(FIXTURES['policytypes']):
+            fixture['module'] = TEST_POLICY_MODULE
             instance = PolicyTypeAPI(**fixture)
             PolicyType.add_or_update(PolicyTypeAPI.to_model(instance))
 
@@ -61,3 +65,10 @@ class PolicyTest(DbTestCase):
         self.assertIsNotNone(policy_type_db)
         self.assertEqual(policy_type_db.resource_type, 'action')
         self.assertEqual(policy_type_db.name, 'concurrency')
+
+    def test_get_driver(self):
+        policy_db = Policy.get_by_ref('core.local.concurrency')
+        policy = get_driver(policy_db.policy_type, **policy_db.parameters)
+        self.assertIsInstance(policy, ResourcePolicy)
+        self.assertTrue(hasattr(policy, 'threshold'))
+        self.assertEqual(policy.threshold, 3)

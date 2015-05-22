@@ -6,4 +6,4 @@ enabled: true
 resource_ref: core.local
 policy_type: action.concurrency
 parameters:
-    threshold: 25
+    threshold: 3
