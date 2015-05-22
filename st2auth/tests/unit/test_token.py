@@ -25,7 +25,7 @@ from oslo.config import cfg
 from tests.base import FunctionalTest
 from st2common.util import isotime
 from st2common.models.db.auth import UserDB, TokenDB
-from st2common.models.api.access import TokenAPI
+from st2common.models.api.auth import TokenAPI
 from st2common.persistence.auth import User, Token
 
 

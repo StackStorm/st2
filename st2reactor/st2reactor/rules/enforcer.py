@@ -23,7 +23,7 @@ from st2common.services import action as action_service
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.utils import action_param_utils
 from st2common.constants import action as action_constants
-from st2common.models.api.access import get_system_username
+from st2common.models.api.auth import get_system_username
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.enforce')

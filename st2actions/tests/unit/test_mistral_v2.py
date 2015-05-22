@@ -37,7 +37,7 @@ from st2actions.handlers.mistral import MistralCallbackHandler
 from st2actions.runners.localrunner import LocalShellRunner
 from st2actions.runners.mistral.v2 import MistralRunner
 from st2common.constants import action as action_constants
-from st2common.models.api.access import TokenAPI
+from st2common.models.api.auth import TokenAPI
 from st2common.models.api.action import ActionAPI
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.action import Action
