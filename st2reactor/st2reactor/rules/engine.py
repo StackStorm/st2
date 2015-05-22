@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from st2common import log as logging
-from st2common.persistence.reactor import Rule
+from st2common.persistence.rule import Rule
 from st2common.services.triggers import get_trigger_db_by_ref
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.matcher import RulesMatcher

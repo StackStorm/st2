@@ -18,7 +18,7 @@ import uuid
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.tag import TagsHelper
-from st2common.models.db.reactor import TriggerTypeDB, TriggerDB, TriggerInstanceDB
+from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
 from st2common.models.system.common import ResourceReference
 
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'

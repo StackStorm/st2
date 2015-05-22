@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2auth.controllers import access
+from st2auth.controllers import auth
 
 
 class RootController(object):
-    tokens = access.TokenController()
+    tokens = auth.TokenController()

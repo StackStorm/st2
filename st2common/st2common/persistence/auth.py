@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.exceptions.access import TokenNotFoundError
+from st2common.exceptions.auth import TokenNotFoundError
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.access import UserDB, TokenDB
+from st2common.models.db.auth import UserDB, TokenDB
 from st2common.persistence.base import Access
 
 

@@ -26,7 +26,7 @@ from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.api.notification import NotificationsHelper
-from st2common.models.db.action import LiveActionDB
+from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.system import actionchain
 from st2common.models.utils import action_param_utils
 from st2common.persistence.execution import ActionExecution

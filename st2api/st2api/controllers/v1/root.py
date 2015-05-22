@@ -15,7 +15,7 @@
 
 from st2api.controllers.v1.actions import ActionsController
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
-from st2api.controllers.v1.datastore import KeyValuePairController
+from st2api.controllers.v1.keyvalue import KeyValuePairController
 from st2api.controllers.v1.policies import PolicyTypeController, PolicyController
 from st2api.controllers.v1.rules import RuleController
 from st2api.controllers.v1.runnertypes import RunnerTypesController

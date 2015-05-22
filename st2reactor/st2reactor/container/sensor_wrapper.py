@@ -34,7 +34,7 @@ from st2reactor.sensor import config
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
-from st2client.models.datastore import KeyValuePair
+from st2client.models.keyvalue import KeyValuePair
 
 __all__ = [
     'SensorWrapper'

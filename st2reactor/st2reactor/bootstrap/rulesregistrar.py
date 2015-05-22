@@ -23,7 +23,7 @@ from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.rule import RuleAPI
 from st2common.models.system.common import ResourceReference
-from st2common.persistence.reactor import Rule
+from st2common.persistence.rule import Rule
 import st2common.content.utils as content_utils
 
 __all__ = [

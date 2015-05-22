@@ -16,8 +16,8 @@
 import datetime
 
 from st2common import log as logging
-from st2common.persistence.access import Token
-from st2common.exceptions import access as exceptions
+from st2common.persistence.auth import Token
+from st2common.exceptions import auth as exceptions
 from st2common.util import isotime
 
 __all__ = [

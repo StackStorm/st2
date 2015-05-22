@@ -15,7 +15,7 @@
 
 import mock
 
-from st2common.models.db.reactor import TriggerDB
+from st2common.models.db.trigger import TriggerDB
 from st2common.transport.publishers import PoolPublisher
 import st2reactor.container.utils as container_utils
 from st2tests.base import CleanDbTestCase

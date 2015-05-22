@@ -15,7 +15,7 @@
 
 import six
 from st2common import log as logging
-from st2common.persistence.reactor import SensorType
+from st2common.persistence.sensor import SensorType
 from st2common.models.api.sensor import SensorTypeAPI
 from st2api.controllers import resource
 

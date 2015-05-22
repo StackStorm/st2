@@ -18,7 +18,7 @@ import six
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
-from st2common.persistence.action import LiveAction
+from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
 from st2common.util import isotime
