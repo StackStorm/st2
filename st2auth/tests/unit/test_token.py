@@ -24,9 +24,9 @@ from oslo.config import cfg
 
 from tests.base import FunctionalTest
 from st2common.util import isotime
-from st2common.models.db.access import UserDB, TokenDB
+from st2common.models.db.auth import UserDB, TokenDB
 from st2common.models.api.access import TokenAPI
-from st2common.persistence.access import User, Token
+from st2common.persistence.auth import User, Token
 
 
 USERNAME = ''.join(random.choice(string.lowercase) for i in range(10))

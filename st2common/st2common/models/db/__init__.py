@@ -12,7 +12,7 @@ from st2common import log as logging
 LOG = logging.getLogger(__name__)
 
 MODEL_MODULE_NAMES = [
-    'st2common.models.db.access',
+    'st2common.models.db.auth',
     'st2common.models.db.action',
     'st2common.models.db.actionalias',
     'st2common.models.db.datastore',
