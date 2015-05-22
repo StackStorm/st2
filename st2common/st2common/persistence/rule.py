@@ -13,27 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
-from st2common import log as logging
-from st2common.persistence.sensor import SensorType
-from st2common.models.api.sensor import SensorTypeAPI
-from st2api.controllers import resource
-
-http_client = six.moves.http_client
-
-LOG = logging.getLogger(__name__)
+from st2common.models.db.rule import rule_access
+from st2common.persistence.base import ContentPackResource
 
 
-class SensorTypeController(resource.ContentPackResourceController):
-    model = SensorTypeAPI
-    access = SensorType
-    supported_filters = {
-        'name': 'name',
-        'pack': 'pack'
-    }
+class Rule(ContentPackResource):
+    impl = rule_access
 
-    options = {
-        'sort': ['pack', 'name']
-    }
-
-    include_reference = True
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl

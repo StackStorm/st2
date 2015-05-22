@@ -19,7 +19,7 @@ import mongoengine
 
 from st2common.exceptions import db
 from st2common.models.db.trigger import TriggerDB
-from st2common.persistence.reactor import Trigger
+from st2common.persistence.trigger import Trigger
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import reference
 from st2tests import DbTestCase

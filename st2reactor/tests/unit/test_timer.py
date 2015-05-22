@@ -18,8 +18,8 @@ from mock import Mock
 from st2common.constants.triggers import TIMER_TRIGGER_TYPES
 from st2common.models.db.trigger import TriggerDB
 from st2common.models.system.common import ResourceReference
-from st2common.persistence.reactor import TriggerType
-from st2common.persistence.reactor import Trigger
+from st2common.persistence.trigger import TriggerType
+from st2common.persistence.trigger import Trigger
 from st2reactor.timer.base import St2Timer
 from st2tests.base import CleanDbTestCase
 

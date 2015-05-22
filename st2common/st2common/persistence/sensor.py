@@ -13,27 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
-from st2common import log as logging
-from st2common.persistence.sensor import SensorType
-from st2common.models.api.sensor import SensorTypeAPI
-from st2api.controllers import resource
+from oslo.config import cfg
 
-http_client = six.moves.http_client
-
-LOG = logging.getLogger(__name__)
+from st2common import transport
+from st2common.models.db.sensor import sensor_type_access
+from st2common.persistence.base import ContentPackResource
 
 
-class SensorTypeController(resource.ContentPackResourceController):
-    model = SensorTypeAPI
-    access = SensorType
-    supported_filters = {
-        'name': 'name',
-        'pack': 'pack'
-    }
+class SensorType(ContentPackResource):
+    impl = sensor_type_access
+    publisher = None
 
-    options = {
-        'sort': ['pack', 'name']
-    }
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
 
-    include_reference = True
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.reactor.SensorCUDPublisher(cfg.CONF.messaging.url)
+        return cls.publisher

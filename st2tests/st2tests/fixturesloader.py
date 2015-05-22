@@ -37,7 +37,9 @@ from st2common.persistence.action import (Action, LiveAction, ActionExecutionSta
                                           RunnerType, ActionAlias)
 from st2common.persistence.execution import (ActionExecution)
 from st2common.persistence.policy import (PolicyType, Policy)
-from st2common.persistence.reactor import (Rule, Trigger, TriggerType, TriggerInstance)
+from st2common.persistence.rule import Rule
+from st2common.persistence.trigger import (Trigger, TriggerType, TriggerInstance)
+
 
 ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'aliases', 'executions', 'liveactions',
                        'policies', 'policytypes', 'rules', 'runners',

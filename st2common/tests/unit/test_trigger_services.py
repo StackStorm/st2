@@ -17,7 +17,7 @@ from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2common.models.api.rule import RuleAPI
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.trigger import TriggerDB
-from st2common.persistence.reactor import (Trigger, TriggerType)
+from st2common.persistence.trigger import (Trigger, TriggerType)
 import st2common.services.triggers as trigger_service
 
 from st2tests.base import CleanDbTestCase

@@ -18,7 +18,7 @@ import mock
 import six
 
 from st2common.transport.publishers import PoolPublisher
-from st2common.persistence.reactor import TriggerInstance
+from st2common.persistence.trigger import TriggerInstance
 from st2common.models.db.trigger import TriggerInstanceDB
 from tests import FunctionalTest
 

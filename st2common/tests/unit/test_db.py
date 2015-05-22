@@ -46,7 +46,8 @@ class DbConnectionTest(DbTestCase):
 
 from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
 from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
-from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
+from st2common.persistence.rule import Rule
+from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())

@@ -43,7 +43,8 @@ from st2common.models.api.rule import RuleAPI
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2common.models.system.common import ResourceReference
-from st2common.persistence.reactor import SensorType, Rule
+from st2common.persistence.rule import Rule
+from st2common.persistence.sensor import SensorType
 from st2common.persistence.action import Action
 
 registrar = ResourceRegistrar()

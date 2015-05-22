@@ -20,7 +20,7 @@ from kombu import Connection
 from oslo.config import cfg
 
 from st2common import log as logging
-from st2common.persistence.reactor import Trigger
+from st2common.persistence.trigger import Trigger
 from st2common.transport import reactor, publishers
 
 LOG = logging.getLogger(__name__)
