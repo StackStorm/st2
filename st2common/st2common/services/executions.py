@@ -34,7 +34,7 @@ from st2common.util import reference
 import st2common.util.action_db as action_utils
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.persistence.execution import ActionExecution
-from st2common.persistence.action import RunnerType
+from st2common.persistence.runner import RunnerType
 from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI

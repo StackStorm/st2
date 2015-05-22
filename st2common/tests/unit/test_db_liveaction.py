@@ -18,7 +18,7 @@ import datetime
 import mock
 
 from st2common.models.db.action import LiveActionDB, NotificationSchema, NotificationSubSchema
-from st2common.persistence.action import LiveAction
+from st2common.persistence.liveaction import LiveAction
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import isotime
 

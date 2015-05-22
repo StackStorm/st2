@@ -24,7 +24,7 @@ from st2common.models.api.base import jsexpose
 from st2common.models.api.action import AliasExecutionAPI
 from st2common.models.db.action import LiveActionDB, NotificationSchema, NotificationSubSchema
 from st2common.models.utils import action_alias_utils, action_param_utils
-from st2common.persistence.action import ActionAlias
+from st2common.persistence.actionalias import ActionAlias
 from st2common.services import action as action_service
 
 

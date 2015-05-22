@@ -26,7 +26,7 @@ from st2common.models.db.action import LiveActionDB
 from st2common.models.db.datastore import KeyValuePairDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.datastore import KeyValuePair
-from st2common.persistence.action import RunnerType
+from st2common.persistence.runner import RunnerType
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 from st2tests import DbTestCase

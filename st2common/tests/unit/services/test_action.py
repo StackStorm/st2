@@ -21,7 +21,8 @@ from st2common.constants import action as action_constants
 from st2common.models.db.action import LiveActionDB
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.models.system.common import ResourceReference
-from st2common.persistence.action import RunnerType, Action
+from st2common.persistence.action import Action
+from st2common.persistence.runner import RunnerType
 from st2common.services import action as action_service
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import isotime

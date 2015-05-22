@@ -33,7 +33,7 @@ from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.action import LiveActionDB
-from st2common.persistence.action import LiveAction
+from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service

@@ -234,7 +234,8 @@ class ReactorModelTest(DbTestCase):
 
 from st2common.models.db.action import ActionDB, RunnerTypeDB
 from st2common.models.db.action import NotificationSchema, NotificationSubSchema
-from st2common.persistence.action import Action, RunnerType
+from st2common.persistence.action import Action
+from st2common.persistence.runner import RunnerType
 
 
 PARAM_SCHEMA = {

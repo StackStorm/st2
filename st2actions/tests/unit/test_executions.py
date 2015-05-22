@@ -28,10 +28,12 @@ from st2common.models.db.action import LiveActionDB
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
-from st2common.persistence.rule import Rule
-from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
-from st2common.persistence.action import RunnerType, Action, LiveAction
+from st2common.persistence.action import Action
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.rule import Rule
+from st2common.persistence.runner import RunnerType
+from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher

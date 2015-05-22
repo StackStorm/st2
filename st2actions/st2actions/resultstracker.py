@@ -24,7 +24,7 @@ from oslo.config import cfg
 from st2actions.query.base import QueryContext
 from st2common import log as logging
 from st2common.models.db import action as action_models
-from st2common.persistence.action import ActionExecutionState
+from st2common.persistence.executionstate import ActionExecutionState
 from st2common.transport import actionexecutionstate, consumers, publishers
 
 

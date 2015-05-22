@@ -13,27 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.models.db.action import action_access
 from st2common.persistence import base as persistence
-from st2common.persistence.actionalias import ActionAlias
-from st2common.persistence.execution import ActionExecution
-from st2common.persistence.executionstate import ActionExecutionState
-from st2common.persistence.liveaction import LiveAction
-from st2common.persistence.runner import RunnerType
-
-__all__ = [
-    'Action',
-    'ActionAlias',
-    'ActionExecution',
-    'ActionExecutionState',
-    'LiveAction',
-    'RunnerType'
-]
+from st2common.models.db.action import runnertype_access
 
 
-class Action(persistence.ContentPackResource):
-    impl = action_access
+class RunnerType(persistence.Access):
+    impl = runnertype_access
 
     @classmethod
     def _get_impl(cls):
         return cls.impl
+
+    @classmethod
+    def _get_by_object(cls, object):
+        # For RunnerType name is unique.
+        name = getattr(object, 'name', '')
+        return cls.get_by_name(name)

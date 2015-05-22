@@ -13,13 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.persistence.base import Access
-from st2common.models.db.actionrunner import actionrunner_access
+from oslo.config import cfg
+
+from st2common import transport
+from st2common.models.db.action import liveaction_access
+from st2common.persistence import base as persistence
 
 
-class ActionRunner(Access):
-    IMPL = actionrunner_access
+class LiveAction(persistence.StatusBasedResource):
+    impl = liveaction_access
+    publisher = None
 
     @classmethod
     def _get_impl(cls):
-        return cls.IMPL
+        return cls.impl
+
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.liveaction.LiveActionPublisher(
+                cfg.CONF.messaging.url)
+        return cls.publisher

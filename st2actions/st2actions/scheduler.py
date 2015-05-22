@@ -21,7 +21,7 @@ from st2common.constants import action as action_constants
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db import action as action_models
 from st2common.services import executions
-from st2common.persistence.action import LiveAction
+from st2common.persistence.liveaction import LiveAction
 from st2common.transport import consumers, liveaction
 from st2common.util import action_db as action_utils
 

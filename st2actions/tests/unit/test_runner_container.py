@@ -22,7 +22,8 @@ from st2actions.runners import get_runner
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.action import (LiveActionDB, RunnerTypeDB)
-from st2common.persistence.action import (LiveAction, ActionExecutionState)
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import executions
 from st2common.transport.publishers import PoolPublisher
 from st2tests.base import DbTestCase
