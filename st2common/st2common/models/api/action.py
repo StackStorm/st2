@@ -433,7 +433,7 @@ class ActionAliasAPI(BaseAPI):
         model.pack = alias.pack
         model.ref = ResourceReference.to_string_reference(pack=model.pack, name=model.name)
         model.action_ref = alias.action_ref
-        model.formats = getattr(alias, 'formats', [])
+        model.formats = alias.formats
         return model
 
 
@@ -447,9 +447,19 @@ class AliasExecutionAPI(BaseAPI):
         "description": "Execution of an ActionAlias.",
         "type": "object",
         "properties": {
+            "name": {
+                "type": "string",
+                "description": "Name of the action alias which matched.",
+                "required": True
+            },
+            "format": {
+                "type": "string",
+                "description": "Format string which matched.",
+                "required": True
+            },
             "command": {
                 "type": "string",
-                "description": "Name of the action alias.",
+                "description": "Command used in chat.",
                 "required": True
             },
             "user": {
