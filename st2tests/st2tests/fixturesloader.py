@@ -31,8 +31,8 @@ from st2common.models.db.action import (ActionDB, LiveActionDB, ActionExecutionS
                                         RunnerTypeDB, ActionAliasDB)
 from st2common.models.db.execution import (ActionExecutionDB)
 from st2common.models.db.policy import (PolicyTypeDB, PolicyDB)
-from st2common.models.db.reactor import (RuleDB, TriggerDB, TriggerTypeDB, TriggerInstanceDB)
-
+from st2common.models.db.rule import RuleDB
+from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB, TriggerInstanceDB)
 from st2common.persistence.action import (Action, LiveAction, ActionExecutionState,
                                           RunnerType, ActionAlias)
 from st2common.persistence.execution import (ActionExecution)

@@ -44,8 +44,8 @@ class DbConnectionTest(DbTestCase):
                          'Not connected to desired port.')
 
 
-from st2common.models.db.reactor import TriggerTypeDB, TriggerDB, TriggerInstanceDB, \
-    RuleDB, ActionExecutionSpecDB
+from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
+from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
 from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
 
 

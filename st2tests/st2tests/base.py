@@ -29,7 +29,9 @@ from unittest2 import TestCase
 
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.db import db_setup, db_teardown
-import st2common.models.db.reactor as reactor_model
+import st2common.models.db.rule as rule_model
+import st2common.models.db.sensor as sensor_model
+import st2common.models.db.trigger as trigger_model
 import st2common.models.db.action as action_model
 import st2common.models.db.datastore as datastore_model
 import st2common.models.db.actionrunner as actionrunner_model
@@ -47,7 +49,9 @@ __all__ = [
 
 
 ALL_MODELS = []
-ALL_MODELS.extend(reactor_model.MODELS)
+ALL_MODELS.extend(rule_model.MODELS)
+ALL_MODELS.extend(sensor_model.MODELS)
+ALL_MODELS.extend(trigger_model.MODELS)
 ALL_MODELS.extend(action_model.MODELS)
 ALL_MODELS.extend(datastore_model.MODELS)
 ALL_MODELS.extend(actionrunner_model.MODELS)

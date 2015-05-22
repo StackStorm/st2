@@ -17,7 +17,9 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.actionrunner',
     'st2common.models.db.datastore',
     'st2common.models.db.execution',
-    'st2common.models.db.reactor'
+    'st2common.models.db.rule',
+    'st2common.models.db.sensor',
+    'st2common.models.db.trigger',
 ]
 
 

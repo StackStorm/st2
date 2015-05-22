@@ -16,9 +16,9 @@
 from oslo.config import cfg
 
 from st2common import transport
-from st2common.models.db.reactor import sensor_type_access
-from st2common.models.db.reactor import triggertype_access, trigger_access, triggerinstance_access,\
-    rule_access
+from st2common.models.db.rule import rule_access
+from st2common.models.db.sensor import sensor_type_access
+from st2common.models.db.trigger import triggertype_access, trigger_access, triggerinstance_access
 from st2common.persistence.base import (Access, ContentPackResource)
 
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from st2common.models.api.base import BaseAPI
-from st2common.models.db.reactor import SensorTypeDB
+from st2common.models.db.sensor import SensorTypeDB
 from st2common.models.utils import sensor_type_utils
 
 

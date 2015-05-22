@@ -17,7 +17,7 @@ import six
 
 from st2common import log as logging
 from st2common.persistence.reactor import TriggerInstance
-from st2common.models.db.reactor import TriggerInstanceDB
+from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.services import triggers as TriggerService
 
 LOG = logging.getLogger('st2reactor.sensor.container_utils')

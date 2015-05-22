@@ -15,8 +15,8 @@
 
 import datetime
 
-from st2common.models.db.reactor import (TriggerDB, TriggerTypeDB)
 from st2common.models.api.rule import RuleAPI
+from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB)
 from st2common.persistence.reactor import (TriggerType, Trigger, Rule)
 from st2common.services.triggers import get_trigger_db_by_ref
 import st2reactor.container.utils as container_utils

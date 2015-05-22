@@ -18,8 +18,8 @@ import datetime
 import mock
 from mongoengine import NotUniqueError
 
-from st2common.models.db.reactor import (TriggerDB, TriggerTypeDB)
 from st2common.models.api.rule import RuleAPI
+from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB)
 from st2common.persistence.reactor import (TriggerType, Trigger, Rule)
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.enforcer import RuleEnforcer
