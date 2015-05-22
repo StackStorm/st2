@@ -99,7 +99,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
             resource, 'set',
             'Set an existing %s.' % resource.get_display_name().lower(),
             *args, **kwargs
-            )
+        )
 
         self.parser.add_argument('name',
                                  metavar='name',
