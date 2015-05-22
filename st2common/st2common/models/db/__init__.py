@@ -15,7 +15,7 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.auth',
     'st2common.models.db.action',
     'st2common.models.db.actionalias',
-    'st2common.models.db.datastore',
+    'st2common.models.db.keyvalue',
     'st2common.models.db.execution',
     'st2common.models.db.executionstate',
     'st2common.models.db.liveaction',

@@ -14,11 +14,11 @@
 # limitations under the License.
 
 from st2common.persistence.base import Access
-from st2common.models.db import datastore
+from st2common.models.db import keyvalue
 
 
 class KeyValuePair(Access):
-    IMPL = datastore.keyvaluepair_access
+    IMPL = keyvalue.keyvaluepair_access
 
     @classmethod
     def _get_impl(cls):

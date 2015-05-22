@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.persistence.datastore import KeyValuePair
+from st2common.persistence.keyvalue import KeyValuePair
 
 
 class KeyValueLookup(object):

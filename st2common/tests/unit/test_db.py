@@ -398,8 +398,8 @@ class ActionModelTest(DbTestCase):
             model_object.delete()
 
 
-from st2common.models.db.datastore import KeyValuePairDB
-from st2common.persistence.datastore import KeyValuePair
+from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.persistence.keyvalue import KeyValuePair
 
 
 class KeyValuePairModelTest(DbTestCase):
