@@ -17,11 +17,18 @@ from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2common.models.api.rule import RuleAPI
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.reactor import TriggerDB
-from st2common.persistence.reactor import Trigger
+from st2common.persistence.reactor import (Trigger, TriggerType)
 import st2common.services.triggers as trigger_service
 
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
+
+MOCK_TRIGGER = TriggerDB()
+MOCK_TRIGGER.id = 'trigger-test.id'
+MOCK_TRIGGER.name = 'trigger-test.name'
+MOCK_TRIGGER.pack = 'dummy_pack_1'
+MOCK_TRIGGER.parameters = {}
+MOCK_TRIGGER.type = 'dummy_pack_1.trigger-type-test.name'
 
 
 class TriggerServiceTests(CleanDbTestCase):
@@ -187,10 +194,87 @@ class TriggerServiceTests(CleanDbTestCase):
         self.assertEqual(trigger_db, trigger_3)
 
         # Trigger with parameters
-        trigger_db = trigger_service.get_trigger_db_given_type_and_params(type=trigger_4.type,
+        trigger_db = trigger_service.get_trigger_db_given_type_and_params(
+            type=trigger_4.type,
             parameters=trigger_4.parameters)
         self.assertEqual(trigger_db, trigger_4)
 
         trigger_db = trigger_service.get_trigger_db_given_type_and_params(type=trigger_4.type,
                                                                           parameters=None)
         self.assertEqual(trigger_db, None)
+
+    def test_add_trigger_type_no_params(self):
+        # Trigger type with no params should create a trigger with same name as trigger type.
+        trig_type = {
+            'name': 'myawesometriggertype',
+            'pack': 'dummy_pack_1',
+            'description': 'Words cannot describe how awesome I am.',
+            'parameters_schema': {},
+            'payload_schema': {}
+        }
+        trigtype_dbs = trigger_service.add_trigger_models(trigger_types=[trig_type])
+        trigger_type, trigger = trigtype_dbs[0]
+
+        trigtype_db = TriggerType.get_by_id(trigger_type.id)
+        self.assertEqual(trigtype_db.pack, 'dummy_pack_1')
+        self.assertEqual(trigtype_db.name, trig_type.get('name'))
+        self.assertTrue(trigger is not None)
+        self.assertEqual(trigger.name, trigtype_db.name)
+
+        # Add duplicate
+        trigtype_dbs = trigger_service.add_trigger_models(trigger_types=[trig_type])
+        triggers = Trigger.get_all()
+        self.assertTrue(len(triggers) == 1)
+
+    def test_add_trigger_type_with_params(self):
+        MOCK_TRIGGER.type = 'system.test'
+        # Trigger type with params should not create a trigger.
+        PARAMETERS_SCHEMA = {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string"}
+            },
+            "required": ['url'],
+            "additionalProperties": False
+        }
+        trig_type = {
+            'name': 'myawesometriggertype2',
+            'pack': 'my_pack_1',
+            'description': 'Words cannot describe how awesome I am.',
+            'parameters_schema': PARAMETERS_SCHEMA,
+            'payload_schema': {}
+        }
+        trigtype_dbs = trigger_service.add_trigger_models(trigger_types=[trig_type])
+        trigger_type, trigger = trigtype_dbs[0]
+
+        trigtype_db = TriggerType.get_by_id(trigger_type.id)
+        self.assertEqual(trigtype_db.pack, 'my_pack_1')
+        self.assertEqual(trigtype_db.name, trig_type.get('name'))
+        self.assertEqual(trigger, None)
+
+    def test_add_trigger_type(self):
+        """
+        This sensor has misconfigured trigger type. We shouldn't explode.
+        """
+        class FailTestSensor(object):
+            started = False
+
+            def setup(self):
+                pass
+
+            def start(self):
+                FailTestSensor.started = True
+
+            def stop(self):
+                pass
+
+            def get_trigger_types(self):
+                return [
+                    {'description': 'Ain\'t got no name'}
+                ]
+
+        try:
+            trigger_service.add_trigger_models(FailTestSensor().get_trigger_types())
+            self.assertTrue(False, 'Trigger type doesn\'t have \'name\' field. Should have thrown.')
+        except Exception:
+            self.assertTrue(True)
