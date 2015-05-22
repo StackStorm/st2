@@ -28,13 +28,17 @@ __all__ = [
 
 def to_sensor_db_model(sensor_api_model=None):
     """
-    XXX: Docs
+    Converts a SensorTypeAPI model to DB model.
+    Also, creates trigger type objects provided in SensorTypeAPI.
+
+    :param sensor_api_model: SensorTypeAPI object.
+    :type sensor_api_model: :class:`SensorTypeAPI`
+
+    :rtype: :class:`SensorTypeDB`
     """
     class_name = getattr(sensor_api_model, 'class_name', None)
     pack = getattr(sensor_api_model, 'pack', None)
-    entry_point = getattr(sensor_api_model, 'entry_point', None)
-    if not entry_point or entry_point == '':
-        entry_point = get_sensor_entry_point(sensor_api_model)
+    entry_point = get_sensor_entry_point(sensor_api_model)
     artifact_uri = getattr(sensor_api_model, 'artifact_uri', None)
     description = getattr(sensor_api_model, 'description', None)
     trigger_types = getattr(sensor_api_model, 'trigger_types', [])
@@ -46,20 +50,10 @@ def to_sensor_db_model(sensor_api_model=None):
         raise ValueError('Minimum possible poll_interval is %s seconds' %
                          (MINIMUM_POLL_INTERVAL))
 
-    trigger_type_refs = []
-    if len(trigger_types) > 0:
-        # Add pack to each trigger type item
-        for trigger_type in trigger_types:
-            trigger_type['pack'] = pack
-
-        # Add TrigerType models to the DB
-        trigger_type_dbs = trigger_service.add_trigger_models(trigger_types=trigger_types)
-
-        # Populate a list of references belonging to this sensor
-        for trigger_type_db, _ in trigger_type_dbs:
-            ref_obj = trigger_type_db.get_reference()
-            trigger_type_ref = ref_obj.ref
-            trigger_type_refs.append(trigger_type_ref)
+    # Add pack to each trigger type item
+    for trigger_type in trigger_types:
+        trigger_type['pack'] = pack
+    trigger_type_refs = _create_trigger_types(trigger_types)
 
     return _create_sensor_type(pack=pack,
                                name=class_name,
@@ -69,6 +63,22 @@ def to_sensor_db_model(sensor_api_model=None):
                                trigger_types=trigger_type_refs,
                                poll_interval=poll_interval,
                                enabled=enabled)
+
+
+def _create_trigger_types(trigger_types):
+    if not trigger_types:
+        return []
+
+    # Add TrigerType models to the DB
+    trigger_type_dbs = trigger_service.add_trigger_models(trigger_types=trigger_types)
+
+    trigger_type_refs = []
+    # Populate a list of references belonging to this sensor
+    for trigger_type_db, _ in trigger_type_dbs:
+        ref_obj = trigger_type_db.get_reference()
+        trigger_type_ref = ref_obj.ref
+        trigger_type_refs.append(trigger_type_ref)
+    return trigger_type_refs
 
 
 def _create_sensor_type(pack=None, name=None, description=None, artifact_uri=None,
