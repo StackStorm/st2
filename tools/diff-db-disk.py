@@ -38,7 +38,7 @@ from st2common.content.loader import MetaLoader
 from st2common.bootstrap.base import ResourceRegistrar
 import st2common.content.utils as content_utils
 from st2common.models.api.action import ActionAPI
-from st2common.models.api.reactor import SensorTypeAPI
+from st2common.models.api.sensor import SensorTypeAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
@@ -116,6 +116,10 @@ def _get_api_models_from_disk(artifact_type, pack_dir=None):
         artifacts_paths = registrar.get_resources_from_pack(pack_path)
         for artifact_path in artifacts_paths:
             artifact = meta_loader.load(artifact_path)
+            if artifact_type == 'sensors':
+                sensors_dir = os.path.dirname(artifact_path)
+                sensor_file_path = os.path.join(sensors_dir, artifact['entry_point'])
+                artifact['artifact_uri'] = 'file://' + sensor_file_path
             name = artifact.get('name', None) or artifact.get('class_name', None)
             if not artifact.get('pack', None):
                 artifact['pack'] = pack_name
@@ -133,7 +137,8 @@ def _get_api_models_from_disk(artifact_type, pack_dir=None):
     return artifacts_dict
 
 
-def _content_diff(artifact_type=None, artifact_in_disk=None, artifact_in_db=None):
+def _content_diff(artifact_type=None, artifact_in_disk=None, artifact_in_db=None,
+                  verbose=False):
     artifact_in_disk_str = json.dumps(
         artifact_in_disk.__json__(), sort_keys=True,
         indent=4, separators=(',', ': ')
@@ -148,13 +153,17 @@ def _content_diff(artifact_type=None, artifact_in_disk=None, artifact_in_db=None
     printed = False
     for diff in diffs:
         if not printed:
-            print('###################################################################' +
-                  '##########')
             identifier = getattr(artifact_in_db, 'ref', getattr(artifact_in_db, 'name'))
             print('%s %s in db differs from what is in disk.' % (artifact_type.upper(),
                   identifier))
             printed = True
         print(diff)
+
+    if verbose:
+        print('\n\nOriginal contents:')
+        print('===================\n')
+        print('Artifact in db:\n\n%s\n\n' % artifact_in_db_str)
+        print('Artifact in disk:\n\n%s\n\n' % artifact_in_disk_str)
 
 
 def _diff(persistence_model, artifact_type, pack_dir=None, verbose=True,
@@ -206,7 +215,8 @@ def _diff(persistence_model, artifact_type, pack_dir=None, verbose=True,
 
             _content_diff(artifact_type=artifact_type,
                           artifact_in_disk=artifact_in_disk,
-                          artifact_in_db=artifact_in_db)
+                          artifact_in_db=artifact_in_db,
+                          verbose=verbose)
 
 
 def _diff_actions(pack_dir=None, verbose=False, content_diff=True):
