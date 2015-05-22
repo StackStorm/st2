@@ -18,11 +18,10 @@ import json
 import logging
 from os.path import join as pjoin
 
-from st2client.models import datastore
 from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
-from st2client.models.datastore import KeyValuePair
+from st2client.models.keyvalue import KeyValuePair
 from st2client.utils.date import format_isodate
 
 LOG = logging.getLogger(__name__)
@@ -39,7 +38,7 @@ class KeyValuePairBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(KeyValuePairBranch, self).__init__(
-            datastore.KeyValuePair, description, app, subparsers,
+            KeyValuePair, description, app, subparsers,
             parent_parser=parent_parser,
             commands={
                 'list': KeyValuePairListCommand,
@@ -96,9 +95,11 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
     display_attributes = ['name', 'value']
 
     def __init__(self, resource, *args, **kwargs):
-        super(KeyValuePairSetCommand, self).__init__(resource, 'set',
+        super(KeyValuePairSetCommand, self).__init__(
+            resource, 'set',
             'Set an existing %s.' % resource.get_display_name().lower(),
-            *args, **kwargs)
+            *args, **kwargs
+            )
 
         self.parser.add_argument('name',
                                  metavar='name',
