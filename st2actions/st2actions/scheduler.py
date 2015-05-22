@@ -22,6 +22,8 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.services import executions
 from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.policy import Policy
+from st2common import policies
 from st2common.transport import consumers, liveaction
 from st2common.util import action_db as action_utils
 
@@ -55,6 +57,18 @@ class ActionExecutionScheduler(consumers.MessageHandler):
         except StackStormDBObjectNotFoundError:
             LOG.exception('Failed to find liveaction %s in the database.', request.id)
             raise
+
+        # Apply policies defined for the action.
+        for policy_db in Policy.query(resource_ref=liveaction_db.action):
+            policy = policies.get_driver(policy_db.policy_type, **policy_db.parameters)
+            liveaction_db = policy.apply(liveaction_db)
+
+        # Exit if the status of the request is no longer schedulable.
+        # The status could have be changed by one of the policies.
+        if liveaction_db.status != action_constants.LIVEACTION_STATUS_REQUESTED:
+            LOG.info('%s is ignoring %s (id=%s) with "%s" status.',
+                     self.__class__.__name__, type(request), request.id, liveaction_db.status)
+            return
 
         # Update liveaction status to "scheduled"
         liveaction_db = action_utils.update_liveaction_status(
