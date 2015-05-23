@@ -27,17 +27,25 @@ from st2common.models.api.policy import (PolicyTypeAPI, PolicyAPI)
 from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
 from st2common.models.api.rule import (RuleAPI)
 
-from st2common.models.db.action import (ActionDB, LiveActionDB, ActionExecutionStateDB,
-                                        RunnerTypeDB, ActionAliasDB)
+from st2common.models.db.action import ActionDB
+from st2common.models.db.actionalias import ActionAliasDB
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.executionstate import ActionExecutionStateDB
+from st2common.models.db.runner import RunnerTypeDB
 from st2common.models.db.execution import (ActionExecutionDB)
 from st2common.models.db.policy import (PolicyTypeDB, PolicyDB)
-from st2common.models.db.reactor import (RuleDB, TriggerDB, TriggerTypeDB, TriggerInstanceDB)
-
-from st2common.persistence.action import (Action, LiveAction, ActionExecutionState,
-                                          RunnerType, ActionAlias)
-from st2common.persistence.execution import (ActionExecution)
+from st2common.models.db.rule import RuleDB
+from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB, TriggerInstanceDB)
+from st2common.persistence.action import Action
+from st2common.persistence.actionalias import ActionAlias
+from st2common.persistence.execution import ActionExecution
+from st2common.persistence.executionstate import ActionExecutionState
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.runner import RunnerType
 from st2common.persistence.policy import (PolicyType, Policy)
-from st2common.persistence.reactor import (Rule, Trigger, TriggerType, TriggerInstance)
+from st2common.persistence.rule import Rule
+from st2common.persistence.trigger import (Trigger, TriggerType, TriggerInstance)
+
 
 ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'aliases', 'executions', 'liveactions',
                        'policies', 'policytypes', 'rules', 'runners',

@@ -25,7 +25,7 @@ from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2api.controllers import resource
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.base import jsexpose
-from st2common.persistence.reactor import Rule
+from st2common.persistence.rule import Rule
 
 http_client = six.moves.http_client
 

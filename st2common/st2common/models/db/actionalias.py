@@ -13,29 +13,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mongoengine as me
+
 from st2common import log as logging
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.stormbase import StormFoundationDB
+from st2common.models.db import stormbase
 
 __all__ = [
-    'ActionRunnerDB'
+    'ActionAliasDB'
 ]
 
 
 LOG = logging.getLogger(__name__)
 
+PACK_SEPARATOR = '.'
 
-class ActionRunnerDB(StormFoundationDB):
+
+class ActionAliasDB(stormbase.StormBaseDB):
     """
-        The system entity that represents an ActionRunner environment in the system.
-        This entity is used internally to manage and scale-out the StackStorm services.
-        the system.
-
-        Attributes:
+        Database entity that represent an Alias for an action.
     """
-    pass
+    ref = me.StringField(required=True)
+    pack = me.StringField(
+        required=True,
+        help_text='Name of the content pack.')
+    action_ref = me.StringField(
+        required=True,
+        help_text='Reference of the Action map this alias.')
+    formats = me.ListField(
+        field=me.StringField(),
+        help_text='Possible parameter formats that an alias supports.')
+
+    meta = {
+        'indexes': ['name']
+    }
 
 
-actionrunner_access = MongoDBAccess(ActionRunnerDB)
+# specialized access objects
+actionalias_access = MongoDBAccess(ActionAliasDB)
 
-MODELS = [ActionRunnerDB]
+MODELS = [ActionAliasDB]

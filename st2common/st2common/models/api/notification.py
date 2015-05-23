@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.models.db.action import NotificationSchema, NotificationSubSchema
+from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 
 NotificationSubSchemaAPI = {
     "type": "object",

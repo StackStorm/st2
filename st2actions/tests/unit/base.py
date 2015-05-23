@@ -16,7 +16,7 @@
 import traceback
 
 from st2actions import scheduler, worker
-from st2common.models.db.action import LiveActionDB
+from st2common.models.db.liveaction import LiveActionDB
 
 
 class MockLiveActionPublisher(object):

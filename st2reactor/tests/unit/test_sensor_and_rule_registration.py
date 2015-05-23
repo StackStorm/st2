@@ -18,10 +18,10 @@ import os
 import mock
 
 from st2tests import DbTestCase
-from st2common.persistence.reactor import SensorType
-from st2common.persistence.reactor import Trigger
-from st2common.persistence.reactor import TriggerType
-from st2common.persistence.reactor import Rule
+from st2common.persistence.rule import Rule
+from st2common.persistence.sensor import SensorType
+from st2common.persistence.trigger import Trigger
+from st2common.persistence.trigger import TriggerType
 from st2common.transport.publishers import PoolPublisher
 from st2reactor.bootstrap.sensorsregistrar import SensorsRegistrar
 from st2reactor.bootstrap.rulesregistrar import RulesRegistrar

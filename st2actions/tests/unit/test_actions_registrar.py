@@ -20,7 +20,7 @@ import yaml
 import st2actions.bootstrap.actionsregistrar as actions_registrar
 from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
-from st2common.models.db.action import RunnerTypeDB
+from st2common.models.db.runner import RunnerTypeDB
 import st2tests.base as tests_base
 import st2tests.fixturesloader as fixtures_loader
 

@@ -18,7 +18,7 @@ import copy
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RunnerTypeAPI
-from st2common.persistence.action import RunnerType
+from st2common.persistence.runner import RunnerType
 from st2common.util.action_db import get_runnertype_by_name
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.constants.runners import FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT

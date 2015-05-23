@@ -23,7 +23,7 @@ from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
-from st2common.models.db.reactor import ActionExecutionSpecDB
+from st2common.models.db.rule import ActionExecutionSpecDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.base import Access, ContentPackResource
 

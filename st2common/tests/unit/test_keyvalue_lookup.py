@@ -14,8 +14,8 @@
 # limitations under the License.
 
 from st2tests.base import CleanDbTestCase
-from st2common.models.db.datastore import KeyValuePairDB
-from st2common.persistence.datastore import KeyValuePair
+from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services.keyvalues import KeyValueLookup
 
 

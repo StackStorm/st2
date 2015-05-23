@@ -33,9 +33,9 @@ import six
 from st2client import __version__
 from st2client import models
 from st2client.client import Client
-from st2client.commands import access
+from st2client.commands import auth
 from st2client.commands import action
-from st2client.commands import datastore
+from st2client.commands import keyvalue
 from st2client.commands import policy
 from st2client.commands import resource
 from st2client.commands import sensor
@@ -168,14 +168,14 @@ class Shell(object):
             'An activity that happens as a response to the external event.',
             self, self.subparsers)
 
-        self.commands['auth'] = access.TokenCreateCommand(
+        self.commands['auth'] = auth.TokenCreateCommand(
             models.Token, self, self.subparsers, name='auth')
 
         self.commands['execution'] = action.ActionExecutionBranch(
             'An invocation of an action.',
             self, self.subparsers)
 
-        self.commands['key'] = datastore.KeyValuePairBranch(
+        self.commands['key'] = keyvalue.KeyValuePairBranch(
             'Key value pair is used to store commonly used configuration '
             'for reuse in sensors, actions, and rules.',
             self, self.subparsers)

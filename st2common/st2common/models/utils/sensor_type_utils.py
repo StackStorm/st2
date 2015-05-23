@@ -17,7 +17,7 @@ import os
 
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.constants.sensors import MINIMUM_POLL_INTERVAL
-from st2common.models.db.reactor import SensorTypeDB
+from st2common.models.db.sensor import SensorTypeDB
 from st2common.services import triggers as trigger_service
 
 __all__ = [

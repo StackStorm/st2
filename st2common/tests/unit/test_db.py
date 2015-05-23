@@ -44,9 +44,10 @@ class DbConnectionTest(DbTestCase):
                          'Not connected to desired port.')
 
 
-from st2common.models.db.reactor import TriggerTypeDB, TriggerDB, TriggerInstanceDB, \
-    RuleDB, ActionExecutionSpecDB
-from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
+from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
+from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
+from st2common.persistence.rule import Rule
+from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
@@ -231,9 +232,11 @@ class ReactorModelTest(DbTestCase):
             model_object.delete()
 
 
-from st2common.models.db.action import ActionDB, RunnerTypeDB
-from st2common.models.db.action import NotificationSchema, NotificationSubSchema
-from st2common.persistence.action import Action, RunnerType
+from st2common.models.db.action import ActionDB
+from st2common.models.db.runner import RunnerTypeDB
+from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
+from st2common.persistence.action import Action
+from st2common.persistence.runner import RunnerType
 
 
 PARAM_SCHEMA = {
@@ -395,8 +398,8 @@ class ActionModelTest(DbTestCase):
             model_object.delete()
 
 
-from st2common.models.db.datastore import KeyValuePairDB
-from st2common.persistence.datastore import KeyValuePair
+from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.persistence.keyvalue import KeyValuePair
 
 
 class KeyValuePairModelTest(DbTestCase):

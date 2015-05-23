@@ -13,71 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
-
-from st2common import transport
-from st2common.models.db.action import (runnertype_access, action_access, liveaction_access)
-from st2common.models.db.action import actionexecstate_access
-from st2common.models.db.action import actionalias_access
+from st2common.models.db.action import action_access
 from st2common.persistence import base as persistence
+from st2common.persistence.actionalias import ActionAlias
+from st2common.persistence.execution import ActionExecution
+from st2common.persistence.executionstate import ActionExecutionState
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.runner import RunnerType
 
-
-class RunnerType(persistence.Access):
-    impl = runnertype_access
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
-
-    @classmethod
-    def _get_by_object(cls, object):
-        # For RunnerType name is unique.
-        name = getattr(object, 'name', '')
-        return cls.get_by_name(name)
+__all__ = [
+    'Action',
+    'ActionAlias',
+    'ActionExecution',
+    'ActionExecutionState',
+    'LiveAction',
+    'RunnerType'
+]
 
 
 class Action(persistence.ContentPackResource):
     impl = action_access
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
-
-
-class LiveAction(persistence.StatusBasedResource):
-    impl = liveaction_access
-    publisher = None
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
-
-    @classmethod
-    def _get_publisher(cls):
-        if not cls.publisher:
-            cls.publisher = transport.liveaction.LiveActionPublisher(
-                cfg.CONF.messaging.url)
-        return cls.publisher
-
-
-class ActionExecutionState(persistence.Access):
-    impl = actionexecstate_access
-    publisher = None
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
-
-    @classmethod
-    def _get_publisher(cls):
-        if not cls.publisher:
-            cls.publisher = transport.actionexecutionstate.ActionExecutionStatePublisher(
-                cfg.CONF.messaging.url)
-        return cls.publisher
-
-
-class ActionAlias(persistence.Access):
-    impl = actionalias_access
 
     @classmethod
     def _get_impl(cls):

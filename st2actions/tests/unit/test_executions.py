@@ -24,13 +24,16 @@ tests_config.parse_args()
 import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2actions.runners.localrunner import LocalShellRunner
 from st2common.constants import action as action_constants
-from st2common.models.db.action import LiveActionDB
+from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
-from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
-from st2common.persistence.action import RunnerType, Action, LiveAction
+from st2common.persistence.action import Action
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.rule import Rule
+from st2common.persistence.runner import RunnerType
+from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
@@ -65,7 +68,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         Action.add_or_update(ActionAPI.to_model(action_chain))
 
     def tearDown(self):
-        MOCK_FAIL_EXECUTION_CREATE = False    # noqa
+        MOCK_FAIL_EXECUTION_CREATE = False      # noqa
         super(TestActionExecutionHistoryWorker, self).tearDown()
 
     def test_basic_execution(self):
