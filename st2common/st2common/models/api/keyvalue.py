@@ -19,7 +19,7 @@ import six
 
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
-from st2common.models.db.datastore import KeyValuePairDB
+from st2common.models.db.keyvalue import KeyValuePairDB
 
 
 class KeyValuePairAPI(BaseAPI):

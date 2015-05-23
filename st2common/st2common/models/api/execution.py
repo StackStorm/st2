@@ -21,7 +21,7 @@ from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.execution import ActionExecutionDB
-from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
+from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common import log as logging

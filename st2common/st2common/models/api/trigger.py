@@ -18,52 +18,10 @@ import uuid
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.tag import TagsHelper
-from st2common.models.db.reactor import SensorTypeDB, TriggerTypeDB, TriggerDB, TriggerInstanceDB
+from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
 from st2common.models.system.common import ResourceReference
 
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
-
-
-class SensorTypeAPI(BaseAPI):
-    model = SensorTypeDB
-    schema = {
-        'type': 'object',
-        'properties': {
-            'id': {
-                'type': 'string',
-                'default': None
-            },
-            'name': {
-                'type': 'string',
-                'required': True
-            },
-            'pack': {
-                'type': 'string'
-            },
-            'description': {
-                'type': 'string'
-            },
-            'artifact_uri': {
-                'type': 'string',
-            },
-            'entry_point': {
-                'type': 'string',
-            },
-            'enabled': {
-                'description': 'Enable or disable the sensor.',
-                'type': 'boolean',
-                'default': True
-            },
-            'trigger_types': {
-                'type': 'array',
-                'default': []
-            },
-            'poll_interval': {
-                'type': 'number'
-            }
-        },
-        'additionalProperties': False
-    }
 
 
 class TriggerTypeAPI(BaseAPI):

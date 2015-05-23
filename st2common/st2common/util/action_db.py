@@ -21,7 +21,9 @@ import six
 from st2common import log as logging
 from st2common.constants.action import (LIVEACTION_STATUSES)
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.persistence.action import (RunnerType, Action, LiveAction)
+from st2common.persistence.action import Action
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.runner import RunnerType
 
 LOG = logging.getLogger(__name__)
 

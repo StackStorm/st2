@@ -13,64 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
+from st2common.persistence.rule import Rule
+from st2common.persistence.sensor import SensorType
+from st2common.persistence.trigger import (Trigger, TriggerInstance, TriggerType)
 
-from st2common import transport
-from st2common.models.db.reactor import sensor_type_access
-from st2common.models.db.reactor import triggertype_access, trigger_access, triggerinstance_access,\
-    rule_access
-from st2common.persistence.base import (Access, ContentPackResource)
-
-
-class SensorType(ContentPackResource):
-    impl = sensor_type_access
-    publisher = None
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
-
-    @classmethod
-    def _get_publisher(cls):
-        if not cls.publisher:
-            cls.publisher = transport.reactor.SensorCUDPublisher(cfg.CONF.messaging.url)
-        return cls.publisher
-
-
-class TriggerType(ContentPackResource):
-    impl = triggertype_access
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
-
-
-class Trigger(ContentPackResource):
-    impl = trigger_access
-    publisher = None
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
-
-    @classmethod
-    def _get_publisher(cls):
-        if not cls.publisher:
-            cls.publisher = transport.reactor.TriggerCUDPublisher(cfg.CONF.messaging.url)
-        return cls.publisher
-
-
-class TriggerInstance(Access):
-    impl = triggerinstance_access
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
-
-
-class Rule(ContentPackResource):
-    impl = rule_access
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
+__all__ = [
+    'Rule',
+    'SensorType',
+    'Trigger',
+    'TriggerInstance',
+    'TriggerType'
+]

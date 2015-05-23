@@ -19,7 +19,7 @@ from tests import FunctionalTest
 
 from st2api.controllers.v1.webhooks import WebhooksController
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
-from st2common.models.db.reactor import TriggerDB
+from st2common.models.db.trigger import TriggerDB
 from st2common.transport.reactor import TriggerInstancePublisher
 
 http_client = six.moves.http_client

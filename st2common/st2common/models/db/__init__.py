@@ -12,12 +12,18 @@ from st2common import log as logging
 LOG = logging.getLogger(__name__)
 
 MODEL_MODULE_NAMES = [
-    'st2common.models.db.access',
+    'st2common.models.db.auth',
     'st2common.models.db.action',
-    'st2common.models.db.actionrunner',
-    'st2common.models.db.datastore',
+    'st2common.models.db.actionalias',
+    'st2common.models.db.keyvalue',
     'st2common.models.db.execution',
-    'st2common.models.db.reactor'
+    'st2common.models.db.executionstate',
+    'st2common.models.db.liveaction',
+    'st2common.models.db.policy',
+    'st2common.models.db.rule',
+    'st2common.models.db.runner',
+    'st2common.models.db.sensor',
+    'st2common.models.db.trigger',
 ]
 
 

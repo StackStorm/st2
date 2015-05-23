@@ -20,9 +20,9 @@ from pecan import rest
 from six.moves import http_client
 from oslo.config import cfg
 
-from st2common.exceptions.access import TTLTooLargeException
+from st2common.exceptions.auth import TTLTooLargeException
 from st2common.models.api.base import jsexpose
-from st2common.models.api.access import TokenAPI
+from st2common.models.api.auth import TokenAPI
 from st2common.services.access import create_token
 from st2common import log as logging
 from st2auth.backends import get_backend_instance

@@ -21,9 +21,9 @@ import mock
 
 from tests import AuthMiddlewareTest
 from st2common.util import isotime
-from st2common.models.db.access import TokenDB
-from st2common.persistence.access import Token
-from st2common.exceptions.access import TokenNotFoundError
+from st2common.models.db.auth import TokenDB
+from st2common.persistence.auth import Token
+from st2common.exceptions.auth import TokenNotFoundError
 
 
 OBJ_ID = bson.ObjectId()

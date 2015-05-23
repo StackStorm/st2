@@ -31,7 +31,7 @@ from oslo.config import cfg
 from st2common import config
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
-from st2common.persistence.action import LiveAction
+from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.util import isotime
 

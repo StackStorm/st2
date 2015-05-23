@@ -18,7 +18,7 @@ import mock
 import unittest2
 
 from st2common.services.sensor_watcher import SensorWatcher
-from st2common.models.db.reactor import SensorTypeDB
+from st2common.models.db.sensor import SensorTypeDB
 from st2common.transport.publishers import PoolPublisher
 
 MOCK_SENSOR_DB = SensorTypeDB(name='foo', pack='test')

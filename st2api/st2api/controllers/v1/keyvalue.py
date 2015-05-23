@@ -19,9 +19,9 @@ import six
 from mongoengine import ValidationError
 
 from st2common import log as logging
-from st2common.models.api.datastore import KeyValuePairAPI
+from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
-from st2common.persistence.datastore import KeyValuePair
+from st2common.persistence.keyvalue import KeyValuePair
 
 http_client = six.moves.http_client
 

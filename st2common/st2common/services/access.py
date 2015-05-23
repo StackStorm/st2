@@ -19,10 +19,10 @@ import datetime
 from oslo.config import cfg
 
 from st2common.util import isotime
-from st2common.exceptions.access import TokenNotFoundError
-from st2common.exceptions.access import TTLTooLargeException
-from st2common.models.db.access import TokenDB, UserDB
-from st2common.persistence.access import Token, User
+from st2common.exceptions.auth import TokenNotFoundError
+from st2common.exceptions.auth import TTLTooLargeException
+from st2common.models.db.auth import TokenDB, UserDB
+from st2common.persistence.auth import Token, User
 from st2common import log as logging
 
 __all__ = [

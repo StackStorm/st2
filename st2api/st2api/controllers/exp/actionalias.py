@@ -22,7 +22,7 @@ from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.api.action import ActionAliasAPI
-from st2common.persistence.action import ActionAlias
+from st2common.persistence.actionalias import ActionAlias
 from st2common.models.api.base import jsexpose
 
 http_client = six.moves.http_client

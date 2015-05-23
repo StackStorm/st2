@@ -28,8 +28,8 @@ import st2common.validators.api.action as action_validator
 
 from six.moves import filter
 from st2common.util import isotime
-from st2common.models.db.access import TokenDB
-from st2common.persistence.access import Token
+from st2common.models.db.auth import TokenDB
+from st2common.persistence.auth import Token
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest, AuthMiddlewareTest

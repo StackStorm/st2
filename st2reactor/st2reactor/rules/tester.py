@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.models.db.reactor import RuleDB
-from st2common.models.db.reactor import TriggerDB
-from st2common.models.db.reactor import TriggerInstanceDB
+from st2common.models.db.rule import RuleDB
+from st2common.models.db.trigger import TriggerDB
+from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.models.system.common import ResourceReference
 from st2common.content.loader import MetaLoader
 from st2reactor.rules.matcher import RulesMatcher

@@ -22,7 +22,7 @@ from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.action import ActionAliasAPI
-from st2common.persistence.action import ActionAlias
+from st2common.persistence.actionalias import ActionAlias
 
 __all__ = [
     'AliasesRegistrar',

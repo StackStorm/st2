@@ -15,8 +15,7 @@
 
 import mock
 
-from st2common.persistence.reactor import (Trigger, TriggerType)
-from st2common.models.db.reactor import TriggerDB
+from st2common.models.db.trigger import TriggerDB
 from st2common.transport.publishers import PoolPublisher
 import st2reactor.container.utils as container_utils
 from st2tests.base import CleanDbTestCase
@@ -38,107 +37,8 @@ MOCK_TRIGGER.type = 'dummy_pack_1.trigger-type-test.name'
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class ContainerUtilsTest(CleanDbTestCase):
-    def test_add_trigger_type(self):
-        """
-        This sensor has misconfigured trigger type. We shouldn't explode.
-        """
-        class FailTestSensor(object):
-            started = False
-
-            def setup(self):
-                pass
-
-            def start(self):
-                FailTestSensor.started = True
-
-            def stop(self):
-                pass
-
-            def get_trigger_types(self):
-                return [
-                    {'description': 'Ain\'t got no name'}
-                ]
-
-        try:
-            container_utils.add_trigger_models(FailTestSensor().get_trigger_types())
-            self.assertTrue(False, 'Trigger type doesn\'t have \'name\' field. Should have thrown.')
-        except Exception:
-            self.assertTrue(True)
 
     def test_create_trigger_instance_invalid_trigger(self):
         trigger_instance = 'dummy_pack.footrigger'
         instance = container_utils.create_trigger_instance(trigger_instance, {}, None)
         self.assertTrue(instance is None)
-
-    def test_add_trigger_type_no_params(self):
-        # Trigger type with no params should create a trigger with same name as trigger type.
-        trig_type = {
-            'name': 'myawesometriggertype',
-            'pack': 'dummy_pack_1',
-            'description': 'Words cannot describe how awesome I am.',
-            'parameters_schema': {},
-            'payload_schema': {}
-        }
-        trigtype_dbs = container_utils.add_trigger_models(trigger_types=[trig_type])
-        trigger_type, trigger = trigtype_dbs[0]
-
-        trigtype_db = TriggerType.get_by_id(trigger_type.id)
-        self.assertEqual(trigtype_db.pack, 'dummy_pack_1')
-        self.assertEqual(trigtype_db.name, trig_type.get('name'))
-        self.assertTrue(trigger is not None)
-        self.assertEqual(trigger.name, trigtype_db.name)
-
-        # Add duplicate
-        trigtype_dbs = container_utils.add_trigger_models(trigger_types=[trig_type])
-        triggers = Trigger.get_all()
-        self.assertTrue(len(triggers) == 1)
-
-    def test_add_trigger_type_with_params(self):
-        MOCK_TRIGGER.type = 'system.test'
-        # Trigger type with params should not create a trigger.
-        PARAMETERS_SCHEMA = {
-            "type": "object",
-            "properties": {
-                "url": {"type": "string"}
-            },
-            "required": ['url'],
-            "additionalProperties": False
-        }
-        trig_type = {
-            'name': 'myawesometriggertype2',
-            'pack': 'my_pack_1',
-            'description': 'Words cannot describe how awesome I am.',
-            'parameters_schema': PARAMETERS_SCHEMA,
-            'payload_schema': {}
-        }
-        trigtype_dbs = container_utils.add_trigger_models(trigger_types=[trig_type])
-        trigger_type, trigger = trigtype_dbs[0]
-
-        trigtype_db = TriggerType.get_by_id(trigger_type.id)
-        self.assertEqual(trigtype_db.pack, 'my_pack_1')
-        self.assertEqual(trigtype_db.name, trig_type.get('name'))
-        self.assertEqual(trigger, None)
-
-    def test_get_sensor_entry_point(self):
-        # System packs
-        file_path = '/data/st/st2reactor/st2reactor/contrib/sensors/st2_generic_webhook_sensor.py'
-        class_name = 'St2GenericWebhooksSensor'
-        sensor = {'file_path': file_path, 'class_name': class_name}
-
-        entry_point = container_utils.get_sensor_entry_point(pack='core', sensor=sensor)
-        self.assertEqual(entry_point, class_name)
-
-        # Non system packs
-        file_path = '/data/st2contrib/packs/jira/sensors/jira_sensor.py'
-        class_name = 'JIRASensor'
-        sensor = {'file_path': file_path, 'class_name': class_name}
-
-        entry_point = container_utils.get_sensor_entry_point(pack='jira', sensor=sensor)
-        self.assertEqual(entry_point, 'sensors.jira_sensor.JIRASensor')
-
-        file_path = '/data/st2contrib/packs/docker/sensors/docker_container_sensor.py'
-        class_name = 'DockerSensor'
-        sensor = {'file_path': file_path, 'class_name': class_name}
-
-        entry_point = container_utils.get_sensor_entry_point(pack='docker', sensor=sensor)
-        self.assertEqual(entry_point, 'sensors.docker_container_sensor.DockerSensor')

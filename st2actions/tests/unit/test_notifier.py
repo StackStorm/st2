@@ -22,8 +22,9 @@ tests_config.parse_args()
 
 from st2actions.notifier import Notifier
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
-from st2common.models.db.action import LiveActionDB, NotificationSchema
-from st2common.models.db.action import NotificationSubSchema
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.notification import NotificationSchema
+from st2common.models.db.notification import NotificationSubSchema
 from st2common.persistence.action import Action
 from st2common.models.system.common import ResourceReference
 

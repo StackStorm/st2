@@ -16,8 +16,8 @@
 import datetime
 import mock
 
-from st2common.models.db.reactor import TriggerInstanceDB
-from st2common.models.db.action import LiveActionDB
+from st2common.models.db.trigger import TriggerInstanceDB
+from st2common.models.db.liveaction import LiveActionDB
 from st2common.services import action as action_service
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer

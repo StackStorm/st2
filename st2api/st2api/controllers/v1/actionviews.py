@@ -25,7 +25,8 @@ from st2common.content import utils
 from st2common.models.api.action import ActionAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.utils import action_param_utils
-from st2common.persistence.action import (Action, RunnerType)
+from st2common.persistence.action import Action
+from st2common.persistence.runner import RunnerType
 
 http_client = six.moves.http_client
 
