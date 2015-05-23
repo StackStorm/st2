@@ -20,7 +20,7 @@ fi
 
 # Install required packs if necessary
 for PACK in $PACKS; do
-  CHECK=`st2 action list --pack=${PACK} | grep ${PACK}`
+  CHECK=`st2 action list --pack=${PACK} -w 30 | grep ${PACK}`
   if [ $? -ne 0 ]; then
     INSTALL=`${PYTHONPACK}/st2common/bin/st2-setup-${PACK}`
 
