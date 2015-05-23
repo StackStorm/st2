@@ -20,7 +20,7 @@ fi
 
 # Install required packs if necessary
 for PACK in $PACKS; do
-  CHECK=`st2 action list --pack=${PACK} -w 30 | grep ${PACK}`
+  CHECK=`st2 action list --pack=${PACK} | grep ${PACK}`
   if [ $? -ne 0 ]; then
     INSTALL=`${PYTHONPACK}/st2common/bin/st2-setup-${PACK}`
 
@@ -30,7 +30,7 @@ for PACK in $PACKS; do
 done
 
 # Retrieve test action list
-TEST_ACTION_LIST=`st2 action list --pack=tests | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`
+TEST_ACTION_LIST=`st2 action list --pack=tests -w 30 | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`
 
 # Run all the tests
 for TEST in $TEST_ACTION_LIST
