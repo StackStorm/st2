@@ -338,6 +338,11 @@ RUNNER_TYPES = [
                 'description': 'Additional workflow inputs.',
                 'type': 'object',
                 'default': {}
+            },
+            'skip_notify': {
+                'description': 'List of tasks to skip notifications for.',
+                'type': 'array',
+                'default': []
             }
         },
         'runner_module': 'st2actions.runners.mistral.v2',
@@ -350,7 +355,7 @@ RUNNER_TYPES = [
         'enabled': True,
         'runner_parameters': {
             'skip_notify': {
-                'description': 'Comma separated list of tasks to skip notifications for.',
+                'description': 'List of tasks to skip notifications for.',
                 'type': 'array',
                 'default': []
             }
