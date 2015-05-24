@@ -29,6 +29,7 @@ import logging
 import traceback
 
 import six
+import requests
 
 from st2client import __version__
 from st2client import models
@@ -241,6 +242,10 @@ class Shell(object):
             try:
                 token = self._get_auth_token(client=client, username=username, password=password,
                                              cache_token=cache_token)
+            except requests.exceptions.ConnectionError as e:
+                LOG.warn('API server is not available, skipping authentication.')
+                LOG.exception(e)
+                return client
             except Exception as e:
                 print('Failed to authenticate with credentials provided in the config.')
                 raise e
