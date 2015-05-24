@@ -1,0 +1,18 @@
+version: '2.0'
+
+examples.mistral-basic-two-tasks-with-notifications:
+    description: A basic workflow that runs two Linux commands (one in each task).
+    type: direct
+    output:
+        stdout: <% $.stdout %>
+    tasks:
+        task1:
+            action: core.local cmd="echo task1"
+            publish:
+                stdout: <% $.task1.stdout %>
+                stderr: <% $.task1.stderr %>
+        task2:
+            action: core.local cmd="echo task2"
+            publish:
+                stdout: <% $.task2.stdout %>
+                stderr: <% $.task2.stderr %>
