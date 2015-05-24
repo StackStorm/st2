@@ -72,7 +72,6 @@ ENV_VARS_BLACKLIST = [
 
 WORKFLOW_RUNNER_TYPES = [
     'action-chain',
-    'mistral-v1',
     'mistral-v2',
 ]
 

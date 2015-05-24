@@ -96,7 +96,7 @@ Currently the system provides the following runners:
 7. ``action-chain`` - This runner supports executing simple linear work-flows.
    For more information, please refer to the :doc:`Workflows </workflows>`
    and :doc:`ActionChain </actionchain>` section of documentation.
-8. ``mistral-v1``, ``mistral-v2`` - Those runners are built on top of the
+8. ``mistral-v2`` - Those runners are built on top of the
    Mistral OpenStack project and support executing complex work-flows. For more
    information, please refer to the :doc:`Workflows </workflows>` and
    :doc:`Mistral </mistral>` section of documentation.

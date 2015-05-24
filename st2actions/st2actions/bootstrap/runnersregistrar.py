@@ -292,30 +292,6 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.httprunner'
     },
     {
-        'name': 'mistral-v1',
-        'aliases': [],
-        'description': 'A runner for executing mistral v1 workflow.',
-        'enabled': True,
-        'runner_parameters': {
-            'workbook': {
-                'description': 'The name of the workbook.',
-                'type': 'string',
-                'required': True
-            },
-            'task': {
-                'description': 'The startup task in the workbook to execute.',
-                'type': 'string',
-                'required': True
-            },
-            'context': {
-                'description': 'Context for the startup task.',
-                'type': 'object',
-                'default': {}
-            }
-        },
-        'runner_module': 'st2actions.runners.mistral.v1'
-    },
-    {
         'name': 'mistral-v2',
         'aliases': [],
         'description': 'A runner for executing mistral v2 workflow.',
