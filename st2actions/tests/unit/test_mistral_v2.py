@@ -195,7 +195,9 @@ class TestMistralRunner(DbTestCase):
                 'st2.action': {
                     'st2_context': {
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
-                        'parent': str(liveaction.id)
+                        'parent': str(liveaction.id),
+                        'notify': {},
+                        'skip_notify_tasks': []
                     }
                 }
             }
@@ -240,7 +242,9 @@ class TestMistralRunner(DbTestCase):
                     'st2_context': {
                         'auth_token': TOKEN_DB.token,
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
-                        'parent': str(liveaction.id)
+                        'parent': str(liveaction.id),
+                        'notify': {},
+                        'skip_notify_tasks': []
                     }
                 }
             }
