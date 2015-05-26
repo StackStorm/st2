@@ -1,5 +1,11 @@
 Changelog
 =========
+
+v0.9.2 - TBD
+---------------------
+
+* Fir broken ``packs.download`` action. (bug-fix)
+
 v0.9.1 - May 12, 2015
 ---------------------
 
