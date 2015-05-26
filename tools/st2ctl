@@ -51,6 +51,7 @@ function print_usage() {
     echo "  --register-sensors  Register all sensors only."
     echo "  --register-rules    Register all rules only."
     echo "  --register-actions  Register all actions only."
+    echo "  --register-aliases  Register all aliases only."
     echo "  --verbose           Output additional debug and informational messages."
 }
 
