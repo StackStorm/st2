@@ -74,6 +74,10 @@ CONFIG_OPTION_TO_CLIENT_KWARGS_MAP = {
     'debug': ['cli', 'debug']
 }
 
+# Options specified as environment variables
+ST2_SKIP_CLI_CONFIG = os.environ.get('ST2_SKIP_CLI_CONFIG', 0)
+ST2_SKIP_CLI_CONFIG = int(ST2_SKIP_CLI_CONFIG)
+
 
 class Shell(object):
 
@@ -229,7 +233,12 @@ class Shell(object):
 
         client = Client(**kwargs)
 
-        # If credentials are provided use them and try to authenticate
+        if ST2_SKIP_CLI_CONFIG:
+            # Config parsing is skipped
+            LOG.info('Skipping parsing CLI config')
+            return client
+
+        # If credentials are provided in the CLI config use them and try to authenticate
         rc_config = self._parse_config_file(args=args)
 
         credentials = rc_config.get('credentials', {})
