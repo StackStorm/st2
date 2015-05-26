@@ -181,7 +181,9 @@ class TestShell(base.BaseCLITestCase):
         ]
         self._validate_parser(args_list)
 
+    @mock.patch('st2client.shell.ST2_CONFIG_PATH', '/home/does/not/exist')
     def test_print_config_default_config_no_config(self):
+        os.environ['ST2_CONFIG_FILE'] = '/home/does/not/exist'
         argv = ['--print-config']
         self.assertEqual(self.shell.run(argv), 3)
 
