@@ -13,14 +13,19 @@ in development
   dot in the name. (bug-fix)
 * Fix a bug with publishing array (list) values as strings inside the action chain workflows.
   (bug-fix)
-* Throw a HTTP BAD REQUEST when TTL requested for a token is larger than max configured in st2
-  system. (improvement)
 * Update CLI so it displays the error at the top level when using ``run``, ``execution run`` or
   ``execution get`` when executed workflow fails. (improvement)
 * Action trigger now contains execution id as opposed to liveaction id. (bug-fix)
 * Add new API endpoint for re-running an execution (``POST /executions/<id>/re_run/``).
   (new-feature)
 * Rules should be part of a pack. (improvement)
+
+v0.9.1 - May 12, 2015
+---------------------
+
+* Allow option to bypass SSL Certificate Check (improvement)
+* Fix a bug with alias parser to support empty formats (bug-fix)
+* Return HTTP BAD REQUEST when TTL requested for token > Max configured TTL (improvement)
 
 v0.9.0 - April 29, 2015
 -----------------------
