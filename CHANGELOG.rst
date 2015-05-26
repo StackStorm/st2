@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v0.9.2 - TBD
+v0.9.2 - May 26, 2015
 ---------------------
 
 * Fir broken ``packs.download`` action. (bug-fix)
