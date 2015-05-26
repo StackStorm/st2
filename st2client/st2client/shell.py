@@ -74,10 +74,6 @@ CONFIG_OPTION_TO_CLIENT_KWARGS_MAP = {
     'debug': ['cli', 'debug']
 }
 
-# Options specified as environment variables
-ST2_SKIP_CLI_CONFIG = os.environ.get('ST2_SKIP_CLI_CONFIG', 0)
-ST2_SKIP_CLI_CONFIG = int(ST2_SKIP_CLI_CONFIG)
-
 
 class Shell(object):
 
@@ -220,6 +216,9 @@ class Shell(object):
             self, self.subparsers)
 
     def get_client(self, args, debug=False):
+        ST2_SKIP_CLI_CONFIG = os.environ.get('ST2_SKIP_CLI_CONFIG', 0)
+        ST2_SKIP_CLI_CONFIG = int(ST2_SKIP_CLI_CONFIG)
+
         # Note: Options provided as the CLI argument have the highest precedence
         # Precedence order: cli arguments > environment variables > rc file variables
         cli_options = ['base_url', 'auth_url', 'api_url', 'api_version', 'cacert']
@@ -227,7 +226,11 @@ class Shell(object):
         config_file_options = self._get_config_file_options(args=args)
 
         kwargs = {}
-        kwargs = merge_dicts(kwargs, config_file_options)
+
+        if not ST2_SKIP_CLI_CONFIG:
+            # Config parsing is skipped
+            kwargs = merge_dicts(kwargs, config_file_options)
+
         kwargs = merge_dicts(kwargs, cli_options)
         kwargs['debug'] = debug
 
@@ -463,7 +466,7 @@ class Shell(object):
 
         path = os.path.abspath(path)
         if path != ST2_CONFIG_PATH and not os.path.isfile(path):
-                raise ValueError('Config "%s" not found' % (path))
+            raise ValueError('Config "%s" not found' % (path))
 
         return path
 
