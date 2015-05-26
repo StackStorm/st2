@@ -154,6 +154,14 @@ class Shell(object):
         )
 
         self.parser.add_argument(
+            '--skip-config',
+            action='store_true',
+            dest='skip_config',
+            default=False,
+            help='Don\'t parse and use the CLI config file'
+        )
+
+        self.parser.add_argument(
             '--debug',
             action='store_true',
             dest='debug',
@@ -219,6 +227,9 @@ class Shell(object):
         ST2_CLI_SKIP_CONFIG = os.environ.get('ST2_CLI_SKIP_CONFIG', 0)
         ST2_CLI_SKIP_CONFIG = int(ST2_CLI_SKIP_CONFIG)
 
+        skip_config = args.skip_config
+        skip_config = skip_config or ST2_CLI_SKIP_CONFIG
+
         # Note: Options provided as the CLI argument have the highest precedence
         # Precedence order: cli arguments > environment variables > rc file variables
         cli_options = ['base_url', 'auth_url', 'api_url', 'api_version', 'cacert']
@@ -227,7 +238,7 @@ class Shell(object):
 
         kwargs = {}
 
-        if not ST2_CLI_SKIP_CONFIG:
+        if not skip_config:
             # Config parsing is skipped
             kwargs = merge_dicts(kwargs, config_file_options)
 
