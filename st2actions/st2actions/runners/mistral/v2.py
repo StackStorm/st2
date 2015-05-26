@@ -29,6 +29,7 @@ from st2actions.runners import AsyncActionRunner
 from st2actions.runners.mistral import utils
 from st2common import log as logging
 from st2common.util.url import get_url_without_trailing_slash
+from st2common.models.api.notification import NotificationsHelper
 
 
 LOG = logging.getLogger(__name__)
@@ -45,10 +46,14 @@ class MistralRunner(AsyncActionRunner):
     def __init__(self, runner_id):
         super(MistralRunner, self).__init__(runner_id=runner_id)
         self._on_behalf_user = cfg.CONF.system_user.user
+        self._notify = None
+        self._skip_notify_tasks = []
         self._client = mistral.client(mistral_url=self.url)
 
     def pre_run(self):
-        pass
+        if getattr(self, 'liveaction', None):
+            self._notify = getattr(self.liveaction, 'notify', None)
+        self._skip_notify_tasks = self.runner_parameters.get('skip_notify', [])
 
     @staticmethod
     def _check_name(action_ref, is_workbook, def_dict):
@@ -136,10 +141,18 @@ class MistralRunner(AsyncActionRunner):
 
         endpoint = 'http://%s:%s/v1/actionexecutions' % (cfg.CONF.api.host, cfg.CONF.api.port)
 
+        # Build context with additional information
         st2_execution_context = {
             'endpoint': endpoint,
-            'parent': self.liveaction_id
+            'parent': self.liveaction_id,
+            'notify': {},
+            'skip_notify_tasks': self._skip_notify_tasks
         }
+
+        # Include notification information
+        if self._notify:
+            notify_dict = NotificationsHelper.from_model(notify_model=self._notify)
+            st2_execution_context['notify'] = notify_dict
 
         if self.auth_token:
             st2_execution_context['auth_token'] = self.auth_token.token

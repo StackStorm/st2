@@ -292,30 +292,6 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.httprunner'
     },
     {
-        'name': 'mistral-v1',
-        'aliases': [],
-        'description': 'A runner for executing mistral v1 workflow.',
-        'enabled': True,
-        'runner_parameters': {
-            'workbook': {
-                'description': 'The name of the workbook.',
-                'type': 'string',
-                'required': True
-            },
-            'task': {
-                'description': 'The startup task in the workbook to execute.',
-                'type': 'string',
-                'required': True
-            },
-            'context': {
-                'description': 'Context for the startup task.',
-                'type': 'object',
-                'default': {}
-            }
-        },
-        'runner_module': 'st2actions.runners.mistral.v1'
-    },
-    {
         'name': 'mistral-v2',
         'aliases': [],
         'description': 'A runner for executing mistral v2 workflow.',
@@ -338,6 +314,11 @@ RUNNER_TYPES = [
                 'description': 'Additional workflow inputs.',
                 'type': 'object',
                 'default': {}
+            },
+            'skip_notify': {
+                'description': 'List of tasks to skip notifications for.',
+                'type': 'array',
+                'default': []
             }
         },
         'runner_module': 'st2actions.runners.mistral.v2',
@@ -350,7 +331,7 @@ RUNNER_TYPES = [
         'enabled': True,
         'runner_parameters': {
             'skip_notify': {
-                'description': 'Comma separated list of tasks to skip notifications for.',
+                'description': 'List of tasks to skip notifications for.',
                 'type': 'array',
                 'default': []
             }
