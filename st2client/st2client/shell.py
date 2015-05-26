@@ -216,8 +216,8 @@ class Shell(object):
             self, self.subparsers)
 
     def get_client(self, args, debug=False):
-        ST2_SKIP_CLI_CONFIG = os.environ.get('ST2_SKIP_CLI_CONFIG', 0)
-        ST2_SKIP_CLI_CONFIG = int(ST2_SKIP_CLI_CONFIG)
+        ST2_CLI_SKIP_CONFIG = os.environ.get('ST2_CLI_SKIP_CONFIG', 0)
+        ST2_CLI_SKIP_CONFIG = int(ST2_CLI_SKIP_CONFIG)
 
         # Note: Options provided as the CLI argument have the highest precedence
         # Precedence order: cli arguments > environment variables > rc file variables
@@ -227,7 +227,7 @@ class Shell(object):
 
         kwargs = {}
 
-        if not ST2_SKIP_CLI_CONFIG:
+        if not ST2_CLI_SKIP_CONFIG:
             # Config parsing is skipped
             kwargs = merge_dicts(kwargs, config_file_options)
 
@@ -236,7 +236,7 @@ class Shell(object):
 
         client = Client(**kwargs)
 
-        if ST2_SKIP_CLI_CONFIG:
+        if ST2_CLI_SKIP_CONFIG:
             # Config parsing is skipped
             LOG.info('Skipping parsing CLI config')
             return client

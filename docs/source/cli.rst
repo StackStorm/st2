@@ -65,11 +65,11 @@ explanation is included below.
     :language: ini
 
 If you want the CLI to skip parsing of the configuration file, you can do that
-by setting ``ST2_SKIP_CLI_CONFIG`` environment variable as shown below:
+by setting ``ST2_CLI_SKIP_CONFIG`` environment variable as shown below:
 
 .. sourcecode:: bash
 
-    ST2_SKIP_CLI_CONFIG=1 st2 action list
+    ST2_CLI_SKIP_CONFIG=1 st2 action list
 
 .. _cli-auth-token-caching:
 
