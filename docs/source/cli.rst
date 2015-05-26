@@ -56,13 +56,20 @@ For example (command line argument):
 
 .. sourcecode:: bash
 
-    st2 --config-file=~/.st2/prod-config  action list
+    st2 --config-file=~/.st2/prod-config action list
 
 An example configuration file with all the options and the corresponding
 explanation is included below.
 
 .. literalinclude:: ../../conf/st2rc.sample.ini
     :language: ini
+
+If you want the CLI to skip parsing of the configuration file, you can do that
+by setting ``ST2_SKIP_CLI_CONFIG`` environment variable as shown below:
+
+.. sourcecode:: bash
+
+    ST2_SKIP_CLI_CONFIG=1 st2 action list
 
 .. _cli-auth-token-caching:
 
