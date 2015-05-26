@@ -74,7 +74,7 @@ sleep ${WARNING_SLEEP_DELAY}
 
 if [ -z $1 ]
 then
-  VER='0.9.1'
+  VER='0.9.2'
 elif [[ "$1" == "latest" ]]; then
    VER='0.10dev'
 else
