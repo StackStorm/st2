@@ -184,10 +184,10 @@ Create a new file called `google.yaml`, and add the following contents.
 ```yaml
 # packs/chatops/aliases/google.yaml
 ---
-name: "google"
+name: "google_query"
 action_ref: "google.get_search_results"
 formats:
-  - "{{query}}"
+  - "google {{query}}"
 ```
 
 Now, navigate to the hubot pack `rules` directory, and view the notify_hubot rule. This is a notification rule that sets up a notification channel.
