@@ -29,6 +29,7 @@ import logging
 import traceback
 
 import six
+import requests
 
 from st2client import __version__
 from st2client import models
@@ -153,6 +154,14 @@ class Shell(object):
         )
 
         self.parser.add_argument(
+            '--skip-config',
+            action='store_true',
+            dest='skip_config',
+            default=False,
+            help='Don\'t parse and use the CLI config file'
+        )
+
+        self.parser.add_argument(
             '--debug',
             action='store_true',
             dest='debug',
@@ -215,6 +224,12 @@ class Shell(object):
             self, self.subparsers)
 
     def get_client(self, args, debug=False):
+        ST2_CLI_SKIP_CONFIG = os.environ.get('ST2_CLI_SKIP_CONFIG', 0)
+        ST2_CLI_SKIP_CONFIG = int(ST2_CLI_SKIP_CONFIG)
+
+        skip_config = args.skip_config
+        skip_config = skip_config or ST2_CLI_SKIP_CONFIG
+
         # Note: Options provided as the CLI argument have the highest precedence
         # Precedence order: cli arguments > environment variables > rc file variables
         cli_options = ['base_url', 'auth_url', 'api_url', 'api_version', 'cacert']
@@ -222,13 +237,22 @@ class Shell(object):
         config_file_options = self._get_config_file_options(args=args)
 
         kwargs = {}
-        kwargs = merge_dicts(kwargs, config_file_options)
+
+        if not skip_config:
+            # Config parsing is skipped
+            kwargs = merge_dicts(kwargs, config_file_options)
+
         kwargs = merge_dicts(kwargs, cli_options)
         kwargs['debug'] = debug
 
         client = Client(**kwargs)
 
-        # If credentials are provided use them and try to authenticate
+        if ST2_CLI_SKIP_CONFIG:
+            # Config parsing is skipped
+            LOG.info('Skipping parsing CLI config')
+            return client
+
+        # If credentials are provided in the CLI config use them and try to authenticate
         rc_config = self._parse_config_file(args=args)
 
         credentials = rc_config.get('credentials', {})
@@ -241,6 +265,10 @@ class Shell(object):
             try:
                 token = self._get_auth_token(client=client, username=username, password=password,
                                              cache_token=cache_token)
+            except requests.exceptions.ConnectionError as e:
+                LOG.warn('API server is not available, skipping authentication.')
+                LOG.exception(e)
+                return client
             except Exception as e:
                 print('Failed to authenticate with credentials provided in the config.')
                 raise e
@@ -449,7 +477,7 @@ class Shell(object):
 
         path = os.path.abspath(path)
         if path != ST2_CONFIG_PATH and not os.path.isfile(path):
-                raise ValueError('Config "%s" not found' % (path))
+            raise ValueError('Config "%s" not found' % (path))
 
         return path
 

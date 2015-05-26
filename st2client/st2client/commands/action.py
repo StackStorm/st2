@@ -284,10 +284,17 @@ class ActionRunCommandMixin(object):
         # On failure we also want to include error message and traceback at the top level
         if instance.status == 'failed':
             status_index = options['attributes'].index('status')
-            tasks = instance.result.get('tasks', [])
+            if isinstance(instance.result, dict):
+                tasks = instance.result.get('tasks', [])
+            else:
+                tasks = []
 
             top_level_error, top_level_traceback = self._get_top_level_error(live_action=instance)
-            task_error, task_traceback = self._get_task_error(task=tasks[-1])
+
+            if len(tasks) >= 1:
+                task_error, task_traceback = self._get_task_error(task=tasks[-1])
+            else:
+                task_error, task_traceback = None, None
 
             if top_level_error:
                 # Top-level error
@@ -345,8 +352,12 @@ class ActionRunCommandMixin(object):
 
         :return: (error, traceback)
         """
-        error = live_action.result.get('error', None)
-        traceback = live_action.result.get('traceback', None)
+        if isinstance(live_action.result, dict):
+            error = live_action.result.get('error', None)
+            traceback = live_action.result.get('traceback', None)
+        else:
+            error = live_action.result
+            traceback = None
 
         return error, traceback
 
