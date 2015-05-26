@@ -15,6 +15,7 @@ files and deployed via packs.
 e.g.
 
 .. code-block:: yaml
+
     ---
     name: "google_query"
     action_ref: "google.get_search_results"
@@ -40,6 +41,7 @@ Location
 Action Aliases are supplied in packs as yaml files.
 
 .. code-block:: bash
+
     packs/my_pack$ ls
     actions  aliases  rules  sensors
 
@@ -51,6 +53,7 @@ Loading
 When a pack is registered the aliases are not automatically loaded. To load all aliases use -
 
 .. code-block:: bash
+
    st2ctl reload --register-aliases
 
 
@@ -62,16 +65,18 @@ Aliases support following format structures.
 Basic
 ~~~~~
 
-.. code:: yaml
+.. code-block:: yaml
+
     formats:
       - "google {{query}}"
 
 
 In this case if user were to provide ``google StackStorm``, via a ChatOps interface, the aliasing mechanism
-would interpret ``query = StackStorm``. The action google.get_search_results would be called with the
+would interpret ``query = StackStorm``. The action ``google.get_search_results`` would be called with the
 parameters -
 
-.. code:: yaml
+.. code-block:: yaml
+
    parameters:
        query: StackStorm
 
@@ -80,7 +85,8 @@ With default
 
 Using example -
 
-.. code:: yaml
+.. code-block:: yaml
+
     formats:
       - "google {{query=StackStorm}}"
 
@@ -94,7 +100,8 @@ Key-Value parameters
 
 Using example -
 
-.. code:: yaml
+.. code-block:: yaml
+
     formats:
       - "google {{query}}"
 
@@ -102,7 +109,8 @@ It is possible to supply extra key value parameters like ``google StackStorm lim
 though ``limit`` does not appear in any alias format it will still be extracted and supplied for execution.
 In this the action google.get_search_results would be called with the parameters -
 
-.. code:: yaml
+.. code-block:: yaml
+
    parameters:
        query: StackStorm
        limit: 10
@@ -112,7 +120,8 @@ Multiple formats in single alias
 
 A single alias file allow multiple formats to be specified for a single alias e.g.
 
-.. code:: yaml
+.. code-block:: yaml
+
     ---
     name: "st2_sensors_list"
     action_ref: "st2.sensors.list"
@@ -124,7 +133,8 @@ A single alias file allow multiple formats to be specified for a single alias e.
 
 The above alias supports the following commands -
 
-.. code:: bash
+.. code-block:: bash
+
     !sensors list
     !list sensors
     !sensors list pack=examples
