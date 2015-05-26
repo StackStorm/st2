@@ -200,9 +200,9 @@ $ vi notify_hubot.yaml
 That rule, looks as follows:
 
 ```yaml
-# packs/hubot/rules/notify_hubot.yaml
+# notify_hubot.yaml
 ---
-name: "hubot.notify_hubot"
+name: "chatops.notify_hubot"
 enabled: true
 description: "Notification rule to send messages to Hubot"
 trigger:
@@ -213,11 +213,11 @@ criteria:
     pattern: "hubot"
     type: "equals"
 action:
-  ref: hubot.post_message
+  ref: hubot.post_result
   parameters:
     channel: "{{trigger.data.source_channel}}"
     user: "{{trigger.data.user}}"
-    message: "{{trigger.data.result}}"
+    result: "{{trigger}}"
 ```
 
 This file is also here to serve as an example on how to setup other notification triggers.
