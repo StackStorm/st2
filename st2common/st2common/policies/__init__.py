@@ -13,4 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.policies.base import *   # noqa
+from st2common.policies.base import get_driver
+from st2common.policies.base import ResourcePolicyApplicator
+
+
+__all__ = [
+    'get_driver',
+    'ResourcePolicyApplicator'
+]

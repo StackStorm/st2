@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import eventlet
 import mock
 import six
 
@@ -26,11 +27,10 @@ from st2common.persistence.runner import RunnerType
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
-from st2tests import DbTestCase
+from st2tests import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
-from st2tests.policies.concurrency import FakeConcurrencyApplicator
-from st2tests.policies.mock_exception import RaiseExceptionApplicator
 from tests.unit.base import MockLiveActionPublisher
+from tests.unit.test_runner import TestRunner
 
 
 TEST_FIXTURES = {
@@ -41,20 +41,27 @@ TEST_FIXTURES = {
         'action1.yaml'
     ],
     'policytypes': [
-        'fake_policy_type_1.yaml',
-        'fake_policy_type_2.yaml'
+        'policy_type_1.yaml'
     ],
     'policies': [
-        'policy_1.yaml',
-        'policy_2.yaml'
+        'policy_1.yaml'
     ]
 }
 
 PACK = 'generic'
 LOADER = FixturesLoader()
 FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
+NON_EMPTY_RESULT = 'non-empty'
 
 
+def mock_run(action_parameters):
+    eventlet.sleep(10)
+    return (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
+
+
+@mock.patch.object(
+    TestRunner, 'run',
+    mock.MagicMock(side_effect=mock_run))
 @mock.patch.object(
     CUDPublisher, 'publish_update',
     mock.MagicMock(return_value=None))
@@ -64,11 +71,12 @@ FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 @mock.patch.object(
     LiveActionPublisher, 'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
-class SchedulingPolicyTest(DbTestCase):
+class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(SchedulingPolicyTest, cls).setUpClass()
+        EventletTestCase.setUpClass()
+        DbTestCase.setUpClass()
 
         for _, fixture in six.iteritems(FIXTURES['runners']):
             instance = RunnerTypeAPI(**fixture)
@@ -86,23 +94,18 @@ class SchedulingPolicyTest(DbTestCase):
             instance = PolicyAPI(**fixture)
             Policy.add_or_update(PolicyAPI.to_model(instance))
 
-    @mock.patch.object(
-        FakeConcurrencyApplicator, 'apply',
-        mock.MagicMock(side_effect=FakeConcurrencyApplicator(None, None, threshold=3).apply))
-    @mock.patch.object(
-        RaiseExceptionApplicator, 'apply',
-        mock.MagicMock(side_effect=RaiseExceptionApplicator(None, None).apply))
-    def test_apply(self):
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
-        liveaction, _ = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        FakeConcurrencyApplicator.apply.assert_called_once_with(liveaction)
-        RaiseExceptionApplicator.apply.assert_called_once_with(liveaction)
+    def test_over_threshold(self):
+        policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
 
-    @mock.patch.object(FakeConcurrencyApplicator, 'get_threshold', mock.MagicMock(return_value=0))
-    def test_enforce(self):
+        for i in range(0, policy_db.parameters['threshold']):
+            liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+            eventlet.spawn(action_service.request, liveaction)
+
+        # Sleep here to let the threads above schedule the action execution.
+        eventlet.sleep(1)
+
+        # Execution is expected to be delayed since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_DELAYED)

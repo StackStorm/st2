@@ -22,6 +22,13 @@ from st2common.util import system_info
 
 LOG = logging.getLogger(__name__)
 
+COORDINATOR = None
+
+
+def configured():
+    return not (cfg.CONF.coordination.url.startswith('zake') or
+                cfg.CONF.coordination.url.startswith('file'))
+
 
 def coordinator_setup():
     """
@@ -47,4 +54,9 @@ def coordinator_teardown(coordinator):
 
 
 def get_coordinator():
-    return coordinator_setup()
+    global COORDINATOR
+
+    if not COORDINATOR:
+        COORDINATOR = coordinator_setup()
+
+    return COORDINATOR

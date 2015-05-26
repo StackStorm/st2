@@ -60,35 +60,46 @@ class ActionExecutionScheduler(consumers.MessageHandler):
 
         # Apply policies defined for the action.
         for policy_db in Policy.query(resource_ref=liveaction_db.action):
-            policy = policies.get_driver(policy_db.policy_type, **policy_db.parameters)
-            liveaction_db = policy.apply(liveaction_db)
+            driver = policies.get_driver(policy_db.ref,
+                                         policy_db.policy_type,
+                                         **policy_db.parameters)
 
-        # Exit if the status of the request is no longer schedulable.
+            try:
+                liveaction_db = driver.apply(liveaction_db)
+            except:
+                LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
+
+            if liveaction_db.status == action_constants.LIVEACTION_STATUS_DELAYED:
+                break
+
+        # Exit if the status of the request is no longer runnable.
         # The status could have be changed by one of the policies.
-        if liveaction_db.status != action_constants.LIVEACTION_STATUS_REQUESTED:
-            LOG.info('%s is ignoring %s (id=%s) with "%s" status.',
+        if liveaction_db.status not in [action_constants.LIVEACTION_STATUS_REQUESTED,
+                                        action_constants.LIVEACTION_STATUS_SCHEDULED]:
+            LOG.info('%s is ignoring %s (id=%s) with "%s" status after policies are applied.',
                      self.__class__.__name__, type(request), request.id, liveaction_db.status)
             return
 
         # Update liveaction status to "scheduled"
-        liveaction_db = action_utils.update_liveaction_status(
-            status=action_constants.LIVEACTION_STATUS_SCHEDULED,
-            liveaction_id=liveaction_db.id,
-            publish=False)
+        if liveaction_db.status == action_constants.LIVEACTION_STATUS_REQUESTED:
+            liveaction_db = action_utils.update_liveaction_status(
+                status=action_constants.LIVEACTION_STATUS_SCHEDULED,
+                liveaction_id=liveaction_db.id,
+                publish=False)
 
-        action_execution_db = executions.update_execution(liveaction_db)
+            action_execution_db = executions.update_execution(liveaction_db)
+
+            extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
+            LOG.audit('Scheduled action execution.', extra=extra)
+
+            # the extra field will not be shown in non-audit logs so temporarily log at info.
+            LOG.info('Scheduled {~}action_execution: %s / {~}live_action: %s with "%s" status.',
+                     action_execution_db.id, liveaction_db.id, request.status)
 
         # Publish the "scheduled" status here manually. Otherwise, there could be a
         # race condition with the update of the action_execution_db if the execution
         # of the liveaction completes first.
         LiveAction.publish_status(liveaction_db)
-
-        extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
-        LOG.audit('Scheduled action execution.', extra=extra)
-
-        # the extra field will not be shown in non-audit logs so temporarily log at info.
-        LOG.info('Scheduled {~}action_execution: %s / {~}live_action: %s with "%s" status.',
-                 action_execution_db.id, liveaction_db.id, request.status)
 
 
 def get_scheduler():

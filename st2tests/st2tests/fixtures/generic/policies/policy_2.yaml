@@ -1,11 +1,7 @@
 ---
-name: local.concurrency_by_cmd
-pack: core
-description: Limits the concurrent executions of a specific command for the core.local action.
+name: action-1.raise
+pack: wolfpack
+description: Raise a policy error.
 enabled: true
-resource_ref: core.local
-policy_type: action.concurrency_by_target
-parameters:
-    threshold: 10
-    target:
-        - cmd
+resource_ref: wolfpack.action-1
+policy_type: action.mock_policy_error

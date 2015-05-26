@@ -13,26 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.constants import action as action_constants
 from st2common.policies import base
-from st2common.util import action_db as action_utils
 
 
-class FakeConcurrencyApplicator(base.ResourcePolicyApplicator):
-
-    def __init__(self, policy_ref, policy_type, *args, **kwargs):
-        super(FakeConcurrencyApplicator, self).__init__(policy_ref, policy_type, *args, **kwargs)
-        self.threshold = kwargs.get('threshold', 0)
-
-    def get_threshold(self):
-        return self.threshold
+class RaiseExceptionApplicator(base.ResourcePolicyApplicator):
 
     def apply(self, target):
-        if self.get_threshold() <= 0:
-            # Cancel the action execution.
-            target = action_utils.update_liveaction_status(
-                status=action_constants.LIVEACTION_STATUS_CANCELED,
-                liveaction_id=target.id,
-                publish=False)
-
-        return target
+        raise Exception('For honor!!!!')

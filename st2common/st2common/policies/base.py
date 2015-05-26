@@ -26,12 +26,12 @@ LOG = logging.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)
-class ResourcePolicy(object):
-    """Abstract policy class."""
+class ResourcePolicyApplicator(object):
+    """Abstract policy application class."""
 
-    def __init__(self, *args, **kwargs):
-        for k, v in six.iteritems(kwargs):
-            setattr(self, k, v)
+    def __init__(self, policy_ref, policy_type, *args, **kwargs):
+        self._policy_ref = policy_ref
+        self._policy_type = policy_type
 
     @abc.abstractmethod
     def apply(self, target):
@@ -44,9 +44,9 @@ class ResourcePolicy(object):
         pass
 
 
-def get_driver(policy_type, **parameters):
+def get_driver(policy_ref, policy_type, **parameters):
     policy_type_db = policy_access.PolicyType.get_by_ref(policy_type)
     module = importlib.import_module(policy_type_db.module, package=None)
     for name, obj in inspect.getmembers(module):
-        if inspect.isclass(obj) and issubclass(obj, ResourcePolicy):
-            return obj(**parameters)
+        if inspect.isclass(obj) and issubclass(obj, ResourcePolicyApplicator):
+            return obj(policy_ref, policy_type, **parameters)
