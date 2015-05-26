@@ -149,6 +149,7 @@ create_user() {
     if [ $(grep 'stanley' /etc/sudoers.d/* &> /dev/null; echo $?) != 0 ]
     then
       echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/st2
+      chmod 0440 /etc/sudoers.d/st2
     fi
 
     # make sure requiretty is disabled.
