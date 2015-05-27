@@ -145,5 +145,5 @@ ChatOps
 ^^^^^^^
 
 To see how to use aliases with your favorite Chat client and implement ChatOps in your infrastructure
-go `here <https://github.com/StackStorm/st2/blob/master/instructables/chatops.md>_`.
+go `here <https://github.com/StackStorm/st2/blob/master/instructables/chatops.md>`_.
 
