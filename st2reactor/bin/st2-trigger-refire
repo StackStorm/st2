@@ -1,0 +1,6 @@
+#!/usr/bin/env python2.7
+
+from st2reactor.cmd import trigger_re_fire
+
+if __name__ == '__main__':
+    trigger_re_fire.main()
