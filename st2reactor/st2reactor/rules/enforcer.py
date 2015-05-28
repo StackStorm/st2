@@ -37,7 +37,7 @@ class RuleEnforcer(object):
         try:
             self.data_transformer = get_transformer(trigger_instance.payload)
         except Exception as e:
-            message = ('Failed to template-ize trigger payload: %s. If the payload contains'
+            message = ('Failed to template-ize trigger payload: %s. If the payload contains '
                        'special characters such as "{{" which dont\'t reference value in '
                        'a datastore, those characters need to be escaped' % (str(e)))
             raise ValueError(message)
