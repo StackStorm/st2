@@ -39,9 +39,9 @@ def create_trigger_instance(trigger, payload, occurrence_time):
     if isinstance(trigger, six.string_types):
         trigger_db = TriggerService.get_trigger_db_by_ref(trigger)
     else:
-        type = trigger.get('type', None)
+        type_ = trigger.get('type', None)
         parameters = trigger.get('parameters', {})
-        trigger_db = TriggerService.get_trigger_db_given_type_and_params(type=type,
+        trigger_db = TriggerService.get_trigger_db_given_type_and_params(type=type_,
                                                                          parameters=parameters)
 
     if trigger_db is None:
