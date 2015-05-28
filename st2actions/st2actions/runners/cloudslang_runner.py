@@ -26,7 +26,6 @@ from st2common import log as logging
 from st2actions.runners import ActionRunner
 from st2actions.runners import ShellRunnerMixin
 from st2common.models.system.action import ShellCommandAction
-from st2common.models.system.action import ShellScriptAction
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
@@ -84,38 +83,15 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
 
         env_vars = self._env
 
-        if not self.entry_point:
-            script_action = False
-            command = self.runner_parameters.get(RUNNER_COMMAND, None)
-            action = ShellCommandAction(name=self.action_name,
-                                        action_exec_id=str(self.liveaction_id),
-                                        command=command,
-                                        user=self._user,
-                                        env_vars=env_vars,
-                                        sudo=self._sudo,
-                                        timeout=self._timeout)
-        else:
-            script_action = True
-            script_local_path_abs = self.entry_point
-            positional_args, named_args = self._get_script_args(action_parameters)
-            named_args = self._transform_named_args(named_args)
-
-            action = ShellScriptAction(name=self.action_name,
-                                       action_exec_id=str(self.liveaction_id),
-                                       script_local_path_abs=script_local_path_abs,
-                                       named_args=named_args,
-                                       positional_args=positional_args,
-                                       user=self._user,
-                                       env_vars=env_vars,
-                                       sudo=self._sudo,
-                                       timeout=self._timeout,
-                                       cwd=self._cwd)
-
+        command = self.runner_parameters.get(RUNNER_COMMAND, None)
+        action = ShellCommandAction(name=self.action_name,
+                                    action_exec_id=str(self.liveaction_id),
+                                    command=command,
+                                    user=self._user,
+                                    env_vars=env_vars,
+                                    sudo=self._sudo,
+                                    timeout=self._timeout)
         args = action.get_full_command_string()
-
-        # For consistency with the old Fabric based runner, make sure the file is executable
-        if script_action:
-            args = 'chmod +x %s ; %s' % (script_local_path_abs, args)
 
         env = os.environ.copy()
 
