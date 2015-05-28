@@ -456,29 +456,16 @@ RUNNER_TYPES = [
         'description': 'A runner to execute cloudslang flows.',
         'enabled': True,
         'runner_parameters': {
-            'cmd': {
-                'description': 'Arbitrary Linux command to be executed on the '
-                               'host.',
-                'type': 'string'
-            },
-            'cwd': {
-                'description': 'Working directory where the command will be executed in',
-                'type': 'string'
-            },
-            'env': {
-                'description': ('Environment variables which will be available to the command'
-                                '(e.g. key1=val1,key2=val2)'),
-                'type': 'object'
-            },
-            'sudo': {
-                'description': 'The command will be executed with sudo.',
-                'type': 'boolean',
-                'default': False
-            },
-            'kwarg_op': {
-                'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
+            'path': {
+                'description': 'Path to a flow to run',
                 'type': 'string',
-                'default': '--'
+                'required': True
+            },
+            'inputs': {
+                'description': ('Inputs which will be available to the execution'
+                                '(e.g. input1=val1,input2=val2)'),
+                'type': 'string',
+                'required': True
             },
             'timeout': {
                 'description': ('Action timeout in seconds. Action will get killed if it '
@@ -487,7 +474,7 @@ RUNNER_TYPES = [
                 'default': LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
         },
-        'runner_module': 'st2actions.runners.cloudslang_runner'
+        'runner_module': 'st2actions.runners.cloudslang.cloudslang_runner'
     }
 ]
 
