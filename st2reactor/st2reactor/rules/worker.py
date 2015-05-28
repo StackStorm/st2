@@ -26,13 +26,20 @@ class TriggerInstanceDispatcher(consumers.MessageHandler):
         trigger = instance['trigger']
         payload = instance['payload']
 
-        trigger_instance = container_utils.create_trigger_instance(
-            trigger,
-            payload or {},
-            datetime.datetime.utcnow())
+        try:
+            trigger_instance = container_utils.create_trigger_instance(
+                trigger,
+                payload or {},
+                datetime.datetime.utcnow())
 
-        if trigger_instance:
-            self.rules_engine.handle_trigger_instance(trigger_instance)
+            if trigger_instance:
+                self.rules_engine.handle_trigger_instance(trigger_instance)
+        except:
+            # This could be a large message but at least in case of an exception
+            # we get to see more context.
+            # Beyond this point code cannot really handle the exception anyway so
+            # eating up the exception.
+            LOG.exception('Failed to handle trigger_instance %s.', instance)
 
 
 def get_worker():
