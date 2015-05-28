@@ -456,7 +456,7 @@ RUNNER_TYPES = [
         'description': 'A runner to execute cloudslang flows.',
         'enabled': True,
         'runner_parameters': {
-            'path': {
+            'flow_path': {
                 'description': 'Path to a flow to run',
                 'type': 'string',
                 'required': True
@@ -464,8 +464,7 @@ RUNNER_TYPES = [
             'inputs': {
                 'description': ('Inputs which will be available to the execution'
                                 '(e.g. input1=val1,input2=val2)'),
-                'type': 'string',
-                'required': True
+                'type': 'string'
             },
             'timeout': {
                 'description': ('Action timeout in seconds. Action will get killed if it '

@@ -34,7 +34,7 @@ import st2common.util.jsonify as jsonify
 LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters.
-RUNNER_PATH = 'path'
+RUNNER_PATH = 'flow_path'
 RUNNER_INPUTS = 'inputs'
 RUNNER_TIMEOUT = 'timeout'
 
@@ -64,20 +64,22 @@ class CloudSlangRunner(ActionRunner, ShellRunnerMixin):
         LOG.debug('    action_parameters = %s', action_parameters)
 
         inputs_file = tempfile.NamedTemporaryFile()
-        LOG.info(self._inputs)
-        inputs_dict = dict(pair.split("=") for pair in self._inputs.split(","))
-        LOG.info(inputs_dict)
-        import yaml
-        inputs_file.write(yaml.safe_dump(inputs_dict, default_flow_style=False))
-        inputs_file.seek(0)
+        has_inputs = self._inputs is not None
+        if has_inputs:
+            LOG.info(self._inputs)
+            inputs_dict = dict(pair.split("=") for pair in self._inputs.split(","))
+            LOG.info(inputs_dict)
+            import yaml
+            inputs_file.write(yaml.safe_dump(inputs_dict, default_flow_style=False))
+            inputs_file.seek(0)
 
-        for line in inputs_file:
-            LOG.info(line.rstrip())
+            for line in inputs_file:
+                LOG.info(line.rstrip())
 
         command = self._cloudslang_home + "/bin/cslang" \
                                           " run" \
                                           " --f " + self._path + \
-                                          " --if " + inputs_file.name + \
+                                          " --if " + inputs_file.name if has_inputs else "" + \
                                           " --cp " + self._cloudslang_home
         action = ShellCommandAction(name=self.action_name,
                                     action_exec_id=str(self.liveaction_id),
