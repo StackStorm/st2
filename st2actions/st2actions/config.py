@@ -62,6 +62,12 @@ mistral_opts = [
 ]
 CONF.register_opts(mistral_opts, group='mistral')
 
+cloudslang_opts = [
+    cfg.StrOpt('home_dir', default='/opt/cslang',
+               help='CloudSlang home directory.'),
+]
+CONF.register_opts(cloudslang_opts, group='cloudslang')
+
 resultstracker_opts = [
     cfg.StrOpt('logging', default='conf/logging.resultstracker.conf',
                help='Location of the logging configuration file.')
