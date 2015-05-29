@@ -55,7 +55,7 @@ NON_EMPTY_RESULT = 'non-empty'
 
 
 def mock_run(action_parameters):
-    eventlet.sleep(10)
+    eventlet.sleep(2)
     return (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
 
 
@@ -64,7 +64,7 @@ def mock_run(action_parameters):
     mock.MagicMock(side_effect=mock_run))
 @mock.patch.object(
     CUDPublisher, 'publish_update',
-    mock.MagicMock(return_value=None))
+    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_update))
 @mock.patch.object(
     CUDPublisher, 'publish_create',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
@@ -109,3 +109,10 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_DELAYED)
+
+        # Sleep here to let the threads above complete the action execution.
+        eventlet.sleep(2)
+
+        # Execution is expected to be rescheduled.
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)

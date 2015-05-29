@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
 from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2common.persistence import action as action_access
@@ -31,6 +33,9 @@ class ConcurrencyApplicator(base.ResourcePolicyApplicator):
         super(ConcurrencyApplicator, self).__init__(policy_ref, policy_type, *args, **kwargs)
         self.coordinator = coordination.get_coordinator()
         self.threshold = kwargs.get('threshold', 0)
+
+    def _get_lock_uid(self, target):
+        return json.dumps({'policy_type': self._policy_type, 'action': target.action})
 
     def _apply_before(self, target):
         # Get the count of scheduled instances of the action.
@@ -89,12 +94,54 @@ class ConcurrencyApplicator(base.ResourcePolicyApplicator):
         # scheduler is scheduling execution for this action. Even if the coordination service
         # is not configured, the fake driver using zake or the file driver can still acquire
         # a lock for the local process or server respectively.
-        lock_uid = '[%s][%s]' % (self._policy_type, target.action)
+        lock_uid = self._get_lock_uid(target)
         LOG.debug('%s is attempting to acquire lock "%s".', self.__class__.__name__, lock_uid)
         with self.coordinator.get_lock(lock_uid):
             target = self._apply_before(target)
 
         return target
 
+    def _apply_after(self, target):
+        # Schedule the oldest delayed executions.
+        requests = action_access.LiveAction.query(action=target.action,
+                                                  status=action_constants.LIVEACTION_STATUS_DELAYED,
+                                                  order_by=['start_timestamp'], limit=1)
+
+        if requests:
+            delayed = requests[0]
+
+            delayed = action_utils.update_liveaction_status(
+                status=action_constants.LIVEACTION_STATUS_REQUESTED,
+                liveaction_id=delayed.id,
+                publish=False)
+
+            action_execution_db = executions.update_execution(delayed)
+
+            extra = {'action_execution_db': action_execution_db, 'liveaction_db': delayed}
+            LOG.audit('The status of action execution (id=%s) / live action (id=%s) '
+                      'is changed from %s to %s.', action_execution_db.id, delayed.id,
+                      action_constants.LIVEACTION_STATUS_DELAYED,
+                      action_constants.LIVEACTION_STATUS_REQUESTED, extra=extra)
+
+            LOG.info('The status of action execution (id=%s) / live action (id=%s) '
+                     'is changed from %s to %s.', action_execution_db.id, delayed.id,
+                     action_constants.LIVEACTION_STATUS_DELAYED,
+                     action_constants.LIVEACTION_STATUS_REQUESTED)
+
+            action_access.LiveAction.publish_create(delayed)
+
     def apply_after(self, target):
+        # Warn users that the coordination service is not configured.
+        if not coordination.configured():
+            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
+
+        # Acquire a distributed lock before querying the database to make sure that only one
+        # scheduler is scheduling execution for this action. Even if the coordination service
+        # is not configured, the fake driver using zake or the file driver can still acquire
+        # a lock for the local process or server respectively.
+        lock_uid = self._get_lock_uid(target)
+        LOG.debug('%s is attempting to acquire lock "%s".', self.__class__.__name__, lock_uid)
+        with self.coordinator.get_lock(lock_uid):
+            self._apply_after(target)
+
         return target
