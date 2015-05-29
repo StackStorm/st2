@@ -107,6 +107,35 @@ def request(liveaction):
     return liveaction, execution
 
 
+def update_status(liveaction, new_status, publish=True):
+    if liveaction.status == new_status:
+        return liveaction
+
+    old_status = liveaction.status
+
+    liveaction = action_utils.update_liveaction_status(
+        status=new_status, liveaction_id=liveaction.id, publish=False)
+
+    action_execution = executions.update_execution(liveaction)
+
+    msg = ('The status of action execution is changed from %s to %s. '
+           '<LiveAction.id=%s, ActionExecution.id=%s>' % (old_status,
+           new_status, liveaction.id, action_execution.id))
+
+    extra = {
+        'action_execution_db': action_execution,
+        'liveaction_db': liveaction
+    }
+
+    LOG.audit(msg, extra=extra)
+    LOG.info(msg)
+
+    if publish:
+        LiveAction.publish_create(liveaction)
+
+    return liveaction
+
+
 def is_action_canceled(liveaction_id):
     liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
     return liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELED

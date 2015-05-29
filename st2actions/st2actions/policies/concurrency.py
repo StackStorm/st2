@@ -19,9 +19,8 @@ from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2common.persistence import action as action_access
 from st2common.policies import base
+from st2common.services import action as action_service
 from st2common.services import coordination
-from st2common.services import executions
-from st2common.util import action_db as action_utils
 
 
 LOG = logging.getLogger(__name__)
@@ -61,21 +60,7 @@ class ConcurrencyApplicator(base.ResourcePolicyApplicator):
             status = action_constants.LIVEACTION_STATUS_DELAYED
 
         # Update the status in the database but do not publish.
-        target = action_utils.update_liveaction_status(
-            status=status,
-            liveaction_id=target.id,
-            publish=False)
-
-        action_execution_db = executions.update_execution(target)
-
-        extra = {'action_execution_db': action_execution_db, 'liveaction_db': target}
-        LOG.audit('The status of action execution (id=%s) / live action (id=%s) '
-                  'is changed from %s to %s.', action_execution_db.id, target.id,
-                  target.status, status, extra=extra)
-
-        LOG.info('The status of action execution (id=%s) / live action (id=%s) '
-                 'is changed from %s to %s.', action_execution_db.id, target.id,
-                 target.status, status)
+        target = action_service.update_status(target, status, publish=False)
 
         return target
 
@@ -108,27 +93,8 @@ class ConcurrencyApplicator(base.ResourcePolicyApplicator):
                                                   order_by=['start_timestamp'], limit=1)
 
         if requests:
-            delayed = requests[0]
-
-            delayed = action_utils.update_liveaction_status(
-                status=action_constants.LIVEACTION_STATUS_REQUESTED,
-                liveaction_id=delayed.id,
-                publish=False)
-
-            action_execution_db = executions.update_execution(delayed)
-
-            extra = {'action_execution_db': action_execution_db, 'liveaction_db': delayed}
-            LOG.audit('The status of action execution (id=%s) / live action (id=%s) '
-                      'is changed from %s to %s.', action_execution_db.id, delayed.id,
-                      action_constants.LIVEACTION_STATUS_DELAYED,
-                      action_constants.LIVEACTION_STATUS_REQUESTED, extra=extra)
-
-            LOG.info('The status of action execution (id=%s) / live action (id=%s) '
-                     'is changed from %s to %s.', action_execution_db.id, delayed.id,
-                     action_constants.LIVEACTION_STATUS_DELAYED,
-                     action_constants.LIVEACTION_STATUS_REQUESTED)
-
-            action_access.LiveAction.publish_create(delayed)
+            action_service.update_status(
+                requests[0], action_constants.LIVEACTION_STATUS_REQUESTED, publish=True)
 
     def apply_after(self, target):
         # Warn users that the coordination service is not configured.

@@ -20,7 +20,7 @@ from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
-from st2common.services import executions
+from st2common.services import action as action_service
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.policy import Policy
 from st2common import policies
@@ -80,21 +80,10 @@ class ActionExecutionScheduler(consumers.MessageHandler):
                      self.__class__.__name__, type(request), request.id, liveaction_db.status)
             return
 
-        # Update liveaction status to "scheduled"
+        # Update liveaction status to "scheduled".
         if liveaction_db.status == action_constants.LIVEACTION_STATUS_REQUESTED:
-            liveaction_db = action_utils.update_liveaction_status(
-                status=action_constants.LIVEACTION_STATUS_SCHEDULED,
-                liveaction_id=liveaction_db.id,
-                publish=False)
-
-            action_execution_db = executions.update_execution(liveaction_db)
-
-            extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
-            LOG.audit('Scheduled action execution.', extra=extra)
-
-            # the extra field will not be shown in non-audit logs so temporarily log at info.
-            LOG.info('Scheduled {~}action_execution: %s / {~}live_action: %s with "%s" status.',
-                     action_execution_db.id, liveaction_db.id, request.status)
+            liveaction_db = action_service.update_status(
+                liveaction_db, action_constants.LIVEACTION_STATUS_SCHEDULED, publish=False)
 
         # Publish the "scheduled" status here manually. Otherwise, there could be a
         # race condition with the update of the action_execution_db if the execution
