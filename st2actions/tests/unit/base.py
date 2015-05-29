@@ -15,7 +15,10 @@
 
 import traceback
 
-from st2actions import scheduler, worker
+from st2tests import config as test_config
+test_config.parse_args()
+
+from st2actions import scheduler, worker, notifier
 from st2common.models.db.liveaction import LiveActionDB
 
 
@@ -35,6 +38,15 @@ class MockLiveActionPublisher(object):
         try:
             if isinstance(payload, LiveActionDB):
                 worker.get_worker().process(payload)
+        except Exception:
+            traceback.print_exc()
+            print(payload)
+
+    @classmethod
+    def publish_update(cls, payload):
+        try:
+            if isinstance(payload, LiveActionDB):
+                notifier.get_notifier().process(payload)
         except Exception:
             traceback.print_exc()
             print(payload)

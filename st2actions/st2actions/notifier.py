@@ -23,6 +23,8 @@ from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_S
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.action import Action
+from st2common.persistence.policy import Policy
+from st2common import policies
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.transport import consumers, liveaction, publishers
@@ -58,6 +60,8 @@ class Notifier(consumers.MessageHandler):
             return
 
         execution_id = self._get_execution_id(liveaction)
+
+        self._apply_post_run_policies(liveaction=liveaction, execution_id=execution_id)
 
         if liveaction.notify is not None:
             self._post_notify_triggers(liveaction=liveaction, execution_id=execution_id)
@@ -148,6 +152,18 @@ class Notifier(consumers.MessageHandler):
         LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
                   liveaction.id, payload)
         self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload)
+
+    def _apply_post_run_policies(self, liveaction=None, execution_id=None):
+        # Apply policies defined for the action.
+        for policy_db in Policy.query(resource_ref=liveaction.action):
+            driver = policies.get_driver(policy_db.ref,
+                                         policy_db.policy_type,
+                                         **policy_db.parameters)
+
+            try:
+                liveaction = driver.apply_after(liveaction)
+            except:
+                LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
 
     def _get_runner(self, action_ref):
         action = Action.get_by_ref(action_ref)

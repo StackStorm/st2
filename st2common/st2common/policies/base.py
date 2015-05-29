@@ -33,15 +33,27 @@ class ResourcePolicyApplicator(object):
         self._policy_ref = policy_ref
         self._policy_type = policy_type
 
-    @abc.abstractmethod
-    def apply(self, target):
+    def apply_before(self, target):
         """
-        Apply the policy to the given target.
+        Apply the policy before the target do work.
 
         :param target: The instance of the resource being affected by this policy.
         :type target: ``object``
+
+        :rtype: ``object``
         """
-        pass
+        return target
+
+    def apply_after(self, target):
+        """
+        Apply the policy after the target does work.
+
+        :param target: The instance of the resource being affected by this policy.
+        :type target: ``object``
+
+        :rtype: ``object``
+        """
+        return target
 
 
 def get_driver(policy_ref, policy_type, **parameters):

@@ -57,7 +57,7 @@ FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 
 @mock.patch.object(
     CUDPublisher, 'publish_update',
-    mock.MagicMock(return_value=None))
+    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_update))
 @mock.patch.object(
     CUDPublisher, 'publish_create',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
@@ -87,18 +87,30 @@ class SchedulingPolicyTest(DbTestCase):
             Policy.add_or_update(PolicyAPI.to_model(instance))
 
     @mock.patch.object(
-        FakeConcurrencyApplicator, 'apply',
-        mock.MagicMock(side_effect=FakeConcurrencyApplicator(None, None, threshold=3).apply))
+        FakeConcurrencyApplicator, 'apply_before',
+        mock.MagicMock(
+            side_effect=FakeConcurrencyApplicator(None, None, threshold=3).apply_before))
     @mock.patch.object(
-        RaiseExceptionApplicator, 'apply',
-        mock.MagicMock(side_effect=RaiseExceptionApplicator(None, None).apply))
+        RaiseExceptionApplicator, 'apply_before',
+        mock.MagicMock(
+            side_effect=RaiseExceptionApplicator(None, None).apply_before))
+    @mock.patch.object(
+        FakeConcurrencyApplicator, 'apply_after',
+        mock.MagicMock(
+            side_effect=FakeConcurrencyApplicator(None, None, threshold=3).apply_after))
+    @mock.patch.object(
+        RaiseExceptionApplicator, 'apply_after',
+        mock.MagicMock(
+            side_effect=RaiseExceptionApplicator(None, None).apply_after))
     def test_apply(self):
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        FakeConcurrencyApplicator.apply.assert_called_once_with(liveaction)
-        RaiseExceptionApplicator.apply.assert_called_once_with(liveaction)
+        FakeConcurrencyApplicator.apply_before.assert_called_once_with(liveaction)
+        RaiseExceptionApplicator.apply_before.assert_called_once_with(liveaction)
+        FakeConcurrencyApplicator.apply_after.assert_called_once_with(liveaction)
+        RaiseExceptionApplicator.apply_after.assert_called_once_with(liveaction)
 
     @mock.patch.object(FakeConcurrencyApplicator, 'get_threshold', mock.MagicMock(return_value=0))
     def test_enforce(self):

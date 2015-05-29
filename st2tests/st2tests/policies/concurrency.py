@@ -27,7 +27,7 @@ class FakeConcurrencyApplicator(base.ResourcePolicyApplicator):
     def get_threshold(self):
         return self.threshold
 
-    def apply(self, target):
+    def apply_before(self, target):
         if self.get_threshold() <= 0:
             # Cancel the action execution.
             target = action_utils.update_liveaction_status(
@@ -35,4 +35,7 @@ class FakeConcurrencyApplicator(base.ResourcePolicyApplicator):
                 liveaction_id=target.id,
                 publish=False)
 
+        return target
+
+    def apply_after(self, target):
         return target

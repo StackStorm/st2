@@ -65,7 +65,7 @@ class ActionExecutionScheduler(consumers.MessageHandler):
                                          **policy_db.parameters)
 
             try:
-                liveaction_db = driver.apply(liveaction_db)
+                liveaction_db = driver.apply_before(liveaction_db)
             except:
                 LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
 

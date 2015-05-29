@@ -32,7 +32,7 @@ class ConcurrencyApplicator(base.ResourcePolicyApplicator):
         self.coordinator = coordination.get_coordinator()
         self.threshold = kwargs.get('threshold', 0)
 
-    def _apply(self, target):
+    def _apply_before(self, target):
         # Get the count of scheduled instances of the action.
         scheduled = action_access.LiveAction.count(
             action=target.action, status=action_constants.LIVEACTION_STATUS_SCHEDULED)
@@ -74,7 +74,7 @@ class ConcurrencyApplicator(base.ResourcePolicyApplicator):
 
         return target
 
-    def apply(self, target):
+    def apply_before(self, target):
         # Exit if target not in schedulable state.
         if target.status != action_constants.LIVEACTION_STATUS_REQUESTED:
             LOG.debug('The live action is not schedulable therefore the policy '
@@ -92,6 +92,9 @@ class ConcurrencyApplicator(base.ResourcePolicyApplicator):
         lock_uid = '[%s][%s]' % (self._policy_type, target.action)
         LOG.debug('%s is attempting to acquire lock "%s".', self.__class__.__name__, lock_uid)
         with self.coordinator.get_lock(lock_uid):
-            target = self._apply(target)
+            target = self._apply_before(target)
 
+        return target
+
+    def apply_after(self, target):
         return target
