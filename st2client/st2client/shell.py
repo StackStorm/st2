@@ -397,6 +397,12 @@ class Shell(object):
         if not os.path.isfile(CACHED_TOKEN_PATH):
             return None
 
+        if not os.access(ST2_CONFIG_DIRECTORY, os.R_OK):
+            # We don't have read access to the file with a cached token
+            LOG.warn('User "%s" doesn\'t have read access to file "%s"' % (os.getlogin(),
+                                                                           CACHED_TOKEN_PATH))
+            return None
+
         if not os.access(CACHED_TOKEN_PATH, os.R_OK):
             # We don't have read access to the file with a cached token
             LOG.warn('User "%s" doesn\'t have read access to file "%s"' % (os.getlogin(),
@@ -432,7 +438,13 @@ class Shell(object):
         if not os.path.isdir(ST2_CONFIG_DIRECTORY):
             os.makedirs(ST2_CONFIG_DIRECTORY)
 
-        if not os.access(CACHED_TOKEN_PATH, os.W_OK):
+        if not os.access(ST2_CONFIG_DIRECTORY, os.W_OK):
+            # We don't have write access to the file with a cached token
+            LOG.warn('User "%s" doesn\'t have write access to file "%s"' % (os.getlogin(),
+                                                                            CACHED_TOKEN_PATH))
+            return None
+
+        if os.path.isfile(CACHED_TOKEN_PATH) and not os.access(CACHED_TOKEN_PATH, os.W_OK):
             # We don't have write access to the file with a cached token
             LOG.warn('User "%s" doesn\'t have write access to file "%s"' % (os.getlogin(),
                                                                             CACHED_TOKEN_PATH))
