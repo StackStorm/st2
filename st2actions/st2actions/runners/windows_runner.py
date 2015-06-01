@@ -62,7 +62,7 @@ class BaseWindowsRunner(ActionRunner):
         if domain:
             args += ['-U', '%s\%s%%%s' % (domain, username, password)]
         else:
-            args += ['-U', '%s%%%s'% (username, password)]
+            args += ['-U', '%s%%%s' % (username, password)]
 
         args += ['//%s' % (host)]
         args += [command]
