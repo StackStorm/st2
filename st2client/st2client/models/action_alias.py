@@ -21,7 +21,7 @@ __all__ = [
 
 
 class ActionAlias(core.Resource):
-    _alias = 'ActionAlias'
+    _alias = 'Action-Alias'
     _display_name = 'Action Alias'
     _plural = 'ActionAliases'
     _plural_display_name = 'Runners'
