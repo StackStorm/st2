@@ -83,6 +83,11 @@ the st2client will use this configuration.
 		API - TCP 9101
 		Auth - TCP 9100
 
+Startup the containers with the command ``/usr/local/bin/tiller``. For example:
+
+::
+    docker run -d -i -t stackstorm/st2sensorcontainer /usr/local/bin/tiller
+
 Once done, see the http://docs.stackstorm.com/cli.html to configure your client to connect to API containers
 
 .. include:: on_complete.rst
