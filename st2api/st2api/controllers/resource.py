@@ -166,7 +166,7 @@ class ResourceController(rest.RestController):
             resource_db = self._get_by_name(resource_name=name_or_id)
 
         if not resource_db:
-            msg = 'Resource with a name of id "%s" not found' % (name_or_id)
+            msg = 'Resource with a name or id "%s" not found' % (name_or_id)
             raise Exception(msg)
 
         return resource_db
@@ -248,7 +248,7 @@ class ContentPackResourceController(ResourceController):
             resource_db = self._get_by_id(resource_id=ref_or_id)
 
         if not resource_db:
-            msg = 'Resource with a reference of id "%s" not found' % (ref_or_id)
+            msg = 'Resource with a reference or id "%s" not found' % (ref_or_id)
             raise Exception(msg)
 
         return resource_db
