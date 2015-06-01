@@ -130,20 +130,25 @@ class WindowsRunnerTestCase(TestCase):
 
     def test_get_script_args(self):
         arguments = [
-            ("a b c", {
-                "arg1": "value1",
-                "arg2": "value2"
-            }),
-
-            ("a b c", {
-                "arg1": "value1",
-                "arg2": True,
-                "arg3": False
-            })
+            {
+                'positional_args': 'a b c',
+                'named_args': {
+                    'arg1': 'value1',
+                    'arg2': 'value2'
+                }
+            },
+            {
+                'positional_args': 'a b c',
+                'named_args': {
+                    'arg1': 'value1',
+                    'arg2': True,
+                    'arg3': False
+                }
+            }
         ]
         expected_values = [
-            "a b c -arg1 value1 -arg2 value2",
-            "a b c -arg1 value1 -arg2 -arg3:$false"
+            'a b c -arg1 value1 -arg2 value2',
+            'a b c -arg1 value1 -arg2 -arg3:$false'
         ]
 
         runner = self._get_script_runner()
