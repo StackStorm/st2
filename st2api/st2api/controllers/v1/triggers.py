@@ -314,11 +314,19 @@ class TriggerController(RestController):
             return []
 
 
-class TriggerInstanceController(RestController):
+class TriggerInstanceController(resource.ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of TriggerInstances in the system.
     """
+    model = TriggerInstanceAPI
+    access = TriggerInstance
+
+    supported_filters = {
+    }
+
+    def __init__(self):
+        super(TriggerInstanceController, self).__init__()
 
     @jsexpose(arg_types=[str])
     def get_one(self, id):
@@ -346,6 +354,11 @@ class TriggerInstanceController(RestController):
             Handles requests:
                 GET /triggerinstances/
         """
-        trigger_instance_apis = [TriggerInstanceAPI.from_model(trigger_instance_db)
-                                 for trigger_instance_db in TriggerInstance.get_all(**kw)]
-        return trigger_instance_apis
+        trigger_instances = self._get_trigger_instances(**kw)
+        return trigger_instances
+
+    def _get_trigger_instances(self, **kw):
+        kw['limit'] = int(kw.get('limit', 100))
+
+        LOG.debug('Retrieving all trigger instances with filters=%s', kw)
+        return super(TriggerInstanceController, self)._get_all(**kw)
