@@ -60,11 +60,10 @@ class BaseWindowsRunner(ActionRunner):
         args += ['--interactive', '0']
 
         if domain:
-            args += ['-U', '%s\%s' % (domain, username)]
+            args += ['-U', '%s\%s%%%s' % (domain, username, password)]
         else:
-            args += ['-U', username]
+            args += ['-U', '%s%%%s'% (username, password)]
 
-        args += ['--password', password]
         args += ['//%s' % (host)]
         args += [command]
 
