@@ -19,6 +19,7 @@ from st2tests import config as test_config
 test_config.parse_args()
 
 from st2actions import scheduler, worker, notifier
+from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
 
 
@@ -37,7 +38,10 @@ class MockLiveActionPublisher(object):
     def publish_state(cls, payload, state):
         try:
             if isinstance(payload, LiveActionDB):
-                worker.get_worker().process(payload)
+                if state == action_constants.LIVEACTION_STATUS_REQUESTED:
+                    scheduler.get_scheduler().process(payload)
+                else:
+                    worker.get_worker().process(payload)
         except Exception:
             traceback.print_exc()
             print(payload)

@@ -73,7 +73,7 @@ def mock_run(action_parameters):
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_update))
 @mock.patch.object(
     CUDPublisher, 'publish_create',
-    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
+    mock.MagicMock(return_value=None))
 @mock.patch.object(
     LiveActionPublisher, 'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))

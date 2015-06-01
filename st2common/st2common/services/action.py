@@ -131,7 +131,7 @@ def update_status(liveaction, new_status, publish=True):
     LOG.info(msg)
 
     if publish:
-        LiveAction.publish_create(liveaction)
+        LiveAction.publish_status(liveaction)
 
     return liveaction
 
