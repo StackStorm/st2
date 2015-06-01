@@ -80,8 +80,8 @@ the containers in your installation. Best to use service discovery to set this v
 the st2client will use this configuration.
 
 ::
-		API - TCP 9101
-		Auth - TCP 9100
+    API - TCP 9101
+    Auth - TCP 9100
 
 Startup the containers with the command ``/usr/local/bin/tiller``. For example:
 
