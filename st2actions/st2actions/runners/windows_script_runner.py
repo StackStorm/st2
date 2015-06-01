@@ -103,7 +103,8 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
                                                                   base_path=base_path)
 
         # 3. Execute the script
-        exit_code, stdout, stderr, timed_out = self._run_script(script_path=script_path, arguments=args)
+        exit_code, stdout, stderr, timed_out = self._run_script(script_path=script_path,
+                                                                arguments=args)
 
         # 4. Delete temporary directory
         self._delete_directory(directory_path=temporary_directory_path)
@@ -137,7 +138,7 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
         :param script_path: Full path to the script on the remote server.
         :type script_path: ``str``
 
-        :param arguments: The arguments to pass to the script
+        :param arguments: The arguments to pass to the script.
         :type arguments: ``str``
         """
         command = 'powershell.exe %s %s' % (quote_windows(script_path), arguments)
@@ -180,7 +181,7 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
         if named_args:
             for (arg, value) in six.iteritems(named_args):
                 arg = quote_windows(arg)
-                if not value or (isinstance(value, (str,unicode)) and len(value) < 1):
+                if not value or (isinstance(value, (str, unicode)) and len(value) < 1):
                     LOG.debug('Ignoring arg %s as its value is %s.', arg, value)
                     continue
                 if isinstance(value, bool):
@@ -269,7 +270,7 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
 
         if exit_code != 0:
             msg = 'Failed to retrieve absolute path for share "%s"' % (share)
-            raise Exception(msg  + " ".join(args)  + stdout + stderr)
+            raise Exception(msg)
 
         share_info = self._parse_share_information(stdout=stdout)
         share_path = share_info.get('path', None)
@@ -334,3 +335,4 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
                                          timeout=DELETE_DIRECTORY_TIMEOUT)
 
         return exit_code == 0
+

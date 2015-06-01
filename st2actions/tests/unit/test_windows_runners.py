@@ -133,13 +133,13 @@ class WindowsRunnerTestCase(TestCase):
             ("a b c", {
                 "arg1": "value1",
                 "arg2": "value2"
-                }),
+            }),
 
             ("a b c", {
                 "arg1": "value1",
                 "arg2": True,
                 "arg3": False
-                })
+            })
         ]
         expected_values = [
             "a b c -arg1 value1 -arg2 value2",
