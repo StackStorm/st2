@@ -13,16 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import six
 
+import st2tests
+
+from st2common.content.policies import register_policy_types, register_policies
 from st2common.models.api.action import ActionAPI, RunnerTypeAPI
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.persistence.action import Action
 from st2common.persistence.policy import PolicyType, Policy
 from st2common.persistence.runner import RunnerType
 from st2common.policies import ResourcePolicyApplicator, get_driver
-from st2tests.fixturesloader import FixturesLoader
-from st2tests import DbTestCase
+from st2tests import DbTestCase, fixturesloader
 
 
 TEST_FIXTURES = {
@@ -43,7 +46,7 @@ TEST_FIXTURES = {
 }
 
 PACK = 'generic'
-LOADER = FixturesLoader()
+LOADER = fixturesloader.FixturesLoader()
 FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 
 
@@ -88,3 +91,34 @@ class PolicyTest(DbTestCase):
         self.assertEqual(policy._policy_type, policy_db.policy_type)
         self.assertTrue(hasattr(policy, 'threshold'))
         self.assertEqual(policy.threshold, 3)
+
+
+class PolicyBootstrapTest(DbTestCase):
+
+    def test_register_policy_types(self):
+        self.assertEqual(register_policy_types(st2tests), 2)
+
+        type1 = PolicyType.get_by_ref('action.concurrency')
+        self.assertEqual(type1.name, 'concurrency')
+        self.assertEqual(type1.resource_type, 'action')
+
+        type2 = PolicyType.get_by_ref('action.mock_policy_error')
+        self.assertEqual(type2.name, 'mock_policy_error')
+        self.assertEqual(type2.resource_type, 'action')
+
+    def test_register_policies(self):
+        pack_dir = os.path.join(fixturesloader.get_fixtures_base_path(), 'dummy_pack_1')
+        self.assertEqual(register_policies(pack_dir=pack_dir), 2)
+
+        p1 = Policy.get_by_ref('dummy_pack_1.test_policy_1')
+        self.assertEqual(p1.name, 'test_policy_1')
+        self.assertEqual(p1.pack, 'dummy_pack_1')
+        self.assertEqual(p1.resource_ref, 'dummy_pack_1.local')
+        self.assertEqual(p1.policy_type, 'action.concurrency')
+
+        p2 = Policy.get_by_ref('dummy_pack_1.test_policy_2')
+        self.assertEqual(p2.name, 'test_policy_2')
+        self.assertEqual(p2.pack, 'dummy_pack_1')
+        self.assertEqual(p2.resource_ref, 'dummy_pack_1.local')
+        self.assertEqual(p2.policy_type, 'action.mock_policy_error')
+        self.assertEqual(p2.resource_ref, 'dummy_pack_1.local')

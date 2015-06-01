@@ -1,0 +1,16 @@
+---
+name: concurrency.attr
+description: Limits the concurrent executions for the action by attribute(s).
+enabled: true
+resource_type: action
+module: st2actions.policies.concurrency_by_attr
+parameters:
+    threshold:
+        type: integer
+        required: true
+    attributes:
+        type: array
+        uniqueItems: true
+        items:
+            type: string
+            minLength: 1
