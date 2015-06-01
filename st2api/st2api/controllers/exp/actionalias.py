@@ -75,7 +75,7 @@ class ActionAliasController(resource.ContentPackResourceController):
 
     @jsexpose(arg_types=[str], body_cls=ActionAliasAPI)
     def put(self, action_alias_id, action_alias):
-        action_alias_db = self._get_one(action_alias_id)
+        action_alias_db = self._get_one(ref_or_id=action_alias_id)
         LOG.debug('PUT /actionalias/ lookup with id=%s found object: %s', action_alias_id,
                   action_alias_db)
 
@@ -107,7 +107,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             Handles requests:
                 DELETE /actionalias/1
         """
-        action_alias_db = self._get_by_id(action_alias_id)
+        action_alias_db = self._get_one(ref_or_id=action_alias_id)
         LOG.debug('DELETE /actionalias/ lookup with id=%s found object: %s', action_alias_id,
                   action_alias_db)
         try:
