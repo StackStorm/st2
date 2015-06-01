@@ -61,6 +61,7 @@ class DisplayColors(object):
 # Lookup table
 STATUS_LOOKUP = {
     'succeeded': DisplayColors.GREEN,
+    'delayed': DisplayColors.BLUE,
     'failed': DisplayColors.RED
 }
 
