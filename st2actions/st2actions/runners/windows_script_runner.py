@@ -335,4 +335,3 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
                                          timeout=DELETE_DIRECTORY_TIMEOUT)
 
         return exit_code == 0
-
