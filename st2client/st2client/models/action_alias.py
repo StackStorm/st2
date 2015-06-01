@@ -13,11 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models.core import *         # noqa
-from st2client.models.auth import *       # noqa
-from st2client.models.action import *       # noqa
-from st2client.models.action_alias import *  # noqa
-from st2client.models.keyvalue import *    # noqa
-from st2client.models.policy import *       # noqa
-from st2client.models.reactor import *      # noqa
-from st2client.models.webhook import *      # noqa
+from st2client.models import core
+
+__all__ = [
+    'ActionAlias'
+]
+
+
+class ActionAlias(core.Resource):
+    _alias = 'ActionAlias'
+    _display_name = 'Action Alias'
+    _plural = 'ActionAliases'
+    _plural_display_name = 'Runners'
+    _url_path = 'actionalias'
+    _repr_attributes = ['name', 'pack', 'action_ref']

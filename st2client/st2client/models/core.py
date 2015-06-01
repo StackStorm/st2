@@ -307,6 +307,14 @@ class ResourceManager(object):
         return True
 
 
+class ActionAliasResourceManager(ResourceManager):
+    def __init__(self, resource, endpoint, cacert=None, debug=False):
+        endpoint = endpoint.replace('v1', 'exp')
+        self.resource = resource
+        self.debug = debug
+        self.client = httpclient.HTTPClient(root=endpoint, cacert=cacert, debug=debug)
+
+
 class LiveActionResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def re_run(self, execution_id, parameters=None, **kwargs):
