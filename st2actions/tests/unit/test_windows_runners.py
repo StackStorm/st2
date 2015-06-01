@@ -52,24 +52,21 @@ class WindowsRunnerTestCase(TestCase):
             [
                 'winexe',
                 '--interactive', '0',
-                '-U', 'Administrator1',
-                '--password', 'bar1',
+                '-U', 'Administrator1%bar1',
                 '//localhost',
                 'powershell.exe "C:\\\\myscript.ps1"'
             ],
             [
                 'winexe',
                 '--interactive', '0',
-                '-U', 'Administrator2',
-                '--password', 'bar2',
+                '-U', 'Administrator2%bar2',
                 '//127.0.0.1',
                 'dir'
             ],
             [
                 'winexe',
                 '--interactive', '0',
-                '-U', 'MyDomain\Administrator3',
-                '--password', 'bar3',
+                '-U', 'MyDomain\Administrator3%bar3',
                 '//localhost',
                 'dir'
             ]
