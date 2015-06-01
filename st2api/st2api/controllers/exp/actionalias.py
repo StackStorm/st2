@@ -30,7 +30,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class ActionAliasController(resource.ResourceController):
+class ActionAliasController(resource.ContentPackResourceController):
     """
         Implements the RESTful interface for ActionAliases.
     """
@@ -43,16 +43,6 @@ class ActionAliasController(resource.ResourceController):
     query_options = {
         'sort': ['name']
     }
-
-    @jsexpose(arg_types=[str])
-    def get_one(self, name_or_id):
-        try:
-            action_alias_db = self._get_by_name_or_id(name_or_id=name_or_id)
-        except Exception as e:
-            LOG.exception('Unable to find requested object.')
-            pecan.abort(http_client.NOT_FOUND, e.message)
-            return
-        return self.model.from_model(action_alias_db)
 
     @jsexpose(body_cls=ActionAliasAPI, status_code=http_client.CREATED)
     def post(self, action_alias):
