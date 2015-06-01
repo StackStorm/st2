@@ -181,14 +181,14 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
         if named_args:
             for (arg, value) in six.iteritems(named_args):
                 arg = quote_windows(arg)
-                if not value or (isinstance(value, (str, unicode)) and len(value) < 1):
+                if value is None or (isinstance(value, (str, unicode)) and len(value) < 1):
                     LOG.debug('Ignoring arg %s as its value is %s.', arg, value)
                     continue
                 if isinstance(value, bool):
                     if value:
-                        cmd_parts.append(arg)
+                        cmd_parts.append("-%s" % (arg))
                     else:
-                        cmd_parts.append(arg + ":$false")
+                        cmd_parts.append("-%s:$false" % (arg))
                 else:
                     cmd_parts.append("-%s %s" % (arg, quote_windows(str(value))))
         return " ".join(cmd_parts)
