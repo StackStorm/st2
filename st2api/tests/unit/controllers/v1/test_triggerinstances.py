@@ -46,6 +46,12 @@ class TestTriggerController(FunctionalTest):
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), limit, 'Get all failure. Length doesn\'t match limit.')
 
+    def test_get_all_filter_by_trigger(self):
+        trigger = 'dummy_pack_1.st2.test.trigger0'
+        resp = self.app.get('/v1/triggerinstances?trigger=%s' % trigger)
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 1, 'Get all failure. Must get only one such instance.')
+
     def test_get_one(self):
         triggerinstance_id = str(self.triggerinstance_1.id)
         resp = self._do_get_one(triggerinstance_id)

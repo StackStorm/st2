@@ -323,6 +323,11 @@ class TriggerInstanceController(resource.ResourceController):
     access = TriggerInstance
 
     supported_filters = {
+        'trigger': 'trigger',
+    }
+
+    query_options = {
+        'sort': ['-occurence_time', 'trigger']
     }
 
     def __init__(self):
