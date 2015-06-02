@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from st2client.commands import resource
-from st2client.commands.noop import NoopCommand
 from st2client.formatters import table
 from st2client.models import TriggerInstance
 from st2client.utils.date import format_isodate
@@ -24,13 +23,10 @@ class TriggerInstanceBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(TriggerInstanceBranch, self).__init__(
             TriggerInstance, description, app, subparsers,
-            parent_parser=parent_parser,
+            parent_parser=parent_parser, read_only=True,
             commands={
                 'list': TriggerInstanceListCommand,
-                'get': TriggerInstanceGetCommand,
-                'delete': NoopCommand,
-                'create': NoopCommand,
-                'update': NoopCommand
+                'get': TriggerInstanceGetCommand
             })
 
 
