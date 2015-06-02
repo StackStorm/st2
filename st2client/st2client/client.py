@@ -95,6 +95,8 @@ class Client(object):
             models.TriggerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Trigger'] = ResourceManager(
             models.Trigger, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['TriggerInstance'] = ResourceManager(
+            models.TriggerInstance, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['KeyValuePair'] = ResourceManager(
             models.KeyValuePair, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Webhook'] = ResourceManager(
@@ -139,3 +141,7 @@ class Client(object):
     @property
     def triggertypes(self):
         return self.managers['TriggerType']
+
+    @property
+    def triggerinstances(self):
+        return self.managers['TriggerInstance']

@@ -41,6 +41,7 @@ from st2client.commands import policy
 from st2client.commands import resource
 from st2client.commands import sensor
 from st2client.commands import trigger
+from st2client.commands import triggerinstance
 from st2client.commands import webhook
 from st2client.commands import rule
 from st2client.config_parser import CLIConfigParser
@@ -217,6 +218,10 @@ class Shell(object):
         self.commands['trigger'] = trigger.TriggerTypeBranch(
             'An external event that is mapped to a st2 input. It is the '
             'st2 invocation point.',
+            self, self.subparsers)
+
+        self.commands['triggerinstances'] = triggerinstance.TriggerInstanceBranch(
+            'Actual instances of triggers received by st2.',
             self, self.subparsers)
 
         self.commands['webhook'] = webhook.WebhookBranch(
