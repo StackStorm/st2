@@ -19,6 +19,7 @@ in development
 * Add new API endpoint for re-running an execution (``POST /executions/<id>/re_run/``).
   (new-feature)
 * Rules should be part of a pack. (improvement)
+* CLI now has ``get`` and ``list`` commands for triggerinstance. (new-feature)
 
 v0.9.1 - May 12, 2015
 ---------------------
