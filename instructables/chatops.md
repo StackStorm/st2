@@ -148,7 +148,7 @@ And should get something like this back:
 Now, install the `hubot` pack into your StackStorm installation.
 
 ```
-  $ st2 packs.install packs=hubot http://github.com/StackStorm/st2incubator.git
+  $ st2 packs.install packs=hubot
 ```
 
 If successful, proceed to the section [Configure Stackstorm](#configuring-stackstorm) to continue.
