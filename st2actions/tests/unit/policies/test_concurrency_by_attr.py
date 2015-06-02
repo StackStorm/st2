@@ -59,9 +59,11 @@ SCHEDULED_STATES = [
     action_constants.LIVEACTION_STATUS_SUCCEEDED
 ]
 
+RUN_DELAY = 2
+
 
 def mock_run(action_parameters):
-    eventlet.sleep(3)
+    eventlet.sleep(RUN_DELAY)
     return (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
 
 
@@ -102,30 +104,37 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
 
     def test_over_threshold(self):
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency.attr')
+        self.assertGreater(policy_db.parameters['threshold'], 0)
+        self.assertIn('actionstr', policy_db.parameters['attributes'])
 
         for i in range(0, policy_db.parameters['threshold']):
-            liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+            liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu'})
             eventlet.spawn(action_service.request, liveaction)
 
         # Sleep here to let the threads above schedule the action execution.
         eventlet.sleep(1)
 
+        scheduled = LiveAction.get_all()
+        self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
+        for liveaction in scheduled:
+            self.assertIn(liveaction.status, SCHEDULED_STATES)
+
         # Execution is expected to be delayed since concurrency threshold is reached.
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu'})
         liveaction, _ = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_DELAYED)
+        delayed = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(delayed.status, action_constants.LIVEACTION_STATUS_DELAYED)
 
         # Execution is expected to be scheduled since concurrency threshold is not reached.
-        # The execution with actionstr "foo" is over the threshold but actionstr "bar" is not.
+        # The execution with actionstr "fu" is over the threshold but actionstr "bar" is not.
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'bar'})
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertIn(liveaction.status, SCHEDULED_STATES)
 
         # Sleep here to let the threads above complete the action execution.
-        eventlet.sleep(3)
+        eventlet.sleep(RUN_DELAY)
 
         # Execution is expected to be rescheduled.
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = LiveAction.get_by_id(str(delayed.id))
         self.assertIn(liveaction.status, SCHEDULED_STATES)
