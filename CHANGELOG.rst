@@ -22,6 +22,7 @@ in development
 * Update Windows runner code so it also works with a newer versions of winexe (> 1.0).
   (improvements)
   [James Sigurðarson]
+* CLI now has ``get`` and ``list`` commands for triggerinstance. (new-feature)
 
 v0.9.1 - May 12, 2015
 ---------------------
