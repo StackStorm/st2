@@ -19,6 +19,9 @@ in development
 * Add new API endpoint for re-running an execution (``POST /executions/<id>/re_run/``).
   (new-feature)
 * Rules should be part of a pack. (improvement)
+* Update Windows runner code so it also works with a newer versions of winexe (> 1.0).
+  (improvements)
+  [James Sigurðarson]
 * CLI now has ``get`` and ``list`` commands for triggerinstance. (new-feature)
 
 v0.9.1 - May 12, 2015
