@@ -18,16 +18,17 @@ from pecan import abort
 from pecan.rest import RestController
 import six
 
+from st2api.controllers import resource
 from st2common import log as logging
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2common.services import triggers as TriggerService
-from st2api.controllers import resource
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.validators.api.misc import validate_not_part_of_system_pack
+from st2common.util import isotime
 
 http_client = six.moves.http_client
 
@@ -324,10 +325,17 @@ class TriggerInstanceController(resource.ResourceController):
 
     supported_filters = {
         'trigger': 'trigger',
+        'timestamp_gt': 'occurrence_time.gt',
+        'timestamp_lt': 'occurrence_time.lt'
+    }
+
+    filter_transform_functions = {
+        'timestamp_gt': lambda value: isotime.parse(value=value),
+        'timestamp_lt': lambda value: isotime.parse(value=value)
     }
 
     query_options = {
-        'sort': ['-occurence_time', 'trigger']
+        'sort': ['-occurrence_time', 'trigger']
     }
 
     def __init__(self):
