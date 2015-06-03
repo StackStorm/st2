@@ -6,7 +6,7 @@ name: sendmail
 parameters:
   body:
     description: Body of the email.
-    position: 2
+    position: 3
     required: true
     type: string
   subject:
@@ -21,4 +21,10 @@ parameters:
     position: 0
     required: true
     type: string
+  send_empty_body:
+    description: Send a message even if the body is empty.
+    position: 2
+    required: false
+    type: boolean
+    default: True
 runner_type: "local-shell-script"
