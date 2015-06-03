@@ -48,12 +48,15 @@ class TestRuleController(FunctionalTest):
         TestRuleController.TRIGGER = models['triggers']['trigger1.yaml']
 
         # Don't load rule into DB as that is what is being tested.
+        file_name = 'rule1.yaml'
         TestRuleController.RULE_1 = TestRuleController.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
-            fixtures_dict={'rules': ['rule1.yaml']})['rules']['rule1.yaml']
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+        file_name = 'cron_timer_rule_invalid_parameters.yaml'
         TestRuleController.RULE_2 = TestRuleController.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
-            fixtures_dict={'rules': ['cron_timer_rule_invalid_parameters.yaml']})['rules']['cron_timer_rule_invalid_parameters.yaml']
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
     @classmethod
     def tearDownClass(cls):
