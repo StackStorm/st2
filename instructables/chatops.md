@@ -88,20 +88,18 @@ As an example, here is what configuration looks like for a Hubot Slack
 ```yaml
 # hieradata/workroom.yaml
 ---
-
 hubot::adapter: slack
 hubot::chat_alias: "!"
 hubot::env_export:
-  HUBOT_LOG_LEVEL: "debug"
-  HUBOT_SLACK_TOKEN: "xoxb-XXXX"
-  ST2_CHANNEL: "hubot"
-hubot::build_deps:
-  - libxml2-devel
-  - gcc-c++
+  HUBOT_SLACK_TOKEN: "xxxx"
+  HUBOT_LOG_LEVEL: debug
+hubot::external_scripts:
+  - "hubot-stackstorm"
 hubot::dependencies:
-  hubot: ">= 2.6.0 < 3.0.0"
+  "hubot": ">= 2.6.0 < 3.0.0"
   "hubot-scripts": ">= 2.5.0 < 3.0.0"
-  "hubot-stackstorm": "> 0.0.1"
+  "hubot-slack": ">=3.3.0 < 4.0.0"
+  "hubot-stackstorm": ">= 0.1.0 < 0.2.0"
 ```
 
 If you have authentiation enabled, you also need to specify `ST2_AUTH_USERNAME` and `ST2_AUTH_PASSWORD` environment variable.
