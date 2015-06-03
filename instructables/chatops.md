@@ -97,6 +97,9 @@ hubot::env_export:
   ST2_CHANNEL: "hubot"
 ```
 
+To obtain Slack auth token, you need add new Slack integration by going to
+https://<yourcompany>.slack.com/services/new/hubot.
+
 If you have authentiation enabled, you also need to specify `ST2_AUTH_USERNAME` and `ST2_AUTH_PASSWORD` environment variable.
 
 After all this is setup, start up the workroom.
