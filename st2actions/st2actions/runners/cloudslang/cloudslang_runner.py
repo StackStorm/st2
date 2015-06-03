@@ -100,6 +100,9 @@ class CloudSlangRunner(ActionRunner, ShellRunnerMixin):
             'stderr': stderr
         }
 
+        if timed_out:
+            result['error'] = 'Action failed to complete in %s seconds'.format(self._timeout)
+
         status = LIVEACTION_STATUS_SUCCEEDED if succeeded else LIVEACTION_STATUS_FAILED
         self._log_action_completion(logger=LOG, result=result, status=status, exit_code=exit_code)
         return status, jsonify.json_loads(result, CloudSlangRunner.KEYS_TO_TRANSFORM), None
