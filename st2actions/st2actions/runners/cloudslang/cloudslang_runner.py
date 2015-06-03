@@ -13,18 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import shlex
 import uuid
 
-import eventlet
 import os
 import tempfile
 from oslo.config import cfg
 from eventlet.green import subprocess
+from st2common.util.shell import quote_unix
+from st2common.util.green.shell import run_command
 from st2common import log as logging
 from st2actions.runners import ActionRunner
 from st2actions.runners import ShellRunnerMixin
-from st2common.models.system.action import ShellCommandAction
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
@@ -76,58 +75,21 @@ class CloudSlangRunner(ActionRunner, ShellRunnerMixin):
             for line in inputs_file:
                 LOG.info(line.rstrip())
 
-        command = self._cloudslang_home + "/bin/cslang" \
-                                          " run" \
-                                          " --f " + self._path + \
-                                          " --if " + inputs_file.name if has_inputs else "" + \
-                                          " --cp " + self._cloudslang_home
-        action = ShellCommandAction(name=self.action_name,
-                                    action_exec_id=str(self.liveaction_id),
-                                    command=command,
-                                    user=self._user)
-        args = action.get_full_command_string()
+        LOG.info(self._cloudslang_home)
+        cloudslang_binary = os.path.join(self._cloudslang_home, "bin/cslang")
+        LOG.info(cloudslang_binary)
+        command_args = ['--f', self._path,
+                        '--if', inputs_file.name if has_inputs else "",
+                        '--cp', self._cloudslang_home]
+        command = cloudslang_binary + " run " + " ".join([quote_unix(arg) for arg in command_args])
 
-        env = os.environ.copy()
+        LOG.info('Executing action via CloudSlangRunner: %s', self.runner_id)
+        LOG.info('command is: %s', command)
 
-        LOG.info('Executing action via LocalRunner: %s', self.runner_id)
-        LOG.info('[Action info] name: %s, Id: %s, command: %s, user: %s, sudo: %s' %
-                 (action.name, action.action_exec_id, args, action.user, action.sudo))
+        exit_code, stdout, stderr, timed_out = run_command(cmd=command, stdin=None,
+                                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                                           shell=True, timeout=self._timeout)
 
-        # Make sure os.setsid is called on each spawned process so that all processes
-        # are in the same group.
-        LOG.info("args are " + args)
-        process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, shell=True,
-                                   env=env, preexec_fn=os.setsid)
-
-        error_holder = {}
-
-        def on_timeout_expired(timeout):
-            try:
-                process.wait(timeout=self._timeout)
-            except subprocess.TimeoutExpired:
-                # Set the error prior to kill the process else the error is not picked up due
-                # to eventlet scheduling.
-                error_holder['error'] = 'Action failed to complete in %s seconds' % (self._timeout)
-                # Action has timed out, kill the process and propagate the error. The process
-                # is started as sudo -u {{system_user}} -- bash -c {{command}}. Introduction of the
-                # bash means that multiple independent processes are spawned without them being
-                # children of the process we have access to and this requires use of pkill.
-                # Ideally os.killpg should have done the trick but for some reason that failed.
-                # Note: pkill will set the returncode to 143 so we don't need to explicitly set
-                # it to some non-zero value.
-                try:
-                    killcommand = shlex.split('sudo pkill -TERM -s %s' % process.pid)
-                    subprocess.call(killcommand)
-                except:
-                    LOG.exception('Unable to pkill.')
-
-        timeout_expiry = eventlet.spawn(on_timeout_expired, self._timeout)
-
-        stdout, stderr = process.communicate()
-        timeout_expiry.cancel()
-        error = error_holder.get('error', None)
-        exit_code = process.returncode
         succeeded = (exit_code == 0)
 
         result = {
@@ -138,9 +100,6 @@ class CloudSlangRunner(ActionRunner, ShellRunnerMixin):
             'stderr': stderr
         }
 
-        if error:
-            result['error'] = error
-
-        status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
+        status = LIVEACTION_STATUS_SUCCEEDED if succeeded else LIVEACTION_STATUS_FAILED
         self._log_action_completion(logger=LOG, result=result, status=status, exit_code=exit_code)
         return status, jsonify.json_loads(result, CloudSlangRunner.KEYS_TO_TRANSFORM), None
