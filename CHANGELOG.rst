@@ -25,6 +25,11 @@ in development
 * CLI now has ``get`` and ``list`` commands for triggerinstance. (new-feature)
 * Validate parameters during rule creation for system triggers. (improvement)
 
+v0.9.2 - May 26, 2015
+---------------------
+
+* Fix broken ``packs.download`` action. (bug-fix)
+
 v0.9.1 - May 12, 2015
 ---------------------
 
