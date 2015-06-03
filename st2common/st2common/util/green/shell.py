@@ -28,7 +28,7 @@ __all__ = [
 
 
 def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
-                cwd=None, env=None, timeout=60):
+                cwd=None, env=None, timeout=60, preexec_func=None, kill_func=None):
     """
     Run the provided command in a subprocess and wait until it completes.
 
@@ -57,6 +57,14 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     :param timeout: How long to wait before timing out.
     :type timeout: ``float``
 
+    :param preexec_func: Optional pre-exec function.
+    :type preexec_func: ``callable``
+
+    :param kill_func: Optional function which will be called on timeout to kill the process.
+                      If not provided, it defaults to `process.kill`
+    :type kill_func: ``callable``
+
+
     :rtype: ``tuple`` (exit_code, stdout, stderr, timed_out)
     """
     assert isinstance(cmd, (list, tuple) + six.string_types)
@@ -67,7 +75,7 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     # Note: We are using eventlet friendly implementation of subprocess
     # which uses GreenPipe so it doesn't block
     process = subprocess.Popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
-                               env=env, cwd=cwd, shell=shell)
+                               env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func)
 
     try:
         exit_code = process.wait(timeout=timeout)
@@ -75,7 +83,11 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         # Command has timed out, kill the process and propagate the error
         # Note: process.kill() will set the returncode to -9 so we don't
         # need to explicitly set it to some non-zero value
-        process.kill()
+        if kill_func:
+            kill_func(process=process)
+        else:
+            process.kill()
+
         timed_out = True
     else:
         timed_out = False
