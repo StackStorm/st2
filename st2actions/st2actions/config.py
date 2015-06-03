@@ -74,6 +74,14 @@ notifier_opts = [
 ]
 CONF.register_opts(notifier_opts, group='notifier')
 
+scheduler_opts = [
+    cfg.IntOpt('delayed_execution_recovery', default=600,
+               help='The time in seconds to wait before recovering delayed action executions.'),
+    cfg.IntOpt('rescheduling_interval', default=300,
+               help='The frequency for rescheduling action executions.')
+]
+CONF.register_opts(scheduler_opts, group='scheduler')
+
 
 def parse_args(args=None):
     CONF(args=args, version=VERSION_STRING)

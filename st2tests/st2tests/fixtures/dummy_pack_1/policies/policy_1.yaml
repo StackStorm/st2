@@ -1,9 +1,9 @@
 ---
-name: action-1.concurrency
-pack: wolfpack
+name: test_policy_1
+pack: dummy_pack_1
 description: Limits the concurrent executions for the fake action.
 enabled: true
-resource_ref: wolfpack.action-1
+resource_ref: dummy_pack_1.local
 policy_type: action.concurrency
 parameters:
     threshold: 3

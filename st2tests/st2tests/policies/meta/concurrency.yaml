@@ -3,7 +3,7 @@ name: concurrency
 description: Limits the concurrent executions for the action.
 enabled: true
 resource_type: action
-module: st2actions.policies.concurrency
+module: st2tests.policies.concurrency
 parameters:
     threshold:
         type: integer
