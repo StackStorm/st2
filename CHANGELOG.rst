@@ -20,9 +20,10 @@ in development
   (new-feature)
 * Rules should be part of a pack. (improvement)
 * Update Windows runner code so it also works with a newer versions of winexe (> 1.0).
-  (improvements)
+  (improvement)
   [James Sigurðarson]
 * CLI now has ``get`` and ``list`` commands for triggerinstance. (new-feature)
+* Validate parameters during rule creation for system triggers. (improvement)
 
 v0.9.1 - May 12, 2015
 ---------------------
