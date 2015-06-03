@@ -29,12 +29,12 @@ class ActionAliasBranch(resource.ResourceBranch):
             ActionAlias, description, app, subparsers,
             parent_parser=parent_parser, read_only=True,
             commands={
-                'list': ActionAliasListCommand,
+                'list': ActionAliasListCommand
             })
 
 
 class ActionAliasListCommand(resource.ResourceCommand):
-    display_attributes = ['ref', 'pack', 'name', 'description', 'enabled', 'formats']
+    display_attributes = ['ref', 'pack', 'name', 'description', 'enabled']
     attribute_transform_functions = {}
 
     def __init__(self, resource, *args, **kwargs):
