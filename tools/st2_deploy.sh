@@ -24,7 +24,7 @@ INSTALL_WINDOWS_RUNNER_DEPENDENCIES=${INSTALL_WINDOWS_RUNNER_DEPENDENCIES:-1}
 DOWNLOAD_SERVER="https://downloads.stackstorm.net"
 RABBIT_PUBLIC_KEY="rabbitmq-signing-key-public.asc"
 PACKAGES="st2common st2reactor st2actions st2api st2auth st2debug"
-CLI_PACKAGE="st2client"
+CLI_PACKAGE="st2client"  # TODO: Use same package name on Debian and RHEL based systems
 PYTHON=`which python`
 BUILD="current"
 DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
@@ -96,11 +96,13 @@ fi
 
 if [[ "$DEBTEST" == "Ubuntu" ]]; then
   TYPE="debs"
+  CLI_PACKAGE="python-st2client"
   PYTHONPACK="/usr/lib/python2.7/dist-packages"
   echo "###########################################################################################"
   echo "# Detected Distro is ${DEBTEST}"
 elif [[ -f "/etc/redhat-release" ]]; then
   TYPE="rpms"
+  CLI_PACKAGE="st2client"
   PYTHONPACK="/usr/lib/python2.7/site-packages"
   echo "###########################################################################################"
   echo "# Detected linux distribution is RedHat compatible"
@@ -494,7 +496,7 @@ install_st2client() {
     fi
     echo "########## Installing st2client ${VER} ##########"
     apt-get -y install gdebi-core
-    gdebi --n st2client*
+    gdebi --n ${CLI_PACKAGE}*
   elif [[ "$TYPE" == "rpms" ]]; then
     yum localinstall -y st2client-${VER}-${RELEASE}.noarch.rpm
   fi
