@@ -84,7 +84,7 @@ class CloudSlangRunner(ActionRunner, ShellRunnerMixin):
         command = cloudslang_binary + " run " + " ".join([quote_unix(arg) for arg in command_args])
 
         LOG.info('Executing action via CloudSlangRunner: %s', self.runner_id)
-        LOG.info('command is: %s', command)
+        LOG.debug('command is: %s', command)
 
         exit_code, stdout, stderr, timed_out = run_command(cmd=command, stdin=None,
                                                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
