@@ -1,10 +1,17 @@
 Changelog
 =========
 
+v0.9.3 - TBD
+---------------------
+
+* Update Windows runner code so it also works with a newer versions of winexe (> 1.0).
+  (improvement)
+  [James Sigurðarson]
+
 v0.9.2 - May 26, 2015
 ---------------------
 
-* Fir broken ``packs.download`` action. (bug-fix)
+* Fix broken ``packs.download`` action. (bug-fix)
 
 v0.9.1 - May 12, 2015
 ---------------------
