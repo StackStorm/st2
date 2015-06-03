@@ -164,7 +164,7 @@ class RuleAPI(BaseAPI):
         # Validate criteria
         validator.validate_criteria(model.criteria)
 
-        # Validate triggerd
+        # Validate trigger parameters
         validator.validate_trigger_parameters(trigger_db=trigger_db)
 
         model.action = ActionExecutionSpecDB()
