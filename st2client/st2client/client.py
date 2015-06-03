@@ -18,6 +18,7 @@ import logging
 
 from st2client import models
 from st2client.models.core import ResourceManager
+from st2client.models.core import ActionAliasResourceManager
 from st2client.models.core import LiveActionResourceManager
 
 
@@ -81,6 +82,8 @@ class Client(object):
             models.RunnerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Action'] = ResourceManager(
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['ActionAlias'] = ActionAliasResourceManager(
+            models.ActionAlias, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['LiveAction'] = LiveActionResourceManager(
             models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Policy'] = ResourceManager(

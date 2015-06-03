@@ -36,6 +36,7 @@ from st2client import models
 from st2client.client import Client
 from st2client.commands import auth
 from st2client.commands import action
+from st2client.commands import action_alias
 from st2client.commands import keyvalue
 from st2client.commands import policy
 from st2client.commands import resource
@@ -176,6 +177,10 @@ class Shell(object):
 
         self.commands['action'] = action.ActionBranch(
             'An activity that happens as a response to the external event.',
+            self, self.subparsers)
+
+        self.commands['action-alias'] = action_alias.ActionAliasBranch(
+            'Action aliases.',
             self, self.subparsers)
 
         self.commands['auth'] = auth.TokenCreateCommand(
