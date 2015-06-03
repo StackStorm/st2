@@ -86,10 +86,9 @@ class CloudSlangRunner(ActionRunner, ShellRunnerMixin):
         LOG.info('Executing action via CloudSlangRunner: %s', self.runner_id)
         LOG.debug('command is: %s', command)
 
-        exit_code, stdout, stderr, timed_out = run_command(
-            cmd=command, stdin=None,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            shell=True, timeout=self._timeout)
+        exit_code, stdout, stderr, timed_out = run_command(cmd=command, stdin=None,
+                                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                                           shell=True, timeout=self._timeout)
 
         succeeded = (exit_code == 0)
 
@@ -102,7 +101,7 @@ class CloudSlangRunner(ActionRunner, ShellRunnerMixin):
         }
 
         if timed_out:
-            result['error'] = 'Action failed to complete in %s seconds' % self._timeout
+            result['error'] = 'Action failed to complete in %s seconds'.format(self._timeout)
 
         status = LIVEACTION_STATUS_SUCCEEDED if succeeded else LIVEACTION_STATUS_FAILED
         self._log_action_completion(logger=LOG, result=result, status=status, exit_code=exit_code)
