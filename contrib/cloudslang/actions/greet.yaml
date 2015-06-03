@@ -1,0 +1,12 @@
+---
+name: greet
+runner_type: "local-shell-cmd"
+description: Greet StackStorm!
+enabled: true
+entry_point: greet.sh
+parameters:
+    greeting:
+        type: string
+        description: Greeting you want to say to StackStorm (i.e. Hello, Hi, Yo, etc.)
+        required: true
+        position: 1
