@@ -16,7 +16,7 @@
 import six
 
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.constants.triggers import TIMER_TRIGGER_TYPES
+from st2common.constants.triggers import SYSTEM_TRIGGER_TYPES
 from st2common.util import schema as util_schema
 import st2common.operators as criteria_operators
 
@@ -63,12 +63,11 @@ def validate_trigger_parameters(trigger_db):
     trigger_type_ref = trigger_db.type
     parameters = trigger_db.parameters
 
-    # TODO: ALso validate it for other system triggers (webhook, etc.)
-    if trigger_type_ref not in TIMER_TRIGGER_TYPES:
+    if trigger_type_ref not in SYSTEM_TRIGGER_TYPES:
         # Not a system trigger, skip validation for now
         return None
 
-    parameters_schema = TIMER_TRIGGER_TYPES[trigger_type_ref]['parameters_schema']
+    parameters_schema = SYSTEM_TRIGGER_TYPES[trigger_type_ref]['parameters_schema']
     VALIDATOR(parameters_schema).validate(parameters)
 
     return True
