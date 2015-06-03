@@ -20,11 +20,14 @@ Shell utility functions which use non-blocking and eventlet friendly code.
 import os
 
 import six
+import eventlet
 from eventlet.green import subprocess
 
 __all__ = [
     'run_command'
 ]
+
+TIMEOUT_EXIT_CODE = -9
 
 
 def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
@@ -77,22 +80,29 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     process = subprocess.Popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
                                env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func)
 
-    try:
-        exit_code = process.wait(timeout=timeout)
-    except subprocess.TimeoutExpired:
-        # Command has timed out, kill the process and propagate the error
-        # Note: process.kill() will set the returncode to -9 so we don't
-        # need to explicitly set it to some non-zero value
-        if kill_func:
-            kill_func(process=process)
-        else:
-            process.kill()
+    def on_timeout_expired(timeout):
+        global timed_out
 
+        try:
+            process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            # Command has timed out, kill the process and propagate the error.
+            # Note: We explicitly set the returncode to indicate the timeout.
+            process.returncode = TIMEOUT_EXIT_CODE
+
+            if kill_func:
+                kill_func(process=process)
+            else:
+                process.kill()
+
+    timeout_thread = eventlet.spawn(on_timeout_expired, timeout)
+    stdout, stderr = process.communicate()
+    timeout_thread.cancel()
+    exit_code = process.returncode
+
+    if exit_code == TIMEOUT_EXIT_CODE:
         timed_out = True
     else:
         timed_out = False
-
-    stdout, stderr = process.communicate()
-    exit_code = process.returncode
 
     return (exit_code, stdout, stderr, timed_out)
