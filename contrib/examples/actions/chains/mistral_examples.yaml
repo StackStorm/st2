@@ -10,7 +10,7 @@
         name: "mistral-handle-error"
         ref: "examples.mistral-handle-error"
         params: {}
-        on-success: "mistral-handle-retry"
+        on-failure: "mistral-handle-retry"
     -
         name: "mistral-handle-retry"
         ref: "examples.mistral-handle-retry"
