@@ -81,6 +81,7 @@ Next, configure Hubot. Take a look at the commented lines. At the minimum, you m
   * A list of key/value pairs to inject into Hubot's running environment.
 * `hubot::dependencies`:
   * This is where you will define which version of Hubot to run, which version of hubot-scripts, and any adapters you need to install.
+    At the very least, you need to specify ``hubot-stackstorm`` adapter.
 
 As an example, here is what configuration looks like for a Hubot Slack
 
@@ -91,10 +92,12 @@ As an example, here is what configuration looks like for a Hubot Slack
 hubot::adapter: slack
 hubot::chat_alias: "!"
 hubot::env_export:
+  HUBOT_LOG_LEVEL: "debug"
   HUBOT_SLACK_TOKEN: "xoxb-XXXX"
-  HUBOT_LOG_LEVEL: debug
-hubot::git_source: "https://github.com/StackStorm/hubot-stanley.git"
+  ST2_CHANNEL: "hubot"
 ```
+
+If you have authentiation enabled, you also need to specify `ST2_AUTH_USERNAME` and `ST2_AUTH_PASSWORD` environment variable.
 
 After all this is setup, start up the workroom.
 
@@ -120,16 +123,10 @@ First, start by updating your version of StackStorm. This is typically done by r
 $ st2_deploy.sh 0.10dev
 ```
 
-Currently, this feature requires `st2auth` to be disabled. This will be fixed before production release. In the meantime, ensure `st2auth` is disabled by doing the following:
-
-* Edit `/etc/st2/st2.conf`
-* Under the `[auth]` section, look for the value `enable`.
-* Make sure the value `enable` is set to `False`.
-* Restart StackStorm with `st2ctl restart`
-
 Now, take a moment to also install and configure Hubot. Instructions on how to configure and deploy Hubot for your platform can be found [here](https://hubot.github.com/docs/deploying/). Also ensure it is configured to connect to your chat service of choice. You can find documentation for this at https://github.com/github/hubot/blob/master/docs/adapters.md.
 
-Finally, head to download the `st2bot.js` adapter for Hubot. For this, you will require access to a private repository where you can [download the code](https://github.com/StackStorm/hubot-stanley/blob/master/scripts/st2bot.js). Inside of your Hubot installation, copy the `st2bot.js` script to the `scripts` directory of the top level of your bot.
+Finally, you need to install and configure StackStorm Hubot plugin. For information on
+how to do that, please visit the following page - [Installing and configuring the plugin](https://github.com/stackstorm/hubot-stackstorm#installing-and-configuring-the-plugin).
 
 If you are installing Hubot on a machine that is not the same as your StackStorm installation, you will need to set the following environment variables:
 
@@ -237,7 +234,6 @@ This will register the aliases we created, and tell Hubot to go and refresh its 
 You should now be able to go into your chatroom, and execute the command `hubot: google awesome`, and StackStorm will take care of the rest.
 
 ![slack](https://cloud.githubusercontent.com/assets/20028/7208555/6a7e74e8-e507-11e4-8ebd-02b650beee46.png)
-
 
 That's it! Now, you should be able to begin converting actions of all kinds to be ChatOps capable. Go ahead and give the system a shot, and do not be afraid to provide feedback on things that you like and things that can make your experience better. As we learn more about ChatOps and add additional features, we will be updating this document, so stay tuned for hints, tips, and additional features coming over the next few weeks.
 
