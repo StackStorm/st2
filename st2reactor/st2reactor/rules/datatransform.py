@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import copy
-import jinja2
 
 from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
@@ -37,15 +35,14 @@ class Jinja2BasedTransformer(object):
     def _construct_context(prefix, data, context):
         if data is None:
             return context
-        # setup initial context as system context to help resolve the original context
-        # which may itself contain references to system variables.
         context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
-        template = jinja2.Template(json.dumps(data))
-        resolved_data = json.loads(template.render(context))
-        if resolved_data:
-            if prefix not in context:
-                context[prefix] = {}
-            context[prefix].update(resolved_data)
+        # add in the data in the context without any processing. Payload may
+        # contain renderable keys however those are often due to nature of the
+        # events being posted e.g. ActionTrigger with template variables. Rendering
+        # these values would lead to bugs in the data so best to avoid.
+        if prefix not in context:
+            context[prefix] = {}
+        context[prefix].update(data)
         return context
 
 

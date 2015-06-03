@@ -29,7 +29,9 @@ for 10 minutes, use the following:
 ::
 
     # with TTL and password
-    st2 auth yourusername -p yourpassword -t 600
+    st2 auth yourusername -p yourpassword -l 600
+
+Note that if the TTL requested is greater than maximum allowed TTL in st2 configuration, you'd get an error.
 
 If you don't want to retrieve a new token and configure the environment variable
 every time you start a new shell session, you can put your StackStorm

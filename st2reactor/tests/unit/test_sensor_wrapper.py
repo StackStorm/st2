@@ -7,7 +7,7 @@ import st2tests.config as tests_config
 from st2tests.base import TESTS_CONFIG_PATH
 from st2reactor.container.sensor_wrapper import SensorWrapper
 from st2reactor.container.sensor_wrapper import SensorService
-from st2client.models.datastore import KeyValuePair
+from st2client.models.keyvalue import KeyValuePair
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))

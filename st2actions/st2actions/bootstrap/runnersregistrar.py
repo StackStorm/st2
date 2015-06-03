@@ -18,7 +18,7 @@ import copy
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RunnerTypeAPI
-from st2common.persistence.action import RunnerType
+from st2common.persistence.runner import RunnerType
 from st2common.util.action_db import get_runnertype_by_name
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.constants.runners import FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
@@ -182,7 +182,7 @@ RUNNER_TYPES = [
                 'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
         },
-        'runner_module': 'st2actions.runners.fabricrunner'
+        'runner_module': 'st2actions.runners.remote_command_runner'
     },
     {
         'name': 'remote-shell-script',
@@ -254,7 +254,7 @@ RUNNER_TYPES = [
                 'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
         },
-        'runner_module': 'st2actions.runners.fabricrunner'
+        'runner_module': 'st2actions.runners.remote_script_runner'
     },
     {
         'name': 'http-request',
@@ -292,30 +292,6 @@ RUNNER_TYPES = [
         'runner_module': 'st2actions.runners.httprunner'
     },
     {
-        'name': 'mistral-v1',
-        'aliases': [],
-        'description': 'A runner for executing mistral v1 workflow.',
-        'enabled': True,
-        'runner_parameters': {
-            'workbook': {
-                'description': 'The name of the workbook.',
-                'type': 'string',
-                'required': True
-            },
-            'task': {
-                'description': 'The startup task in the workbook to execute.',
-                'type': 'string',
-                'required': True
-            },
-            'context': {
-                'description': 'Context for the startup task.',
-                'type': 'object',
-                'default': {}
-            }
-        },
-        'runner_module': 'st2actions.runners.mistral.v1'
-    },
-    {
         'name': 'mistral-v2',
         'aliases': [],
         'description': 'A runner for executing mistral v2 workflow.',
@@ -338,6 +314,11 @@ RUNNER_TYPES = [
                 'description': 'Additional workflow inputs.',
                 'type': 'object',
                 'default': {}
+            },
+            'skip_notify': {
+                'description': 'List of tasks to skip notifications for.',
+                'type': 'array',
+                'default': []
             }
         },
         'runner_module': 'st2actions.runners.mistral.v2',
@@ -348,7 +329,13 @@ RUNNER_TYPES = [
         'aliases': [],
         'description': 'A runner for launching linear action chains.',
         'enabled': True,
-        'runner_parameters': {},
+        'runner_parameters': {
+            'skip_notify': {
+                'description': 'List of tasks to skip notifications for.',
+                'type': 'array',
+                'default': []
+            }
+        },
         'runner_module': 'st2actions.runners.actionchainrunner'
     },
     {

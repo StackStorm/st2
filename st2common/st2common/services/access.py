@@ -19,9 +19,10 @@ import datetime
 from oslo.config import cfg
 
 from st2common.util import isotime
-from st2common.exceptions.access import TokenNotFoundError
-from st2common.models.db.access import TokenDB, UserDB
-from st2common.persistence.access import Token, User
+from st2common.exceptions.auth import TokenNotFoundError
+from st2common.exceptions.auth import TTLTooLargeException
+from st2common.models.db.auth import TokenDB, UserDB
+from st2common.persistence.auth import Token, User
 from st2common import log as logging
 
 __all__ = [
@@ -44,7 +45,14 @@ def create_token(username, ttl=None, metadata=None):
     :param metadata: Optional metadata to associate with the token.
     :type metadata: ``dict``
     """
-    if not ttl or ttl > cfg.CONF.auth.token_ttl:
+
+    if ttl:
+        if ttl > cfg.CONF.auth.token_ttl:
+            msg = 'TTL specified %s is greater than max allowed %s.' % (
+                ttl, cfg.CONF.auth.token_ttl
+            )
+            raise TTLTooLargeException(msg)
+    else:
         ttl = cfg.CONF.auth.token_ttl
 
     if username:

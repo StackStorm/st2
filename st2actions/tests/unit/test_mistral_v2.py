@@ -37,10 +37,11 @@ from st2actions.handlers.mistral import MistralCallbackHandler
 from st2actions.runners.localrunner import LocalShellRunner
 from st2actions.runners.mistral.v2 import MistralRunner
 from st2common.constants import action as action_constants
-from st2common.models.api.access import TokenAPI
+from st2common.models.api.auth import TokenAPI
 from st2common.models.api.action import ActionAPI
-from st2common.models.db.action import LiveActionDB
-from st2common.persistence.action import Action, LiveAction
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.persistence.action import Action
+from st2common.persistence.liveaction import LiveAction
 from st2common.services import access as access_service
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
@@ -194,7 +195,9 @@ class TestMistralRunner(DbTestCase):
                 'st2.action': {
                     'st2_context': {
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
-                        'parent': str(liveaction.id)
+                        'parent': str(liveaction.id),
+                        'notify': {},
+                        'skip_notify_tasks': []
                     }
                 }
             }
@@ -239,7 +242,55 @@ class TestMistralRunner(DbTestCase):
                     'st2_context': {
                         'auth_token': TOKEN_DB.token,
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
-                        'parent': str(liveaction.id)
+                        'parent': str(liveaction.id),
+                        'notify': {},
+                        'skip_notify_tasks': []
+                    }
+                }
+            }
+        }
+
+        executions.ExecutionManager.create.assert_called_with(
+            WF1_NAME, workflow_input=workflow_input, env=env)
+
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF1))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
+    def test_launch_workflow_with_notifications(self):
+        notify_data = {'on_complete': {'channels': ['slack'],
+                       'message': '"@channel: Action succeeded."', 'data': {}}}
+
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
+        execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, notify=notify_data)
+        liveaction, _ = action_service.request(execution)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        mistral_context = liveaction.context.get('mistral', None)
+        self.assertIsNotNone(mistral_context)
+        self.assertEqual(mistral_context['execution_id'], WF1_EXEC.get('id'))
+        self.assertEqual(mistral_context['workflow_name'], WF1_EXEC.get('workflow_name'))
+
+        workflow_input = copy.deepcopy(ACTION_PARAMS)
+        workflow_input.update({'count': '3'})
+
+        env = {
+            '__actions': {
+                'st2.action': {
+                    'st2_context': {
+                        'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
+                        'parent': str(liveaction.id),
+                        'notify': notify_data,
+                        'skip_notify_tasks': []
                     }
                 }
             }

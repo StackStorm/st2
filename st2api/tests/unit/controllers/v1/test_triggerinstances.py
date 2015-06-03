@@ -18,8 +18,8 @@ import mock
 import six
 
 from st2common.transport.publishers import PoolPublisher
-from st2common.persistence.reactor import TriggerInstance
-from st2common.models.db.reactor import TriggerInstanceDB
+from st2common.persistence.trigger import TriggerInstance
+from st2common.models.db.trigger import TriggerInstanceDB
 from tests import FunctionalTest
 
 http_client = six.moves.http_client
@@ -39,6 +39,30 @@ class TestTriggerController(FunctionalTest):
         resp = self.app.get('/v1/triggerinstances')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), self.triggerinstance_count, 'Get all failure.')
+
+    def test_get_all_limit(self):
+        limit = 1
+        resp = self.app.get('/v1/triggerinstances?limit=%d' % limit)
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), limit, 'Get all failure. Length doesn\'t match limit.')
+
+    def test_get_all_filter_by_trigger(self):
+        trigger = 'dummy_pack_1.st2.test.trigger0'
+        resp = self.app.get('/v1/triggerinstances?trigger=%s' % trigger)
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 1, 'Get all failure. Must get only one such instance.')
+
+    def test_get_all_filter_by_timestamp(self):
+        resp = self.app.get('/v1/triggerinstances')
+        self.assertEqual(resp.status_int, http_client.OK)
+        timestamp_largest = resp.json[0]['occurrence_time']
+        timestamp_middle = resp.json[1]['occurrence_time']
+        resp = self.app.get('/v1/triggerinstances?timestamp_gt=%s' % timestamp_largest)
+        # Since we sort trigger instances by time (latest first), the previous
+        # get should return no trigger instances.
+        self.assertEqual(len(resp.json), 0)
+        resp = self.app.get('/v1/triggerinstances?timestamp_lt=%s' % timestamp_middle)
+        self.assertEqual(len(resp.json), 1)
 
     def test_get_one(self):
         triggerinstance_id = str(self.triggerinstance_1.id)

@@ -39,7 +39,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class ActionsController(resource.ContentPackResourceControler):
+class ActionsController(resource.ContentPackResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Actions in the system.

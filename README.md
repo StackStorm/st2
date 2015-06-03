@@ -2,9 +2,7 @@
 
 **StackStorm** is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product).
 
-[![Build Status](https://api.travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2)
-
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/StackStorm/st2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://api.travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2) [![IRC](https://img.shields.io/irc/%23stackstorm.png)](http://webchat.freenode.net/?channels=stackstorm)
 
 ## StackStorm Overview
 

@@ -28,8 +28,8 @@ import st2common.validators.api.action as action_validator
 
 from six.moves import filter
 from st2common.util import isotime
-from st2common.models.db.access import TokenDB
-from st2common.persistence.access import Token
+from st2common.models.db.auth import TokenDB
+from st2common.persistence.auth import Token
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest, AuthMiddlewareTest
@@ -171,11 +171,11 @@ class TestActionExecutionController(FunctionalTest):
     def test_get_all(self):
         self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
         self._get_actionexecution_id(self._do_post(LIVE_ACTION_2))
-        resp = self.app.get('/v1/actionexecutions')
+        resp = self.app.get('/v1/executions')
         body = resp.json
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 2,
-                         '/v1/actionexecutions did not return all '
+                         '/v1/executions did not return all '
                          'actionexecutions.')
         # Assert liveactions are sorted by timestamp.
         for i in range(len(body) - 1):
@@ -185,44 +185,44 @@ class TestActionExecutionController(FunctionalTest):
     def test_get_query(self):
         actionexecution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
 
-        resp = self.app.get('/v1/actionexecutions?action=%s' % LIVE_ACTION_1['action'])
+        resp = self.app.get('/v1/executions?action=%s' % LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         matching_execution = filter(lambda ae: ae['id'] == actionexecution_1_id, resp.json)
         self.assertEqual(len(list(matching_execution)), 1,
-                         '/v1/actionexecutions did not return correct liveaction.')
+                         '/v1/executions did not return correct liveaction.')
 
     def test_get_query_with_limit(self):
         self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
         self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
 
-        resp = self.app.get('/v1/actionexecutions')
+        resp = self.app.get('/v1/executions')
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 0)
 
-        resp = self.app.get('/v1/actionexecutions?limit=1')
+        resp = self.app.get('/v1/executions?limit=1')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1)
 
-        resp = self.app.get('/v1/actionexecutions?limit=0')
+        resp = self.app.get('/v1/executions?limit=0')
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
-        resp = self.app.get('/v1/actionexecutions?action=%s' % LIVE_ACTION_1['action'])
+        resp = self.app.get('/v1/executions?action=%s' % LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
-        resp = self.app.get('/v1/actionexecutions?action=%s&limit=1' %
+        resp = self.app.get('/v1/executions?action=%s&limit=1' %
                             LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1)
 
-        resp = self.app.get('/v1/actionexecutions?action=%s&limit=0' %
+        resp = self.app.get('/v1/executions?action=%s&limit=0' %
                             LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
     def test_get_one_fail(self):
-        resp = self.app.get('/v1/actionexecutions/100', expect_errors=True)
+        resp = self.app.get('/v1/executions/100', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
 
     def test_post_delete(self):
@@ -281,18 +281,59 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(resp.status_int, 400)
         self.assertIn('Unable to convert st2-context', resp.json['faultstring'])
 
+    def test_re_run_success(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (no parameters overrides)
+        data = {}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' %
+                (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+
+        # Re-run created execution (with parameters overrides)
+        data = {'parameters': {'a': 'val1'}}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+
+    def test_re_run_failure_execution_doesnt_exist(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+
+        # Re-run created execution (override parameter with an invalid value)
+        data = {}
+        re_run_resp = self.app.post_json('/v1/executions/doesntexist/re_run',
+                                         data, expect_errors=True)
+        self.assertEqual(re_run_resp.status_int, 404)
+
+    def test_re_run_failure_parameter_override_invalid_type(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (override parameter with an invalid value)
+        data = {'parameters': {'a': 1000}}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
+                                         data, expect_errors=True)
+        self.assertEqual(re_run_resp.status_int, 400)
+        self.assertIn('1000 is not of type u\'string\'', re_run_resp.json['faultstring'])
+
     @staticmethod
     def _get_actionexecution_id(resp):
         return resp.json['id']
 
     def _do_get_one(self, actionexecution_id, *args, **kwargs):
-        return self.app.get('/v1/actionexecutions/%s' % actionexecution_id, *args, **kwargs)
+        return self.app.get('/v1/executions/%s' % actionexecution_id, *args, **kwargs)
 
     def _do_post(self, liveaction, *args, **kwargs):
-        return self.app.post_json('/v1/actionexecutions', liveaction, *args, **kwargs)
+        return self.app.post_json('/v1/executions', liveaction, *args, **kwargs)
 
     def _do_delete(self, actionexecution_id, expect_errors=False):
-        return self.app.delete('/v1/actionexecutions/%s' % actionexecution_id,
+        return self.app.delete('/v1/executions/%s' % actionexecution_id,
                                expect_errors=expect_errors)
 
 NOW = isotime.add_utc_tz(datetime.datetime.utcnow())
@@ -333,7 +374,7 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
         super(TestActionExecutionControllerAuthEnabled, cls).tearDownClass()
 
     def _do_post(self, liveaction, *args, **kwargs):
-        return self.app.post_json('/v1/actionexecutions', liveaction, *args, **kwargs)
+        return self.app.post_json('/v1/executions', liveaction, *args, **kwargs)
 
     @mock.patch.object(
         Token, 'get',
@@ -374,7 +415,7 @@ class TestActionExecutionControllerDescendantsTest(FunctionalTest):
 
     def test_get_all_descendants(self):
         root_execution = self.MODELS['executions']['root_execution.yaml']
-        resp = self.app.get('/v1/actionexecutions/%s/children' % str(root_execution.id))
+        resp = self.app.get('/v1/executions/%s/children' % str(root_execution.id))
         self.assertEqual(resp.status_int, 200)
 
         all_descendants_ids = [descendant['id'] for descendant in resp.json]
@@ -389,7 +430,7 @@ class TestActionExecutionControllerDescendantsTest(FunctionalTest):
 
     def test_get_all_descendants_depth_neg_1(self):
         root_execution = self.MODELS['executions']['root_execution.yaml']
-        resp = self.app.get('/v1/actionexecutions/%s/children?depth=-1' % str(root_execution.id))
+        resp = self.app.get('/v1/executions/%s/children?depth=-1' % str(root_execution.id))
         self.assertEqual(resp.status_int, 200)
 
         all_descendants_ids = [descendant['id'] for descendant in resp.json]
@@ -404,7 +445,7 @@ class TestActionExecutionControllerDescendantsTest(FunctionalTest):
 
     def test_get_1_level_descendants(self):
         root_execution = self.MODELS['executions']['root_execution.yaml']
-        resp = self.app.get('/v1/actionexecutions/%s/children?depth=1' % str(root_execution.id))
+        resp = self.app.get('/v1/executions/%s/children?depth=1' % str(root_execution.id))
         self.assertEqual(resp.status_int, 200)
 
         all_descendants_ids = [descendant['id'] for descendant in resp.json]

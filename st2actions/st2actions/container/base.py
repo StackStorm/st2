@@ -21,8 +21,8 @@ import datetime
 from st2common import log as logging
 from st2common.util import isotime
 from st2common.constants import action as action_constants
-from st2common.models.db.action import ActionExecutionStateDB
-from st2common.persistence.action import ActionExecutionState
+from st2common.models.db.executionstate import ActionExecutionStateDB
+from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
@@ -77,6 +77,7 @@ class RunnerContainer(object):
         runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
+        runner.liveaction = liveaction_db
         runner.liveaction_id = str(liveaction_db.id)
         runner.entry_point = resolved_entry_point
         runner.runner_parameters = runner_params

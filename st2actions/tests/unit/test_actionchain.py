@@ -21,9 +21,12 @@ from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
-from st2common.models.db.datastore import KeyValuePairDB
-from st2common.persistence.datastore import KeyValuePair
-from st2common.persistence.action import RunnerType
+from st2common.models.api.notification import NotificationsHelper
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.models.system.common import ResourceReference
+from st2common.persistence.keyvalue import KeyValuePair
+from st2common.persistence.runner import RunnerType
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 from st2tests import DbTestCase
@@ -83,6 +86,9 @@ CHAIN_WITH_PUBLISH = FixturesLoader().get_fixture_file_path_abs(
 CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_invalid_action.yaml')
 
+CHAIN_NOTIFY_API = {'notify': {'on-complete': {'message': 'foo happened.'}}}
+CHAIN_NOTIFY_DB = NotificationsHelper.to_model(CHAIN_NOTIFY_API)
+
 
 @mock.patch.object(action_db_util, 'get_runnertype_by_name',
                    mock.MagicMock(return_value=RUNNER))
@@ -111,6 +117,10 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = ACTION_1
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
+                                                           pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
+        chain_runner.liveaction.notify = CHAIN_NOTIFY_DB
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})

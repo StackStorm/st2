@@ -86,6 +86,8 @@ class BaseCLITestCase(unittest2.TestCase):
             if var in os.environ:
                 del os.environ[var]
 
+        os.environ['ST2_CLI_SKIP_CONFIG'] = '1'
+
         if self.capture_output:
             sys.stdout = self.stdout
             sys.stderr = self.stderr

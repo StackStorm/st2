@@ -15,8 +15,8 @@
 
 import six
 from st2common import log as logging
-from st2common.persistence.reactor import SensorType
-from st2common.models.api.reactor import SensorTypeAPI
+from st2common.persistence.sensor import SensorType
+from st2common.models.api.sensor import SensorTypeAPI
 from st2api.controllers import resource
 
 http_client = six.moves.http_client
@@ -24,7 +24,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class SensorTypeController(resource.ContentPackResourceControler):
+class SensorTypeController(resource.ContentPackResourceController):
     model = SensorTypeAPI
     access = SensorType
     supported_filters = {

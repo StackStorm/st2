@@ -19,9 +19,11 @@ from st2common import log as logging
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.tag import TagsHelper
 from st2common.models.api.notification import (NotificationSubSchemaAPI, NotificationsHelper)
-from st2common.models.db.action import (RunnerTypeDB, ActionDB, LiveActionDB)
-from st2common.models.db.action import ActionExecutionStateDB
-from st2common.models.db.action import ActionAliasDB
+from st2common.models.db.action import ActionDB
+from st2common.models.db.actionalias import ActionAliasDB
+from st2common.models.db.executionstate import ActionExecutionStateDB
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.runner import RunnerTypeDB
 from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.models.system.common import ResourceReference
 
@@ -412,6 +414,11 @@ class ActionAliasAPI(BaseAPI):
                 "type": "string",
                 "description": "Description of the action alias."
             },
+            "enabled": {
+                "description": "Flag indicating of action alias is enabled.",
+                "type": "boolean",
+                "default": True
+            },
             "action_ref": {
                 "type": "string",
                 "description": "Reference to the aliased action.",
@@ -431,6 +438,7 @@ class ActionAliasAPI(BaseAPI):
         model = super(cls, cls).to_model(alias)
         model.name = alias.name
         model.pack = alias.pack
+        model.enabled = getattr(alias, 'enabled', True)
         model.ref = ResourceReference.to_string_reference(pack=model.pack, name=model.name)
         model.action_ref = alias.action_ref
         model.formats = alias.formats
@@ -447,9 +455,19 @@ class AliasExecutionAPI(BaseAPI):
         "description": "Execution of an ActionAlias.",
         "type": "object",
         "properties": {
+            "name": {
+                "type": "string",
+                "description": "Name of the action alias which matched.",
+                "required": True
+            },
+            "format": {
+                "type": "string",
+                "description": "Format string which matched.",
+                "required": True
+            },
             "command": {
                 "type": "string",
-                "description": "Name of the action alias.",
+                "description": "Command used in chat.",
                 "required": True
             },
             "user": {

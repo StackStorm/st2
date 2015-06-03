@@ -47,6 +47,7 @@ register_opts()
 
 
 def register_sensors():
+    registered_count = 0
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering sensors ######################')
@@ -64,6 +65,8 @@ def register_sensors():
 def register_actions():
     # Register runnertypes and actions. The order is important because actions require action
     # types to be present in the system.
+    registered_count = 0
+
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering actions ######################')
@@ -73,7 +76,6 @@ def register_actions():
         import st2actions.bootstrap.runnersregistrar as runners_registrar
         runners_registrar.register_runner_types(experimental=cfg.CONF.experimental)
     except Exception as e:
-        registered_count = 0
         LOG.warning('Failed to register runner types: %s', e, exc_info=True)
         LOG.warning('Not registering stock runners .')
     else:
@@ -90,6 +92,8 @@ def register_actions():
 
 def register_rules():
     # Register rules.
+    registered_count = 0
+
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering rules ########################')
@@ -106,6 +110,7 @@ def register_rules():
 
 def register_aliases():
     # Register rules.
+    registered_count = 0
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering aliases ######################')

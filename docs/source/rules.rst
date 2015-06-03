@@ -14,6 +14,7 @@ Rules are defined in YAML; JSON is supported for backward compatibility. Rule de
 
     ---
         name: "rule_name"                      # required
+        pack: "examples"                       # optional
         description: "Rule description."       # optional
         enabled: true                          # required
 
@@ -37,6 +38,7 @@ Rules are defined in YAML; JSON is supported for backward compatibility. Rule de
 The generic form of a rule is:
 
 * The ``name`` of the rule.
+* The ``pack`` that the rule belongs to. `default` is assumed if a pack is not specified.
 * The ``description`` of the rule
 * The ``enabled`` state of a rule (``true`` or ``false``)
 * The type of ``trigger`` emitted from sensors to monitor, which may consist of:
@@ -299,6 +301,7 @@ my_rule.yaml:
 
     ---
       name: "relayed_matched_irc_message"
+      pack: "irc"
       description: "Relay IRC message to Slack if the message contains word StackStorm"
       enabled: true
 
@@ -368,6 +371,35 @@ Output:
 
     === RULE DOES NOT MATCH ===
     1
+
+If you are debugging and would like to see the list of trigger instances sent to |st2|,
+you can use the CLI to do so.
+
+..  code-block:: bash
+
+  st2 triggerinstance list
+
+You can also filter trigger instances by trigger.
+
+.. code-block:: bash
+
+  st2 triggerinstance list --trigger=core.f9e09284-b2b1-4127-aedd-dcde7a752819
+
+
+Also, you can get trigger instances within a time range by using ``timestamp_gt`` and ``timestamp_lt`` filter
+options.
+
+.. code-block:: bash
+
+  st2 triggerinstance list --trigger="core.f9e09284-b2b1-4127-aedd-dcde7a752819" -timestamp_gt=2015-06-01T12:00:00Z -timestamp_lt=2015-06-02T12:00:00Z
+
+Note that you can also specify one of ``timestamp_lt`` or ``timestamp_gt`` too. You can
+get details about a trigger instance by using ``get``.
+
+.. code-block:: bash
+
+  st2 triggerinstance get 556e135232ed35569ff23238
+
 
 Timers
 ------

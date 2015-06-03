@@ -20,10 +20,10 @@ from st2common.util import reference
 from st2common.util import action_db as action_db_util
 from st2reactor.rules.datatransform import get_transformer
 from st2common.services import action as action_service
-from st2common.models.db.action import LiveActionDB
+from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.utils import action_param_utils
 from st2common.constants import action as action_constants
-from st2common.models.api.access import get_system_username
+from st2common.models.api.auth import get_system_username
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.enforce')
@@ -33,7 +33,14 @@ class RuleEnforcer(object):
     def __init__(self, trigger_instance, rule):
         self.trigger_instance = trigger_instance
         self.rule = rule
-        self.data_transformer = get_transformer(trigger_instance.payload)
+
+        try:
+            self.data_transformer = get_transformer(trigger_instance.payload)
+        except Exception as e:
+            message = ('Failed to template-ize trigger payload: %s. If the payload contains '
+                       'special characters such as "{{" which dont\'t reference value in '
+                       'a datastore, those characters need to be escaped' % (str(e)))
+            raise ValueError(message)
 
     def enforce(self):
         # TODO: Refactor this to avoid additiona lookup in cast_params

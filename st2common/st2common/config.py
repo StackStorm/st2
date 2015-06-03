@@ -139,6 +139,13 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(action_sensor_opts, group='action_sensor')
 
+    # Coordination options
+    coord_opts = [
+        cfg.StrOpt('url', default='zake://', help='Endpoint for the coordination server.'),
+        cfg.IntOpt('lock_timeout', default=60, help='TTL for the lock if backend suports it.')
+    ]
+    do_register_opts(coord_opts, 'coordination', ignore_errors)
+
     use_debugger = cfg.BoolOpt(
         'use-debugger', default=True,
         help='Enables debugger. Note that using this option changes how the '

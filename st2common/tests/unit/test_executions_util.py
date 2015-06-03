@@ -17,9 +17,10 @@ import six
 
 from st2common.constants import action as action_constants
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
-from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
+from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
-from st2common.persistence.action import RunnerType, LiveAction
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.runner import RunnerType
 from st2common.persistence.execution import ActionExecution
 import st2common.services.executions as executions_util
 import st2common.util.action_db as action_utils

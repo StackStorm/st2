@@ -19,9 +19,11 @@ import six
 
 from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
+from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.rule import RuleAPI
-from st2common.persistence.reactor import Rule
+from st2common.models.system.common import ResourceReference
+from st2common.persistence.rule import Rule
 import st2common.content.utils as content_utils
 
 __all__ = [
@@ -82,7 +84,7 @@ class RulesRegistrar(ResourceRegistrar):
         return registered_count
 
     def _get_rules_from_pack(self, rules_dir):
-        return self._get_resources_from_pack(resources_dir=rules_dir)
+        return self.get_resources_from_pack(resources_dir=rules_dir)
 
     def _register_rules_from_pack(self, pack, rules):
         registered_count = 0
@@ -91,12 +93,42 @@ class RulesRegistrar(ResourceRegistrar):
             LOG.debug('Loading rule from %s.', rule)
             try:
                 content = self._meta_loader.load(rule)
+                pack_field = content.get('pack', None)
+                if not pack_field:
+                    content['pack'] = pack
+                    pack_field = pack
+                if pack_field != pack:
+                    raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
+                                    (pack, pack_field))
                 rule_api = RuleAPI(**content)
                 rule_api.validate()
                 rule_db = RuleAPI.to_model(rule_api)
 
+                # Migration from rule without pack to rule with pack.
+                # There might be a rule with same name but in pack `default`
+                # generated in migration script. In this case, we want to
+                # delete so we don't have duplicates.
+                if pack_field != DEFAULT_PACK_NAME:
+                    try:
+                        rule_ref = ResourceReference.to_string_reference(name=content['name'],
+                                                                         pack=DEFAULT_PACK_NAME)
+                        LOG.debug('Looking for rule %s in pack %s', content['name'],
+                                  DEFAULT_PACK_NAME)
+                        existing = Rule.get_by_ref(rule_ref)
+                        LOG.debug('Existing = %s', existing)
+                        if existing:
+                            LOG.debug('Found rule in pack default: %s; Deleting.', rule_ref)
+                            Rule.delete(existing)
+                    except:
+                        LOG.exception('Exception deleting rule from %s pack.', DEFAULT_PACK_NAME)
+
                 try:
-                    rule_db.id = Rule.get_by_name(rule_api.name).id
+                    rule_ref = ResourceReference.to_string_reference(name=content['name'],
+                                                                     pack=content['pack'])
+                    existing = Rule.get_by_ref(rule_ref)
+                    if existing:
+                        rule_db.id = existing.id
+                        LOG.debug('Found existing rule: %s with id: %s', rule_ref, existing.id)
                 except ValueError:
                     LOG.debug('Rule %s not found. Creating new one.', rule)
 

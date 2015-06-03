@@ -19,8 +19,8 @@ import uuid
 from oslo.config import cfg
 from st2tests.base import DbTestCase
 from st2common.util import isotime
-from st2common.exceptions.access import TokenNotFoundError
-from st2common.persistence.access import Token
+from st2common.exceptions.auth import TokenNotFoundError
+from st2common.persistence.auth import Token
 from st2common.services import access
 import st2tests.config as tests_config
 

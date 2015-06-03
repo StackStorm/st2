@@ -51,10 +51,10 @@ st2express:
     facts:
       role: st2express
   mounts:
-    - "/opt/stackstorm:artifacts/stackstorm"
+    - "/opt/stackstorm/packs:artifacts/packs"
 ```
 
-This will setup StackStorm to store all pack files and chatops aliases in the `artifacts/stackstorm` directory at the root of the workroom. This will allow you to edit files using your favorite editor on your computer.
+This will setup StackStorm to store all pack files and chatops aliases in the `artifacts/packs` directory at the root of the workroom. This will allow you to edit files using your favorite editor on your computer.
 
 Now, let's setup the contents of the workroom. Create the workroom config file by starting with the example template.
 
@@ -68,7 +68,7 @@ Open up the file `hieradata/workroom.yaml` in your favorite text editor. In here
 ```yaml
 # hieradata/workroom.yaml
 ---
-st2::version: 0.9.0
+st2::version: 0.10dev
 st2::mistral_git_branch: st2-0.9.0
 ```
 
@@ -110,14 +110,14 @@ This process will take a few minutes, and when completed, a new Hubot should be 
 
 To get started, you will need:
 
-* StackStorm v0.9.0
+* StackStorm v0.10dev
 * Hubot
 * StackStorm Hubot adapter
 
 First, start by updating your version of StackStorm. This is typically done by re-running `st2_deploy.sh` with the updated version code.
 
 ```
-$ st2_deploy.sh 0.9.0
+$ st2_deploy.sh 0.10dev
 ```
 
 Currently, this feature requires `st2auth` to be disabled. This will be fixed before production release. In the meantime, ensure `st2auth` is disabled by doing the following:
@@ -148,7 +148,7 @@ And should get something like this back:
 Now, install the `hubot` pack into your StackStorm installation.
 
 ```
-  $ st2 packs.install packs=hubot http://github.com/StackStorm/st2incubator.git
+  $ st2 packs.install packs=hubot
 ```
 
 If successful, proceed to the section [Configure Stackstorm](#configuring-stackstorm) to continue.
@@ -157,10 +157,10 @@ If successful, proceed to the section [Configure Stackstorm](#configuring-stacks
 
 At this point, it is necessary to introduce a few new terms as it relates to how ChatOps messages are processed internally. First, you will need to create a _notification_ rule. This will leverage the new notifications system, and allow us to send messages back to Hubot. Then, you will configure _aliases_ which map commands from Hubot to actions in StackStorm. Finally, you'll configure actions to use the _notifications_, thus completing the entire chain of events. Let's get started.
 
-First, let's configure our global notification rule. To do this, let's create a new pack in StackStorm called `chatops`. Navigate to the `artifacts/stackstorm` directory, and create a new pack directory.
+First, let's configure our global notification rule. To do this, let's create a new pack in StackStorm called `chatops`. Navigate to the `artifacts/packs` directory, and create a new pack directory.
 
 ```
-$ cd ~/stackstorm/st2workroom/artifacts/stackstorm/packs
+$ cd ~/stackstorm/st2workroom/artifacts/packs
 $ mkdir -p chatops/{actions,rules,sensors,aliases}
 ```
 
@@ -172,11 +172,11 @@ $ vagrant ssh
 $ st2 run packs.install packs=google
 ```
 
-Now, let's setup an alias. For purpose of this setup aliases are stored in the directory `/opt/stackstorm/packs/chatops/aliases` on the filesystem. From your host filesystem, you can access them from `~/stackstorm/st2workroom/artifacts/stackstorm/packs/chatops/aliases`. We have already created this directory in a previous step.
+Now, let's setup an alias. For purpose of this setup aliases are stored in the directory `/opt/stackstorm/packs/chatops/aliases` on the filesystem. From your host filesystem, you can access them from `~/stackstorm/st2workroom/artifacts/packs/chatops/aliases`. We have already created this directory in a previous step.
 
 ```
 $ cd ~/stackstorm/st2workroom
-$ cd artifacts/stackstorm/packs/chatops/aliases
+$ cd artifacts/packs/chatops/aliases
 ```
 
 Create a new file called `google.yaml`, and add the following contents.
@@ -184,25 +184,25 @@ Create a new file called `google.yaml`, and add the following contents.
 ```yaml
 # packs/chatops/aliases/google.yaml
 ---
-name: "google"
+name: "google_query"
 action_ref: "google.get_search_results"
 formats:
-  - "{{query}}"
+  - "google {{query}}"
 ```
 
 Now, navigate to the hubot pack `rules` directory, and view the notify_hubot rule. This is a notification rule that sets up a notification channel.
 
 ```
-$ cd ~/stackstorm/st2workroom/artifacts/stackstorm/packs/hubot/rules
+$ cd ~/stackstorm/st2workroom/artifacts/packs/hubot/rules
 $ vi notify_hubot.yaml
 ```
 
 That rule, looks as follows:
 
 ```yaml
-# packs/hubot/rules/notify_hubot.yaml
+# notify_hubot.yaml
 ---
-name: "hubot.notify_hubot"
+name: "chatops.notify_hubot"
 enabled: true
 description: "Notification rule to send messages to Hubot"
 trigger:
@@ -213,11 +213,11 @@ criteria:
     pattern: "hubot"
     type: "equals"
 action:
-  ref: hubot.post_message
+  ref: hubot.post_result
   parameters:
     channel: "{{trigger.data.source_channel}}"
     user: "{{trigger.data.user}}"
-    message: "{{trigger.data.result}}"
+    result: "{{trigger}}"
 ```
 
 This file is also here to serve as an example on how to setup other notification triggers.

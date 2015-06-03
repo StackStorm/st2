@@ -22,9 +22,12 @@ import mock
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.transport.publishers import PoolPublisher
 from st2common.models.api.action import RunnerTypeAPI
-from st2common.models.db.action import (ActionDB, LiveActionDB)
+from st2common.models.db.action import ActionDB
+from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.system.common import ResourceReference
-from st2common.persistence.action import (Action, LiveAction, RunnerType)
+from st2common.persistence.action import Action
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.runner import RunnerType
 from st2common.transport.liveaction import LiveActionPublisher
 import st2common.util.action_db as action_db_utils
 from st2tests.base import DbTestCase

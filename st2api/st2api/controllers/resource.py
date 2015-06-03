@@ -166,7 +166,7 @@ class ResourceController(rest.RestController):
             resource_db = self._get_by_name(resource_name=name_or_id)
 
         if not resource_db:
-            msg = 'Resource with a name of id "%s" not found' % (name_or_id)
+            msg = 'Resource with a name or id "%s" not found' % (name_or_id)
             raise Exception(msg)
 
         return resource_db
@@ -188,7 +188,7 @@ class ResourceController(rest.RestController):
         return resource_db
 
 
-class ContentPackResourceControler(ResourceController):
+class ContentPackResourceController(ResourceController):
     include_reference = False
 
     @jsexpose(arg_types=[str])
@@ -221,7 +221,7 @@ class ContentPackResourceControler(ResourceController):
         return result
 
     def _get_all(self, **kwargs):
-        result = super(ContentPackResourceControler, self)._get_all(**kwargs)
+        result = super(ContentPackResourceController, self)._get_all(**kwargs)
 
         if self.include_reference:
             for item in result:
@@ -248,7 +248,7 @@ class ContentPackResourceControler(ResourceController):
             resource_db = self._get_by_id(resource_id=ref_or_id)
 
         if not resource_db:
-            msg = 'Resource with a reference of id "%s" not found' % (ref_or_id)
+            msg = 'Resource with a reference or id "%s" not found' % (ref_or_id)
             raise Exception(msg)
 
         return resource_db

@@ -17,11 +17,18 @@
 import ast
 import json
 
+import six
+
 from st2common.util.compat import to_unicode
 
 
 def _cast_object(x):
-    if isinstance(x, str) or isinstance(x, unicode):
+    """
+    Method for casting string to an object (dict) or array.
+
+    Note: String can be either serialized as JSON or a raw Python output.
+    """
+    if isinstance(x, six.string_types):
         try:
             return json.loads(x)
         except:
@@ -30,12 +37,17 @@ def _cast_object(x):
         return x
 
 
+def _cast_boolean(x):
+    if isinstance(x, six.string_types):
+        return ast.literal_eval(x.capitalize())
+
+    return x
+
+
 # These types as they appear in json schema.
 CASTS = {
-    'array': (lambda x: ast.literal_eval(x) if isinstance(x, str) or isinstance(x, unicode)
-              else x),
-    'boolean': (lambda x: ast.literal_eval(x.capitalize())
-                if isinstance(x, str) or isinstance(x, unicode) else x),
+    'array': _cast_object,
+    'boolean': _cast_boolean,
     'integer': int,
     'number': float,
     'object': _cast_object,

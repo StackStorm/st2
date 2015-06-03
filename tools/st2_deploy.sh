@@ -77,7 +77,7 @@ sleep ${WARNING_SLEEP_DELAY}
 
 if [ -z $1 ]
 then
-  VER='0.9.0'
+  VER='0.9.1'
 elif [[ "$1" == "latest" ]]; then
    VER='0.10dev'
 else
@@ -149,6 +149,7 @@ create_user() {
     if [ $(grep 'stanley' /etc/sudoers.d/* &> /dev/null; echo $?) != 0 ]
     then
       echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/st2
+      chmod 0440 /etc/sudoers.d/st2
     fi
 
     # make sure requiretty is disabled.
@@ -457,6 +458,12 @@ deploy_deb() {
   popd
 }
 
+migrate_rules() {
+  echo "###########################################################################################"
+  echo "# Migrating rules (pack inclusion)."
+  $PYTHON ${PYTHONPACK}/st2common/bin/migrate_rules_to_include_pack.py
+}
+
 register_content() {
   echo "###########################################################################################"
   echo "# Registering all content"
@@ -560,6 +567,9 @@ if [ ${INSTALL_WEBUI} == "1" ]; then
     install_webui
 fi
 
+if version_ge $VER "0.9"; then
+  migrate_rules
+fi
 register_content
 echo "###########################################################################################"
 echo "# Starting St2 Services"
@@ -569,7 +579,8 @@ sleep 20
 TOKEN=`st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD} | grep token | awk '{print $4}'`
 ST2_AUTH_TOKEN=${TOKEN} st2 run core.local date &> /dev/null
 ACTIONEXIT=$?
-
+## Clean up token
+rm -Rf /home/${SYSTEMUSER}/.st2
 echo "=========================================="
 echo ""
 
@@ -605,3 +616,4 @@ echo "st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD}"
 echo ""
 echo "For more information see http://docs.stackstorm.com/install/deploy.html#usage"
 exit 0
+
