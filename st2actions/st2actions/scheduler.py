@@ -15,7 +15,7 @@
 
 import datetime
 
-from apscheduler.schedulers.background import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import apscheduler.util as aps_utils
 from kombu import Connection
@@ -135,7 +135,7 @@ def recover_delayed_executions():
 
 
 def get_rescheduler():
-    timer = BlockingScheduler()
+    timer = BackgroundScheduler()
 
     time_spec = {
         'seconds': cfg.CONF.scheduler.rescheduling_interval,
