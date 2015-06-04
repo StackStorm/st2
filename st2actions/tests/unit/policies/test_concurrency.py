@@ -53,9 +53,17 @@ LOADER = FixturesLoader()
 FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 NON_EMPTY_RESULT = 'non-empty'
 
+SCHEDULED_STATES = [
+    action_constants.LIVEACTION_STATUS_SCHEDULED,
+    action_constants.LIVEACTION_STATUS_RUNNING,
+    action_constants.LIVEACTION_STATUS_SUCCEEDED
+]
+
+RUN_DELAY = 2
+
 
 def mock_run(action_parameters):
-    eventlet.sleep(2)
+    eventlet.sleep(RUN_DELAY)
     return (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
 
 
@@ -96,6 +104,7 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
 
     def test_over_threshold(self):
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
+        self.assertGreater(policy_db.parameters['threshold'], 0)
 
         for i in range(0, policy_db.parameters['threshold']):
             liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
@@ -104,6 +113,11 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         # Sleep here to let the threads above schedule the action execution.
         eventlet.sleep(1)
 
+        scheduled = LiveAction.get_all()
+        self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
+        for liveaction in scheduled:
+            self.assertIn(liveaction.status, SCHEDULED_STATES)
+
         # Execution is expected to be delayed since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
@@ -111,8 +125,8 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_DELAYED)
 
         # Sleep here to let the threads above complete the action execution.
-        eventlet.sleep(2)
+        eventlet.sleep(RUN_DELAY)
 
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        self.assertIn(liveaction.status, SCHEDULED_STATES)
