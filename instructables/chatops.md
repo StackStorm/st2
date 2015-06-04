@@ -88,15 +88,12 @@ As an example, here is what configuration looks like for a Hubot Slack
 ```yaml
 # hieradata/workroom.yaml
 ---
-
 hubot::chat_alias: "!"
 hubot::adapter: "slack"
 hubot::env_export:
  HUBOT_LOG_LEVEL: "debug"
  HUBOT_SLACK_TOKEN: "xoxb-XXXX"
  ST2_CHANNEL: "hubot"
- ST2_AUTH_USERNAME: "testu"
- ST2_AUTH_PASSWORD: "testu"
 hubot::external_scripts:
   - "hubot-stackstorm"
 hubot::dependencies:
