@@ -68,7 +68,7 @@ Open up the file `hieradata/workroom.yaml` in your favorite text editor. In here
 ```yaml
 # hieradata/workroom.yaml
 ---
-st2::version: 0.10dev
+st2::version: 0.10
 st2::mistral_git_branch: st2-0.9.0
 ```
 
@@ -89,19 +89,21 @@ As an example, here is what configuration looks like for a Hubot Slack
 # hieradata/workroom.yaml
 ---
 
-hubot::adapter: slack
 hubot::chat_alias: "!"
+hubot::adapter: "slack"
 hubot::env_export:
-  HUBOT_LOG_LEVEL: "debug"
-  HUBOT_SLACK_TOKEN: "xoxb-XXXX"
-  ST2_CHANNEL: "hubot"
-hubot::build_deps:
-  - libxml2-devel
-  - gcc-c++
+ HUBOT_LOG_LEVEL: "debug"
+ HUBOT_SLACK_TOKEN: "xoxb-XXXX"
+ ST2_CHANNEL: "hubot"
+ ST2_AUTH_USERNAME: "testu"
+ ST2_AUTH_PASSWORD: "testu"
+hubot::external_scripts:
+  - "hubot-stackstorm"
 hubot::dependencies:
-  hubot: ">= 2.6.0 < 3.0.0"
-  "hubot-scripts": ">= 2.5.0 < 3.0.0"
-  "hubot-stackstorm": "> 0.0.1"
+  - "hubot": ">= 2.6.0 < 3.0.0"
+  - "hubot-scripts": ">= 2.5.0 < 3.0.0"
+  - "hubot-slack": ">=3.3.0 < 4.0.0"
+  - "hubot-stackstorm": ">= 0.1.0 < 0.2.0"
 ```
 
 To obtain Slack auth token, you need add new Slack integration by going to
