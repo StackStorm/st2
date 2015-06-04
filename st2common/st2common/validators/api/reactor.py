@@ -13,10 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.exceptions.apivalidation import ValueValidationException
-import st2common.operators as criteria_operators
 import six
 
+from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.constants.triggers import SYSTEM_TRIGGER_TYPES
+from st2common.util import schema as util_schema
+import st2common.operators as criteria_operators
+
+__all__ = [
+    'validate_criteria',
+    'validate_trigger_parameters'
+]
+
+VALIDATOR = util_schema.get_validator(assign_property_default=False)
 allowed_operators = criteria_operators.get_allowed_operators()
 
 
@@ -36,3 +45,29 @@ def validate_criteria(criteria):
         if pattern is None:
             raise ValueValidationException('For field: ' + key + ', no pattern specified ' +
                                            'for operator ' + operator)
+
+
+def validate_trigger_parameters(trigger_db):
+    """
+    This function validates parameters for system triggers (e.g. timers).
+
+    Note: Eventually we should also validate parameters for user defined triggers which correctly
+    specify JSON schema for the parameters.
+
+    :param trigger_db: Trigger DB object.
+    :type trigger_db: :class:`TriggerDB`
+    """
+    if not trigger_db:
+        return None
+
+    trigger_type_ref = trigger_db.type
+    parameters = trigger_db.parameters
+
+    if trigger_type_ref not in SYSTEM_TRIGGER_TYPES:
+        # Not a system trigger, skip validation for now
+        return None
+
+    parameters_schema = SYSTEM_TRIGGER_TYPES[trigger_type_ref]['parameters_schema']
+    VALIDATOR(parameters_schema).validate(parameters)
+
+    return True

@@ -19,6 +19,6 @@ tags:
   value: dont-care
 trigger:
   parameters:
-    minute: 0
+    minutex: 0
     second: 0
   type: core.st2.CronTimer
