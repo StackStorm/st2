@@ -1,8 +1,12 @@
 #!/bin/bash
 
-runner_count=1
+RUNNER_COUNT=1
+WEBUI_PORT=8080
+WEBUI_LOG_FILE="/var/log/st2/st2web.log"
+WEBUI_DIR="/opt/stackstorm/static/webui"
+
 if [ "$#" -gt 1 ]; then
-    runner_count=${2}
+    RUNNER_COUNT=${2}
 fi
 
 function st2start(){
@@ -78,7 +82,7 @@ function st2start(){
     # Start a screen for every runner
     echo 'Starting screen sessions for st2-actionrunner(s)...'
     RUNNER_SCREENS=()
-    for i in $(seq 1 $runner_count)
+    for i in $(seq 1 $RUNNER_COUNT)
     do
         RUNNER_NAME=st2-actionrunner-$i
         RUNNER_SCREENS+=($RUNNER_NAME)
@@ -118,6 +122,11 @@ function st2start(){
         ./st2auth/bin/st2auth \
         --config-file $ST2_CONF
 
+    if [ -d "${WEBUI_DIR}" ]; then
+        echo 'Starting screen session st2-web'
+        screen -d -m -S st2-web bash -c "cd /opt/stackstorm/static/webui && python -m SimpleHTTPServer ${WEBUI_PORT}"
+    fi
+
     # Check whether screen sessions are started
     SCREENS=(
         "st2-api"
@@ -128,6 +137,10 @@ function st2start(){
         "st2-notifier"
         "st2-auth"
     )
+
+    if [ -d "${WEBUI_DIR}" ]; then
+        SCREENS+=("st2-web")
+    fi
 
     echo
     for s in "${SCREENS[@]}"
