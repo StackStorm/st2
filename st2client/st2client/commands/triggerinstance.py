@@ -19,6 +19,32 @@ from st2client.models import TriggerInstance
 from st2client.utils.date import format_isodate
 
 
+class TriggerInstanceResendCommand(resource.ResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+
+        super(TriggerInstanceResendCommand, self).__init__(
+            resource, kwargs.pop('name', 're-emit'),
+            'A command to re-emit a particular trigger instance.',
+            *args, **kwargs)
+
+        self.parser.add_argument('id', nargs='?',
+                                 metavar='id',
+                                 help='ID of trigger instance to re-emit.')
+        self.parser.add_argument(
+            '-h', '--help',
+            action='store_true', dest='help',
+            help='Print usage for the given command.')
+
+    def run(self, args, **kwargs):
+        return self.manager.re_emit(args.id)
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        ret = self.run(args, **kwargs)
+        if 'message' in ret:
+            print(ret['message'])
+
+
 class TriggerInstanceBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(TriggerInstanceBranch, self).__init__(
@@ -28,6 +54,9 @@ class TriggerInstanceBranch(resource.ResourceBranch):
                 'list': TriggerInstanceListCommand,
                 'get': TriggerInstanceGetCommand
             })
+
+        self.commands['re-emit'] = TriggerInstanceResendCommand(self.resource, self.app,
+                                                                self.subparsers, add_help=False)
 
 
 class TriggerInstanceListCommand(resource.ResourceCommand):

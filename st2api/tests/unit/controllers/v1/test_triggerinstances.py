@@ -64,6 +64,18 @@ class TestTriggerController(FunctionalTest):
         resp = self.app.get('/v1/triggerinstances?timestamp_lt=%s' % timestamp_middle)
         self.assertEqual(len(resp.json), 1)
 
+    def test_reemit_trigger_instance(self):
+        resp = self.app.get('/v1/triggerinstances')
+        self.assertEqual(resp.status_int, http_client.OK)
+        instance_id = resp.json[0]['id']
+        resp = self.app.post('/v1/triggerinstances/%s/re_emit' % instance_id)
+        self.assertEqual(resp.status_int, http_client.OK)
+        resent_message = resp.json['message']
+        resent_payload = resp.json['payload']
+        self.assertTrue(instance_id in resent_message)
+        self.assertTrue('__context' in resent_payload)
+        self.assertEqual(resent_payload['__context']['original_id'], instance_id)
+
     def test_get_one(self):
         triggerinstance_id = str(self.triggerinstance_1.id)
         resp = self._do_get_one(triggerinstance_id)
