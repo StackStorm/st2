@@ -20,6 +20,7 @@ from st2client import models
 from st2client.models.core import ResourceManager
 from st2client.models.core import ActionAliasResourceManager
 from st2client.models.core import LiveActionResourceManager
+from st2client.models.core import TriggerInstanceResourceManager
 
 
 LOG = logging.getLogger(__name__)
@@ -98,7 +99,7 @@ class Client(object):
             models.TriggerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Trigger'] = ResourceManager(
             models.Trigger, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['TriggerInstance'] = ResourceManager(
+        self.managers['TriggerInstance'] = TriggerInstanceResourceManager(
             models.TriggerInstance, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['KeyValuePair'] = ResourceManager(
             models.KeyValuePair, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
