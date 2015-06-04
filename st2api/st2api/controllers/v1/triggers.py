@@ -318,12 +318,12 @@ class TriggerController(RestController):
             return []
 
 
-class TriggerInstanceMixin(RestController):
+class TriggerInstanceControllerMixin(RestController):
     model = TriggerInstanceAPI
     access = TriggerInstance
 
 
-class TriggerInstanceResendController(TriggerInstanceMixin, resource.ResourceController):
+class TriggerInstanceResendController(TriggerInstanceControllerMixin, resource.ResourceController):
     supported_filters = {}
 
     def __init__(self, *args, **kwargs):
@@ -369,12 +369,11 @@ class TriggerInstanceResendController(TriggerInstanceMixin, resource.ResourceCon
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
 
-class TriggerInstanceController(TriggerInstanceMixin, resource.ResourceController):
+class TriggerInstanceController(TriggerInstanceControllerMixin, resource.ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of TriggerInstances in the system.
     """
-    re_send = TriggerInstanceResendController()
     re_emit = TriggerInstanceResendController()
 
     supported_filters = {
