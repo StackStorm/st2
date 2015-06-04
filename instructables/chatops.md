@@ -93,6 +93,7 @@ hubot::adapter: "slack"
 hubot::env_export:
  HUBOT_LOG_LEVEL: "debug"
  HUBOT_SLACK_TOKEN: "xoxb-XXXX"
+ EXPRESS_PORT: 8081
  ST2_CHANNEL: "hubot"
 hubot::external_scripts:
   - "hubot-stackstorm"
@@ -101,6 +102,15 @@ hubot::dependencies:
   - "hubot-scripts": ">= 2.5.0 < 3.0.0"
   - "hubot-slack": ">=3.3.0 < 4.0.0"
   - "hubot-stackstorm": ">= 0.1.0 < 0.2.0"
+```
+
+Take note of the `EXPRESS_PORT` environment variable. Hubot's HTTP port in `st2workroom` needs to be moved to `TCP 8081` to avoid port conflict with `st2web`, which serves on `TCP 8080`. If you are not running your bot on the same machine where StackStorm is running, you can omit this variable. Pay attention to this information, however, as it is needed in order to configure a callback from StackStorm.
+
+By default, Hubot connects to StackStorm on `localhost`. If you install your bot on a machine other than where StackStorm is deployed, set the following variables:
+
+```
+ ST2_API: http://st2api.yourcomany.net:9101
+ ST2_AUTH: http://st2auth.yourcompany.net:9100
 ```
 
 To obtain Slack auth token, you need add new Slack integration by going to
