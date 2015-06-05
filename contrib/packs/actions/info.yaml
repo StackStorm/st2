@@ -1,0 +1,12 @@
+---
+name: "info"
+runner_type: "python-script"
+description: "Get currently deployed pack information"
+enabled: true
+entry_point: "pack_mgmt/info.py"
+parameters:
+  pack:
+    type: "string"
+    description: "Name of pack to introspect"
+    required: true
+
