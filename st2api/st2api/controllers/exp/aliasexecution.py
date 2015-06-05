@@ -51,8 +51,14 @@ class ActionAliasExecutionController(rest.RestController):
             action_alias_db = None
 
         if not action_alias_db:
-            msg = 'Unable to identify action alias with name "%s".' % action_alias_name
+            msg = 'Unable to identify action alias with name "%s".' % (action_alias_name)
             pecan.abort(http_client.NOT_FOUND, msg)
+            return
+
+        if not action_alias_db.enabled:
+            msg = 'Action alias with name "%s" is disabled.' % (action_alias_name)
+            pecan.abort(http_client.BAD_REQUEST, msg)
+            return
 
         execution_parameters = self._extract_parameters(action_alias_db=action_alias_db,
                                                         format=format,

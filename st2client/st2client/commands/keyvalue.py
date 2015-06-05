@@ -19,19 +19,13 @@ import logging
 from os.path import join as pjoin
 
 from st2client.commands import resource
+from st2client.commands.noop import NoopCommand
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 from st2client.models.keyvalue import KeyValuePair
 from st2client.utils.date import format_isodate
 
 LOG = logging.getLogger(__name__)
-
-
-class NoopCommand(object):
-    # Hack until we fix ResourceBranch API
-    # TODO: Refactor ResourceBranch and make it nicer
-    def __init__(self, *args, **kwargs):
-        pass
 
 
 class KeyValuePairBranch(resource.ResourceBranch):

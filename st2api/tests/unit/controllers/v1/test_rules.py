@@ -48,9 +48,15 @@ class TestRuleController(FunctionalTest):
         TestRuleController.TRIGGER = models['triggers']['trigger1.yaml']
 
         # Don't load rule into DB as that is what is being tested.
+        file_name = 'rule1.yaml'
         TestRuleController.RULE_1 = TestRuleController.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
-            fixtures_dict={'rules': ['rule1.yaml']})['rules']['rule1.yaml']
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+        file_name = 'cron_timer_rule_invalid_parameters.yaml'
+        TestRuleController.RULE_2 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
     @classmethod
     def tearDownClass(cls):
@@ -98,6 +104,13 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(post_resp_2.status_int, http_client.CONFLICT)
         self.assertEqual(post_resp_2.json['conflict-id'], org_id)
         self.__do_delete(org_id)
+
+    def test_post_trigger_parameter_schema_validation_fails(self):
+        post_resp = self.__do_post(TestRuleController.RULE_2)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+
+        expected_msg = 'Additional properties are not allowed (u\'minutex\' was unexpected)'
+        self.assertTrue(expected_msg in post_resp.body)
 
     def test_put(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)

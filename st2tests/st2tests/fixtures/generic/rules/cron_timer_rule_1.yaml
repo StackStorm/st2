@@ -21,4 +21,4 @@ trigger:
   parameters:
     minute: 0
     second: 0
-  type: core.CronTimer
+  type: core.st2.CronTimer

@@ -307,6 +307,14 @@ class ResourceManager(object):
         return True
 
 
+class ActionAliasResourceManager(ResourceManager):
+    def __init__(self, resource, endpoint, cacert=None, debug=False):
+        endpoint = endpoint.replace('v1', 'exp')
+        self.resource = resource
+        self.debug = debug
+        self.client = httpclient.HTTPClient(root=endpoint, cacert=cacert, debug=debug)
+
+
 class LiveActionResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def re_run(self, execution_id, parameters=None, **kwargs):
@@ -322,3 +330,13 @@ class LiveActionResourceManager(ResourceManager):
 
         instance = self.resource.deserialize(response.json())
         return instance
+
+
+class TriggerInstanceResourceManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def re_emit(self, trigger_instance_id):
+        url = '/%s/%s/re_emit' % (self.resource.get_url_path_name(), trigger_instance_id)
+        response = self.client.post(url, None)
+        if response.status_code != 200:
+            self.handle_error(response)
+        return response.json()

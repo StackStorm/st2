@@ -13,10 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import eventlet
 import os
 import pwd
-import shlex
 import uuid
 
 from oslo.config import cfg
@@ -30,6 +28,8 @@ from st2common.models.system.action import ShellScriptAction
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
+from st2common.util.green.shell import run_command
+from st2common.util.shell import kill_process
 import st2common.util.jsonify as jsonify
 
 __all__ = [
@@ -128,38 +128,29 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
 
         # Make sure os.setsid is called on each spawned process so that all processes
         # are in the same group.
-        process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, shell=True, cwd=self._cwd,
-                                   env=env, preexec_fn=os.setsid)
 
-        error_holder = {}
+        # Process is started as sudo -u {{system_user}} -- bash -c {{command}}. Introduction of the
+        # bash means that multiple independent processes are spawned without them being
+        # children of the process we have access to and this requires use of pkill.
+        # Ideally os.killpg should have done the trick but for some reason that failed.
+        # Note: pkill will set the returncode to 143 so we don't need to explicitly set
+        # it to some non-zero value.
+        exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdin=None,
+                                                           stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE,
+                                                           shell=True,
+                                                           cwd=self._cwd,
+                                                           env=env,
+                                                           timeout=self._timeout,
+                                                           preexec_func=os.setsid,
+                                                           kill_func=kill_process)
 
-        def on_timeout_expired(timeout):
-            try:
-                process.wait(timeout=self._timeout)
-            except subprocess.TimeoutExpired:
-                # Set the error prior to kill the process else the error is not picked up due
-                # to eventlet scheduling.
-                error_holder['error'] = 'Action failed to complete in %s seconds' % (self._timeout)
-                # Action has timed out, kill the process and propagate the error. The process
-                # is started as sudo -u {{system_user}} -- bash -c {{command}}. Introduction of the
-                # bash means that multiple independent processes are spawned without them being
-                # children of the process we have access to and this requires use of pkill.
-                # Ideally os.killpg should have done the trick but for some reason that failed.
-                # Note: pkill will set the returncode to 143 so we don't need to explicitly set
-                # it to some non-zero value.
-                try:
-                    killcommand = shlex.split('sudo pkill -TERM -s %s' % process.pid)
-                    subprocess.call(killcommand)
-                except:
-                    LOG.exception('Unable to pkill.')
+        error = None
 
-        timeout_expiry = eventlet.spawn(on_timeout_expired, self._timeout)
+        if timed_out:
+            error = 'Action failed to complete in %s seconds' % (self._timeout)
+            exit_code = -9
 
-        stdout, stderr = process.communicate()
-        timeout_expiry.cancel()
-        error = error_holder.get('error', None)
-        exit_code = process.returncode
         succeeded = (exit_code == 0)
 
         result = {

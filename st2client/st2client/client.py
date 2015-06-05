@@ -18,7 +18,9 @@ import logging
 
 from st2client import models
 from st2client.models.core import ResourceManager
+from st2client.models.core import ActionAliasResourceManager
 from st2client.models.core import LiveActionResourceManager
+from st2client.models.core import TriggerInstanceResourceManager
 
 
 LOG = logging.getLogger(__name__)
@@ -81,6 +83,8 @@ class Client(object):
             models.RunnerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Action'] = ResourceManager(
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['ActionAlias'] = ActionAliasResourceManager(
+            models.ActionAlias, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['LiveAction'] = LiveActionResourceManager(
             models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Policy'] = ResourceManager(
@@ -95,6 +99,8 @@ class Client(object):
             models.TriggerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Trigger'] = ResourceManager(
             models.Trigger, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['TriggerInstance'] = TriggerInstanceResourceManager(
+            models.TriggerInstance, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['KeyValuePair'] = ResourceManager(
             models.KeyValuePair, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Webhook'] = ResourceManager(
@@ -139,3 +145,7 @@ class Client(object):
     @property
     def triggertypes(self):
         return self.managers['TriggerType']
+
+    @property
+    def triggerinstances(self):
+        return self.managers['TriggerInstance']

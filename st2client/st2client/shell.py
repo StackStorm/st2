@@ -36,11 +36,13 @@ from st2client import models
 from st2client.client import Client
 from st2client.commands import auth
 from st2client.commands import action
+from st2client.commands import action_alias
 from st2client.commands import keyvalue
 from st2client.commands import policy
 from st2client.commands import resource
 from st2client.commands import sensor
 from st2client.commands import trigger
+from st2client.commands import triggerinstance
 from st2client.commands import webhook
 from st2client.commands import rule
 from st2client.config_parser import CLIConfigParser
@@ -177,6 +179,10 @@ class Shell(object):
             'An activity that happens as a response to the external event.',
             self, self.subparsers)
 
+        self.commands['action-alias'] = action_alias.ActionAliasBranch(
+            'Action aliases.',
+            self, self.subparsers)
+
         self.commands['auth'] = auth.TokenCreateCommand(
             models.Token, self, self.subparsers, name='auth')
 
@@ -217,6 +223,10 @@ class Shell(object):
         self.commands['trigger'] = trigger.TriggerTypeBranch(
             'An external event that is mapped to a st2 input. It is the '
             'st2 invocation point.',
+            self, self.subparsers)
+
+        self.commands['triggerinstances'] = triggerinstance.TriggerInstanceBranch(
+            'Actual instances of triggers received by st2.',
             self, self.subparsers)
 
         self.commands['webhook'] = webhook.WebhookBranch(

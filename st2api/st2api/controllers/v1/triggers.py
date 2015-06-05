@@ -13,20 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from mongoengine import ValidationError
 from pecan import abort
 from pecan.rest import RestController
 import six
 
+from st2api.controllers import resource
 from st2common import log as logging
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2common.services import triggers as TriggerService
-from st2api.controllers import resource
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectConflictError
+from st2common.transport.reactor import TriggerDispatcher
+from st2common.util import isotime
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 
 http_client = six.moves.http_client
@@ -314,29 +318,91 @@ class TriggerController(RestController):
             return []
 
 
-class TriggerInstanceController(RestController):
+class TriggerInstanceControllerMixin(RestController):
+    model = TriggerInstanceAPI
+    access = TriggerInstance
+
+
+class TriggerInstanceResendController(TriggerInstanceControllerMixin, resource.ResourceController):
+    supported_filters = {}
+
+    def __init__(self, *args, **kwargs):
+        super(TriggerInstanceResendController, self).__init__(*args, **kwargs)
+        self.trigger_dispatcher = TriggerDispatcher(LOG)
+
+    class TriggerInstancePayload(object):
+        def __init__(self, payload=None):
+            self.payload = payload or {}
+
+        def validate(self):
+            if self.payload:
+                assert isinstance(self.payload, dict)
+
+            return True
+
+    @jsexpose(status_code=http_client.OK)
+    def post(self, trigger_instance_id):
+        """
+        Re-send the provided trigger instance optionally specifying override parameters.
+
+        Handles requests:
+
+            POST /triggerinstance/<id>/re_emit
+            POST /triggerinstance/<id>/re_send
+        """
+        # Note: We only really need parameters here
+        existing_trigger_instance = self._get_one(id=trigger_instance_id)
+
+        new_payload = copy.deepcopy(existing_trigger_instance.payload)
+        new_payload['__context'] = {
+            'original_id': trigger_instance_id
+        }
+
+        try:
+            self.trigger_dispatcher.dispatch(existing_trigger_instance.trigger,
+                                             new_payload)
+            return {
+                'message': 'Trigger instance %s succesfully re-sent.' % trigger_instance_id,
+                'payload': new_payload
+            }
+        except Exception as e:
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+
+
+class TriggerInstanceController(TriggerInstanceControllerMixin, resource.ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of TriggerInstances in the system.
     """
+    re_emit = TriggerInstanceResendController()
+
+    supported_filters = {
+        'trigger': 'trigger',
+        'timestamp_gt': 'occurrence_time.gt',
+        'timestamp_lt': 'occurrence_time.lt'
+    }
+
+    filter_transform_functions = {
+        'timestamp_gt': lambda value: isotime.parse(value=value),
+        'timestamp_lt': lambda value: isotime.parse(value=value)
+    }
+
+    query_options = {
+        'sort': ['-occurrence_time', 'trigger']
+    }
+
+    def __init__(self):
+        super(TriggerInstanceController, self).__init__()
 
     @jsexpose(arg_types=[str])
-    def get_one(self, id):
+    def get_one(self, instance_id):
         """
-            List triggerinstance by id.
+            List triggerinstance by instance_id.
 
             Handle:
                 GET /triggerinstances/1
         """
-        try:
-            trigger_instance_db = TriggerInstance.get_by_id(id)
-        except (ValueError, ValidationError):
-            LOG.exception('Database lookup for id="%s" resulted in exception.', id)
-            abort(http_client.NOT_FOUND)
-            return
-
-        trigger_instance_api = TriggerInstanceAPI.from_model(trigger_instance_db)
-        return trigger_instance_api
+        return self._get_one(instance_id)
 
     @jsexpose()
     def get_all(self, **kw):
@@ -346,6 +412,11 @@ class TriggerInstanceController(RestController):
             Handles requests:
                 GET /triggerinstances/
         """
-        trigger_instance_apis = [TriggerInstanceAPI.from_model(trigger_instance_db)
-                                 for trigger_instance_db in TriggerInstance.get_all(**kw)]
-        return trigger_instance_apis
+        trigger_instances = self._get_trigger_instances(**kw)
+        return trigger_instances
+
+    def _get_trigger_instances(self, **kw):
+        kw['limit'] = int(kw.get('limit', 100))
+
+        LOG.debug('Retrieving all trigger instances with filters=%s', kw)
+        return super(TriggerInstanceController, self)._get_all(**kw)

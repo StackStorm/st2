@@ -26,8 +26,8 @@ from tests import FunctionalTest
 
 TEST_FIXTURES = {
     'policytypes': [
-        'policy_type_1.yaml',
-        'policy_type_2.yaml'
+        'fake_policy_type_1.yaml',
+        'fake_policy_type_2.yaml'
     ],
     'policies': [
         'policy_1.yaml',

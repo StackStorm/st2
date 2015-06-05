@@ -37,6 +37,9 @@ class ActionAliasDB(stormbase.StormBaseDB):
     pack = me.StringField(
         required=True,
         help_text='Name of the content pack.')
+    enabled = me.BooleanField(
+        required=True, default=True,
+        help_text='A flag indicating whether the action alias is enabled.')
     action_ref = me.StringField(
         required=True,
         help_text='Reference of the Action map this alias.')

@@ -141,7 +141,8 @@ class PolicyController(resource.ContentPackResourceController):
 
     supported_filters = {
         'pack': 'pack',
-        'resource_ref': 'resource_ref'
+        'resource_ref': 'resource_ref',
+        'policy_type': 'policy_type'
     }
 
     query_options = {

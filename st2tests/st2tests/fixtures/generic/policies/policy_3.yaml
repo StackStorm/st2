@@ -1,0 +1,11 @@
+---
+name: action-1.concurrency.attr
+pack: wolfpack
+description: Limits the concurrent executions for the fake action by actionstr.
+enabled: true
+resource_ref: wolfpack.action-1
+policy_type: action.concurrency.attr
+parameters:
+    threshold: 3
+    attributes:
+        - actionstr

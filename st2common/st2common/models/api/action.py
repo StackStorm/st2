@@ -414,6 +414,11 @@ class ActionAliasAPI(BaseAPI):
                 "type": "string",
                 "description": "Description of the action alias."
             },
+            "enabled": {
+                "description": "Flag indicating of action alias is enabled.",
+                "type": "boolean",
+                "default": True
+            },
             "action_ref": {
                 "type": "string",
                 "description": "Reference to the aliased action.",
@@ -433,6 +438,7 @@ class ActionAliasAPI(BaseAPI):
         model = super(cls, cls).to_model(alias)
         model.name = alias.name
         model.pack = alias.pack
+        model.enabled = getattr(alias, 'enabled', True)
         model.ref = ResourceReference.to_string_reference(pack=model.pack, name=model.name)
         model.action_ref = alias.action_ref
         model.formats = alias.formats

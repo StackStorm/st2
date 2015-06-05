@@ -36,7 +36,7 @@ Installation should take about 5 min. Grab a coffee and watch :doc:`/video` whil
     script should work for other versions, but if you find a problem, let us know. Fixes welcome :)
   
     st2_deploy.sh script allows you to easily install and run |st2| with all the
-    dependencies on a single server. It's only intented to be used for testing,
+    dependencies on a single server. It's only intended to be used for testing,
     evaluation and demonstration purposes (it doesn't use HTTPS, it uses flat file
     htpasswd based authentication, etc.) - you should **not** use it for production
     deployments.
