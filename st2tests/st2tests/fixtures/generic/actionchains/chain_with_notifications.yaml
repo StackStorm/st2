@@ -9,17 +9,17 @@
             on-failure: "c4"
             notify:
                 on-complete:
-                    message: "on_complete"
+                    message: "on complete"
                     data: {}
                     channels:
                         - "channel1"
                 on-failure:
-                    message: "on_failure"
+                    message: "on failure"
                     data: {}
                     channels:
                         - "channel1"
                 on-success:
-                    message: "on_success"
+                    message: "on success"
                     data: {}
                     channels:
                         - "channel1"

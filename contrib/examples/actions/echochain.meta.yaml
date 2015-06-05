@@ -15,7 +15,7 @@ parameters:
     default:
       - c2
 notify:
-  on_complete:
+  on-complete:
     message: "\"@channel: Action succeeded.\""
     channels:
       - "slack"
