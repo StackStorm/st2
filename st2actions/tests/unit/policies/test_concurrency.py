@@ -125,7 +125,7 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_DELAYED)
 
         # Sleep here to let the threads above complete the action execution.
-        eventlet.sleep(RUN_DELAY)
+        eventlet.sleep(RUN_DELAY + 1)
 
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(liveaction.id))
