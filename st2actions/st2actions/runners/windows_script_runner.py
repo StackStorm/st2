@@ -133,7 +133,7 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
         self._log_action_completion(logger=LOG, result=output, status=status, exit_code=exit_code)
         return (status, output, None)
 
-    def _run_script(self, script_path, arguments=""):
+    def _run_script(self, script_path, arguments=None):
         """
         :param script_path: Full path to the script on the remote server.
         :type script_path: ``str``
@@ -141,7 +141,10 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
         :param arguments: The arguments to pass to the script.
         :type arguments: ``str``
         """
-        command = 'powershell.exe %s %s' % (quote_windows(script_path), arguments)
+        if arguments is not None:
+            command = 'powershell.exe %s %s' % (quote_windows(script_path), arguments)
+        else:
+            command = 'powershell.exe %s' % (quote_windows(script_path))
         args = self._get_winexe_command_args(host=self._host, username=self._username,
                                              password=self._password,
                                              command=command)
@@ -186,12 +189,15 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
                     continue
                 if isinstance(value, bool):
                     if value:
-                        cmd_parts.append("-%s" % (arg))
+                        cmd_parts.append('-%s' % (arg))
                     else:
-                        cmd_parts.append("-%s:$false" % (arg))
+                        cmd_parts.append('-%s:$false' % (arg))
+                elif hasattr(value,'__iter__') and not isinstance(value, six.string_types):
+                    # Array support, pass parameters to shell script
+                    cmd_parts.append('-%s %s' % (args, ','.join(value)))
                 else:
-                    cmd_parts.append("-%s %s" % (arg, quote_windows(str(value))))
-        return " ".join(cmd_parts)
+                    cmd_parts.append('-%s %s' % (arg, quote_windows(str(value))))
+        return ' '.join(cmd_parts)
 
     def _upload_file(self, local_path, base_path):
         """
