@@ -8,17 +8,17 @@
             on-success: "c2"
             on-failure: "c4"
             notify:
-                on_complete:
+                on-complete:
                     message: "on_complete"
                     data: {}
                     channels:
                         - "channel1"
-                on_failure:
+                on-failure:
                     message: "on_failure"
                     data: {}
                     channels:
                         - "channel1"
-                on_success:
+                on-success:
                     message: "on_success"
                     data: {}
                     channels:
