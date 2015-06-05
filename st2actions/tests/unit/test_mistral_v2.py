@@ -39,6 +39,7 @@ from st2actions.runners.mistral.v2 import MistralRunner
 from st2common.constants import action as action_constants
 from st2common.models.api.auth import TokenAPI
 from st2common.models.api.action import ActionAPI
+from st2common.models.api.notification import NotificationsHelper
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
@@ -289,7 +290,7 @@ class TestMistralRunner(DbTestCase):
                     'st2_context': {
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
                         'parent': str(liveaction.id),
-                        'notify': notify_data,
+                        'notify': NotificationsHelper.from_model(liveaction.notify),
                         'skip_notify_tasks': []
                     }
                 }
