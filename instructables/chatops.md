@@ -164,7 +164,7 @@ And should get something like this back:
 Now, install the `hubot` pack into your StackStorm installation.
 
 ```
-  $ st2 packs.install packs=hubot
+  $ st2 run packs.install packs=hubot
 ```
 
 If successful, proceed to the section [Configure Stackstorm](#configuring-stackstorm) to continue.
