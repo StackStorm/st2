@@ -142,13 +142,14 @@ class WindowsRunnerTestCase(TestCase):
                 'named_args': {
                     'arg1': 'value1',
                     'arg2': True,
-                    'arg3': False
+                    'arg3': False,
+                    'arg4': ['foo', 'bar', 'baz']
                 }
             }
         ]
         expected_values = [
             'a b c -arg1 value1 -arg2 value2',
-            'a b c -arg1 value1 -arg2 -arg3:$false'
+            'a b c -arg1 value1 -arg2 -arg3:$false -arg4 foo,bar,baz'
         ]
 
         runner = self._get_script_runner()

@@ -194,7 +194,7 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
                         cmd_parts.append('-%s:$false' % (arg))
                 elif hasattr(value,'__iter__') and not isinstance(value, six.string_types):
                     # Array support, pass parameters to shell script
-                    cmd_parts.append('-%s %s' % (args, ','.join(value)))
+                    cmd_parts.append('-%s %s' % (arg, ','.join(value)))
                 else:
                     cmd_parts.append('-%s %s' % (arg, quote_windows(str(value))))
         return ' '.join(cmd_parts)
