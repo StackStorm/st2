@@ -192,7 +192,7 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
                         cmd_parts.append('-%s' % (arg))
                     else:
                         cmd_parts.append('-%s:$false' % (arg))
-                elif isinstance(value, (list, tuple)) or hasattr(value,'__iter__'):
+                elif isinstance(value, (list, tuple)) or hasattr(value, '__iter__'):
                     # Array support, pass parameters to shell script
                     cmd_parts.append('-%s %s' % (arg, ','.join(value)))
                 else:
