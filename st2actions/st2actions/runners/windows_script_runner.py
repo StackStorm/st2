@@ -17,6 +17,8 @@ import os
 import re
 import uuid
 
+import six
+
 from eventlet.green import subprocess
 
 from st2common import log as logging
@@ -26,6 +28,7 @@ from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2actions.runners.windows_runner import BaseWindowsRunner
+from st2actions.runners import ShellRunnerMixin
 
 __all__ = [
     'get_runner',
@@ -56,7 +59,7 @@ def get_runner():
     return WindowsScriptRunner(str(uuid.uuid4()))
 
 
-class WindowsScriptRunner(BaseWindowsRunner):
+class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
     """
     Runner which executes PowerShell scripts on a remote Windows machine.
     """
@@ -86,6 +89,10 @@ class WindowsScriptRunner(BaseWindowsRunner):
         self._verify_winexe_exists()
         self._verify_smbclient_exists()
 
+        # Parse arguments, if any
+        pos_args, named_args = self._get_script_args(action_parameters)
+        args = self._get_script_arguments(named_args=named_args, positional_args=pos_args)
+
         # 1. Retrieve full absolute path for the share name
         # TODO: Cache resolved paths
         base_path = self._get_share_absolute_path(share=self._share)
@@ -96,7 +103,8 @@ class WindowsScriptRunner(BaseWindowsRunner):
                                                                   base_path=base_path)
 
         # 3. Execute the script
-        exit_code, stdout, stderr, timed_out = self._run_script(script_path=script_path)
+        exit_code, stdout, stderr, timed_out = self._run_script(script_path=script_path,
+                                                                arguments=args)
 
         # 4. Delete temporary directory
         self._delete_directory(directory_path=temporary_directory_path)
@@ -125,12 +133,18 @@ class WindowsScriptRunner(BaseWindowsRunner):
         self._log_action_completion(logger=LOG, result=output, status=status, exit_code=exit_code)
         return (status, output, None)
 
-    def _run_script(self, script_path):
+    def _run_script(self, script_path, arguments=None):
         """
         :param script_path: Full path to the script on the remote server.
         :type script_path: ``str``
+
+        :param arguments: The arguments to pass to the script.
+        :type arguments: ``str``
         """
-        command = 'powershell.exe %s' % (quote_windows(script_path))
+        if arguments is not None:
+            command = 'powershell.exe %s %s' % (quote_windows(script_path), arguments)
+        else:
+            command = 'powershell.exe %s' % (quote_windows(script_path))
         args = self._get_winexe_command_args(host=self._host, username=self._username,
                                              password=self._password,
                                              command=command)
@@ -150,6 +164,40 @@ class WindowsScriptRunner(BaseWindowsRunner):
         LOG.debug('Command returned', extra=extra)
 
         return exit_code, stdout, stderr, timed_out
+
+    def _get_script_arguments(self, named_args=None, positional_args=None):
+        """
+        Builds a string of named and positional arguments in PowerShell format,
+        which are passed to the script.
+
+        :param named_args: Dictionary with named arguments
+        :type named_args: ``dict``.
+
+        :param positional_args: List of positional arguments
+        :type positional_args: ``str``
+
+        :rtype: ``str``
+        """
+        cmd_parts = []
+        if positional_args:
+            cmd_parts.append(positional_args)
+        if named_args:
+            for (arg, value) in six.iteritems(named_args):
+                arg = quote_windows(arg)
+                if value is None or (isinstance(value, six.string_types) and len(value) < 1):
+                    LOG.debug('Ignoring arg %s as its value is %s.', arg, value)
+                    continue
+                if isinstance(value, bool):
+                    if value:
+                        cmd_parts.append('-%s' % (arg))
+                    else:
+                        cmd_parts.append('-%s:$false' % (arg))
+                elif hasattr(value,'__iter__') and not isinstance(value, six.string_types):
+                    # Array support, pass parameters to shell script
+                    cmd_parts.append('-%s %s' % (args, ','.join(value)))
+                else:
+                    cmd_parts.append('-%s %s' % (arg, quote_windows(str(value))))
+        return ' '.join(cmd_parts)
 
     def _upload_file(self, local_path, base_path):
         """
