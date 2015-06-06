@@ -1,4 +1,4 @@
-Hi, and thanks for helping us try out our ChatOps beta. We value your feedback, and would love to hear it. Please send us a note at `support@stackstorm.com`, or come chat with us on IRC at irc://irc.freenode.net/#stackstorm.
+Hi, and thanks for using StackStorm + ChatOps. We value your feedback, and would love to hear it. Please send us a note at `support@stackstorm.com`, or come chat with us on IRC at irc://irc.freenode.net/#stackstorm.
 
 ## What is ChatOps
 
@@ -63,16 +63,9 @@ $ cd ~/stackstorm/st2workroom
 $ cp hieradata/workroom.yaml.example hieradata/workroom.yaml
 ```
 
-Open up the file `hieradata/workroom.yaml` in your favorite text editor. In here, you will setup the configuration version of StackStorm, and Hubot. In this file, set the following values:
+Open up the file `hieradata/workroom.yaml` in your favorite text editor. In here, you will setup Hubot
 
-```yaml
-# hieradata/workroom.yaml
----
-st2::version: 0.10
-st2::mistral_git_branch: st2-0.9.0
-```
-
-Next, configure Hubot. Take a look at the commented lines. At the minimum, you must provide:
+Take a look at the commented lines. At the minimum, you must provide:
 
 * `hubot::adapter`:
   * Take a look at the options Hubot has to connect to at https://github.com/github/hubot/blob/master/docs/adapters.md.
@@ -83,7 +76,7 @@ Next, configure Hubot. Take a look at the commented lines. At the minimum, you m
   * This is where you will define which version of Hubot to run, which version of hubot-scripts, and any adapters you need to install.
     At the very least, you need to specify ``hubot-stackstorm`` adapter.
 
-As an example, here is what configuration looks like for a Hubot Slack
+Inside of the `hieradata/workroom.yaml.example`, we have provided examples of common Hubot configurations. As an example, here is what configuration looks like for a Hubot Slack
 
 ```yaml
 # hieradata/workroom.yaml
@@ -132,14 +125,14 @@ This process will take a few minutes, and when completed, a new Hubot should be 
 
 To get started, you will need:
 
-* StackStorm v0.10dev
+* StackStorm v0.11.0 or higher
 * Hubot
 * StackStorm Hubot adapter
 
 First, start by updating your version of StackStorm. This is typically done by re-running `st2_deploy.sh` with the updated version code.
 
 ```
-$ st2_deploy.sh 0.10dev
+$ st2_deploy.sh
 ```
 
 Now, take a moment to also install and configure Hubot. Instructions on how to configure and deploy Hubot for your platform can be found [here](https://hubot.github.com/docs/deploying/). Also ensure it is configured to connect to your chat service of choice. You can find documentation for this at https://github.com/github/hubot/blob/master/docs/adapters.md.
@@ -164,7 +157,7 @@ And should get something like this back:
 Now, install the `hubot` pack into your StackStorm installation.
 
 ```
-  $ st2 run packs.install packs=hubot
+  $ st2 run packs.install packs=hubot,st2
 ```
 
 If successful, proceed to the section [Configure Stackstorm](#configuring-stackstorm) to continue.
