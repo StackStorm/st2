@@ -830,7 +830,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                                                   ' Possible values are \'%s\', \'%s\', \'%s\','
                                                   '\'%s\' or \'%s\''
                                                   '.' % POSSIBLE_ACTION_STATUS_VALUES))
-        self.group.add_argument('--trigger_instance', help='Trigger instance id to filter the list.')
+        self.group.add_argument('--trigger_instance',
+                                help='Trigger instance id to filter the list.')
         self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
                                  default=None,
                                  help=('Only return executions with timestamp '
