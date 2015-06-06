@@ -401,11 +401,11 @@ get details about a trigger instance by using ``get``.
   st2 triggerinstance get 556e135232ed35569ff23238
 
 Something that might be useful in debugging a rule is to re-send a trigger instance into |st2|. You
-can use the ``re_emit`` command for that.
+can use the ``re-emit`` command for that.
 
 .. code-block:: bash
 
-  st2 triggerinstance re_emit 556e135232ed35569ff23238
+  st2 triggerinstance re-emit 556e135232ed35569ff23238
 
 
 Timers
