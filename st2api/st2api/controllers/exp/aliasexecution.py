@@ -32,6 +32,10 @@ http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
+CAST_OVERRIDES = {
+    'array': (lambda cs_x: [v.strip() for v in cs_x.split(',')])
+}
+
 
 class ActionAliasExecutionController(rest.RestController):
 
@@ -99,7 +103,8 @@ class ActionAliasExecutionController(rest.RestController):
         try:
             # prior to shipping off the params cast them to the right type.
             params = action_param_utils.cast_params(action_ref=action_alias_db.action_ref,
-                                                    params=params)
+                                                    params=params,
+                                                    cast_overrides=CAST_OVERRIDES)
             liveaction = LiveActionDB(action=action_alias_db.action_ref, context={},
                                       parameters=params, notify=notify)
             _, action_execution_db = action_service.request(liveaction)

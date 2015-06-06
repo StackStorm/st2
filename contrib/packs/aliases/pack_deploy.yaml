@@ -1,0 +1,7 @@
+---
+name: "deploy_pack"
+action_ref: "packs.install"
+description: "Download StackStorm packs via ChatOps"
+formats:
+  - "pack deploy {{packs}}"
+  - "pack deploy {{packs}} from {{repo_url}}"
