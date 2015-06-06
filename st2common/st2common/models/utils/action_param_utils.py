@@ -79,7 +79,7 @@ def get_params_view(action_db=None, runner_db=None, merged_only=False):
     return (required_params, optional_params, immutable_params)
 
 
-def cast_params(action_ref, params):
+def cast_params(action_ref, params, cast_overrides=None):
     """
     """
     action_db = action_db_util.get_action_by_ref(action_ref)
@@ -102,7 +102,10 @@ def cast_params(action_ref, params):
         if not parameter_type:
             LOG.debug('Will skip cast of param[name: %s, value: %s]. No type.', k, v)
             continue
-        cast = get_cast(cast_type=parameter_type)
+        # Pick up cast from teh override and then from the system suppied ones.
+        cast = cast_overrides.get(parameter_type, None) if cast_overrides else None
+        if not cast:
+            cast = get_cast(cast_type=parameter_type)
         if not cast:
             LOG.debug('Will skip cast of param[name: %s, value: %s]. No cast for %s.', k, v,
                       parameter_type)
