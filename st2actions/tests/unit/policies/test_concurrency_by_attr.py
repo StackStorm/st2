@@ -80,9 +80,7 @@ def mock_run(action_parameters):
     LiveActionPublisher, 'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
-
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         EventletTestCase.setUpClass()
         DbTestCase.setUpClass()
 
@@ -112,7 +110,7 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
             eventlet.spawn(action_service.request, liveaction)
 
         # Sleep here to let the threads above schedule the action execution.
-        eventlet.sleep(1)
+        eventlet.sleep(2)
 
         scheduled = LiveAction.get_all()
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
