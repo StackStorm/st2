@@ -68,8 +68,8 @@ Open up the file `hieradata/workroom.yaml` in your favorite text editor. In here
 ```yaml
 # hieradata/workroom.yaml
 ---
-st2::version: 0.10
-st2::mistral_git_branch: st2-0.9.0
+st2::version: 0.11.0
+st2::mistral_git_branch: st2-0.11.0
 ```
 
 Next, configure Hubot. Take a look at the commented lines. At the minimum, you must provide:
