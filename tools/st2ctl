@@ -96,14 +96,14 @@ fi
 # TODO: Update packs. actions to only pass in a resource name excluding # --register prefix
 if [ ${1} == "reload" -o ${1} == "clean" ]; then
     if [ -z ${2} ]; then
-        REGISTER_FLAGS="--register-sensors --register-actions"
+        REGISTER_FLAGS="--register-sensors --register-actions --register-aliases"
     elif [ ! -z ${2} ] && [ ${2} == "--register-all" -o ${2} == "--register-sensors"  -o ${2} == "--register-rules" -o ${2} == "--register-actions" -o ${2} == "--register-aliases" -o ${2} == "--register-policies" ]; then
         REGISTER_FLAGS=${2}
         if [ ! -z ${3} ] && [ ${3} == "--verbose" ]; then
             REGISTER_FLAGS="${REGISTER_FLAGS} ${3}"
         fi
     elif [ ${2} == "--verbose" ] && [ -z ${3} ]; then
-        REGISTER_FLAGS="--register-sensors --register-actions ${2}"
+        REGISTER_FLAGS="--register-sensors --register-actions --register-aliases ${2}"
     elif [ ${2} == "--verbose" ] && [ ${3} == "--register-all" -o ${3} == "--register-sensors"  -o ${3} == "--register-rules" -o ${3} == "--register-actions" -o ${3} == "--register-aliases" -o ${3} == "--register-policies" ]; then
         REGISTER_FLAGS="${3} ${2}"
     else
