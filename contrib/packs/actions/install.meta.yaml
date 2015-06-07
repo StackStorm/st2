@@ -15,7 +15,7 @@
         - "*"
     repo_url:
       type: "string"
-      default: "https://github.com/StackStorm/st2contrib.git"
+      default: "StackStorm/st2contrib"
     branch:
       type: "string"
       default: "master"
