@@ -25,6 +25,12 @@
       ref: "packs.load"
       params:
         register: "{{register}}"
+      on-success: "reload-aliases"
+    -
+      name: "reload-aliases"
+      ref: "packs.load"
+      params:
+        register: "aliases"
       on-success: "restart-sensor-container"
     -
       name: "restart-sensor-container"
