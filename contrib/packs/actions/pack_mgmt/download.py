@@ -147,7 +147,7 @@ class InstallGitRepoAction(Action):
             url = "https://github.com/{}".format(repo_url)
         else:
             url = repo_url
-        return url if has_git_extension.search(url) else "{}.git".format(url)
+        return url if has_git_extension else "{}.git".format(url)
 
     @staticmethod
     def _tag_pack(pack_dir, packs, subtree):
