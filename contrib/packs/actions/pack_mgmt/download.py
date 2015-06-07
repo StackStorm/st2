@@ -142,7 +142,7 @@ class InstallGitRepoAction(Action):
     @staticmethod
     def _eval_repo_url(repo_url):
         """Allow passing short GitHub style URLs"""
-        has_git_extension = re.compile('.git$')
+        has_git_extension = repo_url.endswith('.git')
         if len(repo_url.split('/')) == 2 and not "git@" in repo_url:
             url = "git@github.com:{}".format(repo_url)
         else:
