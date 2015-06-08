@@ -4,6 +4,8 @@ Changelog
 in development
 --------------
 
+* Add support for script arguments to the Windows script runner. (new feature)
+  [James Sigurðarson]
 
 0.11 - June 5, 2015
 -------------------
