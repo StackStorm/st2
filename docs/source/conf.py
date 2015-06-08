@@ -72,7 +72,11 @@ def previous_version(ver):
     # XXX: on incrementing major version, minor version counter is lost!
     major, minor = ver.split('.')
     minor = int("".join(itertools.takewhile(str.isdigit, minor)))
-    return ".".join([major, str(minor - 1)])
+    prev = minor - 1
+    # XXX(dzimine): work around CI/CD bug: version can't end with 0
+    if not prev % 10:
+        prev = prev - 1
+    return ".".join([major, str(prev)])
 
 # The short versions of two previous releases, e.g. 0.8 and 0.7
 version_minus_1 = previous_version(version)
