@@ -52,8 +52,9 @@ class InstallGitRepoAction(Action):
         # Disable SSL cert checking if explictly asked
         if not verifyssl:
             os.environ['GIT_SSL_NO_VERIFY'] = 'true'
-
-        Repo.clone_from(repo_url, abs_local_path, branch=branch)
+        # Shallow clone the repo to avoid getting all the metadata. We only need HEAD of a
+        # specific branch so save some download time.
+        Repo.clone_from(repo_url, abs_local_path, branch=branch, depth=1)
         return abs_local_path
 
     def _move_packs(self, abs_repo_base, packs, abs_local_path):
