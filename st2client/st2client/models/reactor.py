@@ -35,7 +35,7 @@ class TriggerType(core.Resource):
 
 
 class TriggerInstance(core.Resource):
-    _alias = 'TriggerInstance'
+    _alias = 'Trigger-Instance'
     _display_name = 'TriggerInstance'
     _plural = 'Triggerinstances'
     _plural_display_name = 'TriggerInstances'

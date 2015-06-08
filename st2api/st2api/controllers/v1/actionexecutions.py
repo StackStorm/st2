@@ -46,6 +46,13 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
+# Note: We initialize filters here and not in the constructor
+SUPPORTED_EXECUTIONS_FILTERS = SUPPORTED_FILTERS
+SUPPORTED_EXECUTIONS_FILTERS.update({
+    'timestamp_gt': 'start_timestamp.gt',
+    'timestamp_lt': 'start_timestamp.lt'
+})
+
 MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
 
@@ -236,19 +243,11 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
     query_options = {
         'sort': ['-start_timestamp', 'action']
     }
-    supported_filters = {
-        'timestamp_gt': 'start_timestamp.gt',
-        'timestamp_lt': 'start_timestamp.lt'
-    }
+    supported_filters = SUPPORTED_EXECUTIONS_FILTERS
     filter_transform_functions = {
         'timestamp_gt': lambda value: isotime.parse(value=value),
         'timestamp_lt': lambda value: isotime.parse(value=value)
     }
-
-    def __init__(self):
-        super(ActionExecutionsController, self).__init__()
-        # Add common execution view supported filters
-        self.supported_filters.update(SUPPORTED_FILTERS)
 
     @jsexpose()
     def get_all(self, exclude_attributes=None, **kw):

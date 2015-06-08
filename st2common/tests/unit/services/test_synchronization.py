@@ -16,6 +16,8 @@
 import unittest2
 import uuid
 
+from oslo.config import cfg
+
 from st2common.services import coordination
 import st2tests.config as tests_config
 
@@ -33,6 +35,16 @@ class SynchronizationTest(unittest2.TestCase):
     def tearDownClass(cls):
         coordination.coordinator_teardown(cls.coordinator)
         super(SynchronizationTest, cls).tearDownClass()
+
+    def test_service_configured(self):
+        cfg.CONF.set_default('url', 'kazoo://localhost:2181', group='coordination')
+        self.assertTrue(coordination.configured())
+
+        cfg.CONF.set_default('url', 'file:///tmp', group='coordination')
+        self.assertFalse(coordination.configured())
+
+        cfg.CONF.set_default('url', 'zake://', group='coordination')
+        self.assertFalse(coordination.configured())
 
     def test_lock(self):
         name = uuid.uuid4().hex

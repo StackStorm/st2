@@ -9,9 +9,12 @@ TO=$1
 shift
 SUBJECT=$1
 shift
+SEND_EMPTY_BODY=$1
+shift
 BODY="$@"
 
-${MAIL} <<EOF
+if [[ -z "${BODY// }" && $SEND_EMPTY_BODY == 'True' ]] || [[ -n $BODY ]]; then
+  ${MAIL} <<EOF
 TO: ${TO}
 FROM: ${FROM}
 SUBJECT: ${SUBJECT}
@@ -22,6 +25,8 @@ ${BODY}
 ${FOOTER}
 
 EOF
+
+fi
 
 if [ $? -ne 0 ]; then
   echo "Failed to send mail to ${TO}"

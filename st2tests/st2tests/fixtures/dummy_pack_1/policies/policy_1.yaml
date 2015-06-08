@@ -1,0 +1,9 @@
+---
+name: test_policy_1
+pack: dummy_pack_1
+description: Limits the concurrent executions for the fake action.
+enabled: true
+resource_ref: dummy_pack_1.local
+policy_type: action.concurrency
+parameters:
+    threshold: 3

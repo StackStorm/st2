@@ -1,6 +1,8 @@
 import os
 import shutil
 import hashlib
+import re
+import json
 
 import six
 from git.repo import Repo
@@ -11,20 +13,30 @@ from st2actions.runners.pythonrunner import Action
 ALL_PACKS = '*'
 PACK_REPO_ROOT = 'packs'
 MANIFEST_FILE = 'pack.yaml'
+CONFIG_FILE = 'config.yaml'
+GITINFO_FILE = '.gitinfo'
 PACK_RESERVE_CHARACTER = '.'
 
 
 class InstallGitRepoAction(Action):
-    def run(self, packs, repo_url, abs_repo_base, verifyssl=True, branch='master'):
-        repo_name = repo_url[repo_url.rfind('/') + 1: repo_url.rfind('.')]
+    def run(self, packs, repo_url, abs_repo_base, verifyssl=True, branch='master', subtree=False):
+        self._subtree = self._eval_subtree(repo_url, subtree)
+        self._repo_url = self._eval_repo_url(repo_url)
+
+        repo_name = self._repo_url[self._repo_url.rfind('/') + 1: self._repo_url.rfind('.')]
         lock_name = hashlib.md5(repo_name).hexdigest() + '.lock'
 
         with LockFile('/tmp/%s' % (lock_name)):
-            abs_local_path = self._clone_repo(repo_url=repo_url, verifyssl=verifyssl,
+            abs_local_path = self._clone_repo(repo_url=self._repo_url, verifyssl=verifyssl,
                                               branch=branch)
             try:
-                # st2-contrib repo has a top-level packs folder that actually contains the
-                pack_abs_local_path = os.path.join(abs_local_path, PACK_REPO_ROOT)
+                if self._subtree:
+                    # st2-contrib repo has a top-level packs folder that actually contains the
+                    pack_abs_local_path = os.path.join(abs_local_path, PACK_REPO_ROOT)
+                else:
+                    pack_abs_local_path = abs_local_path
+
+                self._tag_pack(pack_abs_local_path, packs, self._subtree)
                 result = self._move_packs(abs_repo_base, packs, pack_abs_local_path)
             finally:
                 self._cleanup_repo(abs_local_path)
@@ -58,6 +70,10 @@ class InstallGitRepoAction(Action):
                 if os.path.exists(dest_pack_path):
                     self.logger.debug('Removing existing pack %s in %s to replace.', pack,
                                       dest_pack_path)
+                    # Ensure to preserve any existing configuration
+                    old_config_file = os.path.join(dest_pack_path, CONFIG_FILE)
+                    new_config_file = os.path.join(abs_pack_temp_location, CONFIG_FILE)
+                    shutil.move(old_config_file, new_config_file)
                     shutil.rmtree(dest_pack_path)
                 self.logger.debug('Moving pack from %s to %s.', abs_pack_temp_location, to)
                 shutil.move(abs_pack_temp_location, to)
@@ -115,3 +131,38 @@ class InstallGitRepoAction(Action):
             raise Exception(message)
 
         return sanitized_result
+
+    @staticmethod
+    def _eval_subtree(repo_url, subtree):
+        st2_repos = re.compile("st2(contrib|incubator)")
+        match = True if st2_repos.search(repo_url) else False
+        return subtree ^ match
+
+    @staticmethod
+    def _eval_repo_url(repo_url):
+        """Allow passing short GitHub style URLs"""
+        if len(repo_url.split('/')) == 2 and not "git@" in repo_url:
+            return "https://github.com/{}.git".format(repo_url)
+        else:
+            return "{}.git".format(repo_url)
+
+    @staticmethod
+    def _tag_pack(pack_dir, packs, subtree):
+        """Add git information to pack directory for retrieval later"""
+        for pack in packs:
+            repo = Repo(pack_dir)
+            payload = {
+                "branch": repo.active_branch.name,
+                "ref": repo.head.commit.hexsha
+            }
+
+            if subtree:
+                info_file = os.path.join(pack_dir, pack, GITINFO_FILE)
+            else:
+                info_file = os.path.join(pack_dir, GITINFO_FILE)
+
+            try:
+                gitinfo = open(info_file, "w")
+                gitinfo.write(json.dumps(payload))
+            finally:
+                gitinfo.close()

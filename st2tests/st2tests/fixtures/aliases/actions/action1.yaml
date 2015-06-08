@@ -10,3 +10,5 @@
             type: "string"
         param2:
             type: "string"
+        param3:
+            type: "array"

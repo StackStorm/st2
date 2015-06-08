@@ -30,7 +30,7 @@ LOG = logging.getLogger(__name__)
 
 
 class ContentPackLoader(object):
-    ALLOWED_CONTENT_TYPES = ['sensors', 'actions', 'rules', 'aliases']
+    ALLOWED_CONTENT_TYPES = ['sensors', 'actions', 'rules', 'aliases', 'policies']
 
     def get_content(self, base_dirs, content_type):
         """
@@ -120,6 +120,8 @@ class ContentPackLoader(object):
             get_func = self._get_rules
         elif content_type == 'aliases':
             get_func = self._get_aliases
+        elif content_type == 'policies':
+            get_func = self._get_policies
 
         if not os.path.isdir(pack_dir):
             raise ValueError('Directory "%s" doesn\'t exist' % (pack_dir))
@@ -138,6 +140,9 @@ class ContentPackLoader(object):
 
     def _get_aliases(self, pack_dir):
         return self._get_folder(pack_dir=pack_dir, content_type='aliases')
+
+    def _get_policies(self, pack_dir):
+        return self._get_folder(pack_dir=pack_dir, content_type='policies')
 
     def _get_folder(self, pack_dir, content_type):
         path = os.path.join(pack_dir, content_type)

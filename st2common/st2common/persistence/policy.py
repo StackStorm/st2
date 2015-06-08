@@ -14,8 +14,8 @@
 # limitations under the License.
 
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.policy import PolicyTypeDB, PolicyDB
-from st2common.persistence.base import Access
+from st2common.models.db.policy import PolicyTypeReference, PolicyTypeDB, PolicyDB
+from st2common.persistence.base import Access, ContentPackResource
 
 
 class PolicyType(Access):
@@ -26,13 +26,23 @@ class PolicyType(Access):
         return cls.impl
 
     @classmethod
+    def get_by_ref(cls, ref):
+        if ref:
+            ref_obj = PolicyTypeReference.from_string_reference(ref=ref)
+            result = cls.query(name=ref_obj.name, resource_type=ref_obj.resource_type).first()
+            return result
+        else:
+            return None
+
+    @classmethod
     def _get_by_object(cls, object):
-        # PolicyType name is unique.
         name = getattr(object, 'name', '')
-        return cls.get_by_name(name)
+        resource_type = getattr(object, 'resource_type', '')
+        ref = PolicyTypeReference.to_string_reference(resource_type=resource_type, name=name)
+        return cls.get_by_ref(ref)
 
 
-class Policy(Access):
+class Policy(ContentPackResource):
     impl = MongoDBAccess(PolicyDB)
 
     @classmethod

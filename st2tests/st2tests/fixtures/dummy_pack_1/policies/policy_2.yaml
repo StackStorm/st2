@@ -1,0 +1,7 @@
+---
+name: test_policy_2
+pack: dummy_pack_1
+description: Raises an exception.
+enabled: true
+resource_ref: dummy_pack_1.local
+policy_type: action.mock_policy_error

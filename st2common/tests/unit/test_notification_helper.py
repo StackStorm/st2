@@ -22,7 +22,7 @@ class NotificationsHelperTestCase(unittest2.TestCase):
 
     def test_model_transformations(self):
         notify = {}
-        notify['on_complete'] = {
+        notify['on-complete'] = {
             'message': 'Action completed.',
             'data': {
                 'foo': '{{foo}}',
@@ -30,7 +30,7 @@ class NotificationsHelperTestCase(unittest2.TestCase):
                 'baz': [1, 2, 3]
             }
         }
-        notify['on_success'] = {
+        notify['on-success'] = {
             'message': 'Action succeeded.',
             'data': {
                 'foo': '{{foo}}',
@@ -38,13 +38,13 @@ class NotificationsHelperTestCase(unittest2.TestCase):
             }
         }
         notify_model = NotificationsHelper.to_model(notify)
-        self.assertEqual(notify['on_complete']['message'], notify_model.on_complete.message)
-        self.assertDictEqual(notify['on_complete']['data'], notify_model.on_complete.data)
-        self.assertEqual(notify['on_success']['message'], notify_model.on_success.message)
-        self.assertDictEqual(notify['on_success']['data'], notify_model.on_success.data)
+        self.assertEqual(notify['on-complete']['message'], notify_model.on_complete.message)
+        self.assertDictEqual(notify['on-complete']['data'], notify_model.on_complete.data)
+        self.assertEqual(notify['on-success']['message'], notify_model.on_success.message)
+        self.assertDictEqual(notify['on-success']['data'], notify_model.on_success.data)
 
         notify_api = NotificationsHelper.from_model(notify_model)
-        self.assertEqual(notify['on_complete']['message'], notify_api['on_complete']['message'])
-        self.assertDictEqual(notify['on_complete']['data'], notify_api['on_complete']['data'])
-        self.assertEqual(notify['on_success']['message'], notify_api['on_success']['message'])
-        self.assertDictEqual(notify['on_success']['data'], notify_api['on_success']['data'])
+        self.assertEqual(notify['on-complete']['message'], notify_api['on-complete']['message'])
+        self.assertDictEqual(notify['on-complete']['data'], notify_api['on-complete']['data'])
+        self.assertEqual(notify['on-success']['message'], notify_api['on-success']['message'])
+        self.assertDictEqual(notify['on-success']['data'], notify_api['on-success']['data'])

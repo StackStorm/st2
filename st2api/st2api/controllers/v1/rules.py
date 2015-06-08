@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import six
+import jsonschema
 from pecan import abort
 from mongoengine import ValidationError
 
@@ -69,7 +70,7 @@ class RuleController(resource.ContentPackResourceController):
             LOG.exception('Validation failed for rule data=%s.', rule)
             abort(http_client.BAD_REQUEST, str(e))
             return
-        except ValueValidationException as e:
+        except (ValueValidationException, jsonschema.ValidationError) as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
             abort(http_client.BAD_REQUEST, str(e))
             return
@@ -109,7 +110,7 @@ class RuleController(resource.ContentPackResourceController):
             rule_db = RuleAPI.to_model(rule)
             rule_db.id = rule_ref_or_id
             rule_db = Rule.add_or_update(rule_db)
-        except (ValidationError, ValueError) as e:
+        except (ValueValidationException, jsonschema.ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s', rule)
             abort(http_client.BAD_REQUEST, str(e))
             return

@@ -76,19 +76,29 @@ class PolicyBranch(resource.ResourceBranch):
 
 
 class PolicyListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'pack', 'name', 'resource_ref', 'description']
+    display_attributes = ['ref', 'resource_ref', 'policy_type']
 
     def __init__(self, resource, *args, **kwargs):
         super(PolicyListCommand, self).__init__(resource, *args, **kwargs)
 
         self.parser.add_argument('-r', '--resource-ref', type=str, dest='resource_ref',
                                  help='Return policies for the resource ref.')
+        self.parser.add_argument('-pt', '--policy-type', type=str, dest='policy_type',
+                                 help='Return policies of the policy type.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        if args.resource_ref:
-            filters = {'resource_ref': args.resource_ref}
+        if args.resource_ref or args.policy_type:
+            filters = {}
+
+            if args.resource_ref:
+                filters['resource_ref'] = args.resource_ref
+
+            if args.policy_type:
+                filters['policy_type'] = args.policy_type
+
             filters.update(**kwargs)
+
             return self.manager.query(**filters)
         else:
             return self.manager.get_all(**kwargs)
