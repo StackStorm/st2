@@ -6,6 +6,9 @@ Changelog
 
 * Allow user to filter executions on trigger instance id.
   [Sayli Karmarkar]
+* Action aliases are registered by default. (improvement)
+* Repair failing pack installation. (bug-fix)
+
 
 0.11.0 - June 5, 2015
 ---------------------
