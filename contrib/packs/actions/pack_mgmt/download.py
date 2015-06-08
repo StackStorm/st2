@@ -84,7 +84,7 @@ class DownloadGitRepoAction(Action):
             packs = os.listdir(abs_local_path)
         for pack in packs:
             abs_pack_temp_location = os.path.join(abs_local_path, pack)
-            desired, message = InstallGitRepoAction._is_desired_pack(abs_pack_temp_location, pack)
+            desired, message = DownloadGitRepoAction._is_desired_pack(abs_pack_temp_location, pack)
             if desired:
                 to = abs_repo_base
                 dest_pack_path = os.path.join(abs_repo_base, pack)
@@ -162,7 +162,7 @@ class DownloadGitRepoAction(Action):
     @staticmethod
     def _eval_repo_url(repo_url):
         """Allow passing short GitHub style URLs"""
-        if len(repo_url.split('/')) == 2 and not "git@" in repo_url:
+        if len(repo_url.split('/')) == 2 and "git@" not in repo_url:
             return "https://github.com/{}.git".format(repo_url)
         else:
             return "{}.git".format(repo_url)
