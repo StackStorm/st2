@@ -18,7 +18,12 @@ GITINFO_FILE = '.gitinfo'
 PACK_RESERVE_CHARACTER = '.'
 
 
-class InstallGitRepoAction(Action):
+class DownloadGitRepoAction(Action):
+    def __init__(self, config=None):
+        super(DownloadGitRepoAction, self).__init__(config=config)
+        self._subtree = None
+        self._repo_url = None
+
     def run(self, packs, repo_url, abs_repo_base, verifyssl=True, branch='master', subtree=False):
         self._subtree = self._eval_subtree(repo_url, subtree)
         self._repo_url = self._eval_repo_url(repo_url)
