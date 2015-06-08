@@ -1,8 +1,14 @@
 Changelog
 =========
 
-0.11 - June 5, 2015
--------------------
+0.11.1 - TBD
+------------
+
+* Allow user to filter executions on trigger instance id.
+  [Sayli Karmarkar]
+
+0.11.0 - June 5, 2015
+---------------------
 
 * Allow user to configure the CLI using an ini style config file located at ``~/.st2rc``.
   (new-feature)
