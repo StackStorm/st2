@@ -6,6 +6,8 @@ in development
 
 * Add support for script arguments to the Windows script runner. (new feature)
   [James Sigurðarson]
+* Allow user to filter executions on trigger instance id.
+  [Sayli Karmarkar]
 
 0.11 - June 5, 2015
 -------------------
