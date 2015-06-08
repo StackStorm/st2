@@ -17,6 +17,11 @@ CONFIG_FILE = 'config.yaml'
 GITINFO_FILE = '.gitinfo'
 PACK_RESERVE_CHARACTER = '.'
 
+STACKSTORM_CONTRIB_REPOS = [
+    'st2contrib',
+    'st2incubator'
+]
+
 
 class InstallGitRepoAction(Action):
     def run(self, packs, repo_url, abs_repo_base, verifyssl=True, branch='master', subtree=False):
@@ -135,9 +140,13 @@ class InstallGitRepoAction(Action):
 
     @staticmethod
     def _eval_subtree(repo_url, subtree):
-        st2_repos = re.compile("st2(contrib|incubator)")
-        match = True if st2_repos.search(repo_url) else False
-        return subtree ^ match
+        match = False
+        for stackstorm_repo_name in STACKSTORM_CONTRIB_REPOS:
+            if stackstorm_repo_name in repo_url:
+                match = True
+                break
+
+        return subtree ^ match  # TODO: Shouldn't this be | (OR) ?
 
     @staticmethod
     def _eval_repo_url(repo_url):
