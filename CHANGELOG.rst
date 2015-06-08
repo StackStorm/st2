@@ -30,7 +30,7 @@ in development
   [James Sigurðarson]
 * CLI now has ``get`` and ``list`` commands for triggerinstance. (new-feature)
 * Validate parameters during rule creation for system triggers. (improvement)
-* CLI now has ``re_emit`` command for triggerinstance. (new-feature)
+* CLI now has ``re-emit`` command for triggerinstance. (new-feature)
 
 v0.9.2 - May 26, 2015
 ---------------------
