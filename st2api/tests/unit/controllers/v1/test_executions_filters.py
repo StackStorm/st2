@@ -138,10 +138,11 @@ class TestActionExecutionFilters(FunctionalTest):
 
     def test_filters(self):
         excludes = ['parent', 'timestamp', 'action', 'liveaction', 'timestamp_gt',
-                    'timestamp_lt']
+                    'timestamp_lt', 'status']
         for param, field in six.iteritems(ActionExecutionsController.supported_filters):
             if param in excludes:
                 continue
+
             value = self.fake_types[0]
             for item in field.split('.'):
                 value = value[item]

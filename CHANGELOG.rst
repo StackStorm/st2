@@ -4,6 +4,14 @@ Changelog
 in development
 --------------
 
+* Add support for script arguments to the Windows script runner. (new feature)
+  [James Sigurðarson]
+* Allow user to filter executions on trigger instance id.
+  [Sayli Karmarkar]
+
+0.11 - June 5, 2015
+-------------------
+
 * Allow user to configure the CLI using an ini style config file located at ``~/.st2rc``.
   (new-feature)
 * Add support for caching of the retrieved auth tokens to the CLI. (new-feature)
@@ -20,9 +28,16 @@ in development
   (new-feature)
 * Rules should be part of a pack. (improvement)
 * Update Windows runner code so it also works with a newer versions of winexe (> 1.0).
-  (improvements)
+  (improvement)
   [James Sigurðarson]
 * CLI now has ``get`` and ``list`` commands for triggerinstance. (new-feature)
+* Validate parameters during rule creation for system triggers. (improvement)
+* CLI now has ``re-emit`` command for triggerinstance. (new-feature)
+
+v0.9.2 - May 26, 2015
+---------------------
+
+* Fix broken ``packs.download`` action. (bug-fix)
 
 v0.9.1 - May 12, 2015
 ---------------------

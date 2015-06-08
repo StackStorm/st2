@@ -128,6 +128,35 @@ class WindowsRunnerTestCase(TestCase):
             actual_value = runner._get_smbclient_command_args(**arguments)
             self.assertEqual(actual_value, expected_value)
 
+    def test_get_script_args(self):
+        arguments = [
+            {
+                'positional_args': 'a b c',
+                'named_args': {
+                    'arg1': 'value1',
+                    'arg2': 'value2'
+                }
+            },
+            {
+                'positional_args': 'a b c',
+                'named_args': {
+                    'arg1': 'value1',
+                    'arg2': True,
+                    'arg3': False,
+                    'arg4': ['foo', 'bar', 'baz']
+                }
+            }
+        ]
+        expected_values = [
+            'a b c -arg1 value1 -arg2 value2',
+            'a b c -arg1 value1 -arg2 -arg3:$false -arg4 foo,bar,baz'
+        ]
+
+        runner = self._get_script_runner()
+        for arguments, expected_value in zip(arguments, expected_values):
+            actual_value = runner._get_script_arguments(**arguments)
+            self.assertEqual(actual_value, expected_value)
+
     def test_parse_share_information(self):
         runner = self._get_script_runner()
 

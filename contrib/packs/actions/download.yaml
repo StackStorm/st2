@@ -11,7 +11,7 @@
         type: "string"
     repo_url:
       type: "string"
-      default: "https://github.com/StackStorm/st2contrib.git"
+      default: "StackStorm/st2contrib"
     branch:
       type: "string"
       default: "master"
@@ -19,6 +19,9 @@
       type: "string"
       default: "/opt/stackstorm/packs/"
       immutable: true
+    subtree:
+      type: "boolean"
+      default: false
     verifyssl:
       type: "boolean"
       default: true

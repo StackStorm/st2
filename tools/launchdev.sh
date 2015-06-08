@@ -138,8 +138,8 @@ function st2start(){
         fi
     done
 
-    # Register sensors, actions and rules
-    echo 'Registering sensors, actions, rules and aliases...'
+    # Register contents
+    echo 'Registering sensors, actions, rules, aliases, and policies...'
     ./virtualenv/bin/python \
         ./st2common/bin/st2-register-content \
         --config-file $ST2_CONF --register-all

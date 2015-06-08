@@ -22,7 +22,7 @@ parameters:
     immutable: true
     type: string
 notify:
-  on_complete:
+  on-complete:
     message: "\"@channel: Action succeeded.\""
     channels:
       - "slack"

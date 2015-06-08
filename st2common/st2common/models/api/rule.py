@@ -160,7 +160,13 @@ class RuleAPI(BaseAPI):
         model.criteria = dict(getattr(rule, 'criteria', {}))
         model.pack = str(rule.pack)
         model.ref = ResourceReference.to_string_reference(pack=model.pack, name=model.name)
+
+        # Validate criteria
         validator.validate_criteria(model.criteria)
+
+        # Validate trigger parameters
+        validator.validate_trigger_parameters(trigger_db=trigger_db)
+
         model.action = ActionExecutionSpecDB()
         model.action.ref = rule.action['ref']
         model.action.parameters = rule.action['parameters']

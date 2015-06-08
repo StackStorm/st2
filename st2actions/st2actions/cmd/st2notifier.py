@@ -12,6 +12,7 @@ from st2common.transport.utils import register_exchanges
 from st2common.signal_handlers import register_common_signal_handlers
 from st2actions import config
 from st2actions import notifier
+from st2actions import scheduler
 
 
 LOG = logging.getLogger(__name__)
@@ -47,10 +48,13 @@ def _setup():
 def _run_worker():
     LOG.info('(PID=%s) Actions notifier started.', os.getpid())
     actions_notifier = notifier.get_notifier()
+    actions_rescheduler = scheduler.get_rescheduler()
     try:
+        eventlet.spawn(actions_rescheduler.start)
         actions_notifier.start(wait=True)
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Actions notifier stopped.', os.getpid())
+        actions_rescheduler.shutdown()
         actions_notifier.shutdown()
     except:
         return 1
