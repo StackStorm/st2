@@ -52,6 +52,7 @@ def _register_config_opts():
     _register_auth_opts()
     _register_action_sensor_opts()
     _register_mistral_opts()
+    _register_cloudslang_opts()
 
 
 def _override_db_opts():
@@ -150,6 +151,14 @@ def _register_mistral_opts():
         cfg.IntOpt('retry_wait', default=1)
     ]
     _register_opts(mistral_opts, group='mistral')
+
+
+def _register_cloudslang_opts():
+    cloudslang_opts = [
+        cfg.StrOpt('home_dir', default='/opt/cslang',
+                   help='CloudSlang home directory.')
+    ]
+    _register_opts(cloudslang_opts, group='cloudslang')
 
 
 def _register_opts(opts, group=None):

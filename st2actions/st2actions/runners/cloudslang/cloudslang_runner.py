@@ -19,11 +19,10 @@ import os
 import tempfile
 from oslo.config import cfg
 from eventlet.green import subprocess
-from st2common.util.shell import quote_unix
 from st2common.util.green.shell import run_command
+from st2common.util.shell import quote_unix
 from st2common import log as logging
 from st2actions.runners import ActionRunner
-from st2actions.runners import ShellRunnerMixin
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
@@ -42,7 +41,7 @@ def get_runner():
     return CloudSlangRunner(str(uuid.uuid4()))
 
 
-class CloudSlangRunner(ActionRunner, ShellRunnerMixin):
+class CloudSlangRunner(ActionRunner):
     """
     Runner which executes cloudslang flows and operations as single action
     """
@@ -62,9 +61,10 @@ class CloudSlangRunner(ActionRunner, ShellRunnerMixin):
     def run(self, action_parameters):
         LOG.debug('    action_parameters = %s', action_parameters)
 
-        inputs_file = tempfile.NamedTemporaryFile()
         has_inputs = self._inputs is not None
+        inputs_file = None
         if has_inputs:
+            inputs_file = tempfile.NamedTemporaryFile()
             LOG.info(self._inputs)
             inputs_dict = dict(pair.split("=") for pair in self._inputs.split(","))
             LOG.info(inputs_dict)
