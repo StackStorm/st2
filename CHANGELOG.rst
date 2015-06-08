@@ -1,8 +1,17 @@
 Changelog
 =========
 
-0.11 - June 5, 2015
--------------------
+0.11.1 - June 8, 2015
+---------------------
+
+* Allow user to filter executions on trigger instance id.
+  [Sayli Karmarkar]
+* Action aliases are registered by default. (improvement)
+* Repair failing pack installation. (bug-fix)
+
+
+0.11.0 - June 5, 2015
+---------------------
 
 * Allow user to configure the CLI using an ini style config file located at ``~/.st2rc``.
   (new-feature)
@@ -24,7 +33,7 @@ Changelog
   [James Sigurðarson]
 * CLI now has ``get`` and ``list`` commands for triggerinstance. (new-feature)
 * Validate parameters during rule creation for system triggers. (improvement)
-* CLI now has ``re_emit`` command for triggerinstance. (new-feature)
+* CLI now has ``re-emit`` command for triggerinstance. (new-feature)
 
 v0.9.2 - May 26, 2015
 ---------------------
