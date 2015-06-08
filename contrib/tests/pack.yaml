@@ -1,9 +1,0 @@
----
-name: tests
-description: Use st2 to test st2: end-to-end smoke tests.
-keywords:
-    - example
-    - test
-version: 0.1
-author: st2-dev
-email: info@stackstorm.com
