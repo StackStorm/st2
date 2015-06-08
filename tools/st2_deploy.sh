@@ -162,6 +162,7 @@ install_pip() {
   echo "# Installing packages via pip"
   curl -sS -k -o /tmp/requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/requirements.txt
   pip install -U -q -r /tmp/requirements.txt
+  pip install -U functools32
 }
 
 install_apt() {
