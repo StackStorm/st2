@@ -171,5 +171,6 @@ def _register_scheduler_opts():
     ]
     _register_opts(scheduler_opts, group='scheduler')
 
+
 def _register_opts(opts, group=None):
     CONF.register_opts(opts, group)
