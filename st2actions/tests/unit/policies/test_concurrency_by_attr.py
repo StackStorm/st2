@@ -112,7 +112,7 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
             eventlet.spawn(action_service.request, liveaction)
 
         # Sleep here to let the threads above schedule the action execution.
-        eventlet.sleep(1)
+        eventlet.sleep(5)
 
         scheduled = LiveAction.get_all()
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
