@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.11.1 - TBD
-------------
+0.11.1 - June 8, 2015
+---------------------
 
 * Allow user to filter executions on trigger instance id.
   [Sayli Karmarkar]
