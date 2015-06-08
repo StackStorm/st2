@@ -1,0 +1,13 @@
+---
+description: Greet StackStorm from cloudslang ;) !
+enabled: true
+entry_point: ""
+name: cloudslang-basic
+pack: examples
+parameters:
+  flow_path:
+    default: "/opt/cslang/content/io/cloudslang/base/print/print_text.sl"
+    type: string
+  inputs:
+    type: string
+runner_type: "cloudslang"

@@ -100,6 +100,10 @@ v2_base_url = http://localhost:8989/v2
 # Maximum no of attempts made to connect to Mistral.
 max_attempts = 180
 
+[cloudslang]
+# path to the cloudlsang home dir
+home_dir = /opt/cslang
+
 [notifier]
 # Location of the logging configuration file.
 logging = conf/logging.notifier.conf
