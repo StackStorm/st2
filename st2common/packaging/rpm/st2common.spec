@@ -55,7 +55,6 @@ install -m755 tools/migrate_rules_to_include_pack.py %{buildroot}/usr/lib/python
 %files
 %{python2_sitelib}/st2common*
 /usr/share/doc/st2/*
-/usr/share/stackstorm/*
 /etc/st2/*
 /opt/stackstorm/*
 /var/log/st2
