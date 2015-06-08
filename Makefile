@@ -92,6 +92,7 @@ pylint: requirements .pylint
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models $$component/$$component || exit 1; \
 	done
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/pack_mgmt/ || exit 1;
 
 .PHONY: flake8
 flake8: requirements .flake8
