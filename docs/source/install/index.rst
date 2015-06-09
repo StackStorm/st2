@@ -1,5 +1,8 @@
 Installation
 ============
+There are a few ways to simply download and install StackStorm to get going.  
+
+The first is to run StackStorm on Ubuntu/Debian or RedHat/Fedora which we explain next.  Or skip below if you want to learn about Docker or Vagrant or other installations approaches.   
 
 To install and run |st2| on Ubuntu/Debian or RedHat/Fedora with all dependencies,
 download and run the deployment script.

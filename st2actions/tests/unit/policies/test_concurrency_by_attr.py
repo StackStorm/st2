@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import eventlet
 import mock
 import six
 
@@ -59,17 +58,11 @@ SCHEDULED_STATES = [
     action_constants.LIVEACTION_STATUS_SUCCEEDED
 ]
 
-RUN_DELAY = 2
-
-
-def mock_run(action_parameters):
-    eventlet.sleep(RUN_DELAY)
-    return (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
-
 
 @mock.patch.object(
     TestRunner, 'run',
-    mock.MagicMock(side_effect=mock_run))
+    mock.MagicMock(
+        return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
 @mock.patch.object(
     CUDPublisher, 'publish_update',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_update))
@@ -80,9 +73,7 @@ def mock_run(action_parameters):
     LiveActionPublisher, 'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
-
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         EventletTestCase.setUpClass()
         DbTestCase.setUpClass()
 
@@ -109,10 +100,7 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
 
         for i in range(0, policy_db.parameters['threshold']):
             liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu'})
-            eventlet.spawn(action_service.request, liveaction)
-
-        # Sleep here to let the threads above schedule the action execution.
-        eventlet.sleep(1)
+            action_service.request(liveaction)
 
         scheduled = LiveAction.get_all()
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
@@ -132,8 +120,9 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertIn(liveaction.status, SCHEDULED_STATES)
 
-        # Sleep here to let the threads above complete the action execution.
-        eventlet.sleep(RUN_DELAY + 1)
+        # Mark one of the execution as completed.
+        action_service.update_status(
+            scheduled[0], action_constants.LIVEACTION_STATUS_SUCCEEDED, publish=True)
 
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(delayed.id))

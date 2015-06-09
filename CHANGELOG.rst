@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+* Add support for script arguments to the Windows script runner. (new feature)
+  [James Sigurðarson]
+* Allow user to filter executions on trigger instance id.
+  [Sayli Karmarkar]
 
 0.11 - June 5, 2015
 -------------------
@@ -28,7 +32,7 @@ in development
   [James Sigurðarson]
 * CLI now has ``get`` and ``list`` commands for triggerinstance. (new-feature)
 * Validate parameters during rule creation for system triggers. (improvement)
-* CLI now has ``re_emit`` command for triggerinstance. (new-feature)
+* CLI now has ``re-emit`` command for triggerinstance. (new-feature)
 
 v0.9.2 - May 26, 2015
 ---------------------

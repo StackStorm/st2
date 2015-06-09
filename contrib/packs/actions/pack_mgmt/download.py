@@ -1,3 +1,18 @@
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 import shutil
 import hashlib
@@ -23,7 +38,12 @@ STACKSTORM_CONTRIB_REPOS = [
 ]
 
 
-class InstallGitRepoAction(Action):
+class DownloadGitRepoAction(Action):
+    def __init__(self, config=None):
+        super(DownloadGitRepoAction, self).__init__(config=config)
+        self._subtree = None
+        self._repo_url = None
+
     def run(self, packs, repo_url, abs_repo_base, verifyssl=True, branch='master', subtree=False):
         self._subtree = self._eval_subtree(repo_url, subtree)
         self._repo_url = self._eval_repo_url(repo_url)
@@ -57,8 +77,9 @@ class InstallGitRepoAction(Action):
         # Disable SSL cert checking if explictly asked
         if not verifyssl:
             os.environ['GIT_SSL_NO_VERIFY'] = 'true'
-
-        Repo.clone_from(repo_url, abs_local_path, branch=branch)
+        # Shallow clone the repo to avoid getting all the metadata. We only need HEAD of a
+        # specific branch so save some download time.
+        Repo.clone_from(repo_url, abs_local_path, branch=branch, depth=1)
         return abs_local_path
 
     def _move_packs(self, abs_repo_base, packs, abs_local_path, subtree):
@@ -152,7 +173,7 @@ class InstallGitRepoAction(Action):
     def _eval_repo_url(repo_url):
         """Allow passing short GitHub style URLs"""
         has_git_extension = repo_url.endswith('.git')
-        if len(repo_url.split('/')) == 2 and not "git@" in repo_url:
+        if len(repo_url.split('/')) == 2 and "git@" not in repo_url:
             url = "https://github.com/{}".format(repo_url)
         else:
             url = repo_url
