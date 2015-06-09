@@ -1,6 +1,6 @@
 CloudSlang
 ==========
-`CloudSlang <http://cloudslang.io>`_ is a open source orchestration tool for managing deployed applications. It allows you to rapidly automate your DevOps and everyday IT operations use cases.
+`CloudSlang <http://cloudslang.io>`_ is an open source orchestration tool for managing deployed applications. It allows you to rapidly automate your DevOps and everyday IT operations use cases.
 
 The CloudSlang language is a YAML-based DSL for writing workflows. Using CloudSlang you can define a workflow in a structured, easy-to-understand format.
 
