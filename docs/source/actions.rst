@@ -222,9 +222,11 @@ action.
 
     #!/usr/bin/env bash
 
-    # Retrieve a list of actions by hitting the API using cURL and the information provided via environment variables
+    # Retrieve a list of actions by hitting the API using cURL and the information provided
+    # via environment variables
 
     RESULT=$(curl -H "X-Auth-Token: ${ST2_ACTION_AUTH_TOKEN}" ${ST2_ACTION_API_URL}/actions)
+    echo ${RESULT}
 
 Converting existing scripts into actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
