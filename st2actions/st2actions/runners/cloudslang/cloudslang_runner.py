@@ -20,6 +20,7 @@ import tempfile
 from oslo.config import cfg
 from eventlet.green import subprocess
 from st2common.util.green.shell import run_command
+from st2common.util.shell import kill_process
 from st2common.util.shell import quote_unix
 from st2common import log as logging
 from st2actions.runners import ActionRunner
@@ -89,7 +90,13 @@ class CloudSlangRunner(ActionRunner):
         exit_code, stdout, stderr, timed_out = run_command(
             cmd=command, stdin=None,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            shell=True, timeout=self._timeout)
+            shell=True, timeout=self._timeout, kill_func=kill_process)
+
+        error = None
+
+        if timed_out:
+            error = 'Action failed to complete in %s seconds' % self._timeout
+            exit_code = -9
 
         succeeded = (exit_code == 0)
 
@@ -101,8 +108,8 @@ class CloudSlangRunner(ActionRunner):
             'stderr': stderr
         }
 
-        if timed_out:
-            result['error'] = 'Action failed to complete in %s seconds' % self._timeout
+        if error:
+            result['error'] = error
 
         status = LIVEACTION_STATUS_SUCCEEDED if succeeded else LIVEACTION_STATUS_FAILED
         self._log_action_completion(logger=LOG, result=result, status=status, exit_code=exit_code)

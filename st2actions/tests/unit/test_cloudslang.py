@@ -85,3 +85,22 @@ class CloudSlangRunnerTestCase(TestCase):
         mock_quote_unix.assert_called_with(tests_config.CONF.cloudslang.home_dir)
         self.assertTrue(mock_run_command.called)
         self.assertEqual(LIVEACTION_STATUS_FAILED, result[0])
+
+    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.quote_unix')
+    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
+    def test_run_calls_a_new_process_timeout(self, mock_run_command, mock_quote_unix):
+        path = "path"
+        timeout = 1
+        runner = csr.get_runner()
+        runner.runner_parameters = {
+            csr.RUNNER_INPUTS: None,
+            csr.RUNNER_PATH: path,
+            csr.RUNNER_TIMEOUT: timeout,
+        }
+        runner.pre_run()
+        mock_run_command.return_value = (1, "", "", True)
+        mock_quote_unix.return_value = ""
+        result = runner.run({})
+        mock_quote_unix.assert_called_with(tests_config.CONF.cloudslang.home_dir)
+        self.assertTrue(mock_run_command.called)
+        self.assertEqual(LIVEACTION_STATUS_FAILED, result[0])
