@@ -78,7 +78,7 @@ class CloudSlangRunner(ActionRunner):
 
     def prepare_inputs_file(self, has_inputs, inputs_file):
         if has_inputs:
-            inputs_file = tempfile.NamedTemporaryFile()
+            inputs_file = tempfile.NamedTemporaryFile(delete=False)
             LOG.info(self._inputs)
             yaml_inputs = yaml.safe_dump(self._inputs, default_flow_style=False)
             inputs_file.write(yaml_inputs)
