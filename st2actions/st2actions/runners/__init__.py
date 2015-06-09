@@ -21,6 +21,7 @@ import six
 from st2actions import handlers
 from st2common import log as logging
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
+from st2common.util.api import get_full_public_api_url
 import st2common.util.action_db as action_utils
 
 
@@ -97,6 +98,23 @@ class ActionRunner(object):
                              self.context,
                              status,
                              result)
+
+    def _get_common_action_env_variables(self):
+        """
+        Retrieve common ST2_ACTION_ environment variables which will be available to the action.
+
+        Note: Environment variables are prefixed with ST2_ACTION_* so they don't clash with CLI
+        environment variables.
+
+        :rtype: ``dict``
+        """
+        result = {}
+        result['ST2_ACTION_API_URL'] = get_full_public_api_url()
+
+        if self.auth_token:
+            result['ST2_ACTION_AUTH_TOKEN'] = self.auth_token.token
+
+        return result
 
     def _log_action_completion(self, logger, result, status, exit_code=None):
         """

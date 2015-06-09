@@ -138,6 +138,10 @@ class PythonRunner(ActionRunner):
         user_env_vars = self._get_env_vars()
         env.update(user_env_vars)
 
+        # Include common st2 environment variables
+        st2_env_vars = self._get_common_action_env_variables()
+        env.update(st2_env_vars)
+
         exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
                                                            stderr=subprocess.PIPE, shell=False,
                                                            env=env, timeout=self._timeout)
