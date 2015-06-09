@@ -29,9 +29,12 @@ from pack_mgmt.download import DownloadGitRepoAction
 
 class InstallPackTestCase(unittest2.TestCase):
     def test_eval_subtree(self):
-        # TODO: Check for OR
         result = DownloadGitRepoAction._eval_subtree('stackstorm/st2contrib', False)
         self.assertTrue(result)
+
+        result = DownloadGitRepoAction._eval_subtree('stackstorm/st2contrib', True)
+        self.assertTrue(result)
+
         result = DownloadGitRepoAction._eval_subtree('stackstorm/st2incubator', False)
         self.assertTrue(result)
 

@@ -167,7 +167,7 @@ class DownloadGitRepoAction(Action):
                 match = True
                 break
 
-        return subtree ^ match  # TODO: Shouldn't this be | (OR) ?
+        return subtree | match
 
     @staticmethod
     def _eval_repo_url(repo_url):
