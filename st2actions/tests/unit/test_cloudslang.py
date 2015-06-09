@@ -33,7 +33,7 @@ class CloudSlangRunnerTestCase(TestCase):
         self.assertTrue(runner.runner_id)
 
     def test_pre_run_sets_attributes(self):
-        inputs = 'a=1'
+        inputs = {'a': 1}
         path = "path"
         timeout = 10
         runner = csr.get_runner()
@@ -86,9 +86,8 @@ class CloudSlangRunnerTestCase(TestCase):
         self.assertTrue(mock_run_command.called)
         self.assertEqual(LIVEACTION_STATUS_FAILED, result[0])
 
-    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.quote_unix')
     @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
-    def test_run_calls_a_new_process_timeout(self, mock_run_command, mock_quote_unix):
+    def test_run_calls_a_new_process_timeout(self, mock_run_command):
         path = "path"
         timeout = 1
         runner = csr.get_runner()
@@ -99,8 +98,26 @@ class CloudSlangRunnerTestCase(TestCase):
         }
         runner.pre_run()
         mock_run_command.return_value = (0, "", "", True)
-        mock_quote_unix.return_value = ""
         result = runner.run({})
-        mock_quote_unix.assert_called_with(tests_config.CONF.cloudslang.home_dir)
         self.assertTrue(mock_run_command.called)
+        self.assertEqual(LIVEACTION_STATUS_FAILED, result[0])
+
+    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
+    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.yaml.safe_dump')
+    def test_inputs_are_save_to_file_properly(self, mock_yaml_dump, mock_run_command):
+        inputs = {'a': 1}
+        path = "path"
+        timeout = 1
+        runner = csr.get_runner()
+        runner.runner_parameters = {
+            csr.RUNNER_INPUTS: inputs,
+            csr.RUNNER_PATH: path,
+            csr.RUNNER_TIMEOUT: timeout,
+        }
+        runner.pre_run()
+        mock_run_command.return_value = (0, "", "", True)
+        mock_yaml_dump.return_value = ""
+        result = runner.run({})
+        self.assertTrue(mock_run_command.called)
+        mock_yaml_dump.assert_called_with(inputs, default_flow_style=False)
         self.assertEqual(LIVEACTION_STATUS_FAILED, result[0])

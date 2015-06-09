@@ -17,6 +17,7 @@ import uuid
 
 import os
 import tempfile
+import yaml
 from oslo.config import cfg
 from eventlet.green import subprocess
 from st2common.util.green.shell import run_command
@@ -67,10 +68,8 @@ class CloudSlangRunner(ActionRunner):
         if has_inputs:
             inputs_file = tempfile.NamedTemporaryFile()
             LOG.info(self._inputs)
-            inputs_dict = dict(pair.split("=") for pair in self._inputs.split(","))
-            LOG.info(inputs_dict)
-            import yaml
-            inputs_file.write(yaml.safe_dump(inputs_dict, default_flow_style=False))
+            yaml_inputs = yaml.safe_dump(self._inputs, default_flow_style=False)
+            inputs_file.write(yaml_inputs)
             inputs_file.seek(0)
 
             for line in inputs_file:
