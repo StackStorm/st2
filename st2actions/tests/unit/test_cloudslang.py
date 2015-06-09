@@ -14,6 +14,7 @@
 # limitations under the License.
 
 
+import os
 import mock
 from unittest2 import TestCase
 import st2actions.runners.cloudslang.cloudslang_runner as csr
@@ -121,3 +122,27 @@ class CloudSlangRunnerTestCase(TestCase):
         self.assertTrue(mock_run_command.called)
         mock_yaml_dump.assert_called_with(inputs, default_flow_style=False)
         self.assertEqual(LIVEACTION_STATUS_FAILED, result[0])
+
+    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
+    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.yaml.safe_dump')
+    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.os.remove')
+    def test_temp_file_deletes_when_exception_occurs(self, mock_os_remove, mock_yaml_dump, mock_run_command):
+        inputs = {'a': 1}
+        path = "path"
+        timeout = 1
+        runner = csr.get_runner()
+        runner.runner_parameters = {
+            csr.RUNNER_INPUTS: inputs,
+            csr.RUNNER_PATH: path,
+            csr.RUNNER_TIMEOUT: timeout,
+        }
+        runner.pre_run()
+        mock_run_command.return_value = (0, "", "", True)
+        mock_run_command.side_effect = IOError('Boom!')
+        mock_yaml_dump.return_value = "key1: val1"
+        with self.assertRaisesRegex(IOError, "Boom!"):
+            runner.run({})
+        self.assertTrue(mock_os_remove.called)
+
+        # lets really remove it now
+        os.remove(mock_os_remove.call_args[0][0])
