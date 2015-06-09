@@ -50,8 +50,8 @@ function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" 
 function join { local IFS="$1"; shift; echo "$*"; }
 
 # Distribution specific variables
-APT_PACKAGE_LIST=("rabbitmq-server" "make" "python-virtualenv" "python-dev" "realpath" "python-pip" "mongodb" "mongodb-server" "gcc" "git")
-YUM_PACKAGE_LIST=("python-pip" "python-virtualenv" "python-devel" "gcc-c++" "git-all" "mongodb" "mongodb-server" "mailcap")
+APT_PACKAGE_LIST=("rabbitmq-server" "make" "python-virtualenv" "python-dev" "realpath" "mongodb" "mongodb-server" "gcc" "git")
+YUM_PACKAGE_LIST=("python-virtualenv" "python-devel" "gcc-c++" "git-all" "mongodb" "mongodb-server" "mailcap")
 
 # Add windows runner dependencies
 # Note: winexe is provided by Stackstorm repos
@@ -160,7 +160,7 @@ create_user() {
 install_pip() {
   echo "###########################################################################################"
   echo "# Installing packages via pip"
-  pip install -U pip
+  easy_install pip
   curl -sS -k -o /tmp/requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/requirements.txt
   pip install -U -r /tmp/requirements.txt
 }
