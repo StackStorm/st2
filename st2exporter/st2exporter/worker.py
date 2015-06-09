@@ -42,7 +42,12 @@ class ExecutionsExporter(consumers.MessageHandler):
         self.pending_executions = Queue.Queue()
 
     def start(self, wait=False):
-        self._bootstrap()
+        LOG.info('Bootstrapping executions from db...')
+        try:
+            self._bootstrap()
+        except:
+            LOG.exception('Unable to bootstrap executions from db. Aborting.')
+            raise
         super(ExecutionsExporter, self).start(wait=wait)
 
     def shutdown(self):
@@ -51,19 +56,24 @@ class ExecutionsExporter(consumers.MessageHandler):
     def process(self, execution):
         execution_api = ActionExecutionAPI.from_model(execution)
         execution_json = json_encode(execution_api)
+        LOG.info('Got execution %s.', execution_json)
         self.pending_executions.put_nowait(execution_json)
 
     def _bootstrap(self):
         marker = self._get_export_marker_from_db()
+        LOG.info('Using marker %s...' % marker)
         missed_executions = self._get_missed_executions_from_db(export_marker=marker)
+        LOG.info('Found %d executions not exported yet...', len(missed_executions))
 
         for missed_execution in missed_executions:
-            execution_json = json_encode(ActionExecutionAPI.from_model(execution))
+            execution_json = json_encode(ActionExecutionAPI.from_model(missed_execution))
             try:
+                LOG.debug('Missed execution %s', execution_json)
                 self.pending_executions.put_nowait(execution_json)
             except:
                 LOG.exception('Failed adding execution to in-memory queue.')
                 continue
+        LOG.info('Bootstrapped executions...')
 
     def _get_export_marker_from_db(self):
         # XXX: Document model seems excessive for this.

@@ -26,8 +26,8 @@ common_config.register_opts()
 CONF = cfg.CONF
 
 logging_opts = [
-    cfg.StrOpt('logging', default='conf/logging.conf',
-               help='location of the logging.conf file')
+    cfg.StrOpt('logging', default='conf/logging.exporter.conf',
+               help='location of the logging.exporter.conf file')
 ]
 CONF.register_opts(logging_opts, group='exporter')
 

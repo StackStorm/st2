@@ -25,7 +25,7 @@ from st2common.models.db import db_teardown
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.transport.utils import register_exchanges
 from st2common.signal_handlers import register_common_signal_handlers
-from st2actions import config
+from st2exporter import config
 from st2exporter import worker
 
 
@@ -61,12 +61,13 @@ def _setup():
 
 def _run_worker():
     LOG.info('(PID=%s) Exporter started.', os.getpid())
-    exporter = worker.get_exporter()
+    export_worker = worker.get_worker()
     try:
-        exporter.start(wait=True)
+        export_worker.start(wait=True)
+        export_worker.wait()
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Exporter stopped.', os.getpid())
-        exporter.shutdown()
+        export_worker.shutdown()
     except:
         return 1
     return 0
