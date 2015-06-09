@@ -89,7 +89,7 @@ class DownloadGitRepoAction(Action):
             packs = os.listdir(abs_local_path)
         for pack in packs:
             abs_pack_temp_location = os.path.join(abs_local_path, pack) if subtree else abs_local_path
-            desired, message = InstallGitRepoAction._is_desired_pack(abs_pack_temp_location, pack)
+            desired, message = DownloadGitRepoAction._is_desired_pack(abs_pack_temp_location, pack)
             if desired:
                 to = abs_repo_base
                 dest_pack_path = os.path.join(abs_repo_base, pack)
