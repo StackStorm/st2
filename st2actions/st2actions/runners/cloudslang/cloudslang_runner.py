@@ -61,55 +61,59 @@ class CloudSlangRunner(ActionRunner):
                                                    LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT)
 
     def run(self, action_parameters):
-        LOG.debug('    action_parameters = %s', action_parameters)
-
-        has_inputs = self._inputs is not None
         inputs_file = None
-        if has_inputs:
-            inputs_file = tempfile.NamedTemporaryFile()
-            LOG.info(self._inputs)
-            yaml_inputs = yaml.safe_dump(self._inputs, default_flow_style=False)
-            inputs_file.write(yaml_inputs)
-            inputs_file.seek(0)
+        try:
+            LOG.debug('    action_parameters = %s', action_parameters)
 
-            for line in inputs_file:
-                LOG.info(line.rstrip())
+            has_inputs = self._inputs is not None
+            if has_inputs:
+                inputs_file = tempfile.NamedTemporaryFile()
+                LOG.info(self._inputs)
+                yaml_inputs = yaml.safe_dump(self._inputs, default_flow_style=False)
+                inputs_file.write(yaml_inputs)
+                inputs_file.seek(0)
 
-        LOG.info(self._cloudslang_home)
-        cloudslang_binary = os.path.join(self._cloudslang_home, "bin/cslang")
-        LOG.info(cloudslang_binary)
-        command_args = ['--f', self._path,
-                        '--if', inputs_file.name if has_inputs else "",
-                        '--cp', self._cloudslang_home]
-        command = cloudslang_binary + " run " + " ".join([quote_unix(arg) for arg in command_args])
+                for line in inputs_file:
+                    LOG.info(line.rstrip())
 
-        LOG.info('Executing action via CloudSlangRunner: %s', self.runner_id)
-        LOG.debug('command is: %s', command)
+            LOG.info(self._cloudslang_home)
+            cloudslang_binary = os.path.join(self._cloudslang_home, "bin/cslang")
+            LOG.info(cloudslang_binary)
+            command_args = ['--f', self._path,
+                            '--if', inputs_file.name if has_inputs else "",
+                            '--cp', self._cloudslang_home]
+            command = cloudslang_binary + " run " + " ".join([quote_unix(arg) for arg in command_args])
 
-        exit_code, stdout, stderr, timed_out = run_command(
-            cmd=command, stdin=None,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            shell=True, timeout=self._timeout, kill_func=kill_process)
+            LOG.info('Executing action via CloudSlangRunner: %s', self.runner_id)
+            LOG.debug('command is: %s', command)
 
-        error = None
+            exit_code, stdout, stderr, timed_out = run_command(
+                cmd=command, stdin=None,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                shell=True, timeout=self._timeout, kill_func=kill_process)
 
-        if timed_out:
-            error = 'Action failed to complete in %s seconds' % self._timeout
-            exit_code = -9
+            error = None
 
-        succeeded = (exit_code == 0)
+            if timed_out:
+                error = 'Action failed to complete in %s seconds' % self._timeout
+                exit_code = -9
 
-        result = {
-            'failed': not succeeded,
-            'succeeded': succeeded,
-            'return_code': exit_code,
-            'stdout': stdout,
-            'stderr': stderr
-        }
+            succeeded = (exit_code == 0)
 
-        if error:
-            result['error'] = error
+            result = {
+                'failed': not succeeded,
+                'succeeded': succeeded,
+                'return_code': exit_code,
+                'stdout': stdout,
+                'stderr': stderr
+            }
 
-        status = LIVEACTION_STATUS_SUCCEEDED if succeeded else LIVEACTION_STATUS_FAILED
-        self._log_action_completion(logger=LOG, result=result, status=status, exit_code=exit_code)
-        return status, jsonify.json_loads(result, CloudSlangRunner.KEYS_TO_TRANSFORM), None
+            if error:
+                result['error'] = error
+
+            status = LIVEACTION_STATUS_SUCCEEDED if succeeded else LIVEACTION_STATUS_FAILED
+            self._log_action_completion(logger=LOG, result=result, status=status, exit_code=exit_code)
+            return status, jsonify.json_loads(result, CloudSlangRunner.KEYS_TO_TRANSFORM), None
+        finally:
+            if inputs_file and os.path.exists(inputs_file.name):
+                os.remove(inputs_file.name)
