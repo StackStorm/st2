@@ -19,13 +19,13 @@ import Queue
 from kombu import Connection
 from oslo.config import cfg
 
-from st2actions.container.base import RunnerContainer
 from st2common import log as logging
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.execution import ActionExecution
 from st2common.transport import consumers, execution, publishers
 from st2common.util import isotime
-
+from st2common.util.jsonify import json_encode
 
 LOG = logging.getLogger(__name__)
 
@@ -38,7 +38,6 @@ class ExecutionsExporter(consumers.MessageHandler):
 
     def __init__(self, connection, queues):
         super(ExecutionsExporter, self).__init__(connection, queues)
-        self.container = RunnerContainer()
         self.persisted_timestamp = None
         self.pending_executions = Queue.Queue()
 
@@ -50,15 +49,18 @@ class ExecutionsExporter(consumers.MessageHandler):
         super(ExecutionsExporter, self).shutdown()
 
     def process(self, execution):
-        pass
+        execution_api = ActionExecutionAPI.from_model(execution)
+        execution_json = json_encode(execution_api)
+        self.pending_executions.put_nowait(execution_json)
 
     def _bootstrap(self):
         marker = self._get_export_marker_from_db()
         missed_executions = self._get_missed_executions_from_db(export_marker=marker)
 
         for missed_execution in missed_executions:
+            execution_json = json_encode(ActionExecutionAPI.from_model(execution))
             try:
-                self.pending_executions.put_nowait(missed_execution)
+                self.pending_executions.put_nowait(execution_json)
             except:
                 LOG.exception('Failed adding execution to in-memory queue.')
                 continue
