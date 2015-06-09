@@ -23,6 +23,8 @@ from st2actions.container import service
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.constants.runners import COMMON_ACTION_ENV_VARIABLES
+from base import RunnerTestCase
 import st2tests.base as tests_base
 import st2tests.config as tests_config
 
@@ -37,7 +39,7 @@ mock_sys.argv = []
 
 
 @mock.patch('st2actions.runners.pythonrunner.sys', mock_sys)
-class PythonRunnerTestCase(TestCase):
+class PythonRunnerTestCase(RunnerTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -163,6 +165,26 @@ class PythonRunnerTestCase(TestCase):
         self.assertEqual(output['stderr'], mock_stderr)
         self.assertEqual(output['result'], 'None')
         self.assertEqual(output['exit_code'], 0)
+
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    def test_common_st2_env_vars_are_available_to_the_action(self, mock_popen):
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = ('', '')
+        mock_popen.return_value = mock_process
+
+        runner = pythonrunner.get_runner()
+        runner.auth_token = mock.Mock()
+        runner.auth_token.token = 'ponies'
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PACAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (_, _, _) = runner.run({'row_index': 4})
+
+        _, call_kwargs = mock_popen.call_args
+        actual_env = call_kwargs['env']
+        self.assertCommonSt2EnvVarsAvailableInEnv(env=actual_env)
 
     def _get_mock_action_obj(self):
         """
