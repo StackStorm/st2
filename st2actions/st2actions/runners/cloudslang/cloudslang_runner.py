@@ -66,54 +66,59 @@ class CloudSlangRunner(ActionRunner):
             LOG.debug('    action_parameters = %s', action_parameters)
 
             has_inputs = self._inputs is not None
-            if has_inputs:
-                inputs_file = tempfile.NamedTemporaryFile()
-                LOG.info(self._inputs)
-                yaml_inputs = yaml.safe_dump(self._inputs, default_flow_style=False)
-                inputs_file.write(yaml_inputs)
-                inputs_file.seek(0)
+            inputs_file = self.prepare_inputs_file(has_inputs, inputs_file)
 
-                for line in inputs_file:
-                    LOG.info(line.rstrip())
+            command = self.prepare_command(has_inputs, inputs_file)
 
-            LOG.info(self._cloudslang_home)
-            cloudslang_binary = os.path.join(self._cloudslang_home, "bin/cslang")
-            LOG.info(cloudslang_binary)
-            command_args = ['--f', self._path,
-                            '--if', inputs_file.name if has_inputs else "",
-                            '--cp', self._cloudslang_home]
-            command = cloudslang_binary + " run " + " ".join([quote_unix(arg) for arg in command_args])
-
-            LOG.info('Executing action via CloudSlangRunner: %s', self.runner_id)
-            LOG.debug('command is: %s', command)
-
-            exit_code, stdout, stderr, timed_out = run_command(
-                cmd=command, stdin=None,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                shell=True, timeout=self._timeout, kill_func=kill_process)
-
-            error = None
-
-            if timed_out:
-                error = 'Action failed to complete in %s seconds' % self._timeout
-                exit_code = -9
-
-            succeeded = (exit_code == 0)
-
-            result = {
-                'failed': not succeeded,
-                'succeeded': succeeded,
-                'return_code': exit_code,
-                'stdout': stdout,
-                'stderr': stderr
-            }
-
-            if error:
-                result['error'] = error
-
-            status = LIVEACTION_STATUS_SUCCEEDED if succeeded else LIVEACTION_STATUS_FAILED
-            self._log_action_completion(logger=LOG, result=result, status=status, exit_code=exit_code)
+            result, status = self.run_cli_command(command)
             return status, jsonify.json_loads(result, CloudSlangRunner.KEYS_TO_TRANSFORM), None
         finally:
             if inputs_file and os.path.exists(inputs_file.name):
                 os.remove(inputs_file.name)
+
+    def prepare_inputs_file(self, has_inputs, inputs_file):
+        if has_inputs:
+            inputs_file = tempfile.NamedTemporaryFile()
+            LOG.info(self._inputs)
+            yaml_inputs = yaml.safe_dump(self._inputs, default_flow_style=False)
+            inputs_file.write(yaml_inputs)
+            inputs_file.seek(0)
+
+            for line in inputs_file:
+                LOG.info(line.rstrip())
+        return inputs_file
+
+    def prepare_command(self, has_inputs, inputs_file):
+        LOG.info(self._cloudslang_home)
+        cloudslang_binary = os.path.join(self._cloudslang_home, "bin/cslang")
+        LOG.info(cloudslang_binary)
+        command_args = ['--f', self._path,
+                        '--if', inputs_file.name if has_inputs else "",
+                        '--cp', self._cloudslang_home]
+        command = cloudslang_binary + " run " + " ".join([quote_unix(arg) for arg in command_args])
+        LOG.info('Executing action via CloudSlangRunner: %s', self.runner_id)
+        LOG.debug('command is: %s', command)
+        return command
+
+    def run_cli_command(self, command):
+        exit_code, stdout, stderr, timed_out = run_command(
+            cmd=command, stdin=None,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            shell=True, timeout=self._timeout, kill_func=kill_process)
+        error = None
+        if timed_out:
+            error = 'Action failed to complete in %s seconds' % self._timeout
+            exit_code = -9
+        succeeded = (exit_code == 0)
+        result = {
+            'failed': not succeeded,
+            'succeeded': succeeded,
+            'return_code': exit_code,
+            'stdout': stdout,
+            'stderr': stderr
+        }
+        if error:
+            result['error'] = error
+        status = LIVEACTION_STATUS_SUCCEEDED if succeeded else LIVEACTION_STATUS_FAILED
+        self._log_action_completion(logger=LOG, result=result, status=status, exit_code=exit_code)
+        return result, status
