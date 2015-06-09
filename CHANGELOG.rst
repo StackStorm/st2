@@ -8,6 +8,8 @@ in development
   [James Sigurðarson]
 * Allow user to filter executions on trigger instance id.
   [Sayli Karmarkar]
+* Jinja filter to make working with regex and semver possible in any place that
+  support jinja (improvement)
 
 0.11 - June 5, 2015
 -------------------
