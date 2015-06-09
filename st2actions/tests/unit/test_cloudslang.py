@@ -98,7 +98,7 @@ class CloudSlangRunnerTestCase(TestCase):
             csr.RUNNER_TIMEOUT: timeout,
         }
         runner.pre_run()
-        mock_run_command.return_value = (1, "", "", True)
+        mock_run_command.return_value = (0, "", "", True)
         mock_quote_unix.return_value = ""
         result = runner.run({})
         mock_quote_unix.assert_called_with(tests_config.CONF.cloudslang.home_dir)
