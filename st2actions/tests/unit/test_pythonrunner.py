@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import os
-from unittest2 import TestCase
 
 import mock
 
@@ -23,7 +22,6 @@ from st2actions.container import service
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.pack import SYSTEM_PACK_NAME
-from st2common.constants.runners import COMMON_ACTION_ENV_VARIABLES
 from base import RunnerTestCase
 import st2tests.base as tests_base
 import st2tests.config as tests_config

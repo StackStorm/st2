@@ -27,7 +27,7 @@ from st2common.util.api import get_full_public_api_url
 from st2common.constants.runners import COMMON_ACTION_ENV_VARIABLES
 
 __all__ = [
-    'RunnerTestCase'
+    'RunnerTestCase',
     'MockLiveActionPublisher'
 ]
 

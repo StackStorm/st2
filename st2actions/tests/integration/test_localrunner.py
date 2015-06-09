@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import uuid
-import unittest2
 
 import mock
 
