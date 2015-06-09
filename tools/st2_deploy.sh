@@ -181,7 +181,7 @@ install_apt() {
   fi
 
   # Add StackStorm APT repo
-  echo "deb http://downloads.stackstorm.net/deb/ trusty_unstable main" > /etc/apt/sources.list.d/stackstorm.list
+  echo "deb https://downloads.stackstorm.net/deb/ trusty_unstable main" > /etc/apt/sources.list.d/stackstorm.list
   curl -Ss -k ${DOWNLOAD_SERVER}/deb/pubkey.gpg -o /tmp/stackstorm.repo.pubkey.gpg
   sudo apt-key add /tmp/stackstorm.repo.pubkey.gpg
 
@@ -272,11 +272,11 @@ fi
 touch $config
 cat <<mistral_config >$config
 [database]
-connection=mysql://mistral:StackStorm@localhost/mistral
-max_pool_size=50
+connection = mysql://mistral:StackStorm@localhost/mistral
+max_pool_size = 100
 
 [pecan]
-auth_enable=false
+auth_enable = false
 mistral_config
 }
 
@@ -304,7 +304,7 @@ start on runlevel [2345]
 stop on runlevel [016]
 respawn
 
-exec /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-config-append /etc/mistral/wf_trace_logging.conf
+exec /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log --log-config-append /etc/mistral/wf_trace_logging.conf
 mistral_upstart
 }
 
