@@ -71,8 +71,8 @@ Follow these steps on a remote box to setup `stanley` user on remote boxes.
     mkdir -p /home/stanley/.ssh
     chmod 0700 /home/stanley/.ssh
 
-    # generate ssh keys on |st2| box and copy over public key into remote box.
-    # ssh-keygen -f /home/stanley/.ssh/stanley_rsa -P ""
+    # generate ssh keys on StackStorm box and copy over public key into remote box.
+    ssh-keygen -f /home/stanley/.ssh/stanley_rsa -P ""
     cp ${KEY_LOCATION}/stanley_rsa.pub /home/stanley/.ssh/stanley_rsa.pub
 
     # authorize key-base acces.
