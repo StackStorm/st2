@@ -6,8 +6,8 @@ name: cloudslang-basic
 pack: examples
 parameters:
   flow_path:
-    default: "/opt/cslang/content/io/cloudslang/base/print/print_text.sl"
+    default: "/opt/stackstorm/packs/examples/actions/workflows/print_text.sl"
     type: string
   inputs:
-    type: string
+    type: object
 runner_type: "cloudslang"
