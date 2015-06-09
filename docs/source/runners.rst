@@ -172,7 +172,7 @@ Runner parameters
 * ``workflow`` (string) - The name of the workflow to run if the entry_point is a workbook of many workflows. The name should be in the format "<pack_name>.<action_name>.<workflow_name>". If entry point is a workflow or a workbook with a single workflow, the runner will identify the workflow automatically.
 
 CloudSlang runner (cloudslang)
-----------------------------
+------------------------------
 
 This runner is built on top of the CloudSlang project and supports
 executing complex workflows. For more information, please refer to the
