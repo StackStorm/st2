@@ -7,4 +7,4 @@ end_timestamp: '2014-09-01T00:00:05.000000Z'
 parameters: {}
 result: {}
 start_timestamp: '2014-09-01T00:00:01.000000Z'
-status: scheduled
+status: requested

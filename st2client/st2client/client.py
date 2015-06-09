@@ -17,6 +17,10 @@ import os
 import logging
 
 from st2client import models
+from st2client.models.core import ResourceManager
+from st2client.models.core import ActionAliasResourceManager
+from st2client.models.core import LiveActionResourceManager
+from st2client.models.core import TriggerInstanceResourceManager
 
 
 LOG = logging.getLogger(__name__)
@@ -31,7 +35,7 @@ DEFAULT_API_VERSION = 'v1'
 
 class Client(object):
     def __init__(self, base_url=None, auth_url=None, api_url=None, api_version=None, cacert=None,
-                 debug=False):
+                 debug=False, token=None):
         # Get CLI options. If not given, then try to get it from the environment.
         self.endpoints = dict()
 
@@ -65,57 +69,83 @@ class Client(object):
 
         self.debug = debug
 
+        # Note: This is a nasty hack for now, but we need to get rid of the decrator abuse
+        if token:
+            os.environ['ST2_AUTH_TOKEN'] = token
+
+        self.token = token
+
         # Instantiate resource managers and assign appropriate API endpoint.
         self.managers = dict()
-        self.managers['Token'] = models.ResourceManager(
+        self.managers['Token'] = ResourceManager(
             models.Token, self.endpoints['auth'], cacert=self.cacert, debug=self.debug)
-        self.managers['RunnerType'] = models.ResourceManager(
+        self.managers['RunnerType'] = ResourceManager(
             models.RunnerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['Action'] = models.ResourceManager(
+        self.managers['Action'] = ResourceManager(
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['LiveAction'] = models.ResourceManager(
+        self.managers['ActionAlias'] = ActionAliasResourceManager(
+            models.ActionAlias, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['LiveAction'] = LiveActionResourceManager(
             models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['Rule'] = models.ResourceManager(
+        self.managers['Policy'] = ResourceManager(
+            models.Policy, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['PolicyType'] = ResourceManager(
+            models.PolicyType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Rule'] = ResourceManager(
             models.Rule, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['Sensor'] = models.ResourceManager(
+        self.managers['Sensor'] = ResourceManager(
             models.Sensor, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['TriggerType'] = models.ResourceManager(
+        self.managers['TriggerType'] = ResourceManager(
             models.TriggerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['Trigger'] = models.ResourceManager(
+        self.managers['Trigger'] = ResourceManager(
             models.Trigger, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['KeyValuePair'] = models.ResourceManager(
+        self.managers['TriggerInstance'] = TriggerInstanceResourceManager(
+            models.TriggerInstance, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['KeyValuePair'] = ResourceManager(
             models.KeyValuePair, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['Webhook'] = models.ResourceManager(
+        self.managers['Webhook'] = ResourceManager(
             models.Webhook, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-
-    @property
-    def tokens(self):
-        return self.managers['Token']
-
-    @property
-    def runners(self):
-        return self.managers['RunnerType']
 
     @property
     def actions(self):
         return self.managers['Action']
 
     @property
+    def keys(self):
+        return self.managers['KeyValuePair']
+
+    @property
     def liveactions(self):
         return self.managers['LiveAction']
+
+    @property
+    def policies(self):
+        return self.managers['Policy']
+
+    @property
+    def policytypes(self):
+        return self.managers['PolicyType']
 
     @property
     def rules(self):
         return self.managers['Rule']
 
     @property
+    def runners(self):
+        return self.managers['RunnerType']
+
+    @property
     def sensors(self):
         return self.managers['Sensor']
+
+    @property
+    def tokens(self):
+        return self.managers['Token']
 
     @property
     def triggertypes(self):
         return self.managers['TriggerType']
 
     @property
-    def keys(self):
-        return self.managers['KeyValuePair']
+    def triggerinstances(self):
+        return self.managers['TriggerInstance']

@@ -17,9 +17,10 @@ import bson
 import copy
 import datetime
 import mock
-from st2common.models.db.reactor import TriggerDB, TriggerInstanceDB, \
-    RuleDB, ActionExecutionSpecDB
+
 from st2common.models.db.action import ActionDB
+from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
+from st2common.models.db.trigger import TriggerDB, TriggerInstanceDB
 from st2common.util import reference
 from st2reactor.rules.filter import RuleFilter
 from st2tests import DbTestCase

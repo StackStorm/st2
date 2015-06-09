@@ -41,7 +41,6 @@ cp -R contrib/core %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/packs %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/linux %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/examples %{buildroot}/usr/share/doc/st2/
-cp -R contrib/tests %{buildroot}/usr/share/stackstorm/
 cp -R docs/* %{buildroot}/usr/share/doc/st2/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 cp -R bin %{buildroot}/%{python2_sitelib}/st2common/
@@ -51,11 +50,11 @@ install -m755 tools/st2ctl %{buildroot}/usr/bin/st2ctl
 install -m755 tools/st2-setup-tests %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-setup-tests
 install -m755 tools/st2-setup-examples %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-setup-examples
 install -m755 tools/st2-self-check %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-self-check
+install -m755 tools/migrate_rules_to_include_pack.py %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/migrate_rules_to_include_pack.py
 
 %files
 %{python2_sitelib}/st2common*
 /usr/share/doc/st2/*
-/usr/share/stackstorm/*
 /etc/st2/*
 /opt/stackstorm/*
 /var/log/st2

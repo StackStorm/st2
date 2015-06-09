@@ -31,6 +31,9 @@ DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
 SYSTEMUSER='stanley'
 STANCONF="/etc/st2/st2.conf"
 
+CLI_CONFIG_DIRECTORY_PATH=${HOME}/.st2
+CLI_CONFIG_RC_FILE_PATH=${CLI_CONFIG_DIRECTORY_PATH}/config
+
 # Information about a test account which used by st2_deploy
 TEST_ACCOUNT_USERNAME="testu"
 TEST_ACCOUNT_PASSWORD="testp"
@@ -74,9 +77,9 @@ sleep ${WARNING_SLEEP_DELAY}
 
 if [ -z $1 ]
 then
-  VER='0.9.0'
+  VER='0.11.0'
 elif [[ "$1" == "latest" ]]; then
-   VER='0.10dev'
+   VER='0.12dev'
 else
   VER=$1
 fi
@@ -146,6 +149,7 @@ create_user() {
     if [ $(grep 'stanley' /etc/sudoers.d/* &> /dev/null; echo $?) != 0 ]
     then
       echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/st2
+      chmod 0440 /etc/sudoers.d/st2
     fi
 
     # make sure requiretty is disabled.
@@ -157,7 +161,7 @@ install_pip() {
   echo "###########################################################################################"
   echo "# Installing packages via pip"
   curl -sS -k -o /tmp/requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/requirements.txt
-  pip install -U -q -r /tmp/requirements.txt
+  pip install -U -r /tmp/requirements.txt
 }
 
 install_apt() {
@@ -342,6 +346,7 @@ setup_mistral() {
   if [ -d "/opt/openstack/mistral" ]; then
     rm -r /opt/openstack/mistral
   fi
+  echo "Cloning Mistral branch: ${MISTRAL_STABLE_BRANCH}..."
   git clone -b ${MISTRAL_STABLE_BRANCH} https://github.com/StackStorm/mistral.git
 
   # Setup virtualenv for running mistral.
@@ -357,6 +362,7 @@ setup_mistral() {
   if [ -d "/etc/mistral/actions/st2mistral" ]; then
     rm -r /etc/mistral/actions/st2mistral
   fi
+  echo "Cloning St2mistral branch: ${MISTRAL_STABLE_BRANCH}..."
   cd /etc/mistral/actions
   git clone -b ${MISTRAL_STABLE_BRANCH} https://github.com/StackStorm/st2mistral.git
   cd /etc/mistral/actions/st2mistral
@@ -454,6 +460,12 @@ deploy_deb() {
   popd
 }
 
+migrate_rules() {
+  echo "###########################################################################################"
+  echo "# Migrating rules (pack inclusion)."
+  $PYTHON ${PYTHONPACK}/st2common/bin/migrate_rules_to_include_pack.py
+}
+
 register_content() {
   echo "###########################################################################################"
   echo "# Registering all content"
@@ -499,6 +511,20 @@ install_st2client() {
     yum localinstall -y st2client-${VER}-${RELEASE}.noarch.rpm
   fi
   popd
+
+  # Delete existing config directory (if exists)
+  if [ -e "${CLI_CONFIG_DIRECTORY_PATH}" ]; then
+    rm -r ${CLI_CONFIG_DIRECTORY_PATH}
+  fi
+
+  # Write the CLI config file with the default credentials
+  mkdir -p ${CLI_CONFIG_DIRECTORY_PATH}
+
+  bash -c "cat > ${CLI_CONFIG_RC_FILE_PATH}" <<EOL
+[credentials]
+username = ${TEST_ACCOUNT_USERNAME}
+password = ${TEST_ACCOUNT_PASSWORD}
+EOL
 }
 
 install_webui() {
@@ -543,6 +569,9 @@ if [ ${INSTALL_WEBUI} == "1" ]; then
     install_webui
 fi
 
+if version_ge $VER "0.9"; then
+  migrate_rules
+fi
 register_content
 echo "###########################################################################################"
 echo "# Starting St2 Services"
@@ -552,7 +581,8 @@ sleep 20
 TOKEN=`st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD} | grep token | awk '{print $4}'`
 ST2_AUTH_TOKEN=${TOKEN} st2 run core.local date &> /dev/null
 ACTIONEXIT=$?
-
+## Clean up token
+rm -Rf /home/${SYSTEMUSER}/.st2
 echo "=========================================="
 echo ""
 
@@ -580,9 +610,12 @@ echo ""
 echo "Username: ${TEST_ACCOUNT_USERNAME}"
 echo "Password: ${TEST_ACCOUNT_PASSWORD}"
 echo ""
+echo "Test account credentials were also written to the default CLI config at ${CLI_CONFIG_PATH}."
+echo ""
 echo "To login and obtain an authentication token, run the following command:"
 echo ""
 echo "st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD}"
 echo ""
 echo "For more information see http://docs.stackstorm.com/install/deploy.html#usage"
 exit 0
+

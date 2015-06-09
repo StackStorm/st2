@@ -24,9 +24,9 @@ from oslo.config import cfg
 
 from tests.base import FunctionalTest
 from st2common.util import isotime
-from st2common.models.db.access import UserDB, TokenDB
-from st2common.models.api.access import TokenAPI
-from st2common.persistence.access import User, Token
+from st2common.models.db.auth import UserDB, TokenDB
+from st2common.models.api.auth import TokenAPI
+from st2common.persistence.auth import User, Token
 
 
 USERNAME = ''.join(random.choice(string.lowercase) for i in range(10))
@@ -121,15 +121,12 @@ class TestTokenController(FunctionalTest):
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_set_ttl_over_policy(self):
         ttl = cfg.CONF.auth.token_ttl
-        timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
-        response = self.app.post_json('/tokens', {'ttl': ttl + 60}, expect_errors=False)
-        expected_expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
-        expected_expiry = isotime.add_utc_tz(expected_expiry)
-        self.assertLess(expected_expiry, timestamp + datetime.timedelta(seconds=ttl + 60))
-        self.assertEqual(response.status_int, 201)
-        actual_expiry = isotime.parse(response.json['expiry'])
-        self.assertLess(timestamp, actual_expiry)
-        self.assertLess(actual_expiry, expected_expiry)
+        response = self.app.post_json('/tokens', {'ttl': ttl + 60}, expect_errors=True)
+        self.assertEqual(response.status_int, 400)
+        message = 'TTL specified %s is greater than max allowed %s.' % (
+                  ttl + 60, ttl
+        )
+        self.assertEqual(response.json['faultstring'], message)
 
     @mock.patch.object(
         User, 'get_by_name',

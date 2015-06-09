@@ -15,8 +15,10 @@
 
 import importlib
 import inspect
+import json
 import os
 import sys
+import yaml
 
 from st2common.exceptions.plugins import IncompatiblePluginException
 from st2common import log as logging
@@ -160,3 +162,20 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
                         (plugin_abs_file_path))
 
     return registered_plugins
+
+
+ALLOWED_EXTS = ['.json', '.yaml', '.yml']
+PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
+
+
+def load_meta_file(file_path):
+    if not os.path.isfile(file_path):
+        raise Exception('File "%s" does not exist.' % file_path)
+
+    file_name, file_ext = os.path.splitext(file_path)
+    if file_ext not in ALLOWED_EXTS:
+        raise Exception('Unsupported meta type %s, file %s. Allowed: %s' %
+                        (file_ext, file_path, ALLOWED_EXTS))
+
+    with open(file_path, 'r') as f:
+        return PARSER_FUNCS[file_ext](f)

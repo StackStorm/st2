@@ -1,7 +1,7 @@
 import bson
 
-from st2common.models.db.action import ActionExecutionStateDB
-from st2common.persistence.action import ActionExecutionState
+from st2common.models.db.executionstate import ActionExecutionStateDB
+from st2common.persistence.executionstate import ActionExecutionState
 
 from st2tests import DbTestCase
 

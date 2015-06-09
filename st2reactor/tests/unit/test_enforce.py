@@ -16,8 +16,8 @@
 import datetime
 import mock
 
-from st2common.models.db.reactor import TriggerInstanceDB
-from st2common.models.db.action import LiveActionDB
+from st2common.models.db.trigger import TriggerInstanceDB
+from st2common.models.db.liveaction import LiveActionDB
 from st2common.services import action as action_service
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
@@ -43,7 +43,7 @@ MOCK_TRIGGER_INSTANCE.occurrence_time = datetime.datetime.utcnow()
 MOCK_LIVEACTION = LiveActionDB()
 MOCK_LIVEACTION.id = 'liveaction-test-1.id'
 MOCK_LIVEACTION.name = 'liveaction-test-1.name'
-MOCK_LIVEACTION.status = 'scheduled'
+MOCK_LIVEACTION.status = 'requested'
 
 
 class EnforceTest(DbTestCase):
@@ -62,19 +62,19 @@ class EnforceTest(DbTestCase):
         MOCK_TRIGGER_INSTANCE.trigger = reference.get_ref_from_model(
             cls.models['triggers']['trigger1.yaml'])
 
-    @mock.patch.object(action_service, 'schedule', mock.MagicMock(
+    @mock.patch.object(action_service, 'request', mock.MagicMock(
         return_value=(MOCK_LIVEACTION, None)))
     def test_ruleenforcement_occurs(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule1.yaml'])
         liveaction_db = enforcer.enforce()
         self.assertTrue(liveaction_db is not None)
 
-    @mock.patch.object(action_service, 'schedule', mock.MagicMock(
+    @mock.patch.object(action_service, 'request', mock.MagicMock(
         return_value=(MOCK_LIVEACTION, None)))
     def test_ruleenforcement_casts(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule2.yaml'])
         liveaction_db = enforcer.enforce()
         self.assertTrue(liveaction_db is not None)
-        self.assertTrue(action_service.schedule.called)
-        self.assertTrue(isinstance(action_service.schedule.call_args[0][0].parameters['objtype'],
+        self.assertTrue(action_service.request.called)
+        self.assertTrue(isinstance(action_service.request.call_args[0][0].parameters['objtype'],
                                    dict))

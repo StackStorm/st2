@@ -1,6 +1,23 @@
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 import shutil
 import hashlib
+import re
+import json
 
 import six
 from git.repo import Repo
@@ -11,26 +28,42 @@ from st2actions.runners.pythonrunner import Action
 ALL_PACKS = '*'
 PACK_REPO_ROOT = 'packs'
 MANIFEST_FILE = 'pack.yaml'
+CONFIG_FILE = 'config.yaml'
+GITINFO_FILE = '.gitinfo'
 PACK_RESERVE_CHARACTER = '.'
 
 
-class InstallGitRepoAction(Action):
-    def run(self, packs, repo_url, abs_repo_base, verifyssl=True, branch='master'):
-        repo_name = repo_url[repo_url.rfind('/') + 1: repo_url.rfind('.')]
+class DownloadGitRepoAction(Action):
+    def __init__(self, config=None):
+        super(DownloadGitRepoAction, self).__init__(config=config)
+        self._subtree = None
+        self._repo_url = None
+
+    def run(self, packs, repo_url, abs_repo_base, verifyssl=True, branch='master', subtree=False):
+        self._subtree = self._eval_subtree(repo_url, subtree)
+        self._repo_url = self._eval_repo_url(repo_url)
+
+        repo_name = self._repo_url[self._repo_url.rfind('/') + 1: self._repo_url.rfind('.')]
         lock_name = hashlib.md5(repo_name).hexdigest() + '.lock'
 
         with LockFile('/tmp/%s' % (lock_name)):
-            abs_local_path = self._clone_repo(repo_url, branch=branch)
+            abs_local_path = self._clone_repo(repo_url=self._repo_url, verifyssl=verifyssl,
+                                              branch=branch)
             try:
-                # st2-contrib repo has a top-level packs folder that actually contains the
-                pack_abs_local_path = os.path.join(abs_local_path, PACK_REPO_ROOT)
+                if self._subtree:
+                    # st2-contrib repo has a top-level packs folder that actually contains the
+                    pack_abs_local_path = os.path.join(abs_local_path, PACK_REPO_ROOT)
+                else:
+                    pack_abs_local_path = abs_local_path
+
+                self._tag_pack(pack_abs_local_path, packs, self._subtree)
                 result = self._move_packs(abs_repo_base, packs, pack_abs_local_path)
             finally:
                 self._cleanup_repo(abs_local_path)
         return self._validate_result(result=result, packs=packs, repo_url=repo_url)
 
     @staticmethod
-    def _clone_repo(repo_url, branch='master'):
+    def _clone_repo(repo_url, verifyssl=True, branch='master'):
         user_home = os.path.expanduser('~')
         # Assuming git url is of form git@github.com:user/git-repo.git
         repo_name = repo_url[repo_url.rfind('/') + 1: repo_url.rfind('.')]
@@ -39,8 +72,9 @@ class InstallGitRepoAction(Action):
         # Disable SSL cert checking if explictly asked
         if not verifyssl:
             os.environ['GIT_SSL_NO_VERIFY'] = 'true'
-
-        Repo.clone_from(repo_url, abs_local_path, branch=branch)
+        # Shallow clone the repo to avoid getting all the metadata. We only need HEAD of a
+        # specific branch so save some download time.
+        Repo.clone_from(repo_url, abs_local_path, branch=branch, depth=1)
         return abs_local_path
 
     def _move_packs(self, abs_repo_base, packs, abs_local_path):
@@ -50,13 +84,17 @@ class InstallGitRepoAction(Action):
             packs = os.listdir(abs_local_path)
         for pack in packs:
             abs_pack_temp_location = os.path.join(abs_local_path, pack)
-            desired, message = InstallGitRepoAction._is_desired_pack(abs_pack_temp_location, pack)
+            desired, message = DownloadGitRepoAction._is_desired_pack(abs_pack_temp_location, pack)
             if desired:
                 to = abs_repo_base
                 dest_pack_path = os.path.join(abs_repo_base, pack)
                 if os.path.exists(dest_pack_path):
                     self.logger.debug('Removing existing pack %s in %s to replace.', pack,
                                       dest_pack_path)
+                    # Ensure to preserve any existing configuration
+                    old_config_file = os.path.join(dest_pack_path, CONFIG_FILE)
+                    new_config_file = os.path.join(abs_pack_temp_location, CONFIG_FILE)
+                    shutil.move(old_config_file, new_config_file)
                     shutil.rmtree(dest_pack_path)
                 self.logger.debug('Moving pack from %s to %s.', abs_pack_temp_location, to)
                 shutil.move(abs_pack_temp_location, to)
@@ -114,3 +152,38 @@ class InstallGitRepoAction(Action):
             raise Exception(message)
 
         return sanitized_result
+
+    @staticmethod
+    def _eval_subtree(repo_url, subtree):
+        st2_repos = re.compile("st2(contrib|incubator)")
+        match = True if st2_repos.search(repo_url) else False
+        return subtree ^ match
+
+    @staticmethod
+    def _eval_repo_url(repo_url):
+        """Allow passing short GitHub style URLs"""
+        if len(repo_url.split('/')) == 2 and "git@" not in repo_url:
+            return "https://github.com/{}.git".format(repo_url)
+        else:
+            return "{}.git".format(repo_url)
+
+    @staticmethod
+    def _tag_pack(pack_dir, packs, subtree):
+        """Add git information to pack directory for retrieval later"""
+        for pack in packs:
+            repo = Repo(pack_dir)
+            payload = {
+                "branch": repo.active_branch.name,
+                "ref": repo.head.commit.hexsha
+            }
+
+            if subtree:
+                info_file = os.path.join(pack_dir, pack, GITINFO_FILE)
+            else:
+                info_file = os.path.join(pack_dir, GITINFO_FILE)
+
+            try:
+                gitinfo = open(info_file, "w")
+                gitinfo.write(json.dumps(payload))
+            finally:
+                gitinfo.close()

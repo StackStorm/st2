@@ -11,6 +11,7 @@ criteria:
 description: ''
 enabled: true
 name: cron_timer_rule_2
+pack: timer_rules
 tags:
 - name: tag1
   value: dont-care
@@ -20,4 +21,4 @@ trigger:
   parameters:
     minute: 0
     second: 0
-  type: core.CronTimer
+  type: core.st2.CronTimer

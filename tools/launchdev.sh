@@ -75,16 +75,15 @@ function st2start(){
         ./st2api/bin/st2api \
         --config-file $ST2_CONF
 
-    # Run the action runner server
-    echo 'Starting screen session st2-actionrunner...'
-    screen -d -m -S st2-actionrunner
-
-    # start each runner in its own nested screen tab
+    # Start a screen for every runner
+    echo 'Starting screen sessions for st2-actionrunner(s)...'
+    RUNNER_SCREENS=()
     for i in $(seq 1 $runner_count)
     do
-        # a screen for every runner
-        echo '    starting runner ' $i '...'
-        screen -S st2-actionrunner -X screen -t runner-$i ./virtualenv/bin/python \
+        RUNNER_NAME=st2-actionrunner-$i
+        RUNNER_SCREENS+=($RUNNER_NAME)
+        echo '  starting '$RUNNER_NAME'...'
+        screen -d -m -S $RUNNER_NAME ./virtualenv/bin/python \
             ./st2actions/bin/st2actionrunner \
             --config-file $ST2_CONF
     done
@@ -113,19 +112,25 @@ function st2start(){
         ./st2actions/bin/st2notifier \
         --config-file $ST2_CONF
 
+    # Run the auth API server
+    echo 'Starting screen session st2-auth...'
+    screen -d -m -S st2-auth ./virtualenv/bin/python \
+        ./st2auth/bin/st2auth \
+        --config-file $ST2_CONF
 
     # Check whether screen sessions are started
-    screens=(
+    SCREENS=(
         "st2-api"
-        "st2-actionrunner"
+        "${RUNNER_SCREENS[@]}"
         "st2-sensorcontainer"
         "st2-rulesengine"
         "st2-resultstracker"
         "st2-notifier"
+        "st2-auth"
     )
 
     echo
-    for s in "${screens[@]}"
+    for s in "${SCREENS[@]}"
     do
         screen -ls | grep "${s}[[:space:]]" &> /dev/null
         if [ $? != 0 ]; then
@@ -133,8 +138,8 @@ function st2start(){
         fi
     done
 
-    # Register sensors, actions and rules
-    echo 'Registering sensors, actions, rules and aliases...'
+    # Register contents
+    echo 'Registering sensors, actions, rules, aliases, and policies...'
     ./virtualenv/bin/python \
         ./st2common/bin/st2-register-content \
         --config-file $ST2_CONF --register-all

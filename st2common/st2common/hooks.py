@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import httplib
+import traceback
 
 import webob
 from oslo.config import cfg
@@ -22,7 +23,7 @@ from six.moves.urllib import parse as urlparse
 from webob import exc
 
 from st2common import log as logging
-from st2common.exceptions import access as exceptions
+from st2common.exceptions import auth as exceptions
 from st2common.util.jsonify import json_encode
 from st2common.util.auth import validate_token
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
@@ -148,9 +149,9 @@ class JSONErrorResponseHook(PecanHook):
     """
 
     def on_error(self, state, e):
-
         error_msg = getattr(e, 'comment', str(e))
         LOG.debug('API call failed: %s', error_msg)
+        LOG.debug(traceback.format_exc())
 
         if hasattr(e, 'body') and isinstance(e.body, dict):
             body = e.body

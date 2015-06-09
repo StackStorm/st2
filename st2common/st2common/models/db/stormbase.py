@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import bson
 import datetime
-import mongoengine as me
+
+import bson
 import six
+import mongoengine as me
 
 from st2common.util import mongoescape
 from st2common.models.system.common import ResourceReference
@@ -38,6 +39,9 @@ class StormFoundationDB(me.Document):
     Base abstraction for a model entity. This foundation class should only be directly
     inherited from the application domain models.
     """
+
+    # We explicitly assign the manager so pylint know what type objects is
+    objects = me.queryset.QuerySetManager()
 
     # ObjectIdField should be not have any constraints like required,
     # unique etc for it to be auto-generated.

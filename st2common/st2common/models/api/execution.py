@@ -21,7 +21,7 @@ from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.execution import ActionExecutionDB
-from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
+from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common import log as logging
@@ -129,6 +129,10 @@ class ActionExecutionAPI(BaseAPI):
         for attr, meta in six.iteritems(cls.schema.get('properties', dict())):
             default = copy.deepcopy(meta.get('default', None))
             value = getattr(instance, attr, default)
+
+            # pylint: disable=no-member
+            # TODO: Add plugin which lets pylint know each MongoEngine document has _fields
+            # attribute
             if not value and not cls.model._fields[attr].required:
                 continue
             if attr not in ActionExecutionAPI.SKIP:

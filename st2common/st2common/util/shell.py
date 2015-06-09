@@ -14,19 +14,26 @@
 # limitations under the License.
 
 import os
+import shlex
 import subprocess
 from subprocess import list2cmdline
 
 import six
 
+from st2common import log as logging
+
 __all__ = [
     'run_command',
+    'kill_process',
 
     'quote_unix',
     'quote_windows'
 ]
 
+LOG = logging.getLogger(__name__)
 
+
+# pylint: disable=too-many-function-args
 def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
                 cwd=None, env=None):
     """
@@ -67,6 +74,26 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     exit_code = process.returncode
 
     return (exit_code, stdout, stderr)
+
+
+def kill_process(process):
+    """
+    Kill the provided process by sending it TERM signal using "pkill" shell
+    command.
+
+    Note: This function only works on Linux / Unix based systems.
+
+    :param process: Process object as returned by subprocess.Popen.
+    :type process: ``object``
+    """
+    kill_command = shlex.split('sudo pkill -TERM -s %s' % (process.pid))
+
+    try:
+        status = subprocess.call(kill_command)
+    except Exception:
+        LOG.exception('Unable to pkill process.')
+
+    return status
 
 
 def quote_unix(value):

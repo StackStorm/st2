@@ -13,7 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import shlex
+
 from st2common.exceptions import content
+
+__all__ = [
+    'JsonValueParser',
+    'StringValueParser',
+    'DefaultParser',
+
+    'KeyValueActionAliasFormatParser',
+    'ActionAliasFormatParser'
+]
 
 
 class JsonValueParser(object):
@@ -98,15 +109,47 @@ class DefaultParser(object):
 PARSERS = [JsonValueParser, StringValueParser, DefaultParser]
 
 
+class KeyValueActionAliasFormatParser(object):
+    """
+    Parser which parses action parameters in the format of "key=value" from the provided param
+    string.
+    """
+
+    delimiter = '='
+
+    def __init__(self, alias_format, param_stream=None):
+        self._format_stream = alias_format
+        self._param_stream = param_stream or ''
+
+    def parse(self):
+        result = {}
+
+        try:
+            tokens = shlex.split(self._param_stream)
+        except ValueError:
+            return result
+
+        for token in tokens:
+            split = token.split('=', 1)
+
+            if len(split) != 2:
+                continue
+
+            key, value = split
+
+            result[key] = value
+        return result
+
+
 class ActionAliasFormatParser(object):
 
     FORMAT_MARKER_START = '{{'
     FORMAT_MARKER_END = '}}'
     PARAM_DEFAULT_VALUE_SEPARATOR = '='
 
-    def __init__(self, alias_format, param_stream):
-        self._format = alias_format
-        self._param_stream = param_stream
+    def __init__(self, alias_format=None, param_stream=None):
+        self._format = alias_format or ''
+        self._param_stream = param_stream or ''
         self._alias_fmt_ptr = 0
         self._param_strm_ptr = 0
 
@@ -132,6 +175,12 @@ class ActionAliasFormatParser(object):
             # move the alias_fmt_ptr to one beyond the end of each
             self._alias_fmt_ptr = p_end
             self._param_strm_ptr = v_end
+        elif v_start < len(self._format):
+            # Advance in the format string
+            # Note: We still want to advance in the format string even though
+            # there is nothing left in the param stream since we support default
+            # values and param_stream can be empty
+            self._alias_fmt_ptr = p_end
 
         if not value and not default_value:
             raise content.ParseException('No value supplied and no default value found.')
@@ -139,7 +188,19 @@ class ActionAliasFormatParser(object):
         return param_name, value if value else default_value
 
     def get_extracted_param_value(self):
-        return {name: value for name, value in self}
+        result = {}
+
+        # First extract format params provided in the string (if any)
+        format_params = {name: value for name, value in self}
+        result.update(format_params)
+
+        # Second extract key=value params provided in the param string
+        kv_parser = KeyValueActionAliasFormatParser(alias_format=self._format,
+                                                    param_stream=self._param_stream)
+        kv_params = kv_parser.parse()
+        result.update(kv_params)
+
+        return result
 
     def _get_next_param_format(self):
         mrkr_strt_ps = self._format.index(self.FORMAT_MARKER_START, self._alias_fmt_ptr)

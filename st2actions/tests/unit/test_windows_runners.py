@@ -52,24 +52,21 @@ class WindowsRunnerTestCase(TestCase):
             [
                 'winexe',
                 '--interactive', '0',
-                '-U', 'Administrator1',
-                '--password', 'bar1',
+                '-U', 'Administrator1%bar1',
                 '//localhost',
                 'powershell.exe "C:\\\\myscript.ps1"'
             ],
             [
                 'winexe',
                 '--interactive', '0',
-                '-U', 'Administrator2',
-                '--password', 'bar2',
+                '-U', 'Administrator2%bar2',
                 '//127.0.0.1',
                 'dir'
             ],
             [
                 'winexe',
                 '--interactive', '0',
-                '-U', 'MyDomain\Administrator3',
-                '--password', 'bar3',
+                '-U', 'MyDomain\Administrator3%bar3',
                 '//localhost',
                 'dir'
             ]
@@ -129,6 +126,35 @@ class WindowsRunnerTestCase(TestCase):
         runner = self._get_base_runner()
         for arguments, expected_value in zip(arguments, expected_values):
             actual_value = runner._get_smbclient_command_args(**arguments)
+            self.assertEqual(actual_value, expected_value)
+
+    def test_get_script_args(self):
+        arguments = [
+            {
+                'positional_args': 'a b c',
+                'named_args': {
+                    'arg1': 'value1',
+                    'arg2': 'value2'
+                }
+            },
+            {
+                'positional_args': 'a b c',
+                'named_args': {
+                    'arg1': 'value1',
+                    'arg2': True,
+                    'arg3': False,
+                    'arg4': ['foo', 'bar', 'baz']
+                }
+            }
+        ]
+        expected_values = [
+            'a b c -arg1 value1 -arg2 value2',
+            'a b c -arg1 value1 -arg2 -arg3:$false -arg4 foo,bar,baz'
+        ]
+
+        runner = self._get_script_runner()
+        for arguments, expected_value in zip(arguments, expected_values):
+            actual_value = runner._get_script_arguments(**arguments)
             self.assertEqual(actual_value, expected_value)
 
     def test_parse_share_information(self):

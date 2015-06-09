@@ -18,9 +18,10 @@ import datetime
 import mock
 from mongoengine import NotUniqueError
 
-from st2common.models.db.reactor import (TriggerDB, TriggerTypeDB)
 from st2common.models.api.rule import RuleAPI
-from st2common.persistence.reactor import (TriggerType, Trigger, Rule)
+from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB)
+from st2common.persistence.rule import Rule
+from st2common.persistence.trigger import (TriggerType, Trigger)
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.engine import RulesEngine
@@ -138,6 +139,7 @@ class RuleEngineTest(DbTestCase):
         RULE_1 = {
             'enabled': True,
             'name': 'st2.test.rule1',
+            'pack': 'sixpack',
             'trigger': {
                 'type': 'dummy_pack_1.st2.test.trigger1'
             },
@@ -165,6 +167,7 @@ class RuleEngineTest(DbTestCase):
         RULE_2 = {                      # Rule should match.
             'enabled': True,
             'name': 'st2.test.rule2',
+            'pack': 'sixpack',
             'trigger': {
                 'type': 'dummy_pack_1.st2.test.trigger1'
             },
@@ -192,6 +195,7 @@ class RuleEngineTest(DbTestCase):
         RULE_3 = {
             'enabled': False,         # Disabled rule shouldn't match.
             'name': 'st2.test.rule3',
+            'pack': 'sixpack',
             'trigger': {
                 'type': 'dummy_pack_1.st2.test.trigger1'
             },
@@ -220,6 +224,7 @@ class RuleEngineTest(DbTestCase):
         RULE_4 = {
             'enabled': True,
             'name': 'st2.test.rule4',
+            'pack': 'sixpack',
             'trigger': {
                 'type': 'dummy_pack_1.st2.test.trigger2'
             },

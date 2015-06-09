@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import datetime
 
 import jsonschema
@@ -31,7 +32,8 @@ from st2common.constants.action import CANCELABLE_STATES
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.persistence.action import LiveAction
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
@@ -43,6 +45,13 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
+
+# Note: We initialize filters here and not in the constructor
+SUPPORTED_EXECUTIONS_FILTERS = SUPPORTED_FILTERS
+SUPPORTED_EXECUTIONS_FILTERS.update({
+    'timestamp_gt': 'start_timestamp.gt',
+    'timestamp_lt': 'start_timestamp.lt'
+})
 
 MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
@@ -61,6 +70,47 @@ class ActionExecutionsControllerMixin(RestController):
         'result',
         'trigger_instance'
     ]
+
+    def _handle_schedule_execution(self, execution):
+        try:
+            return self._schedule_execution(execution=execution)
+        except ValueError as e:
+            LOG.exception('Unable to execute action.')
+            abort(http_client.BAD_REQUEST, str(e))
+        except jsonschema.ValidationError as e:
+            LOG.exception('Unable to execute action. Parameter validation failed.')
+            abort(http_client.BAD_REQUEST, str(e))
+        except Exception as e:
+            LOG.exception('Unable to execute action. Unexpected error encountered.')
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+
+    def _schedule_execution(self, execution):
+        # Initialize execution context if it does not exist.
+        if not hasattr(execution, 'context'):
+            execution.context = dict()
+
+        # Retrieve username of the authed user (note - if auth is disabled, user will not be
+        # set so we fall back to the system user name)
+        request_token = pecan.request.context.get('token', None)
+
+        if request_token:
+            user = request_token.user
+        else:
+            user = cfg.CONF.system_user.user
+
+        execution.context['user'] = user
+
+        # Retrieve other st2 context from request header.
+        if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
+            context = jsonify.try_loads(pecan.request.headers['st2-context'])
+            if not isinstance(context, dict):
+                raise ValueError('Unable to convert st2-context from the headers into JSON.')
+            execution.context.update(context)
+
+        # Schedule the action execution.
+        liveactiondb = LiveActionAPI.to_model(execution)
+        _, actionexecutiondb = action_service.request(liveactiondb)
+        return ActionExecutionAPI.from_model(actionexecutiondb)
 
     def _get_result_object(self, id):
         """
@@ -130,6 +180,52 @@ class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
         return result
 
 
+class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceController):
+    supported_filters = {}
+    exclude_fields = [
+        'result',
+        'trigger_instance'
+    ]
+
+    class ExecutionParameters(object):
+        def __init__(self, parameters=None):
+            self.parameters = parameters or {}
+
+        def validate(self):
+            if self.parameters:
+                assert isinstance(self.parameters, dict)
+
+            return True
+
+    @jsexpose(body_cls=ExecutionParameters, status_code=http_client.CREATED)
+    def post(self, execution_parameters, execution_id):
+        """
+        Re-run the provided action execution optionally specifying override parameters.
+
+        Handles requests:
+
+            POST /executions/<id>/re_run
+        """
+        parameters = execution_parameters.parameters
+
+        # Note: We only really need parameters here
+        existing_execution = self._get_one(id=execution_id, exclude_fields=self.exclude_fields)
+
+        # Merge in any parameters provided by the user
+        new_parameters = copy.deepcopy(existing_execution.parameters)
+        new_parameters.update(parameters)
+
+        # Create object for the new execution
+        action_ref = existing_execution.action['ref']
+
+        new_execution = LiveActionDB()
+        new_execution.action = action_ref
+        new_execution.parameters = new_parameters
+
+        result = self._handle_schedule_execution(execution=new_execution)
+        return result
+
+
 class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceController):
     """
         Implements the RESTful web endpoint that handles
@@ -141,23 +237,17 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
     children = ActionExecutionChildrenController()
     attribute = ActionExecutionAttributeController()
+    re_run = ActionExecutionReRunController()
 
+    # ResourceController attributes
     query_options = {
         'sort': ['-start_timestamp', 'action']
     }
-    supported_filters = {
-        'timestamp_gt': 'start_timestamp.gt',
-        'timestamp_lt': 'start_timestamp.lt'
-    }
+    supported_filters = SUPPORTED_EXECUTIONS_FILTERS
     filter_transform_functions = {
         'timestamp_gt': lambda value: isotime.parse(value=value),
         'timestamp_lt': lambda value: isotime.parse(value=value)
     }
-
-    def __init__(self):
-        super(ActionExecutionsController, self).__init__()
-        # Add common execution view supported filters
-        self.supported_filters.update(SUPPORTED_FILTERS)
 
     @jsexpose()
     def get_all(self, exclude_attributes=None, **kw):
@@ -201,42 +291,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
     @jsexpose(body_cls=LiveActionAPI, status_code=http_client.CREATED)
     def post(self, execution):
-        try:
-            # Initialize execution context if it does not exist.
-            if not hasattr(execution, 'context'):
-                execution.context = dict()
-
-            # Retrieve username of the authed user (note - if auth is disabled, user will not be
-            # set so we fall back to the system user name)
-            request_token = pecan.request.context.get('token', None)
-
-            if request_token:
-                user = request_token.user
-            else:
-                user = cfg.CONF.system_user.user
-
-            execution.context['user'] = user
-
-            # Retrieve other st2 context from request header.
-            if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
-                context = jsonify.try_loads(pecan.request.headers['st2-context'])
-                if not isinstance(context, dict):
-                    raise ValueError('Unable to convert st2-context from the headers into JSON.')
-                execution.context.update(context)
-
-            # Schedule the action execution.
-            liveactiondb = LiveActionAPI.to_model(execution)
-            _, actionexecutiondb = action_service.schedule(liveactiondb)
-            return ActionExecutionAPI.from_model(actionexecutiondb)
-        except ValueError as e:
-            LOG.exception('Unable to execute action.')
-            abort(http_client.BAD_REQUEST, str(e))
-        except jsonschema.ValidationError as e:
-            LOG.exception('Unable to execute action. Parameter validation failed.')
-            abort(http_client.BAD_REQUEST, str(e))
-        except Exception as e:
-            LOG.exception('Unable to execute action. Unexpected error encountered.')
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+        return self._handle_schedule_execution(execution=execution)
 
     @jsexpose(arg_types=[str])
     def delete(self, exec_id):

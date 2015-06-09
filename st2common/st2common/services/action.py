@@ -17,16 +17,17 @@ import datetime
 import six
 
 from st2common import log as logging
+from st2common.constants import action as action_constants
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
-from st2common.persistence.action import LiveAction
-from st2common.persistence.execution import ActionExecution
-from st2common.constants.action import (LIVEACTION_STATUS_SCHEDULED, LIVEACTION_STATUS_CANCELED)
+
 
 __all__ = [
-    'schedule',
+    'request',
     'is_action_canceled'
 ]
 
@@ -39,9 +40,9 @@ def _get_immutable_params(parameters):
     return [k for k, v in six.iteritems(parameters) if v.get('immutable', False)]
 
 
-def schedule(liveaction):
+def request(liveaction):
     """
-    Schedule an action to be run.
+    Request an action execution.
 
     :return: (liveaction, execution)
     :rtype: tuple
@@ -87,21 +88,54 @@ def schedule(liveaction):
         liveaction.notify = action_db.notify
 
     # Write to database and send to message queue.
-    liveaction.status = LIVEACTION_STATUS_SCHEDULED
+    liveaction.status = action_constants.LIVEACTION_STATUS_REQUESTED
     liveaction.start_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
     execution = executions.create_execution_object(liveaction, publish=False)
-    # assume that this is a creation.
+
+    # Assume that this is a creation.
     LiveAction.publish_create(liveaction)
+    LiveAction.publish_status(liveaction)
     ActionExecution.publish_create(execution)
 
     extra = {'liveaction_db': liveaction, 'execution_db': execution}
-    LOG.audit('Action execution scheduled. LiveAction.id=%s, ActionExecution.id=%s' %
+    LOG.audit('Action execution requested. LiveAction.id=%s, ActionExecution.id=%s' %
               (liveaction.id, execution.id), extra=extra)
+
     return liveaction, execution
 
 
+def update_status(liveaction, new_status, publish=True):
+    if liveaction.status == new_status:
+        return liveaction
+
+    old_status = liveaction.status
+
+    liveaction = action_utils.update_liveaction_status(
+        status=new_status, liveaction_id=liveaction.id, publish=False)
+
+    action_execution = executions.update_execution(liveaction)
+
+    msg = ('The status of action execution is changed from %s to %s. '
+           '<LiveAction.id=%s, ActionExecution.id=%s>' % (old_status,
+           new_status, liveaction.id, action_execution.id))
+
+    extra = {
+        'action_execution_db': action_execution,
+        'liveaction_db': liveaction
+    }
+
+    LOG.audit(msg, extra=extra)
+    LOG.info(msg)
+
+    if publish:
+        LiveAction.publish_status(liveaction)
+
+    return liveaction
+
+
 def is_action_canceled(liveaction_id):
-    liveaction_db = LiveAction.get_by_id(liveaction_id)
-    return liveaction_db.status == LIVEACTION_STATUS_CANCELED
+    liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
+    return liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELED

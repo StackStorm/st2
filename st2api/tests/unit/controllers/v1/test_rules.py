@@ -15,6 +15,8 @@
 
 import mock
 import six
+
+from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
@@ -46,9 +48,15 @@ class TestRuleController(FunctionalTest):
         TestRuleController.TRIGGER = models['triggers']['trigger1.yaml']
 
         # Don't load rule into DB as that is what is being tested.
+        file_name = 'rule1.yaml'
         TestRuleController.RULE_1 = TestRuleController.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
-            fixtures_dict={'rules': ['rule1.yaml']})['rules']['rule1.yaml']
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+        file_name = 'cron_timer_rule_invalid_parameters.yaml'
+        TestRuleController.RULE_2 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
     @classmethod
     def tearDownClass(cls):
@@ -68,11 +76,13 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(self.__get_rule_id(get_resp), rule_id)
         self.__do_delete(rule_id)
 
-    def test_get_one_by_name(self):
+    def test_get_one_by_ref(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)
         rule_name = post_resp.json['name']
+        rule_pack = post_resp.json['pack']
+        ref = ResourceReference.to_string_reference(name=rule_name, pack=rule_pack)
         rule_id = post_resp.json['id']
-        get_resp = self.__do_get_one(rule_name)
+        get_resp = self.__do_get_one(ref)
         self.assertEqual(get_resp.json['name'], rule_name)
         self.assertEqual(get_resp.status_int, http_client.OK)
         self.__do_delete(rule_id)
@@ -94,6 +104,13 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(post_resp_2.status_int, http_client.CONFLICT)
         self.assertEqual(post_resp_2.json['conflict-id'], org_id)
         self.__do_delete(org_id)
+
+    def test_post_trigger_parameter_schema_validation_fails(self):
+        post_resp = self.__do_post(TestRuleController.RULE_2)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+
+        expected_msg = 'Additional properties are not allowed (u\'minutex\' was unexpected)'
+        self.assertTrue(expected_msg in post_resp.body)
 
     def test_put(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)

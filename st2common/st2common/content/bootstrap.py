@@ -37,6 +37,7 @@ def register_opts():
         cfg.BoolOpt('actions', default=False, help='Register actions.'),
         cfg.BoolOpt('rules', default=False, help='Register rules.'),
         cfg.BoolOpt('aliases', default=False, help='Register aliases.'),
+        cfg.BoolOpt('policies', default=False, help='Register policies.'),
         cfg.StrOpt('pack', default=None, help='Directory to the pack to register content from.')
     ]
     try:
@@ -47,6 +48,7 @@ register_opts()
 
 
 def register_sensors():
+    registered_count = 0
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering sensors ######################')
@@ -64,6 +66,8 @@ def register_sensors():
 def register_actions():
     # Register runnertypes and actions. The order is important because actions require action
     # types to be present in the system.
+    registered_count = 0
+
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering actions ######################')
@@ -73,7 +77,6 @@ def register_actions():
         import st2actions.bootstrap.runnersregistrar as runners_registrar
         runners_registrar.register_runner_types(experimental=cfg.CONF.experimental)
     except Exception as e:
-        registered_count = 0
         LOG.warning('Failed to register runner types: %s', e, exc_info=True)
         LOG.warning('Not registering stock runners .')
     else:
@@ -90,6 +93,8 @@ def register_actions():
 
 def register_rules():
     # Register rules.
+    registered_count = 0
+
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering rules ########################')
@@ -106,6 +111,7 @@ def register_rules():
 
 def register_aliases():
     # Register rules.
+    registered_count = 0
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering aliases ######################')
@@ -120,12 +126,39 @@ def register_aliases():
     LOG.info('Registered %s aliases.', registered_count)
 
 
+def register_policies():
+    # Register policy types and policies.
+    try:
+        LOG.info('=========================================================')
+        LOG.info('############## Registering policy types #################')
+        LOG.info('=========================================================')
+        import st2actions
+        from st2common.content import policies
+        registered_type_count = policies.register_policy_types(st2actions)
+    except Exception:
+        LOG.warning('Failed to register policy types.', exc_info=True)
+
+    LOG.info('Registered %s policy types.', registered_type_count)
+
+    try:
+        LOG.info('=========================================================')
+        LOG.info('############## Registering policies #####################')
+        LOG.info('=========================================================')
+        from st2common.content import policies
+        registered_count = policies.register_policies()
+    except Exception:
+        LOG.warning('Failed to register policies.', exc_info=True)
+
+    LOG.info('Registered %s policies.', registered_count)
+
+
 def register_content():
     if cfg.CONF.register.all:
         register_sensors()
         register_actions()
         register_rules()
         register_aliases()
+        register_policies()
         return
 
     if cfg.CONF.register.sensors:
@@ -139,6 +172,9 @@ def register_content():
 
     if cfg.CONF.register.aliases:
         register_aliases()
+
+    if cfg.CONF.register.policies:
+        register_policies()
 
 
 def _setup(argv):

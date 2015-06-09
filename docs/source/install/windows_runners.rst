@@ -50,7 +50,7 @@ Windows runners have been tested on the following versions of Windows:
 * Windows server 2012
 
 Underlying library we use to talk to the Windows hosts also supports other
-versions (2000 / XP / 2003 / Vista / 2003 / 2008), but we haven't tested our
+versions (2000 / XP / 2003 / Vista / 2008), but we haven't tested our
 runners with those versions so we can't guarantee that runners will work there.
 
 Configuring your Window Server for remote access

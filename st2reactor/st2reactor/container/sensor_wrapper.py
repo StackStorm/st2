@@ -29,12 +29,12 @@ from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
 from st2common.util.config_parser import ContentPackConfigParser
 from st2common.services.triggerwatcher import TriggerWatcher
-from st2reactor.sensor.base import Sensor
+from st2reactor.sensor.base import Sensor, PollingSensor
 from st2reactor.sensor import config
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
-from st2client.models.datastore import KeyValuePair
+from st2client.models.keyvalue import KeyValuePair
 
 __all__ = [
     'SensorWrapper'
@@ -405,7 +405,7 @@ class SensorWrapper(object):
         if self._pack not in SYSTEM_PACK_NAMES:
             sensor_class_kwargs['config'] = sensor_config
 
-        if self._poll_interval:
+        if self._poll_interval and isinstance(sensor_class, PollingSensor):
             sensor_class_kwargs['poll_interval'] = self._poll_interval
 
         try:

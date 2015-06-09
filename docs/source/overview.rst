@@ -24,7 +24,7 @@ How it works
 
 |st2| plugs into the environment via the extensible set of adapters: sensors and actions.
 
-* **Sensors** are python plugins for inbound integration that watch for events from external systems and fire a |st2| trigger when event happens.
+* **Sensors** are python plugins for either inbound or outbound integration that receives or watches for events respectively. When an event from external systems occurs and is processed by a sensor, a |st2| trigger will be emitted into the system.
 
 * **Triggers** are |st2| representations of external events. There are generic triggers (e.g. timers, webhooks) and integration triggers (e.g. Sensu alert, JIRA issue updated). A new trigger type can be defined by writing a sensor plugin.
 

@@ -21,8 +21,10 @@ from st2common.constants import action as action_constants
 from st2actions.runners import get_runner
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.system.common import ResourceReference
-from st2common.models.db.action import (LiveActionDB, RunnerTypeDB)
-from st2common.persistence.action import (LiveAction, ActionExecutionState)
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.runner import RunnerTypeDB
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import executions
 from st2common.transport.publishers import PoolPublisher
 from st2tests.base import DbTestCase
@@ -156,7 +158,7 @@ class RunnerContainerTest(DbTestCase):
 
     def _get_action_exec_db_model(self, action_db, params):
         liveaction_db = LiveActionDB()
-        liveaction_db.status = action_constants.LIVEACTION_STATUS_SCHEDULED
+        liveaction_db.status = action_constants.LIVEACTION_STATUS_REQUESTED
         liveaction_db.start_timestamp = datetime.datetime.utcnow()
         liveaction_db.action = ResourceReference(
             name=action_db.name,
@@ -167,7 +169,7 @@ class RunnerContainerTest(DbTestCase):
 
     def _get_failingaction_exec_db_model(self, params):
         liveaction_db = LiveActionDB()
-        liveaction_db.status = action_constants.LIVEACTION_STATUS_SCHEDULED
+        liveaction_db.status = action_constants.LIVEACTION_STATUS_REQUESTED
         liveaction_db.start_timestamp = datetime.datetime.now()
         liveaction_db.action = ResourceReference(
             name=RunnerContainerTest.failingaction_db.name,

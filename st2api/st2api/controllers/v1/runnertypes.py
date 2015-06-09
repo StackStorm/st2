@@ -21,7 +21,7 @@ import six
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.models.api.action import RunnerTypeAPI
-from st2common.persistence.action import RunnerType
+from st2common.persistence.runner import RunnerType
 
 http_client = six.moves.http_client
 

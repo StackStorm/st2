@@ -23,24 +23,19 @@ from tests import base
 from st2client import shell
 from st2client.utils import httpclient
 
-
 LOG = logging.getLogger(__name__)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE_PATH_FULL = os.path.join(BASE_DIR, '../fixtures/st2rc.full.ini')
+CONFIG_FILE_PATH_PARTIAL = os.path.join(BASE_DIR, '../fixtures/st2rc.partial.ini')
 
 
 class TestShell(base.BaseCLITestCase):
-    hide_output = True
+    capture_output = True
 
     def __init__(self, *args, **kwargs):
         super(TestShell, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
-
-    def setUp(self):
-        super(TestShell, self).setUp()
-
-        # Setup environment.
-        for var in ['ST2_BASE_URL', 'ST2_AUTH_URL', 'ST2_API_URL']:
-            if var in os.environ:
-                del os.environ[var]
 
     def test_endpoints_default(self):
         base_url = 'http://localhost'
@@ -126,33 +121,6 @@ class TestShell(base.BaseCLITestCase):
                     else self.shell.commands[args[0]].commands[args[1]].run_and_print)
             self.assertEqual(ns.func, func)
 
-    def test_trigger(self):
-        args_list = [
-            ['trigger', 'list'],
-            ['trigger', 'get', 'abc'],
-            ['trigger', 'create', '/tmp/trigger.json'],
-            ['trigger', 'update', '123', '/tmp/trigger.json'],
-            ['trigger', 'delete', 'abc']
-        ]
-        self._validate_parser(args_list)
-
-    def test_rule(self):
-        args_list = [
-            ['rule', 'list'],
-            ['rule', 'get', 'abc'],
-            ['rule', 'create', '/tmp/rule.json'],
-            ['rule', 'update', '123', '/tmp/rule.json'],
-            ['rule', 'delete', 'abc']
-        ]
-        self._validate_parser(args_list)
-
-    def test_runner(self):
-        args_list = [
-            ['runner', 'list'],
-            ['runner', 'get', 'abc']
-        ]
-        self._validate_parser(args_list)
-
     def test_action(self):
         args_list = [
             ['action', 'list'],
@@ -166,15 +134,6 @@ class TestShell(base.BaseCLITestCase):
             ['action', 'execute', 'remote-fib', 'hosts=192.168.1.1', '3', '8']
         ]
         self._validate_parser(args_list)
-
-    def test_run(self):
-        args_list = [
-            ['run', '-h'],
-            ['run', 'abc', '-h'],
-            ['run', 'remote', 'hosts=192.168.1.1', 'user=st2', 'cmd="ls -l"'],
-            ['run', 'remote-fib', 'hosts=192.168.1.1', '3', '8']
-        ]
-        self._validate_parser(args_list, is_subcommand=False)
 
     def test_action_execution(self):
         args_list = [
@@ -196,5 +155,101 @@ class TestShell(base.BaseCLITestCase):
             ['key', 'set', 'abc', '123'],
             ['key', 'delete', 'abc'],
             ['key', 'load', '/tmp/keys.json']
+        ]
+        self._validate_parser(args_list)
+
+    def test_policy(self):
+        args_list = [
+            ['policy', 'list'],
+            ['policy', 'list', '-p', 'core'],
+            ['policy', 'list', '--pack', 'core'],
+            ['policy', 'list', '-r', 'core.local'],
+            ['policy', 'list', '--resource-ref', 'core.local'],
+            ['policy', 'list', '-pt', 'action.type1'],
+            ['policy', 'list', '--policy-type', 'action.type1'],
+            ['policy', 'list', '-r', 'core.local', '-pt', 'action.type1'],
+            ['policy', 'list', '--resource-ref', 'core.local', '--policy-type', 'action.type1'],
+            ['policy', 'get', 'abc'],
+            ['policy', 'create', '/tmp/policy.json'],
+            ['policy', 'update', '123', '/tmp/policy.json'],
+            ['policy', 'delete', 'abc']
+        ]
+        self._validate_parser(args_list)
+
+    def test_policy_type(self):
+        args_list = [
+            ['policy-type', 'list'],
+            ['policy-type', 'list', '-r', 'action'],
+            ['policy-type', 'list', '--resource-type', 'action'],
+            ['policy-type', 'get', 'abc']
+        ]
+        self._validate_parser(args_list)
+
+    @mock.patch('st2client.shell.ST2_CONFIG_PATH', '/home/does/not/exist')
+    def test_print_config_default_config_no_config(self):
+        os.environ['ST2_CONFIG_FILE'] = '/home/does/not/exist'
+        argv = ['--print-config']
+        self.assertEqual(self.shell.run(argv), 3)
+
+        self.stdout.seek(0)
+        stdout = self.stdout.read()
+
+        self.assertTrue('username = None' in stdout)
+        self.assertTrue('cache_token = True' in stdout)
+
+    def test_print_config_custom_config_as_env_variable(self):
+        os.environ['ST2_CONFIG_FILE'] = CONFIG_FILE_PATH_FULL
+        argv = ['--print-config']
+        self.assertEqual(self.shell.run(argv), 3)
+
+        self.stdout.seek(0)
+        stdout = self.stdout.read()
+
+        self.assertTrue('username = test1' in stdout)
+        self.assertTrue('cache_token = False' in stdout)
+
+    def test_print_config_custom_config_as_command_line_argument(self):
+        argv = ['--print-config', '--config-file=%s' % (CONFIG_FILE_PATH_FULL)]
+        self.assertEqual(self.shell.run(argv), 3)
+
+        self.stdout.seek(0)
+        stdout = self.stdout.read()
+
+        self.assertTrue('username = test1' in stdout)
+        self.assertTrue('cache_token = False' in stdout)
+
+    def test_run(self):
+        args_list = [
+            ['run', '-h'],
+            ['run', 'abc', '-h'],
+            ['run', 'remote', 'hosts=192.168.1.1', 'user=st2', 'cmd="ls -l"'],
+            ['run', 'remote-fib', 'hosts=192.168.1.1', '3', '8']
+        ]
+        self._validate_parser(args_list, is_subcommand=False)
+
+    def test_runner(self):
+        args_list = [
+            ['runner', 'list'],
+            ['runner', 'get', 'abc']
+        ]
+        self._validate_parser(args_list)
+
+    def test_rule(self):
+        args_list = [
+            ['rule', 'list'],
+            ['rule', 'get', 'abc'],
+            ['rule', 'create', '/tmp/rule.json'],
+            ['rule', 'update', '123', '/tmp/rule.json'],
+            ['rule', 'delete', 'abc']
+        ]
+        self._validate_parser(args_list)
+
+    def test_trigger(self):
+        args_list = [
+            ['trigger', 'list'],
+            ['trigger', 'get', 'abc'],
+            ['trigger', 'create', '/tmp/trigger.json'],
+            ['trigger', 'update', '123', '/tmp/trigger.json'],
+            ['trigger', 'delete', 'abc']
         ]
         self._validate_parser(args_list)

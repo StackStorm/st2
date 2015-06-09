@@ -4,6 +4,48 @@ Changelog
 in development
 --------------
 
+* Add support for script arguments to the Windows script runner. (new feature)
+  [James Sigurðarson]
+* Allow user to filter executions on trigger instance id.
+  [Sayli Karmarkar]
+
+0.11 - June 5, 2015
+-------------------
+
+* Allow user to configure the CLI using an ini style config file located at ``~/.st2rc``.
+  (new-feature)
+* Add support for caching of the retrieved auth tokens to the CLI. (new-feature)
+* Throw a more-user friendly exception when enforcing a rule if an action referenced inside
+  the rule definition doesn't exist. (improvement)
+* Fix a bug with the rule evaluation failing if the trigger payload contained a key with a
+  dot in the name. (bug-fix)
+* Fix a bug with publishing array (list) values as strings inside the action chain workflows.
+  (bug-fix)
+* Update CLI so it displays the error at the top level when using ``run``, ``execution run`` or
+  ``execution get`` when executed workflow fails. (improvement)
+* Action trigger now contains execution id as opposed to liveaction id. (bug-fix)
+* Add new API endpoint for re-running an execution (``POST /executions/<id>/re_run/``).
+  (new-feature)
+* Rules should be part of a pack. (improvement)
+* Update Windows runner code so it also works with a newer versions of winexe (> 1.0).
+  (improvement)
+  [James Sigurðarson]
+* CLI now has ``get`` and ``list`` commands for triggerinstance. (new-feature)
+* Validate parameters during rule creation for system triggers. (improvement)
+* CLI now has ``re-emit`` command for triggerinstance. (new-feature)
+
+v0.9.2 - May 26, 2015
+---------------------
+
+* Fix broken ``packs.download`` action. (bug-fix)
+
+v0.9.1 - May 12, 2015
+---------------------
+
+* Allow option to bypass SSL Certificate Check (improvement)
+* Fix a bug with alias parser to support empty formats (bug-fix)
+* Return HTTP BAD REQUEST when TTL requested for token > Max configured TTL (improvement)
+
 v0.9.0 - April 29, 2015
 -----------------------
 

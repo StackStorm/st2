@@ -22,7 +22,7 @@ from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.action import ActionAliasAPI
-from st2common.persistence.action import ActionAlias
+from st2common.persistence.actionalias import ActionAlias
 
 __all__ = [
     'AliasesRegistrar',
@@ -83,11 +83,12 @@ class AliasesRegistrar(ResourceRegistrar):
             registered_count = self._register_aliases_from_pack(pack=pack, aliases=aliases)
         except:
             LOG.exception('Failed registering all aliases from pack: %s', aliases_dir)
+            return 0
 
         return registered_count
 
     def _get_aliases_from_pack(self, aliases_dir):
-        return self._get_resources_from_pack(resources_dir=aliases_dir)
+        return self.get_resources_from_pack(resources_dir=aliases_dir)
 
     def _register_action_alias(self, pack, action_alias):
         content = self._meta_loader.load(action_alias)

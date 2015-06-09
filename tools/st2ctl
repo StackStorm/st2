@@ -3,6 +3,7 @@
 set -e
 
 LOGFILE="/tmp/st2_startup.log"
+WEBUI_LOG_FILE="/var/log/st2/st2web.log"
 COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine mistral st2web st2resultstracker st2notifier"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
@@ -50,6 +51,8 @@ function print_usage() {
     echo "  --register-sensors  Register all sensors only."
     echo "  --register-rules    Register all rules only."
     echo "  --register-actions  Register all actions only."
+    echo "  --register-aliases  Register all aliases only."
+    echo "  --register-policies Register all policies only."
     echo "  --verbose           Output additional debug and informational messages."
 }
 
@@ -94,14 +97,14 @@ fi
 if [ ${1} == "reload" -o ${1} == "clean" ]; then
     if [ -z ${2} ]; then
         REGISTER_FLAGS="--register-sensors --register-actions"
-    elif [ ! -z ${2} ] && [ ${2} == "--register-all" -o ${2} == "--register-sensors"  -o ${2} == "--register-rules" -o ${2} == "--register-actions" ]; then
+    elif [ ! -z ${2} ] && [ ${2} == "--register-all" -o ${2} == "--register-sensors"  -o ${2} == "--register-rules" -o ${2} == "--register-actions" -o ${2} == "--register-aliases" -o ${2} == "--register-policies" ]; then
         REGISTER_FLAGS=${2}
         if [ ! -z ${3} ] && [ ${3} == "--verbose" ]; then
             REGISTER_FLAGS="${REGISTER_FLAGS} ${3}"
         fi
     elif [ ${2} == "--verbose" ] && [ -z ${3} ]; then
         REGISTER_FLAGS="--register-sensors --register-actions ${2}"
-    elif [ ${2} == "--verbose" ] && [ ${3} == "--register-all" -o ${3} == "--register-sensors"  -o ${3} == "--register-rules" -o ${3} == "--register-actions" ]; then
+    elif [ ${2} == "--verbose" ] && [ ${3} == "--register-all" -o ${3} == "--register-sensors"  -o ${3} == "--register-rules" -o ${3} == "--register-actions" -o ${3} == "--register-aliases" -o ${3} == "--register-policies" ]; then
         REGISTER_FLAGS="${3} ${2}"
     else
         print_usage
@@ -127,7 +130,7 @@ function st2start(){
   else
     service mistral start
   fi
-  (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${LOGFILE} &
+  (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
 }
 
 function st2stop(){
@@ -216,7 +219,7 @@ function restart_component() {
         do
            kill $p
            sleep 1
-           (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${LOGFILE} &
+           (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
         done
       else
         echo "${COM} is not running"

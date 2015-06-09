@@ -24,7 +24,8 @@ from st2actions.runners import get_runner
 from st2common import log as logging
 from st2common.constants.action import (LIVEACTION_STATUS_FAILED,
                                         LIVEACTION_STATUS_SUCCEEDED)
-from st2common.persistence.action import (LiveAction, ActionExecutionState)
+from st2common.persistence.executionstate import ActionExecutionState
+from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 

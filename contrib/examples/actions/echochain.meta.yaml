@@ -10,4 +10,12 @@ runner_type: "action-chain"
 entry_point: "chains/echochain.yaml"
 
 enabled: true
-parameters: {}
+parameters:
+  skip_notify:
+    default:
+      - c2
+notify:
+  on-complete:
+    message: "\"@channel: Action succeeded.\""
+    channels:
+      - "slack"

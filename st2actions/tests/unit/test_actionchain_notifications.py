@@ -54,8 +54,8 @@ class TestActionChainNotifications(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', return_value=(DummyActionExecution(), None))
-    def test_chain_runner_success_path(self, schedule):
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_success_path(self, request):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = ACTION_1
@@ -63,11 +63,11 @@ class TestActionChainNotifications(DbTestCase):
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
-        self.assertEqual(schedule.call_count, 2)
-        first_call_args = schedule.call_args_list[0][0]
+        self.assertEqual(request.call_count, 2)
+        first_call_args = request.call_args_list[0][0]
         liveaction_db = first_call_args[0]
         self.assertTrue(liveaction_db.notify, 'Notify property expected.')
 
-        second_call_args = schedule.call_args_list[1][0]
+        second_call_args = request.call_args_list[1][0]
         liveaction_db = second_call_args[0]
         self.assertFalse(liveaction_db.notify, 'Notify property not expected.')

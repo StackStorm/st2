@@ -54,5 +54,7 @@ def validate(value, raise_exception=True):
 
 def parse(value):
     validate(value, raise_exception=True)
+    # pylint: disable=no-member
+    # For some reason pylint thinks it returns a tuple but it returns a datetime object
     dt = dateutil.parser.parse(str(value))
     return dt if dt.tzinfo else add_utc_tz(dt)

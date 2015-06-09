@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pylint: skip-file
+# Note: This module is not used.
+
 import uuid
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.util.ssh import SSHClient
-from st2common.models.system.action import ParamikoSSHCommandAction
 
 LOG = logging.getLogger(__name__)
 
@@ -43,7 +45,7 @@ class SSHRunner(ActionRunner):
 
                 result_stdout, result_stderr, ret_code = ssh_client.execute_sync(
                     ssh_action.get_command(),
-                    sudo=remote_action.is_sudo())
+                    sudo=False)
 
                 result['stdout'] = result_stdout
                 result['stderr'] = result_stderr
@@ -67,16 +69,3 @@ class SSHRunner(ActionRunner):
 
 def get_runner():
     return SSHRunner(str(uuid.uuid4()))
-
-# XXX: Write proper tests.
-if __name__ == '__main__':
-    print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-    print('!!!!!!!!!!!!!!!!!!!!! NORMAL CMD !!!!!!!!!!!!!!!!!!!!!!!!!!')
-    print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-    runner = SSHRunner(str(uuid.uuid4()))
-    remote_action = ParamikoSSHCommandAction('UNAME', 'action_exec_id' + str(uuid.uuid4()),
-                                             'unam -a', 'lakshmi',
-                                             hosts=['54.191.85.86', '54.200.102.55'],
-                                             sudo=True)
-    results = runner.run(remote_action)
-    print(results)

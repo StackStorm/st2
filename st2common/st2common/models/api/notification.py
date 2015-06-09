@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.models.db.action import NotificationSchema, NotificationSubSchema
+from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 
 NotificationSubSchemaAPI = {
     "type": "object",
@@ -40,15 +40,15 @@ class NotificationsHelper(object):
     @staticmethod
     def to_model(notify_api_object):
         model = NotificationSchema()
-        if notify_api_object.get('on_complete', None):
+        if notify_api_object.get('on-complete', None):
             model.on_complete = NotificationsHelper._to_model_sub_schema(
-                notify_api_object['on_complete'])
-        if notify_api_object.get('on_success', None):
+                notify_api_object['on-complete'])
+        if notify_api_object.get('on-success', None):
             model.on_success = NotificationsHelper._to_model_sub_schema(
-                notify_api_object['on_success'])
-        if notify_api_object.get('on_failure', None):
+                notify_api_object['on-success'])
+        if notify_api_object.get('on-failure', None):
             model.on_failure = NotificationsHelper._to_model_sub_schema(
-                notify_api_object['on_failure'])
+                notify_api_object['on-failure'])
         return model
 
     @staticmethod
@@ -63,13 +63,13 @@ class NotificationsHelper(object):
     def from_model(notify_model):
         notify = {}
         if getattr(notify_model, 'on_complete', None):
-            notify['on_complete'] = NotificationsHelper._from_model_sub_schema(
+            notify['on-complete'] = NotificationsHelper._from_model_sub_schema(
                 notify_model.on_complete)
         if getattr(notify_model, 'on_success', None):
-            notify['on_success'] = NotificationsHelper._from_model_sub_schema(
+            notify['on-success'] = NotificationsHelper._from_model_sub_schema(
                 notify_model.on_success)
         if getattr(notify_model, 'on_failure', None):
-            notify['on_failure'] = NotificationsHelper._from_model_sub_schema(
+            notify['on-failure'] = NotificationsHelper._from_model_sub_schema(
                 notify_model.on_failure)
         return notify
 

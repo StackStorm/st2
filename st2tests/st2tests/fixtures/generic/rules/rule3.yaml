@@ -1,7 +1,7 @@
 ---
 action:
   parameters:
-    cmd: echo "{{trigger}}" >> /tmp/st2.persons.out
+    cmd: "echo \"{{trigger}}\" >> /tmp/st2.persons.out"
   ref: core.local
 criteria:
   trigger.name:
@@ -9,6 +9,7 @@ criteria:
     type: equals
 enabled: true
 name: st2.person.joe
+pack: wolfpack
 trigger:
   parameters:
     url: person

@@ -33,6 +33,7 @@ SUPPORTED_FILTERS = {
     'timestamp': 'start_timestamp',
     'trigger': 'trigger.name',
     'trigger_type': 'trigger_type.name',
+    'trigger_instance': 'trigger_instance.id',
     'user': 'liveaction.context.user'
 }
 

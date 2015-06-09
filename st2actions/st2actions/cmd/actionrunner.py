@@ -5,7 +5,7 @@ import sys
 from oslo.config import cfg
 
 from st2actions import config
-from st2actions import worker
+from st2actions import scheduler, worker
 from st2common import log as logging
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.models.db import db_setup
@@ -51,12 +51,36 @@ def _setup():
 
 def _run_worker():
     LOG.info('(PID=%s) Worker started.', os.getpid())
+
+    components = [
+        scheduler.get_scheduler(),
+        worker.get_worker()
+    ]
+
     try:
-        worker.work()
+        for component in components:
+            component.start()
+
+        for component in components:
+            component.wait()
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Worker stopped.', os.getpid())
+
+        errors = False
+
+        for component in components:
+            try:
+                component.shutdown()
+            except:
+                LOG.exception('Unable to shutdown %s.', component.__class__.__name__)
+                errors = True
+
+        if errors:
+            return 1
     except:
+        LOG.exception('(PID=%s) Worker unexpectedly stopped.', os.getpid())
         return 1
+
     return 0
 
 

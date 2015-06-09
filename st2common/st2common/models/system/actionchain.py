@@ -70,9 +70,9 @@ class Node(object):
                 "description": "Notification settings for action.",
                 "type": "object",
                 "properties": {
-                    "on_complete": NotificationSubSchemaAPI,
-                    "on_failure": NotificationSubSchemaAPI,
-                    "on_success": NotificationSubSchemaAPI
+                    "on-complete": NotificationSubSchemaAPI,
+                    "on-failure": NotificationSubSchemaAPI,
+                    "on-success": NotificationSubSchemaAPI
                 },
                 "additionalProperties": False
             }

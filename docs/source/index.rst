@@ -15,6 +15,7 @@ Contents:
     runners
     rules
     sensors
+    aliases
     webhooks
     datastore
     workflows

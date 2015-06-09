@@ -16,7 +16,7 @@
 from six.moves.urllib import parse as urlparse
 
 from st2common.util import isotime
-from st2common.exceptions import access as exceptions
+from st2common.exceptions import auth as exceptions
 from st2common import log as logging
 from st2common.util.auth import validate_token
 from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME

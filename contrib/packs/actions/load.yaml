@@ -13,6 +13,6 @@
     register:
       type: "string"
       default: "actions"
-      description: "Possible options are all, sensors, actions, rules."
+      description: "Possible options are all, sensors, actions, rules, aliases."
     kwarg_op:
       immutable: true

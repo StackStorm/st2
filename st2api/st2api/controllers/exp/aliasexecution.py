@@ -17,43 +17,58 @@ import jsonschema
 import pecan
 import six
 
-from mongoengine import ValidationError
 from pecan import rest
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.models.api.action import AliasExecutionAPI
-from st2common.models.db.action import LiveActionDB, NotificationSchema, NotificationSubSchema
+from st2common.models.api.auth import get_system_username
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 from st2common.models.utils import action_alias_utils, action_param_utils
-from st2common.persistence.action import ActionAlias
+from st2common.persistence.actionalias import ActionAlias
 from st2common.services import action as action_service
+from st2common.util import reference
 
 
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
+CAST_OVERRIDES = {
+    'array': (lambda cs_x: [v.strip() for v in cs_x.split(',')])
+}
+
 
 class ActionAliasExecutionController(rest.RestController):
 
     @jsexpose(body_cls=AliasExecutionAPI, status_code=http_client.OK)
     def post(self, payload):
-        alias_execution = payload.command if payload else None
-        if not alias_execution:
-            pecan.abort(http_client.BAD_REQUEST, 'Alias execution command should no non-empty.')
+        action_alias_name = payload.name if payload else None
 
-        action_alias_name, leftover = self._tokenize_alias_execution(alias_execution)
+        if not action_alias_name:
+            pecan.abort(http_client.BAD_REQUEST, 'Alias execution "name" is required')
+
+        format = payload.format or ''
+        command = payload.command or ''
 
         try:
             action_alias_db = ActionAlias.get_by_name(action_alias_name)
-        except ValidationError:
+        except ValueError:
             action_alias_db = None
 
         if not action_alias_db:
-            msg = 'Unable to identify action alias with name "%s".' % action_alias_name
+            msg = 'Unable to identify action alias with name "%s".' % (action_alias_name)
             pecan.abort(http_client.NOT_FOUND, msg)
+            return
+
+        if not action_alias_db.enabled:
+            msg = 'Action alias with name "%s" is disabled.' % (action_alias_name)
+            pecan.abort(http_client.BAD_REQUEST, msg)
+            return
 
         execution_parameters = self._extract_parameters(action_alias_db=action_alias_db,
-                                                        param_stream=leftover)
+                                                        format=format,
+                                                        param_stream=command)
         notify = self._get_notify_field(payload)
         execution = self._schedule_execution(action_alias_db=action_alias_db,
                                              params=execution_parameters,
@@ -65,8 +80,12 @@ class ActionAliasExecutionController(rest.RestController):
         tokens = alias_execution.strip().split(' ', 1)
         return (tokens[0], tokens[1] if len(tokens) > 1 else None)
 
-    def _extract_parameters(self, action_alias_db, param_stream):
-        alias_format = action_alias_db.formats[0]
+    def _extract_parameters(self, action_alias_db, format, param_stream):
+        if action_alias_db.formats and format in action_alias_db.formats:
+            alias_format = format
+        else:
+            alias_format = None
+
         parser = action_alias_utils.ActionAliasFormatParser(alias_format=alias_format,
                                                             param_stream=param_stream)
         return parser.get_extracted_param_value()
@@ -86,10 +105,15 @@ class ActionAliasExecutionController(rest.RestController):
         try:
             # prior to shipping off the params cast them to the right type.
             params = action_param_utils.cast_params(action_ref=action_alias_db.action_ref,
-                                                    params=params)
-            liveaction = LiveActionDB(action=action_alias_db.action_ref, context={},
+                                                    params=params,
+                                                    cast_overrides=CAST_OVERRIDES)
+            context = {
+                'action_alias_ref': reference.get_ref_from_model(action_alias_db),
+                'user': get_system_username()
+            }
+            liveaction = LiveActionDB(action=action_alias_db.action_ref, context=context,
                                       parameters=params, notify=notify)
-            _, action_execution_db = action_service.schedule(liveaction)
+            _, action_execution_db = action_service.request(liveaction)
             return action_execution_db
         except ValueError as e:
             LOG.exception('Unable to execute action.')

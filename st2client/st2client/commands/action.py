@@ -37,6 +37,7 @@ from st2client.utils.color import format_status
 
 LOG = logging.getLogger(__name__)
 
+LIVEACTION_STATUS_REQUESTED = 'requested'
 LIVEACTION_STATUS_SCHEDULED = 'scheduled'
 LIVEACTION_STATUS_RUNNING = 'running'
 LIVEACTION_STATUS_CANCELED = 'canceled'
@@ -71,7 +72,6 @@ ENV_VARS_BLACKLIST = [
 
 WORKFLOW_RUNNER_TYPES = [
     'action-chain',
-    'mistral-v1',
     'mistral-v2',
 ]
 
@@ -280,6 +280,36 @@ class ActionRunCommandMixin(object):
             # No child error, there might be a global error, include result in the output
             options['attributes'].append('result')
 
+        # On failure we also want to include error message and traceback at the top level
+        if instance.status == 'failed':
+            status_index = options['attributes'].index('status')
+            if isinstance(instance.result, dict):
+                tasks = instance.result.get('tasks', [])
+            else:
+                tasks = []
+
+            top_level_error, top_level_traceback = self._get_top_level_error(live_action=instance)
+
+            if len(tasks) >= 1:
+                task_error, task_traceback = self._get_task_error(task=tasks[-1])
+            else:
+                task_error, task_traceback = None, None
+
+            if top_level_error:
+                # Top-level error
+                instance.error = top_level_error
+                instance.traceback = top_level_traceback
+                options['attributes'].insert(status_index + 1, 'error')
+                options['attributes'].insert(status_index + 2, 'traceback')
+            elif task_error:
+                # Task error
+                instance.error = task_error
+                instance.traceback = task_traceback
+                instance.failed_on = tasks[-1].get('name', 'unknown')
+                options['attributes'].insert(status_index + 1, 'error')
+                options['attributes'].insert(status_index + 2, 'traceback')
+                options['attributes'].insert(status_index + 3, 'failed_on')
+
         # print root task
         self.print_output(instance, formatter, **options)
 
@@ -291,7 +321,11 @@ class ActionRunCommandMixin(object):
                               attribute_transform_functions=self.attribute_transform_functions)
 
     def _get_execution_result(self, execution, action_exec_mgr, args, **kwargs):
-        pending_statuses = [LIVEACTION_STATUS_SCHEDULED, LIVEACTION_STATUS_RUNNING]
+        pending_statuses = [
+            LIVEACTION_STATUS_REQUESTED,
+            LIVEACTION_STATUS_SCHEDULED,
+            LIVEACTION_STATUS_RUNNING
+        ]
 
         if not args.async:
             while execution.status in pending_statuses:
@@ -310,6 +344,38 @@ class ActionRunCommandMixin(object):
                 execution.result = self._format_error_result(execution.result)
 
         return execution
+
+    def _get_top_level_error(self, live_action):
+        """
+        Retrieve a top level workflow error.
+
+        :return: (error, traceback)
+        """
+        if isinstance(live_action.result, dict):
+            error = live_action.result.get('error', None)
+            traceback = live_action.result.get('traceback', None)
+        else:
+            error = live_action.result
+            traceback = None
+
+        return error, traceback
+
+    def _get_task_error(self, task):
+        """
+        Retrieve error message from the provided task.
+
+        :return: (error, traceback)
+        """
+        if not task:
+            return None, None
+
+        result = task['result']
+        stderr = result.get('stderr', None)
+        error = result.get('error', None)
+        traceback = result.get('traceback', None)
+        error = error if error else stderr
+
+        return error, traceback
 
     def _is_error_result(self, result):
         if not isinstance(result, dict):
@@ -764,6 +830,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                                                   ' Possible values are \'%s\', \'%s\', \'%s\','
                                                   '\'%s\' or \'%s\''
                                                   '.' % POSSIBLE_ACTION_STATUS_VALUES))
+        self.group.add_argument('--trigger_instance',
+                                help='Trigger instance id to filter the list.')
         self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
                                  default=None,
                                  help=('Only return executions with timestamp '
@@ -794,6 +862,8 @@ class ActionExecutionListCommand(resource.ResourceCommand):
             kwargs['action'] = args.action
         if args.status:
             kwargs['status'] = args.status
+        if args.trigger_instance:
+            kwargs['trigger_instance'] = args.trigger_instance
         if not args.showall:
             # null is the magic string that translates to does not exist.
             kwargs['parent'] = 'null'
@@ -916,7 +986,6 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         runner_mgr = self.app.client.managers['RunnerType']
         action_exec_mgr = self.app.client.managers['LiveAction']
 
-        # TODO use action.ref when this attribute is added
         action_ref = existing_execution.action['ref']
         action = action_mgr.get_by_ref_or_id(action_ref)
         runner = runner_mgr.get_by_name(action.runner_type)
@@ -924,16 +993,8 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         action_parameters = self._get_action_parameters_from_args(action=action, runner=runner,
                                                                   args=args)
 
-        # Create new execution object
-        new_execution = models.LiveAction()
-        new_execution.action = action_ref
-        new_execution.parameters = getattr(existing_execution, 'parameters', {})
-
-        # If user provides parameters merge and override with the ones from the
-        # existing execution
-        new_execution.parameters.update(action_parameters)
-
-        execution = action_exec_mgr.create(new_execution, **kwargs)
+        execution = action_exec_mgr.re_run(execution_id=args.id, parameters=action_parameters,
+                                           **kwargs)
         execution = self._get_execution_result(execution=execution,
                                                action_exec_mgr=action_exec_mgr,
                                                args=args, **kwargs)

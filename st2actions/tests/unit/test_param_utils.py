@@ -20,9 +20,9 @@ import mock
 import st2actions.utils.param_utils as param_utils
 from st2common.exceptions import actionrunner
 from st2common.models.system.common import ResourceReference
-from st2common.models.db.action import LiveActionDB
-from st2common.models.db.datastore import KeyValuePairDB
-from st2common.persistence.datastore import KeyValuePair
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.persistence.keyvalue import KeyValuePair
 from st2common.transport.publishers import PoolPublisher
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
