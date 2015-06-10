@@ -17,6 +17,8 @@ This will download and install the stable release of |st2| (currently |release|)
 If you want to install the latest development version, run ``sudo ./st2_deploy.sh latest``.
 Installation should take about 5 min. Grab a coffee and watch :doc:`/video` while it is being installed.
 
+To install the CloudSlang workflow engine along with |st2|, set the INSTALL_CLOUDSLANG option equal to 1.  
+
 .. include:: on_complete.rst
 
 .. rubric:: More Installations
