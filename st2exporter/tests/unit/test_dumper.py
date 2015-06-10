@@ -52,7 +52,7 @@ class TestDumper(EventletTestCase):
         executions_queue = self.get_queue()
         qsize = executions_queue.qsize()
         self.assertTrue(qsize > 0)
-        dumper = Dumper(queue=executions_queue, batch_size=2*qsize,
+        dumper = Dumper(queue=executions_queue, batch_size=2 * qsize,
                         export_dir='/tmp')
         batch = dumper._get_batch()
         self.assertEqual(len(batch), qsize)
@@ -62,7 +62,7 @@ class TestDumper(EventletTestCase):
         executions_queue = self.get_queue()
         qsize = executions_queue.qsize()
         self.assertTrue(qsize > 0)
-        expected_batch_size = int(qsize/2)
+        expected_batch_size = int(qsize / 2)
         dumper = Dumper(queue=executions_queue,
                         batch_size=expected_batch_size,
                         export_dir='/tmp')
