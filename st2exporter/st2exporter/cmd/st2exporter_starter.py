@@ -64,7 +64,6 @@ def _run_worker():
     export_worker = worker.get_worker()
     try:
         export_worker.start(wait=True)
-        export_worker.wait()
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Exporter stopped.', os.getpid())
         export_worker.shutdown()

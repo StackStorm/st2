@@ -21,6 +21,6 @@ except ImportError:
 
 class JsonConverter(object):
 
-    def convert(items_list):
-        json_list = [json.dumps(item) for item in items_list]
-        return json_list
+    def convert(self, items_list):
+        json_doc = json.dumps(items_list)
+        return json_doc

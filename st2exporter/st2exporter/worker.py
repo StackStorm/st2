@@ -16,6 +16,7 @@
 import datetime
 import Queue
 
+import eventlet
 from kombu import Connection
 from oslo.config import cfg
 
@@ -26,6 +27,7 @@ from st2common.persistence.execution import ActionExecution
 from st2common.transport import consumers, execution, publishers
 from st2common.util import isotime
 from st2common.util.jsonify import json_encode
+from st2exporter.exporter.dumper import Dumper
 
 LOG = logging.getLogger(__name__)
 
@@ -38,8 +40,11 @@ class ExecutionsExporter(consumers.MessageHandler):
 
     def __init__(self, connection, queues):
         super(ExecutionsExporter, self).__init__(connection, queues)
-        self.persisted_timestamp = None
+        self._persisted_timestamp = None
         self.pending_executions = Queue.Queue()
+        self._dumper = Dumper(queue=self.pending_executions,
+                              export_dir=cfg.CONF.exporter.dump_dir)
+        self._consumer_thread = None
 
     def start(self, wait=False):
         LOG.info('Bootstrapping executions from db...')
@@ -48,9 +53,17 @@ class ExecutionsExporter(consumers.MessageHandler):
         except:
             LOG.exception('Unable to bootstrap executions from db. Aborting.')
             raise
-        super(ExecutionsExporter, self).start(wait=wait)
+        self._consumer_thread = eventlet.spawn(super(ExecutionsExporter, self).start, wait=True)
+        self._dumper.start()
+        if wait:
+            self.wait()
+
+    def wait(self):
+        self._consumer_thread.wait()
+        self._dumper.wait()
 
     def shutdown(self):
+        self._dumper.stop()
         super(ExecutionsExporter, self).shutdown()
 
     def process(self, execution):

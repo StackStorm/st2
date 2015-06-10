@@ -25,6 +25,12 @@ common_config.register_opts()
 
 CONF = cfg.CONF
 
+dump_opts = [
+    cfg.StrOpt('dump_dir', default='/opt/stackstorm/exports/',
+               help='Directory to dump data to.')
+]
+CONF.register_opts(dump_opts, group='exporter')
+
 logging_opts = [
     cfg.StrOpt('logging', default='conf/logging.exporter.conf',
                help='location of the logging.exporter.conf file')
