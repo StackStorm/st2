@@ -52,7 +52,7 @@ class Dumper(object):
 
         self._file_format = file_format.lower()
         if self._file_format not in ALLOWED_EXTENSIONS:
-            return ValueError('Disallowed extension %s.' % file_format)
+            raise ValueError('Disallowed extension %s.' % file_format)
 
         self._file_prefix = file_prefix
         self._batch_size = batch_size
