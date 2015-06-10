@@ -515,6 +515,13 @@ install_st2client() {
   fi
   popd
 
+  # Write ST2_BASE_URL to env
+  if [[ "$TYPE" == "rpms" ]]; then
+    BASHRC=/etc/bashrc
+    echo "" >> ${BASHRC}
+    echo "export ST2_BASE_URL='http://127.0.0.1'" >> ${BASHRC}
+  fi
+
   # Delete existing config directory (if exists)
   if [ -e "${CLI_CONFIG_DIRECTORY_PATH}" ]; then
     rm -r ${CLI_CONFIG_DIRECTORY_PATH}
@@ -524,6 +531,9 @@ install_st2client() {
   mkdir -p ${CLI_CONFIG_DIRECTORY_PATH}
 
   bash -c "cat > ${CLI_CONFIG_RC_FILE_PATH}" <<EOL
+[general]
+base_url = http://127.0.0.1
+
 [credentials]
 username = ${TEST_ACCOUNT_USERNAME}
 password = ${TEST_ACCOUNT_PASSWORD}
