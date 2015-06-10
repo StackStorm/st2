@@ -311,3 +311,8 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         self.assertEqual(parsed['_blacklisted_3']['blacklisted_1'], MASKED_ATTRIBUTE_VALUE)
         self.assertEqual(parsed['_blacklisted_3']['key3'], 'val3')
         self.assertEqual(parsed['_foo1'], 'bar')
+
+        # Assert that the original dict is left unmodified
+        self.assertEqual(record._blacklisted_3['key1'], 'val1')
+        self.assertEqual(record._blacklisted_3['blacklisted_1'], 'val2')
+        self.assertEqual(record._blacklisted_3['key3'], 'val3')
