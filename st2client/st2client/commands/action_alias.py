@@ -15,8 +15,6 @@
 
 from st2client.models.action_alias import ActionAlias
 from st2client.commands import resource
-from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
-from st2client.formatters import table
 
 __all__ = [
     'ActionAliasBranch'
@@ -29,37 +27,16 @@ class ActionAliasBranch(resource.ResourceBranch):
             ActionAlias, description, app, subparsers,
             parent_parser=parent_parser, read_only=True,
             commands={
-                'list': ActionAliasListCommand
+                'list': ActionAliasListCommand,
+                'get': ActionAliasGetCommand
             })
 
 
-class ActionAliasListCommand(resource.ResourceCommand):
+class ActionAliasListCommand(resource.ContentPackResourceListCommand):
     display_attributes = ['ref', 'pack', 'name', 'description', 'enabled']
-    attribute_transform_functions = {}
 
-    def __init__(self, resource, *args, **kwargs):
-        super(ActionAliasListCommand, self).__init__(
-            resource, 'list', 'Get the list of the %s' %
-            (resource.get_plural_display_name().lower()),
-            *args, **kwargs)
 
-        # Display options
-        self.parser.add_argument('-a', '--attr', nargs='+',
-                                 default=self.display_attributes,
-                                 help=('List of attributes to include in the '
-                                       'output. "all" will return all '
-                                       'attributes.'))
-        self.parser.add_argument('-w', '--width', nargs='+', type=int,
-                                 default=None,
-                                 help=('Set the width of columns in output.'))
-
-    @add_auth_token_to_kwargs_from_cli
-    def run(self, args, **kwargs):
-        return self.manager.query(**kwargs)
-
-    def run_and_print(self, args, **kwargs):
-        result = self.run(args, **kwargs)
-        self.print_output(result, table.MultiColumnTable,
-                          attributes=args.attr, widths=args.width,
-                          json=args.json,
-                          attribute_transform_functions=self.attribute_transform_functions)
+class ActionAliasGetCommand(resource.ContentPackResourceGetCommand):
+    display_attributes = ['all']
+    attribute_display_order = ['id', 'ref', 'pack', 'name', 'description',
+                               'enabled', 'action_ref', 'formats']
