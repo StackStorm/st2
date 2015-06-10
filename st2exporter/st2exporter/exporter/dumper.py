@@ -34,7 +34,7 @@ LOG = logging.getLogger(__name__)
 
 class Dumper(object):
 
-    def __init__(self, queue=None, export_dir=None, file_format='json',
+    def __init__(self, queue, export_dir, file_format='json',
                  file_prefix='st2-executions-',
                  batch_size=1000, sleep_interval=60,
                  max_files_per_sleep=5,
