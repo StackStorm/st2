@@ -19,6 +19,7 @@ import logging
 import socket
 import time
 import json
+import copy
 import traceback
 
 import six
@@ -88,6 +89,9 @@ def process_attribute_value(key, value):
         if key in MASKED_ATTRIBUTES:
             value = MASKED_ATTRIBUTE_VALUE
     elif isinstance(value, dict):
+        # Note: We don't want to modify the original value`
+        value = copy.deepcopy(value)
+
         for dict_key, dict_value in six.iteritems(value):
             value[dict_key] = process_attribute_value(key=dict_key, value=dict_value)
 
