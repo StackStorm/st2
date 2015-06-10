@@ -36,7 +36,7 @@ class Dumper(object):
 
     def __init__(self, queue=None, export_dir=None, file_format='json',
                  file_prefix='st2-executions-',
-                 batch_size=1000, sleep_interval=1,
+                 batch_size=1000, sleep_interval=60,
                  max_files_per_sleep=5,
                  file_writer=None):
         if not queue:
@@ -103,15 +103,19 @@ class Dumper(object):
             self._write_to_disk()
 
     def _write_to_disk(self):
-        batch = self._get_batch()
+        count = 0
+        for i in range(self._max_files_per_sleep):
+            batch = self._get_batch()
 
-        if not batch:
-            return
+            if not batch:
+                return count
 
-        try:
-            self._write_batch_to_disk(batch)
-        except:
-            LOG.exception('Writing batch to disk failed.')
+            try:
+                self._write_batch_to_disk(batch)
+                count += 1
+            except:
+                LOG.exception('Writing batch to disk failed.')
+        return count
 
     def _write_batch_to_disk(self, batch):
         doc_to_write = self._converter.convert(batch)

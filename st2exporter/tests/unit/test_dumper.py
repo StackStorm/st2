@@ -16,10 +16,12 @@
 import os
 import Queue
 
+import eventlet
 import mock
-import unittest2
 
 from st2exporter.exporter.dumper import Dumper
+from st2exporter.exporter.file_writer import TextFileWriter
+from st2tests.base import EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
 
 DESCENDANTS_PACK = 'descendants'
@@ -31,7 +33,7 @@ DESCENDANTS_FIXTURES = {
 }
 
 
-class TestDumper(unittest2.TestCase):
+class TestDumper(EventletTestCase):
 
     fixtures_loader = FixturesLoader()
     loaded_fixtures = fixtures_loader.load_fixtures(fixtures_pack=DESCENDANTS_PACK,
@@ -74,3 +76,34 @@ class TestDumper(unittest2.TestCase):
         file_name = dumper._get_file_name()
         self.assertTrue(file_name.startswith('/tmp/st2-stuff-'))
         self.assertTrue(file_name.endswith('json'))
+
+    def test_write_to_disk_empty_queue(self):
+        dumper = Dumper(queue=Queue.Queue(),
+                        export_dir='/tmp',
+                        file_prefix='st2-stuff-', file_format='json')
+        # We just make sure this doesn't blow up.
+        ret = dumper._write_to_disk()
+        self.assertEqual(ret, 0)
+
+    @mock.patch.object(TextFileWriter, 'write_text', mock.MagicMock(return_value=True))
+    def test_write_to_disk(self):
+        executions_queue = self.get_queue()
+        max_files_per_sleep = 5
+        dumper = Dumper(queue=executions_queue,
+                        export_dir='/tmp', batch_size=1, max_files_per_sleep=max_files_per_sleep,
+                        file_prefix='st2-stuff-', file_format='json')
+        # We just make sure this doesn't blow up.
+        ret = dumper._write_to_disk()
+        self.assertEqual(ret, max_files_per_sleep)
+
+    @mock.patch.object(TextFileWriter, 'write_text', mock.MagicMock(return_value=True))
+    def test_start_stop_dumper(self):
+        executions_queue = self.get_queue()
+        sleep_interval = 0.01
+        dumper = Dumper(queue=executions_queue, sleep_interval=sleep_interval,
+                        export_dir='/tmp', batch_size=1, max_files_per_sleep=5,
+                        file_prefix='st2-stuff-', file_format='json')
+        dumper.start()
+        # Call stop after at least one batch was written to disk.
+        eventlet.sleep(10 * sleep_interval)
+        dumper.stop()
