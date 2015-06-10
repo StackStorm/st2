@@ -264,6 +264,13 @@ setup_mongodb_systemd() {
   systemctl start mongod
 }
 
+setup_mistral_st2_config()
+{
+  echo "" >> ${STANCONF}
+  echo "[mistral]" >> ${STANCONF}
+  echo "v2_base_url = http://127.0.0.1:8989/v2" >> ${STANCONF}
+}
+
 setup_mistral_config()
 {
 config=/etc/mistral/mistral.conf
@@ -273,7 +280,7 @@ fi
 touch $config
 cat <<mistral_config >$config
 [database]
-connection=mysql://mistral:StackStorm@localhost/mistral
+connection=mysql://mistral:StackStorm@127.0.0.1/mistral
 max_pool_size=50
 
 [pecan]
@@ -375,6 +382,7 @@ setup_mistral() {
   mkdir -p /etc/mistral
   setup_mistral_config
   setup_mistral_log_config
+  setup_mistral_st2_config
 
   # Setup database.
   cd /opt/openstack/mistral
@@ -480,20 +488,14 @@ download_pkgs
 
 if [[ "$TYPE" == "debs" ]]; then
   install_apt
-
-  if [ ${INSTALL_MISTRAL} == "1" ]; then
-    setup_mistral
-  fi
-
   deploy_deb
 elif [[ "$TYPE" == "rpms" ]]; then
   install_yum
-
-  if [ ${INSTALL_MISTRAL} == "1" ]; then
-    setup_mistral
-  fi
-
   deploy_rpm
+fi
+
+if [ ${INSTALL_MISTRAL} == "1" ]; then
+  setup_mistral
 fi
 
 install_st2client() {
