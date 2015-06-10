@@ -15,6 +15,7 @@
 
 import datetime
 import os
+import Queue
 
 import eventlet
 
@@ -78,52 +79,46 @@ class Dumper(object):
         return eventlet.kill(self._flush_thread)
 
     def _get_batch(self):
-        if self._queue.qsize() <= 0:
+        if self._queue.empty():
             return None
 
         executions_to_write = []
         for count in range(self._batch_size):
             try:
-                item = self._queue.get()
-            except:
+                item = self._queue.get(block=False)
+            except Queue.Empty:
                 break
             else:
                 executions_to_write.append(item)
+
+        LOG.debug('Returning %d items in batch.', len(executions_to_write))
+        LOG.debug('Remaining items in queue: %d', self._queue.qsize())
         return executions_to_write
 
     def _flush(self):
         while not self._shutdown:
-            LOG.info('Spinning...')
-            while self._queue.qsize() <= 0:
+            while self._queue.empty():
                 eventlet.sleep(self._sleep_interval)
 
-            LOG.info('Writing to disk...')
             self._write_to_disk()
-            LOG.info('Wrote to disk...')
 
     def _write_to_disk(self):
-        for count in range(self._max_files_per_sleep):
-            LOG.info('Get a batch')
-            batch = self._get_batch()
-            if not batch:
-                LOG.info('No valid batch to write.')
-                return
-            LOG.info('Writing batch to disk.')
-            try:
-                self._write_batch_to_disk(batch)
-            except:
-                LOG.exception('Writing batch to disk failed.')
-                continue
-        return
+        batch = self._get_batch()
+
+        if not batch:
+            return
+
+        try:
+            self._write_batch_to_disk(batch)
+        except:
+            LOG.exception('Writing batch to disk failed.')
 
     def _write_batch_to_disk(self, batch):
         doc_to_write = self._converter.convert(batch)
-        LOG.info('Doc to write %s', doc_to_write)
-        LOG.info('Type of doc: %s', type(doc_to_write))
         self._file_writer.write_text(doc_to_write, self._get_file_name())
 
     def _get_file_name(self):
         timestring = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-        file_name = self._file_prefix + timestring + self._file_format
+        file_name = self._file_prefix + timestring + '.' + self._file_format
         file_name = os.path.join(self._export_dir, file_name)
         return file_name
