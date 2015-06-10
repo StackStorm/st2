@@ -45,7 +45,7 @@ version_compare
 ~~~~~~~~~~~~~~~
 compares expression with supplied value and return -1, 0 and 1 for less than, equal and more than respectively
 
-.. code-block:: base
+.. code-block:: bash
 
     {{version | version_compare("0.10.1")}}
 
@@ -53,7 +53,7 @@ version_more_than
 ~~~~~~~~~~~~~~~~~
 True if version is more than supplied value
 
-.. code-block:: base
+.. code-block:: bash
 
     {{version | version_more_than("0.10.1")}}
 
@@ -61,7 +61,7 @@ version_less_than
 ~~~~~~~~~~~~~~~~~
 True if version is less than supplied value
 
-.. code-block:: base
+.. code-block:: bash
 
     {{version | version_less_than("0.9.2")}}
 
@@ -69,7 +69,7 @@ version_equal
 ~~~~~~~~~~~~~
 True if versions are of equal value
 
-.. code-block:: base
+.. code-block:: bash
 
     {{version | version_less_than("0.10.0")}}
 
@@ -77,7 +77,7 @@ version_match
 ~~~~~~~~~~~~~
 True if versions match. Supports operators >,<, ==, <=, >=.
 
-.. code-block:: base
+.. code-block:: bash
 
     {{version | version_match(">0.10.0")}}
 
@@ -86,7 +86,7 @@ version_bump_major
 ~~~~~~~~~~~~~~~~~~
 Bumps up the major version of supplied version field
 
-.. code-block:: base
+.. code-block:: bash
 
     {{version | version_bump_major}}
 
@@ -94,7 +94,7 @@ version_bump_minor
 ~~~~~~~~~~~~~~~~~~
 Bumps up the minor version of supplied version field
 
-.. code-block:: base
+.. code-block:: bash
 
     {{version | version_bump_minor}}
 
@@ -102,7 +102,7 @@ version_bump_patch
 ~~~~~~~~~~~~~~~~~~
 Bumps up the patch version of supplied version field
 
-.. code-block:: base
+.. code-block:: bash
 
     {{version | version_bump_patch}}
 
@@ -110,6 +110,6 @@ version_strip_patch
 ~~~~~~~~~~~~~~~~~~~
 Drops patch version of supplied version field
 
-.. code-block:: base
+.. code-block:: bash
 
     {{version | version_strip_patch}}
