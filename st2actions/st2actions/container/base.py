@@ -78,6 +78,9 @@ class RunnerContainer(object):
         runner.callback = getattr(liveaction_db, 'callback', dict())
         runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
                                                               action_db.entry_point)
+
+        # Create a temporary auth token which will be available during duration of the action
+        # execution
         runner.auth_token = self._create_auth_token(runner.context)
 
         updated_liveaction_db = None

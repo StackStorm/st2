@@ -98,6 +98,16 @@ class ActionRunner(object):
                              status,
                              result)
 
+    def _log_action_parameters(self, parameters):
+        """
+        Log the action parameters making sure the secret ones are masked.
+
+        :type parameters: ``dict``
+        """
+        # TODO: mask
+        extra = {'action_parameters': action_parameters}
+        LOG.debug('Action parameters', extra=extra)
+
     def _log_action_completion(self, logger, result, status, exit_code=None):
         """
         Log action completion event.

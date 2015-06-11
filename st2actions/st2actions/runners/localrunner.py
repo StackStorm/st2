@@ -80,7 +80,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
                                                    LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT)
 
     def run(self, action_parameters):
-        LOG.debug('    action_parameters = %s', action_parameters)
+        self._log_action_parameters(parameters=action_parameters)
 
         env_vars = self._env
 

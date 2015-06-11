@@ -109,7 +109,7 @@ class BaseFabricRunner(ActionRunner, ShellRunnerMixin):
                  self.runner_id, self.liveaction_id)
 
     def _run(self, remote_action):
-        LOG.info('Executing action via FabricRunner :%s for user: %s.',
+        LOG.info('Executing action via FabricRunner: %s for user: %s.',
                  self.runner_id, remote_action.get_on_behalf_user())
         LOG.info(('[Action info] name: %s, Id: %s, command: %s, on behalf user: %s, '
                   'actual user: %s, sudo: %s'),
