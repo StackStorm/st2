@@ -26,6 +26,16 @@ __all__ = [
 
 
 class MarkerDB(stormbase.StormFoundationDB):
+    """
+    Abstract model for storing marker (or cursor) in db. This is typically used when doing
+    iteration.
+
+    :param marker: Cursor string.
+    :type marker: ``str``
+
+    :param updated_at: Timestamp when marker was updated.
+    :type updated_at: ``datetime.datetime``
+    """
     marker = me.StringField(required=True)
     updated_at = ComplexDateTimeField(
         default=datetime.datetime.utcnow,
@@ -37,6 +47,9 @@ class MarkerDB(stormbase.StormFoundationDB):
 
 
 class DumperMarkerDB(MarkerDB):
+    """
+    Marker model used by Dumper (in exporter).
+    """
     pass
 
 MODELS = [MarkerDB, DumperMarkerDB]
