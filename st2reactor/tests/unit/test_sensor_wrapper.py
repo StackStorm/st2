@@ -7,6 +7,7 @@ import st2tests.config as tests_config
 from st2tests.base import TESTS_CONFIG_PATH
 from st2reactor.container.sensor_wrapper import SensorWrapper
 from st2reactor.container.sensor_wrapper import SensorService
+from st2reactor.sensor.base import Sensor, PollingSensor
 from st2client.models.keyvalue import KeyValuePair
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -66,6 +67,32 @@ class SensorWrapperTestCase(unittest2.TestCase):
         wrapper._handle_delete_trigger(trigger=trigger)
         self.assertEqual(wrapper._trigger_names, {})
         self.assertEqual(wrapper._sensor_instance.remove_trigger.call_count, 1)
+
+    def test_sensor_creation_passive(self):
+        file_path = os.path.join(RESOURCES_DIR, 'test_sensor.py')
+        trigger_types = ['trigger1', 'trigger2']
+        parent_args = ['--config-file', TESTS_CONFIG_PATH]
+
+        wrapper = SensorWrapper(pack='core', file_path=file_path,
+                                class_name='TestSensor',
+                                trigger_types=trigger_types,
+                                parent_args=parent_args)
+        self.assertIsInstance(wrapper._sensor_instance, Sensor)
+        self.assertIsNotNone(wrapper._sensor_instance)
+
+    def test_sensor_creation_active(self):
+        file_path = os.path.join(RESOURCES_DIR, 'test_sensor.py')
+        trigger_types = ['trigger1', 'trigger2']
+        parent_args = ['--config-file', TESTS_CONFIG_PATH]
+        poll_interval = 10
+        wrapper = SensorWrapper(pack='core', file_path=file_path,
+                                class_name='TestPollingSensor',
+                                trigger_types=trigger_types,
+                                parent_args=parent_args,
+                                poll_interval=poll_interval)
+        self.assertIsNotNone(wrapper._sensor_instance)
+        self.assertIsInstance(wrapper._sensor_instance, PollingSensor)
+        self.assertEquals(wrapper._sensor_instance._poll_interval, poll_interval)
 
 
 class SensorServiceTestCase(unittest2.TestCase):
