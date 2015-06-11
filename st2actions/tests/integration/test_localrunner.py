@@ -14,7 +14,8 @@
 # limitations under the License.
 
 import uuid
-import unittest2
+
+import mock
 
 import st2tests.config as tests_config
 tests_config.parse_args()
@@ -24,6 +25,7 @@ from st2actions.container.service import RunnerContainerService
 from st2actions.runners import localrunner
 from st2common.constants import action as action_constants
 from st2tests.fixturesloader import FixturesLoader
+from st2common.util.api import get_full_public_api_url
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
 
 
@@ -55,7 +57,6 @@ class TestLocalShellRunner(TestCase):
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEquals(len(result['stdout']), 1000 + 1)  # +1 for the newline
 
-    @unittest2.skip
     def test_timeout(self):
         models = TestLocalShellRunner.fixtures_loader.load_models(
             fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
@@ -81,6 +82,27 @@ class TestLocalShellRunner(TestCase):
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEquals(len(result['stdout']), char_count + 1)  # +1 for the newline
 
+    def test_common_st2_env_vars_are_available_to_the_action(self):
+        models = TestLocalShellRunner.fixtures_loader.load_models(
+            fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
+        action_db = models['actions']['local.yaml']
+
+        runner = TestLocalShellRunner._get_runner(action_db, cmd='echo $ST2_ACTION_API_URL')
+        runner.pre_run()
+        status, result, _ = runner.run({})
+        runner.post_run(status, result)
+
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(result['stdout'].strip(), get_full_public_api_url())
+
+        runner = TestLocalShellRunner._get_runner(action_db, cmd='echo $ST2_ACTION_AUTH_TOKEN')
+        runner.pre_run()
+        status, result, _ = runner.run({})
+        runner.post_run(status, result)
+
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(result['stdout'].strip(), 'mock-token')
+
     @staticmethod
     def _get_runner(action_db,
                     entry_point=None,
@@ -104,5 +126,6 @@ class TestLocalShellRunner(TestCase):
         runner.context = dict()
         runner.callback = dict()
         runner.libs_dir_path = None
-        runner.auth_token = None
+        runner.auth_token = mock.Mock()
+        runner.auth_token.token = 'mock-token'
         return runner

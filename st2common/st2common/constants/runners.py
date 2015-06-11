@@ -23,7 +23,10 @@ __all__ = [
 
     'PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT',
 
-    'WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT'
+    'WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT',
+
+    'COMMON_ACTION_ENV_VARIABLE_PREFIX',
+    'COMMON_ACTION_ENV_VARIABLES'
 ]
 
 # Local runner
@@ -43,3 +46,14 @@ PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60
 
 # Windows runner
 WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60
+
+# Prefix for common st2 environment variables which are available to the actions
+COMMON_ACTION_ENV_VARIABLE_PREFIX = 'ST2_ACTION_'
+
+# Common st2 environment variables which are available to the actions
+COMMON_ACTION_ENV_VARIABLES = [
+    'ST2_ACTION_PACK_NAME',
+    'ST2_ACTION_EXECUTION_ID',
+    'ST2_ACTION_API_URL',
+    'ST2_ACTION_AUTH_TOKEN'
+]

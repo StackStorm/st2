@@ -122,6 +122,10 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         # Include user provided env vars (if any)
         env.update(env_vars)
 
+        # Include common st2 env vars
+        st2_env_vars = self._get_common_action_env_variables()
+        env.update(st2_env_vars)
+
         LOG.info('Executing action via LocalRunner: %s', self.runner_id)
         LOG.info('[Action info] name: %s, Id: %s, command: %s, user: %s, sudo: %s' %
                  (action.name, action.action_exec_id, args, action.user, action.sudo))
