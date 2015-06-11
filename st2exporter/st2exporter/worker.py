@@ -99,7 +99,7 @@ class ExecutionsExporter(consumers.MessageHandler):
 
     def _get_export_marker_from_db(self):
         marker = DumperMarker.get_all()[0]
-        return marker.marker
+        return isotime.parse(marker.marker)
 
     def _get_missed_executions_from_db(self, export_marker=None):
         if not export_marker:
@@ -108,7 +108,7 @@ class ExecutionsExporter(consumers.MessageHandler):
         now = datetime.datetime.now()
         # XXX: Should adapt this query to get only executions with status
         # in COMPLETION_STATUSES.
-        filters = {'start_timestamp__gt': isotime.parse(export_marker),
+        filters = {'start_timestamp__gt': export_marker,
                    'start_timestamp__lt': now}
         return ActionExecution.query(**filters)
 

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 import os
 import Queue
 
@@ -20,6 +21,7 @@ import eventlet
 import mock
 
 from st2common.models.api.execution import ActionExecutionAPI
+from st2common.util import isotime
 from st2exporter.exporter.dumper import Dumper
 from st2exporter.exporter.file_writer import TextFileWriter
 from st2tests.base import EventletTestCase
@@ -113,7 +115,6 @@ class TestDumper(EventletTestCase):
         eventlet.sleep(10 * sleep_interval)
         dumper.stop()
 
-    @mock.patch.object(TextFileWriter, 'write_text', mock.MagicMock(return_value=True))
     @mock.patch.object(Dumper, '_write_marker_to_db', mock.MagicMock(return_value=True))
     def test_update_marker(self):
         executions_queue = self.get_queue()
@@ -124,6 +125,27 @@ class TestDumper(EventletTestCase):
         new_marker = dumper._update_marker(self.execution_apis[0:5])
         self.assertTrue(new_marker is not None)
         new_marker = dumper._update_marker(self.execution_apis[6:])
-        timestamps = [execution.end_timestamp for execution in self.execution_apis]
-        min_timestamp = min(timestamps)
-        self.assertEqual(new_marker, min_timestamp)
+        timestamps = [isotime.parse(execution.end_timestamp) for execution in self.execution_apis]
+        max_timestamp = max(timestamps)
+        self.assertEqual(new_marker, max_timestamp)
+        dumper._write_marker_to_db.assert_called_with(new_marker)
+
+    @mock.patch.object(Dumper, '_write_marker_to_db', mock.MagicMock(return_value=True))
+    def test_update_marker_out_of_order_batch(self):
+        executions_queue = self.get_queue()
+        dumper = Dumper(queue=executions_queue,
+                        export_dir='/tmp', batch_size=5,
+                        max_files_per_sleep=1,
+                        file_prefix='st2-stuff-', file_format='json')
+        timestamps = [isotime.parse(execution.end_timestamp) for execution in self.execution_apis]
+        max_timestamp = max(timestamps)
+
+        # set dumper persisted timestamp to something less than min timestamp in the batch
+        test_timestamp = max_timestamp + datetime.timedelta(hours=1)
+        dumper._persisted_marker = test_timestamp
+        new_marker = dumper._update_marker(self.execution_apis)
+        self.assertTrue(new_marker < test_timestamp)
+        # Assert we rolled back the marker.
+        self.assertEqual(dumper._persisted_marker, max_timestamp)
+        self.assertEqual(new_marker, max_timestamp)
+        dumper._write_marker_to_db.assert_called_with(new_marker)
