@@ -26,6 +26,7 @@ See :doc:`/changelog` for details on what is done.
 * **More integration packs**: Major integrations - Salt, Ansible, some significant others. `Check the full list <https://github.com/StackStorm/st2contrib/tree/master/packs>`_.
 
 .. rubric:: Done in v0.9
+
 * **Experimental windows support:** windows runner, and windows commands.
 * **Web UI complete basics:** rule create/edit/delete in UI.
 
