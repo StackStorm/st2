@@ -79,7 +79,7 @@ class PollingSensor(BaseSensor):
     Active sensors periodically poll a 3rd party system for new information.
     """
 
-    def __init__(self, sensor_service, config, poll_interval=5):
+    def __init__(self, sensor_service, config=None, poll_interval=5):
         super(PollingSensor, self).__init__(sensor_service=sensor_service, config=config)
         self._poll_interval = poll_interval
 
