@@ -24,6 +24,7 @@ import traceback
 
 import six
 
+from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.execution import ActionExecutionDB
 
 __all__ = [
@@ -80,7 +81,7 @@ def serialize_object(obj):
         value = repr(obj)
 
     # Process the custom models
-    if isinstance(obj, ActionExecutionDB) and isinstance(value, dict):
+    if isinstance(obj, (LiveActionDB, ActionExecutionDB)) and isinstance(value, dict):
         # Mask the parameters with attribute "secret"
         execution_parameters = value.get('parameters', {})
         action_parameters = getattr(obj, 'action', {}).get('parameters', {})
