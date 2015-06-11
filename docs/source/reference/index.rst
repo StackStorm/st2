@@ -9,3 +9,4 @@ Contents:
    cli
    api
    packs
+   jinja_filters

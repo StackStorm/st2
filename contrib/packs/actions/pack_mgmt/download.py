@@ -32,6 +32,11 @@ CONFIG_FILE = 'config.yaml'
 GITINFO_FILE = '.gitinfo'
 PACK_RESERVE_CHARACTER = '.'
 
+STACKSTORM_CONTRIB_REPOS = [
+    'st2contrib',
+    'st2incubator'
+]
+
 
 class DownloadGitRepoAction(Action):
     def __init__(self, config=None):
@@ -57,7 +62,7 @@ class DownloadGitRepoAction(Action):
                     pack_abs_local_path = abs_local_path
 
                 self._tag_pack(pack_abs_local_path, packs, self._subtree)
-                result = self._move_packs(abs_repo_base, packs, pack_abs_local_path)
+                result = self._move_packs(abs_repo_base, packs, pack_abs_local_path, self._subtree)
             finally:
                 self._cleanup_repo(abs_local_path)
         return self._validate_result(result=result, packs=packs, repo_url=repo_url)
@@ -77,13 +82,13 @@ class DownloadGitRepoAction(Action):
         Repo.clone_from(repo_url, abs_local_path, branch=branch, depth=1)
         return abs_local_path
 
-    def _move_packs(self, abs_repo_base, packs, abs_local_path):
+    def _move_packs(self, abs_repo_base, packs, abs_local_path, subtree):
         result = {}
         # all_packs should be removed as a pack with that name is not expected to be found.
         if ALL_PACKS in packs:
             packs = os.listdir(abs_local_path)
         for pack in packs:
-            abs_pack_temp_location = os.path.join(abs_local_path, pack)
+            abs_pack_temp_location = os.path.join(abs_local_path, pack) if subtree else abs_local_path
             desired, message = DownloadGitRepoAction._is_desired_pack(abs_pack_temp_location, pack)
             if desired:
                 to = abs_repo_base
@@ -125,7 +130,8 @@ class DownloadGitRepoAction(Action):
     @staticmethod
     def _cleanup_repo(abs_local_path):
         # basic lock checking etc?
-        shutil.rmtree(abs_local_path)
+        if os.path.isdir(abs_local_path):
+            shutil.rmtree(abs_local_path)
 
     @staticmethod
     def _validate_result(result, packs, repo_url):
@@ -155,17 +161,23 @@ class DownloadGitRepoAction(Action):
 
     @staticmethod
     def _eval_subtree(repo_url, subtree):
-        st2_repos = re.compile("st2(contrib|incubator)")
-        match = True if st2_repos.search(repo_url) else False
-        return subtree ^ match
+        match = False
+        for stackstorm_repo_name in STACKSTORM_CONTRIB_REPOS:
+            if stackstorm_repo_name in repo_url:
+                match = True
+                break
+
+        return subtree | match
 
     @staticmethod
     def _eval_repo_url(repo_url):
         """Allow passing short GitHub style URLs"""
+        has_git_extension = repo_url.endswith('.git')
         if len(repo_url.split('/')) == 2 and "git@" not in repo_url:
-            return "https://github.com/{}.git".format(repo_url)
+            url = "https://github.com/{}".format(repo_url)
         else:
-            return "{}.git".format(repo_url)
+            url = repo_url
+        return url if has_git_extension else "{}.git".format(url)
 
     @staticmethod
     def _tag_pack(pack_dir, packs, subtree):

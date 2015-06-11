@@ -10,6 +10,8 @@ in development
   [Sayli Karmarkar]
 * By default the following environment variables are now available to the actions executed by
   local, remote and python runner: ``ST2_ACTION_API_URL``, ``ST2_ACTION_AUTH_TOKEN``. (new-feature)
+* Jinja filter to make working with regex and semver possible in any place that
+  support jinja (improvement)
 
 0.11 - June 5, 2015
 -------------------
