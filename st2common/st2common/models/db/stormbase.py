@@ -61,7 +61,10 @@ class StormFoundationDB(me.Document):
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
 
-    def to_serializable_dict(self):
+    def to_serializable_dict(self, exclude_secrets=False):
+        """
+        :rtype: ``dict``
+        """
         serializable_dict = {}
         for k in sorted(six.iterkeys(self._fields)):
             v = getattr(self, k)
@@ -143,6 +146,5 @@ class ContentPackResourceMixin(object):
 
         :rtype: :class:`ResourceReference`
         """
-        ref = ResourceReference(pack=self.pack,
-                                name=self.name)
+        ref = ResourceReference(pack=self.pack, name=self.name)
         return ref

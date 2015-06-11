@@ -24,6 +24,8 @@ import traceback
 
 import six
 
+from st2common.models.db.execution import ActionExecutionDB
+
 __all__ = [
     'ConsoleLogFormatter',
     'GelfLogFormatter',
@@ -76,6 +78,20 @@ def serialize_object(obj):
         value = obj.to_serializable_dict()
     else:
         value = repr(obj)
+
+    # Process the custom models
+    if isinstance(obj, ActionExecutionDB) and isinstance(value, dict):
+        # Mask the parameters with attribute "secret"
+        execution_parameters = value.get('parameters', {})
+        action_parameters = getattr(obj, 'action', {}).get('parameters', {})
+        secret_parameters = [parameter for parameter, options in six.iteritems(action_parameters) if
+                             options.get('secret', False)]
+
+        for parameter in secret_parameters:
+            if parameter not in execution_parameters:
+                continue
+
+            value['parameters'][parameter] = MASKED_ATTRIBUTE_VALUE
 
     return value
 

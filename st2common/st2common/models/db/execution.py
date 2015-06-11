@@ -49,7 +49,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         help_text='The timestamp when the liveaction has finished.')
     parameters = me.DictField(
         default={},
-        help_text='The key-value pairs passed as to the action runner &  execution.')
+        help_text='The key-value pairs passed as to the action runner & action.')
     result = stormbase.EscapedDynamicField(
         default={},
         help_text='Action defined result.')
