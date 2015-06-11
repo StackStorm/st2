@@ -169,9 +169,9 @@ implements a ``run`` method is contained in a file called ``send_sms.py`` which
 is located in the same directory as the metadata file and the action takes three
 parameters (from_number, to_number, body).
 
-
 Action Registration
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+
 Once action is created 1) place it into the content location, and 2) tell the system
 that the action is avalable. The actions are grouped in :doc:`packs </packs>` and located
 at ``/opt/stackstorm/packs`` (default, configured, multiple locations supported).
@@ -204,6 +204,31 @@ various runners.
 * ``dir``  - (``local-shell-script``, ``remote-shell-script``) Configure the directory where
   scripts are copied from a pack to the target machine prior to execution.
   Defaults to ``/tmp``.
+
+Common environment variables available to the actions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, local, remote and python runner make the following environment variables available
+to the actions:
+
+* ``ST2_ACTION_PACK_NAME`` - Name of the pack to which the currently executed action belongs to.
+* ``ST2_ACTION_EXECUTION_ID`` - Execution ID of the action being currently executed.
+* ``ST2_ACTION_API_URL`` - Full URL to the public API endpoint.
+* ``ST2_ACTION_AUTH_TOKEN`` - Auth token which is available to the action until it completes.
+  When the action completes, the token gets revoked and it's not valid anymore.
+
+Here is an example of how you can use this environment variables inside a local shell script
+action.
+
+.. sourcecode:: bash
+
+    #!/usr/bin/env bash
+
+    # Retrieve a list of actions by hitting the API using cURL and the information provided
+    # via environment variables
+
+    RESULT=$(curl -H "X-Auth-Token: ${ST2_ACTION_AUTH_TOKEN}" ${ST2_ACTION_API_URL}/actions)
+    echo ${RESULT}
 
 Converting existing scripts into actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

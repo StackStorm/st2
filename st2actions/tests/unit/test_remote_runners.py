@@ -33,9 +33,11 @@ class FabricRunner(BaseFabricRunner):
 
 class FabricRunnerTestCase(TestCase):
     def test_get_env_vars(self):
-        env_vars = {'key1': 'val1', 'key2': 'val2'}
-
         runner = FabricRunner('id')
+
+        env_vars = {'key1': 'val1', 'key2': 'val2'}
+        env_vars.update(runner._get_common_action_env_variables())
+
         runner.runner_parameters = {'hosts': 'localhost', 'env': env_vars}
         # This is awful, context is just set at some point, no idea when and
         # where MOVE IT TO CONSTRUCTOR!11
