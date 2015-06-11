@@ -1,7 +1,7 @@
 Installation
 ============
-There are a few ways to install StackStorm to get going.  The easiest is all-in-one install
-on Ubuntu/Debian or RedHat/Fedora which we explain next. Or skip below if you want to learn about
+There are a few methods to deploys StackStorm. The easiest is all-in-one install
+on Ubuntu/Debian or RedHat/Fedora which we explain next. Skip below if you want to learn about
 :doc:`docker` or :doc:`vagrant`, or other installations approaches.
 
 To install and run |st2| on a single Ubuntu/Debian or RedHat/Fedora box, with all dependencies,
