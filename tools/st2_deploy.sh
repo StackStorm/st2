@@ -76,8 +76,8 @@ if [ ${INSTALL_MISTRAL} == "1" ]; then
 fi
 
 if [ ${INSTALL_CLOUDSLANG} == "1" ]; then
-  APT_PACKAGE_LIST+=("openjdk-7-jre")
-  YUM_PACKAGE_LIST+=("java-1.7.0-openjdk")
+  APT_PACKAGE_LIST+=("unzip" "openjdk-7-jre")
+  YUM_PACKAGE_LIST+=("unzip" "java-1.7.0-openjdk")
 fi
 
 APT_PACKAGE_LIST=$(join " " ${APT_PACKAGE_LIST[@]})
