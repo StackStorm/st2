@@ -100,16 +100,6 @@ class ActionRunner(object):
                              status,
                              result)
 
-    def _log_action_parameters(self, parameters):
-        """
-        Log the action parameters making sure the secret ones are masked.
-
-        :type parameters: ``dict``
-        """
-        # TODO: mask
-        extra = {'action_parameters': action_parameters}
-        LOG.debug('Action parameters', extra=extra)
-
     def get_pack_name(self):
         """
         Retrieve pack name for the action which is being currently executed.
@@ -139,25 +129,6 @@ class ActionRunner(object):
             result['ST2_ACTION_AUTH_TOKEN'] = self.auth_token.token
 
         return result
-
-    def _log_action_completion(self, logger, result, status, exit_code=None):
-        """
-        Log action completion event.
-
-        :param result: Action result / output.
-        :param status: Action status.
-        :param exit_code: Action exit code (optional).
-        """
-        name = self.action_name
-        extra = {
-            'result': result,
-            'status': status
-        }
-
-        if exit_code is not None:
-            extra['exit_code'] = exit_code
-
-        logger.debug('Action "%s" completed.' % (name), extra=extra)
 
     def __str__(self):
         attrs = ', '.join(['%s=%s' % (k, v) for k, v in six.iteritems(self.__dict__)])

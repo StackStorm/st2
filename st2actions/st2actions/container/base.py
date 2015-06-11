@@ -41,7 +41,6 @@ class RunnerContainer(object):
             raise Exception('Action %s not found in DB.' % (liveaction_db.action))
 
         runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
-        runner_type = runnertype_db.name
 
         extra = {'liveaction_db': liveaction_db, 'runnertype_db': runnertype_db}
         LOG.info('Dispatching Action to a runner', extra=extra)
@@ -93,7 +92,9 @@ class RunnerContainer(object):
             LOG.debug('Performing pre-run for runner: %s', runner)
             runner.pre_run()
 
-            LOG.debug('Performing run for runner: %s', runner)
+            # TODO: mask params
+            extra = {'action_parameters': action_params, 'runner': runner}
+            LOG.debug('Performing run for runner: %s' % (runner), extra=extra)
             (status, result, context) = runner.run(action_params)
 
             try:
@@ -113,6 +114,10 @@ class RunnerContainer(object):
             result = {'message': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
             context = None
         finally:
+            # Log action completion
+            extra = {'result': result, 'status': status}
+            LOG.debug('Action "%s" completed.' % (action_db.name), extra=extra)
+
             # Always clean-up the auth_token
             updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
                                                                 result, context)
