@@ -48,6 +48,8 @@ WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60
 
 # Common st2 environment variables which are available to the actions
 COMMON_ACTION_ENV_VARIABLES = [
+    'ST2_ACTION_PACK_NAME',
+    'ST2_ACTION_EXECUTION_ID',
     'ST2_ACTION_API_URL',
     'ST2_ACTION_AUTH_TOKEN'
 ]

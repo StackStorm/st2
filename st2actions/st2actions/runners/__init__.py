@@ -23,6 +23,7 @@ from st2common import log as logging
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.util.api import get_full_public_api_url
 import st2common.util.action_db as action_utils
+from st2common.constants.pack import DEFAULT_PACK_NAME
 
 
 __all__ = [
@@ -99,6 +100,17 @@ class ActionRunner(object):
                              status,
                              result)
 
+    def get_pack_name(self):
+        """
+        Retrieve pack name for the action which is being currently executed.
+
+        :rtype: ``str``
+        """
+        if self.action:
+            return self.action.pack
+
+        return DEFAULT_PACK_NAME
+
     def _get_common_action_env_variables(self):
         """
         Retrieve common ST2_ACTION_ environment variables which will be available to the action.
@@ -109,6 +121,8 @@ class ActionRunner(object):
         :rtype: ``dict``
         """
         result = {}
+        result['ST2_ACTION_PACK_NAME'] = self.get_pack_name()
+        result['ST2_ACTION_EXECUTION_ID'] = str(self.liveaction_id)
         result['ST2_ACTION_API_URL'] = get_full_public_api_url()
 
         if self.auth_token:

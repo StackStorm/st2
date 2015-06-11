@@ -28,7 +28,6 @@ from st2common.util.green.shell import run_command
 from st2common import log as logging
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
-from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
@@ -107,7 +106,7 @@ class PythonRunner(ActionRunner):
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
 
     def run(self, action_parameters):
-        pack = self.action.pack if self.action else DEFAULT_PACK_NAME
+        pack = self.get_pack_name()
         serialized_parameters = json.dumps(action_parameters) if action_parameters else ''
         virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
         python_path = get_sandbox_python_binary_path(pack=pack)
