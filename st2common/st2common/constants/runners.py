@@ -25,6 +25,7 @@ __all__ = [
 
     'WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT',
 
+    'COMMON_ACTION_ENV_VARIABLE_PREFIX',
     'COMMON_ACTION_ENV_VARIABLES'
 ]
 
@@ -45,6 +46,9 @@ PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60
 
 # Windows runner
 WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60
+
+# Prefix for common st2 environment variables which are available to the actions
+COMMON_ACTION_ENV_VARIABLE_PREFIX = 'ST2_ACTION_'
 
 # Common st2 environment variables which are available to the actions
 COMMON_ACTION_ENV_VARIABLES = [
