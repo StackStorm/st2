@@ -16,6 +16,8 @@ The best way to explore |st2| is to use CLI. Start by firing a few commands:
     st2 --version
     # Get help. It's a lot. Explore.
     st2 -h
+    # Authenticate and export the token
+    export ST2_AUTH_TOKEN=`st2 auth -t -p testp testu`
     # List the actions from a 'core' pack
     st2 action list --pack=core
     st2 trigger list
@@ -34,6 +36,17 @@ Check the :doc:`CLI and Python Client </reference/cli>` reference for details.
 
 From v0.8, |st2| ships with WebUI. With the default "all-in-one" installation, you can access it at
 http://hostname:8080/.
+
+Authenticate
+----------------
+If :doc:`authentication </auth>` enabled, obtain authentication token with ``st2 auth <username>``,
+and supply it with each command using ``--token`` parameter. For convinience,
+put it to environment variable ``ST2_AUTH_TOKEN``. Here is a nice shortcut:
+
+.. code-block:: bash
+
+    export ST2_AUTH_TOKEN=`st2 auth -t -p testp testu`
+
 
 Work with Actions
 ---------------------

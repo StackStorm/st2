@@ -631,6 +631,6 @@ echo "To login and obtain an authentication token, run the following command:"
 echo ""
 echo "st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD}"
 echo ""
-echo "For more information see http://docs.stackstorm.com/install/deploy.html#usage"
+echo "For more information see http://docs.stackstorm.com/authentication.html#usage"
 exit 0
 
