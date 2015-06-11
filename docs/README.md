@@ -25,11 +25,12 @@ The docs are build with Sphinx. It's integrated with the main project Makefile.
 
 * Referencing an arbitrary section: for instance, there's examples section in sensors.rst. Define a reference on `examples` section in sensors.rst:
 
-         .. _sensors-examples
+         .. _sensors-examples:
 
     and point to it as from this, or from other documensts as:
 
        :ref:`sensors-examples`
+       :ref:`My examples <sensors-examples>`
 
     Note that the leading `_` underscore is gone, and the reference is quoted.
 

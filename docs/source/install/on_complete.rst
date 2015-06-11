@@ -20,6 +20,7 @@ Use the supervisor script to manage |st2| services: ::
 .. rubric:: What's Next?
 
 * **Get going with** :doc:`/start`.
+* **How to configure and use** :doc:`authentication </authentication>`
 
 .. include:: /engage.rst
 
