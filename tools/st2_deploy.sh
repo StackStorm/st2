@@ -18,6 +18,7 @@ WARNING_SLEEP_DELAY=5
 INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
 INSTALL_WEBUI=${INSTALL_WEBUI:-1}
 INSTALL_MISTRAL=${INSTALL_MISTRAL:-1}
+INSTALL_CLOUDSLANG=${INSTALL_CLOUDSLANG:-0}
 INSTALL_WINDOWS_RUNNER_DEPENDENCIES=${INSTALL_WINDOWS_RUNNER_DEPENDENCIES:-1}
 
 # Common variables
@@ -65,6 +66,11 @@ if [ ${INSTALL_MISTRAL} == "1" ]; then
   APT_PACKAGE_LIST+=("postgresql" "postgresql-contrib" "libpq-dev")
   YUM_PACKAGE_LIST+=("openssl-devel" "libyaml-devel" "libffi-devel" "libxml2-devel" "libxslt-devel")
   YUM_PACKAGE_LIST+=("postgresql-server" "postgresql-contrib" "postgresql-devel")
+fi
+
+if [ ${INSTALL_CLOUDSLANG} == "1" ]; then
+  APT_PACKAGE_LIST+=("openjdk-7-jre")
+  YUM_PACKAGE_LIST+=("java-1.7.0-openjdk")
 fi
 
 APT_PACKAGE_LIST=$(join " " ${APT_PACKAGE_LIST[@]})
@@ -417,6 +423,35 @@ setup_mistral() {
   pip install -q -U git+https://github.com/StackStorm/python-mistralclient.git@${MISTRAL_STABLE_BRANCH}
 }
 
+setup_cloudslang() {
+  # CloudSlang properties
+  CLOUDLSNAG_CLI_VERSION=${CLOUDLSNAG_CLI_VERSION:-cloudslang-0.7.35}
+  CLOUDLSNAG_CLI_ZIP_NAME=${CLOUDLSNAG_CLI_ZIP_NAME:-cslang-cli-with-content.zip}
+  CLOUDSLANG_REPO=${CLOUDSLANG_REPO:-CloudSlang/cloud-slang}
+  CLOUDSLANG_ZIP_URL=https://github.com/${CLOUDSLANG_REPO}/releases/download/${CLOUDLSNAG_CLI_VERSION}/${CLOUDLSNAG_CLI_ZIP_NAME}
+  CLOUDSLANG_EXEC_PATH=${CLOUDSLANG_EXEC_PATH:-cslang/bin/cslang}
+
+  echo "###########################################################################################"
+  echo "# Setting up CloudSlang"
+
+  cd /opt
+  if [ -d "/opt/cslang" ]; then
+    rm -rf /opt/cslang
+  fi
+
+  echo "Downloading CloudSlang CLI"
+  curl -Ss -Lk -o cslang-cli.zip ${CLOUDSLANG_ZIP_URL}
+
+  echo "Unzipping CloudSlang CLI"
+  unzip cslang-cli.zip
+
+  echo "Chmoding CloudSlang executables"
+  chmod +x ${CLOUDSLANG_EXEC_PATH}
+
+  echo "Deleting cslang-cli zip file"
+  rm cslang-cli.zip
+}
+
 function setup_auth() {
     echo "###########################################################################################"
     echo "# Setting up authentication service"
@@ -510,6 +545,10 @@ fi
 
 if [ ${INSTALL_MISTRAL} == "1" ]; then
   setup_mistral
+fi
+
+if [ ${INSTALL_CLOUDSLANG} == "1" ]; then
+  setup_cloudslang
 fi
 
 install_st2client() {

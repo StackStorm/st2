@@ -170,3 +170,16 @@ Runner parameters
 * ``task`` (string) - The name of the task to run for reverse workflow.
 * ``context`` (object) - Additional workflow inputs.
 * ``workflow`` (string) - The name of the workflow to run if the entry_point is a workbook of many workflows. The name should be in the format "<pack_name>.<action_name>.<workflow_name>". If entry point is a workflow or a workbook with a single workflow, the runner will identify the workflow automatically.
+
+CloudSlang runner (cloudslang)
+------------------------------
+
+This runner is built on top of the CloudSlang project and supports
+executing complex workflows. For more information, please refer to the
+:doc:`Workflows </workflows>` and :doc:`CloudSlang </cloudslang>` section of documentation.
+
+Runner parameters
+~~~~~~~~~~~~~~~~~
+
+* ``path`` (string) - File system path of the flow to run.
+* ``inputs`` (object) - Workflow inputs as key/value pairs (e.g. input1=val1,input2=val2).
