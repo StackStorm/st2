@@ -46,6 +46,13 @@ HTPASSWD_FILE_CONTENT="testu:{SHA}V1t6eZLxnehb7CTBuj61Nq3lIh4="
 # WebUI
 WEBUI_CONFIG_PATH="/opt/stackstorm/static/webui/config.js"
 
+# CloudSlang variables
+CLOUDLSNAG_CLI_VERSION=${CLOUDLSNAG_CLI_VERSION:-cloudslang-0.7.35}
+CLOUDLSNAG_CLI_ZIP_NAME=${CLOUDLSNAG_CLI_ZIP_NAME:-cslang-cli-with-content.zip}
+CLOUDSLANG_REPO=${CLOUDSLANG_REPO:-CloudSlang/cloud-slang}
+CLOUDSLANG_ZIP_URL=https://github.com/${CLOUDSLANG_REPO}/releases/download/${CLOUDLSNAG_CLI_VERSION}/${CLOUDLSNAG_CLI_ZIP_NAME}
+CLOUDSLANG_EXEC_PATH=${CLOUDSLANG_EXEC_PATH:-cslang/bin/cslang}
+
 # Common utility functions
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" == "$1"; }
 function join { local IFS="$1"; shift; echo "$*"; }
@@ -424,13 +431,6 @@ setup_mistral() {
 }
 
 setup_cloudslang() {
-  # CloudSlang properties
-  CLOUDLSNAG_CLI_VERSION=${CLOUDLSNAG_CLI_VERSION:-cloudslang-0.7.35}
-  CLOUDLSNAG_CLI_ZIP_NAME=${CLOUDLSNAG_CLI_ZIP_NAME:-cslang-cli-with-content.zip}
-  CLOUDSLANG_REPO=${CLOUDSLANG_REPO:-CloudSlang/cloud-slang}
-  CLOUDSLANG_ZIP_URL=https://github.com/${CLOUDSLANG_REPO}/releases/download/${CLOUDLSNAG_CLI_VERSION}/${CLOUDLSNAG_CLI_ZIP_NAME}
-  CLOUDSLANG_EXEC_PATH=${CLOUDSLANG_EXEC_PATH:-cslang/bin/cslang}
-
   echo "###########################################################################################"
   echo "# Setting up CloudSlang"
 
