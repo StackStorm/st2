@@ -125,9 +125,6 @@ class BaseFabricRunner(ActionRunner, ShellRunnerMixin):
         """
         env_vars = {}
 
-        if self.auth_token:
-            env_vars['st2_auth_token'] = self.auth_token.token
-
         if self._env:
             env_vars.update(self._env)
 
