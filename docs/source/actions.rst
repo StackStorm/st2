@@ -211,6 +211,8 @@ Common environment variables available to the actions
 By default, local, remote and python runner make the following environment variables available
 to the actions:
 
+* ``ST2_ACTION_PACK_NAME`` - Name of the pack to which the currently executed action belongs to.
+* ``ST2_ACTION_EXECUTION_ID`` - Execution ID of the action being currently executed.
 * ``ST2_ACTION_API_URL`` - Full URL to the public API endpoint.
 * ``ST2_ACTION_AUTH_TOKEN`` - Auth token which is available to the action until it completes.
   When the action completes, the token gets revoked and it's not valid anymore.
