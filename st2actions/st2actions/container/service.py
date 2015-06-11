@@ -37,7 +37,6 @@ class RunnerContainerService(object):
         self._payload[name] = value
 
     def get_logger(self, name):
-        from st2common import log as logging
         logging.getLogger(__name__ + '.' + name)
 
     @staticmethod
