@@ -13,17 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.util.jsonify import json_encode
+import datetime
+import mongoengine as me
+
+from st2common.fields import ComplexDateTimeField
+from st2common.models.db import stormbase
 
 __all__ = [
-    'JsonConverter'
+    'MarkerDB',
+    'DumperMarkerDB'
 ]
 
 
-class JsonConverter(object):
+class MarkerDB(stormbase.StormFoundationDB):
+    marker = me.StringField(required=True)
+    updated_at = ComplexDateTimeField(
+        default=datetime.datetime.utcnow,
+        help_text='The timestamp when the liveaction was created.')
 
-    def convert(self, items_list):
-        if not isinstance(items_list, list):
-            raise ValueError('Items to be converted should be a list.')
-        json_doc = json_encode(items_list)
-        return json_doc
+    meta = {
+        'abstract': True
+    }
+
+
+class DumperMarkerDB(MarkerDB):
+    pass
+
+MODELS = [MarkerDB, DumperMarkerDB]

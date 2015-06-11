@@ -22,6 +22,13 @@ import eventlet
 from st2common import log as logging
 from st2exporter.exporter.file_writer import TextFileWriter
 from st2exporter.exporter.json_converter import JsonConverter
+from st2common.models.db.marker import DumperMarkerDB
+from st2common.persistence.marker import DumperMarker
+from st2common.util import isotime
+
+__all__ = [
+    'Dumper'
+]
 
 ALLOWED_EXTENSIONS = ['json']
 
@@ -62,6 +69,7 @@ class Dumper(object):
         self._sleep_interval = sleep_interval
         self._converter = CONVERTERS[self._file_format]()
         self._shutdown = False
+        self._persisted_timestamp = None
 
         if not file_writer:
             self._file_writer = TextFileWriter()
@@ -112,6 +120,7 @@ class Dumper(object):
 
             try:
                 self._write_batch_to_disk(batch)
+                self._update_marker(batch)
                 count += 1
             except:
                 LOG.exception('Writing batch to disk failed.')
@@ -126,3 +135,33 @@ class Dumper(object):
         file_name = self._file_prefix + timestring + '.' + self._file_format
         file_name = os.path.join(self._export_dir, file_name)
         return file_name
+
+    def _update_marker(self, batch):
+        new_marker = self._persisted_timestamp
+        for item in batch:
+            if not new_marker:
+                new_marker = item.end_timestamp
+            if item.end_timestamp < new_marker:
+                new_marker = item.end_timestamp
+        if self._persisted_timestamp != new_marker:
+            self._write_marker_to_db(new_marker)
+            self._persisted_timestamp = new_marker
+        return new_marker
+
+    def _write_marker_to_db(self, new_marker):
+        LOG.info('Updating marker in db to: %s', new_marker)
+        marker = DumperMarker.get_all()
+
+        if len(marker) > 1:
+            LOG.exception('More than one dumper marker found. Using first found one.')
+
+        marker_db = None
+        if marker:
+            marker = marker[0]
+            marker_db = DumperMarkerDB(id=marker['id'])
+        else:
+            marker_db = DumperMarkerDB()
+
+        marker_db.marker = new_marker
+        marker_db.updated_at = isotime.add_utc_tz(datetime.datetime.utcnow())
+        return DumperMarker.add_or_update(marker_db)
