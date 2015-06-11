@@ -24,7 +24,6 @@ from st2exporter.exporter.file_writer import TextFileWriter
 from st2exporter.exporter.json_converter import JsonConverter
 from st2common.models.db.marker import DumperMarkerDB
 from st2common.persistence.marker import DumperMarker
-from st2common.util import isotime
 
 __all__ = [
     'Dumper'
@@ -163,5 +162,5 @@ class Dumper(object):
             marker_db = DumperMarkerDB()
 
         marker_db.marker = new_marker
-        marker_db.updated_at = isotime.add_utc_tz(datetime.datetime.utcnow())
+        marker_db.updated_at = datetime.datetime.utcnow()
         return DumperMarker.add_or_update(marker_db)

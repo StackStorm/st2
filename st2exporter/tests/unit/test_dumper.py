@@ -19,6 +19,7 @@ import Queue
 import eventlet
 import mock
 
+from st2common.models.api.execution import ActionExecutionAPI
 from st2exporter.exporter.dumper import Dumper
 from st2exporter.exporter.file_writer import TextFileWriter
 from st2tests.base import EventletTestCase
@@ -39,11 +40,14 @@ class TestDumper(EventletTestCase):
     loaded_fixtures = fixtures_loader.load_fixtures(fixtures_pack=DESCENDANTS_PACK,
                                                     fixtures_dict=DESCENDANTS_FIXTURES)
     loaded_executions = loaded_fixtures['executions']
+    execution_apis = []
+    for execution in loaded_executions.values():
+        execution_apis.append(ActionExecutionAPI(**execution))
 
     def get_queue(self):
         executions_queue = Queue.Queue()
 
-        for execution in self.loaded_executions:
+        for execution in self.execution_apis:
             executions_queue.put(execution)
         return executions_queue
 
@@ -86,6 +90,7 @@ class TestDumper(EventletTestCase):
         self.assertEqual(ret, 0)
 
     @mock.patch.object(TextFileWriter, 'write_text', mock.MagicMock(return_value=True))
+    @mock.patch.object(Dumper, '_update_marker', mock.MagicMock(return_value=None))
     def test_write_to_disk(self):
         executions_queue = self.get_queue()
         max_files_per_sleep = 5
@@ -107,3 +112,18 @@ class TestDumper(EventletTestCase):
         # Call stop after at least one batch was written to disk.
         eventlet.sleep(10 * sleep_interval)
         dumper.stop()
+
+    @mock.patch.object(TextFileWriter, 'write_text', mock.MagicMock(return_value=True))
+    @mock.patch.object(Dumper, '_write_marker_to_db', mock.MagicMock(return_value=True))
+    def test_update_marker(self):
+        executions_queue = self.get_queue()
+        dumper = Dumper(queue=executions_queue,
+                        export_dir='/tmp', batch_size=5,
+                        max_files_per_sleep=1,
+                        file_prefix='st2-stuff-', file_format='json')
+        new_marker = dumper._update_marker(self.execution_apis[0:5])
+        self.assertTrue(new_marker is not None)
+        new_marker = dumper._update_marker(self.execution_apis[6:])
+        timestamps = [execution.end_timestamp for execution in self.execution_apis]
+        min_timestamp = min(timestamps)
+        self.assertEqual(new_marker, min_timestamp)

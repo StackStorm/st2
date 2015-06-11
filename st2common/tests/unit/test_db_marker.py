@@ -29,13 +29,13 @@ class DumperMarkerModelTest(DbTestCase):
         self.assertEqual(saved.marker, retrieved.marker,
                          'Same marker was not returned.')
         # test update
-        time_now = isotime.add_utc_tz(datetime.datetime.utcnow())
+        time_now = datetime.datetime.utcnow()
         retrieved.updated_at = time_now
         saved = DumperMarker.add_or_update(retrieved)
         retrieved = DumperMarker.get_by_id(saved.id)
         self.assertEqual(retrieved.updated_at, time_now, 'Update to marker failed.')
         # cleanup
-        DumperMarker._delete([retrieved])
+        DumperMarkerModelTest._delete([retrieved])
         try:
             retrieved = DumperMarker.get_by_id(saved.id)
         except ValueError:
@@ -48,3 +48,8 @@ class DumperMarkerModelTest(DbTestCase):
         created.marker = '2015-06-11T00:35:15.260439Z'
         created.updated_at = isotime.add_utc_tz(datetime.datetime.utcnow())
         return DumperMarker.add_or_update(created)
+
+    @staticmethod
+    def _delete(model_objects):
+        for model_object in model_objects:
+            model_object.delete()
