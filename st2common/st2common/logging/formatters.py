@@ -24,9 +24,6 @@ import traceback
 
 import six
 
-from st2common.models.db.liveaction import LiveActionDB
-from st2common.models.db.execution import ActionExecutionDB
-
 __all__ = [
     'ConsoleLogFormatter',
     'GelfLogFormatter',
@@ -43,7 +40,8 @@ NON_OBJECT_TYPES = SIMPLE_TYPES + (list, dict) + six.string_types
 # values.
 MASKED_ATTRIBUTES = [
     'password',
-    'token'
+    'token',
+    'secret'
 ]
 
 # Value with which the masked attribute values are replaced
@@ -76,23 +74,9 @@ def serialize_object(obj):
     if getattr(obj, 'to_dict', None):
         value = obj.to_dict()
     elif getattr(obj, 'to_serializable_dict', None):
-        value = obj.to_serializable_dict()
+        value = obj.to_serializable_dict(mask_secrets=True)
     else:
         value = repr(obj)
-
-    # Process the custom models
-    if isinstance(obj, (LiveActionDB, ActionExecutionDB)) and isinstance(value, dict):
-        # Mask the parameters with attribute "secret"
-        execution_parameters = value.get('parameters', {})
-        action_parameters = getattr(obj, 'action', {}).get('parameters', {})
-        secret_parameters = [parameter for parameter, options in six.iteritems(action_parameters) if
-                             options.get('secret', False)]
-
-        for parameter in secret_parameters:
-            if parameter not in execution_parameters:
-                continue
-
-            value['parameters'][parameter] = MASKED_ATTRIBUTE_VALUE
 
     return value
 
@@ -106,7 +90,7 @@ def process_attribute_value(key, value):
         if key in MASKED_ATTRIBUTES:
             value = MASKED_ATTRIBUTE_VALUE
     elif isinstance(value, dict):
-        # Note: We don't want to modify the original value`
+        # Note: We don't want to modify the original value
         value = copy.deepcopy(value)
 
         for dict_key, dict_value in six.iteritems(value):

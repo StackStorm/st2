@@ -14,6 +14,8 @@
 # limitations under the License.
 
 import datetime
+
+import six
 import mongoengine as me
 
 from st2common import log as logging
@@ -21,6 +23,8 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.models.db.notification import NotificationSchema
 from st2common.fields import ComplexDateTimeField
+from st2common.util.action_db import get_action_by_ref
+from st2common.logging.formatters import MASKED_ATTRIBUTE_VALUE
 
 __all__ = [
     'LiveActionDB',
@@ -75,6 +79,31 @@ class LiveActionDB(stormbase.StormFoundationDB):
     meta = {
         'indexes': ['-start_timestamp', 'action']
     }
+
+    def to_serializable_dict(self, mask_secrets=False):
+        result = super(LiveActionDB, self).to_serializable_dict(mask_secrets=mask_secrets)
+
+        if mask_secrets:
+            # Note: This is slow but sadly there is no way around that if we want to avoid masking
+            # code spillage into other places
+            action_db = get_action_by_ref(self.action)
+
+            if not action_db:
+                break
+
+            execution_parameters = self.parameters
+            action_parameters = action_db.parameters
+            secret_parameters = [parameter for parameter, options in
+                                 six.iteritems(action_parameters) if options.get('secret', False)]
+
+            for parameter in secret_parameters:
+                if parameter not in execution_parameters:
+                    continue
+
+                result['parameters'][parameter] = MASKED_ATTRIBUTE_VALUE
+
+        return result
+
 
 # specialized access objects
 liveaction_access = MongoDBAccess(LiveActionDB)

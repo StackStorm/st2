@@ -311,7 +311,7 @@ class GelfLogFormatterTestCase(unittest.TestCase):
                 return 'to_dict'
 
         class MyClass3(object):
-            def to_serializable_dict(self):
+            def to_serializable_dict(self, mask_secrets=False):
                 return 'to_serializable_dict'
 
         formatter = GelfLogFormatter()

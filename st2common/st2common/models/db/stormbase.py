@@ -61,8 +61,11 @@ class StormFoundationDB(me.Document):
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
 
-    def to_serializable_dict(self, exclude_secrets=False):
+    def to_serializable_dict(self, mask_secrets=False):
         """
+        :param mask_secrets: True to mask secrets in the resulting dict.
+        :type mask_secrets: ``boolean``
+
         :rtype: ``dict``
         """
         serializable_dict = {}
