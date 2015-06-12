@@ -29,7 +29,7 @@ class DumperMarkerModelTest(DbTestCase):
         self.assertEqual(saved.marker, retrieved.marker,
                          'Same marker was not returned.')
         # test update
-        time_now = datetime.datetime.utcnow()
+        time_now = isotime.add_utc_tz(datetime.datetime.utcnow())
         retrieved.updated_at = time_now
         saved = DumperMarker.add_or_update(retrieved)
         retrieved = DumperMarker.get_by_id(saved.id)
