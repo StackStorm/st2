@@ -5,21 +5,7 @@ if [ "$#" -gt 1 ]; then
     runner_count=${2}
 fi
 
-function exportsdir(){
-    echo $ST2_CONF
-    local EXPORTS_DIR=$(grep 'dump_dir' ${ST2_CONF} | awk 'BEGIN {FS=" = "}; {print $2}')
-    if [ -z $EXPORTS_DIR ]; then
-        EXPORTS_DIR="/opt/stackstorm/exports"
-    fi
-    echo EXPORTS_DIR
-}
-
-function st2start(){
-    echo "Starting all st2 servers..."
-
-    # Determine where the st2 repo is located. Some assumption is made here
-    # that this script is located under st2/tools.
-
+function init(){
     ST2_BASE_DIR="/opt/stackstorm"
     COMMAND_PATH=${0%/*}
     CURRENT_DIR=`pwd`
@@ -33,9 +19,6 @@ function st2start(){
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
 
-    # Change working directory to the root of the repo.
-    echo "Changing working directory to ${ST2_REPO}..."
-    cd ${ST2_REPO}
 
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
@@ -46,6 +29,25 @@ function st2start(){
         echo "Config file $ST2_CONF does not exist."
         exit 1
     fi
+}
+
+function exportsdir(){
+    local EXPORTS_DIR=$(grep 'dump_dir' ${ST2_CONF} | sed -e "s~^dump_dir[ ]*=[ ]*\(.*\)~\1~g")
+    if [ -z $EXPORTS_DIR ]; then
+        EXPORTS_DIR="/opt/stackstorm/exports"
+    fi
+    echo "$EXPORTS_DIR"
+}
+
+function st2start(){
+    echo "Starting all st2 servers..."
+
+    # Determine where the st2 repo is located. Some assumption is made here
+    # that this script is located under st2/tools.
+
+    # Change working directory to the root of the repo.
+    echo "Changing working directory to ${ST2_REPO}..."
+    cd ${ST2_REPO}
 
     PACKS_BASE_DIR=$(grep 'packs_base_path' ${ST2_CONF} \
         | awk 'BEGIN {FS=" = "}; {print $2}')
@@ -181,17 +183,20 @@ function st2clean(){
     # start with clean logs
     LOGDIR=$(dirname $0)/../logs
     # rm ${LOGDIR}/*
-    echo 'Getting exportsdir...'
-    EXPORTS_DIR=$(exportsdir)
-    echo "Removing $EXPORTS_DIR..."
-    #rm -rf ${EXPORTS_DIR}
+    if [ -n "$ST2_EXPORTER" ]; then
+        EXPORTS_DIR=$(exportsdir)
+        echo "Removing $EXPORTS_DIR..."
+        rm -rf ${EXPORTS_DIR}
+    fi
 }
 
 case ${1} in
 start)
+    init
     st2start
     ;;
 startclean)
+    init
     st2clean
     st2start
     ;;
@@ -201,6 +206,7 @@ stop)
 restart)
     st2stop
     sleep 1
+    init
     st2start
     ;;
 *)
