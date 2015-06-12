@@ -12,6 +12,8 @@ in development
   local, remote and python runner: ``ST2_ACTION_API_URL``, ``ST2_ACTION_AUTH_TOKEN``. (new-feature)
 * Jinja filter to make working with regex and semver possible in any place that
   support jinja (improvement)
+* Fix a bug with ``start_timestamp`` and ``end_timestamp`` sometimes returning an invalid value in
+  a local instead of UTC timezone. (bug-fix)
 * New experimental workflow runner based on the open-source CloudSlang project. (new-feature)
   [Eliya Sadan, Meir Wahnon]
 
