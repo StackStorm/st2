@@ -5,12 +5,22 @@ if [ "$#" -gt 1 ]; then
     runner_count=${2}
 fi
 
+function exportsdir(){
+    echo $ST2_CONF
+    local EXPORTS_DIR=$(grep 'dump_dir' ${ST2_CONF} | awk 'BEGIN {FS=" = "}; {print $2}')
+    if [ -z $EXPORTS_DIR ]; then
+        EXPORTS_DIR="/opt/stackstorm/exports"
+    fi
+    echo EXPORTS_DIR
+}
+
 function st2start(){
     echo "Starting all st2 servers..."
 
     # Determine where the st2 repo is located. Some assumption is made here
     # that this script is located under st2/tools.
 
+    ST2_BASE_DIR="/opt/stackstorm"
     COMMAND_PATH=${0%/*}
     CURRENT_DIR=`pwd`
     CURRENT_USER=`whoami`
@@ -45,8 +55,8 @@ function st2start(){
     echo "Using content packs base dir: $PACKS_BASE_DIR"
 
     # Copy and overwrite the action contents
-    if [ ! -d "/opt/stackstorm" ]; then
-        echo "/opt/stackstorm doesn't exist. Creating..."
+    if [ ! -d "$ST2_BASE_DIR" ]; then
+        echo "$ST2_BASE_DIR doesn't exist. Creating..."
         sudo mkdir -p $PACKS_BASE_DIR
     fi
 
@@ -118,6 +128,15 @@ function st2start(){
         ./st2auth/bin/st2auth \
         --config-file $ST2_CONF
 
+    if [ -n "$ST2_EXPORTER" ]; then
+        EXPORTS_DIR=$(exportsdir)
+        sudo mkdir -p $EXPORTS_DIR
+        echo 'Starting screen session st2-exporter...'
+        screen -d -m -S st2-exporter ./virtualenv/bin/python \
+            ./st2exporter/bin/st2exporter \
+            --config-file $ST2_CONF
+    fi
+
     # Check whether screen sessions are started
     SCREENS=(
         "st2-api"
@@ -161,7 +180,11 @@ function st2clean(){
     mongo st2 --eval "db.dropDatabase();"
     # start with clean logs
     LOGDIR=$(dirname $0)/../logs
-    rm ${LOGDIR}/*
+    # rm ${LOGDIR}/*
+    echo 'Getting exportsdir...'
+    EXPORTS_DIR=$(exportsdir)
+    echo "Removing $EXPORTS_DIR..."
+    #rm -rf ${EXPORTS_DIR}
 }
 
 case ${1} in
