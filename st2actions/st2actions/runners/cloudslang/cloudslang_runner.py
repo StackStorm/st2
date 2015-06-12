@@ -68,6 +68,8 @@ class CloudSlangRunner(ActionRunner):
             inputs = self._inputs
         elif action_parameters:
             inputs = action_parameters
+        else:
+            inputs = None
 
         inputs_file_path = self._write_inputs_to_a_temp_file(inputs=inputs)
         has_inputs = (inputs_file_path is not None)
@@ -117,6 +119,10 @@ class CloudSlangRunner(ActionRunner):
         command_args = ['--f', self._flow_path,
                         '--if', inputs_file_path if has_inputs else '',
                         '--cp', self._cloudslang_home]
+
+        if has_inputs:
+            command_args += ['--if', inputs_file_path]
+
         command = cloudslang_binary + " run " + " ".join([quote_unix(arg) for arg in command_args])
         LOG.info('Executing action via CloudSlangRunner: %s', self.runner_id)
         LOG.debug('Command is: %s', command)

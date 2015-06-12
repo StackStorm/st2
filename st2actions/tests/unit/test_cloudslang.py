@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import os
 import mock
-from unittest2 import TestCase
-import st2actions.runners.cloudslang.cloudslang_runner as csr
 
+from unittest2 import TestCase
+
+import st2actions.runners.cloudslang.cloudslang_runner as csr
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 
@@ -34,30 +34,32 @@ class CloudSlangRunnerTestCase(TestCase):
         self.assertTrue(runner.runner_id)
 
     def test_pre_run_sets_attributes(self):
+        entry_point = 'path'
         inputs = {'a': 1}
-        path = "path"
         timeout = 10
+
         runner = csr.get_runner()
+        runner.entry_point = entry_point
         runner.runner_parameters = {
             csr.RUNNER_INPUTS: inputs,
-            csr.RUNNER_PATH: path,
             csr.RUNNER_TIMEOUT: timeout,
         }
         tests_config._register_mistral_opts()
         runner.pre_run()
+        self.assertEqual(runner.entry_point, entry_point)
         self.assertEqual(runner._inputs, inputs)
-        self.assertEqual(runner._path, path)
         self.assertEqual(runner._timeout, timeout)
 
     @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.quote_unix')
     @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
     def test_run_calls_a_new_process_success(self, mock_run_command, mock_quote_unix):
-        path = "path"
+        entry_point = 'path'
         timeout = 1
+
         runner = csr.get_runner()
+        runner.entry_point = entry_point
         runner.runner_parameters = {
             csr.RUNNER_INPUTS: None,
-            csr.RUNNER_PATH: path,
             csr.RUNNER_TIMEOUT: timeout,
         }
         runner.pre_run()
@@ -71,12 +73,10 @@ class CloudSlangRunnerTestCase(TestCase):
     @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.quote_unix')
     @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
     def test_run_calls_a_new_process_failure(self, mock_run_command, mock_quote_unix):
-        path = "path"
         timeout = 1
         runner = csr.get_runner()
         runner.runner_parameters = {
             csr.RUNNER_INPUTS: None,
-            csr.RUNNER_PATH: path,
             csr.RUNNER_TIMEOUT: timeout,
         }
         runner.pre_run()
@@ -89,12 +89,12 @@ class CloudSlangRunnerTestCase(TestCase):
 
     @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
     def test_run_calls_a_new_process_timeout(self, mock_run_command):
-        path = "path"
+        entry_point = 'path'
         timeout = 1
         runner = csr.get_runner()
+        runner.entry_point = entry_point
         runner.runner_parameters = {
             csr.RUNNER_INPUTS: None,
-            csr.RUNNER_PATH: path,
             csr.RUNNER_TIMEOUT: timeout,
         }
         runner.pre_run()
@@ -106,13 +106,13 @@ class CloudSlangRunnerTestCase(TestCase):
     @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
     @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.yaml.safe_dump')
     def test_inputs_are_save_to_file_properly(self, mock_yaml_dump, mock_run_command):
+        entry_point = 'path'
         inputs = {'a': 1}
-        path = "path"
         timeout = 1
         runner = csr.get_runner()
+        runner.entry_point = entry_point
         runner.runner_parameters = {
             csr.RUNNER_INPUTS: inputs,
-            csr.RUNNER_PATH: path,
             csr.RUNNER_TIMEOUT: timeout,
         }
         runner.pre_run()
@@ -126,13 +126,13 @@ class CloudSlangRunnerTestCase(TestCase):
     @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
     @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.os.remove')
     def test_temp_file_deletes_when_exception_occurs(self, mock_os_remove, mock_run_command):
+        entry_point = 'path'
         inputs = {'a': 1}
-        path = "path"
         timeout = 1
         runner = csr.get_runner()
+        runner.entry_point = entry_point
         runner.runner_parameters = {
             csr.RUNNER_INPUTS: inputs,
-            csr.RUNNER_PATH: path,
             csr.RUNNER_TIMEOUT: timeout,
         }
         runner.pre_run()
