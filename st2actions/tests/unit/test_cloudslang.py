@@ -144,3 +144,44 @@ class CloudSlangRunnerTestCase(TestCase):
 
         # lets really remove it now
         os.remove(mock_os_remove.call_args[0][0])
+
+    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
+    def test_inputs_provided_via_inputs_runner_parameter(self, mock_run_command):
+        entry_point = 'path'
+        inputs = {'a': 1}
+        timeout = 1
+
+        runner = csr.get_runner()
+        runner.entry_point = entry_point
+        runner.runner_parameters = {
+            csr.RUNNER_INPUTS: inputs,
+            csr.RUNNER_TIMEOUT: timeout,
+        }
+        runner._write_inputs_to_a_temp_file = mock.Mock()
+        runner._write_inputs_to_a_temp_file.return_value = None
+
+        mock_run_command.return_value = (0, "", "", False)
+        runner.pre_run()
+        runner.run({})
+        runner._write_inputs_to_a_temp_file.assert_called_with(inputs=inputs)
+
+    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
+    def test_inputs_provided_via_action_parameters(self, mock_run_command):
+        entry_point = 'path'
+        inputs = None
+        timeout = 1
+        action_parameters = {'foo': 'bar'}
+
+        runner = csr.get_runner()
+        runner.entry_point = entry_point
+        runner.runner_parameters = {
+            csr.RUNNER_INPUTS: inputs,
+            csr.RUNNER_TIMEOUT: timeout,
+        }
+        runner._write_inputs_to_a_temp_file = mock.Mock()
+        runner._write_inputs_to_a_temp_file.return_value = None
+
+        mock_run_command.return_value = (0, "", "", False)
+        runner.pre_run()
+        runner.run(action_parameters)
+        runner._write_inputs_to_a_temp_file.assert_called_with(inputs=action_parameters)
