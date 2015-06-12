@@ -443,11 +443,6 @@ RUNNER_TYPES = [
         'description': 'A runner to execute cloudslang flows.',
         'enabled': True,
         'runner_parameters': {
-            'flow_path': {
-                'description': 'Path to a flow to run',
-                'type': 'string',
-                'required': True
-            },
             'inputs': {
                 'description': ('Inputs which will be available to CLoudSlang flow execution'
                                 '(e.g. input1=val1,input2=val2)'),

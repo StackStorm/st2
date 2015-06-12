@@ -35,7 +35,6 @@ import st2common.util.jsonify as jsonify
 LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters.
-RUNNER_PATH = 'flow_path'
 RUNNER_INPUTS = 'inputs'
 RUNNER_TIMEOUT = 'timeout'
 
@@ -54,9 +53,9 @@ class CloudSlangRunner(ActionRunner):
         super(CloudSlangRunner, self).__init__(runner_id=runner_id)
 
     def pre_run(self):
+        self._flow_path = self.entry_point
         self._user = cfg.CONF.system_user.user
         self._cloudslang_home = cfg.CONF.cloudslang.home_dir
-        self._path = self.runner_parameters.get(RUNNER_PATH, None)
         self._inputs = self.runner_parameters.get(RUNNER_INPUTS, None)
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT,
                                                    LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT)
@@ -115,7 +114,7 @@ class CloudSlangRunner(ActionRunner):
         cloudslang_binary = os.path.join(self._cloudslang_home, 'bin/cslang')
         LOG.debug('Using CloudSlang binary: %s', cloudslang_binary)
 
-        command_args = ['--f', self._path,
+        command_args = ['--f', self._flow_path,
                         '--if', inputs_file_path if has_inputs else '',
                         '--cp', self._cloudslang_home]
         command = cloudslang_binary + " run " + " ".join([quote_unix(arg) for arg in command_args])
