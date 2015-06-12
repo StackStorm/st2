@@ -15,6 +15,7 @@
 
 import time
 import datetime
+import calendar
 
 import mock
 import unittest2
@@ -23,6 +24,14 @@ from st2common.fields import ComplexDateTimeField
 
 
 class ComplexDateTimeFieldTestCase(unittest2.TestCase):
+    def test_what_comes_in_goes_out(self):
+        field = ComplexDateTimeField()
+
+        date = datetime.datetime.utcnow()
+        us = field._datetime_to_microseconds_since_epoch(date)
+        result = field._microseconds_since_epoch_to_datetime(us)
+        self.assertEqual(date, result)
+
     def test_round_trip_conversion(self):
         datetime_values = [
             datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=500),
@@ -33,7 +42,7 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
 
         # Calculate microsecond values
         for value in datetime_values:
-            seconds = time.mktime(value.timetuple())
+            seconds = calendar.timegm(value.timetuple())
             microseconds_reminder = value.time().microsecond
             result = int(seconds * 1000000) + microseconds_reminder
             microsecond_values.append(result)
