@@ -18,6 +18,8 @@ import datetime
 
 from mongoengine import LongField
 
+from st2common.util import isotime
+
 __all__ = [
     'ComplexDateTimeField'
 ]
@@ -59,10 +61,19 @@ class ComplexDateTimeField(LongField):
         result = datetime.datetime.fromtimestamp(data // SECOND_TO_MICROSECONDS)
         microseconds_reminder = (data % SECOND_TO_MICROSECONDS)
         result = result.replace(microsecond=microseconds_reminder)
+        result = isotime.add_utc_tz(result)
         return result
 
     def _datetime_to_microseconds_since_epoch(self, value):
-        seconds = time.mktime(value.timetuple())
+        """
+        Convert datetime in UTC to number of microseconds from epoch.
+
+        Note: datetime which is passed to the function needs to be in UTC timezone (e.g. as returned
+        by ``datetime.datetime.utcnow``).
+
+        :rtype: ``int``
+        """
+        seconds = calendar.timegm(value.timetuple())
         microseconds_reminder = value.time().microsecond
         result = (int(seconds * SECOND_TO_MICROSECONDS) + microseconds_reminder)
         return result
