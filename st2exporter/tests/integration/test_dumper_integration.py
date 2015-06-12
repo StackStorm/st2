@@ -14,8 +14,10 @@
 # limitations under the License.
 
 import datetime
+import os
 import Queue
 
+import mock
 import six
 
 from st2common.models.api.execution import ActionExecutionAPI
@@ -51,6 +53,7 @@ class TestDumper(DbTestCase):
             executions_queue.put(execution)
         return executions_queue
 
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_write_marker_to_db(self):
         executions_queue = self.get_queue()
         dumper = Dumper(queue=executions_queue,
@@ -64,6 +67,7 @@ class TestDumper(DbTestCase):
         self.assertTrue(isinstance(persisted_marker, six.string_types))
         self.assertEqual(isotime.parse(persisted_marker), max_timestamp)
 
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_write_marker_to_db_marker_exists(self):
         executions_queue = self.get_queue()
         dumper = Dumper(queue=executions_queue,

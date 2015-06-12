@@ -14,6 +14,9 @@
 # limitations under the License.
 
 import datetime
+import os
+
+import mock
 
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.marker import DumperMarkerDB
@@ -44,6 +47,7 @@ class TestExportWorker(DbTestCase):
                                                               fixtures_dict=DESCENDANTS_FIXTURES)
         TestExportWorker.saved_executions = loaded_fixtures['executions']
 
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_get_marker_from_db(self):
         marker_dt = datetime.datetime.utcnow() - datetime.timedelta(minutes=5)
         marker_db = DumperMarkerDB(marker=isotime.format(marker_dt, offset=False),
@@ -53,11 +57,13 @@ class TestExportWorker(DbTestCase):
         export_marker = exec_exporter._get_export_marker_from_db()
         self.assertEqual(export_marker, isotime.add_utc_tz(marker_dt))
 
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_get_missed_executions_from_db_no_marker(self):
         exec_exporter = ExecutionsExporter(None, None)
         all_execs = exec_exporter._get_missed_executions_from_db(export_marker=None)
         self.assertEqual(len(all_execs), len(self.saved_executions.values()))
 
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_get_missed_executions_from_db_with_marker(self):
         exec_exporter = ExecutionsExporter(None, None)
         all_execs = exec_exporter._get_missed_executions_from_db(export_marker=None)
@@ -70,6 +76,7 @@ class TestExportWorker(DbTestCase):
         for item in all_execs:
             self.assertTrue(item.end_timestamp > marker)
 
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_bootstrap(self):
         exec_exporter = ExecutionsExporter(None, None)
         exec_exporter._bootstrap()
@@ -80,6 +87,7 @@ class TestExportWorker(DbTestCase):
             self.assertTrue(isinstance(exec_exporter.pending_executions.get(), ActionExecutionAPI))
             count += 1
 
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_process(self):
         some_execution = self.saved_executions.values()[5]
         exec_exporter = ExecutionsExporter(None, None)

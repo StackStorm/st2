@@ -75,6 +75,7 @@ class TestDumper(EventletTestCase):
         batch = dumper._get_batch()
         self.assertEqual(len(batch), expected_batch_size)
 
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_get_file_name(self):
         dumper = Dumper(queue=self.get_queue(),
                         export_dir='/tmp',
@@ -83,6 +84,7 @@ class TestDumper(EventletTestCase):
         self.assertTrue(file_name.startswith('/tmp/st2-stuff-'))
         self.assertTrue(file_name.endswith('json'))
 
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_write_to_disk_empty_queue(self):
         dumper = Dumper(queue=Queue.Queue(),
                         export_dir='/tmp',
@@ -93,6 +95,7 @@ class TestDumper(EventletTestCase):
 
     @mock.patch.object(TextFileWriter, 'write_text', mock.MagicMock(return_value=True))
     @mock.patch.object(Dumper, '_update_marker', mock.MagicMock(return_value=None))
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_write_to_disk(self):
         executions_queue = self.get_queue()
         max_files_per_sleep = 5
@@ -103,6 +106,7 @@ class TestDumper(EventletTestCase):
         ret = dumper._write_to_disk()
         self.assertEqual(ret, max_files_per_sleep)
 
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     @mock.patch.object(TextFileWriter, 'write_text', mock.MagicMock(return_value=True))
     def test_start_stop_dumper(self):
         executions_queue = self.get_queue()
@@ -115,6 +119,7 @@ class TestDumper(EventletTestCase):
         eventlet.sleep(10 * sleep_interval)
         dumper.stop()
 
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     @mock.patch.object(Dumper, '_write_marker_to_db', mock.MagicMock(return_value=True))
     def test_update_marker(self):
         executions_queue = self.get_queue()
@@ -138,6 +143,7 @@ class TestDumper(EventletTestCase):
         self.assertEqual(new_marker, max_timestamp)
         dumper._write_marker_to_db.assert_called_with(new_marker)
 
+    @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     @mock.patch.object(Dumper, '_write_marker_to_db', mock.MagicMock(return_value=True))
     def test_update_marker_out_of_order_batch(self):
         executions_queue = self.get_queue()
