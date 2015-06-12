@@ -131,7 +131,7 @@ class Dumper(object):
         self._file_writer.write_text(doc_to_write, self._get_file_name())
 
     def _get_file_name(self):
-        timestring = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        timestring = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         file_name = self._file_prefix + timestring + '.' + self._file_format
         file_name = os.path.join(self._export_dir, file_name)
         return file_name
@@ -167,5 +167,5 @@ class Dumper(object):
             marker_db = DumperMarkerDB()
 
         marker_db.marker = isotime.format(new_marker, offset=False)
-        marker_db.updated_at = datetime.datetime.utcnow()
+        marker_db.updated_at = isotime.add_utc_tz(datetime.datetime.utcnow())
         return DumperMarker.add_or_update(marker_db)

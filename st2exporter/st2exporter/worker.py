@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import Queue
 
 import eventlet
@@ -74,10 +73,12 @@ class ExecutionsExporter(consumers.MessageHandler):
         super(ExecutionsExporter, self).shutdown()
 
     def process(self, execution):
+        LOG.debug('Got execution from queue: %s', execution)
         if execution.status not in COMPLETION_STATUSES:
             return
         execution_api = ActionExecutionAPI.from_model(execution)
         self.pending_executions.put_nowait(execution_api)
+        LOG.debug("Added execution to queue.")
 
     def _bootstrap(self):
         marker = self._get_export_marker_from_db()
@@ -98,18 +99,25 @@ class ExecutionsExporter(consumers.MessageHandler):
         LOG.info('Bootstrapped executions...')
 
     def _get_export_marker_from_db(self):
-        marker = DumperMarker.get_all()[0]
-        return isotime.parse(marker.marker)
+        try:
+            markers = DumperMarker.get_all()
+        except:
+            return None
+        else:
+            if len(markers) >= 1:
+                marker = markers[0]
+                return isotime.parse(marker.marker)
+            else:
+                return None
 
     def _get_missed_executions_from_db(self, export_marker=None):
         if not export_marker:
             return self._get_all_executions_from_db()
 
-        now = datetime.datetime.now()
         # XXX: Should adapt this query to get only executions with status
         # in COMPLETION_STATUSES.
-        filters = {'start_timestamp__gt': export_marker,
-                   'start_timestamp__lt': now}
+        filters = {'end_timestamp__gt': export_marker}
+        LOG.info('Querying for executions with filters: %s', filters)
         return ActionExecution.query(**filters)
 
     def _get_all_executions_from_db(self):

@@ -122,10 +122,18 @@ class TestDumper(EventletTestCase):
                         export_dir='/tmp', batch_size=5,
                         max_files_per_sleep=1,
                         file_prefix='st2-stuff-', file_format='json')
-        new_marker = dumper._update_marker(self.execution_apis[0:5])
+        # Batch 1
+        batch = self.execution_apis[0:5]
+        new_marker = dumper._update_marker(batch)
         self.assertTrue(new_marker is not None)
-        new_marker = dumper._update_marker(self.execution_apis[6:])
-        timestamps = [isotime.parse(execution.end_timestamp) for execution in self.execution_apis]
+        timestamps = [isotime.parse(execution.end_timestamp) for execution in batch]
+        max_timestamp = max(timestamps)
+        self.assertEqual(new_marker, max_timestamp)
+
+        # Batch 2
+        batch = self.execution_apis[0:5]
+        new_marker = dumper._update_marker(batch)
+        timestamps = [isotime.parse(execution.end_timestamp) for execution in batch]
         max_timestamp = max(timestamps)
         self.assertEqual(new_marker, max_timestamp)
         dumper._write_marker_to_db.assert_called_with(new_marker)
