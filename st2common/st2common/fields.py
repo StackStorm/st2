@@ -16,7 +16,6 @@
 import datetime
 import calendar
 
-import dateutil.tz
 from mongoengine import LongField
 
 from st2common.util import isotime
@@ -77,7 +76,7 @@ class ComplexDateTimeField(LongField):
         # Verify that the value which is passed in contains UTC timezone
         # information or no TZ info (datetime.datetime.utc now includes no
         # tzinfo by default).
-        if value.tzinfo not in [None, dateutil.tz.tzutc()]:
+        if value.tzinfo and (value.tzinfo.utcoffset(value) != datetime.timedelta(0)):
             raise ValueError('Value passed to this function needs to be in UTC timezone')
 
         seconds = calendar.timegm(value.timetuple())
