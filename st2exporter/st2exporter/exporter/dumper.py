@@ -22,6 +22,13 @@ import eventlet
 from st2common import log as logging
 from st2exporter.exporter.file_writer import TextFileWriter
 from st2exporter.exporter.json_converter import JsonConverter
+from st2common.models.db.marker import DumperMarkerDB
+from st2common.persistence.marker import DumperMarker
+from st2common.util import isotime
+
+__all__ = [
+    'Dumper'
+]
 
 ALLOWED_EXTENSIONS = ['json']
 
@@ -62,6 +69,7 @@ class Dumper(object):
         self._sleep_interval = sleep_interval
         self._converter = CONVERTERS[self._file_format]()
         self._shutdown = False
+        self._persisted_marker = None
 
         if not file_writer:
             self._file_writer = TextFileWriter()
@@ -112,6 +120,7 @@ class Dumper(object):
 
             try:
                 self._write_batch_to_disk(batch)
+                self._update_marker(batch)
                 count += 1
             except:
                 LOG.exception('Writing batch to disk failed.')
@@ -122,7 +131,41 @@ class Dumper(object):
         self._file_writer.write_text(doc_to_write, self._get_file_name())
 
     def _get_file_name(self):
-        timestring = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        timestring = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         file_name = self._file_prefix + timestring + '.' + self._file_format
         file_name = os.path.join(self._export_dir, file_name)
         return file_name
+
+    def _update_marker(self, batch):
+        timestamps = [isotime.parse(item.end_timestamp) for item in batch]
+        new_marker = max(timestamps)
+
+        if self._persisted_marker and self._persisted_marker > new_marker:
+            LOG.warn('Older executions are being exported. Perhaps out of order messages.')
+
+        try:
+            self._write_marker_to_db(new_marker)
+        except:
+            LOG.exception('Failed persisting dumper marker to db.')
+        else:
+            self._persisted_marker = new_marker
+
+        return self._persisted_marker
+
+    def _write_marker_to_db(self, new_marker):
+        LOG.info('Updating marker in db to: %s', new_marker)
+        marker = DumperMarker.get_all()
+
+        if len(marker) > 1:
+            LOG.exception('More than one dumper marker found. Using first found one.')
+
+        marker_db = None
+        if marker:
+            marker = marker[0]
+            marker_db = DumperMarkerDB(id=marker['id'])
+        else:
+            marker_db = DumperMarkerDB()
+
+        marker_db.marker = isotime.format(new_marker, offset=False)
+        marker_db.updated_at = isotime.add_utc_tz(datetime.datetime.utcnow())
+        return DumperMarker.add_or_update(marker_db)

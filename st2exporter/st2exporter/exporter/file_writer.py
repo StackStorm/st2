@@ -18,6 +18,11 @@ import os
 import abc
 import six
 
+__all__ = [
+    'FileWriter',
+    'TextFileWriter'
+]
+
 
 @six.add_metaclass(abc.ABCMeta)
 class FileWriter(object):

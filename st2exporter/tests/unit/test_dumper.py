@@ -13,12 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 import os
 import Queue
 
 import eventlet
 import mock
 
+from st2common.models.api.execution import ActionExecutionAPI
+from st2common.util import isotime
 from st2exporter.exporter.dumper import Dumper
 from st2exporter.exporter.file_writer import TextFileWriter
 from st2tests.base import EventletTestCase
@@ -39,11 +42,14 @@ class TestDumper(EventletTestCase):
     loaded_fixtures = fixtures_loader.load_fixtures(fixtures_pack=DESCENDANTS_PACK,
                                                     fixtures_dict=DESCENDANTS_FIXTURES)
     loaded_executions = loaded_fixtures['executions']
+    execution_apis = []
+    for execution in loaded_executions.values():
+        execution_apis.append(ActionExecutionAPI(**execution))
 
     def get_queue(self):
         executions_queue = Queue.Queue()
 
-        for execution in self.loaded_executions:
+        for execution in self.execution_apis:
             executions_queue.put(execution)
         return executions_queue
 
@@ -86,6 +92,7 @@ class TestDumper(EventletTestCase):
         self.assertEqual(ret, 0)
 
     @mock.patch.object(TextFileWriter, 'write_text', mock.MagicMock(return_value=True))
+    @mock.patch.object(Dumper, '_update_marker', mock.MagicMock(return_value=None))
     def test_write_to_disk(self):
         executions_queue = self.get_queue()
         max_files_per_sleep = 5
@@ -107,3 +114,46 @@ class TestDumper(EventletTestCase):
         # Call stop after at least one batch was written to disk.
         eventlet.sleep(10 * sleep_interval)
         dumper.stop()
+
+    @mock.patch.object(Dumper, '_write_marker_to_db', mock.MagicMock(return_value=True))
+    def test_update_marker(self):
+        executions_queue = self.get_queue()
+        dumper = Dumper(queue=executions_queue,
+                        export_dir='/tmp', batch_size=5,
+                        max_files_per_sleep=1,
+                        file_prefix='st2-stuff-', file_format='json')
+        # Batch 1
+        batch = self.execution_apis[0:5]
+        new_marker = dumper._update_marker(batch)
+        self.assertTrue(new_marker is not None)
+        timestamps = [isotime.parse(execution.end_timestamp) for execution in batch]
+        max_timestamp = max(timestamps)
+        self.assertEqual(new_marker, max_timestamp)
+
+        # Batch 2
+        batch = self.execution_apis[0:5]
+        new_marker = dumper._update_marker(batch)
+        timestamps = [isotime.parse(execution.end_timestamp) for execution in batch]
+        max_timestamp = max(timestamps)
+        self.assertEqual(new_marker, max_timestamp)
+        dumper._write_marker_to_db.assert_called_with(new_marker)
+
+    @mock.patch.object(Dumper, '_write_marker_to_db', mock.MagicMock(return_value=True))
+    def test_update_marker_out_of_order_batch(self):
+        executions_queue = self.get_queue()
+        dumper = Dumper(queue=executions_queue,
+                        export_dir='/tmp', batch_size=5,
+                        max_files_per_sleep=1,
+                        file_prefix='st2-stuff-', file_format='json')
+        timestamps = [isotime.parse(execution.end_timestamp) for execution in self.execution_apis]
+        max_timestamp = max(timestamps)
+
+        # set dumper persisted timestamp to something less than min timestamp in the batch
+        test_timestamp = max_timestamp + datetime.timedelta(hours=1)
+        dumper._persisted_marker = test_timestamp
+        new_marker = dumper._update_marker(self.execution_apis)
+        self.assertTrue(new_marker < test_timestamp)
+        # Assert we rolled back the marker.
+        self.assertEqual(dumper._persisted_marker, max_timestamp)
+        self.assertEqual(new_marker, max_timestamp)
+        dumper._write_marker_to_db.assert_called_with(new_marker)

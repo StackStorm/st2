@@ -13,17 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.util.jsonify import json_encode
+from st2common.models.db import MongoDBAccess
+from st2common.models.db.marker import MarkerDB
+from st2common.models.db.marker import DumperMarkerDB
+from st2common.persistence.base import Access
 
 __all__ = [
-    'JsonConverter'
+    'Marker'
 ]
 
 
-class JsonConverter(object):
+class Marker(Access):
+    impl = MongoDBAccess(MarkerDB)
+    publisher = None
 
-    def convert(self, items_list):
-        if not isinstance(items_list, list):
-            raise ValueError('Items to be converted should be a list.')
-        json_doc = json_encode(items_list)
-        return json_doc
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+
+class DumperMarker(Access):
+    impl = MongoDBAccess(DumperMarkerDB)
+    publisher = None
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
