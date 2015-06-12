@@ -16,6 +16,7 @@
 import time
 import datetime
 
+import dateutil.tz
 from mongoengine import LongField
 
 from st2common.util import isotime
@@ -73,6 +74,12 @@ class ComplexDateTimeField(LongField):
 
         :rtype: ``int``
         """
+        # Verify that the value which is passed in contains UTC timezone
+        # information or no TZ info (datetime.datetime.utc now includes no
+        # tzinfo by default)
+        if value.tzinfo not in [None, dateutil.tz.tzutc()]:
+            raise ValueError('value passed to this function needs to be in UTC timezone')
+
         seconds = calendar.timegm(value.timetuple())
         microseconds_reminder = value.time().microsecond
         result = (int(seconds * SECOND_TO_MICROSECONDS) + microseconds_reminder)
