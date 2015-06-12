@@ -1,14 +1,19 @@
 Changelog
 =========
 
+0.11.2 - June 12, 2015
+----------------------
+
+* Fix a bug with ``start_timestamp`` and ``end_timestamp`` sometimes returning an invalid value in
+  a local instead of UTC timezone. (bug-fix)
+* Fix to get PollingSensor working again. Sensors of type PollingSensor were not being treated
+  as such and as a result would fail after the 1st poll. (bug-fix)
+
 0.11.1 - June 8, 2015
 ---------------------
 
-* Allow user to filter executions on trigger instance id.
-  [Sayli Karmarkar]
 * Action aliases are registered by default. (improvement)
 * Repair failing pack installation. (bug-fix)
-
 
 0.11.0 - June 5, 2015
 ---------------------

@@ -77,7 +77,7 @@ sleep ${WARNING_SLEEP_DELAY}
 
 if [ -z $1 ]
 then
-  VER='0.11.1'
+  VER='0.11.2'
 elif [[ "$1" == "latest" ]]; then
    VER='0.12dev'
 else
@@ -616,6 +616,6 @@ echo "To login and obtain an authentication token, run the following command:"
 echo ""
 echo "st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD}"
 echo ""
-echo "For more information see http://docs.stackstorm.com/install/deploy.html#usage"
+echo "For more information see http://docs.stackstorm.com/authentication.html#usage"
 exit 0
 
