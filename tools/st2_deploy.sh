@@ -160,6 +160,8 @@ create_user() {
 install_pip() {
   echo "###########################################################################################"
   echo "# Installing packages via pip"
+  pip install -U pip
+  hash -d pip
   curl -sS -k -o /tmp/requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/requirements.txt
   pip install -U -q -r /tmp/requirements.txt
 }
