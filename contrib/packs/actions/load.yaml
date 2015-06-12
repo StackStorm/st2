@@ -9,7 +9,7 @@
       immutable: true
     cmd:
       immutable: true
-      default: "st2ctl reload{% for item in register.split(',') %} --register-{{item}}{% endfor %}"
+      default: "st2ctl reload{% for item in register.split(',') %} --register-{{ item|trim }}{% endfor %}"
     register:
       type: "string"
       default: "actions,aliases,sensors"
