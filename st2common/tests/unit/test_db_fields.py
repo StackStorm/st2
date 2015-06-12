@@ -21,6 +21,7 @@ import mock
 import unittest2
 
 from st2common.fields import ComplexDateTimeField
+from st2common.util import isotime
 
 
 class ComplexDateTimeFieldTestCase(unittest2.TestCase):
@@ -28,6 +29,8 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
         field = ComplexDateTimeField()
 
         date = datetime.datetime.utcnow()
+        date = isotime.add_utc_tz(date)
+
         us = field._datetime_to_microseconds_since_epoch(date)
         result = field._microseconds_since_epoch_to_datetime(us)
         self.assertEqual(date, result)
@@ -37,6 +40,11 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
             datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=500),
             datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=0),
             datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=999999)
+        ]
+        datetime_values = [
+            isotime.add_utc_tz(datetime_values[0]),
+            isotime.add_utc_tz(datetime_values[1]),
+            isotime.add_utc_tz(datetime_values[2])
         ]
         microsecond_values = []
 
@@ -77,6 +85,7 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
 
         # Microseconds
         dt = datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=500)
+        dt = isotime.add_utc_tz(dt)
         us = field._datetime_to_microseconds_since_epoch(value=dt)
         mock_get.return_value = us
         self.assertEqual(field.__get__(instance=None, owner=None), dt)
