@@ -74,10 +74,11 @@ class ComplexDateTimeField(LongField):
         :rtype: ``int``
         """
         # Verify that the value which is passed in contains UTC timezone
-        # information or no TZ info (datetime.datetime.utc now includes no
-        # tzinfo by default).
-        if value.tzinfo and (value.tzinfo.utcoffset(value) != datetime.timedelta(0)):
-            raise ValueError('Value passed to this function needs to be in UTC timezone')
+        # information.
+        # TODO: Re-enable the check once we update all the code to use time-zone
+        # (UTC) aware datetime objects
+        #  if not value.tzinfo or (value.tzinfo.utcoffset(value) != datetime.timedelta(0)):
+        #    raise ValueError('Value passed to this function needs to be in UTC timezone')
 
         seconds = calendar.timegm(value.timetuple())
         microseconds_reminder = value.time().microsecond
