@@ -1,11 +1,13 @@
 Changelog
 =========
 
-0.11.2 - TBD
-------------
+0.11.2 - June 12, 2015
+----------------------
 
 * Fix a bug with ``start_timestamp`` and ``end_timestamp`` sometimes returning an invalid value in
   a local instead of UTC timezone. (bug-fix)
+* Fix to get PollingSensor working again. Sensors of type PollingSensor were not being treated
+  as such and as a result would fail after the 1st poll. (bug-fix)
 
 0.11.1 - June 8, 2015
 ---------------------

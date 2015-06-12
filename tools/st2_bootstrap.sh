@@ -7,7 +7,7 @@ STABLE=`curl -Ss -q https://downloads.stackstorm.net/deb/pool/trusty_stable/main
 LATEST=`curl -Ss -q https://downloads.stackstorm.net/deb/pool/trusty_unstable/main/s/st2api/ | grep 'amd64.deb' | sed -e "s~.*>st2api_\(.*\)-.*<.*~\1~g" | sort --version-sort -r | uniq | head -n 1`
 
 if [ -z $1 ]; then
-    ST2VER=0.11.1
+    ST2VER=0.11.2
 else
     if [[ "$1" == "stable" ]]; then
         ST2VER=${STABLE}
