@@ -21,16 +21,22 @@ from pecan import rest
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.models.api.action import AliasExecutionAPI
+from st2common.models.api.auth import get_system_username
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 from st2common.models.utils import action_alias_utils, action_param_utils
 from st2common.persistence.actionalias import ActionAlias
 from st2common.services import action as action_service
+from st2common.util import reference
 
 
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
+
+CAST_OVERRIDES = {
+    'array': (lambda cs_x: [v.strip() for v in cs_x.split(',')])
+}
 
 
 class ActionAliasExecutionController(rest.RestController):
@@ -99,8 +105,13 @@ class ActionAliasExecutionController(rest.RestController):
         try:
             # prior to shipping off the params cast them to the right type.
             params = action_param_utils.cast_params(action_ref=action_alias_db.action_ref,
-                                                    params=params)
-            liveaction = LiveActionDB(action=action_alias_db.action_ref, context={},
+                                                    params=params,
+                                                    cast_overrides=CAST_OVERRIDES)
+            context = {
+                'action_alias_ref': reference.get_ref_from_model(action_alias_db),
+                'user': get_system_username()
+            }
+            liveaction = LiveActionDB(action=action_alias_db.action_ref, context=context,
                                       parameters=params, notify=notify)
             _, action_execution_db = action_service.request(liveaction)
             return action_execution_db

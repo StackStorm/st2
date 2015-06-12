@@ -1,0 +1,6 @@
+---
+name: "pack_info"
+action_ref: "packs.info"
+description: "Get StackStorm pack information via ChatOps"
+formats:
+  - "pack info {{pack}}"

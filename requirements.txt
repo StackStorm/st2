@@ -30,3 +30,4 @@ pyinotify>=0.9.5,<=0.10
 -e git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 # used by nmap actions
 python-nmap>=0.3.4,<0.4
+semver>=2.1.2

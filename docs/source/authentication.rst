@@ -109,7 +109,7 @@ The path to the st2auth module is different depending on how |st2| is installed.
 +================+========================================================+
 | source         | /path/to/st2/git/clone/st2auth/st2auth                 |
 +----------------+--------------------------------------------------------+
-| st2express     | /usr/lib/python2.7/dist-packages/st2auth               |  
+| st2express     | /usr/lib/python2.7/dist-packages/st2auth               |
 +----------------+--------------------------------------------------------+
 | debian package | /usr/lib/python2.7/dist-packages/st2auth               |
 +----------------+--------------------------------------------------------+
@@ -139,7 +139,7 @@ formatted file. To manage this file you can use `htpasswd`_ utility which comes
 with a standard Apache httpd distribution or by installing apache2-utils.
 
     **Backend configuration options:**
-    
+
     * ``file_path`` - Path to the file containing credentials.
 
 Example htpasswd command to generate a password file with a user entry. ::
@@ -147,7 +147,7 @@ Example htpasswd command to generate a password file with a user entry. ::
     htpasswd -cm /path/to/.htpasswd stark
 
 Example ``auth`` section in the |st2| configuration file. ::
- 
+
     [auth]
     mode = standalone
     backend = flat_file
@@ -178,7 +178,7 @@ the MongoDB collection and the user entries will have to be generated manually. 
     * ``db_port`` - MongoDB server port.
     * ``db_name`` - Name of the database to use.
 
-Example ``auth`` section in the |st2| configuration file. :: 
+Example ``auth`` section in the |st2| configuration file. ::
 
     [auth]
     mode = standalone
@@ -212,6 +212,8 @@ Run the following curl commands to test. ::
 
     # The following will verify the SSL cert, succeed, and return a valid token.
     curl -X POST --cacert /path/to/cacert.pem -u yourusername:yourpassword https://myhost.example.com:9100/tokens
+
+.. _authentication-usage:
 
 Usage
 -----

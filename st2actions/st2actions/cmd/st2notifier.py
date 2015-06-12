@@ -50,7 +50,7 @@ def _run_worker():
     actions_notifier = notifier.get_notifier()
     actions_rescheduler = scheduler.get_rescheduler()
     try:
-        actions_rescheduler.start()
+        eventlet.spawn(actions_rescheduler.start)
         actions_notifier.start(wait=True)
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Actions notifier stopped.', os.getpid())

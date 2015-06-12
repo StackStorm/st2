@@ -19,11 +19,30 @@ import datetime
 import dateutil.tz
 import dateutil.parser
 
+__all__ = [
+    'get_datetime_utc_now',
+    'add_utc_tz',
+    'format',
+    'validate',
+    'parse'
+]
+
 
 ISO8601_FORMAT = '%Y-%m-%dT%H:%M:%S'
 ISO8601_FORMAT_MICROSECOND = '%Y-%m-%dT%H:%M:%S.%f'
 ISO8601_UTC_REGEX = \
     '^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$'
+
+
+def get_datetime_utc_now():
+    """
+    Retrieve datetime object for current time with included UTC timezone info.
+
+    :rtype: ``datetime.datetime``
+    """
+    dt = datetime.datetime.utcnow()
+    dt = add_utc_tz(dt)
+    return dt
 
 
 def add_utc_tz(dt):

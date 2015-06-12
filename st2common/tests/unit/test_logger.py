@@ -21,14 +21,23 @@ import uuid
 import tempfile
 import logging as logbase
 
+import mock
+
 from st2common import log as logging
 from st2common.logging.formatters import ConsoleLogFormatter
 from st2common.logging.formatters import GelfLogFormatter
+from st2common.logging.formatters import MASKED_ATTRIBUTE_VALUE
 import st2tests.config as tests_config
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
 CONFIG_FILE_PATH = os.path.join(RESOURCES_DIR, 'logging.conf')
+
+MOCK_MASKED_ATTRIBUTES = [
+    'blacklisted_1',
+    'blacklisted_2',
+    'blacklisted_3',
+]
 
 
 class MockRecord(object):
@@ -152,6 +161,27 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
         expected = 'test message 2 (value=\'bar\',user_id=1)'
         self.assertEqual(message, expected)
 
+    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES', MOCK_MASKED_ATTRIBUTES)
+    def test_format_blacklisted_attributes_are_masked(self):
+        formatter = ConsoleLogFormatter()
+
+        mock_message = 'test message 1'
+
+        record = MockRecord()
+        record.msg = mock_message
+
+        # Add "extra" attributes
+        record._blacklisted_1 = 'test value 1'
+        record._blacklisted_2 = 'test value 2'
+        record._blacklisted_3 = {'key1': 'val1', 'blacklisted_1': 'val2', 'key3': 'val3'}
+        record._foo1 = 'bar'
+
+        message = formatter.format(record=record)
+        expected = ("test message 1 (blacklisted_1='********',blacklisted_2='********',"
+                    "blacklisted_3={'key3': 'val3', 'key1': 'val1', 'blacklisted_1': '********'},"
+                    "foo1='bar')")
+        self.assertEqual(message, expected)
+
 
 class GelfLogFormatterTestCase(unittest.TestCase):
     @classmethod
@@ -255,3 +285,36 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         self.assertEqual(parsed['_obj1'], 'repr')
         self.assertEqual(parsed['_obj2'], 'to_dict')
         self.assertEqual(parsed['_obj3'], 'to_serializable_dict')
+
+    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES', MOCK_MASKED_ATTRIBUTES)
+    def test_format_blacklisted_attributes_are_masked(self):
+        formatter = GelfLogFormatter()
+
+        # Some extra attributes
+        mock_message = 'test message 1'
+
+        record = MockRecord()
+        record.msg = mock_message
+
+        # Add "extra" attributes
+        record._blacklisted_1 = 'test value 1'
+        record._blacklisted_2 = 'test value 2'
+        record._blacklisted_3 = {'key1': 'val1', 'blacklisted_1': 'val2', 'key3': 'val3'}
+        record._foo1 = 'bar'
+
+        message = formatter.format(record=record)
+        parsed = json.loads(message)
+
+        self.assertEqual(parsed['_blacklisted_1'], MASKED_ATTRIBUTE_VALUE)
+        self.assertEqual(parsed['_blacklisted_2'], MASKED_ATTRIBUTE_VALUE)
+        self.assertEqual(parsed['_blacklisted_3']['key1'], 'val1')
+        self.assertEqual(parsed['_blacklisted_3']['blacklisted_1'], MASKED_ATTRIBUTE_VALUE)
+        self.assertEqual(parsed['_blacklisted_3']['key3'], 'val3')
+        self.assertEqual(parsed['_foo1'], 'bar')
+
+        # Assert that the original dict is left unmodified
+        self.assertEqual(record._blacklisted_1, 'test value 1')
+        self.assertEqual(record._blacklisted_2, 'test value 2')
+        self.assertEqual(record._blacklisted_3['key1'], 'val1')
+        self.assertEqual(record._blacklisted_3['blacklisted_1'], 'val2')
+        self.assertEqual(record._blacklisted_3['key3'], 'val3')

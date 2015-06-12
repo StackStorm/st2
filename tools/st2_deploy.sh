@@ -50,7 +50,7 @@ function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" 
 function join { local IFS="$1"; shift; echo "$*"; }
 
 # Distribution specific variables
-APT_PACKAGE_LIST=("rabbitmq-server" "make" "python-virtualenv" "python-dev" "realpath" "python-pip" "mongodb" "mongodb-server" "gcc" "git")
+APT_PACKAGE_LIST=("python-pip" "rabbitmq-server" "make" "python-virtualenv" "python-dev" "realpath" "mongodb" "mongodb-server" "gcc" "git")
 YUM_PACKAGE_LIST=("python-pip" "python-virtualenv" "python-devel" "gcc-c++" "git-all" "mongodb" "mongodb-server" "mailcap")
 
 # Add windows runner dependencies
@@ -61,8 +61,10 @@ if [ ${INSTALL_WINDOWS_RUNNER_DEPENDENCIES} == "1" ]; then
 fi
 
 if [ ${INSTALL_MISTRAL} == "1" ]; then
-    APT_PACKAGE_LIST+=("mysql-server")
-    YUM_PACKAGE_LIST+=("mariadb" "mariadb-libs" "mariadb-devel" "mariadb-server")
+  APT_PACKAGE_LIST+=("libssl-dev" "libyaml-dev" "libffi-dev" "libxml2-dev" "libxslt1-dev")
+  APT_PACKAGE_LIST+=("postgresql" "postgresql-contrib" "libpq-dev")
+  YUM_PACKAGE_LIST+=("openssl-devel" "libyaml-devel" "libffi-devel" "libxml2-devel" "libxslt-devel")
+  YUM_PACKAGE_LIST+=("postgresql-server" "postgresql-contrib" "postgresql-devel")
 fi
 
 APT_PACKAGE_LIST=$(join " " ${APT_PACKAGE_LIST[@]})
@@ -77,9 +79,9 @@ sleep ${WARNING_SLEEP_DELAY}
 
 if [ -z $1 ]
 then
-  VER='0.9.1'
+  VER='0.11.0'
 elif [[ "$1" == "latest" ]]; then
-   VER='0.10dev'
+   VER='0.12dev'
 else
   VER=$1
 fi
@@ -160,8 +162,10 @@ create_user() {
 install_pip() {
   echo "###########################################################################################"
   echo "# Installing packages via pip"
+  pip install -U pip
+  hash -d pip
   curl -sS -k -o /tmp/requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/requirements.txt
-  pip install -U -q -r /tmp/requirements.txt
+  pip install -U -r /tmp/requirements.txt
 }
 
 install_apt() {
@@ -196,6 +200,7 @@ install_apt() {
 install_yum() {
   echo "###########################################################################################"
   echo "# Installing packages via yum"
+  yum update -y
   rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
   curl -sS -k -o /tmp/rabbitmq-server.rpm http://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
   yum localinstall -y /tmp/rabbitmq-server.rpm
@@ -239,38 +244,50 @@ setup_rabbitmq() {
   chmod 755 /usr/bin/rabbitmqadmin
 }
 
-setup_mysql() {
-  if [[ "$TYPE" == "debs" ]]; then
-    service mysql restart
-  elif [[ "$TYPE" == "rpms" ]]; then
-    service mysqld restart
-  fi
-  if [ $(mysql -uroot -e 'show databases' &> /dev/null; echo $?) == 0 ]
-  then
-    mysqladmin -u root password StackStorm
-  fi
-  mysql -uroot -pStackStorm -e "DROP DATABASE IF EXISTS mistral"
-  mysql -uroot -pStackStorm -e "CREATE DATABASE mistral"
-  mysql -uroot -pStackStorm -e "GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'localhost' IDENTIFIED BY 'StackStorm'"
-  mysql -uroot -pStackStorm -e "FLUSH PRIVILEGES"
-}
-
 setup_mongodb_systemd() {
   # Enable and start MongoDB
   systemctl enable mongod
   systemctl start mongod
 }
 
+setup_mistral_st2_config()
+{
+  echo "" >> ${STANCONF}
+  echo "[mistral]" >> ${STANCONF}
+  echo "v2_base_url = http://127.0.0.1:8989/v2" >> ${STANCONF}
+}
+
+setup_postgresql() {
+  # Setup the postgresql service on fedora. Ubuntu is already setup by default.
+  if [[ "$TYPE" == "rpms" ]]; then
+    echo "Configuring PostgreSQL for Fedora..."
+    systemctl enable postgresql
+    sudo postgresql-setup initdb
+    pg_hba_config=/var/lib/pgsql/data/pg_hba.conf
+    sed -i 's/^local\s\+all\s\+all\s\+peer/local all all trust/g' ${pg_hba_config}
+    sed -i 's/^local\s\+all\s\+all\s\+ident/local all all trust/g' ${pg_hba_config}
+    sed -i 's/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+ident/host all all 127.0.0.1\/32 md5/g' ${pg_hba_config}
+    sed -i 's/^host\s\+all\s\+all\s\+::1\/128\s\+ident/host all all ::1\/128 md5/g' ${pg_hba_config}
+    systemctl start postgresql
+  fi
+
+  echo "Changing max connections for PostgreSQL..."
+  config=`sudo -u postgres psql -c "SHOW config_file;" | grep postgresql.conf`
+  sed -i 's/max_connections = 100/max_connections = 500/' ${config}
+  service postgresql restart
+}
+
 setup_mistral_config()
 {
 config=/etc/mistral/mistral.conf
+echo "Writing Mistral configuration file to $config..."
 if [ -e "$config" ]; then
-    rm $config
+  rm $config
 fi
 touch $config
 cat <<mistral_config >$config
 [database]
-connection=mysql://mistral:StackStorm@localhost/mistral
+connection=postgresql://mistral:StackStorm@localhost/mistral
 max_pool_size=50
 
 [pecan]
@@ -281,6 +298,7 @@ mistral_config
 setup_mistral_log_config()
 {
 log_config=/etc/mistral/wf_trace_logging.conf
+echo "Writing Mistral log configuration file to $log_config..."
 if [ -e "$log_config" ]; then
     rm $log_config
 fi
@@ -288,8 +306,23 @@ cp /opt/openstack/mistral/etc/wf_trace_logging.conf.sample $log_config
 sed -i "s~tmp~var/log~g" $log_config
 }
 
+setup_mistral_db()
+{
+  echo "Setting up Mistral DB in PostgreSQL..."
+  sudo -u postgres psql -c "DROP DATABASE IF EXISTS mistral;"
+  sudo -u postgres psql -c "DROP USER IF EXISTS mistral;"
+  sudo -u postgres psql -c "CREATE USER mistral WITH ENCRYPTED PASSWORD 'StackStorm';"
+  sudo -u postgres psql -c "CREATE DATABASE mistral OWNER mistral;"
+
+  echo "Creating and populating DB tables for Mistral..."
+  config=/etc/mistral/mistral.conf
+  cd /opt/openstack/mistral
+  /opt/openstack/mistral/.venv/bin/python ./tools/sync_db.py --config-file ${config}
+}
+
 setup_mistral_upstart()
 {
+echo "Setting up upstart for Mistral..."
 upstart=/etc/init/mistral.conf
 if [ -e "$upstart" ]; then
     rm $upstart
@@ -308,6 +341,7 @@ mistral_upstart
 
 setup_mistral_systemd()
 {
+echo "Setting up systemd for Mistral..."
 systemd=/etc/systemd/system/mistral.service
 if [ -e "$systemd" ]; then
     rm $systemd
@@ -331,21 +365,13 @@ setup_mistral() {
   echo "###########################################################################################"
   echo "# Setting up Mistral"
 
-  # Install prerequisites.
-  if [[ "$TYPE" == "debs" ]]; then
-    apt-get -y install libssl-dev libyaml-dev libffi-dev libxml2-dev libxslt1-dev python-dev libmysqlclient-dev
-  elif [[ "$TYPE" == "rpms" ]]; then
-    yum -y install openssl-devel libyaml-devel libffi-devel libxml2-devel libxslt-devel python-devel mysql-devel
-    # Needed because of mysql-python library
-    yum -y install redhat-rpm-config
-  fi
-
   # Clone mistral from github.
   mkdir -p /opt/openstack
   cd /opt/openstack
   if [ -d "/opt/openstack/mistral" ]; then
     rm -r /opt/openstack/mistral
   fi
+  echo "Cloning Mistral branch: ${MISTRAL_STABLE_BRANCH}..."
   git clone -b ${MISTRAL_STABLE_BRANCH} https://github.com/StackStorm/mistral.git
 
   # Setup virtualenv for running mistral.
@@ -353,7 +379,7 @@ setup_mistral() {
   virtualenv --no-site-packages .venv
   . /opt/openstack/mistral/.venv/bin/activate
   pip install -q -r requirements.txt
-  pip install -q mysql-python
+  pip install -q psycopg2
   python setup.py develop
 
   # Setup plugins for actions.
@@ -361,6 +387,7 @@ setup_mistral() {
   if [ -d "/etc/mistral/actions/st2mistral" ]; then
     rm -r /etc/mistral/actions/st2mistral
   fi
+  echo "Cloning St2mistral branch: ${MISTRAL_STABLE_BRANCH}..."
   cd /etc/mistral/actions
   git clone -b ${MISTRAL_STABLE_BRANCH} https://github.com/StackStorm/st2mistral.git
   cd /etc/mistral/actions/st2mistral
@@ -370,11 +397,11 @@ setup_mistral() {
   mkdir -p /etc/mistral
   setup_mistral_config
   setup_mistral_log_config
+  setup_mistral_st2_config
 
   # Setup database.
-  cd /opt/openstack/mistral
-  setup_mysql
-  python ./tools/sync_db.py --config-file /etc/mistral/mistral.conf
+  setup_postgresql
+  setup_mistral_db
 
   # Setup service.
   if [[ "$TYPE" == "debs" ]]; then
@@ -475,20 +502,14 @@ download_pkgs
 
 if [[ "$TYPE" == "debs" ]]; then
   install_apt
-
-  if [ ${INSTALL_MISTRAL} == "1" ]; then
-    setup_mistral
-  fi
-
   deploy_deb
 elif [[ "$TYPE" == "rpms" ]]; then
   install_yum
-
-  if [ ${INSTALL_MISTRAL} == "1" ]; then
-    setup_mistral
-  fi
-
   deploy_rpm
+fi
+
+if [ ${INSTALL_MISTRAL} == "1" ]; then
+  setup_mistral
 fi
 
 install_st2client() {
@@ -510,6 +531,13 @@ install_st2client() {
   fi
   popd
 
+  # Write ST2_BASE_URL to env
+  if [[ "$TYPE" == "rpms" ]]; then
+    BASHRC=/etc/bashrc
+    echo "" >> ${BASHRC}
+    echo "export ST2_BASE_URL='http://127.0.0.1'" >> ${BASHRC}
+  fi
+
   # Delete existing config directory (if exists)
   if [ -e "${CLI_CONFIG_DIRECTORY_PATH}" ]; then
     rm -r ${CLI_CONFIG_DIRECTORY_PATH}
@@ -519,6 +547,9 @@ install_st2client() {
   mkdir -p ${CLI_CONFIG_DIRECTORY_PATH}
 
   bash -c "cat > ${CLI_CONFIG_RC_FILE_PATH}" <<EOL
+[general]
+base_url = http://127.0.0.1
+
 [credentials]
 username = ${TEST_ACCOUNT_USERNAME}
 password = ${TEST_ACCOUNT_PASSWORD}
@@ -614,6 +645,6 @@ echo "To login and obtain an authentication token, run the following command:"
 echo ""
 echo "st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD}"
 echo ""
-echo "For more information see http://docs.stackstorm.com/install/deploy.html#usage"
+echo "For more information see http://docs.stackstorm.com/authentication.html#usage"
 exit 0
 

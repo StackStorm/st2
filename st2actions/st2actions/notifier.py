@@ -56,6 +56,8 @@ class Notifier(consumers.MessageHandler):
             name=ACTION_TRIGGER_TYPE['name'])
 
     def process(self, liveaction):
+        LOG.debug('Processing liveaction. %s', liveaction)
+
         if liveaction.status not in ACTION_COMPLETE_STATES:
             return
 

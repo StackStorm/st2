@@ -225,7 +225,7 @@ class Shell(object):
             'st2 invocation point.',
             self, self.subparsers)
 
-        self.commands['triggerinstances'] = triggerinstance.TriggerInstanceBranch(
+        self.commands['trigger-instance'] = triggerinstance.TriggerInstanceBranch(
             'Actual instances of triggers received by st2.',
             self, self.subparsers)
 

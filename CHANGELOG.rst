@@ -4,6 +4,20 @@ Changelog
 in development
 --------------
 
+* Add support for script arguments to the Windows script runner. (new feature)
+  [James Sigurðarson]
+* Allow user to filter executions on trigger instance id.
+  [Sayli Karmarkar]
+* By default the following environment variables are now available to the actions executed by
+  local, remote and python runner: ``ST2_ACTION_API_URL``, ``ST2_ACTION_AUTH_TOKEN``. (new-feature)
+* Jinja filter to make working with regex and semver possible in any place that
+  support jinja (improvement)
+* Fix a bug with ``start_timestamp`` and ``end_timestamp`` sometimes returning an invalid value in
+  a local instead of UTC timezone. (bug-fix)
+
+0.11 - June 5, 2015
+-------------------
+
 * Allow user to configure the CLI using an ini style config file located at ``~/.st2rc``.
   (new-feature)
 * Add support for caching of the retrieved auth tokens to the CLI. (new-feature)
@@ -24,6 +38,7 @@ in development
   [James Sigurðarson]
 * CLI now has ``get`` and ``list`` commands for triggerinstance. (new-feature)
 * Validate parameters during rule creation for system triggers. (improvement)
+* CLI now has ``re-emit`` command for triggerinstance. (new-feature)
 
 v0.9.2 - May 26, 2015
 ---------------------
