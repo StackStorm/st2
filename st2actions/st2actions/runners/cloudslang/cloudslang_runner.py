@@ -56,43 +56,51 @@ class CloudSlangRunner(ActionRunner):
     def pre_run(self):
         self._user = cfg.CONF.system_user.user
         self._cloudslang_home = cfg.CONF.cloudslang.home_dir
-        self._path = self.runner_parameters.get(RUNNER_PATH)
-        self._inputs = self.runner_parameters.get(RUNNER_INPUTS)
+        self._path = self.runner_parameters.get(RUNNER_PATH, None)
+        self._inputs = self.runner_parameters.get(RUNNER_INPUTS, None)
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT,
                                                    LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT)
 
     def run(self, action_parameters):
-        inputs_file_path = None
+        LOG.debug('    action_parameters = %s', action_parameters)
+
+        # Note: "inputs" runner parameter has precedence over action parameters
+        if self._inputs:
+            inputs = self._inputs
+        elif action_parameters:
+            inputs = action_parameters
+
+        inputs_file_path = self._write_inputs_to_a_temp_file(inputs=inputs)
+        has_inputs = (inputs_file_path is not None)
 
         try:
-            LOG.debug('    action_parameters = %s', action_parameters)
+            command = self._prepare_command(has_inputs=has_inputs,
+                                            inputs_file_path=inputs_file_path)
 
-            has_inputs = self._inputs is not None
-            inputs_file_path = self.prepare_inputs_file(has_inputs=has_inputs)
-
-            command = self.prepare_command(has_inputs=has_inputs,
-                                           inputs_file_path=inputs_file_path)
-
-            result, status = self.run_cli_command(command)
-            return status, jsonify.json_loads(result, CloudSlangRunner.KEYS_TO_TRANSFORM), None
+            result, status = self._run_cli_command(command)
+            return (status, jsonify.json_loads(result, CloudSlangRunner.KEYS_TO_TRANSFORM), None)
         finally:
             if inputs_file_path and os.path.isfile(inputs_file_path):
                 os.remove(inputs_file_path)
 
-    def prepare_inputs_file(self, has_inputs):
+    def _write_inputs_to_a_temp_file(self, inputs):
         """
-        :type has_inputs: ``bool``
+        Serialize inputs dictionary as YAML and write it in a temporary file.
 
-        :return: Path to the temporary file holding inputs YAML definition.
+        :param inputs: Inputs dictionary.
+        :type inputs: ``dict``
+
+        :return: Path to the temporary file.
+        :rtype: ``str``
         """
-        if not has_inputs:
+        if not inputs:
             return None
 
-        LOG.debug('Inputs: %s ', self._inputs)
+        LOG.debug('Inputs dict: %s', inputs)
 
         inputs_file = tempfile.NamedTemporaryFile(delete=False)
         inputs_file_path = inputs_file.name
-        yaml_inputs = yaml.safe_dump(self._inputs, default_flow_style=False)
+        yaml_inputs = yaml.safe_dump(inputs, default_flow_style=False)
 
         with open(inputs_file_path, 'w') as fp:
             fp.write(yaml_inputs)
@@ -101,10 +109,12 @@ class CloudSlangRunner(ActionRunner):
 
         return inputs_file_path
 
-    def prepare_command(self, has_inputs, inputs_file_path):
-        LOG.info(self._cloudslang_home)
+    def _prepare_command(self, has_inputs, inputs_file_path):
+        LOG.debug('CloudSlang home: %s', self._cloudslang_home)
+
         cloudslang_binary = os.path.join(self._cloudslang_home, 'bin/cslang')
-        LOG.info(cloudslang_binary)
+        LOG.debug('Using CloudSlang binary: %s', cloudslang_binary)
+
         command_args = ['--f', self._path,
                         '--if', inputs_file_path if has_inputs else '',
                         '--cp', self._cloudslang_home]
@@ -113,7 +123,7 @@ class CloudSlangRunner(ActionRunner):
         LOG.debug('Command is: %s', command)
         return command
 
-    def run_cli_command(self, command):
+    def _run_cli_command(self, command):
         exit_code, stdout, stderr, timed_out = run_command(
             cmd=command, stdin=None,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
