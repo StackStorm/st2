@@ -15,7 +15,7 @@ in development
 * Fix a bug with ``start_timestamp`` and ``end_timestamp`` sometimes returning an invalid value in
   a local instead of UTC timezone. (bug-fix)
 * New experimental workflow runner based on the open-source CloudSlang project. (new-feature)
-  [Eliya Sadan, Meir Wahnon]
+  [Eliya Sadan, Meir Wahnon, Sam Markowitz]
 
 0.11 - June 5, 2015
 -------------------
