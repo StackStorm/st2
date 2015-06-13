@@ -71,9 +71,28 @@ def validate(value, raise_exception=True):
     return False
 
 
-def parse(value):
+def parse(value, convert_to_utc=False):
+    """
+    Parse date in the ISO8601 format and return a time-zone aware datetime object.
+
+    :param value: Date in ISO8601 format.
+    :type value: ``str``
+
+    :param convert_to_utc: True to convert resulting timestamp to the UTC timezone.
+    :type convert_to_utc: ``boolean``
+
+    :rtype: ``datetime.datetime``
+    """
     validate(value, raise_exception=True)
+
     # pylint: disable=no-member
     # For some reason pylint thinks it returns a tuple but it returns a datetime object
     dt = dateutil.parser.parse(str(value))
-    return dt if dt.tzinfo else add_utc_tz(dt)
+
+    if not dt.tzinfo:
+        dt = add_utc_tz(dt)
+
+    if convert_to_utc:
+        dt = dt.astimezone(dateutil.tz.tzutc())
+
+    return dt
