@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import mock
 
 from oslo.config import cfg
@@ -171,7 +170,7 @@ class RunnerContainerTest(DbTestCase):
     def _get_failingaction_exec_db_model(self, params):
         liveaction_db = LiveActionDB()
         liveaction_db.status = action_constants.LIVEACTION_STATUS_REQUESTED
-        liveaction_db.start_timestamp = datetime.datetime.now()
+        liveaction_db.start_timestamp = isotime.get_datetime_utc_now()
         liveaction_db.action = ResourceReference(
             name=RunnerContainerTest.failingaction_db.name,
             pack=RunnerContainerTest.failingaction_db.pack).ref

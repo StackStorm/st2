@@ -78,7 +78,7 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
         self.assertEqual(field.__get__(instance=None, owner=None), None)
 
         # Already a datetime
-        mock_get.return_value = datetime.datetime.now()
+        mock_get.return_value = isotime.get_datetime_utc_now()
         self.assertEqual(field.__get__(instance=None, owner=None), mock_get.return_value)
 
         # Microseconds

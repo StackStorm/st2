@@ -176,7 +176,7 @@ class ActionChainRunner(ActionRunner):
             resolved_params = None
             liveaction = None
 
-            created_at = datetime.datetime.now()
+            created_at = isotime.get_datetime_utc_now()
 
             try:
                 resolved_params = ActionChainRunner._resolve_params(
@@ -241,7 +241,7 @@ class ActionChainRunner(ActionRunner):
                     self.chain_holder.vars.update(rendered_publish_vars)
             finally:
                 # Record result and resolve a next node based on the task success or failure
-                updated_at = datetime.datetime.now()
+                updated_at = isotime.get_datetime_utc_now()
 
                 format_kwargs = {'action_node': action_node, 'liveaction_db': liveaction,
                                  'created_at': created_at, 'updated_at': updated_at}
