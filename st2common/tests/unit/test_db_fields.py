@@ -27,7 +27,7 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
     def test_what_comes_in_goes_out(self):
         field = ComplexDateTimeField()
 
-        date = isotime.get_datetime_ut()
+        date = isotime.get_datetime_utc_now()
 
         us = field._datetime_to_microseconds_since_epoch(date)
         result = field._microseconds_since_epoch_to_datetime(us)

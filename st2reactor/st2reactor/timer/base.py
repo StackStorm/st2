@@ -13,14 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime
-
 from apscheduler.schedulers.background import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 import apscheduler.util as aps_utils
-from dateutil.tz import tzutc
 import dateutil.parser as date_parser
 import jsonschema
 
@@ -29,6 +26,7 @@ from st2common.constants.triggers import TIMER_TRIGGER_TYPES
 import st2common.services.triggers as trigger_services
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
+from st2common.util import isotime
 
 LOG = logging.getLogger(__name__)
 
@@ -105,7 +103,8 @@ class St2Timer(object):
 
             time_type = CronTrigger(**cron)
 
-        if hasattr(time_type, 'run_date') and datetime.now(tzutc()) > time_type.run_date:
+        utc_now = isotime.get_datetime_utc_now()
+        if hasattr(time_type, 'run_date') and utc_now > time_type.run_date:
             LOG.warning('Not scheduling expired timer: %s : %s',
                         trigger['parameters'], time_type.run_date)
         else:
@@ -124,10 +123,11 @@ class St2Timer(object):
                       trigger['parameters'], e, exc_info=True)
 
     def _emit_trigger_instance(self, trigger):
-        LOG.info('Timer fired at: %s. Trigger: %s', str(datetime.utcnow()), trigger)
+        utc_now = isotime.get_datetime_utc_now()
+        LOG.info('Timer fired at: %s. Trigger: %s', str(utc_now), trigger)
 
         payload = {
-            'executed_at': str(datetime.utcnow()),
+            'executed_at': str(utc_now),
             'schedule': trigger['parameters'].get('time')
         }
         self._trigger_dispatcher.dispatch(trigger, payload)
