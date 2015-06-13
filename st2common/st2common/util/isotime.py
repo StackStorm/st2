@@ -91,7 +91,7 @@ def validate(value, raise_exception=True):
     return False
 
 
-def parse(value, preserve_original_tz=False):
+def parse(value, preserve_original_tz=False, validate_value=True):
     """
     Parse date in the ISO8601 format and return a time-zone aware datetime object.
 
@@ -105,9 +105,13 @@ def parse(value, preserve_original_tz=False):
     :param convert_result_to_utc: True to convert resulting timestamp to the UTC timezone.
     :type convert_result_to_utc: ``boolean``
 
+    :param validate_value: True to validate that the date is in the ISO8601 format.
+    :type validate_value: ``boolean``
+
     :rtype: ``datetime.datetime``
     """
-    validate(value, raise_exception=True)
+    if validate_value:
+        validate(value, raise_exception=True)
 
     # pylint: disable=no-member
     # For some reason pylint thinks it returns a tuple but it returns a datetime object
