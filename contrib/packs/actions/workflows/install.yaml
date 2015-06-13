@@ -7,6 +7,7 @@
         repo_url: "{{repo_url}}"
         branch: "{{branch}}"
         packs: "{{packs}}"
+        subtree: "{{subtree}}"
       on-success: "virtualenv_prerun"
     -
       name: "virtualenv_prerun"

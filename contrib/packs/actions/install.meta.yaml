@@ -19,6 +19,10 @@
     branch:
       type: "string"
       default: "master"
+    subtree:
+      type: "boolean"
+      description: "Set to true if packs are located in a packs/ directory and not in the repository root"
+      default: false
     register:
       type: "string"
       default: "actions"
