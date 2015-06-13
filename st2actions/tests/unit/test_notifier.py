@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import mock
 import unittest2
 
@@ -27,6 +26,7 @@ from st2common.models.db.notification import NotificationSchema
 from st2common.models.db.notification import NotificationSubSchema
 from st2common.persistence.action import Action
 from st2common.models.system.common import ResourceReference
+from st2common.util import isotime
 
 ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][0]
 NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][1]
@@ -89,7 +89,7 @@ class NotifierTestCase(unittest2.TestCase):
         on_failure = NotificationSubSchema(message='Action failed.')
         liveaction.notify = NotificationSchema(on_success=on_success,
                                                on_failure=on_failure)
-        liveaction.start_timestamp = datetime.datetime.utcnow()
+        liveaction.start_timestamp = isotime.get_datetime_utc_now()
 
         dispatcher = NotifierTestCase.MockDispatcher(self)
         notifier = Notifier(connection=None, queues=[], trigger_dispatcher=dispatcher)

@@ -336,7 +336,7 @@ class TestActionExecutionController(FunctionalTest):
         return self.app.delete('/v1/executions/%s' % actionexecution_id,
                                expect_errors=expect_errors)
 
-NOW = isotime.add_utc_tz(datetime.datetime.utcnow())
+NOW = isotime.get_datetime_utc_now()
 EXPIRY = NOW + datetime.timedelta(seconds=300)
 SYS_TOKEN = TokenDB(id=bson.ObjectId(), user='system', token=uuid.uuid4().hex, expiry=EXPIRY)
 USR_TOKEN = TokenDB(id=bson.ObjectId(), user='tokenuser', token=uuid.uuid4().hex, expiry=EXPIRY)

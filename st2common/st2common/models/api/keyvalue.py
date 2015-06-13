@@ -72,7 +72,8 @@ class KeyValuePairAPI(BaseAPI):
         model.value = kvp.value
 
         if getattr(kvp, 'ttl', None):
-            expire_timestamp = (datetime.datetime.utcnow() + datetime.timedelta(seconds=kvp.ttl))
+            expire_timestamp = (isotime.get_datetime_utc_now() +
+                                datetime.timedelta(seconds=kvp.ttl))
             model.expire_timestamp = expire_timestamp
 
         return model

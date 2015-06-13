@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import copy
-import datetime
 import json
 import uuid
 
@@ -139,7 +138,7 @@ ACTION_PARAMS = {'friend': 'Rocky'}
 # Token for auth test cases
 TOKEN_API = TokenAPI(
     user=ACTION_CONTEXT['user'], token=uuid.uuid4().hex,
-    expiry=isotime.format(isotime.add_utc_tz(datetime.datetime.utcnow()), offset=False))
+    expiry=isotime.format(isotime.get_datetime_utc_now(), offset=False))
 TOKEN_DB = TokenAPI.to_model(TOKEN_API)
 
 NON_EMPTY_RESULT = 'non-empty'

@@ -78,7 +78,7 @@ class SchedulerTest(DbTestCase):
 
     def test_delayed_executions_recovery(self):
         # Create a live action that's already delayed pass the allowed timeout.
-        dt_now = isotime.add_utc_tz(datetime.datetime.utcnow())
+        dt_now = isotime.add_utc_tz(isotime.get_datetime_utc_now())
         dt_delta = datetime.timedelta(seconds=cfg.CONF.scheduler.delayed_execution_recovery)
         dt_timeout = dt_now - dt_delta
 
@@ -101,7 +101,7 @@ class SchedulerTest(DbTestCase):
         # Create a live action that's delayed but has not passed the timeout.
         liveaction = LiveActionDB(action='wolfpack.action-1',
                                   parameters={'actionstr': 'foo'},
-                                  start_timestamp=isotime.add_utc_tz(datetime.datetime.utcnow()),
+                                  start_timestamp=isotime.get_datetime_utc_now(),
                                   status=action_constants.LIVEACTION_STATUS_DELAYED)
 
         liveaction = LiveAction.add_or_update(liveaction, publish=False)

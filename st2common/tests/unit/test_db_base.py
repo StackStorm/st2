@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
-
 import mongoengine
 
 from st2common.models.db import stormbase
+from st2common.util import isotime
 from st2tests import DbTestCase
 
 
@@ -33,7 +32,7 @@ class TestBaseModel(DbTestCase):
 
     def test_print(self):
         instance = FakeModel(name='seesaw', boolean_field=True,
-                             datetime_field=datetime.datetime.utcnow(),
+                             datetime_field=isotime.get_datetime_utc_now(),
                              description=u'fun!', dict_field={'a': 1},
                              integer_field=68, list_field=['abc'])
 
