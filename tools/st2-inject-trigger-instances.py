@@ -27,7 +27,6 @@ meaningful work.
 
 """
 
-import datetime
 import os
 import random
 import sys
@@ -37,6 +36,7 @@ from oslo.config import cfg
 import yaml
 
 from st2common import config
+from st2common.util import isotime
 from st2common.transport.reactor import TriggerDispatcher
 
 
@@ -59,17 +59,17 @@ def _monkey_patch():
 
 
 def _inject_instances(trigger, rate_per_trigger, duration, payload={}):
-    start = datetime.datetime.now()
+    start = isotime.get_datetime_utc_now()
     elapsed = 0.0
     count = 0
 
     dispatcher = TriggerDispatcher()
     while elapsed < duration:
-        # print('Dispatching trigger %s at time %s', trigger, datetime.datetime.now())
+        # print('Dispatching trigger %s at time %s', trigger, isotime.get_datetime_utc_now())
         dispatcher.dispatch(trigger, payload)
         delta = random.expovariate(rate_per_trigger)
         eventlet.sleep(delta)
-        elapsed = (datetime.datetime.now() - start).seconds/60.0
+        elapsed = (isotime.get_datetime_utc_now() - start).seconds/60.0
         count += 1
 
     print('%s: Emitted %d triggers in %d seconds' % (trigger, count, elapsed))

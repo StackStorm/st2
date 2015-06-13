@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 try:
     import simplejson as json
 except ImportError:
@@ -41,7 +40,7 @@ FAKE_TRIGGER = {
 class InternalTriggerTypesTests(DbTestCase):
 
     def test_token_successfully_obtained(self):
-        time_now = isotime.add_utc_tz(datetime.datetime.now())
+        time_now = isotime.get_datetime_utc_now()
         registrar = InternalTriggerTypesRegistrar()
         self.assertTrue(registrar._auth_creds is not None)
         # TTL is at least 10 mins

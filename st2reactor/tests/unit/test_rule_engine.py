@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
-
 import mock
 from mongoengine import NotUniqueError
 
@@ -63,7 +61,7 @@ class RuleEngineTest(DbTestCase):
     def test_create_trigger_instance_for_trigger_with_params(self):
         trigger = {'type': 'dummy_pack_1.st2.test.trigger4', 'parameters': {'url': 'sample'}}
         payload = {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'}
-        occurrence_time = datetime.datetime.now()
+        occurrence_time = isotime.get_datetime_utc_now()
         trigger_instance = container_utils.create_trigger_instance(trigger=trigger,
                                                                    payload=payload,
                                                                    occurrence_time=occurrence_time)
