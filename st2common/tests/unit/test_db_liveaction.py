@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
-
 import mock
 
 from st2common.models.db.liveaction import LiveActionDB
@@ -43,7 +41,7 @@ class LiveActionModelTest(DbTestCase):
 
         # Test update
         self.assertTrue(retrieved.end_timestamp is None)
-        retrieved.end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+        retrieved.end_timestamp = isotime.get_datetime_utc_now()
         updated = LiveAction.add_or_update(retrieved)
         self.assertTrue(updated.end_timestamp == retrieved.end_timestamp)
         # Test delete

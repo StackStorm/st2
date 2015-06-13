@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
-
 import mongoengine as me
 
 from st2common import log as logging
+from st2common.util import isotime
 from st2common.models.db import stormbase
 from st2common.fields import ComplexDateTimeField
 
@@ -43,7 +42,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         required=True,
         help_text='The current status of the liveaction.')
     start_timestamp = ComplexDateTimeField(
-        default=datetime.datetime.utcnow,
+        default=isotime.get_datetime_utc_now,
         help_text='The timestamp when the liveaction was created.')
     end_timestamp = ComplexDateTimeField(
         help_text='The timestamp when the liveaction has finished.')

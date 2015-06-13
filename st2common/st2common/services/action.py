@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import six
 
 from st2common import log as logging
@@ -89,7 +88,7 @@ def request(liveaction):
 
     # Write to database and send to message queue.
     liveaction.status = action_constants.LIVEACTION_STATUS_REQUESTED
-    liveaction.start_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+    liveaction.start_timestamp = isotime.get_datetime_utc_now()
 
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)

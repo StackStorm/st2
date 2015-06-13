@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
-
 import jsonschema
 import mock
 import mongoengine.connection
@@ -24,6 +22,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import schema as util_schema
 from st2common.util import reference
+from st2common.util import isotime
 from st2tests import DbTestCase
 
 SKIP_DELETE = False
@@ -202,7 +201,7 @@ class ReactorModelTest(DbTestCase):
         created = TriggerInstanceDB()
         created.trigger = trigger.get_reference().ref
         created.payload = {}
-        created.occurrence_time = datetime.datetime.utcnow()
+        created.occurrence_time = isotime.get_datetime_utc_now()
         return TriggerInstance.add_or_update(created)
 
     @staticmethod

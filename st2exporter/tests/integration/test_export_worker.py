@@ -49,9 +49,9 @@ class TestExportWorker(DbTestCase):
 
     @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_get_marker_from_db(self):
-        marker_dt = datetime.datetime.utcnow() - datetime.timedelta(minutes=5)
+        marker_dt = isotime.get_datetime_utc_now() - datetime.timedelta(minutes=5)
         marker_db = DumperMarkerDB(marker=isotime.format(marker_dt, offset=False),
-                                   updated_at=datetime.datetime.utcnow())
+                                   updated_at=isotime.get_datetime_utc_now())
         DumperMarker.add_or_update(marker_db)
         exec_exporter = ExecutionsExporter(None, None)
         export_marker = exec_exporter._get_export_marker_from_db()

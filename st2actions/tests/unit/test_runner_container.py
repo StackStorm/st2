@@ -26,6 +26,7 @@ from st2common.models.db.runner import RunnerTypeDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import executions
+from st2common.util import isotime
 from st2common.transport.publishers import PoolPublisher
 from st2tests.base import DbTestCase
 import st2tests.config as tests_config
@@ -159,7 +160,7 @@ class RunnerContainerTest(DbTestCase):
     def _get_action_exec_db_model(self, action_db, params):
         liveaction_db = LiveActionDB()
         liveaction_db.status = action_constants.LIVEACTION_STATUS_REQUESTED
-        liveaction_db.start_timestamp = datetime.datetime.utcnow()
+        liveaction_db.start_timestamp = isotime.get_datetime_utc_now()
         liveaction_db.action = ResourceReference(
             name=action_db.name,
             pack=action_db.pack).ref

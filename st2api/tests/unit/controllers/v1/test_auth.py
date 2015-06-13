@@ -29,7 +29,7 @@ from st2common.exceptions.auth import TokenNotFoundError
 OBJ_ID = bson.ObjectId()
 USER = 'stanley'
 TOKEN = uuid.uuid4().hex
-NOW = isotime.add_utc_tz(datetime.datetime.utcnow())
+NOW = isotime.get_datetime_utc_now()
 FUTURE = NOW + datetime.timedelta(seconds=300)
 PAST = NOW + datetime.timedelta(seconds=-300)
 

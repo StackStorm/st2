@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import copy
-import datetime
 
 import jsonschema
 from oslo.config import cfg
@@ -330,7 +329,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             return
 
         liveaction_db.status = 'canceled'
-        liveaction_db.end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+        liveaction_db.end_timestamp = isotime.get_datetime_utc_now()
         liveaction_db.result = {'message': 'Action canceled by user.'}
         try:
             LiveAction.add_or_update(liveaction_db)

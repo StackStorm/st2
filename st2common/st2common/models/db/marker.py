@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import mongoengine as me
 
 from st2common.fields import ComplexDateTimeField
 from st2common.models.db import stormbase
+from st2common.util import isotime
 
 __all__ = [
     'MarkerDB',
@@ -38,7 +38,7 @@ class MarkerDB(stormbase.StormFoundationDB):
     """
     marker = me.StringField(required=True)
     updated_at = ComplexDateTimeField(
-        default=datetime.datetime.utcnow,
+        default=isotime.get_datetime_utc_now,
         help_text='The timestamp when the liveaction was created.')
 
     meta = {

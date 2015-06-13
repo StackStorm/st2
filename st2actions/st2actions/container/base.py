@@ -16,7 +16,6 @@
 import json
 import sys
 import traceback
-import datetime
 
 from st2common import log as logging
 from st2common.util import isotime
@@ -144,7 +143,7 @@ class RunnerContainer(object):
     def _update_live_action_db(self, liveaction_id, status, result, context):
         liveaction_db = get_liveaction_by_id(liveaction_id)
         if status in action_constants.COMPLETED_STATES:
-            end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+            end_timestamp = isotime.get_datetime_utc_now()
         else:
             end_timestamp = None
 

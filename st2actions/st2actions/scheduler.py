@@ -105,7 +105,7 @@ def get_scheduler():
 
 def recover_delayed_executions():
     coordinator = coordination.get_coordinator()
-    dt_now = isotime.add_utc_tz(datetime.datetime.utcnow())
+    dt_now = isotime.get_datetime_utc_now()
     dt_delta = datetime.timedelta(seconds=cfg.CONF.scheduler.delayed_execution_recovery)
     dt_timeout = dt_now - dt_delta
 
@@ -146,7 +146,7 @@ def get_rescheduler():
                   trigger=IntervalTrigger(**time_spec),
                   max_instances=1,
                   misfire_grace_time=60,
-                  next_run_time=datetime.datetime.utcnow(),
+                  next_run_time=isotime.get_datetime_utc_now(),
                   replace_existing=True)
 
     return timer

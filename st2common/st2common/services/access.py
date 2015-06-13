@@ -66,8 +66,7 @@ def create_token(username, ttl=None, metadata=None):
             LOG.audit('Registered new user "%s".' % (username), extra=extra)
 
     token = uuid.uuid4().hex
-    expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
-    expiry = isotime.add_utc_tz(expiry)
+    expiry = isotime.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
     token = TokenDB(user=username, token=token, expiry=expiry, metadata=metadata)
     Token.add_or_update(token)
 
