@@ -22,6 +22,7 @@ import dateutil.parser
 __all__ = [
     'get_datetime_utc_now',
     'add_utc_tz',
+    'convert_to_utc',
     'format',
     'validate',
     'parse'
@@ -52,7 +53,23 @@ def add_utc_tz(dt):
     return dt.replace(tzinfo=dateutil.tz.tzutc())
 
 
+def convert_to_utc(dt):
+    """
+    Convert provided datetime object to UTC timezone.
+
+    Note: If the object has no timezone information we assume it's in UTC.
+
+    :rtype: ``datetime.datetime``
+    """
+    if not dt.tzinfo:
+        return add_utc_tz(dt)
+
+    dt = dt.astimezone(dateutil.tz.tzutc())
+    return dt
+
+
 def format(dt, usec=True, offset=True):
+    # pylint: disable=no-member
     if isinstance(dt, basestring):
         dt = parse(dt)
     fmt = ISO8601_FORMAT_MICROSECOND if usec else ISO8601_FORMAT
@@ -74,15 +91,19 @@ def validate(value, raise_exception=True):
     return False
 
 
-def parse(value, convert_to_utc=False):
+def parse(value, preserve_original_tz=False):
     """
     Parse date in the ISO8601 format and return a time-zone aware datetime object.
 
     :param value: Date in ISO8601 format.
     :type value: ``str``
 
-    :param convert_to_utc: True to convert resulting timestamp to the UTC timezone.
-    :type convert_to_utc: ``boolean``
+    :param preserve_original_tz: True to preserve the original timezone - by default result is
+                                 converted into UTC.
+    :type preserve_original_tz: ``boolean``
+
+    :param convert_result_to_utc: True to convert resulting timestamp to the UTC timezone.
+    :type convert_result_to_utc: ``boolean``
 
     :rtype: ``datetime.datetime``
     """
@@ -95,7 +116,7 @@ def parse(value, convert_to_utc=False):
     if not dt.tzinfo:
         dt = add_utc_tz(dt)
 
-    if convert_to_utc:
-        dt = dt.astimezone(dateutil.tz.tzutc())
+    if not preserve_original_tz:
+        dt = convert_to_utc(dt)
 
     return dt
