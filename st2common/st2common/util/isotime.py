@@ -46,6 +46,9 @@ def get_datetime_utc_now():
 
 
 def add_utc_tz(dt):
+    if dt.tzinfo and dt.tzinfo.utcoffset(dt) != datetime.timedelta(0):
+        raise ValueError('datetime already contains a non UTC timezone')
+
     return dt.replace(tzinfo=dateutil.tz.tzutc())
 
 
