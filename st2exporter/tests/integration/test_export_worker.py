@@ -56,7 +56,7 @@ class TestExportWorker(DbTestCase):
         DumperMarker.add_or_update(marker_db)
         exec_exporter = ExecutionsExporter(None, None)
         export_marker = exec_exporter._get_export_marker_from_db()
-        self.assertEqual(export_marker, date_utils.get_utc_tz(marker_dt))
+        self.assertEqual(export_marker, date_utils.add_utc_tz(marker_dt))
 
     @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_get_missed_executions_from_db_no_marker(self):

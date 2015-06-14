@@ -76,7 +76,7 @@ class TestTokenController(FunctionalTest):
         timestamp = date_utils.get_datetime_utc_now()
         response = self.app.post_json('/tokens', {}, expect_errors=False)
         expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
-        expected_expiry = date_utils.get_utc_tz(expected_expiry)
+        expected_expiry = date_utils.add_utc_tz(expected_expiry)
         self.assertEqual(response.status_int, 201)
         self.assertIsNotNone(response.json['token'])
         self.assertEqual(response.json['user'], USERNAME)
@@ -108,7 +108,7 @@ class TestTokenController(FunctionalTest):
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_set_ttl(self):
-        timestamp = date_utils.get_utc_tz(date_utils.get_datetime_utc_now())
+        timestamp = date_utils.add_utc_tz(date_utils.get_datetime_utc_now())
         response = self.app.post_json('/tokens', {'ttl': 60}, expect_errors=False)
         expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=60)
         self.assertEqual(response.status_int, 201)
