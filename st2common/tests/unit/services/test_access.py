@@ -70,13 +70,13 @@ class AccessServiceTest(DbTestCase):
         self.assertTrue(token.token is not None)
         self.assertEqual(token.user, USERNAME)
         expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
-        expected_expiry = date_utils.get_utc_tz(expected_expiry)
+        expected_expiry = date_utils.add_utc_tz(expected_expiry)
         self.assertLess(isotime.parse(token.expiry), expected_expiry)
 
     def test_create_token_ttl_capped(self):
         ttl = cfg.CONF.auth.token_ttl + 10
         expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
-        expected_expiry = date_utils.get_utc_tz(expected_expiry)
+        expected_expiry = date_utils.add_utc_tz(expected_expiry)
         token = access.create_token(USERNAME, 10)
         self.assertTrue(token is not None)
         self.assertTrue(token.token is not None)

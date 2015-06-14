@@ -219,7 +219,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertRaises(ValueError, ActionExecution.get_by_id, obj.id)
 
     def test_datetime_range(self):
-        base = date_utils.get_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        base = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(60):
             timestamp = base + datetime.timedelta(seconds=i)
             doc = copy.deepcopy(self.fake_history_subtasks[0])
@@ -237,7 +237,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertEqual(len(objs), 10)
 
     def test_sort_by_start_timestamp(self):
-        base = date_utils.get_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        base = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(60):
             timestamp = base + datetime.timedelta(seconds=i)
             doc = copy.deepcopy(self.fake_history_subtasks[0])
