@@ -49,7 +49,7 @@ import st2common
 from st2common.content.utils import get_packs_base_paths
 from st2common import __version__ as st2_version
 from st2common import config
-from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2debug.constants import GPG_KEY
 from st2debug.constants import GPG_KEY_FINGERPRINT
 from st2debug.constants import S3_BUCKET_URL
@@ -220,7 +220,7 @@ def create_archive(include_logs, include_configs, include_content, include_syste
     :return: Path to the generated archive.
     :rtype: ``str``
     """
-    date = isotime.get_datetime_utc_now().strftime('%Y-%m-%d-%H:%M:%S')
+    date = date_utils.get_datetime_utc_now().strftime('%Y-%m-%d-%H:%M:%S')
     values = {'hostname': socket.gethostname(), 'date': date}
 
     output_file_name = OUTPUT_FILENAME_TEMPLATE % values

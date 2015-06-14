@@ -19,6 +19,7 @@ import datetime
 from oslo.config import cfg
 
 from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2common.exceptions.auth import TokenNotFoundError
 from st2common.exceptions.auth import TTLTooLargeException
 from st2common.models.db.auth import TokenDB, UserDB
@@ -66,7 +67,7 @@ def create_token(username, ttl=None, metadata=None):
             LOG.audit('Registered new user "%s".' % (username), extra=extra)
 
     token = uuid.uuid4().hex
-    expiry = isotime.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
+    expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
     token = TokenDB(user=username, token=token, expiry=expiry, metadata=metadata)
     Token.add_or_update(token)
 

@@ -2,7 +2,7 @@ from kombu import Connection
 from oslo.config import cfg
 
 from st2common import log as logging
-from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2common.transport import consumers, reactor
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.engine import RulesEngine
@@ -29,7 +29,7 @@ class TriggerInstanceDispatcher(consumers.MessageHandler):
             trigger_instance = container_utils.create_trigger_instance(
                 trigger,
                 payload or {},
-                isotime.get_datetime_utc_now())
+                date_utils.get_datetime_utc_now())
 
             if trigger_instance:
                 self.rules_engine.handle_trigger_instance(trigger_instance)

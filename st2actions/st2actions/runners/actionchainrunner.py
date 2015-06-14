@@ -34,6 +34,7 @@ from st2common.services import action as action_service
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import action_db as action_db_util
 from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2common.util import jinja as jinja_utils
 
 
@@ -176,7 +177,7 @@ class ActionChainRunner(ActionRunner):
             resolved_params = None
             liveaction = None
 
-            created_at = isotime.get_datetime_utc_now()
+            created_at = date_utils.get_datetime_utc_now()
 
             try:
                 resolved_params = ActionChainRunner._resolve_params(
@@ -241,7 +242,7 @@ class ActionChainRunner(ActionRunner):
                     self.chain_holder.vars.update(rendered_publish_vars)
             finally:
                 # Record result and resolve a next node based on the task success or failure
-                updated_at = isotime.get_datetime_utc_now()
+                updated_at = date_utils.get_datetime_utc_now()
 
                 format_kwargs = {'action_node': action_node, 'liveaction_db': liveaction,
                                  'created_at': created_at, 'updated_at': updated_at}

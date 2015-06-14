@@ -19,7 +19,7 @@ import six
 from st2common.transport.publishers import PoolPublisher
 from st2common.persistence.trigger import TriggerInstance
 from st2common.models.db.trigger import TriggerInstanceDB
-from st2common.util import isotime
+from st2common.util import date as date_utils
 from tests import FunctionalTest
 
 http_client = six.moves.http_client
@@ -173,7 +173,7 @@ class TestTriggerController(FunctionalTest):
         trigger_instance = TriggerInstanceDB()
         trigger_instance.trigger = trigger_ref
         trigger_instance.payload = payload
-        trigger_instance.occurrence_time = isotime.get_datetime_utc_now()
+        trigger_instance.occurrence_time = date_utils.get_datetime_utc_now()
         created = TriggerInstance.add_or_update(trigger_instance)
         cls.triggerinstance_count += 1
         return created

@@ -26,7 +26,7 @@ from st2common.constants.triggers import TIMER_TRIGGER_TYPES
 import st2common.services.triggers as trigger_services
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
-from st2common.util import isotime
+from st2common.util import date as date_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -103,7 +103,7 @@ class St2Timer(object):
 
             time_type = CronTrigger(**cron)
 
-        utc_now = isotime.get_datetime_utc_now()
+        utc_now = date_utils.get_datetime_utc_now()
         if hasattr(time_type, 'run_date') and utc_now > time_type.run_date:
             LOG.warning('Not scheduling expired timer: %s : %s',
                         trigger['parameters'], time_type.run_date)
@@ -123,7 +123,7 @@ class St2Timer(object):
                       trigger['parameters'], e, exc_info=True)
 
     def _emit_trigger_instance(self, trigger):
-        utc_now = isotime.get_datetime_utc_now()
+        utc_now = date_utils.get_datetime_utc_now()
         LOG.info('Timer fired at: %s. Trigger: %s', str(utc_now), trigger)
 
         payload = {

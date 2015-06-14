@@ -19,7 +19,7 @@ from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.services import action as action_service
 from st2common.util import reference
-from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
@@ -38,7 +38,7 @@ FIXTURES_2 = {
 MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
 MOCK_TRIGGER_INSTANCE.id = 'triggerinstance-test'
 MOCK_TRIGGER_INSTANCE.payload = {'t1_p': 't1_p_v'}
-MOCK_TRIGGER_INSTANCE.occurrence_time = isotime.get_datetime_utc_now()
+MOCK_TRIGGER_INSTANCE.occurrence_time = date_utils.get_datetime_utc_now()
 
 MOCK_LIVEACTION = LiveActionDB()
 MOCK_LIVEACTION.id = 'liveaction-test-1.id'

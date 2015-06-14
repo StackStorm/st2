@@ -18,7 +18,7 @@ import calendar
 
 from mongoengine import LongField
 
-from st2common.util import isotime
+from st2common.util import date
 
 __all__ = [
     'ComplexDateTimeField'
@@ -61,7 +61,7 @@ class ComplexDateTimeField(LongField):
         result = datetime.datetime.fromtimestamp(data // SECOND_TO_MICROSECONDS)
         microseconds_reminder = (data % SECOND_TO_MICROSECONDS)
         result = result.replace(microsecond=microseconds_reminder)
-        result = isotime.add_utc_tz(result)
+        result = date.add_utc_tz(result)
         return result
 
     def _datetime_to_microseconds_since_epoch(self, value):

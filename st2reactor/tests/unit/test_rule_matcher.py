@@ -18,7 +18,7 @@ from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB)
 from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import (TriggerType, Trigger)
 from st2common.services.triggers import get_trigger_db_by_ref
-from st2common.util import isotime
+from st2common.util import date as date_utils
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.matcher import RulesMatcher
 from st2tests.base import DbTestCase
@@ -32,7 +32,7 @@ class RuleMatcherTest(DbTestCase):
         trigger_instance = container_utils.create_trigger_instance(
             'dummy_pack_1.st2.test.trigger1',
             {'k1': 't1_p_v', 'k2': 'v2'},
-            isotime.get_datetime_utc_now()
+            date_utils.get_datetime_utc_now()
         )
         trigger = get_trigger_db_by_ref(trigger_instance.trigger)
         rules = self._get_sample_rules()
@@ -48,7 +48,7 @@ class RuleMatcherTest(DbTestCase):
             'dummy_pack_1.st2.test.trigger2',
             {'k1': 't1_p_v', 'k2.k2': 'v2', 'k3.more.nested.deep': 'some.value',
              'k4.even.more.nested$': 'foo', 'yep$aaa': 'b'},
-            isotime.get_datetime_utc_now()
+            date_utils.get_datetime_utc_now()
         )
         trigger = get_trigger_db_by_ref(trigger_instance.trigger)
         rules = self._get_sample_rules()

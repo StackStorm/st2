@@ -21,7 +21,7 @@ from st2common.models.db.action import ActionDB
 from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
 from st2common.models.db.trigger import TriggerDB, TriggerInstanceDB
 from st2common.util import reference
-from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2reactor.rules.filter import RuleFilter
 from st2tests import DbTestCase
 
@@ -42,7 +42,7 @@ MOCK_TRIGGER_INSTANCE.payload = {
     'int': 1,
     'float': 0.8
 }
-MOCK_TRIGGER_INSTANCE.occurrence_time = isotime.get_datetime_utc_now()
+MOCK_TRIGGER_INSTANCE.occurrence_time = date_utils.get_datetime_utc_now()
 
 MOCK_ACTION = ActionDB()
 MOCK_ACTION.id = bson.ObjectId()
