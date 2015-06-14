@@ -16,7 +16,7 @@
 import mongoengine
 
 from st2common.models.db import stormbase
-from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2tests import DbTestCase
 
 
@@ -32,7 +32,7 @@ class TestBaseModel(DbTestCase):
 
     def test_print(self):
         instance = FakeModel(name='seesaw', boolean_field=True,
-                             datetime_field=isotime.get_datetime_utc_now(),
+                             datetime_field=date_utils.get_datetime_utc_now(),
                              description=u'fun!', dict_field={'a': 1},
                              integer_field=68, list_field=['abc'])
 

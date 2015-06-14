@@ -23,7 +23,7 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.transport.publishers import PoolPublisher
-from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
@@ -303,7 +303,7 @@ class ParamsUtilsTest(DbTestCase):
     def _get_action_exec_db_model(self, params):
         liveaction_db = LiveActionDB()
         liveaction_db.status = 'initializing'
-        liveaction_db.start_timestamp = isotime.get_datetime_utc_now()
+        liveaction_db.start_timestamp = date_utils.get_datetime_utc_now()
         liveaction_db.action = ResourceReference(name=ParamsUtilsTest.action_db.name,
                                                  pack=ParamsUtilsTest.action_db.pack).ref
         liveaction_db.parameters = params

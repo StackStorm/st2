@@ -47,6 +47,7 @@ from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2tests import DbTestCase
 from st2tests import http
 from st2tests.fixturesloader import FixturesLoader
@@ -138,7 +139,7 @@ ACTION_PARAMS = {'friend': 'Rocky'}
 # Token for auth test cases
 TOKEN_API = TokenAPI(
     user=ACTION_CONTEXT['user'], token=uuid.uuid4().hex,
-    expiry=isotime.format(isotime.get_datetime_utc_now(), offset=False))
+    expiry=isotime.format(date_utils.get_datetime_utc_now(), offset=False))
 TOKEN_DB = TokenAPI.to_model(TOKEN_API)
 
 NON_EMPTY_RESULT = 'non-empty'

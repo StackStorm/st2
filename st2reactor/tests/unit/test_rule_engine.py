@@ -20,7 +20,7 @@ from st2common.models.api.rule import RuleAPI
 from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB)
 from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import (TriggerType, Trigger)
-from st2common.util import isotime
+from st2common.util import date as date_utils
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.engine import RulesEngine
@@ -39,19 +39,19 @@ class RuleEngineTest(DbTestCase):
         trigger_instance_1 = container_utils.create_trigger_instance(
             'dummy_pack_1.st2.test.trigger1',
             {'k1': 't1_p_v', 'k2': 'v2'},
-            isotime.get_datetime_utc_now()
+            date_utils.get_datetime_utc_now()
         )
 
         trigger_instance_2 = container_utils.create_trigger_instance(
             'dummy_pack_1.st2.test.trigger1',
             {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'},
-            isotime.get_datetime_utc_now()
+            date_utils.get_datetime_utc_now()
         )
 
         trigger_instance_3 = container_utils.create_trigger_instance(
             'dummy_pack_1.st2.test.trigger2',
             {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'},
-            isotime.get_datetime_utc_now()
+            date_utils.get_datetime_utc_now()
         )
         instances = [trigger_instance_1, trigger_instance_2, trigger_instance_3]
         rules_engine = RulesEngine()
@@ -61,7 +61,7 @@ class RuleEngineTest(DbTestCase):
     def test_create_trigger_instance_for_trigger_with_params(self):
         trigger = {'type': 'dummy_pack_1.st2.test.trigger4', 'parameters': {'url': 'sample'}}
         payload = {'k1': 't1_p_v', 'k2': 'v2', 'k3': 'v3'}
-        occurrence_time = isotime.get_datetime_utc_now()
+        occurrence_time = date_utils.get_datetime_utc_now()
         trigger_instance = container_utils.create_trigger_instance(trigger=trigger,
                                                                    payload=payload,
                                                                    occurrence_time=occurrence_time)
@@ -72,7 +72,7 @@ class RuleEngineTest(DbTestCase):
     def test_get_matching_rules_filters_disabled_rules(self):
         trigger_instance = container_utils.create_trigger_instance(
             'dummy_pack_1.st2.test.trigger1',
-            {'k1': 't1_p_v', 'k2': 'v2'}, isotime.get_datetime_utc_now()
+            {'k1': 't1_p_v', 'k2': 'v2'}, date_utils.get_datetime_utc_now()
         )
         rules_engine = RulesEngine()
         matching_rules = rules_engine.get_matching_rules_for_trigger(trigger_instance)
@@ -84,7 +84,7 @@ class RuleEngineTest(DbTestCase):
         trigger_instance = container_utils.create_trigger_instance(
             'dummy_pack_1.st2.test.trigger3',
             {'k1': 't1_p_v', 'k2': 'v2'},
-            isotime.get_datetime_utc_now()
+            date_utils.get_datetime_utc_now()
         )
         rules_engine = RulesEngine()
         rules_engine.handle_trigger_instance(trigger_instance)  # should not throw.

@@ -32,7 +32,7 @@ from st2common.persistence.policy import Policy
 from st2common import policies
 from st2common.transport import consumers, liveaction
 from st2common.util import action_db as action_utils
-from st2common.util import isotime
+from st2common.util import date as date_utils
 
 
 LOG = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ def get_scheduler():
 
 def recover_delayed_executions():
     coordinator = coordination.get_coordinator()
-    dt_now = isotime.get_datetime_utc_now()
+    dt_now = date_utils.get_datetime_utc_now()
     dt_delta = datetime.timedelta(seconds=cfg.CONF.scheduler.delayed_execution_recovery)
     dt_timeout = dt_now - dt_delta
 
@@ -146,7 +146,7 @@ def get_rescheduler():
                   trigger=IntervalTrigger(**time_spec),
                   max_instances=1,
                   misfire_grace_time=60,
-                  next_run_time=isotime.get_datetime_utc_now(),
+                  next_run_time=date_utils.get_datetime_utc_now(),
                   replace_existing=True)
 
     return timer

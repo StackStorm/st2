@@ -19,7 +19,7 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 from st2common.persistence.liveaction import LiveAction
 from st2common.transport.publishers import PoolPublisher
-from st2common.util import isotime
+from st2common.util import date as date_utils
 
 from st2tests import DbTestCase
 
@@ -41,7 +41,7 @@ class LiveActionModelTest(DbTestCase):
 
         # Test update
         self.assertTrue(retrieved.end_timestamp is None)
-        retrieved.end_timestamp = isotime.get_datetime_utc_now()
+        retrieved.end_timestamp = date_utils.get_datetime_utc_now()
         updated = LiveAction.add_or_update(retrieved)
         self.assertTrue(updated.end_timestamp == retrieved.end_timestamp)
         # Test delete

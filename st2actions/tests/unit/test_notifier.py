@@ -26,7 +26,7 @@ from st2common.models.db.notification import NotificationSchema
 from st2common.models.db.notification import NotificationSubSchema
 from st2common.persistence.action import Action
 from st2common.models.system.common import ResourceReference
-from st2common.util import isotime
+from st2common.util import date as date_utils
 
 ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][0]
 NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][1]
@@ -89,7 +89,7 @@ class NotifierTestCase(unittest2.TestCase):
         on_failure = NotificationSubSchema(message='Action failed.')
         liveaction.notify = NotificationSchema(on_success=on_success,
                                                on_failure=on_failure)
-        liveaction.start_timestamp = isotime.get_datetime_utc_now()
+        liveaction.start_timestamp = date_utils.get_datetime_utc_now()
 
         dispatcher = NotifierTestCase.MockDispatcher(self)
         notifier = Notifier(connection=None, queues=[], trigger_dispatcher=dispatcher)

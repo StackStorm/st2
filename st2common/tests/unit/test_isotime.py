@@ -18,6 +18,7 @@ import datetime
 import unittest
 
 from st2common.util import isotime
+from st2common.util import date
 
 
 class TestTimeUtil(unittest.TestCase):
@@ -25,7 +26,7 @@ class TestTimeUtil(unittest.TestCase):
     def test_add_utc_tz_info(self):
         dt = datetime.datetime.utcnow()
         self.assertIsNone(dt.tzinfo)
-        dt = isotime.add_utc_tz(dt)
+        dt = date.add_utc_tz(dt)
         self.assertIsNotNone(dt.tzinfo)
         self.assertEqual(dt.tzinfo.tzname(None), 'UTC')
 
@@ -52,7 +53,7 @@ class TestTimeUtil(unittest.TestCase):
         self.assertRaises(ValueError, isotime.validate, 'Epic!', True)
 
     def test_parse(self):
-        dt = isotime.add_utc_tz(datetime.datetime(2000, 1, 1, 12))
+        dt = date.add_utc_tz(datetime.datetime(2000, 1, 1, 12))
         self.assertEqual(isotime.parse('2000-01-01 12:00:00Z'), dt)
         self.assertEqual(isotime.parse('2000-01-01 12:00:00+00'), dt)
         self.assertEqual(isotime.parse('2000-01-01 12:00:00+0000'), dt)
@@ -68,7 +69,7 @@ class TestTimeUtil(unittest.TestCase):
         self.assertEqual(isotime.parse('2000-01-01T12:00:00.000Z'), dt)
 
     def test_format(self):
-        dt = isotime.add_utc_tz(datetime.datetime(2000, 1, 1, 12))
+        dt = date.add_utc_tz(datetime.datetime(2000, 1, 1, 12))
         dt_str_usec_offset = '2000-01-01T12:00:00.000000+00:00'
         dt_str_usec = '2000-01-01T12:00:00.000000Z'
         dt_str_offset = '2000-01-01T12:00:00+00:00'
@@ -84,16 +85,16 @@ class TestTimeUtil(unittest.TestCase):
     def test_format_tz_naive(self):
         dt1 = datetime.datetime.utcnow()
         dt2 = isotime.parse(isotime.format(dt1, usec=True))
-        self.assertEqual(dt2, isotime.add_utc_tz(dt1))
+        self.assertEqual(dt2, date.add_utc_tz(dt1))
 
     def test_format_tz_aware(self):
-        dt1 = isotime.add_utc_tz(datetime.datetime.utcnow())
+        dt1 = date.add_utc_tz(datetime.datetime.utcnow())
         dt2 = isotime.parse(isotime.format(dt1, usec=True))
         self.assertEqual(dt2, dt1)
 
     def test_format_sec_truncated(self):
-        dt1 = isotime.add_utc_tz(datetime.datetime.utcnow())
+        dt1 = date.add_utc_tz(datetime.datetime.utcnow())
         dt2 = isotime.parse(isotime.format(dt1, usec=False))
         dt3 = datetime.datetime(dt1.year, dt1.month, dt1.day, dt1.hour, dt1.minute, dt1.second)
         self.assertLess(dt2, dt1)
-        self.assertEqual(dt2, isotime.add_utc_tz(dt3))
+        self.assertEqual(dt2, date.add_utc_tz(dt3))

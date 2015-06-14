@@ -16,7 +16,7 @@
 from st2common import log as logging
 from st2common.persistence.auth import Token
 from st2common.exceptions import auth as exceptions
-from st2common.util import isotime
+from st2common.util import date as date_utils
 
 __all__ = [
     'validate_token'
@@ -51,7 +51,7 @@ def validate_token(token_in_headers, token_in_query_params):
     token_string = token_in_headers or token_in_query_params
     token = Token.get(token_string)
 
-    if token.expiry <= isotime.get_datetime_utc_now():
+    if token.expiry <= date_utils.get_datetime_utc_now():
         # TODO: purge expired tokens
         LOG.audit('Token with id "%s" has expired.' % (token.id))
         raise exceptions.TokenExpiredError('Token has expired.')

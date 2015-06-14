@@ -15,9 +15,7 @@
 
 import re
 
-from datetime import datetime
-
-from st2common.util import isotime
+from st2common.util import date as date_utils
 
 __all__ = [
     'get_operator',
@@ -134,12 +132,12 @@ def _timediff(diff_target, period_seconds, operator):
     :rtype: ``bool``
     """
     # Pickup now in UTC to compare against
-    utc_now = isotime.get_datetime_utc_now()
+    utc_now = date_utils.get_datetime_utc_now()
 
     # assuming diff_target is UTC and specified in python iso format.
-    # Note: isotime.parse uses dateutil.parse which is way more flexible then strptime and
+    # Note: date_utils.parse uses dateutil.parse which is way more flexible then strptime and
     # supports many date formats
-    diff_target_utc = isotime.parse(diff_target, validate_value=False)
+    diff_target_utc = date_utils.parse(diff_target)
     return operator((utc_now - diff_target_utc).total_seconds(), period_seconds)
 
 

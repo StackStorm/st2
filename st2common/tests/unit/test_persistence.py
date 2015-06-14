@@ -19,7 +19,7 @@ import datetime
 import bson
 
 from st2tests import DbTestCase
-from st2common.util import isotime
+from st2common.util import date as date_utils
 from tests.unit.base import FakeModel, FakeModelDB
 
 
@@ -121,7 +121,7 @@ class TestPersistence(DbTestCase):
         self.assertIsNone(getattr(obj1, 'index', None))
 
     def test_datetime_range(self):
-        base = isotime.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        base = date_utils.get_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(60):
             timestamp = base + datetime.timedelta(seconds=i)
             obj = FakeModelDB(name=uuid.uuid4().hex, timestamp=timestamp)
@@ -163,7 +163,7 @@ class TestPersistence(DbTestCase):
 
     def test_sort_multiple(self):
         count = 60
-        base = isotime.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        base = date_utils.get_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(count):
             category = 'type1' if i % 2 else 'type2'
             timestamp = base + datetime.timedelta(seconds=i)

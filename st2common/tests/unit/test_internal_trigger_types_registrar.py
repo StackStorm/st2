@@ -23,7 +23,7 @@ import requests
 
 from st2common.services.access import delete_token
 from st2common.triggers import InternalTriggerTypesRegistrar
-from st2common.util import isotime
+from st2common.util import date as date_utils
 
 from st2tests.base import (DbTestCase, FakeResponse)
 
@@ -40,7 +40,7 @@ FAKE_TRIGGER = {
 class InternalTriggerTypesTests(DbTestCase):
 
     def test_token_successfully_obtained(self):
-        time_now = isotime.get_datetime_utc_now()
+        time_now = date_utils.get_datetime_utc_now()
         registrar = InternalTriggerTypesRegistrar()
         self.assertTrue(registrar._auth_creds is not None)
         # TTL is at least 10 mins

@@ -38,6 +38,7 @@ from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.util import jsonify
 from st2common.util import isotime
+from st2common.util import date as date_utils
 
 __all__ = [
     'ActionExecutionsController'
@@ -329,7 +330,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             return
 
         liveaction_db.status = 'canceled'
-        liveaction_db.end_timestamp = isotime.get_datetime_utc_now()
+        liveaction_db.end_timestamp = date_utils.get_datetime_utc_now()
         liveaction_db.result = {'message': 'Action canceled by user.'}
         try:
             LiveAction.add_or_update(liveaction_db)

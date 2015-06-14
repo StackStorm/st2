@@ -20,7 +20,7 @@ import bson
 import mock
 
 from tests import AuthMiddlewareTest
-from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2common.models.db.auth import TokenDB
 from st2common.persistence.auth import Token
 from st2common.exceptions.auth import TokenNotFoundError
@@ -29,7 +29,7 @@ from st2common.exceptions.auth import TokenNotFoundError
 OBJ_ID = bson.ObjectId()
 USER = 'stanley'
 TOKEN = uuid.uuid4().hex
-NOW = isotime.get_datetime_utc_now()
+NOW = date_utils.get_datetime_utc_now()
 FUTURE = NOW + datetime.timedelta(seconds=300)
 PAST = NOW + datetime.timedelta(seconds=-300)
 

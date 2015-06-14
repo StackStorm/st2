@@ -18,7 +18,7 @@ import sys
 import traceback
 
 from st2common import log as logging
-from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2common.constants import action as action_constants
 from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.persistence.executionstate import ActionExecutionState
@@ -143,7 +143,7 @@ class RunnerContainer(object):
     def _update_live_action_db(self, liveaction_id, status, result, context):
         liveaction_db = get_liveaction_by_id(liveaction_id)
         if status in action_constants.COMPLETED_STATES:
-            end_timestamp = isotime.get_datetime_utc_now()
+            end_timestamp = date_utils.get_datetime_utc_now()
         else:
             end_timestamp = None
 

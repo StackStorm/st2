@@ -28,7 +28,7 @@ from st2common.persistence import action
 from st2common.services import executions
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import action_db
-from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2tests.base import DbTestCase
 
 
@@ -45,7 +45,7 @@ class QueueConsumerTest(DbTestCase):
     def _get_execution_db_model(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
         live_action_db = LiveActionDB()
         live_action_db.status = status
-        live_action_db.start_timestamp = isotime.get_datetime_utc_now()
+        live_action_db.start_timestamp = date_utils.get_datetime_utc_now()
         live_action_db.action = ResourceReference(
             name='test_action',
             pack='test_pack').ref
