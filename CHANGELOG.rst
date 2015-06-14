@@ -12,6 +12,8 @@ in development
   local, remote and python runner: ``ST2_ACTION_API_URL``, ``ST2_ACTION_AUTH_TOKEN``. (new-feature)
 * Jinja filter to make working with regex and semver possible in any place that
   support jinja (improvement)
+* Update all the code to handle all the ``datetime`` objects internally in UTC. (improvement,
+  bug-fix)
 
 0.11.2 - June 12, 2015
 ----------------------
