@@ -54,6 +54,7 @@ def _register_config_opts():
     _register_mistral_opts()
     _register_cloudslang_opts()
     _register_scheduler_opts()
+    _register_exporter_opts()
 
 
 def _override_db_opts():
@@ -170,6 +171,14 @@ def _register_scheduler_opts():
                    help='The frequency for rescheduling action executions.')
     ]
     _register_opts(scheduler_opts, group='scheduler')
+
+
+def _register_exporter_opts():
+    exporter_opts = [
+        cfg.StrOpt('dump_dir', default='/opt/stackstorm/exports/',
+                   help='Directory to dump data to.')
+    ]
+    _register_opts(exporter_opts, group='exporter')
 
 
 def _register_opts(opts, group=None):

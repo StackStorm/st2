@@ -12,13 +12,25 @@ in development
   local, remote and python runner: ``ST2_ACTION_API_URL``, ``ST2_ACTION_AUTH_TOKEN``. (new-feature)
 * Jinja filter to make working with regex and semver possible in any place that
   support jinja (improvement)
-* Fix a bug with ``start_timestamp`` and ``end_timestamp`` sometimes returning an invalid value in
-  a local instead of UTC timezone. (bug-fix)
 * New experimental workflow runner based on the open-source CloudSlang project. (new-feature)
   [Eliya Sadan, Meir Wahnon, Sam Markowitz]
 
-0.11 - June 5, 2015
--------------------
+0.11.2 - June 12, 2015
+----------------------
+
+* Fix a bug with ``start_timestamp`` and ``end_timestamp`` sometimes returning an invalid value in
+  a local instead of UTC timezone. (bug-fix)
+* Fix to get PollingSensor working again. Sensors of type PollingSensor were not being treated
+  as such and as a result would fail after the 1st poll. (bug-fix)
+
+0.11.1 - June 8, 2015
+---------------------
+
+* Action aliases are registered by default. (improvement)
+* Repair failing pack installation. (bug-fix)
+
+0.11.0 - June 5, 2015
+---------------------
 
 * Allow user to configure the CLI using an ini style config file located at ``~/.st2rc``.
   (new-feature)

@@ -83,6 +83,9 @@ fi
 APT_PACKAGE_LIST=$(join " " ${APT_PACKAGE_LIST[@]})
 YUM_PACKAGE_LIST=$(join " " ${YUM_PACKAGE_LIST[@]})
 
+STABLE=`curl -Ss -q https://downloads.stackstorm.net/deb/pool/trusty_stable/main/s/st2api/ | grep 'amd64.deb' | sed -e "s~.*>st2api_\(.*\)-.*<.*~\1~g" | sort --version-sort -r | uniq | head -n 1`
+LATEST=`curl -Ss -q https://downloads.stackstorm.net/deb/pool/trusty_unstable/main/s/st2api/ | grep 'amd64.deb' | sed -e "s~.*>st2api_\(.*\)-.*<.*~\1~g" | sort --version-sort -r | uniq | head -n 1`
+
 # Actual code starts here
 
 echo "${WARNING_MSG}"
@@ -92,9 +95,9 @@ sleep ${WARNING_SLEEP_DELAY}
 
 if [ -z $1 ]
 then
-  VER='0.11.0'
+  VER=${STABLE}
 elif [[ "$1" == "latest" ]]; then
-   VER='0.12dev'
+   VER=${LATEST}
 else
   VER=$1
 fi
