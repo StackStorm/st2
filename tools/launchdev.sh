@@ -133,6 +133,7 @@ function st2start(){
     if [ -n "$ST2_EXPORTER" ]; then
         EXPORTS_DIR=$(exportsdir)
         sudo mkdir -p $EXPORTS_DIR
+        sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $EXPORTS_DIR
         echo 'Starting screen session st2-exporter...'
         screen -d -m -S st2-exporter ./virtualenv/bin/python \
             ./st2exporter/bin/st2exporter \
