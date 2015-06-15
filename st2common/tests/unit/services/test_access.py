@@ -19,6 +19,7 @@ import uuid
 from oslo.config import cfg
 from st2tests.base import DbTestCase
 from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2common.exceptions.auth import TokenNotFoundError
 from st2common.persistence.auth import Token
 from st2common.services import access
@@ -68,14 +69,14 @@ class AccessServiceTest(DbTestCase):
         self.assertTrue(token is not None)
         self.assertTrue(token.token is not None)
         self.assertEqual(token.user, USERNAME)
-        expected_expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
-        expected_expiry = isotime.add_utc_tz(expected_expiry)
+        expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
+        expected_expiry = date_utils.add_utc_tz(expected_expiry)
         self.assertLess(isotime.parse(token.expiry), expected_expiry)
 
     def test_create_token_ttl_capped(self):
         ttl = cfg.CONF.auth.token_ttl + 10
-        expected_expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
-        expected_expiry = isotime.add_utc_tz(expected_expiry)
+        expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
+        expected_expiry = date_utils.add_utc_tz(expected_expiry)
         token = access.create_token(USERNAME, 10)
         self.assertTrue(token is not None)
         self.assertTrue(token.token is not None)

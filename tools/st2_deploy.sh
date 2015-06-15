@@ -18,6 +18,7 @@ WARNING_SLEEP_DELAY=5
 INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
 INSTALL_WEBUI=${INSTALL_WEBUI:-1}
 INSTALL_MISTRAL=${INSTALL_MISTRAL:-1}
+INSTALL_CLOUDSLANG=${INSTALL_CLOUDSLANG:-0}
 INSTALL_WINDOWS_RUNNER_DEPENDENCIES=${INSTALL_WINDOWS_RUNNER_DEPENDENCIES:-1}
 
 # Common variables
@@ -45,6 +46,13 @@ HTPASSWD_FILE_CONTENT="testu:{SHA}V1t6eZLxnehb7CTBuj61Nq3lIh4="
 # WebUI
 WEBUI_CONFIG_PATH="/opt/stackstorm/static/webui/config.js"
 
+# CloudSlang variables
+CLOUDLSNAG_CLI_VERSION=${CLOUDLSNAG_CLI_VERSION:-cloudslang-0.7.35}
+CLOUDLSNAG_CLI_ZIP_NAME=${CLOUDLSNAG_CLI_ZIP_NAME:-cslang-cli-with-content.zip}
+CLOUDSLANG_REPO=${CLOUDSLANG_REPO:-CloudSlang/cloud-slang}
+CLOUDSLANG_ZIP_URL=https://github.com/${CLOUDSLANG_REPO}/releases/download/${CLOUDLSNAG_CLI_VERSION}/${CLOUDLSNAG_CLI_ZIP_NAME}
+CLOUDSLANG_EXEC_PATH=${CLOUDSLANG_EXEC_PATH:-cslang/bin/cslang}
+
 # Common utility functions
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" == "$1"; }
 function join { local IFS="$1"; shift; echo "$*"; }
@@ -67,8 +75,16 @@ if [ ${INSTALL_MISTRAL} == "1" ]; then
   YUM_PACKAGE_LIST+=("postgresql-server" "postgresql-contrib" "postgresql-devel")
 fi
 
+if [ ${INSTALL_CLOUDSLANG} == "1" ]; then
+  APT_PACKAGE_LIST+=("unzip" "openjdk-7-jre")
+  YUM_PACKAGE_LIST+=("unzip" "java-1.7.0-openjdk")
+fi
+
 APT_PACKAGE_LIST=$(join " " ${APT_PACKAGE_LIST[@]})
 YUM_PACKAGE_LIST=$(join " " ${YUM_PACKAGE_LIST[@]})
+
+STABLE=`curl -Ss -q https://downloads.stackstorm.net/deb/pool/trusty_stable/main/s/st2api/ | grep 'amd64.deb' | sed -e "s~.*>st2api_\(.*\)-.*<.*~\1~g" | sort --version-sort -r | uniq | head -n 1`
+LATEST=`curl -Ss -q https://downloads.stackstorm.net/deb/pool/trusty_unstable/main/s/st2api/ | grep 'amd64.deb' | sed -e "s~.*>st2api_\(.*\)-.*<.*~\1~g" | sort --version-sort -r | uniq | head -n 1`
 
 # Actual code starts here
 
@@ -79,9 +95,9 @@ sleep ${WARNING_SLEEP_DELAY}
 
 if [ -z $1 ]
 then
-  VER='0.11.0'
+  VER=${STABLE}
 elif [[ "$1" == "latest" ]]; then
-   VER='0.12dev'
+   VER=${LATEST}
 else
   VER=$1
 fi
@@ -417,6 +433,28 @@ setup_mistral() {
   pip install -q -U git+https://github.com/StackStorm/python-mistralclient.git@${MISTRAL_STABLE_BRANCH}
 }
 
+setup_cloudslang() {
+  echo "###########################################################################################"
+  echo "# Setting up CloudSlang"
+
+  cd /opt
+  if [ -d "/opt/cslang" ]; then
+    rm -rf /opt/cslang
+  fi
+
+  echo "Downloading CloudSlang CLI"
+  curl -Ss -Lk -o cslang-cli.zip ${CLOUDSLANG_ZIP_URL}
+
+  echo "Unzipping CloudSlang CLI"
+  unzip cslang-cli.zip
+
+  echo "Chmoding CloudSlang executables"
+  chmod +x ${CLOUDSLANG_EXEC_PATH}
+
+  echo "Deleting cslang-cli zip file"
+  rm cslang-cli.zip
+}
+
 function setup_auth() {
     echo "###########################################################################################"
     echo "# Setting up authentication service"
@@ -510,6 +548,10 @@ fi
 
 if [ ${INSTALL_MISTRAL} == "1" ]; then
   setup_mistral
+fi
+
+if [ ${INSTALL_CLOUDSLANG} == "1" ]; then
+  setup_cloudslang
 fi
 
 install_st2client() {
@@ -645,6 +687,6 @@ echo "To login and obtain an authentication token, run the following command:"
 echo ""
 echo "st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD}"
 echo ""
-echo "For more information see http://docs.stackstorm.com/install/deploy.html#usage"
+echo "For more information see http://docs.stackstorm.com/authentication.html#usage"
 exit 0
 

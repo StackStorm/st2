@@ -3,7 +3,7 @@ action:
   name: pointlessaction
   runner_type: pointlessrunner
 children: []
-end_timestamp: '2014-09-01T00:00:55.000000Z'
+end_timestamp: '2014-09-01T00:00:55.100000Z'
 id: 54e6581b0640fd16887d6859
 liveaction:
   action: pointlessaction

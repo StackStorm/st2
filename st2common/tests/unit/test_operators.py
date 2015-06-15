@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import unittest2
 
 from st2common import operators
+from st2common.util import date as date_utils
 
 
 class OperatorTest(unittest2.TestCase):
@@ -191,7 +191,7 @@ class OperatorTest(unittest2.TestCase):
 
     def test_timediff_lt(self):
         op = operators.get_operator('timediff_lt')
-        self.assertTrue(op(datetime.datetime.utcnow().isoformat(), 10),
+        self.assertTrue(op(date_utils.get_datetime_utc_now().isoformat(), 10),
                         'Failed test_timediff_lt.')
 
     def test_timediff_lt_fail(self):
@@ -206,7 +206,7 @@ class OperatorTest(unittest2.TestCase):
 
     def test_timediff_gt_fail(self):
         op = operators.get_operator('timediff_gt')
-        self.assertFalse(op(datetime.datetime.utcnow().isoformat(), 10),
+        self.assertFalse(op(date_utils.get_datetime_utc_now().isoformat(), 10),
                          'Passed test_timediff_gt.')
 
     def test_exists(self):

@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import copy
-import datetime
 import uuid
 
 import mock
@@ -29,6 +28,7 @@ from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.transport.liveaction import LiveActionPublisher
+from st2common.util.date import get_datetime_utc_now
 import st2common.util.action_db as action_db_utils
 from st2tests.base import DbTestCase
 
@@ -92,7 +92,7 @@ class ActionDBUtilsTestCase(DbTestCase):
     def test_update_liveaction_status(self):
         liveaction_db = LiveActionDB()
         liveaction_db.status = 'initializing'
-        liveaction_db.start_timestamp = datetime.datetime.utcnow()
+        liveaction_db.start_timestamp = get_datetime_utc_now()
         liveaction_db.action = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.pack).ref
@@ -118,7 +118,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         LiveActionPublisher.publish_state.assert_called_once_with(newliveaction_db, 'running')
 
         # Update status, result, context, and end timestamp.
-        now = datetime.datetime.utcnow()
+        now = get_datetime_utc_now()
         status = 'succeeded'
         result = 'Work is done.'
         context = {'third_party_id': uuid.uuid4().hex}
@@ -136,7 +136,7 @@ class ActionDBUtilsTestCase(DbTestCase):
     def test_update_LiveAction_status_invalid(self):
         liveaction_db = LiveActionDB()
         liveaction_db.status = 'initializing'
-        liveaction_db.start_timestamp = datetime.datetime.utcnow()
+        liveaction_db.start_timestamp = get_datetime_utc_now()
         liveaction_db.action = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.pack).ref
@@ -159,7 +159,7 @@ class ActionDBUtilsTestCase(DbTestCase):
     def test_update_same_liveaction_status(self):
         liveaction_db = LiveActionDB()
         liveaction_db.status = 'requested'
-        liveaction_db.start_timestamp = datetime.datetime.utcnow()
+        liveaction_db.start_timestamp = get_datetime_utc_now()
         liveaction_db.action = ResourceReference(
             name=ActionDBUtilsTestCase.action_db.name,
             pack=ActionDBUtilsTestCase.action_db.pack).ref
@@ -248,7 +248,7 @@ class ActionDBUtilsTestCase(DbTestCase):
 
         liveaction_db = LiveActionDB()
         liveaction_db.status = 'initializing'
-        liveaction_db.start_timestamp = datetime.datetime.utcnow()
+        liveaction_db.start_timestamp = get_datetime_utc_now()
         liveaction_db.action = ActionDBUtilsTestCase.action_db.ref
         params = {
             'actionstr': 'foo',

@@ -52,7 +52,9 @@ def _register_config_opts():
     _register_auth_opts()
     _register_action_sensor_opts()
     _register_mistral_opts()
+    _register_cloudslang_opts()
     _register_scheduler_opts()
+    _register_exporter_opts()
 
 
 def _override_db_opts():
@@ -153,6 +155,14 @@ def _register_mistral_opts():
     _register_opts(mistral_opts, group='mistral')
 
 
+def _register_cloudslang_opts():
+    cloudslang_opts = [
+        cfg.StrOpt('home_dir', default='/opt/cslang',
+                   help='CloudSlang home directory.')
+    ]
+    _register_opts(cloudslang_opts, group='cloudslang')
+
+
 def _register_scheduler_opts():
     scheduler_opts = [
         cfg.IntOpt('delayed_execution_recovery', default=600,
@@ -161,6 +171,14 @@ def _register_scheduler_opts():
                    help='The frequency for rescheduling action executions.')
     ]
     _register_opts(scheduler_opts, group='scheduler')
+
+
+def _register_exporter_opts():
+    exporter_opts = [
+        cfg.StrOpt('dump_dir', default='/opt/stackstorm/exports/',
+                   help='Directory to dump data to.')
+    ]
+    _register_opts(exporter_opts, group='exporter')
 
 
 def _register_opts(opts, group=None):

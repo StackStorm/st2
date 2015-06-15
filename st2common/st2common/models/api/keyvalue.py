@@ -18,6 +18,7 @@ import datetime
 import six
 
 from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.keyvalue import KeyValuePairDB
 
@@ -72,7 +73,8 @@ class KeyValuePairAPI(BaseAPI):
         model.value = kvp.value
 
         if getattr(kvp, 'ttl', None):
-            expire_timestamp = (datetime.datetime.utcnow() + datetime.timedelta(seconds=kvp.ttl))
+            expire_timestamp = (date_utils.get_datetime_utc_now() +
+                                datetime.timedelta(seconds=kvp.ttl))
             model.expire_timestamp = expire_timestamp
 
         return model

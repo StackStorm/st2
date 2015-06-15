@@ -25,6 +25,7 @@ from tests import FunctionalTest
 from st2tests.fixtures import executions as fixture
 from st2tests.fixtures import history_views
 from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 from st2common.persistence.execution import ActionExecution
 from st2common.models.api.execution import ActionExecutionAPI
@@ -40,7 +41,7 @@ class TestActionExecutionFilters(FunctionalTest):
     def setUpClass(cls):
         super(TestActionExecutionFilters, cls).setUpClass()
 
-        cls.dt_base = isotime.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        cls.dt_base = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         cls.num_records = 100
 
         cls.refs = {}
