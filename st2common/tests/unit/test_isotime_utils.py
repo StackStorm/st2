@@ -21,15 +21,7 @@ from st2common.util import isotime
 from st2common.util import date
 
 
-class TestTimeUtil(unittest.TestCase):
-
-    def test_add_utc_tz_info(self):
-        dt = datetime.datetime.utcnow()
-        self.assertIsNone(dt.tzinfo)
-        dt = date.add_utc_tz(dt)
-        self.assertIsNotNone(dt.tzinfo)
-        self.assertEqual(dt.tzinfo.tzname(None), 'UTC')
-
+class IsoTimeUtilsTestCase(unittest.TestCase):
     def test_validate(self):
         self.assertTrue(isotime.validate('2000-01-01 12:00:00Z'))
         self.assertTrue(isotime.validate('2000-01-01 12:00:00+00'))
