@@ -80,6 +80,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
 
             parameters = {}
             parameters.update(self.action['parameters'])
+            # pylint: disable=no-member
             parameters.update(self.runner.get('runner_parameters', {}))
 
             secret_parameters = get_secret_parameters(parameters=parameters)
