@@ -130,7 +130,8 @@ RUNNER_TYPES = [
                 'description': ('Password used to log in. If not provided, '
                                 'private key from the config file is used.'),
                 'type': 'string',
-                'required': False
+                'required': False,
+                'secret': True
             },
             'private_key': {
                 'description': ('Private key used to log in. If not provided, '
@@ -207,7 +208,8 @@ RUNNER_TYPES = [
                 'description': ('Password used to log in. If not provided, '
                                 'private key from the config file is used.'),
                 'type': 'string',
-                'required': False
+                'required': False,
+                'secret': True
             },
             'private_key': {
                 'description': ('Private key used to log in. If not provided, '
@@ -382,7 +384,8 @@ RUNNER_TYPES = [
             'password': {
                 'description': 'Password used to log in.',
                 'type': 'string',
-                'required': True
+                'required': True,
+                'secret': True
             },
             'cmd': {
                 'description': 'Arbitrary command to be executed on the '
@@ -420,7 +423,8 @@ RUNNER_TYPES = [
             'password': {
                 'description': 'Password used to log in.',
                 'type': 'string',
-                'required': True
+                'required': True,
+                'secret': True
             },
             'share': {
                 'description': 'Name of the Windows share where script files are uploaded',
