@@ -24,28 +24,16 @@ import traceback
 
 import six
 
+from st2common.constants.secrets import MASKED_ATTRIBUTES
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
+
 __all__ = [
     'ConsoleLogFormatter',
     'GelfLogFormatter',
-
-    'MASKED_ATTRIBUTES',
-    'MASKED_ATTRIBUTE_VALUE'
 ]
 
 SIMPLE_TYPES = (int, float) + six.string_types
 NON_OBJECT_TYPES = SIMPLE_TYPES + (list, dict) + six.string_types
-
-# A list of attributes which should be masked in the log messages.
-# Note: If an attribute is an object or a dict, we try to recursively process it and mask the
-# values.
-MASKED_ATTRIBUTES = [
-    'password',
-    'token',
-    'secret'
-]
-
-# Value with which the masked attribute values are replaced
-MASKED_ATTRIBUTE_VALUE = '********'
 
 # GELF logger specific constants
 HOSTNAME = socket.gethostname()

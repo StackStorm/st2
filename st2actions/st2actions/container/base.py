@@ -25,12 +25,19 @@ from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
+from st2common.util.secrets import get_secret_parameters
+from st2common.util.secrets import mask_secret_parameters
 
 from st2actions.container.service import RunnerContainerService
 from st2actions.runners import get_runner, AsyncActionRunner
 from st2actions.utils import param_utils
 
 LOG = logging.getLogger(__name__)
+
+__all__ = [
+    'RunnerContainer',
+    'get_runner_container'
+]
 
 
 class RunnerContainer(object):
@@ -88,12 +95,25 @@ class RunnerContainer(object):
             runner_params, action_params = param_utils.get_finalized_params(
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters)
             runner.runner_parameters = runner_params
-            LOG.debug('Performing pre-run for runner: %s', runner)
+
+            LOG.debug('Performing pre-run for runner: %s', runner.runner_id)
             runner.pre_run()
 
-            # TODO: mask params
-            extra = {'action_parameters': action_params, 'runner': runner}
-            LOG.debug('Performing run for runner: %s' % (runner), extra=extra)
+            # Mask secret parameters in the log context
+            runner_parameters_specs = runnertype_db.runner_parameters
+            action_parameters_sepcs = action_db.parameters
+
+            secret_runner_parameters = get_secret_parameters(parameters=runner_parameters_specs)
+            secret_action_parameters = get_secret_parameters(parameters=action_parameters_sepcs)
+
+            log_runner_params = mask_secret_parameters(parameters=runner_params,
+                                                       secret_parameters=secret_runner_parameters)
+            log_action_params = mask_secret_parameters(parameters=action_params,
+                                                       secret_parameters=secret_action_parameters)
+
+            extra = {'runner_parameters': log_runner_params,
+                     'action_parameters': log_action_params, 'runner': runner}
+            LOG.debug('Performing run for runner: %s' % (runner.runner_id), extra=extra)
             (status, result, context) = runner.run(action_params)
 
             try:
@@ -101,8 +121,8 @@ class RunnerContainer(object):
             except:
                 pass
 
-            if (isinstance(runner, AsyncActionRunner) and
-                    status not in action_constants.COMPLETED_STATES):
+            action_completed = status in action_constants.COMPLETED_STATES
+            if (isinstance(runner, AsyncActionRunner) and not action_completed):
                 self._setup_async_query(liveaction_db.id, runnertype_db, context)
         except:
             LOG.exception('Failed to run action.')
@@ -137,7 +157,7 @@ class RunnerContainer(object):
                 except:
                     LOG.execution('Unable to clean-up auth_token.')
 
-        LOG.debug('Performing post_run for runner: %s', runner)
+        LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         runner.post_run(status, result)
         runner.container_service = None
 
