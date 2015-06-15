@@ -436,6 +436,27 @@ RUNNER_TYPES = [
             }
         },
         'runner_module': 'st2actions.runners.windows_script_runner'
+    },
+    {
+        'name': 'cloudslang',
+        'aliases': [],
+        'description': 'A runner to execute cloudslang flows.',
+        'enabled': True,
+        'runner_parameters': {
+            'inputs': {
+                'description': ('Inputs which will be available to CLoudSlang flow execution'
+                                '(e.g. input1=val1,input2=val2)'),
+                'type': 'object',
+                'default': {}
+            },
+            'timeout': {
+                'description': ('Action timeout in seconds. Action will get killed if it '
+                                'doesn\'t finish in timeout seconds.'),
+                'type': 'integer',
+                'default': LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
+            }
+        },
+        'runner_module': 'st2actions.runners.cloudslang.cloudslang_runner'
     }
 ]
 

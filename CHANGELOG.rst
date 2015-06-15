@@ -12,6 +12,8 @@ in development
   local, remote and python runner: ``ST2_ACTION_API_URL``, ``ST2_ACTION_AUTH_TOKEN``. (new-feature)
 * Jinja filter to make working with regex and semver possible in any place that
   support jinja (improvement)
+* New experimental workflow runner based on the open-source CloudSlang project. (new-feature)
+  [Eliya Sadan, Meir Wahnon, Sam Markowitz]
 * Update all the code to handle all the ``datetime`` objects internally in UTC. (improvement,
   bug-fix)
 
