@@ -13,11 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
-
 from st2common.models.db.marker import DumperMarkerDB
 from st2common.persistence.marker import DumperMarker
-from st2common.util import isotime
+from st2common.util import date as date_utils
 
 from st2tests import DbTestCase
 
@@ -29,7 +27,7 @@ class DumperMarkerModelTest(DbTestCase):
         self.assertEqual(saved.marker, retrieved.marker,
                          'Same marker was not returned.')
         # test update
-        time_now = isotime.add_utc_tz(datetime.datetime.utcnow())
+        time_now = date_utils.get_datetime_utc_now()
         retrieved.updated_at = time_now
         saved = DumperMarker.add_or_update(retrieved)
         retrieved = DumperMarker.get_by_id(saved.id)
@@ -46,7 +44,7 @@ class DumperMarkerModelTest(DbTestCase):
     def _create_save_dumper_marker():
         created = DumperMarkerDB()
         created.marker = '2015-06-11T00:35:15.260439Z'
-        created.updated_at = isotime.add_utc_tz(datetime.datetime.utcnow())
+        created.updated_at = date_utils.get_datetime_utc_now()
         return DumperMarker.add_or_update(created)
 
     @staticmethod

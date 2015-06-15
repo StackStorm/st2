@@ -20,6 +20,7 @@ import datetime
 from st2tests.fixtures import executions as fixture
 from st2tests import DbTestCase
 from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2common.persistence.execution import ActionExecution
 from st2common.models.api.execution import ActionExecutionAPI
 
@@ -218,7 +219,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertRaises(ValueError, ActionExecution.get_by_id, obj.id)
 
     def test_datetime_range(self):
-        base = isotime.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        base = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(60):
             timestamp = base + datetime.timedelta(seconds=i)
             doc = copy.deepcopy(self.fake_history_subtasks[0])
@@ -236,7 +237,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertEqual(len(objs), 10)
 
     def test_sort_by_start_timestamp(self):
-        base = isotime.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        base = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(60):
             timestamp = base + datetime.timedelta(seconds=i)
             doc = copy.deepcopy(self.fake_history_subtasks[0])

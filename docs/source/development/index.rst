@@ -143,6 +143,22 @@ For example:
 
     LOG.audit('KeyValuePair updated. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
 
+Dealing with dates and datetime objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All the ``datetime`` objects which are being used in the codebase should be
+timezone aware and represented in UTC. Same goes for storing dates in the
+database - timestamps are preferred, but if you can't use a timestamp, stored
+dates should be represented in UTC.
+
+If you want to store a timestamp with a microsecond precision you should use
+``st2common.fields.ComplexDateTimeField`` field class.
+
+If you want to retrieve ``datetime`` object for current time, you should use
+``st2common.util.date.get_datetime_utc_now`` which returns a timezone aware
+datetime object in UTC. ``st2common.util.date`` also contains other date and
+time related utility functions.
+
 .. _`PEP8 Python Style Guide`: http://www.python.org/dev/peps/pep-0008/
 .. _irc`: http://webchat.freenode.net/?channels=stackstorm
 .. _`Docstring conventions`: https://libcloud.readthedocs.org/en/latest/development.html#docstring-conventions

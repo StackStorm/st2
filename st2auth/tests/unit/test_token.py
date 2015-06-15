@@ -24,6 +24,7 @@ from oslo.config import cfg
 
 from tests.base import FunctionalTest
 from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2common.models.db.auth import UserDB, TokenDB
 from st2common.models.api.auth import TokenAPI
 from st2common.persistence.auth import User, Token
@@ -39,7 +40,7 @@ class TestTokenController(FunctionalTest):
         type(pecan.request).remote_user = mock.PropertyMock(return_value=USERNAME)
 
     def test_token_model(self):
-        dt = isotime.add_utc_tz(datetime.datetime.utcnow())
+        dt = date_utils.get_datetime_utc_now()
         tk1 = TokenAPI(user='stanley', token=uuid.uuid4().hex,
                        expiry=isotime.format(dt, offset=False))
         tkdb1 = TokenAPI.to_model(tk1)
@@ -57,12 +58,12 @@ class TestTokenController(FunctionalTest):
         self.assertEqual(tk2.expiry, tk1.expiry)
 
     def test_token_model_null_token(self):
-        dt = isotime.add_utc_tz(datetime.datetime.utcnow())
+        dt = date_utils.get_datetime_utc_now()
         tk = TokenAPI(user='stanley', token=None, expiry=isotime.format(dt))
         self.assertRaises(ValueError, Token.add_or_update, TokenAPI.to_model(tk))
 
     def test_token_model_null_user(self):
-        dt = isotime.add_utc_tz(datetime.datetime.utcnow())
+        dt = date_utils.get_datetime_utc_now()
         tk = TokenAPI(user=None, token=uuid.uuid4().hex, expiry=isotime.format(dt))
         self.assertRaises(ValueError, Token.add_or_update, TokenAPI.to_model(tk))
 
@@ -72,10 +73,10 @@ class TestTokenController(FunctionalTest):
 
     def _test_token_post(self):
         ttl = cfg.CONF.auth.token_ttl
-        timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+        timestamp = date_utils.get_datetime_utc_now()
         response = self.app.post_json('/tokens', {}, expect_errors=False)
-        expected_expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
-        expected_expiry = isotime.add_utc_tz(expected_expiry)
+        expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
+        expected_expiry = date_utils.add_utc_tz(expected_expiry)
         self.assertEqual(response.status_int, 201)
         self.assertIsNotNone(response.json['token'])
         self.assertEqual(response.json['user'], USERNAME)
@@ -107,10 +108,9 @@ class TestTokenController(FunctionalTest):
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_set_ttl(self):
-        timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+        timestamp = date_utils.add_utc_tz(date_utils.get_datetime_utc_now())
         response = self.app.post_json('/tokens', {'ttl': 60}, expect_errors=False)
-        expected_expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=60)
-        expected_expiry = isotime.add_utc_tz(expected_expiry)
+        expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=60)
         self.assertEqual(response.status_int, 201)
         actual_expiry = isotime.parse(response.json['expiry'])
         self.assertLess(timestamp, actual_expiry)

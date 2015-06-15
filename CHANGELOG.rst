@@ -14,6 +14,8 @@ in development
   support jinja (improvement)
 * New experimental workflow runner based on the open-source CloudSlang project. (new-feature)
   [Eliya Sadan, Meir Wahnon, Sam Markowitz]
+* Update all the code to handle all the ``datetime`` objects internally in UTC. (improvement,
+  bug-fix)
 
 0.11.2 - June 12, 2015
 ----------------------

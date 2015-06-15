@@ -15,7 +15,7 @@
 
 import re
 
-from datetime import datetime
+from st2common.util import date as date_utils
 
 __all__ = [
     'get_operator',
@@ -122,11 +122,22 @@ def match_regex(value, criteria_pattern):
 
 
 def _timediff(diff_target, period_seconds, operator):
-    # pickup now in UTC to compare against
-    utc_now = datetime.utcnow()
+    """
+    :param diff_target: Date string.
+    :type diff_target: ``str``
+
+    :param period_seconds: Seconds.
+    :type period_seconds: ``int``
+
+    :rtype: ``bool``
+    """
+    # Pickup now in UTC to compare against
+    utc_now = date_utils.get_datetime_utc_now()
+
     # assuming diff_target is UTC and specified in python iso format.
-    # python iso format is the format of datetime.datetime.isoformat()
-    diff_target_utc = datetime.strptime(diff_target, '%Y-%m-%dT%H:%M:%S.%f')
+    # Note: date_utils.parse uses dateutil.parse which is way more flexible then strptime and
+    # supports many date formats
+    diff_target_utc = date_utils.parse(diff_target)
     return operator((utc_now - diff_target_utc).total_seconds(), period_seconds)
 
 
