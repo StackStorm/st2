@@ -14,17 +14,14 @@
 # limitations under the License.
 
 
-import six
 import mongoengine as me
 
 from st2common import log as logging
-from st2common.util import date as date_utils
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.models.db.notification import NotificationSchema
 from st2common.fields import ComplexDateTimeField
-from st2common.util.action_db import get_action_by_ref
-from st2common.logging.formatters import MASKED_ATTRIBUTE_VALUE
+from st2common.util import date as date_utils
 
 __all__ = [
     'LiveActionDB',
@@ -61,7 +58,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
         help_text='Reference to the action that has to be executed.')
     parameters = me.DictField(
         default={},
-        help_text='The key-value pairs passed as to the action runner &  execution.')
+        help_text='The key-value pairs passed as to the action runner & execution.')
     result = stormbase.EscapedDynamicField(
         default={},
         help_text='Action defined result.')
@@ -73,7 +70,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
         help_text='Callback information for the on completion of action execution.')
     runner_info = me.DictField(
         default={},
-        help_text='Reference to the runner that executed this liveaction.')
+        help_text='Information about the runner which executed this live action (hostname, pid).')
     notify = me.EmbeddedDocumentField(NotificationSchema)
 
     meta = {
@@ -84,23 +81,8 @@ class LiveActionDB(stormbase.StormFoundationDB):
         result = super(LiveActionDB, self).to_serializable_dict(mask_secrets=mask_secrets)
 
         if mask_secrets:
-            # Note: This is slow but sadly there is no way around that if we want to avoid masking
-            # code spillage into other places
-            action_db = get_action_by_ref(self.action)
-
-            if not action_db:
-                break
-
-            execution_parameters = self.parameters
-            action_parameters = action_db.parameters
-            secret_parameters = [parameter for parameter, options in
-                                 six.iteritems(action_parameters) if options.get('secret', False)]
-
-            for parameter in secret_parameters:
-                if parameter not in execution_parameters:
-                    continue
-
-                result['parameters'][parameter] = MASKED_ATTRIBUTE_VALUE
+            # TODO: This sucks, but it's only non slow approach
+            del result['parameters']
 
         return result
 

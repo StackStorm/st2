@@ -147,7 +147,10 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
                          'to unknown status string. Unknown status is "%s"',
                          liveaction_db, status)
 
-    LOG.debug('Updating ActionExection: "%s" with status="%s"', liveaction_db, status)
+    extra = {'liveaction_db': liveaction_db}
+    LOG.debug('Updating ActionExection: "%s" with status="%s"', liveaction_db.id, status,
+              extra=extra)
+
     old_status = liveaction_db.status
     liveaction_db.status = status
 
@@ -165,11 +168,11 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
 
     liveaction_db = LiveAction.add_or_update(liveaction_db)
 
-    LOG.debug('Updated status for LiveAction object: %s', liveaction_db)
+    LOG.debug('Updated status for LiveAction object.', extra=extra)
 
     if publish and status != old_status:
         LiveAction.publish_status(liveaction_db)
-        LOG.debug('Published status for LiveAction object: %s', liveaction_db)
+        LOG.debug('Published status for LiveAction object.', extra=extra)
 
     return liveaction_db
 

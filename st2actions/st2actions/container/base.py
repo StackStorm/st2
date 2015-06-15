@@ -155,7 +155,7 @@ class RunnerContainer(object):
                 try:
                     self._delete_auth_token(runner.auth_token)
                 except:
-                    LOG.execution('Unable to clean-up auth_token.')
+                    LOG.exception('Unable to clean-up auth_token.')
 
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         runner.post_run(status, result)

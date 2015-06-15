@@ -85,7 +85,6 @@ class BaseFabricRunner(ActionRunner, ShellRunnerMixin):
     def pre_run(self):
         LOG.debug('Entering FabricRunner.pre_run() for liveaction_id="%s"',
                   self.liveaction_id)
-        LOG.debug('    runner_parameters = %s', self.runner_parameters)
         hosts = self.runner_parameters.get(RUNNER_HOSTS, '').split(',')
         self._hosts = [h.strip() for h in hosts if len(h) > 0]
         if len(self._hosts) < 1:
