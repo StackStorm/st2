@@ -28,6 +28,32 @@ from st2common.persistence.runner import RunnerType
 LOG = logging.getLogger(__name__)
 
 
+def get_action_parameters_specs(action_ref):
+    """
+    Retrieve parameters specifications schema for the provided action reference.
+
+    Note: This function returns a union of action and action runner parameters.
+
+    :param action_ref: Action reference.
+    :type action_ref: ``str``
+
+    :rtype: ``dict``
+    """
+    action_db = get_action_by_ref(ref=action_ref)
+
+    parameters = {}
+    if not action_db:
+        return parameters
+
+    runner_type_name = action_db.runner_type['name']
+    runner_type_db = get_runnertype_by_name(runnertype_name=runner_type_name)
+
+    parameters.update(action_db.parameters)
+    parameters.update(runner_type_db['runner_parameters'])
+
+    return parameters
+
+
 def get_runnertype_by_id(runnertype_id):
     """
         Get RunnerType by id.

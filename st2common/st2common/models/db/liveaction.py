@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 
 import mongoengine as me
 
@@ -22,6 +23,8 @@ from st2common.models.db import stormbase
 from st2common.models.db.notification import NotificationSchema
 from st2common.fields import ComplexDateTimeField
 from st2common.util import date as date_utils
+from st2common.util.secrets import get_secret_parameters
+from st2common.util.secrets import mask_secret_parameters
 
 __all__ = [
     'LiveActionDB',
@@ -77,13 +80,26 @@ class LiveActionDB(stormbase.StormFoundationDB):
         'indexes': ['-start_timestamp', 'action']
     }
 
-    def to_serializable_dict(self, mask_secrets=False):
-        result = super(LiveActionDB, self).to_serializable_dict(mask_secrets=mask_secrets)
+    def mask_secrets(self, value):
+        from st2common.util import action_db
 
-        if mask_secrets:
-            # TODO: This sucks, but it's only non slow approach
-            del result['parameters']
+        result = copy.deepcopy(value)
+        execution_parameters = self.parameters
 
+        # TODO: This results into two DB looks, we should cache action and runner type object
+        # for each liveaction...
+        #
+        #       ,-'"-.
+        # .    f .--. \
+        # .\._,\._',' j_
+        #  7______""-'__`,
+        parameters = action_db.get_action_parameters_specs(action_ref=self.action)
+
+        execution_parameters = value['parameters']
+
+        secret_parameters = get_secret_parameters(parameters=parameters)
+        result['parameters'] = mask_secret_parameters(parameters=execution_parameters,
+                                                      secret_parameters=secret_parameters)
         return result
 
 
