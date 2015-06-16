@@ -41,7 +41,6 @@ class BaseAPI(object):
     schema = abc.abstractproperty
 
     def __init__(self, **kw):
-
         for key, value in kw.items():
             setattr(self, key, value)
 
@@ -71,13 +70,27 @@ class BaseAPI(object):
         return doc
 
     @classmethod
-    def from_model(cls, model):
+    def from_model(cls, model, mask_secrets=False):
+        """
+        Create API model class instance for the provided DB model instance.
+
+        :param model: DB model class instance.
+        :type model: :class:`StormFoundationDB`
+
+        :param mask_secrets: True to mask secrets in the resulting instance.
+        :type mask_secrets: ``boolean``
+        """
         doc = cls._from_model(model)
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
         return cls(**attrs)
 
     @classmethod
     def to_model(cls, doc):
+        """
+        Create a model class instance for the provided MongoDB document.
+
+        :param doc: MongoDB document.
+        """
         # pylint: disable=no-member
         # TODO: Add plugin which lets pylint know each MongoEngine document has model
         # method

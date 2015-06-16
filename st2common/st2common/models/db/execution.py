@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 import mongoengine as me
 
 from st2common import log as logging
@@ -70,23 +72,17 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         ]
     }
 
-    def to_serializable_dict(self, mask_secrets=False):
-        result = super(ActionExecutionDB, self).to_serializable_dict(mask_secrets=mask_secrets)
+    def mask_secrets(self, value):
+        result = copy.deepcopy(value)
 
-        if mask_secrets:
-            # Note: This is slow but sadly there is no way around that if we want to avoid masking
-            # code spillage into other places
-            execution_parameters = self.parameters
+        execution_parameters = value['parameters']
+        parameters = {}
+        parameters.update(self.action['parameters'])
+        parameters.update(self.runner.get('runner_parameters', {}))
 
-            parameters = {}
-            parameters.update(self.action['parameters'])
-            # pylint: disable=no-member
-            parameters.update(self.runner.get('runner_parameters', {}))
-
-            secret_parameters = get_secret_parameters(parameters=parameters)
-            result['parameters'] = mask_secret_parameters(parameters=execution_parameters,
-                                                          secret_parameters=secret_parameters)
-
+        secret_parameters = get_secret_parameters(parameters=parameters)
+        result['parameters'] = mask_secret_parameters(parameters=execution_parameters,
+                                                      secret_parameters=secret_parameters)
         return result
 
 

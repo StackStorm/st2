@@ -61,8 +61,21 @@ class StormFoundationDB(me.Document):
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
 
+    def mask_secrets(self, value):
+        """
+        Process the model dictionary and mask secret values.
+
+        :type value: ``dict``
+        :param value: Document dictionary.
+
+        :rtype: ``dict``
+        """
+        return value
+
     def to_serializable_dict(self, mask_secrets=False):
         """
+        Serialize database model to a dictionary.
+
         :param mask_secrets: True to mask secrets in the resulting dict.
         :type mask_secrets: ``boolean``
 
@@ -73,6 +86,10 @@ class StormFoundationDB(me.Document):
             v = getattr(self, k)
             v = str(v) if isinstance(v, JSON_UNFRIENDLY_TYPES) else v
             serializable_dict[k] = v
+
+        if mask_secrets:
+            serializable_dict = self.mask_secrets(value=serializable_dict)
+
         return serializable_dict
 
 
