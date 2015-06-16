@@ -11,6 +11,8 @@ Vendor: StackStorm
 Packager: Estee Tew <st2@stackstorm.com>
 Requires:	python-devel
 Requires:   	python-pip
+Requires:     mongodb
+Requires:     mongodb-server
 
 %description
 An automation plaform that needs a much better description than this.
@@ -27,18 +29,17 @@ mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/local/lib/python2.7/site-packages/
 mkdir -p %{buildroot}/var/log/st2
 mkdir -p %{buildroot}/etc/st2
+mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/opt/stackstorm/packs
 mkdir -p %{buildroot}/opt/stackstorm/packs/default
 mkdir -p %{buildroot}/opt/stackstorm/packs/default/actions
 mkdir -p %{buildroot}/opt/stackstorm/packs/default/sensors
 mkdir -p %{buildroot}/opt/stackstorm/packs/default/rules
 mkdir -p %{buildroot}/usr/share/doc/st2
-mkdir -p %{buildroot}/usr/share/stackstorm
 cp -R contrib/core %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/packs %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/linux %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/examples %{buildroot}/usr/share/doc/st2/
-cp -R contrib/tests %{buildroot}/usr/share/stackstorm/
 cp -R docs/* %{buildroot}/usr/share/doc/st2/
 cp -R st2common %{buildroot}//usr/local/lib/python2.7/site-packages/
 cp -R bin %{buildroot}/usr/local/lib/python2.7/site-packages/st2common/
@@ -53,8 +54,8 @@ install -m755 tools/migrate_rules_to_include_pack.py %{buildroot}/usr/local/lib/
 %files
 /usr/local/lib/python2.7/site-packages/st2common*
 /usr/share/doc/st2/*
-/usr/share/stackstorm/*
 /etc/st2/*
 /opt/stackstorm/*
 /var/log/st2
 /usr/bin/st2ctl
+/etc/logrotate.d/st2.conf
