@@ -63,10 +63,15 @@ class BaseAPI(object):
         VALIDATOR(getattr(self, 'schema', {})).validate(vars(self))
 
     @classmethod
-    def _from_model(cls, model):
+    def _from_model(cls, model, mask_secrets=False):
         doc = util_mongodb.unescape_chars(model.to_mongo())
+
         if '_id' in doc:
             doc['id'] = str(doc.pop('_id'))
+
+        if mask_secrets:
+            doc = model.mask_secrets(value=doc)
+
         return doc
 
     @classmethod
@@ -80,8 +85,9 @@ class BaseAPI(object):
         :param mask_secrets: True to mask secrets in the resulting instance.
         :type mask_secrets: ``boolean``
         """
-        doc = cls._from_model(model)
+        doc = cls._from_model(model=model, mask_secrets=mask_secrets)
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
+
         return cls(**attrs)
 
     @classmethod
