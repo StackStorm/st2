@@ -77,8 +77,9 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
 
         execution_parameters = value['parameters']
         parameters = {}
-        parameters.update(self.action['parameters'])
-        parameters.update(self.runner.get('runner_parameters', {}))
+        # pylint: disable=no-member
+        parameters.update(value.get('action', {}).get('parameters', {}))
+        parameters.update(value.get('runner', {}).get('runner_parameters', {}))
 
         secret_parameters = get_secret_parameters(parameters=parameters)
         result['parameters'] = mask_secret_parameters(parameters=execution_parameters,

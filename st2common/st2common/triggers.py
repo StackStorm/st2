@@ -63,7 +63,8 @@ class InternalTriggerTypesRegistrar(object):
         delete_token(self._auth_creds.token)
 
     def _register_trigger_type(self, trigger_definition, attempt_no=0):
-        LOG.debug('Attempt no %s to register trigger %s.', (attempt_no + 1), trigger_definition['name'])
+        LOG.debug('Attempt no %s to register trigger %s.', (attempt_no + 1),
+                  trigger_definition['name'])
 
         ref = ResourceReference.to_string_reference(pack=trigger_definition['pack'],
                                                     name=trigger_definition['name'])
