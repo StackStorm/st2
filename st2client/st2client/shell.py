@@ -18,6 +18,7 @@ Command-line interface to StackStorm.
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import sys
@@ -51,6 +52,7 @@ from st2client.config_parser import ST2_CONFIG_PATH
 from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.date import parse as parse_isotime
 from st2client.utils.misc import merge_dicts
+from st2client.utils.logging import LogLevelFilter
 
 __all__ = [
     'Shell'
@@ -276,7 +278,7 @@ class Shell(object):
                 token = self._get_auth_token(client=client, username=username, password=password,
                                              cache_token=cache_token)
             except requests.exceptions.ConnectionError as e:
-                LOG.warn('API server is not available, skipping authentication.')
+                LOG.warn('Auth API server is not available, skipping authentication.')
                 LOG.exception(e)
                 return client
             except Exception as e:
@@ -526,19 +528,25 @@ class Shell(object):
         return result
 
 
-def setup_logging():
+def setup_logging(argv):
+    debug = '--debug' in argv
+
     root = LOG
     root.setLevel(logging.WARNING)
 
-    ch = logging.StreamHandler(sys.stderr)
-    ch.setLevel(logging.WARNING)
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setLevel(logging.WARNING)
     formatter = logging.Formatter('%(asctime)s  %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-    root.addHandler(ch)
+    handler.setFormatter(formatter)
+
+    if not debug:
+        handler.addFilter(LogLevelFilter(log_levels=[logging.ERROR]))
+
+    root.addHandler(handler)
 
 
 def main(argv=sys.argv[1:]):
-    setup_logging()
+    setup_logging(argv)
     return Shell().run(argv)
 
 
