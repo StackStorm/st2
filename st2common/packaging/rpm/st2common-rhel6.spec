@@ -11,6 +11,8 @@ Vendor: StackStorm
 Packager: Estee Tew <st2@stackstorm.com>
 Requires:	python-devel
 Requires:   	python-pip
+Requires:     mongodb
+Requires:     mongodb-server
 
 %description
 An automation plaform that needs a much better description than this.
@@ -27,6 +29,7 @@ mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/local/lib/python2.7/site-packages/
 mkdir -p %{buildroot}/var/log/st2
 mkdir -p %{buildroot}/etc/st2
+mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/opt/stackstorm/packs
 mkdir -p %{buildroot}/opt/stackstorm/packs/default
 mkdir -p %{buildroot}/opt/stackstorm/packs/default/actions
@@ -55,3 +58,4 @@ install -m755 tools/migrate_rules_to_include_pack.py %{buildroot}/usr/local/lib/
 /opt/stackstorm/*
 /var/log/st2
 /usr/bin/st2ctl
+/etc/logrotate.d/st2.conf
