@@ -24,7 +24,9 @@ __all__ = [
 MASKED_ATTRIBUTES_BLACKLIST = [
     'password',
     'auth_token',
-    'token'
+    'token',
+    'secret',
+    'credentials'
 ]
 
 # Value with which the masked attribute values are replaced

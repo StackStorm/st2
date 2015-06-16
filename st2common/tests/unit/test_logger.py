@@ -163,7 +163,8 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
         expected = 'test message 2 (value=\'bar\',user_id=1)'
         self.assertEqual(message, expected)
 
-    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST', MOCK_MASKED_ATTRIBUTES_BLACKLIST)
+    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
+                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
     def test_format_blacklisted_attributes_are_masked(self):
         formatter = ConsoleLogFormatter()
 
