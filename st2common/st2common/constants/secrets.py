@@ -14,14 +14,14 @@
 # limitations under the License.
 
 __all__ = [
-    'MASKED_ATTRIBUTES',
+    'MASKED_ATTRIBUTES_BLACKLIST',
     'MASKED_ATTRIBUTE_VALUE'
 ]
 
-# A list of attributes which should be masked in the log messages.
+# A blacklist of attributes which should be masked in the log messages by default.
 # Note: If an attribute is an object or a dict, we try to recursively process it and mask the
 # values.
-MASKED_ATTRIBUTES = [
+MASKED_ATTRIBUTES_BLACKLIST = [
     'password',
     'auth_token',
     'token'

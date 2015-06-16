@@ -35,7 +35,7 @@ CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
 CONFIG_FILE_PATH = os.path.join(RESOURCES_DIR, 'logging.conf')
 
-MOCK_MASKED_ATTRIBUTES = [
+MOCK_MASKED_ATTRIBUTES_BLACKLIST = [
     'blacklisted_1',
     'blacklisted_2',
     'blacklisted_3',
@@ -163,7 +163,7 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
         expected = 'test message 2 (value=\'bar\',user_id=1)'
         self.assertEqual(message, expected)
 
-    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES', MOCK_MASKED_ATTRIBUTES)
+    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST', MOCK_MASKED_ATTRIBUTES_BLACKLIST)
     def test_format_blacklisted_attributes_are_masked(self):
         formatter = ConsoleLogFormatter()
 
@@ -184,7 +184,8 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
                     "foo1='bar')")
         self.assertEqual(message, expected)
 
-    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES', MOCK_MASKED_ATTRIBUTES)
+    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
+                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
     def test_format_secret_action_parameters_are_masked(self):
         formatter = ConsoleLogFormatter()
 
@@ -328,7 +329,8 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         self.assertEqual(parsed['_obj2'], 'to_dict')
         self.assertEqual(parsed['_obj3'], 'to_serializable_dict')
 
-    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES', MOCK_MASKED_ATTRIBUTES)
+    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
+                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
     def test_format_blacklisted_attributes_are_masked(self):
         formatter = GelfLogFormatter()
 

@@ -24,7 +24,7 @@ import traceback
 
 import six
 
-from st2common.constants.secrets import MASKED_ATTRIBUTES
+from st2common.constants.secrets import MASKED_ATTRIBUTES_BLACKLIST
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 __all__ = [
@@ -75,7 +75,7 @@ def process_attribute_value(key, value):
     """
     # NOTE: This can be expensive when processing large dicts or objects
     if isinstance(value, SIMPLE_TYPES):
-        if key in MASKED_ATTRIBUTES:
+        if key in MASKED_ATTRIBUTES_BLACKLIST:
             value = MASKED_ATTRIBUTE_VALUE
     elif isinstance(value, dict):
         # Note: We don't want to modify the original value
