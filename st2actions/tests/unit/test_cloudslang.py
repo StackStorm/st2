@@ -185,3 +185,26 @@ class CloudSlangRunnerTestCase(TestCase):
         runner.pre_run()
         runner.run(action_parameters)
         runner._write_inputs_to_a_temp_file.assert_called_with(inputs=action_parameters)
+
+    def test_prepare_command(self):
+        entry_point = 'flow_path'
+        inputs = None
+        timeout = 1
+
+        runner = csr.get_runner()
+        runner.entry_point = entry_point
+        runner.runner_parameters = {
+            csr.RUNNER_INPUTS: inputs,
+            csr.RUNNER_TIMEOUT: timeout,
+        }
+        runner.pre_run()
+
+        # No inputs
+        result = runner._prepare_command(has_inputs=False, inputs_file_path=None)
+        expected = '/opt/cslang/bin/cslang run --f flow_path --cp /opt/cslang'
+        self.assertEqual(result, expected)
+
+        # Inputs
+        result = runner._prepare_command(has_inputs=True, inputs_file_path='inputs_file')
+        expected = '/opt/cslang/bin/cslang run --f flow_path --cp /opt/cslang --if inputs_file'
+        self.assertEqual(result, expected)
