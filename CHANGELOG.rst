@@ -16,6 +16,8 @@ in development
   [Eliya Sadan, Meir Wahnon, Sam Markowitz]
 * Update all the code to handle all the ``datetime`` objects internally in UTC. (improvement,
   bug-fix)
+* Allow users to use ``timediff_lt`` and ``timediff_gt`` rule comparison operator with many string
+  date formats - previously it only worked with ISO8601 date strings. (improvement)
 
 0.11.2 - June 12, 2015
 ----------------------
