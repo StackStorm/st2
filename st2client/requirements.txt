@@ -1,6 +1,6 @@
 prettytable
-pyyaml
-requests
-six
 python-dateutil
-jsonpath-rw
+pyyaml
+jsonpath-rw>=1.3.0
+requests
+six==1.9.0

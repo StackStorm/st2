@@ -1,0 +1,7 @@
+eventlet>=0.13.0
+jsonschema>=2.3.0
+kombu
+mongoengine>=0.8.7,<0.9
+oslo.config
+pecan==0.7.0
+six==1.9.0

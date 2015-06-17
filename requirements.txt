@@ -1,3 +1,5 @@
+# 1. Don't include forget to populate spcific requirements.txt. IMORTANT!!!
+# 2. Don't include setuptools into any of requirements.txt (we don't want it bundled).
 apscheduler>=3.0.0rc1
 eventlet>=0.13.0
 flask
@@ -15,7 +17,6 @@ python-dateutil
 python-json-logger
 pyyaml
 requests
-setuptools==11.1
 six==1.9.0
 tooz
 git+https://github.com/StackStorm/python-mistralclient.git@st2-0.9.0
