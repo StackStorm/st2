@@ -20,6 +20,7 @@ import six
 import mongoengine as me
 
 from st2common.util import mongoescape
+from st2common.models.base import DictSerializableClassMixin
 from st2common.models.system.common import ResourceReference
 
 __all__ = [
@@ -34,7 +35,7 @@ __all__ = [
 JSON_UNFRIENDLY_TYPES = (datetime.datetime, bson.ObjectId, me.EmbeddedDocument)
 
 
-class StormFoundationDB(me.Document):
+class StormFoundationDB(me.Document, DictSerializableClassMixin):
     """
     Base abstraction for a model entity. This foundation class should only be directly
     inherited from the application domain models.

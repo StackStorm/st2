@@ -21,12 +21,11 @@ from st2common import log as logging
 from st2common.util import date as date_utils
 from st2common.constants import action as action_constants
 from st2common.models.db.executionstate import ActionExecutionStateDB
+from st2common.models.system.action import ResolvedActionParameters
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
-from st2common.util.secrets import get_secret_parameters
-from st2common.util.secrets import mask_secret_parameters
 
 from st2actions.container.service import RunnerContainerService
 from st2actions.runners import get_runner, AsyncActionRunner
@@ -100,19 +99,11 @@ class RunnerContainer(object):
             runner.pre_run()
 
             # Mask secret parameters in the log context
-            runner_parameters_specs = runnertype_db.runner_parameters
-            action_parameters_sepcs = action_db.parameters
-
-            secret_runner_parameters = get_secret_parameters(parameters=runner_parameters_specs)
-            secret_action_parameters = get_secret_parameters(parameters=action_parameters_sepcs)
-
-            log_runner_params = mask_secret_parameters(parameters=runner_params,
-                                                       secret_parameters=secret_runner_parameters)
-            log_action_params = mask_secret_parameters(parameters=action_params,
-                                                       secret_parameters=secret_action_parameters)
-
-            extra = {'runner_parameters': log_runner_params,
-                     'action_parameters': log_action_params, 'runner': runner}
+            resolved_action_params = ResolvedActionParameters(action_db=action_db,
+                                                              runner_type_db=runnertype_db,
+                                                              runner_parameters=runner_params,
+                                                              action_parameters=action_params)
+            extra = {'runner': runner, 'parameters': resolved_action_params}
             LOG.debug('Performing run for runner: %s' % (runner.runner_id), extra=extra)
             (status, result, context) = runner.run(action_params)
 
@@ -165,6 +156,9 @@ class RunnerContainer(object):
         return updated_liveaction_db
 
     def _update_live_action_db(self, liveaction_id, status, result, context):
+        """
+        Update LiveActionDB object for the provided liveaction id.
+        """
         liveaction_db = get_liveaction_by_id(liveaction_id)
         if status in action_constants.COMPLETED_STATES:
             end_timestamp = date_utils.get_datetime_utc_now()
