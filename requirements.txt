@@ -19,8 +19,8 @@ pyyaml
 requests
 six==1.9.0
 tooz
-git+https://github.com/StackStorm/python-mistralclient.git@st2-0.9.0
-git+https://github.com/StackStorm/fabric.git@stanley-patched
+git+https://github.com/StackStorm/python-mistralclient.git@st2-0.9.0#egg=python-mistralclient
+git+https://github.com/StackStorm/fabric.git@stanley-patched#egg=fabric
 passlib>=1.6.2,<1.7
 lockfile>=0.10.2,<0.11
 python-gnupg>=0.3.7,<0.4
@@ -28,7 +28,7 @@ jsonpath-rw>=1.3.0
 # Requirements for linux pack
 # used by file watcher sensor
 pyinotify>=0.9.5,<=0.10
--e git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
+git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 # used by nmap actions
 python-nmap>=0.3.4,<0.4
 semver>=2.1.2
