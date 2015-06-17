@@ -26,6 +26,7 @@ from st2exporter.exporter.dumper import Dumper
 from st2exporter.exporter.file_writer import TextFileWriter
 from st2tests.base import EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
+from st2common.util import date as date_utils
 
 DESCENDANTS_PACK = 'descendants'
 
@@ -81,7 +82,8 @@ class TestDumper(EventletTestCase):
                         export_dir='/tmp',
                         file_prefix='st2-stuff-', file_format='json')
         file_name = dumper._get_file_name()
-        self.assertTrue(file_name.startswith('/tmp/st2-stuff-'))
+        export_date = date_utils.get_datetime_utc_now().strftime('%Y-%m-%d')
+        self.assertTrue(file_name.startswith('/tmp/' + export_date + '/st2-stuff-'))
         self.assertTrue(file_name.endswith('json'))
 
     @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))

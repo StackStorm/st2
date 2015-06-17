@@ -115,7 +115,6 @@ class CloudSlangRunner(ActionRunner):
         LOG.debug('Using CloudSlang binary: %s', cloudslang_binary)
 
         command_args = ['--f', self._flow_path,
-                        '--if', inputs_file_path if has_inputs else '',
                         '--cp', self._cloudslang_home]
 
         if has_inputs:

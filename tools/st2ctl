@@ -47,12 +47,12 @@ function print_usage() {
     echo
     echo "usage: st2ctl {reload, clean}"
     echo "optional arguments:"
-    echo "  --register-all      Register all sensors, rules, and actions."
-    echo "  --register-sensors  Register all sensors only."
-    echo "  --register-rules    Register all rules only."
-    echo "  --register-actions  Register all actions only."
-    echo "  --register-aliases  Register all aliases only."
-    echo "  --register-policies Register all policies only."
+    echo "  --register-all      Register all."
+    echo "  --register-sensors  Register all sensors."
+    echo "  --register-rules    Register all rules."
+    echo "  --register-actions  Register all actions."
+    echo "  --register-aliases  Register all aliases."
+    echo "  --register-policies Register all policies."
     echo "  --verbose           Output additional debug and informational messages."
 }
 
@@ -93,19 +93,26 @@ then
 fi
 
 # Note: Scripts already call reload with "--register-<content>"
-# TODO: Update packs. actions to only pass in a resource name excluding # --register prefix
 if [ ${1} == "reload" -o ${1} == "clean" ]; then
+    ALLOWED_REGISTER_FLAGS=(--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --verbose)
+    DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors'
+
+    if [ ! -z ${2} ]; then
+        for arg in ${@:2}; do
+            if [[ " ${ALLOWED_REGISTER_FLAGS[*]} " != *" $arg "* ]]; then # argument not allowed
+                echo -e "\e[31mError: Invalid argument provided: ${arg} \e[0m\n"
+                print_usage
+                exit 1
+            fi
+        done
+    fi
+
     if [ -z ${2} ]; then
-        REGISTER_FLAGS="--register-sensors --register-actions --register-aliases"
-    elif [ ! -z ${2} ] && [ ${2} == "--register-all" -o ${2} == "--register-sensors"  -o ${2} == "--register-rules" -o ${2} == "--register-actions" -o ${2} == "--register-aliases" -o ${2} == "--register-policies" ]; then
-        REGISTER_FLAGS=${2}
-        if [ ! -z ${3} ] && [ ${3} == "--verbose" ]; then
-            REGISTER_FLAGS="${REGISTER_FLAGS} ${3}"
-        fi
-    elif [ ${2} == "--verbose" ] && [ -z ${3} ]; then
-        REGISTER_FLAGS="--register-sensors --register-actions --register-aliases ${2}"
-    elif [ ${2} == "--verbose" ] && [ ${3} == "--register-all" -o ${3} == "--register-sensors"  -o ${3} == "--register-rules" -o ${3} == "--register-actions" -o ${3} == "--register-aliases" -o ${3} == "--register-policies" ]; then
-        REGISTER_FLAGS="${3} ${2}"
+        REGISTER_FLAGS=${DEFAULT_REGISTER_FLAGS}
+    elif [ ${2} == '--verbose' ] && [ -z ${3} ]; then
+        REGISTER_FLAGS="$DEFAULT_REGISTER_FLAGS ${2}"
+    elif [ ! -z ${2} ]; then
+        REGISTER_FLAGS=${@:2}
     else
         print_usage
         exit 1

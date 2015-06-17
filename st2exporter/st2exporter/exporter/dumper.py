@@ -23,8 +23,8 @@ from st2exporter.exporter.file_writer import TextFileWriter
 from st2exporter.exporter.json_converter import JsonConverter
 from st2common.models.db.marker import DumperMarkerDB
 from st2common.persistence.marker import DumperMarker
-from st2common.util import isotime
 from st2common.util import date as date_utils
+from st2common.util import isotime
 
 __all__ = [
     'Dumper'
@@ -108,10 +108,15 @@ class Dumper(object):
             while self._queue.empty():
                 eventlet.sleep(self._sleep_interval)
 
-            self._write_to_disk()
+            try:
+                self._write_to_disk()
+            except:
+                LOG.error('Failed writing data to disk.')
 
     def _write_to_disk(self):
         count = 0
+        self._create_date_folder()
+
         for i in range(self._max_files_per_sleep):
             batch = self._get_batch()
 
@@ -126,6 +131,15 @@ class Dumper(object):
                 LOG.exception('Writing batch to disk failed.')
         return count
 
+    def _create_date_folder(self):
+        folder_name = self._get_date_folder()
+        if not os.path.exists(folder_name):
+            try:
+                os.makedirs(os.path.join(self._export_dir, folder_name))
+            except:
+                LOG.exception('Unable to create sub-folder %s for export.', folder_name)
+                raise
+
     def _write_batch_to_disk(self, batch):
         doc_to_write = self._converter.convert(batch)
         self._file_writer.write_text(doc_to_write, self._get_file_name())
@@ -133,8 +147,11 @@ class Dumper(object):
     def _get_file_name(self):
         timestring = date_utils.get_datetime_utc_now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         file_name = self._file_prefix + timestring + '.' + self._file_format
-        file_name = os.path.join(self._export_dir, file_name)
+        file_name = os.path.join(self._export_dir, self._get_date_folder(), file_name)
         return file_name
+
+    def _get_date_folder(self):
+        return date_utils.get_datetime_utc_now().strftime('%Y-%m-%d')
 
     def _update_marker(self, batch):
         timestamps = [isotime.parse(item.end_timestamp) for item in batch]

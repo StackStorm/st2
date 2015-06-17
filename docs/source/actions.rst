@@ -100,6 +100,13 @@ Currently the system provides the following runners:
    Mistral OpenStack project and support executing complex work-flows. For more
    information, please refer to the :doc:`Workflows </workflows>` and
    :doc:`Mistral </mistral>` section of documentation.
+9. ``cloudslang`` - This runner is built on top of the 
+   CloudSlang project and supports executing complex workflows. For more 
+   information, please refer to the :doc:`Workflows </workflows>` and 
+   :doc:`CloudSlang </cloudslang>` section of documentation.
+   
+   Note: This runner is currently in an experimental phase which means that there might be 
+   bugs and the external user facing API might change.   
 
 Runners come with their own set of input parameters and when an action
 picks a runner\_type it also inherits the runner parameters.
