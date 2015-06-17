@@ -149,9 +149,10 @@ class RunnerContainer(object):
             # Async actions such as Mistral workflows uses the auth token to launch other
             # actions in the workflow. If the auth token is deleted here, then the actions
             # in the workflow will fail with unauthorized exception.
-            if (not isinstance(runner, AsyncActionRunner) or
-                    (isinstance(runner, AsyncActionRunner) and
-                     status in action_constants.COMPLETED_STATES)):
+            is_async_runner = isinstance(runner, AsyncActionRunner)
+            action_completed = status in action_constants.COMPLETED_STATES
+
+            if (not is_async_runner or (is_async_runner and action_completed)):
                 try:
                     self._delete_auth_token(runner.auth_token)
                 except:
