@@ -20,6 +20,7 @@ import six
 import mongoengine as me
 
 from st2common.util import mongoescape
+from st2common.models.base import DictSerializableClassMixin
 from st2common.models.system.common import ResourceReference
 
 __all__ = [
@@ -34,7 +35,7 @@ __all__ = [
 JSON_UNFRIENDLY_TYPES = (datetime.datetime, bson.ObjectId, me.EmbeddedDocument)
 
 
-class StormFoundationDB(me.Document):
+class StormFoundationDB(me.Document, DictSerializableClassMixin):
     """
     Base abstraction for a model entity. This foundation class should only be directly
     inherited from the application domain models.
@@ -61,12 +62,35 @@ class StormFoundationDB(me.Document):
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
 
-    def to_serializable_dict(self):
+    def mask_secrets(self, value):
+        """
+        Process the model dictionary and mask secret values.
+
+        :type value: ``dict``
+        :param value: Document dictionary.
+
+        :rtype: ``dict``
+        """
+        return value
+
+    def to_serializable_dict(self, mask_secrets=False):
+        """
+        Serialize database model to a dictionary.
+
+        :param mask_secrets: True to mask secrets in the resulting dict.
+        :type mask_secrets: ``boolean``
+
+        :rtype: ``dict``
+        """
         serializable_dict = {}
         for k in sorted(six.iterkeys(self._fields)):
             v = getattr(self, k)
             v = str(v) if isinstance(v, JSON_UNFRIENDLY_TYPES) else v
             serializable_dict[k] = v
+
+        if mask_secrets:
+            serializable_dict = self.mask_secrets(value=serializable_dict)
+
         return serializable_dict
 
 
@@ -143,6 +167,5 @@ class ContentPackResourceMixin(object):
 
         :rtype: :class:`ResourceReference`
         """
-        ref = ResourceReference(pack=self.pack,
-                                name=self.name)
+        ref = ResourceReference(pack=self.pack, name=self.name)
         return ref

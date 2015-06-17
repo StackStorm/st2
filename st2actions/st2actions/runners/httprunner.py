@@ -67,7 +67,6 @@ class HttpRunner(ActionRunner):
 
     def pre_run(self):
         LOG.debug('Entering HttpRunner.pre_run() for liveaction_id="%s"', self.liveaction_id)
-        LOG.debug('    runner_parameters = %s', self.runner_parameters)
         self._on_behalf_user = self.runner_parameters.get(RUNNER_ON_BEHALF_USER,
                                                           self._on_behalf_user)
         self._url = self.runner_parameters.get(RUNNER_URL, None)
@@ -81,10 +80,8 @@ class HttpRunner(ActionRunner):
 
     def run(self, action_parameters):
         client = self._get_http_client(action_parameters)
-        LOG.debug('action_parameters = %s', action_parameters)
         output = client.run()
         status = HttpRunner._get_result_status(output.get('status_code', None))
-        self._log_action_completion(logger=LOG, result=output, status=status)
         return (status, output, None)
 
     def _get_http_client(self, action_parameters):

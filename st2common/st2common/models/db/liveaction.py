@@ -13,14 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 import mongoengine as me
 
 from st2common import log as logging
-from st2common.util import date as date_utils
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.models.db.notification import NotificationSchema
 from st2common.fields import ComplexDateTimeField
+from st2common.util import date as date_utils
+from st2common.util.secrets import get_secret_parameters
+from st2common.util.secrets import mask_secret_parameters
 
 __all__ = [
     'LiveActionDB',
@@ -57,7 +61,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
         help_text='Reference to the action that has to be executed.')
     parameters = me.DictField(
         default={},
-        help_text='The key-value pairs passed as to the action runner &  execution.')
+        help_text='The key-value pairs passed as to the action runner & execution.')
     result = stormbase.EscapedDynamicField(
         default={},
         help_text='Action defined result.')
@@ -69,12 +73,35 @@ class LiveActionDB(stormbase.StormFoundationDB):
         help_text='Callback information for the on completion of action execution.')
     runner_info = me.DictField(
         default={},
-        help_text='Reference to the runner that executed this liveaction.')
+        help_text='Information about the runner which executed this live action (hostname, pid).')
     notify = me.EmbeddedDocumentField(NotificationSchema)
 
     meta = {
         'indexes': ['-start_timestamp', 'action']
     }
+
+    def mask_secrets(self, value):
+        from st2common.util import action_db
+
+        result = copy.deepcopy(value)
+        execution_parameters = self.parameters
+
+        # TODO: This results into two DB looks, we should cache action and runner type object
+        # for each liveaction...
+        #
+        #       ,-'"-.
+        # .    f .--. \
+        # .\._,\._',' j_
+        #  7______""-'__`,
+        parameters = action_db.get_action_parameters_specs(action_ref=self.action)
+
+        execution_parameters = value['parameters']
+
+        secret_parameters = get_secret_parameters(parameters=parameters)
+        result['parameters'] = mask_secret_parameters(parameters=execution_parameters,
+                                                      secret_parameters=secret_parameters)
+        return result
+
 
 # specialized access objects
 liveaction_access = MongoDBAccess(LiveActionDB)

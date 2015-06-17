@@ -76,7 +76,7 @@ class ExecutionsExporter(consumers.MessageHandler):
         LOG.debug('Got execution from queue: %s', execution)
         if execution.status not in COMPLETION_STATUSES:
             return
-        execution_api = ActionExecutionAPI.from_model(execution)
+        execution_api = ActionExecutionAPI.from_model(execution, mask_secrets=True)
         self.pending_executions.put_nowait(execution_api)
         LOG.debug("Added execution to queue.")
 
@@ -89,7 +89,7 @@ class ExecutionsExporter(consumers.MessageHandler):
         for missed_execution in missed_executions:
             if missed_execution.status not in COMPLETION_STATUSES:
                 continue
-            execution_api = ActionExecutionAPI.from_model(missed_execution)
+            execution_api = ActionExecutionAPI.from_model(missed_execution, mask_secrets=True)
             try:
                 LOG.debug('Missed execution %s', execution_api)
                 self.pending_executions.put_nowait(execution_api)

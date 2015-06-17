@@ -13,12 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 import mongoengine as me
 
 from st2common import log as logging
-from st2common.util import date as date_utils
 from st2common.models.db import stormbase
 from st2common.fields import ComplexDateTimeField
+from st2common.util import date as date_utils
+from st2common.util.secrets import get_secret_parameters
+from st2common.util.secrets import mask_secret_parameters
 
 __all__ = [
     'ActionExecutionDB'
@@ -48,7 +52,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         help_text='The timestamp when the liveaction has finished.')
     parameters = me.DictField(
         default={},
-        help_text='The key-value pairs passed as to the action runner &  execution.')
+        help_text='The key-value pairs passed as to the action runner & action.')
     result = stormbase.EscapedDynamicField(
         default={},
         help_text='Action defined result.')
@@ -67,5 +71,20 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             {'fields': ['status']}
         ]
     }
+
+    def mask_secrets(self, value):
+        result = copy.deepcopy(value)
+
+        execution_parameters = value['parameters']
+        parameters = {}
+        # pylint: disable=no-member
+        parameters.update(value.get('action', {}).get('parameters', {}))
+        parameters.update(value.get('runner', {}).get('runner_parameters', {}))
+
+        secret_parameters = get_secret_parameters(parameters=parameters)
+        result['parameters'] = mask_secret_parameters(parameters=execution_parameters,
+                                                      secret_parameters=secret_parameters)
+        return result
+
 
 MODELS = [ActionExecutionDB]

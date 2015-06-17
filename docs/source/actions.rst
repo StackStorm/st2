@@ -23,6 +23,7 @@ be executed directly from the clients via CLI, API, or UI.
 
 Managing and Running Actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 CLI interface provides an access to action management commands using ``st2 action <command>`` format. The list of available commands and their description can be obtained via
 
 .. code-block:: bash
@@ -100,13 +101,13 @@ Currently the system provides the following runners:
    Mistral OpenStack project and support executing complex work-flows. For more
    information, please refer to the :doc:`Workflows </workflows>` and
    :doc:`Mistral </mistral>` section of documentation.
-9. ``cloudslang`` - This runner is built on top of the 
-   CloudSlang project and supports executing complex workflows. For more 
-   information, please refer to the :doc:`Workflows </workflows>` and 
+9. ``cloudslang`` - This runner is built on top of the
+   CloudSlang project and supports executing complex workflows. For more
+   information, please refer to the :doc:`Workflows </workflows>` and
    :doc:`CloudSlang </cloudslang>` section of documentation.
-   
-   Note: This runner is currently in an experimental phase which means that there might be 
-   bugs and the external user facing API might change.   
+
+   Note: This runner is currently in an experimental phase which means that there might be
+   bugs and the external user facing API might change.
 
 Runners come with their own set of input parameters and when an action
 picks a runner\_type it also inherits the runner parameters.
@@ -141,7 +142,7 @@ of attributes which can be present in the metadata file is included below.
 * ``entry_point`` - Location of the action launch script relative to the /opt/stackstorm/packs/${pack_name}/actions/.
 * ``parameters`` - A dictionary of parameters and optional metadata describing type and default. The metadata is structured data following the [jsonschema][1] specification draft 4. If metadata is provided, input args are validated on action execution. Otherwise, validation is skipped.
 
-below you can find a sample metadata for a Python action which sends an SMS via
+Below you can find a sample metadata for a Python action which sends an SMS via
 the Twilio web service.
 
 .. code-block:: yaml
@@ -163,6 +164,7 @@ the Twilio web service.
                 description: "Recipient number in E.164 format. Example +14151234567."
                 required: true
                 position: 1
+                secret: true
             body:
                 type: "string"
                 description: "Body of the message."
@@ -176,11 +178,15 @@ implements a ``run`` method is contained in a file called ``send_sms.py`` which
 is located in the same directory as the metadata file and the action takes three
 parameters (from_number, to_number, body).
 
+In the example above, ``to_number`` parameter contains attribute ``secret``
+which value is ``true``. If an attribute is marked as a secret, value of that
+attribute will be masked in the |st2| service logs.
+
 Action Registration
 ~~~~~~~~~~~~~~~~~~~
 
 Once action is created 1) place it into the content location, and 2) tell the system
-that the action is avalable. The actions are grouped in :doc:`packs </packs>` and located
+that the action is available. The actions are grouped in :doc:`packs </packs>` and located
 at ``/opt/stackstorm/packs`` (default, configured, multiple locations supported).
 For hacking one-off actions, the convention is to use `default` pack - just create your action in
 ``/opt/stackstorm/packs/default/actions``.

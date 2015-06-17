@@ -18,6 +18,8 @@ in development
   bug-fix)
 * Allow users to use ``timediff_lt`` and ``timediff_gt`` rule comparison operator with many string
   date formats - previously it only worked with ISO8601 date strings. (improvement)
+* Allow user to specify new ``secret`` attribute (boolean) for each action parameters. Values of
+  parameters which have this attribute set to true will be masked in the log files. (new-feature)
 
 0.11.3 - June 16, 2015
 ----------------------
