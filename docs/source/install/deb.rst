@@ -33,7 +33,7 @@ In order to get the latest version of RabbitMQ, you will want to follow the dire
 
 ::
 
-    http://www.rabbitmq.com/install-rpm.html
+    http://www.rabbitmq.com/install-debian.html
 
 Once you have RabbitMQ installed, you will need to run the following commands to enable certain plugins.
 
