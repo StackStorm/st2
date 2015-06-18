@@ -15,6 +15,7 @@
 
 import os
 import sys
+import signal
 
 import eventlet
 from oslo.config import cfg
@@ -39,6 +40,9 @@ eventlet.monkey_patch(
     time=True)
 
 LOG = logging.getLogger(__name__)
+
+# How much time to give to the request in progress to finish in seconds before killing them
+WSGI_SERVER_REQUEST_SHUTDOWN_TIME = 2
 
 
 def _setup():
@@ -68,7 +72,43 @@ def _run_server():
 
     LOG.info('(PID=%s) ST2 API is serving on http://%s:%s.', os.getpid(), host, port)
 
-    wsgi.server(eventlet.listen((host, port)), app.setup_app())
+    max_pool_size = eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
+    worker_pool = eventlet.GreenPool(max_pool_size)
+    sock = eventlet.listen((host, port))
+
+    def shutdown_server_kill_pending_requests():
+        """
+        Custcom WSGI server shutdown function which gives outgoing requests some time to finish
+        before killing them.
+
+        Note: Without that, by default long running requests such as the stream ones will block and
+        server won't shutdown.
+        """
+        worker_pool.resize(0)
+        sock.close()
+
+        LOG.info('Shutting down. Requests left: %s', worker_pool.running())
+
+        # Give running requests some time to finish
+        eventlet.sleep(WSGI_SERVER_REQUEST_SHUTDOWN_TIME)
+
+        # Kill requests which still didn't finish
+        running_corutines = worker_pool.coroutines_running.copy()
+        for coro in running_corutines:
+            eventlet.greenthread.kill(coro)
+
+        LOG.info('Exiting...')
+        raise SystemExit()
+
+    def queue_shutdown(signal_number, stack_frame):
+        eventlet.spawn_n(shutdown_server_kill_pending_requests)
+
+    # We register a custom SIGINT handler which allows us to kill in progress requests.
+    # Note: Eventually we will support draining (waiting for short-running requests), but we
+    # will still want to kill long running stream requests.
+    signal.signal(signal.SIGINT, queue_shutdown)
+
+    wsgi.server(sock, app.setup_app(), custom_pool=worker_pool)
     return 0
 
 
