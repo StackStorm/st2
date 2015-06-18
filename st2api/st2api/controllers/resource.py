@@ -45,6 +45,9 @@ class ResourceController(rest.RestController):
     access = abc.abstractproperty
     supported_filters = abc.abstractproperty
 
+    # Default kwargs passed to "APIClass.from_model" method
+    from_model_kwargs = {}
+
     # Maximum value of limit which can be specified by user
     max_limit = 100
 
@@ -129,7 +132,12 @@ class ResourceController(rest.RestController):
             pecan.response.headers['X-Limit'] = str(limit)
         pecan.response.headers['X-Total-Count'] = str(instances.count())
 
-        return [self.model.from_model(instance) for instance in instances[offset:eop]]
+        result = []
+        for instance in instances[offset:eop]:
+            item = self.model.from_model(instance, **self.from_model_kwargs)
+            result.append(item)
+
+        return result
 
     def _get_one(self, id, exclude_fields=None):
         """
@@ -209,7 +217,7 @@ class ContentPackResourceController(ResourceController):
             pecan.abort(http_client.NOT_FOUND, e.message)
             return
 
-        result = self.model.from_model(instance)
+        result = self.model.from_model(instance, **self.from_model_kwargs)
         if result and self.include_reference:
                 pack = getattr(result, 'pack', None)
                 name = getattr(result, 'name', None)

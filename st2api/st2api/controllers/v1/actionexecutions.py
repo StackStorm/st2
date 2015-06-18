@@ -64,6 +64,7 @@ class ActionExecutionsControllerMixin(RestController):
 
     model = ActionExecutionAPI
     access = ActionExecution
+    from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
 
     # A list of attributes which can be specified using ?exclude_attributes filter
     valid_exclude_attributes = [
@@ -110,7 +111,7 @@ class ActionExecutionsControllerMixin(RestController):
         # Schedule the action execution.
         liveactiondb = LiveActionAPI.to_model(execution)
         _, actionexecutiondb = action_service.request(liveactiondb)
-        return ActionExecutionAPI.from_model(actionexecutiondb)
+        return ActionExecutionAPI.from_model(actionexecutiondb, **self.from_model_kwargs)
 
     def _get_result_object(self, id):
         """
@@ -133,7 +134,8 @@ class ActionExecutionsControllerMixin(RestController):
         descendants = execution_service.get_descendants(actionexecution_id=id_,
                                                         descendant_depth=depth,
                                                         result_fmt=result_fmt)
-        return [self.model.from_model(descendant) for descendant in descendants]
+        return [self.model.from_model(descendant, **self.from_model_kwargs) for
+                descendant in descendants]
 
     def _validate_exclude_fields(self, exclude_fields):
         """
@@ -341,7 +343,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             return
 
         execution_db = execution_service.update_execution(liveaction_db)
-        return ActionExecutionAPI.from_model(execution_db)
+        return ActionExecutionAPI.from_model(execution_db, **self.from_model_kwargs)
 
     @jsexpose()
     def options(self, *args, **kw):
