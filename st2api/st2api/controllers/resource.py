@@ -161,7 +161,7 @@ class ResourceController(rest.RestController):
             pecan.abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
-        result = self.model.from_model(instance, from_model_kwargs)
+        result = self.model.from_model(instance, **from_model_kwargs)
         LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
