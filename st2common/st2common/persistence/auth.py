@@ -23,6 +23,10 @@ class User(Access):
     impl = MongoDBAccess(UserDB)
 
     @classmethod
+    def get(cls, username):
+        return cls.get_by_name(username)
+
+    @classmethod
     def _get_impl(cls):
         return cls.impl
 

@@ -23,6 +23,7 @@ from six.moves.urllib import parse as urlparse
 from webob import exc
 
 from st2common import log as logging
+from st2common.persistence.auth import User
 from st2common.exceptions import auth as exceptions
 from st2common.util.jsonify import json_encode
 from st2common.util.auth import validate_token
@@ -100,7 +101,16 @@ class AuthHook(PecanHook):
         if state.request.method == 'OPTIONS':
             return
 
-        state.request.context['token'] = self._validate_token(request=state.request)
+        token_db = self._validate_token(request=state.request)
+        user_db = User.get(token_db.user)
+
+        # Store token and related user object in the context
+        # Note: We also store token outside of auth dict for backward compatibility
+        state.request.context['token'] = token_db
+        state.request.context['auth'] = {
+            'token': token_db,
+            'user': user_db
+        }
 
         if QUERY_PARAM_ATTRIBUTE_NAME in state.arguments.keywords:
             del state.arguments.keywords[QUERY_PARAM_ATTRIBUTE_NAME]
