@@ -21,6 +21,7 @@ import pecan
 from pecan import abort
 from pecan.rest import RestController
 from six.moves import http_client
+from six.moves.urllib import parse as urlparse
 
 from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import ExecutionViewsController
@@ -36,6 +37,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
+from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
 from st2common.util import date as date_utils
@@ -71,6 +73,20 @@ class ActionExecutionsControllerMixin(RestController):
         'result',
         'trigger_instance'
     ]
+
+    def _get_from_model_kwargs_for_request(self, request):
+        from_model_kwargs = self.from_model_kwargs.copy()
+        query_string = request.query_string
+        query_params = dict(urlparse.parse_qsl(query_string))
+
+        show_secrets = query_params.get('show_secrets', 'false')
+        show_secrets = show_secrets.lower()
+        show_secrets = show_secrets == 'true'
+
+        if show_secrets and request_user_is_admin(request=request):
+            from_model_kwargs['mask_secrets'] = False
+
+        return from_model_kwargs
 
     def _handle_schedule_execution(self, execution):
         try:

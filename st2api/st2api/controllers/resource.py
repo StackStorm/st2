@@ -132,9 +132,11 @@ class ResourceController(rest.RestController):
             pecan.response.headers['X-Limit'] = str(limit)
         pecan.response.headers['X-Total-Count'] = str(instances.count())
 
+        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+
         result = []
         for instance in instances[offset:eop]:
-            item = self.model.from_model(instance, **self.from_model_kwargs)
+            item = self.model.from_model(instance, **from_model_kwargs)
             result.append(item)
 
         return result
@@ -158,7 +160,8 @@ class ResourceController(rest.RestController):
             msg = 'Unable to identify resource with id "%s".' % id
             pecan.abort(http_client.NOT_FOUND, msg)
 
-        result = self.model.from_model(instance)
+        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        result = self.model.from_model(instance, from_model_kwargs)
         LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
@@ -195,6 +198,16 @@ class ResourceController(rest.RestController):
 
         return resource_db
 
+    def _get_from_model_kwargs_for_request(self, request):
+        """
+        Retrieve kwargs which are passed to "LiveActionAPI.model" method.
+
+        :param request: Pecan request object.
+
+        :rtype: ``dict``
+        """
+        return self.from_model_kwargs
+
 
 class ContentPackResourceController(ResourceController):
     include_reference = False
@@ -217,7 +230,8 @@ class ContentPackResourceController(ResourceController):
             pecan.abort(http_client.NOT_FOUND, e.message)
             return
 
-        result = self.model.from_model(instance, **self.from_model_kwargs)
+        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        result = self.model.from_model(instance, **from_model_kwargs)
         if result and self.include_reference:
                 pack = getattr(result, 'pack', None)
                 name = getattr(result, 'name', None)
