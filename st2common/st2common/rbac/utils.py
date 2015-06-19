@@ -47,7 +47,7 @@ def request_user_has_role(request, role):
     """
     # TODO: Once RBAC is implemented, we should not support running production (non-dev)
     # deployments with auth disabled.
-    if not cfg.CONF.auth.enabled:
+    if not cfg.CONF.auth.enable:
         return True
 
     auth_context = request.context.get('auth', {})

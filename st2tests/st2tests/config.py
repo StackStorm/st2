@@ -65,6 +65,7 @@ def _override_common_opts():
     packs_base_path = get_fixtures_base_path()
     CONF.set_override(name='system_packs_base_path', override=packs_base_path, group='content')
     CONF.set_override(name='api_url', override='http://localhost', group='auth')
+    CONF.set_override(name='admin_users', override=['admin_user'], group='system')
 
 
 def _register_common_opts():
