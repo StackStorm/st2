@@ -66,7 +66,6 @@ class ActionExecutionsControllerMixin(RestController):
 
     model = ActionExecutionAPI
     access = ActionExecution
-    from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
 
     # A list of attributes which can be specified using ?exclude_attributes filter
     valid_exclude_attributes = [
@@ -75,7 +74,7 @@ class ActionExecutionsControllerMixin(RestController):
     ]
 
     def _get_from_model_kwargs_for_request(self, request):
-        from_model_kwargs = self.from_model_kwargs.copy()
+        from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
         query_string = request.query_string
         query_params = dict(urlparse.parse_qsl(query_string))
 
