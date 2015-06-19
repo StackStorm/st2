@@ -102,7 +102,13 @@ class AuthHook(PecanHook):
             return
 
         token_db = self._validate_token(request=state.request)
-        user_db = User.get(token_db.user)
+
+        try:
+            user_db = User.get(token_db.user)
+        except ValueError:
+            # User doesn't exist - we should probably also invalidate token if
+            # this happen
+            user_db = None
 
         # Store token and related user object in the context
         # Note: We also store token outside of auth dict for backward compatibility
