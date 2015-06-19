@@ -49,9 +49,7 @@ def register_opts(ignore_errors=False):
                    help='Default system user.'),
         cfg.StrOpt('ssh_key_file',
                    default='/home/vagrant/.ssh/stanley_rsa',
-                   help='SSH private key for the system user.'),
-        cfg.ListOpt('admin_users', default=None,
-                    help='A list of usernames for users which should have admin privileges')
+                   help='SSH private key for the system user.')
     ]
     do_register_opts(system_user_opts, 'system_user', ignore_errors)
 
@@ -64,7 +62,9 @@ def register_opts(ignore_errors=False):
 
     system_opts = [
         cfg.StrOpt('base_path', default='/opt/stackstorm',
-                   help='Base path to all st2 artifacts.')
+                   help='Base path to all st2 artifacts.'),
+        cfg.ListOpt('admin_users', default=None,
+                    help='A list of usernames for users which should have admin privileges')
     ]
     do_register_opts(system_opts, 'system', ignore_errors)
 
