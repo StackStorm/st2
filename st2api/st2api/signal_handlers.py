@@ -13,32 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-This module contains handler methods for different signals which are handled in the same way across
-the whole code base.
-"""
-
-from __future__ import absolute_import
-
 import signal
-import logging
-
-from st2common.logging.misc import reopen_log_files
 
 __all__ = [
-    'register_common_signal_handlers',
+    'register_api_signal_handlers'
 ]
 
 
-def register_common_signal_handlers():
-    signal.signal(signal.SIGUSR1, handle_sigusr1)
-
-
-def handle_sigusr1(signal_number, stack_frame):
-    """
-    Global SIGUSR1 signal handler which causes all the loggers to re-open log file handles.
-
-    Note: This function is used with log rotation utilities such as logrotate.
-    """
-    handlers = logging.getLoggerClass().manager.root.handlers
-    reopen_log_files(handlers=handlers)
+def register_api_signal_handlers(handler_func):
+    signal.signal(signal.SIGINT, handler_func)
