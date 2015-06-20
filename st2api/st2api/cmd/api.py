@@ -15,7 +15,6 @@
 
 import os
 import sys
-import signal
 
 import eventlet
 from oslo.config import cfg
@@ -28,6 +27,7 @@ from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.transport.utils import register_exchanges
 from st2common.signal_handlers import register_common_signal_handlers
 from st2common.util.wsgi import shutdown_server_kill_pending_requests
+from st2api.signal_handlers import register_api_signal_handlers
 from st2api.listener import get_listener_if_set
 from st2api import config
 from st2api import app
@@ -85,10 +85,10 @@ def _run_server():
         eventlet.spawn_n(shutdown_server_kill_pending_requests, sock=sock,
                          worker_pool=worker_pool, wait_time=WSGI_SERVER_REQUEST_SHUTDOWN_TIME)
 
-    # We register a custom SIGINT handler which allows us to kill in progress requests.
+    # We register a custom SIGINT handler which allows us to kill long running active requests.
     # Note: Eventually we will support draining (waiting for short-running requests), but we
     # will still want to kill long running stream requests.
-    signal.signal(signal.SIGINT, queue_shutdown)
+    register_api_signal_handlers(handler_func=queue_shutdown)
 
     wsgi.server(sock, app.setup_app(), custom_pool=worker_pool)
     return 0
