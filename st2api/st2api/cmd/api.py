@@ -27,9 +27,14 @@ from st2common.models.db import db_teardown
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.transport.utils import register_exchanges
 from st2common.signal_handlers import register_common_signal_handlers
+from st2common.util.wsgi import shutdown_server_kill_pending_requests
 from st2api.listener import get_listener_if_set
 from st2api import config
 from st2api import app
+
+__all__ = [
+    'main'
+]
 
 
 eventlet.monkey_patch(
@@ -76,32 +81,9 @@ def _run_server():
     worker_pool = eventlet.GreenPool(max_pool_size)
     sock = eventlet.listen((host, port))
 
-    def shutdown_server_kill_pending_requests():
-        """
-        Custcom WSGI server shutdown function which gives outgoing requests some time to finish
-        before killing them.
-
-        Note: Without that, by default long running requests such as the stream ones will block and
-        server won't shutdown.
-        """
-        worker_pool.resize(0)
-        sock.close()
-
-        LOG.info('Shutting down. Requests left: %s', worker_pool.running())
-
-        # Give running requests some time to finish
-        eventlet.sleep(WSGI_SERVER_REQUEST_SHUTDOWN_TIME)
-
-        # Kill requests which still didn't finish
-        running_corutines = worker_pool.coroutines_running.copy()
-        for coro in running_corutines:
-            eventlet.greenthread.kill(coro)
-
-        LOG.info('Exiting...')
-        raise SystemExit()
-
     def queue_shutdown(signal_number, stack_frame):
-        eventlet.spawn_n(shutdown_server_kill_pending_requests)
+        eventlet.spawn_n(shutdown_server_kill_pending_requests, sock=sock,
+                         worker_pool=worker_pool, wait_time=WSGI_SERVER_REQUEST_SHUTDOWN_TIME)
 
     # We register a custom SIGINT handler which allows us to kill in progress requests.
     # Note: Eventually we will support draining (waiting for short-running requests), but we
