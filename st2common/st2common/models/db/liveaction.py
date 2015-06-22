@@ -84,7 +84,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
         from st2common.util import action_db
 
         result = copy.deepcopy(value)
-        execution_parameters = self.parameters
+        execution_parameters = value['parameters']
 
         # TODO: This results into two DB looks, we should cache action and runner type object
         # for each liveaction...
@@ -94,8 +94,6 @@ class LiveActionDB(stormbase.StormFoundationDB):
         # .\._,\._',' j_
         #  7______""-'__`,
         parameters = action_db.get_action_parameters_specs(action_ref=self.action)
-
-        execution_parameters = value['parameters']
 
         secret_parameters = get_secret_parameters(parameters=parameters)
         result['parameters'] = mask_secret_parameters(parameters=execution_parameters,
