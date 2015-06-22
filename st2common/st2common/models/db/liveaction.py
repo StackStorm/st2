@@ -106,10 +106,8 @@ class LiveActionDB(stormbase.StormFoundationDB):
 
         :rtype: ``dict``
         """
-        value = {'parameters': self.parameters}
-        value = self.mask_secrets(value=value)
-
-        return value['parameters']
+        serializable_dict = self.to_serializable_dict(mask_secrets=True)
+        return serializable_dict['parameters']
 
 
 # specialized access objects

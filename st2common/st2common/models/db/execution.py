@@ -86,5 +86,14 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
                                                       secret_parameters=secret_parameters)
         return result
 
+    def get_masked_parameters(self):
+        """
+        Retrieve parameters with the secrets masked.
+
+        :rtype: ``dict``
+        """
+        serializable_dict = self.to_serializable_dict(mask_secrets=True)
+        return serializable_dict['parameters']
+
 
 MODELS = [ActionExecutionDB]
