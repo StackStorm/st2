@@ -3,10 +3,7 @@
 import os
 import os.path
 import sys
-import pprint
-from urlparse import urlparse
 from distutils.version import StrictVersion
-from setuptools import setup, find_packages
 
 
 cwd = os.path.abspath(os.getcwd())
