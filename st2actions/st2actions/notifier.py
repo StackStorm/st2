@@ -140,6 +140,7 @@ class Notifier(consumers.MessageHandler):
 
     def _post_generic_trigger(self, liveaction=None, execution_id=None):
         if not ACTION_SENSOR_ENABLED:
+            LOG.debug('Action trigger is disabled, skipping trigger dispatch...')
             return
 
         payload = {'execution_id': execution_id,
