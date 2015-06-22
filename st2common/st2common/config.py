@@ -152,17 +152,17 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(coord_opts, 'coordination', ignore_errors)
 
-    use_debugger = cfg.BoolOpt(
-        'use-debugger', default=True,
+    # Common CLI options
+    debug = cfg.BoolOpt('debug', default=False,
+        help='Enable debug mode. By default this will set all log levels to DEBUG.')
+    use_debugger = cfg.BoolOpt('use-debugger', default=True,
         help='Enables debugger. Note that using this option changes how the '
              'eventlet library is used to support async IO. This could result in '
              'failures that do not occur under normal operation.'
     )
-    try:
-        cfg.CONF.register_cli_opt(use_debugger)
-    except:
-        if not ignore_errors:
-            raise
+
+    cli_opts = [debug, use_debugger]
+    do_register_cli_opts(cli_opts, ignore_errors=ignore_errors)
 
 
 def parse_args(args=None):
