@@ -17,6 +17,10 @@ from __future__ import absolute_import
 
 import logging
 
+__all__ = [
+    'reopen_log_files'
+]
+
 LOG = logging.getLogger(__name__)
 
 
