@@ -25,8 +25,7 @@ import logging as stdlib_logging
 from oslo.config import cfg
 
 from st2common import log as logging
-from st2common.models.db import db_setup
-from st2common.models.db import db_teardown
+from st2common.models import db
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.transport.utils import register_exchanges
@@ -34,7 +33,10 @@ from st2common.signal_handlers import register_common_signal_handlers
 
 __all__ = [
     'setup',
-    'teardown'
+    'teardown',
+
+    'db_setup',
+    'db_teardown'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -80,10 +82,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     # All other setup which requires config to be parsed and logging to
     # be correctly setup.
     if setup_db:
-        username = getattr(cfg.CONF.database, 'username', None)
-        password = getattr(cfg.CONF.database, 'password', None)
-        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-                 username=username, password=password)
+        db_setup()
 
     if register_mq_exchanges:
         register_exchanges()
@@ -97,3 +96,16 @@ def teardown():
     Common teardown function.
     """
     db_teardown()
+
+
+def db_setup():
+    username = getattr(cfg.CONF.database, 'username', None)
+    password = getattr(cfg.CONF.database, 'password', None)
+
+    connection = db.db_setup(db_name=cfg.CONF.database.db_name, db_host=cfg.CONF.database.host,
+                             db_port=cfg.CONF.database.port, username=username, password=password)
+    return connection
+
+
+def db_teardown():
+    return db.db_teardown()
