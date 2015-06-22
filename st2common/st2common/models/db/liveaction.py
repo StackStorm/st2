@@ -102,6 +102,17 @@ class LiveActionDB(stormbase.StormFoundationDB):
                                                       secret_parameters=secret_parameters)
         return result
 
+    def get_masked_parameters(self):
+        """
+        Retrieve parameters with the secrets masked.
+
+        :rtype: ``dict``
+        """
+        value = {'parameters': self.parameters}
+        value = self.mask_secrets(value=value)
+
+        return value['parameters']
+
 
 # specialized access objects
 liveaction_access = MongoDBAccess(LiveActionDB)

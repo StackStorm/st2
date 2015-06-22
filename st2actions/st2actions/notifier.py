@@ -109,11 +109,13 @@ class Notifier(consumers.MessageHandler):
             message = notify_subsection.message or (
                 'Action ' + liveaction.action + ' ' + default_message_suffix)
             data = notify_subsection.data or {}  # XXX: Handle Jinja
+
             # At this point convert result to a string. This restricts the rulesengines
             # ability to introspect the result. On the other handle atleast a json usable
             # result is sent as part of the notification. If jinja is required to convert
             # to a string representation it uses str(...) which make it impossible to
             # parse the result as json any longer.
+            # TODO: Use to_serializable_dict
             data['result'] = json.dumps(liveaction.result)
 
             payload['message'] = message
@@ -150,7 +152,7 @@ class Notifier(consumers.MessageHandler):
                    'action_name': liveaction.action,
                    'action_ref': liveaction.action,
                    'runner_ref': self._get_runner(liveaction.action),
-                   'parameters': liveaction.parameters,
+                   'parameters': liveaction.get_masked_parameters(),
                    'result': liveaction.result}
         LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
                   liveaction.id, payload)
