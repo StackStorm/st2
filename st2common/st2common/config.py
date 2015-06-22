@@ -158,8 +158,7 @@ def register_opts(ignore_errors=False):
     use_debugger = cfg.BoolOpt('use-debugger', default=True,
         help='Enables debugger. Note that using this option changes how the '
              'eventlet library is used to support async IO. This could result in '
-             'failures that do not occur under normal operation.'
-    )
+             'failures that do not occur under normal operation.')
 
     cli_opts = [debug, use_debugger]
     do_register_cli_opts(cli_opts, ignore_errors=ignore_errors)
