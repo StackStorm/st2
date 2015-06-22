@@ -21,6 +21,7 @@ from oslo.config import cfg
 from eventlet import wsgi
 
 from st2common import log as logging
+from st2common.service_setup import setup as common_setup
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2common.constants.auth import VALID_MODES
@@ -49,6 +50,10 @@ def _setup():
 
     # 2. setup logging.
     logging.setup(cfg.CONF.auth.logging)
+
+    # Call common setup function
+    # Note: This needs to be called after parsing the config and after logging.setup
+    common_setup()
 
     if cfg.CONF.auth.mode not in VALID_MODES:
         raise ValueError('Valid modes are: %s' % (','.join(VALID_MODES)))

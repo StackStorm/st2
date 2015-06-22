@@ -7,6 +7,7 @@ from oslo.config import cfg
 from st2actions import config
 from st2actions import scheduler, worker
 from st2common import log as logging
+from st2common.service_setup import setup as common_setup
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
@@ -35,6 +36,10 @@ def _setup():
 
     # 2. setup logging.
     logging.setup(cfg.CONF.actionrunner.logging)
+
+    # Call common setup function
+    # Note: This needs to be called after parsing the config and after logging.setup
+    common_setup()
 
     # 3. all other setup which requires config to be parsed and logging to
     # be correctly setup.
