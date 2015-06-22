@@ -29,8 +29,14 @@ def do_register_opts(opts, group=None, ignore_errors=False):
 
 
 def do_register_cli_opts(opt, ignore_errors=False):
+    # TODO: This function has broken name, it should work with lists :/
+    if not isinstance(opt, (list, tuple)):
+        opts = [opt]
+    else:
+        opts = opt
+
     try:
-        cfg.CONF.register_cli_opt(opt)
+        cfg.CONF.register_cli_opts(opts)
     except:
         if not ignore_errors:
             raise
