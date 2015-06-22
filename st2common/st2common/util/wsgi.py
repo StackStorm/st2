@@ -44,10 +44,12 @@ def shutdown_server_kill_pending_requests(sock, worker_pool, wait_time=2):
     worker_pool.resize(0)
     sock.close()
 
-    LOG.info('Shutting down. Requests left: %s', worker_pool.running())
+    active_requests = worker_pool.running()
+    LOG.info('Shutting down. Requests left: %s', active_requests)
 
-    # Give running requests some time to finish
-    eventlet.sleep(wait_time)
+    # Give active requests some time to finish
+    if active_requests > 0:
+        eventlet.sleep(wait_time)
 
     # Kill requests which still didn't finish
     running_corutines = worker_pool.coroutines_running.copy()
