@@ -96,11 +96,16 @@ class DownloadGitRepoAction(Action):
                 if os.path.exists(dest_pack_path):
                     self.logger.debug('Removing existing pack %s in %s to replace.', pack,
                                       dest_pack_path)
+
                     # Ensure to preserve any existing configuration
                     old_config_file = os.path.join(dest_pack_path, CONFIG_FILE)
                     new_config_file = os.path.join(abs_pack_temp_location, CONFIG_FILE)
-                    shutil.move(old_config_file, new_config_file)
+
+                    if os.path.isfile(old_config_file):
+                        shutil.move(old_config_file, new_config_file)
+
                     shutil.rmtree(dest_pack_path)
+
                 self.logger.debug('Moving pack from %s to %s.', abs_pack_temp_location, to)
                 shutil.move(abs_pack_temp_location, to)
                 message = 'Success.'
