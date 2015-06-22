@@ -28,8 +28,21 @@ CONF = cfg.CONF
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+def parse_args(args=None):
+    CONF(args=args, version=VERSION_STRING)
+
+
+def register_opts():
+    _register_common_opts()
+    _register_app_opts()
+
+
 def _register_common_opts():
     common_config.register_opts()
+
+
+def get_logging_config_path(service='api'):
+    return cfg.CONF.api.logging
 
 
 def _register_app_opts():
@@ -63,15 +76,6 @@ def _register_app_opts():
                    help='location of the logging.conf file')
     ]
     CONF.register_opts(logging_opts, group='api')
-
-
-def register_opts():
-    _register_common_opts()
-    _register_app_opts()
-
-
-def parse_args(args=None):
-    CONF(args=args, version=VERSION_STRING)
 
 
 register_opts()

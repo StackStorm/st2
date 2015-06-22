@@ -19,24 +19,81 @@ This module contains common service setup code.
 
 from __future__ import absolute_import
 
-import logging
+import os
+import logging as stdlib_logging
 
 from oslo.config import cfg
 
+from st2common import log as logging
+from st2common.models.db import db_setup
+from st2common.models.db import db_teardown
+from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.logging.misc import set_log_level_for_all_loggers
+from st2common.transport.utils import register_exchanges
+from st2common.signal_handlers import register_common_signal_handlers
 
 __all__ = [
-    'setup'
+    'setup',
+    'teardown'
 ]
 
+LOG = logging.getLogger(__name__)
 
-def setup():
+
+def setup(service, config, setup_db=True, register_mq_exchanges=True,
+          register_signal_handlers=True):
     """
     Common setup function.
 
     Currently it performs the following operations:
 
-    1. Set log level for all the loggers to DEBUG if --debug flag is present
+    1. Parses config and CLI arguments
+    2. Establishes DB connection
+    3. Set log level for all the loggers to DEBUG if --debug flag is present
+    4. Registers RabbitMQ exchanges
+    5. Registers common signal handlers
+
+    :param service: Name of the service.
+    :param config: Config object to use to parse args.
     """
+    # Set up logger which logs everything which happens during and before config
+    # parsing to sys.stdout
+    logging.setup(DEFAULT_LOGGING_CONF_PATH)
+
+    # Parse args to setup config.
+    config.parse_args()
+
+    config_file_paths = cfg.CONF.config_file
+    config_file_paths = [os.path.abspath(path) for path in config_file_paths]
+    LOG.debug('Using config files: %s', ','.join(config_file_paths))
+
+    # Setup logging.
+    logging_config_path = config.get_logging_config_path(service=service)
+    logging_config_path = os.path.abspath(logging_config_path)
+
+    LOG.debug('Using logging config: %s', logging_config_path)
+    logging.setup(logging_config_path)
+
     if cfg.CONF.debug:
-        set_log_level_for_all_loggers(level=logging.DEBUG)
+        set_log_level_for_all_loggers(level=stdlib_logging.DEBUG)
+
+    # All other setup which requires config to be parsed and logging to
+    # be correctly setup.
+    if setup_db:
+        username = getattr(cfg.CONF.database, 'username', None)
+        password = getattr(cfg.CONF.database, 'password', None)
+        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
+                 username=username, password=password)
+
+    if register_mq_exchanges:
+        register_exchanges()
+
+    if register_signal_handlers:
+        register_common_signal_handlers()
+
+
+def teardown():
+    """
+    Common teardown function.
+    """
+    db_teardown()

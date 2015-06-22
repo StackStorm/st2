@@ -22,6 +22,19 @@ common_config.register_opts()
 CONF = cfg.CONF
 
 
+def parse_args(args=None):
+    CONF(args=args, version=VERSION_STRING)
+
+
+def register_opts():
+    _register_common_opts()
+    _register_rules_engine_opts()
+
+
+def get_logging_config_path(service='rulesengine'):
+    return cfg.CONF.rulesengine.logging
+
+
 def _register_common_opts():
     common_config.register_opts()
 
@@ -40,13 +53,4 @@ def _register_rules_engine_opts():
     CONF.register_opts(timer_opts, group='timer')
 
 
-def register_opts():
-    _register_common_opts()
-    _register_rules_engine_opts()
-
-
 register_opts()
-
-
-def parse_args(args=None):
-    CONF(args=args, version=VERSION_STRING)
