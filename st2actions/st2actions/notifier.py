@@ -30,6 +30,10 @@ from st2common.persistence.execution import ActionExecution
 from st2common.transport import consumers, liveaction, publishers
 from st2common.transport.reactor import TriggerDispatcher
 
+__all__ = [
+    'Notifier',
+    'get_notifier'
+]
 
 LOG = logging.getLogger(__name__)
 
