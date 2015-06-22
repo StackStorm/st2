@@ -129,7 +129,7 @@ class Notifier(consumers.MessageHandler):
             payload['start_timestamp'] = str(liveaction.start_timestamp)
             payload['end_timestamp'] = str(liveaction.end_timestamp)
             payload['action_ref'] = liveaction.action
-            payload['runner_ref'] = self._get_runner(liveaction.action)
+            payload['runner_ref'] = self._get_runner_ref(liveaction.action)
 
             failed_channels = []
             for channel in notify_subsection.channels:
@@ -155,7 +155,7 @@ class Notifier(consumers.MessageHandler):
                    # deprecate 'action_name' at some point and switch to 'action_ref'
                    'action_name': liveaction.action,
                    'action_ref': liveaction.action,
-                   'runner_ref': self._get_runner(liveaction.action),
+                   'runner_ref': self._get_runner_ref(liveaction.action),
                    'parameters': liveaction.get_masked_parameters(),
                    'result': liveaction.result}
         LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
@@ -174,7 +174,12 @@ class Notifier(consumers.MessageHandler):
             except:
                 LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
 
-    def _get_runner(self, action_ref):
+    def _get_runner_ref(self, action_ref):
+        """
+        Retrieve a runner reference for the provided action.
+
+        :rtype: ``str``
+        """
         action = Action.get_by_ref(action_ref)
         return action['runner_type']['name']
 
