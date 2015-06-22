@@ -25,6 +25,15 @@ common_config.register_opts()
 
 CONF = cfg.CONF
 
+
+def parse_args(args=None):
+    CONF(args=args, version=VERSION_STRING)
+
+
+def get_logging_config_path(service='api'):
+    return cfg.CONF.exporter.logging
+
+
 dump_opts = [
     cfg.StrOpt('dump_dir', default='/opt/stackstorm/exports/',
                help='Directory to dump data to.')
@@ -36,7 +45,3 @@ logging_opts = [
                help='location of the logging.exporter.conf file')
 ]
 CONF.register_opts(logging_opts, group='exporter')
-
-
-def parse_args(args=None):
-    CONF(args=args, version=VERSION_STRING)
