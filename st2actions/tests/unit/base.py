@@ -20,7 +20,9 @@ import unittest2
 from st2tests import config as test_config
 test_config.parse_args()
 
-from st2actions import scheduler, worker, notifier
+from st2actions import worker
+from st2actions import scheduler
+from st2actions.notifier import notifier
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.util.api import get_full_public_api_url

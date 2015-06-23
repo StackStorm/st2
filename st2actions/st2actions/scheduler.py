@@ -34,6 +34,11 @@ from st2common.transport import consumers, liveaction
 from st2common.util import action_db as action_utils
 from st2common.util import date as date_utils
 
+__all__ = [
+    'get_scheduler',
+    'get_rescheduler'
+]
+
 
 LOG = logging.getLogger(__name__)
 

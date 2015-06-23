@@ -5,8 +5,8 @@ import sys
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
-from st2actions import config
 from st2actions import scheduler
+from st2actions.notifier import config
 from st2actions.notifier import notifier
 
 
