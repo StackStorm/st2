@@ -107,7 +107,7 @@ class AuthHook(PecanHook):
             user_db = User.get(token_db.user)
         except ValueError:
             # User doesn't exist - we should probably also invalidate token if
-            # this happen
+            # this happens
             user_db = None
 
         # Store token and related user object in the context
