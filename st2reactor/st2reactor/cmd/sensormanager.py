@@ -45,14 +45,14 @@ def main():
     try:
         _setup()
         container_manager = SensorContainerManager()
-        sensors = _get_all_sensors()
+        sensors = None
 
-        if cfg.CONF.sensor_name:
-            # Only run a single sensor
-            sensors = [sensor for sensor in sensors if
-                       sensor.name == cfg.CONF.sensor_name]
+        if cfg.CONF.sensor_ref:
+            sensors = [SensorType.get_by_ref(cfg.CONF.sensor_ref)]
             if not sensors:
-                raise SensorNotFoundException('Sensor %s not found in db.' % cfg.CONF.sensor_name)
+                raise SensorNotFoundException('Sensor %s not found in db.' % cfg.CONF.sensor_ref)
+        else:
+            sensors = _get_all_sensors()
 
         if not sensors:
             msg = 'No sensors configured to run. See http://docs.stackstorm.com/sensors.html. ' + \
