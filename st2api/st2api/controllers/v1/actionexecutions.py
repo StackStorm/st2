@@ -19,10 +19,9 @@ import jsonschema
 from oslo.config import cfg
 import pecan
 from pecan import abort
-from pecan.rest import RestController
 from six.moves import http_client
-from six.moves.urllib import parse as urlparse
 
+from st2api.controllers.base import BaseRestControllerMixin
 from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
@@ -55,11 +54,15 @@ SUPPORTED_EXECUTIONS_FILTERS.update({
     'timestamp_lt': 'start_timestamp.lt'
 })
 
+# Name of the query parameter for toggling on the display of secrets to the admin users in the API
+# responses
+SHOW_SECRETS_QUERY_PARAM = 'show_secrets'
+
 MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
 
 
-class ActionExecutionsControllerMixin(RestController):
+class ActionExecutionsControllerMixin(BaseRestControllerMixin):
     """
     Mixin class with shared methods.
     """
@@ -74,11 +77,14 @@ class ActionExecutionsControllerMixin(RestController):
     ]
 
     def _get_from_model_kwargs_for_request(self, request):
+        """
+        Set mask_secrets=False if the user is an admin and provided ?show_secrets=True query param.
+        """
         from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
         query_string = request.query_string
-        query_params = dict(urlparse.parse_qsl(query_string))
+        query_params = self._parse_query_params(request=request)
 
-        show_secrets = query_params.get('show_secrets', 'false')
+        show_secrets = query_params.get(SHOW_SECRETS_QUERY_PARAM, 'false')
         show_secrets = show_secrets.lower()
         show_secrets = show_secrets == 'true'
 
