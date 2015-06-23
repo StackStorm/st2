@@ -41,7 +41,7 @@ def _register_common_opts():
     common_config.register_opts()
 
 
-def get_logging_config_path(service='api'):
+def get_logging_config_path():
     return cfg.CONF.api.logging
 
 

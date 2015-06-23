@@ -31,7 +31,7 @@ def register_opts():
     _register_rules_engine_opts()
 
 
-def get_logging_config_path(service='rulesengine'):
+def get_logging_config_path():
     return cfg.CONF.rulesengine.logging
 
 

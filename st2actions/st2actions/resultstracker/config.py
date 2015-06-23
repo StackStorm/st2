@@ -31,7 +31,7 @@ def register_opts():
     _register_results_tracker_opts()
 
 
-def get_logging_config_path(service='resultstracker'):
+def get_logging_config_path():
     return cfg.CONF.resultstracker.logging
 
 

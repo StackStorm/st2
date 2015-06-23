@@ -81,12 +81,5 @@ def parse_args(args=None):
     CONF(args=args, version=VERSION_STRING)
 
 
-def get_logging_config_path(service):
-    if service == 'actionrunner':
-        return CONF.actionrunner.logging
-    elif service == 'notifier':
-        return CONF.actionrunner.logging
-    elif service == 'resultstracker':
-        return CONF.resultstracker.logging
-    else:
-        raise ValueError('Unrecognized service: %s' % (service))
+def get_logging_config_path():
+    return CONF.actionrunner.logging

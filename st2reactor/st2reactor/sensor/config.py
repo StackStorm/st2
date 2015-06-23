@@ -30,7 +30,7 @@ def register_opts(ignore_errors=False):
     _register_sensor_container_opts(ignore_errors=ignore_errors)
 
 
-def get_logging_config_path(service='sensorcontainer'):
+def get_logging_config_path():
     return cfg.CONF.sensorcontainer.logging
 
 

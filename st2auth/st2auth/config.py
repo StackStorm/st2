@@ -32,7 +32,7 @@ def register_opts():
     _register_app_opts()
 
 
-def get_logging_config_path(service='auth'):
+def get_logging_config_path():
     return cfg.CONF.auth.logging
 
 

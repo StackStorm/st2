@@ -70,7 +70,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     LOG.debug('Using config files: %s', ','.join(config_file_paths))
 
     # Setup logging.
-    logging_config_path = config.get_logging_config_path(service=service)
+    logging_config_path = config.get_logging_config_path()
     logging_config_path = os.path.abspath(logging_config_path)
 
     LOG.debug('Using logging config: %s', logging_config_path)

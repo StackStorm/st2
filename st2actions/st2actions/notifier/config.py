@@ -31,7 +31,7 @@ def register_opts():
     _register_notifier_opts()
 
 
-def get_logging_config_path(service='notifier'):
+def get_logging_config_path():
     return cfg.CONF.notifier.logging
 
 
