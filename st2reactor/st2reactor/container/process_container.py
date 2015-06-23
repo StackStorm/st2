@@ -160,7 +160,7 @@ class ProcessSensorContainer(object):
             return False
 
         self._stop_sensor_process(sensor_id=sensor_id)
-        LOG.debug('Sesnor %s stopped.', sensor_id)
+        LOG.debug('Sensor %s stopped.', sensor_id)
         return True
 
     def _run_all_sensors(self):
@@ -254,7 +254,7 @@ class ProcessSensorContainer(object):
 
         :param exit_timeout: How long to wait for process to exit after
                              sending SIGTERM signal. If the process doesn't
-                             exit in this amount of seconds, SIGTERM signal
+                             exit in this amount of seconds, SIGKILL signal
                              will be sent to the process.
         :type exit__timeout: ``int``
         """

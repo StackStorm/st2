@@ -103,6 +103,24 @@ class TestLocalShellRunner(TestCase):
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(result['stdout'].strip(), 'mock-token')
 
+    def test_sudo_and_env_variable_preservation(self):
+        # Verify that the environment environment are correctly preserved when running as a
+        # root / non-system user
+        # Note: This test will fail if SETENV option is not present in the sudoers file
+        models = TestLocalShellRunner.fixtures_loader.load_models(
+            fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
+        action_db = models['actions']['local.yaml']
+
+        cmd = 'echo `whoami` ; echo ${VAR1}'
+        env = {'VAR1': 'poniesponies'}
+        runner = TestLocalShellRunner._get_runner(action_db, cmd=cmd, sudo=True, env=env)
+        runner.pre_run()
+        status, result, _ = runner.run({})
+        runner.post_run(status, result)
+
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(result['stdout'].strip(), 'root\nponiesponies')
+
     @staticmethod
     def _get_runner(action_db,
                     entry_point=None,
@@ -111,7 +129,8 @@ class TestLocalShellRunner(TestCase):
                     user=None,
                     kwarg_op=localrunner.DEFAULT_KWARG_OP,
                     timeout=LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT,
-                    sudo=False):
+                    sudo=False,
+                    env=None):
         runner = localrunner.LocalShellRunner(uuid.uuid4().hex)
         runner.container_service = RunnerContainerService()
         runner.action = action_db
@@ -120,6 +139,7 @@ class TestLocalShellRunner(TestCase):
         runner.entry_point = entry_point
         runner.runner_parameters = {localrunner.RUNNER_COMMAND: cmd,
                                     localrunner.RUNNER_SUDO: sudo,
+                                    localrunner.RUNNER_ENV: env,
                                     localrunner.RUNNER_ON_BEHALF_USER: user,
                                     localrunner.RUNNER_KWARG_OP: kwarg_op,
                                     localrunner.RUNNER_TIMEOUT: timeout}
