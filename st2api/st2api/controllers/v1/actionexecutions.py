@@ -81,12 +81,11 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         Set mask_secrets=False if the user is an admin and provided ?show_secrets=True query param.
         """
         from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
-        query_string = request.query_string
-        query_params = self._parse_query_params(request=request)
 
-        show_secrets = query_params.get(SHOW_SECRETS_QUERY_PARAM, 'false')
-        show_secrets = show_secrets.lower()
-        show_secrets = show_secrets == 'true'
+        show_secrets = self._get_query_param_value(request=request,
+                                                   param_name=SHOW_SECRETS_QUERY_PARAM,
+                                                   param_type='bool',
+                                                   default_value=False)
 
         if show_secrets and request_user_is_admin(request=request):
             from_model_kwargs['mask_secrets'] = False
