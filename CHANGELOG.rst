@@ -23,6 +23,7 @@ in development
 * API server now gracefully shuts down on SIGINT (CTRL-C). (improvement)
 * Fix a bug with with reinstalling a pack with no existing config - only try to move the config
   file over if it exists. (bug fix)
+* Single sensor mode of Sensor Container uses ``--sensor-ref`` instead of ``--sensor-name``.
 
 0.11.3 - June 16, 2015
 ----------------------
