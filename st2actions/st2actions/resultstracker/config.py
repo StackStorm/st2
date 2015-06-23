@@ -28,29 +28,23 @@ def parse_args(args=None):
 
 def register_opts():
     _register_common_opts()
-    _register_rules_engine_opts()
+    _register_results_tracker_opts()
 
 
 def get_logging_config_path():
-    return cfg.CONF.rulesengine.logging
+    return cfg.CONF.resultstracker.logging
 
 
 def _register_common_opts():
     common_config.register_opts()
 
 
-def _register_rules_engine_opts():
-    logging_opts = [
-        cfg.StrOpt('logging', default='conf/logging.rulesengine.conf',
+def _register_results_tracker_opts():
+    resultstracker_opts = [
+        cfg.StrOpt('logging', default='conf/logging.resultstracker.conf',
                    help='Location of the logging configuration file.')
     ]
-    CONF.register_opts(logging_opts, group='rulesengine')
-
-    timer_opts = [
-        cfg.StrOpt('local_timezone', default='America/Los_Angeles',
-                   help='Timezone pertaining to the location where st2 is run.')
-    ]
-    CONF.register_opts(timer_opts, group='timer')
+    CONF.register_opts(resultstracker_opts, group='resultstracker')
 
 
 register_opts()

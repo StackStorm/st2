@@ -22,7 +22,7 @@ test_config.parse_args()
 
 from oslo.config import cfg
 
-from st2actions import scheduler
+from st2actions.notifier import scheduler
 from st2common.constants import action as action_constants
 from st2common.models.api.action import ActionAPI, RunnerTypeAPI
 from st2common.models.db.action import LiveActionDB

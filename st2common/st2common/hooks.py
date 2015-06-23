@@ -177,6 +177,9 @@ class JSONErrorResponseHook(PecanHook):
         if isinstance(e, exc.HTTPException):
             status_code = state.response.status
             message = str(e)
+        elif isinstance(e, ValueError):
+            status_code = httplib.BAD_REQUEST
+            message = getattr(e, 'message', str(e))
         else:
             status_code = httplib.INTERNAL_SERVER_ERROR
             message = 'Internal Server Error'

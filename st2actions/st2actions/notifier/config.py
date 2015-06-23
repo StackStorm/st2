@@ -28,29 +28,31 @@ def parse_args(args=None):
 
 def register_opts():
     _register_common_opts()
-    _register_rules_engine_opts()
+    _register_notifier_opts()
 
 
 def get_logging_config_path():
-    return cfg.CONF.rulesengine.logging
+    return cfg.CONF.notifier.logging
 
 
 def _register_common_opts():
     common_config.register_opts()
 
 
-def _register_rules_engine_opts():
-    logging_opts = [
-        cfg.StrOpt('logging', default='conf/logging.rulesengine.conf',
+def _register_notifier_opts():
+    notifier_opts = [
+        cfg.StrOpt('logging', default='conf/logging.notifier.conf',
                    help='Location of the logging configuration file.')
     ]
-    CONF.register_opts(logging_opts, group='rulesengine')
+    CONF.register_opts(notifier_opts, group='notifier')
 
-    timer_opts = [
-        cfg.StrOpt('local_timezone', default='America/Los_Angeles',
-                   help='Timezone pertaining to the location where st2 is run.')
+    scheduler_opts = [
+        cfg.IntOpt('delayed_execution_recovery', default=600,
+                   help='The time in seconds to wait before recovering delayed action executions.'),
+        cfg.IntOpt('rescheduling_interval', default=300,
+                   help='The frequency for rescheduling action executions.')
     ]
-    CONF.register_opts(timer_opts, group='timer')
+    CONF.register_opts(scheduler_opts, group='scheduler')
 
 
 register_opts()
