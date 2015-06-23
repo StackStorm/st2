@@ -15,7 +15,7 @@
 
 from oslo.config import cfg
 
-import st2common.config as common_config
+from st2common import config as common_config
 from st2common.constants.system import VERSION_STRING
 common_config.register_opts()
 
@@ -45,6 +45,18 @@ def _register_results_tracker_opts():
                    help='Location of the logging configuration file.')
     ]
     CONF.register_opts(resultstracker_opts, group='resultstracker')
+
+    # Note: Right now reesults tracker also needs access to action runner
+    # config, notably mistral section which is registred bellow
+    mistral_opts = [
+        cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2',
+                   help='Mistral v2 API server root endpoint.'),
+        cfg.IntOpt('max_attempts', default=180,
+                   help='Maximum no of attempts made to connect to Mistral.'),
+        cfg.IntOpt('retry_wait', default=5,
+                   help='Time in seconds to wait before retrying connection to Mistral.')
+    ]
+    CONF.register_opts(mistral_opts, group='mistral')
 
 
 register_opts()
