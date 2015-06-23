@@ -69,7 +69,7 @@ def register_opts(ignore_errors=False):
     system_opts = [
         cfg.StrOpt('base_path', default='/opt/stackstorm',
                    help='Base path to all st2 artifacts.'),
-        cfg.ListOpt('admin_users', default=None,
+        cfg.ListOpt('admin_users', default=[],
                     help='A list of usernames for users which should have admin privileges')
     ]
     do_register_opts(system_opts, 'system', ignore_errors)
