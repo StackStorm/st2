@@ -61,7 +61,12 @@ class Notifier(consumers.MessageHandler):
         if liveaction.status not in ACTION_COMPLETE_STATES:
             return
 
-        execution_id = self._get_execution_id(liveaction)
+        execution_id = self._get_execution_id_for_liveaction(liveaction)
+
+        if not execution_id:
+            LOG.exception('Execution object corresponding to LiveAction %s not found.',
+                          str(liveaction.id))
+            return None
 
         self._apply_post_run_policies(liveaction=liveaction, execution_id=execution_id)
 
@@ -70,14 +75,13 @@ class Notifier(consumers.MessageHandler):
 
         self._post_generic_trigger(liveaction=liveaction, execution_id=execution_id)
 
-    def _get_execution_id(self, liveaction):
-        try:
-            execution = ActionExecution.get(liveaction__id=str(liveaction.id))
-            return str(execution.id)
-        except:
-            LOG.exception('Execution object corresponding to LiveAction %s not found.',
-                          str(liveaction.id))
+    def _get_execution_id_for_liveaction(self, liveaction):
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+
+        if not execution:
             return None
+
+        return str(execution.id)
 
     def _post_notify_triggers(self, liveaction=None, execution_id=None):
         notify = getattr(liveaction, 'notify', None)

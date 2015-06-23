@@ -169,7 +169,7 @@ class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
 
         Handles requests:
 
-            GET /actionexecutions/<id>/<attribute>/<value>
+            GET /actionexecutions/<id>/<attribute>
 
         :rtype: ``dict``
         """
@@ -255,7 +255,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         List all actionexecutions.
 
         Handles requests:
-            GET /actionexecutions/[?exclude_attributes=result,trigger_instance]
+            GET /actionexecutions[?exclude_attributes=result,trigger_instance]
 
         :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
         :type exclude_attributes: ``str``

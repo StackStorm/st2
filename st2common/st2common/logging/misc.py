@@ -17,6 +17,11 @@ from __future__ import absolute_import
 
 import logging
 
+__all__ = [
+    'reopen_log_files',
+    'set_log_level_for_all_loggers'
+]
+
 LOG = logging.getLogger(__name__)
 
 
@@ -42,3 +47,22 @@ def reopen_log_files(handlers):
             handler.stream = open(handler.baseFilename, handler.mode)
         finally:
             handler.release()
+
+
+def set_log_level_for_all_loggers(level):
+    """
+    Set a log level for all the loggers and handlers to the provided level.
+    """
+    root_logger = logging.getLogger()
+    loggers = logging.Logger.manager.loggerDict.values()
+    loggers += [root_logger]
+
+    for logger in loggers:
+        if not isinstance(logger, logging.Logger):
+            continue
+
+        logger.setLevel(logging.DEBUG)
+
+        handlers = logger.handlers
+        for handler in handlers:
+            handler.setLevel(logging.DEBUG)

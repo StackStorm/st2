@@ -68,26 +68,10 @@ cloudslang_opts = [
 ]
 CONF.register_opts(cloudslang_opts, group='cloudslang')
 
-resultstracker_opts = [
-    cfg.StrOpt('logging', default='conf/logging.resultstracker.conf',
-               help='Location of the logging configuration file.')
-]
-CONF.register_opts(resultstracker_opts, group='resultstracker')
-
-notifier_opts = [
-    cfg.StrOpt('logging', default='conf/logging.notifier.conf',
-               help='Location of the logging configuration file.')
-]
-CONF.register_opts(notifier_opts, group='notifier')
-
-scheduler_opts = [
-    cfg.IntOpt('delayed_execution_recovery', default=600,
-               help='The time in seconds to wait before recovering delayed action executions.'),
-    cfg.IntOpt('rescheduling_interval', default=300,
-               help='The frequency for rescheduling action executions.')
-]
-CONF.register_opts(scheduler_opts, group='scheduler')
-
 
 def parse_args(args=None):
     CONF(args=args, version=VERSION_STRING)
+
+
+def get_logging_config_path():
+    return CONF.actionrunner.logging

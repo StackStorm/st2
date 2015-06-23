@@ -21,6 +21,19 @@ from st2common.constants.system import VERSION_STRING
 CONF = cfg.CONF
 
 
+def parse_args(args=None):
+    CONF(args=args, version=VERSION_STRING)
+
+
+def register_opts(ignore_errors=False):
+    _register_common_opts(ignore_errors=ignore_errors)
+    _register_sensor_container_opts(ignore_errors=ignore_errors)
+
+
+def get_logging_config_path():
+    return cfg.CONF.sensorcontainer.logging
+
+
 def _register_common_opts(ignore_errors=False):
     st2cfg.register_opts(ignore_errors=ignore_errors)
 
@@ -52,13 +65,4 @@ def _register_sensor_container_opts(ignore_errors=False):
                             ignore_errors=ignore_errors)
 
 
-def register_opts(ignore_errors=False):
-    _register_common_opts(ignore_errors=ignore_errors)
-    _register_sensor_container_opts(ignore_errors=ignore_errors)
-
-
 register_opts(ignore_errors=True)
-
-
-def parse_args(args=None):
-    CONF(args=args, version=VERSION_STRING)

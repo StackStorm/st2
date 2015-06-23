@@ -19,7 +19,7 @@ import unittest2
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from st2actions.notifier import Notifier
+from st2actions.notifier.notifier import Notifier
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema
@@ -78,7 +78,7 @@ class NotifierTestCase(unittest2.TestCase):
 
     @mock.patch.object(Action, 'get_by_ref', mock.MagicMock(
         return_value={'runner_type': {'name': 'run-local-cmd'}}))
-    @mock.patch.object(Notifier, '_get_execution_id', mock.MagicMock(
+    @mock.patch.object(Notifier, '_get_execution_id_for_liveaction', mock.MagicMock(
         return_value=MOCK_EXECUTION_ID))
     def test_notify_triggers(self):
         liveaction = LiveActionDB(action='core.local')
