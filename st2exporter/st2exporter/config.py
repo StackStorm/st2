@@ -30,7 +30,7 @@ def parse_args(args=None):
     CONF(args=args, version=VERSION_STRING)
 
 
-def get_logging_config_path(service='api'):
+def get_logging_config_path():
     return cfg.CONF.exporter.logging
 
 
