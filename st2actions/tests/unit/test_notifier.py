@@ -19,7 +19,7 @@ import unittest2
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from st2actions.notifier import Notifier
+from st2actions.notifier.notifier import Notifier
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema
