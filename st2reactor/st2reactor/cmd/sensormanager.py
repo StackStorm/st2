@@ -36,7 +36,8 @@ def _teardown():
 
 
 def _get_all_sensors():
-    sensors = SensorType.get_all()
+    # only query for enabled sensors.
+    sensors = SensorType.query(enabled=True)
     LOG.info('Found %d registered sensors in db scan.', len(sensors))
     return sensors
 
@@ -48,6 +49,9 @@ def main():
         sensors = None
 
         if cfg.CONF.sensor_ref:
+            # pick the sensor even if it is disabled since it has been specifically
+            # asked to be run. This is debug/test usecase so it is reasonable to run
+            # a disabled sensor.
             sensor = SensorType.get_by_ref(cfg.CONF.sensor_ref)
             if not sensor:
                 raise SensorNotFoundException('Sensor %s not found in db.' % cfg.CONF.sensor_ref)
