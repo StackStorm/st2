@@ -51,9 +51,7 @@ USER_PACK_NAME_BLACKLIST = [
     PACKS_PACK_NAME
 ]
 
-# Requirements which are common to all the packs
+# Python requirements which are common to all the packs and are installed into the Python pack
+# sandbox (virtualenv)
 BASE_PACK_REQUIREMENTS = [
-    # Note: We don't currently handle .pth files corectly so los.config
-    # needs to be installed inside virtualenv
-    'oslo.config'
 ]
