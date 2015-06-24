@@ -45,7 +45,8 @@ def _register_sensor_container_opts(ignore_errors=False):
     ]
     st2cfg.do_register_opts(logging_opts, group='sensorcontainer', ignore_errors=ignore_errors)
 
-    sensor_test_opt = cfg.StrOpt('sensor-name', help='Only run sensor with the provided name.')
+    sensor_test_opt = cfg.StrOpt('sensor-ref', help='Only run sensor with the provided reference. \
+        Value is of the form pack.sensor-name.')
     st2cfg.do_register_cli_opts(sensor_test_opt, ignore_errors=ignore_errors)
 
     st2_webhook_opts = [
