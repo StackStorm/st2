@@ -32,6 +32,7 @@ __all__ = [
     'SYSTEM_TRIGGER_TYPES'
 ]
 
+# Action resource triggers
 ACTION_SENSOR_TRIGGER = {
     'name': 'st2.generic.actiontrigger',
     'pack': SYSTEM_PACK_NAME,
@@ -64,6 +65,48 @@ NOTIFY_TRIGGER = {
             'channel': {},
             'message': {},
             'data': {}
+        }
+    }
+}
+
+# KeyValue pair resource triggers
+KEY_VALUE_PAIR_UPDATE_TRIGGER = {
+    'name': 'st2.key_value_pair.update',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating datastore set action.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'id': {},
+            'name': {},
+            'value': {}
+        }
+    }
+}
+
+KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER = {
+    'name': 'st2.key_value_pair.value_change',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating a change of datastore item value.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'old': {},
+            'new': {}
+        }
+    }
+}
+
+KEY_VALUE_PAIR_DELETE_TRIGGER = {
+    'name': 'st2.key_value_pair.delete',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating datastore item deletion.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'id': {},
+            'name': {},
+            'value': {}
         }
     }
 }
@@ -102,6 +145,11 @@ INTERNAL_TRIGGER_TYPES = {
                 }
             }
         }
+    ],
+    'key_value_pair': [
+        KEY_VALUE_PAIR_UPDATE_TRIGGER,
+        KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER,
+        KEY_VALUE_PAIR_DELETE_TRIGGER
     ]
 }
 

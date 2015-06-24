@@ -23,10 +23,18 @@ from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services import coordination
+from st2common.transport.reactor import TriggerDispatcher
+from st2common.constants.triggers import KEY_VALUE_PAIR_UPDATE_TRIGGER
+from st2common.constants.triggers import KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER
+from st2common.constants.triggers import KEY_VALUE_PAIR_DELETE_TRIGGER
 
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
+
+__all__ = [
+    'KeyValuePairController'
+]
 
 
 class KeyValuePairController(RestController):
@@ -34,9 +42,16 @@ class KeyValuePairController(RestController):
     Implements the REST endpoint for managing the key value store.
     """
 
+    ACTION_TO_TRIGGER_REF_MAP = {
+        'update': KEY_VALUE_PAIR_UPDATE_TRIGGER['name'],
+        'value_change': KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER['name'],
+        'delete': KEY_VALUE_PAIR_DELETE_TRIGGER['name'],
+    }
+
     # TODO: Port to use ResourceController
     def __init__(self):
         self._coordinator = coordination.get_coordinator()
+        self._trigger_dispatcher = TriggerDispatcher(LOG)
         super(KeyValuePairController, self).__init__()
 
     @jsexpose(arg_types=[str])
@@ -110,6 +125,12 @@ class KeyValuePairController(RestController):
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair updated. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
 
+        # Dispatch triggers
+        self._dispatch_item_update_trigger(kvp_db=kvp_db)
+
+        if existing_kvp and existing_kvp.value != kvp_db.value:
+            self._dispatch_item_value_change_trigger(old_kvp_db=existing_kvp, new_kvp_db=kvp_db)
+
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
         return kvp_api
 
@@ -143,6 +164,7 @@ class KeyValuePairController(RestController):
 
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair deleted. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
+        self._dispatch_item_delete_trigger(kvp_db=kvp_db)
 
     @staticmethod
     def __get_by_name(name):
@@ -161,3 +183,58 @@ class KeyValuePairController(RestController):
         """
         lock_name = 'kvp-crud-%s' % (name)
         return lock_name
+
+    ##################################
+    # Trigger dispatch utility methods
+    ##################################
+
+    def _dispatch_item_update_trigger(self, kvp_db):
+        action = 'update'
+        payload = {
+            'id': str(kvp_db.id),
+            'name': kvp_db.name,
+            'value': kvp_db.value
+        }
+        return self._dispatch_item_event(action=action, payload=payload)
+
+    def _dispatch_item_value_change_trigger(self, old_kvp_db, new_kvp_db):
+        action = 'value_change'
+        payload = {
+            'old': {
+                'id': str(old_kvp_db.id),
+                'name': old_kvp_db.name,
+                'value': old_kvp_db.value
+            },
+            'new': {
+                'id': str(new_kvp_db.id),
+                'name': new_kvp_db.name,
+                'value': new_kvp_db.value
+            }
+        }
+        return self._dispatch_item_event(action=action, payload=payload)
+
+    def _dispatch_item_delete_trigger(self, kvp_db):
+        action = 'delete'
+        payload = {
+            'id': str(kvp_db.id),
+            'name': kvp_db.name,
+            'value': kvp_db.value
+        }
+        return self._dispatch_item_event(action=action, payload=payload)
+
+    def _dispatch_item_event(self, action, payload):
+        """
+        Dispatch a trigger for the datastore action.
+
+        :param action: Action performed on the item.
+        :type action: ``str``
+
+        :param payload: Trigger payload.
+        :type payload: ``dict``
+        """
+        valid_action = self.ACTION_TO_TRIGGER_REF_MAP.keys()
+        if action not in valid_action:
+            raise ValueError('Invalid action: %s' % (action))
+
+        trigger = self.ACTION_TO_TRIGGER_REF_MAP[action]
+        self._trigger_dispatcher.dispatch(trigger=trigger, payload=payload)
