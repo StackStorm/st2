@@ -16,7 +16,7 @@
 import os
 import re
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.util.shell import run_command
 from st2actions.runners.pythonrunner import Action

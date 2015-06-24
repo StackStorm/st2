@@ -25,7 +25,7 @@ from webob import exc
 import pecan
 import pecan.jsonify
 import traceback
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.util import mongoescape as util_mongodb
 from st2common.util import schema as util_schema

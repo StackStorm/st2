@@ -15,7 +15,7 @@
 # limitations under the License.
 
 import mongoengine as me
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import config
 from st2common.constants.pack import DEFAULT_PACK_NAME

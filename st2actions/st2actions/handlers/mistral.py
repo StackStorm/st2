@@ -18,7 +18,7 @@ import eventlet
 import json
 import requests
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.constants import action as action_constants
 from st2common import log as logging

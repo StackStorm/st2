@@ -16,7 +16,7 @@
 import copy
 
 import jsonschema
-from oslo.config import cfg
+from oslo_config import cfg
 import pecan
 from pecan import abort
 from six.moves import http_client

@@ -20,7 +20,7 @@ import string
 
 import mock
 import pecan
-from oslo.config import cfg
+from oslo_config import cfg
 
 from tests.base import FunctionalTest
 from st2common.util import isotime

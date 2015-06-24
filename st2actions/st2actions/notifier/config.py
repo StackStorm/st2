@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING

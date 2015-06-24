@@ -23,7 +23,7 @@ import copy
 import traceback
 
 import six
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.constants.secrets import MASKED_ATTRIBUTES_BLACKLIST
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE

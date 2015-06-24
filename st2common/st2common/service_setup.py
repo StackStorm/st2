@@ -22,7 +22,7 @@ from __future__ import absolute_import
 import os
 import logging as stdlib_logging
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.models import db

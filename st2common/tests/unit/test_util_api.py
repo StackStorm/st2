@@ -15,7 +15,7 @@
 
 import unittest2
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.constants.api import DEFAULT_API_VERSION
 from st2common.util.api import get_base_public_api_url

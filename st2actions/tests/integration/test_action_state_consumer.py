@@ -16,7 +16,7 @@
 import mock
 
 from kombu import Connection
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2actions.resultstracker.resultstracker import ACTIONSTATE_WORK_Q, ResultsTracker
 from st2common.models.db.executionstate import ActionExecutionStateDB

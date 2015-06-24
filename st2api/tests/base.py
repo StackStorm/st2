@@ -15,7 +15,7 @@
 
 from pecan import load_app
 from pecan.testing import load_test_app
-from oslo.config import cfg
+from oslo_config import cfg
 from webtest import TestApp
 
 

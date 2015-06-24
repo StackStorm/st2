@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from kombu import Connection
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2actions.container.base import RunnerContainer
 from st2common import log as logging

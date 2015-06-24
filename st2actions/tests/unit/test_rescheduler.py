@@ -20,7 +20,7 @@ import six
 from st2tests import config as test_config
 test_config.parse_args()
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2actions.notifier import scheduler
 from st2common.constants import action as action_constants

@@ -19,7 +19,7 @@ import six
 
 from collections import defaultdict
 from kombu import Connection
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2actions.query.base import QueryContext
 from st2common import log as logging

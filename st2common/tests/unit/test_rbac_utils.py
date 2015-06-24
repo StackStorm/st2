@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import mock
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2tests.base import DbTestCase
 from st2tests.config import parse_args

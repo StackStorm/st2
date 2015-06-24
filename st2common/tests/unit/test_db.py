@@ -16,7 +16,7 @@
 import jsonschema
 import mock
 import mongoengine.connection
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher

@@ -16,7 +16,7 @@
 import logging
 import sys
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import config
 from st2common.service_setup import db_setup

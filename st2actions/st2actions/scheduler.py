@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from kombu import Connection
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants import action as action_constants

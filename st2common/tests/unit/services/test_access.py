@@ -16,7 +16,7 @@
 import datetime
 import uuid
 
-from oslo.config import cfg
+from oslo_config import cfg
 from st2tests.base import DbTestCase
 from st2common.util import isotime
 from st2common.util import date as date_utils

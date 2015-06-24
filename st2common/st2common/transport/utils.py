@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from kombu import Connection
-from oslo.config import cfg
+from oslo_config import cfg
 from st2common import log as logging
 from st2common.transport.execution import EXECUTION_XCHG
 from st2common.transport.liveaction import LIVEACTION_XCHG

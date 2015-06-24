@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import unittest2
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.content.utils import get_packs_base_paths, get_aliases_base_paths
 from st2tests import config as tests_config

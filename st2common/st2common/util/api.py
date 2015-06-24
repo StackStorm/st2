@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.constants.api import DEFAULT_API_VERSION
 from st2common.util.url import get_url_without_trailing_slash

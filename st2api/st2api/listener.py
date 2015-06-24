@@ -32,7 +32,7 @@ import eventlet
 
 from kombu import Connection, Queue
 from kombu.mixins import ConsumerMixin
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionAPI
