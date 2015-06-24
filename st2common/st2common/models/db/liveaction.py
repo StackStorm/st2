@@ -84,7 +84,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
         from st2common.util import action_db
 
         result = copy.deepcopy(value)
-        execution_parameters = self.parameters
+        execution_parameters = value['parameters']
 
         # TODO: This results into two DB looks, we should cache action and runner type object
         # for each liveaction...
@@ -95,12 +95,19 @@ class LiveActionDB(stormbase.StormFoundationDB):
         #  7______""-'__`,
         parameters = action_db.get_action_parameters_specs(action_ref=self.action)
 
-        execution_parameters = value['parameters']
-
         secret_parameters = get_secret_parameters(parameters=parameters)
         result['parameters'] = mask_secret_parameters(parameters=execution_parameters,
                                                       secret_parameters=secret_parameters)
         return result
+
+    def get_masked_parameters(self):
+        """
+        Retrieve parameters with the secrets masked.
+
+        :rtype: ``dict``
+        """
+        serializable_dict = self.to_serializable_dict(mask_secrets=True)
+        return serializable_dict['parameters']
 
 
 # specialized access objects

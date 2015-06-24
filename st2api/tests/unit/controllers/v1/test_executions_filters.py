@@ -97,6 +97,20 @@ class TestActionExecutionFilters(FunctionalTest):
         ids = [item['id'] for item in response.json]
         self.assertListEqual(sorted(ids), sorted(self.refs.keys()))
 
+    def test_get_all_exclude_attributes(self):
+        # No attributes excluded
+        response = self.app.get('/v1/executions?action=core.local&limit=1')
+
+        self.assertEqual(response.status_int, 200)
+        self.assertTrue('result' in response.json[0])
+
+        # Exclude "result" attribute
+        path = '/v1/executions?action=core.local&limit=1&exclude_attributes=result'
+        response = self.app.get(path)
+
+        self.assertEqual(response.status_int, 200)
+        self.assertFalse('result' in response.json[0])
+
     def test_get_one(self):
         obj_id = random.choice(self.refs.keys())
         response = self.app.get('/v1/executions/%s' % obj_id)

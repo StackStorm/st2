@@ -25,6 +25,7 @@ from fabric.api import (put, run, sudo)
 from fabric.context_managers import shell_env
 from fabric.context_managers import settings
 from fabric.tasks import WrappedCallableTask
+from oslo.config import cfg
 
 from st2common import log as logging
 from st2common.models.base import DictSerializableClassMixin
@@ -617,7 +618,7 @@ class ResolvedActionParameters(DictSerializableClassMixin):
         result['runner_parameters'] = self._runner_parameters
         result['action_parameters'] = self._action_parameters
 
-        if mask_secrets:
+        if mask_secrets and cfg.CONF.log.mask_secrets:
             result = self.mask_secrets(value=result)
 
         return result
