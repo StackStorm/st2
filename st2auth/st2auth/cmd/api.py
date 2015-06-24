@@ -17,7 +17,7 @@ import eventlet
 import os
 import sys
 
-from oslo.config import cfg
+from oslo_config import cfg
 from eventlet import wsgi
 
 from st2common import log as logging

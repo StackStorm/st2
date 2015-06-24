@@ -16,7 +16,7 @@
 import uuid
 import datetime
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.util import isotime
 from st2common.util import date as date_utils

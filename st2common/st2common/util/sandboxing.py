@@ -22,7 +22,7 @@ import os
 import sys
 from distutils.sysconfig import get_python_lib
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 

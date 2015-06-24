@@ -26,7 +26,7 @@ from datetime import datetime, timedelta
 import sys
 
 import eventlet
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import config
 from st2common.models.db import db_setup

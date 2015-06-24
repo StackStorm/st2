@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 __all__ = [
     'LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT',

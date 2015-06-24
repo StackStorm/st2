@@ -15,7 +15,7 @@
 
 import os
 
-from oslo.config import cfg
+from oslo_config import cfg
 import unittest2
 
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR

@@ -17,7 +17,7 @@ import eventlet
 import uuid
 from kombu.mixins import ConsumerMixin
 from kombu import Connection
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.persistence.trigger import Trigger

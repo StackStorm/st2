@@ -18,7 +18,7 @@ import os
 import tempfile
 import yaml
 
-from oslo.config import cfg
+from oslo_config import cfg
 from eventlet.green import subprocess
 
 from st2common.util.green.shell import run_command

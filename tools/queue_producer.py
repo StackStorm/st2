@@ -21,7 +21,7 @@ A utility script which sends test messages to a queue.
 import argparse
 
 from kombu import Connection, Exchange
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import config
 

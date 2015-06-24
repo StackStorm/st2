@@ -2,7 +2,7 @@ import os
 import sys
 
 import eventlet
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup

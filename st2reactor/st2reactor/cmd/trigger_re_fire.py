@@ -17,7 +17,7 @@ import sys
 import logging as std_logging
 import pprint
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import config as st2cfg
 from st2common import log as logging

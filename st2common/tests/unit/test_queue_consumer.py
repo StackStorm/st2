@@ -15,7 +15,7 @@
 
 import mock
 from kombu import Connection, Exchange, Queue
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.transport import consumers
 from st2tests.base import DbTestCase

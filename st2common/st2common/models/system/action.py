@@ -25,7 +25,7 @@ from fabric.api import (put, run, sudo)
 from fabric.context_managers import shell_env
 from fabric.context_managers import settings
 from fabric.tasks import WrappedCallableTask
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.models.base import DictSerializableClassMixin

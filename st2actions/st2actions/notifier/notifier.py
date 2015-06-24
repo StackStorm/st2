@@ -16,7 +16,7 @@
 import json
 
 from kombu import Connection
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED

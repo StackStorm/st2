@@ -19,7 +19,7 @@ import json
 import uuid
 
 import requests
-from oslo.config import cfg
+from oslo_config import cfg
 from six.moves.urllib import parse as urlparse
 
 from st2actions.runners import ActionRunner

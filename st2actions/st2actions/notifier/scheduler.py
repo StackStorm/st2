@@ -15,7 +15,7 @@
 
 import datetime
 
-from oslo.config import cfg
+from oslo_config import cfg
 from apscheduler.schedulers.background import BlockingScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import apscheduler.util as aps_utils

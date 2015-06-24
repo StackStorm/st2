@@ -18,7 +18,7 @@ import datetime
 import bson
 import six
 import mongoengine as me
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.util import mongoescape
 from st2common.models.base import DictSerializableClassMixin

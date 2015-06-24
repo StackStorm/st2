@@ -20,7 +20,7 @@ import six
 import sys
 import traceback
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 
 CONFIGS = ['st2common.config',
