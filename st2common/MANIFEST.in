@@ -1,0 +1,4 @@
+# https://docs.python.org/2/distutils/sourcedist.html#commands
+# Include all files under the source tree by default.
+# Other behaviour can be used though.
+recursive-include st2common *.* *

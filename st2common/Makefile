@@ -32,3 +32,6 @@ deb:
 	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ --exclude=correlation -czf ~/$(COMPONENTS).tar.gz bin st2 logrotate.d $(COMPONENTS) ../contrib ../docs ../tools/ ../requirements.txt packaging/debian
 	pushd ~ && tar -xzf $(COMPONENTS).tar.gz && cd $(COMPONENTS)-$(VER) && cp -Rf packaging/debian ./ && dpkg-buildpackage -us -uc -b && popd
 	cp -f ~/$(COMPONENT)*.deb ~/debbuild/
+
+.PHONY: requirements
+	python ../scripts/fixate-requirements.py -s in-requirements.txt -f ../fixed-requirements.txt
