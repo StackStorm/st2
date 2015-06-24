@@ -16,7 +16,6 @@
 import os
 import shutil
 import hashlib
-import re
 import json
 
 import six
@@ -87,8 +86,13 @@ class DownloadGitRepoAction(Action):
         # all_packs should be removed as a pack with that name is not expected to be found.
         if ALL_PACKS in packs:
             packs = os.listdir(abs_local_path)
+
         for pack in packs:
-            abs_pack_temp_location = os.path.join(abs_local_path, pack) if subtree else abs_local_path
+            if subtree:
+                abs_pack_temp_location = os.path.join(abs_local_path, pack)
+            else:
+                abs_pack_temp_location = abs_local_path
+
             desired, message = DownloadGitRepoAction._is_desired_pack(abs_pack_temp_location, pack)
             if desired:
                 to = abs_repo_base
@@ -96,11 +100,16 @@ class DownloadGitRepoAction(Action):
                 if os.path.exists(dest_pack_path):
                     self.logger.debug('Removing existing pack %s in %s to replace.', pack,
                                       dest_pack_path)
+
                     # Ensure to preserve any existing configuration
                     old_config_file = os.path.join(dest_pack_path, CONFIG_FILE)
                     new_config_file = os.path.join(abs_pack_temp_location, CONFIG_FILE)
-                    shutil.move(old_config_file, new_config_file)
+
+                    if os.path.isfile(old_config_file):
+                        shutil.move(old_config_file, new_config_file)
+
                     shutil.rmtree(dest_pack_path)
+
                 self.logger.debug('Moving pack from %s to %s.', abs_pack_temp_location, to)
                 shutil.move(abs_pack_temp_location, to)
                 message = 'Success.'

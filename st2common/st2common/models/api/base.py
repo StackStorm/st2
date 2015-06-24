@@ -25,6 +25,7 @@ from webob import exc
 import pecan
 import pecan.jsonify
 import traceback
+from oslo.config import cfg
 
 from st2common.util import mongoescape as util_mongodb
 from st2common.util import schema as util_schema
@@ -41,7 +42,6 @@ class BaseAPI(object):
     schema = abc.abstractproperty
 
     def __init__(self, **kw):
-
         for key, value in kw.items():
             setattr(self, key, value)
 
@@ -64,20 +64,40 @@ class BaseAPI(object):
         VALIDATOR(getattr(self, 'schema', {})).validate(vars(self))
 
     @classmethod
-    def _from_model(cls, model):
+    def _from_model(cls, model, mask_secrets=False):
         doc = util_mongodb.unescape_chars(model.to_mongo())
+
         if '_id' in doc:
             doc['id'] = str(doc.pop('_id'))
+
+        if mask_secrets and cfg.CONF.log.mask_secrets:
+            doc = model.mask_secrets(value=doc)
+
         return doc
 
     @classmethod
-    def from_model(cls, model):
-        doc = cls._from_model(model)
+    def from_model(cls, model, mask_secrets=False):
+        """
+        Create API model class instance for the provided DB model instance.
+
+        :param model: DB model class instance.
+        :type model: :class:`StormFoundationDB`
+
+        :param mask_secrets: True to mask secrets in the resulting instance.
+        :type mask_secrets: ``boolean``
+        """
+        doc = cls._from_model(model=model, mask_secrets=mask_secrets)
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
+
         return cls(**attrs)
 
     @classmethod
     def to_model(cls, doc):
+        """
+        Create a model class instance for the provided MongoDB document.
+
+        :param doc: MongoDB document.
+        """
         # pylint: disable=no-member
         # TODO: Add plugin which lets pylint know each MongoEngine document has model
         # method

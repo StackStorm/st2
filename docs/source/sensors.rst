@@ -214,13 +214,13 @@ use the st2sensorcontainer to run just that single sensor.
 
 ::
 
-    st2sensorcontainer --config-file=/etc/st2/st2.conf --sensor-name=SensorClassName
+    st2sensorcontainer --config-file=/etc/st2/st2.conf --sensor-ref=pack.SensorClassName
 
 For example:
 
 ::
 
-    st2sensorcontainer --config-file=/etc/st2/st2.conf --sensor-name=GitCommitSensor
+    st2sensorcontainer --config-file=/etc/st2/st2.conf --sensor-ref=git.GitCommitSensor
 
 Examples
 --------

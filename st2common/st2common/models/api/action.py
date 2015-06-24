@@ -303,8 +303,8 @@ class LiveActionAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model):
-        doc = super(cls, cls)._from_model(model)
+    def from_model(cls, model, mask_secrets=False):
+        doc = super(cls, cls)._from_model(model, mask_secrets=mask_secrets)
         if model.start_timestamp:
             doc['start_timestamp'] = isotime.format(model.start_timestamp, offset=False)
         if model.end_timestamp:

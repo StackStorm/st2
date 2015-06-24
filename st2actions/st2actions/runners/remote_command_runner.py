@@ -36,16 +36,13 @@ def get_runner():
 
 class RemoteCommandRunner(BaseFabricRunner):
     def run(self, action_parameters):
-        LOG.debug('    action_parameters = %s', action_parameters)
-
         remote_action = self._get_remote_action(action_parameters)
 
-        LOG.debug('Will execute remote_action : %s.', str(remote_action))
+        LOG.debug('Will execute remote_action: %s.', str(remote_action))
         result = self._run(remote_action)
-        LOG.debug('Executed remote_action : %s. Result is : %s.', remote_action, result)
+        LOG.debug('Executed remote_action: %s. Result is: %s.', remote_action, result)
         status = self._get_result_status(result, cfg.CONF.ssh_runner.allow_partial_failure)
 
-        self._log_action_completion(logger=LOG, result=result, status=status)
         return (status, result, None)
 
     def _get_remote_action(self, action_paramaters):

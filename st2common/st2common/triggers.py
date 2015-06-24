@@ -32,6 +32,7 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
+INTERNAL_TRIGGER_REGISTER_TOKEN_TTL = (1 * 60 * 60)
 
 
 class InternalTriggerTypesRegistrar(object):
@@ -43,7 +44,7 @@ class InternalTriggerTypesRegistrar(object):
         self._timeout = cfg.CONF.action_sensor.request_timeout
         self._max_attempts = cfg.CONF.action_sensor.max_attempts
         self._auth_creds = create_token('system.internal_trigger_registrar',
-                                        ttl=(1 * 60 * 60))
+                                        ttl=INTERNAL_TRIGGER_REGISTER_TOKEN_TTL)
         self._http_post_headers = {'content-type': 'application/json',
                                    'X-Auth-Token': self._auth_creds.token}
         self._http_get_headers = {'X-Auth-Token': self._auth_creds.token}
@@ -62,7 +63,8 @@ class InternalTriggerTypesRegistrar(object):
         delete_token(self._auth_creds.token)
 
     def _register_trigger_type(self, trigger_definition, attempt_no=0):
-        LOG.debug('Attempt no %s to register trigger %s.', attempt_no, trigger_definition['name'])
+        LOG.debug('Attempt no %s to register trigger %s.', (attempt_no + 1),
+                  trigger_definition['name'])
 
         ref = ResourceReference.to_string_reference(pack=trigger_definition['pack'],
                                                     name=trigger_definition['name'])

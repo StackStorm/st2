@@ -130,25 +130,6 @@ class ActionRunner(object):
 
         return result
 
-    def _log_action_completion(self, logger, result, status, exit_code=None):
-        """
-        Log action completion event.
-
-        :param result: Action result / output.
-        :param status: Action status.
-        :param exit_code: Action exit code (optional).
-        """
-        name = self.action_name
-        extra = {
-            'result': result,
-            'status': status
-        }
-
-        if exit_code is not None:
-            extra['exit_code'] = exit_code
-
-        logger.debug('Action "%s" completed.' % (name), extra=extra)
-
     def __str__(self):
         attrs = ', '.join(['%s=%s' % (k, v) for k, v in six.iteritems(self.__dict__)])
         return '%s@%s(%s)' % (self.__class__.__name__, str(id(self)), attrs)

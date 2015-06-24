@@ -27,6 +27,15 @@ def parse_args(args=None):
     cfg.CONF(args=args, version=VERSION_STRING)
 
 
+def register_opts():
+    _register_common_opts()
+    _register_app_opts()
+
+
+def get_logging_config_path():
+    return cfg.CONF.auth.logging
+
+
 def _register_common_opts():
     st2cfg.register_opts()
 
@@ -61,11 +70,5 @@ def _register_app_opts():
             help='List of origins allowed'),
     ]
     cfg.CONF.register_cli_opts(api_opts, group='api')
-
-
-def register_opts():
-    _register_common_opts()
-    _register_app_opts()
-
 
 register_opts()

@@ -21,6 +21,7 @@ from st2common import log as logging
 from st2common.util import date as date_utils
 from st2common.constants import action as action_constants
 from st2common.models.db.executionstate import ActionExecutionStateDB
+from st2common.models.system.action import ResolvedActionParameters
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
@@ -32,24 +33,22 @@ from st2actions.utils import param_utils
 
 LOG = logging.getLogger(__name__)
 
+__all__ = [
+    'RunnerContainer',
+    'get_runner_container'
+]
+
 
 class RunnerContainer(object):
-
-    def __init__(self):
-        LOG.info('Action RunnerContainer instantiated.')
-        self._pending = []
-
     def dispatch(self, liveaction_db):
         action_db = get_action_by_ref(liveaction_db.action)
         if not action_db:
-            raise Exception('Action %s not found in dB.' % liveaction_db.action)
-        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
-        runner_type = runnertype_db.name
+            raise Exception('Action %s not found in DB.' % (liveaction_db.action))
 
-        LOG.info('Dispatching Action to runner \n%s',
-                 json.dumps(liveaction_db.to_serializable_dict(), indent=4))
-        LOG.debug('    liverunner_type: %s', runner_type)
-        LOG.debug('    RunnerType: %s', runnertype_db)
+        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
+
+        extra = {'liveaction_db': liveaction_db, 'runnertype_db': runnertype_db}
+        LOG.info('Dispatching Action to a runner', extra=extra)
 
         # Get runner instance.
         runner = get_runner(runnertype_db.runner_module)
@@ -57,13 +56,12 @@ class RunnerContainer(object):
 
         # Invoke pre_run, run, post_run cycle.
         liveaction_db = self._do_run(runner, runnertype_db, action_db, liveaction_db)
-        LOG.debug('runner do_run result: %s', liveaction_db.result)
 
-        liveaction_serializable = liveaction_db.to_serializable_dict()
+        extra = {'result': liveaction_db.result}
+        LOG.debug('Runner do_run result', extra=extra)
 
         extra = {'liveaction_db': liveaction_db}
-        LOG.audit('liveaction complete.', extra=extra)
-        LOG.info('result :\n%s.', json.dumps(liveaction_serializable.get('result', None), indent=4))
+        LOG.audit('Liveaction completed', extra=extra)
 
         return liveaction_db.result
 
@@ -84,6 +82,9 @@ class RunnerContainer(object):
         runner.callback = getattr(liveaction_db, 'callback', dict())
         runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
                                                               action_db.entry_point)
+
+        # Create a temporary auth token which will be available during duration of the action
+        # execution
         runner.auth_token = self._create_auth_token(runner.context)
 
         updated_liveaction_db = None
@@ -93,10 +94,17 @@ class RunnerContainer(object):
             runner_params, action_params = param_utils.get_finalized_params(
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters)
             runner.runner_parameters = runner_params
-            LOG.debug('Performing pre-run for runner: %s', runner)
+
+            LOG.debug('Performing pre-run for runner: %s', runner.runner_id)
             runner.pre_run()
 
-            LOG.debug('Performing run for runner: %s', runner)
+            # Mask secret parameters in the log context
+            resolved_action_params = ResolvedActionParameters(action_db=action_db,
+                                                              runner_type_db=runnertype_db,
+                                                              runner_parameters=runner_params,
+                                                              action_parameters=action_params)
+            extra = {'runner': runner, 'parameters': resolved_action_params}
+            LOG.debug('Performing run for runner: %s' % (runner.runner_id), extra=extra)
             (status, result, context) = runner.run(action_params)
 
             try:
@@ -104,8 +112,8 @@ class RunnerContainer(object):
             except:
                 pass
 
-            if (isinstance(runner, AsyncActionRunner) and
-                    status not in action_constants.COMPLETED_STATES):
+            action_completed = status in action_constants.COMPLETED_STATES
+            if (isinstance(runner, AsyncActionRunner) and not action_completed):
                 self._setup_async_query(liveaction_db.id, runnertype_db, context)
         except:
             LOG.exception('Failed to run action.')
@@ -116,31 +124,41 @@ class RunnerContainer(object):
             result = {'message': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
             context = None
         finally:
+            # Log action completion
+            extra = {'result': result, 'status': status}
+            LOG.debug('Action "%s" completed.' % (action_db.name), extra=extra)
+
             # Always clean-up the auth_token
             updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
                                                                 result, context)
             executions.update_execution(updated_liveaction_db)
-            LOG.debug('Updated liveaction after run: %s', updated_liveaction_db)
+
+            extra = {'liveaction_db': updated_liveaction_db}
+            LOG.debug('Updated liveaction after run', extra=extra)
 
             # Deletion of the runner generated auth token is delayed until the token expires.
             # Async actions such as Mistral workflows uses the auth token to launch other
             # actions in the workflow. If the auth token is deleted here, then the actions
             # in the workflow will fail with unauthorized exception.
-            if (not isinstance(runner, AsyncActionRunner) or
-                    (isinstance(runner, AsyncActionRunner) and
-                     status in action_constants.COMPLETED_STATES)):
+            is_async_runner = isinstance(runner, AsyncActionRunner)
+            action_completed = status in action_constants.COMPLETED_STATES
+
+            if (not is_async_runner or (is_async_runner and action_completed)):
                 try:
                     self._delete_auth_token(runner.auth_token)
                 except:
-                    LOG.warn('Unable to clean-up auth_token.')
+                    LOG.exception('Unable to clean-up auth_token.')
 
-        LOG.debug('Performing post_run for runner: %s', runner)
+        LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         runner.post_run(status, result)
         runner.container_service = None
 
         return updated_liveaction_db
 
     def _update_live_action_db(self, liveaction_id, status, result, context):
+        """
+        Update LiveActionDB object for the provided liveaction id.
+        """
         liveaction_db = get_liveaction_by_id(liveaction_id)
         if status in action_constants.COMPLETED_STATES:
             end_timestamp = date_utils.get_datetime_utc_now()

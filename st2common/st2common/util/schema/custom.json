@@ -93,6 +93,10 @@
             "type": "boolean",
             "default": false
         },
+        "secret": {
+            "type": "boolean",
+            "default": false
+        },
         "additionalProperties": {
             "anyOf": [
                 { "type": "boolean" },

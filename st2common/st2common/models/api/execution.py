@@ -110,8 +110,8 @@ class ActionExecutionAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model):
-        doc = cls._from_model(model)
+    def from_model(cls, model, mask_secrets=False):
+        doc = cls._from_model(model, mask_secrets=mask_secrets)
         start_timestamp = isotime.format(model.start_timestamp, offset=False)
         doc['start_timestamp'] = start_timestamp
 

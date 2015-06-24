@@ -5,14 +5,11 @@ import eventlet
 from oslo.config import cfg
 
 from st2common import log as logging
-from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
+from st2common.service_setup import setup as common_setup
+from st2common.service_setup import teardown as common_teardown
 from st2common.exceptions.sensors import SensorNotFoundException
-from st2common.models.db import db_setup
-from st2common.models.db import db_teardown
 from st2common.persistence.sensor import SensorType
-from st2common.signal_handlers import register_common_signal_handlers
 from st2reactor.sensor import config
-from st2common.transport.utils import register_exchanges
 from st2common.triggers import register_internal_trigger_types
 from st2reactor.container.manager import SensorContainerManager
 
@@ -28,35 +25,19 @@ LOG = logging.getLogger('st2reactor.bin.sensors_manager')
 
 
 def _setup():
-    # Set up logger which logs everything which happens during and before config
-    # parsing to sys.stdout
-    logging.setup(DEFAULT_LOGGING_CONF_PATH)
+    common_setup(service='sensorcontainer', config=config, setup_db=True,
+                 register_mq_exchanges=True, register_signal_handlers=True)
 
-    # 1. parse config args
-    config.parse_args()
-
-    # 2. setup logging.
-    logging.setup(cfg.CONF.sensorcontainer.logging)
-
-    # 3. all other setup which requires config to be parsed and logging to
-    # be correctly setup.
-    username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
-    password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-             username=username, password=password)
-    register_exchanges()
-    register_common_signal_handlers()
-
-    # 4. Register internal triggers
     register_internal_trigger_types()
 
 
 def _teardown():
-    db_teardown()
+    common_teardown()
 
 
 def _get_all_sensors():
-    sensors = SensorType.get_all()
+    # only query for enabled sensors.
+    sensors = SensorType.query(enabled=True)
     LOG.info('Found %d registered sensors in db scan.', len(sensors))
     return sensors
 
@@ -65,14 +46,18 @@ def main():
     try:
         _setup()
         container_manager = SensorContainerManager()
-        sensors = _get_all_sensors()
+        sensors = None
 
-        if cfg.CONF.sensor_name:
-            # Only run a single sensor
-            sensors = [sensor for sensor in sensors if
-                       sensor.name == cfg.CONF.sensor_name]
-            if not sensors:
-                raise SensorNotFoundException('Sensor %s not found in db.' % cfg.CONF.sensor_name)
+        if cfg.CONF.sensor_ref:
+            # pick the sensor even if it is disabled since it has been specifically
+            # asked to be run. This is debug/test usecase so it is reasonable to run
+            # a disabled sensor.
+            sensor = SensorType.get_by_ref(cfg.CONF.sensor_ref)
+            if not sensor:
+                raise SensorNotFoundException('Sensor %s not found in db.' % cfg.CONF.sensor_ref)
+            sensors = [sensor]
+        else:
+            sensors = _get_all_sensors()
 
         if not sensors:
             msg = 'No sensors configured to run. See http://docs.stackstorm.com/sensors.html. ' + \

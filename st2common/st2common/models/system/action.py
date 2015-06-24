@@ -17,6 +17,7 @@ import os
 import pwd
 import six
 import sys
+import copy
 import traceback
 import tempfile
 
@@ -24,12 +25,16 @@ from fabric.api import (put, run, sudo)
 from fabric.context_managers import shell_env
 from fabric.context_managers import settings
 from fabric.tasks import WrappedCallableTask
+from oslo.config import cfg
 
 from st2common import log as logging
+from st2common.models.base import DictSerializableClassMixin
 from st2common.util.shell import quote_unix
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common.exceptions.fabricrunner import FabricExecutionFailureException
 import st2common.util.jsonify as jsonify
+from st2common.util.secrets import get_secret_parameters
+from st2common.util.secrets import mask_secret_parameters
 
 __all__ = [
     'ShellCommandAction',
@@ -38,7 +43,8 @@ __all__ = [
     'RemoteScriptAction',
     'ParamikoSSHCommandAction',
     'FabricRemoteAction',
-    'FabricRemoteScriptAction'
+    'FabricRemoteScriptAction',
+    'ResolvedActionParameters'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -572,4 +578,47 @@ class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
             msg = 'Failed copying %s to %s on remote box' % (file_or_dir, self.remote_dir)
             LOG.error(msg)
             result['error'] = msg
+        return result
+
+
+class ResolvedActionParameters(DictSerializableClassMixin):
+    """
+    Class which contains resolved runner and action parameters for a particular action.
+    """
+
+    def __init__(self, action_db, runner_type_db, runner_parameters=None, action_parameters=None):
+        self._action_db = action_db
+        self._runner_type_db = runner_type_db
+        self._runner_parameters = runner_parameters
+        self._action_parameters = action_parameters
+
+    def mask_secrets(self, value):
+        result = copy.deepcopy(value)
+
+        runner_parameters = result['runner_parameters']
+        action_parameters = result['action_parameters']
+
+        runner_parameters_specs = self._runner_type_db.runner_parameters
+        action_parameters_sepcs = self._action_db.parameters
+
+        secret_runner_parameters = get_secret_parameters(parameters=runner_parameters_specs)
+        secret_action_parameters = get_secret_parameters(parameters=action_parameters_sepcs)
+
+        runner_parameters = mask_secret_parameters(parameters=runner_parameters,
+                                                   secret_parameters=secret_runner_parameters)
+        action_parameters = mask_secret_parameters(parameters=action_parameters,
+                                                   secret_parameters=secret_action_parameters)
+        result['runner_parameters'] = runner_parameters
+        result['action_parameters'] = action_parameters
+
+        return result
+
+    def to_serializable_dict(self, mask_secrets=False):
+        result = {}
+        result['runner_parameters'] = self._runner_parameters
+        result['action_parameters'] = self._action_parameters
+
+        if mask_secrets and cfg.CONF.log.mask_secrets:
+            result = self.mask_secrets(value=result)
+
         return result
