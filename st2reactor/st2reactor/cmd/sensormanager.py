@@ -35,7 +35,7 @@ def _teardown():
     common_teardown()
 
 
-def _get_all_sensors():
+def _get_all_enabled_sensors():
     # only query for enabled sensors.
     sensors = SensorType.query(enabled=True)
     LOG.info('Found %d registered sensors in db scan.', len(sensors))
@@ -57,7 +57,7 @@ def main():
                 raise SensorNotFoundException('Sensor %s not found in db.' % cfg.CONF.sensor_ref)
             sensors = [sensor]
         else:
-            sensors = _get_all_sensors()
+            sensors = _get_all_enabled_sensors()
 
         if not sensors:
             msg = 'No sensors configured to run. See http://docs.stackstorm.com/sensors.html. ' + \
