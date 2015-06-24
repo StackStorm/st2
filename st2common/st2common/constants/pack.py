@@ -54,4 +54,5 @@ USER_PACK_NAME_BLACKLIST = [
 # Python requirements which are common to all the packs and are installed into the Python pack
 # sandbox (virtualenv)
 BASE_PACK_REQUIREMENTS = [
+    'six>=1.9.0,<2.0'
 ]
