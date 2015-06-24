@@ -118,7 +118,7 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None):
             else:
                 project = req.req.project_name
                 if project in fixedreq_hash:
-                    rline = str(fixedreq_hash[project])
+                    rline = str(fixedreq_hash[project].req)
                 else:
                     rline = str(req.req)
             f.write(rline + '\n')

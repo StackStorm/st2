@@ -34,4 +34,5 @@ deb:
 	cp -f ~/$(COMPONENT)*.deb ~/debbuild/
 
 .PHONY: requirements
+requirements:
 	python ../scripts/fixate-requirements.py -s in-requirements.txt -f ../fixed-requirements.txt
