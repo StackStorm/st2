@@ -26,6 +26,10 @@ in development
 * Support for masking secret parameters in the API responses. Secret parameters can only be viewed
   through the API by admin users. (new-feature)
 * Single sensor mode of Sensor Container uses ``--sensor-ref`` instead of ``--sensor-name``.
+* Dispatch an internal trigger when a datastore item has been updated
+  (``st2.key_value_pair.update``), when it's value has changed
+  (``st2.key_value_pair.value_change``), and when it has been deleted
+  (``st2.key_value_pair.delete``). (new-feature)
 
 0.11.3 - June 16, 2015
 ----------------------
