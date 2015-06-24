@@ -48,9 +48,10 @@ def main():
         sensors = None
 
         if cfg.CONF.sensor_ref:
-            sensors = [SensorType.get_by_ref(cfg.CONF.sensor_ref)]
-            if not sensors:
+            sensor = SensorType.get_by_ref(cfg.CONF.sensor_ref)
+            if not sensor:
                 raise SensorNotFoundException('Sensor %s not found in db.' % cfg.CONF.sensor_ref)
+            sensors = [sensor]
         else:
             sensors = _get_all_sensors()
 
