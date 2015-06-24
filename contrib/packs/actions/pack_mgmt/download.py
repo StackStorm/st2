@@ -16,7 +16,6 @@
 import os
 import shutil
 import hashlib
-import re
 import json
 
 import six
@@ -87,8 +86,13 @@ class DownloadGitRepoAction(Action):
         # all_packs should be removed as a pack with that name is not expected to be found.
         if ALL_PACKS in packs:
             packs = os.listdir(abs_local_path)
+
         for pack in packs:
-            abs_pack_temp_location = os.path.join(abs_local_path, pack) if subtree else abs_local_path
+            if subtree:
+                abs_pack_temp_location = os.path.join(abs_local_path, pack)
+            else:
+                abs_pack_temp_location = abs_local_path
+
             desired, message = DownloadGitRepoAction._is_desired_pack(abs_pack_temp_location, pack)
             if desired:
                 to = abs_repo_base

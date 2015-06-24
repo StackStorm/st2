@@ -18,6 +18,7 @@ import datetime
 import bson
 import six
 import mongoengine as me
+from oslo.config import cfg
 
 from st2common.util import mongoescape
 from st2common.models.base import DictSerializableClassMixin
@@ -88,7 +89,7 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
             v = str(v) if isinstance(v, JSON_UNFRIENDLY_TYPES) else v
             serializable_dict[k] = v
 
-        if mask_secrets:
+        if mask_secrets and cfg.CONF.log.mask_secrets:
             serializable_dict = self.mask_secrets(value=serializable_dict)
 
         return serializable_dict

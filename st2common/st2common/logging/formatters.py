@@ -23,6 +23,7 @@ import copy
 import traceback
 
 import six
+from oslo.config import cfg
 
 from st2common.constants.secrets import MASKED_ATTRIBUTES_BLACKLIST
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
@@ -73,6 +74,9 @@ def process_attribute_value(key, value):
     """
     Format and process the extra attribute value.
     """
+    if not cfg.CONF.log.mask_secrets:
+        return value
+
     # NOTE: This can be expensive when processing large dicts or objects
     if isinstance(value, SIMPLE_TYPES):
         if key in MASKED_ATTRIBUTES_BLACKLIST:

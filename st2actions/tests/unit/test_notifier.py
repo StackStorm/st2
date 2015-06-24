@@ -21,10 +21,13 @@ tests_config.parse_args()
 
 from st2actions.notifier.notifier import Notifier
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
+from st2common.models.db.action import ActionDB
+from st2common.models.db.runner import RunnerTypeDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema
 from st2common.models.db.notification import NotificationSubSchema
 from st2common.persistence.action import Action
+from st2common.persistence.policy import Policy
 from st2common.models.system.common import ResourceReference
 from st2common.util import date as date_utils
 
@@ -76,8 +79,14 @@ class NotifierTestCase(unittest2.TestCase):
             except Exception:
                 self.tester.fail('Test failed')
 
+    @mock.patch('st2common.util.action_db.get_action_by_ref', mock.MagicMock(
+        return_value=ActionDB(runner_type={'name': 'run-local-cmd'})))
+    @mock.patch('st2common.util.action_db.get_runnertype_by_name', mock.MagicMock(
+        return_value=RunnerTypeDB(runner_parameters={})))
     @mock.patch.object(Action, 'get_by_ref', mock.MagicMock(
         return_value={'runner_type': {'name': 'run-local-cmd'}}))
+    @mock.patch.object(Policy, 'query', mock.MagicMock(
+        return_value=[]))
     @mock.patch.object(Notifier, '_get_execution_id_for_liveaction', mock.MagicMock(
         return_value=MOCK_EXECUTION_ID))
     def test_notify_triggers(self):

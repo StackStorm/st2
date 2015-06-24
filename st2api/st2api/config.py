@@ -52,7 +52,9 @@ def _register_app_opts():
         cfg.ListOpt('allow_origin', default=['http://localhost:3000'],
                     help='List of origins allowed'),
         cfg.IntOpt('heartbeat', default=25,
-                   help='Send empty message every N seconds to keep connection open')
+                   help='Send empty message every N seconds to keep connection open'),
+        cfg.BoolOpt('mask_secrets', default=True,
+                    help='True to mask secrets in API responses')
     ]
     CONF.register_opts(api_opts, group='api')
 

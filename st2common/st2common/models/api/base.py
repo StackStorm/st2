@@ -25,6 +25,7 @@ from webob import exc
 import pecan
 import pecan.jsonify
 import traceback
+from oslo.config import cfg
 
 from st2common.util import mongoescape as util_mongodb
 from st2common.util import schema as util_schema
@@ -69,7 +70,7 @@ class BaseAPI(object):
         if '_id' in doc:
             doc['id'] = str(doc.pop('_id'))
 
-        if mask_secrets:
+        if mask_secrets and cfg.CONF.log.mask_secrets:
             doc = model.mask_secrets(value=doc)
 
         return doc
