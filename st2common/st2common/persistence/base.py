@@ -123,24 +123,24 @@ class Access(object):
         is_update = str(pre_persist_id) == str(model_object.id)
 
         # Publish internal event on the message bus
-        try:
-            if publish:
+        if publish:
+            try:
                 if is_update:
                     cls.publish_update(model_object)
                 else:
                     cls.publish_create(model_object)
-        except:
-            LOG.exception('Publish failed.')
+            except:
+                LOG.exception('Publish failed.')
 
         # Dispatch trigger
-        try:
-            if dispatch_trigger:
+        if dispatch_trigger:
+            try:
                 if is_update:
                     cls.dispatch_update_trigger(model_object)
                 else:
                     cls.dispatch_create_trigger(model_object)
-        except:
-            LOG.exception('Trigger dispatch failed.')
+            except:
+                LOG.exception('Trigger dispatch failed.')
 
         return model_object
 
@@ -150,11 +150,17 @@ class Access(object):
 
         # Publish internal event on the message bus
         if publish:
-            cls.publish_delete(model_object)
+            try:
+                cls.publish_delete(model_object)
+            except Exception:
+                LOG.exception('Publish failed.')
 
         # Dispatch trigger
         if dispatch_trigger:
-            cls.dispatch_delete_trigger(model_object)
+            try:
+                cls.dispatch_delete_trigger(model_object)
+            except Exception:
+                LOG.exception('Trigger dispatch failed.')
 
         return persisted_object
 
