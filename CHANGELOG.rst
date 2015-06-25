@@ -28,10 +28,8 @@ in development
 * Single sensor mode of Sensor Container uses ``--sensor-ref`` instead of ``--sensor-name``.
 * ``six`` library is now available by default in the Python sandbox to all the newly installed
   packs. (improvement)
-* Dispatch an internal trigger when a datastore item has been updated
-  (``st2.key_value_pair.update``), when it's value has changed
-  (``st2.key_value_pair.value_change``), and when it has been deleted
-  (``st2.key_value_pair.delete``). (new-feature)
+* Dispatch an internal trigger when a datastore item has been created, updated, deleted and when
+  it's value has changed. (new-feature)
 
 0.11.3 - June 16, 2015
 ----------------------

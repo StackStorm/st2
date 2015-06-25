@@ -69,7 +69,7 @@ NOTIFY_TRIGGER = {
     }
 }
 
-# KeyValue pair resource triggers
+# KeyValuePair resource triggers
 KEY_VALUE_PAIR_CREATE_TRIGGER = {
     'name': 'st2.key_value_pair.create',
     'pack': SYSTEM_PACK_NAME,
