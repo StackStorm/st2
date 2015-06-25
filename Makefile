@@ -61,6 +61,9 @@ docs: requirements .docs
 	@echo
 	@echo "====================docs===================="
 	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-runner-parameters-documentation.py
+	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-internal-triggers-table.py
+	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; $(SPHINXBUILD) -W -b html $(DOC_SOURCE_DIR) $(DOC_BUILD_DIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(DOC_BUILD_DIR)/html."
