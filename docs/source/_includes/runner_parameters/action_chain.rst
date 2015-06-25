@@ -1,0 +1,1 @@
+* ``skip_notify`` (array) - List of tasks to skip notifications for.
