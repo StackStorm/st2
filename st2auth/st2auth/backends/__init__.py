@@ -16,7 +16,7 @@
 import json
 import importlib
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.util.loader import _get_classes_in_module
 

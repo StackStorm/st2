@@ -17,7 +17,7 @@
 Configuration options registration and useful routines.
 """
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING

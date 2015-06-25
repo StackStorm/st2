@@ -15,7 +15,7 @@
 
 import mock
 
-from oslo.config import cfg
+from oslo_config import cfg
 from st2common.constants import action as action_constants
 from st2actions.runners import get_runner
 from st2common.exceptions.actionrunner import ActionRunnerCreateError

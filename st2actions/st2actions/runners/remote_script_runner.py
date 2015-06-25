@@ -16,7 +16,7 @@
 import os
 import uuid
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2actions.runners.fabric_runner import BaseFabricRunner

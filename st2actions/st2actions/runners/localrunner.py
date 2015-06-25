@@ -17,7 +17,7 @@ import os
 import pwd
 import uuid
 
-from oslo.config import cfg
+from oslo_config import cfg
 from eventlet.green import subprocess
 
 from st2common import log as logging

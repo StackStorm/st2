@@ -19,7 +19,7 @@ import eventlet
 import json
 import requests
 import requests.exceptions
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants.triggers import (INTERNAL_TRIGGER_TYPES, ACTION_SENSOR_TRIGGER)

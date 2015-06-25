@@ -17,7 +17,7 @@ import os
 import abc
 
 from fabric.api import (env, execute)
-from oslo.config import cfg
+from oslo_config import cfg
 import six
 
 from st2actions.runners import ActionRunner

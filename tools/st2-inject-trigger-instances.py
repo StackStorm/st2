@@ -32,7 +32,7 @@ import random
 import sys
 
 import eventlet
-from oslo.config import cfg
+from oslo_config import cfg
 import yaml
 
 from st2common import config

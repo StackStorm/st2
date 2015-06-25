@@ -16,7 +16,7 @@
 import unittest2
 import uuid
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.services import coordination
 import st2tests.config as tests_config

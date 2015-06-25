@@ -23,7 +23,7 @@ import traceback
 from functools import wraps
 
 import six
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.logging.filters import ExclusionFilter
 

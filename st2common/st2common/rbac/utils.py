@@ -17,7 +17,7 @@
 RBAC related utility functions.
 """
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.constants.rbac import SystemRole
 

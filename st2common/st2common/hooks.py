@@ -17,7 +17,7 @@ import httplib
 import traceback
 
 import webob
-from oslo.config import cfg
+from oslo_config import cfg
 from pecan.hooks import PecanHook
 from six.moves.urllib import parse as urlparse
 from webob import exc

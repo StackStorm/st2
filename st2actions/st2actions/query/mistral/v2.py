@@ -1,7 +1,7 @@
 import traceback
 import uuid
 
-from oslo.config import cfg
+from oslo_config import cfg
 import requests
 
 from st2actions.query.base import Querier
