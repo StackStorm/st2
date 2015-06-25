@@ -70,6 +70,18 @@ NOTIFY_TRIGGER = {
 }
 
 # KeyValue pair resource triggers
+KEY_VALUE_PAIR_CREATE_TRIGGER = {
+    'name': 'st2.key_value_pair.create',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating datastore item creation.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'object': {}
+        }
+    }
+}
+
 KEY_VALUE_PAIR_UPDATE_TRIGGER = {
     'name': 'st2.key_value_pair.update',
     'pack': SYSTEM_PACK_NAME,
@@ -77,9 +89,7 @@ KEY_VALUE_PAIR_UPDATE_TRIGGER = {
     'payload_schema': {
         'type': 'object',
         'properties': {
-            'id': {},
-            'name': {},
-            'value': {}
+            'object': {}
         }
     }
 }
@@ -91,8 +101,8 @@ KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER = {
     'payload_schema': {
         'type': 'object',
         'properties': {
-            'old': {},
-            'new': {}
+            'old_object': {},
+            'new_object': {}
         }
     }
 }
@@ -104,9 +114,7 @@ KEY_VALUE_PAIR_DELETE_TRIGGER = {
     'payload_schema': {
         'type': 'object',
         'properties': {
-            'id': {},
-            'name': {},
-            'value': {}
+            'object': {}
         }
     }
 }
@@ -147,6 +155,7 @@ INTERNAL_TRIGGER_TYPES = {
         }
     ],
     'key_value_pair': [
+        KEY_VALUE_PAIR_CREATE_TRIGGER,
         KEY_VALUE_PAIR_UPDATE_TRIGGER,
         KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER,
         KEY_VALUE_PAIR_DELETE_TRIGGER

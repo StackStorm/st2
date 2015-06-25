@@ -13,21 +13,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mongoengine import NotUniqueError
-from st2common.exceptions.db import StackStormDBObjectConflictError
-from st2common.models.system.common import ResourceReference
-
 import abc
+
 import six
+from mongoengine import NotUniqueError
 
 from st2common import log as logging
+from st2common.exceptions.db import StackStormDBObjectConflictError
+from st2common.models.system.common import ResourceReference
+from st2common.transport.reactor import TriggerDispatcher
 
+
+__all__ = [
+    'Access',
+
+    'ContentPackResource',
+    'StatusBasedResource'
+]
 
 LOG = logging.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)
 class Access(object):
+    impl = None
+    publisher = None
+    dispatcher = None
+
+    # ModelAPI class for this resource
+    api_model_cls = None
+
+    # A list of operations for which we should dispatch a trigger
+    dispatch_trigger_for_operations = []
+
+    # Maps model operation name (e.g. create, update, delete) to the trigger reference which is
+    # used when dispatching a trigger
+    operation_to_trigger_ref_map = {}
 
     @classmethod
     @abc.abstractmethod
@@ -38,6 +59,16 @@ class Access(object):
     @abc.abstractmethod
     def _get_publisher(cls):
         return None
+
+    @classmethod
+    def _get_dispatcher(cls):
+        """
+        Return a dispatcher class which is used for dispatching triggers.
+        """
+        if not cls.dispatcher:
+            cls.dispatcher = TriggerDispatcher(LOG)
+
+        return cls.dispatcher
 
     @classmethod
     @abc.abstractmethod
@@ -77,7 +108,7 @@ class Access(object):
         return cls._get_impl().aggregate(*args, **kwargs)
 
     @classmethod
-    def add_or_update(cls, model_object, publish=True):
+    def add_or_update(cls, model_object, publish=True, dispatch_trigger=True):
         pre_persist_id = model_object.id
         try:
             model_object = cls._get_impl().add_or_update(model_object)
@@ -88,24 +119,48 @@ class Access(object):
             conflict_object = cls._get_by_object(model_object)
             conflict_id = str(conflict_object.id) if conflict_object else None
             raise StackStormDBObjectConflictError(str(e), conflict_id)
+
+        is_update = str(pre_persist_id) == str(model_object.id)
+
+        # Publish internal event on the message bus
         try:
             if publish:
-                if str(pre_persist_id) == str(model_object.id):
+                if is_update:
                     cls.publish_update(model_object)
                 else:
                     cls.publish_create(model_object)
         except:
-            LOG.exception('publish failed.')
+            LOG.exception('Publish failed.')
+
+        # Dispatch trigger
+        try:
+            if dispatch_trigger:
+                if is_update:
+                    cls.dispatch_update_trigger(model_object)
+                else:
+                    cls.dispatch_create_trigger(model_object)
+        except:
+            LOG.exception('Trigger dispatch failed.')
 
         return model_object
 
     @classmethod
-    def delete(cls, model_object, publish=True):
+    def delete(cls, model_object, publish=True, dispatch_trigger=True):
         persisted_object = cls._get_impl().delete(model_object)
+
+        # Publish internal event on the message bus
         if publish:
-            # using model_object.
             cls.publish_delete(model_object)
+
+        # Dispatch trigger
+        if dispatch_trigger:
+            cls.dispatch_delete_trigger(model_object)
+
         return persisted_object
+
+    ####################################################
+    # Internal event bus message publish related methods
+    ####################################################
 
     @classmethod
     def publish_create(cls, model_object):
@@ -124,6 +179,63 @@ class Access(object):
         publisher = cls._get_publisher()
         if publisher:
             publisher.publish_delete(model_object)
+
+    ############################################
+    # Internal trigger dispatch related methods
+    ###########################################
+
+    @classmethod
+    def dispatch_create_trigger(cls, model_object):
+        """
+        Dispatch a resource-specific trigger which indicates a new resource has been created.
+        """
+        return cls._dispatch_operation_trigger(operation='create', model_object=model_object)
+
+    @classmethod
+    def dispatch_update_trigger(cls, model_object):
+        """
+        Dispatch a resource-specific trigger which indicates an existing resource has been updated.
+        """
+        return cls._dispatch_operation_trigger(operation='update', model_object=model_object)
+
+    @classmethod
+    def dispatch_delete_trigger(cls, model_object):
+        """
+        Dispatch a resource-specific trigger which indicates an existing resource has been
+        deleted.
+        """
+        return cls._dispatch_operation_trigger(operation='delete', model_object=model_object)
+
+    @classmethod
+    def _get_trigger_ref_for_operation(cls, operation):
+        trigger_ref = cls.operation_to_trigger_ref_map.get(operation, None)
+
+        if not trigger_ref:
+            raise ValueError('Trigger ref not specified for operation: %s' % (operation))
+
+        return trigger_ref
+
+    @classmethod
+    def _dispatch_operation_trigger(cls, operation, model_object):
+        if operation not in cls.dispatch_trigger_for_operations:
+            return
+
+        trigger = cls._get_trigger_ref_for_operation(operation=operation)
+
+        # TODO: pass mask_secrets=True
+        object_payload = cls.api_model_cls.from_model(model_object).__json__()
+        payload = {
+            'object': object_payload
+        }
+        return cls._dispatch_trigger(operation=operation, trigger=trigger, payload=payload)
+
+    @classmethod
+    def _dispatch_trigger(cls, operation, trigger, payload):
+        if operation not in cls.dispatch_trigger_for_operations:
+            return
+
+        dispatcher = cls._get_dispatcher()
+        return dispatcher.dispatch(trigger=trigger, payload=payload)
 
 
 class ContentPackResource(Access):
@@ -151,7 +263,7 @@ class StatusBasedResource(Access):
 
     @classmethod
     def publish_status(cls, model_object):
-        """Publish the object status to the messgae queue.
+        """Publish the object status to the message queue.
 
         Publish the instance of the model as payload with the status
         as routing key to the message queue via the StatePublisher.
