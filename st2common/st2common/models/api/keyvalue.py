@@ -55,8 +55,8 @@ class KeyValuePairAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model):
-        doc = cls._from_model(model)
+    def from_model(cls, model, mask_secrets=False):
+        doc = cls._from_model(model, mask_secrets=mask_secrets)
 
         if 'id' in doc:
             del doc['id']

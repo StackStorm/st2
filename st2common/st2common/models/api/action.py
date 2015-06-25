@@ -195,7 +195,7 @@ class ActionAPI(BaseAPI):
             setattr(self, 'entry_point', '')
 
     @classmethod
-    def from_model(cls, model):
+    def from_model(cls, model, mask_secrets=False):
         action = cls._from_model(model)
         action['runner_type'] = action['runner_type']['name']
         action['tags'] = TagsHelper.from_model(model.tags)
