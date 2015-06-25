@@ -1,0 +1,16 @@
+---
+name: "chatops.notify_hubot"
+enabled: true
+description: "Notification rule to send messages to Hubot"
+trigger:
+  type: "core.st2.generic.notifytrigger"
+criteria:
+  trigger.channel:
+    type: "equals"
+    pattern: "test2"
+action:
+  ref: hubot.post_result
+  parameters:
+    channel: "{{trigger.data.source_channel}}"
+    user: "{{trigger.data.user}}"
+    result: "{{trigger}}"

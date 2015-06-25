@@ -41,7 +41,8 @@ On a UI side, there is a file ``config.js`` in a root of the project which conta
      auth: true
    },{
      name: 'Development Environment',
-     url: 'http://172.168.50.50:9101'
+     url: 'http://:9101'
+     auth: 'https://:9100'
    }]
 
 
@@ -74,7 +75,5 @@ Authentication
 --------------
 
 To configure st2web to support authentication, edit ``config.js`` and add ``auth:true`` to every server that supports authentication. To enable authentication on a server side, please refer to :doc:`/authentication`.
-
-For now, UI assumes st2auth is running on the same server with st2api on the port 9100. This is known issue and will be fixed in the next release.
 
 It is highly recommended to only use authentication alongside with SSL encryption (for st2web, st2api and st2auth) to mitigate possible MITM attacks and avoid sending passwords and auth tokens in plain text.

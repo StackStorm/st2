@@ -405,7 +405,7 @@ class SensorWrapper(object):
         if self._pack not in SYSTEM_PACK_NAMES:
             sensor_class_kwargs['config'] = sensor_config
 
-        if self._poll_interval and isinstance(sensor_class, PollingSensor):
+        if self._poll_interval and issubclass(sensor_class, PollingSensor):
             sensor_class_kwargs['poll_interval'] = self._poll_interval
 
         try:

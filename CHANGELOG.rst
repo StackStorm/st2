@@ -1,8 +1,27 @@
 Changelog
 =========
 
-0.11 - June 5, 2015
--------------------
+0.11.3 - June 16, 2015
+----------------------
+
+* Fix RHEL6 packaging issues
+
+0.11.2 - June 12, 2015
+----------------------
+
+* Fix a bug with ``start_timestamp`` and ``end_timestamp`` sometimes returning an invalid value in
+  a local instead of UTC timezone. (bug-fix)
+* Fix to get PollingSensor working again. Sensors of type PollingSensor were not being treated
+  as such and as a result would fail after the 1st poll. (bug-fix)
+
+0.11.1 - June 8, 2015
+---------------------
+
+* Action aliases are registered by default. (improvement)
+* Repair failing pack installation. (bug-fix)
+
+0.11.0 - June 5, 2015
+---------------------
 
 * Allow user to configure the CLI using an ini style config file located at ``~/.st2rc``.
   (new-feature)
@@ -24,7 +43,7 @@ Changelog
   [James Sigurðarson]
 * CLI now has ``get`` and ``list`` commands for triggerinstance. (new-feature)
 * Validate parameters during rule creation for system triggers. (improvement)
-* CLI now has ``re_emit`` command for triggerinstance. (new-feature)
+* CLI now has ``re-emit`` command for triggerinstance. (new-feature)
 
 v0.9.2 - May 26, 2015
 ---------------------

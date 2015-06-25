@@ -77,7 +77,7 @@ sleep ${WARNING_SLEEP_DELAY}
 
 if [ -z $1 ]
 then
-  VER='0.11.0'
+  VER='0.11.2'
 elif [[ "$1" == "latest" ]]; then
    VER='0.12dev'
 else
@@ -160,6 +160,8 @@ create_user() {
 install_pip() {
   echo "###########################################################################################"
   echo "# Installing packages via pip"
+  pip install -U pip
+  hash -d pip
   curl -sS -k -o /tmp/requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/requirements.txt
   pip install -U -q -r /tmp/requirements.txt
 }
@@ -616,6 +618,6 @@ echo "To login and obtain an authentication token, run the following command:"
 echo ""
 echo "st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD}"
 echo ""
-echo "For more information see http://docs.stackstorm.com/install/deploy.html#usage"
+echo "For more information see http://docs.stackstorm.com/authentication.html#usage"
 exit 0
 
