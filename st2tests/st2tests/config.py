@@ -67,6 +67,8 @@ def _override_common_opts():
     CONF.set_override(name='api_url', override='http://localhost', group='auth')
     CONF.set_override(name='admin_users', override=['admin_user'], group='system')
     CONF.set_override(name='mask_secrets', override=True, group='log')
+    CONF.set_override(name='url', override='zake://', group='coordination')
+    CONF.set_override(name='lock_timeout', override=1, group='coordination')
 
 
 def _register_common_opts():

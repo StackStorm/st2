@@ -143,7 +143,7 @@ def register_opts(ignore_errors=False):
 
     # Coordination options
     coord_opts = [
-        cfg.StrOpt('url', default='zake://', help='Endpoint for the coordination server.'),
+        cfg.StrOpt('url', default=None, help='Endpoint for the coordination server.'),
         cfg.IntOpt('lock_timeout', default=60, help='TTL for the lock if backend suports it.')
     ]
     do_register_opts(coord_opts, 'coordination', ignore_errors)
