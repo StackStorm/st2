@@ -138,14 +138,6 @@ def register_opts(ignore_errors=False):
     action_sensor_opts = [
         cfg.BoolOpt('enable', default=True,
                     help='Whether to enable or disable the ability to post a trigger on action.'),
-        cfg.StrOpt('triggers_base_url', default='http://localhost:9101/v1/triggertypes/',
-                   help='URL for action sensor to post TriggerType.'),
-        cfg.IntOpt('request_timeout', default=1,
-                   help='Timeout value of all httprequests made by action sensor.'),
-        cfg.IntOpt('max_attempts', default=10,
-                   help='No. of times to retry registration.'),
-        cfg.IntOpt('retry_wait', default=1,
-                   help='Amount of time to wait prior to retrying a request.')
     ]
     do_register_opts(action_sensor_opts, group='action_sensor')
 

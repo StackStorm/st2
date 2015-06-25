@@ -1,14 +1,6 @@
 [action_sensor]
-# Timeout value of all httprequests made by action sensor.
-request_timeout = 1
-# Amount of time to wait prior to retrying a request.
-retry_wait = 1
 # Whether to enable or disable the ability to post a trigger on action.
 enable = True
-# URL for action sensor to post TriggerType.
-triggers_base_url = http://localhost:9101/v1/triggertypes/
-# No. of times to retry registration.
-max_attempts = 10
 
 [actionrunner]
 # Python binary which will be used by Python actions.
