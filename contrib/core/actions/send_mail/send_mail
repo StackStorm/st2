@@ -11,6 +11,8 @@ SUBJECT=$1
 shift
 SEND_EMPTY_BODY=$1
 shift
+CONTENT_TYPE=$1
+shift
 BODY="$@"
 
 if [[ -z "${BODY// }" && $SEND_EMPTY_BODY == 'True' ]] || [[ -n $BODY ]]; then
@@ -18,7 +20,7 @@ if [[ -z "${BODY// }" && $SEND_EMPTY_BODY == 'True' ]] || [[ -n $BODY ]]; then
 TO: ${TO}
 FROM: ${FROM}
 SUBJECT: ${SUBJECT}
-Content-Type: text/html
+Content-Type: ${CONTENT_TYPE}
 
 ${BODY}
 <br><br>
