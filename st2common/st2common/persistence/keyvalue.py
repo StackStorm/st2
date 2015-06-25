@@ -16,6 +16,7 @@
 from st2common.persistence.base import Access
 from st2common.models.db import keyvalue
 from st2common.models.api.keyvalue import KeyValuePairAPI
+from st2common.constants.triggers import KEY_VALUE_PAIR_CREATE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_UPDATE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_DELETE_TRIGGER
@@ -28,7 +29,7 @@ class KeyValuePair(Access):
     api_model_cls = KeyValuePairAPI
     dispatch_trigger_for_operations = ['create', 'update', 'value_change', 'delete']
     operation_to_trigger_ref_map = {
-        'create': KEY_VALUE_PAIR_UPDATE_TRIGGER['name'],
+        'create': KEY_VALUE_PAIR_CREATE_TRIGGER['name'],
         'update': KEY_VALUE_PAIR_UPDATE_TRIGGER['name'],
         'value_change': KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER['name'],
         'delete': KEY_VALUE_PAIR_DELETE_TRIGGER['name'],
