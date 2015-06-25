@@ -27,6 +27,7 @@ from utils import as_rest_table
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
 def main():
     lines = []
 
