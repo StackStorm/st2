@@ -24,10 +24,26 @@ LOG = logging.getLogger(__name__)
 
 COORDINATOR = None
 
+__all__ = [
+    'configured',
+    'get_coordinator',
+
+    'coordinator_setup',
+    'coordinator_teardown'
+]
+
 
 def configured():
-    return not (cfg.CONF.coordination.url.startswith('zake') or
-                cfg.CONF.coordination.url.startswith('file'))
+    """
+    Return True if the coordination service is properly configured.
+
+    :rtype: ``bool``
+    """
+    backend_configured = cfg.CONF.coordination.url is not None
+    mock_backend = backend_configured and (cfg.CONF.coordination.url.startswith('zake') or
+                                           cfg.CONF.coordination.url.startswith('file'))
+
+    return backend_configured and not mock_backend
 
 
 def coordinator_setup():
@@ -55,6 +71,10 @@ def coordinator_teardown(coordinator):
 
 def get_coordinator():
     global COORDINATOR
+
+    if not configured():
+        LOG.warn('Coordination backend is not configured. Code paths which use coordination '
+                 'service will use best effort approach and race conditions are possible.')
 
     if not COORDINATOR:
         COORDINATOR = coordinator_setup()
