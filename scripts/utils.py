@@ -60,7 +60,7 @@ def as_rest_table(data, full=False):
     vertical_separator = vertical_separator.translate(to_separator)
     end_of_line = end_of_line.translate(to_separator)
     separator = '{0}{1}{2}'.format(start_of_line,
-                                   vertical_separator.join([x*line_marker for x in sizes]),
+                                   vertical_separator.join([x * line_marker for x in sizes]),
                                    end_of_line)
     # determine header separator
     th_separator_tr = string.maketrans('-', '=')
@@ -69,7 +69,7 @@ def as_rest_table(data, full=False):
     vertical_separator = vertical_separator.translate(th_separator_tr)
     end_of_line = end_of_line.translate(th_separator_tr)
     th_separator = '{0}{1}{2}'.format(start_of_line,
-                                      vertical_separator.join([x*line_marker for x in sizes]),
+                                      vertical_separator.join([x * line_marker for x in sizes]),
                                       end_of_line)
     # prepare result
     table.append(separator)

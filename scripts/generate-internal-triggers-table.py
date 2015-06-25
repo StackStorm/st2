@@ -52,7 +52,8 @@ def main():
 
     result = '\n'.join(lines)
 
-    destination_path = os.path.join(CURRENT_DIR, '../docs/source/_includes/internal_trigger_types.rst')
+    destination_path = os.path.join(CURRENT_DIR,
+                                    '../docs/source/_includes/internal_trigger_types.rst')
     with open(destination_path, 'w') as fp:
         fp.write(result)
 

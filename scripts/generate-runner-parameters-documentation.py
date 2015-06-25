@@ -40,7 +40,7 @@ def main():
 
         file_name = runner['name'].replace('-', '_')
         path = '../docs/source/_includes/runner_parameters/%s.rst' % (file_name)
-        destination_path = os.path.join(CURRENT_DIR,  path)
+        destination_path = os.path.join(CURRENT_DIR, path)
         result = '\n'.join(result)
 
         with open(destination_path, 'w') as fp:
