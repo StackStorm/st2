@@ -62,9 +62,10 @@ class KeyValuePair(Access):
         operation = 'value_change'
         trigger = cls._get_trigger_ref_for_operation(operation=operation)
 
-        # TODO: pass mask_secrets=True
-        old_object_payload = cls.api_model_cls.from_model(old_model_object).__json__()
-        new_object_payload = cls.api_model_cls.from_model(new_model_object).__json__()
+        old_object_payload = cls.api_model_cls.from_model(old_model_object,
+                                                          mask_secrets=True).__json__()
+        new_object_payload = cls.api_model_cls.from_model(new_model_object,
+                                                          mask_secrets=True).__json__()
         payload = {
             'old_object': old_object_payload,
             'new_object': new_object_payload

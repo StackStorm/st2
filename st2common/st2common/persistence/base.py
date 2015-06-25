@@ -222,8 +222,7 @@ class Access(object):
 
         trigger = cls._get_trigger_ref_for_operation(operation=operation)
 
-        # TODO: pass mask_secrets=True
-        object_payload = cls.api_model_cls.from_model(model_object).__json__()
+        object_payload = cls.api_model_cls.from_model(model_object, mask_secrets=True).__json__()
         payload = {
             'object': object_payload
         }
