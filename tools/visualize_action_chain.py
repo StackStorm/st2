@@ -20,6 +20,7 @@ Script which creates graphviz visualization of an action-chain workflow.
 
 import os
 import argparse
+import sets
 
 try:
     from graphviz import Digraph
@@ -68,29 +69,30 @@ def main(metadata_path, output_path, print_source=False):
 
     # Add connections
     node = chain_holder.get_next_node()
-    while node:
-        previous_node = node
-        success_node = chain_holder.get_next_node(curr_node_name=node.name,
+    processed_nodes = sets.Set([node.name])
+    nodes = [node]
+    while nodes:
+        previous_node = nodes.pop()
+        success_node = chain_holder.get_next_node(curr_node_name=previous_node.name,
                                                   condition='on-success')
-        failure_node = chain_holder.get_next_node(curr_node_name=node.name,
+        failure_node = chain_holder.get_next_node(curr_node_name=previous_node.name,
                                                   condition='on-failure')
 
-        if not success_node:
-            # We are done
-            break
-
-        # Add success node
-        dot.edge(previous_node.name, success_node.name, constraint='true',
-                 color='green', label='on success')
+        # Add success node (if any)
+        if success_node:
+            dot.edge(previous_node.name, success_node.name, constraint='true',
+                     color='green', label='on success')
+            if success_node.name not in processed_nodes:
+                nodes.append(success_node)
+                processed_nodes.add(success_node.name)
 
         # Add failure node (if any)
         if failure_node:
             dot.edge(previous_node.name, failure_node.name, constraint='true',
                      color='red', label='on failure')
-
-        node = success_node
-        if not node:
-            break
+            if failure_node.name not in processed_nodes:
+                nodes.append(failure_node)
+                processed_nodes.add(failure_node.name)
 
     if print_source:
         print(dot.source)
