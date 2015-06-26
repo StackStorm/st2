@@ -1,3 +1,5 @@
+.. NOTE: This file has been generated automatically, don't manually edit it
+
 * ``username`` (string) - Username used to log-in. If not provided, default username from config is used.
 * ``private_key`` (string) - Private key used to log in. If not provided, private key from the config file is used.
 * ``timeout`` (integer) - Action timeout in seconds. Action will get killed if it doesn't finish in timeout seconds.

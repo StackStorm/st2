@@ -1,3 +1,5 @@
+.. NOTE: This file has been generated automatically, don't manually edit it
+
 * ``cookies`` (object) - Optional cookies to send with the request.
 * ``https_proxy`` (string) - A URL of a HTTPs proxy to use (e.g. http://10.10.1.10:3128).
 * ``url`` (string) - URL to the HTTP endpoint.

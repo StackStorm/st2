@@ -1,3 +1,5 @@
+.. NOTE: This file has been generated automatically, don't manually edit it
+
 * ``kwarg_op`` (string) - Operator to use in front of keyword args i.e. "--" or "-".
 * ``timeout`` (integer) - Action timeout in seconds. Action will get killed if it doesn't finish in timeout seconds.
 * ``sudo`` (boolean) - The command will be executed with sudo.

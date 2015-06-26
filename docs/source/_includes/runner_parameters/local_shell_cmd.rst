@@ -1,3 +1,5 @@
+.. NOTE: This file has been generated automatically, don't manually edit it
+
 * ``sudo`` (boolean) - The command will be executed with sudo.
 * ``env`` (object) - Environment variables which will be available to the command(e.g. key1=val1,key2=val2)
 * ``cmd`` (string) - Arbitrary Linux command to be executed on the host.

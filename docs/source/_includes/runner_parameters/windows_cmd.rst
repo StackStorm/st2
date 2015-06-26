@@ -1,3 +1,5 @@
+.. NOTE: This file has been generated automatically, don't manually edit it
+
 * ``username`` (string) - Username used to log-in.
 * ``cmd`` (string) - Arbitrary command to be executed on the remote host.
 * ``host`` (string) - Host to execute the command on

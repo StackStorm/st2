@@ -1,3 +1,5 @@
+.. NOTE: This file has been generated automatically, don't manually edit it
+
 * ``username`` (string) - Username used to log-in.
 * ``host`` (string) - Host to execute the command on
 * ``password`` (string) - Password used to log in.
