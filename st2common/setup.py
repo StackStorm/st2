@@ -50,7 +50,7 @@ setup(
     test_suite=st2_component,
     zip_safe=False,
     include_package_data=True,
-    packages=find_packages(exclude=['setuptools', 'examples', 'tests']),
+    packages=find_packages(exclude=['setuptools', 'tests']),
     scripts=[
         'bin/st2-bootstrap-rmq',
         'bin/st2-register-content'

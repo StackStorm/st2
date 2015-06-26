@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
 import os.path
 from pip.req import parse_requirements
 from setuptools import setup, find_packages
@@ -29,28 +28,27 @@ def fetch_requirements():
         reqs.append(str(req.req))
     return (reqs, links)
 
-
 current_dir = os.path.dirname(os.path.realpath(__file__))
-version_file = os.path.join(current_dir, '../st2client/st2client/__init__.py')
-with open(version_file, 'r') as f:
-    vmatch = re.search(r'__version__ = [\'\"](.*)[\'\"]$', f.read(), flags=re.MULTILINE)
-
+with open(os.path.join(current_dir, 'st2_version'), 'r') as f:
+    st2_version = f.read().strip()
 
 install_reqs, dep_links = fetch_requirements()
-ST2_COMPONENT = os.path.basename(current_dir)
-ST2_VERSION = vmatch.group(1)
+st2_component = os.path.basename(current_dir)
 
 
 setup(
-    name=ST2_COMPONENT,
-    version=ST2_VERSION,
-    description='{} component'.format(ST2_COMPONENT),
+    name=st2_component,
+    version=st2_version,
+    description='{} component'.format(st2_component),
     author='StackStorm',
     author_email='info@stackstorm.com',
     install_requires=install_reqs,
     dependency_links=dep_links,
-    test_suite=ST2_COMPONENT,
+    test_suite=st2_component,
     zip_safe=False,
     include_package_data=True,
-    packages=find_packages(exclude=['setuptools'])
+    packages=find_packages(exclude=['setuptools', 'tests']),
+    scripts=[
+        'bin/st2api'
+    ]
 )
