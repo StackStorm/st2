@@ -26,10 +26,13 @@ from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from utils import as_rest_table
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+HEADER = '.. NOTE: This file has been generated automatically, don\'t manually edit it'
 
 
 def main():
     lines = []
+    lines.append(HEADER)
+    lines.append('')
 
     for resource_type, trigger_definitions in INTERNAL_TRIGGER_TYPES.items():
         resource_title = resource_type.title().replace('_', ' ')

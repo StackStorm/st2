@@ -24,6 +24,7 @@ import os
 from st2actions.bootstrap.runnersregistrar import RUNNER_TYPES
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+HEADER = '.. NOTE: This file has been generated automatically, don\'t manually edit it'
 
 
 def main():
@@ -32,6 +33,9 @@ def main():
             continue
 
         result = []
+        result.append(HEADER)
+        result.append('')
+
         for name, values in runner['runner_parameters'].items():
             format_values = {'name': name}
             format_values.update(values)
