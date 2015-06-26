@@ -24,6 +24,7 @@ from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.util.wsgi import shutdown_server_kill_pending_requests
+from st2common.triggers import register_internal_trigger_types
 from st2api.signal_handlers import register_api_signal_handlers
 from st2api.listener import get_listener_if_set
 from st2api import config
@@ -50,6 +51,8 @@ WSGI_SERVER_REQUEST_SHUTDOWN_TIME = 2
 def _setup():
     common_setup(service='api', config=config, setup_db=True, register_mq_exchanges=True,
                  register_signal_handlers=True)
+
+    register_internal_trigger_types()
 
 
 def _run_server():

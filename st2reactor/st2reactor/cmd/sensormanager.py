@@ -10,7 +10,6 @@ from st2common.service_setup import teardown as common_teardown
 from st2common.exceptions.sensors import SensorNotFoundException
 from st2common.persistence.sensor import SensorType
 from st2reactor.sensor import config
-from st2common.triggers import register_internal_trigger_types
 from st2reactor.container.manager import SensorContainerManager
 
 eventlet.monkey_patch(
@@ -27,8 +26,6 @@ LOG = logging.getLogger('st2reactor.bin.sensors_manager')
 def _setup():
     common_setup(service='sensorcontainer', config=config, setup_db=True,
                  register_mq_exchanges=True, register_signal_handlers=True)
-
-    register_internal_trigger_types()
 
 
 def _teardown():

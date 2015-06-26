@@ -70,8 +70,8 @@ class TriggerTypeAPI(BaseAPI):
         return model
 
     @classmethod
-    def from_model(cls, model):
-        triggertype = cls._from_model(model)
+    def from_model(cls, model, mask_secrets=False):
+        triggertype = cls._from_model(model, mask_secrets=mask_secrets)
         triggertype['tags'] = TagsHelper.from_model(model.tags)
         return cls(**triggertype)
 
@@ -106,8 +106,8 @@ class TriggerAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model):
-        trigger = cls._from_model(model)
+    def from_model(cls, model, mask_secrets=False):
+        trigger = cls._from_model(model, mask_secrets=mask_secrets)
         return cls(**trigger)
 
     @classmethod
@@ -154,8 +154,8 @@ class TriggerInstanceAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model):
-        instance = cls._from_model(model)
+    def from_model(cls, model, mask_secrets=False):
+        instance = cls._from_model(model, mask_secrets=mask_secrets)
         instance['occurrence_time'] = isotime.format(instance['occurrence_time'], offset=False)
         return cls(**instance)
 

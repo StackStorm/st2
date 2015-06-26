@@ -73,8 +73,8 @@ class TokenAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model):
-        doc = super(cls, cls)._from_model(model)
+    def from_model(cls, model, mask_secrets=False):
+        doc = super(cls, cls)._from_model(model, mask_secrets=mask_secrets)
         doc['expiry'] = isotime.format(model.expiry, offset=False) if model.expiry else None
         return cls(**doc)
 
