@@ -111,11 +111,13 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None):
 
     with open(output_file, 'w') as f:
         f.write("# Don't edit this file. It's generated automatically!\n")
+        links = set()
         for req in requirements:
             # we don't have any idea how to process links, so just add them
-            if req.link:
+            if req.link and req.link not in links:
+                links.add(req.link)
                 rline = str(req.link)
-            else:
+            elif req.req:
                 project = req.req.project_name
                 if project in fixedreq_hash:
                     rline = str(fixedreq_hash[project].req)
