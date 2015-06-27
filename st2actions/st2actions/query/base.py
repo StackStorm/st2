@@ -126,12 +126,14 @@ class Querier(object):
 
         done = status in DONE_STATES
         if done and not liveaction_db.end_timestamp:
+            # Action has completed, record end_timestamp
             liveaction_db.end_timestamp = date_utils.get_datetime_utc_now()
 
         # update liveaction, update actionexecution and then publish update.
         updated_liveaction = LiveAction.add_or_update(liveaction_db, publish=False)
         executions.update_execution(updated_liveaction)
         LiveAction.publish_update(updated_liveaction)
+
         return updated_liveaction
 
     def _invoke_post_run(self, actionexec_db, action_db):
