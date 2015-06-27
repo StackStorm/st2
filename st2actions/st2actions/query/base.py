@@ -33,6 +33,11 @@ from st2common.util import date as date_utils
 LOG = logging.getLogger(__name__)
 DONE_STATES = [LIVEACTION_STATUS_FAILED, LIVEACTION_STATUS_SUCCEEDED]
 
+__all__ = [
+    'Querier',
+    'QueryContext'
+]
+
 
 @six.add_metaclass(abc.ABCMeta)
 class Querier(object):
