@@ -24,7 +24,7 @@ COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),
 
 PYTHON_TARGET := 2.7
 
-REQUIREMENTS := requirements.txt test-requirements.txt st2client/requirements.txt
+REQUIREMENTS := requirements.txt test-requirements.txt
 
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
@@ -171,6 +171,8 @@ requirements: virtualenv $(REQUIREMENTS)
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
+	# Merge into one st2 components-wide requirements.txt file.
+	python ./scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt
 	for req in $(REQUIREMENTS); do \
 		echo "Installing $$req..." ; \
 		. $(VIRTUALENV_DIR)/bin/activate && pip install $(PIP_OPTIONS) $$req ; \

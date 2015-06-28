@@ -14,55 +14,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
-
+import os.path
+from pip.req import parse_requirements
 from setuptools import setup, find_packages
 
 
-PKG_ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
-PKG_REQ_FILE = '%s/requirements.txt' % PKG_ROOT_DIR
-os.chdir(PKG_ROOT_DIR)
+def fetch_requirements():
+    links = []
+    reqs = []
+    for req in parse_requirements('requirements.txt', session=False):
+        if req.link:
+            links.append(str(req.link))
+        reqs.append(str(req.req))
+    return (reqs, links)
 
+current_dir = os.path.dirname(os.path.realpath(__file__))
+with open(os.path.join(current_dir, 'st2_version'), 'r') as f:
+    st2_version = f.read().strip()
 
-def get_version_string():
-    version = None
-    sys.path.insert(0, PKG_ROOT_DIR)
-    from st2client import __version__
-    version = __version__
-    sys.path.pop(0)
-    return version
-
-
-def get_requirements():
-    with open(PKG_REQ_FILE) as f:
-        required = f.read().splitlines()
-
-    # Ignore comments in the requirements file
-    required = [line for line in required if not line.startswith('#')]
-    return required
+install_reqs, dep_links = fetch_requirements()
+st2_component = os.path.basename(current_dir)
 
 
 setup(
-    name='st2client',
-    version=get_version_string(),
-    description='CLI and python client library for the StackStorm (st2) automation platform.',
+    name=st2_component,
+    version=st2_version,
+    description='{} component'.format(st2_component),
     author='StackStorm',
     author_email='info@stackstorm.com',
-    url='http://www.stackstorm.com',
-    packages=find_packages(exclude=['tests']),
-    install_requires=get_requirements(),
-    license='Apache License (2.0)',
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Information Technology',
-        'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7'
-    ],
+    install_requires=install_reqs,
+    dependency_links=dep_links,
+    test_suite=st2_component,
+    zip_safe=False,
+    include_package_data=True,
+    packages=find_packages(exclude=['setuptools', 'tests']),
     entry_points={
         'console_scripts': [
             'st2 = st2client.shell:main'

@@ -1,0 +1,8 @@
+apscheduler
+python-dateutil
+eventlet
+jsonpath-rw
+jsonschema
+kombu
+oslo.config
+six

@@ -1,2 +1,5 @@
-include requirements.txt
+# https://docs.python.org/2/distutils/sourcedist.html#commands
+# Include all files under the source tree by default.
+# Another behaviour can be used in the future though.
+recursive-include st2client *.* *
 include LICENSE
