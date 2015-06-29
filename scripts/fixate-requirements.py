@@ -47,8 +47,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Tool for requirements.txt generation.')
     parser.add_argument('-s', '--source-requirements', nargs='+',
                         required=True,
-                        help='Specifiy paths to requirements file(s). '
-                        'In case severasl requirements files are given their content is merged.')
+                        help='Specify paths to requirements file(s). '
+                        'In case several requirements files are given their content is merged.')
     parser.add_argument('-f', '--fixed-requirements', required=True,
                         help='Specifiy path to fixed-requirements.txt file.')
     parser.add_argument('-o', '--output-file', default='requirements.txt',
