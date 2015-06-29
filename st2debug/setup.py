@@ -35,6 +35,8 @@ setup(
     description='{} component'.format(ST2_COMPONENT),
     author='StackStorm',
     author_email='info@stackstorm.com',
+    license='Apache License (2.0)',
+    url='http://www.stackstorm.com',
     install_requires=install_reqs,
     dependency_links=dep_links,
     test_suite=ST2_COMPONENT,
