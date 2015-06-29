@@ -14,24 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os.path
+import os
 from setuptools import setup, find_packages
 
 from dist_utils import fetch_requirements
-from dist_utils import parse_version
+from st2api import __version__
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ST2_COMPONENT = os.path.basename(BASE_DIR)
 REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
-VERSION_FILE = os.path.join(BASE_DIR, '../st2_version.txt')
 
 install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
-st2_version = parse_version(VERSION_FILE)
 
 setup(
     name=ST2_COMPONENT,
-    version=st2_version,
+    version=__version__,
     description='{} component'.format(ST2_COMPONENT),
     long_description=open('README.md').read() + '\n\n' + open('CHANGELOG.rst').read(),
     author='StackStorm',

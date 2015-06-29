@@ -32,15 +32,3 @@ def fetch_requirements(requirements_file_path):
             links.append(str(req.link))
         reqs.append(str(req.req))
     return (reqs, links)
-
-
-def parse_version(version_file_path):
-    """
-    Parse a version string from the provided version file.
-    """
-    # TODO: For backward compatibility we use a global version file but eventually we should
-    # support per component versioning
-    with open(version_file_path, 'r') as f:
-        version = f.read().strip()
-
-    return version
