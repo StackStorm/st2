@@ -15,12 +15,11 @@
 # limitations under the License.
 
 """
-This script is used to automate generation of requirements.txt
-for st2 components.
+This script is used to automate generation of requirements.txt for st2 components.
 
 The idea behind this script is that that each component has it's own requirements
-in-requirements.txt file (input requirements file). Except this file
-there's also the top-level fixed-requirements.txt which pins production versions
+"in-requirements.txt" file (input requirements file). In addition to this file,
+there's also the top-level "fixed-requirements.txt" which pins production versions
 for the whole st2 stack. During production use (building, packaging, etc)
 requirements.txt is generated from in-requirements.txt where version of packages are
 fixed according to fixed-requirements.txt.
@@ -50,9 +49,9 @@ def parse_args():
                         help='Specify paths to requirements file(s). '
                         'In case several requirements files are given their content is merged.')
     parser.add_argument('-f', '--fixed-requirements', required=True,
-                        help='Specifiy path to fixed-requirements.txt file.')
+                        help='Specify path to fixed-requirements.txt file.')
     parser.add_argument('-o', '--output-file', default='requirements.txt',
-                        help='Specifiy path to the resulting requirements file.')
+                        help='Specify path to the resulting requirements file.')
     if len(sys.argv) < 2:
         parser.print_help()
         sys.exit(1)
@@ -79,7 +78,8 @@ def locate_file(path, must_exist=False):
 
 
 def merge_source_requirements(sources):
-    """Read requirements source files and merge it's content.
+    """
+    Read requirements source files and merge it's content.
     """
     projects = set()
     merged_requirements = []
@@ -103,9 +103,12 @@ def merge_source_requirements(sources):
 
 
 def write_requirements(sources=None, fixed_requirements=None, output_file=None):
-    """Wrire resulting requirements taking versions from the fixed_requirements.
+    """
+    Write resulting requirements taking versions from the fixed_requirements.
     """
     requirements = merge_source_requirements(sources)
+    # Sort the requirements to guarantee a stable order
+    requirements = sorted(requirements)
     fixed = load_requirements(locate_file(fixed_requirements, must_exist=True))
     fixedreq_hash = {req.req.project_name: req for req in fixed if req.req}
 
@@ -125,7 +128,7 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None):
                     rline = str(req.req)
             f.write(rline + '\n')
 
-    return
+    print('Requirements written to: {}'.format(output_file))
 
 
 if __name__ == '__main__':
