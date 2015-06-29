@@ -283,9 +283,9 @@ itests: requirements .itests
 		cp -f ./st2common/st2common/__init__.py $$component/$$component; \
 	done
 	
-	# Copy over README.md, CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
+	# Copy over README.rst, CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
 	@for component in $(COMPONENTS_TEST); do\
-		test -s $$component/README.md || cp -f README.md $$component/; \
+		test -s $$component/README.rst || cp -f README.rst $$component/; \
 		cp -f CHANGELOG.rst $$component/; \
 		cp -f CONTRIBUTING.rst $$component/; \
 		cp -f LICENSE $$component/; \
