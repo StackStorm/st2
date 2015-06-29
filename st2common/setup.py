@@ -14,40 +14,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Just setup pip before using with a command:
-# curl https://bootstrap.pypa.io/get-pip.py | python
-
 import os.path
-from pip.req import parse_requirements
 from setuptools import setup, find_packages
 
+from dist_utils import fetch_requirements
+from dist_utils import parse_version
 
-def fetch_requirements():
-    links = []
-    reqs = []
-    for req in parse_requirements('requirements.txt', session=False):
-        if req.link:
-            links.append(str(req.link))
-        reqs.append(str(req.req))
-    return (reqs, links)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-with open(os.path.join(current_dir, 'st2_version'), 'r') as f:
-    st2_version = f.read().strip()
+ST2_COMPONENT = os.path.basename(BASE_DIR)
+REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
+VERSION_FILE = os.path.join(BASE_DIR, '../st2_version.txt')
 
-install_reqs, dep_links = fetch_requirements()
-st2_component = os.path.basename(current_dir)
-
+install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
+st2_version = parse_version(VERSION_FILE)
 
 setup(
-    name=st2_component,
+    name=ST2_COMPONENT,
     version=st2_version,
-    description='{} component'.format(st2_component),
+    description='{} component'.format(ST2_COMPONENT),
     author='StackStorm',
     author_email='info@stackstorm.com',
     install_requires=install_reqs,
     dependency_links=dep_links,
-    test_suite=st2_component,
+    test_suite=ST2_COMPONENT,
     zip_safe=False,
     include_package_data=True,
     packages=find_packages(exclude=['setuptools', 'tests']),

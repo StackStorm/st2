@@ -173,6 +173,12 @@ requirements: virtualenv $(REQUIREMENTS)
 	@echo
 	# Merge into one st2 components-wide requirements.txt file.
 	python ./scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt
+	
+	# Copy over shared dist utils module which is needed by setup.py
+	@for component in $(COMPONENTS_TEST); do\
+		cp -f ./scripts/dist_utils.py $$component/dist_utils.py; \
+	done
+	
 	for req in $(REQUIREMENTS); do \
 		echo "Installing $$req..." ; \
 		. $(VIRTUALENV_DIR)/bin/activate && pip install $(PIP_OPTIONS) $$req ; \
