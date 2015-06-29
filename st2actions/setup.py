@@ -31,7 +31,7 @@ setup(
     name=ST2_COMPONENT,
     version=__version__,
     description='{} component'.format(ST2_COMPONENT),
-    long_description=open('README.md').read() + '\n\n' + open('CHANGELOG.rst').read(),
+    long_description=open('README.rst').read() + '\n\n' + open('CHANGELOG.rst').read(),
     author='StackStorm',
     author_email='info@stackstorm.com',
     license='Apache License (2.0)',
