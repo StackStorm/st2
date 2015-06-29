@@ -45,6 +45,14 @@ def _register_sensor_container_opts(ignore_errors=False):
     ]
     st2cfg.do_register_opts(logging_opts, group='sensorcontainer', ignore_errors=ignore_errors)
 
+    sharding_opts = [
+        cfg.StrOpt('sensor_node_name', default='sensornode1',
+                   help='name of the sensor node.'),
+        cfg.StrOpt('shard_provider', default='DEFAULT',
+                   help='Provider of sensor node shard config.')
+    ]
+    st2cfg.do_register_opts(sharding_opts, group='sensorcontainer', ignore_errors=ignore_errors)
+
     sensor_test_opt = cfg.StrOpt('sensor-ref', help='Only run sensor with the provided reference. \
         Value is of the form pack.sensor-name.')
     st2cfg.do_register_cli_opts(sensor_test_opt, ignore_errors=ignore_errors)
