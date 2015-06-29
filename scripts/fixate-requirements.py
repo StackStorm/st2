@@ -60,7 +60,7 @@ def parse_args():
 
 def check_pip_version():
     if StrictVersion(pip.__version__) < StrictVersion('6.0.0'):
-        print "Upgrade pip, your version `{}' "\
+        print "Upgrade pip, your version `{0}' "\
               "is outdated:\n".format(pip.__version__), GET_PIP
         sys.exit(1)
 
@@ -73,7 +73,7 @@ def locate_file(path, must_exist=False):
     if not os.path.isabs(path):
         path = os.path.join(OSCWD, path)
     if must_exist and not os.path.isfile(path):
-        print("Error: couldn't locate file `{}'".format(path))
+        print("Error: couldn't locate file `{0}'".format(path))
     return path
 
 
@@ -97,7 +97,7 @@ def merge_source_requirements(sources):
             elif req.link:
                 merged_requirements.append(req)
             else:
-                raise RuntimeError('Unexpected requirement {}'.format(req))
+                raise RuntimeError('Unexpected requirement {0}'.format(req))
 
     return merged_requirements
 
@@ -128,7 +128,7 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None):
                     rline = str(req.req)
             f.write(rline + '\n')
 
-    print('Requirements written to: {}'.format(output_file))
+    print('Requirements written to: {0}'.format(output_file))
 
 
 if __name__ == '__main__':
