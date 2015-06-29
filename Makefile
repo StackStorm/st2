@@ -10,7 +10,7 @@ DOC_BUILD_DIR := docs/build
 BINARIES := bin
 
 # All components are prefixed by st2
-COMPONENTS := $(wildcard st2*)
+COMPONENTS := $(wildcard st2*/)
 
 # Components that implement a component-controlled test-runner. These components provide an
 # in-component Makefile. (Temporary fix until I can generalize the pecan unittest setup. -mar)
@@ -280,7 +280,7 @@ sdist-requirements:
 	
 	# Copy over README.md, CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
 	@for component in $(COMPONENTS); do\
-		cp -f README.md $$component/; \
+		test -s $$component/README.md || cp -f README.md $$component/; \
 		cp -f CHANGELOG.rst $$component/; \
 		cp -f CONTRIBUTING.rst $$component/; \
 		cp -f LICENSE $$component/; \
