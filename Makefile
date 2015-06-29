@@ -273,6 +273,11 @@ itests: requirements .itests
 
 .PHONY: .sdist-requirements
 .sdist-requirements:
+	# Run make requirements in each component directory
+	@for component in $(COMPONENTS_TEST); do\
+		test -s $$component/Make || (pushd $$component && make -f Makefile requirements && popd);\
+	done
+	
 	# Copy over shared dist utils module which is needed by setup.py
 	@for component in $(COMPONENTS_TEST); do\
 		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
