@@ -271,7 +271,7 @@ itests: requirements .itests
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv $$component/tests/integration || exit 1; \
 	done
 
-.PHONY: sdist-requirements
+.PHONY: .sdist-requirements
 sdist-requirements:
 	# Copy over shared dist utils module which is needed by setup.py
 	@for component in $(COMPONENTS); do\
@@ -284,6 +284,16 @@ sdist-requirements:
 		cp -f CHANGELOG.rst $$component/; \
 		cp -f CONTRIBUTING.rst $$component/; \
 		cp -f LICENSE $$component/; \
+	done
+
+.PHONY: sdist
+sdist: .sdist-requirements .sdist
+
+.PHONY: .sdist
+.sdist: 
+	@for component in $(COMPONENTS); do\
+		python $$component/setup.py sdist;\
+		python $$component/setup.py bdist_wheel;\
 	done
 
 .PHONY: mistral-itests
