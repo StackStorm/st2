@@ -110,7 +110,7 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None):
     # Sort the requirements to guarantee a stable order
     requirements = sorted(requirements)
     fixed = load_requirements(locate_file(fixed_requirements, must_exist=True))
-    fixedreq_hash = {req.req.project_name: req for req in fixed if req.req}
+    fixedreq_hash = dict([(req.req.project_name, req) for req in fixed if req.req])
 
     with open(output_file, 'w') as f:
         f.write("# Don't edit this file. It's generated automatically!\n")
