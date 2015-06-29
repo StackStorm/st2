@@ -10,11 +10,11 @@ DOC_BUILD_DIR := docs/build
 BINARIES := bin
 
 # All components are prefixed by st2
-COMPONENTS := $(wildcard st2*/)
+COMPONENTS := $(wildcard st2*)
 
 # Components that implement a component-controlled test-runner. These components provide an
 # in-component Makefile. (Temporary fix until I can generalize the pecan unittest setup. -mar)
-COMPONENT_SPECIFIC_TESTS := st2tests/
+COMPONENT_SPECIFIC_TESTS := st2tests
 
 # nasty hack to get a space into a variable
 space_char :=
@@ -275,7 +275,7 @@ itests: requirements .itests
 .sdist-requirements:
 	# Run make requirements in each component directory
 	@for component in $(COMPONENTS_TEST); do\
-		test -s $$component/Make || (pushd $$component && make -f Makefile requirements && popd);\
+		test -s $$component/Makefile && (pushd $$component && make -f Makefile requirements && popd);\
 	done
 	
 	# Copy over shared dist utils module which is needed by setup.py
