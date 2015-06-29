@@ -14,7 +14,7 @@ COMPONENTS := $(wildcard st2*/)
 
 # Components that implement a component-controlled test-runner. These components provide an
 # in-component Makefile. (Temporary fix until I can generalize the pecan unittest setup. -mar)
-COMPONENT_SPECIFIC_TESTS := st2tests
+COMPONENT_SPECIFIC_TESTS := st2tests/
 
 # nasty hack to get a space into a variable
 space_char :=
@@ -274,17 +274,17 @@ itests: requirements .itests
 .PHONY: .sdist-requirements
 .sdist-requirements:
 	# Copy over shared dist utils module which is needed by setup.py
-	@for component in $(COMPONENTS); do\
-		cp -f ./scripts/dist_utils.py $$component/dist_utils.py; \
+	@for component in $(COMPONENTS_TEST); do\
+		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
 	done
 	
 	# Copy over __init__.py with a global shared __version__ attribute
-	@for component in $(COMPONENTS); do\
+	@for component in $(COMPONENTS_TEST); do\
 		cp -f ./st2common/st2common/__init__.py $$component/$$component; \
 	done
 	
 	# Copy over README.md, CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
-	@for component in $(COMPONENTS); do\
+	@for component in $(COMPONENTS_TEST); do\
 		test -s $$component/README.md || cp -f README.md $$component/; \
 		cp -f CHANGELOG.rst $$component/; \
 		cp -f CONTRIBUTING.rst $$component/; \
@@ -296,7 +296,7 @@ sdist: .sdist-requirements .sdist
 
 .PHONY: .sdist
 .sdist: 
-	@for component in $(COMPONENTS); do\
+	@for component in $(COMPONENTS_TEST); do\
 		python $$component/setup.py sdist;\
 		python $$component/setup.py bdist_wheel;\
 	done
