@@ -33,6 +33,7 @@ setup(
     name=ST2_COMPONENT,
     version=st2_version,
     description='{} component'.format(ST2_COMPONENT),
+    long_description=open('README.md').read() + '\n\n' + open('CHANGELOG.rst').read(),
     author='StackStorm',
     author_email='info@stackstorm.com',
     install_requires=install_reqs,

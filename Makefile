@@ -274,12 +274,12 @@ itests: requirements .itests
 .PHONY: sdist-requirements
 sdist-requirements:
 	# Copy over shared dist utils module which is needed by setup.py
-	@for component in $(COMPONENTS_TEST); do\
+	@for component in $(COMPONENTS); do\
 		cp -f ./scripts/dist_utils.py $$component/dist_utils.py; \
 	done
 	
 	# Copy over README.md, CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
-	@for component in $(COMPONENTS_TEST); do\
+	@for component in $(COMPONENTS); do\
 		cp -f README.md $$component/; \
 		cp -f CHANGELOG.rst $$component/; \
 		cp -f CONTRIBUTING.rst $$component/; \
