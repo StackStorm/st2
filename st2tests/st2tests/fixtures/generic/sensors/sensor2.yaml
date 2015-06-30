@@ -1,0 +1,8 @@
+---
+name: sensor2
+pack: generic
+description: fixture sensor2
+artifact_uri: 'file:///generic/sample_sensor.py'
+class_name: 'Sensor2'
+enabled: True
+trigger_types: []
