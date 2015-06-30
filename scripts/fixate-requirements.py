@@ -107,26 +107,32 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None):
     Write resulting requirements taking versions from the fixed_requirements.
     """
     requirements = merge_source_requirements(sources)
-    # Sort the requirements to guarantee a stable order
-    requirements = sorted(requirements)
     fixed = load_requirements(locate_file(fixed_requirements, must_exist=True))
     fixedreq_hash = dict([(req.req.project_name, req) for req in fixed if req.req])
 
-    with open(output_file, 'w') as f:
-        f.write("# Don't edit this file. It's generated automatically!\n")
-        links = set()
-        for req in requirements:
-            # we don't have any idea how to process links, so just add them
-            if req.link and req.link not in links:
-                links.add(req.link)
-                rline = str(req.link)
-            elif req.req:
-                project = req.req.project_name
-                if project in fixedreq_hash:
-                    rline = str(fixedreq_hash[project].req)
-                else:
-                    rline = str(req.req)
-            f.write(rline + '\n')
+    lines_to_write = []
+
+    links = set()
+    for req in requirements:
+        # we don't have any idea how to process links, so just add them
+        if req.link and req.link not in links:
+            links.add(req.link)
+            rline = str(req.link)
+        elif req.req:
+            project = req.req.project_name
+            if project in fixedreq_hash:
+                rline = str(fixedreq_hash[project].req)
+            else:
+                rline = str(req.req)
+
+        lines_to_write.append(rline)
+
+    # Sort the lines to guarantee a stable order
+    lines_to_write = sorted(lines_to_write)
+    data = '\n'.join(lines_to_write)
+    with open(output_file, 'w') as fp:
+        fp.write('# Don\'t edit this file. It\'s generated automatically!\n')
+        fp.write(data)
 
     print('Requirements written to: {0}'.format(output_file))
 
