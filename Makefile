@@ -180,7 +180,7 @@ requirements: virtualenv $(REQUIREMENTS)
 	
 	for req in $(REQUIREMENTS); do \
 		echo "Installing $$req..." ; \
-		. $(VIRTUALENV_DIR)/bin/activate && pip install $(PIP_OPTIONS) $$req ; \
+		$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) $$req ; \
 	done
 
 .PHONY: virtualenv
