@@ -171,9 +171,6 @@ requirements: virtualenv $(REQUIREMENTS)
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
-	
-	# Make sure we use latest version of pip
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade pip
 
 	# Merge into one st2 components-wide requirements.txt file.
 	$(VIRTUALENV_DIR)/bin/python ./scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt
@@ -212,6 +209,12 @@ $(VIRTUALENV_DIR)/bin/activate:
 	echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	touch $(VIRTUALENV_DIR)/bin/activate.fish
+	
+	# Make sure we use latest version of pip
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade pip
+
+	# Install stdeb st2client build dependency
+	$(VIRTUALENV_DIR)/bin/pip install stdeb
 
 .PHONY: tests
 tests: pytests
@@ -334,27 +337,27 @@ mistral-itests: requirements .mistral-itests
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration || exit 1;
 
 .PHONY: rpms
-rpms:
+rpms: virtualenv
 	@echo
 	@echo "==================== rpm ===================="
 	@echo
 	rm -Rf ~/rpmbuild
-	$(foreach COM,$(COMPONENTS), pushd $(COM); make rpm; popd;)
-	pushd st2client && make rpm && popd
+	$(foreach COM,$(COMPONENTS), pushd $(COM); . ../$(VIRTUALENV_DIR)/bin/activate && make rpm; popd;)
+	pushd st2client && . ../$(VIRTUALENV_DIR)/bin/activate && make rpm && popd
 
-rhel-rpms:
+rhel-rpms: virtualenv
 	@echo
 	@echo "==================== rpm ===================="
 	@echo
 	rm -Rf ~/rpmbuild
-	$(foreach COM,$(COMPONENTS), pushd $(COM); make rhel-rpm; popd;)
-	pushd st2client && make rhel-rpm && popd
+	$(foreach COM,$(COMPONENTS), pushd $(COM); . ../$(VIRTUALENV_DIR)/bin/activate && make rhel-rpm; popd;)
+	pushd st2client && . ../$(VIRTUALENV_DIR)/bin/activate && make rhel-rpm && popd
 
 .PHONY: debs
-debs:
+debs: virtualenv
 	@echo
 	@echo "==================== deb ===================="
 	@echo
 	rm -Rf ~/debbuild
-	$(foreach COM,$(COMPONENTS), pushd $(COM); make deb; popd;)
-	pushd st2client && make deb && popd
+	$(foreach COM,$(COMPONENTS), pushd $(COM); . ../$(VIRTUALENV_DIR)/bin/activate && make deb; popd;)
+	pushd st2client && . ../$(VIRTUALENV_DIR)/bin/activate && make deb && popd
