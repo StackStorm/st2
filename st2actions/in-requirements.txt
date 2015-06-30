@@ -11,3 +11,4 @@ six
 pyyaml
 # needed by core "packs" pack
 gitpython
+lockfile
