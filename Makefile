@@ -176,7 +176,7 @@ requirements: virtualenv $(REQUIREMENTS)
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade pip
 
 	# Merge into one st2 components-wide requirements.txt file.
-	python ./scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt
+	$(VIRTUALENV_DIR)/bin/python ./scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt
 	
 	for req in $(REQUIREMENTS); do \
 		echo "Installing $$req..." ; \
