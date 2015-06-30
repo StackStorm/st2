@@ -42,4 +42,3 @@ nosetests.xml
 st2*/LICENSE
 st2*/CONTRIBUTING.rst
 st2*/CHANGELOG.rst
-st2*/dist_utils.py

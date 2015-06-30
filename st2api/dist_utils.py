@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,4 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = '0.12dev'
+from pip.req import parse_requirements
+
+__all__ = [
+    'fetch_requirements'
+]
+
+
+def fetch_requirements(requirements_file_path):
+    """
+    Return a list of requirements and links by parsing the provided requirements file.
+    """
+    links = []
+    reqs = []
+    for req in parse_requirements(requirements_file_path, session=False):
+        if req.link:
+            links.append(str(req.link))
+        reqs.append(str(req.req))
+    return (reqs, links)
