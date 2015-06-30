@@ -29,13 +29,13 @@ FIXTURES_1 = {
 }
 
 
-class EnforceTest(DbTestCase):
+class ShardLoaderTest(DbTestCase):
 
     models = None
 
     @classmethod
     def setUpClass(cls):
-        super(EnforceTest, cls).setUpClass()
+        super(ShardLoaderTest, cls).setUpClass()
         # Create TriggerTypes before creation of Rule to avoid failure. Rule requires the
         # Trigger and therefore TriggerType to be created prior to rule creation.
         cls.models = FixturesLoader().save_fixtures_to_db(
@@ -48,7 +48,8 @@ class EnforceTest(DbTestCase):
                          'Failed to provider all sensors')
 
     def test_kvstore_shard_provider(self):
-        cfg.CONF.set_override(name='shard_provider', override=KVSTORE_SHARD_LOADER,
+        cfg.CONF.set_override(name='shard_provider',
+                              override={'name': KVSTORE_SHARD_LOADER},
                               group='sensorcontainer')
         kvp = KeyValuePairDB(**{'name': 'sensornode1.shard',
                                 'value': 'generic.Sensor1, generic.Sensor2'})

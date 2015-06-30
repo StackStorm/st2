@@ -85,8 +85,9 @@ PROVIDERS = {
 def get_sensors():
     if cfg.CONF.sensor_ref:
         return SingleSensorProvider().get_sensors(sensor_ref=cfg.CONF.sensor_ref)
-
-    shard_provider = cfg.CONF.sensorcontainer.shard_provider
+    LOG.info('shard_provider [%s]%s', type(cfg.CONF.sensorcontainer.shard_provider),
+             cfg.CONF.sensorcontainer.shard_provider)
+    shard_provider = cfg.CONF.sensorcontainer.shard_provider.get('name')
     sensor_node_name = cfg.CONF.sensorcontainer.sensor_node_name
 
     provider = PROVIDERS.get(shard_provider.lower(), None)
