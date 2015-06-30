@@ -21,6 +21,14 @@ parameters:
     position: 0
     required: true
     type: string
+  content_type:
+    type: string
+    description: Content type of message to be sent
+    enum:
+      - "text/plain"
+      - "text/html"
+    default: "text/html"
+    position: 4
   send_empty_body:
     description: Send a message even if the body is empty.
     position: 2
