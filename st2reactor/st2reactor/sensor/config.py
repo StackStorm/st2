@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
+from oslo_config import cfg, types
 
 from st2common import config as st2cfg
+from st2common.constants.sensors import DEFAULT_SHARD_LOADER
 from st2common.constants.system import VERSION_STRING
 
 CONF = cfg.CONF
@@ -48,8 +49,10 @@ def _register_sensor_container_opts(ignore_errors=False):
     sharding_opts = [
         cfg.StrOpt('sensor_node_name', default='sensornode1',
                    help='name of the sensor node.'),
-        cfg.StrOpt('shard_provider', default='DEFAULT',
-                   help='Provider of sensor node shard config.')
+        cfg.Opt('shard_provider', type=types.Dict(value_type=types.String()),
+                # default='name: {}'.format(DEFAULT_SHARD_LOADER),
+                default={'name': DEFAULT_SHARD_LOADER},
+                help='Provider of sensor node shard config.')
     ]
     st2cfg.do_register_opts(sharding_opts, group='sensorcontainer', ignore_errors=ignore_errors)
 
