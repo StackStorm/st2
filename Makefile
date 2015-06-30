@@ -275,6 +275,18 @@ itests: requirements .itests
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv $$component/tests/integration || exit 1; \
 	done
 
+.PHONY: fixate-requirements
+fixate-requirements:
+	# Fixate global requirements and requirements for each component
+	
+	# Merge into one st2 components-wide requirements.txt file.
+	python ./scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt
+	
+	# Fixate requirements for each component
+	@for component in $(COMPONENTS_TEST); do\
+		test -s $$component/Makefile && (pushd $$component && make -f Makefile requirements && popd);\
+	done
+	
 .PHONY: .sdist-requirements
 .sdist-requirements:
 	# Run make requirements in each component directory
