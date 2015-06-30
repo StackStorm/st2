@@ -14,10 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from pip.req import parse_requirements
 
 __all__ = [
-    'fetch_requirements'
+    'fetch_requirements',
+    'apply_vagrant_workaround'
 ]
 
 
@@ -32,3 +35,15 @@ def fetch_requirements(requirements_file_path):
             links.append(str(req.link))
         reqs.append(str(req.req))
     return (reqs, links)
+
+
+def apply_vagrant_workaround():
+    """
+    Function which detects if the script is being executed inside vagrant and if it is, it deletes
+    "os.link" attribute.
+
+    Note: Without this workaround, setup.py sdist will fail when running inside a shared directory
+    (nfs / virtualbox shared folders).
+    """
+    if os.environ.get('USER', None) == 'vagrant':
+        del os.link
