@@ -12,3 +12,7 @@ pyyaml
 # needed by core "packs" pack
 gitpython
 lockfile
+# needed by core "linux" pack - TODO: create virtualenv for linux pack on postinst
+python-nmap
+pyinotify
+git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
