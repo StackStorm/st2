@@ -1,0 +1,7 @@
+eventlet
+jsonschema
+kombu
+mongoengine
+oslo.config
+pecan
+six

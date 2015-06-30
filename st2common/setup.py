@@ -14,24 +14,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-    from setuptools import setup, find_packages
+# Just setup pip before using with a command:
+# curl https://bootstrap.pypa.io/get-pip.py | python
+
+import os.path
+from pip.req import parse_requirements
+from setuptools import setup, find_packages
+
+
+def fetch_requirements():
+    links = []
+    reqs = []
+    for req in parse_requirements('requirements.txt', session=False):
+        if req.link:
+            links.append(str(req.link))
+        reqs.append(str(req.req))
+    return (reqs, links)
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
+with open(os.path.join(current_dir, 'st2_version'), 'r') as f:
+    st2_version = f.read().strip()
+
+install_reqs, dep_links = fetch_requirements()
+st2_component = os.path.basename(current_dir)
+
 
 setup(
-    name='st2common',
-    version='0.4.0',
-    description='',
+    name=st2_component,
+    version=st2_version,
+    description='{} component'.format(st2_component),
     author='StackStorm',
     author_email='info@stackstorm.com',
-    install_requires=[
-        "pecan",
-    ],
-    test_suite='st2common',
+    install_requires=install_reqs,
+    dependency_links=dep_links,
+    test_suite=st2_component,
     zip_safe=False,
     include_package_data=True,
-    packages=find_packages(exclude=['ez_setup'])
+    packages=find_packages(exclude=['setuptools', 'tests']),
+    scripts=[
+        'bin/st2-bootstrap-rmq',
+        'bin/st2-register-content'
+    ]
 )

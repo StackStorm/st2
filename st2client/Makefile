@@ -31,3 +31,7 @@ deb:
 	mkdir -p ~/debbuild
 	cp deb_dist/python-$(COMPONENTS)*-1_all.deb ~/debbuild/$(COMPONENTS)_$(VER)-$(RELEASE)_amd64.deb
 	rm -Rf dist deb_dist $(COMPONENTS)-$(VER).tar.gz $(COMPONENTS).egg-info ChangeLog AUTHORS build
+
+.PHONY: requirements
+requirements:
+	python ../scripts/fixate-requirements.py -s in-requirements.txt -f ../fixed-requirements.txt

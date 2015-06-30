@@ -1,6 +1,6 @@
 prettytable
+python-dateutil
 pyyaml
+jsonpath-rw
 requests
 six
-python-dateutil
-jsonpath-rw
