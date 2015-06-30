@@ -307,10 +307,9 @@ fixate-requirements:
 		cp -f ./st2common/st2common/__init__.py $$component/$$component; \
 	done
 	
-	# Copy over README.rst, CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
+	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
 	@for component in $(COMPONENTS_TEST); do\
 		test -s $$component/README.rst || cp -f README.rst $$component/; \
-		cp -f CHANGELOG.rst $$component/; \
 		cp -f CONTRIBUTING.rst $$component/; \
 		cp -f LICENSE $$component/; \
 	done
