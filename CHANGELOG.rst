@@ -30,6 +30,10 @@ in development
   packs. (improvement)
 * Dispatch an internal trigger when a datastore item has been created, updated, deleted and when
   it's value has changed. (new-feature)
+* Fix a bug with ``st2 execution list`` CLI command throwing an exception on failed Mistral
+  workflows. (bug-fix)
+* Fix a bug with ``st2 execution list`` CLI command not displaying ``end_timestamp`` attribute for
+  Mistral workflows. (bug-fix)
 
 0.11.3 - June 16, 2015
 ----------------------

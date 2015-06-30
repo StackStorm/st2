@@ -13,6 +13,8 @@ logging = conf/logging.conf
 allow_origin = ['http://localhost:3000']
 # location of the logging.conf file
 logging = conf/logging.conf
+# True to mask secrets in API responses
+mask_secrets = True
 # StackStorm API server host
 host = 0.0.0.0
 # Send empty message every N seconds to keep connection open
@@ -48,11 +50,21 @@ port = 9100
 # Authentication backend to use in a standalone mode (mongodb,flat_file).
 backend = flat_file
 
+[cloudslang]
+# CloudSlang home directory.
+home_dir = /opt/cslang
+
 [content]
 # Path to the directory which contains system packs.
 system_packs_base_path = /opt/stackstorm/packs
 # Paths which will be searched for integration packs.
 packs_base_paths = None
+
+[coordination]
+# Endpoint for the coordination server.
+url = None
+# TTL for the lock if backend suports it.
+lock_timeout = 60
 
 [database]
 # username for db login
@@ -66,19 +78,19 @@ db_name = st2
 # port of db server
 port = 27017
 
-[generic_webhook_sensor]
-# URL of the st2 webhook endpoint.
-url = /webhooks/generic/
-# Host for the generic webhook endpoint.
-host = 0.0.0.0
-# Port for the generic webhook endpoint.
-port = 6001
+[exporter]
+# location of the logging.exporter.conf file
+logging = conf/logging.exporter.conf
+# Directory to dump data to.
+dump_dir = /opt/stackstorm/exports/
 
 [log]
 # Controls if stderr should be redirected to the logs.
 redirect_stderr = False
 # Exclusion list of loggers to omit.
-excludes =
+excludes = 
+# True to mask secrets in the log files.
+mask_secrets = True
 
 [messaging]
 # URL of the messaging server.
@@ -92,10 +104,6 @@ v2_base_url = http://localhost:8989/v2
 # Maximum no of attempts made to connect to Mistral.
 max_attempts = 180
 
-[cloudslang]
-# path to the cloudlsang home dir
-home_dir = /opt/cslang
-
 [notifier]
 # Location of the logging configuration file.
 logging = conf/logging.notifier.conf
@@ -107,6 +115,12 @@ logging = conf/logging.resultstracker.conf
 [rulesengine]
 # Location of the logging configuration file.
 logging = conf/logging.rulesengine.conf
+
+[scheduler]
+# The frequency for rescheduling action executions.
+rescheduling_interval = 300
+# The time in seconds to wait before recovering delayed action executions.
+delayed_execution_recovery = 600
 
 [schema]
 # Version of JSON schema to use.
@@ -124,14 +138,6 @@ remote_dir = /tmp
 # How partial success of actions run on multiple nodes should be treated.
 allow_partial_failure = False
 
-[st2_webhook_sensor]
-# URL of the st2 webhook endpoint.
-url = /webhooks/st2/
-# Host for the st2 webhook endpoint.
-host = 0.0.0.0
-# Port for the st2 webhook endpoint.
-port = 6000
-
 [syslog]
 # Host for the syslog server.
 host = localhost
@@ -143,6 +149,8 @@ port = 514
 facility = local7
 
 [system]
+# A list of usernames for users which should have admin privileges
+admin_users = []
 # Base path to all st2 artifacts.
 base_path = /opt/stackstorm
 

@@ -3,7 +3,6 @@ Roadmap
 
 StackStorm is new and under active development. We are opening it early to engage community, get  feedback, and refine directions, and welcome contributions. Below are key next items we see as top priorities.
 
-
 * **RBAC:** Role based access control for actions, triggers, rules, and datastore keys.
 * **Web UI advanced functionality:** visual workflow design representation, drag&drop workflow designer.
 * **Scale improvements:** refactoring and fixes to scale out better to manage large volumes of events and actions.
@@ -37,13 +36,10 @@ See :doc:`/changelog` for details on what is done.
 * **Operational supportability:** Better output formats, better visibility to ongoing actions, better logs, better debugging tools.
 * **Scale and reliability improvements:** deployed and run at scale, shown some good numbers, and more work identified.
 
-
 .. rubric:: Done in v0.6.0
 
 * **YAML:** complete moving to YAML for defining rules, action and trigger metadata, configurations, etc.
 * **Plugin isolation and management:** Improved managements of sensors, action runners and provide isolated environments.
 * **Reliability:** improvements on sensor and action isolation and reliability
-
-
 
 .. include:: engage.rst

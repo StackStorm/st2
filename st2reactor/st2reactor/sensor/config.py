@@ -49,21 +49,5 @@ def _register_sensor_container_opts(ignore_errors=False):
         Value is of the form pack.sensor-name.')
     st2cfg.do_register_cli_opts(sensor_test_opt, ignore_errors=ignore_errors)
 
-    st2_webhook_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='Host for the st2 webhook endpoint.'),
-        cfg.IntOpt('port', default='6000', help='Port for the st2 webhook endpoint.'),
-        cfg.StrOpt('url', default='/webhooks/st2/', help='URL of the st2 webhook endpoint.')
-    ]
-    st2cfg.do_register_opts(st2_webhook_opts, group='st2_webhook_sensor',
-                            ignore_errors=ignore_errors)
-
-    generic_webhook_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='Host for the generic webhook endpoint.'),
-        cfg.IntOpt('port', default='6001', help='Port for the generic webhook endpoint.'),
-        cfg.StrOpt('url', default='/webhooks/generic/', help='URL of the st2 webhook endpoint.')
-    ]
-    st2cfg.do_register_opts(generic_webhook_opts, group='generic_webhook_sensor',
-                            ignore_errors=ignore_errors)
-
 
 register_opts(ignore_errors=True)
