@@ -1,0 +1,7 @@
+# Don't edit this file. It's generated automatically!
+jsonpath-rw>=1.3.0
+prettytable
+python-dateutil
+pyyaml
+requests
+six==1.9.0

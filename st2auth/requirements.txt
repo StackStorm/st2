@@ -1,0 +1,7 @@
+# Don't edit this file. It's generated automatically!
+eventlet>=0.13.0
+oslo.config
+passlib<1.7,>=1.6.2
+pecan==0.7.0
+pymongo<3.0
+six==1.9.0
