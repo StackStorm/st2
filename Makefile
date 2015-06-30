@@ -171,6 +171,10 @@ requirements: virtualenv $(REQUIREMENTS)
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
+	
+	# Make sure we use latest version of pip
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade pip
+
 	# Merge into one st2 components-wide requirements.txt file.
 	python ./scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt
 	
