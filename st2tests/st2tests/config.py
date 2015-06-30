@@ -55,6 +55,7 @@ def _register_config_opts():
     _register_cloudslang_opts()
     _register_scheduler_opts()
     _register_exporter_opts()
+    _register_sensor_container_opts()
 
 
 def _override_db_opts():
@@ -187,5 +188,23 @@ def _register_exporter_opts():
     _register_opts(exporter_opts, group='exporter')
 
 
+def _register_sensor_container_opts():
+    sharding_opts = [
+        cfg.StrOpt('sensor_node_name', default='sensornode1',
+                   help='name of the sensor node.'),
+        cfg.StrOpt('shard_provider', default='DEFAULT',
+                   help='Provider of sensor node shard config.')
+    ]
+    _register_opts(sharding_opts, group='sensorcontainer')
+
+    sensor_test_opt = cfg.StrOpt('sensor-ref', help='Only run sensor with the provided reference. \
+        Value is of the form pack.sensor-name.')
+    _register_cli_opts([sensor_test_opt])
+
+
 def _register_opts(opts, group=None):
     CONF.register_opts(opts, group)
+
+
+def _register_cli_opts(opts):
+    cfg.CONF.register_cli_opts(opts)

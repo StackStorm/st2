@@ -27,3 +27,7 @@ class TriggerTypeRegistrationException(SensorPluginException):
 
 class SensorNotFoundException(StackStormBaseException):
     pass
+
+
+class SensorShardProviderNotSupportedException(StackStormBaseException):
+    pass
