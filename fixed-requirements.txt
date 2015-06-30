@@ -1,0 +1,18 @@
+# Packages versions fixed for the whole st2 stack
+eventlet>=0.13.0
+six==1.9.0
+apscheduler>=3.0.0rc1
+eventlet>=0.13.0
+gitpython==0.3.2.1
+jsonschema>=2.3.0
+mongoengine>=0.8.7,<0.9
+pecan==0.7.0
+pymongo<3.0
+six==1.9.0
+passlib>=1.6.2,<1.7
+lockfile>=0.10.2,<0.11
+python-gnupg>=0.3.7,<0.4
+jsonpath-rw>=1.3.0
+pyinotify>=0.9.5,<=0.10
+python-nmap>=0.3.4,<0.4
+semver>=2.1.2

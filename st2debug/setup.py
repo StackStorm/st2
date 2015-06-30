@@ -14,21 +14,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-    from setuptools import setup, find_packages
+import os.path
+from setuptools import setup, find_packages
+
+from dist_utils import fetch_requirements
+from st2debug import __version__
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+ST2_COMPONENT = os.path.basename(BASE_DIR)
+REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
+
+install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 setup(
-    name='st2debug',
-    version='0.4.0',
-    description='',
+    name=ST2_COMPONENT,
+    version=__version__,
+    description='{} component'.format(ST2_COMPONENT),
+    long_description=open('README.rst').read() + '\n\n' + open('CHANGELOG.rst').read(),
     author='StackStorm',
     author_email='info@stackstorm.com',
-    test_suite='st2debug',
+    license='Apache License (2.0)',
+    url='http://www.stackstorm.com',
+    install_requires=install_reqs,
+    dependency_links=dep_links,
+    test_suite=ST2_COMPONENT,
     zip_safe=False,
     include_package_data=True,
-    packages=find_packages(exclude=['ez_setup'])
+    packages=find_packages(exclude=['setuptools', 'tests']),
+    scripts=[
+        'bin/st2-submit-debug-info'
+    ]
 )
