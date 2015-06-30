@@ -3,6 +3,7 @@
 HOSTNAME=$(hostname -f)
 FROM="stanley@${HOSTNAME}"
 SENDMAIL=`which sendmail`
+EOM=""
 
 if [ $? -ne 0 ]; then
     echo "Unable to find sendmail binary in PATH" >&2
@@ -21,6 +22,12 @@ CONTENT_TYPE=$1
 shift
 BODY="$@"
 
+if [[ "${CONTENT_TYPE}" = "text/html" ]]; then
+  LINE_BREAK="<br><br>"
+else
+  LINE_BREAK="\n\n"
+fi
+
 if [[ -z "${BODY// }" && $SEND_EMPTY_BODY == 'True' ]] || [[ -n $BODY ]]; then
   ${MAIL} <<EOF
 TO: ${TO}
@@ -29,7 +36,7 @@ SUBJECT: ${SUBJECT}
 Content-Type: ${CONTENT_TYPE}
 
 ${BODY}
-<br><br>
+${BREAK}
 ${FOOTER}
 
 EOF

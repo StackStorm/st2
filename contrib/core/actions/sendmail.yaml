@@ -27,7 +27,7 @@ parameters:
     enum:
       - "text/plain"
       - "text/html"
-    default: "text/plain"
+    default: "text/html"
     position: 4
   send_empty_body:
     description: Send a message even if the body is empty.
