@@ -32,6 +32,7 @@ deb:
 	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ --exclude=correlation -czf ~/$(COMPONENTS).tar.gz bin st2 logrotate.d $(COMPONENTS) ../contrib ../docs ../tools/ ../requirements.txt packaging/debian
 	pushd ~ && tar -xzf $(COMPONENTS).tar.gz && cd $(COMPONENTS)-$(VER) && cp -Rf packaging/debian ./ && dpkg-buildpackage -us -uc -b && popd
 	cp -f ~/$(COMPONENT)*.deb ~/debbuild/
+	rm -rf st2/ logrotate.d/
 
 .PHONY: requirements
 requirements:
