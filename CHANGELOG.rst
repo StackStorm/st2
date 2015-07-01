@@ -1,10 +1,17 @@
 Changelog
 =========
 
+0.11.5 - July 1, 2015
+---------------------
+
+* Fix a bug where ``end_timestamp`` is not captured for Mistral workflow executions (bug-fix)
+* Fix a bug where the CLI failed to display Mistral workflow that errored (bug-fix)
+* Fix a bug where the published variables is not captured in the Mistral workflow result (bug-fix)
+
 0.11.4 - June 30, 2015
 ----------------------
 
-* Remove unncecssary rule notifu_hubot from core.
+* Remove unnecessary rule notify_hubot from core.
 
 0.11.3 - June 16, 2015
 ----------------------
