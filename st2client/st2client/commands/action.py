@@ -370,10 +370,16 @@ class ActionRunCommandMixin(object):
             return None, None
 
         result = task['result']
-        stderr = result.get('stderr', None)
-        error = result.get('error', None)
-        traceback = result.get('traceback', None)
-        error = error if error else stderr
+
+        if isinstance(result, dict):
+            stderr = result.get('stderr', None)
+            error = result.get('error', None)
+            traceback = result.get('traceback', None)
+            error = error if error else stderr
+        else:
+            stderr = None
+            error = None
+            traceback = None
 
         return error, traceback
 
