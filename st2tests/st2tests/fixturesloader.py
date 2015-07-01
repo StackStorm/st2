@@ -24,8 +24,9 @@ from st2common.models.api.action import (ActionAPI, LiveActionAPI, ActionExecuti
                                          RunnerTypeAPI, ActionAliasAPI)
 from st2common.models.api.execution import (ActionExecutionAPI)
 from st2common.models.api.policy import (PolicyTypeAPI, PolicyAPI)
-from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
 from st2common.models.api.rule import (RuleAPI)
+from st2common.models.api.sensor import SensorTypeAPI
+from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
 
 from st2common.models.db.action import ActionDB
 from st2common.models.db.actionalias import ActionAliasDB
@@ -35,6 +36,7 @@ from st2common.models.db.runner import RunnerTypeDB
 from st2common.models.db.execution import (ActionExecutionDB)
 from st2common.models.db.policy import (PolicyTypeDB, PolicyDB)
 from st2common.models.db.rule import RuleDB
+from st2common.models.db.sensor import SensorTypeDB
 from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB, TriggerInstanceDB)
 from st2common.persistence.action import Action
 from st2common.persistence.actionalias import ActionAlias
@@ -44,11 +46,12 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.persistence.policy import (PolicyType, Policy)
 from st2common.persistence.rule import Rule
+from st2common.persistence.sensor import SensorType
 from st2common.persistence.trigger import (Trigger, TriggerType, TriggerInstance)
 
 
 ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'aliases', 'executions', 'liveactions',
-                       'policies', 'policytypes', 'rules', 'runners',
+                       'policies', 'policytypes', 'rules', 'runners', 'sensors',
                        'triggertypes', 'triggers', 'triggerinstances']
 ALLOWED_FIXTURES = copy.copy(ALLOWED_DB_FIXTURES)
 ALLOWED_FIXTURES.extend(['actionchains', 'workflows'])
@@ -63,6 +66,7 @@ FIXTURE_DB_MODEL = {
     'policytypes': PolicyTypeDB,
     'rules': RuleDB,
     'runners': RunnerTypeDB,
+    'sensors': SensorTypeDB,
     'triggertypes': TriggerTypeDB,
     'triggers': TriggerDB,
     'triggerinstances': TriggerInstanceDB
@@ -78,6 +82,7 @@ FIXTURE_API_MODEL = {
     'policytypes': PolicyTypeAPI,
     'rules': RuleAPI,
     'runners': RunnerTypeAPI,
+    'sensors': SensorTypeAPI,
     'triggertypes': TriggerTypeAPI,
     'triggers': TriggerAPI,
     'triggerinstances': TriggerInstanceAPI
@@ -94,6 +99,7 @@ FIXTURE_PERSISTENCE_MODEL = {
     'policytypes': PolicyType,
     'rules': Rule,
     'runners': RunnerType,
+    'sensors': SensorType,
     'triggertypes': TriggerType,
     'triggers': Trigger,
     'triggerinstances': TriggerInstance

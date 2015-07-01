@@ -15,3 +15,8 @@
 
 # Minimum poll interval for a sensor
 MINIMUM_POLL_INTERVAL = 4
+
+# keys for shard loaders
+DEFAULT_SHARD_LOADER = 'default'
+KVSTORE_SHARD_LOADER = 'kvstore'
+FILE_SHARD_LOADER = 'file'
