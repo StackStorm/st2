@@ -1,7 +1,11 @@
+# Remeber to list implicit packages here such as pymongo,
+# otherwise version won't be fixed!
 eventlet
 jsonschema
 kombu
 mongoengine
+pymongo
 oslo.config
 pecan
+pymongo
 six

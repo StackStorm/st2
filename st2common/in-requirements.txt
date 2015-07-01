@@ -1,4 +1,4 @@
-# Remeber to list packages explicitly here such as pymongo,
+# Remeber to list implicit packages here such as pymongo,
 # otherwise version won't be fixed!
 python-dateutil
 eventlet
