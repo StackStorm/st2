@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import abc
+import datetime
 import eventlet
 import Queue
 import six
@@ -28,6 +29,8 @@ from st2common.persistence.executionstate import ActionExecutionState
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
+from st2common.util import isotime
+
 
 LOG = logging.getLogger(__name__)
 DONE_STATES = [LIVEACTION_STATUS_FAILED, LIVEACTION_STATUS_SUCCEEDED]
@@ -119,8 +122,14 @@ class Querier(object):
         liveaction_db = LiveAction.get_by_id(execution_id)
         if not liveaction_db:
             raise Exception('No DB model for liveaction_id: %s' % execution_id)
+
         liveaction_db.result = results
         liveaction_db.status = status
+
+        done = status in DONE_STATES
+        if done and not liveaction_db.end_timestamp:
+            liveaction_db.end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+
         # update liveaction, update actionexecution and then publish update.
         updated_liveaction = LiveAction.add_or_update(liveaction_db, publish=False)
         executions.update_execution(updated_liveaction)
