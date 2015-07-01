@@ -15,7 +15,7 @@
 
 import os
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.constants.system import VERSION_STRING
 
@@ -29,8 +29,14 @@ def do_register_opts(opts, group=None, ignore_errors=False):
 
 
 def do_register_cli_opts(opt, ignore_errors=False):
+    # TODO: This function has broken name, it should work with lists :/
+    if not isinstance(opt, (list, tuple)):
+        opts = [opt]
+    else:
+        opts = opt
+
     try:
-        cfg.CONF.register_cli_opt(opt)
+        cfg.CONF.register_cli_opts(opts)
     except:
         if not ignore_errors:
             raise
@@ -62,7 +68,9 @@ def register_opts(ignore_errors=False):
 
     system_opts = [
         cfg.StrOpt('base_path', default='/opt/stackstorm',
-                   help='Base path to all st2 artifacts.')
+                   help='Base path to all st2 artifacts.'),
+        cfg.ListOpt('admin_users', default=[],
+                    help='A list of usernames for users which should have admin privileges')
     ]
     do_register_opts(system_opts, 'system', ignore_errors)
 
@@ -106,7 +114,9 @@ def register_opts(ignore_errors=False):
         cfg.ListOpt('excludes', default='',
                     help='Exclusion list of loggers to omit.'),
         cfg.BoolOpt('redirect_stderr', default=False,
-                    help='Controls if stderr should be redirected to the logs.')
+                    help='Controls if stderr should be redirected to the logs.'),
+        cfg.BoolOpt('mask_secrets', default=True,
+                    help='True to mask secrets in the log files.')
     ]
     do_register_opts(log_opts, 'log', ignore_errors)
 
@@ -128,35 +138,26 @@ def register_opts(ignore_errors=False):
     action_sensor_opts = [
         cfg.BoolOpt('enable', default=True,
                     help='Whether to enable or disable the ability to post a trigger on action.'),
-        cfg.StrOpt('triggers_base_url', default='http://localhost:9101/v1/triggertypes/',
-                   help='URL for action sensor to post TriggerType.'),
-        cfg.IntOpt('request_timeout', default=1,
-                   help='Timeout value of all httprequests made by action sensor.'),
-        cfg.IntOpt('max_attempts', default=10,
-                   help='No. of times to retry registration.'),
-        cfg.IntOpt('retry_wait', default=1,
-                   help='Amount of time to wait prior to retrying a request.')
     ]
     do_register_opts(action_sensor_opts, group='action_sensor')
 
     # Coordination options
     coord_opts = [
-        cfg.StrOpt('url', default='zake://', help='Endpoint for the coordination server.'),
+        cfg.StrOpt('url', default=None, help='Endpoint for the coordination server.'),
         cfg.IntOpt('lock_timeout', default=60, help='TTL for the lock if backend suports it.')
     ]
     do_register_opts(coord_opts, 'coordination', ignore_errors)
 
-    use_debugger = cfg.BoolOpt(
-        'use-debugger', default=True,
+    # Common CLI options
+    debug = cfg.BoolOpt('debug', default=False,
+        help='Enable debug mode. By default this will set all log levels to DEBUG.')
+    use_debugger = cfg.BoolOpt('use-debugger', default=True,
         help='Enables debugger. Note that using this option changes how the '
              'eventlet library is used to support async IO. This could result in '
-             'failures that do not occur under normal operation.'
-    )
-    try:
-        cfg.CONF.register_cli_opt(use_debugger)
-    except:
-        if not ignore_errors:
-            raise
+             'failures that do not occur under normal operation.')
+
+    cli_opts = [debug, use_debugger]
+    do_register_cli_opts(cli_opts, ignore_errors=ignore_errors)
 
 
 def parse_args(args=None):

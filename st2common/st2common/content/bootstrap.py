@@ -16,12 +16,12 @@
 import logging
 import sys
 
-import st2common.config as config
+from oslo_config import cfg
 
-from oslo.config import cfg
+from st2common import config
+from st2common.service_setup import db_setup
+from st2common.service_setup import db_teardown
 from st2common.logging.filters import LogLevelFilter
-from st2common.models.db import db_setup
-from st2common.models.db import db_teardown
 from st2common.transport.utils import register_exchanges
 
 
@@ -180,7 +180,6 @@ def register_content():
 def _setup(argv):
     config.parse_args()
 
-    # 2. setup logging
     log_level = logging.DEBUG
     logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s', level=log_level)
 
@@ -192,12 +191,7 @@ def _setup(argv):
         for handler in handlers:
             handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
 
-    # 3. all other setup which requires config to be parsed and logging to
-    # be correctly setup.
-    username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
-    password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-             username=username, password=password)
+    db_setup()
     register_exchanges()
 
 

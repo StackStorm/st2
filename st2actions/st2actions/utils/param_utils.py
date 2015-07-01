@@ -29,6 +29,12 @@ from st2common.util.compat import to_unicode
 
 LOG = logging.getLogger(__name__)
 
+__all__ = [
+    'get_resolved_params',
+    'get_rendered_params',
+    'get_finalized_params',
+]
+
 
 def _split_params(runner_parameters, action_parameters, mixed_params):
     def pf(params, skips):

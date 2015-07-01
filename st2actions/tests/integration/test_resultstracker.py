@@ -1,6 +1,6 @@
 import eventlet
 
-import st2actions.resultstracker as results_tracker
+import st2actions.resultstracker.resultstracker as results_tracker
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.persistence.liveaction import LiveAction
 from st2tests.base import (DbTestCase, EventletTestCase)

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -18,33 +19,36 @@ Script which generates documentation section which contains information about
 available runner parameters.
 """
 
-import argparse
+import os
 
 from st2actions.bootstrap.runnersregistrar import RUNNER_TYPES
 
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+HEADER = '.. NOTE: This file has been generated automatically, don\'t manually edit it'
 
-def main(name):
-    result = []
 
-    runner = [runner for runner in RUNNER_TYPES if runner['name'] == name][0]
+def main():
+    for runner in RUNNER_TYPES:
+        if runner.get('experimental', False):
+            continue
 
-    result.append('Runner parameters')
-    result.append('~~~~~~~~~~~~~~~~~')
-    result.append('')
+        result = []
+        result.append(HEADER)
+        result.append('')
 
-    for name, values in runner['runner_parameters'].items():
-        format_values = {'name': name}
-        format_values.update(values)
-        line = '* ``%(name)s`` (%(type)s) - %(description)s' % format_values
-        result.append(line)
+        for name, values in runner['runner_parameters'].items():
+            format_values = {'name': name}
+            format_values.update(values)
+            line = '* ``%(name)s`` (%(type)s) - %(description)s' % format_values
+            result.append(line)
 
-    result = '\n'.join(result)
-    print(result)
+        file_name = runner['name'].replace('-', '_')
+        path = '../docs/source/_includes/runner_parameters/%s.rst' % (file_name)
+        destination_path = os.path.join(CURRENT_DIR, path)
+        result = '\n'.join(result)
+
+        with open(destination_path, 'w') as fp:
+            fp.write(result)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Runner parameter documentation generation')
-    parser.add_argument('--name', required=True,
-                        help='Name of the runner to generate the documentation for')
-    args = parser.parse_args()
-
-    main(name=args.name)
+    main()

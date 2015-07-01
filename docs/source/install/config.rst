@@ -41,18 +41,22 @@ In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following se
 SUDO Access
 -----------
 
-All actions run by |st2| are performed by a single user. Typically, this user is named ``stanley`` and that is configurable via :github_st2:`st2.conf <conf/st2.prod.conf>`.
+By default, all actions run by |st2| are performed by a single user. Typically, this user is named
+``stanley`` and that is configurable via :github_st2:`st2.conf <conf/st2.prod.conf>`.
 
 .. note:: `stanley` user requires the following access -
 
     * Sudo access to all boxes on which action will run.
+    * SETENV option needs to be set for all the commands. This way environment variables which are
+      available to the local runner actions will also be available when user executes local runner
+      action under a different user or with root privileges.
     * As some actions require sudo privileges password-less sudo access to all boxes.
 
 One option of setting up passwordless sudo is perform the below operation on each remote box.
 
 .. code-block:: bash
 
-    echo "stanley    ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/st2
+    echo "stanley    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2
 
 .. _config-configure-ssh:
 
@@ -79,7 +83,7 @@ Follow these steps on a remote box to setup `stanley` user on remote boxes.
     cat /home/stanley/.ssh/stanley_rsa.pub >> /home/stanley/.ssh/authorized_keys
     chmod 0600 /home/stanley/.ssh/authorized_keys
     chown -R stanley:stanley /home/stanley
-    echo "stanley    ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/st2
+    echo "stanley    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2
 
     # ensure requiretty is not set to default in the /etc/sudoers file.
 

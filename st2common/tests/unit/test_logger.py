@@ -27,13 +27,15 @@ from st2common import log as logging
 from st2common.logging.formatters import ConsoleLogFormatter
 from st2common.logging.formatters import GelfLogFormatter
 from st2common.logging.formatters import MASKED_ATTRIBUTE_VALUE
+from st2common.models.db.action import ActionDB
+from st2common.models.db.execution import ActionExecutionDB
 import st2tests.config as tests_config
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
 CONFIG_FILE_PATH = os.path.join(RESOURCES_DIR, 'logging.conf')
 
-MOCK_MASKED_ATTRIBUTES = [
+MOCK_MASKED_ATTRIBUTES_BLACKLIST = [
     'blacklisted_1',
     'blacklisted_2',
     'blacklisted_3',
@@ -161,7 +163,8 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
         expected = 'test message 2 (value=\'bar\',user_id=1)'
         self.assertEqual(message, expected)
 
-    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES', MOCK_MASKED_ATTRIBUTES)
+    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
+                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
     def test_format_blacklisted_attributes_are_masked(self):
         formatter = ConsoleLogFormatter()
 
@@ -181,6 +184,47 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
                     "blacklisted_3={'key3': 'val3', 'key1': 'val1', 'blacklisted_1': '********'},"
                     "foo1='bar')")
         self.assertEqual(message, expected)
+
+    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
+                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
+    def test_format_secret_action_parameters_are_masked(self):
+        formatter = ConsoleLogFormatter()
+
+        mock_message = 'test message 1'
+
+        mock_action_db = ActionDB()
+        mock_action_db.name = 'test.action'
+        mock_action_db.pack = 'testpack'
+        mock_action_db.parameters = {
+            'parameter1': {
+                'type': 'string',
+                'required': False
+            },
+            'parameter2': {
+                'type': 'string',
+                'required': False,
+                'secret': True
+            }
+        }
+
+        mock_action_execution_db = ActionExecutionDB()
+        mock_action_execution_db.action = mock_action_db.to_serializable_dict()
+        mock_action_execution_db.parameters = {
+            'parameter1': 'value1',
+            'parameter2': 'value2'
+        }
+
+        record = MockRecord()
+        record.msg = mock_message
+
+        # Add "extra" attributes
+        record._action_execution_db = mock_action_execution_db
+
+        expected_msg_part = "'parameters': {'parameter1': 'value1', 'parameter2': '********'}"
+
+        message = formatter.format(record=record)
+        self.assertTrue('test message 1' in message)
+        self.assertTrue(expected_msg_part in message)
 
 
 class GelfLogFormatterTestCase(unittest.TestCase):
@@ -269,7 +313,7 @@ class GelfLogFormatterTestCase(unittest.TestCase):
                 return 'to_dict'
 
         class MyClass3(object):
-            def to_serializable_dict(self):
+            def to_serializable_dict(self, mask_secrets=False):
                 return 'to_serializable_dict'
 
         formatter = GelfLogFormatter()
@@ -286,7 +330,8 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         self.assertEqual(parsed['_obj2'], 'to_dict')
         self.assertEqual(parsed['_obj3'], 'to_serializable_dict')
 
-    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES', MOCK_MASKED_ATTRIBUTES)
+    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
+                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
     def test_format_blacklisted_attributes_are_masked(self):
         formatter = GelfLogFormatter()
 

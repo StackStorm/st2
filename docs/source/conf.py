@@ -122,7 +122,9 @@ exclude_patterns = [
     'engage.rst',  # included file
     'install/on_complete.rst', # included file
     'auth_usage.rst',
-    'todo.rst',  # included file
+    'todo.rst',  # included file,
+    '_includes/*',  # includes files
+
 ]
 
 # The reST default role (used for this markup: `text`) to use for all

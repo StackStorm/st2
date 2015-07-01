@@ -19,6 +19,17 @@ Rules are written to work with triggers. Sensors typically register triggers
 though this is not strictly the case. For example, webhook triggers are just
 registered independently. You don't have to write a sensor.
 
+Internal triggers
+-----------------
+
+By default StackStorm emits some internal triggers which you can leverage in the
+rules. Those triggers can be distinguished by non-system triggers since they are
+prefixed with ``st2.``.
+
+A list of available triggers for each resource is included below.
+
+.. include:: _includes/internal_trigger_types.rst
+
 .. _ref-sensors-authoring-a-sensor:
 
 Authoring a sensor
@@ -214,13 +225,13 @@ use the st2sensorcontainer to run just that single sensor.
 
 ::
 
-    st2sensorcontainer --config-file=/etc/st2/st2.conf --sensor-name=SensorClassName
+    st2sensorcontainer --config-file=/etc/st2/st2.conf --sensor-ref=pack.SensorClassName
 
 For example:
 
 ::
 
-    st2sensorcontainer --config-file=/etc/st2/st2.conf --sensor-name=GitCommitSensor
+    st2sensorcontainer --config-file=/etc/st2/st2.conf --sensor-ref=git.GitCommitSensor
 
 Examples
 --------

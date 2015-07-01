@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from pecan import load_app
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2auth import config  # noqa
 from st2common import log as logging

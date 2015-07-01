@@ -16,12 +16,12 @@
 import copy
 
 import jsonschema
-from oslo.config import cfg
+from oslo_config import cfg
 import pecan
 from pecan import abort
-from pecan.rest import RestController
 from six.moves import http_client
 
+from st2api.controllers.base import BaseRestControllerMixin
 from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
@@ -36,6 +36,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
+from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
 from st2common.util import date as date_utils
@@ -53,11 +54,15 @@ SUPPORTED_EXECUTIONS_FILTERS.update({
     'timestamp_lt': 'start_timestamp.lt'
 })
 
+# Name of the query parameter for toggling on the display of secrets to the admin users in the API
+# responses
+SHOW_SECRETS_QUERY_PARAM = 'show_secrets'
+
 MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
 
 
-class ActionExecutionsControllerMixin(RestController):
+class ActionExecutionsControllerMixin(BaseRestControllerMixin):
     """
     Mixin class with shared methods.
     """
@@ -70,6 +75,22 @@ class ActionExecutionsControllerMixin(RestController):
         'result',
         'trigger_instance'
     ]
+
+    def _get_from_model_kwargs_for_request(self, request):
+        """
+        Set mask_secrets=False if the user is an admin and provided ?show_secrets=True query param.
+        """
+        from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
+
+        show_secrets = self._get_query_param_value(request=request,
+                                                   param_name=SHOW_SECRETS_QUERY_PARAM,
+                                                   param_type='bool',
+                                                   default_value=False)
+
+        if show_secrets and request_user_is_admin(request=request):
+            from_model_kwargs['mask_secrets'] = False
+
+        return from_model_kwargs
 
     def _handle_schedule_execution(self, execution):
         try:
@@ -110,7 +131,8 @@ class ActionExecutionsControllerMixin(RestController):
         # Schedule the action execution.
         liveactiondb = LiveActionAPI.to_model(execution)
         _, actionexecutiondb = action_service.request(liveactiondb)
-        return ActionExecutionAPI.from_model(actionexecutiondb)
+        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        return ActionExecutionAPI.from_model(actionexecutiondb, from_model_kwargs)
 
     def _get_result_object(self, id):
         """
@@ -129,11 +151,14 @@ class ActionExecutionsControllerMixin(RestController):
         # make sure depth is int. Url encoding will make it a string and needs to
         # be converted back in that case.
         depth = int(depth)
+        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
         LOG.debug('retrieving children for id: %s with depth: %s', id_, depth)
         descendants = execution_service.get_descendants(actionexecution_id=id_,
                                                         descendant_depth=depth,
                                                         result_fmt=result_fmt)
-        return [self.model.from_model(descendant) for descendant in descendants]
+
+        return [self.model.from_model(descendant, from_model_kwargs) for
+                descendant in descendants]
 
     def _validate_exclude_fields(self, exclude_fields):
         """
@@ -169,7 +194,7 @@ class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
 
         Handles requests:
 
-            GET /actionexecutions/<id>/<attribute>/<value>
+            GET /actionexecutions/<id>/<attribute>
 
         :rtype: ``dict``
         """
@@ -255,7 +280,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         List all actionexecutions.
 
         Handles requests:
-            GET /actionexecutions/[?exclude_attributes=result,trigger_instance]
+            GET /actionexecutions[?exclude_attributes=result,trigger_instance]
 
         :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
         :type exclude_attributes: ``str``
@@ -341,7 +366,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             return
 
         execution_db = execution_service.update_execution(liveaction_db)
-        return ActionExecutionAPI.from_model(execution_db)
+        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        return ActionExecutionAPI.from_model(execution_db, from_model_kwargs)
 
     @jsexpose()
     def options(self, *args, **kw):

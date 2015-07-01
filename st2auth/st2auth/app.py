@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import pecan
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import hooks
 from st2common import log as logging

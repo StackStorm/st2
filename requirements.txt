@@ -9,7 +9,7 @@ jinja2
 jsonschema>=2.3.0
 kombu
 mongoengine>=0.8.7,<0.9
-oslo.config
+oslo.config>=1.12.1,<1.13
 paramiko
 pecan==0.7.0
 pymongo<3.0

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import log as logging
 import st2common.config as common_config
@@ -65,6 +65,10 @@ def _override_common_opts():
     packs_base_path = get_fixtures_base_path()
     CONF.set_override(name='system_packs_base_path', override=packs_base_path, group='content')
     CONF.set_override(name='api_url', override='http://localhost', group='auth')
+    CONF.set_override(name='admin_users', override=['admin_user'], group='system')
+    CONF.set_override(name='mask_secrets', override=True, group='log')
+    CONF.set_override(name='url', override='zake://', group='coordination')
+    CONF.set_override(name='lock_timeout', override=1, group='coordination')
 
 
 def _register_common_opts():
@@ -79,7 +83,9 @@ def _register_api_opts():
         cfg.ListOpt('allow_origin', default=['http://localhost:3000', 'http://dev'],
                     help='List of origins allowed'),
         cfg.IntOpt('heartbeat', default=25,
-                   help='Send empty message every N seconds to keep connection open')
+                   help='Send empty message every N seconds to keep connection open'),
+        cfg.BoolOpt('mask_secrets', default=True,
+                    help='True to mask secrets in API responses')
     ]
     _register_opts(api_opts, group='api')
 

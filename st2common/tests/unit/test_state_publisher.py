@@ -16,7 +16,7 @@
 import kombu
 import mock
 import mongoengine as me
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.models import db
 from st2common.models.db import stormbase

@@ -22,7 +22,7 @@ import six
 import yaml
 from mistralclient.api import client as mistral
 from mistralclient.api.base import APIException
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2actions.runners import AsyncActionRunner

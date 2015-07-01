@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import config as st2cfg
 from st2common.constants.system import VERSION_STRING
@@ -25,6 +25,15 @@ from st2auth.backends import VALID_BACKEND_NAMES
 
 def parse_args(args=None):
     cfg.CONF(args=args, version=VERSION_STRING)
+
+
+def register_opts():
+    _register_common_opts()
+    _register_app_opts()
+
+
+def get_logging_config_path():
+    return cfg.CONF.auth.logging
 
 
 def _register_common_opts():
@@ -61,11 +70,5 @@ def _register_app_opts():
             help='List of origins allowed'),
     ]
     cfg.CONF.register_cli_opts(api_opts, group='api')
-
-
-def register_opts():
-    _register_common_opts()
-    _register_app_opts()
-
 
 register_opts()

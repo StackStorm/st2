@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
+from oslo_config import cfg
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.auth import UserDB, TokenDB
@@ -73,8 +73,8 @@ class TokenAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model):
-        doc = super(cls, cls)._from_model(model)
+    def from_model(cls, model, mask_secrets=False):
+        doc = super(cls, cls)._from_model(model, mask_secrets=mask_secrets)
         doc['expiry'] = isotime.format(model.expiry, offset=False) if model.expiry else None
         return cls(**doc)
 

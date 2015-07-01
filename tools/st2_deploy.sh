@@ -166,7 +166,7 @@ create_user() {
     chown -R ${SYSTEMUSER}:${SYSTEMUSER} /home/${SYSTEMUSER}
     if [ $(grep 'stanley' /etc/sudoers.d/* &> /dev/null; echo $?) != 0 ]
     then
-      echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/st2
+      echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2
       chmod 0440 /etc/sudoers.d/st2
     fi
 

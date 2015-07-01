@@ -174,7 +174,6 @@ class PythonRunner(ActionRunner):
             output['error'] = error
 
         status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
-        self._log_action_completion(logger=LOG, result=output, status=status, exit_code=exit_code)
         return (status, output, None)
 
     def _get_env_vars(self):

@@ -20,13 +20,16 @@ import six
 import sys
 import traceback
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 
-CONFIGS = ['st2common.config',
+CONFIGS = ['st2actions.config',
+           'st2actions.notifier.config',
+           'st2actions.resultstracker.config',
            'st2api.config',
-           'st2actions.config',
            'st2auth.config',
+           'st2common.config',
+           'st2exporter.config',
            'st2reactor.rules.config',
            'st2reactor.sensor.config']
 

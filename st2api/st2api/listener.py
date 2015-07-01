@@ -32,7 +32,7 @@ import eventlet
 
 from kombu import Connection, Queue
 from kombu.mixins import ConsumerMixin
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionAPI
@@ -78,10 +78,12 @@ class Listener(ConsumerMixin):
 
     def processor(self, model):
         def process(body, message):
+            from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
             meta = message.delivery_info
-            event_name = "%s__%s" % (meta.get('exchange'), meta.get('routing_key'))
+            event_name = '%s__%s' % (meta.get('exchange'), meta.get('routing_key'))
+
             try:
-                self.emit(event_name, model.from_model(body))
+                self.emit(event_name, model.from_model(body, **from_model_kwargs))
             finally:
                 message.ack()
 

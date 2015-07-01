@@ -16,7 +16,7 @@
 import json
 
 from kombu import Connection
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
@@ -30,6 +30,10 @@ from st2common.persistence.execution import ActionExecution
 from st2common.transport import consumers, liveaction, publishers
 from st2common.transport.reactor import TriggerDispatcher
 
+__all__ = [
+    'Notifier',
+    'get_notifier'
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -61,7 +65,12 @@ class Notifier(consumers.MessageHandler):
         if liveaction.status not in ACTION_COMPLETE_STATES:
             return
 
-        execution_id = self._get_execution_id(liveaction)
+        execution_id = self._get_execution_id_for_liveaction(liveaction)
+
+        if not execution_id:
+            LOG.exception('Execution object corresponding to LiveAction %s not found.',
+                          str(liveaction.id))
+            return None
 
         self._apply_post_run_policies(liveaction=liveaction, execution_id=execution_id)
 
@@ -70,14 +79,13 @@ class Notifier(consumers.MessageHandler):
 
         self._post_generic_trigger(liveaction=liveaction, execution_id=execution_id)
 
-    def _get_execution_id(self, liveaction):
-        try:
-            execution = ActionExecution.get(liveaction__id=str(liveaction.id))
-            return str(execution.id)
-        except:
-            LOG.exception('Execution object corresponding to LiveAction %s not found.',
-                          str(liveaction.id))
+    def _get_execution_id_for_liveaction(self, liveaction):
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+
+        if not execution:
             return None
+
+        return str(execution.id)
 
     def _post_notify_triggers(self, liveaction=None, execution_id=None):
         notify = getattr(liveaction, 'notify', None)
@@ -109,11 +117,13 @@ class Notifier(consumers.MessageHandler):
             message = notify_subsection.message or (
                 'Action ' + liveaction.action + ' ' + default_message_suffix)
             data = notify_subsection.data or {}  # XXX: Handle Jinja
+
             # At this point convert result to a string. This restricts the rulesengines
             # ability to introspect the result. On the other handle atleast a json usable
             # result is sent as part of the notification. If jinja is required to convert
             # to a string representation it uses str(...) which make it impossible to
             # parse the result as json any longer.
+            # TODO: Use to_serializable_dict
             data['result'] = json.dumps(liveaction.result)
 
             payload['message'] = message
@@ -123,7 +133,7 @@ class Notifier(consumers.MessageHandler):
             payload['start_timestamp'] = str(liveaction.start_timestamp)
             payload['end_timestamp'] = str(liveaction.end_timestamp)
             payload['action_ref'] = liveaction.action
-            payload['runner_ref'] = self._get_runner(liveaction.action)
+            payload['runner_ref'] = self._get_runner_ref(liveaction.action)
 
             failed_channels = []
             for channel in notify_subsection.channels:
@@ -140,6 +150,7 @@ class Notifier(consumers.MessageHandler):
 
     def _post_generic_trigger(self, liveaction=None, execution_id=None):
         if not ACTION_SENSOR_ENABLED:
+            LOG.debug('Action trigger is disabled, skipping trigger dispatch...')
             return
 
         payload = {'execution_id': execution_id,
@@ -148,8 +159,8 @@ class Notifier(consumers.MessageHandler):
                    # deprecate 'action_name' at some point and switch to 'action_ref'
                    'action_name': liveaction.action,
                    'action_ref': liveaction.action,
-                   'runner_ref': self._get_runner(liveaction.action),
-                   'parameters': liveaction.parameters,
+                   'runner_ref': self._get_runner_ref(liveaction.action),
+                   'parameters': liveaction.get_masked_parameters(),
                    'result': liveaction.result}
         LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
                   liveaction.id, payload)
@@ -167,7 +178,12 @@ class Notifier(consumers.MessageHandler):
             except:
                 LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
 
-    def _get_runner(self, action_ref):
+    def _get_runner_ref(self, action_ref):
+        """
+        Retrieve a runner reference for the provided action.
+
+        :rtype: ``str``
+        """
         action = Action.get_by_ref(action_ref)
         return action['runner_type']['name']
 

@@ -18,7 +18,7 @@ import base64
 import pecan
 from pecan import rest
 from six.moves import http_client
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.exceptions.auth import TTLTooLargeException
 from st2common.models.api.base import jsexpose

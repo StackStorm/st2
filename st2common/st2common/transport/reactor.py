@@ -15,7 +15,7 @@
 
 from kombu import Exchange, Queue
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.transport import publishers

@@ -16,7 +16,7 @@
 import os
 
 import pecan
-from oslo.config import cfg
+from oslo_config import cfg
 from pecan.middleware.static import StaticFileMiddleware
 
 from st2common import hooks

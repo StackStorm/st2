@@ -18,6 +18,27 @@ in development
   bug-fix)
 * Allow users to use ``timediff_lt`` and ``timediff_gt`` rule comparison operator with many string
   date formats - previously it only worked with ISO8601 date strings. (improvement)
+* Allow user to specify new ``secret`` attribute (boolean) for each action parameters. Values of
+  parameters which have this attribute set to true will be masked in the log files. (new-feature)
+* API server now gracefully shuts down on SIGINT (CTRL-C). (improvement)
+* Fix a bug with with reinstalling a pack with no existing config - only try to move the config
+  file over if it exists. (bug fix)
+* Support for masking secret parameters in the API responses. Secret parameters can only be viewed
+  through the API by admin users. (new-feature)
+* Single sensor mode of Sensor Container uses ``--sensor-ref`` instead of ``--sensor-name``.
+* ``six`` library is now available by default in the Python sandbox to all the newly installed
+  packs. (improvement)
+* Dispatch an internal trigger when a datastore item has been created, updated, deleted and when
+  it's value has changed. (new-feature)
+* Fix a bug with ``st2 execution list`` CLI command throwing an exception on failed Mistral
+  workflows. (bug-fix)
+* Fix a bug with ``st2 execution list`` CLI command not displaying ``end_timestamp`` attribute for
+  Mistral workflows. (bug-fix)
+
+0.11.4 - June 30, 2015
+----------------------
+
+* Remove unnecessary rule notify_hubot from core.
 
 0.11.3 - June 16, 2015
 ----------------------

@@ -22,10 +22,15 @@ from st2common import log as logging
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.keyvalue import KeyValuePair
+from st2common.services import coordination
 
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
+
+__all__ = [
+    'KeyValuePairController'
+]
 
 
 class KeyValuePairController(RestController):
@@ -34,6 +39,9 @@ class KeyValuePairController(RestController):
     """
 
     # TODO: Port to use ResourceController
+    def __init__(self):
+        self._coordinator = coordination.get_coordinator()
+        super(KeyValuePairController, self).__init__()
 
     @jsexpose(arg_types=[str])
     def get_one(self, name):
@@ -83,28 +91,30 @@ class KeyValuePairController(RestController):
         """
         Create a new entry or update an existing one.
         """
-        # TODO: There is a race, add custom add_or_update which updates by non
-        # id field
-        existing_kvp = self.__get_by_name(name=name)
+        lock_name = self._get_lock_name_for_key(name=name)
 
-        kvp.name = name
+        # Note: We use lock to avoid a race
+        with self._coordinator.get_lock(lock_name):
+            existing_kvp = self.__get_by_name(name=name)
 
-        try:
-            kvp_db = KeyValuePairAPI.to_model(kvp)
+            kvp.name = name
 
-            if existing_kvp:
-                kvp_db.id = existing_kvp.id
+            try:
+                kvp_db = KeyValuePairAPI.to_model(kvp)
 
-            kvp_db = KeyValuePair.add_or_update(kvp_db)
-        except (ValidationError, ValueError) as e:
-            LOG.exception('Validation failed for key value data=%s', kvp)
-            abort(http_client.BAD_REQUEST, str(e))
-            return
+                if existing_kvp:
+                    kvp_db.id = existing_kvp.id
+
+                kvp_db = KeyValuePair.add_or_update(kvp_db)
+            except (ValidationError, ValueError) as e:
+                LOG.exception('Validation failed for key value data=%s', kvp)
+                abort(http_client.BAD_REQUEST, str(e))
+                return
 
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair updated. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
-        kvp_api = KeyValuePairAPI.from_model(kvp_db)
 
+        kvp_api = KeyValuePairAPI.from_model(kvp_db)
         return kvp_api
 
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
@@ -115,21 +125,25 @@ class KeyValuePairController(RestController):
             Handles requests:
                 DELETE /keys/1
         """
-        kvp_db = self.__get_by_name(name=name)
+        lock_name = self._get_lock_name_for_key(name=name)
 
-        if not kvp_db:
-            abort(http_client.NOT_FOUND)
-            return
+        # Note: We use lock to avoid a race
+        with self._coordinator.get_lock(lock_name):
+            kvp_db = self.__get_by_name(name=name)
 
-        LOG.debug('DELETE /keys/ lookup with name=%s found object: %s', name, kvp_db)
+            if not kvp_db:
+                abort(http_client.NOT_FOUND)
+                return
 
-        try:
-            KeyValuePair.delete(kvp_db)
-        except Exception as e:
-            LOG.exception('Database delete encountered exception during '
-                          'delete of name="%s". ', name)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
-            return
+            LOG.debug('DELETE /keys/ lookup with name=%s found object: %s', name, kvp_db)
+
+            try:
+                KeyValuePair.delete(kvp_db)
+            except Exception as e:
+                LOG.exception('Database delete encountered exception during '
+                              'delete of name="%s". ', name)
+                abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+                return
 
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair deleted. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
@@ -141,3 +155,13 @@ class KeyValuePairController(RestController):
         except ValueError as e:
             LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
             return None
+
+    def _get_lock_name_for_key(self, name):
+        """
+        Retrieve a coordination lock name for the provided datastore item name.
+
+        :param name: Datastore item name (PK).
+        :type name: ``str``
+        """
+        lock_name = 'kvp-crud-%s' % (name)
+        return lock_name

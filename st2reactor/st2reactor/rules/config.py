@@ -13,13 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
 common_config.register_opts()
 
 CONF = cfg.CONF
+
+
+def parse_args(args=None):
+    CONF(args=args, version=VERSION_STRING)
+
+
+def register_opts():
+    _register_common_opts()
+    _register_rules_engine_opts()
+
+
+def get_logging_config_path():
+    return cfg.CONF.rulesengine.logging
 
 
 def _register_common_opts():
@@ -40,13 +53,4 @@ def _register_rules_engine_opts():
     CONF.register_opts(timer_opts, group='timer')
 
 
-def register_opts():
-    _register_common_opts()
-    _register_rules_engine_opts()
-
-
 register_opts()
-
-
-def parse_args(args=None):
-    CONF(args=args, version=VERSION_STRING)

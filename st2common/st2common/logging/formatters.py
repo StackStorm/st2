@@ -23,28 +23,18 @@ import copy
 import traceback
 
 import six
+from oslo_config import cfg
+
+from st2common.constants.secrets import MASKED_ATTRIBUTES_BLACKLIST
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 __all__ = [
     'ConsoleLogFormatter',
     'GelfLogFormatter',
-
-    'MASKED_ATTRIBUTES',
-    'MASKED_ATTRIBUTE_VALUE'
 ]
 
 SIMPLE_TYPES = (int, float) + six.string_types
 NON_OBJECT_TYPES = SIMPLE_TYPES + (list, dict) + six.string_types
-
-# A list of attributes which should be masked in the log messages.
-# Note: If an attribute is an object or a dict, we try to recursively process it and mask the
-# values.
-MASKED_ATTRIBUTES = [
-    'password',
-    'token'
-]
-
-# Value with which the masked attribute values are replaced
-MASKED_ATTRIBUTE_VALUE = '********'
 
 # GELF logger specific constants
 HOSTNAME = socket.gethostname()
@@ -73,7 +63,7 @@ def serialize_object(obj):
     if getattr(obj, 'to_dict', None):
         value = obj.to_dict()
     elif getattr(obj, 'to_serializable_dict', None):
-        value = obj.to_serializable_dict()
+        value = obj.to_serializable_dict(mask_secrets=True)
     else:
         value = repr(obj)
 
@@ -84,12 +74,15 @@ def process_attribute_value(key, value):
     """
     Format and process the extra attribute value.
     """
+    if not cfg.CONF.log.mask_secrets:
+        return value
+
     # NOTE: This can be expensive when processing large dicts or objects
     if isinstance(value, SIMPLE_TYPES):
-        if key in MASKED_ATTRIBUTES:
+        if key in MASKED_ATTRIBUTES_BLACKLIST:
             value = MASKED_ATTRIBUTE_VALUE
     elif isinstance(value, dict):
-        # Note: We don't want to modify the original value`
+        # Note: We don't want to modify the original value
         value = copy.deepcopy(value)
 
         for dict_key, dict_value in six.iteritems(value):

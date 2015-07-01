@@ -34,6 +34,11 @@ def register_common_signal_handlers():
     signal.signal(signal.SIGUSR1, handle_sigusr1)
 
 
-def handle_sigusr1(signal, stack):
+def handle_sigusr1(signal_number, stack_frame):
+    """
+    Global SIGUSR1 signal handler which causes all the loggers to re-open log file handles.
+
+    Note: This function is used with log rotation utilities such as logrotate.
+    """
     handlers = logging.getLoggerClass().manager.root.handlers
     reopen_log_files(handlers=handlers)

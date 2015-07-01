@@ -17,7 +17,7 @@ import os
 import abc
 
 from fabric.api import (env, execute)
-from oslo.config import cfg
+from oslo_config import cfg
 import six
 
 from st2actions.runners import ActionRunner
@@ -85,7 +85,6 @@ class BaseFabricRunner(ActionRunner, ShellRunnerMixin):
     def pre_run(self):
         LOG.debug('Entering FabricRunner.pre_run() for liveaction_id="%s"',
                   self.liveaction_id)
-        LOG.debug('    runner_parameters = %s', self.runner_parameters)
         hosts = self.runner_parameters.get(RUNNER_HOSTS, '').split(',')
         self._hosts = [h.strip() for h in hosts if len(h) > 0]
         if len(self._hosts) < 1:
@@ -109,7 +108,7 @@ class BaseFabricRunner(ActionRunner, ShellRunnerMixin):
                  self.runner_id, self.liveaction_id)
 
     def _run(self, remote_action):
-        LOG.info('Executing action via FabricRunner :%s for user: %s.',
+        LOG.info('Executing action via FabricRunner: %s for user: %s.',
                  self.runner_id, remote_action.get_on_behalf_user())
         LOG.info(('[Action info] name: %s, Id: %s, command: %s, on behalf user: %s, '
                   'actual user: %s, sudo: %s'),

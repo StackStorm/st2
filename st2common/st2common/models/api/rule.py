@@ -139,8 +139,8 @@ class RuleAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model):
-        rule = cls._from_model(model)
+    def from_model(cls, model, mask_secrets=False):
+        rule = cls._from_model(model, mask_secrets=mask_secrets)
         trigger_db = reference.get_model_by_resource_ref(Trigger, model.trigger)
 
         if not trigger_db:

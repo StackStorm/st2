@@ -61,6 +61,9 @@ docs: requirements .docs
 	@echo
 	@echo "====================docs===================="
 	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-runner-parameters-documentation.py
+	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-internal-triggers-table.py
+	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; $(SPHINXBUILD) -W -b html $(DOC_SOURCE_DIR) $(DOC_BUILD_DIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(DOC_BUILD_DIR)/html."
@@ -86,13 +89,17 @@ pylint: requirements .pylint
 	@echo
 	@echo "================== pylint ===================="
 	@echo
+	# Lint st2 components
 	@for component in $(COMPONENTS); do\
 		echo "==========================================================="; \
 		echo "Running pylint on" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models $$component/$$component || exit 1; \
 	done
+	# Lint Python pack management actions
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/pack_mgmt/ || exit 1;
+	# Lint Python scripts
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models scripts/*.py || exit 1;
 
 .PHONY: flake8
 flake8: requirements .flake8
@@ -103,6 +110,8 @@ flake8: requirements .flake8
 	@echo "==================== flake ===================="
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS)
+	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 contrib/packs/actions/pack_mgmt/
+	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 scripts/
 
 .PHONY: lint
 lint: requirements .flake8 .pylint

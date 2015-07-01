@@ -17,13 +17,22 @@
 Configuration options registration and useful routines.
 """
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
 common_config.register_opts()
 
 CONF = cfg.CONF
+
+
+def parse_args(args=None):
+    CONF(args=args, version=VERSION_STRING)
+
+
+def get_logging_config_path():
+    return cfg.CONF.exporter.logging
+
 
 dump_opts = [
     cfg.StrOpt('dump_dir', default='/opt/stackstorm/exports/',
@@ -36,7 +45,3 @@ logging_opts = [
                help='location of the logging.exporter.conf file')
 ]
 CONF.register_opts(logging_opts, group='exporter')
-
-
-def parse_args(args=None):
-    CONF(args=args, version=VERSION_STRING)

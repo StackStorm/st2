@@ -18,7 +18,7 @@ import os
 import tempfile
 import yaml
 
-from oslo.config import cfg
+from oslo_config import cfg
 from eventlet.green import subprocess
 
 from st2common.util.green.shell import run_command
@@ -61,8 +61,6 @@ class CloudSlangRunner(ActionRunner):
                                                    LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT)
 
     def run(self, action_parameters):
-        LOG.debug('    action_parameters = %s', action_parameters)
-
         # Note: "inputs" runner parameter has precedence over action parameters
         if self._inputs:
             inputs = self._inputs
@@ -150,5 +148,4 @@ class CloudSlangRunner(ActionRunner):
             result['error'] = error
 
         status = LIVEACTION_STATUS_SUCCEEDED if succeeded else LIVEACTION_STATUS_FAILED
-        self._log_action_completion(logger=LOG, result=result, status=status, exit_code=exit_code)
         return result, status

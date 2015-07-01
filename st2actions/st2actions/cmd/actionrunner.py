@@ -2,17 +2,11 @@ import eventlet
 import os
 import sys
 
-from oslo.config import cfg
-
 from st2actions import config
 from st2actions import scheduler, worker
 from st2common import log as logging
-from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
-from st2common.models.db import db_setup
-from st2common.models.db import db_teardown
-from st2common.signal_handlers import register_common_signal_handlers
-from st2common.transport.utils import register_exchanges
-from st2common.triggers import register_internal_trigger_types
+from st2common.service_setup import setup as common_setup
+from st2common.service_setup import teardown as common_teardown
 
 LOG = logging.getLogger(__name__)
 
@@ -26,27 +20,8 @@ eventlet.monkey_patch(
 
 
 def _setup():
-    # Set up logger which logs everything which happens during and before config
-    # parsing to sys.stdout
-    logging.setup(DEFAULT_LOGGING_CONF_PATH)
-
-    # 1. parse args to setup config.
-    config.parse_args()
-
-    # 2. setup logging.
-    logging.setup(cfg.CONF.actionrunner.logging)
-
-    # 3. all other setup which requires config to be parsed and logging to
-    # be correctly setup.
-    username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
-    password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-             username=username, password=password)
-    register_exchanges()
-    register_common_signal_handlers()
-
-    # 4. Register internal triggers
-    register_internal_trigger_types()
+    common_setup(service='actionrunner', config=config, setup_db=True, register_mq_exchanges=True,
+                 register_signal_handlers=True)
 
 
 def _run_worker():
@@ -85,7 +60,7 @@ def _run_worker():
 
 
 def _teardown():
-    db_teardown()
+    common_teardown()
 
 
 def main():
