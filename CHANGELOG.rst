@@ -35,6 +35,11 @@ in development
 * Fix a bug with ``st2 execution list`` CLI command not displaying ``end_timestamp`` attribute for
   Mistral workflows. (bug-fix)
 
+0.11.4 - June 30, 2015
+----------------------
+
+* Remove unnecessary rule notify_hubot from core.
+
 0.11.3 - June 16, 2015
 ----------------------
 
