@@ -129,7 +129,7 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None):
 
     # Sort the lines to guarantee a stable order
     lines_to_write = sorted(lines_to_write)
-    data = '\n'.join(lines_to_write)
+    data = '\n'.join(lines_to_write) + '\n'
     with open(output_file, 'w') as fp:
         fp.write('# Don\'t edit this file. It\'s generated automatically!\n')
         fp.write(data)
