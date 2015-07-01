@@ -15,7 +15,7 @@
 
 from oslo_config import cfg
 
-from st2common.constants.sensors import KVSTORE_SHARD_LOADER
+from st2common.constants.sensors import KVSTORE_SHARD_LOADER, FILE_SHARD_LOADER
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2reactor.container import shard_loader
@@ -56,3 +56,13 @@ class ShardLoaderTest(DbTestCase):
         KeyValuePair.add_or_update(kvp, publish=False, dispatch_trigger=False)
         sensors = shard_loader.get_sensors()
         self.assertEqual(len(sensors), len(kvp.value.split(',')))
+
+    def test_file_shard_provider(self):
+        shard_file = FixturesLoader().get_fixture_file_path_abs(fixtures_pack=PACK,
+                                                                fixtures_type='sensors',
+                                                                fixture_name='shard_file.yaml')
+        cfg.CONF.set_override(name='shard_provider',
+                              override={'name': FILE_SHARD_LOADER, 'shard_file': shard_file},
+                              group='sensorcontainer')
+        sensors = shard_loader.get_sensors()
+        self.assertEqual(len(sensors), 2)
