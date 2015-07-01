@@ -4,7 +4,7 @@ Changelog
 0.11.4 - June 30, 2015
 ----------------------
 
-* Remove unncecssary rule notifu_hubot from core.
+* Remove unnecessary rule notify_hubot from core.
 
 0.11.3 - June 16, 2015
 ----------------------
