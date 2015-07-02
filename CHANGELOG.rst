@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.11.6 - TBD
-------------
+0.11.6 - July 2, 2015
+---------------------
 
 * Update all the code to handle all the datetime objects internally in UTC. (improvement, bug-fix)
 
