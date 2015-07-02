@@ -28,6 +28,7 @@ import st2common.validators.api.action as action_validator
 
 from six.moves import filter
 from st2common.util import isotime
+from st2common.util import date as date_utils
 from st2common.models.db.auth import TokenDB
 from st2common.persistence.auth import Token
 from st2common.transport.publishers import PoolPublisher
@@ -336,7 +337,7 @@ class TestActionExecutionController(FunctionalTest):
         return self.app.delete('/v1/executions/%s' % actionexecution_id,
                                expect_errors=expect_errors)
 
-NOW = isotime.add_utc_tz(datetime.datetime.utcnow())
+NOW = date_utils.get_datetime_utc_now()
 EXPIRY = NOW + datetime.timedelta(seconds=300)
 SYS_TOKEN = TokenDB(id=bson.ObjectId(), user='system', token=uuid.uuid4().hex, expiry=EXPIRY)
 USR_TOKEN = TokenDB(id=bson.ObjectId(), user='tokenuser', token=uuid.uuid4().hex, expiry=EXPIRY)

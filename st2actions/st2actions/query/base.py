@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import abc
-import datetime
 import eventlet
 import Queue
 import six
@@ -29,7 +28,7 @@ from st2common.persistence.executionstate import ActionExecutionState
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
-from st2common.util import isotime
+from st2common.util import date as date_utils
 
 
 LOG = logging.getLogger(__name__)
@@ -128,7 +127,7 @@ class Querier(object):
 
         done = status in DONE_STATES
         if done and not liveaction_db.end_timestamp:
-            liveaction_db.end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+            liveaction_db.end_timestamp = date_utils.get_datetime_utc_now()
 
         # update liveaction, update actionexecution and then publish update.
         updated_liveaction = LiveAction.add_or_update(liveaction_db, publish=False)

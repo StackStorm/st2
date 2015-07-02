@@ -28,7 +28,7 @@ from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.transport.liveaction import LiveActionPublisher
-from st2common.util.isotime import get_datetime_utc_now
+from st2common.util.date import get_datetime_utc_now
 import st2common.util.action_db as action_db_utils
 from st2tests.base import DbTestCase
 

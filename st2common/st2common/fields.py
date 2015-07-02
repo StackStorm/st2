@@ -18,7 +18,7 @@ import calendar
 
 from mongoengine import LongField
 
-from st2common.util import isotime
+from st2common.util import date as date_utils
 
 __all__ = [
     'ComplexDateTimeField'
@@ -58,10 +58,10 @@ class ComplexDateTimeField(LongField):
         :param data: Number of microseconds since the epoch.
         :type data: ``int``
         """
-        result = datetime.datetime.fromtimestamp(data // SECOND_TO_MICROSECONDS)
+        result = datetime.datetime.utcfromtimestamp(data // SECOND_TO_MICROSECONDS)
         microseconds_reminder = (data % SECOND_TO_MICROSECONDS)
         result = result.replace(microsecond=microseconds_reminder)
-        result = isotime.add_utc_tz(result)
+        result = date_utils.add_utc_tz(result)
         return result
 
     def _datetime_to_microseconds_since_epoch(self, value):
@@ -75,10 +75,8 @@ class ComplexDateTimeField(LongField):
         """
         # Verify that the value which is passed in contains UTC timezone
         # information.
-        # TODO: Re-enable the check once we update all the code to use time-zone
-        # (UTC) aware datetime objects
-        #  if not value.tzinfo or (value.tzinfo.utcoffset(value) != datetime.timedelta(0)):
-        #    raise ValueError('Value passed to this function needs to be in UTC timezone')
+        if not value.tzinfo or (value.tzinfo.utcoffset(value) != datetime.timedelta(0)):
+            raise ValueError('Value passed to this function needs to be in UTC timezone')
 
         seconds = calendar.timegm(value.timetuple())
         microseconds_reminder = value.time().microsecond
