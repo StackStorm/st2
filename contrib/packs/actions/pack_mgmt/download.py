@@ -44,8 +44,18 @@ class DownloadGitRepoAction(Action):
         self._repo_url = None
 
     def run(self, packs, repo_url, abs_repo_base, verifyssl=True, branch='master', subtree=False):
+
+        cached_repo_url, cached_branch, cached_subtree = self._lookup_cached_gitinfo(
+            abs_repo_base, packs)
+
         if not repo_url:
-            repo_url = self._lookup_repo_url(abs_repo_base, packs)
+            repo_url = cached_repo_url
+        if not branch:
+            branch = cached_branch
+        # Making the assumption that is no repo_url change was required
+        # the subtree nature should be inferred from cached value.
+        if repo_url == cached_repo_url:
+            subtree = cached_subtree
 
         self._subtree = self._eval_subtree(repo_url, subtree)
         self._repo_url = self._eval_repo_url(repo_url)
@@ -192,7 +202,7 @@ class DownloadGitRepoAction(Action):
         return url if has_git_extension else "{}.git".format(url)
 
     @staticmethod
-    def _lookup_repo_url(abs_repo_base, packs):
+    def _lookup_cached_gitinfo(abs_repo_base, packs):
         """
         This method will try to lookup the repo_url from the first pack in the list
         of packs. It works under some strict assumptions -
@@ -201,6 +211,8 @@ class DownloadGitRepoAction(Action):
         3. gitinfo was originally added by this action
         """
         repo_url = None
+        branch = None
+        subtree = False
         if len(packs) < 1:
             raise Exception('No packs specified.')
         gitinfo_location = os.path.join(abs_repo_base, packs[0], GITINFO_FILE)
@@ -210,9 +222,12 @@ class DownloadGitRepoAction(Action):
         with open(gitinfo_location, 'r') as gitinfo_fp:
             gitinfo = json.load(gitinfo_fp)
             repo_url = gitinfo.get('repo_url', None)
+            branch = gitinfo.get('branch', None)
+            subtree = gitinfo.get('subtree', False)
+
         if not repo_url:
             raise Exception('No repo_url found in gitinfo "%s".' % gitinfo_location)
-        return repo_url
+        return repo_url, branch, subtree
 
     @staticmethod
     def _eval_repo_name(repo_url):
@@ -235,9 +250,10 @@ class DownloadGitRepoAction(Action):
 
         repo = Repo(pack_root)
         payload = {
-            "repo_url": repo.remotes[0].url,
-            "branch": repo.active_branch.name,
-            "ref": repo.head.commit.hexsha
+            'repo_url': repo.remotes[0].url,
+            'branch': repo.active_branch.name,
+            'ref': repo.head.commit.hexsha,
+            'subtree': subtree
         }
 
         for pack in packs:
