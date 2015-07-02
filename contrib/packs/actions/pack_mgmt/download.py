@@ -209,6 +209,7 @@ class DownloadGitRepoAction(Action):
 
         repo = Repo(pack_root)
         payload = {
+            "repo_url": repo.remotes[0].url,
             "branch": repo.active_branch.name,
             "ref": repo.head.commit.hexsha
         }
