@@ -136,8 +136,9 @@ class MistralResultsQuerier(Querier):
         result['state'] = task.get('state', None)
         result['input'] = task.get('input', None)
         result['result'] = task.get('result', None)
+        result['published'] = task.get('published', None)
 
-        for attr in ['result', 'input']:
+        for attr in ['result', 'input', 'published']:
             result[attr] = jsonify.try_loads(task.get(attr, None))
 
         return result
