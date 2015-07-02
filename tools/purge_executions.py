@@ -33,7 +33,7 @@ from st2common.models.db import db_setup
 from st2common.models.db import db_teardown
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
-from st2common.util import isotime
+from st2common.util import date as date_utils
 
 
 DEFAULT_TIMEDELTA_DAYS = 2  # in days
@@ -105,7 +105,7 @@ def _purge_executions(timestamp=None, action_ref=None):
             return execution_db.start_timestamp < timestamp
 
     # XXX: Think about paginating this call.
-    filters = {'start_timestamp__lt': isotime.parse(timestamp)}
+    filters = {'start_timestamp__lt': date_utils.parse(timestamp)}
     executions = ActionExecution.query(**filters)
     executions_to_delete = filter(should_delete, executions)
     print('#### Total number of executions to delete: %d' % len(executions_to_delete))
@@ -143,7 +143,7 @@ def main():
              username=username, password=password)
 
     if not timestamp:
-        now = datetime.now()
+        now = date_utils.get_datetime_utc_now()
         timestamp = now - timedelta(days=DEFAULT_TIMEDELTA_DAYS)
     else:
         timestamp = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
