@@ -2,7 +2,6 @@ contrib/core opt/stackstorm/packs/
 contrib/packs opt/stackstorm/packs/
 contrib/linux opt/stackstorm/packs/
 contrib/examples usr/share/doc/st2/
-contrib/tests usr/share/stackstorm/
 docs usr/share/doc/st2/
 st2common usr/lib/python2.7/dist-packages/
 bin usr/lib/python2.7/dist-packages/st2common/
