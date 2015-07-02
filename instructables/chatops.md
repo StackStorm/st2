@@ -91,10 +91,10 @@ hubot::env_export:
 hubot::external_scripts:
   - "hubot-stackstorm"
 hubot::dependencies:
-  - "hubot": ">= 2.6.0 < 3.0.0"
-  - "hubot-scripts": ">= 2.5.0 < 3.0.0"
-  - "hubot-slack": ">=3.3.0 < 4.0.0"
-  - "hubot-stackstorm": ">= 0.1.0 < 0.2.0"
+  "hubot": ">= 2.6.0 < 3.0.0"
+  "hubot-scripts": ">= 2.5.0 < 3.0.0"
+  "hubot-slack": ">=3.3.0 < 4.0.0"
+  "hubot-stackstorm": ">= 0.1.0 < 0.2.0"
 ```
 
 Take note of the `EXPRESS_PORT` environment variable. Hubot's HTTP port in `st2workroom` needs to be moved to `TCP 8081` to avoid port conflict with `st2web`, which serves on `TCP 8080`. If you are not running your bot on the same machine where StackStorm is running, you can omit this variable. Pay attention to this information, however, as it is needed in order to configure a callback from StackStorm.
