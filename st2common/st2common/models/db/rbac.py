@@ -15,14 +15,18 @@
 
 import mongoengine as me
 
+from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 
 
 __all__ = [
     'RoleDB',
     'UserRoleAssignmentDB',
-    'PermissionAssignmentDB'
+    'PermissionAssignmentDB',
 
+    'role_access',
+    'user_role_assignment_access',
+    'permission_assignment_access'
 ]
 
 
@@ -66,5 +70,9 @@ class PermissionAssignmentDB(stormbase.StormFoundationDB):
     permission_types = me.ListField(field=me.StringField(),
                                     unique_with='resource_ref')
 
+# Specialized access objects
+role_access = MongoDBAccess(RoleDB)
+user_role_assignment_access = MongoDBAccess(UserRoleAssignmentDB)
+permission_assignment_access = MongoDBAccess(PermissionAssignmentDB)
 
 MODELS = [RoleDB, UserRoleAssignmentDB, PermissionAssignmentDB]
