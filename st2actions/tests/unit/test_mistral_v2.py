@@ -178,8 +178,8 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_launch_workflow(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
-        execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
@@ -192,6 +192,8 @@ class TestMistralRunner(DbTestCase):
         workflow_input.update({'count': '3'})
 
         env = {
+            'st2_execution_id': str(execution.id),
+            'st2_liveaction_id': str(liveaction.id),
             '__actions': {
                 'st2.action': {
                     'st2_context': {
@@ -224,8 +226,8 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=TOKEN_DB))
     def test_launch_workflow_with_auth(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
-        execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ACTION_CONTEXT)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ACTION_CONTEXT)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
@@ -238,6 +240,8 @@ class TestMistralRunner(DbTestCase):
         workflow_input.update({'count': '3'})
 
         env = {
+            'st2_execution_id': str(execution.id),
+            'st2_liveaction_id': str(liveaction.id),
             '__actions': {
                 'st2.action': {
                     'st2_context': {
@@ -271,8 +275,8 @@ class TestMistralRunner(DbTestCase):
                        'message': '"@channel: Action succeeded."', 'data': {}}}
 
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
-        execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, notify=notify_data)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, notify=notify_data)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
@@ -285,6 +289,8 @@ class TestMistralRunner(DbTestCase):
         workflow_input.update({'count': '3'})
 
         env = {
+            'st2_execution_id': str(execution.id),
+            'st2_liveaction_id': str(liveaction.id),
             '__actions': {
                 'st2.action': {
                     'st2_context': {
@@ -305,8 +311,8 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(side_effect=requests.exceptions.ConnectionError()))
     def test_launch_workflow_mistral_offline(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
-        execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Failed to connect to mistral', liveaction.result['message'])
@@ -325,8 +331,8 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_launch_workflow_mistral_retry(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
-        execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
@@ -349,8 +355,8 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_launch_workflow_duplicate_error(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
-        execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
@@ -376,8 +382,8 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_launch_when_workflow_definition_changed(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
-        execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
@@ -402,8 +408,8 @@ class TestMistralRunner(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_launch_when_workflow_not_exists(self):
-        execution = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
@@ -420,8 +426,8 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=WF2))
     def test_launch_workflow_with_many_workflows(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF2_YAML_FILE_PATH)
-        execution = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Multiple workflows is not supported.', liveaction.result['message'])
@@ -435,8 +441,8 @@ class TestMistralRunner(DbTestCase):
     def test_launch_workflow_name_mistmatch(self):
         action_ref = 'generic.workflow_v2_name_mismatch'
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
-        execution = LiveActionDB(action=action_ref, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=action_ref, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Name of the workflow must be the same', liveaction.result['message'])
@@ -458,8 +464,8 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=executions.Execution(None, WB1_EXEC)))
     def test_launch_workbook(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WB1_YAML_FILE_PATH)
-        execution = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
@@ -485,8 +491,8 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=executions.Execution(None, WB2_EXEC)))
     def test_launch_workbook_with_many_workflows(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WB2_YAML_FILE_PATH)
-        execution = LiveActionDB(action=WB2_NAME, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WB2_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
@@ -512,8 +518,8 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=executions.Execution(None, WB3_EXEC)))
     def test_launch_workbook_with_many_workflows_no_default(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WB3_YAML_FILE_PATH)
-        execution = LiveActionDB(action=WB3_NAME, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WB3_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Default workflow cannot be determined.', liveaction.result['message'])
@@ -535,8 +541,8 @@ class TestMistralRunner(DbTestCase):
         mock.MagicMock(return_value=executions.Execution(None, WB1_EXEC)))
     def test_launch_when_workbook_definition_changed(self):
         MistralRunner.entry_point = mock.PropertyMock(return_value=WB1_YAML_FILE_PATH)
-        execution = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
@@ -561,8 +567,8 @@ class TestMistralRunner(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WB1_EXEC)))
     def test_launch_when_workbook_not_exists(self):
-        execution = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
@@ -580,8 +586,8 @@ class TestMistralRunner(DbTestCase):
     def test_launch_workbook_name_mismatch(self):
         action_ref = 'generic.workbook_v2_name_mismatch'
         MistralRunner.entry_point = mock.PropertyMock(return_value=WB1_YAML_FILE_PATH)
-        execution = LiveActionDB(action=action_ref, parameters=ACTION_PARAMS)
-        liveaction, _ = action_service.request(execution)
+        liveaction = LiveActionDB(action=action_ref, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Name of the workbook must be the same', liveaction.result['message'])
@@ -630,7 +636,7 @@ class TestMistralRunner(DbTestCase):
         requests, 'request',
         mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
     def test_callback(self):
-        execution = LiveActionDB(
+        liveaction = LiveActionDB(
             action='core.local', parameters={'cmd': 'uname -a'},
             callback={
                 'source': 'mistral',
@@ -638,7 +644,7 @@ class TestMistralRunner(DbTestCase):
             }
         )
 
-        liveaction, _ = action_service.request(execution)
+        liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         requests.request.assert_called_with('PUT', liveaction.callback['url'],

@@ -22,6 +22,7 @@ from st2common.util import date as date_utils
 from st2common.constants import action as action_constants
 from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.models.system.action import ResolvedActionParameters
+from st2common.persistence.execution import ActionExecution
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
@@ -76,6 +77,8 @@ class RunnerContainer(object):
         runner.action_name = action_db.name
         runner.liveaction = liveaction_db
         runner.liveaction_id = str(liveaction_db.id)
+        runner.execution = ActionExecution.get(liveaction__id=runner.liveaction_id)
+        runner.execution_id = str(runner.execution.id)
         runner.entry_point = resolved_entry_point
         runner.runner_parameters = runner_params
         runner.context = getattr(liveaction_db, 'context', dict())

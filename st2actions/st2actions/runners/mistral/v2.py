@@ -159,6 +159,8 @@ class MistralRunner(AsyncActionRunner):
 
         options = {
             'env': {
+                'st2_execution_id': self.execution_id,
+                'st2_liveaction_id': self.liveaction_id,
                 '__actions': {
                     'st2.action': {
                         'st2_context': st2_execution_context
