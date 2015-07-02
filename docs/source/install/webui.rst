@@ -6,6 +6,14 @@ st2web is an Angular-based web application. It allows you to control the whole p
 Express installation
 --------------------
 
+.. note::
+
+    If you want to change the default listen port you can do that by setting the ``WEBUI_PORT``
+    environment variable when controlling the services using the st2ctl script.
+
+    For example, to make the WebUI HTTP server listen on port 9999, you would run the following
+    command: ``WEBUI_PORT=9999 st2ctl restart``
+
 Production version of st2web is pre-installed on st2express and any other st2_deploy installation. You can access the UI by pointing your browser to ``http://<server hostname>:8080/``. For vagrant deployment of st2express, it would be http://172.168.90.50:8080/.
 
 It can also be installed by extracting the latest tar-ball from :ops_latest:`webui` into ``/opt/stackstorm/static/webui``.
