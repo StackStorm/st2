@@ -34,7 +34,7 @@ class Role(base.Access):
 
 
 class UserRoleAssignment(base.Access):
-    imp = user_role_assignment_access
+    impl = user_role_assignment_access
 
     @classmethod
     def _get_impl(cls):

@@ -16,6 +16,7 @@
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import PermissionAssignment
+from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 
 
@@ -47,8 +48,11 @@ def get_roles_for_user(user_db):
 
     :param user_db: User to retrieve the roles for.
     :type user_db: :class:`UserDB`
+
+    :rtype: ``list`` of :class:`RoleDB`
     """
-    result = Role.query(user=user_db.name)
+    role_names = UserRoleAssignment.query(user=user_db.name).only('role').scalar('role')
+    result = Role.query(name__in=role_names)
     return result
 
 
