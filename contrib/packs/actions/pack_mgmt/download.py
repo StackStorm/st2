@@ -36,6 +36,24 @@ STACKSTORM_CONTRIB_REPOS = [
     'st2incubator'
 ]
 
+#####
+# !!!!!!!!!!!!!!
+# !!! README !!!
+# !!!!!!!!!!!!!!
+#
+# This NEEDS a rewrite. Too many features and far too many assumption
+# to keep this impl straight any longer. If you only want to read code do
+# so at your own peril.
+#
+# If you are here to fix a bug or add a feature answer these questions -
+# 1. Am I fixing a broken feature?
+# 2. Is this the only module in which to fix the bug?
+# 3. Am I sure this is a bug fix and not a feature?
+#
+# Only if you can emphatically answer 'YES' to allow about questions you should
+# touch this file. Else, be warned you might loose a part of you soul or sanity.
+#####
+
 
 class DownloadGitRepoAction(Action):
     def __init__(self, config=None):
@@ -44,10 +62,23 @@ class DownloadGitRepoAction(Action):
         self._repo_url = None
 
     def run(self, packs, repo_url, abs_repo_base, verifyssl=True, branch='master', subtree=False):
+
+        cached_repo_url, cached_branch, cached_subtree = self._lookup_cached_gitinfo(
+            abs_repo_base, packs)
+
+        if not repo_url:
+            repo_url = cached_repo_url
+        if not branch:
+            branch = cached_branch
+        # Making the assumption that is no repo_url change was required
+        # the subtree nature should be inferred from cached value.
+        if repo_url == cached_repo_url:
+            subtree = cached_subtree
+
         self._subtree = self._eval_subtree(repo_url, subtree)
         self._repo_url = self._eval_repo_url(repo_url)
 
-        repo_name = self._repo_url[self._repo_url.rfind('/') + 1: self._repo_url.rfind('.')]
+        repo_name = self._eval_repo_name(self._repo_url)
         lock_name = hashlib.md5(repo_name).hexdigest() + '.lock'
 
         with LockFile('/tmp/%s' % (lock_name)):
@@ -57,6 +88,9 @@ class DownloadGitRepoAction(Action):
                 if self._subtree:
                     # st2-contrib repo has a top-level packs folder that actually contains the
                     pack_abs_local_path = os.path.join(abs_local_path, PACK_REPO_ROOT)
+                    # resolve ALL_PACK here to avoid wild-cards
+                    if ALL_PACKS in packs:
+                        packs = os.listdir(pack_abs_local_path)
                 else:
                     pack_abs_local_path = abs_local_path
 
@@ -64,13 +98,13 @@ class DownloadGitRepoAction(Action):
                 result = self._move_packs(abs_repo_base, packs, pack_abs_local_path, self._subtree)
             finally:
                 self._cleanup_repo(abs_local_path)
-        return self._validate_result(result=result, packs=packs, repo_url=repo_url)
+        return self._validate_result(result=result, packs=packs, repo_url=self._repo_url)
 
     @staticmethod
     def _clone_repo(repo_url, verifyssl=True, branch='master'):
         user_home = os.path.expanduser('~')
         # Assuming git url is of form git@github.com:user/git-repo.git
-        repo_name = repo_url[repo_url.rfind('/') + 1: repo_url.rfind('.')]
+        repo_name = DownloadGitRepoAction._eval_repo_name(repo_url)
         abs_local_path = os.path.join(user_home, repo_name)
 
         # Disable SSL cert checking if explictly asked
@@ -83,9 +117,6 @@ class DownloadGitRepoAction(Action):
 
     def _move_packs(self, abs_repo_base, packs, abs_local_path, subtree):
         result = {}
-        # all_packs should be removed as a pack with that name is not expected to be found.
-        if ALL_PACKS in packs:
-            packs = os.listdir(abs_local_path)
 
         for pack in packs:
             if subtree:
@@ -181,6 +212,8 @@ class DownloadGitRepoAction(Action):
     @staticmethod
     def _eval_repo_url(repo_url):
         """Allow passing short GitHub style URLs"""
+        if not repo_url:
+            raise Exception('No valid reo_url provided or could be inferred.')
         has_git_extension = repo_url.endswith('.git')
         if len(repo_url.split('/')) == 2 and "git@" not in repo_url:
             url = "https://github.com/{}".format(repo_url)
@@ -189,22 +222,64 @@ class DownloadGitRepoAction(Action):
         return url if has_git_extension else "{}.git".format(url)
 
     @staticmethod
-    def _tag_pack(pack_dir, packs, subtree):
+    def _lookup_cached_gitinfo(abs_repo_base, packs):
+        """
+        This method will try to lookup the repo_url from the first pack in the list
+        of packs. It works under some strict assumptions -
+        1. repo_url was not originally specified
+        2. all packs from from same repo
+        3. gitinfo was originally added by this action
+        """
+        repo_url = None
+        branch = None
+        subtree = False
+        if len(packs) < 1:
+            raise Exception('No packs specified.')
+        gitinfo_location = os.path.join(abs_repo_base, packs[0], GITINFO_FILE)
+        if not os.path.exists(gitinfo_location):
+            return repo_url, branch, subtree
+        with open(gitinfo_location, 'r') as gitinfo_fp:
+            gitinfo = json.load(gitinfo_fp)
+            repo_url = gitinfo.get('repo_url', None)
+            branch = gitinfo.get('branch', None)
+            subtree = gitinfo.get('subtree', False)
+        return repo_url, branch, subtree
+
+    @staticmethod
+    def _eval_repo_name(repo_url):
+        """
+        Evaluate the name of the repo.
+        https://github.com/StackStorm/st2contrib.git -> st2contrib
+        https://github.com/StackStorm/st2contrib -> st2contrib
+        git@github.com:StackStorm/st2contrib.git -> st2contrib
+        git@github.com:StackStorm/st2contrib -> st2contrib
+        """
+        last_forward_slash = repo_url.rfind('/')
+        next_dot = repo_url.find('.', last_forward_slash)
+        # If dot does not follow last_forward_slash return till the end
+        if next_dot < last_forward_slash:
+            return repo_url[last_forward_slash + 1:]
+        return repo_url[last_forward_slash + 1:next_dot]
+
+    def _tag_pack(self, pack_root, packs, subtree):
         """Add git information to pack directory for retrieval later"""
+
+        repo = Repo(pack_root)
+        payload = {
+            'repo_url': repo.remotes[0].url,
+            'branch': repo.active_branch.name,
+            'ref': repo.head.commit.hexsha,
+            'subtree': subtree
+        }
+
         for pack in packs:
-            repo = Repo(pack_dir)
-            payload = {
-                "branch": repo.active_branch.name,
-                "ref": repo.head.commit.hexsha
-            }
+            pack_dir = os.path.join(pack_root, pack) if subtree else pack_root
 
-            if subtree:
-                info_file = os.path.join(pack_dir, pack, GITINFO_FILE)
-            else:
-                info_file = os.path.join(pack_dir, GITINFO_FILE)
+            if not os.path.exists(pack_dir):
+                self.logger.warn('%s is missing. Expected location "%s".', pack, pack_dir)
+                continue
 
-            try:
-                gitinfo = open(info_file, "w")
+            info_file = os.path.join(pack_dir, GITINFO_FILE)
+
+            with open(info_file, "w") as gitinfo:
                 gitinfo.write(json.dumps(payload))
-            finally:
-                gitinfo.close()

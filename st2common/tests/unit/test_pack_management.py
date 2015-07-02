@@ -61,3 +61,24 @@ class InstallPackTestCase(unittest2.TestCase):
         repo_url = 'https://git-wip-us.apache.org/repos/asf/libcloud.git'
         result = DownloadGitRepoAction._eval_repo_url(repo_url)
         self.assertEqual(result, repo_url)
+
+    def test_eval_repo_name(self):
+        result = DownloadGitRepoAction._eval_repo_name(
+            'https://github.com/StackStorm/st2contrib.git')
+        self.assertEqual(result, 'st2contrib')
+
+        result = DownloadGitRepoAction._eval_repo_name(
+            'https://github.com/StackStorm/st2contrib')
+        self.assertEqual(result, 'st2contrib')
+
+        result = DownloadGitRepoAction._eval_repo_name(
+            'git@github.com:StackStorm/st2contrib.git')
+        self.assertEqual(result, 'st2contrib')
+
+        result = DownloadGitRepoAction._eval_repo_name(
+            'git@github.com:StackStorm/st2contrib')
+        self.assertEqual(result, 'st2contrib')
+
+        result = DownloadGitRepoAction._eval_repo_name(
+            'https://git-wip-us.apache.org/repos/asf/libcloud.git')
+        self.assertEqual(result, 'libcloud')
