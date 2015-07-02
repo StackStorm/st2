@@ -14,12 +14,16 @@
 # limitations under the License.
 
 __all__ = [
+    'SystemRole',
     'PermissionType',
-    'SystemRole'
+    'ResourceType'
 ]
 
 
 class PermissionType(object):
+    """
+    Available permission types.
+    """
     VIEW = 'view'
     EXECUTE = 'execute'
     USE = 'use'
@@ -27,6 +31,21 @@ class PermissionType(object):
 
 
 class SystemRole(object):
+    """
+    Default system roles which can't be manipulated (modified or removed).
+    """
+    SYSTEM_ADMIN = ' system_admin'  # Special role which can't be revoked.
     ADMIN = 'admin'
     OPERATOR = 'operator'
     OBSERVER = 'observer'
+
+
+class ResourceType(object):
+    """
+    Resource types on which permissions can be granted.
+    """
+    PACK = 'pack'
+    WORKFLOW = 'workflow'
+    ACTION = 'action'
+    RULE = 'rule'
+    TRIGGER = 'trigger'
