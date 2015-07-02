@@ -16,9 +16,10 @@
 import os
 import socket
 import logging
-import datetime
 
 from oslo.config import cfg
+
+from st2common.util import date as date_utils
 
 __all__ = [
     'FormatNamedFileHandler',
@@ -29,7 +30,7 @@ __all__ = [
 class FormatNamedFileHandler(logging.handlers.RotatingFileHandler):
     def __init__(self, filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=False):
         # Include timestamp in the name.
-        filename = filename.format(ts=str(datetime.datetime.utcnow()).replace(' ', '_'),
+        filename = filename.format(ts=str(date_utils.get_datetime_utc_now()).replace(' ', '_'),
                                    pid=os.getpid())
         super(FormatNamedFileHandler, self).__init__(filename, mode=mode, maxBytes=maxBytes,
                                                      backupCount=backupCount, encoding=encoding,
