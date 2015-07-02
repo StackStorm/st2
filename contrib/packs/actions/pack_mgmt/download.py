@@ -36,6 +36,20 @@ STACKSTORM_CONTRIB_REPOS = [
     'st2incubator'
 ]
 
+#####
+# This NEEDS a rewrite. Too many features and far too many assumption
+# to keep this impl straight any longer. If you only want to read code do
+# so at your own peril.
+#
+# If you are here to fix a bug or add a feature answer these questions -
+# 1. Am I fixing a broken feature?
+# 2. Is this the only module in which to fix the bug?
+# 3. Am I sure this is a bug fix and not a feature?
+#
+# Only if you can emphatically answer 'YES' to allow about questions you should
+# touch this file. Else, be warned you might loose a part of you soul or sanity.
+#####
+
 
 class DownloadGitRepoAction(Action):
     def __init__(self, config=None):
@@ -194,6 +208,8 @@ class DownloadGitRepoAction(Action):
     @staticmethod
     def _eval_repo_url(repo_url):
         """Allow passing short GitHub style URLs"""
+        if not repo_url:
+            raise Exception('No valid reo_url provided or could be inferred.')
         has_git_extension = repo_url.endswith('.git')
         if len(repo_url.split('/')) == 2 and "git@" not in repo_url:
             url = "https://github.com/{}".format(repo_url)
@@ -217,16 +233,12 @@ class DownloadGitRepoAction(Action):
             raise Exception('No packs specified.')
         gitinfo_location = os.path.join(abs_repo_base, packs[0], GITINFO_FILE)
         if not os.path.exists(gitinfo_location):
-            raise Exception('No .gitinfo found at "%s". repo_url should be specified.' %
-                            gitinfo_location)
+            return repo_url, branch, subtree
         with open(gitinfo_location, 'r') as gitinfo_fp:
             gitinfo = json.load(gitinfo_fp)
             repo_url = gitinfo.get('repo_url', None)
             branch = gitinfo.get('branch', None)
             subtree = gitinfo.get('subtree', False)
-
-        if not repo_url:
-            raise Exception('No repo_url found in gitinfo "%s".' % gitinfo_location)
         return repo_url, branch, subtree
 
     @staticmethod
