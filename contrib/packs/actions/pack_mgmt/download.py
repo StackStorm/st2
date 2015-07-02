@@ -37,6 +37,10 @@ STACKSTORM_CONTRIB_REPOS = [
 ]
 
 #####
+# !!!!!!!!!!!!!!
+# !!! README !!!
+# !!!!!!!!!!!!!!
+#
 # This NEEDS a rewrite. Too many features and far too many assumption
 # to keep this impl straight any longer. If you only want to read code do
 # so at your own peril.
