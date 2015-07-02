@@ -44,6 +44,9 @@ class DownloadGitRepoAction(Action):
         self._repo_url = None
 
     def run(self, packs, repo_url, abs_repo_base, verifyssl=True, branch='master', subtree=False):
+        if not repo_url:
+            repo_url = self._lookup_repo_url(abs_repo_base, packs)
+
         self._subtree = self._eval_subtree(repo_url, subtree)
         self._repo_url = self._eval_repo_url(repo_url)
 
@@ -67,7 +70,7 @@ class DownloadGitRepoAction(Action):
                 result = self._move_packs(abs_repo_base, packs, pack_abs_local_path, self._subtree)
             finally:
                 self._cleanup_repo(abs_local_path)
-        return self._validate_result(result=result, packs=packs, repo_url=repo_url)
+        return self._validate_result(result=result, packs=packs, repo_url=self._repo_url)
 
     @staticmethod
     def _clone_repo(repo_url, verifyssl=True, branch='master'):
@@ -187,6 +190,29 @@ class DownloadGitRepoAction(Action):
         else:
             url = repo_url
         return url if has_git_extension else "{}.git".format(url)
+
+    @staticmethod
+    def _lookup_repo_url(abs_repo_base, packs):
+        """
+        This method will try to lookup the repo_url from the first pack in the list
+        of packs. It works under some strict assumptions -
+        1. repo_url was not originally specified
+        2. all packs from from same repo
+        3. gitinfo was originally added by this action
+        """
+        repo_url = None
+        if len(packs) < 1:
+            raise Exception('No packs specified.')
+        gitinfo_location = os.path.join(abs_repo_base, packs[0], GITINFO_FILE)
+        if not os.path.exists(gitinfo_location):
+            raise Exception('No .gitinfo found at "%s". repo_url should be specified.' %
+                            gitinfo_location)
+        with open(gitinfo_location, 'r') as gitinfo_fp:
+            gitinfo = json.load(gitinfo_fp)
+            repo_url = gitinfo.get('repo_url', None)
+        if not repo_url:
+            raise Exception('No repo_url found in gitinfo "%s".' % gitinfo_location)
+        return repo_url
 
     @staticmethod
     def _eval_repo_name(repo_url):
