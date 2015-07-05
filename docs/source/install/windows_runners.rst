@@ -98,6 +98,7 @@ Configuring PowerShell
 ~~~~~~~~~~~~~~~~~~~~~~
 * Set the PowerShell execution policy to allow execution of the scripts. See <https://technet.microsoft.com/en-us/library/ee176961.aspx>
 * Ensure that default ``powershell.exe`` is compatible with the script you are planning to run. To do so, open Command Prompet (``cmd``) on Windows machine, and run the following commands:
+
 .. sourcecode:: bash
 
   C:\> powershell
