@@ -15,10 +15,10 @@
 
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
-from st2common.persistence.rbac import PermissionAssignment
+from st2common.persistence.rbac import PermissionGrant
 from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
-from st2common.models.db.rbac import PermissionAssignmentDB
+from st2common.models.db.rbac import PermissionGrantDB
 
 
 __all__ = [
@@ -31,8 +31,8 @@ __all__ = [
     'assign_role_to_user',
     'revoke_role_from_user',
 
-    'create_permission_assignment',
-    'remove_permission_assignment'
+    'create_permission_grant',
+    'remove_permission_grant'
 ]
 
 
@@ -110,9 +110,9 @@ def revoke_role_from_user(role_db, user_db):
     return result
 
 
-def create_permission_assignment(role_db, resource_db, permission_types):
+def create_permission_grant(role_db, resource_db, permission_types):
     """
-    Add a permission assignment to the provided role.
+    Add a permission grant to the provided role.
 
     :param role_db: Role to add the permission assignment to.
     :type role_db: :class:`RoleDB`
@@ -122,20 +122,20 @@ def create_permission_assignment(role_db, resource_db, permission_types):
     """
     resource_ref = resource_db.get_uuid()
 
-    # Create or update the PermissionAssignmentDB
-    permission_assignment_db = PermissionAssignmentDB(resource_ref=resource_ref,
+    # Create or update the PermissionGrantDB
+    permission_grant_db = PermissionGrantDB(resource_ref=resource_ref,
                                                       permission_types=permission_types)
-    permission_assignment_db = PermissionAssignment.add_or_update(permission_assignment_db)
+    permission_grant_db = PermissionGrant.add_or_update(permission_grant_db)
 
     # Add assignment to the role
-    role_db.update(push__permission_assignments=permission_assignment_db.id)
+    role_db.update(push__permission_grants=permission_grant_db.id)
 
-    return permission_assignment_db
+    return permission_grant_db
 
 
-def remove_permission_assignment(role_db, resource_db, permission_types):
+def remove_permission_grant(role_db, resource_db, permission_types):
     """
-    Remove a permission assignment from a role.
+    Remove a permission grant from a role.
 
     :param role_db: Role to remove the permission assignment from.
     :type role_db: :class:`RoleDB`
@@ -144,10 +144,10 @@ def remove_permission_assignment(role_db, resource_db, permission_types):
     :type resource_db: :class:`StormFoundationDB`
     """
     resource_ref = resource_db.get_uuid()
-    permission_assignment_db = PermissionAssignment.get(resource_ref=resource_ref,
+    permission_grant_db = PermissionGrant.get(resource_ref=resource_ref,
                                                         permission_types=permission_types)
 
     # Remove assignment from a role
-    role_db.update(pull__permission_assignments=permission_assignment_db.id)
+    role_db.update(pull__permission_grants=permission_grant_db.id)
 
-    return permission_assignment_db
+    return permission_grant_db

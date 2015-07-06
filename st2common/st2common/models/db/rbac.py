@@ -22,11 +22,11 @@ from st2common.models.db import stormbase
 __all__ = [
     'RoleDB',
     'UserRoleAssignmentDB',
-    'PermissionAssignmentDB',
+    'PermissionGrantDB',
 
     'role_access',
     'user_role_assignment_access',
-    'permission_assignment_access'
+    'permission_grant_access'
 ]
 
 
@@ -49,16 +49,15 @@ class UserRoleAssignmentDB(stormbase.StormFoundationDB):
     Attribute:
         user: A reference to the user name to which the role is assigned.
         role: A reference to the role name which is assigned to the user.
-        permission_assignments: A list of IDs to the permission assignments which apply to this
+        permission_grants: A list of IDs to the permission grant which apply to this
         role.
     """
     user = me.StringField(required=True)
     role = me.StringField(required=True, unique_with='user')
-    permission_assignments = me.ListField(field=me.StringField())
+    permission_grants = me.ListField(field=me.StringField())
 
 
-# TODO: PermissionAssignment -> PermissionGrant?
-class PermissionAssignmentDB(stormbase.StormFoundationDB):
+class PermissionGrantDB(stormbase.StormFoundationDB):
     """
     An entity which represents permission assignment.
 
@@ -73,6 +72,6 @@ class PermissionAssignmentDB(stormbase.StormFoundationDB):
 # Specialized access objects
 role_access = MongoDBAccess(RoleDB)
 user_role_assignment_access = MongoDBAccess(UserRoleAssignmentDB)
-permission_assignment_access = MongoDBAccess(PermissionAssignmentDB)
+permission_grant_access = MongoDBAccess(PermissionGrantDB)
 
-MODELS = [RoleDB, UserRoleAssignmentDB, PermissionAssignmentDB]
+MODELS = [RoleDB, UserRoleAssignmentDB, PermissionGrantDB]

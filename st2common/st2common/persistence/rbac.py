@@ -16,12 +16,12 @@
 from st2common.persistence import base
 from st2common.models.db.rbac import role_access
 from st2common.models.db.rbac import user_role_assignment_access
-from st2common.models.db.rbac import permission_assignment_access
+from st2common.models.db.rbac import permission_grant_access
 
 __all__ = [
     'Role',
     'UserRoleAssignment',
-    'PermissionAssignment'
+    'PermissionGrant'
 ]
 
 
@@ -41,8 +41,8 @@ class UserRoleAssignment(base.Access):
         return cls.impl
 
 
-class PermissionAssignment(base.Access):
-    imp = permission_assignment_access
+class PermissionGrant(base.Access):
+    imp = permission_grant_access
 
     @classmethod
     def _get_impl(cls):
