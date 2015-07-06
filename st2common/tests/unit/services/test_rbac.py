@@ -15,11 +15,14 @@
 
 from st2tests.base import CleanDbTestCase
 from st2common.services import rbac as rbac_services
+from st2common.rbac.types import PermissionType
 from st2common.persistence.auth import User
 from st2common.persistence.rbac import UserRoleAssignment
+from st2common.persistence.rule import Rule
 from st2common.models.db.auth import UserDB
 from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
+from st2common.models.db.rule import RuleDB
 
 
 class RBACServicesTestCase(CleanDbTestCase):
@@ -28,6 +31,7 @@ class RBACServicesTestCase(CleanDbTestCase):
 
         self.users = {}
         self.roles = {}
+        self.resources = {}
 
         # Create some mock users
         user_1_db = UserDB(name='admin')
@@ -57,6 +61,12 @@ class RBACServicesTestCase(CleanDbTestCase):
         role_assignment_1 = UserRoleAssignmentDB(user=self.users['1_custom_role'].name,
                                                  role=self.roles['custom_role_1'].name)
         role_assignment_1 = UserRoleAssignment.add_or_update(role_assignment_1)
+
+        # Create some mock resources on which permissions can be granted
+        rule_1_db = RuleDB(pack='test1', name='rule1', ref='test1.rule1')
+        rule_1_db = Rule.add_or_update(rule_1_db)
+
+        self.resources['rule_1'] = rule_1_db
 
     def test_get_all_roles(self):
         role_dbs = rbac_services.get_all_roles()
@@ -108,3 +118,22 @@ class RBACServicesTestCase(CleanDbTestCase):
         self.assertItemsEqual(role_dbs, [])
         role_dbs = user_db.get_roles()
         self.assertItemsEqual(role_dbs, [])
+
+    def test_create_and_remove_permission_grant(self):
+        role_db = self.roles['custom_role_2']
+        resource_db = self.resources['rule_1']
+
+        # Grant "ALL" permission to the resource
+        permission_types = [PermissionType.ALL]
+        grant_db = rbac_services.create_permission_grant(role_db=role_db, resource_db=resource_db,
+                                                         permission_types=permission_types)
+
+        role_db.reload()
+        self.assertItemsEqual(role_db.permission_grants, role_db.permission_grants)
+
+        # Remove the previously granted permission
+        rbac_services.remove_permission_grant(role_db=role_db, resource_db=resource_db,
+                                              permission_types=permission_types)
+
+        role_db.reload()
+        self.assertItemsEqual(role_db.permission_grants, [])
