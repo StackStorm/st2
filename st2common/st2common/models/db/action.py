@@ -24,6 +24,7 @@ from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema
 from st2common.models.db.runner import RunnerTypeDB
+from st2common.constants.action import WORKFLOW_RUNNER_TYPES
 
 __all__ = [
     'RunnerTypeDB',
@@ -74,6 +75,27 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     meta = {
         'indexes': stormbase.TagsMixin.get_indices()
     }
+
+    def is_workflow(self):
+        """
+        Return True if this action is a workflow, False otherwise.
+
+        :rtype: ``bool``
+        """
+        return self.runner_type['name'] in WORKFLOW_RUNNER_TYPES
+
+    def get_uuid(self):
+        reference = self.get_reference().ref
+        is_workflow = self.is_workflow()
+
+        if is_workflow:
+            action_type = 'workflow'
+        else:
+            action_type = 'simple'
+
+        parts = ['action', action_type, reference]
+        uuid = self.UUID_SEPARATOR.join(parts)
+        return uuid
 
 # specialized access objects
 action_access = MongoDBAccess(ActionDB)

@@ -120,6 +120,7 @@ def create_permission_grant(role_db, resource_db, permission_types):
     :param resource_db: Resource to create the permission assignment for.
     :type resource_db: :class:`StormFoundationDB`
     """
+    # TODO: How to handle packs? we dont have model for it right now
     resource_ref = resource_db.get_uuid()
 
     # Create or update the PermissionGrantDB

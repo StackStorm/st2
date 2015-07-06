@@ -44,6 +44,12 @@ class TriggerTypeDB(stormbase.StormBaseDB,
         'indexes': stormbase.TagsMixin.get_indices()
     }
 
+    def get_uuid(self):
+        reference = self.get_reference().ref
+        parts = ['trigger_type', reference]
+        uuid = self.UUID_SEPARATOR.join(parts)
+        return uuid
+
 
 class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin):
     """

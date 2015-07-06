@@ -60,6 +60,12 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         'indexes': stormbase.TagsMixin.get_indices()
     }
 
+    def get_uuid(self):
+        reference = self.get_reference().ref
+        parts = ['rule', reference]
+        uuid = self.UUID_SEPARATOR.join(parts)
+        return uuid
+
 rule_access = MongoDBAccess(RuleDB)
 
 MODELS = [RuleDB]

@@ -42,6 +42,8 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
     inherited from the application domain models.
     """
 
+    UUID_SEPARATOR = ':'
+
     # We explicitly assign the manager so pylint know what type objects is
     objects = me.queryset.QuerySetManager()
 
