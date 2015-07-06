@@ -24,9 +24,9 @@ __all__ = [
 class Enum(object):
     @classmethod
     def get_valid_values(cls):
-        result = cls.__dict__.keys()
-        result = [key for key in result if not key.startswith('_')]
-        return result
+        keys = cls.__dict__.keys()
+        values = [getattr(cls, key) for key in keys if not key.startswith('_')]
+        return values
 
 
 def prefix_dict_keys(dictionary, prefix='_'):
