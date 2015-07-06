@@ -42,7 +42,7 @@ class UserRoleAssignment(base.Access):
 
 
 class PermissionGrant(base.Access):
-    imp = permission_grant_access
+    impl = permission_grant_access
 
     @classmethod
     def _get_impl(cls):
