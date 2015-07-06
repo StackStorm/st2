@@ -37,9 +37,12 @@ class RoleDB(stormbase.StormFoundationDB):
     Attribute:
         name: Role name. Also servers as a primary key.
         description: Role description (optional).
+        permission_grants: A list of IDs to the permission grant which apply to this
+        role.
     """
     name = me.StringField(required=True, unique=True)
     description = me.StringField()
+    permission_grants = me.ListField(field=me.StringField())
 
 
 class UserRoleAssignmentDB(stormbase.StormFoundationDB):
@@ -49,12 +52,9 @@ class UserRoleAssignmentDB(stormbase.StormFoundationDB):
     Attribute:
         user: A reference to the user name to which the role is assigned.
         role: A reference to the role name which is assigned to the user.
-        permission_grants: A list of IDs to the permission grant which apply to this
-        role.
     """
     user = me.StringField(required=True)
     role = me.StringField(required=True, unique_with='user')
-    permission_grants = me.ListField(field=me.StringField())
 
 
 class PermissionGrantDB(stormbase.StormFoundationDB):
