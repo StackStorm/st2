@@ -78,3 +78,33 @@ class RBACServicesTestCase(CleanDbTestCase):
 
         role_dbs = user_db.get_roles()
         self.assertItemsEqual(role_dbs, [self.roles['custom_role_1']])
+
+    def test_grant_and_revoke_role(self):
+        user_db = UserDB(name='test-user-1')
+        user_db = User.add_or_update(user_db)
+
+        # Initial state, no roles
+        role_dbs = rbac_services.get_roles_for_user(user_db=user_db)
+        self.assertItemsEqual(role_dbs, [])
+
+        role_dbs = user_db.get_roles()
+        self.assertItemsEqual(role_dbs, [])
+
+        # Assign a role, should have one role assigned
+        rbac_services.assign_role_to_user(role_db=self.roles['custom_role_1'],
+                                          user_db=user_db)
+
+        role_dbs = rbac_services.get_roles_for_user(user_db=user_db)
+        self.assertItemsEqual(role_dbs, [self.roles['custom_role_1']])
+
+        role_dbs = user_db.get_roles()
+        self.assertItemsEqual(role_dbs, [self.roles['custom_role_1']])
+
+        # Revoke previously assigned role, should have no roles again
+        rbac_services.revoke_role_from_user(role_db=self.roles['custom_role_1'],
+                                            user_db=user_db)
+
+        role_dbs = rbac_services.get_roles_for_user(user_db=user_db)
+        self.assertItemsEqual(role_dbs, [])
+        role_dbs = user_db.get_roles()
+        self.assertItemsEqual(role_dbs, [])
