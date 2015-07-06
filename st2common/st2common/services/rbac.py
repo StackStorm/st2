@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.rbac.types import PermissionType
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import PermissionGrant
@@ -42,6 +43,8 @@ def get_all_roles():
 
     :rtype: ``list`` of :class:`RoleDB`
     """
+    # TODO: This is a "hack" since we don't have a migration system in place
+    # right now so we ould add system roles directly to the db
     result = Role.get_all()
     return result
 
@@ -122,11 +125,12 @@ def create_permission_grant(role_db, resource_db, permission_types):
     """
     # TODO: How to handle packs? we dont have model for it right now
     # TODO: Validate permission_types
+    permission_types = _validate_permission_types(permission_types)
     resource_ref = resource_db.get_uuid()
 
     # Create or update the PermissionGrantDB
     permission_grant_db = PermissionGrantDB(resource_ref=resource_ref,
-                                                      permission_types=permission_types)
+                                            permission_types=permission_types)
     permission_grant_db = PermissionGrant.add_or_update(permission_grant_db)
 
     # Add assignment to the role
@@ -145,6 +149,7 @@ def remove_permission_grant(role_db, resource_db, permission_types):
     :param resource_db: Resource to remove the permission assignment from.
     :type resource_db: :class:`StormFoundationDB`
     """
+    permission_types = _validate_permission_types(permission_types)
     resource_ref = resource_db.get_uuid()
     permission_grant_db = PermissionGrant.get(resource_ref=resource_ref,
                                               permission_types=permission_types)
@@ -153,3 +158,16 @@ def remove_permission_grant(role_db, resource_db, permission_types):
     role_db.update(pull__permission_grants=permission_grant_db.id)
 
     return permission_grant_db
+
+
+def _validate_permission_types(permission_types):
+    """
+    Validate that the permission_types list only contains valid values.
+    """
+    valid_permission_types = PermissionType.get_valid_values()
+
+    for permission_type in permission_types:
+        if permission_type not in valid_permission_types:
+            raise ValueError('Invalid permission type: %s' % (permission_type))
+
+    return permission_types
