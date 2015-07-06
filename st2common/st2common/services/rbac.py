@@ -18,6 +18,7 @@ from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import PermissionAssignment
 from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
+from st2common.models.db.rbac import PermissionAssignmentDB
 
 
 __all__ = [
@@ -28,7 +29,10 @@ __all__ = [
     'delete_role',
 
     'assign_role_to_user',
-    'revoke_role_from_user'
+    'revoke_role_from_user',
+
+    'create_permission_assignment',
+    'remove_permission_assignment'
 ]
 
 
@@ -104,3 +108,46 @@ def revoke_role_from_user(role_db, user_db):
     role_assignment_db = UserRoleAssignment.get(user=user_db.name, role=role_db.name)
     result = UserRoleAssignment.delete(role_assignment_db)
     return result
+
+
+def create_permission_assignment(role_db, resource_db, permission_types):
+    """
+    Add a permission assignment to the provided role.
+
+    :param role_db: Role to add the permission assignment to.
+    :type role_db: :class:`RoleDB`
+
+    :param resource_db: Resource to create the permission assignment for.
+    :type resource_db: :class:`StormFoundationDB`
+    """
+    resource_ref = resource_db.get_uuid()
+
+    # Create or update the PermissionAssignmentDB
+    permission_assignment_db = PermissionAssignmentDB(resource_ref=resource_ref,
+                                                      permission_types=permission_types)
+    permission_assignment_db = PermissionAssignment.add_or_update(permission_assignment_db)
+
+    # Add assignment to the role
+    role_db.update(push__permission_assignments=permission_assignment_db.id)
+
+    return permission_assignment_db
+
+
+def remove_permission_assignment(role_db, resource_db, permission_types):
+    """
+    Remove a permission assignment from a role.
+
+    :param role_db: Role to remove the permission assignment from.
+    :type role_db: :class:`RoleDB`
+
+    :param resource_db: Resource to remove the permission assignment from.
+    :type resource_db: :class:`StormFoundationDB`
+    """
+    resource_ref = resource_db.get_uuid()
+    permission_assignment_db = PermissionAssignment.get(resource_ref=resource_ref,
+                                                        permission_types=permission_types)
+
+    # Remove assignment from a role
+    role_db.update(pull__permission_assignments=permission_assignment_db.id)
+
+    return permission_assignment_db

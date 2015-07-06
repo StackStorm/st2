@@ -63,6 +63,15 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
 
+    def get_uuid(self):
+        """
+        Retrieve a UUID for the provided resource.
+
+        :rtype: ``str``
+        """
+        # TODO
+        raise NotImplementedError()
+
     def mask_secrets(self, value):
         """
         Process the model dictionary and mask secret values.
