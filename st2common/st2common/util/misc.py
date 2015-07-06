@@ -16,8 +16,17 @@
 import six
 
 __all__ = [
+    'Enum',
     'prefix_dict_keys'
 ]
+
+
+class Enum(object):
+    @classmethod
+    def get_valid_values(cls):
+        result = cls.__dict__.keys()
+        result = [key for key in result if not key.startswith('_')]
+        return result
 
 
 def prefix_dict_keys(dictionary, prefix='_'):

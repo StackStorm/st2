@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.util.misc import Enum
+
 __all__ = [
     'SystemRole',
     'PermissionType',
@@ -20,7 +22,7 @@ __all__ = [
 ]
 
 
-class PermissionType(object):
+class PermissionType(Enum):
     """
     Available permission types.
     """
@@ -30,7 +32,7 @@ class PermissionType(object):
     ALL = 'all'
 
 
-class SystemRole(object):
+class SystemRole(Enum):
     """
     Default system roles which can't be manipulated (modified or removed).
     """
@@ -40,7 +42,7 @@ class SystemRole(object):
     OBSERVER = 'observer'
 
 
-class ResourceType(object):
+class ResourceType(Enum):
     """
     Resource types on which permissions can be granted.
     """
