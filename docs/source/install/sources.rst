@@ -74,9 +74,9 @@ Run the following to start |st2|. The script will start |st2| components in scre
 Additional commands: ::
 
     source virtualenv/bin/activate  # Activates the python virtual environment
-    tools/lauchdev.sh startclean    # Reset and launches all |st2| services in screen sessions
-    tools/lauchdev.sh start         # Launches all |st2| services in screen sessions
-    tools/lauchdev.sh stop          # Stops all |st2| screen sessions and services
+    tools/launchdev.sh startclean    # Reset and launches all |st2| services in screen sessions
+    tools/launchdev.sh start         # Launches all |st2| services in screen sessions
+    tools/launchdev.sh stop          # Stops all |st2| screen sessions and services
 
 If the services are started successfully, you will see the following
 output. ::
