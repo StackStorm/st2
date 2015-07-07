@@ -103,8 +103,10 @@ class ResourceRegistrar(object):
             raise ValueError('Pack "%s" is missing %s file' % (pack_name, MANIFEST_FILE_NAME))
 
         content = self._meta_loader.load(manifest_path)
-        content['ref'] = pack_name
+        if not content:
+            raise ValueError('Pack "%s" metadata file is empty' % (pack_name))
 
+        content['ref'] = pack_name
         pack_api = PackAPI(**content)
         pack_db = PackAPI.to_model(pack_api)
 
