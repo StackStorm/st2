@@ -39,7 +39,8 @@ class PackAPI(BaseAPI):
             },
             'keywords': {
                 'type': 'array',
-                'items': {'type': 'string'}
+                'items': {'type': 'string'},
+                'default': []
             },
             'version': {
                 'type': 'string'
@@ -53,3 +54,13 @@ class PackAPI(BaseAPI):
         },
         'additionalProperties': False
     }
+
+    @classmethod
+    def to_model(cls, pack):
+        model = super(cls, cls).to_model(pack)
+        model.keywords = getattr(pack, 'keywords', [])
+        model.version = str(pack.version)
+        model.author = pack.author
+        model.email = pack.email
+
+        return model
