@@ -836,12 +836,12 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                                  default=None,
                                  help=('Only return executions with timestamp '
                                        'greater than the one provided. '
-                                       'Use time in the format 2000-01-01T12:00:00.000Z'))
+                                       'Use time in the format "2000-01-01T12:00:00.000Z".'))
         self.parser.add_argument('-tl', '--timestamp-lt', type=str, dest='timestamp_lt',
                                  default=None,
                                  help=('Only return executions with timestamp '
                                        'lower than the one provided. '
-                                       'Use time in the format 2000-01-01T12:00:00.000Z'))
+                                       'Use time in the format "2000-01-01T12:00:00.000Z".'))
         self.parser.add_argument('-l', '--showall', action='store_true',
                                  help='')
 
