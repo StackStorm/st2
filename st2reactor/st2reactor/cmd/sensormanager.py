@@ -25,7 +25,7 @@ from st2common.exceptions.sensors import SensorNotFoundException
 from st2common.persistence.sensor import SensorType
 from st2reactor.sensor import config
 from st2reactor.container.manager import SensorContainerManager
-from st2reactor.container.partionerer import get_sensors
+from st2reactor.container.partitioner import get_sensors
 
 eventlet.monkey_patch(
     os=True,

@@ -47,7 +47,7 @@ class PartitionerTest(DbTestCase):
         self.assertEqual(len(sensors), len(FIXTURES_1['sensors']),
                          'Failed to provider all sensors')
 
-    def test_kvstore__partitioner(self):
+    def test_kvstore_partitioner(self):
         cfg.CONF.set_override(name='partition_provider',
                               override={'name': KVSTORE_PARTITION_LOADER},
                               group='sensorcontainer')
@@ -57,7 +57,7 @@ class PartitionerTest(DbTestCase):
         sensors = partitioner.get_sensors()
         self.assertEqual(len(sensors), len(kvp.value.split(',')))
 
-    def test_file__partitioner(self):
+    def test_file_partitioner(self):
         partition_file = FixturesLoader().get_fixture_file_path_abs(
             fixtures_pack=PACK, fixtures_type='sensors', fixture_name='partition_file.yaml')
         cfg.CONF.set_override(name='partition_provider',

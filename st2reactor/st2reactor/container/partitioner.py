@@ -71,8 +71,7 @@ class DefaultPartitioner(object):
 class KVStorePartitioner(DefaultPartitioner):
 
     def __init__(self, sensor_node_name):
-        super(KVStorePartitioner, self).__init__()
-        self.sensor_node_name = sensor_node_name
+        super(KVStorePartitioner, self).__init__(sensor_node_name=sensor_node_name)
 
     def get_required_sensor_refs(self):
         partition_lookup_key = self._get_partition_lookup_key(self.sensor_node_name)
@@ -88,7 +87,7 @@ class KVStorePartitioner(DefaultPartitioner):
 class FileBasedPartitioner(DefaultPartitioner):
 
     def __init__(self, sensor_node_name, partition_file):
-        self.sensor_node_name = sensor_node_name
+        super(FileBasedPartitioner, self).__init__(sensor_node_name=sensor_node_name)
         self.partition_file = partition_file
 
     def get_required_sensor_refs(self):
