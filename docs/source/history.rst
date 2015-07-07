@@ -52,6 +52,30 @@ Use ``st2 execution list -h`` and ``st2 execution get -h`` to explore options av
 
 Owing to the fact that execution history can contain many records a command like ``st2 execution list --action ${action_reference} -n 10`` is particularly useful, it provides the last 10 execution of a specified action.
 
+You can also filter executions by timestamps. For example, to get all executions between dates
+``2015-07-05T12:00:00.000000Z`` and ``2015-07-06T12:00:00.000000Z``, you can use the following command.
+
+.. code-block:: bash
+
+    # to see executions between timestamps 2015-07-05T12:00:00.000000Z and 2015-07-06T12:00:00.000000Z
+    $ st2 execution list -tg "2015-07-05T12:00:00.000000Z" -tl "2015-07-06T12:00:00.000000Z"
+    +--------------------------+------------------+--------------+-----------+------------------+------------------+
+    | id                       | action.ref       | context.user | status    | start_timestamp  | end_timestamp    |
+    +--------------------------+------------------+--------------+-----------+------------------+------------------+
+    | 559a4836c481cf1e7efa5e17 | librato.submit_c | stanley      | succeeded | Mon, 06 Jul 2015 | Mon, 06 Jul 2015 |
+    |                          | ounter           |              |           | 09:19:50 UTC     | 09:19:51 UTC     |
+    | 559a4836c481cf1e7efa5e19 | slack.post_messa | stanley      | succeeded | Mon, 06 Jul 2015 | Mon, 06 Jul 2015 |
+    |                          | ge               |              |           | 09:19:50 UTC     | 09:19:51 UTC     |
+    | 559a4873c481cf1e7efa5e1e | librato.submit_c | stanley      | succeeded | Mon, 06 Jul 2015 | Mon, 06 Jul 2015 |
+    |                          | ounter           |              |           | 09:20:51 UTC     | 09:20:52 UTC     |
+    | 559a4873c481cf1e7efa5e20 | slack.post_messa | stanley      | succeeded | Mon, 06 Jul 2015 | Mon, 06 Jul 2015 |
+    |                          | ge               |              |           | 09:20:51 UTC     | 09:20:52 UTC     |
+    | 559a6893c481cf1e7efa5e27 | slack.post_messa | stanley      | succeeded | Mon, 06 Jul 2015 | Mon, 06 Jul 2015 |
+    |                          | ge               |              |           | 11:37:55 UTC     | 11:37:56 UTC     |
+    +--------------------------+------------------+--------------+-----------+------------------+------------------+
+
+Note that the ``timestamp values need to be quoted`` so it is interpreted as a complete string
+by the shell. Otherwise, timestamps would be misinterpreted and might show undesired results.
 
 Logstash
 --------
