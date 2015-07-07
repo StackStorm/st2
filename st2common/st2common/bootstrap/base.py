@@ -78,7 +78,7 @@ class ResourceRegistrar(object):
 
         return registered_count
 
-    def register_pack(self, pack_name,  pack_dir):
+    def register_pack(self, pack_name, pack_dir):
         """
         Register pack in the provided directory.
         """
@@ -112,7 +112,6 @@ class ResourceRegistrar(object):
             pack_db.id = Pack.get_by_ref(pack_name).id
         except ValueError:
             LOG.debug('Pack %s not found. Creating new one.', pack_name)
-
 
         pack_db = Pack.add_or_update(pack_db)
         LOG.debug('Pack %s registered.' % (pack_name))
