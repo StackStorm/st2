@@ -24,7 +24,7 @@ COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),
 
 PYTHON_TARGET := 2.7
 
-REQUIREMENTS := requirements.txt test-requirements.txt st2client/requirements.txt
+REQUIREMENTS := requirements.txt test-requirements.txt
 
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
@@ -174,9 +174,13 @@ requirements: virtualenv $(REQUIREMENTS)
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
+
+	# Merge into one st2 components-wide requirements.txt file.
+	$(VIRTUALENV_DIR)/bin/python ./scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt
+	
 	for req in $(REQUIREMENTS); do \
 		echo "Installing $$req..." ; \
-		. $(VIRTUALENV_DIR)/bin/activate && pip install $(PIP_OPTIONS) $$req ; \
+		$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) $$req ; \
 	done
 
 .PHONY: virtualenv
@@ -208,6 +212,12 @@ $(VIRTUALENV_DIR)/bin/activate:
 	echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	touch $(VIRTUALENV_DIR)/bin/activate.fish
+	
+	# Make sure we use latest version of pip
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade pip
+
+	# Install stdeb st2client build dependency
+	$(VIRTUALENV_DIR)/bin/pip install stdeb
 
 .PHONY: tests
 tests: pytests
@@ -271,6 +281,52 @@ itests: requirements .itests
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv $$component/tests/integration || exit 1; \
 	done
 
+.PHONY: fixate-requirements
+fixate-requirements:
+	# Fixate global requirements and requirements for each component
+	
+	# Merge into one st2 components-wide requirements.txt file.
+	python ./scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt
+	
+	# Fixate requirements for each component
+	@for component in $(COMPONENTS_TEST); do\
+		test -s $$component/Makefile && (pushd $$component && make -f Makefile requirements && popd);\
+	done
+	
+.PHONY: .sdist-requirements
+.sdist-requirements:
+	# Run make requirements in each component directory
+	@for component in $(COMPONENTS_TEST); do\
+		test -s $$component/Makefile && (pushd $$component && make -f Makefile requirements && popd);\
+	done
+	
+	# Copy over shared dist utils module which is needed by setup.py
+	@for component in $(COMPONENTS_TEST); do\
+		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
+	done
+	
+	# Copy over __init__.py with a global shared __version__ attribute
+	@for component in $(COMPONENTS_TEST); do\
+		cp -f ./st2common/st2common/__init__.py $$component/$$component; \
+	done
+	
+	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
+	@for component in $(COMPONENTS_TEST); do\
+		test -s $$component/README.rst || cp -f README.rst $$component/; \
+		cp -f CONTRIBUTING.rst $$component/; \
+		cp -f LICENSE $$component/; \
+	done
+
+.PHONY: sdist
+sdist: .sdist-requirements .sdist
+
+.PHONY: .sdist
+.sdist: 
+	@for component in $(COMPONENTS_TEST); do\
+		python $$component/setup.py sdist;\
+		python $$component/setup.py bdist_wheel;\
+	done
+
 .PHONY: mistral-itests
 mistral-itests: requirements .mistral-itests
 
@@ -283,27 +339,27 @@ mistral-itests: requirements .mistral-itests
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration || exit 1;
 
 .PHONY: rpms
-rpms:
+rpms: virtualenv
 	@echo
 	@echo "==================== rpm ===================="
 	@echo
 	rm -Rf ~/rpmbuild
-	$(foreach COM,$(COMPONENTS), pushd $(COM); make rpm; popd;)
-	pushd st2client && make rpm && popd
+	$(foreach COM,$(COMPONENTS), pushd $(COM); . ../$(VIRTUALENV_DIR)/bin/activate && make rpm; popd;)
+	pushd st2client && . ../$(VIRTUALENV_DIR)/bin/activate && make rpm && popd
 
-rhel-rpms:
+rhel-rpms: virtualenv
 	@echo
 	@echo "==================== rpm ===================="
 	@echo
 	rm -Rf ~/rpmbuild
-	$(foreach COM,$(COMPONENTS), pushd $(COM); make rhel-rpm; popd;)
-	pushd st2client && make rhel-rpm && popd
+	$(foreach COM,$(COMPONENTS), pushd $(COM); . ../$(VIRTUALENV_DIR)/bin/activate && make rhel-rpm; popd;)
+	pushd st2client && . ../$(VIRTUALENV_DIR)/bin/activate && make rhel-rpm && popd
 
 .PHONY: debs
-debs:
+debs: virtualenv
 	@echo
 	@echo "==================== deb ===================="
 	@echo
 	rm -Rf ~/debbuild
-	$(foreach COM,$(COMPONENTS), pushd $(COM); make deb; popd;)
-	pushd st2client && make deb && popd
+	$(foreach COM,$(COMPONENTS), pushd $(COM); . ../$(VIRTUALENV_DIR)/bin/activate && make deb; popd;)
+	pushd st2client && . ../$(VIRTUALENV_DIR)/bin/activate && make deb && popd

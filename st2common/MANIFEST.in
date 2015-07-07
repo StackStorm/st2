@@ -1,0 +1,6 @@
+recursive-include st2common *.* *
+include requirements.txt
+include README.rst
+include CHANGELOG.rst
+include LICENSE
+global-exclude *.pyc

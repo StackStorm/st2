@@ -1,1 +1,6 @@
-recursive-include public *
+recursive-include st2api *.* *
+include requirements.txt
+include README.rst
+include CHANGELOG.rst
+include LICENSE
+global-exclude *.pyc

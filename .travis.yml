@@ -14,6 +14,8 @@ env:
 cache:
   directories:
     - $HOME/.pip-cache/
+install:
+  - pip install --upgrade pip
 script:
   - ./scripts/travis.sh
 services:

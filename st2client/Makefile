@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+PY := /usr/bin/python
 PY27 := /usr/local/bin/python2.7
 RPM_ROOT=~/rpmbuild
 RPM_SOURCES_DIR := $(RPM_ROOT)/SOURCES/
@@ -8,8 +9,8 @@ RELEASE=1
 COMPONENTS := st2client
 
 .PHONY: rpm
-rpm: 
-	python setup.py bdist_rpm
+rpm:
+	python setup.py bdist_rpm --python=$(PY)
 	mkdir -p $(RPM_ROOT)/RPMS/noarch
 	cp dist/$(COMPONENTS)*noarch.rpm $(RPM_ROOT)/RPMS/noarch/$(COMPONENTS)-$(VER)-$(RELEASE).noarch.rpm
 	mkdir -p $(RPM_ROOT)/SRPMS
@@ -30,4 +31,8 @@ deb:
 	python setup.py --command-packages=stdeb.command bdist_deb
 	mkdir -p ~/debbuild
 	cp deb_dist/python-$(COMPONENTS)*-1_all.deb ~/debbuild/$(COMPONENTS)_$(VER)-$(RELEASE)_amd64.deb
-	rm -Rf dist deb_dist $(COMPONENTS)-$(VER).tar.gz $(COMPONENTS).egg-info ChangeLog AUTHORS build
+	rm -Rf dist deb_dist $(COMPONENTS)-*.tar.gz $(COMPONENTS).egg-info ChangeLog AUTHORS build
+
+.PHONY: requirements
+requirements:
+	python ../scripts/fixate-requirements.py -s in-requirements.txt -f ../fixed-requirements.txt

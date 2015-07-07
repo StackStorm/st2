@@ -37,3 +37,8 @@ nosetests.xml
 .DS_Store
 ._*
 
+
+# Files which are copied over during sdist phase
+st2*/LICENSE
+st2*/CONTRIBUTING.rst
+st2*/CHANGELOG.rst

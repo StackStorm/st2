@@ -14,45 +14,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
-
+import os.path
 from setuptools import setup, find_packages
 
+from dist_utils import fetch_requirements
+from dist_utils import apply_vagrant_workaround
+from st2client import __version__
 
-PKG_ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
-PKG_REQ_FILE = '%s/requirements.txt' % PKG_ROOT_DIR
-os.chdir(PKG_ROOT_DIR)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+ST2_COMPONENT = os.path.basename(BASE_DIR)
+REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
 
-def get_version_string():
-    version = None
-    sys.path.insert(0, PKG_ROOT_DIR)
-    from st2client import __version__
-    version = __version__
-    sys.path.pop(0)
-    return version
+install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
-
-def get_requirements():
-    with open(PKG_REQ_FILE) as f:
-        required = f.read().splitlines()
-
-    # Ignore comments in the requirements file
-    required = [line for line in required if not line.startswith('#')]
-    return required
-
-
+apply_vagrant_workaround()
 setup(
-    name='st2client',
-    version=get_version_string(),
-    description='CLI and python client library for the StackStorm (st2) automation platform.',
+    name=ST2_COMPONENT,
+    version=__version__,
+    description='{} component'.format(ST2_COMPONENT),
+    long_description=open('README.rst').read(),
     author='StackStorm',
     author_email='info@stackstorm.com',
-    url='http://www.stackstorm.com',
-    packages=find_packages(exclude=['tests']),
-    install_requires=get_requirements(),
     license='Apache License (2.0)',
+    url='http://www.stackstorm.com',
+    install_requires=install_reqs,
+    dependency_links=dep_links,
+    test_suite=ST2_COMPONENT,
+    zip_safe=False,
+    include_package_data=True,
+    packages=find_packages(exclude=['setuptools', 'tests']),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Information Technology',

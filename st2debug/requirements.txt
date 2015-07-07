@@ -1,0 +1,5 @@
+# Don't edit this file. It's generated automatically!
+python-gnupg<0.4,>=0.3.7
+pyyaml
+requests
+six==1.9.0

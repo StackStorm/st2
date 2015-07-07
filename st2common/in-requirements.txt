@@ -1,0 +1,15 @@
+python-dateutil
+eventlet
+git+https://github.com/StackStorm/fabric.git@stanley-patched#egg=fabric
+jinja2
+jsonschema
+kombu
+mongoengine
+oslo.config
+paramiko
+pecan
+pyyaml
+requests
+semver
+six
+tooz
