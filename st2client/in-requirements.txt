@@ -1,0 +1,6 @@
+prettytable
+python-dateutil
+pyyaml
+jsonpath-rw
+requests
+six

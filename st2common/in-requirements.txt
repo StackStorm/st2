@@ -1,0 +1,18 @@
+# Remeber to list implicit packages here such as pymongo,
+# otherwise version won't be fixed!
+python-dateutil
+eventlet
+git+https://github.com/StackStorm/fabric.git@stanley-patched#egg=fabric
+jinja2
+jsonschema
+kombu
+mongoengine
+oslo.config
+paramiko
+pecan
+pyyaml
+pymongo
+requests
+semver
+six
+tooz

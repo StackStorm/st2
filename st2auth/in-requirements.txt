@@ -1,0 +1,6 @@
+eventlet
+oslo.config
+passlib
+pecan
+pymongo
+six

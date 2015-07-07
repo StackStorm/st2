@@ -40,3 +40,6 @@ deb:
 	pushd ~ && tar -xzf $(COMPONENTS).tar.gz && cd $(COMPONENTS)-$(VER) && cp -Rf packaging/debian ./ && dpkg-buildpackage -us -uc -b && popd
 	cp -f ~/$(COMPONENT)*.deb ~/debbuild/
 
+.PHONY: requirements
+requirements:
+	python ../scripts/fixate-requirements.py -s in-requirements.txt -f ../fixed-requirements.txt
