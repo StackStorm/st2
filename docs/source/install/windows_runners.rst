@@ -94,6 +94,21 @@ script files. By default, |st2| tries to upload files to a share named ``C$``.
 If this share is not available or you want to use a different share, you need
 to specify ``share`` parameter when running a Windows script runner action.
 
+Configuring PowerShell
+~~~~~~~~~~~~~~~~~~~~~~
+* Set the PowerShell execution policy to allow execution of the scripts. See <https://technet.microsoft.com/en-us/library/ee176961.aspx>
+* Ensure that default ``powershell.exe`` is compatible with the script you are planning to run. To do so, open Command Prompet (``cmd``) on Windows machine, and run the following commands:
+
+.. sourcecode:: bash
+
+  C:\> powershell
+  PS C:\> $PSVersionTable
+  Name                           Value
+  ----                           -----
+  PSVersion                      4.0
+  ...
+  
+
 Additional resources and links
 ------------------------------
 
