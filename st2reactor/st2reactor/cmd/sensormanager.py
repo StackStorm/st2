@@ -22,7 +22,6 @@ from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.exceptions.sensors import SensorNotFoundException
-from st2common.persistence.sensor import SensorType
 from st2reactor.sensor import config
 from st2reactor.container.manager import SensorContainerManager
 from st2reactor.container.partitioner import get_sensors
@@ -45,13 +44,6 @@ def _setup():
 
 def _teardown():
     common_teardown()
-
-
-def _get_all_enabled_sensors():
-    # only query for enabled sensors.
-    sensors = SensorType.query(enabled=True)
-    LOG.info('Found %d registered sensors in db scan.', len(sensors))
-    return sensors
 
 
 def main():
