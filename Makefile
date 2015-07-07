@@ -114,7 +114,10 @@ flake8: requirements .flake8
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 scripts/
 
 .PHONY: lint
-lint: requirements .flake8 .pylint
+lint: requirements .lint
+
+.PHONY: .lint
+.lint: .flake8 .pylint
 
 .PHONY: clean
 clean: .cleanpycs .cleandocs
