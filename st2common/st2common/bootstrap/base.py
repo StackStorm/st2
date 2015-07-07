@@ -103,14 +103,16 @@ class ResourceRegistrar(object):
             raise ValueError('Pack "%s" is missing %s file' % (pack_name, MANIFEST_FILE_NAME))
 
         content = self._meta_loader.load(manifest_path)
+        content['ref'] = pack_name
 
         pack_api = PackAPI(**content)
         pack_db = PackAPI.to_model(pack_api)
 
         try:
-            pack_db.id = Pack.get_by_name(pack_name).id
+            pack_db.id = Pack.get_by_ref(pack_name).id
         except ValueError:
             LOG.debug('Pack %s not found. Creating new one.', pack_name)
+
 
         pack_db = Pack.add_or_update(pack_db)
         LOG.debug('Pack %s registered.' % (pack_name))

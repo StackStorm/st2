@@ -27,6 +27,7 @@ class PackDB(stormbase.StormFoundationDB):
     """
     System entity which represents a pack.
     """
+    ref = me.StringField(required=True, unique=True)
     name = me.StringField(required=True, unique=True)
     description = me.StringField(required=True)
     keywords = me.ListField(field=me.StringField())
