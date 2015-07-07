@@ -24,7 +24,7 @@ from st2common.service_setup import teardown as common_teardown
 from st2common.exceptions.sensors import SensorNotFoundException
 from st2reactor.sensor import config
 from st2reactor.container.manager import SensorContainerManager
-from st2reactor.container.partitioner import get_sensors
+from st2reactor.container.partitioner import get_sensors_provider
 
 eventlet.monkey_patch(
     os=True,
@@ -49,14 +49,9 @@ def _teardown():
 def main():
     try:
         _setup()
-        container_manager = SensorContainerManager()
-        sensors = get_sensors()
-        if not sensors:
-            msg = 'No sensors configured to run. See http://docs.stackstorm.com/sensors.html. ' + \
-                  'Register some sensors and a container will pick them to run.'
-            LOG.info(msg)
-
-        return container_manager.run_sensors(sensors=sensors)
+        sensors_provider = get_sensors_provider()
+        container_manager = SensorContainerManager(sensors_provider=sensors_provider)
+        return container_manager.run_sensors()
     except SystemExit as exit_code:
         return exit_code
     except SensorNotFoundException as e:

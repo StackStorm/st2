@@ -28,7 +28,7 @@ from st2common.constants.sensors import DEFAULT_PARTITION_LOADER, KVSTORE_PARTIT
     FILE_PARTITION_LOADER
 
 __all__ = [
-    'get_sensors'
+    'get_sensors_provider'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -45,6 +45,13 @@ class DefaultPartitioner(object):
 
     def __init__(self, sensor_node_name):
         self.sensor_node_name = sensor_node_name
+
+    def is_sensor_supported(self, sensor_db):
+        """
+        All sensors are supported
+        """
+        # No enabled check here as this could also be due to a delete or update
+        return sensor_db is not None
 
     def get_sensors(self):
         all_enabled_sensors = _get_all_enabled_sensors()
@@ -72,13 +79,21 @@ class KVStorePartitioner(DefaultPartitioner):
 
     def __init__(self, sensor_node_name):
         super(KVStorePartitioner, self).__init__(sensor_node_name=sensor_node_name)
+        self._supported_sensor_refs = None
+
+    def is_sensor_supported(self, sensor_db):
+        """
+        """
+        return sensor_db.get_reference().ref in self._supported_sensor_refs
 
     def get_required_sensor_refs(self):
         partition_lookup_key = self._get_partition_lookup_key(self.sensor_node_name)
 
         kvp = KeyValuePair.get_by_name(partition_lookup_key)
         sensor_refs_str = kvp.value if kvp.value else ''
-        return sets.Set([sensor_ref.strip() for sensor_ref in sensor_refs_str.split(',')])
+        self._supported_sensor_refs = sets.Set([
+            sensor_ref.strip() for sensor_ref in sensor_refs_str.split(',')])
+        return self._supported_sensor_refs
 
     def _get_partition_lookup_key(self, sensor_node_name):
         return '{}.sensor_partition'.format(sensor_node_name)
@@ -89,6 +104,13 @@ class FileBasedPartitioner(DefaultPartitioner):
     def __init__(self, sensor_node_name, partition_file):
         super(FileBasedPartitioner, self).__init__(sensor_node_name=sensor_node_name)
         self.partition_file = partition_file
+        self._supported_sensor_refs = None
+
+    def is_sensor_supported(self, sensor_db):
+        """
+        All sensors are supported
+        """
+        return sensor_db.get_reference().ref in self._supported_sensor_refs and sensor_db.enabled
 
     def get_required_sensor_refs(self):
         with open(self.partition_file, 'r') as f:
@@ -97,16 +119,26 @@ class FileBasedPartitioner(DefaultPartitioner):
             if sensor_refs is None:
                 raise SensorPartitionMapMissingException('Sensor partition not found for %s in %s.',
                                                          self.sensor_node_name, self.partition_file)
-            return sets.Set(sensor_refs)
+            self._supported_sensor_refs = sets.Set(sensor_refs)
+            return self._supported_sensor_refs
 
 
 class SingleSensorProvider(object):
 
-    def get_sensors(self, sensor_ref):
-        sensor = SensorType.get_by_ref(sensor_ref)
+    def __init__(self, sensor_ref):
+        self._sensor_ref = sensor_ref
+
+    def get_sensors(self):
+        sensor = SensorType.get_by_ref(self._sensor_ref)
         if not sensor:
-            raise SensorNotFoundException('Sensor %s not found in db.' % sensor_ref)
+            raise SensorNotFoundException('Sensor %s not found in db.' % self._sensor_ref)
         return [sensor]
+
+    def is_sensor_supported(self, sensor_db):
+        """
+        No other sensor supported just the single sensor which was previously loaded.
+        """
+        return False
 
 
 PROVIDERS = {
@@ -116,9 +148,9 @@ PROVIDERS = {
 }
 
 
-def get_sensors():
+def get_sensors_provider():
     if cfg.CONF.sensor_ref:
-        return SingleSensorProvider().get_sensors(sensor_ref=cfg.CONF.sensor_ref)
+        return SingleSensorProvider(sensor_ref=cfg.CONF.sensor_ref)
     LOG.info('partition_provider [%s]%s', type(cfg.CONF.sensorcontainer.partition_provider),
              cfg.CONF.sensorcontainer.partition_provider)
     partition_provider_config = copy.copy(cfg.CONF.sensorcontainer.partition_provider)
@@ -131,4 +163,4 @@ def get_sensors():
             'Partition provider %s not found.' % partition_provider)
 
     # pass in extra config with no analysis
-    return provider(sensor_node_name=sensor_node_name, **partition_provider_config).get_sensors()
+    return provider(sensor_node_name=sensor_node_name, **partition_provider_config)

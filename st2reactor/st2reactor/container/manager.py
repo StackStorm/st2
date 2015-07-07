@@ -29,19 +29,22 @@ LOG = logging.getLogger(__name__)
 
 class SensorContainerManager(object):
 
-    def __init__(self):
+    def __init__(self, sensors_provider):
         self._sensor_container = None
         self._sensors_watcher = SensorWatcher(create_handler=self._handle_create_sensor,
                                               update_handler=self._handle_update_sensor,
                                               delete_handler=self._handle_delete_sensor,
                                               queue_suffix='sensor_container')
         self._container_thread = None
+        if not sensors_provider:
+            raise ValueError('sensors_provider should be non-None.')
+        self._sensors_provider = sensors_provider
 
-    def run_sensors(self, sensors):
+    def run_sensors(self):
         """
-        :param sensors: A list of DB models of sensors to run.
-        :type sensors: ``list``
+        Run all sensors as determined by sensors_provider.
         """
+        sensors = self._sensors_provider.get_sensors()
         if sensors:
             LOG.info('Setting up container to run %d sensors.', len(sensors))
 
@@ -70,7 +73,8 @@ class SensorContainerManager(object):
             LOG.info('(PID:%s) SensorContainer stopped. Reason - %s', os.getpid(),
                      sys.exc_info()[0].__name__)
 
-            self._container_thread = eventlet.kill(self._container_thread)
+            eventlet.kill(self._container_thread)
+            self._container_thread = None
 
             return 0
 
@@ -105,10 +109,19 @@ class SensorContainerManager(object):
     #################################################
 
     def _handle_create_sensor(self, sensor):
+        if not self._sensors_provider.is_sensor_supported(sensor):
+            LOG.info('sensor %s is not supported. Ignoring create.', self._get_sensor_ref(sensor))
+            return
+        if not sensor.enabled:
+            LOG.info('sensor %s is not enabled.', self._get_sensor_ref(sensor))
+            return
         LOG.info('Adding sensor %s.', self._get_sensor_ref(sensor))
         self._sensor_container.add_sensor(sensor=self._to_sensor_object(sensor))
 
     def _handle_update_sensor(self, sensor):
+        if not self._sensors_provider.is_sensor_supported(sensor):
+            LOG.info('sensor %s is not supported. Ignoring update.', self._get_sensor_ref(sensor))
+            return
         sensor_ref = self._get_sensor_ref(sensor)
         LOG.info('Sensor %s updated. Reloading sensor.', sensor_ref)
         sensor_obj = self._to_sensor_object(sensor)
@@ -121,6 +134,9 @@ class SensorContainerManager(object):
             LOG.info('Sensor %s reloaded.', sensor_ref)
 
     def _handle_delete_sensor(self, sensor):
+        if not self._sensors_provider.is_sensor_supported(sensor):
+            LOG.info('sensor %s is not supported. Ignoring delete.', self._get_sensor_ref(sensor))
+            return
         LOG.info('Unloading sensor %s.', self._get_sensor_ref(sensor))
         self._sensor_container.remove_sensor(sensor=self._to_sensor_object(sensor))
 
