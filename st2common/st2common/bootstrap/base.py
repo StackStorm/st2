@@ -69,12 +69,8 @@ class ResourceRegistrar(object):
 
         registered_count = 0
         for pack_name, pack_path in six.iteritems(packs):
-            try:
-                self.register_pack(pack_name=pack_name, pack_dir=pack_path)
-            except Exception:
-                LOG.exception('Failed to register pack "%s"' % (pack_name))
-            else:
-                registered_count += 1
+            self.register_pack(pack_name=pack_name, pack_dir=pack_path)
+            registered_count += 1
 
         return registered_count
 
@@ -88,7 +84,14 @@ class ResourceRegistrar(object):
 
         LOG.debug('Registering pack: %s' % (pack_name))
         REGISTERED_PACKS_CACHE[pack_name] = True
-        return self._register_pack(pack_name=pack_name, pack_dir=pack_dir)
+
+        try:
+            pack_db = self._register_pack(pack_name=pack_name, pack_dir=pack_dir)
+        except Exception:
+            LOG.exception('Failed to register pack "%s"' % (pack_name))
+            return None
+
+        return pack_db
 
     def _register_pack(self, pack_name, pack_dir):
         """
