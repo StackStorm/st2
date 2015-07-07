@@ -28,9 +28,8 @@ LOG = logging.getLogger(__name__)
 
 
 class SensorContainerManager(object):
-    # TODO: Load balancing for sensors.
-    def __init__(self, max_containers=10):
-        self._max_containers = max_containers
+
+    def __init__(self):
         self._sensor_container = None
         self._sensors_watcher = SensorWatcher(create_handler=self._handle_create_sensor,
                                               update_handler=self._handle_update_sensor,
