@@ -15,10 +15,10 @@
 
 from oslo_config import cfg
 
-from st2common.constants.sensors import KVSTORE_SHARD_LOADER, FILE_SHARD_LOADER
+from st2common.constants.sensors import KVSTORE_PARTITION_LOADER, FILE_PARTITION_LOADER
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
-from st2reactor.container import shard_loader
+from st2reactor.container import partitioner
 from st2tests import config
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
@@ -29,40 +29,40 @@ FIXTURES_1 = {
 }
 
 
-class ShardLoaderTest(DbTestCase):
+class PartitionerTest(DbTestCase):
 
     models = None
 
     @classmethod
     def setUpClass(cls):
-        super(ShardLoaderTest, cls).setUpClass()
+        super(PartitionerTest, cls).setUpClass()
         # Create TriggerTypes before creation of Rule to avoid failure. Rule requires the
         # Trigger and therefore TriggerType to be created prior to rule creation.
         cls.models = FixturesLoader().save_fixtures_to_db(
             fixtures_pack=PACK, fixtures_dict=FIXTURES_1)
         config.parse_args()
 
-    def test_default_shard_provider(self):
-        sensors = shard_loader.get_sensors()
+    def test_default_partitioner(self):
+        sensors = partitioner.get_sensors()
         self.assertEqual(len(sensors), len(FIXTURES_1['sensors']),
                          'Failed to provider all sensors')
 
-    def test_kvstore_shard_provider(self):
-        cfg.CONF.set_override(name='shard_provider',
-                              override={'name': KVSTORE_SHARD_LOADER},
+    def test_kvstore__partitioner(self):
+        cfg.CONF.set_override(name='partition_provider',
+                              override={'name': KVSTORE_PARTITION_LOADER},
                               group='sensorcontainer')
-        kvp = KeyValuePairDB(**{'name': 'sensornode1.shard',
+        kvp = KeyValuePairDB(**{'name': 'sensornode1.sensor_partition',
                                 'value': 'generic.Sensor1, generic.Sensor2'})
         KeyValuePair.add_or_update(kvp, publish=False, dispatch_trigger=False)
-        sensors = shard_loader.get_sensors()
+        sensors = partitioner.get_sensors()
         self.assertEqual(len(sensors), len(kvp.value.split(',')))
 
-    def test_file_shard_provider(self):
-        shard_file = FixturesLoader().get_fixture_file_path_abs(fixtures_pack=PACK,
-                                                                fixtures_type='sensors',
-                                                                fixture_name='shard_file.yaml')
-        cfg.CONF.set_override(name='shard_provider',
-                              override={'name': FILE_SHARD_LOADER, 'shard_file': shard_file},
+    def test_file__partitioner(self):
+        partition_file = FixturesLoader().get_fixture_file_path_abs(
+            fixtures_pack=PACK, fixtures_type='sensors', fixture_name='partition_file.yaml')
+        cfg.CONF.set_override(name='partition_provider',
+                              override={'name': FILE_PARTITION_LOADER,
+                                        'partition_file': partition_file},
                               group='sensorcontainer')
-        sensors = shard_loader.get_sensors()
+        sensors = partitioner.get_sensors()
         self.assertEqual(len(sensors), 2)

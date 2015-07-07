@@ -21,10 +21,11 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.exceptions.sensors import SensorNotFoundException, \
-    SensorShardProviderNotSupportedException, SensorPartitionMapMissingException
+    SensorPartitionerNotSupportedException, SensorPartitionMapMissingException
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.persistence.sensor import SensorType
-from st2common.constants.sensors import DEFAULT_SHARD_LOADER, KVSTORE_SHARD_LOADER, FILE_SHARD_LOADER
+from st2common.constants.sensors import DEFAULT_PARTITION_LOADER, KVSTORE_PARTITION_LOADER, \
+    FILE_PARTITION_LOADER
 
 __all__ = [
     'get_sensors'
@@ -40,7 +41,7 @@ def _get_all_enabled_sensors():
     return sensors
 
 
-class DefaultShardProvider(object):
+class DefaultPartitioner(object):
 
     def __init__(self, sensor_node_name):
         self.sensor_node_name = sensor_node_name
@@ -54,48 +55,49 @@ class DefaultShardProvider(object):
         if sensor_refs is None:
             return all_enabled_sensors
 
-        shard_members = []
+        partition_members = []
 
         for sensor in all_enabled_sensors:
             sensor_ref = sensor.get_reference()
             if sensor_ref.ref in sensor_refs:
-                shard_members.append(sensor)
+                partition_members.append(sensor)
 
-        return shard_members
+        return partition_members
 
     def get_required_sensor_refs(self):
         return None
 
 
-class KVStoreShardProvider(DefaultShardProvider):
+class KVStorePartitioner(DefaultPartitioner):
 
     def __init__(self, sensor_node_name):
+        super(KVStorePartitioner, self).__init__()
         self.sensor_node_name = sensor_node_name
 
     def get_required_sensor_refs(self):
-        shard_lookup_key = self._get_shard_lookup_key(self.sensor_node_name)
+        partition_lookup_key = self._get_partition_lookup_key(self.sensor_node_name)
 
-        kvp = KeyValuePair.get_by_name(shard_lookup_key)
+        kvp = KeyValuePair.get_by_name(partition_lookup_key)
         sensor_refs_str = kvp.value if kvp.value else ''
         return sets.Set([sensor_ref.strip() for sensor_ref in sensor_refs_str.split(',')])
 
-    def _get_shard_lookup_key(self, sensor_node_name):
-        return '{}.shard'.format(sensor_node_name)
+    def _get_partition_lookup_key(self, sensor_node_name):
+        return '{}.sensor_partition'.format(sensor_node_name)
 
 
-class FileBasedShardProvider(DefaultShardProvider):
+class FileBasedPartitioner(DefaultPartitioner):
 
-    def __init__(self, sensor_node_name, shard_file):
+    def __init__(self, sensor_node_name, partition_file):
         self.sensor_node_name = sensor_node_name
-        self.shard_file = shard_file
+        self.partition_file = partition_file
 
     def get_required_sensor_refs(self):
-        with open(self.shard_file, 'r') as f:
-            shard_map = yaml.safe_load(f)
-            sensor_refs = shard_map.get(self.sensor_node_name, None)
+        with open(self.partition_file, 'r') as f:
+            partition_map = yaml.safe_load(f)
+            sensor_refs = partition_map.get(self.sensor_node_name, None)
             if sensor_refs is None:
                 raise SensorPartitionMapMissingException('Sensor partition not found for %s in %s.',
-                                                         self.sensor_node_name, self.shard_file)
+                                                         self.sensor_node_name, self.partition_file)
             return sets.Set(sensor_refs)
 
 
@@ -109,25 +111,25 @@ class SingleSensorProvider(object):
 
 
 PROVIDERS = {
-    DEFAULT_SHARD_LOADER: DefaultShardProvider,
-    KVSTORE_SHARD_LOADER: KVStoreShardProvider,
-    FILE_SHARD_LOADER: FileBasedShardProvider
+    DEFAULT_PARTITION_LOADER: DefaultPartitioner,
+    KVSTORE_PARTITION_LOADER: KVStorePartitioner,
+    FILE_PARTITION_LOADER: FileBasedPartitioner
 }
 
 
 def get_sensors():
     if cfg.CONF.sensor_ref:
         return SingleSensorProvider().get_sensors(sensor_ref=cfg.CONF.sensor_ref)
-    LOG.info('shard_provider [%s]%s', type(cfg.CONF.sensorcontainer.shard_provider),
-             cfg.CONF.sensorcontainer.shard_provider)
-    shard_provider_config = copy.copy(cfg.CONF.sensorcontainer.shard_provider)
-    shard_provider = shard_provider_config.pop('name')
+    LOG.info('partition_provider [%s]%s', type(cfg.CONF.sensorcontainer.partition_provider),
+             cfg.CONF.sensorcontainer.partition_provider)
+    partition_provider_config = copy.copy(cfg.CONF.sensorcontainer.partition_provider)
+    partition_provider = partition_provider_config.pop('name')
     sensor_node_name = cfg.CONF.sensorcontainer.sensor_node_name
 
-    provider = PROVIDERS.get(shard_provider.lower(), None)
+    provider = PROVIDERS.get(partition_provider.lower(), None)
     if not provider:
-        raise SensorShardProviderNotSupportedException(
-            'Shard provider %s not found.' % shard_provider)
+        raise SensorPartitionerNotSupportedException(
+            'Partition provider %s not found.' % partition_provider)
 
     # pass in extra config with no analysis
-    return provider(sensor_node_name=sensor_node_name, **shard_provider_config).get_sensors()
+    return provider(sensor_node_name=sensor_node_name, **partition_provider_config).get_sensors()

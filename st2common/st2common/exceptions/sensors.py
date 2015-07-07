@@ -29,7 +29,7 @@ class SensorNotFoundException(StackStormBaseException):
     pass
 
 
-class SensorShardProviderNotSupportedException(StackStormBaseException):
+class SensorPartitionerNotSupportedException(StackStormBaseException):
     pass
 
 

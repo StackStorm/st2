@@ -17,7 +17,7 @@ from oslo_config import cfg, types
 
 from st2common import log as logging
 import st2common.config as common_config
-from st2common.constants.sensors import DEFAULT_SHARD_LOADER
+from st2common.constants.sensors import DEFAULT_PARTITION_LOADER
 from st2tests.fixturesloader import get_fixtures_base_path
 
 CONF = cfg.CONF
@@ -190,14 +190,14 @@ def _register_exporter_opts():
 
 
 def _register_sensor_container_opts():
-    sharding_opts = [
+    partition_opts = [
         cfg.StrOpt('sensor_node_name', default='sensornode1',
                    help='name of the sensor node.'),
-        cfg.Opt('shard_provider', type=types.Dict(value_type=types.String),
-                default={'name': DEFAULT_SHARD_LOADER},
-                help='Provider of sensor node shard config.')
+        cfg.Opt('partition_provider', type=types.Dict(value_type=types.String()),
+                default={'name': DEFAULT_PARTITION_LOADER},
+                help='Provider of sensor node partition config.')
     ]
-    _register_opts(sharding_opts, group='sensorcontainer')
+    _register_opts(partition_opts, group='sensorcontainer')
 
     sensor_test_opt = cfg.StrOpt('sensor-ref', help='Only run sensor with the provided reference. \
         Value is of the form pack.sensor-name.')
