@@ -33,8 +33,9 @@ __all__ = [
     'EscapedDynamicField',
     'TagField',
 
-    'TagsMixin',
+    'RefFieldMixin',
     'UIDFieldMixin',
+    'TagsMixin',
     'ContentPackResourceMixin'
 ]
 
@@ -161,6 +162,14 @@ class TagsMixin(object):
         return ['tags.name', 'tags.value']
 
 
+class RefFieldMixin(object):
+    """
+    Mixin class which adds "ref" field to the class inheriting from it.
+    """
+
+    ref = me.StringField(required=True, unique=True)
+
+
 class UIDFieldMixin(object):
     """
     Mixin class which adds "uid" field to the class inheriting from it.
@@ -190,8 +199,7 @@ class UIDFieldMixin(object):
 
 class ContentPackResourceMixin(object):
     """
-    Mixin class which provides utility methods for models which contain
-    a "pack" attribute.
+    Mixin class provides utility methods for models which belong to a pack.
     """
 
     def get_reference(self):
@@ -200,5 +208,11 @@ class ContentPackResourceMixin(object):
 
         :rtype: :class:`ResourceReference`
         """
-        ref = ResourceReference(pack=self.pack, name=self.name)
-        return ref
+        if hasattr(self, 'ref'):
+            ref = ResourceReference.from_string_reference(ref=self.ref)
+        else:
+            ref = ResourceReference(pack=self.pack, name=self.name)
+
+        return refld should be not have any constraints like required,
+     # unique etc for it to be auto-generated.
+-    # TODO: Work out how we can mark this as a unique primary key.
