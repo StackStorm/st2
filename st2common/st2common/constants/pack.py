@@ -20,7 +20,8 @@ __all__ = [
     'LINUX_PACK_NAME',
     'SYSTEM_PACK_NAMES',
     'USER_PACK_NAME_BLACKLIST',
-    'BASE_PACK_REQUIREMENTS'
+    'BASE_PACK_REQUIREMENTS',
+    'MANIFEST_FILE_NAME'
 ]
 
 # A list of allowed characters for the pack name
@@ -56,3 +57,6 @@ USER_PACK_NAME_BLACKLIST = [
 BASE_PACK_REQUIREMENTS = [
     'six>=1.9.0,<2.0'
 ]
+
+# Name of the pack manifest file
+MANIFEST_FILE_NAME = 'pack.yaml'
