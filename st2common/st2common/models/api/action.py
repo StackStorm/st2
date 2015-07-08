@@ -208,7 +208,7 @@ class ActionAPI(BaseAPI):
     @classmethod
     def to_model(cls, action):
         model = super(cls, cls).to_model(action)
-        model.enabled = bool(action.enabled)
+        model.enabled = bool(getattr(action, 'enabled', True))
         model.entry_point = str(action.entry_point)
         model.pack = str(action.pack)
         model.runner_type = {'name': str(action.runner_type)}

@@ -77,13 +77,6 @@ class ActionsController(resource.ContentPackResourceController):
             Handles requests:
                 POST /actions/
         """
-        if not hasattr(action, 'enabled'):
-            LOG.debug('POST /actions/ incoming action data has enabled field unset. '
-                      'Defaulting enabled to True.')
-            setattr(action, 'enabled', True)
-        else:
-            action.enabled = bool(action.enabled)
-
         if not hasattr(action, 'pack'):
             setattr(action, 'pack', DEFAULT_PACK_NAME)
 
