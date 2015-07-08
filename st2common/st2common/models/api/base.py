@@ -98,13 +98,7 @@ class BaseAPI(object):
 
         :param doc: MongoDB document.
         """
-        # pylint: disable=no-member
-        # TODO: Add plugin which lets pylint know each MongoEngine document has model
-        # method
-        model = cls.model()
-        setattr(model, 'name', getattr(doc, 'name', None))
-        setattr(model, 'description', getattr(doc, 'description', None))
-        return model
+        raise NotImplementedError()
 
 
 def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='application/json'):

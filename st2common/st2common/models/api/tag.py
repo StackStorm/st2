@@ -15,6 +15,10 @@
 
 from st2common.models.db.stormbase import TagField
 
+__all__ = [
+    'TagsHelper'
+]
+
 
 class TagsHelper(object):
 

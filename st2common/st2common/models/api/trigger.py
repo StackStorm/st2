@@ -61,12 +61,17 @@ class TriggerTypeAPI(BaseAPI):
     }
 
     @classmethod
-    def to_model(cls, triggertype):
-        model = super(cls, cls).to_model(triggertype)
-        model.pack = getattr(triggertype, 'pack', None)
-        model.payload_schema = getattr(triggertype, 'payload_schema', {})
-        model.parameters_schema = getattr(triggertype, 'parameters_schema', {})
-        model.tags = TagsHelper.to_model(getattr(triggertype, 'tags', []))
+    def to_model(cls, trigger_type):
+        name = getattr(trigger_type, 'name', None)
+        description = getattr(trigger_type, 'description', None)
+        pack = getattr(trigger_type, 'pack', None)
+        payload_schema = getattr(trigger_type, 'payload_schema', {})
+        parameters_schema = getattr(trigger_type, 'parameters_schema', {})
+        tags = TagsHelper.to_model(getattr(trigger_type, 'tags', []))
+
+        model = cls.model(name=name, description=description, pack=pack,
+                          payload_schema=payload_schema, parameters_schema=parameters_schema,
+                          tags=tags)
         return model
 
     @classmethod
@@ -112,20 +117,24 @@ class TriggerAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, trigger):
-        model = super(cls, cls).to_model(trigger)
-        model.pack = getattr(trigger, 'pack', None)
-        model.type = getattr(trigger, 'type', None)
-        model.parameters = getattr(trigger, 'parameters', {})
+        name = getattr(trigger, 'name', None)
+        description = getattr(trigger, 'description', None)
+        pack = getattr(trigger, 'pack', None)
+        _type = getattr(trigger, 'type', None)
+        parameters = getattr(trigger, 'parameters', {})
 
-        if model.type and not model.parameters:
-            triggertype_ref = ResourceReference.from_string_reference(model.type)
-            model.name = triggertype_ref.name
+        if _type and not parameters:
+            trigger_type_ref = ResourceReference.from_string_reference(_type)
+            name = trigger_type_ref.name
 
         if hasattr(trigger, 'name') and trigger.name:
-            model.name = trigger.name
+            name = trigger.name
         else:
             # assign a name if none is provided.
-            model.name = str(uuid.uuid4())
+            name = str(uuid.uuid4())
+
+        model = cls.model(name=name, description=description, pack=pack, type=_type,
+                          parameters=parameters)
         return model
 
 
@@ -161,8 +170,9 @@ class TriggerInstanceAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, instance):
-        model = super(cls, cls).to_model(instance)
-        model.trigger = instance.trigger
-        model.payload = instance.payload
-        model.occurrence_time = isotime.parse(instance.occurrence_time)
+        trigger = instance.trigger
+        payload = instance.payload
+        occurrence_time = isotime.parse(instance.occurrence_time)
+
+        model = cls.model(trigger=trigger, payload=payload, occurrence_time=occurrence_time)
         return model

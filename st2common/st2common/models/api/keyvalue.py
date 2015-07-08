@@ -69,12 +69,17 @@ class KeyValuePairAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, kvp):
-        model = super(cls, cls).to_model(kvp)
-        model.value = kvp.value
+        name = getattr(kvp, 'name', None)
+        description = getattr(kvp, 'description', None)
+        value = kvp.value
 
         if getattr(kvp, 'ttl', None):
             expire_timestamp = (date_utils.get_datetime_utc_now() +
                                 datetime.timedelta(seconds=kvp.ttl))
-            model.expire_timestamp = expire_timestamp
+        else:
+            expire_timestamp = None
+
+        model = cls.model(name=name, description=description, value=value,
+                          expire_timestamp=expire_timestamp)
 
         return model

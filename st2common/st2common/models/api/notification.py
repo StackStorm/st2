@@ -39,25 +39,34 @@ class NotificationsHelper(object):
 
     @staticmethod
     def to_model(notify_api_object):
-        model = NotificationSchema()
-        if notify_api_object.get('on-complete', None):
-            model.on_complete = NotificationsHelper._to_model_sub_schema(
-                notify_api_object['on-complete'])
         if notify_api_object.get('on-success', None):
-            model.on_success = NotificationsHelper._to_model_sub_schema(
-                notify_api_object['on-success'])
+            on_success = NotificationsHelper._to_model_sub_schema(notify_api_object['on-success'])
+        else:
+            on_success = None
+
+        if notify_api_object.get('on-complete', None):
+            on_complete = NotificationsHelper._to_model_sub_schema(
+                notify_api_object['on-complete'])
+        else:
+            on_complete = None
+
         if notify_api_object.get('on-failure', None):
-            model.on_failure = NotificationsHelper._to_model_sub_schema(
-                notify_api_object['on-failure'])
+            on_failure = NotificationsHelper._to_model_sub_schema(notify_api_object['on-failure'])
+        else:
+            on_failure = None
+
+        model = NotificationSchema(on_success=on_success, on_failure=on_failure,
+                                   on_complete=on_complete)
         return model
 
     @staticmethod
     def _to_model_sub_schema(notification_settings_json):
-        notify_sub_schema = NotificationSubSchema()
-        notify_sub_schema.message = notification_settings_json.get('message' or None)
-        notify_sub_schema.data = notification_settings_json.get('data' or {})
-        notify_sub_schema.channels = notification_settings_json.get('channels' or [])
-        return notify_sub_schema
+        message = notification_settings_json.get('message' or None)
+        data = notification_settings_json.get('data' or {})
+        channels = notification_settings_json.get('channels' or [])
+
+        model = NotificationSubSchema(message=message, data=data, channels=channels)
+        return model
 
     @staticmethod
     def from_model(notify_model):

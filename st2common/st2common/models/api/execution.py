@@ -125,7 +125,7 @@ class ActionExecutionAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, instance):
-        model = cls.model()
+        values = {}
         for attr, meta in six.iteritems(cls.schema.get('properties', dict())):
             default = copy.deepcopy(meta.get('default', None))
             value = getattr(instance, attr, default)
@@ -136,7 +136,10 @@ class ActionExecutionAPI(BaseAPI):
             if not value and not cls.model._fields[attr].required:
                 continue
             if attr not in ActionExecutionAPI.SKIP:
-                setattr(model, attr, value)
-        model.start_timestamp = isotime.parse(instance.start_timestamp)
-        model.end_timestamp = isotime.parse(instance.end_timestamp)
+                values[attr] = value
+
+        values['start_timestamp'] = isotime.parse(instance.start_timestamp)
+        values['end_timestamp'] = isotime.parse(instance.end_timestamp)
+
+        model = cls.model(**values)
         return model

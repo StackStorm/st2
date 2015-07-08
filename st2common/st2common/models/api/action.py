@@ -103,13 +103,18 @@ class RunnerTypeAPI(BaseAPI):
             setattr(self, 'runner_parameters', dict())
 
     @classmethod
-    def to_model(cls, runnertype):
-        model = super(cls, cls).to_model(runnertype)
-        model.enabled = bool(runnertype.enabled)
-        model.runner_module = str(runnertype.runner_module)
-        if getattr(runnertype, 'query_module', None):
-            model.query_module = str(runnertype.query_module)
-        model.runner_parameters = getattr(runnertype, 'runner_parameters', dict())
+    def to_model(cls, runner_type):
+        name = runner_type.name
+        description = runner_type.description
+        enabled = bool(runner_type.enabled)
+        runner_module = str(runner_type.runner_module)
+        runner_parameters = getattr(runner_type, 'runner_parameters', dict())
+        query_module = getattr(runner_type, 'query_module', None)
+
+        model = cls.model(name=name, description=description, enabled=enabled,
+                          runner_module=runner_module, runner_parameters=runner_parameters,
+                          query_module=query_module)
+
         return model
 
 
@@ -207,16 +212,25 @@ class ActionAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, action):
-        model = super(cls, cls).to_model(action)
-        model.enabled = bool(getattr(action, 'enabled', True))
-        model.entry_point = str(action.entry_point)
-        model.pack = str(action.pack)
-        model.runner_type = {'name': str(action.runner_type)}
-        model.parameters = getattr(action, 'parameters', dict())
-        model.tags = TagsHelper.to_model(getattr(action, 'tags', []))
-        model.ref = ResourceReference.to_string_reference(pack=model.pack, name=model.name)
+        name = getattr(action, 'name', None)
+        description = getattr(action, 'description', None)
+        enabled = bool(getattr(action, 'enabled', True))
+        entry_point = str(action.entry_point)
+        pack = str(action.pack)
+        runner_type = {'name': str(action.runner_type)}
+        parameters = getattr(action, 'parameters', dict())
+        tags = TagsHelper.to_model(getattr(action, 'tags', []))
+        ref = ResourceReference.to_string_reference(pack=pack, name=name)
+
         if getattr(action, 'notify', None):
-            model.notify = NotificationsHelper.to_model(action.notify)
+            notify = NotificationsHelper.to_model(action.notify)
+        else:
+            notify = None
+
+        model = cls.model(name=name, description=description, enable=enabled, enabled=enabled,
+                          entry_point=entry_point, pack=pack, runner_type=runner_type,
+                          tags=tags, parameters=parameters, notify=notify,
+                          ref=ref)
 
         return model
 
@@ -316,24 +330,36 @@ class LiveActionAPI(BaseAPI):
         return cls(**doc)
 
     @classmethod
-    def to_model(cls, liveaction):
-        model = super(cls, cls).to_model(liveaction)
-        model.action = liveaction.action
+    def to_model(cls, live_action):
+        name = getattr(live_action, 'name', None)
+        description = getattr(live_action, 'description', None)
+        action = live_action.action
 
-        if getattr(liveaction, 'start_timestamp', None):
-            model.start_timestamp = isotime.parse(liveaction.start_timestamp)
+        if getattr(live_action, 'start_timestamp', None):
+            start_timestamp = isotime.parse(live_action.start_timestamp)
+        else:
+            start_timestamp = None
 
-        if getattr(liveaction, 'end_timestamp', None):
-            model.end_timestamp = isotime.parse(liveaction.end_timestamp)
+        if getattr(live_action, 'end_timestamp', None):
+            end_timestamp = isotime.parse(live_action.end_timestamp)
+        else:
+            end_timestamp = None
 
-        model.status = getattr(liveaction, 'status', None)
-        model.parameters = getattr(liveaction, 'parameters', dict())
-        model.context = getattr(liveaction, 'context', dict())
-        model.callback = getattr(liveaction, 'callback', dict())
-        model.result = getattr(liveaction, 'result', None)
+        status = getattr(live_action, 'status', None)
+        parameters = getattr(live_action, 'parameters', dict())
+        context = getattr(live_action, 'context', dict())
+        callback = getattr(live_action, 'callback', dict())
+        result = getattr(live_action, 'result', None)
 
-        if getattr(liveaction, 'notify', None):
-            model.notify = NotificationsHelper.to_model(liveaction.notify)
+        if getattr(live_action, 'notify', None):
+            notify = NotificationsHelper.to_model(live_action.notify)
+        else:
+            notify = None
+
+        model = cls.model(name=name, description=description, action=action,
+                          start_timestamp=start_timestamp, end_timestamp=end_timestamp,
+                          status=status, parameters=parameters, context=context,
+                          callback=callback, result=result, notify=notify)
 
         return model
 
@@ -374,10 +400,12 @@ class ActionExecutionStateAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, state):
-        model = super(cls, cls).to_model(state)
-        model.query_module = state.query_module
-        model.execution_id = state.execution_id
-        model.query_context = state.query_context
+        execution_id = state.execution_id
+        query_module = state.query_module
+        query_context = state.query_context
+
+        model = cls(execution_id=execution_id, query_module=query_module,
+                    query_context=query_context)
         return model
 
 
@@ -435,13 +463,16 @@ class ActionAliasAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, alias):
-        model = super(cls, cls).to_model(alias)
-        model.name = alias.name
-        model.pack = alias.pack
-        model.enabled = getattr(alias, 'enabled', True)
-        model.ref = ResourceReference.to_string_reference(pack=model.pack, name=model.name)
-        model.action_ref = alias.action_ref
-        model.formats = alias.formats
+        name = alias.name
+        description = alias.description
+        pack = alias.pack
+        ref = ResourceReference.to_string_reference(pack=pack, name=name)
+        enabled = getattr(alias, 'enabled', True)
+        action_ref = alias.action_ref
+        formats = alias.formats
+
+        model = cls.model(name=name, description=description, pack=pack, ref=ref, enabled=enabled,
+                          action_ref=action_ref, formats=formats)
         return model
 
 
