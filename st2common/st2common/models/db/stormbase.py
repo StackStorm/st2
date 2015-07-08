@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 import datetime
 
 import bson
@@ -27,9 +28,13 @@ from st2common.models.system.common import ResourceReference
 __all__ = [
     'StormFoundationDB',
     'StormBaseDB',
+
     'EscapedDictField',
-    'TagsMixin',
+    'EscapedDynamicField',
     'TagField',
+
+    'TagsMixin',
+    'UIDFieldMixin',
     'ContentPackResourceMixin'
 ]
 
@@ -41,8 +46,6 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
     Base abstraction for a model entity. This foundation class should only be directly
     inherited from the application domain models.
     """
-
-    UUID_SEPARATOR = ':'
 
     # We explicitly assign the manager so pylint know what type objects is
     objects = me.queryset.QuerySetManager()
@@ -64,15 +67,6 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
             v = '"%s"' % str(v) if type(v) in [str, unicode, datetime.datetime] else str(v)
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
-
-    def get_uuid(self):
-        """
-        Retrieve a UUID for the provided resource.
-
-        :rtype: ``str``
-        """
-        # TODO
-        raise NotImplementedError()
 
     def mask_secrets(self, value):
         """
@@ -165,6 +159,33 @@ class TagsMixin(object):
     @classmethod
     def get_indices(cls):
         return ['tags.name', 'tags.value']
+
+
+class UIDFieldMixin(object):
+    """
+    Mixin class which adds "uid" field to the class inheriting from it.
+
+    UID field is a unique identifier which we can be used to unambiguously reference a resource in
+    the system.
+    """
+
+    UID_SEPARATOR = ':'
+
+    RESOURCE_TYPE = abc.abstractproperty
+    UID_FIELDS = abc.abstractproperty
+
+    uid = me.StringField(unique=True, required=True)
+
+    def get_uid(self):
+        parts = []
+        parts.append(self.RESOURCE_TYPE)
+
+        for field in self.UID_FIELDS:
+            value = getattr(self, field, None)
+            parts.append(value)
+
+        uid = self.UID_SEPARATOR.join(parts)
+        return uid
 
 
 class ContentPackResourceMixin(object):

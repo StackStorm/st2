@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import mongoengine as me
+
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 
@@ -32,7 +33,7 @@ class ActionExecutionSpecDB(me.EmbeddedDocument):
 
 
 class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
-             stormbase.ContentPackResourceMixin):
+             stormbase.ContentPackResourceMixin, stormbase.UIDFieldMixin):
     """Specifies the action to invoke on the occurrence of a Trigger. It
     also includes the transformation to perform to match the impedance
     between the payload of a TriggerInstance and input of a action.
@@ -43,6 +44,9 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
+    RESOURCE_TYPE = 'rule'
+    UID_FIELDS = ['ref']
+
     name = me.StringField(required=True)
     ref = me.StringField(required=True)
     description = me.StringField()
@@ -60,11 +64,14 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         'indexes': stormbase.TagsMixin.get_indices()
     }
 
-    def get_uuid(self):
-        reference = self.get_reference().ref
-        parts = ['rule', reference]
-        uuid = self.UUID_SEPARATOR.join(parts)
-        return uuid
+    def clean(self):
+        """
+        Note: We can't implement clean on the "UIDFieldMixin" class and we need to explicitly
+        define it on each model class otherwise we would need to make sure "UIDFieldMixin" is
+        always inherited from first (order matters).
+        """
+        self.uid = self.get_uid()
+
 
 rule_access = MongoDBAccess(RuleDB)
 

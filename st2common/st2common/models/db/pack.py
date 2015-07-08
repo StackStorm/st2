@@ -23,10 +23,14 @@ __all__ = [
 ]
 
 
-class PackDB(stormbase.StormFoundationDB):
+class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     """
     System entity which represents a pack.
     """
+
+    RESOURCE_TYPE = 'pack'
+    UID_FIELDS = ['ref']
+
     ref = me.StringField(required=True, unique=True)
     name = me.StringField(required=True, unique=True)
     description = me.StringField(required=True)
@@ -34,6 +38,14 @@ class PackDB(stormbase.StormFoundationDB):
     version = me.StringField(required=True)  # TODO: Enforce format
     author = me.StringField(required=True)
     email = me.EmailField(required=True)
+
+    def clean(self):
+        """
+        Note: We can't implement clean on the "UIDFieldMixin" class and we need to explicitly
+        define it on each model class otherwise we would need to make sure "UIDFieldMixin" is
+        always inherited from first (order matters).
+        """
+        self.uid = self.get_uid()
 
 # specialized access objects
 pack_access = MongoDBAccess(PackDB)

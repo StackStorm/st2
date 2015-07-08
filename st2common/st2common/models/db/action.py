@@ -42,7 +42,7 @@ PACK_SEPARATOR = '.'
 
 
 class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
-               stormbase.ContentPackResourceMixin):
+               stormbase.ContentPackResourceMixin, stormbase.UIDFieldMixin):
     """
     The system entity that represents a Stack Action/Automation in the system.
 
@@ -52,6 +52,10 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         runner_type: The actionrunner is used to execute the action.
         parameters: The specification for parameters for the action.
     """
+
+    RESOURCE_TYPE = 'action'
+    UID_FIELDS = ['ref']
+
     name = me.StringField(required=True)
     ref = me.StringField(required=True)
     description = me.StringField()
@@ -76,6 +80,14 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         'indexes': stormbase.TagsMixin.get_indices()
     }
 
+    def clean(self):
+        """
+        Note: We can't implement clean on the "UIDFieldMixin" class and we need to explicitly
+        define it on each model class otherwise we would need to make sure "UIDFieldMixin" is
+        always inherited from first (order matters).
+        """
+        self.uid = self.get_uid()
+
     def is_workflow(self):
         """
         Return True if this action is a workflow, False otherwise.
@@ -83,19 +95,6 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         :rtype: ``bool``
         """
         return self.runner_type['name'] in WORKFLOW_RUNNER_TYPES
-
-    def get_uuid(self):
-        reference = self.get_reference().ref
-        is_workflow = self.is_workflow()
-
-        if is_workflow:
-            action_type = 'workflow'
-        else:
-            action_type = 'simple'
-
-        parts = ['action', action_type, reference]
-        uuid = self.UUID_SEPARATOR.join(parts)
-        return uuid
 
 # specialized access objects
 action_access = MongoDBAccess(ActionDB)
