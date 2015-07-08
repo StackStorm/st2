@@ -186,5 +186,5 @@ class Dumper(object):
         else:
             marker_id = None
 
-        marker_db = DumperMarkerDB(marker_id=marker_id, marker=marker, updated_at=updated_at)
+        marker_db = DumperMarkerDB(id=marker_id, marker=marker, updated_at=updated_at)
         return DumperMarker.add_or_update(marker_db)
