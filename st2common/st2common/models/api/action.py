@@ -404,8 +404,8 @@ class ActionExecutionStateAPI(BaseAPI):
         query_module = state.query_module
         query_context = state.query_context
 
-        model = cls(execution_id=execution_id, query_module=query_module,
-                    query_context=query_context)
+        model = cls.model(execution_id=execution_id, query_module=query_module,
+                          query_context=query_context)
         return model
 
 
