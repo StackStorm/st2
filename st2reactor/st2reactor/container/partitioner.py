@@ -151,13 +151,12 @@ PROVIDERS = {
 def get_sensors_provider():
     if cfg.CONF.sensor_ref:
         return SingleSensorProvider(sensor_ref=cfg.CONF.sensor_ref)
-    LOG.info('partition_provider [%s]%s', type(cfg.CONF.sensorcontainer.partition_provider),
-             cfg.CONF.sensorcontainer.partition_provider)
     partition_provider_config = copy.copy(cfg.CONF.sensorcontainer.partition_provider)
     partition_provider = partition_provider_config.pop('name')
     sensor_node_name = cfg.CONF.sensorcontainer.sensor_node_name
 
     provider = PROVIDERS.get(partition_provider.lower(), None)
+    LOG.info('Using partitioner %s with sensornode %s.', partition_provider, sensor_node_name)
     if not provider:
         raise SensorPartitionerNotSupportedException(
             'Partition provider %s not found.' % partition_provider)

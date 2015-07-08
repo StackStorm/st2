@@ -47,6 +47,7 @@ class SensorContainerManager(object):
         sensors = self._sensors_provider.get_sensors()
         if sensors:
             LOG.info('Setting up container to run %d sensors.', len(sensors))
+            LOG.info('\tSensors list - %s.', [self._get_sensor_ref(sensor) for sensor in sensors])
 
         sensors_to_run = []
         for sensor in sensors:

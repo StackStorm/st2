@@ -50,7 +50,6 @@ def _register_sensor_container_opts(ignore_errors=False):
         cfg.StrOpt('sensor_node_name', default='sensornode1',
                    help='name of the sensor node.'),
         cfg.Opt('partition_provider', type=types.Dict(value_type=types.String()),
-                # default='name: {}'.format(DEFAULT_PARTITION_LOADER),
                 default={'name': DEFAULT_PARTITION_LOADER},
                 help='Provider of sensor node partition config.')
     ]
