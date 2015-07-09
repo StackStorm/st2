@@ -39,6 +39,10 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     author = me.StringField(required=True)
     email = me.EmailField(required=True)
 
+    def __init__(self, *args, **values):
+        super(PackDB, self).__init__(*args, **values)
+        self.uid = self.get_uid()
+
     def clean(self):
         """
         Note: We can't implement clean on the "UIDFieldMixin" class and we need to explicitly

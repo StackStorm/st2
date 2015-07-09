@@ -48,6 +48,11 @@ class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
     enabled = me.BooleanField(default=True,
                               help_text=u'Flag indicating whether the sensor is enabled.')
 
+    def __init__(self, *args, **values):
+        super(SensorTypeDB, self).__init__(*args, **values)
+        self.ref = self.get_reference().ref
+        self.uid = self.get_uid()
+
 sensor_type_access = MongoDBAccess(SensorTypeDB)
 
 MODELS = [SensorTypeDB]

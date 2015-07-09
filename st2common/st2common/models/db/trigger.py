@@ -49,8 +49,14 @@ class TriggerTypeDB(stormbase.StormBaseDB,
         'indexes': stormbase.TagsMixin.get_indices()
     }
 
+    def __init__(self, *args, **values):
+        super(TriggerTypeDB, self).__init__(*args, **values)
+        self.ref = self.get_reference().ref
+        self.uid = self.get_uid()
 
-class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin):
+
+class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
+                stormbase.UIDFieldMixin):
     """
     Attribute:
         pack - Name of the content pack this trigger belongs to.
@@ -65,6 +71,11 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin):
     pack = me.StringField(required=True, unique_with='name')
     type = me.StringField()
     parameters = me.DictField()
+
+    def __init__(self, *args, **values):
+        super(TriggerDB, self).__init__(*args, **values)
+        self.ref = self.get_reference().ref
+        self.uid = self.get_uid()
 
 
 class TriggerInstanceDB(stormbase.StormFoundationDB):

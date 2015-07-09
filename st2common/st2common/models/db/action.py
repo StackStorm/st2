@@ -80,12 +80,9 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         'indexes': stormbase.TagsMixin.get_indices()
     }
 
-    def clean(self):
-        """
-        Note: We can't implement clean on the "UIDFieldMixin" class and we need to explicitly
-        define it on each model class otherwise we would need to make sure "UIDFieldMixin" is
-        always inherited from first (order matters).
-        """
+    def __init__(self, *args, **values):
+        super(ActionDB, self).__init__(*args, **values)
+        self.ref = self.get_reference().ref
         self.uid = self.get_uid()
 
     def is_workflow(self):
