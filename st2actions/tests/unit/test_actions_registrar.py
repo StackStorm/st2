@@ -24,9 +24,7 @@ from st2common.models.db.runner import RunnerTypeDB
 import st2tests.base as tests_base
 import st2tests.fixturesloader as fixtures_loader
 
-MOCK_RUNNER_TYPE_DB = RunnerTypeDB()
-MOCK_RUNNER_TYPE_DB.name = 'run-local'
-MOCK_RUNNER_TYPE_DB.runner_module = 'st2.runners.local'
+MOCK_RUNNER_TYPE_DB = RunnerTypeDB(name='run-local', runner_module='st2.runners.local')
 
 
 class ActionsRegistrarTest(tests_base.DbTestCase):
