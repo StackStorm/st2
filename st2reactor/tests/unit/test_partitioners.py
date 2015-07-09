@@ -15,10 +15,12 @@
 
 from oslo_config import cfg
 
-from st2common.constants.sensors import KVSTORE_PARTITION_LOADER, FILE_PARTITION_LOADER
+from st2common.constants.sensors import KVSTORE_PARTITION_LOADER, FILE_PARTITION_LOADER, \
+    HASH_PARTITION_LOADER
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
-from st2reactor.container import partitioner
+from st2reactor.container.partitioner_lookup import get_sensors_partitioner
+from st2reactor.container.hash_partitioner import Range
 from st2tests import config
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
@@ -43,7 +45,7 @@ class PartitionerTest(DbTestCase):
         config.parse_args()
 
     def test_default_partitioner(self):
-        provider = partitioner.get_sensors_partitioner()
+        provider = get_sensors_partitioner()
         sensors = provider.get_sensors()
 
         self.assertEqual(len(sensors), len(FIXTURES_1['sensors']),
@@ -60,7 +62,7 @@ class PartitionerTest(DbTestCase):
                                 'value': 'generic.Sensor1, generic.Sensor2'})
         KeyValuePair.add_or_update(kvp, publish=False, dispatch_trigger=False)
 
-        provider = partitioner.get_sensors_partitioner()
+        provider = get_sensors_partitioner()
         sensors = provider.get_sensors()
 
         self.assertEqual(len(sensors), len(kvp.value.split(',')))
@@ -79,7 +81,7 @@ class PartitionerTest(DbTestCase):
                                         'partition_file': partition_file},
                               group='sensorcontainer')
 
-        provider = partitioner.get_sensors_partitioner()
+        provider = get_sensors_partitioner()
         sensors = provider.get_sensors()
 
         self.assertEqual(len(sensors), 2)
@@ -89,3 +91,26 @@ class PartitionerTest(DbTestCase):
 
         sensor3 = self.models['sensors']['sensor3.yaml']
         self.assertFalse(provider.is_sensor_owner(sensor3))
+
+    def test_hash_partitioner(self):
+        # no specific partitioner testing here for that see test_hash_partitioner.py
+        # This test is to make sure the wiring and some basics work
+        cfg.CONF.set_override(name='partition_provider',
+                              override={'name': HASH_PARTITION_LOADER,
+                                        'hash_ranges': '%s..%s' % (Range.RANGE_MIN_ENUM,
+                                                                   Range.RANGE_MAX_ENUM)},
+                              group='sensorcontainer')
+
+        provider = get_sensors_partitioner()
+        sensors = provider.get_sensors()
+
+        self.assertEqual(len(sensors), 3)
+
+        sensor1 = self.models['sensors']['sensor1.yaml']
+        self.assertTrue(provider.is_sensor_owner(sensor1))
+
+        sensor2 = self.models['sensors']['sensor2.yaml']
+        self.assertTrue(provider.is_sensor_owner(sensor2))
+
+        sensor3 = self.models['sensors']['sensor3.yaml']
+        self.assertTrue(provider.is_sensor_owner(sensor3))

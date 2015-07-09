@@ -24,7 +24,7 @@ from st2common.service_setup import teardown as common_teardown
 from st2common.exceptions.sensors import SensorNotFoundException
 from st2reactor.sensor import config
 from st2reactor.container.manager import SensorContainerManager
-from st2reactor.container.partitioner import get_sensors_partitioner
+from st2reactor.container.partitioner_lookup import get_sensors_partitioner
 
 eventlet.monkey_patch(
     os=True,

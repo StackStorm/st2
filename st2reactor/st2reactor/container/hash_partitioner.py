@@ -16,7 +16,7 @@
 import ctypes
 import hashlib
 
-from st2reactor.container.partitioner import DefaultPartitioner, get_all_enabled_sensors
+from st2reactor.container.partitioners import DefaultPartitioner, get_all_enabled_sensors
 
 __all__ = [
     'HashPartitioner',

@@ -13,24 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 import sets
 import yaml
 
-from oslo_config import cfg
-
 from st2common import log as logging
 from st2common.exceptions.sensors import SensorNotFoundException, \
-    SensorPartitionerNotSupportedException, SensorPartitionMapMissingException
+    SensorPartitionMapMissingException
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.persistence.sensor import SensorType
-from st2common.constants.sensors import DEFAULT_PARTITION_LOADER, KVSTORE_PARTITION_LOADER, \
-    FILE_PARTITION_LOADER
+
 
 __all__ = [
-    'get_sensors_partitioner',
     'get_all_enabled_sensors',
-    'DefaultPartitioner'
+    'DefaultPartitioner',
+    'KVStorePartitioner',
+    'FileBasedPartitioner',
+    'SingleSensorPartitioner'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -141,27 +139,3 @@ class SingleSensorPartitioner(object):
         No other sensor supported just the single sensor which was previously loaded.
         """
         return False
-
-
-PROVIDERS = {
-    DEFAULT_PARTITION_LOADER: DefaultPartitioner,
-    KVSTORE_PARTITION_LOADER: KVStorePartitioner,
-    FILE_PARTITION_LOADER: FileBasedPartitioner
-}
-
-
-def get_sensors_partitioner():
-    if cfg.CONF.sensor_ref:
-        return SingleSensorPartitioner(sensor_ref=cfg.CONF.sensor_ref)
-    partition_provider_config = copy.copy(cfg.CONF.sensorcontainer.partition_provider)
-    partition_provider = partition_provider_config.pop('name')
-    sensor_node_name = cfg.CONF.sensorcontainer.sensor_node_name
-
-    provider = PROVIDERS.get(partition_provider.lower(), None)
-    LOG.info('Using partitioner %s with sensornode %s.', partition_provider, sensor_node_name)
-    if not provider:
-        raise SensorPartitionerNotSupportedException(
-            'Partition provider %s not found.' % partition_provider)
-
-    # pass in extra config with no analysis
-    return provider(sensor_node_name=sensor_node_name, **partition_provider_config)

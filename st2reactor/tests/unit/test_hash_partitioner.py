@@ -82,7 +82,7 @@ class HashPartitionerTest(DbTestCase):
                          'Sum should equal all sensors.')
 
         # Test effectiveness by checking if the  sd is within 20% of mean
-        mean = refs_count/3
+        mean = refs_count / 3
         variance = float((p1_count - mean)**2 + (p1_count - mean)**2 + (p3_count - mean)**2) / 3
         sd = math.sqrt(variance)
 
