@@ -253,7 +253,8 @@ unit-tests-coverage-xml:
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
 			--cover-inclusive --cover-erase --cover-xml \
-			--cover-package=$$component $$component/tests/unit || exit 1; \
+			--cover-package=$$component $$component/tests/unit &&  \
+			mv coverage.xml coverage-$$component.xml || exit 1; \
 	done
 
 .PHONY: unit-tests-coverage-html
