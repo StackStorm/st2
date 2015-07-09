@@ -28,13 +28,15 @@ from st2common.constants.sensors import DEFAULT_PARTITION_LOADER, KVSTORE_PARTIT
     FILE_PARTITION_LOADER
 
 __all__ = [
-    'get_sensors_partitioner'
+    'get_sensors_partitioner',
+    'get_all_enabled_sensors',
+    'DefaultPartitioner'
 ]
 
 LOG = logging.getLogger(__name__)
 
 
-def _get_all_enabled_sensors():
+def get_all_enabled_sensors():
     # only query for enabled sensors.
     sensors = SensorType.query(enabled=True)
     LOG.info('Found %d registered sensors in db scan.', len(sensors))
@@ -54,7 +56,7 @@ class DefaultPartitioner(object):
         return sensor_db is not None
 
     def get_sensors(self):
-        all_enabled_sensors = _get_all_enabled_sensors()
+        all_enabled_sensors = get_all_enabled_sensors()
 
         sensor_refs = self.get_required_sensor_refs()
 
