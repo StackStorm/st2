@@ -43,14 +43,14 @@ class PartitionerTest(DbTestCase):
         config.parse_args()
 
     def test_default_partitioner(self):
-        provider = partitioner.get_sensors_provider()
+        provider = partitioner.get_sensors_partitioner()
         sensors = provider.get_sensors()
 
         self.assertEqual(len(sensors), len(FIXTURES_1['sensors']),
                          'Failed to provider all sensors')
 
         sensor1 = self.models['sensors']['sensor1.yaml']
-        self.assertTrue(provider.is_sensor_supported(sensor1))
+        self.assertTrue(provider.is_sensor_owner(sensor1))
 
     def test_kvstore_partitioner(self):
         cfg.CONF.set_override(name='partition_provider',
@@ -60,16 +60,16 @@ class PartitionerTest(DbTestCase):
                                 'value': 'generic.Sensor1, generic.Sensor2'})
         KeyValuePair.add_or_update(kvp, publish=False, dispatch_trigger=False)
 
-        provider = partitioner.get_sensors_provider()
+        provider = partitioner.get_sensors_partitioner()
         sensors = provider.get_sensors()
 
         self.assertEqual(len(sensors), len(kvp.value.split(',')))
 
         sensor1 = self.models['sensors']['sensor1.yaml']
-        self.assertTrue(provider.is_sensor_supported(sensor1))
+        self.assertTrue(provider.is_sensor_owner(sensor1))
 
         sensor3 = self.models['sensors']['sensor3.yaml']
-        self.assertFalse(provider.is_sensor_supported(sensor3))
+        self.assertFalse(provider.is_sensor_owner(sensor3))
 
     def test_file_partitioner(self):
         partition_file = FixturesLoader().get_fixture_file_path_abs(
@@ -79,13 +79,13 @@ class PartitionerTest(DbTestCase):
                                         'partition_file': partition_file},
                               group='sensorcontainer')
 
-        provider = partitioner.get_sensors_provider()
+        provider = partitioner.get_sensors_partitioner()
         sensors = provider.get_sensors()
 
         self.assertEqual(len(sensors), 2)
 
         sensor1 = self.models['sensors']['sensor1.yaml']
-        self.assertTrue(provider.is_sensor_supported(sensor1))
+        self.assertTrue(provider.is_sensor_owner(sensor1))
 
         sensor3 = self.models['sensors']['sensor3.yaml']
-        self.assertFalse(provider.is_sensor_supported(sensor3))
+        self.assertFalse(provider.is_sensor_owner(sensor3))

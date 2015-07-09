@@ -24,7 +24,7 @@ from st2common.service_setup import teardown as common_teardown
 from st2common.exceptions.sensors import SensorNotFoundException
 from st2reactor.sensor import config
 from st2reactor.container.manager import SensorContainerManager
-from st2reactor.container.partitioner import get_sensors_provider
+from st2reactor.container.partitioner import get_sensors_partitioner
 
 eventlet.monkey_patch(
     os=True,
@@ -49,8 +49,8 @@ def _teardown():
 def main():
     try:
         _setup()
-        sensors_provider = get_sensors_provider()
-        container_manager = SensorContainerManager(sensors_provider=sensors_provider)
+        sensors_partitioner = get_sensors_partitioner()
+        container_manager = SensorContainerManager(sensors_partitioner=sensors_partitioner)
         return container_manager.run_sensors()
     except SystemExit as exit_code:
         return exit_code

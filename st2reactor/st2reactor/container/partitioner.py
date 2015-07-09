@@ -28,7 +28,7 @@ from st2common.constants.sensors import DEFAULT_PARTITION_LOADER, KVSTORE_PARTIT
     FILE_PARTITION_LOADER
 
 __all__ = [
-    'get_sensors_provider'
+    'get_sensors_partitioner'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class DefaultPartitioner(object):
     def __init__(self, sensor_node_name):
         self.sensor_node_name = sensor_node_name
 
-    def is_sensor_supported(self, sensor_db):
+    def is_sensor_owner(self, sensor_db):
         """
         All sensors are supported
         """
@@ -81,7 +81,7 @@ class KVStorePartitioner(DefaultPartitioner):
         super(KVStorePartitioner, self).__init__(sensor_node_name=sensor_node_name)
         self._supported_sensor_refs = None
 
-    def is_sensor_supported(self, sensor_db):
+    def is_sensor_owner(self, sensor_db):
         """
         """
         return sensor_db.get_reference().ref in self._supported_sensor_refs
@@ -106,7 +106,7 @@ class FileBasedPartitioner(DefaultPartitioner):
         self.partition_file = partition_file
         self._supported_sensor_refs = None
 
-    def is_sensor_supported(self, sensor_db):
+    def is_sensor_owner(self, sensor_db):
         """
         All sensors are supported
         """
@@ -134,7 +134,7 @@ class SingleSensorProvider(object):
             raise SensorNotFoundException('Sensor %s not found in db.' % self._sensor_ref)
         return [sensor]
 
-    def is_sensor_supported(self, sensor_db):
+    def is_sensor_owner(self, sensor_db):
         """
         No other sensor supported just the single sensor which was previously loaded.
         """
@@ -148,7 +148,7 @@ PROVIDERS = {
 }
 
 
-def get_sensors_provider():
+def get_sensors_partitioner():
     if cfg.CONF.sensor_ref:
         return SingleSensorProvider(sensor_ref=cfg.CONF.sensor_ref)
     partition_provider_config = copy.copy(cfg.CONF.sensorcontainer.partition_provider)
