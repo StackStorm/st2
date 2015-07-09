@@ -208,7 +208,7 @@ class ContentPackResourceMixin(object):
 
         :rtype: :class:`ResourceReference`
         """
-        if hasattr(self, 'ref'):
+        if getattr(self, 'ref', None):
             ref = ResourceReference.from_string_reference(ref=self.ref)
         else:
             ref = ResourceReference(pack=self.pack, name=self.name)
