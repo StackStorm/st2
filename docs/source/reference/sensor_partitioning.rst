@@ -11,7 +11,7 @@ property `sensor_node_name` as follows:
 
     [sensorcontainer]
     ...
-    sensor_node_name = sensornode1
+    sensor_node_name = sensornode.example.net_f7aeb3ed
 
 
 1. Default
@@ -27,7 +27,7 @@ No change required in the config file but for complete-ness the config would be 
 
     [sensorcontainer]
     ...
-    sensor_node_name = sensornode1
+    sensor_node_name = sensornode.example.net_f7aeb3ed
     partition_provider = name:default
 
 
@@ -42,7 +42,7 @@ dynamic mapping of sensors to sensor nodes.
 
     [sensorcontainer]
     ...
-    sensor_node_name = sensornode1
+    sensor_node_name = sensornode.example.net_f7aeb3ed
     partition_provider = name:kvstore
 
 
@@ -50,7 +50,7 @@ To update the key value store use the following command:
 
 ::
 
-    st2 key set sensornode1.sensor_partition "examples.SimpleSensor, examples.SimplePollingSensor"
+    st2 key set sensornode.example.net_f7aeb3ed.sensor_partition "examples.SimpleSensor, examples.SimplePollingSensor"
 
 
 Here the key name is of the format `{sensor_node_name}.sensor_partition`
@@ -65,7 +65,7 @@ does not help with any dynamic mapping of sensors to sensor nodes.
 
     [sensorcontainer]
     ...
-    sensor_node_name = sensornode1
+    sensor_node_name = sensornode.example.net_f7aeb3ed
     partition_provider = name:file, partition_file:/etc/st2/partition_file.yaml
 
 
@@ -75,7 +75,7 @@ File content is as follows:
 
     # /etc/st2/partition_file.yaml
     ---
-    sensornode1:
+    sensornode.example.net_f7aeb3ed:
         - examples.SimplePollingSensor
         - examples.SimpleSensor
 
