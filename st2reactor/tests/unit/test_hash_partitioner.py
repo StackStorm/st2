@@ -45,6 +45,16 @@ class HashPartitionerTest(DbTestCase):
         sensors = partitioner.get_sensors()
         self.assertEqual(len(sensors), 3, 'Expected all sensors')
 
+    def test_multi_range_hash_partitioner(self):
+        range_third = int(Range.RANGE_MAX_VALUE / 3)
+        range_two_third = range_third * 2
+        hash_ranges = \
+            'MIN..{range_third}|{range_third}..{range_two_third}|{range_two_third}..MAX'.format(
+                range_third=range_third, range_two_third=range_two_third)
+        partitioner = HashPartitioner('node1', hash_ranges)
+        sensors = partitioner.get_sensors()
+        self.assertEqual(len(sensors), 3, 'Expected all sensors')
+
     def test_split_range_hash_partitioner(self):
         range_mid = int(Range.RANGE_MAX_VALUE / 2)
         partitioner = HashPartitioner('node1', 'MIN..%s' % range_mid)
