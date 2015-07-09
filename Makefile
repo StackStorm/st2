@@ -215,7 +215,7 @@ tests: pytests
 # Travis cannot run itests since those require users to be configured etc.
 # Creating special travis target. (Yuck!)
 .PHONY: tests-travis
-tests-travis: requirements unit-tests-coverage
+tests-travis: requirements unit-tests-coverage-xml
 
 .PHONY: pytests
 pytests: requirements .flake8 .pylint .pytests-coverage
@@ -224,7 +224,7 @@ pytests: requirements .flake8 .pylint .pytests-coverage
 .pytests: unit-tests itests clean
 
 .PHONY: .pytests-coverage
-.pytests-coverage: unit-tests-coverage itests clean
+.pytests-coverage: unit-tests-coverage-html itests clean
 
 .PHONY: unit-tests
 unit-tests:
@@ -240,10 +240,10 @@ unit-tests:
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component/tests/unit || exit 1; \
 	done
 
-.PHONY: unit-tests-coverage
-unit-tests-coverage:
+.PHONY: unit-tests-coverage-xml
+unit-tests-coverage-xml:
 	@echo
-	@echo "==================== unit tests with coverage ===================="
+	@echo "==================== unit tests with coverage (XML reports) ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
@@ -251,7 +251,25 @@ unit-tests-coverage:
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-xcoverage --xcoverage-file=coverage-$$component.xml --cover-package=$$component $$component/tests/unit || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
+			--cover-inclusive --cover-erase --cover-xml \
+			--cover-package=$$component $$component/tests/unit || exit 1; \
+	done
+
+.PHONY: unit-tests-coverage-html
+unit-tests-coverage-html:
+	@echo
+	@echo "==================== unit tests with coverage (HTML reports) ===================="
+	@echo
+	@echo "----- Dropping st2-test db -----"
+	@mongo st2-test --eval "db.dropDatabase();"
+	@for component in $(COMPONENTS_TEST); do\
+		echo "==========================================================="; \
+		echo "Running tests in" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
+			--cover-inclusive --cover-erase --cover-html \
+			--cover-package=$$component $$component/tests/unit || exit 1; \
 	done
 
 .PHONY: itests
