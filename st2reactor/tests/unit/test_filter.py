@@ -44,23 +44,15 @@ MOCK_TRIGGER_INSTANCE.payload = {
 }
 MOCK_TRIGGER_INSTANCE.occurrence_time = date_utils.get_datetime_utc_now()
 
-MOCK_ACTION = ActionDB()
-MOCK_ACTION.id = bson.ObjectId()
-MOCK_ACTION.name = 'action-test-1.name'
+MOCK_ACTION = ActionDB(id=bson.ObjectId(), name='action-test-1.name')
 
-MOCK_RULE_1 = RuleDB()
-MOCK_RULE_1.id = bson.ObjectId()
-MOCK_RULE_1.name = "some1"
-MOCK_RULE_1.trigger = reference.get_str_resource_ref_from_model(MOCK_TRIGGER)
-MOCK_RULE_1.criteria = {}
-MOCK_RULE_1.action = ActionExecutionSpecDB(ref="somepack.someaction")
+MOCK_RULE_1 = RuleDB(id=bson.ObjectId(), name='some1',
+                     trigger=reference.get_str_resource_ref_from_model(MOCK_TRIGGER),
+                     criteria={}, action=ActionExecutionSpecDB(ref="somepack.someaction"))
 
-MOCK_RULE_2 = RuleDB()
-MOCK_RULE_2.id = bson.ObjectId()
-MOCK_RULE_1.name = "some2"
-MOCK_RULE_2.trigger = reference.get_str_resource_ref_from_model(MOCK_TRIGGER)
-MOCK_RULE_2.criteria = {}
-MOCK_RULE_2.action = ActionExecutionSpecDB(ref="somepack.someaction")
+MOCK_RULE_2 = RuleDB(id=bson.ObjectId(), name='some2',
+                     trigger=reference.get_str_resource_ref_from_model(MOCK_TRIGGER),
+                     criteria={}, action=ActionExecutionSpecDB(ref="somepack.someaction"))
 
 
 @mock.patch.object(reference, 'get_model_by_resource_ref',

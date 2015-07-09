@@ -61,11 +61,15 @@ class PackAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, pack):
-        model = super(cls, cls).to_model(pack)
-        model.ref = pack.ref
-        model.keywords = getattr(pack, 'keywords', [])
-        model.version = str(pack.version)
-        model.author = pack.author
-        model.email = pack.email
+        name = pack.name
+        description = pack.description
+        ref = pack.ref
+        keywords = getattr(pack, 'keywords', [])
+        version = str(pack.version)
+        author = pack.author
+        email = pack.email
+
+        model = cls.model(name=name, description=description, ref=ref, keywords=keywords,
+                          version=version, author=author, email=email)
 
         return model

@@ -84,16 +84,10 @@ def _create_trigger_types(trigger_types):
 def _create_sensor_type(pack=None, name=None, description=None, artifact_uri=None,
                         entry_point=None, trigger_types=None, poll_interval=10, enabled=True):
 
-    sensor_type = SensorTypeDB()
-    sensor_type.pack = pack
-    sensor_type.name = name
-    sensor_type.description = description
-    sensor_type.artifact_uri = artifact_uri
-    sensor_type.entry_point = entry_point
-    sensor_type.trigger_types = trigger_types
-    sensor_type.poll_interval = poll_interval
-    sensor_type.enabled = enabled
-
+    sensor_type = SensorTypeDB(pack=pack, name=name, description=description,
+                               artifact_uri=artifact_uri, entry_point=entry_point,
+                               poll_interval=poll_interval, enabled=enabled,
+                               trigger_types=trigger_types)
     return sensor_type
 
 

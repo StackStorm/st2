@@ -51,10 +51,7 @@ class RuleTester(object):
 
         trigger_ref = ResourceReference.from_string_reference(trigger_instance_db['trigger'])
 
-        trigger_db = TriggerDB()
-        trigger_db.pack = trigger_ref.pack
-        trigger_db.name = trigger_ref.name
-        trigger_db.type = trigger_ref.ref
+        trigger_db = TriggerDB(pack=trigger_ref.pack, name=trigger_ref.name, type=trigger_ref.ref)
 
         matcher = RulesMatcher(trigger_instance=trigger_instance_db, trigger=trigger_db,
                                rules=[rule_db])
@@ -63,11 +60,10 @@ class RuleTester(object):
 
     def _get_rule_db_from_file(self, file_path):
         data = self._meta_loader.load(file_path=file_path)
-        rule_db = RuleDB()
-        rule_db.trigger = data['trigger']['type']
-        rule_db.criteria = data.get('criteria', None)
-        rule_db.action = {}
-        rule_db.enabled = True
+        trigger = data['trigger']['type']
+        criteria = data.get('criteria', None)
+
+        rule_db = RuleDB(trigger=trigger, criteria=criteria, action={}, enabled=True)
         return rule_db
 
     def _get_trigger_instance_db_from_file(self, file_path):

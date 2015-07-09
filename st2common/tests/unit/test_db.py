@@ -206,11 +206,10 @@ class ReactorModelTest(DbTestCase):
 
     @staticmethod
     def _create_save_rule(trigger, action=None, enabled=True):
-        created = RuleDB()
-        created.name = 'rule-1'
-        created.pack = 'default'
-        created.ref = ResourceReference.to_string_reference(name=created.name,
-                                                            pack=created.pack)
+        name = 'rule-1'
+        pack = 'default'
+        ref = ResourceReference.to_string_reference(name=name, pack=pack)
+        created = RuleDB(name=name, pack=pack, ref=ref)
         created.description = ''
         created.enabled = enabled
         created.trigger = reference.get_str_resource_ref_from_model(trigger)
@@ -370,14 +369,14 @@ class ActionModelTest(DbTestCase):
 
     @staticmethod
     def _create_save_action(runnertype, metadata=False):
-        created = ActionDB()
-        created.name = 'action-1'
-        created.description = 'awesomeness'
-        created.enabled = True
-        created.entry_point = '/tmp/action.py'
-        created.pack = 'wolfpack'
-        created.ref = ResourceReference(pack=created.pack, name=created.name).ref
-        created.runner_type = {'name': runnertype.name}
+        name = 'action-1'
+        pack = 'wolfpack'
+        ref = ResourceReference(pack=pack, name=name).ref
+        created = ActionDB(name=name, description='awesomeness', enabled=True,
+                           entry_point='/tmp/action.py', pack=pack,
+                           ref=ref,
+                           runner_type={'name': runnertype.name})
+
         if not metadata:
             created.parameters = {'p1': None, 'p2': None, 'p3': None}
         else:
