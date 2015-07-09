@@ -58,20 +58,12 @@ class RuleMatcherTest(DbTestCase):
         self.assertEqual(len(matching_rules), 1)
 
     def _setup_sample_trigger(self, name):
-        trigtype = TriggerTypeDB()
-        trigtype.name = name
-        trigtype.pack = 'dummy_pack_1'
-        trigtype.description = ''
-        trigtype.payload_schema = {}
-        trigtype.parameters_schema = {}
+        trigtype = TriggerTypeDB(name=name, pack='dummy_pack_1', payload_schema={},
+                                 parameters_schema={})
         TriggerType.add_or_update(trigtype)
 
-        created = TriggerDB()
-        created.name = name
-        created.pack = 'dummy_pack_1'
-        created.description = ''
-        created.type = trigtype.get_reference().ref
-        created.parameters = {}
+        created = TriggerDB(name=name, pack='dummy_pack_1', type=trigtype.get_reference().ref,
+                            parameters={})
         Trigger.add_or_update(created)
 
     def _get_sample_rules(self):

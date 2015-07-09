@@ -301,11 +301,11 @@ class ParamsUtilsTest(DbTestCase):
                                 action_parameter_info={})
 
     def _get_action_exec_db_model(self, params):
-        liveaction_db = LiveActionDB()
-        liveaction_db.status = 'initializing'
-        liveaction_db.start_timestamp = date_utils.get_datetime_utc_now()
-        liveaction_db.action = ResourceReference(name=ParamsUtilsTest.action_db.name,
-                                                 pack=ParamsUtilsTest.action_db.pack).ref
-        liveaction_db.parameters = params
+        status = 'initializing'
+        start_timestamp = date_utils.get_datetime_utc_now()
+        action_ref = ResourceReference(name=ParamsUtilsTest.action_db.name,
+                                      pack=ParamsUtilsTest.action_db.pack).ref
+        liveaction_db = LiveActionDB(status=status, start_timestamp=start_timestamp,
+                                     action=action_ref, parameters=params)
 
         return liveaction_db

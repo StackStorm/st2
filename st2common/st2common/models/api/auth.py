@@ -41,6 +41,12 @@ class UserAPI(BaseAPI):
         "additionalProperties": False
     }
 
+    @classmethod
+    def to_model(cls, user):
+        name = user.name
+        model = cls.model(name=name)
+        return model
+
 
 class TokenAPI(BaseAPI):
     model = TokenDB
@@ -79,10 +85,10 @@ class TokenAPI(BaseAPI):
         return cls(**doc)
 
     @classmethod
-    def to_model(cls, token):
-        model = super(cls, cls).to_model(token)
-        model.user = str(token.user) if token.user else None
-        model.token = str(token.token) if token.token else None
-        model.ttl = getattr(token, 'ttl', None)
-        model.expiry = isotime.parse(token.expiry) if token.expiry else None
+    def to_model(cls, instance):
+        user = str(instance.user) if instance.user else None
+        token = str(instance.token) if instance.token else None
+        expiry = isotime.parse(instance.expiry) if instance.expiry else None
+
+        model = cls.model(user=user, token=token, expiry=expiry)
         return model
