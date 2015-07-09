@@ -60,10 +60,13 @@ class RuleTester(object):
 
     def _get_rule_db_from_file(self, file_path):
         data = self._meta_loader.load(file_path=file_path)
+        pack = data.get('pack', 'unknown')
+        name = data.get('name', 'unknown')
         trigger = data['trigger']['type']
         criteria = data.get('criteria', None)
 
-        rule_db = RuleDB(trigger=trigger, criteria=criteria, action={}, enabled=True)
+        rule_db = RuleDB(pack=pack, name=name, trigger=trigger, criteria=criteria, action={},
+                         enabled=True)
         return rule_db
 
     def _get_trigger_instance_db_from_file(self, file_path):

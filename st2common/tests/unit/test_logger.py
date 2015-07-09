@@ -192,10 +192,7 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
 
         mock_message = 'test message 1'
 
-        mock_action_db = ActionDB()
-        mock_action_db.name = 'test.action'
-        mock_action_db.pack = 'testpack'
-        mock_action_db.parameters = {
+        parameters = {
             'parameter1': {
                 'type': 'string',
                 'required': False
@@ -206,13 +203,14 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
                 'secret': True
             }
         }
+        mock_action_db = ActionDB(pack='testpack', name='test.action', parameters=parameters)
 
-        mock_action_execution_db = ActionExecutionDB()
-        mock_action_execution_db.action = mock_action_db.to_serializable_dict()
-        mock_action_execution_db.parameters = {
+        action = mock_action_db.to_serializable_dict()
+        parameters = {
             'parameter1': 'value1',
             'parameter2': 'value2'
         }
+        mock_action_execution_db = ActionExecutionDB(action=action, parameters=parameters)
 
         record = MockRecord()
         record.msg = mock_message

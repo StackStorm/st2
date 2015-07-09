@@ -177,31 +177,20 @@ class ReactorModelTest(DbTestCase):
 
     @staticmethod
     def _create_save_triggertype():
-        created = TriggerTypeDB()
-        created.pack = 'dummy_pack_1'
-        created.name = 'triggertype-1'
-        created.stupid = 'stupid'
-        created.description = ''
-        created.payload_schema = {}
-        created.parameters_schema = {}
+        created = TriggerTypeDB(pack='dummy_pack_1', name='triggertype-1', description='',
+                                payload_schema={}, parameters_schema={})
         return Trigger.add_or_update(created)
 
     @staticmethod
     def _create_save_trigger(triggertype):
-        created = TriggerDB()
-        created.name = 'trigger-1'
-        created.pack = 'dummy_pack_1'
-        created.description = ''
-        created.type = triggertype.get_reference().ref
-        created.parameters = {}
+        created = TriggerDB(pack='dummy_pack_1', name='trigger-1', description='',
+                            type=triggertype.get_reference().ref, parameters={})
         return Trigger.add_or_update(created)
 
     @staticmethod
     def _create_save_triggerinstance(trigger):
-        created = TriggerInstanceDB()
-        created.trigger = trigger.get_reference().ref
-        created.payload = {}
-        created.occurrence_time = date_utils.get_datetime_utc_now()
+        created = TriggerInstanceDB(trigger=trigger.get_reference().ref, payload={},
+                                    occurrence_time=date_utils.get_datetime_utc_now())
         return TriggerInstance.add_or_update(created)
 
     @staticmethod

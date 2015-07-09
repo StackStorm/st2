@@ -23,12 +23,8 @@ import st2common.services.triggers as trigger_service
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
-MOCK_TRIGGER = TriggerDB()
-MOCK_TRIGGER.id = 'trigger-test.id'
-MOCK_TRIGGER.name = 'trigger-test.name'
-MOCK_TRIGGER.pack = 'dummy_pack_1'
-MOCK_TRIGGER.parameters = {}
-MOCK_TRIGGER.type = 'dummy_pack_1.trigger-type-test.name'
+MOCK_TRIGGER = TriggerDB(pack='dummy_pack_1', name='trigger-test.name', parameters={},
+                         type='dummy_pack_1.trigger-type-test.name')
 
 
 class TriggerServiceTests(CleanDbTestCase):
@@ -131,28 +127,14 @@ class TriggerServiceTests(CleanDbTestCase):
 
     def test_get_trigger_db_given_type_and_params(self):
         # Add dummy triggers
-        trigger_1 = TriggerDB()
-        trigger_1.pack = 'testpack'
-        trigger_1.name = 'testtrigger1'
-        trigger_1.type = 'testpack.testtrigger1'
-        trigger_1.parameters = {}
+        trigger_1 = TriggerDB(pack='testpack', name='testtrigger1', type='testpack.testtrigger1')
 
-        trigger_2 = TriggerDB()
-        trigger_2.pack = 'testpack'
-        trigger_2.name = 'testtrigger2'
-        trigger_2.type = 'testpack.testtrigger2'
-        trigger_2.parameters = None
+        trigger_2 = TriggerDB(pack='testpack', name='testtrigger2', type='testpack.testtrigger2')
 
-        trigger_3 = TriggerDB()
-        trigger_3.pack = 'testpack'
-        trigger_3.name = 'testtrigger3'
-        trigger_3.type = 'testpack.testtrigger3'
+        trigger_3 = TriggerDB(pack='testpack', name='testtrigger3', type='testpack.testtrigger3')
 
-        trigger_4 = TriggerDB()
-        trigger_4.pack = 'testpack'
-        trigger_4.name = 'testtrigger4'
-        trigger_4.type = 'testpack.testtrigger4'
-        trigger_4.parameters = {'ponies': 'unicorn'}
+        trigger_4 = TriggerDB(pack='testpack', name='testtrigger4', type='testpack.testtrigger4',
+                              parameters={'ponies': 'unicorn'})
 
         Trigger.add_or_update(trigger_1)
         Trigger.add_or_update(trigger_2)

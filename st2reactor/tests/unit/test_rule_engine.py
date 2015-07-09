@@ -101,12 +101,8 @@ class RuleEngineTest(DbTestCase):
         for name in names:
             trigtype = None
             try:
-                trigtype = TriggerTypeDB()
-                trigtype.pack = 'dummy_pack_1'
-                trigtype.name = name
-                trigtype.description = ''
-                trigtype.payload_schema = {}
-                trigtype.parameters_schema = {}
+                trigtype = TriggerTypeDB(pack='dummy_pack_1', name=name, description='',
+                                         payload_schema={}, parameters_schema={})
                 try:
                     trigtype = TriggerType.get_by_name(name)
                 except:
@@ -114,11 +110,8 @@ class RuleEngineTest(DbTestCase):
             except NotUniqueError:
                 pass
 
-            created = TriggerDB()
-            created.name = name
-            created.pack = 'dummy_pack_1'
-            created.description = ''
-            created.type = trigtype.get_reference().ref
+            created = TriggerDB(pack='dummy_pack_1', name=name, description='',
+                                type=trigtype.get_reference().ref)
 
             if name in ['st2.test.trigger4']:
                 created.parameters = {'url': 'sample'}

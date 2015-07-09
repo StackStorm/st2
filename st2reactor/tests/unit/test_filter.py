@@ -26,31 +26,24 @@ from st2reactor.rules.filter import RuleFilter
 from st2tests import DbTestCase
 
 
-MOCK_TRIGGER = TriggerDB()
-MOCK_TRIGGER.id = bson.ObjectId()
-MOCK_TRIGGER.name = 'trigger-test.name'
-MOCK_TRIGGER.pack = 'dummy_pack_1'
-MOCK_TRIGGER.type = 'system.test'
+MOCK_TRIGGER = TriggerDB(pack='dummy_pack_1', name='trigger-test.name', type='system.test')
 
-MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
-MOCK_TRIGGER_INSTANCE.id = bson.ObjectId()
-MOCK_TRIGGER_INSTANCE.trigger = MOCK_TRIGGER.get_reference().ref
-MOCK_TRIGGER_INSTANCE.payload = {
-    'p1': 'v1',
-    'p2': 'preYYYpost',
-    'bool': True,
-    'int': 1,
-    'float': 0.8
-}
-MOCK_TRIGGER_INSTANCE.occurrence_time = date_utils.get_datetime_utc_now()
+MOCK_TRIGGER_INSTANCE = TriggerInstanceDB(trigger=MOCK_TRIGGER.get_reference().ref,
+                                          occurrence_time=date_utils.get_datetime_utc_now(),
+                                          payload={
+                                              'p1': 'v1',
+                                              'p2': 'preYYYpost',
+                                              'bool': True,
+                                              'int': 1,
+                                              'float': 0.8})
 
-MOCK_ACTION = ActionDB(id=bson.ObjectId(), name='action-test-1.name')
+MOCK_ACTION = ActionDB(id=bson.ObjectId(), pack='wolfpack', name='action-test-1.name')
 
-MOCK_RULE_1 = RuleDB(id=bson.ObjectId(), name='some1',
+MOCK_RULE_1 = RuleDB(id=bson.ObjectId(), pack='wolfpack', name='some1',
                      trigger=reference.get_str_resource_ref_from_model(MOCK_TRIGGER),
                      criteria={}, action=ActionExecutionSpecDB(ref="somepack.someaction"))
 
-MOCK_RULE_2 = RuleDB(id=bson.ObjectId(), name='some2',
+MOCK_RULE_2 = RuleDB(id=bson.ObjectId(), pack='wolfpack', name='some2',
                      trigger=reference.get_str_resource_ref_from_model(MOCK_TRIGGER),
                      criteria={}, action=ActionExecutionSpecDB(ref="somepack.someaction"))
 
