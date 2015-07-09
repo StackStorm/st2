@@ -123,7 +123,7 @@ class FileBasedPartitioner(DefaultPartitioner):
             return self._supported_sensor_refs
 
 
-class SingleSensorProvider(object):
+class SingleSensorPartitioner(object):
 
     def __init__(self, sensor_ref):
         self._sensor_ref = sensor_ref
@@ -150,7 +150,7 @@ PROVIDERS = {
 
 def get_sensors_partitioner():
     if cfg.CONF.sensor_ref:
-        return SingleSensorProvider(sensor_ref=cfg.CONF.sensor_ref)
+        return SingleSensorPartitioner(sensor_ref=cfg.CONF.sensor_ref)
     partition_provider_config = copy.copy(cfg.CONF.sensorcontainer.partition_provider)
     partition_provider = partition_provider_config.pop('name')
     sensor_node_name = cfg.CONF.sensorcontainer.sensor_node_name
