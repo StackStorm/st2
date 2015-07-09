@@ -86,17 +86,20 @@ class RuleAPI(BaseAPI):
                 'type': 'string',
                 'default': None
             },
+            "ref": {
+                "description": "System computed user friendly reference for the action. \
+                                Provided value will be overridden by computed value.",
+                "type": "string"
+            },
+            'uid': {
+                'type': 'string'
+            },
             'name': {
                 'type': 'string',
                 'required': True
             },
             'pack': {
                 'type': 'string'
-            },
-            "ref": {
-                "description": "System computed user friendly reference for the action. \
-                                Provided value will be overridden by computed value.",
-                "type": "string"
             },
             'description': {
                 'type': 'string'

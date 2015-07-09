@@ -34,6 +34,9 @@ class PackAPI(BaseAPI):
                 'type': 'string',
                 'default': None
             },
+            "uid": {
+                "type": "string"
+            },
             'name': {
                 'type': 'string',
                 'required': True
