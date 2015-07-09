@@ -20,7 +20,6 @@ from st2common.persistence.auth import User
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rule import Rule
 from st2common.models.db.auth import UserDB
-from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rule import RuleDB
 
@@ -125,8 +124,8 @@ class RBACServicesTestCase(CleanDbTestCase):
 
         # Grant "ALL" permission to the resource
         permission_types = [PermissionType.ALL]
-        grant_db = rbac_services.create_permission_grant(role_db=role_db, resource_db=resource_db,
-                                                         permission_types=permission_types)
+        rbac_services.create_permission_grant(role_db=role_db, resource_db=resource_db,
+                                              permission_types=permission_types)
 
         role_db.reload()
         self.assertItemsEqual(role_db.permission_grants, role_db.permission_grants)

@@ -126,7 +126,7 @@ def create_permission_grant(role_db, resource_db, permission_types):
     # TODO: How to handle packs? we dont have model for it right now
     # TODO: Validate permission_types
     permission_types = _validate_permission_types(permission_types)
-    resource_ref = resource_db.get_uuid()
+    resource_ref = resource_db.get_uid()
 
     # Create or update the PermissionGrantDB
     permission_grant_db = PermissionGrantDB(resource_ref=resource_ref,
@@ -150,7 +150,7 @@ def remove_permission_grant(role_db, resource_db, permission_types):
     :type resource_db: :class:`StormFoundationDB`
     """
     permission_types = _validate_permission_types(permission_types)
-    resource_ref = resource_db.get_uuid()
+    resource_ref = resource_db.get_uid()
     permission_grant_db = PermissionGrant.get(resource_ref=resource_ref,
                                               permission_types=permission_types)
 
