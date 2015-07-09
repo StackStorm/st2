@@ -355,8 +355,8 @@ class ActionRunCommandMixin(object):
             error = live_action.result.get('error', None)
             traceback = live_action.result.get('traceback', None)
         else:
-            error = live_action.result
-            traceback = None
+            error = "See result"
+            traceback = "See result"
 
         return error, traceback
 
