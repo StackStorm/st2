@@ -26,6 +26,7 @@ __all__ = [
 
 class TriggerTypeDB(stormbase.StormBaseDB,
                     stormbase.ContentPackResourceMixin,
+                    stormbase.UIDFieldMixin,
                     stormbase.TagsMixin):
     """Description of a specific kind/type of a trigger. The
        (pack, name) tuple is expected uniquely identify a trigger in
@@ -35,6 +36,10 @@ class TriggerTypeDB(stormbase.StormBaseDB,
         trigger_source: Source that owns this trigger type.
         payload_info: Meta information of the expected payload.
     """
+
+    RESOURCE_TYPE = 'trigger_type'
+    UID_FIELDS = ['pack', 'name']
+
     name = me.StringField(required=True)
     pack = me.StringField(required=True, unique_with='name')
     payload_schema = me.DictField()
@@ -52,6 +57,10 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin):
         type - Reference to the TriggerType object.
         parameters - Trigger parameters.
     """
+
+    RESOURCE_TYPE = 'trigger'
+    UID_FIELDS = ['pack', 'name']
+
     name = me.StringField(required=True)
     pack = me.StringField(required=True, unique_with='name')
     type = me.StringField()

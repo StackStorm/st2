@@ -45,7 +45,7 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         does not lead to execution of a action and vice-versa.
     """
     RESOURCE_TYPE = 'rule'
-    UID_FIELDS = ['ref']
+    UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)
     ref = me.StringField(required=True)

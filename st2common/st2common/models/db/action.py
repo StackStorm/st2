@@ -54,7 +54,7 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     """
 
     RESOURCE_TYPE = 'action'
-    UID_FIELDS = ['ref']
+    UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)
     ref = me.StringField(required=True)

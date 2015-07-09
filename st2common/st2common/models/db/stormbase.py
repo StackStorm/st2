@@ -213,6 +213,4 @@ class ContentPackResourceMixin(object):
         else:
             ref = ResourceReference(pack=self.pack, name=self.name)
 
-        return refld should be not have any constraints like required,
-     # unique etc for it to be auto-generated.
--    # TODO: Work out how we can mark this as a unique primary key.
+        return ref

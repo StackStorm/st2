@@ -22,7 +22,8 @@ __all__ = [
 ]
 
 
-class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin):
+class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
+                   stormbase.UIDFieldMixin):
     """
     Description of a specific type of a sensor (think of it as a sensor
     template).
@@ -34,6 +35,10 @@ class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin):
         trigger_type - A list of references to the TriggerTypeDB objects exposed by this sensor.
         poll_interval - Poll interval for this sensor.
     """
+
+    RESOURCE_TYPE = 'sensor_type'
+    UID_FIELDS = ['pack', 'name']
+
     name = me.StringField(required=True)
     pack = me.StringField(required=True, unique_with='name')
     artifact_uri = me.StringField()
