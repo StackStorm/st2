@@ -19,3 +19,4 @@ script:
 services:
   - mongodb
   - rabbitmq
+after_success: coveralls
