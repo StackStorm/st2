@@ -231,19 +231,18 @@ class ActionDBUtilsTestCase(DbTestCase):
     @classmethod
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def setup_action_models(cls):
-        action_db = ActionDB()
-        action_db.name = 'action-1'
-        action_db.description = 'awesomeness'
-        action_db.enabled = True
-        action_db.pack = 'wolfpack'
-        action_db.ref = ResourceReference(name=action_db.name, pack=action_db.pack).ref
-        action_db.entry_point = ''
-        action_db.runner_type = {'name': 'test-runner'}
-        action_db.parameters = {
+        pack = 'wolfpack'
+        name = 'action-1'
+        parameters = {
             'actionstr': {'type': 'string', 'position': 1, 'required': True},
             'actionint': {'type': 'number', 'default': 10, 'position': 0},
             'runnerdummy': {'type': 'string', 'default': 'actiondummy'}
         }
+        action_db = ActionDB(pack=pack, name=name, description='awesomeness',
+                             enabled=True,
+                             ref=ResourceReference(name=name, pack=pack).ref,
+                             entry_point='', runner_type={'name': 'test-runner'},
+                             parameters=parameters)
         ActionDBUtilsTestCase.action_db = Action.add_or_update(action_db)
 
         liveaction_db = LiveActionDB()
