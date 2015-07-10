@@ -13,12 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
+
 from st2common.util.misc import Enum
+from st2common.constants.types import ResourceType as SystemResourceType
 
 __all__ = [
     'SystemRole',
     'PermissionType',
-    'ResourceType'
+    'ResourceType',
+
+    'PackPermissionTypes',
+    'ActionPermissionTypes',
+    'RulePermissionTypes'
 ]
 
 
@@ -27,6 +34,8 @@ class PermissionType(Enum):
     Available permission types.
     """
     VIEW = 'view'
+    CREATE = 'create'  # modify?
+    DELETE = 'delete'
     EXECUTE = 'execute'
     USE = 'use'
     ALL = 'all'
@@ -46,8 +55,59 @@ class ResourceType(Enum):
     """
     Resource types on which permissions can be granted.
     """
-    PACK = 'pack'
-    WORKFLOW = 'workflow'
-    ACTION = 'action'
-    RULE = 'rule'
-    TRIGGER = 'trigger'
+    PACK = SystemResourceType.PACK
+    ACTION = SystemResourceType.ACTION
+    RULE = SystemResourceType.RULE
+    TRIGGER_TYPE = SystemResourceType.TRIGGER_TYPE
+
+
+class ResourcePermissionType(object):
+    """
+    Base class representing permissions which can be granted on a particular
+    resource type.
+    """
+    resource_type = abc.abstractproperty
+    valid_permission_types = abc.abstractproperty
+
+    def get_valid_permission_types(self):
+        return self.valid_permission_types
+
+
+class PackPermissionTypes(object):
+    """
+    Permissions which can be granted on a pack.
+    """
+    resource_type = ResourceType.PACK
+    valid_permission_types = [
+        PermissionType.VIEW,
+        PermissionType.EXECUTE,
+        PermissionType.ALL
+    ]
+
+
+class ActionPermissionTypes(object):
+    """
+    Permissions which can be granted on an action.
+    """
+    resource_type = ResourceType.ACTION
+    valid_permission_types = [
+        PermissionType.VIEW,
+        PermissionType.CREATE,
+        PermissionType.DELETE,
+        PermissionType.EXECUTE,
+        PermissionType.ALL
+    ]
+
+
+class RulePermissionTypes(object):
+    """
+    Permissions which can be granted on a rule.
+    """
+    resource_type = ResourceType.RULE
+    valid_permission_types = [
+        PermissionType.VIEW,
+        PermissionType.CREATE,
+        PermissionType.DELETE,
+        PermissionType.EXECUTE,
+        PermissionType.ALL
+    ]
