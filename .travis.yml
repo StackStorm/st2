@@ -16,9 +16,9 @@ env:
 cache:
   directories:
     - $HOME/.pip-cache/
-script:
-  - ./scripts/travis.sh
 services:
   - mongodb
   - rabbitmq
+script:
+  - ./scripts/travis.sh
 after_success: coveralls
