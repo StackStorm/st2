@@ -17,6 +17,7 @@ import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
+from st2common.constants.types import ResourceType
 
 __all__ = [
     'PackDB'
@@ -28,7 +29,7 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     System entity which represents a pack.
     """
 
-    RESOURCE_TYPE = 'pack'
+    RESOURCE_TYPE = ResourceType.PACK
     UID_FIELDS = ['ref']
 
     ref = me.StringField(required=True, unique=True)

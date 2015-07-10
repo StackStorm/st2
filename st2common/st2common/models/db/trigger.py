@@ -14,8 +14,10 @@
 # limitations under the License.
 
 import mongoengine as me
+
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
+from st2common.constants.types import ResourceType
 
 __all__ = [
     'TriggerTypeDB',
@@ -37,7 +39,7 @@ class TriggerTypeDB(stormbase.StormBaseDB,
         payload_info: Meta information of the expected payload.
     """
 
-    RESOURCE_TYPE = 'trigger_type'
+    RESOURCE_TYPE = ResourceType.TRIGGER_TYPE
     UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)
@@ -64,7 +66,7 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         parameters - Trigger parameters.
     """
 
-    RESOURCE_TYPE = 'trigger'
+    RESOURCE_TYPE = ResourceType.TRIGGER_INSTANCE
     UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)

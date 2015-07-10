@@ -25,6 +25,7 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema
 from st2common.models.db.runner import RunnerTypeDB
 from st2common.constants.action import WORKFLOW_RUNNER_TYPES
+from st2common.constants.types import ResourceType
 
 __all__ = [
     'RunnerTypeDB',
@@ -53,7 +54,7 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         parameters: The specification for parameters for the action.
     """
 
-    RESOURCE_TYPE = 'action'
+    RESOURCE_TYPE = ResourceType.ACTION
     UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)

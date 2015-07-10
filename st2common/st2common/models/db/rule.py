@@ -17,6 +17,7 @@ import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
+from st2common.constants.types import ResourceType
 
 
 class ActionExecutionSpecDB(me.EmbeddedDocument):
@@ -44,7 +45,7 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
-    RESOURCE_TYPE = 'rule'
+    RESOURCE_TYPE = ResourceType.RULE
     UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)

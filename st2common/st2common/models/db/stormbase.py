@@ -24,6 +24,7 @@ from oslo_config import cfg
 from st2common.util import mongoescape
 from st2common.models.base import DictSerializableClassMixin
 from st2common.models.system.common import ResourceReference
+from st2common.constants.types import ResourceType
 
 __all__ = [
     'StormFoundationDB',
@@ -48,6 +49,9 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
     inherited from the application domain models.
     """
 
+    # Variable representing a type of this resource
+    RESOURCE_TYPE = ResourceType.UNKNOWN
+
     # We explicitly assign the manager so pylint know what type objects is
     objects = me.queryset.QuerySetManager()
 
@@ -68,6 +72,9 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
             v = '"%s"' % str(v) if type(v) in [str, unicode, datetime.datetime] else str(v)
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
+
+    def get_resource_type(self):
+        return self.RESOURCE_TYPE
 
     def mask_secrets(self, value):
         """

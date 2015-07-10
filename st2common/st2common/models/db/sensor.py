@@ -14,8 +14,10 @@
 # limitations under the License.
 
 import mongoengine as me
+
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
+from st2common.constants.types import ResourceType
 
 __all__ = [
     'SensorTypeDB'
@@ -36,7 +38,7 @@ class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         poll_interval - Poll interval for this sensor.
     """
 
-    RESOURCE_TYPE = 'sensor_type'
+    RESOURCE_TYPE = ResourceType.SENSOR_TYPE
     UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)

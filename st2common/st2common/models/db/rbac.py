@@ -62,7 +62,7 @@ class PermissionGrantDB(stormbase.StormFoundationDB):
     An entity which represents permission assignment.
 
     Attribute:
-        resource: Target resource to which this permission applies to.
+        resource_ref: Reference of a target resource to which this permission applies to.
         permission_types: A list of permission type granted to that resources.
     """
     resource_ref = me.StringField(required=True)
