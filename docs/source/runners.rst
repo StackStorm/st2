@@ -8,6 +8,10 @@ actions to be run remotely (via SSH) and locally. The objective is to
 allow the Action author to concentrate only on the implementation of the
 action itself rather than setting up the environment.
 
+Exit Codes
+~~~~~~~~~~
+Normally an exit code of a runner is defined by an exit code of a script or a command they execute. All runners return timeout exit code (-9) in case when a command or a script did not complete its execution within specified timeout.
+
 Local command runner (local-shell-cmd)
 ---------------------------------------
 
@@ -139,3 +143,4 @@ Runner parameters
 ~~~~~~~~~~~~~~~~~
 
 .. include:: _includes/runner_parameters/cloudslang.rst
+
