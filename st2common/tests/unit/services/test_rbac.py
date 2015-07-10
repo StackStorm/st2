@@ -20,8 +20,10 @@ from st2common.persistence.auth import User
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rule import Rule
 from st2common.models.db.auth import UserDB
+from st2common.models.db.pack import PackDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rule import RuleDB
+from st2common.models.db.runner import RunnerTypeDB
 
 
 class RBACServicesTestCase(CleanDbTestCase):
@@ -136,3 +138,35 @@ class RBACServicesTestCase(CleanDbTestCase):
 
         role_db.reload()
         self.assertItemsEqual(role_db.permission_grants, [])
+
+    def test_manipulate_permission_grants_unsupported_resource_type(self):
+        # Try to manipulate permissions on an unsupported resource
+        role_db = self.roles['custom_role_2']
+        resource_db = RunnerTypeDB()
+        permission_types = [PermissionType.ALL]
+
+        expected_msg = 'Permissions cannot be manipulated for a resource of type'
+        self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.create_permission_grant,
+                               role_db=role_db, resource_db=resource_db,
+                               permission_types=permission_types)
+
+        expected_msg = 'Permissions cannot be manipulated for a resource of type'
+        self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.remove_permission_grant,
+                               role_db=role_db, resource_db=resource_db,
+                               permission_types=permission_types)
+
+    def test_manipulate_permission_grants_invalid_permission_types(self):
+        # Try to assign / revoke a permission which is not supported for a particular resource
+        role_db = self.roles['custom_role_2']
+        resource_db = PackDB(ref='foo', name='foo')
+        permission_types = [PermissionType.CREATE]
+
+        expected_msg = 'Invalid permission type'
+        self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.create_permission_grant,
+                               role_db=role_db, resource_db=resource_db,
+                               permission_types=permission_types)
+
+        expected_msg = 'Invalid permission type'
+        self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.remove_permission_grant,
+                               role_db=role_db, resource_db=resource_db,
+                               permission_types=permission_types)
