@@ -34,6 +34,7 @@ in development
   workflows. (bug-fix)
 * Fix a bug with ``st2 execution list`` CLI command not displaying ``end_timestamp`` attribute for
   Mistral workflows. (bug-fix)
+* Ability to partition sensors across sensor nodes using various partition schemes. (new-feature)
 
 0.11.4 - June 30, 2015
 ----------------------
