@@ -66,7 +66,7 @@ RUNNER_TYPES = [
             },
             'timeout': {
                 'description': ('Action timeout in seconds. Action will get killed if it '
-                                'doesn\'t finish in timeout seconds.'),
+                                'doesn\'t finish in timeout seconds. 0 means no timeout.'),
                 'type': 'integer',
                 'default': LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
@@ -100,7 +100,7 @@ RUNNER_TYPES = [
             },
             'timeout': {
                 'description': ('Action timeout in seconds. Action will get killed if it '
-                                'doesn\'t finish in timeout seconds.'),
+                                'doesn\'t finish in timeout seconds. 0 means no timeout.'),
                 'type': 'integer',
                 'default': LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
@@ -353,7 +353,7 @@ RUNNER_TYPES = [
             },
             'timeout': {
                 'description': ('Action timeout in seconds. Action will get killed if it '
-                                'doesn\'t finish in timeout seconds.'),
+                                'doesn\'t finish in timeout seconds. 0 means no timeout.'),
                 'type': 'integer',
                 'default': PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
@@ -455,7 +455,7 @@ RUNNER_TYPES = [
             },
             'timeout': {
                 'description': ('Action timeout in seconds. Action will get killed if it '
-                                'doesn\'t finish in timeout seconds.'),
+                                'doesn\'t finish in timeout seconds. 0 means no timeout.'),
                 'type': 'integer',
                 'default': LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
