@@ -82,8 +82,6 @@ class KVStorePartitioner(DefaultPartitioner):
         self._supported_sensor_refs = None
 
     def is_sensor_owner(self, sensor_db):
-        """
-        """
         return sensor_db.get_reference().ref in self._supported_sensor_refs
 
     def get_required_sensor_refs(self):
@@ -107,9 +105,6 @@ class FileBasedPartitioner(DefaultPartitioner):
         self._supported_sensor_refs = None
 
     def is_sensor_owner(self, sensor_db):
-        """
-        All sensors are supported
-        """
         return sensor_db.get_reference().ref in self._supported_sensor_refs and sensor_db.enabled
 
     def get_required_sensor_refs(self):

@@ -78,8 +78,6 @@ class HashPartitioner(DefaultPartitioner):
         self._hash_ranges = self._create_hash_ranges(hash_ranges)
 
     def is_sensor_owner(self, sensor_db):
-        """
-        """
         return self._is_in_hash_range(sensor_db.get_reference().ref)
 
     def get_sensors(self):
@@ -104,6 +102,10 @@ class HashPartitioner(DefaultPartitioner):
     def _hash_sensor_ref(self, sensor_ref):
         # Hmm... maybe this should be done in C. If it becomes a performance
         # bottleneck will look at that optimization.
+
+        # From http://www.cs.hmc.edu/~geoff/classes/hmc.cs070.200101/homework10/hashfuncs.html
+        # The 'liberal' use of ctypes.c_unit is to guarantee unsigned integer and workaround
+        # inifinite precision.
         md5_hash = hashlib.md5(sensor_ref.encode())
         md5_hash_int_repr = int(md5_hash.hexdigest(), 16)
         h = ctypes.c_uint(0)
