@@ -21,4 +21,4 @@ services:
   - rabbitmq
 script:
   - ./scripts/travis.sh
-after_success: coveralls
+after_success: coveralls --debug
