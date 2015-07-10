@@ -13,17 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
+import mongoengine as me
 
-from st2common.transport.publishers import PoolPublisher
-import st2reactor.container.utils as container_utils
-from st2tests.base import CleanDbTestCase
+from st2common.models.db import MongoDBAccess
+from st2common.models.db import stormbase
+
+__all__ = [
+    'PackDB'
+]
 
 
-@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class ContainerUtilsTest(CleanDbTestCase):
+class PackDB(stormbase.StormFoundationDB):
+    """
+    System entity which represents a pack.
+    """
+    ref = me.StringField(required=True, unique=True)
+    name = me.StringField(required=True, unique=True)
+    description = me.StringField(required=True)
+    keywords = me.ListField(field=me.StringField())
+    version = me.StringField(required=True)  # TODO: Enforce format
+    author = me.StringField(required=True)
+    email = me.EmailField(required=True)
 
-    def test_create_trigger_instance_invalid_trigger(self):
-        trigger_instance = 'dummy_pack.footrigger'
-        instance = container_utils.create_trigger_instance(trigger_instance, {}, None)
-        self.assertTrue(instance is None)
+# specialized access objects
+pack_access = MongoDBAccess(PackDB)
+
+MODELS = [PackDB]

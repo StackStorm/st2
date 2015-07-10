@@ -159,6 +159,34 @@ If you want to retrieve ``datetime`` object for current time, you should use
 datetime object in UTC. ``st2common.util.date`` also contains other date and
 time related utility functions.
 
+Instantiating model classes
+---------------------------
+
+When instantiating mongoengine model classes (e.g. ``ActionDB``, ``RuleDB``,
+``SensorTypeDB``, etc.) make sure to pass all the field values as arguments
+to the model constructor instead of performing a late assignment of variables
+on the class instance.
+
+Good:
+
+.. sourcecode:: python
+
+    action_db = ActionDB(pack='mypack', name='myaction', enabled=True)
+
+Bad:
+
+.. sourcecode:: python
+
+    action_db = ActionDB()
+    action_db.pack = 'mypack'
+    action_db.name = 'myaction'
+    action_db.enabled = True
+
+Passing all the fields as keyword arguments to the constructor means we can
+preserve the constructor functionality. On top of that it also makes it more
+clear and obvious to the developers when the values are available and allows
+us to perform basic "static" analysis on the code.
+
 .. _`PEP8 Python Style Guide`: http://www.python.org/dev/peps/pep-0008/
 .. _irc`: http://webchat.freenode.net/?channels=stackstorm
 .. _`Docstring conventions`: https://libcloud.readthedocs.org/en/latest/development.html#docstring-conventions

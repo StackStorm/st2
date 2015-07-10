@@ -13,17 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
+from st2common.models.db.pack import pack_access
+from st2common.persistence import base
 
-from st2common.transport.publishers import PoolPublisher
-import st2reactor.container.utils as container_utils
-from st2tests.base import CleanDbTestCase
+__all__ = [
+    'Pack'
+]
 
 
-@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class ContainerUtilsTest(CleanDbTestCase):
+class Pack(base.Access):
+    impl = pack_access
 
-    def test_create_trigger_instance_invalid_trigger(self):
-        trigger_instance = 'dummy_pack.footrigger'
-        instance = container_utils.create_trigger_instance(trigger_instance, {}, None)
-        self.assertTrue(instance is None)
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl

@@ -154,22 +154,29 @@ class RuleAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, rule):
-        model = super(cls, cls).to_model(rule)
+        name = getattr(rule, 'name', None)
+        description = getattr(rule, 'description', None)
+
+        # Create a trigger for the provided rule
         trigger_db = TriggerService.create_trigger_db_from_rule(rule)
-        model.trigger = reference.get_str_resource_ref_from_model(trigger_db)
-        model.criteria = dict(getattr(rule, 'criteria', {}))
-        model.pack = str(rule.pack)
-        model.ref = ResourceReference.to_string_reference(pack=model.pack, name=model.name)
+
+        trigger = reference.get_str_resource_ref_from_model(trigger_db)
+        criteria = dict(getattr(rule, 'criteria', {}))
+        pack = str(rule.pack)
+        ref = ResourceReference.to_string_reference(pack=pack, name=name)
 
         # Validate criteria
-        validator.validate_criteria(model.criteria)
+        validator.validate_criteria(criteria)
 
         # Validate trigger parameters
         validator.validate_trigger_parameters(trigger_db=trigger_db)
 
-        model.action = ActionExecutionSpecDB()
-        model.action.ref = rule.action['ref']
-        model.action.parameters = rule.action['parameters']
-        model.enabled = rule.enabled
-        model.tags = TagsHelper.to_model(getattr(rule, 'tags', []))
+        action = ActionExecutionSpecDB(ref=rule.action['ref'],
+                                       parameters=rule.action['parameters'])
+
+        enabled = rule.enabled
+        tags = TagsHelper.to_model(getattr(rule, 'tags', []))
+
+        model = cls.model(name=name, description=description, pack=pack, ref=ref, trigger=trigger,
+                          criteria=criteria, action=action, enabled=enabled, tags=tags)
         return model

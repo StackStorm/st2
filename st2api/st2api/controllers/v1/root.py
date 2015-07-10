@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2api.controllers.v1.packs import PacksController
 from st2api.controllers.v1.actions import ActionsController
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 from st2api.controllers.v1.keyvalue import KeyValuePairController
@@ -27,6 +28,7 @@ from st2api.controllers.v1.webhooks import WebhooksController
 
 
 class RootController(object):
+    packs = PacksController()
     actions = ActionsController()
     actionexecutions = ActionExecutionsController()
     executions = actionexecutions  # We should deprecate actionexecutions.

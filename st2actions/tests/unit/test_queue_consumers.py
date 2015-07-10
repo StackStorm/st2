@@ -44,13 +44,11 @@ class QueueConsumerTest(DbTestCase):
         self.dispatcher = worker.get_worker()
 
     def _get_execution_db_model(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
-        live_action_db = LiveActionDB()
-        live_action_db.status = status
-        live_action_db.start_timestamp = date_utils.get_datetime_utc_now()
-        live_action_db.action = ResourceReference(
-            name='test_action',
-            pack='test_pack').ref
-        live_action_db.parameters = None
+        start_timestamp = date_utils.get_datetime_utc_now()
+        action_ref = ResourceReference(name='test_action', pack='test_pack').ref
+        parameters = None
+        live_action_db = LiveActionDB(status=status, start_timestamp=start_timestamp,
+                                      action=action_ref, parameters=parameters)
         return action.LiveAction.add_or_update(live_action_db, publish=False)
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value={'key': 'value'}))
