@@ -82,3 +82,31 @@ File content is as follows:
 
 Note that the key is of the format `{sensor_node_name}.sensor_partition`
 
+4. Hash
+~~~~~~~
+
+This is a dynamic scheme where each sensor node is assigned one of more hash ranges. Each sensor itself
+is hashed and depending on which bucket of the range it fits into a sensornode runs the sensor. Hash
+schema is particulaly useful when there are a lot of sensors and fewer nodes typically characterized by
+an order of magnitude difference.
+
+A few special keys ``MIN`` and ``MAX`` can also be used. This is how a typical hash provider configuration
+would look.
+
+
+::
+
+    [sensorcontainer]
+    ...
+    sensor_node_name = sensornode.example.net_f7aeb3ed
+    partition_provider = name:hash, hash_ranges:0..1024|2048..4096
+
+Notice the peculiar format of hash_ranges. A single sensor node can support multiple sub-ranges. Each sub-range
+is of the form  ``{{RANGE_START}}..{{RANGE_END}}``. Multiple sub-range are combined using ``|``.
+
+Some useful examples
+
+* Full range - ``MIN..MAX`` or ``0..4294967296``
+* First half of range - ``MIN..2147483648``
+* Second half of range - ``2147483648..MAX``
+* Multiple non-contiguous ranges - ``0..1024|2048..3072|2147483648..MAX``
