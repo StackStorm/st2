@@ -20,7 +20,7 @@ from st2common import log as logging
 from st2common.constants.sensors import DEFAULT_PARTITION_LOADER, KVSTORE_PARTITION_LOADER, \
     FILE_PARTITION_LOADER, HASH_PARTITION_LOADER
 from st2common.exceptions.sensors import SensorPartitionerNotSupportedException
-from st2reactor.container.partitioner import DefaultPartitioner, KVStorePartitioner, \
+from st2reactor.container.partitioners import DefaultPartitioner, KVStorePartitioner, \
     FileBasedPartitioner, SingleSensorPartitioner
 from st2reactor.container.hash_partitioner import HashPartitioner
 
