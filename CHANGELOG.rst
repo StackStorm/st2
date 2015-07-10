@@ -35,6 +35,7 @@ in development
 * Fix a bug with ``st2 execution list`` CLI command not displaying ``end_timestamp`` attribute for
   Mistral workflows. (bug-fix)
 * Add new ``/v1/packs`` API endpoint for listing installed packs. (new-feature)
+* Ability to partition sensors across sensor nodes using various partition schemes. (new-feature)
 
 0.11.4 - June 30, 2015
 ----------------------
