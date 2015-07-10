@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.rbac.types import PermissionType
+from st2common.rbac.types import ResourceType
+from st2common.rbac.utils import get_valid_permission_types_for_resource
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import PermissionGrant
@@ -123,9 +124,8 @@ def create_permission_grant(role_db, resource_db, permission_types):
     :param resource_db: Resource to create the permission assignment for.
     :type resource_db: :class:`StormFoundationDB`
     """
-    # TODO: How to handle packs? we dont have model for it right now
-    # TODO: Validate permission_types
-    permission_types = _validate_permission_types(permission_types)
+    permission_types = _validate_permission_types(resource_db=resource_db,
+                                                  permission_types=permission_types)
     resource_ref = resource_db.get_uid()
 
     # Create or update the PermissionGrantDB
@@ -149,7 +149,8 @@ def remove_permission_grant(role_db, resource_db, permission_types):
     :param resource_db: Resource to remove the permission assignment from.
     :type resource_db: :class:`StormFoundationDB`
     """
-    permission_types = _validate_permission_types(permission_types)
+    permission_types = _validate_permission_types(resource_db=resource_db,
+                                                  permission_types=permission_types)
     resource_ref = resource_db.get_uid()
     permission_grant_db = PermissionGrant.get(resource_ref=resource_ref,
                                               permission_types=permission_types)
@@ -160,11 +161,28 @@ def remove_permission_grant(role_db, resource_db, permission_types):
     return permission_grant_db
 
 
-def _validate_permission_types(permission_types):
+def _validate_resource_type(resource_db):
     """
-    Validate that the permission_types list only contains valid values.
+    Validate that the permissions can be manipulated for the provided resource type.
     """
-    valid_permission_types = PermissionType.get_valid_values()
+    resource_type = resource_db.get_resource_type()
+    valid_resource_types = ResourceType.get_valid_values()
+
+    if resource_type not in valid_resource_types:
+        raise ValueError('Permissions cannot be manipulated for a resource of type: %s' %
+                         (resource_type))
+
+    return resource_db
+
+
+def _validate_permission_types(resource_db, permission_types):
+    """
+    Validate that the permission_types list only contains valid values for the
+    provided resource.
+    """
+    resource_db = _validate_resource_type(resource_db=resource_db)
+    resource_permission_types = get_valid_permission_types_for_resource(resource_db=resource_db)
+    valid_permission_types = resource_permission_types.get_valid_permission_types()
 
     for permission_type in permission_types:
         if permission_type not in valid_permission_types:

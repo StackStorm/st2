@@ -69,11 +69,12 @@ class ResourcePermissionType(object):
     resource_type = abc.abstractproperty
     valid_permission_types = abc.abstractproperty
 
-    def get_valid_permission_types(self):
-        return self.valid_permission_types
+    @classmethod
+    def get_valid_permission_types(cls):
+        return cls.valid_permission_types
 
 
-class PackPermissionTypes(object):
+class PackPermissionTypes(ResourcePermissionType):
     """
     Permissions which can be granted on a pack.
     """
@@ -85,7 +86,7 @@ class PackPermissionTypes(object):
     ]
 
 
-class ActionPermissionTypes(object):
+class ActionPermissionTypes(ResourcePermissionType):
     """
     Permissions which can be granted on an action.
     """
@@ -99,7 +100,7 @@ class ActionPermissionTypes(object):
     ]
 
 
-class RulePermissionTypes(object):
+class RulePermissionTypes(ResourcePermissionType):
     """
     Permissions which can be granted on a rule.
     """

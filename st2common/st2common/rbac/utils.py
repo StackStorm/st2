@@ -19,7 +19,11 @@ RBAC related utility functions.
 
 from oslo_config import cfg
 
+from st2common.constants.types import ResourceType
 from st2common.constants.rbac import SystemRole
+from st2common.rbac.types import PackPermissionTypes
+from st2common.rbac.types import ActionPermissionTypes
+from st2common.rbac.types import RulePermissionTypes
 
 __all__ = [
     'request_user_is_admin',
@@ -90,3 +94,19 @@ def user_has_role(user, role):
         return True
 
     return False
+
+
+def get_valid_permission_types_for_resource(resource_db):
+    """
+    Return a list of valid permission types for the provided resource type.
+    """
+    resource_type = resource_db.get_resource_type()
+
+    if resource_type == ResourceType.PACK:
+        return PackPermissionTypes
+    elif resource_type == ResourceType.ACTION:
+        return ActionPermissionTypes
+    elif resource_type == ResourceType.RULE:
+        return RulePermissionTypes
+    else:
+        raise ValueError('Unsupported resource type: %s' % (resource_type))
