@@ -24,6 +24,8 @@ from st2common.constants.rbac import SystemRole
 from st2common.rbac.types import PackPermissionTypes
 from st2common.rbac.types import ActionPermissionTypes
 from st2common.rbac.types import RulePermissionTypes
+from st2common.exceptions import AccessDeniedError
+from st2common.exceptions import ResourceAccessDeniedError
 
 __all__ = [
     'request_user_is_admin',
@@ -34,7 +36,9 @@ __all__ = [
     'assert_request_user_has_permission',
 
     'user_is_admin',
-    'user_has_role'
+    'user_has_role',
+
+    'get_valid_permission_types_for_resource'
 ]
 
 
@@ -58,12 +62,7 @@ def request_user_has_role(request, role):
     if not cfg.CONF.auth.enable:
         return True
 
-    auth_context = request.context.get('auth', {})
-
-    if not auth_context:
-        return False
-
-    user_db = auth_context.get('user', None)
+    user_db = _get_user_db_from_request(request=request)
 
     if not user_db:
         return False
@@ -94,7 +93,7 @@ def assert_request_user_is_admin(request):
 
     if not is_admin:
         # TODO: Throw special AccessDeniedError
-        raise ValueError('TBW Not admin')
+        raise AccessDeniedError('Administrator access required')
 
 
 def assert_request_user_has_permission(request, resource_db, permission_type):
@@ -107,8 +106,9 @@ def assert_request_user_has_permission(request, resource_db, permission_type):
                                                  permission_type=permission_type)
 
     if not has_permission:
-        # TODO: Throw special AccessDeniedError
-        raise ValueError('TBW Permission denied')
+        user_db = _get_user_db_from_request(request=request)
+        raise ResourceAccessDeniedError(user_db=user_db, resource_db=resource_db,
+                                        permission_type=permission_type)
 
 
 def user_is_admin(user):
@@ -151,3 +151,16 @@ def get_valid_permission_types_for_resource(resource_db):
         return RulePermissionTypes
     else:
         raise ValueError('Unsupported resource type: %s' % (resource_type))
+
+
+def _get_user_db_from_request(request):
+    """
+    Retrieve UserDB object from the provided request.
+    """
+    auth_context = request.context.get('auth', {})
+
+    if not auth_context:
+        return None
+
+    user_db = auth_context.get('user', None)
+    return user_db
