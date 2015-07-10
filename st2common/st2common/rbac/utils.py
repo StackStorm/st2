@@ -28,6 +28,10 @@ from st2common.rbac.types import RulePermissionTypes
 __all__ = [
     'request_user_is_admin',
     'request_user_has_role',
+    'request_user_has_permission',
+
+    'assert_request_user_is_admin',
+    'assert_request_user_has_permission',
 
     'user_is_admin',
     'user_has_role'
@@ -68,6 +72,43 @@ def request_user_has_role(request, role):
         return True
 
     return False
+
+
+def request_user_has_permission(request, resource_db, permission_type):
+    """
+    Check that currently logged-in user has specified permission on the provied resource.
+
+    :rtype: ``bool``
+    """
+    # TODO
+    return True
+
+
+def assert_request_user_is_admin(request):
+    """
+    Assert that the currently logged in user is an administrator.
+
+    If the user is not an administrator, an exception is thrown.
+    """
+    is_admin = request_user_is_admin(request=request)
+
+    if not is_admin:
+        # TODO: Throw special AccessDeniedError
+        raise ValueError('TBW Not admin')
+
+
+def assert_request_user_has_permission(request, resource_db, permission_type):
+    """
+    Check that currently logged-in user has specified permission on the provied resource.
+
+    If user doesn't have a required permission, AccessDeniedError s thrown.
+    """
+    has_permission = request_user_has_permission(request=request, resource_db=resource_db,
+                                                 permission_type=permission_type)
+
+    if not has_permission:
+        # TODO: Throw special AccessDeniedError
+        raise ValueError('TBW Permission denied')
 
 
 def user_is_admin(user):
