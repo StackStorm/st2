@@ -122,6 +122,12 @@ lint: requirements .lint
 .PHONY: clean
 clean: .cleanpycs .cleandocs
 
+.PHONY: compile
+compile:
+	@echo "======================= compile ========================"
+	@echo "------- Compile all .py files (syntax check test) ------"
+	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+
 .PHONY: .cleanpycs
 .cleanpycs:
 	@echo "Removing all .pyc files"
@@ -218,10 +224,10 @@ tests: pytests
 tests-travis: requirements unit-tests-coverage-xml
 
 .PHONY: pytests
-pytests: requirements .flake8 .pylint .pytests-coverage
+pytests: compile requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: unit-tests itests clean
+.pytests: compile unit-tests itests clean
 
 .PHONY: .pytests-coverage
 .pytests-coverage: unit-tests-coverage-html itests clean
