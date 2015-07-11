@@ -252,7 +252,7 @@ unit-tests-coverage-xml:
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
-			--cover-inclusive --cover-erase --cover-xml \
+			--cover-inclusive --cover-xml \
 			--cover-package=$$component $$component/tests/unit &&  \
 			mv coverage.xml coverage-$$component.xml || exit 1; \
 	done
