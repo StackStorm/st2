@@ -69,7 +69,8 @@ class RunnerContainer(object):
     def _do_run(self, runner, runnertype_db, action_db, liveaction_db):
         # Finalized parameters are resolved and then rendered.
         runner_params, action_params = param_utils.get_finalized_params(
-            runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters)
+            runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
+            liveaction_db.context)
         resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
                                                               action_db.entry_point)
         runner.container_service = RunnerContainerService()
@@ -95,7 +96,8 @@ class RunnerContainer(object):
             # Finalized parameters are resolved and then rendered. This process could
             # fail. Handle the exception and report the error correctly.
             runner_params, action_params = param_utils.get_finalized_params(
-                runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters)
+                runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
+                liveaction_db.context)
             runner.runner_parameters = runner_params
 
             LOG.debug('Performing pre-run for runner: %s', runner.runner_id)

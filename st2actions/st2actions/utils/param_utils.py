@@ -293,8 +293,8 @@ def _cast_params(rendered, parameter_schemas):
     return casted_params
 
 
-def get_rendered_params(runner_parameters, action_parameters, runnertype_parameter_info,
-                        action_parameter_info):
+def get_rendered_params(runner_parameters, action_parameters, action_context,
+                        runnertype_parameter_info, action_parameter_info):
     '''
     Renders the templates in runner_parameters and action_parameters. Using the type information
     from *_parameter_info will appropriately cast the parameters.
@@ -307,6 +307,7 @@ def get_rendered_params(runner_parameters, action_parameters, runnertype_paramet
     renderable_params, context = _renderable_context_param_split(action_parameters,
                                                                  runner_parameters,
                                                                  system_context)
+    context.update(action_context)
     rendered_params = _do_render_params(renderable_params, context)
     template_free_params = {}
     template_free_params.update(rendered_params)
@@ -320,7 +321,8 @@ def get_rendered_params(runner_parameters, action_parameters, runnertype_paramet
             _cast_params(r_action_parameters, action_parameter_info))
 
 
-def get_finalized_params(runnertype_parameter_info, action_parameter_info, actionexec_parameters):
+def get_finalized_params(runnertype_parameter_info, action_parameter_info, actionexec_parameters,
+                         action_context):
     '''
     Finalize the parameters for an action to execute by doing the following -
         1. Split the parameters into those consumed by runner and action into separate dicts.
@@ -330,6 +332,7 @@ def get_finalized_params(runnertype_parameter_info, action_parameter_info, actio
                                                        action_parameter_info,
                                                        actionexec_parameters)
     runner_params, action_params = get_rendered_params(runner_params, action_params,
+                                                       action_context,
                                                        runnertype_parameter_info,
                                                        action_parameter_info)
     return (runner_params, action_params)
