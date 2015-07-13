@@ -67,10 +67,6 @@ class RunnerContainer(object):
         return liveaction_db.result
 
     def _do_run(self, runner, runnertype_db, action_db, liveaction_db):
-        # Finalized parameters are resolved and then rendered.
-        runner_params, action_params = param_utils.get_finalized_params(
-            runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
-            liveaction_db.context)
         resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
                                                               action_db.entry_point)
         runner.container_service = RunnerContainerService()
@@ -81,7 +77,6 @@ class RunnerContainer(object):
         runner.execution = ActionExecution.get(liveaction__id=runner.liveaction_id)
         runner.execution_id = str(runner.execution.id)
         runner.entry_point = resolved_entry_point
-        runner.runner_parameters = runner_params
         runner.context = getattr(liveaction_db, 'context', dict())
         runner.callback = getattr(liveaction_db, 'callback', dict())
         runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
