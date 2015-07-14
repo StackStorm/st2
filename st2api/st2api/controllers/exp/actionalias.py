@@ -13,111 +13,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
-import six
+from pecan import (abort, expose, request, rest)
+from six.moves import http_client
 
-from mongoengine import ValidationError
-from st2api.controllers import resource
+# from st2api.controllers import resource
 from st2common import log as logging
-from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.exceptions.db import StackStormDBObjectConflictError
-from st2common.models.api.action import ActionAliasAPI
-from st2common.persistence.actionalias import ActionAlias
-from st2common.models.api.base import jsexpose
-
-http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
 
-class ActionAliasController(resource.ContentPackResourceController):
-    """
-        Implements the RESTful interface for ActionAliases.
-    """
-    model = ActionAliasAPI
-    access = ActionAlias
-    supported_filters = {
-        'name': 'name',
-        'pack': 'pack'
-    }
+class ActionAliasController(rest.RestController):
 
-    query_options = {
-        'sort': ['pack', 'name']
-    }
-
-    @jsexpose(body_cls=ActionAliasAPI, status_code=http_client.CREATED)
+    @expose()
     def post(self, action_alias):
-        """
-            Create a new ActionAlias.
+        self._redirect(request)
 
-            Handles requests:
-                POST /actionalias/
-        """
-        try:
-            action_alias_db = ActionAliasAPI.to_model(action_alias)
-            LOG.debug('/actionalias/ POST verified ActionAliasAPI and formulated ActionAliasDB=%s',
-                      action_alias_db)
-            action_alias_db = ActionAlias.add_or_update(action_alias_db)
-        except (ValidationError, ValueError, ValueValidationException) as e:
-            LOG.exception('Validation failed for action alias data=%s.', action_alias)
-            pecan.abort(http_client.BAD_REQUEST, str(e))
-            return
-        except StackStormDBObjectConflictError as e:
-            LOG.warn('ActionAlias creation of %s failed with uniqueness conflict.', action_alias,
-                     exc_info=True)
-            pecan.abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
-            return
-
-        extra = {'action_alias_db': action_alias_db}
-        LOG.audit('Action alias created. ActionAlias.id=%s' % (action_alias_db.id), extra=extra)
-        action_alias_api = ActionAliasAPI.from_model(action_alias_db)
-
-        return action_alias_api
-
-    @jsexpose(arg_types=[str], body_cls=ActionAliasAPI)
+    @expose()
     def put(self, action_alias_ref_or_id, action_alias):
-        action_alias_db = self._get_by_ref_or_id(ref_or_id=action_alias_ref_or_id)
-        LOG.debug('PUT /actionalias/ lookup with id=%s found object: %s', action_alias_ref_or_id,
-                  action_alias_db)
+        self._redirect(request)
 
-        try:
-            if action_alias.id is not None and action_alias.id is not '' and \
-               action_alias.id != action_alias_ref_or_id:
-                LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
-                            action_alias.id, action_alias_ref_or_id)
-            old_action_alias_db = action_alias_db
-            action_alias_db = ActionAliasAPI.to_model(action_alias)
-            action_alias_db.id = action_alias_ref_or_id
-            action_alias_db = ActionAlias.add_or_update(action_alias_db)
-        except (ValidationError, ValueError) as e:
-            LOG.exception('Validation failed for action alias data=%s', action_alias)
-            pecan.abort(http_client.BAD_REQUEST, str(e))
-            return
-
-        extra = {'old_action_alias_db': old_action_alias_db, 'new_action_alias_db': action_alias_db}
-        LOG.audit('Action alias updated. ActionAlias.id=%s.' % (action_alias_db.id), extra=extra)
-        action_alias_api = ActionAliasAPI.from_model(action_alias_db)
-
-        return action_alias_api
-
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
+    @expose()
     def delete(self, action_alias_ref_or_id):
-        """
-            Delete an action alias.
+        self._redirect(request)
 
-            Handles requests:
-                DELETE /actionalias/1
-        """
-        action_alias_db = self._get_by_ref_or_id(ref_or_id=action_alias_ref_or_id)
-        LOG.debug('DELETE /actionalias/ lookup with id=%s found object: %s', action_alias_ref_or_id,
-                  action_alias_db)
-        try:
-            ActionAlias.delete(action_alias_db)
-        except Exception as e:
-            LOG.exception('Database delete encountered exception during delete of id="%s".',
-                          action_alias_ref_or_id)
-            pecan.abort(http_client.INTERNAL_SERVER_ERROR, str(e))
-            return
-
-        extra = {'action_alias_db': action_alias_db}
-        LOG.audit('Action alias deleted. ActionAlias.id=%s.' % (action_alias_db.id), extra=extra)
+    def _redirect(self, request_instance):
+        redirect_url = request.path_url.replace('/exp/', '/v1/')
+        LOG.debug('Redirecting to: %s', redirect_url)
+        # In theory, we could redirect using pecan's redirect method but there is
+        # a bug that doesn't display the name of the moved location in the body.
+        # redirect_path = request.path.replace('/exp/', '/v1')
+        # redirect(location=redirect_path, internal=False, request=request,
+        #          code=http_client.MOVED_PERMANENTLY)
+        msg = 'The resource has been permanently moved to %s.' % redirect_url
+        abort(status_code=http_client.MOVED_PERMANENTLY,
+              headers={'Location': redirect_url},
+              detail=msg,
+              comment=msg)
