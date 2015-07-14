@@ -222,6 +222,23 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(r_runner_params, {'r1': 1, 'r2': 1})
         self.assertEqual(r_action_params, {'a1': True, 'a2': True, 'a3': 'noob'})
 
+    def test_get_rendered_params_non_existent_template_key_in_action_context(self):
+        runner_params = {'r1': 'foo', 'r2': 2}
+        action_params = {'a1': 'i love tests', 'a2': '{{action_context.lorem_ipsum}}'}
+        runner_param_info = {'r1': {'type': 'string'}, 'r2': {'type': 'integer'}}
+        action_param_info = {'a1': {'type': 'string'}, 'a2': {'type': 'string'}}
+        action_context = {'api_user': 'noob', 'source_channel': 'reddit'}
+        try:
+            r_runner_params, r_action_params = param_utils.get_rendered_params(
+                runner_params, action_params, action_context, runner_param_info, action_param_info)
+            self.fail('This should have thrown because we are trying to deref a key in ' +
+                      'action context that ain\'t exist.')
+        except actionrunner.ActionRunnerException as e:
+            error_msg = 'Failed to render parameter "a2": \'dict object\' ' + \
+                        'has no attribute \'lorem_ipsum\''
+            self.assertTrue(error_msg in e.message)
+            pass
+
     def test_unicode_value_casting(self):
         rendered = {'a1': 'unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2'}
         parameter_schemas = {'a1': {'type': 'string'}}
