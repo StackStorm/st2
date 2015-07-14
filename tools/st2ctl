@@ -7,8 +7,6 @@ WEBUI_LOG_FILE="/var/log/st2/st2web.log"
 COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine mistral st2web st2resultstracker st2notifier"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
-NG_INIT=false
-
 
 # AR is assumed to be an environment variable.
 if [ -z "$AR" ];
