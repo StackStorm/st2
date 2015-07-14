@@ -7,6 +7,8 @@ WEBUI_LOG_FILE="/var/log/st2/st2web.log"
 COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine mistral st2web st2resultstracker st2notifier"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python`
+NG_INIT=false
+
 
 # AR is assumed to be an environment variable.
 if [ -z "$AR" ];
@@ -119,7 +121,53 @@ if [ ${1} == "reload" -o ${1} == "clean" ]; then
     fi
 fi
 
-function st2start(){
+# Adapter to start services for transition to init scripts
+function st2start() {
+  if [ "${NG_INIT}" = true ]; then
+    st2start_ng
+  else
+    st2start_classic
+  fi
+}
+
+# Adapter to start services for transition to init scripts
+function st2stop() {
+  if [ "${NG_INIT}" = true ]; then
+    st2stop_ng
+  else
+    st2stop_classic
+  fi
+}
+
+# Adapter to restart_compontent for transition to init scripts
+function restart_component() {
+  if [ "${NG_INIT}" = true ]; then
+    restart_component_ng $1
+  else
+    restart_component_classic $1
+  fi
+}
+
+function st2start_ng() {
+  for COM in $COMPONENTS
+  do
+    service $COM start
+  done
+}
+
+function st2stop_ng() {
+  for COM in $COMPONENTS
+  do
+    service $COM stop
+  done
+}
+
+function restart_component_ng() {
+  COM=${1}
+  service $COM restart
+}
+
+function st2start_classic(){
   for i in `seq 1 ${AR}`
   do
     nohup st2actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
@@ -140,7 +188,7 @@ function st2start(){
   (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
 }
 
-function st2stop(){
+function st2stop_classic(){
   for COM in $COMPONENTS
   do
     if [[ "${COM}" == "mistral" ]]
@@ -194,7 +242,7 @@ function st2stop(){
   done
 }
 
-function restart_component() {
+function restart_component_classic() {
   COM=${1}
   ALT_COM=`service_map $COM`
 
