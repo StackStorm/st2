@@ -426,7 +426,11 @@ setup_mistral() {
 
   # Setup service.
   if [[ "$TYPE" == "debs" ]]; then
-    setup_mistral_upstart
+    if [[ "$DEBTEST" == "Debian" ]]; then
+      setup_mistral_systemd
+    else
+      setup_mistral_upstart
+    fi
   elif [[ "$TYPE" == "rpms" ]]; then
     setup_mistral_systemd
   fi
