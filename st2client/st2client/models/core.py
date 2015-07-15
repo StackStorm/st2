@@ -309,7 +309,6 @@ class ResourceManager(object):
 
 class ActionAliasResourceManager(ResourceManager):
     def __init__(self, resource, endpoint, cacert=None, debug=False):
-        endpoint = endpoint.replace('v1', 'exp')
         self.resource = resource
         self.debug = debug
         self.client = httpclient.HTTPClient(root=endpoint, cacert=cacert, debug=debug)
