@@ -36,6 +36,8 @@ in development
   Mistral workflows. (bug-fix)
 * Add new ``/v1/packs`` API endpoint for listing installed packs. (new-feature)
 * Ability to partition sensors across sensor nodes using various partition schemes. (new-feature)
+* Move /exp/actionalias/ and /exp/aliasexecution to /v1/actionalias/ and /v1/aliasexecution/
+  respectively. (upgrade)
 
 0.11.4 - June 30, 2015
 ----------------------
