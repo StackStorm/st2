@@ -48,7 +48,7 @@ class ActionAliasExecutionController(rest.RestController):
         if not action_alias_name:
             pecan.abort(http_client.BAD_REQUEST, 'Alias execution "name" is required')
 
-        format = payload.format or ''
+        format_str = payload.format or ''
         command = payload.command or ''
 
         try:
@@ -67,12 +67,21 @@ class ActionAliasExecutionController(rest.RestController):
             return
 
         execution_parameters = self._extract_parameters(action_alias_db=action_alias_db,
-                                                        format=format,
+                                                        format_str=format_str,
                                                         param_stream=command)
         notify = self._get_notify_field(payload)
+
+        context = {
+            'action_alias_ref': reference.get_ref_from_model(action_alias_db),
+            'api_user': payload.user,
+            'user': get_system_username(),
+            'source_channel': payload.source_channel
+        }
+
         execution = self._schedule_execution(action_alias_db=action_alias_db,
                                              params=execution_parameters,
-                                             notify=notify)
+                                             notify=notify,
+                                             context=context)
 
         return str(execution.id)
 
@@ -80,9 +89,9 @@ class ActionAliasExecutionController(rest.RestController):
         tokens = alias_execution.strip().split(' ', 1)
         return (tokens[0], tokens[1] if len(tokens) > 1 else None)
 
-    def _extract_parameters(self, action_alias_db, format, param_stream):
-        if action_alias_db.formats and format in action_alias_db.formats:
-            alias_format = format
+    def _extract_parameters(self, action_alias_db, format_str, param_stream):
+        if action_alias_db.formats and format_str in action_alias_db.formats:
+            alias_format = format_str
         else:
             alias_format = None
 
@@ -101,16 +110,17 @@ class ActionAliasExecutionController(rest.RestController):
         notify.on_complete = on_complete
         return notify
 
-    def _schedule_execution(self, action_alias_db, params, notify):
+    def _schedule_execution(self, action_alias_db, params, notify, context):
         try:
             # prior to shipping off the params cast them to the right type.
             params = action_param_utils.cast_params(action_ref=action_alias_db.action_ref,
                                                     params=params,
                                                     cast_overrides=CAST_OVERRIDES)
-            context = {
-                'action_alias_ref': reference.get_ref_from_model(action_alias_db),
-                'user': get_system_username()
-            }
+            if not context:
+                context = {
+                    'action_alias_ref': reference.get_ref_from_model(action_alias_db),
+                    'user': get_system_username()
+                }
             liveaction = LiveActionDB(action=action_alias_db.action_ref, context=context,
                                       parameters=params, notify=notify)
             _, action_execution_db = action_service.request(liveaction)
