@@ -49,9 +49,9 @@ class TestActionAlias(FunctionalTest):
         cls.alias3 = loaded_models['aliases']['alias3.yaml']
 
     def test_get_all(self):
-        resp = self.app.get('/exp/actionalias')
+        resp = self.app.get('/v1/actionalias')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2, '/exp/actionalias did not return all aliases.')
+        self.assertEqual(len(resp.json), 2, '/v1/actionalias did not return all aliases.')
 
         retrieved_names = [alias['name'] for alias in resp.json]
 
@@ -59,7 +59,7 @@ class TestActionAlias(FunctionalTest):
                          'Incorrect aliases retrieved.')
 
     def test_get_one(self):
-        resp = self.app.get('/exp/actionalias/%s' % self.alias1.id)
+        resp = self.app.get('/v1/actionalias/%s' % self.alias1.id)
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['name'], self.alias1.name,
                          'Incorrect aliases retrieved.')
@@ -68,7 +68,7 @@ class TestActionAlias(FunctionalTest):
         post_resp = self._do_post(vars(ActionAliasAPI.from_model(self.alias3)))
         self.assertEqual(post_resp.status_int, 201)
 
-        get_resp = self.app.get('/exp/actionalias/%s' % post_resp.json['id'])
+        get_resp = self.app.get('/v1/actionalias/%s' % post_resp.json['id'])
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(get_resp.json['name'], self.alias3.name,
                          'Incorrect aliases retrieved.')
@@ -76,11 +76,11 @@ class TestActionAlias(FunctionalTest):
         del_resp = self.__do_delete(post_resp.json['id'])
         self.assertEqual(del_resp.status_int, 204)
 
-        get_resp = self.app.get('/exp/actionalias/%s' % post_resp.json['id'], expect_errors=True)
+        get_resp = self.app.get('/v1/actionalias/%s' % post_resp.json['id'], expect_errors=True)
         self.assertEqual(get_resp.status_int, 404)
 
     def _do_post(self, actionalias, expect_errors=False):
-        return self.app.post_json('/exp/actionalias', actionalias, expect_errors=expect_errors)
+        return self.app.post_json('/v1/actionalias', actionalias, expect_errors=expect_errors)
 
     def __do_delete(self, actionalias_id, expect_errors=False):
-        return self.app.delete('/exp/actionalias/%s' % actionalias_id, expect_errors=expect_errors)
+        return self.app.delete('/v1/actionalias/%s' % actionalias_id, expect_errors=expect_errors)
