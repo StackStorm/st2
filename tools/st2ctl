@@ -183,7 +183,11 @@ function st2start_classic(){
   else
     service mistral start
   fi
-  (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
+
+  # Only run WebUI HTTP Server if flag is not set
+  if [ -z "${ST2_DISABLE_HTTPSERVER}" ]; then
+    (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
+  fi
 }
 
 function st2stop_classic(){
@@ -209,16 +213,20 @@ function st2stop_classic(){
       fi
     elif [[ "${COM}" == "st2web" ]]
     then
-      PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
-      if [[ ! -z $PID ]]
-      then
-        for p in $PID
-        do
-           echo "Killing ${COM} PID: ${p}"
-           kill $p
-        done
+      if [ -z "${ST2_DISABLE_HTTPSERVER}" ]; then
+        PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
+        if [[ ! -z $PID ]]
+        then
+          for p in $PID
+          do
+             echo "Killing ${COM} PID: ${p}"
+             kill $p
+          done
+        else
+          echo "${COM} is not running"
+        fi
       else
-        echo "${COM} is not running"
+        echo "*Built-in WebUI HTTP Server has been disabled*"
       fi
     else
       ALT_COM=`service_map $COM`
@@ -265,17 +273,21 @@ function restart_component_classic() {
       fi
     elif [[ "${COM}" == "st2web" ]]
     then
-      PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
-      if [[ ! -z $PID ]]
-      then
-        for p in $PID
-        do
-           kill $p
-           sleep 1
-           (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
-        done
+      if [ -z "${ST2_DISABLE_HTTPSERVER}" ]; then
+        PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
+        if [[ ! -z $PID ]]
+        then
+          for p in $PID
+          do
+             kill $p
+             sleep 1
+             (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
+          done
+        else
+          echo "${COM} is not running"
+        fi
       else
-        echo "${COM} is not running"
+        echo "*Built-in WebUI HTTP Server has been disabled*"
       fi
     else
       PID=`ps ax | grep -v grep | grep -v st2ctl | egrep "${COM}|${ALT_COM}" | awk '{print $1}'`
@@ -350,7 +362,7 @@ function getpids(){
 
   for COM in $COMPONENTS
   do
-    if [[ "${COM}" == "st2web" ]]
+    if [[ "${COM}" == "st2web" && -z "${ST2_DISABLE_HTTPSERVER}" ]]
     then
       PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
     else
