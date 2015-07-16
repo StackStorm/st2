@@ -1,13 +1,13 @@
 Upgrade Notes
 =============
-|st2| 0.10
+|st2| 0.11
 -------------
 
 * Rules now have to be part of a pack. If you don't specify a pack,
   pack name is assumed to be `default`. A migration script
   (migrate_rules_to_include_pack.py) is shipped in ${dist_packages}/st2common/bin/
   on installation. The migration script
-  is run as part of st2_deploy.sh when you upgrade from versions < 0.9 to 0.10.
+  is run as part of st2_deploy.sh when you upgrade from versions < 0.9 to 0.11.
 
 |st2| 0.9
 ---------
