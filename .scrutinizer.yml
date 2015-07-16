@@ -1,0 +1,172 @@
+build:
+    environment:
+        python: 2.7.7
+        mysql: false
+        postgresql: false
+        redis: false
+    cache:
+        directories:
+            - ~/.cache/pip/
+    dependencies:
+        before:
+            - make requirements
+    tests:
+        override:
+            - make .flake8
+            - make .pylint
+            - make .docs
+checks:
+    python:
+        code_rating: true
+        variables_used_before_assignment: true
+        variables_unused_wildcard_import: true
+        variables_unused_import: true
+        variables_unpacking_non_sequence: true
+        variables_undefined_variable: true
+        variables_undefined_loop_variable: true
+        variables_undefined_all_variable: true
+        variables_unbalanced_tuple_unpacking: true
+        variables_redefined_outer_name: true
+        variables_redefined_builtin: true
+        variables_redefine_in_handler: true
+        variables_no_name_in_module: true
+        variables_invalid_all_object: true
+        variables_global_variable_undefined: true
+        variables_global_variable_not_assigned: true
+        variables_global_statement: true
+        variables_global_at_module_level: true
+        basic_abstract_class_instantiated: true
+        basic_assert_on_tuple: true
+        basic_bad_reversed_sequence: true
+        basic_dangerous_default_value: true
+        basic_duplicate_argument_name: true
+        basic_duplicate_key: true
+        basic_eval_used: true
+        basic_exec_used: true
+        basic_function_redefined: true
+        basic_init_is_generator: true
+        basic_lost_exception: true
+        basic_missing_module_attribute: true
+        basic_missing_reversed_argument: true
+        basic_nonexistent_operator: true
+        basic_not_in_loop: true
+        basic_old_raise_syntax: true
+        basic_pointless_statement: true
+        basic_pointless_string_statement: true
+        basic_return_arg_in_generator: true
+        basic_return_in_init: true
+        basic_return_outside_function: true
+        basic_unnecessary_lambda: true
+        basic_unnecessary_pass: true
+        basic_unreachable: true
+        basic_yield_outside_function: true
+        classes_access_member_before_definition: true
+        classes_arguments_differ: true
+        classes_bad_classmethod_argument: true
+        classes_bad_context_manager: true
+        classes_bad_mcs_classmethod_argument: true
+        classes_bad_mcs_method_argument: true
+        classes_bad_staticmethod_argument: true
+        classes_interface_is_not_class: true
+        classes_method_hidden: true
+        classes_missing_interface_method: true
+        classes_no_method_argument: true
+        classes_no_self_argument: true
+        classes_non_iterator_returned: true
+        classes_non_parent_init_called: true
+        classes_protected_access: true
+        classes_signature_differs: true
+        classes_super_init_not_called: true
+        classes_valid_slots: true
+        design_interface_not_implemented: true
+        exceptions_bad_except_order: true
+        exceptions_binary_op_exception: true
+        exceptions_notimplemented_raised: true
+        exceptions_raising_bad_type: true
+        exceptions_raising_non_exception: true
+        exceptions_raising_string: true
+        format_backtick: true
+        basic_useless_else_on_loop: true
+        exceptions_catching_non_exception: true
+        format_lowercase_l_suffix: true
+        format_missing_final_newline: true
+        format_mixed_indentation: true
+        format_old_ne_operator: true
+        format_superfluous_parens: true
+        format_unnecessary_semicolon: true
+        imports_cyclic_import: true
+        imports_deprecated_module: true
+        imports_import_self: true
+        imports_reimported: true
+        logging_format_truncated: true
+        logging_not_lazy: true
+        logging_unsupported_format: true
+        open_mode_bad_open_mode: true
+        string_bad_format_character: true
+        string_bad_format_string_key: true
+        string_bad_str_strip_call: true
+        string_constant_anomalous_backslash_in_string: true
+        string_constant_anomalous_unicode_escape_in_string: true
+        string_format_needs_mapping: true
+        string_missing_format_string_key: true
+        string_mixed_format_string: true
+        string_too_few_format_args: true
+        string_too_many_format_args: true
+        string_truncated_format_string: true
+        typecheck_assignment_from_no_return: true
+        typecheck_assignment_from_none: true
+        typecheck_duplicate_keyword_arg: true
+        typecheck_missing_kwoa: true
+        typecheck_no_value_for_parameter: true
+        typecheck_not_callable: true
+        typecheck_too_many_function_args: true
+        typecheck_unexpected_keyword_arg: true
+        typecheck_redundant_keyword_arg: true
+        string_unused_format_string_key: true
+        newstyle_bad_super_call: true
+        logging_too_many_args: true
+        logging_too_few_args: true
+        format_bad_whitespace: true
+        format_bad_indentation:
+            indentation: '4 spaces'
+        format_line_too_long:
+            max_length: '100'
+        format_trailing_whitespace: true
+        basic_empty_docstring: true
+        format_multiple_statements: true
+        imports_wildcard_import: true
+        # disable import checks
+        imports_import_error: false
+        # pylint.W0232
+        classes_no_init: false
+        # pylint.W0142
+        basic_star_args: false
+        # pylint.R0201: 'Check if methods could be made static'
+        classes_no_self_use: false
+        # pylint.W0704: 'Check for unnecessary except clauses'
+        exceptions_pointless_except: false
+        # pylint.W0613: 'Check for unused arguments of functions and methods'
+        variables_unused_argument: false
+        # pylint.W0201: 'Check that instance attributes are only defined in the __init__ method'
+        classes_attribute_defined_outside_init: false
+        # pylint.R0921: 'Check that abstract classes are used at least once'
+        design_abstract_class_not_used: false
+        # pylint.W0612: 'Check for unused variables'
+        variables_unused_variable: false
+        # pylint.W0106: 'Check that side-effect-free expressions are assigned/used'
+        basic_expression_not_assigned: false
+        # pylint.W0223: 'Check that abstract methods are implemented by concrete classes'
+        classes_abstract_method: false
+        # pylint.E1101: 'Check when a non-existent member is accessed on a variable'
+        typecheck_no_member: false
+filter:
+    excluded_paths:
+        - st2actions/tests/*
+        - st2api/tests/*
+        - st2auth/tests/*
+        - st2client/tests/*
+        - st2common/tests/*
+        - st2debug/tests/*
+        - st2exporter/tests/*
+        - st2reactor/tests/*
+        - st2tests/tests/*
