@@ -19,8 +19,8 @@ cache:
 
 install:
   - pip install python-coveralls
-  - if [ ${TASK} = 'integration' ]; then sudo ./scripts/travis/prepare-integration.sh; fi
   - make requirements
+  - if [ ${TASK} = 'integration' ]; then sudo ./scripts/travis/prepare-integration.sh; fi
 
 script:
   - ./scripts/travis/build.sh
