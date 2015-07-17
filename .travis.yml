@@ -4,7 +4,6 @@ python:
   - 2.7
 
 env:
-  - TASK=checks
   - TASK=unit
 
 services:
@@ -16,11 +15,11 @@ cache:
     - $HOME/.cache/pip/
 
 install:
- - if [[ ${TASK} == 'unit' ]]; then pip install python-coveralls; fi
+ - pip install python-coveralls
  - make requirements
 
 script:
   - ./scripts/travis.sh
 
 after_success:
-  - if [[ ${TASK} == 'unit' ]]; then coveralls; fi
+  - coveralls
