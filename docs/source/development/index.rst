@@ -17,6 +17,9 @@ assist you.
 For information on contributing an integration pack, please refer to the
 :doc:`Create and Contribute a Pack </packs>` page.
 
+For an overview of core |st2| code structure, please refer to
+:doc:`Code structure </development/code_structure>`.
+
 Setting up a development environment
 ------------------------------------
 
