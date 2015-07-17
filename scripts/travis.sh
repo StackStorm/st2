@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 if [ -z ${TASK} ]; then
   echo "No task provided"
@@ -17,5 +18,3 @@ else
   echo "Invalid task: ${TASK}"
   exit 2
 fi
-
-exit $?
