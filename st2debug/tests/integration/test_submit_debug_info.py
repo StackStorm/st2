@@ -152,7 +152,7 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
                                                 include_system_info=True)
         plaintext_archive_size = os.stat(plaintext_archive_path).st_size
 
-        encrypted_archive_path = encrypt_archive(archive_file_path=plaintext_archive_path)
+        encrypted_archive_path = encrypt_archive(archive_file_path=plaintext_archive_path, debug=True)
         encrypt_archive_size = os.stat(encrypted_archive_path).st_size
 
         self.assertTrue(os.path.isfile(encrypted_archive_path))
