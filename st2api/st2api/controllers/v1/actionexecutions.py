@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import copy
+import re
 
 import jsonschema
 from oslo_config import cfg
@@ -100,7 +101,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             abort(http_client.BAD_REQUEST, str(e))
         except jsonschema.ValidationError as e:
             LOG.exception('Unable to execute action. Parameter validation failed.')
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, re.sub("u'([^']*)'", r"'\1'", e.message))
         except Exception as e:
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
