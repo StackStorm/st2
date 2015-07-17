@@ -1,10 +1,13 @@
+# Used old infrastructure, needed for integration tests:
+# http://docs.travis-ci.com/user/workers/standard-infrastructure/
+sudo: true
 language: python
-sudo: false
 python:
   - 2.7
 
 env:
   - TASK=unit
+  - TASK=integration
 
 services:
   - mongodb
@@ -15,11 +18,12 @@ cache:
     - $HOME/.cache/pip/
 
 install:
- - pip install python-coveralls
- - make requirements
+  - pip install python-coveralls
+  - if [ ${TASK} = 'integration' ]; then sudo ./scripts/travis/prepare-integration.sh; fi
+  - make requirements
 
 script:
-  - ./scripts/travis.sh
+  - ./scripts/travis/build.sh
 
 after_success:
   - coveralls

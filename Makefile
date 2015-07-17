@@ -218,11 +218,6 @@ $(VIRTUALENV_DIR)/bin/activate:
 .PHONY: tests
 tests: pytests
 
-# Travis cannot run itests since those require users to be configured etc.
-# Creating special travis target. (Yuck!)
-.PHONY: tests-travis
-tests-travis: requirements unit-tests-coverage-xml
-
 .PHONY: pytests
 pytests: compile requirements .flake8 .pylint .pytests-coverage
 
@@ -230,7 +225,7 @@ pytests: compile requirements .flake8 .pylint .pytests-coverage
 .pytests: compile unit-tests itests clean
 
 .PHONY: .pytests-coverage
-.pytests-coverage: unit-tests-coverage-html itests clean
+.pytests-coverage: .unit-tests-coverage-html .itests-coverage-html clean
 
 .PHONY: unit-tests
 unit-tests:
@@ -246,25 +241,8 @@ unit-tests:
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component/tests/unit || exit 1; \
 	done
 
-.PHONY: unit-tests-coverage-xml
-unit-tests-coverage-xml:
-	@echo
-	@echo "==================== unit tests with coverage (XML reports) ===================="
-	@echo
-	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
-	@for component in $(COMPONENTS_TEST); do\
-		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
-		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
-			--cover-inclusive --cover-xml \
-			--cover-package=$$component $$component/tests/unit &&  \
-			mv coverage.xml coverage-$$component.xml || exit 1; \
-	done
-
-.PHONY: unit-tests-coverage-html
-unit-tests-coverage-html:
+.PHONY: .unit-tests-coverage-html
+.unit-tests-coverage-html:
 	@echo
 	@echo "==================== unit tests with coverage (HTML reports) ===================="
 	@echo
@@ -275,7 +253,7 @@ unit-tests-coverage-html:
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
-			--cover-inclusive --cover-erase --cover-html \
+			--cover-inclusive --cover-html \
 			--cover-package=$$component $$component/tests/unit || exit 1; \
 	done
 
@@ -294,6 +272,22 @@ itests: requirements .itests
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv $$component/tests/integration || exit 1; \
+	done
+
+.PHONY: .itests-coverage-html
+.itests-coverage-html:
+	@echo
+	@echo "================ integration tests with coverage (HTML reports) ================"
+	@echo
+	@echo "----- Dropping st2-test db -----"
+	@mongo st2-test --eval "db.dropDatabase();"
+	@for component in $(COMPONENTS_TEST); do\
+		echo "==========================================================="; \
+		echo "Running tests in" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
+			--cover-inclusive --cover-html \
+			--cover-package=$$component $$component/tests/integration || exit 1; \
 	done
 
 .PHONY: mistral-itests
