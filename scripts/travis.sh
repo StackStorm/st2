@@ -2,7 +2,7 @@
 set -e
 
 if [ -z ${TASK} ]; then
-  echo 'No task provided'
+  echo "No task provided"
   exit 2
 fi
 
