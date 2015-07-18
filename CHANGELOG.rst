@@ -40,6 +40,7 @@ in development
 * Fix a bug in action container where rendering params was done twice. (bug-fix)
 * Move /exp/actionalias/ and /exp/aliasexecution to /v1/actionalias/ and /v1/aliasexecution/
   respectively. (upgrade)
+* Display friendly message for error in parameters validation on action execution. (improvement)
 
 0.11.4 - June 30, 2015
 ----------------------
