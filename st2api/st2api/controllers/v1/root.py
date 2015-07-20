@@ -27,6 +27,7 @@ from st2api.controllers.v1.stream import StreamController
 from st2api.controllers.v1.triggers import TriggerTypeController, TriggerController, \
     TriggerInstanceController
 from st2api.controllers.v1.webhooks import WebhooksController
+from st2api.controllers.v1.rbac import RBACController
 
 
 class RootController(object):
@@ -47,3 +48,4 @@ class RootController(object):
     stream = StreamController()
     actionalias = ActionAliasController()
     aliasexecution = ActionAliasExecutionController()
+    rbac = RBACController()
