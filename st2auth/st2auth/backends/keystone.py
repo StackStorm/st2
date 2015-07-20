@@ -17,13 +17,10 @@
 from st2common import log as logging
 from st2auth.backends.base import BaseAuthenticationBackend
 import requests
+import httplib
 
-try:
-    from urlparse import urlparse
-    from urlparse import urljoin
-except ImportError:
-    from urllib.parse import urlparse  # pylint: disable=E0611
-    from urllib.parse import urljoin  # pylint: disable=E0611
+from six.moves.urllib import parse as urlparse
+from six.moves.urllib.parse import urljoin
 
 __all__ = [
     'KeystoneAuthenticationBackend'
@@ -89,7 +86,7 @@ class KeystoneAuthenticationBackend(BaseAuthenticationBackend):
         else:
             raise Exception("Keystone version {} not supported".format(self._keystone_version))
 
-        if login.status_code in [200, 201]:
+        if login.status_code in [httplib.OK, httplib.CREATED]:
             LOG.debug('Authentication for user "{}" successful'.format(username))
             return True
         else:
