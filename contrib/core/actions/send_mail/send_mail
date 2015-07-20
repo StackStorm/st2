@@ -2,9 +2,9 @@
 
 HOSTNAME=$(hostname -f)
 FROM="stanley@${HOSTNAME}"
-SENDMAIL=`which sendmail`
 LINE_BREAK=""
 
+SENDMAIL=`which sendmail`
 if [ $? -ne 0 ]; then
     echo "Unable to find sendmail binary in PATH" >&2
     exit 2

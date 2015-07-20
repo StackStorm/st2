@@ -20,6 +20,7 @@ import six
 
 from jinja2 import Template, Environment, StrictUndefined, meta, exceptions
 from st2common import log as logging
+from st2common.constants.action import ACTION_KV_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.exceptions import actionrunner
 from st2common.services.keyvalues import KeyValueLookup
@@ -293,8 +294,8 @@ def _cast_params(rendered, parameter_schemas):
     return casted_params
 
 
-def get_rendered_params(runner_parameters, action_parameters, runnertype_parameter_info,
-                        action_parameter_info):
+def get_rendered_params(runner_parameters, action_parameters, action_context,
+                        runnertype_parameter_info, action_parameter_info):
     '''
     Renders the templates in runner_parameters and action_parameters. Using the type information
     from *_parameter_info will appropriately cast the parameters.
@@ -303,10 +304,11 @@ def get_rendered_params(runner_parameters, action_parameters, runnertype_paramet
     # parameter category references are also rendered correctly. Particularly in the cases where
     # a runner parameter is overridden in an action it is likely that a runner parameter could
     # depend on an action parameter.
-    system_context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
+    render_context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
+    render_context[ACTION_KV_PREFIX] = action_context
     renderable_params, context = _renderable_context_param_split(action_parameters,
                                                                  runner_parameters,
-                                                                 system_context)
+                                                                 render_context)
     rendered_params = _do_render_params(renderable_params, context)
     template_free_params = {}
     template_free_params.update(rendered_params)
@@ -320,7 +322,8 @@ def get_rendered_params(runner_parameters, action_parameters, runnertype_paramet
             _cast_params(r_action_parameters, action_parameter_info))
 
 
-def get_finalized_params(runnertype_parameter_info, action_parameter_info, actionexec_parameters):
+def get_finalized_params(runnertype_parameter_info, action_parameter_info, liveaction_parameters,
+                         action_context):
     '''
     Finalize the parameters for an action to execute by doing the following -
         1. Split the parameters into those consumed by runner and action into separate dicts.
@@ -328,8 +331,9 @@ def get_finalized_params(runnertype_parameter_info, action_parameter_info, actio
     '''
     runner_params, action_params = get_resolved_params(runnertype_parameter_info,
                                                        action_parameter_info,
-                                                       actionexec_parameters)
+                                                       liveaction_parameters)
     runner_params, action_params = get_rendered_params(runner_params, action_params,
+                                                       action_context,
                                                        runnertype_parameter_info,
                                                        action_parameter_info)
     return (runner_params, action_params)

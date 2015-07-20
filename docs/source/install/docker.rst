@@ -54,6 +54,9 @@ variables for each container instance:
     - /home/stanley/.ssh/st2_stanley_key - SSH private key to access remote systems
 
     ## Environment Variables
+    ### SSL
+    REQUESTS_CA_BUNDLE - path to trusted root CA bundles. Default: OS default
+
     ### StackStorm Variables
     * ST2_API_URL - URL and port to the StackStorm API Endpoint. Default: http://localhost:9101
 

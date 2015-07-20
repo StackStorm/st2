@@ -240,16 +240,20 @@ class TestActionExecutionController(FunctionalTest):
         execution['parameters']['foo'] = 'bar'
         post_resp = self._do_post(execution, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
+        self.assertEqual(post_resp.json['faultstring'],
+                         "Additional properties are not allowed ('foo' was unexpected)")
 
         # Runner type expects parameter "hosts".
         execution['parameters'] = {}
         post_resp = self._do_post(execution, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
+        self.assertEqual(post_resp.json['faultstring'], "'hosts' is a required property")
 
         # Runner type expects parameters "cmd" to be str.
         execution['parameters'] = {"hosts": "localhost", "cmd": 1000}
         post_resp = self._do_post(execution, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
+        self.assertEqual(post_resp.json['faultstring'], "1000 is not of type 'string'")
 
         # Runner type expects parameters "cmd" to be str.
         execution['parameters'] = {"hosts": "localhost", "cmd": "1000", "c": 1}
@@ -321,7 +325,7 @@ class TestActionExecutionController(FunctionalTest):
         re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
                                          data, expect_errors=True)
         self.assertEqual(re_run_resp.status_int, 400)
-        self.assertIn('1000 is not of type u\'string\'', re_run_resp.json['faultstring'])
+        self.assertIn('1000 is not of type \'string\'', re_run_resp.json['faultstring'])
 
     @staticmethod
     def _get_actionexecution_id(resp):
