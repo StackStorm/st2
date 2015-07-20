@@ -17,6 +17,7 @@
 from st2common import log as logging
 from st2auth.backends.base import BaseAuthenticationBackend
 import requests
+
 try:
     from urlparse import urlparse
     from urlparse import urljoin
@@ -48,7 +49,8 @@ class KeystoneAuthenticationBackend(BaseAuthenticationBackend):
         url = urlparse(keystone_url)
         if url.path != '' or url.query != '' or url.fragment != '':
             raise Exception("The Keystone url {} does not seem to be correct.\n"
-                            "Please only set the scheme+url+port (e.x.: http://example.com:5000)".format(keystone_url))
+                            "Please only set the scheme+url+port "
+                            "(e.x.: http://example.com:5000)".format(keystone_url))
         self._keystone_url = keystone_url
         self._keystone_version = keystone_version
 
@@ -78,11 +80,11 @@ class KeystoneAuthenticationBackend(BaseAuthenticationBackend):
                             "user": {
                                 "name": username,
                                 "password": password
-                                }
                             }
                         }
                     }
                 }
+            }
             login = requests.post(urljoin(self._keystone_url, 'v3/auth/tokens'), json=creds)
         else:
             raise Exception("Keystone version {} not supported".format(self._keystone_version))
