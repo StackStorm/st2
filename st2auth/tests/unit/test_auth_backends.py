@@ -18,6 +18,7 @@ import os
 import unittest2
 import mock
 from requests.models import Response
+import httplib
 
 from st2tests.config import parse_args
 parse_args()
@@ -87,12 +88,12 @@ class MongoDBAuthenticationBackendTestCase(unittest2.TestCase):
 
 class KeystoneAuthenticationBackendTestCase(unittest2.TestCase):
     def _mock_keystone(self, *args, **kwargs):
-        return_codes = {'goodv2': 200, 'goodv3': 201, 'bad': 400}
+        return_codes = {'goodv2': httplib.OK, 'goodv3': httplib.CREATED, 'bad': httplib.UNAUTHORIZED}
         json = kwargs.get('json')
         res = Response()
         try:
             # v2
-            res.status_code = return_codes[json['auth']['passwordCredentials']['user']]
+            res.status_code = return_codes[json['auth']['passwordCredentials']['username']]
         except KeyError:
             # v3
             res.status_code = return_codes[json['auth']['identity']['password']['user']['name']]
