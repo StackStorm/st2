@@ -22,8 +22,8 @@ try:
     from urlparse import urlparse
     from urlparse import urljoin
 except ImportError:
-    from urllib.parse import urlparse
-    from urllib.parse import urljoin
+    from urllib.parse import urlparse  # pylint: disable=E0611
+    from urllib.parse import urljoin  # pylint: disable=E0611
 
 __all__ = [
     'KeystoneAuthenticationBackend'
