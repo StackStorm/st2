@@ -24,8 +24,8 @@ from st2common.constants.rbac import SystemRole
 from st2common.rbac.types import PackPermissionTypes
 from st2common.rbac.types import ActionPermissionTypes
 from st2common.rbac.types import RulePermissionTypes
-from st2common.exceptions import AccessDeniedError
-from st2common.exceptions import ResourceAccessDeniedError
+from st2common.exceptions.rbac import AccessDeniedError
+from st2common.exceptions.rbac import ResourceAccessDeniedError
 
 __all__ = [
     'request_user_is_admin',
@@ -92,7 +92,6 @@ def assert_request_user_is_admin(request):
     is_admin = request_user_is_admin(request=request)
 
     if not is_admin:
-        # TODO: Throw special AccessDeniedError
         raise AccessDeniedError('Administrator access required')
 
 
