@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
@@ -33,3 +34,7 @@ class PacksController(ResourceController):
     query_options = {
         'sort': ['ref']
     }
+
+    @jsexpose(arg_types=[str])
+    def get_one(self, name_or_id):
+        return self._get_one_by_name_or_id(name_or_id=name_or_id)
