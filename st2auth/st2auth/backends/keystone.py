@@ -17,6 +17,12 @@
 from st2common import log as logging
 from st2auth.backends.base import BaseAuthenticationBackend
 import requests
+try:
+    from urlparse import urlparse
+    from urlparse import urljoin
+except ImportError:
+    from urllib.parse import urlparse
+    from urllib.parse import urljoin
 
 __all__ = [
     'KeystoneAuthenticationBackend'
@@ -39,21 +45,49 @@ class KeystoneAuthenticationBackend(BaseAuthenticationBackend):
         :param keystone_version: Keystone version to authenticate against (default to 2).
         :type keystone_version: ``int``
         """
+        url = urlparse(keystone_url)
+        if url.path != '' or url.query != '' or url.fragment != '':
+            raise Exception("The Keystone url {} does not seem to be correct.\n"
+                            "Please only set the scheme+url+port (e.x.: http://example.com:5000)".format(keystone_url))
         self._keystone_url = keystone_url
         self._keystone_version = keystone_version
 
     def authenticate(self, username, password):
-        creds = {
-            "auth": {
-                "passwordCredentials": {
-                    "username": username,
-                    "password": password
+        if self._keystone_version == 2:
+            creds = {
+                "auth": {
+                    "passwordCredentials": {
+                        "username": username,
+                        "password": password
+                    }
                 }
             }
-        }
-        login = requests.post(self._keystone_url, json=creds)
+            login = requests.post(urljoin(self._keystone_url, 'v2.0/tokens'), json=creds)
 
-        if login.status_code == 200:
+        elif self._keystone_version == 3:
+            creds = {
+                "auth": {
+                    "identity": {
+                        "methods": [
+                            "password"
+                        ],
+                        "password": {
+                            "domain": {
+                                "id": "default"
+                            },
+                            "user": {
+                                "name": username,
+                                "password": password
+                                }
+                            }
+                        }
+                    }
+                }
+            login = requests.post(urljoin(self._keystone_url, 'v3/auth/tokens'), json=creds)
+        else:
+            raise Exception("Keystone version {} not supported".format(self._keystone_version))
+
+        if login.status_code in [200, 201]:
             LOG.debug('Authentication for user "{}" successful'.format(username))
             return True
         else:
