@@ -25,15 +25,18 @@ from st2common.rbac.types import PackPermissionTypes
 from st2common.rbac.types import ActionPermissionTypes
 from st2common.rbac.types import RulePermissionTypes
 from st2common.exceptions.rbac import AccessDeniedError
+from st2common.exceptions.rbac import ResourceTypeAccessDeniedError
 from st2common.exceptions.rbac import ResourceAccessDeniedError
 
 __all__ = [
     'request_user_is_admin',
     'request_user_has_role',
     'request_user_has_permission',
+    'request_user_has_resource_permission',
 
     'assert_request_user_is_admin',
     'assert_request_user_has_permission',
+    'assert_request_user_has_resource_permission',
 
     'user_is_admin',
     'user_has_role',
@@ -73,7 +76,17 @@ def request_user_has_role(request, role):
     return False
 
 
-def request_user_has_permission(request, resource_db, permission_type):
+def request_user_has_permission(request, permission_type):
+    """
+    Check that currently logged-in user has specified permission.
+
+    :rtype: ``bool``
+    """
+    # TODO
+    return True
+
+
+def request_user_has_resource_permission(request, resource_db, permission_type):
     """
     Check that currently logged-in user has specified permission on the provied resource.
 
@@ -92,10 +105,26 @@ def assert_request_user_is_admin(request):
     is_admin = request_user_is_admin(request=request)
 
     if not is_admin:
-        raise AccessDeniedError('Administrator access required')
+        user_db = _get_user_db_from_request(request=request)
+        raise AccessDeniedError(message='Administrator access required',
+                                user_db=user_db)
 
 
-def assert_request_user_has_permission(request, resource_db, permission_type):
+def assert_request_user_has_permission(request, permission_type):
+    """
+    Check that currently logged-in user has specified permission.
+
+    If user doesn't have a required permission, AccessDeniedError s thrown.
+    """
+    has_permission = request_user_has_permission(request=request,
+                                                 permission_type=permission_type)
+
+    if not has_permission:
+        user_db = _get_user_db_from_request(request=request)
+        raise ResourceTypeAccessDeniedError(user_db=user_db, permission_type=permission_type)
+
+
+def assert_request_user_has_resource_permission(request, resource_db, permission_type):
     """
     Check that currently logged-in user has specified permission on the provied resource.
 

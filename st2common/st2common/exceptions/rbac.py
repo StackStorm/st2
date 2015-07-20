@@ -17,6 +17,7 @@ from st2common.exceptions import StackStormBaseException
 
 __all__ = [
     'AccessDeniedError',
+    'ResourceTypeAccessDeniedError',
     'ResourceAccessDeniedError'
 ]
 
@@ -24,23 +25,36 @@ __all__ = [
 class AccessDeniedError(StackStormBaseException):
     """
     Class representing insufficient permission / access denied error.
+
+    Also acts as a base class for all the access related errors.
     """
 
-    def __init__(self, message):
+    def __init__(self, message, user_db):
+        self.user_db = user_db
         super(AccessDeniedError, self).__init__(message)
 
 
+class ResourceTypeAccessDeniedError(AccessDeniedError):
+    """
+    Class representing an error where user doesn't have a required permission.
+    """
+
+    def __init__(self, user_db, permission_type):
+        self.permission_type = permission_type
+
+        message = ('User "%s" doesn\t have required permission "%s"' % (user_db.name,
+                                                                        permission_type))
+        super(ResourceAccessDeniedError, self).__init__(message=message, user_db=user_db)
+
 class ResourceAccessDeniedError(AccessDeniedError):
     """
-    Class representing an error where user doesn't have a required permission on
-    a resource.
+    Class representing an error where user doesn't have a required permission on a resource.
     """
 
     def __init__(self, user_db, resource_db, permission_type):
-        self.user_db = user_db
         self.resource_db = resource_db
         self.permission_type = permission_type
 
         message = ('User "%s" doesn\t have required permission "%s" on resource "%s"' %
                    (user_db.name, resource_db.get_uid(), permission_type))
-        super(ResourceAccessDeniedError, self).__init__(message)
+        super(ResourceAccessDeniedError, self).__init__(message=message, user_db=user_db)
