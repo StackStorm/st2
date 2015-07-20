@@ -99,7 +99,7 @@ class KeystoneAuthenticationBackendTestCase(unittest2.TestCase):
         return res
 
     @mock.patch('requests.post', side_effect=_mock_keystone)
-    def test_authenticate(self):
+    def test_authenticate(self, mock_post):
         backendv2 = KeystoneAuthenticationBackend(keystone_url="http://fake.com:5000", version=2)
         backendv3 = KeystoneAuthenticationBackend(keystone_url="http://fake.com:5000", version=3)
 
