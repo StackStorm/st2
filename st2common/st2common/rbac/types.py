@@ -34,10 +34,10 @@ class PermissionType(Enum):
     Available permission types.
     """
     VIEW = 'view'
-    CREATE = 'create'  # modify?
+    CREATE = 'create'
+    MODIFY = 'modify'
     DELETE = 'delete'
     EXECUTE = 'execute'
-    USE = 'use'
     ALL = 'all'
 
 
