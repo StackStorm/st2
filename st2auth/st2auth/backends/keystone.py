@@ -19,7 +19,7 @@ from st2auth.backends.base import BaseAuthenticationBackend
 import requests
 import httplib
 
-from six.moves.urllib.parse import parse as urlparse
+from six.moves.urllib.parse import urlparse
 from six.moves.urllib.parse import urljoin
 
 __all__ = [
