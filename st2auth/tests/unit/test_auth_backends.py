@@ -88,7 +88,11 @@ class MongoDBAuthenticationBackendTestCase(unittest2.TestCase):
 
 class KeystoneAuthenticationBackendTestCase(unittest2.TestCase):
     def _mock_keystone(self, *args, **kwargs):
-        return_codes = {'goodv2': httplib.OK, 'goodv3': httplib.CREATED, 'bad': httplib.UNAUTHORIZED}
+        return_codes = {
+            'goodv2': httplib.OK,
+            'goodv3': httplib.CREATED,
+            'bad': httplib.UNAUTHORIZED
+        }
         json = kwargs.get('json')
         res = Response()
         try:
@@ -101,8 +105,10 @@ class KeystoneAuthenticationBackendTestCase(unittest2.TestCase):
 
     @mock.patch('requests.post', side_effect=_mock_keystone)
     def test_authenticate(self, mock_post):
-        backendv2 = KeystoneAuthenticationBackend(keystone_url="http://fake.com:5000", keystone_version=2)
-        backendv3 = KeystoneAuthenticationBackend(keystone_url="http://fake.com:5000", keystone_version=3)
+        backendv2 = KeystoneAuthenticationBackend(keystone_url="http://fake.com:5000",
+                                                  keystone_version=2)
+        backendv3 = KeystoneAuthenticationBackend(keystone_url="http://fake.com:5000",
+                                                  keystone_version=3)
 
         # good users
         self.assertTrue(backendv2.authenticate('goodv2', 'password'))
