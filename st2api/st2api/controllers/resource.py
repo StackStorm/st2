@@ -181,7 +181,7 @@ class ResourceController(rest.RestController):
 
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
         result = self.model.from_model(instance, **from_model_kwargs)
-        LOG.debug('GET %s with name_or_odid=%s, client_result=%s', pecan.request.path, id, result)
+        LOG.debug('GET %s with name_or_id=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
 
