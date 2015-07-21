@@ -72,11 +72,6 @@ class TriggerTypeController(resource.ContentPackResourceController):
             LOG.exception('Validation failed for triggertype data=%s.', triggertype)
             abort(http_client.BAD_REQUEST, str(e))
             return
-        except StackStormDBObjectConflictError as e:
-            LOG.warn('TriggerType creation of %s failed with uniqueness conflict. Exception : %s',
-                     triggertype, str(e))
-            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
-            return
         else:
             extra = {'triggertype_db': triggertype_db}
             LOG.audit('TriggerType created. TriggerType.id=%s' % (triggertype_db.id), extra=extra)
@@ -234,11 +229,6 @@ class TriggerController(RestController):
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s.', trigger)
             abort(http_client.BAD_REQUEST, str(e))
-            return
-        except StackStormDBObjectConflictError as e:
-            LOG.warn('Trigger creation of %s failed with uniqueness conflict. Exception %s',
-                     trigger, str(e))
-            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
             return
 
         extra = {'trigger': trigger_db}

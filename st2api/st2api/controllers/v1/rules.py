@@ -21,7 +21,6 @@ from mongoengine import ValidationError
 from st2common import log as logging
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2api.controllers import resource
 from st2common.models.api.rule import RuleAPI
@@ -78,11 +77,6 @@ class RuleController(resource.ContentPackResourceController):
             msg = 'Trigger %s in rule does not exist in system' % rule.trigger['type']
             LOG.exception(msg)
             abort(http_client.BAD_REQUEST, msg)
-            return
-        except StackStormDBObjectConflictError as e:
-            LOG.warn('Rule creation of %s failed with uniqueness conflict. Exception %s',
-                     rule, str(e))
-            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
             return
 
         extra = {'rule_db': rule_db}

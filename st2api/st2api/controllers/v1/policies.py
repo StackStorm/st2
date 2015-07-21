@@ -23,7 +23,6 @@ from six.moves import http_client
 from st2api.controllers import resource
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.api.base import jsexpose
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.models.db.policy import PolicyTypeReference
@@ -159,12 +158,6 @@ class PolicyController(resource.ContentPackResourceController):
 
         try:
             db_model = self.access.add_or_update(db_model)
-        except StackStormDBObjectConflictError as e:
-            # If an existing DB object conflicts with new object then raise error.
-            LOG.exception('%s unable to create object due to uniqueness '
-                          'conflict: %s', op, db_model)
-            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
-            return
         except Exception as e:
             LOG.exception('%s unable to create object: %s', op, db_model)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))

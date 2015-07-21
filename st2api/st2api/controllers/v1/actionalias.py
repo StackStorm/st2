@@ -20,7 +20,6 @@ from mongoengine import ValidationError
 from st2api.controllers import resource
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.api.action import ActionAliasAPI
 from st2common.persistence.actionalias import ActionAlias
 from st2common.models.api.base import jsexpose
@@ -61,11 +60,6 @@ class ActionAliasController(resource.ContentPackResourceController):
         except (ValidationError, ValueError, ValueValidationException) as e:
             LOG.exception('Validation failed for action alias data=%s.', action_alias)
             pecan.abort(http_client.BAD_REQUEST, str(e))
-            return
-        except StackStormDBObjectConflictError as e:
-            LOG.warn('ActionAlias creation of %s failed with uniqueness conflict.', action_alias,
-                     exc_info=True)
-            pecan.abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
             return
 
         extra = {'action_alias_db': action_alias_db}

@@ -27,7 +27,6 @@ from st2api.controllers.v1.actionviews import ActionViewsController
 from st2common import log as logging
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.api.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
@@ -92,12 +91,6 @@ class ActionsController(resource.ContentPackResourceController):
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
         try:
             action_db = Action.add_or_update(action_model)
-        except StackStormDBObjectConflictError as e:
-            # If an existing DB object conflicts with new object then raise error.
-            LOG.warn('/actions/ POST unable to save ActionDB object "%s" due to uniqueness '
-                     'conflict. %s', action_model, str(e))
-            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
-            return
         except Exception as e:
             LOG.exception('/actions/ POST unable to save ActionDB object "%s". %s',
                           action_model, e)
