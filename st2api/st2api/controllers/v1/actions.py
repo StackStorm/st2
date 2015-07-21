@@ -114,13 +114,7 @@ class ActionsController(resource.ContentPackResourceController):
 
     @jsexpose(arg_types=[str], body_cls=ActionAPI)
     def put(self, action_ref_or_id, action):
-        try:
-            action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
         action_id = action_db.id
 
         try:
@@ -161,13 +155,7 @@ class ActionsController(resource.ContentPackResourceController):
                 DELETE /actions/1
                 DELETE /actions/mypack.myaction
         """
-        try:
-            action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
         action_id = action_db.id
 
         try:

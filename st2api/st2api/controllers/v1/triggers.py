@@ -89,13 +89,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
 
     @jsexpose(arg_types=[str], body_cls=TriggerTypeAPI)
     def put(self, triggertype_ref_or_id, triggertype):
-        try:
-            triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
         triggertype_id = triggertype_db.id
 
         try:
@@ -135,13 +129,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
         LOG.info('DELETE /triggertypes/ with ref_or_id=%s',
                  triggertype_ref_or_id)
 
-        try:
-            triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
         triggertype_id = triggertype_db.id
 
         try:

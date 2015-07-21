@@ -30,6 +30,7 @@ from st2common.models.db.policy import PolicyTypeReference
 from st2common.models.system.common import InvalidReferenceError
 from st2common.persistence.policy import PolicyType, Policy
 from st2common.validators.api.misc import validate_not_part_of_system_pack
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 
 LOG = logging.getLogger(__name__)
@@ -60,14 +61,9 @@ class PolicyTypeController(resource.ResourceController):
     def _get_one(self, ref_or_id):
         LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
 
-        try:
-            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         result = self.model.from_model(instance)
+
         if result and self.include_reference:
             resource_type = getattr(result, 'resource_type', None)
             name = getattr(result, 'name', None)
@@ -97,7 +93,7 @@ class PolicyTypeController(resource.ResourceController):
 
         if not resource_db:
             msg = 'PolicyType with a reference of id "%s" not found.' % (ref_or_id)
-            raise Exception(msg)
+            raise StackStormDBObjectNotFoundError(msg)
 
         return resource_db
 
@@ -183,14 +179,8 @@ class PolicyController(resource.ContentPackResourceController):
     def put(self, ref_or_id, instance):
         op = 'PUT /policies/%s/' % ref_or_id
 
-        try:
-            db_model = self._get_by_ref_or_id(ref_or_id=ref_or_id)
-            LOG.debug('%s found object: %s', op, db_model)
-        except Exception as e:
-            LOG.exception('%s unable to find object.', op)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        db_model = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+        LOG.debug('%s found object: %s', op, db_model)
         db_model_id = db_model.id
 
         try:
@@ -227,13 +217,8 @@ class PolicyController(resource.ContentPackResourceController):
         """
         op = 'DELETE /policies/%s/' % ref_or_id
 
-        try:
-            db_model = self._get_by_ref_or_id(ref_or_id=ref_or_id)
-            LOG.debug('%s found object: %s', op, db_model)
-        except Exception as e:
-            LOG.exception('%s unable to find object.', op)
-            abort(http_client.NOT_FOUND, str(e))
-            return
+        db_model = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+        LOG.debug('%s found object: %s', op, db_model)
 
         try:
             validate_not_part_of_system_pack(db_model)
