@@ -19,8 +19,10 @@ COMPONENT_SPECIFIC_TESTS := st2tests
 # nasty hack to get a space into a variable
 space_char :=
 space_char +=
+comma := ,
 COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS)))
 COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS)),$(component))
+COMPONENTS_TEST_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TEST))
 
 PYTHON_TARGET := 2.7
 
@@ -40,6 +42,7 @@ all: requirements check tests docs
 play:
 	@echo COMPONENTS=$(COMPONENTS)
 	@echo COMPONENTS_TEST=$(COMPONENTS_TEST)
+	@echo COMPONENTS_TEST_COMMA=$(COMPONENTS_TEST_COMMA)
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
 
 
@@ -254,7 +257,7 @@ unit-tests:
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
 			--cover-inclusive --cover-html \
-			--cover-package=$$component $$component/tests/unit || exit 1; \
+			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/unit || exit 1; \
 	done
 
 .PHONY: itests
@@ -287,7 +290,7 @@ itests: requirements .itests
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
 			--cover-inclusive --cover-html \
-			--cover-package=$$component $$component/tests/integration || exit 1; \
+			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/integration || exit 1; \
 	done
 
 .PHONY: mistral-itests
