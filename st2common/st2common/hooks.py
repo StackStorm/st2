@@ -25,6 +25,7 @@ from webob import exc
 from st2common import log as logging
 from st2common.persistence.auth import User
 from st2common.exceptions import auth as exceptions
+from st2common.exceptions import db as db_exceptions
 from st2common.util.jsonify import json_encode
 from st2common.util.auth import validate_token
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
@@ -176,6 +177,9 @@ class JSONErrorResponseHook(PecanHook):
 
         if isinstance(e, exc.HTTPException):
             status_code = state.response.status
+            message = str(e)
+        elif isinstance(e, db_exceptions.StackStormDBObjectNotFoundError):
+            status_code = httplib.NOT_FOUND
             message = str(e)
         elif isinstance(e, ValueError):
             status_code = httplib.BAD_REQUEST
