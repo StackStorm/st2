@@ -64,11 +64,12 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
 
     meta = {
         'indexes': [
-            {'fields': ['parent']},
+            {'fields': ['action.ref']},
             {'fields': ['liveaction.id']},
             {'fields': ['start_timestamp']},
-            {'fields': ['action.ref']},
+            {'fields': ['end_timestamp']},
             {'fields': ['status']}
+            {'fields': ['parent']},
         ]
     }
 

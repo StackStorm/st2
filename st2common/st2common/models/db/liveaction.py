@@ -80,6 +80,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
         'indexes': [
             {'fields': ['-start_timestamp', 'action']},
             {'fields': ['start_timestamp']},
+            {'fields': ['end_timestamp']},
             {'fields': ['action']},
             {'fields': ['status']},
         ]
