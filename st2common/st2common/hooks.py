@@ -168,8 +168,16 @@ class JSONErrorResponseHook(PecanHook):
 
     def on_error(self, state, e):
         error_msg = getattr(e, 'comment', str(e))
-        LOG.debug('API call failed: %s', error_msg)
-        LOG.debug(traceback.format_exc())
+        extra = {
+            'exception_class': e.__class__.__name__,
+            'exception_message': str(e),
+            'exception_data': e.__dict__
+        }
+
+        LOG.debug('API call failed: %s', error_msg, extra=extra)
+
+        if cfg.CONF.debug:
+            LOG.debug(traceback.format_exc())
 
         if hasattr(e, 'body') and isinstance(e.body, dict):
             body = e.body
@@ -182,6 +190,10 @@ class JSONErrorResponseHook(PecanHook):
         elif isinstance(e, db_exceptions.StackStormDBObjectNotFoundError):
             status_code = httplib.NOT_FOUND
             message = str(e)
+        elif isinstance(e, db_exceptions.StackStormDBObjectConflictError):
+            status_code = httplib.CONFLICT
+            message = str(e)
+            body['conflict-id'] = e.conflict_id
         elif isinstance(e, rbac_exceptions.AccessDeniedError):
             status_code = httplib.FORBIDDEN
             message = str(e)

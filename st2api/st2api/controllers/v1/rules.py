@@ -21,7 +21,6 @@ from mongoengine import ValidationError
 from st2common import log as logging
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2api.controllers import resource
 from st2common.models.api.rule import RuleAPI
@@ -79,11 +78,6 @@ class RuleController(resource.ContentPackResourceController):
             LOG.exception(msg)
             abort(http_client.BAD_REQUEST, msg)
             return
-        except StackStormDBObjectConflictError as e:
-            LOG.warn('Rule creation of %s failed with uniqueness conflict. Exception %s',
-                     rule, str(e))
-            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
-            return
 
         extra = {'rule_db': rule_db}
         LOG.audit('Rule created. Rule.id=%s' % (rule_db.id), extra=extra)
@@ -93,13 +87,7 @@ class RuleController(resource.ContentPackResourceController):
 
     @jsexpose(arg_types=[str], body_cls=RuleAPI)
     def put(self, rule_ref_or_id, rule):
-        try:
-            rule_db = self._get_by_ref_or_id(rule_ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        rule_db = self._get_by_ref_or_id(rule_ref_or_id)
         LOG.debug('PUT /rules/ lookup with id=%s found object: %s', rule_ref_or_id, rule_db)
 
         try:
