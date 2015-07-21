@@ -181,6 +181,10 @@ class JSONErrorResponseHook(PecanHook):
         elif isinstance(e, db_exceptions.StackStormDBObjectNotFoundError):
             status_code = httplib.NOT_FOUND
             message = str(e)
+        elif isinstance(e, db_exceptions.StackStormDBObjectConflictError):
+            status_code = httplib.CONFLICT
+            message = str(e)
+            body['conflict-id'] = e.conflict_id
         elif isinstance(e, ValueError):
             status_code = httplib.BAD_REQUEST
             message = getattr(e, 'message', str(e))
