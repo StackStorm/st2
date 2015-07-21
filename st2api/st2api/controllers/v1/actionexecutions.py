@@ -378,6 +378,6 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         """
         kw['limit'] = int(kw.get('limit', 100))
 
-        LOG.debug('Retrieving all action liveactions with filters=%s', kw)
+        LOG.debug('Retrieving all action executions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
                                                                 **kw)
