@@ -25,6 +25,7 @@ from webob import exc
 from st2common import log as logging
 from st2common.persistence.auth import User
 from st2common.exceptions import auth as exceptions
+from st2common.exceptions import db as db_exceptions
 from st2common.util.jsonify import json_encode
 from st2common.util.auth import validate_token
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
@@ -166,8 +167,16 @@ class JSONErrorResponseHook(PecanHook):
 
     def on_error(self, state, e):
         error_msg = getattr(e, 'comment', str(e))
-        LOG.debug('API call failed: %s', error_msg)
-        LOG.debug(traceback.format_exc())
+        extra = {
+            'exception_class': e.__class__.__name__,
+            'exception_message': str(e),
+            'exception_data': e.__dict__
+        }
+
+        LOG.debug('API call failed: %s', error_msg, extra=extra)
+
+        if cfg.CONF.debug:
+            LOG.debug(traceback.format_exc())
 
         if hasattr(e, 'body') and isinstance(e.body, dict):
             body = e.body
@@ -177,6 +186,13 @@ class JSONErrorResponseHook(PecanHook):
         if isinstance(e, exc.HTTPException):
             status_code = state.response.status
             message = str(e)
+        elif isinstance(e, db_exceptions.StackStormDBObjectNotFoundError):
+            status_code = httplib.NOT_FOUND
+            message = str(e)
+        elif isinstance(e, db_exceptions.StackStormDBObjectConflictError):
+            status_code = httplib.CONFLICT
+            message = str(e)
+            body['conflict-id'] = e.conflict_id
         elif isinstance(e, ValueError):
             status_code = httplib.BAD_REQUEST
             message = getattr(e, 'message', str(e))

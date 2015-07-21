@@ -23,13 +23,13 @@ from six.moves import http_client
 from st2api.controllers import resource
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.api.base import jsexpose
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.models.db.policy import PolicyTypeReference
 from st2common.models.system.common import InvalidReferenceError
 from st2common.persistence.policy import PolicyType, Policy
 from st2common.validators.api.misc import validate_not_part_of_system_pack
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 
 LOG = logging.getLogger(__name__)
@@ -60,14 +60,9 @@ class PolicyTypeController(resource.ResourceController):
     def _get_one(self, ref_or_id):
         LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
 
-        try:
-            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         result = self.model.from_model(instance)
+
         if result and self.include_reference:
             resource_type = getattr(result, 'resource_type', None)
             name = getattr(result, 'name', None)
@@ -97,7 +92,7 @@ class PolicyTypeController(resource.ResourceController):
 
         if not resource_db:
             msg = 'PolicyType with a reference of id "%s" not found.' % (ref_or_id)
-            raise Exception(msg)
+            raise StackStormDBObjectNotFoundError(msg)
 
         return resource_db
 
@@ -161,18 +156,7 @@ class PolicyController(resource.ContentPackResourceController):
         db_model = self.model.to_model(instance)
         LOG.debug('%s verified object: %s', op, db_model)
 
-        try:
-            db_model = self.access.add_or_update(db_model)
-        except StackStormDBObjectConflictError as e:
-            # If an existing DB object conflicts with new object then raise error.
-            LOG.exception('%s unable to create object due to uniqueness '
-                          'conflict: %s', op, db_model)
-            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
-            return
-        except Exception as e:
-            LOG.exception('%s unable to create object: %s', op, db_model)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
-            return
+        db_model = self.access.add_or_update(db_model)
 
         LOG.debug('%s created object: %s', op, db_model)
         LOG.audit('Policy created. Policy.id=%s' % (db_model.id), extra={'policy_db': db_model})
@@ -183,14 +167,8 @@ class PolicyController(resource.ContentPackResourceController):
     def put(self, ref_or_id, instance):
         op = 'PUT /policies/%s/' % ref_or_id
 
-        try:
-            db_model = self._get_by_ref_or_id(ref_or_id=ref_or_id)
-            LOG.debug('%s found object: %s', op, db_model)
-        except Exception as e:
-            LOG.exception('%s unable to find object.', op)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        db_model = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+        LOG.debug('%s found object: %s', op, db_model)
         db_model_id = db_model.id
 
         try:
@@ -227,13 +205,8 @@ class PolicyController(resource.ContentPackResourceController):
         """
         op = 'DELETE /policies/%s/' % ref_or_id
 
-        try:
-            db_model = self._get_by_ref_or_id(ref_or_id=ref_or_id)
-            LOG.debug('%s found object: %s', op, db_model)
-        except Exception as e:
-            LOG.exception('%s unable to find object.', op)
-            abort(http_client.NOT_FOUND, str(e))
-            return
+        db_model = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+        LOG.debug('%s found object: %s', op, db_model)
 
         try:
             validate_not_part_of_system_pack(db_model)

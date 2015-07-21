@@ -28,7 +28,7 @@ from st2common.models.api.base import jsexpose
 from st2common import log as logging
 from st2common.models.system.common import InvalidResourceReferenceError
 from st2common.models.system.common import ResourceReference
-
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 LOG = logging.getLogger(__name__)
 
@@ -271,6 +271,9 @@ class ContentPackResourceController(ResourceController):
     def _get_by_ref_or_id(self, ref_or_id):
         """
         Retrieve resource object by an id of a reference.
+
+        Note: This method throws StackStormDBObjectNotFoundError exception if the object is not
+        found in the database.
         """
 
         if ResourceReference.is_resource_reference(ref_or_id):
@@ -286,7 +289,7 @@ class ContentPackResourceController(ResourceController):
 
         if not resource_db:
             msg = 'Resource with a reference or id "%s" not found' % (ref_or_id)
-            raise Exception(msg)
+            raise StackStormDBObjectNotFoundError(msg)
 
         return resource_db
 
