@@ -169,7 +169,8 @@ class JSONErrorResponseHook(PecanHook):
         error_msg = getattr(e, 'comment', str(e))
         extra = {
             'exception_class': e.__class__.__name__,
-            'exception_message': str(e)
+            'exception_message': str(e),
+            'exception_data': e.__dict__
         }
 
         LOG.debug('API call failed: %s', error_msg, extra=extra)

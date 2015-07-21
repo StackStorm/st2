@@ -122,7 +122,9 @@ class Access(object):
             # the raised exception.
             conflict_object = cls._get_by_object(model_object)
             conflict_id = str(conflict_object.id) if conflict_object else None
-            raise StackStormDBObjectConflictError(str(e), conflict_id)
+            message = str(e)
+            raise StackStormDBObjectConflictError(message=message, conflict_id=conflict_id,
+                                                  model_object=model_object)
 
         is_update = str(pre_persist_id) == str(model_object.id)
 
