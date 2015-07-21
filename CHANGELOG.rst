@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+* Add new OpenStack Keystone authentication backend.
+  [Itxaka Serrano]
+
+0.12.0 - July 20, 2015
+----------------------
+
 * Add support for script arguments to the Windows script runner. (new feature)
   [James Sigurðarson]
 * Allow user to filter executions on trigger instance id.
