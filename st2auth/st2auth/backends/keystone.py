@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-from st2common import log as logging
-from st2auth.backends.base import BaseAuthenticationBackend
 import requests
 import httplib
 
 from six.moves.urllib.parse import urlparse
 from six.moves.urllib.parse import urljoin
+
+from st2common import log as logging
+from st2auth.backends.base import BaseAuthenticationBackend
 
 __all__ = [
     'KeystoneAuthenticationBackend'
@@ -53,35 +53,10 @@ class KeystoneAuthenticationBackend(BaseAuthenticationBackend):
 
     def authenticate(self, username, password):
         if self._keystone_version == 2:
-            creds = {
-                "auth": {
-                    "passwordCredentials": {
-                        "username": username,
-                        "password": password
-                    }
-                }
-            }
+            creds = self._get_v2_creds(username=username, password=password)
             login = requests.post(urljoin(self._keystone_url, 'v2.0/tokens'), json=creds)
-
         elif self._keystone_version == 3:
-            creds = {
-                "auth": {
-                    "identity": {
-                        "methods": [
-                            "password"
-                        ],
-                        "password": {
-                            "domain": {
-                                "id": "default"
-                            },
-                            "user": {
-                                "name": username,
-                                "password": password
-                            }
-                        }
-                    }
-                }
-            }
+            creds = self._get_v3_creds(username=username, password=password)
             login = requests.post(urljoin(self._keystone_url, 'v3/auth/tokens'), json=creds)
         else:
             raise Exception("Keystone version {} not supported".format(self._keystone_version))
@@ -95,3 +70,35 @@ class KeystoneAuthenticationBackend(BaseAuthenticationBackend):
 
     def get_user(self, username):
         pass
+
+    def _get_v2_creds(self, username, password):
+        creds = {
+            "auth": {
+                "passwordCredentials": {
+                    "username": username,
+                    "password": password
+                }
+            }
+        }
+        return creds
+
+    def _get_v3_creds(self, username, password):
+        creds = {
+            "auth": {
+                "identity": {
+                    "methods": [
+                        "password"
+                    ],
+                    "password": {
+                        "domain": {
+                            "id": "default"
+                        },
+                        "user": {
+                            "name": username,
+                            "password": password
+                        }
+                    }
+                }
+            }
+        }
+        return creds
