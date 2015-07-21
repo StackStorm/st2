@@ -271,6 +271,9 @@ class ContentPackResourceController(ResourceController):
     def _get_by_ref_or_id(self, ref_or_id):
         """
         Retrieve resource object by an id of a reference.
+
+        Note: This method throws StackStormDBObjectNotFoundError exception if the object is not
+        found in the database.
         """
 
         if ResourceReference.is_resource_reference(ref_or_id):
