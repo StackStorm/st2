@@ -24,6 +24,7 @@ from webob import exc
 
 from st2common import log as logging
 from st2common.persistence.auth import User
+from st2common.exceptions import db as db_exceptions
 from st2common.exceptions import auth as auth_exceptions
 from st2common.exceptions import rbac as rbac_exceptions
 from st2common.util.jsonify import json_encode
@@ -177,6 +178,9 @@ class JSONErrorResponseHook(PecanHook):
 
         if isinstance(e, exc.HTTPException):
             status_code = state.response.status
+            message = str(e)
+        elif isinstance(e, db_exceptions.StackStormDBObjectNotFoundError):
+            status_code = httplib.NOT_FOUND
             message = str(e)
         elif isinstance(e, rbac_exceptions.AccessDeniedError):
             status_code = httplib.FORBIDDEN
