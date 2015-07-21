@@ -89,14 +89,7 @@ class ActionsController(resource.ContentPackResourceController):
         action_model = ActionAPI.to_model(action)
 
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
-        try:
-            action_db = Action.add_or_update(action_model)
-        except Exception as e:
-            LOG.exception('/actions/ POST unable to save ActionDB object "%s". %s',
-                          action_model, e)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
-            return
-
+        action_db = Action.add_or_update(action_model)
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
 
         extra = {'action_db': action_db}

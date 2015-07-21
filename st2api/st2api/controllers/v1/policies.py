@@ -156,12 +156,7 @@ class PolicyController(resource.ContentPackResourceController):
         db_model = self.model.to_model(instance)
         LOG.debug('%s verified object: %s', op, db_model)
 
-        try:
-            db_model = self.access.add_or_update(db_model)
-        except Exception as e:
-            LOG.exception('%s unable to create object: %s', op, db_model)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
-            return
+        db_model = self.access.add_or_update(db_model)
 
         LOG.debug('%s created object: %s', op, db_model)
         LOG.audit('Policy created. Policy.id=%s' % (db_model.id), extra={'policy_db': db_model})
