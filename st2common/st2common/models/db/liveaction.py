@@ -77,7 +77,12 @@ class LiveActionDB(stormbase.StormFoundationDB):
     notify = me.EmbeddedDocumentField(NotificationSchema)
 
     meta = {
-        'indexes': ['-start_timestamp', 'action']
+        'indexes': [
+            {'fields': ['-start_timestamp', 'action']},
+            {'fields': ['start_timestamp']},
+            {'fields': ['action']},
+            {'fields': ['status']},
+        ]
     }
 
     def mask_secrets(self, value):
