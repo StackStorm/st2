@@ -174,7 +174,9 @@ class JSONErrorResponseHook(PecanHook):
         }
 
         LOG.debug('API call failed: %s', error_msg, extra=extra)
-        LOG.debug(traceback.format_exc())
+
+        if cfg.CONF.debug:
+            LOG.debug(traceback.format_exc())
 
         if hasattr(e, 'body') and isinstance(e.body, dict):
             body = e.body
