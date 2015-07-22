@@ -16,6 +16,7 @@
 from st2tests.base import CleanDbTestCase
 from st2common.services import rbac as rbac_services
 from st2common.rbac.types import PermissionType
+from st2common.rbac.types import ResourceType
 from st2common.rbac.types import SystemRole
 from st2common.persistence.auth import User
 from st2common.persistence.rbac import UserRoleAssignment
@@ -149,9 +150,20 @@ class RBACServicesTestCase(CleanDbTestCase):
         permission_grant = rbac_services.create_permission_grant(role_db=role_db, resource_db=resource_db,
                                                                  permission_types=permission_types)
 
-        user_db = self.users['1_custom_role']
+        # Retrieve all grants
         permission_grants = rbac_services.get_all_permission_grants_for_user(user_db=user_db)
         self.assertItemsEqual(permission_grants, [permission_grant])
+
+        # Retrieve all grants, filter on resource with no grants
+        permission_grants = rbac_services.get_all_permission_grants_for_user(user_db=user_db,
+            resource_types=[ResourceType.PACK])
+        self.assertItemsEqual(permission_grants, [])
+
+        # Retrieve all grants, filter on resource with grants
+        permission_grants = rbac_services.get_all_permission_grants_for_user(user_db=user_db,
+            resource_types=[ResourceType.RULE])
+        self.assertItemsEqual(permission_grants, [permission_grant])
+
 
     def test_create_and_remove_permission_grant(self):
         role_db = self.roles['custom_role_2']
