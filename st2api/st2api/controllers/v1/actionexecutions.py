@@ -41,6 +41,9 @@ from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
 from st2common.util import date as date_utils
+from st2common.util import action_db as action_utils
+from st2common.rbac.types import PermissionType
+from st2common.rbac.utils import assert_request_user_has_resource_permission
 
 __all__ = [
     'ActionExecutionsController'
@@ -94,6 +97,13 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         return from_model_kwargs
 
     def _handle_schedule_execution(self, execution):
+        # Assert the permissions
+        action_ref = execution.action
+        action_db = action_utils.get_action_by_ref(action_ref)
+
+        assert_request_user_has_resource_permission(request=pecan.request, resource_db=action_db,
+                                                    permission_type=PermissionType.ACTION_EXECUTE)
+
         try:
             return self._schedule_execution(execution=execution)
         except ValueError as e:

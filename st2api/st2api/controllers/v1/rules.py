@@ -26,6 +26,9 @@ from st2api.controllers import resource
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.rule import Rule
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_permission
 
 http_client = six.moves.http_client
 
@@ -52,6 +55,7 @@ class RuleController(resource.ContentPackResourceController):
     include_reference = True
 
     @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
+    @request_user_has_permission(permission_type=PermissionType.RULE_CREATE)
     def post(self, rule):
         """
             Create a new rule.
@@ -86,6 +90,7 @@ class RuleController(resource.ContentPackResourceController):
         return rule_api
 
     @jsexpose(arg_types=[str], body_cls=RuleAPI)
+    @request_user_has_resource_permission(permission_type=PermissionType.RULE_MODIFY)
     def put(self, rule_ref_or_id, rule):
         rule_db = self._get_by_ref_or_id(rule_ref_or_id)
         LOG.debug('PUT /rules/ lookup with id=%s found object: %s', rule_ref_or_id, rule_db)
@@ -110,6 +115,7 @@ class RuleController(resource.ContentPackResourceController):
         return rule_api
 
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
+    @request_user_has_resource_permission(permission_type=PermissionType.RULE_DELETE)
     def delete(self, rule_ref_or_id):
         """
             Delete a rule.

@@ -31,6 +31,9 @@ from st2common.models.api.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.validators.api.misc import validate_not_part_of_system_pack
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_permission
 import st2common.validators.api.action as action_validator
 
 http_client = six.moves.http_client
@@ -69,6 +72,7 @@ class ActionsController(resource.ContentPackResourceController):
             abort(http_client.CONFLICT, msg)
 
     @jsexpose(body_cls=ActionAPI, status_code=http_client.CREATED)
+    @request_user_has_permission(permission_type=PermissionType.ACTION_CREATE)
     def post(self, action):
         """
             Create a new action.
@@ -99,8 +103,11 @@ class ActionsController(resource.ContentPackResourceController):
         return action_api
 
     @jsexpose(arg_types=[str], body_cls=ActionAPI)
+    @request_user_has_resource_permission(permission_type=PermissionType.ACTION_MODIFY)
     def put(self, action_ref_or_id, action):
         action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
+
+        # Assert permissions
         action_id = action_db.id
 
         try:
@@ -132,6 +139,7 @@ class ActionsController(resource.ContentPackResourceController):
         return action_api
 
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
+    @request_user_has_resource_permission(permission_type=PermissionType.ACTION_DELETE)
     def delete(self, action_ref_or_id):
         """
             Delete an action.
