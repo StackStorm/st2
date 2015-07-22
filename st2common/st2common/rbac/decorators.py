@@ -52,14 +52,35 @@ def request_user_has_permission(permission_type):
 
 
 def request_user_has_resource_permission(permission_type):
+    """
+    A decorator meant to wrap post, put and delete Pecan REST controller methods.
+
+    This decorator assumes the first argument passed to the decorated function is a resource
+    reference or an ID.
+
+    Internally, this decorator retrieves the object from the DB so it can perform the permission
+    checking.
+
+    Note: The same query happens inside the decorator function meaning this is not the most
+    efficient approach and we should eventually cache the "get one" results.
+    """
     def decorate(func):
+        function_name = func.__name__
+        if function_name not in ['post', 'put', 'delete']:
+            raise Exception('This decorator should only be used to wrap post, put and delete '
+                            'methods')
+
         @wraps(func)
         def func_wrapper(*args, **kwargs):
-            # TODO
-            resource_db = None
+            controller_instance = args[0]
+            resource_ref_or_id = args[1]
+
+            resource_db = controller_instance._get_by_ref_or_id(ref_or_id=resource_ref_or_id)
             utils.assert_request_user_has_resource_permission(request=pecan.request,
                                                               resource_db=resource_db,
                                                               permission_type=permission_type)
             return func(*args, **kwargs)
         return func_wrapper
     return decorate
+
+
