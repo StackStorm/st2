@@ -65,9 +65,12 @@ class PermissionGrantDB(stormbase.StormFoundationDB):
 
     Attribute:
         resource_uid: UID of a target resource to which this permission applies to.
+        resource_type: Type of a resource this permission applies to. This attribute is here for
+        convenience and to allow for more efficient queries.
         permission_types: A list of permission type granted to that resources.
     """
     resource_uid = me.StringField(required=True)
+    resource_type = me.StringField(required=True)
     permission_types = me.ListField(field=me.StringField(),
                                     unique_with='resource_uid')
 

@@ -159,9 +159,11 @@ def create_permission_grant(role_db, resource_db, permission_types):
     permission_types = _validate_permission_types(resource_db=resource_db,
                                                   permission_types=permission_types)
     resource_uid = resource_db.get_uid()
+    resource_type = resource_db.get_resource_type()
 
     # Create or update the PermissionGrantDB
     permission_grant_db = PermissionGrantDB(resource_uid=resource_uid,
+                                            resource_type=resource_type,
                                             permission_types=permission_types)
     permission_grant_db = PermissionGrant.add_or_update(permission_grant_db)
 
@@ -184,7 +186,9 @@ def remove_permission_grant(role_db, resource_db, permission_types):
     permission_types = _validate_permission_types(resource_db=resource_db,
                                                   permission_types=permission_types)
     resource_uid = resource_db.get_uid()
+    resource_type = resource_db.get_resource_type()
     permission_grant_db = PermissionGrant.get(resource_uid=resource_uid,
+                                              resource_type=resource_type,
                                               permission_types=permission_types)
 
     # Remove assignment from a role
