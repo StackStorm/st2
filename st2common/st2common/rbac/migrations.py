@@ -13,39 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pecan import rest
-
-from st2api.controllers.resource import ResourceController
-from st2common.models.api.base import jsexpose
-from st2common.models.api.rbac import RoleAPI
+from st2common.rbac.types import SystemRole
 from st2common.persistence.rbac import Role
+from st2common.models.db.rbac import RoleDB
+from st2common.exceptions.db import StackStormDBObjectConflictError
 
 __all__ = [
-    'RBACController',
-    'RolesController'
+    'insert_system_roles'
 ]
 
 
-class RolesController(ResourceController):
-    model = RoleAPI
-    access = Role
-    supported_filters = {
-        'name': 'name',
-        'system': 'system'
-    }
+def insert_system_roles():
+    system_roles = SystemRole.get_valid_values()
 
-    filter_transform_functions = {
-        'system': lambda value: value in ['1', 'true', 'True']
-    }
+    for role_name in system_roles:
+        description = role_name
+        role_db = RoleDB(name=role_name, description=description, system=True)
 
-    query_options = {
-        'sort': ['name']
-    }
-
-    @jsexpose(arg_types=[str])
-    def get_one(self, name_or_id):
-        return self._get_one_by_name_or_id(name_or_id=name_or_id)
-
-
-class RBACController(rest.RestController):
-    roles = RolesController()
+        # TODO: This it not ideal, we need to modify add_or_update so it allows atomic updates
+        # by non-id PK
+        try:
+            Role.add_or_update(role_db)
+        except StackStormDBObjectConflictError:
+            pass

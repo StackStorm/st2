@@ -37,11 +37,13 @@ class RoleDB(stormbase.StormFoundationDB):
     Attribute:
         name: Role name. Also servers as a primary key.
         description: Role description (optional).
+        system: Flag indicating if this is system role which can't be manipulated.
         permission_grants: A list of IDs to the permission grant which apply to this
         role.
     """
     name = me.StringField(required=True, unique=True)
     description = me.StringField()
+    system = me.BooleanField(default=False)
     permission_grants = me.ListField(field=me.StringField())
 
 

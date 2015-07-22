@@ -25,6 +25,7 @@ from st2common.models.db.rbac import PermissionGrantDB
 
 __all__ = [
     'get_all_roles',
+    'get_system_roles',
     'get_roles_for_user',
 
     'create_role',
@@ -44,9 +45,17 @@ def get_all_roles():
 
     :rtype: ``list`` of :class:`RoleDB`
     """
-    # TODO: This is a "hack" since we don't have a migration system in place
-    # right now so we ould add system roles directly to the db
     result = Role.get_all()
+    return result
+
+
+def get_system_roles():
+    """
+    Retrieve all the available system roles.
+
+    :rtype: ``list`` of :class:`RoleDB`
+    """
+    result = Role.query(system=True)
     return result
 
 
