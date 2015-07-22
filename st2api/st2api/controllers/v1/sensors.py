@@ -60,5 +60,6 @@ class SensorExecutionController(resource.ResourceController):
     access = SensorExecution
     supported_filters = {
         'sensor_node': 'sensor_node',
+        'sensor_instance': 'sensor_instance',
         'status': 'status'
     }
