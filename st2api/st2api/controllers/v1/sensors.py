@@ -15,8 +15,8 @@
 
 import six
 from st2common import log as logging
-from st2common.persistence.sensor import SensorType
-from st2common.models.api.sensor import SensorTypeAPI
+from st2common.persistence.sensor import SensorType, SensorInstance
+from st2common.models.api.sensor import SensorTypeAPI, SensorInstanceAPI
 from st2api.controllers import resource
 
 http_client = six.moves.http_client
@@ -37,3 +37,27 @@ class SensorTypeController(resource.ContentPackResourceController):
     }
 
     include_reference = True
+
+
+class SensorInstanceController(resource.ContentPackResourceController):
+    model = SensorInstanceAPI
+    access = SensorInstance
+    supported_filters = {
+        'name': 'name',
+        'pack': 'pack'
+    }
+
+    options = {
+        'sort': ['pack', 'name']
+    }
+
+    include_reference = True
+
+
+class SensorExecutionController(resource.ResourceController):
+    model = SensorInstanceAPI
+    access = SensorInstance
+    supported_filters = {
+        'sensor_node': 'sensor_node',
+        'status': 'status'
+    }

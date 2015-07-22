@@ -22,7 +22,8 @@ from st2api.controllers.v1.packs import PacksController
 from st2api.controllers.v1.policies import PolicyTypeController, PolicyController
 from st2api.controllers.v1.rules import RuleController
 from st2api.controllers.v1.runnertypes import RunnerTypesController
-from st2api.controllers.v1.sensors import SensorTypeController
+from st2api.controllers.v1.sensors import SensorTypeController, SensorInstanceController, \
+    SensorExecutionController
 from st2api.controllers.v1.stream import StreamController
 from st2api.controllers.v1.triggers import TriggerTypeController, TriggerController, \
     TriggerInstanceController
@@ -38,6 +39,8 @@ class RootController(object):
     policytypes = PolicyTypeController()
     runnertypes = RunnerTypesController()
     sensortypes = SensorTypeController()
+    sensorinstances = SensorInstanceController()
+    sensorexecutions = SensorExecutionController()
     triggertypes = TriggerTypeController()
     triggers = TriggerController()
     triggerinstances = TriggerInstanceController()
