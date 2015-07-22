@@ -35,6 +35,8 @@ __all__ = [
     'assert_request_user_has_resource_permission',
 
     'user_is_admin',
+    'user_has_permission',
+    'user_has_resource_permission',
     'user_has_role'
 ]
 
@@ -60,14 +62,7 @@ def request_user_has_role(request, role):
         return True
 
     user_db = _get_user_db_from_request(request=request)
-
-    if not user_db:
-        return False
-
-    if user_has_role(user=user_db, role=role):
-        return True
-
-    return False
+    return user_has_role(user_db=user_db, role=role)
 
 
 def request_user_has_permission(request, permission_type):
@@ -76,8 +71,8 @@ def request_user_has_permission(request, permission_type):
 
     :rtype: ``bool``
     """
-    # TODO
-    return True
+    user_db = _get_user_db_from_request(request=request)
+    return user_has_permission(user_db=user_db, permission_type=permission_type)
 
 
 def request_user_has_resource_permission(request, resource_db, permission_type):
@@ -86,8 +81,9 @@ def request_user_has_resource_permission(request, resource_db, permission_type):
 
     :rtype: ``bool``
     """
-    # TODO
-    return True
+    user_db = _get_user_db_from_request(request=request)
+    return user_has_resource_permission(user_db=user_db, resource_db=resource_db,
+                                        permission_type=permission_type)
 
 
 def assert_request_user_is_admin(request):
@@ -153,6 +149,28 @@ def user_has_role(user, role):
     :rtype: ``bool``
     """
     # TOOD
+    return True
+
+
+def user_has_permission(user_db, permission_type):
+    """
+    Check that the provided user has specified permission.
+    """
+    if not cfg.CONF.rbac.enable:
+        return True
+
+    # TODO
+    return True
+
+
+def user_has_resource_permission(user_db, resource_db, permission_type):
+    """
+    Check that the provided user has specified permission on the provided resource.
+    """
+    if not cfg.CONF.rbac.enable:
+        return True
+
+    # TODO
     return True
 
 
