@@ -16,6 +16,7 @@
 from st2tests.base import CleanDbTestCase
 from st2common.services import rbac as rbac_services
 from st2common.rbac.types import PermissionType
+from st2common.rbac.types import SystemRole
 from st2common.persistence.auth import User
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rule import Rule
@@ -89,6 +90,21 @@ class RBACServicesTestCase(CleanDbTestCase):
 
         role_dbs = user_db.get_roles()
         self.assertItemsEqual(role_dbs, [self.roles['custom_role_1']])
+
+    def test_create_role_with_system_role_name(self):
+        # Roles with names which match system role names can't be created
+        expected_msg = '"observer" role name is blacklisted'
+        self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.create_role,
+                                name=SystemRole.OBSERVER)
+
+    def test_delete_system_role(self):
+        # System roles can't be deleted
+        system_roles = SystemRole.get_valid_values()
+
+        for name in system_roles:
+            expected_msg = 'System roles can\'t be deleted'
+            self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.delete_role,
+                                    name=name)
 
     def test_grant_and_revoke_role(self):
         user_db = UserDB(name='test-user-1')
@@ -164,13 +180,13 @@ class RBACServicesTestCase(CleanDbTestCase):
 
         expected_msg = 'Permissions cannot be manipulated for a resource of type'
         self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.create_permission_grant,
-                               role_db=role_db, resource_db=resource_db,
-                               permission_types=permission_types)
+                                role_db=role_db, resource_db=resource_db,
+                                permission_types=permission_types)
 
         expected_msg = 'Permissions cannot be manipulated for a resource of type'
         self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.remove_permission_grant,
-                               role_db=role_db, resource_db=resource_db,
-                               permission_types=permission_types)
+                                role_db=role_db, resource_db=resource_db,
+                                permission_types=permission_types)
 
     def test_manipulate_permission_grants_invalid_permission_types(self):
         # Try to assign / revoke a permission which is not supported for a particular resource
@@ -180,10 +196,10 @@ class RBACServicesTestCase(CleanDbTestCase):
 
         expected_msg = 'Invalid permission type'
         self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.create_permission_grant,
-                               role_db=role_db, resource_db=resource_db,
-                               permission_types=permission_types)
+                                role_db=role_db, resource_db=resource_db,
+                                permission_types=permission_types)
 
         expected_msg = 'Invalid permission type'
         self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.remove_permission_grant,
-                               role_db=role_db, resource_db=resource_db,
-                               permission_types=permission_types)
+                                role_db=role_db, resource_db=resource_db,
+                                permission_types=permission_types)
