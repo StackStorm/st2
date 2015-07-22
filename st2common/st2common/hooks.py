@@ -166,18 +166,6 @@ class JSONErrorResponseHook(PecanHook):
     """
 
     def on_error(self, state, e):
-        error_msg = getattr(e, 'comment', str(e))
-        extra = {
-            'exception_class': e.__class__.__name__,
-            'exception_message': str(e),
-            'exception_data': e.__dict__
-        }
-
-        LOG.debug('API call failed: %s', error_msg, extra=extra)
-
-        if cfg.CONF.debug:
-            LOG.debug(traceback.format_exc())
-
         if hasattr(e, 'body') and isinstance(e.body, dict):
             body = e.body
         else:
@@ -200,10 +188,27 @@ class JSONErrorResponseHook(PecanHook):
             status_code = httplib.INTERNAL_SERVER_ERROR
             message = 'Internal Server Error'
 
+        # Log the error
+        is_internal_server_error = status_code == httplib.INTERNAL_SERVER_ERROR
+        error_msg = getattr(e, 'comment', str(e))
+        extra = {
+            'exception_class': e.__class__.__name__,
+            'exception_message': str(e),
+            'exception_data': e.__dict__
+        }
+
+        if is_internal_server_error:
+            LOG.exception('API call failed: %s', error_msg, extra=extra)
+            LOG.exception(traceback.format_exc())
+        else:
+            LOG.debug('API call failed: %s', error_msg, extra=extra)
+
+            if cfg.CONF.debug:
+                LOG.debug(traceback.format_exc())
+
         body['faultstring'] = message
 
         response_body = json_encode(body)
-
         headers = state.response.headers or {}
 
         headers['Content-Type'] = 'application/json'
