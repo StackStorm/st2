@@ -1,0 +1,4 @@
+---
+status: running
+sensor_node: sensor_node_2
+sensor_instance: generic.sensor_instance_1

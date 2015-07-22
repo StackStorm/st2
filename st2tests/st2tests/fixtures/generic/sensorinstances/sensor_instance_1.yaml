@@ -1,0 +1,7 @@
+---
+name: sensor_instance_1
+pack: generic
+description: Instantiation of parameterized_sensor
+sensor_type: generic.parameterized_sensor
+parameters:
+    input_1: bar
