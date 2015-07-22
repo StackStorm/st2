@@ -120,6 +120,23 @@ class RBACServicesTestCase(CleanDbTestCase):
         role_dbs = user_db.get_roles()
         self.assertItemsEqual(role_dbs, [])
 
+    def test_get_all_permission_grants_for_user(self):
+        user_db = self.users['1_custom_role']
+        role_db = self.roles['custom_role_1']
+        permission_grants = rbac_services.get_all_permission_grants_for_user(user_db=user_db)
+        self.assertItemsEqual(permission_grants, [])
+
+        # Grant some permissions
+        resource_db = self.resources['rule_1']
+        permission_types = [PermissionType.RULE_CREATE, PermissionType.RULE_MODIFY]
+
+        permission_grant = rbac_services.create_permission_grant(role_db=role_db, resource_db=resource_db,
+                                                                 permission_types=permission_types)
+
+        user_db = self.users['1_custom_role']
+        permission_grants = rbac_services.get_all_permission_grants_for_user(user_db=user_db)
+        self.assertItemsEqual(permission_grants, [permission_grant])
+
     def test_create_and_remove_permission_grant(self):
         role_db = self.roles['custom_role_2']
         resource_db = self.resources['rule_1']

@@ -35,6 +35,7 @@ __all__ = [
     'assign_role_to_user',
     'revoke_role_from_user',
 
+    'get_all_permission_grants_for_user',
     'create_permission_grant',
     'remove_permission_grant'
 ]
@@ -126,6 +127,23 @@ def revoke_role_from_user(role_db, user_db):
     role_assignment_db = UserRoleAssignment.get(user=user_db.name, role=role_db.name)
     result = UserRoleAssignment.delete(role_assignment_db)
     return result
+
+
+def get_all_permission_grants_for_user(user_db):
+    """
+    Retrieve all the permission grants for a particular user.
+
+    The result is a union of all the permission grants assigned to the roles which are assigned to
+    the user.
+
+    :rtype: ``list`` or :class:`PermissionGrantDB`
+    """
+    role_names = UserRoleAssignment.query(user=user_db.name).only('role').scalar('role')
+    permission_grant_ids = Role.query(name__in=role_names).scalar('permission_grants')
+    permission_grant_ids = sum(permission_grant_ids, [])
+    permission_grant_dbs = PermissionGrant.query(id__in=permission_grant_ids)
+
+    return permission_grant_dbs
 
 
 def create_permission_grant(role_db, resource_db, permission_types):
