@@ -62,12 +62,12 @@ class PermissionGrantDB(stormbase.StormFoundationDB):
     An entity which represents permission assignment.
 
     Attribute:
-        resource_ref: Reference of a target resource to which this permission applies to.
+        resource_uid: UID of a target resource to which this permission applies to.
         permission_types: A list of permission type granted to that resources.
     """
-    resource_ref = me.StringField(required=True)
+    resource_uid = me.StringField(required=True)
     permission_types = me.ListField(field=me.StringField(),
-                                    unique_with='resource_ref')
+                                    unique_with='resource_uid')
 
 # Specialized access objects
 role_access = MongoDBAccess(RoleDB)
