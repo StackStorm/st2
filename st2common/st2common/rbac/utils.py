@@ -21,9 +21,6 @@ from oslo_config import cfg
 
 from st2common.constants.types import ResourceType
 from st2common.constants.rbac import SystemRole
-from st2common.rbac.types import PackPermissionTypes
-from st2common.rbac.types import ActionPermissionTypes
-from st2common.rbac.types import RulePermissionTypes
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.exceptions.rbac import ResourceTypeAccessDeniedError
 from st2common.exceptions.rbac import ResourceAccessDeniedError
@@ -39,9 +36,7 @@ __all__ = [
     'assert_request_user_has_resource_permission',
 
     'user_is_admin',
-    'user_has_role',
-
-    'get_valid_permission_types_for_resource'
+    'user_has_role'
 ]
 
 
@@ -130,8 +125,8 @@ def assert_request_user_has_resource_permission(request, resource_db, permission
 
     If user doesn't have a required permission, AccessDeniedError s thrown.
     """
-    has_permission = request_user_has_permission(request=request, resource_db=resource_db,
-                                                 permission_type=permission_type)
+    has_permission = request_user_has_resource_permission(request=request, resource_db=resource_db,
+                                                          permission_type=permission_type)
 
     if not has_permission:
         user_db = _get_user_db_from_request(request=request)
@@ -163,22 +158,6 @@ def user_has_role(user, role):
         return True
 
     return False
-
-
-def get_valid_permission_types_for_resource(resource_db):
-    """
-    Return a list of valid permission types for the provided resource type.
-    """
-    resource_type = resource_db.get_resource_type()
-
-    if resource_type == ResourceType.PACK:
-        return PackPermissionTypes
-    elif resource_type == ResourceType.ACTION:
-        return ActionPermissionTypes
-    elif resource_type == ResourceType.RULE:
-        return RulePermissionTypes
-    else:
-        raise ValueError('Unsupported resource type: %s' % (resource_type))
 
 
 def _get_user_db_from_request(request):

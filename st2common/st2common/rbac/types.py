@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
-
 from st2common.util.misc import Enum
 from st2common.constants.types import ResourceType as SystemResourceType
 
@@ -22,10 +20,6 @@ __all__ = [
     'SystemRole',
     'PermissionType',
     'ResourceType',
-
-    'PackPermissionTypes',
-    'ActionPermissionTypes',
-    'RulePermissionTypes'
 ]
 
 
@@ -33,12 +27,33 @@ class PermissionType(Enum):
     """
     Available permission types.
     """
-    VIEW = 'view'
-    CREATE = 'create'
-    MODIFY = 'modify'
-    DELETE = 'delete'
-    EXECUTE = 'execute'
-    ALL = 'all'
+
+    PACK_VIEW = 'pack_view'
+    PACK_CREATE = 'pack_create'
+    PACK_MODIFY = 'pack_modify'
+    PACK_DELETE = 'pack_delete'
+    PACK_EXECUTE = 'pack_execute'
+    PACK_ALL = 'pack_all'
+
+    ACTION_VIEW = 'action_view'
+    ACTION_CREATE = 'action_create'
+    ACTION_MODIFY = 'action_modify'
+    ACTION_DELETE = 'action_delete'
+    ACTION_EXECUTE = 'action_execute'
+    ACTION_ALL = 'action_all'
+
+    RULE_VIEW = 'rule_view'
+    RULE_CREATE = 'rule_create'
+    RULE_MODIFY = 'rule_modify'
+    RULE_DELETE = 'rule_delete'
+    RULE_ALL = 'rule_all'
+
+    @classmethod
+    def get_valid_permissions_for_resource_type(cls, resource_type):
+        valid_values = cls.get_valid_values()
+        valid_permissions = [value for value in valid_values
+                             if value.lower().startswith(resource_type)]
+        return valid_permissions
 
 
 class SystemRole(Enum):
@@ -59,56 +74,3 @@ class ResourceType(Enum):
     ACTION = SystemResourceType.ACTION
     RULE = SystemResourceType.RULE
     TRIGGER_TYPE = SystemResourceType.TRIGGER_TYPE
-
-
-class ResourcePermissionType(object):
-    """
-    Base class representing permissions which can be granted on a particular
-    resource type.
-    """
-    resource_type = abc.abstractproperty
-    valid_permission_types = abc.abstractproperty
-
-    @classmethod
-    def get_valid_permission_types(cls):
-        return cls.valid_permission_types
-
-
-class PackPermissionTypes(ResourcePermissionType):
-    """
-    Permissions which can be granted on a pack.
-    """
-    resource_type = ResourceType.PACK
-    valid_permission_types = [
-        PermissionType.VIEW,
-        PermissionType.EXECUTE,
-        PermissionType.ALL
-    ]
-
-
-class ActionPermissionTypes(ResourcePermissionType):
-    """
-    Permissions which can be granted on an action.
-    """
-    resource_type = ResourceType.ACTION
-    valid_permission_types = [
-        PermissionType.VIEW,
-        PermissionType.CREATE,
-        PermissionType.DELETE,
-        PermissionType.EXECUTE,
-        PermissionType.ALL
-    ]
-
-
-class RulePermissionTypes(ResourcePermissionType):
-    """
-    Permissions which can be granted on a rule.
-    """
-    resource_type = ResourceType.RULE
-    valid_permission_types = [
-        PermissionType.VIEW,
-        PermissionType.CREATE,
-        PermissionType.DELETE,
-        PermissionType.EXECUTE,
-        PermissionType.ALL
-    ]

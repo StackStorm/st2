@@ -125,7 +125,7 @@ class RBACServicesTestCase(CleanDbTestCase):
         resource_db = self.resources['rule_1']
 
         # Grant "ALL" permission to the resource
-        permission_types = [PermissionType.ALL]
+        permission_types = [PermissionType.RULE_ALL]
         rbac_services.create_permission_grant(role_db=role_db, resource_db=resource_db,
                                               permission_types=permission_types)
 
@@ -143,7 +143,7 @@ class RBACServicesTestCase(CleanDbTestCase):
         # Try to manipulate permissions on an unsupported resource
         role_db = self.roles['custom_role_2']
         resource_db = RunnerTypeDB()
-        permission_types = [PermissionType.ALL]
+        permission_types = [PermissionType.RULE_ALL]
 
         expected_msg = 'Permissions cannot be manipulated for a resource of type'
         self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.create_permission_grant,
@@ -158,8 +158,8 @@ class RBACServicesTestCase(CleanDbTestCase):
     def test_manipulate_permission_grants_invalid_permission_types(self):
         # Try to assign / revoke a permission which is not supported for a particular resource
         role_db = self.roles['custom_role_2']
-        resource_db = PackDB(ref='foo', name='foo')
-        permission_types = [PermissionType.CREATE]
+        resource_db = self.resources['rule_1']
+        permission_types = [PermissionType.ACTION_EXECUTE]
 
         expected_msg = 'Invalid permission type'
         self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.create_permission_grant,

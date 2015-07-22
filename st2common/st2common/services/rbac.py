@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
-from st2common.rbac.utils import get_valid_permission_types_for_resource
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import PermissionGrant
@@ -126,7 +126,7 @@ def create_permission_grant(role_db, resource_db, permission_types):
     """
     permission_types = _validate_permission_types(resource_db=resource_db,
                                                   permission_types=permission_types)
-    resource_uid  = resource_db.get_uid()
+    resource_uid = resource_db.get_uid()
 
     # Create or update the PermissionGrantDB
     permission_grant_db = PermissionGrantDB(resource_uid=resource_uid,
@@ -181,8 +181,8 @@ def _validate_permission_types(resource_db, permission_types):
     provided resource.
     """
     resource_db = _validate_resource_type(resource_db=resource_db)
-    resource_permission_types = get_valid_permission_types_for_resource(resource_db=resource_db)
-    valid_permission_types = resource_permission_types.get_valid_permission_types()
+    resource_type = resource_db.get_resource_type()
+    valid_permission_types = PermissionType.get_valid_permissions_for_resource_type(resource_type)
 
     for permission_type in permission_types:
         if permission_type not in valid_permission_types:
