@@ -37,7 +37,7 @@ class RBACTestCase(unittest2.TestCase):
         # When feature RBAC is disabled, all the functions should return True
         cfg.CONF.set_override(name='enable', override=False, group='rbac')
 
-        result = utils.user_is_admin(user=self.mocks['user_db'])
+        result = utils.user_is_admin(user_db=self.mocks['user_db'])
         self.assertTrue(result)
 
     def test_feature_flag_returns_true_on_rbac_disabled(self):
@@ -45,5 +45,5 @@ class RBACTestCase(unittest2.TestCase):
 
         # TODO: Enable once checks are implemented
         return
-        result = utils.user_is_admin(user=self.mocks['user_db'])
+        result = utils.user_is_admin(user_db=self.mocks['user_db'])
         self.assertFalse(result)

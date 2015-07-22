@@ -129,19 +129,19 @@ def assert_request_user_has_resource_permission(request, resource_db, permission
                                         permission_type=permission_type)
 
 
-def user_is_admin(user):
+def user_is_admin(user_db):
     """
     Return True if the provided user has admin rule, false otherwise.
 
-    :param user: User object to check for.
-    :type user: :class:`UserDB`
+    :param user_db: User object to check for.
+    :type user_db: :class:`UserDB`
 
     :rtype: ``bool``
     """
-    return user_has_role(user=user, role=SystemRole.ADMIN)
+    return user_has_role(user_db=user_db, role=SystemRole.ADMIN)
 
 
-def user_has_role(user, role):
+def user_has_role(user_db, role):
     """
     :param user: User object to check for.
     :type user: :class:`UserDB`
@@ -168,7 +168,7 @@ def user_has_resource_permission(user_db, resource_db, permission_type):
     Check that the provided user has specified permission on the provided resource.
     """
     if not cfg.CONF.rbac.enable:
-        return True
+        return TrueA
 
     # TODO
     return True
