@@ -2,6 +2,6 @@
 name: sensor_instance_2
 pack: generic
 description: Instantiation of parameterized_sensor
-sensor_type: generic.parameterized_sensor
+sensor_type: generic.ParameterizedSensor
 parameters:
     input_1: baz

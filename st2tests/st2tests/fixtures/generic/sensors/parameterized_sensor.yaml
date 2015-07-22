@@ -1,9 +1,8 @@
 ---
-name: parameterized_sensor
 pack: generic
 description: fixture sensor1
 artifact_uri: 'file:///generic/sample_sensor.py'
-class_name: 'Sensor1'
+class_name: 'ParameterizedSensor'
 enabled: True
 trigger_types: []
 parameters_schema:

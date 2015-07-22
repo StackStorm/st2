@@ -44,7 +44,8 @@ class SensorInstanceController(resource.ContentPackResourceController):
     access = SensorInstance
     supported_filters = {
         'name': 'name',
-        'pack': 'pack'
+        'pack': 'pack',
+        'type': 'sensor_type'
     }
 
     options = {
