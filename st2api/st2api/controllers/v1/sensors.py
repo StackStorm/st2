@@ -15,8 +15,8 @@
 
 import six
 from st2common import log as logging
-from st2common.persistence.sensor import SensorType, SensorInstance
-from st2common.models.api.sensor import SensorTypeAPI, SensorInstanceAPI
+from st2common.persistence.sensor import SensorType, SensorInstance, SensorExecution
+from st2common.models.api.sensor import SensorTypeAPI, SensorInstanceAPI, SensorExecutionAPI
 from st2api.controllers import resource
 
 http_client = six.moves.http_client
@@ -56,8 +56,8 @@ class SensorInstanceController(resource.ContentPackResourceController):
 
 
 class SensorExecutionController(resource.ResourceController):
-    model = SensorInstanceAPI
-    access = SensorInstance
+    model = SensorExecutionAPI
+    access = SensorExecution
     supported_filters = {
         'sensor_node': 'sensor_node',
         'status': 'status'
