@@ -83,7 +83,7 @@ def to_sensor_instance_db_model(sensor_instance_api_model):
     sensor_type = getattr(sensor_instance_api_model, 'sensor_type', None)
     poll_interval = getattr(sensor_instance_api_model, 'poll_interval', None)
     enabled = getattr(sensor_instance_api_model, 'enabled', True)
-    parameters_schema = getattr(sensor_instance_api_model, '')
+    parameters_schema = getattr(sensor_instance_api_model, 'parameters_schema', {})
 
     return SensorInstanceDB(name=name, pack=pack, sensor_type=sensor_type,
                             poll_interval=poll_interval, enabled=enabled,
