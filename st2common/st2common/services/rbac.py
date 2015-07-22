@@ -15,6 +15,7 @@
 
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
+from st2common.rbac.types import SystemRole
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import PermissionGrant
@@ -77,7 +78,9 @@ def create_role(name, description=None):
     """
     Create a new role.
     """
-    # TODO: Special case - don't allow creating roles with system role names
+    if name in SystemRole.get_valid_values():
+        raise ValueError('"%s" role name is blacklisted' % (name))
+
     role_db = RoleDB(name=name, description=description)
     role_db = Role.add_or_update(role_db)
     return role_db
@@ -87,7 +90,9 @@ def delete_role(name):
     """"
     Delete role with the provided name.
     """
-    # TODO: Special case for system roles - those can't be deleted
+    if name in SystemRole.get_valid_values():
+        raise ValueError('System roles can\'t be deleted')
+
     role_db = Role.get(name=name)
     result = Role.delete(role_db)
     return result
