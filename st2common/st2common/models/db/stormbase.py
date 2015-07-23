@@ -209,6 +209,16 @@ class ContentPackResourceMixin(object):
     Mixin class provides utility methods for models which belong to a pack.
     """
 
+    def get_pack_uid(self):
+        """
+        Return an UID of a pack this resource belongs to.
+
+        :rtype ``str``
+        """
+        parts = [ResourceType.PACK, self.pack]
+        uid = UIDFieldMixin.UID_SEPARATOR.join(parts)
+        return uid
+
     def get_reference(self):
         """
         Retrieve referene object for this model.
