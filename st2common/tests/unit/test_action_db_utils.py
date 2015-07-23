@@ -132,6 +132,22 @@ class ActionDBUtilsTestCase(DbTestCase):
         self.assertDictEqual(newliveaction_db.context, context)
         self.assertEqual(newliveaction_db.end_timestamp, now)
 
+        # Update result in dict.
+        now = get_datetime_utc_now()
+        status = 'succeeded'
+        result = {'a': 1, 'b': True, 'a.b.c': 'abc'}
+        context = {'third_party_id': uuid.uuid4().hex}
+        newliveaction_db = action_db_utils.update_liveaction_status(
+            status=status, result=result, context=context, end_timestamp=now,
+            liveaction_id=liveaction_db.id)
+
+        self.assertEqual(origliveaction_db.id, newliveaction_db.id)
+        self.assertEqual(newliveaction_db.status, status)
+        self.assertIn('a.b.c', result.keys())
+        self.assertDictEqual(newliveaction_db.result, result)
+        self.assertDictEqual(newliveaction_db.context, context)
+        self.assertEqual(newliveaction_db.end_timestamp, now)
+
     @mock.patch.object(LiveActionPublisher, 'publish_state', mock.MagicMock())
     def test_update_LiveAction_status_invalid(self):
         liveaction_db = LiveActionDB()
