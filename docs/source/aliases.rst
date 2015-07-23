@@ -18,6 +18,7 @@ e.g.
 
     ---
     name: "google_query"
+    description: "Perform a Google Query"
     action_ref: "google.get_search_results"
     formats:
       - "google {{query}}"
