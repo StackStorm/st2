@@ -50,10 +50,37 @@ class PermissionType(Enum):
 
     @classmethod
     def get_valid_permissions_for_resource_type(cls, resource_type):
+        """
+        Return valid permissions for the provided resource type.
+
+        :rtype: ``list``
+        """
         valid_values = cls.get_valid_values()
         valid_permissions = [value for value in valid_values
                              if value.lower().startswith(resource_type)]
         return valid_permissions
+
+    @classmethod
+    def get_resource_type(cls, permission_type):
+        """
+        Retrieve resource type from the provided permission type.
+
+        :rtype: ``str``
+        """
+        split = permission_type.split('_')
+        assert len(split) >= 2
+        return split[0]
+
+    @classmethod
+    def get_permission_name(cls, permission_type):
+        """
+        Retrieve permission name from the provided permission type.
+
+        :rtype: ``str``
+        """
+        split = permission_type.split('_')
+        assert len(split) >= 2
+        return split[-1]
 
 
 class SystemRole(Enum):
