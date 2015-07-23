@@ -79,8 +79,8 @@ CHAIN_TYPED_PARAMS = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_typed_params.yaml')
 CHAIN_SYSTEM_PARAMS = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_typed_system_params.yaml')
-CHAIN_VARS = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_vars.yaml')
+CHAIN_WITH_SYSTEM_VARS = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_with_system_vars.yaml')
 CHAIN_WITH_PUBLISH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_publish.yaml')
 CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
@@ -463,7 +463,7 @@ class TestActionChainRunner(DbTestCase):
         try:
             kvps.append(KeyValuePair.add_or_update(KeyValuePairDB(name='a', value='two')))
             chain_runner = acr.get_runner()
-            chain_runner.entry_point = CHAIN_VARS
+            chain_runner.entry_point = CHAIN_WITH_SYSTEM_VARS
             chain_runner.action = ACTION_2
             chain_runner.container_service = RunnerContainerService()
             chain_runner.pre_run()
