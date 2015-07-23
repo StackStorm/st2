@@ -36,7 +36,8 @@ class ContentPackLoader(object):
     Class for loading pack and pack content information from directories on disk.
     """
 
-    ALLOWED_CONTENT_TYPES = ['sensors', 'actions', 'rules', 'aliases', 'policies']
+    ALLOWED_CONTENT_TYPES = ['sensors', 'sensorinstances', 'actions', 'rules', 'aliases',
+                             'policies']
 
     def get_packs(self, base_dirs):
         """

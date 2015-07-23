@@ -34,6 +34,7 @@ def register_opts():
     content_opts = [
         cfg.BoolOpt('all', default=False, help='Register sensors, actions and rules.'),
         cfg.BoolOpt('sensors', default=False, help='Register sensors.'),
+        cfg.BoolOpt('sensorinstances', default=False, help='Register sensor instances.'),
         cfg.BoolOpt('actions', default=False, help='Register actions.'),
         cfg.BoolOpt('rules', default=False, help='Register rules.'),
         cfg.BoolOpt('aliases', default=False, help='Register aliases.'),
@@ -57,10 +58,27 @@ def register_sensors():
         # is not installed bootstrap continues.
         import st2reactor.bootstrap.sensorsregistrar as sensors_registrar
         registered_count = sensors_registrar.register_sensors(pack_dir=cfg.CONF.register.pack)
-    except Exception as e:
-        LOG.warning('Failed to register sensors: %s', e, exc_info=True)
+    except Exception:
+        LOG.warning('Failed to register sensors.', exc_info=True)
 
-    LOG.info('Registered %s sensors.' % (registered_count))
+    LOG.info('Registered %s sensors.', registered_count)
+
+
+def register_sensor_instances():
+    registered_count = 0
+    try:
+        LOG.info('=========================================================')
+        LOG.info('############# Registering sensor instances ##############')
+        LOG.info('=========================================================')
+        # Importing here to reduce scope of dependency. This way even if st2reactor
+        # is not installed bootstrap continues.
+        import st2reactor.bootstrap.sensorsinstancesregistrar as sensor_instances_registrar
+        registered_count = sensor_instances_registrar.register_sensor_instances(
+            pack_dir=cfg.CONF.register.pack)
+    except Exception:
+        LOG.warning('Failed to register sensors instances.', exc_info=True)
+
+    LOG.info('Registered %s sensor instancess.', registered_count)
 
 
 def register_actions():
@@ -155,6 +173,7 @@ def register_policies():
 def register_content():
     if cfg.CONF.register.all:
         register_sensors()
+        register_sensor_instances()
         register_actions()
         register_rules()
         register_aliases()
@@ -163,6 +182,9 @@ def register_content():
 
     if cfg.CONF.register.sensors:
         register_sensors()
+
+    if cfg.CONF.register.sensorinstances:
+        register_sensor_instances()
 
     if cfg.CONF.register.actions:
         register_actions()

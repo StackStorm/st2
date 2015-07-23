@@ -12,7 +12,7 @@
       default: "st2ctl reload{% for item in register.split(',') %} --register-{{ item|trim }}{% endfor %}"
     register:
       type: "string"
-      default: "actions,aliases,sensors"
-      description: "Possible options are all, sensors, actions, rules, aliases."
+      default: "actions,aliases,sensors,sensorinstances"
+      description: "Possible options are all, sensors, sensorinstances, actions, rules, aliases."
     kwarg_op:
       immutable: true

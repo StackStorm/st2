@@ -47,13 +47,14 @@ function print_usage() {
     echo
     echo "usage: st2ctl {reload, clean}"
     echo "optional arguments:"
-    echo "  --register-all      Register all."
-    echo "  --register-sensors  Register all sensors."
-    echo "  --register-rules    Register all rules."
-    echo "  --register-actions  Register all actions."
-    echo "  --register-aliases  Register all aliases."
-    echo "  --register-policies Register all policies."
-    echo "  --verbose           Output additional debug and informational messages."
+    echo "  --register-all              Register all."
+    echo "  --register-sensors          Register all sensors."
+    echo "  --register-sensorinstances  Register all sensor instances."
+    echo "  --register-rules            Register all rules."
+    echo "  --register-actions          Register all actions."
+    echo "  --register-aliases          Register all aliases."
+    echo "  --register-policies         Register all policies."
+    echo "  --verbose                   Output additional debug and informational messages."
 }
 
 function service_map() {
@@ -94,8 +95,8 @@ fi
 
 # Note: Scripts already call reload with "--register-<content>"
 if [ ${1} == "reload" -o ${1} == "clean" ]; then
-    ALLOWED_REGISTER_FLAGS=(--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --verbose)
-    DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors'
+    ALLOWED_REGISTER_FLAGS=(--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --register-sensorinstances --verbose)
+    DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors --register-sensorinstances'
 
     if [ ! -z ${2} ]; then
         for arg in ${@:2}; do
