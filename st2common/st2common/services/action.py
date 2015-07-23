@@ -20,6 +20,7 @@ from st2common.constants import action as action_constants
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
+from st2common.services import liveaction as liveaction_services
 from st2common.util import date as date_utils
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
@@ -50,8 +51,8 @@ def request(liveaction):
     # action can be invoked by a system user and so we want to use the user context
     # from the original workflow action.
     if getattr(liveaction, 'context', None) and 'parent' in liveaction.context:
-        parent = LiveAction.get_by_id(liveaction.context['parent'])
-        liveaction.context['user'] = getattr(parent, 'context', dict()).get('user')
+        parent_liveaction = _get_parent_liveaction(liveaction.context['parent']['execution_id'])
+        liveaction.context['user'] = getattr(parent_liveaction, 'context', dict()).get('user')
 
     # Validate action.
     action_db = action_utils.get_action_by_ref(liveaction.action)
@@ -138,3 +139,7 @@ def update_status(liveaction, new_status, publish=True):
 def is_action_canceled(liveaction_id):
     liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
     return liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELED
+
+
+def _get_parent_liveaction(parent_execution_id):
+    return liveaction_services.get_liveaction_for_execution(parent_execution_id)
