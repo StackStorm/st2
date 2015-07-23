@@ -25,6 +25,7 @@ INSTALL_WINDOWS_RUNNER_DEPENDENCIES=${INSTALL_WINDOWS_RUNNER_DEPENDENCIES:-1}
 DOWNLOAD_SERVER="https://downloads.stackstorm.net"
 RABBIT_PUBLIC_KEY="rabbitmq-signing-key-public.asc"
 PACKAGES="st2common st2reactor st2actions st2api st2auth st2debug"
+IUS_REPO_PKG="https://dl.iuscommunity.org/pub/ius/stable/Redhat/6/x86_64/ius-release-1.0-14.ius.el6.noarch.rpm"
 CLI_PACKAGE="st2client"
 PYTHON=`which python`
 BUILD="current"
@@ -59,7 +60,9 @@ function join { local IFS="$1"; shift; echo "$*"; }
 
 # Distribution specific variables
 APT_PACKAGE_LIST=("python-pip" "rabbitmq-server" "make" "python-virtualenv" "python-dev" "realpath" "mongodb" "mongodb-server" "gcc" "git")
-YUM_PACKAGE_LIST=("python-pip" "python-virtualenv" "python-devel" "gcc-c++" "git-all" "mongodb" "mongodb-server" "mailcap")
+YUM_PACKAGE_LIST=("gcc-c++" "git-all" "mongodb" "mongodb-server" "mailcap")
+YUM_PYTHON_6=("python27" "python27-pip" "python27-virtualenv" "python27-devel")
+YUM_PYTHON_7=("python-pip" "python-virtualenv" "python-devel")
 
 # Add windows runner dependencies
 # Note: winexe is provided by Stackstorm repos
@@ -93,6 +96,15 @@ echo ""
 echo "To abort press CTRL-C otherwise installation will continue in ${WARNING_SLEEP_DELAY} seconds"
 sleep ${WARNING_SLEEP_DELAY}
 
+echo "Checking for space availability for MongoDB. MongoDB requires at least 3Gb free in /var/lib/..."
+echo ""
+VAR_SPACE=`df -Pk /var/lib | grep -vE '^Filesystem|tmpfs|cdrom' | awk '{print $4}'`
+if [ ${VAR_SPACE} -lt 3500000 ]
+then
+  echo "There is not enough space for MongoDB. It will fail to start. Please, add some space to /var or clean it up."
+  exit 1
+fi
+
 if [ -z $1 ]
 then
   VER=${STABLE}
@@ -123,10 +135,37 @@ if [[ "$DEBTEST" == "Ubuntu" ]]; then
 elif [[ -f "/etc/redhat-release" ]]; then
   TYPE="rpms"
   PYTHONPACK="/usr/lib/python2.7/site-packages"
+  if cat /etc/redhat-release | grep -q ' 6\.[0-9]'
+  then
+    OS_VER=6
+  elif cat /etc/redhat-release | grep -q ' 7\.[0-9]'
+  then
+    OS_VER=7
+  fi
   echo "###########################################################################################"
-  echo "# Detected linux distribution is RedHat compatible"
-  systemctl stop firewalld
-  systemctl disable firewalld
+  echo "# Detected linux distribution is RedHat ${OS_VER} compatible:"
+
+  if [ "$OS_VER" -eq "7" ]
+  then
+    systemctl stop firewalld
+    systemctl disable firewalld
+    PIP="pip"
+    VIRTUALENV="virtualenv"
+    PYTHON="python"
+    YUM_PYTHON=$(join " " ${YUM_PYTHON_7[@]})
+  elif [ "$OS_VER" -eq "6" ]
+  then
+    service firewalld stop
+    chkconfig firewalld off
+    PIP="pip2.7"
+    VIRTUALENV="virtualenv-2.7"
+    PYTHON="python2.7"
+    YUM_PYTHON=$(join " " ${YUM_PYTHON_6[@]})
+  else
+    echo "Unknown RHEL-family... Aborting install."
+    exit 2
+  fi
+
   setenforce permissive
 else
   echo "Unknown Operating System"
@@ -178,10 +217,10 @@ create_user() {
 install_pip() {
   echo "###########################################################################################"
   echo "# Installing packages via pip"
-  pip install -U pip
-  hash -d pip
+  ${PIP} install -U pip
+  hash -d ${PIP}
   curl -sS -k -o /tmp/requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/requirements.txt
-  pip install -U -r /tmp/requirements.txt
+  ${PIP} install -U -r /tmp/requirements.txt
 }
 
 install_apt() {
@@ -216,10 +255,14 @@ install_apt() {
 install_yum() {
   echo "###########################################################################################"
   echo "# Installing packages via yum"
-  if cat /etc/redhat-release | grep -q ' 7\.[0-9]'
+  if [ "$OS_VER" -eq "6" ]
   then
-    yum install -y epel-release
+    if ! rpm -qa | grep -q ius-release
+    then
+      yum install -t -y ${IUS_REPO_PKG}
+    fi
   fi
+  yum install -y epel-release
   yum update -y
   rpm --import https://www.rabbitmq.com/rabbitmq-signing-key-public.asc
   curl -sS -k -o /tmp/rabbitmq-server.rpm https://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
@@ -233,8 +276,9 @@ baseurl=${DOWNLOAD_SERVER}/rpm/fedora/20/deps/
 enabled=1
 gpgcheck=0
 EOL
-
-  echo "Installing ${YUM_PACKAGE_LIST}"
+  echo "Installing required Python packages: ${YUM_PYTHON}"
+  yum install -y ${YUM_PYTHON}
+  echo "Installing other required packages: ${YUM_PACKAGE_LIST}"
   yum install -y ${YUM_PACKAGE_LIST}
   setup_rabbitmq
   setup_mongodb_systemd
@@ -266,8 +310,14 @@ setup_rabbitmq() {
 
 setup_mongodb_systemd() {
   # Enable and start MongoDB
-  systemctl enable mongod
-  systemctl start mongod
+  if [ "$OS_VER" -eq "7" ]
+  then
+    systemctl enable mongod
+    systemctl start mongod
+  else
+    chkconfig mongod on
+    service mongod start
+  fi
 }
 
 setup_mistral_st2_config()
@@ -280,15 +330,32 @@ setup_mistral_st2_config()
 setup_postgresql() {
   # Setup the postgresql service on fedora. Ubuntu is already setup by default.
   if [[ "$TYPE" == "rpms" ]]; then
-    echo "Configuring PostgreSQL for Fedora..."
-    systemctl enable postgresql
-    sudo postgresql-setup initdb
-    pg_hba_config=/var/lib/pgsql/data/pg_hba.conf
-    sed -i 's/^local\s\+all\s\+all\s\+peer/local all all trust/g' ${pg_hba_config}
-    sed -i 's/^local\s\+all\s\+all\s\+ident/local all all trust/g' ${pg_hba_config}
-    sed -i 's/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+ident/host all all 127.0.0.1\/32 md5/g' ${pg_hba_config}
-    sed -i 's/^host\s\+all\s\+all\s\+::1\/128\s\+ident/host all all ::1\/128 md5/g' ${pg_hba_config}
-    systemctl start postgresql
+    echo "Configuring PostgreSQL..."
+
+    if [ "$OS_VER" -eq "7" ]
+    then
+      systemctl enable postgresql
+      sudo postgresql-setup initdb
+      pg_hba_config=/var/lib/pgsql/data/pg_hba.conf
+      sed -i 's/^local\s\+all\s\+all\s\+peer/local all all trust/g' ${pg_hba_config}
+      sed -i 's/^local\s\+all\s\+all\s\+ident/local all all trust/g' ${pg_hba_config}
+      sed -i 's/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+ident/host all all 127.0.0.1\/32 md5/g' ${pg_hba_config}
+      sed -i 's/^host\s\+all\s\+all\s\+::1\/128\s\+ident/host all all ::1\/128 md5/g' ${pg_hba_config}
+      systemctl start postgresql
+    else
+      chkconfig postgresql on
+      set +e
+      if service postgresql initdb
+      then 
+        pg_hba_config=/var/lib/pgsql/data/pg_hba.conf
+        sed -i 's/^local\s\+all\s\+all\s\+peer/local all all trust/g' ${pg_hba_config}
+        sed -i 's/^local\s\+all\s\+all\s\+ident/local all all trust/g' ${pg_hba_config}
+        sed -i 's/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+ident/host all all 127.0.0.1\/32 md5/g' ${pg_hba_config}
+        sed -i 's/^host\s\+all\s\+all\s\+::1\/128\s\+ident/host all all ::1\/128 md5/g' ${pg_hba_config}
+      fi
+      set -e
+      service postgresql start
+    fi
   fi
 
   echo "Changing max connections for PostgreSQL..."
@@ -328,6 +395,9 @@ sed -i "s~tmp~var/log~g" $log_config
 
 setup_mistral_db()
 {
+  set +e
+  service mistral stop
+  set -e
   echo "Setting up Mistral DB in PostgreSQL..."
   sudo -u postgres psql -c "DROP DATABASE IF EXISTS mistral;"
   sudo -u postgres psql -c "DROP USER IF EXISTS mistral;"
@@ -381,6 +451,134 @@ mistral_systemd
 systemctl enable mistral
 }
 
+
+setup_mistral_initd()
+{
+echo "Setting up initd script for Mistral..."
+initd=/etc/init.d/mistral
+if [ -e "$initd" ]; then
+    rm $initd
+fi
+touch $initd
+chmod +x $initd
+
+cat <<mistral_initd >$initd
+#!/bin/sh
+#
+# mistral        This shell script takes care of starting and stopping
+#               the mistral subsystem (mistral).
+#
+# chkconfig: - 64 36
+# description:  Mistral.
+# processname: mistral
+# config: /etc/mistral/mistral.conf
+# pidfile: /var/run/mistral/mistral.pid
+### BEGIN INIT INFO
+# Provides: mistral
+# Required-Start: \$local_fs \$remote_fs \$network \$named \$syslog \$time
+# Required-Stop: \$local_fs \$remote_fs \$network \$named \$syslog \$time
+# Short-Description: start mistral
+# Description: Mistral
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+exec="/opt/openstack/mistral/.venv/bin/python2.7"
+prog="mistral"
+
+
+# Set timeouts here so they can be overridden from /etc/sysconfig/mistral
+STARTTIMEOUT=120
+STOPTIMEOUT=60
+MYOPTIONS=
+
+[ -e /etc/sysconfig/\$prog ] && . /etc/sysconfig/\$prog
+
+lockfile=/var/lock/subsys/\$prog
+
+
+start(){
+    [ -x \$exec ] || exit 5
+    RESPONSE=\`/bin/ps aux | /bin/grep mistral | /bin/grep launch | wc -l 2> /dev/null\`
+    if [ \$RESPONSE -gt 0 ]; then
+        # already running, do nothing
+        echo "Mistral is already running..."
+        ret=0
+    else
+        action \$"Starting \$prog: " /bin/true
+        \$exec /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log --log-config-append /etc/mistral/wf_trace_logging.conf > /dev/null 2>&1 &
+    fi
+    return \$ret
+}
+
+stop(){
+      PID=\`ps ax | grep -v grep | grep mistral | grep openstack | awk '{print \$1}'\`
+      if [[ ! -z \$PID ]]
+      then
+        for p in \$PID
+        do
+           echo "Killing mistral PID: \${p}"
+           #ps \${p}
+           kill \${p}
+        done
+        action \$"Stopping \$prog: " /bin/true
+      else
+        echo "mistral is not running"
+        action \$"Stopping \$prog: " /bin/false
+      fi
+}
+
+
+
+restart(){
+        stop
+        start
+}
+
+# See how we were called.
+case "\$1" in
+  start)
+    start
+    ;;
+  startsos)
+    start sos
+    ;;
+  stop)
+    stop
+    ;;
+  status)
+    status \$prog
+    ;;
+  restart)
+    restart
+    ;;
+  condrestart|try-restart)
+    condrestart
+    ;;
+  reload)
+    exit 3
+    ;;
+  force-reload)
+    restart
+    ;;
+  *)
+    echo \$"Usage: \$0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload|startsos}"
+    exit 2
+esac
+
+exit \$?
+mistral_initd
+chkconfig mistral on
+
+
+}
+
+
+
 setup_mistral() {
   echo "###########################################################################################"
   echo "# Setting up Mistral"
@@ -396,11 +594,11 @@ setup_mistral() {
 
   # Setup virtualenv for running mistral.
   cd /opt/openstack/mistral
-  virtualenv --no-site-packages .venv
+  ${VIRTUALENV} --no-site-packages .venv
   . /opt/openstack/mistral/.venv/bin/activate
-  pip install -q -r requirements.txt
-  pip install -q psycopg2
-  python setup.py develop
+  ${PIP} install -q -r requirements.txt
+  ${PIP} install -q psycopg2
+  ${PYTHON} setup.py develop
 
   # Setup plugins for actions.
   mkdir -p /etc/mistral/actions
@@ -411,7 +609,7 @@ setup_mistral() {
   cd /etc/mistral/actions
   git clone -b ${MISTRAL_STABLE_BRANCH} https://github.com/StackStorm/st2mistral.git
   cd /etc/mistral/actions/st2mistral
-  python setup.py develop
+  ${PYTHON} setup.py develop
 
   # Create configuration files.
   mkdir -p /etc/mistral
@@ -419,22 +617,27 @@ setup_mistral() {
   setup_mistral_log_config
   setup_mistral_st2_config
 
-  # Setup database.
-  setup_postgresql
-  setup_mistral_db
-
   # Setup service.
   if [[ "$TYPE" == "debs" ]]; then
     setup_mistral_upstart
   elif [[ "$TYPE" == "rpms" ]]; then
-    setup_mistral_systemd
+    if [ "$OS_VER" -eq "7" ]
+    then
+      setup_mistral_systemd
+    else
+      setup_mistral_initd
+    fi
   fi
+
+  # Setup database.
+  setup_postgresql
+  setup_mistral_db
 
   # Deactivate venv.
   deactivate
 
   # Setup mistral client.
-  pip install -q -U git+https://github.com/StackStorm/python-mistralclient.git@${MISTRAL_STABLE_BRANCH}
+  ${PIP} install -q -U git+https://github.com/StackStorm/python-mistralclient.git@${MISTRAL_STABLE_BRANCH}
 }
 
 setup_cloudslang() {
@@ -536,7 +739,7 @@ migrate_rules() {
 register_content() {
   echo "###########################################################################################"
   echo "# Registering all content"
-  $PYTHON ${PYTHONPACK}/st2common/bin/st2-register-content --register-sensors --register-actions --config-file ${STANCONF}
+  ${PYTHON} ${PYTHONPACK}/st2common/bin/st2-register-content --register-sensors --register-actions --config-file ${STANCONF}
 }
 
 create_user
@@ -563,7 +766,7 @@ install_st2client() {
   echo "###########################################################################################"
   echo "# Installing st2client requirements via pip"
   curl -sS -k -o /tmp/st2client-requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/st2client/requirements.txt
-  pip install -q -U -r /tmp/st2client-requirements.txt
+  ${PIP} install -q -U -r /tmp/st2client-requirements.txt
   if [[ "$TYPE" == "debs" ]]; then
     echo "########## Removing st2client ##########"
     if dpkg -l | grep st2client; then
@@ -650,6 +853,12 @@ fi
 register_content
 echo "###########################################################################################"
 echo "# Starting St2 Services"
+
+if [ "$OS_VER" -eq "6" ]
+then
+  perl -p -i -e 's/^#\!\/usr\/bin\/python/#\!\/usr\/bin\/env python2\.7/' /usr/bin/st2
+fi
+
 st2ctl restart
 sleep 20
 ##This is a hack around a weird issue with actions getting stuck in scheduled state
@@ -693,4 +902,3 @@ echo "st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD}"
 echo ""
 echo "For more information see http://docs.stackstorm.com/authentication.html#usage"
 exit 0
-
