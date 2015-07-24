@@ -196,21 +196,20 @@ class ActionChainRunner(ActionRunner):
             created_at = date_utils.get_datetime_utc_now()
 
             try:
-                liveaction = self._run_next_action(
+                liveaction = self._get_next_action(
                     action_node=action_node, parent_context=parent_context,
                     action_params=action_parameters, context_result=context_result)
             except InvalidActionReferencedException as e:
                 error = ('Failed to run task "%s". Action with reference "%s" doesn\'t exist.' %
-                         (action_node.name, action_ref))
+                         (action_node.name, action_node.ref))
                 LOG.exception(error)
 
                 fail = True
                 top_level_error = {
                     'error': error,
-                    'traceback': error
+                    'traceback': traceback.format_exc(10)
                 }
                 break
-
             except ParameterRenderingFailedException as e:
                 # Rendering parameters failed before we even got to running this action, abort and
                 # fail the whole action chain
@@ -225,6 +224,9 @@ class ActionChainRunner(ActionRunner):
                     'traceback': trace
                 }
                 break
+
+            try:
+                liveaction = self._run_action(liveaction)
             except Exception as e:
                 # Save the traceback and error message
                 LOG.exception('Failure in running action "%s".', action_node.name)
@@ -284,6 +286,7 @@ class ActionChainRunner(ActionRunner):
                         }
                         # reset action_node here so that chain breaks on failure.
                         action_node = None
+                        break
                 else:
                     LOG.info('Chain execution (%s) canceled by user.', self.liveaction_id)
                     status = LIVEACTION_STATUS_CANCELED
@@ -343,15 +346,16 @@ class ActionChainRunner(ActionRunner):
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
 
-    def _run_next_action(self, action_node, parent_context, action_params, context_result,
-                         wait_for_completion=True):
+    def _get_next_action(self, action_node, parent_context, action_params, context_result):
         # Verify that the referenced action exists
         # TODO: We do another lookup in cast_param, refactor to reduce number of lookups
+        task_name = action_node.name
         action_ref = action_node.ref
         action_db = action_db_util.get_action_by_ref(ref=action_ref)
 
         if not action_db:
-            raise InvalidActionReferencedException('Action ref %s action_ref not registered.')
+            error = 'Task :: %s - Action with ref %s not registered.' % (task_name, action_ref)
+            raise InvalidActionReferencedException(error)
 
         action_context = {
             'parent': parent_context,
@@ -367,10 +371,14 @@ class ActionChainRunner(ActionRunner):
             resolved_params=resolved_params,
             parent_context=parent_context)
 
-        return self._run_action(liveaction=liveaction)
+        return liveaction
 
     def _run_action(self, liveaction, wait_for_completion=True):
-        liveaction, _ = action_service.request(liveaction)
+        try:
+            liveaction, _ = action_service.request(liveaction)
+        except:
+            liveaction.status = LIVEACTION_STATUS_FAILED
+            raise Exception('Failed to schedule liveaction.')
 
         while (wait_for_completion and
                liveaction.status != LIVEACTION_STATUS_SUCCEEDED and

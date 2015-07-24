@@ -17,6 +17,7 @@ chain:
   params: {}
   ref: wolfpack.a3
 - name: c4
-  params: {}
-  ref: wolfpack.a1
+  params:
+    actionstr: "{{action_context.parent.execution_id}}"
+  ref: wolfpack.action-4-action-context-param
 default: c1
