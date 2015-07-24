@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import six
 
 # http://docs.mongodb.org/manual/faq/developers/#faq-dollar-sign-escaping
@@ -53,10 +54,12 @@ def _translate_chars(field, translation):
 
 
 def escape_chars(field):
-    return _translate_chars(field, ESCAPE_TRANSLATION)
+    value = copy.deepcopy(field)
+    return _translate_chars(value, ESCAPE_TRANSLATION)
 
 
 def unescape_chars(field):
-    translated = _translate_chars(field, UNESCAPE_TRANSLATION)
-    translated = _translate_chars(field, RULE_CRITERIA_UNESCAPE_TRANSLATION)
+    value = copy.deepcopy(field)
+    translated = _translate_chars(value, UNESCAPE_TRANSLATION)
+    translated = _translate_chars(value, RULE_CRITERIA_UNESCAPE_TRANSLATION)
     return translated
