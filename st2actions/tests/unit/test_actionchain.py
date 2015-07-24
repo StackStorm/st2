@@ -79,8 +79,10 @@ CHAIN_TYPED_PARAMS = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_typed_params.yaml')
 CHAIN_SYSTEM_PARAMS = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_typed_system_params.yaml')
-CHAIN_VARS = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_vars.yaml')
+CHAIN_WITH_ACTIONPARAM_VARS = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_with_actionparam_vars.yaml')
+CHAIN_WITH_SYSTEM_VARS = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_with_system_vars.yaml')
 CHAIN_WITH_PUBLISH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_publish.yaml')
 CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
@@ -458,12 +460,12 @@ class TestActionChainRunner(DbTestCase):
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_2))
     @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
-    def test_chain_runner_vars(self, request):
+    def test_chain_runner_vars_system_params(self, request):
         kvps = []
         try:
             kvps.append(KeyValuePair.add_or_update(KeyValuePairDB(name='a', value='two')))
             chain_runner = acr.get_runner()
-            chain_runner.entry_point = CHAIN_VARS
+            chain_runner.entry_point = CHAIN_WITH_SYSTEM_VARS
             chain_runner.action = ACTION_2
             chain_runner.container_service = RunnerContainerService()
             chain_runner.pre_run()
@@ -477,6 +479,23 @@ class TestActionChainRunner(DbTestCase):
         finally:
             for kvp in kvps:
                 KeyValuePair.delete(kvp)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_2))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_vars_action_params(self, request):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_ACTIONPARAM_VARS
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        chain_runner.run({'input_a': 'two'})
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        expected_value = {'inttype': 1,
+                          'strtype': 'two',
+                          'booltype': True}
+        mock_args, _ = request.call_args
+        self.assertEqual(mock_args[0].parameters, expected_value)
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_2))

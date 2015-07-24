@@ -1,0 +1,12 @@
+---
+chain:
+- name: c1
+  params:
+    booltype: true
+    inttype: '{{inttype}}'
+    strtype: '{{strtype}}'
+  ref: wolfpack.a2
+default: c1
+vars:
+  inttype: 1
+  strtype: '{{input_a}}'
