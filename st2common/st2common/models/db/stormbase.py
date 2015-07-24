@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 import datetime
 
 import bson
@@ -111,11 +110,11 @@ class StormBaseDB(StormFoundationDB):
 class EscapedDictField(me.DictField):
 
     def to_mongo(self, value):
-        value = mongoescape.escape_chars(copy.deepcopy(value))
+        value = mongoescape.escape_chars(value)
         return super(EscapedDictField, self).to_mongo(value)
 
     def to_python(self, value):
-        value = super(EscapedDictField, self).to_python(copy.deepcopy(value))
+        value = super(EscapedDictField, self).to_python(value)
         return mongoescape.unescape_chars(value)
 
     def validate(self, value):
@@ -129,11 +128,11 @@ class EscapedDictField(me.DictField):
 class EscapedDynamicField(me.DynamicField):
 
     def to_mongo(self, value):
-        value = mongoescape.escape_chars(copy.deepcopy(value))
+        value = mongoescape.escape_chars(value)
         return super(EscapedDynamicField, self).to_mongo(value)
 
     def to_python(self, value):
-        value = super(EscapedDynamicField, self).to_python(copy.deepcopy(value))
+        value = super(EscapedDynamicField, self).to_python(value)
         return mongoescape.unescape_chars(value)
 
 
