@@ -42,8 +42,40 @@ class SensorInstanceRegistrationTestCase(DbTestCase):
         si_registrar.register_sensor_instances_from_packs(base_dirs=[PACKS_DIR])
 
         # Verify objects have been created
-        sensors_db = SensorType.get_all()
-        self.assertEqual(len(sensors_db), 3)
+        sensor_dbs = SensorType.get_all()
+        self.assertEqual(len(sensor_dbs), 3)
 
-        sensor_instances_db = SensorInstance.get_all()
-        self.assertEqual(len(sensor_instances_db), 2)
+        self._validate_sensor(sensor_dbs, sensor_name='ParameterizedSensor')
+
+        sensor_instance_dbs = SensorInstance.get_all()
+        self.assertEqual(len(sensor_instance_dbs), 2)
+
+        self._validate_sensor_instance(sensor_instance_dbs,
+                                       sensor_instance_name='sensor_instance_1',
+                                       sensor_instance_pack='pack_with_sensor_instances',
+                                       sensor_type='pack_with_sensor_instances.ParameterizedSensor')
+
+    def _validate_sensor(self, sensor_dbs, sensor_name, poll_interval=10, enabled=True):
+        found = False
+        for sensor_db in sensor_dbs:
+            if sensor_db.name == sensor_name:
+                self.assertEqual(sensor_db.name, sensor_name)
+                self.assertEqual(sensor_db.poll_interval, poll_interval)
+                self.assertEqual(sensor_db.enabled, enabled)
+                found = True
+                break
+        if not found:
+            self.assertTrue(False, 'sensor with name %s not found.' % sensor_name)
+
+    def _validate_sensor_instance(self, sensor_instance_dbs, sensor_instance_name,
+                                  sensor_instance_pack, sensor_type):
+        found = False
+        for sensor_instance_db in sensor_instance_dbs:
+            if sensor_instance_db.name == sensor_instance_name:
+                self.assertEqual(sensor_instance_db.name, sensor_instance_name)
+                self.assertEqual(sensor_instance_db.pack, sensor_instance_pack)
+                self.assertEqual(sensor_instance_db.sensor_type, sensor_type)
+                found = True
+                break
+        if not found:
+            self.assertTrue(False, 'sensor with name %s not found.' % sensor_instance_name)
