@@ -140,7 +140,3 @@ def update_status(liveaction, new_status, publish=True):
 def is_action_canceled(liveaction_id):
     liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
     return liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELED
-
-
-def _get_parent_liveaction(parent_execution_id):
-    return liveaction_services.get_liveaction_for_execution(parent_execution_id)
