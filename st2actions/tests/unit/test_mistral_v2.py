@@ -198,7 +198,9 @@ class TestMistralRunner(DbTestCase):
                 'st2.action': {
                     'st2_context': {
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
-                        'parent': str(liveaction.id),
+                        'parent': {
+                            'execution_id': str(execution.id)
+                        },
                         'notify': {},
                         'skip_notify_tasks': []
                     }
@@ -247,7 +249,10 @@ class TestMistralRunner(DbTestCase):
                     'st2_context': {
                         'auth_token': TOKEN_DB.token,
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
-                        'parent': str(liveaction.id),
+                        'parent': {
+                            'user': liveaction.context['user'],
+                            'execution_id': str(execution.id)
+                        },
                         'notify': {},
                         'skip_notify_tasks': []
                     }
@@ -295,7 +300,9 @@ class TestMistralRunner(DbTestCase):
                 'st2.action': {
                     'st2_context': {
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
-                        'parent': str(liveaction.id),
+                        'parent': {
+                            'execution_id': str(execution.id)
+                        },
                         'notify': NotificationsHelper.from_model(liveaction.notify),
                         'skip_notify_tasks': []
                     }

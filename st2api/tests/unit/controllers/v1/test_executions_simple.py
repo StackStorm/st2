@@ -269,13 +269,27 @@ class TestActionExecutionController(FunctionalTest):
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1))
         self.assertEqual(resp.status_int, 201)
         parent_user = resp.json['context']['user']
-        parent_exec_id = str(resp.json['liveaction']['id'])
-        context = {'parent': parent_exec_id, 'user': None, 'other': {'k1': 'v1'}}
+        parent_exec_id = str(resp.json['id'])
+        context = {
+            'parent': {
+                'execution_id': parent_exec_id,
+                'user': parent_user
+            },
+            'user': None,
+            'other': {'k1': 'v1'}
+        }
         headers = {'content-type': 'application/json', 'st2-context': json.dumps(context)}
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
         self.assertEqual(resp.json['context']['user'], parent_user, 'Should use parent\'s user.')
-        expected = {'parent': parent_exec_id, 'user': parent_user, 'other': {'k1': 'v1'}}
+        expected = {
+            'parent': {
+                'execution_id': parent_exec_id,
+                'user': parent_user
+            },
+            'user': parent_user,
+            'other': {'k1': 'v1'}
+        }
         self.assertDictEqual(resp.json['context'], expected)
 
     def test_post_with_st2_context_in_headers_failed(self):
@@ -388,8 +402,9 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
         headers = {'content-type': 'application/json', 'X-Auth-Token': str(USR_TOKEN.token)}
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json['context']['user'], 'tokenuser')
-        context = {'parent': str(resp.json['liveaction']['id'])}
+        token_user = resp.json['context']['user']
+        self.assertEqual(token_user, 'tokenuser')
+        context = {'parent': {'execution_id': str(resp.json['id']), 'user': token_user}}
         headers = {'content-type': 'application/json',
                    'X-Auth-Token': str(SYS_TOKEN.token),
                    'st2-context': json.dumps(context)}

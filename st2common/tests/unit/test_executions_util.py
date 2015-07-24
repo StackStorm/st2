@@ -114,9 +114,9 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         """
         childliveaction = self.MODELS['liveactions']['childliveaction.yaml']
         child_exec = executions_util.create_execution_object(childliveaction)
-        parent_exection = self._get_action_execution(
-            liveaction__id=childliveaction.context.get('parent', ''))
-        child_execs = parent_exection.children
+        parent_execution_id = childliveaction.context['parent']['execution_id']
+        parent_execution = ActionExecution.get_by_id(parent_execution_id)
+        child_execs = parent_execution.children
         self.assertTrue(str(child_exec.id) in child_execs)
 
     def _get_action_execution(self, **kwargs):
