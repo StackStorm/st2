@@ -20,10 +20,13 @@ import datetime
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
+from st2common.constants.action import ACTION_KV_PREFIX
 from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED)
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
+from st2common.exceptions.action import (ParameterRenderingFailedException,
+                                         InvalidActionReferencedException)
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.api.notification import NotificationsHelper
 from st2common.models.db.liveaction import LiveActionDB
@@ -188,16 +191,27 @@ class ActionChainRunner(ActionRunner):
         while action_node:
             fail = False
             error = None
-            resolved_params = None
             liveaction = None
 
             created_at = date_utils.get_datetime_utc_now()
 
             try:
-                resolved_params = ActionChainRunner._resolve_params(
-                    action_node=action_node, original_parameters=action_parameters,
-                    results=context_result, chain_vars=self.chain_holder.vars)
-            except Exception as e:
+                liveaction = self._run_next_action(
+                    action_node=action_node, parent_context=parent_context,
+                    action_params=action_parameters, context_result=context_result)
+            except InvalidActionReferencedException as e:
+                error = ('Failed to run task "%s". Action with reference "%s" doesn\'t exist.' %
+                         (action_node.name, action_ref))
+                LOG.exception(error)
+
+                fail = True
+                top_level_error = {
+                    'error': error,
+                    'traceback': error
+                }
+                break
+
+            except ParameterRenderingFailedException as e:
                 # Rendering parameters failed before we even got to running this action, abort and
                 # fail the whole action chain
                 LOG.exception('Failed to run action "%s".', action_node.name)
@@ -211,28 +225,6 @@ class ActionChainRunner(ActionRunner):
                     'traceback': trace
                 }
                 break
-
-            # Verify that the referenced action exists
-            # TODO: We do another lookup in cast_param, refactor to reduce number of lookups
-            action_ref = action_node.ref
-            action_db = action_db_util.get_action_by_ref(ref=action_ref)
-
-            if not action_db:
-                error = ('Failed to run task "%s". Action with reference "%s" doesn\'t exist.' %
-                         (action_node.name, action_ref))
-                LOG.exception(error)
-
-                fail = True
-                top_level_error = {
-                    'error': error,
-                    'traceback': error
-                }
-                break
-
-            try:
-                liveaction = self._run_action(
-                    action_node=action_node, parent_context=parent_context,
-                    params=resolved_params)
             except Exception as e:
                 # Save the traceback and error message
                 LOG.exception('Failure in running action "%s".', action_node.name)
@@ -333,7 +325,7 @@ class ActionChainRunner(ActionRunner):
         return rendered_result
 
     @staticmethod
-    def _resolve_params(action_node, original_parameters, results, chain_vars):
+    def _resolve_params(action_node, original_parameters, results, chain_vars, chain_context):
         # setup context with original parameters and the intermediate results.
         context = {}
         context.update(original_parameters)
@@ -341,14 +333,55 @@ class ActionChainRunner(ActionRunner):
         context.update(chain_vars)
         context.update({RESULTS_KEY: results})
         context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
-        rendered_params = jinja_utils.render_values(mapping=action_node.params, context=context)
+        context.update({ACTION_KV_PREFIX: chain_context})
+        try:
+            rendered_params = jinja_utils.render_values(mapping=action_node.params,
+                                                        context=context)
+        except Exception as e:
+            LOG.exception('Jinja rendering failed.')
+            raise ParameterRenderingFailedException(e)
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
 
-    def _run_action(self, action_node, parent_context, params, wait_for_completion=True):
+    def _run_next_action(self, action_node, parent_context, action_params, context_result,
+                         wait_for_completion=True):
+        # Verify that the referenced action exists
+        # TODO: We do another lookup in cast_param, refactor to reduce number of lookups
+        action_ref = action_node.ref
+        action_db = action_db_util.get_action_by_ref(ref=action_ref)
+
+        if not action_db:
+            raise InvalidActionReferencedException('Action ref %s action_ref not registered.')
+
+        action_context = {
+            'parent': parent_context,
+            'chain': vars(action_node)
+        }
+        resolved_params = ActionChainRunner._resolve_params(
+            action_node=action_node, original_parameters=action_params,
+            results=context_result, chain_vars=self.chain_holder.vars,
+            chain_context={'parent': parent_context})
+
+        liveaction = self._build_liveaction_object(
+            action_node=action_node,
+            resolved_params=resolved_params,
+            parent_context=parent_context)
+
+        return self._run_action(liveaction=liveaction)
+
+    def _run_action(self, liveaction, wait_for_completion=True):
+        liveaction, _ = action_service.request(liveaction)
+
+        while (wait_for_completion and
+               liveaction.status != LIVEACTION_STATUS_SUCCEEDED and
+               liveaction.status != LIVEACTION_STATUS_FAILED):
+            eventlet.sleep(1)
+            liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
+
+        return liveaction
+
+    def _build_liveaction_object(self, action_node, resolved_params, parent_context):
         liveaction = LiveActionDB(action=action_node.ref)
-        liveaction.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
-                                                               params=params)
 
         # Setup notify for task in chain.
         notify = self._get_notify(action_node)
@@ -361,14 +394,8 @@ class ActionChainRunner(ActionRunner):
             'chain': vars(action_node)
         }
 
-        liveaction, _ = action_service.request(liveaction)
-
-        while (wait_for_completion and
-               liveaction.status != LIVEACTION_STATUS_SUCCEEDED and
-               liveaction.status != LIVEACTION_STATUS_FAILED):
-            eventlet.sleep(1)
-            liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
-
+        liveaction.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
+                                                               params=resolved_params)
         return liveaction
 
     def _get_notify(self, action_node):
