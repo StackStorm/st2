@@ -53,8 +53,12 @@ class ChainHolder(object):
         LOG.debug('Using %s as default for %s.', self.actionchain.default, self.chainname)
         if not self.actionchain.default:
             raise Exception('Failed to find default node in %s.' % (self.chainname))
-        # finalize the vars and save them around to be used at execution time.
-        self.vars = self._get_rendered_vars(self.actionchain.vars) if self.actionchain.vars else {}
+        self.vars = {}
+
+    def init_vars(self, action_parameters):
+        if self.actionchain.vars:
+            self.vars = self._get_rendered_vars(self.actionchain.vars,
+                                                action_parameters=action_parameters)
 
     @staticmethod
     def _get_default(_actionchain):
@@ -85,10 +89,11 @@ class ChainHolder(object):
         return _actionchain.chain[0].name
 
     @staticmethod
-    def _get_rendered_vars(vars):
+    def _get_rendered_vars(vars, action_parameters):
         if not vars:
             return {}
         context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
+        context.update(action_parameters)
         return jinja_utils.render_values(mapping=vars, context=context)
 
     def get_node(self, node_name=None, raise_on_failure=False):
@@ -159,6 +164,9 @@ class ActionChainRunner(ActionRunner):
         action_node = None
 
         try:
+            # initialize vars once we have the action_parameters. This allows
+            # vars to refer to action_parameters.
+            self.chain_holder.init_vars(action_parameters)
             action_node = self.chain_holder.get_next_node()
         except Exception as e:
             LOG.exception('Failed to get starting node "%s".', action_node.name)

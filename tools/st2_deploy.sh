@@ -115,7 +115,7 @@ else
     MISTRAL_STABLE_BRANCH="st2-0.5.1"
 fi
 
-if [[ "$DEBTEST" == "Ubuntu" ]]; then
+if [[ -n "$DEBTEST" ]]; then
   TYPE="debs"
   PYTHONPACK="/usr/lib/python2.7/dist-packages"
   echo "###########################################################################################"
