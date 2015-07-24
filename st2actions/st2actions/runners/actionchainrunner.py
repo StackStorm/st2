@@ -190,7 +190,7 @@ class ActionChainRunner(ActionRunner):
                 resolved_params = ActionChainRunner._resolve_params(
                     action_node=action_node, original_parameters=action_parameters,
                     results=context_result, chain_vars=self.chain_holder.vars,
-                    chain_context=parent_context)
+                    chain_context={'parent': parent_context})
             except Exception as e:
                 # Rendering parameters failed before we even got to running this action, abort and
                 # fail the whole action chain

@@ -38,5 +38,5 @@ __all__ = [
 
 def get_liveaction_for_execution(execution_id):
     execution_db = ActionExecution.get_by_id(execution_id)
-    liveaction_db = LiveAction.get_by_id(str(execution_db.liveaction.id))
+    liveaction_db = LiveAction.get_by_id(execution_db.liveaction['id'])
     return liveaction_db

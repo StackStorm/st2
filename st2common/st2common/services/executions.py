@@ -99,7 +99,7 @@ def create_execution_object(liveaction, publish=True):
         attrs['trigger'] = vars(TriggerAPI.from_model(trigger))
         attrs['trigger_type'] = vars(TriggerTypeAPI.from_model(trigger_type))
 
-    parent = ActionExecution.get(liveaction__id=liveaction.context.get('parent', ''))
+    parent = _get_parent_execution(liveaction)
     if parent:
         attrs['parent'] = str(parent.id)
 
@@ -112,6 +112,19 @@ def create_execution_object(liveaction, publish=True):
             ActionExecution.add_or_update(parent)
 
     return execution
+
+
+def _get_parent_execution(child_liveaction_db):
+    parent_context = child_liveaction_db.context.get('parent', None)
+
+    if parent_context:
+        parent_id = parent_context['execution_id']
+        try:
+            return ActionExecution.get_by_id(parent_id)
+        except:
+            LOG.exception('No valid execution object found in db for id: %s' % parent_id)
+            return None
+    return None
 
 
 def update_execution(liveaction_db, publish=True):

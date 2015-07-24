@@ -121,6 +121,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             user = cfg.CONF.system_user.user
 
         liveaction.context['user'] = user
+        LOG.debug('User is: %s' % user)
 
         # Retrieve other st2 context from request header.
         if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
