@@ -6,14 +6,12 @@ if [ -z ${TASK} ]; then
   exit 2
 fi
 
-if [ ${TASK} == 'checks' ]; then
-  make .flake8
-  make .pylint
-  make .docs
-elif [ ${TASK} == 'unit' ]; then
+if [ ${TASK} == 'unit' ]; then
   # compile .py files, useful as compatibility syntax check
   make compile
-  make unit-tests-coverage-xml
+  make .unit-tests-coverage-html
+elif [ ${TASK} == 'integration' ]; then
+  make .itests-coverage-html
 else
   echo "Invalid task: ${TASK}"
   exit 2

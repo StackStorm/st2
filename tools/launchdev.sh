@@ -167,7 +167,7 @@ function st2start(){
         --config-file $ST2_CONF --register-all
 
     # List screen sessions
-    screen -ls
+    screen -ls || exit 0
 }
 
 function st2stop(){
