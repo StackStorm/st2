@@ -22,7 +22,6 @@ from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED)
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
-from st2common.constants.action import ACTION_KV_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
 from st2common.exceptions import actionrunner as runnerexceptions
@@ -189,8 +188,7 @@ class ActionChainRunner(ActionRunner):
             try:
                 resolved_params = ActionChainRunner._resolve_params(
                     action_node=action_node, original_parameters=action_parameters,
-                    results=context_result, chain_vars=self.chain_holder.vars,
-                    chain_context={'parent': parent_context})
+                    results=context_result, chain_vars=self.chain_holder.vars)
             except Exception as e:
                 # Rendering parameters failed before we even got to running this action, abort and
                 # fail the whole action chain
@@ -327,7 +325,7 @@ class ActionChainRunner(ActionRunner):
         return rendered_result
 
     @staticmethod
-    def _resolve_params(action_node, original_parameters, results, chain_vars, chain_context):
+    def _resolve_params(action_node, original_parameters, results, chain_vars):
         # setup context with original parameters and the intermediate results.
         context = {}
         context.update(original_parameters)
@@ -335,7 +333,6 @@ class ActionChainRunner(ActionRunner):
         context.update(chain_vars)
         context.update({RESULTS_KEY: results})
         context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
-        context.update({ACTION_KV_PREFIX: chain_context})
         rendered_params = jinja_utils.render_values(mapping=action_node.params, context=context)
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
