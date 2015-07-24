@@ -32,6 +32,8 @@ class RBACServicesTestCase(CleanDbTestCase):
     def setUp(self):
         super(RBACServicesTestCase, self).setUp()
 
+        # TODO: Share mocks
+
         self.users = {}
         self.roles = {}
         self.resources = {}

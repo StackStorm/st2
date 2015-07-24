@@ -28,6 +28,7 @@ __all__ = [
     'get_all_roles',
     'get_system_roles',
     'get_roles_for_user',
+    'get_role_by_name',
 
     'create_role',
     'delete_role',
@@ -72,6 +73,14 @@ def get_roles_for_user(user_db):
     """
     role_names = UserRoleAssignment.query(user=user_db.name).only('role').scalar('role')
     result = Role.query(name__in=role_names)
+    return result
+
+
+def get_role_by_name(name):
+    """
+    Retrieve role by name.
+    """
+    result = Role.get(name=name)
     return result
 
 

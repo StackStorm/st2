@@ -24,7 +24,7 @@ from st2common.models.db.auth import UserDB
 from st2common.models.db.rule import RuleDB
 
 
-class RBACTestCase(unittest2.TestCase):
+class RBACUtilsTestCase(unittest2.TestCase):
     @classmethod
     def setUpClass(cls):
         config.parse_args()
