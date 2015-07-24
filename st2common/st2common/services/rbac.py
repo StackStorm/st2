@@ -129,10 +129,10 @@ def revoke_role_from_user(role_db, user_db):
     return result
 
 
-def get_all_permission_grants_for_user(user_db, resource_types=None):
+def get_all_permission_grants_for_user(user_db, resource_types=None, permission_type=None):
     """
     Retrieve all the permission grants for a particular user optionally filtering on a type of
-    resource this grant applies to.
+    resource this grant applies to and / or permission type.
 
     The result is a union of all the permission grants assigned to the roles which are assigned to
     the user.
@@ -148,6 +148,9 @@ def get_all_permission_grants_for_user(user_db, resource_types=None):
 
     if resource_types:
         permission_grants_filters['resource_type__in'] = resource_types
+
+    if permission_type:
+        permission_grants_filters['permission_types'] = permission_type
 
     permission_grant_dbs = PermissionGrant.query(**permission_grants_filters)
     return permission_grant_dbs
