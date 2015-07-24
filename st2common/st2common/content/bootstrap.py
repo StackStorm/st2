@@ -72,7 +72,7 @@ def register_sensor_instances():
         LOG.info('=========================================================')
         # Importing here to reduce scope of dependency. This way even if st2reactor
         # is not installed bootstrap continues.
-        import st2reactor.bootstrap.sensorsinstancesregistrar as sensor_instances_registrar
+        import st2reactor.bootstrap.sensorinstancesregistrar as sensor_instances_registrar
         registered_count = sensor_instances_registrar.register_sensor_instances(
             pack_dir=cfg.CONF.register.pack)
     except Exception:
