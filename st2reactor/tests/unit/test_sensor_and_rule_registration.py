@@ -47,22 +47,17 @@ class SensorRegistrationTestCase(DbTestCase):
         trigger_type_dbs = TriggerType.get_all()
         trigger_dbs = Trigger.get_all()
 
-        self.assertEqual(len(sensor_dbs), 2)
-        self.assertEqual(len(trigger_type_dbs), 2)
-        self.assertEqual(len(trigger_dbs), 2)
+        self.assertEqual(len(sensor_dbs), 3)
+        self.assertEqual(len(trigger_type_dbs), 4)
+        self.assertEqual(len(trigger_dbs), 4)
 
-        self.assertEqual(sensor_dbs[0].name, 'TestSensor')
-        self.assertEqual(sensor_dbs[0].poll_interval, 10)
-        self.assertTrue(sensor_dbs[0].enabled)
+        self._validate_sensor(sensor_dbs, sensor_name='TestSensor')
+        self._validate_sensor(sensor_dbs, sensor_name='TestSensorDisabled', enabled=False)
 
-        self.assertEqual(sensor_dbs[1].name, 'TestSensorDisabled')
-        self.assertEqual(sensor_dbs[1].poll_interval, 10)
-        self.assertFalse(sensor_dbs[1].enabled)
-
-        self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
-        self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
-        self.assertEqual(trigger_type_dbs[1].name, 'trigger_type_2')
-        self.assertEqual(trigger_type_dbs[1].pack, 'pack_with_sensor')
+        self._validate_trigger_type(trigger_type_dbs, trigger_type_name='trigger_type_1',
+                                    pack_name='pack_with_sensor')
+        self._validate_trigger_type(trigger_type_dbs, trigger_type_name='trigger_type_2',
+                                    pack_name='pack_with_sensor')
 
         # Verify second call to registration doesn't create a duplicate objects
         registrar.register_sensors_from_packs(base_dirs=[PACKS_DIR])
@@ -71,17 +66,16 @@ class SensorRegistrationTestCase(DbTestCase):
         trigger_type_dbs = TriggerType.get_all()
         trigger_dbs = Trigger.get_all()
 
-        self.assertEqual(len(sensor_dbs), 2)
-        self.assertEqual(len(trigger_type_dbs), 2)
-        self.assertEqual(len(trigger_dbs), 2)
+        self.assertEqual(len(sensor_dbs), 3)
+        self.assertEqual(len(trigger_type_dbs), 4)
+        self.assertEqual(len(trigger_dbs), 4)
 
-        self.assertEqual(sensor_dbs[0].name, 'TestSensor')
-        self.assertEqual(sensor_dbs[0].poll_interval, 10)
+        self._validate_sensor(sensor_dbs, sensor_name='TestSensor')
 
-        self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
-        self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
-        self.assertEqual(trigger_type_dbs[1].name, 'trigger_type_2')
-        self.assertEqual(trigger_type_dbs[1].pack, 'pack_with_sensor')
+        self._validate_trigger_type(trigger_type_dbs, trigger_type_name='trigger_type_1',
+                                    pack_name='pack_with_sensor')
+        self._validate_trigger_type(trigger_type_dbs, trigger_type_name='trigger_type_2',
+                                    pack_name='pack_with_sensor')
 
         # Verify sensor and trigger data is updated on registration
         original_load = registrar._meta_loader.load
@@ -100,18 +94,42 @@ class SensorRegistrationTestCase(DbTestCase):
         trigger_type_dbs = TriggerType.get_all()
         trigger_dbs = Trigger.get_all()
 
-        self.assertEqual(len(sensor_dbs), 2)
-        self.assertEqual(len(trigger_type_dbs), 2)
-        self.assertEqual(len(trigger_dbs), 2)
+        self.assertEqual(len(sensor_dbs), 3)
+        self.assertEqual(len(trigger_type_dbs), 4)
+        self.assertEqual(len(trigger_dbs), 4)
 
-        self.assertEqual(sensor_dbs[0].name, 'TestSensor')
-        self.assertEqual(sensor_dbs[0].poll_interval, 50)
+        self._validate_sensor(sensor_dbs, sensor_name='TestSensor', poll_interval=50)
 
-        self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
-        self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
-        self.assertEqual(trigger_type_dbs[1].name, 'trigger_type_2')
-        self.assertEqual(trigger_type_dbs[1].pack, 'pack_with_sensor')
-        self.assertEqual(trigger_type_dbs[1].description, 'test 2')
+        self._validate_trigger_type(trigger_type_dbs, trigger_type_name='trigger_type_1',
+                                    pack_name='pack_with_sensor')
+        self._validate_trigger_type(trigger_type_dbs, trigger_type_name='trigger_type_2',
+                                    pack_name='pack_with_sensor', description='test 2')
+
+    def _validate_sensor(self, sensor_dbs, sensor_name, poll_interval=10, enabled=True):
+        found = False
+        for sensor_db in sensor_dbs:
+            if sensor_db.name == sensor_name:
+                self.assertEqual(sensor_db.name, sensor_name)
+                self.assertEqual(sensor_db.poll_interval, poll_interval)
+                self.assertEqual(sensor_db.enabled, enabled)
+                found = True
+                break
+        if not found:
+            self.assertTrue(False, 'sensor with name %s not found.' % sensor_name)
+
+    def _validate_trigger_type(self, trigger_type_dbs, trigger_type_name, pack_name,
+                               description=''):
+        found = False
+        for trigger_type_db in trigger_type_dbs:
+            if trigger_type_db.name == trigger_type_name:
+                self.assertEqual(trigger_type_db.name, trigger_type_name)
+                self.assertEqual(trigger_type_db.pack, pack_name)
+                if description:
+                    self.assertEqual(trigger_type_db.description, description)
+                found = True
+                break
+        if not found:
+            self.assertTrue(False, 'trigger type with name %s not found.' % trigger_type_name)
 
 
 class RuleRegistrationTestCase(DbTestCase):

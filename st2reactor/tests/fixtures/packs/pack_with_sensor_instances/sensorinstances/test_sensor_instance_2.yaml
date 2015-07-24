@@ -1,0 +1,6 @@
+---
+name: sensor_instance_2
+description: Instantiation of parameterized_sensor
+sensor_type: pack_with_sensor_instances.ParameterizedSensor
+parameters:
+    input_1: baz

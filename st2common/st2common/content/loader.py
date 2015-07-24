@@ -152,6 +152,8 @@ class ContentPackLoader(object):
     def _get_content_from_pack_dir(self, pack_dir, content_type):
         if content_type == 'sensors':
             get_func = self._get_sensors
+        elif content_type == 'sensorinstances':
+            get_func = self._get_sensorinstances
         elif content_type == 'actions':
             get_func = self._get_actions
         elif content_type == 'rules':
@@ -171,6 +173,9 @@ class ContentPackLoader(object):
 
     def _get_sensors(self, pack_dir):
         return self._get_folder(pack_dir=pack_dir, content_type='sensors')
+
+    def _get_sensorinstances(self, pack_dir):
+        return self._get_folder(pack_dir=pack_dir, content_type='sensorinstances')
 
     def _get_actions(self, pack_dir):
         return self._get_folder(pack_dir=pack_dir, content_type='actions')
