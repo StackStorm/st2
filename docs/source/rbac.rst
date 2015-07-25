@@ -35,6 +35,8 @@ example, you could grant an execute permission (``ACTION_EXECUTE``) to an action
 
 The table below contains a list of all the available permission types.
 
+.. include:: _includes/available_permission_types.rst
+
 System roles
 ------------
 

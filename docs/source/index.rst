@@ -21,6 +21,7 @@ Contents:
     workflows
     history
     authentication
+    rbac
     cli
     troubleshooting
     resources/index
