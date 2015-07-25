@@ -66,6 +66,7 @@ docs: requirements .docs
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-runner-parameters-documentation.py
 	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-internal-triggers-table.py
+	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-available-permission-types-table.py
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; $(SPHINXBUILD) -W -b html $(DOC_SOURCE_DIR) $(DOC_BUILD_DIR)/html
 	@echo
