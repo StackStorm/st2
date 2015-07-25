@@ -324,7 +324,7 @@ def encrypt_archive(archive_file_path, debug=False):
     :return: Path to the encrypted archive.
     :rtype: ``str``
     """
-    assert(archive_file_path.endswith('.tar.gz'))
+    assert archive_file_path.endswith('.tar.gz')
 
     LOG.info('Encrypting tarball...')
     gpg = gnupg.GPG(verbose=debug)
@@ -332,7 +332,7 @@ def encrypt_archive(archive_file_path, debug=False):
     # Import our public key
     import_result = gpg.import_keys(GPG_KEY)
     # pylint: disable=no-member
-    assert(import_result.count == 1)
+    assert import_result.count == 1
 
     encrypted_archive_output_file_path = archive_file_path + '.asc'
     with open(archive_file_path, 'rb') as fp:
@@ -345,7 +345,7 @@ def encrypt_archive(archive_file_path, debug=False):
 
 
 def upload_archive(archive_file_path):
-    assert(archive_file_path.endswith('.asc'))
+    assert archive_file_path.endswith('.asc')
 
     LOG.debug('Uploading tarball...')
     files = {'file': open(archive_file_path, 'rb')}
@@ -392,10 +392,10 @@ def create_and_upload_archive(include_logs, include_configs, include_content, in
     finally:
         # Remove tarballs
         if plain_text_output_path:
-            assert(plain_text_output_path.startswith('/tmp'))
+            assert plain_text_output_path.startswith('/tmp')
             remove_file(file_path=plain_text_output_path)
         if encrypted_output_path:
-            assert(encrypted_output_path.startswith('/tmp'))
+            assert encrypted_output_path.startswith('/tmp')
             remove_file(file_path=encrypted_output_path)
 
 

@@ -382,8 +382,8 @@ class ActionChainRunner(ActionRunner):
 
         :rtype: ``dict``
         """
-        assert(isinstance(created_at, datetime.datetime))
-        assert(isinstance(updated_at, datetime.datetime))
+        assert isinstance(created_at, datetime.datetime)
+        assert isinstance(updated_at, datetime.datetime)
 
         result = {}
 
