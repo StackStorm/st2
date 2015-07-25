@@ -100,4 +100,4 @@ class ResourceType(Enum):
     PACK = SystemResourceType.PACK
     ACTION = SystemResourceType.ACTION
     RULE = SystemResourceType.RULE
-    TRIGGER_TYPE = SystemResourceType.TRIGGER_TYPE
+    #TRIGGER_TYPE = SystemResourceType.TRIGGER_TYPE
