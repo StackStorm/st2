@@ -176,4 +176,4 @@ def transform_definition(definition):
                     _transform_action(task_spec, 'action', 'input')
 
     # Return the same type as original input.
-    return (spec if is_dict else yaml.safe_dump(spec, default_flow_style=False))
+    return spec if is_dict else yaml.safe_dump(spec, default_flow_style=False)
