@@ -46,6 +46,7 @@ class ResourceTypeAccessDeniedError(AccessDeniedError):
                                                                         permission_type))
         super(ResourceAccessDeniedError, self).__init__(message=message, user_db=user_db)
 
+
 class ResourceAccessDeniedError(AccessDeniedError):
     """
     Class representing an error where user doesn't have a required permission on a resource.
