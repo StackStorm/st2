@@ -168,7 +168,7 @@ def user_has_resource_permission(user_db, resource_db, permission_type):
     Check that the provided user has specified permission on the provided resource.
     """
     if not cfg.CONF.rbac.enable:
-        return TrueA
+        return True
 
     # TODO
     return True
