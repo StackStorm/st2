@@ -248,9 +248,9 @@ class ContentPackResourceController(ResourceController):
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
         result = self.model.from_model(instance, **from_model_kwargs)
         if result and self.include_reference:
-                pack = getattr(result, 'pack', None)
-                name = getattr(result, 'name', None)
-                result.ref = ResourceReference(pack=pack, name=name).ref
+            pack = getattr(result, 'pack', None)
+            name = getattr(result, 'name', None)
+            result.ref = ResourceReference(pack=pack, name=name).ref
 
         LOG.debug('GET %s with ref_or_id=%s, client_result=%s',
                   pecan.request.path, ref_or_id, result)
