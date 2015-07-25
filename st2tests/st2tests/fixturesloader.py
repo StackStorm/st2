@@ -118,7 +118,7 @@ class FixturesLoader(object):
     def __init__(self):
         self.meta_loader = MetaLoader()
 
-    def save_fixtures_to_db(self, fixtures_pack=None, fixtures_dict=None):
+    def save_fixtures_to_db(self, fixtures_pack='generic', fixtures_dict=None):
         """
         Loads fixtures specified in fixtures_dict into the database
         and returns DB models for the fixtures.
@@ -162,7 +162,7 @@ class FixturesLoader(object):
 
         return db_models
 
-    def load_fixtures(self, fixtures_pack=None, fixtures_dict={}):
+    def load_fixtures(self, fixtures_pack='generic', fixtures_dict=None):
         """
         Loads fixtures specified in fixtures_dict. We
         simply want to load the meta into dict objects.
@@ -181,6 +181,8 @@ class FixturesLoader(object):
 
         :rtype: ``dict``
         """
+        if not fixtures_dict:
+            return {}
         fixtures_pack_path = self._validate_fixtures_pack(fixtures_pack)
         self._validate_fixture_dict(fixtures_dict)
 
@@ -195,7 +197,7 @@ class FixturesLoader(object):
 
         return all_fixtures
 
-    def load_models(self, fixtures_pack=None, fixtures_dict={}):
+    def load_models(self, fixtures_pack='generic', fixtures_dict=None):
         """
         Loads fixtures specified in fixtures_dict as db models. This method must be
         used for fixtures that have associated DB models. We simply want to load the
@@ -216,6 +218,8 @@ class FixturesLoader(object):
 
         :rtype: ``dict``
         """
+        if not fixtures_dict:
+            return {}
         fixtures_pack_path = self._validate_fixtures_pack(fixtures_pack)
         self._validate_fixture_dict(fixtures_dict, allowed=ALLOWED_DB_FIXTURES)
 
@@ -235,7 +239,7 @@ class FixturesLoader(object):
 
         return all_fixtures
 
-    def delete_fixtures_from_db(self, fixtures_pack=None, fixtures_dict={}, raise_on_fail=False):
+    def delete_fixtures_from_db(self, fixtures_pack='generic', fixtures_dict=None, raise_on_fail=False):
         """
         Deletes fixtures specified in fixtures_dict from the database.
 
@@ -255,6 +259,8 @@ class FixturesLoader(object):
         :param raise_on_fail: Optional If True, raises exception if delete fails on any fixture.
         :type raise_on_fail: ``boolean``
         """
+        if not fixtures_dict:
+            return
         fixtures_pack_path = self._validate_fixtures_pack(fixtures_pack)
         self._validate_fixture_dict(fixtures_dict)
 
