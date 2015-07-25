@@ -178,3 +178,21 @@ class TestPersistence(DbTestCase):
         self.assertLess(objs[0].timestamp, objs[(count / 2) - 1].timestamp)
         self.assertLess(objs[count / 2].timestamp, objs[(count / 2) - 1].timestamp)
         self.assertLess(objs[count / 2].timestamp, objs[count - 1].timestamp)
+
+    def test_escaped_field(self):
+        context = {'a.b.c': 'abc'}
+        obj1 = FakeModelDB(name=uuid.uuid4().hex, context=context)
+        obj2 = self.access.add_or_update(obj1)
+
+        # Check that the original dict has not been altered.
+        self.assertIn('a.b.c', context.keys())
+        self.assertNotIn('a\uff0eb\uff0ec', context.keys())
+
+        # Check to_python has run and context is not left escaped.
+        self.assertDictEqual(obj2.context, context)
+
+        # Check field is not escaped when retrieving from persistence.
+        obj3 = self.access.get(name=obj2.name)
+        self.assertIsNotNone(obj3)
+        self.assertEqual(obj3.id, obj2.id)
+        self.assertDictEqual(obj3.context, context)

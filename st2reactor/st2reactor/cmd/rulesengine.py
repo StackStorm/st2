@@ -43,7 +43,7 @@ def _run_worker():
     try:
         timer_thread = eventlet.spawn(_kickoff_timer, timer)
         rules_engine_worker.start()
-        return (timer_thread.wait() and rules_engine_worker.wait())
+        return timer_thread.wait() and rules_engine_worker.wait()
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) RulesEngine stopped.', os.getpid())
         rules_engine_worker.shutdown()

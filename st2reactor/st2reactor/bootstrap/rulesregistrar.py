@@ -153,7 +153,7 @@ class RulesRegistrar(ResourceRegistrar):
 
 def register_rules(packs_base_paths=None, pack_dir=None):
     if packs_base_paths:
-        assert(isinstance(packs_base_paths, list))
+        assert isinstance(packs_base_paths, list)
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()

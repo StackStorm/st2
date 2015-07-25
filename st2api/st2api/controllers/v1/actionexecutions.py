@@ -96,16 +96,16 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         return from_model_kwargs
 
-    def _handle_schedule_execution(self, execution):
+    def _handle_schedule_execution(self, liveaction):
         # Assert the permissions
-        action_ref = execution.action
+        action_ref = liveaction.action
         action_db = action_utils.get_action_by_ref(action_ref)
 
         assert_request_user_has_resource_permission(request=pecan.request, resource_db=action_db,
                                                     permission_type=PermissionType.ACTION_EXECUTE)
 
         try:
-            return self._schedule_execution(execution=execution)
+            return self._schedule_execution(liveaction=liveaction)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
@@ -116,10 +116,10 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def _schedule_execution(self, execution):
+    def _schedule_execution(self, liveaction):
         # Initialize execution context if it does not exist.
-        if not hasattr(execution, 'context'):
-            execution.context = dict()
+        if not hasattr(liveaction, 'context'):
+            liveaction.context = dict()
 
         # Retrieve username of the authed user (note - if auth is disabled, user will not be
         # set so we fall back to the system user name)
@@ -130,17 +130,17 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         else:
             user = cfg.CONF.system_user.user
 
-        execution.context['user'] = user
+        liveaction.context['user'] = user
 
         # Retrieve other st2 context from request header.
-        if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
+        if 'st2-context' in pecan.request.headers and pecan.request.headers['st2-context']:
             context = jsonify.try_loads(pecan.request.headers['st2-context'])
             if not isinstance(context, dict):
                 raise ValueError('Unable to convert st2-context from the headers into JSON.')
-            execution.context.update(context)
+            liveaction.context.update(context)
 
         # Schedule the action execution.
-        liveactiondb = LiveActionAPI.to_model(execution)
+        liveactiondb = LiveActionAPI.to_model(liveaction)
         _, actionexecutiondb = action_service.request(liveactiondb)
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
         return ActionExecutionAPI.from_model(actionexecutiondb, from_model_kwargs)
@@ -253,9 +253,9 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
         # Create object for the new execution
         action_ref = existing_execution.action['ref']
-        new_execution = LiveActionDB(action=action_ref, parameters=new_parameters)
+        new_liveaction = LiveActionDB(action=action_ref, parameters=new_parameters)
 
-        result = self._handle_schedule_execution(execution=new_execution)
+        result = self._handle_schedule_execution(liveaction=new_liveaction)
         return result
 
 
@@ -323,8 +323,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         return self._get_one(id=id, exclude_fields=exclude_fields)
 
     @jsexpose(body_cls=LiveActionAPI, status_code=http_client.CREATED)
-    def post(self, execution):
-        return self._handle_schedule_execution(execution=execution)
+    def post(self, liveaction):
+        return self._handle_schedule_execution(liveaction=liveaction)
 
     @jsexpose(arg_types=[str])
     def delete(self, exec_id):

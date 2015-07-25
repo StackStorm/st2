@@ -57,3 +57,14 @@ class TestMongoEscape(unittest.TestCase):
 
         result = mongoescape.unescape_chars(escaped)
         self.assertEqual(result, unescaped)
+
+    def test_original_value(self):
+        field = {'k1.k2.k3': 'v1'}
+
+        escaped = mongoescape.escape_chars(field)
+        self.assertIn('k1.k2.k3', field.keys())
+        self.assertIn(u'k1\uff0ek2\uff0ek3', escaped.keys())
+
+        unescaped = mongoescape.unescape_chars(escaped)
+        self.assertIn('k1.k2.k3', unescaped.keys())
+        self.assertIn(u'k1\uff0ek2\uff0ek3', escaped.keys())
