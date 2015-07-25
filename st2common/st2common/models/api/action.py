@@ -508,8 +508,8 @@ class AliasExecutionAPI(BaseAPI):
             },
             "source_channel": {
                 "type": "string",
-                "description": "Channel from which the execution was requested. This is not the channel \
-                                as defined by the notification system."
+                "description": "Channel from which the execution was requested. This is not the \
+                                channel as defined by the notification system."
             },
             "notification_channel": {
                 "type": "string",

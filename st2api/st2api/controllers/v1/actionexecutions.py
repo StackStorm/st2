@@ -123,7 +123,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         liveaction.context['user'] = user
 
         # Retrieve other st2 context from request header.
-        if ('st2-context' in pecan.request.headers and pecan.request.headers['st2-context']):
+        if 'st2-context' in pecan.request.headers and pecan.request.headers['st2-context']:
             context = jsonify.try_loads(pecan.request.headers['st2-context'])
             if not isinstance(context, dict):
                 raise ValueError('Unable to convert st2-context from the headers into JSON.')

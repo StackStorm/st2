@@ -113,7 +113,7 @@ class RunnerContainer(object):
                 pass
 
             action_completed = status in action_constants.COMPLETED_STATES
-            if (isinstance(runner, AsyncActionRunner) and not action_completed):
+            if isinstance(runner, AsyncActionRunner) and not action_completed:
                 self._setup_async_query(liveaction_db.id, runnertype_db, context)
         except:
             LOG.exception('Failed to run action.')
@@ -143,7 +143,7 @@ class RunnerContainer(object):
             is_async_runner = isinstance(runner, AsyncActionRunner)
             action_completed = status in action_constants.COMPLETED_STATES
 
-            if (not is_async_runner or (is_async_runner and action_completed)):
+            if not is_async_runner or (is_async_runner and action_completed):
                 try:
                     self._delete_auth_token(runner.auth_token)
                 except:

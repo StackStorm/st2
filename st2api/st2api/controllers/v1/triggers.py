@@ -159,9 +159,9 @@ class TriggerTypeController(resource.ContentPackResourceController):
             LOG.audit('Trigger created for parameter-less TriggerType. Trigger.id=%s' %
                       (trigger_db.id), extra=extra)
         except (ValidationError, ValueError) as e:
-                LOG.exception('Validation failed for trigger data=%s.', trigger)
-                # Not aborting as this is convenience.
-                return
+            LOG.exception('Validation failed for trigger data=%s.', trigger)
+            # Not aborting as this is convenience.
+            return
         except StackStormDBObjectConflictError as e:
             LOG.warn('Trigger creation of "%s" failed with uniqueness conflict. Exception: %s',
                      trigger, str(e))
