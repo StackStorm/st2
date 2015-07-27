@@ -23,6 +23,8 @@ from st2common.constants.rbac import SystemRole
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.exceptions.rbac import ResourceTypeAccessDeniedError
 from st2common.exceptions.rbac import ResourceAccessDeniedError
+from st2common.rbac import resolvers
+from st2common.services import rbac as rbac_services
 
 __all__ = [
     'request_user_is_admin',
@@ -141,15 +143,20 @@ def user_is_admin(user_db):
     return user_has_role(user_db=user_db, role=SystemRole.ADMIN)
 
 
-def user_has_role(user_db, role):
+def user_has_role(user_db, name):
     """
     :param user: User object to check for.
     :type user: :class:`UserDB`
 
+    :param name: Role name to check for.
+    :type name: ``str``
+
     :rtype: ``bool``
     """
-    # TOOD
-    return True
+    user_role_dbs = rbac_services.get_roles_for_user(user_db=user_db)
+    user_role_names = [role_db.name for role_db in user_role_dbs]
+
+    return name in user_role_names
 
 
 def user_has_permission(user_db, permission_type):
@@ -160,7 +167,10 @@ def user_has_permission(user_db, permission_type):
         return True
 
     # TODO
-    return True
+    # TODO Verify permission type for the provided resource type
+    resolver = resolvers.get_resolver_for_permission_type(permission_type=permission_type)
+    result = resolver.user_has_permission(user_db=user_db, permission_type=permission_type)
+    return result
 
 
 def user_has_resource_permission(user_db, resource_db, permission_type):
@@ -171,7 +181,11 @@ def user_has_resource_permission(user_db, resource_db, permission_type):
         return True
 
     # TODO
-    return True
+    # TODO Verify permission type for the provided resource type
+    resolver = resolvers.get_resolver_for_permission_type(permission_type=permission_type)
+    result = resolver.user_has_resource_permission(user_db=user_db, resource_db=resource_db,
+                                                   permission_type=permission_type)
+    return result
 
 
 def _get_user_db_from_request(request):
