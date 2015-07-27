@@ -71,6 +71,16 @@ class ActionsController(resource.ContentPackResourceController):
             LOG.error(msg)
             abort(http_client.CONFLICT, msg)
 
+    @jsexpose(arg_types=[str])
+    @request_user_has_permission(permission_type=PermissionType.ACTION_VIEW)
+    def get_one(self, ref_or_id):
+        return super(ActionsController, self).get_one(ref_or_id)
+
+    @jsexpose()
+    @request_user_has_permission(permission_type=PermissionType.ACTION_VIEW)
+    def get_all(self, **kwargs):
+        return super(ActionsController, self).get_all(**kwargs)
+
     @jsexpose(body_cls=ActionAPI, status_code=http_client.CREATED)
     @request_user_has_permission(permission_type=PermissionType.ACTION_CREATE)
     def post(self, action):

@@ -54,6 +54,16 @@ class RuleController(resource.ContentPackResourceController):
 
     include_reference = True
 
+    @jsexpose(arg_types=[str])
+    @request_user_has_permission(permission_type=PermissionType.RULE_VIEW)
+    def get_one(self, ref_or_id):
+        return super(RuleController, self).get_one(ref_or_id)
+
+    @jsexpose()
+    @request_user_has_permission(permission_type=PermissionType.RULE_VIEW)
+    def get_all(self, **kwargs):
+        return super(RuleController, self).get_all(**kwargs)
+
     @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
     @request_user_has_permission(permission_type=PermissionType.RULE_CREATE)
     def post(self, rule):
