@@ -194,6 +194,7 @@ Create a new file called `google.yaml`, and add the following contents.
 # packs/chatops/aliases/google.yaml
 ---
 name: "google_query"
+description: "Perform a google search"
 action_ref: "google.get_search_results"
 formats:
   - "google {{query}}"
