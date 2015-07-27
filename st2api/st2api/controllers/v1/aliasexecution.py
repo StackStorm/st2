@@ -16,8 +16,8 @@
 import jsonschema
 import pecan
 import six
-
 from pecan import rest
+
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.models.api.action import AliasExecutionAPI
@@ -27,7 +27,10 @@ from st2common.models.db.notification import NotificationSchema, NotificationSub
 from st2common.models.utils import action_alias_utils, action_param_utils
 from st2common.persistence.actionalias import ActionAlias
 from st2common.services import action as action_service
+from st2common.util import action_db as action_utils
 from st2common.util import reference
+from st2common.rbac.types import PermissionType
+from st2common.rbac.utils import assert_request_user_has_resource_permission
 
 
 http_client = six.moves.http_client
@@ -111,6 +114,12 @@ class ActionAliasExecutionController(rest.RestController):
         return notify
 
     def _schedule_execution(self, action_alias_db, params, notify, context):
+        action_ref = action_alias_db.action_ref
+        action_db = action_utils.get_action_by_ref(action_ref)
+
+        assert_request_user_has_resource_permission(request=pecan.request, resource_db=action_db,
+                                                    permission_type=PermissionType.ACTION_EXECUTE)
+
         try:
             # prior to shipping off the params cast them to the right type.
             params = action_param_utils.cast_params(action_ref=action_alias_db.action_ref,
