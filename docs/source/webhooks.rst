@@ -99,8 +99,8 @@ POST-ing data to a custom webhook will cause a trigger with the following
 attributes to be dispatched:
 
 * ``trigger`` - Trigger name.
-* ``payload.headers`` - Dictionary containing the request headers.
-* ``payload.body`` - Dictionary containing the request body.
+* ``trigger.headers`` - Dictionary containing the request headers.
+* ``trigger.body`` - Dictionary containing the request body.
 
 Here is an example which shows how to send data to a custom webhook using
 cURL and how to match on this data inside the rule criteria.
