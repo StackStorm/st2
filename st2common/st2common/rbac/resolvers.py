@@ -27,7 +27,8 @@ from st2common.services.rbac import get_all_permission_grants_for_user
 __all__ = [
     'ActionPermissionsResolver',
 
-    'get_resolver_for_resource_type'
+    'get_resolver_for_resource_type',
+    'get_resolver_for_permission_type'
 ]
 
 
@@ -128,6 +129,23 @@ class ActionPermissionsResolver(PermissionsResolver):
 
 
 def get_resolver_for_resource_type(resource_type):
+    """
+    Return resolver instance for the provided resource type.
+
+    :rtype: :class:`PermissionsResolver`
+    """
     if resource_type == ResourceType.ACTION:
         return ActionPermissionsResolver
-    pass
+    else:
+        raise ValueError('Unsupported resource: %s' % (resource_type))
+
+
+def get_resolver_for_permission_type(permission_type):
+    """
+    Return resolver instance for the provided permission type.
+
+    :rtype: :class:`PermissionsResolver`
+    """
+    resource_type = PermissionType.get_resource_type(permission_type=permission_type)
+    resolver = get_resolver_for_resource_type(resource_type=resource_type)
+    return resolver
