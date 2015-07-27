@@ -18,6 +18,9 @@ User
 A user represents an entity (person / robot) which needs to be authenticated and interacts with
 |st2| through the API.
 
+User permissions are represented as a union of permission grants which are assigned to all the user
+roles.
+
 Role
 ~~~~
 
@@ -40,7 +43,7 @@ The table below contains a list of all the available permission types.
 System roles
 ------------
 
-System roles are roles which are available by default and can't be manipulated (manipulated and /
+System roles are roles which are available by default and can't be manipulated (modified and /
 or deleted).
 
 Currently, the following system roles are available:
@@ -53,9 +56,27 @@ Currently, the following system roles are available:
 How it works
 ------------
 
-TBW.
+User permissions are checked when a user performs an API request. If user has the necessary
+permissions the API operation proceeds normally, otherwise access denied error is returned and
+the error is logged in the audit log.
+
+Permission inheritance
+~~~~~~~~~~~~~~~~~~~~~~
+
+By default all the pack resources inherit all the permission from a pack. This means that if you
+grant "execute" permission to a pack, user will be able to execute all the actions inside that
+pack. Similarly, if you grant "delete" permission to a pack, user will be able to delete all the
+resources in a pack (action, rule).
 
 Defining roles and permission grants
 ------------------------------------
 
-TBW.
+Roles and permission grants are defined in YAML files which are located in on a file system in the
+following directory: ``/opt/stackstorm/TBD``.
+
+TBD - File names and format + examples.
+
+Maybe?
+
+- rbac/<role_name>_role.yaml
+- rbac/<username>_grants.yaml
