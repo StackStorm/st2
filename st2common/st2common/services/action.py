@@ -20,7 +20,6 @@ from st2common.constants import action as action_constants
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
-from st2common.services import liveaction as liveaction_services
 from st2common.util import date as date_utils
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
