@@ -66,16 +66,6 @@ class ActionsController(resource.ContentPackResourceController):
         super(ActionsController, self).__init__(*args, **kwargs)
         self._trigger_dispatcher = TriggerDispatcher(LOG)
 
-    @staticmethod
-    def _validate_action_parameters(action, runnertype_db):
-        # check if action parameters conflict with those from the supplied runner_type.
-        conflicts = [p for p in action.parameters.keys() if p in runnertype_db.runner_parameters]
-        if len(conflicts) > 0:
-            msg = 'Parameters %s conflict with those inherited from runner_type : %s' % \
-                  (str(conflicts), action.runner_type)
-            LOG.error(msg)
-            abort(http_client.CONFLICT, msg)
-
     @jsexpose(body_cls=ActionCreateAPI, status_code=http_client.CREATED)
     def post(self, action):
         """
@@ -101,7 +91,6 @@ class ActionsController(resource.ContentPackResourceController):
             written_data_files = self._handle_data_files(pack_name=action.pack,
                                                          data_files=data_files)
 
-        # ActionsController._validate_action_parameters(action, runnertype_db)
         action_model = ActionAPI.to_model(action)
 
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
