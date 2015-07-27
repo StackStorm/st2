@@ -58,16 +58,6 @@ class ActionsController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @staticmethod
-    def _validate_action_parameters(action, runnertype_db):
-        # check if action parameters conflict with those from the supplied runner_type.
-        conflicts = [p for p in action.parameters.keys() if p in runnertype_db.runner_parameters]
-        if len(conflicts) > 0:
-            msg = 'Parameters %s conflict with those inherited from runner_type : %s' % \
-                  (str(conflicts), action.runner_type)
-            LOG.error(msg)
-            abort(http_client.CONFLICT, msg)
-
     @jsexpose(body_cls=ActionAPI, status_code=http_client.CREATED)
     def post(self, action):
         """
@@ -83,7 +73,6 @@ class ActionsController(resource.ContentPackResourceController):
         validate_not_part_of_system_pack(action)
         action_validator.validate_action(action)
 
-        # ActionsController._validate_action_parameters(action, runnertype_db)
         action_model = ActionAPI.to_model(action)
 
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
