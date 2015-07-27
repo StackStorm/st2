@@ -179,6 +179,12 @@ class ActionChainRunner(ActionRunner):
                 'traceback': trace
             }
 
+        parent_context = {
+            'execution_id': self.execution_id
+        }
+        if getattr(self.liveaction, 'context', None):
+            parent_context.update(self.liveaction.context)
+
         while action_node:
             fail = False
             error = None
@@ -225,7 +231,7 @@ class ActionChainRunner(ActionRunner):
 
             try:
                 liveaction = self._run_action(
-                    action_node=action_node, parent_execution_id=self.liveaction_id,
+                    action_node=action_node, parent_context=parent_context,
                     params=resolved_params)
             except Exception as e:
                 # Save the traceback and error message
@@ -339,7 +345,7 @@ class ActionChainRunner(ActionRunner):
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
 
-    def _run_action(self, action_node, parent_execution_id, params, wait_for_completion=True):
+    def _run_action(self, action_node, parent_context, params, wait_for_completion=True):
         liveaction = LiveActionDB(action=action_node.ref)
         liveaction.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
                                                                params=params)
@@ -351,7 +357,7 @@ class ActionChainRunner(ActionRunner):
             LOG.debug('%s: Task notify set to: %s', action_node.name, liveaction.notify)
 
         liveaction.context = {
-            'parent': str(parent_execution_id),
+            'parent': parent_context,
             'chain': vars(action_node)
         }
 
