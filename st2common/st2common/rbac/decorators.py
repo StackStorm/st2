@@ -75,6 +75,7 @@ def request_user_has_resource_permission(permission_type):
             controller_instance = args[0]
             resource_ref_or_id = args[1]
 
+            # TODO: Special case for key value pair controller - use "_get_one_raw"
             resource_db = controller_instance._get_by_ref_or_id(ref_or_id=resource_ref_or_id)
             utils.assert_request_user_has_resource_permission(request=pecan.request,
                                                               resource_db=resource_db,
@@ -82,5 +83,3 @@ def request_user_has_resource_permission(permission_type):
             return func(*args, **kwargs)
         return func_wrapper
     return decorate
-
-

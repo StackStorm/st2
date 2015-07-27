@@ -23,6 +23,9 @@ from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services import coordination
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_permission
 
 http_client = six.moves.http_client
 
@@ -44,6 +47,7 @@ class KeyValuePairController(RestController):
         super(KeyValuePairController, self).__init__()
 
     @jsexpose(arg_types=[str])
+    @request_user_has_permission(permission_type=PermissionType.KEY_VALUE_VIEW)
     def get_one(self, name):
         """
             List key by name.
@@ -67,6 +71,7 @@ class KeyValuePairController(RestController):
         return kvp_api
 
     @jsexpose(arg_types=[str])
+    @request_user_has_permission(permission_type=PermissionType.KEY_VALUE_VIEW)
     def get_all(self, **kw):
         """
             List all keys.
@@ -87,6 +92,7 @@ class KeyValuePairController(RestController):
         return kvps
 
     @jsexpose(arg_types=[str, str], body_cls=KeyValuePairAPI)
+    @request_user_has_resource_permission(permission_type=PermissionType.KEY_VALUE_SET)
     def put(self, name, kvp):
         """
         Create a new entry or update an existing one.
@@ -118,6 +124,7 @@ class KeyValuePairController(RestController):
         return kvp_api
 
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
+    @request_user_has_resource_permission(permission_type=PermissionType.KEY_VALUE_DELETE)
     def delete(self, name):
         """
             Delete the key value pair.
