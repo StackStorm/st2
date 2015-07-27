@@ -192,7 +192,6 @@ class ActionPermissionsResolver(PermissionsResolver):
         return False
 
 
-
 class RulePermissionResolver(PermissionsResolver):
     def user_has_permission(self, user_db, permission_type):
         # First check the system role permissions
@@ -242,8 +241,7 @@ class RulePermissionResolver(PermissionsResolver):
             # Permissions assigned to the pack are inherited by all the pack resources
             if permission_grant.resource_uid == pack_uid and matches_pack_grant:
                 return True
-            elif permission_grant.resource_uid == rule_uid and
-            matches_rule_grant:
+            elif permission_grant.resource_uid == rule_uid and matches_rule_grant:
                 return True
 
         return False

@@ -82,6 +82,21 @@ class PermissionType(Enum):
         assert len(split) >= 2
         return split[-1]
 
+    @classmethod
+    def get_permission_type(cls, resource_type, permission_name):
+        """
+        Retrieve permission type for the provided resource type and permission name.
+
+        :rtype: ``str``
+        """
+        permission_enum = '%s_%s' % (resource_type, permission_name.lower())
+        result = getattr(cls, permission_enum, None)
+
+        if not result:
+            raise ValueError('Unsupported permission type')
+
+        return result
+
 
 class SystemRole(Enum):
     """
