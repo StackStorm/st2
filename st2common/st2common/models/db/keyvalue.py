@@ -14,20 +14,26 @@
 # limitations under the License.
 
 import mongoengine as me
+
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
+from st2common.constants.types import ResourceType
 
 __all__ = [
     'KeyValuePairDB'
 ]
 
 
-class KeyValuePairDB(stormbase.StormBaseDB):
+class KeyValuePairDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
     """
     Attribute:
         name: Name of the key.
         value: Arbitrary value to be stored.
     """
+
+    RESOURCE_TYPE = ResourceType.KEY_VALUE
+    UID_FIELDS = ['name']
+
     name = me.StringField(required=True, unique=True)
     value = me.StringField()
     expire_timestamp = me.DateTimeField()

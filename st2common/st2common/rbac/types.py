@@ -48,6 +48,11 @@ class PermissionType(Enum):
     RULE_DELETE = 'rule_delete'
     RULE_ALL = 'rule_all'
 
+    # TODO - Maybe "datastore_item" / key_value_item ?
+    KEY_VALUE_VIEW = 'key_value_view'
+    KEY_VALUE_SET = 'key_value_set'
+    KEY_VALUE_DELETE = 'key_value_delete'
+
     @classmethod
     def get_valid_permissions_for_resource_type(cls, resource_type):
         """
@@ -115,4 +120,6 @@ class ResourceType(Enum):
     PACK = SystemResourceType.PACK
     ACTION = SystemResourceType.ACTION
     RULE = SystemResourceType.RULE
-    #TRIGGER_TYPE = SystemResourceType.TRIGGER_TYPE
+    #  TRIGGER_TYPE = SystemResourceType.TRIGGER_TYPE
+
+    KEY_VALUE = SystemResourceType.RULE
