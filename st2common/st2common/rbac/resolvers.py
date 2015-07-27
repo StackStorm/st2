@@ -25,7 +25,9 @@ from st2common.services.rbac import get_roles_for_user
 from st2common.services.rbac import get_all_permission_grants_for_user
 
 __all__ = [
+    'PackPermissionsResolver',
     'ActionPermissionsResolver',
+    'RulePermissionResolver',
 
     'get_resolver_for_resource_type',
     'get_resolver_for_permission_type'
@@ -40,7 +42,7 @@ class PermissionsResolver(object):
     resource type.
     """
 
-    def user_has_system_role_permission(self, user_db, permission_type):
+    def _user_has_system_role_permission(self, user_db, permission_type):
         """
         Check the user system roles and return True if user has the required permission.
 
@@ -51,13 +53,86 @@ class PermissionsResolver(object):
         user_role_dbs = get_roles_for_user(user_db=user_db)
         user_role_names = [role_db.name for role_db in user_role_dbs]
 
-        # System admin has all the permissions
         if SystemRole.SYSTEM_ADMIN in user_role_names:
+            # System admin has all the permissions
             return True
         elif SystemRole.ADMIN in user_role_names:
+            # Admin has all the permissions
             return True
         elif SystemRole.OBSERVER in user_role_names and permission_name == 'view':
+            # Observer role has "view" permission on all the resources
             return True
+
+        return False
+
+    def _matches_permission_grant(self, resource_db, permission_grant, permission_type,
+                                  all_permission_type):
+        """
+        :rtype: ``bool``
+        """
+        if permission_type in permission_grant.permission_types:
+            # Direct permission grant
+            return True
+        elif all_permission_type in permission_grant.permission_types:
+            # "ALL" permission grant
+            return True
+
+        return False
+
+    def _get_all_permission_type_for_resource(self, resource_db):
+        """
+        Retrieve all permissiion type for the provided resource.
+        """
+        resource_type = resource_db.get_resource_type()
+        permission_type = PermissionType.get_permission_type(resource_type=resource_type,
+                                                             permission_name='all')
+        return permission_type
+
+
+class PackPermissionsResolver(PermissionsResolver):
+    def user_has_permission(self, user_db, permission_type):
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            return True
+
+        # Check custom roles
+        resource_types = [ResourceType.PACK]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_types=resource_types,
+                                                               permission_type=permission_type)
+
+        if len(permission_grants) >= 1:
+            return True
+
+        return False
+
+    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            return True
+
+        # Check custom roles
+        resource_types = [ResourceType.PACK]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_types=resource_types)
+
+        pack_uid = resource_db.get_uid()
+
+        for permission_grant in permission_grants:
+            matches_pack_grant = self._matches_permission_grant(resource_db=resource_db,
+                                                                permission_grant=permission_grant,
+                                                                permission_type=permission_type,
+                                                                all_permission_type=PermissionType.PACK_ALL)
+
+            # Permissions assigned to the pack are inherited by all the pack resources
+            if permission_grant.resource_uid == pack_uid and matches_pack_grant:
+                return True
 
         return False
 
@@ -65,8 +140,8 @@ class PermissionsResolver(object):
 class ActionPermissionsResolver(PermissionsResolver):
     def user_has_permission(self, user_db, permission_type):
         # First check the system role permissions
-        has_system_role_permission = self.user_has_system_role_permission(user_db=user_db,
-            permission_type=permission_type)
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
 
         if has_system_role_permission:
             return True
@@ -74,14 +149,18 @@ class ActionPermissionsResolver(PermissionsResolver):
         # Check custom roles
         resource_types = [ResourceType.PACK, ResourceType.ACTION]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_types=resource_types)
+                                                               resource_types=resource_types,
+                                                               permission_type=permission_type)
 
-        return len(permission_grants) >= 1
+        if len(permission_grants) >= 1:
+            return True
+
+        return False
 
     def user_has_resource_permission(self, user_db, resource_db, permission_type):
         # First check the system role permissions
-        has_system_role_permission = self.user_has_system_role_permission(user_db=user_db,
-            permission_type=permission_type)
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
 
         if has_system_role_permission:
             return True
@@ -112,18 +191,60 @@ class ActionPermissionsResolver(PermissionsResolver):
 
         return False
 
-    def _matches_permission_grant(self, resource_db, permission_grant, permission_type,
-                                  all_permission_type):
-        """
-        :rtype: ``bool``
-        """
-        resource_type = resource_db.get_resource_type()
-        all_permission_type = getattr(PermissionType, '%s_ALL' % (resource_type.upper()))
 
-        if permission_type in permission_grant.permission_types:
+
+class RulePermissionResolver(PermissionsResolver):
+    def user_has_permission(self, user_db, permission_type):
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
             return True
-        elif all_permission_type in permission_grant.permission_types:
+
+        # Check custom roles
+        resource_types = [ResourceType.PACK, ResourceType.RULE]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_types=resource_types,
+                                                               permission_type=permission_type)
+
+        if len(permission_grants) >= 1:
             return True
+
+        return False
+
+    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            return True
+
+        # Check custom roles
+        resource_types = [ResourceType.PACK, ResourceType.RULE]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_types=resource_types)
+
+        rule_uid = resource_db.get_uid()
+        pack_uid = resource_db.get_pack_uid()
+
+        for permission_grant in permission_grants:
+            matches_pack_grant = self._matches_permission_grant(resource_db=resource_db,
+                                                                permission_grant=permission_grant,
+                                                                permission_type=permission_type,
+                                                                all_permission_type=PermissionType.PACK_ALL)
+            matches_rule_grant = self._matches_permission_grant(resource_db=resource_db,
+                                                                permission_grant=permission_grant,
+                                                                permission_type=permission_type,
+                                                                all_permission_type=PermissionType.RULE_ALL)
+
+            # Permissions assigned to the pack are inherited by all the pack resources
+            if permission_grant.resource_uid == pack_uid and matches_pack_grant:
+                return True
+            elif permission_grant.resource_uid == rule_uid and
+            matches_rule_grant:
+                return True
 
         return False
 
