@@ -21,7 +21,9 @@ from st2common.persistence.pack import Pack
 from st2common.persistence.reactor import SensorType
 from st2common.persistence.reactor import TriggerType
 from st2common.persistence.reactor import Trigger
+from st2common.persistence.reactor import Rule
 from st2common.persistence.action import Action
+from st2common.persistence.action import ActionAlias
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 
 BLOCKED_PACKS = frozenset(SYSTEM_PACK_NAMES)
@@ -47,11 +49,12 @@ class UnregisterPackAction(BaseAction):
 
         for pack in packs:
             self.logger.debug('Removing pack %s.', pack)
-            self._unregister_sensors(pack)
-            self._unregister_trigger_types(pack)
-            self._unregister_triggers(pack)
-            self._unregister_actions(pack)
-            self._unregister_rules(pack)
+            self._unregister_sensors(pack=pack)
+            self._unregister_trigger_types(pack=pack)
+            self._unregister_triggers(pack=pack)
+            self._unregister_actions(pack=pack)
+            self._unregister_rules(pack=pack)
+            self._unregister_aliases(pack=pack)
             self._unregister_pack(pack=pack)
             self.logger.info('Removed pack %s.', pack)
 
@@ -68,7 +71,10 @@ class UnregisterPackAction(BaseAction):
         return self._delete_pack_db_objects(pack=pack, access_cls=Action)
 
     def _unregister_rules(self, pack):
-        pass
+        return self._delete_pack_db_objects(pack=pack, access_cls=Rule)
+
+    def _unregister_aliases(self, pack):
+        return self._delete_pack_db_objects(pack=pack, access_cls=ActionAlias)
 
     def _unregister_pack(self, pack):
         return self._delete_pack_db_object(pack=pack)
