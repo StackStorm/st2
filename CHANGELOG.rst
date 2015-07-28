@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.12.1 - Inprogress
+-------------------
+* Un-registering a pack also removes ``rules`` and ``action aliases`` from the pack. (bug-fix)
+
 0.12.0 - July 20, 2015
 ----------------------
 
