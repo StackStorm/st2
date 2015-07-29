@@ -304,6 +304,15 @@ mistral-itests: requirements .mistral-itests
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration || exit 1;
 
+.PHONY: .mistral-itests-coverage-html
+.mistral-itests-coverage-html:
+	@echo
+	@echo "==================== MISTRAL integration tests with coverage (HTML reports) ===================="
+	@echo "The tests assume both st2 and mistral are running on localhost."
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v --with-coverage \
+		--cover-inclusive --cover-html st2tests/integration || exit 1;
+
 .PHONY: rpms
 rpms:
 	@echo
