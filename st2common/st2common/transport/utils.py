@@ -23,6 +23,11 @@ from st2common.transport.reactor import SENSOR_CUD_XCHG
 
 LOG = logging.getLogger('st2common.transport.bootstrap')
 
+__all__ = [
+    'get_messaging_urls',
+    'register_exchanges'
+]
+
 EXCHANGES = [EXECUTION_XCHG, LIVEACTION_XCHG, TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG,
              SENSOR_CUD_XCHG]
 
@@ -37,9 +42,21 @@ def _do_register_exchange(exchange, channel):
         LOG.exception('Failed to register exchange : %s.', exchange.name)
 
 
+def get_messaging_urls():
+    '''
+    Determines the right messaging urls to supply. In case the `cluster_urls` config is
+    specified then that is used. Else the single `url` property is used.
+
+    :rtype: ``list``
+    '''
+    if cfg.messaging.cluster_urls:
+        return cfg.messaging.cluster_urls
+    return [cfg.messaging.url]
+
+
 def register_exchanges():
     LOG.debug('Registering exchanges...')
-    with Connection(cfg.CONF.messaging.url) as conn:
+    with Connection(get_messaging_urls()) as conn:
         channel = conn.default_channel
         for exchange in EXCHANGES:
             _do_register_exchange(exchange, channel)
