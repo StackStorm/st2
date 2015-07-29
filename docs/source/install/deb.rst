@@ -23,7 +23,7 @@ The easiest way to install these is to use the requirements.txt file from the |s
 
 ::
 
-    curl -q -k -O https://raw.githubusercontent.com/StackStorm/st2/v0.12.1/requirements.txt
+    curl -q -k -O https://raw.githubusercontent.com/StackStorm/st2/v0.12/requirements.txt
     pip install -r requirements.txt
 
 RabbitMQ
