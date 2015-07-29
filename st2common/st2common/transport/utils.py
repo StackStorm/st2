@@ -13,33 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from kombu import Connection
 from oslo_config import cfg
-from st2common import log as logging
-from st2common.transport.execution import EXECUTION_XCHG
-from st2common.transport.liveaction import LIVEACTION_XCHG
-from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG
-from st2common.transport.reactor import SENSOR_CUD_XCHG
-
-LOG = logging.getLogger('st2common.transport.bootstrap')
 
 __all__ = [
-    'get_messaging_urls',
-    'register_exchanges'
+    'get_messaging_urls'
 ]
-
-EXCHANGES = [EXECUTION_XCHG, LIVEACTION_XCHG, TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG,
-             SENSOR_CUD_XCHG]
-
-
-def _do_register_exchange(exchange, channel):
-    try:
-        channel.exchange_declare(exchange=exchange.name, type=exchange.type,
-                                 durable=exchange.durable, auto_delete=exchange.auto_delete,
-                                 arguments=exchange.arguments, nowait=False, passive=None)
-        LOG.debug('registered exchange %s.', exchange.name)
-    except Exception:
-        LOG.exception('Failed to register exchange : %s.', exchange.name)
 
 
 def get_messaging_urls():
@@ -52,11 +30,3 @@ def get_messaging_urls():
     if cfg.messaging.cluster_urls:
         return cfg.messaging.cluster_urls
     return [cfg.messaging.url]
-
-
-def register_exchanges():
-    LOG.debug('Registering exchanges...')
-    with Connection(get_messaging_urls()) as conn:
-        channel = conn.default_channel
-        for exchange in EXCHANGES:
-            _do_register_exchange(exchange, channel)

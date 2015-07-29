@@ -14,7 +14,16 @@
 # limitations under the License.
 
 from st2common.transport import liveaction, actionexecutionstate, execution, publishers, reactor
+from st2common.transport import bootstrap_utils, utils
 
 # TODO(manas) : Exchanges, Queues and RoutingKey design discussion pending.
 
-__all__ = ['liveaction', 'actionexecutionstate', 'execution', 'publishers', 'reactor']
+__all__ = [
+    'liveaction',
+    'actionexecutionstate',
+    'execution',
+    'publishers',
+    'reactor',
+    'bootstrap_utils',
+    'utils'
+]
