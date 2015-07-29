@@ -57,7 +57,6 @@ for TEST in $TEST_ACTION_LIST
         else
             echo "OK!"
         fi
-        echo "total errors: ${ERRORS}"
     done
 
 echo -n "Attempting Example examples.mistral_examples..."
@@ -67,7 +66,6 @@ if [ $? -ne 0 ]; then
     ERRORS=$(($ERRORS + $?))
 fi
 
-echo "total errors: ${ERRORS}"
 if [ $ERRORS -ne 0 ]; then
     echo "ERROR!"
     echo "st2-self-check failed.  See above.  Also check the execution list for details."
