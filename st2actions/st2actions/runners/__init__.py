@@ -124,7 +124,7 @@ class ActionRunner(object):
         """
         result = {}
         result['ST2_ACTION_PACK_NAME'] = self.get_pack_name()
-        result['ST2_ACTION_EXECUTION_ID'] = str(self.execution_id)
+        result['ST2_ACTION_EXECUTION_ID'] = str(self.liveaction_id)
         result['ST2_ACTION_API_URL'] = get_full_public_api_url()
 
         if self.auth_token:

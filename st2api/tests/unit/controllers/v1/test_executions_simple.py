@@ -31,7 +31,6 @@ from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.models.db.auth import TokenDB
 from st2common.persistence.auth import Token
-from st2common.persistence.liveaction import LiveAction
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest, AuthMiddlewareTest
@@ -166,10 +165,6 @@ class TestActionExecutionController(FunctionalTest):
     def test_get_one(self):
         post_resp = self._do_post(LIVE_ACTION_1)
         actionexecution_id = self._get_actionexecution_id(post_resp)
-        liveaction_db = LiveAction.get_by_id(self._get_liveaction_id(post_resp))
-        liveaction_context = getattr(liveaction_db, 'context')
-        self.assertTrue(liveaction_context is not None)
-        self.assertEqual(liveaction_context['execution_id'], actionexecution_id)
         get_resp = self._do_get_one(actionexecution_id)
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
@@ -349,10 +344,6 @@ class TestActionExecutionController(FunctionalTest):
     @staticmethod
     def _get_actionexecution_id(resp):
         return resp.json['id']
-
-    @staticmethod
-    def _get_liveaction_id(resp):
-        return resp.json['liveaction']['id']
 
     def _do_get_one(self, actionexecution_id, *args, **kwargs):
         return self.app.get('/v1/executions/%s' % actionexecution_id, *args, **kwargs)
