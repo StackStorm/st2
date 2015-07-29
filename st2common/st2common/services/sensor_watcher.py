@@ -20,7 +20,6 @@ import eventlet
 import uuid
 from kombu.mixins import ConsumerMixin
 from kombu import Connection
-from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.transport import reactor, publishers
