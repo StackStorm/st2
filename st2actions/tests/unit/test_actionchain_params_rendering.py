@@ -58,7 +58,7 @@ class ActionChainRunnerResolveParamsTests(unittest2.TestCase):
         }
         action_node = Node(name='test_action_context_params', ref='core.local', params=task_params)
         try:
-            rendered_params = runner._resolve_params(action_node, {}, {}, {}, chain_context)
+            runner._resolve_params(action_node, {}, {}, {}, chain_context)
             self.fail('Should have thrown an instance of %s' % ParameterRenderingFailedException)
         except ParameterRenderingFailedException:
             pass

@@ -239,7 +239,8 @@ class FixturesLoader(object):
 
         return all_fixtures
 
-    def delete_fixtures_from_db(self, fixtures_pack='generic', fixtures_dict=None, raise_on_fail=False):
+    def delete_fixtures_from_db(self, fixtures_pack='generic', fixtures_dict=None,
+                                raise_on_fail=False):
         """
         Deletes fixtures specified in fixtures_dict from the database.
 

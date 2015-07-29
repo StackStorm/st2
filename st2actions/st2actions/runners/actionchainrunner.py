@@ -357,10 +357,6 @@ class ActionChainRunner(ActionRunner):
             error = 'Task :: %s - Action with ref %s not registered.' % (task_name, action_ref)
             raise InvalidActionReferencedException(error)
 
-        action_context = {
-            'parent': parent_context,
-            'chain': vars(action_node)
-        }
         resolved_params = ActionChainRunner._resolve_params(
             action_node=action_node, original_parameters=action_params,
             results=context_result, chain_vars=self.chain_holder.vars,
