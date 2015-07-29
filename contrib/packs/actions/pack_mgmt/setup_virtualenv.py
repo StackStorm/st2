@@ -139,7 +139,8 @@ class SetupVirtualEnvironmentAction(Action):
         try:
             shutil.rmtree(virtualenv_path)
         except Exception as error:
-            self.logger.error('Error while removing virtualenv at "%s": "%s"' % (virtualenv_path, error))
+            self.logger.error('Error while removing virtualenv at "%s": "%s"' %
+                              (virtualenv_path, error))
             raise
         return True
 
