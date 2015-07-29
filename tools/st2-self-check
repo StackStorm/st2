@@ -35,6 +35,10 @@ for PACK in $PACKS; do
 
     EXITCODE=$?
     echo $INSTALL
+    if [ ${EXITCODE} -ne 0 ]; then
+      echo "st2-self-check failed.  See above."
+      exit 2
+    fi
   fi
 done
 
@@ -49,20 +53,22 @@ for TEST in $TEST_ACTION_LIST
         CHECK_STATUS=`echo ${TEST_OUTPUT} | grep '"status": "succeeded"'`
         if [ $? -ne 0 ]; then
             echo -e "ERROR!"
-            #echo -e "FAILED!\nOUTPUT: ${TEST_OUTPUT}"
-            #exit 2
+            ((ERRORS++))
         else
             echo "OK!"
         fi
-        ERRORS=$(($ERRORS + $?))
     done
 
 echo -n "Attempting Example examples.mistral_examples..."
 MISTRAL_EXAMPLES=`st2 run examples.mistral_examples -j`
 CHECK_STATUS=`echo ${MISTRAL_EXAMPLES} | grep '"status": "succeeded"'`
+if [ $? -ne 0 ]; then
+    ERRORS=$(($ERRORS + $?))
+fi
+
 if [ $ERRORS -ne 0 ]; then
     echo "ERROR!"
-    echo "Tests failed.  See above.  Also check the execution list for details."
+    echo "st2-self-check failed.  See above.  Also check the execution list for details."
     echo "st2 execution list"
 else
     echo -e "OK!"
