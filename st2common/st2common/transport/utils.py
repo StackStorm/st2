@@ -19,6 +19,8 @@ __all__ = [
     'get_messaging_urls'
 ]
 
+CONF = cfg.CONF
+
 
 def get_messaging_urls():
     '''
@@ -27,6 +29,6 @@ def get_messaging_urls():
 
     :rtype: ``list``
     '''
-    if cfg.messaging.cluster_urls:
-        return cfg.messaging.cluster_urls
-    return [cfg.messaging.url]
+    if CONF.messaging.cluster_urls:
+        return CONF.messaging.cluster_urls
+    return [CONF.messaging.url]
