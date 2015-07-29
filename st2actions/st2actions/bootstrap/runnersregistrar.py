@@ -156,7 +156,7 @@ RUNNER_TYPES = [
             'parallel': {
                 'description': 'Default to parallel execution.',
                 'type': 'boolean',
-                'default': True,
+                'default': False,
                 'immutable': True
             },
             'sudo': {
@@ -220,7 +220,7 @@ RUNNER_TYPES = [
             'parallel': {
                 'description': 'Default to parallel execution.',
                 'type': 'boolean',
-                'default': True,
+                'default': False,
                 'immutable': True
             },
             'cwd': {
