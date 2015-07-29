@@ -11,7 +11,7 @@
             name: "c2"
             ref: "core.local"
             params:
-                cmd: "echo \"c2: parent exec is {{action_context.parent.execution_id}}.\""
+                cmd: "echo \"c2: my exec id is {{action_context.execution_id}}; Parent exec id is {{action_context.parent.execution_id}}.\""
             on-success: "c3"
             on-failure: "c4"
         -
