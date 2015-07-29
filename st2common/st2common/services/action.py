@@ -96,6 +96,16 @@ def request(liveaction):
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
     execution = executions.create_execution_object(liveaction, publish=False)
 
+    # Update liveaction context with execution_id.
+    # XXX: There is a cyclic dependency problem here. Execution
+    # object depends on liveaction and liveaction context depends
+    # on Execution ID.
+    if not getattr(liveaction, 'context'):
+        setattr(liveaction, 'context', {})
+    liveaction_context = liveaction.context
+    liveaction_context['execution_id'] = str(execution.id)
+    LiveAction.add_or_update(liveaction, publish=False)
+
     # Assume that this is a creation.
     LiveAction.publish_create(liveaction)
     LiveAction.publish_status(liveaction)
