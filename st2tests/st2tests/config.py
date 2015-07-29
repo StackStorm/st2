@@ -108,7 +108,9 @@ def _register_api_opts():
 
     messaging_opts = [
         cfg.StrOpt('url', default='amqp://guest:guest@localhost:5672//',
-                   help='URL of the messaging server.')
+                   help='URL of the messaging server.'),
+        cfg.ListOpt('cluster_urls', default=[],
+                    help='URL of all the nodes in a messaging service cluster.')
     ]
     _register_opts(messaging_opts, group='messaging')
 
