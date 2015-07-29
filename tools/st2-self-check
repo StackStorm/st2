@@ -63,7 +63,7 @@ echo -n "Attempting Example examples.mistral_examples..."
 MISTRAL_EXAMPLES=`st2 run examples.mistral_examples -j`
 CHECK_STATUS=`echo ${MISTRAL_EXAMPLES} | grep '"status": "succeeded"'`
 if [ $? -ne 0 ]; then
-    ERRORS=$(($ERRORS + $?))
+    ERRORS=((ERRORS++))
 fi
 
 if [ $ERRORS -ne 0 ]; then
