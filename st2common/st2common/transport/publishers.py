@@ -27,8 +27,8 @@ LOG = logging.getLogger(__name__)
 
 
 class PoolPublisher(object):
-    def __init__(self, url):
-        self.pool = Connection(url).Pool(limit=10)
+    def __init__(self, urls):
+        self.pool = Connection(urls).Pool(limit=10)
 
     def errback(self, exc, interval):
         LOG.error('Rabbitmq connection error: %s', exc.message, exc_info=False)
@@ -59,8 +59,8 @@ class PoolPublisher(object):
 
 
 class CUDPublisher(object):
-    def __init__(self, url, exchange):
-        self._publisher = PoolPublisher(url)
+    def __init__(self, urls, exchange):
+        self._publisher = PoolPublisher(urls=urls)
         self._exchange = exchange
 
     def publish_create(self, payload):
@@ -74,8 +74,8 @@ class CUDPublisher(object):
 
 
 class StatePublisherMixin(object):
-    def __init__(self, url, exchange):
-        self._state_publisher = PoolPublisher(url)
+    def __init__(self, urls, exchange):
+        self._state_publisher = PoolPublisher(urls=urls)
         self._state_exchange = exchange
 
     def publish_state(self, payload, state):

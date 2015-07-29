@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
-
 from st2common import transport
 from st2common.models.db.sensor import sensor_type_access
 from st2common.persistence.base import ContentPackResource
+from st2common.transport import utils as transport_utils
 
 
 class SensorType(ContentPackResource):
@@ -31,5 +30,6 @@ class SensorType(ContentPackResource):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.reactor.SensorCUDPublisher(cfg.CONF.messaging.url)
+            cls.publisher = transport.reactor.SensorCUDPublisher(
+                urls=transport_utils.get_messaging_urls())
         return cls.publisher

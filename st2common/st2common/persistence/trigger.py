@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
-
 from st2common import transport
 from st2common.models.db.trigger import triggertype_access, trigger_access, triggerinstance_access
 from st2common.persistence.base import (Access, ContentPackResource)
+from st2common.transport import utils as transport_utils
 
 
 class TriggerType(ContentPackResource):
@@ -39,7 +38,8 @@ class Trigger(ContentPackResource):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.reactor.TriggerCUDPublisher(cfg.CONF.messaging.url)
+            cls.publisher = transport.reactor.TriggerCUDPublisher(
+                urls=transport_utils.get_messaging_urls())
         return cls.publisher
 
 
