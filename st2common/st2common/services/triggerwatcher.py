@@ -22,6 +22,7 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.persistence.trigger import Trigger
 from st2common.transport import reactor, publishers
+from st2common.transport import utils as transport_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -101,7 +102,7 @@ class TriggerWatcher(ConsumerMixin):
 
     def start(self):
         try:
-            self.connection = Connection(cfg.CONF.messaging.url)
+            self.connection = Connection(transport_utils.get_messaging_urls())
             self._updates_thread = eventlet.spawn(self.run)
             self._load_thread = eventlet.spawn(self._load_triggers_from_db)
         except:

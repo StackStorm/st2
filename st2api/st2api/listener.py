@@ -37,6 +37,7 @@ from oslo_config import cfg
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.transport import liveaction, execution, publishers
+from st2common.transport import utils as transport_utils
 from st2common import log as logging
 
 __all__ = [
@@ -120,7 +121,7 @@ def listen(listener):
 def get_listener():
     global _listener
     if not _listener:
-        with Connection(cfg.CONF.messaging.url) as conn:
+        with Connection(transport_utils.get_messaging_urls()) as conn:
             _listener = Listener(conn)
             eventlet.spawn_n(listen, _listener)
     return _listener
