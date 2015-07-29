@@ -38,24 +38,34 @@ class PoolPublisher(object):
         with self.pool.acquire(block=True) as connection:
             with producers[connection].acquire(block=True) as producer:
                 channel = None
-                try:
-                    # creating a new channel for every producer publish. This could be expensive
-                    # and maybe there is a better way to do this by creating a ChannelPool etc.
-                    channel = connection.channel()
-                    # ain't clean but I am done trying to find out the right solution!
-                    producer._set_channel(channel)
-                    publish = connection.ensure(producer, producer.publish, errback=self.errback,
-                                                max_retries=3)
-                    publish(payload, exchange=exchange, routing_key=routing_key,
-                            serializer='pickle')
-                except Exception as e:
-                    LOG.error('Connections to rabbitmq cannot be re-established: %s', e.message)
-                finally:
-                    if channel:
-                        try:
-                            channel.close()
-                        except Exception:
-                            LOG.warning('Error closing channel.', exc_info=True)
+                should_stop = False
+                while not should_stop:
+                    try:
+                        # creating a new channel for every producer publish. This could be expensive
+                        # and maybe there is a better way to do this by creating a ChannelPool etc.
+                        channel = connection.channel()
+                        # ain't clean but I am done trying to find out the right solution!
+                        producer._set_channel(channel)
+                        publish_func = connection.ensure(producer, producer.publish,
+                                                         errback=self.errback,
+                                                         max_retries=3)
+                        publish_func(payload, exchange=exchange, routing_key=routing_key,
+                                     serializer='pickle')
+                        should_stop = True
+                    except connection.connection_errors + connection.channel_errors:
+                        LOG.error('Connection or channel error identified.')
+                        connection.close()
+                        connection.ensure_connection()
+                        channel = connection.channel()
+                    except Exception as e:
+                        LOG.error('Connections to rabbitmq cannot be re-established: %s', e.message)
+                        should_stop = True
+                    finally:
+                        if should_stop and channel:
+                            try:
+                                channel.close()
+                            except Exception:
+                                LOG.warning('Error closing channel.', exc_info=True)
 
 
 class CUDPublisher(object):
