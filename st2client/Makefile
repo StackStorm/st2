@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-PY27 := /usr/local/bin/python2.7
+PY27 := /usr/bin/python2.7
 RPM_ROOT=~/rpmbuild
 RPM_SOURCES_DIR := $(RPM_ROOT)/SOURCES/
 RPM_SPECS_DIR := $(RPM_ROOT)/SPECS/
@@ -9,7 +9,7 @@ COMPONENTS := st2client
 
 .PHONY: rpm
 rpm: 
-	python setup.py bdist_rpm
+	python2.7 setup.py bdist_rpm
 	mkdir -p $(RPM_ROOT)/RPMS/noarch
 	cp dist/$(COMPONENTS)*noarch.rpm $(RPM_ROOT)/RPMS/noarch/$(COMPONENTS)-$(VER)-$(RELEASE).noarch.rpm
 	mkdir -p $(RPM_ROOT)/SRPMS
@@ -18,7 +18,7 @@ rpm:
 
 .PHONY: rhel-rpm
 rhel-rpm:
-	$(PY27) setup.py bdist_rpm --python=$(PY27)
+	${PY27} setup.py bdist_rpm --python=$(PY27)
 	mkdir -p $(RPM_ROOT)/RPMS/noarch
 	cp dist/$(COMPONENTS)*noarch.rpm $(RPM_ROOT)/RPMS/noarch/$(COMPONENTS)-$(VER)-$(RELEASE).noarch.rpm
 	mkdir -p $(RPM_ROOT)/SRPMS
