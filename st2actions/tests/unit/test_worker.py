@@ -86,4 +86,3 @@ class WorkerTestCase(DbTestCase):
                                      action=action_ref, parameters=parameters,
                                      context=context)
         return liveaction_db
-
