@@ -1057,11 +1057,6 @@ register_content
 echo "###########################################################################################"
 echo "# Starting St2 Services"
 
-if [[ "$shortname" == "redhat" ]] && [[ $DISTRO_VERSION =~ 6\.[0-9] ]]
-then
-  perl -p -i -e 's/^#\!\/usr\/bin\/python/#\!\/usr\/bin\/env python2\.7/' /usr/bin/st2
-fi
-
 st2ctl restart
 sleep 20
 ##This is a hack around a weird issue with actions getting stuck in scheduled state
