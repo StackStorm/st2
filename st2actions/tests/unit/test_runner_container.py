@@ -17,8 +17,10 @@ import mock
 
 from bson.errors import InvalidStringData
 from oslo_config import cfg
+
 from st2common.constants import action as action_constants
 from st2actions.runners import get_runner
+from st2actions.runners.localrunner import LocalShellRunner
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB
@@ -46,6 +48,9 @@ TEST_FIXTURES = {
 }
 
 FIXTURES_PACK = 'generic'
+
+NON_UTF8_RESULT = {'stderr': '', 'stdout': '\x82\n', 'succeeded': True, 'failed': False,
+                   'return_code': 0}
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
@@ -106,23 +111,22 @@ class RunnerContainerTest(DbTestCase):
 
         self.assertDictEqual(liveaction_db.context, context)
 
+    @mock.patch.object(LocalShellRunner, 'run', mock.MagicMock(
+        return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_UTF8_RESULT, None)))
     def test_dispatch_non_utf8_result(self):
         runner_container = get_runner_container()
         params = {
-            'cmd': 'python -c \'print \"\\x82\"\''
+            'cmd': "python -c 'print \"\\x82\"'"
         }
         liveaction_db = self._get_liveaction_model(RunnerContainerTest.local_action_db, params)
         liveaction_db = LiveAction.add_or_update(liveaction_db)
         executions.create_execution_object(liveaction_db)
-        print(liveaction_db)
 
         try:
             runner_container.dispatch(liveaction_db)
             self.fail('Mongo won\'t handle non UTF-8 strings. Should have failed.')
         except InvalidStringData:
-            liveaction_db = LiveAction.get_by_id(liveaction_db.id)
-            result = liveaction_db.result
-            print(result)
+            pass
 
     def test_dispatch_runner_failure(self):
         runner_container = get_runner_container()
