@@ -9,6 +9,7 @@ oslo.config
 requests
 six
 pyyaml
+python-json-logger
 # needed by core "packs" pack
 gitpython
 lockfile
