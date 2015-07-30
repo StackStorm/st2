@@ -213,6 +213,8 @@ the file and see that it appends the payload if the name=Joe.
 
 Congratulations, your first |st2| rule is up and running!
 
+ .. _start-deploy-examples:
+
 Deploy Examples
 -------------------------
 Examples of rules, custom sensors, actions, and workflows are installed with |st2| and located
