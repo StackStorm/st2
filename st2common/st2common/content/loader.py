@@ -18,8 +18,10 @@ import os
 import six
 from yaml.parser import ParserError
 
-from st2common.constants.meta import (ALLOWED_EXTS, PARSER_FUNCS)
 from st2common import log as logging
+from st2common.constants.meta import ALLOWED_EXTS
+from st2common.constants.meta import PARSER_FUNCS
+from st2common.constants.pack import MANIFEST_FILE_NAME
 
 __all__ = [
     'ContentPackLoader',
@@ -30,7 +32,31 @@ LOG = logging.getLogger(__name__)
 
 
 class ContentPackLoader(object):
+    """
+    Class for loading pack and pack content information from directories on disk.
+    """
+
     ALLOWED_CONTENT_TYPES = ['sensors', 'actions', 'rules', 'aliases', 'policies']
+
+    def get_packs(self, base_dirs):
+        """
+        Retrieve a list of packs in the provided directories.
+
+        :return: Dictionary where the key is pack name and the value is full path to the pack
+                 directory.
+        :rtype: ``dict``
+        """
+        assert isinstance(base_dirs, list)
+
+        result = {}
+        for base_dir in base_dirs:
+            if not os.path.isdir(base_dir):
+                raise ValueError('Directory "%s" doesn\'t exist' % (base_dir))
+
+            packs_in_dir = self._get_packs_from_dir(base_dir=base_dir)
+            result.update(packs_in_dir)
+
+        return result
 
     def get_content(self, base_dirs, content_type):
         """
@@ -47,7 +73,7 @@ class ContentPackLoader(object):
 
         :rtype: ``dict``
         """
-        assert(isinstance(base_dirs, list))
+        assert isinstance(base_dirs, list)
 
         if content_type not in self.ALLOWED_CONTENT_TYPES:
             raise ValueError('Unsupported content_type: %s' % (content_type))
@@ -94,6 +120,17 @@ class ContentPackLoader(object):
                                                   content_type=content_type)
         return content
 
+    def _get_packs_from_dir(self, base_dir):
+        result = {}
+        for pack_name in os.listdir(base_dir):
+            pack_dir = os.path.join(base_dir, pack_name)
+            pack_manifest_file = os.path.join(pack_dir, MANIFEST_FILE_NAME)
+
+            if os.path.isdir(pack_dir) and os.path.isfile(pack_manifest_file):
+                result[pack_name] = pack_dir
+
+        return result
+
     def _get_content_from_dir(self, base_dir, content_type):
         content = {}
         for pack in os.listdir(base_dir):
@@ -122,6 +159,8 @@ class ContentPackLoader(object):
             get_func = self._get_aliases
         elif content_type == 'policies':
             get_func = self._get_policies
+        else:
+            raise ValueError('Invalid content_type: %s' % (content_type))
 
         if not os.path.isdir(pack_dir):
             raise ValueError('Directory "%s" doesn\'t exist' % (pack_dir))
@@ -152,6 +191,10 @@ class ContentPackLoader(object):
 
 
 class MetaLoader(object):
+    """
+    Class for loading and parsing pack and resource metadata files.
+    """
+
     def load(self, file_path, expected_type=None):
         """
         Loads content from file_path if file_path's extension

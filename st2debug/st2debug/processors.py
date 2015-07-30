@@ -45,7 +45,7 @@ def process_st2_config(config_path):
     :param config_path: Full absolute path to the st2 config inside /tmp.
     :type config_path: ``str``
     """
-    assert(config_path.startswith('/tmp'))
+    assert config_path.startswith('/tmp')
 
     if not os.path.isfile(config_path):
         return
@@ -69,7 +69,7 @@ def process_mistral_config(config_path):
     :param config_path: Full absolute path to the mistral config inside /tmp.
     :type config_path: ``str``
     """
-    assert(config_path.startswith('/tmp'))
+    assert config_path.startswith('/tmp')
 
     if not os.path.isfile(config_path):
         return
@@ -93,7 +93,7 @@ def process_content_pack_dir(pack_dir):
     :param pack_dir: Full absolute path to the pack directory inside /tmp.
     :type pack_dir: ``str``
     """
-    assert(pack_dir.startswith('/tmp'))
+    assert pack_dir.startswith('/tmp')
 
     config_file_path = os.path.join(pack_dir, 'config.yaml')
     if os.path.isfile(config_file_path):

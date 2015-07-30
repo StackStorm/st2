@@ -133,8 +133,8 @@ def register_policies():
         LOG.info('############## Registering policy types #################')
         LOG.info('=========================================================')
         import st2actions
-        from st2common.content import policies
-        registered_type_count = policies.register_policy_types(st2actions)
+        import st2common.content.policiesregistrar as policies_registrar
+        registered_type_count = policies_registrar.register_policy_types(st2actions)
     except Exception:
         LOG.warning('Failed to register policy types.', exc_info=True)
 
@@ -144,8 +144,8 @@ def register_policies():
         LOG.info('=========================================================')
         LOG.info('############## Registering policies #####################')
         LOG.info('=========================================================')
-        from st2common.content import policies
-        registered_count = policies.register_policies()
+        import st2common.content.policiesregistrar as policies_registrar
+        registered_count = policies_registrar.register_policies()
     except Exception:
         LOG.warning('Failed to register policies.', exc_info=True)
 

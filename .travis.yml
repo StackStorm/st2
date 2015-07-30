@@ -1,21 +1,29 @@
+# Used old infrastructure, needed for integration tests:
+# http://docs.travis-ci.com/user/workers/standard-infrastructure/
+sudo: true
 language: python
-sudo: false
 python:
-  - "2.6"
-  - "2.7"
+  - 2.7
+
 env:
-  global:
-    - "PIP_DOWNLOAD_CACHE=$HOME/.pip-cache"
-  matrix:
-    - "TASK=flake8"
-    - "TASK=pylint"
-    - "TASK=docs"
-    - "TASK=tests"
-cache:
-  directories:
-    - $HOME/.pip-cache/
-script:
-  - ./scripts/travis.sh
+  - TASK=unit
+  - TASK=integration
+
 services:
   - mongodb
   - rabbitmq
+
+cache:
+  directories:
+    - $HOME/.cache/pip/
+
+install:
+  - pip install python-coveralls
+  - make requirements
+  - if [ ${TASK} = 'integration' ]; then sudo ./scripts/travis/prepare-integration.sh; fi
+
+script:
+  - ./scripts/travis/build.sh
+
+after_success:
+  - coveralls

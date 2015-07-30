@@ -22,6 +22,7 @@ from st2common.util import date as date_utils
 from st2common.constants import action as action_constants
 from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.models.system.action import ResolvedActionParameters
+from st2common.persistence.execution import ActionExecution
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
@@ -66,9 +67,6 @@ class RunnerContainer(object):
         return liveaction_db.result
 
     def _do_run(self, runner, runnertype_db, action_db, liveaction_db):
-        # Finalized parameters are resolved and then rendered.
-        runner_params, action_params = param_utils.get_finalized_params(
-            runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters)
         resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
                                                               action_db.entry_point)
         runner.container_service = RunnerContainerService()
@@ -76,8 +74,9 @@ class RunnerContainer(object):
         runner.action_name = action_db.name
         runner.liveaction = liveaction_db
         runner.liveaction_id = str(liveaction_db.id)
+        runner.execution = ActionExecution.get(liveaction__id=runner.liveaction_id)
+        runner.execution_id = str(runner.execution.id)
         runner.entry_point = resolved_entry_point
-        runner.runner_parameters = runner_params
         runner.context = getattr(liveaction_db, 'context', dict())
         runner.callback = getattr(liveaction_db, 'callback', dict())
         runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
@@ -92,7 +91,8 @@ class RunnerContainer(object):
             # Finalized parameters are resolved and then rendered. This process could
             # fail. Handle the exception and report the error correctly.
             runner_params, action_params = param_utils.get_finalized_params(
-                runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters)
+                runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
+                liveaction_db.context)
             runner.runner_parameters = runner_params
 
             LOG.debug('Performing pre-run for runner: %s', runner.runner_id)
@@ -113,7 +113,7 @@ class RunnerContainer(object):
                 pass
 
             action_completed = status in action_constants.COMPLETED_STATES
-            if (isinstance(runner, AsyncActionRunner) and not action_completed):
+            if isinstance(runner, AsyncActionRunner) and not action_completed:
                 self._setup_async_query(liveaction_db.id, runnertype_db, context)
         except:
             LOG.exception('Failed to run action.')
@@ -143,7 +143,7 @@ class RunnerContainer(object):
             is_async_runner = isinstance(runner, AsyncActionRunner)
             action_completed = status in action_constants.COMPLETED_STATES
 
-            if (not is_async_runner or (is_async_runner and action_completed)):
+            if not is_async_runner or (is_async_runner and action_completed):
                 try:
                     self._delete_auth_token(runner.auth_token)
                 except:

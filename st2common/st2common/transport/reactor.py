@@ -89,7 +89,7 @@ class TriggerDispatcher(object):
         :param payload: Trigger payload.
         :type payload: ``dict``
         """
-        assert(isinstance(payload, (type(None), dict)))
+        assert isinstance(payload, (type(None), dict))
 
         payload = {
             'trigger': trigger,

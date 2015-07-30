@@ -27,7 +27,6 @@ from st2api.controllers.v1.actionviews import ActionViewsController
 from st2common import log as logging
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.api.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
@@ -77,13 +76,6 @@ class ActionsController(resource.ContentPackResourceController):
             Handles requests:
                 POST /actions/
         """
-        if not hasattr(action, 'enabled'):
-            LOG.debug('POST /actions/ incoming action data has enabled field unset. '
-                      'Defaulting enabled to True.')
-            setattr(action, 'enabled', True)
-        else:
-            action.enabled = bool(action.enabled)
-
         if not hasattr(action, 'pack'):
             setattr(action, 'pack', DEFAULT_PACK_NAME)
 
@@ -97,20 +89,7 @@ class ActionsController(resource.ContentPackResourceController):
         action_model = ActionAPI.to_model(action)
 
         LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
-        try:
-            action_db = Action.add_or_update(action_model)
-        except StackStormDBObjectConflictError as e:
-            # If an existing DB object conflicts with new object then raise error.
-            LOG.warn('/actions/ POST unable to save ActionDB object "%s" due to uniqueness '
-                     'conflict. %s', action_model, str(e))
-            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
-            return
-        except Exception as e:
-            LOG.exception('/actions/ POST unable to save ActionDB object "%s". %s',
-                          action_model, e)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
-            return
-
+        action_db = Action.add_or_update(action_model)
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
 
         extra = {'action_db': action_db}
@@ -121,13 +100,7 @@ class ActionsController(resource.ContentPackResourceController):
 
     @jsexpose(arg_types=[str], body_cls=ActionAPI)
     def put(self, action_ref_or_id, action):
-        try:
-            action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
         action_id = action_db.id
 
         try:
@@ -168,13 +141,7 @@ class ActionsController(resource.ContentPackResourceController):
                 DELETE /actions/1
                 DELETE /actions/mypack.myaction
         """
-        try:
-            action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
         action_id = action_db.id
 
         try:

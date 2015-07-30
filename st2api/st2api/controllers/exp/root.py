@@ -19,5 +19,7 @@ from st2api.controllers.exp.aliasexecution import ActionAliasExecutionController
 
 class RootController(object):
 
+    # Here for backward compatibility reasons
+    # Deprecated. Use /v1/ instead.
     actionalias = ActionAliasController()
     aliasexecution = ActionAliasExecutionController()

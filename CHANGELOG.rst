@@ -4,6 +4,13 @@ Changelog
 in development
 --------------
 
+* Add new OpenStack Keystone authentication backend.
+  [Itxaka Serrano]
+* Information about parent workflow is now a dict in child's context field. (improvement)
+
+0.12.0 - July 20, 2015
+----------------------
+
 * Add support for script arguments to the Windows script runner. (new feature)
   [James Sigurðarson]
 * Allow user to filter executions on trigger instance id.
@@ -34,6 +41,13 @@ in development
   workflows. (bug-fix)
 * Fix a bug with ``st2 execution list`` CLI command not displaying ``end_timestamp`` attribute for
   Mistral workflows. (bug-fix)
+* Add new ``/v1/packs`` API endpoint for listing installed packs. (new-feature)
+* Ability to partition sensors across sensor nodes using various partition schemes. (new-feature)
+* Add ability to use action context params as action params in meta. (new-feature)
+* Fix a bug in action container where rendering params was done twice. (bug-fix)
+* Move /exp/actionalias/ and /exp/aliasexecution to /v1/actionalias/ and /v1/aliasexecution/
+  respectively. (upgrade)
+* Display friendly message for error in parameters validation on action execution. (improvement)
 
 0.11.4 - June 30, 2015
 ----------------------

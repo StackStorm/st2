@@ -91,7 +91,7 @@ class Dumper(object):
             return None
 
         executions_to_write = []
-        for count in range(self._batch_size):
+        for _ in range(self._batch_size):
             try:
                 item = self._queue.get(block=False)
             except Queue.Empty:
@@ -117,7 +117,7 @@ class Dumper(object):
         count = 0
         self._create_date_folder()
 
-        for i in range(self._max_files_per_sleep):
+        for _ in range(self._max_files_per_sleep):
             batch = self._get_batch()
 
             if not batch:
@@ -133,9 +133,11 @@ class Dumper(object):
 
     def _create_date_folder(self):
         folder_name = self._get_date_folder()
-        if not os.path.exists(folder_name):
+        folder_path = os.path.join(self._export_dir, folder_name)
+
+        if not os.path.exists(folder_path):
             try:
-                os.makedirs(os.path.join(self._export_dir, folder_name))
+                os.makedirs(folder_path)
             except:
                 LOG.exception('Unable to create sub-folder %s for export.', folder_name)
                 raise
@@ -171,18 +173,18 @@ class Dumper(object):
 
     def _write_marker_to_db(self, new_marker):
         LOG.info('Updating marker in db to: %s', new_marker)
-        marker = DumperMarker.get_all()
+        markers = DumperMarker.get_all()
 
-        if len(marker) > 1:
+        if len(markers) > 1:
             LOG.exception('More than one dumper marker found. Using first found one.')
 
-        marker_db = None
-        if marker:
-            marker = marker[0]
-            marker_db = DumperMarkerDB(id=marker['id'])
-        else:
-            marker_db = DumperMarkerDB()
+        marker = isotime.format(new_marker, offset=False)
+        updated_at = date_utils.get_datetime_utc_now()
 
-        marker_db.marker = isotime.format(new_marker, offset=False)
-        marker_db.updated_at = date_utils.get_datetime_utc_now()
+        if markers:
+            marker_id = markers[0]['id']
+        else:
+            marker_id = None
+
+        marker_db = DumperMarkerDB(id=marker_id, marker=marker, updated_at=updated_at)
         return DumperMarker.add_or_update(marker_db)

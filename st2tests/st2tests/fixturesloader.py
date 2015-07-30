@@ -24,8 +24,9 @@ from st2common.models.api.action import (ActionAPI, LiveActionAPI, ActionExecuti
                                          RunnerTypeAPI, ActionAliasAPI)
 from st2common.models.api.execution import (ActionExecutionAPI)
 from st2common.models.api.policy import (PolicyTypeAPI, PolicyAPI)
-from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
 from st2common.models.api.rule import (RuleAPI)
+from st2common.models.api.sensor import SensorTypeAPI
+from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
 
 from st2common.models.db.action import ActionDB
 from st2common.models.db.actionalias import ActionAliasDB
@@ -35,6 +36,7 @@ from st2common.models.db.runner import RunnerTypeDB
 from st2common.models.db.execution import (ActionExecutionDB)
 from st2common.models.db.policy import (PolicyTypeDB, PolicyDB)
 from st2common.models.db.rule import RuleDB
+from st2common.models.db.sensor import SensorTypeDB
 from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB, TriggerInstanceDB)
 from st2common.persistence.action import Action
 from st2common.persistence.actionalias import ActionAlias
@@ -44,11 +46,12 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.persistence.policy import (PolicyType, Policy)
 from st2common.persistence.rule import Rule
+from st2common.persistence.sensor import SensorType
 from st2common.persistence.trigger import (Trigger, TriggerType, TriggerInstance)
 
 
 ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'aliases', 'executions', 'liveactions',
-                       'policies', 'policytypes', 'rules', 'runners',
+                       'policies', 'policytypes', 'rules', 'runners', 'sensors',
                        'triggertypes', 'triggers', 'triggerinstances']
 ALLOWED_FIXTURES = copy.copy(ALLOWED_DB_FIXTURES)
 ALLOWED_FIXTURES.extend(['actionchains', 'workflows'])
@@ -63,6 +66,7 @@ FIXTURE_DB_MODEL = {
     'policytypes': PolicyTypeDB,
     'rules': RuleDB,
     'runners': RunnerTypeDB,
+    'sensors': SensorTypeDB,
     'triggertypes': TriggerTypeDB,
     'triggers': TriggerDB,
     'triggerinstances': TriggerInstanceDB
@@ -78,6 +82,7 @@ FIXTURE_API_MODEL = {
     'policytypes': PolicyTypeAPI,
     'rules': RuleAPI,
     'runners': RunnerTypeAPI,
+    'sensors': SensorTypeAPI,
     'triggertypes': TriggerTypeAPI,
     'triggers': TriggerAPI,
     'triggerinstances': TriggerInstanceAPI
@@ -94,6 +99,7 @@ FIXTURE_PERSISTENCE_MODEL = {
     'policytypes': PolicyType,
     'rules': Rule,
     'runners': RunnerType,
+    'sensors': SensorType,
     'triggertypes': TriggerType,
     'triggers': Trigger,
     'triggerinstances': TriggerInstance
@@ -112,7 +118,7 @@ class FixturesLoader(object):
     def __init__(self):
         self.meta_loader = MetaLoader()
 
-    def save_fixtures_to_db(self, fixtures_pack=None, fixtures_dict=None):
+    def save_fixtures_to_db(self, fixtures_pack='generic', fixtures_dict=None):
         """
         Loads fixtures specified in fixtures_dict into the database
         and returns DB models for the fixtures.
@@ -156,7 +162,7 @@ class FixturesLoader(object):
 
         return db_models
 
-    def load_fixtures(self, fixtures_pack=None, fixtures_dict={}):
+    def load_fixtures(self, fixtures_pack='generic', fixtures_dict=None):
         """
         Loads fixtures specified in fixtures_dict. We
         simply want to load the meta into dict objects.
@@ -175,6 +181,8 @@ class FixturesLoader(object):
 
         :rtype: ``dict``
         """
+        if not fixtures_dict:
+            return {}
         fixtures_pack_path = self._validate_fixtures_pack(fixtures_pack)
         self._validate_fixture_dict(fixtures_dict)
 
@@ -189,7 +197,7 @@ class FixturesLoader(object):
 
         return all_fixtures
 
-    def load_models(self, fixtures_pack=None, fixtures_dict={}):
+    def load_models(self, fixtures_pack='generic', fixtures_dict=None):
         """
         Loads fixtures specified in fixtures_dict as db models. This method must be
         used for fixtures that have associated DB models. We simply want to load the
@@ -210,6 +218,8 @@ class FixturesLoader(object):
 
         :rtype: ``dict``
         """
+        if not fixtures_dict:
+            return {}
         fixtures_pack_path = self._validate_fixtures_pack(fixtures_pack)
         self._validate_fixture_dict(fixtures_dict, allowed=ALLOWED_DB_FIXTURES)
 
@@ -229,7 +239,8 @@ class FixturesLoader(object):
 
         return all_fixtures
 
-    def delete_fixtures_from_db(self, fixtures_pack=None, fixtures_dict={}, raise_on_fail=False):
+    def delete_fixtures_from_db(self, fixtures_pack='generic', fixtures_dict=None,
+                                raise_on_fail=False):
         """
         Deletes fixtures specified in fixtures_dict from the database.
 
@@ -249,6 +260,8 @@ class FixturesLoader(object):
         :param raise_on_fail: Optional If True, raises exception if delete fails on any fixture.
         :type raise_on_fail: ``boolean``
         """
+        if not fixtures_dict:
+            return
         fixtures_pack_path = self._validate_fixtures_pack(fixtures_pack)
         self._validate_fixture_dict(fixtures_dict)
 

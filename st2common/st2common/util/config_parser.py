@@ -81,10 +81,10 @@ class ContentPackConfigParser(object):
             return None
 
         if os.path.exists(config_path) and os.path.isfile(config_path):
-                with open(config_path, 'r') as fp:
-                    config = yaml.safe_load(fp.read())
+            with open(config_path, 'r') as fp:
+                config = yaml.safe_load(fp.read())
 
-                return ContentPackConfig(file_path=config_path, config=config)
+            return ContentPackConfig(file_path=config_path, config=config)
 
         return None
 
@@ -131,4 +131,4 @@ class ContentPackConfig(object):
         self.config = config
 
     def __repr__(self):
-        return ('<ContentPackConfig file_path="%s">' % (self.file_path))
+        return '<ContentPackConfig file_path="%s">' % (self.file_path)

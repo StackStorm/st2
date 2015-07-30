@@ -72,11 +72,6 @@ class TriggerTypeController(resource.ContentPackResourceController):
             LOG.exception('Validation failed for triggertype data=%s.', triggertype)
             abort(http_client.BAD_REQUEST, str(e))
             return
-        except StackStormDBObjectConflictError as e:
-            LOG.warn('TriggerType creation of %s failed with uniqueness conflict. Exception : %s',
-                     triggertype, str(e))
-            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
-            return
         else:
             extra = {'triggertype_db': triggertype_db}
             LOG.audit('TriggerType created. TriggerType.id=%s' % (triggertype_db.id), extra=extra)
@@ -89,13 +84,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
 
     @jsexpose(arg_types=[str], body_cls=TriggerTypeAPI)
     def put(self, triggertype_ref_or_id, triggertype):
-        try:
-            triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
         triggertype_id = triggertype_db.id
 
         try:
@@ -135,13 +124,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
         LOG.info('DELETE /triggertypes/ with ref_or_id=%s',
                  triggertype_ref_or_id)
 
-        try:
-            triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
         triggertype_id = triggertype_db.id
 
         try:
@@ -176,9 +159,9 @@ class TriggerTypeController(resource.ContentPackResourceController):
             LOG.audit('Trigger created for parameter-less TriggerType. Trigger.id=%s' %
                       (trigger_db.id), extra=extra)
         except (ValidationError, ValueError) as e:
-                LOG.exception('Validation failed for trigger data=%s.', trigger)
-                # Not aborting as this is convenience.
-                return
+            LOG.exception('Validation failed for trigger data=%s.', trigger)
+            # Not aborting as this is convenience.
+            return
         except StackStormDBObjectConflictError as e:
             LOG.warn('Trigger creation of "%s" failed with uniqueness conflict. Exception: %s',
                      trigger, str(e))
@@ -246,11 +229,6 @@ class TriggerController(RestController):
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s.', trigger)
             abort(http_client.BAD_REQUEST, str(e))
-            return
-        except StackStormDBObjectConflictError as e:
-            LOG.warn('Trigger creation of %s failed with uniqueness conflict. Exception %s',
-                     trigger, str(e))
-            abort(http_client.CONFLICT, str(e), body={'conflict-id': e.conflict_id})
             return
 
         extra = {'trigger': trigger_db}

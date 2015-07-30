@@ -15,24 +15,9 @@
 
 import mock
 
-from st2common.models.db.trigger import TriggerDB
 from st2common.transport.publishers import PoolPublisher
 import st2reactor.container.utils as container_utils
 from st2tests.base import CleanDbTestCase
-
-MOCK_TRIGGER_TYPE = {}
-MOCK_TRIGGER_TYPE['id'] = 'trigger-type-test.id'
-MOCK_TRIGGER_TYPE['name'] = 'trigger-type-test.name'
-MOCK_TRIGGER_TYPE['pack'] = 'dummy_pack_1'
-MOCK_TRIGGER_TYPE['parameters_schema'] = {}
-MOCK_TRIGGER_TYPE['payload_schema'] = {}
-
-MOCK_TRIGGER = TriggerDB()
-MOCK_TRIGGER.id = 'trigger-test.id'
-MOCK_TRIGGER.name = 'trigger-test.name'
-MOCK_TRIGGER.pack = 'dummy_pack_1'
-MOCK_TRIGGER.parameters = {}
-MOCK_TRIGGER.type = 'dummy_pack_1.trigger-type-test.name'
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())

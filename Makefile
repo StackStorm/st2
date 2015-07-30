@@ -19,8 +19,10 @@ COMPONENT_SPECIFIC_TESTS := st2tests
 # nasty hack to get a space into a variable
 space_char :=
 space_char +=
+comma := ,
 COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS)))
 COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS)),$(component))
+COMPONENTS_TEST_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TEST))
 
 PYTHON_TARGET := 2.7
 
@@ -40,6 +42,7 @@ all: requirements check tests docs
 play:
 	@echo COMPONENTS=$(COMPONENTS)
 	@echo COMPONENTS_TEST=$(COMPONENTS_TEST)
+	@echo COMPONENTS_TEST_COMMA=$(COMPONENTS_TEST_COMMA)
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
 
 
@@ -114,10 +117,19 @@ flake8: requirements .flake8
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 scripts/
 
 .PHONY: lint
-lint: requirements .flake8 .pylint
+lint: requirements .lint
+
+.PHONY: .lint
+.lint: .flake8 .pylint
 
 .PHONY: clean
 clean: .cleanpycs .cleandocs
+
+.PHONY: compile
+compile:
+	@echo "======================= compile ========================"
+	@echo "------- Compile all .py files (syntax check test) ------"
+	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv"), quiet=True)' | grep .; then exit 1; else exit 0; fi
 
 .PHONY: .cleanpycs
 .cleanpycs:
@@ -209,19 +221,14 @@ $(VIRTUALENV_DIR)/bin/activate:
 .PHONY: tests
 tests: pytests
 
-# Travis cannot run itests since those require users to be configured etc.
-# Creating special travis target. (Yuck!)
-.PHONY: tests-travis
-tests-travis: requirements unit-tests-coverage
-
 .PHONY: pytests
-pytests: requirements .flake8 .pylint .pytests-coverage
+pytests: compile requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: unit-tests itests clean
+.pytests: compile unit-tests itests clean
 
 .PHONY: .pytests-coverage
-.pytests-coverage: unit-tests-coverage itests clean
+.pytests-coverage: .unit-tests-coverage-html .itests-coverage-html clean
 
 .PHONY: unit-tests
 unit-tests:
@@ -237,10 +244,10 @@ unit-tests:
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component/tests/unit || exit 1; \
 	done
 
-.PHONY: unit-tests-coverage
-unit-tests-coverage:
+.PHONY: .unit-tests-coverage-html
+.unit-tests-coverage-html:
 	@echo
-	@echo "==================== unit tests with coverage ===================="
+	@echo "==================== unit tests with coverage (HTML reports) ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
@@ -248,7 +255,9 @@ unit-tests-coverage:
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-xcoverage --xcoverage-file=coverage-$$component.xml --cover-package=$$component $$component/tests/unit || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
+			--cover-inclusive --cover-html \
+			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/unit || exit 1; \
 	done
 
 .PHONY: itests
@@ -266,6 +275,22 @@ itests: requirements .itests
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv $$component/tests/integration || exit 1; \
+	done
+
+.PHONY: .itests-coverage-html
+.itests-coverage-html:
+	@echo
+	@echo "================ integration tests with coverage (HTML reports) ================"
+	@echo
+	@echo "----- Dropping st2-test db -----"
+	@mongo st2-test --eval "db.dropDatabase();"
+	@for component in $(COMPONENTS_TEST); do\
+		echo "==========================================================="; \
+		echo "Running tests in" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
+			--cover-inclusive --cover-html \
+			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/integration || exit 1; \
 	done
 
 .PHONY: mistral-itests

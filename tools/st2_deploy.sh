@@ -115,7 +115,7 @@ else
     MISTRAL_STABLE_BRANCH="st2-0.5.1"
 fi
 
-if [[ "$DEBTEST" == "Ubuntu" ]]; then
+if [[ -n "$DEBTEST" ]]; then
   TYPE="debs"
   PYTHONPACK="/usr/lib/python2.7/dist-packages"
   echo "###########################################################################################"
@@ -216,9 +216,13 @@ install_apt() {
 install_yum() {
   echo "###########################################################################################"
   echo "# Installing packages via yum"
+  if cat /etc/redhat-release | grep -q ' 7\.[0-9]'
+  then
+    yum install -y epel-release
+  fi
   yum update -y
-  rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
-  curl -sS -k -o /tmp/rabbitmq-server.rpm http://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
+  rpm --import https://www.rabbitmq.com/rabbitmq-signing-key-public.asc
+  curl -sS -k -o /tmp/rabbitmq-server.rpm https://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
   yum localinstall -y /tmp/rabbitmq-server.rpm
 
   # Add StackStorm YUM repo

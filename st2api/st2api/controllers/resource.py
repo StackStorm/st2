@@ -28,7 +28,7 @@ from st2common.models.api.base import jsexpose
 from st2common import log as logging
 from st2common.models.system.common import InvalidResourceReferenceError
 from st2common.models.system.common import ResourceReference
-
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 LOG = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class ResourceController(rest.RestController):
 
     @jsexpose(arg_types=[str])
     def get_one(self, id):
-        return self._get_one(id)
+        return self._get_one_by_id(id=id)
 
     def _get_all(self, exclude_fields=None, **kwargs):
         """
@@ -142,6 +142,10 @@ class ResourceController(rest.RestController):
         return result
 
     def _get_one(self, id, exclude_fields=None):
+        # Note: This is here for backward compatibility reasons
+        return self._get_one_by_id(id=id, exclude_fields=exclude_fields)
+
+    def _get_one_by_id(self, id, exclude_fields=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -149,12 +153,7 @@ class ResourceController(rest.RestController):
 
         LOG.info('GET %s with id=%s', pecan.request.path, id)
 
-        instance = None
-
-        try:
-            instance = self.access.get(id=id, exclude_fields=exclude_fields)
-        except ValidationError:
-            instance = None  # Someone supplied a mongo non-comformant id.
+        instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields)
 
         if not instance:
             msg = 'Unable to identify resource with id "%s".' % id
@@ -166,35 +165,51 @@ class ResourceController(rest.RestController):
 
         return result
 
-    def _get_by_name_or_id(self, name_or_id):
+    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None):
+        """
+        :param exclude_fields: A list of object fields to exclude.
+        :type exclude_fields: ``list``
+        """
+
+        LOG.info('GET %s with name_or_id=%s', pecan.request.path, name_or_id)
+
+        instance = self._get_by_name_or_id(name_or_id=name_or_id, exclude_fields=exclude_fields)
+
+        if not instance:
+            msg = 'Unable to identify resource with name_or_id "%s".' % (name_or_id)
+            pecan.abort(http_client.NOT_FOUND, msg)
+
+        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        result = self.model.from_model(instance, **from_model_kwargs)
+        LOG.debug('GET %s with name_or_odid=%s, client_result=%s', pecan.request.path, id, result)
+
+        return result
+
+    def _get_by_id(self, resource_id, exclude_fields=None):
+        try:
+            resource_db = self.access.get(id=resource_id, exclude_fields=exclude_fields)
+        except ValidationError:
+            resource_db = None
+
+        return resource_db
+
+    def _get_by_name(self, resource_name, exclude_fields=None):
+        try:
+            resource_db = self.access.get(name=resource_name, exclude_fields=exclude_fields)
+        except Exception:
+            resource_db = None
+
+        return resource_db
+
+    def _get_by_name_or_id(self, name_or_id, exclude_fields=None):
         """
         Retrieve resource object by an id of a name.
         """
-        resource_db = self._get_by_id(resource_id=name_or_id)
+        resource_db = self._get_by_id(resource_id=name_or_id, exclude_fields=exclude_fields)
 
         if not resource_db:
             # Try name
-            resource_db = self._get_by_name(resource_name=name_or_id)
-
-        if not resource_db:
-            msg = 'Resource with a name or id "%s" not found' % (name_or_id)
-            raise Exception(msg)
-
-        return resource_db
-
-    def _get_by_id(self, resource_id):
-        try:
-            resource_db = self.access.get_by_id(resource_id)
-        except Exception:
-            resource_db = None
-
-        return resource_db
-
-    def _get_by_name(self, resource_name):
-        try:
-            resource_db = self.access.get_by_name(resource_name)
-        except Exception:
-            resource_db = None
+            resource_db = self._get_by_name(resource_name=name_or_id, exclude_fields=exclude_fields)
 
         return resource_db
 
@@ -233,9 +248,9 @@ class ContentPackResourceController(ResourceController):
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
         result = self.model.from_model(instance, **from_model_kwargs)
         if result and self.include_reference:
-                pack = getattr(result, 'pack', None)
-                name = getattr(result, 'name', None)
-                result.ref = ResourceReference(pack=pack, name=name).ref
+            pack = getattr(result, 'pack', None)
+            name = getattr(result, 'name', None)
+            result.ref = ResourceReference(pack=pack, name=name).ref
 
         LOG.debug('GET %s with ref_or_id=%s, client_result=%s',
                   pecan.request.path, ref_or_id, result)
@@ -256,6 +271,9 @@ class ContentPackResourceController(ResourceController):
     def _get_by_ref_or_id(self, ref_or_id):
         """
         Retrieve resource object by an id of a reference.
+
+        Note: This method throws StackStormDBObjectNotFoundError exception if the object is not
+        found in the database.
         """
 
         if ResourceReference.is_resource_reference(ref_or_id):
@@ -271,7 +289,7 @@ class ContentPackResourceController(ResourceController):
 
         if not resource_db:
             msg = 'Resource with a reference or id "%s" not found' % (ref_or_id)
-            raise Exception(msg)
+            raise StackStormDBObjectNotFoundError(msg)
 
         return resource_db
 

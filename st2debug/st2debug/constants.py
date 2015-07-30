@@ -76,7 +76,7 @@ bn3L/cR40sHfCrqDGf/zbFSMX0zlEiYTfyoE0Md34NHI3eVqGCXzeFKgcmyrx5Nq
 '''
 
 # Fingerprint of the public key
-GPG_KEY_FINGERPRINT = 'BDE9 89A1 F308 B18D 2978  9C71 7064 B11C 82F6 2D6F'
+GPG_KEY_FINGERPRINT = 'BDE989A1F308B18D29789C717064B11C82F62D6F'
 
 # Bucket where the encrypted tarballs are uploaded (bucket is writeable
 # by everyone, but only reeadable by StackStorm)

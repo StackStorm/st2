@@ -88,5 +88,5 @@ class TestAliasExecution(FunctionalTest):
                      'user': 'stanley',
                      'source_channel': 'test',
                      'notification_channel': 'test'}
-        return self.app.post_json('/exp/aliasexecution', execution,
+        return self.app.post_json('/v1/aliasexecution', execution,
                                   expect_errors=expect_errors)

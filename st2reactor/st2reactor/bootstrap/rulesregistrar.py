@@ -42,8 +42,10 @@ class RulesRegistrar(ResourceRegistrar):
         :return: Number of rules registered.
         :rtype: ``int``
         """
-        registered_count = 0
+        # Register packs first
+        self.register_packs(base_dirs=base_dirs)
 
+        registered_count = 0
         content = self._pack_loader.get_content(base_dirs=base_dirs,
                                                 content_type='rules')
         for pack, rules_dir in six.iteritems(content):
@@ -68,6 +70,9 @@ class RulesRegistrar(ResourceRegistrar):
         _, pack = os.path.split(pack_dir)
         rules_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
                                                             content_type='rules')
+
+        # Register pack first
+        self.register_pack(pack_name=pack, pack_dir=pack_dir)
 
         registered_count = 0
         if not rules_dir:
@@ -148,7 +153,7 @@ class RulesRegistrar(ResourceRegistrar):
 
 def register_rules(packs_base_paths=None, pack_dir=None):
     if packs_base_paths:
-        assert(isinstance(packs_base_paths, list))
+        assert isinstance(packs_base_paths, list)
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()

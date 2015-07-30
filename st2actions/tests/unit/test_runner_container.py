@@ -70,8 +70,7 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(runner is not None, 'TestRunner must be valid.')
 
     def test_get_runner_module_fail(self):
-        runnertype_db = RunnerTypeDB()
-        runnertype_db.runner_module = 'absent.module'
+        runnertype_db = RunnerTypeDB(runner_module='absent.module')
         runner = None
         try:
             runner = get_runner(runnertype_db.runner_module)
@@ -157,25 +156,27 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(found.query_module is not None)
 
     def _get_action_exec_db_model(self, action_db, params):
-        liveaction_db = LiveActionDB()
-        liveaction_db.status = action_constants.LIVEACTION_STATUS_REQUESTED
-        liveaction_db.start_timestamp = date_utils.get_datetime_utc_now()
-        liveaction_db.action = ResourceReference(
-            name=action_db.name,
-            pack=action_db.pack).ref
-        liveaction_db.parameters = params
-        liveaction_db.context = {'user': cfg.CONF.system_user.user}
+        status = action_constants.LIVEACTION_STATUS_REQUESTED
+        start_timestamp = date_utils.get_datetime_utc_now()
+        action_ref = ResourceReference(name=action_db.name, pack=action_db.pack).ref
+        parameters = params
+        context = {'user': cfg.CONF.system_user.user}
+        liveaction_db = LiveActionDB(status=status, start_timestamp=start_timestamp,
+                                     action=action_ref, parameters=parameters,
+                                     context=context)
         return liveaction_db
 
     def _get_failingaction_exec_db_model(self, params):
-        liveaction_db = LiveActionDB()
-        liveaction_db.status = action_constants.LIVEACTION_STATUS_REQUESTED
-        liveaction_db.start_timestamp = date_utils.get_datetime_utc_now()
-        liveaction_db.action = ResourceReference(
+        status = action_constants.LIVEACTION_STATUS_REQUESTED
+        start_timestamp = date_utils.get_datetime_utc_now()
+        action_ref = ResourceReference(
             name=RunnerContainerTest.failingaction_db.name,
             pack=RunnerContainerTest.failingaction_db.pack).ref
-        liveaction_db.parameters = params
-        liveaction_db.context = {'user': cfg.CONF.system_user.user}
+        parameters = params
+        context = {'user': cfg.CONF.system_user.user}
+        liveaction_db = LiveActionDB(status=status, start_timestamp=start_timestamp,
+                                     action=action_ref, parameters=parameters,
+                                     context=context)
         return liveaction_db
 
     @classmethod

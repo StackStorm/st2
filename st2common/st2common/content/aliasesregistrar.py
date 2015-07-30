@@ -43,8 +43,10 @@ class AliasesRegistrar(ResourceRegistrar):
         :return: Number of aliases registered.
         :rtype: ``int``
         """
-        registered_count = 0
+        # Register packs first
+        self.register_packs(base_dirs=base_dirs)
 
+        registered_count = 0
         content = self._pack_loader.get_content(base_dirs=base_dirs,
                                                 content_type='aliases')
 
@@ -71,8 +73,10 @@ class AliasesRegistrar(ResourceRegistrar):
         aliases_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
                                                               content_type='aliases')
 
-        registered_count = 0
+        # Register pack first
+        self.register_pack(pack_name=pack, pack_dir=pack_dir)
 
+        registered_count = 0
         if not aliases_dir:
             return registered_count
 
@@ -136,7 +140,7 @@ class AliasesRegistrar(ResourceRegistrar):
 
 def register_aliases(packs_base_paths=None, pack_dir=None):
     if packs_base_paths:
-        assert(isinstance(packs_base_paths, list))
+        assert isinstance(packs_base_paths, list)
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()

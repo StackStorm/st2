@@ -47,8 +47,10 @@ class SensorsRegistrar(ResourceRegistrar):
         :return: Number of sensors registered.
         :rtype: ``int``
         """
-        registered_count = 0
+        # Register packs first
+        self.register_packs(base_dirs=base_dirs)
 
+        registered_count = 0
         content = self._pack_loader.get_content(base_dirs=base_dirs,
                                                 content_type='sensors')
 
@@ -75,6 +77,9 @@ class SensorsRegistrar(ResourceRegistrar):
         _, pack = os.path.split(pack_dir)
         sensors_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
                                                               content_type='sensors')
+
+        # Register pack first
+        self.register_pack(pack_name=pack, pack_dir=pack_dir)
 
         registered_count = 0
         if not sensors_dir:
@@ -151,7 +156,7 @@ class SensorsRegistrar(ResourceRegistrar):
 
 def register_sensors(packs_base_paths=None, pack_dir=None):
     if packs_base_paths:
-        assert(isinstance(packs_base_paths, list))
+        assert isinstance(packs_base_paths, list)
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()

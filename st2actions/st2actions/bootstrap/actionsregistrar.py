@@ -46,8 +46,10 @@ class ActionsRegistrar(ResourceRegistrar):
         :return: Number of actions registered.
         :rtype: ``int``
         """
-        registered_count = 0
+        # Register packs first
+        self.register_packs(base_dirs=base_dirs)
 
+        registered_count = 0
         content = self._pack_loader.get_content(base_dirs=base_dirs,
                                                 content_type='actions')
 
@@ -74,8 +76,10 @@ class ActionsRegistrar(ResourceRegistrar):
         actions_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
                                                               content_type='actions')
 
-        registered_count = 0
+        # Register pack first
+        self.register_pack(pack_name=pack, pack_dir=pack_dir)
 
+        registered_count = 0
         if not actions_dir:
             return registered_count
 
@@ -150,7 +154,7 @@ class ActionsRegistrar(ResourceRegistrar):
 
 def register_actions(packs_base_paths=None, pack_dir=None):
     if packs_base_paths:
-        assert(isinstance(packs_base_paths, list))
+        assert isinstance(packs_base_paths, list)
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()

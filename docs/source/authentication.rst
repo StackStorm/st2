@@ -192,6 +192,30 @@ Example ``auth`` section in the |st2| configuration file. ::
     logging = /path/to/st2auth.logging.conf
     api_url = http://myhost.example.com:9101/
 
+Keystone backend
+~~~~~~~~~~~~~~~~
+
+Keystone backend supports authenticating against a Keystone auth server.
+
+    **Backend configuration options:**
+
+    * ``keystone_url`` - Keystone server url, port included (e.x. "http://keystone.com:5000").
+    * ``keystone_version`` - Keystone api version to use. Defaults to 2.
+
+Example ``auth`` section in the |st2| configuration file. ::
+
+    [auth]
+    mode = standalone
+    backend = keystone
+    backend_kwargs = {"keystone_url": "http://keystone.com:5000", "keystone_version": 2}
+    enable = True
+    debug = True
+    use_ssl = True
+    cert = /path/to/mycert.crt
+    key = /path/to/mycert.key
+    logging = /path/to/st2auth.logging.conf
+    api_url = http://myhost.example.com:9101/
+
 After the configuration change, restart all st2 components. ::
 
     st2ctl restart
