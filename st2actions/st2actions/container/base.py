@@ -129,10 +129,17 @@ class RunnerContainer(object):
             LOG.debug('Action "%s" completed.' % (action_db.name), extra=extra)
 
             # Always clean-up the auth_token
-            updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
-                                                                result, context)
-            executions.update_execution(updated_liveaction_db)
+            try:
+                LOG.debug('Setting status: %s for liveaction: %s', status, liveaction_db.id)
+                updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
+                                                                    result, context)
+            except:
+                error = 'Cannot update LiveAction object for id: %s, status: %s, result: %s.' % (
+                    liveaction_db.id, status, result)
+                LOG.exception(error)
+                raise
 
+            executions.update_execution(updated_liveaction_db)
             extra = {'liveaction_db': updated_liveaction_db}
             LOG.debug('Updated liveaction after run', extra=extra)
 

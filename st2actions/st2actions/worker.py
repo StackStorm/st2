@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+import traceback
+
 from kombu import Connection
 from oslo_config import cfg
 
@@ -58,10 +61,11 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
             LOG.info('%s is not executing %s (id=%s) with "%s" status.',
                      self.__class__.__name__, type(liveaction), liveaction.id, liveaction.status)
             if not liveaction.result:
-                action_utils.update_liveaction_status(
+                updated_liveaction = action_utils.update_liveaction_status(
                     status=liveaction.status,
                     result={'message': 'Action execution canceled by user.'},
                     liveaction_id=liveaction.id)
+                executions.update_execution(updated_liveaction)
             return
 
         if liveaction.status != action_constants.LIVEACTION_STATUS_SCHEDULED:
@@ -94,19 +98,25 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
         LOG.info('Dispatched {~}action_execution: %s / {~}live_action: %s with "%s" status.',
                  action_execution_db.id, liveaction_db.id, liveaction.status)
 
+        return self._run_action(liveaction_db)
+
+    def _run_action(self, liveaction_db):
+        extra = {'liveaction_db': liveaction_db}
         try:
             result = self.container.dispatch(liveaction_db)
             LOG.debug('Runner dispatch produced result: %s', result)
             if not result:
                 raise ActionRunnerException('Failed to execute action.')
-        except Exception as e:
-            extra['error'] = str(e)
-            LOG.info('Action "%s" failed: %s' % (liveaction_db.action, str(e)), extra=extra)
+        except:
+            _, ex, tb = sys.exc_info()
+            extra['error'] = str(ex)
+            LOG.info('Action "%s" failed: %s' % (liveaction_db.action, str(ex)), extra=extra)
 
             liveaction_db = action_utils.update_liveaction_status(
                 status=action_constants.LIVEACTION_STATUS_FAILED,
-                liveaction_id=liveaction_db.id)
-
+                liveaction_id=liveaction_db.id,
+                result={'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))})
+            executions.update_execution(liveaction_db)
             raise
 
         return result
