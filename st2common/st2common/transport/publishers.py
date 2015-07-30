@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from kombu import Connection
-from kombu.pools import producers
+from kombu.messaging import Producer
 
 from st2common import log as logging
 
@@ -28,7 +28,7 @@ LOG = logging.getLogger(__name__)
 
 class PoolPublisher(object):
     def __init__(self, urls):
-        self.pool = Connection(urls).Pool(limit=10)
+        self.pool = Connection(urls, failover_strategy='round-robin').Pool(limit=10)
 
     def errback(self, exc, interval):
         LOG.error('Rabbitmq connection error: %s', exc.message, exc_info=False)
@@ -36,36 +36,37 @@ class PoolPublisher(object):
     def publish(self, payload, exchange, routing_key=''):
         # pickling the payload for now. Better serialization mechanism is essential.
         with self.pool.acquire(block=True) as connection:
-            with producers[connection].acquire(block=True) as producer:
-                channel = None
-                should_stop = False
-                while not should_stop:
-                    try:
-                        # creating a new channel for every producer publish. This could be expensive
-                        # and maybe there is a better way to do this by creating a ChannelPool etc.
-                        channel = connection.channel()
-                        # ain't clean but I am done trying to find out the right solution!
-                        producer._set_channel(channel)
-                        publish_func = connection.ensure(producer, producer.publish,
-                                                         errback=self.errback,
-                                                         max_retries=3)
-                        publish_func(payload, exchange=exchange, routing_key=routing_key,
-                                     serializer='pickle')
-                        should_stop = True
-                    except connection.connection_errors + connection.channel_errors:
-                        LOG.error('Connection or channel error identified.')
-                        connection.close()
-                        connection.ensure_connection()
-                        channel = connection.channel()
-                    except Exception as e:
-                        LOG.error('Connections to rabbitmq cannot be re-established: %s', e.message)
-                        should_stop = True
-                    finally:
-                        if should_stop and channel:
-                            try:
-                                channel.close()
-                            except Exception:
-                                LOG.warning('Error closing channel.', exc_info=True)
+            should_stop = False
+            while not should_stop:
+                # creating a new channel for every producer publish. This could be expensive
+                # and maybe there is a better way to do this by creating a ChannelPool etc.
+                channel = connection.channel()
+                # ProducerPool ends up creating it own ConnectionPool which ends up completely
+                # invalidating this ConnectionPool. Also, a ConnectionPool for producer does not
+                # really solve any problems for us so better to create a Producer for each publish.
+                # Producers anyway use the provided channel objects so safe to create one per publish.
+                producer = Producer(channel)
+                try:
+                    publish_func = connection.ensure(producer, producer.publish,
+                                                     errback=self.errback,
+                                                     max_retries=3)
+                    publish_func(payload, exchange=exchange, routing_key=routing_key,
+                                 serializer='pickle')
+                    should_stop = True
+                except connection.connection_errors + connection.channel_errors:
+                    LOG.exception('Connection or channel error identified.')
+                    connection.close()
+                    connection.ensure_connection()
+                    channel = connection.channel()
+                except Exception as e:
+                    LOG.error('Connections to rabbitmq cannot be re-established: %s', e.message)
+                    should_stop = True
+                finally:
+                    if should_stop and channel:
+                        try:
+                            channel.close()
+                        except Exception:
+                            LOG.warning('Error closing channel.', exc_info=True)
 
 
 class CUDPublisher(object):
