@@ -29,8 +29,8 @@ The docs are build with Sphinx. It's integrated with the main project Makefile.
 
     and point to it as from this, or from other documensts as:
 
-       :ref:`sensors-examples`
-       :ref:`My examples <sensors-examples>`
+           :ref:`sensors-examples`
+           :ref:`My examples <sensors-examples>`
 
     Note that the leading `_` underscore is gone, and the reference is quoted.
 
