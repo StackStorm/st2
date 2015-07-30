@@ -12,7 +12,6 @@ TYPE='debs'
 SYSTEMUSER='stanley'
 STAN="/home/${SYSTEMUSER}/${TYPE}"
 mkdir -p ${STAN}
-mkdir -p /var/log/st2
 
 create_user() {
   if [ $(id -u ${SYSTEMUSER} &> /devnull; echo $?) != 0 ]

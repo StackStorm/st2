@@ -8,9 +8,11 @@ python:
 env:
   - TASK=unit
   - TASK=integration
+  - TASK=mistral
 
 services:
   - mongodb
+  - postgresql
   - rabbitmq
 
 cache:
@@ -20,7 +22,8 @@ cache:
 install:
   - pip install python-coveralls
   - make requirements
-  - if [ ${TASK} = 'integration' ]; then sudo ./scripts/travis/prepare-integration.sh; fi
+  - if [ ${TASK} = 'integration' ] || [ ${TASK} = 'mistral' ]; then sudo ./scripts/travis/prepare-integration.sh; fi
+  - if [ ${TASK} = 'mistral' ]; then sudo ./scripts/travis/setup-mistral.sh; fi
 
 script:
   - ./scripts/travis/build.sh
