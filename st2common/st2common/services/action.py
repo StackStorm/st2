@@ -50,8 +50,9 @@ def request(liveaction):
     # action can be invoked by a system user and so we want to use the user context
     # from the original workflow action.
     if getattr(liveaction, 'context', None) and 'parent' in liveaction.context:
-        parent = LiveAction.get_by_id(liveaction.context['parent'])
-        liveaction.context['user'] = getattr(parent, 'context', dict()).get('user')
+        parent_user = liveaction.context['parent'].get('user', None)
+        if parent_user:
+            liveaction.context['user'] = parent_user
 
     # Validate action.
     action_db = action_utils.get_action_by_ref(liveaction.action)

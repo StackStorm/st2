@@ -6,6 +6,7 @@ in development
 
 * Add new OpenStack Keystone authentication backend.
   [Itxaka Serrano]
+* Information about parent workflow is now a dict in child's context field. (improvement)
 
 0.12.0 - July 20, 2015
 ----------------------

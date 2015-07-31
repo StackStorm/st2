@@ -142,9 +142,15 @@ class MistralRunner(AsyncActionRunner):
         endpoint = 'http://%s:%s/v1/actionexecutions' % (cfg.CONF.api.host, cfg.CONF.api.port)
 
         # Build context with additional information
+        parent_context = {
+            'execution_id': self.execution_id
+        }
+        if getattr(self.liveaction, 'context', None):
+            parent_context.update(self.liveaction.context)
+
         st2_execution_context = {
             'endpoint': endpoint,
-            'parent': self.liveaction_id,
+            'parent': parent_context,
             'notify': {},
             'skip_notify_tasks': self._skip_notify_tasks
         }
