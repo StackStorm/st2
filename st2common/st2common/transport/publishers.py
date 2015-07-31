@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import eventlet
 
 from kombu import Connection
@@ -127,6 +128,7 @@ class SharedPoolPublishers(object):
         # The publisher_key format here only works because we are aware that urls will be a
         # list of strings. Sorting to end up with the same PoolPublisher regardless of
         # ordering in supplied list.
+        urls = copy.copy(urls)
         urls.sort()
         publisher_key = ''.join(urls)
         publisher = self.shared_publishers.get(publisher_key, None)
