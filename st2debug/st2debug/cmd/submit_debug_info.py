@@ -312,6 +312,9 @@ def create_archive(include_logs, include_configs, include_content, include_syste
             file_path = os.path.normpath(file_path)
             source_dir = file_path
 
+            if not os.path.exists(source_dir):
+                continue
+
             if '.' in file_path:
                 arcname = os.path.basename(file_path)
             else:
