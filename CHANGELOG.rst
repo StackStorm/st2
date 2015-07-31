@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.12.1 - July 31, 2015
+----------------------
+* Un-registering a pack also removes ``rules`` and ``action aliases`` from the pack. (bug-fix)
+* Disable parallel SSH in fabric runner which causes issues with eventlets. (bug-fix)
+* Fix executions stuck in ``running`` state if runner container throws exception. (bug-fix)
+* Fix cases where liveaction result in dict are escaped and passed to Mistral. (bug-fix)
+
 0.12.0 - July 20, 2015
 ----------------------
 
