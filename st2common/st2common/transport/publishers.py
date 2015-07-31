@@ -44,7 +44,6 @@ class PoolPublisher(object):
                 # ProducerPool ends up creating it own ConnectionPool which ends up completely
                 # invalidating this ConnectionPool. Also, a ConnectionPool for producer does not
                 # really solve any problems for us so better to create a Producer for each publish.
-                # Producers anyway use the provided channel objects so safe to create one per publish.
                 producer = Producer(channel)
                 try:
                     publish_func = connection.ensure(producer, producer.publish,
@@ -69,9 +68,30 @@ class PoolPublisher(object):
                             LOG.warning('Error closing channel.', exc_info=True)
 
 
+class SharedPoolPublishers(object):
+    """
+    This maintains some shared PoolPublishers. Within a single process the configured AMQP
+    server is usually the same. This sharing allows from the same PoolPublisher to be reused
+    for publishing purposes. Sharing publishers leads to shared connections.
+    """
+    shared_publishers = {}
+
+    def get_publisher(self, urls):
+        # The publisher_key format here only works because we are aware that urls will be a
+        # list of strings. Sorting to end up with the same PoolPublisher regardless of
+        # ordering in supplied list.
+        urls.sort()
+        publisher_key = ''.join(urls)
+        publisher = self.shared_publishers.get(publisher_key, None)
+        if not publisher:
+            publisher = PoolPublisher(urls=urls)
+            self.shared_publishers[publisher_key] = publisher
+        return publisher
+
+
 class CUDPublisher(object):
     def __init__(self, urls, exchange):
-        self._publisher = PoolPublisher(urls=urls)
+        self._publisher = SharedPoolPublishers().get_publisher(urls=urls)
         self._exchange = exchange
 
     def publish_create(self, payload):
@@ -86,7 +106,7 @@ class CUDPublisher(object):
 
 class StatePublisherMixin(object):
     def __init__(self, urls, exchange):
-        self._state_publisher = PoolPublisher(urls=urls)
+        self._state_publisher = SharedPoolPublishers().get_publisher(urls=urls)
         self._state_exchange = exchange
 
     def publish_state(self, payload, state):
