@@ -31,4 +31,12 @@ parameters:
   runnerimmutable:
     default: failed_override
     type: string
+  runnerdefaultint:
+    default: 0
+    description: Falsey integer param, overrides runner default. Covers timeout 0 issue
+    type: integer
+  defaults_ovverriden_by_execution:
+    default: 1
+    description: Overrides runner default. Will be overriden by live action
+    type: integer
 runner_type: test-runner-1
