@@ -352,6 +352,7 @@ class ParamikoSSHClient(BaseSSHClient):
         # which is not ready will block for indefinitely.
         exit_status_ready = chan.exit_status_ready()
 
+        print('Host: %s, exit_status_ready: %s' % (self.hostname, exit_status_ready))
         while not exit_status_ready:
             current_time = time.time()
             elapsed_time = (current_time - start_time)
@@ -395,6 +396,7 @@ class ParamikoSSHClient(BaseSSHClient):
 
             # Short sleep to prevent busy waiting
             time.sleep(self.SLEEP_DELAY)
+        print('Wait over. Channel must be ready for host: %s' % self.hostname)
 
         # Receive the exit status code of the command we ran.
         status = chan.recv_exit_status()
