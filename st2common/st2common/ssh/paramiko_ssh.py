@@ -405,7 +405,7 @@ class ParamikoSSHClient(BaseSSHClient):
                     break
 
                 data = chan.recv(self.CHUNK_SIZE)
-        return
+        return stdout
 
     def _consume_stderr(self, chan, stderr):
         if chan.recv_stderr_ready():
