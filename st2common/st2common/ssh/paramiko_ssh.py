@@ -35,6 +35,8 @@ import subprocess
 import logging
 import warnings
 
+import eventlet
+
 from os.path import split as psplit
 from os.path import join as pjoin
 
@@ -352,7 +354,10 @@ class ParamikoSSHClient(BaseSSHClient):
         # which is not ready will block for indefinitely.
         exit_status_ready = chan.exit_status_ready()
 
-        print('Host: %s, exit_status_ready: %s' % (self.hostname, exit_status_ready))
+        if exit_status_ready:
+            self._consume_stdout(chan, stdout)
+            self._consume_stderr(chan, stderr)
+
         while not exit_status_ready:
             current_time = time.time()
             elapsed_time = (current_time - start_time)
@@ -363,29 +368,8 @@ class ParamikoSSHClient(BaseSSHClient):
 
                 raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout)
 
-            if chan.recv_ready():
-                data = chan.recv(self.CHUNK_SIZE)
-
-                while data:
-                    stdout.write(b(data).decode('utf-8'))
-                    ready = chan.recv_ready()
-
-                    if not ready:
-                        break
-
-                    data = chan.recv(self.CHUNK_SIZE)
-
-            if chan.recv_stderr_ready():
-                data = chan.recv_stderr(self.CHUNK_SIZE)
-
-                while data:
-                    stderr.write(b(data).decode('utf-8'))
-                    ready = chan.recv_stderr_ready()
-
-                    if not ready:
-                        break
-
-                    data = chan.recv_stderr(self.CHUNK_SIZE)
+            self._consume_stdout(chan, stdout)
+            self._consume_stderr(chan, stderr)
 
             # We need to check the exist status here, because the command could
             # print some output and exit during this sleep bellow.
@@ -395,8 +379,8 @@ class ParamikoSSHClient(BaseSSHClient):
                 break
 
             # Short sleep to prevent busy waiting
-            time.sleep(self.SLEEP_DELAY)
-        print('Wait over. Channel must be ready for host: %s' % self.hostname)
+            eventlet.sleep(self.SLEEP_DELAY)
+        # print('Wait over. Channel must be ready for host: %s' % self.hostname)
 
         # Receive the exit status code of the command we ran.
         status = chan.recv_exit_status()
@@ -407,7 +391,35 @@ class ParamikoSSHClient(BaseSSHClient):
         extra = {'_status': status, '_stdout': stdout, '_stderr': stderr}
         self.logger.debug('Command finished', extra=extra)
 
-        return [stdout, stderr, status]
+        return [stdout, stderr, status, exit_status_ready]
+
+    def _consume_stdout(self, chan, stdout):
+        if chan.recv_ready():
+            data = chan.recv(self.CHUNK_SIZE)
+
+            while data:
+                stdout.write(b(data).decode('utf-8'))
+                ready = chan.recv_ready()
+
+                if not ready:
+                    break
+
+                data = chan.recv(self.CHUNK_SIZE)
+        return
+
+    def _consume_stderr(self, chan, stderr):
+        if chan.recv_stderr_ready():
+            data = chan.recv_stderr(self.CHUNK_SIZE)
+
+            while data:
+                stderr.write(b(data).decode('utf-8'))
+                ready = chan.recv_stderr_ready()
+
+                if not ready:
+                    break
+
+                data = chan.recv_stderr(self.CHUNK_SIZE)
+        return stderr
 
     def close(self):
         self.logger.debug('Closing server connection')
