@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import eventlet
+
 from kombu import Connection
 from kombu.messaging import Producer
 
@@ -26,9 +28,37 @@ DELETE_RK = 'delete'
 LOG = logging.getLogger(__name__)
 
 
+class ClusterRetryContext(object):
+    """
+    Stores retry context for cluster retries. It makes certain assumptions
+    on how cluster_size and retry should be determined.
+    """
+    def __init__(self, cluster_size):
+        # No of nodes in a cluster
+        self.cluster_size = cluster_size
+        # No of times to retry in a cluster
+        self.cluster_retry = 2
+        # time to wait between retry in a cluster
+        self.wait_between_cluster = 10
+
+        # No of nodes attempted. Starts at 1 since the
+        self._nodes_attempted = 1
+
+    def test_should_stop(self):
+        should_stop = True
+        if self._nodes_attempted > self.cluster_size * self.cluster_retry:
+            return should_stop, -1
+        wait = 0
+        if self._nodes_attempted % self.cluster_size == 0:
+            wait = self.wait_between_cluster
+        self._nodes_attempted += 1
+        return should_stop, wait
+
+
 class PoolPublisher(object):
     def __init__(self, urls):
         self.pool = Connection(urls, failover_strategy='round-robin').Pool(limit=10)
+        self.cluster_size = len(urls)
 
     def errback(self, exc, interval):
         LOG.error('Rabbitmq connection error: %s', exc.message, exc_info=False)
@@ -36,6 +66,7 @@ class PoolPublisher(object):
     def publish(self, payload, exchange, routing_key=''):
         # pickling the payload for now. Better serialization mechanism is essential.
         with self.pool.acquire(block=True) as connection:
+            retry_context = ClusterRetryContext(cluster_size=self.cluster_size)
             should_stop = False
             while not should_stop:
                 # creating a new channel for every producer publish. This could be expensive
@@ -52,14 +83,30 @@ class PoolPublisher(object):
                     publish_func(payload, exchange=exchange, routing_key=routing_key,
                                  serializer='pickle')
                     should_stop = True
-                except connection.connection_errors + connection.channel_errors:
-                    LOG.exception('Connection or channel error identified.')
+                except connection.connection_errors + connection.channel_errors as e:
+                    LOG.error('Connection or channel error identified.')
+                    should_stop, wait = retry_context.test_should_stop()
+
+                    # All attempts to re-establish connections have failed. This error needs to
+                    # be notified so raise.
+                    if should_stop:
+                        raise
+
                     connection.close()
+                    # -1, 0 and 1+ are handled properly by eventlet.sleep
+                    eventlet.sleep(wait)
+                    # ensure_connection will automatically switch to an alternate. Other connections
+                    # in the pool will be fixed independently. It would be nice to cut-over the
+                    # entire ConnectionPool simultaneously but that would require writing our own
+                    # ConnectionPool. If a server recovers it could happen that the same process
+                    # ends up talking to separate nodes in a cluster.
                     connection.ensure_connection()
                     channel = connection.channel()
+
                 except Exception as e:
                     LOG.error('Connections to rabbitmq cannot be re-established: %s', e.message)
-                    should_stop = True
+                    # Not being able to publish a message could be a significant issue for an app.
+                    raise
                 finally:
                     if should_stop and channel:
                         try:
