@@ -59,14 +59,11 @@ class ParallelSSHClient(object):
 
         for host in self._hosts_client.keys():
             while not self._pool.free():
-                    eventlet.sleep(self._scan_interval)
-            print('Spawned eventlet for host: %s', host)
+                eventlet.sleep(self._scan_interval)
             self._pool.spawn(self._run_command, cmd=cmd, host=host,
                              results=results, timeout=None)
 
-        print('Should wait for all eventlets.')
         self._pool.waitall()
-        print('Wait over.')
         return results
 
     def put(self, path, contents=None, chmod=None, mode='w'):
@@ -74,8 +71,7 @@ class ParallelSSHClient(object):
 
         for host in self._hosts_client.keys():
             while not self._pool.free():
-                    eventlet.sleep(self._scan_interval)
-            print('Started eventlet for host: %s', host)
+                eventlet.sleep(self._scan_interval)
             self._pool.spawn(self._put_files, path=path, host=host,
                              contents=contents, chmod=chmod, mode=mode,
                              results=results)
@@ -85,7 +81,6 @@ class ParallelSSHClient(object):
     def _run_command(self, host, cmd, results, timeout=None):
         try:
             result = self._hosts_client[host].run(cmd, timeout=timeout)
-            print('%s: Results: %s' % (host, result))
             results[host] = result
         except:
             LOG.exception('Failed executing command %s on host %s', cmd, host)
@@ -95,7 +90,7 @@ class ParallelSSHClient(object):
 
         for host in self._hosts_client.keys():
             while not self._pool.free():
-                    eventlet.sleep(self._scan_interval)
+                eventlet.sleep(self._scan_interval)
             self._pool.spawn(self._delete_files, host=host, path=path, results=results)
 
         self._pool.waitall()
