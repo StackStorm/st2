@@ -16,6 +16,7 @@ StackStorm is new and under active development. We are opening it early to engag
 * **Documentation:** generate REST API docs.
 * **More integration packs:** push more content to the community to help work with most common and widely used tool. Tell us if there is tool you love and think we should integrate with or better yet write a pack yourself.
 * **Advanced RBAC functionality** - ability to grant permissions on tags, RBAC for ChatOps.
+* **Support for RBAC in the UI** - ability to manage and visualize RBAC assignments in the WebUI.
 
 See :doc:`/changelog` for details on what is done.
 
