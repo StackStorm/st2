@@ -274,9 +274,7 @@ __gather_linux_system_info() {
                 elif [ "$(egrep 'Scientific' /etc/${rsource})" != "" ]; then
                     n="Scientific Linux"
                 elif [ "$(egrep 'Red Hat Enterprise Linux' /etc/${rsource})" != "" ]; then
-                    n="<R>ed <H>at <E>nterprise <L>inux"
-                else
-                    n="<R>ed <H>at <L>inux"
+                    n="Red Hat Enterprise Server"
                 fi
                 ;;
             arch               ) n="Arch Linux"     ;;
@@ -338,16 +336,16 @@ __gather_linux_system_info
 echo "###########################################################################################"
 echo "# Detected Distro is ${DISTRO_NAME} ${DISTRO_VERSION}"
 
-if [[ "${shortname}" == "ubuntu" ]]; then
+if [[ "${DISTRO_NAME}" == "Ubuntu" ]]; then
   TYPE="debs"
   PYTHONPACK="/usr/lib/python2.7/dist-packages"
-elif [[ "${shortname}" == "redhat" ]] || [[ "${shortname}" == "fedora" ]]; then
+elif [[ "${DISTRO_NAME}" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "Fedora" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]]; then
   TYPE="rpms"
   PYTHONPACK="/usr/lib/python2.7/site-packages"
 
-  if [[ ${DISTRO_VERSION} =~ 7\.[0-9] ]] || [[ "${shortname}" == "fedora" ]]
+  if [[ ${DISTRO_VERSION} =~ 7\.[0-9] ]] || [[ "${DISTRO_NAME}" == "Fedora" ]]
   then
-    if [[ "${shortname}" == "fedora" ]]
+    if [[ "${DISTRO_NAME}" == "Fedora" ]]
     then
       systemctl stop firewalld
       systemctl disable firewalld
@@ -357,6 +355,7 @@ elif [[ "${shortname}" == "redhat" ]] || [[ "${shortname}" == "fedora" ]]; then
   then
     service firewalld stop
     chkconfig firewalld off
+    PYTHON="python2.7"
     PIP="pip2.7"
     VIRTUALENV="virtualenv-2.7"
     YUM_PYTHON=$(join " " ${YUM_PYTHON_6[@]})
@@ -454,7 +453,7 @@ install_apt() {
 install_yum() {
   echo "###########################################################################################"
   echo "# Installing packages via yum"
-  if [[ "$shortname" == "redhat" ]]
+  if [[ "$DISTRO_NAME" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]]
   then
     if [[ $DISTRO_VERSION =~ 6\.[0-9] ]]
     then
@@ -512,7 +511,7 @@ setup_rabbitmq() {
 
 setup_mongodb_systemd() {
   # Enable and start MongoDB
-  if ([[ "${shortname}" == "redhat" ]] &&  [[ $DISTRO_VERSION =~ 7\.[0-9] ]]) || [[ "${shortname}" == "Fedora" ]]
+  if ([[ "${DISTRO_NAME}" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]]) && [[ $DISTRO_VERSION =~ 7\.[0-9] ]]
   then
     systemctl enable mongod
     systemctl start mongod
@@ -530,11 +529,11 @@ setup_mistral_st2_config()
 }
 
 setup_postgresql() {
-  # Setup the postgresql service on fedora. Ubuntu is already setup by default.
+  # Setup the postgresql service on Fedora. Ubuntu is already setup by default.
   if [[ "$TYPE" == "rpms" ]]; then
     echo "Configuring PostgreSQL..."
 
-    if ([[ "${shortname}" == "redhat" ]] && [[ $DISTRO_VERSION =~ 7\.[0-9] ]]) || [[ "${shortname}" == "fedora" ]]
+    if (([[ "${DISTRO_NAME}" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]]) && [[ $DISTRO_VERSION =~ 7\.[0-9] ]]) || [[ "${DISTRO_NAME}" == "Fedora" ]]
     then
       systemctl enable postgresql
       if postgresql-setup initdb
@@ -824,7 +823,7 @@ setup_mistral() {
   if [[ "$TYPE" == "debs" ]]; then
     setup_mistral_upstart
   elif [[ "$TYPE" == "rpms" ]]; then
-    if [[ $DISTRO_VERSION =~ 7\.[0-9] ]] || [[ "$shortname" == "fedora" ]]
+    if [[ $DISTRO_VERSION =~ 7\.[0-9] ]] || [[ "$DISTRO_NAME" == "Fedora" ]]
     then
       setup_mistral_systemd
     else
