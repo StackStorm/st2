@@ -355,8 +355,8 @@ class ParamikoSSHClient(BaseSSHClient):
         exit_status_ready = chan.exit_status_ready()
 
         if exit_status_ready:
-            self._consume_stdout(chan, stdout)
-            self._consume_stderr(chan, stderr)
+            stdout.write(self._consume_stdout(chan).getvalue())
+            stderr.write(self._consume_stderr(chan).getvalue())
 
         while not exit_status_ready:
             current_time = time.time()
@@ -368,8 +368,8 @@ class ParamikoSSHClient(BaseSSHClient):
 
                 raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout)
 
-            self._consume_stdout(chan, stdout)
-            self._consume_stderr(chan, stderr)
+            stdout.write(self._consume_stdout(chan).getvalue())
+            stderr.write(self._consume_stderr(chan).getvalue())
 
             # We need to check the exist status here, because the command could
             # print some output and exit during this sleep bellow.
@@ -393,7 +393,12 @@ class ParamikoSSHClient(BaseSSHClient):
 
         return [stdout, stderr, status, exit_status_ready]
 
-    def _consume_stdout(self, chan, stdout):
+    def _consume_stdout(self, chan):
+        """
+        Try to consume stdout data from chan if it's receive ready.
+        """
+
+        stdout = StringIO()
         if chan.recv_ready():
             data = chan.recv(self.CHUNK_SIZE)
 
@@ -405,9 +410,15 @@ class ParamikoSSHClient(BaseSSHClient):
                     break
 
                 data = chan.recv(self.CHUNK_SIZE)
+
         return stdout
 
-    def _consume_stderr(self, chan, stderr):
+    def _consume_stderr(self, chan):
+        """
+        Try to consume stderr data from chan if it's receive ready.
+        """
+
+        stderr = StringIO()
         if chan.recv_stderr_ready():
             data = chan.recv_stderr(self.CHUNK_SIZE)
 
@@ -419,6 +430,7 @@ class ParamikoSSHClient(BaseSSHClient):
                     break
 
                 data = chan.recv_stderr(self.CHUNK_SIZE)
+
         return stderr
 
     def close(self):
