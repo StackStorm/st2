@@ -177,6 +177,7 @@ class ActionsController(resource.ContentPackResourceController):
         """
         Method for handling action data files and writing them on disk.
         """
+        written_file_paths = []
         for data_file in data_files:
             file_path = data_file['file_path']
             content = data_file['content']
@@ -187,8 +188,9 @@ class ActionsController(resource.ContentPackResourceController):
 
             LOG.debug('Writing data file "%s" to "%s"' % (str(data_file), file_path))
             self._write_data_file(file_path=file_path, content=content)
+            written_file_paths.append(file_path)
 
-        return data_files
+        return written_file_paths
 
     def _write_data_file(self, file_path, content):
         """
