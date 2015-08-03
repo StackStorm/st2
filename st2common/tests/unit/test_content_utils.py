@@ -13,11 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import os.path
+
 import unittest2
 from oslo_config import cfg
 
-from st2common.content.utils import get_packs_base_paths, get_aliases_base_paths
+from st2common.content.utils import get_packs_base_paths
+from st2common.content.utils import get_aliases_base_paths
+from st2common.content.utils import get_pack_resource_file_abs_path
 from st2tests import config as tests_config
+from st2tests.fixturesloader import get_fixtures_base_path
 
 
 class ContentUtilsTestCase(unittest2.TestCase):
@@ -71,3 +77,39 @@ class ContentUtilsTestCase(unittest2.TestCase):
         cfg.CONF.content.aliases_base_paths = '/opt/path1:/opt/path2:/opt/path1:/opt/path2'
         result = get_aliases_base_paths()
         self.assertEqual(result, ['/opt/path1', '/opt/path2'])
+
+    def test_get_pack_resource_file_abs_path(self):
+        # Mock the packs path to point to the fixtures directory
+        cfg.CONF.content.packs_base_paths = get_fixtures_base_path()
+
+        # Missing pack directory
+        expected_msg = 'Directory for pack "invalid-name" doesn\'t exist'
+        self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
+                                pack_name='invalid-name',
+                                resource_type='action',
+                                file_path='test.py')
+
+        # Invalid resource type
+        expected_msg = 'Invalid resource type: fooo'
+        self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
+                                pack_name='dummy_pack_1',
+                                resource_type='fooo',
+                                file_path='test.py')
+
+        # Invalid paths (directory traversal and absolute paths)
+        file_paths = ['/tmp/foo.py', '../foo.py', '/etc/passwd', '../../foo.py']
+        for file_path in file_paths:
+            expected_msg = 'Invalid file path: %s' % (file_path)
+            self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
+                                    pack_name='dummy_pack_1',
+                                    resource_type='action',
+                                    file_path=file_path)
+
+        # Valid paths
+        file_paths = ['foo.py', 'a/foo.py', 'a/b/foo.py']
+        for file_path in file_paths:
+            expected = os.path.join(get_fixtures_base_path(), 'dummy_pack_1/actions', file_path)
+            result = get_pack_resource_file_abs_path(pack_name='dummy_pack_1',
+                                                     resource_type='action',
+                                                     file_path=file_path)
+            self.assertEqual(result, expected)
