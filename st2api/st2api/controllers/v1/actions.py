@@ -35,6 +35,7 @@ from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.models.api.action import ActionCreateAPI
 from st2common.validators.api.misc import validate_not_part_of_system_pack
+from st2common.content.utils import get_pack_base_path
 from st2common.content.utils import get_pack_resource_file_abs_path
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.system_info import get_host_info
@@ -192,16 +193,21 @@ class ActionsController(resource.ContentPackResourceController):
                                                         file_path=file_path)
 
             LOG.debug('Writing data file "%s" to "%s"' % (str(data_file), file_path))
-            self._write_data_file(file_path=file_path, content=content)
+            self._write_data_file(pack_name=pack_name, file_path=file_path, content=content)
             written_file_paths.append(file_path)
 
         return written_file_paths
 
-    def _write_data_file(self, file_path, content):
+    def _write_data_file(self, pack_name, file_path, content):
         """
         Write data file on disk.
         """
-        # Create directory if it doesn't exist
+        # Throw if pack directory doesn't exist
+        pack_base_path = get_pack_base_path(pack_name=pack_name)
+        if not os.path.isdir(pack_base_path):
+            raise ValueError('Directory for pack "%s" doesn\'t exist' % (pack_name))
+
+        # Create pack sub-directory tree if it doesn't exist
         directory = os.path.dirname(file_path)
 
         if not os.path.isdir(directory):
