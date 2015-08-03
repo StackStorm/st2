@@ -13,10 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mongoengine import ValidationError
-
-from pecan import abort
 import six
+from pecan import abort
+from mongoengine import ValidationError
 
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
 #       that bubble up to this layer should be core Python exceptions or
@@ -30,7 +29,9 @@ from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
+from st2common.models.api.action import ActionCreateAPI
 from st2common.validators.api.misc import validate_not_part_of_system_pack
+from st2common.content.utils import get_pack_resource_file_abs_path
 import st2common.validators.api.action as action_validator
 
 http_client = six.moves.http_client
@@ -68,7 +69,7 @@ class ActionsController(resource.ContentPackResourceController):
             LOG.error(msg)
             abort(http_client.CONFLICT, msg)
 
-    @jsexpose(body_cls=ActionAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=ActionCreateAPI, status_code=http_client.CREATED)
     def post(self, action):
         """
             Create a new action.
@@ -78,12 +79,18 @@ class ActionsController(resource.ContentPackResourceController):
         """
         if not hasattr(action, 'pack'):
             setattr(action, 'pack', DEFAULT_PACK_NAME)
+        # TODO: Dont allow manipulating system pack
 
         try:
             action_validator.validate_action(action)
         except ValueValidationException as e:
             abort(http_client.BAD_REQUEST, str(e))
             return
+
+        # Write pack data files to disk (if any are provided)
+        data_files = action.data_files
+        if data_files:
+            self._handle_data_files(pack_name=action.pack, data_files=data_files)
 
         # ActionsController._validate_action_parameters(action, runnertype_db)
         action_model = ActionAPI.to_model(action)
@@ -92,7 +99,9 @@ class ActionsController(resource.ContentPackResourceController):
         action_db = Action.add_or_update(action_model)
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
 
-        extra = {'action_db': action_db}
+        # TODO: Dispatch a trigger for each new written file
+
+        extra = {'acion_db': action_db}
         LOG.audit('Action created. Action.id=%s' % (action_db.id), extra=extra)
         action_api = ActionAPI.from_model(action_db)
 
@@ -163,3 +172,27 @@ class ActionsController(resource.ContentPackResourceController):
         extra = {'action_db': action_db}
         LOG.audit('Action deleted. Action.id=%s' % (action_db.id), extra=extra)
         return None
+
+    def _handle_data_files(self, pack_name, data_files):
+        """
+        Method for handling action data files and writing them on disk.
+        """
+        for data_file in data_files:
+            file_path = data_file['file_path']
+            content = data_file['content']
+
+            file_path = get_pack_resource_file_abs_path(pack_name=pack_name,
+                                                        resource_type='action',
+                                                        file_path=file_path)
+
+            LOG.debug('Writing data file "%s" to "%s"' % (str(data_file), file_path))
+            self._write_data_file(file_path=file_path, content=content)
+
+        return data_files
+
+    def _write_data_file(self, file_path, content):
+        """
+        Write data file on disk.
+        """
+        with open(file_path, 'w') as fp:
+            fp.write(content)
