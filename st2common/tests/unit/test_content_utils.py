@@ -82,13 +82,6 @@ class ContentUtilsTestCase(unittest2.TestCase):
         # Mock the packs path to point to the fixtures directory
         cfg.CONF.content.packs_base_paths = get_fixtures_base_path()
 
-        # Missing pack directory
-        expected_msg = 'Directory for pack "invalid-name" doesn\'t exist'
-        self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
-                                pack_name='invalid-name',
-                                resource_type='action',
-                                file_path='test.py')
-
         # Invalid resource type
         expected_msg = 'Invalid resource type: fooo'
         self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,

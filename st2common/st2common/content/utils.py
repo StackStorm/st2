@@ -185,7 +185,7 @@ def get_entry_point_abs_path(pack=None, entry_point=None):
         pack_base_path = get_pack_base_path(pack_name=pack)
         common_prefix = os.path.commonprefix([pack_base_path, entry_point])
 
-        if common_prefix != packs_base_paths:
+        if common_prefix != pack_base_path:
             raise ValueError('Entry point file "%s" is located outsite of the pack directory' %
                              (entry_point))
 
@@ -216,13 +216,10 @@ def get_pack_resource_file_abs_path(pack_name, resource_type, file_path):
 
     :rtype: ``str``
     """
-    pack_directory = get_pack_directory(pack_name=pack_name)
-
-    if not pack_directory:
-        raise ValueError('Directory for pack "%s" doesn\'t exist' % (pack_name))
+    pack_base_path = get_pack_base_path(pack_name=pack_name)
 
     path_components = []
-    path_components.append(pack_directory)
+    path_components.append(pack_base_path)
 
     if resource_type == 'action':
         path_components.append('actions/')
@@ -245,8 +242,8 @@ def get_pack_resource_file_abs_path(pack_name, resource_type, file_path):
     assert normalized_file_path in result
 
     # Final safety check for common prefix to avoid traversal attack
-    common_prefix = os.path.commonprefix([pack_directory, result])
-    if common_prefix != pack_directory:
+    common_prefix = os.path.commonprefix([pack_base_path, result])
+    if common_prefix != pack_base_path:
         raise ValueError('Invalid file_path: %s' % (file_path))
 
     return result
