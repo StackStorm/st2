@@ -50,6 +50,7 @@ class ClusterRetryContext(object):
         if self._nodes_attempted > self.cluster_size * self.cluster_retry:
             return should_stop, -1
         wait = 0
+        should_stop = False
         if self._nodes_attempted % self.cluster_size == 0:
             wait = self.wait_between_cluster
         self._nodes_attempted += 1
