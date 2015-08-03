@@ -15,6 +15,7 @@
 
 from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
+from st2api.controllers.v1.packviews import PackViewsController
 from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 
@@ -34,6 +35,9 @@ class PacksController(ResourceController):
     query_options = {
         'sort': ['ref']
     }
+
+    # Nested controllers
+    views = PackViewsController()
 
     @jsexpose(arg_types=[str])
     def get_one(self, name_or_id):
