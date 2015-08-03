@@ -49,6 +49,20 @@ ACTION_SENSOR_TRIGGER = {
         }
     }
 }
+ACTION_FILE_WRITTEN_TRIGGER = {
+    'name': 'st2.action.file_writen',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating action file being written on disk.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'ref': {},
+            'file_path': {},
+            'content': {},
+            'host_info': {}
+        }
+    }
+}
 
 NOTIFY_TRIGGER = {
     'name': 'st2.generic.notifytrigger',
@@ -123,7 +137,8 @@ KEY_VALUE_PAIR_DELETE_TRIGGER = {
 INTERNAL_TRIGGER_TYPES = {
     'action': [
         ACTION_SENSOR_TRIGGER,
-        NOTIFY_TRIGGER
+        NOTIFY_TRIGGER,
+        ACTION_FILE_WRITTEN_TRIGGER
     ],
     'sensor': [
         {

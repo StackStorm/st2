@@ -25,6 +25,7 @@ from st2api.controllers import resource
 from st2api.controllers.v1.actionviews import ActionViewsController
 from st2common import log as logging
 from st2common.constants.pack import DEFAULT_PACK_NAME
+from st2common.constants.triggers import ACTION_FILE_WRITTEN_TRIGGER
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.base import jsexpose
 from st2common.persistence.action import Action
@@ -32,6 +33,8 @@ from st2common.models.api.action import ActionAPI
 from st2common.models.api.action import ActionCreateAPI
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.content.utils import get_pack_resource_file_abs_path
+from st2common.transport.reactor import TriggerDispatcher
+from st2common.util.system_info import get_host_info
 import st2common.validators.api.action as action_validator
 
 http_client = six.moves.http_client
@@ -58,6 +61,10 @@ class ActionsController(resource.ContentPackResourceController):
     }
 
     include_reference = True
+
+    def __init__(self, *args, **kwargs):
+        super(ActionsController, self).__init__(*args, **kwargs)
+        self._trigger_dispatcher = TriggerDispatcher(LOG)
 
     @staticmethod
     def _validate_action_parameters(action, runnertype_db):
@@ -89,8 +96,10 @@ class ActionsController(resource.ContentPackResourceController):
 
         # Write pack data files to disk (if any are provided)
         data_files = action.data_files
+        written_data_files = []
         if data_files:
-            self._handle_data_files(pack_name=action.pack, data_files=data_files)
+            written_data_files = self._handle_data_files(pack_name=action.pack,
+                                                         data_files=data_files)
 
         # ActionsController._validate_action_parameters(action, runnertype_db)
         action_model = ActionAPI.to_model(action)
@@ -99,7 +108,11 @@ class ActionsController(resource.ContentPackResourceController):
         action_db = Action.add_or_update(action_model)
         LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
 
-        # TODO: Dispatch a trigger for each new written file
+        # Dispatch an internal trigger for each written data file. This way user
+        # automate comitting this files to git using StackStorm rule
+        if written_data_files:
+            self._dispatch_trigger_for_written_data_files(action_db=action_db,
+                                                          written_data_files=written_data_files)
 
         extra = {'acion_db': action_db}
         LOG.audit('Action created. Action.id=%s' % (action_db.id), extra=extra)
@@ -198,3 +211,15 @@ class ActionsController(resource.ContentPackResourceController):
         """
         with open(file_path, 'w') as fp:
             fp.write(content)
+
+    def _dispatch_trigger_for_written_data_files(self, action_db, written_data_files):
+        trigger = ACTION_FILE_WRITTEN_TRIGGER['name']
+        host_info = get_host_info()
+
+        for file_path in written_data_files:
+            payload = {
+                'ref': action_db.ref,
+                'file_path': file_path,
+                'host_info': host_info
+            }
+            self._trigger_dispatcher.dispatch(trigger=trigger, payload=payload)
