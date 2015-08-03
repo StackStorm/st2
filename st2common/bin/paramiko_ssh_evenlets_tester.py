@@ -25,7 +25,7 @@ def main(user, pkey, hosts_str, cmd, path):
     if path:
         if not os.path.exists(path):
             raise Exception('File not found.')
-        results = client.put(path)
+        results = client.put(path, '/home/lakshmi/test')
         pp.pprint('Copy results: \n%s' % results)
         results = client.run('ls -rlth')
         pp.pprint('ls results: \n%s' % results)

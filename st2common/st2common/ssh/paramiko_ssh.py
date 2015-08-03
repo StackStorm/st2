@@ -266,7 +266,15 @@ class ParamikoSSHClient(BaseSSHClient):
         self.client.connect(**conninfo)
         return True
 
-    def put(self, path, contents=None, chmod=None, mode='w'):
+    def put(self, local_path, remote_path):
+        extra = {'_local_path': local_path, '_remote_path': remote_path}
+        self.logger.debug('Uploading file', extra=extra)
+        sftp = self.client.open_sftp()
+        result = sftp.put(local_path, remote_path)
+        sftp.close()
+        return result
+
+    def create_file(self, path, contents=None, chmod=None, mode='w'):
         extra = {'_path': path, '_mode': mode, '_chmod': chmod}
         self.logger.debug('Uploading file', extra=extra)
 

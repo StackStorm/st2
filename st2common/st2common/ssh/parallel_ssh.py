@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import eventlet
 
 from st2common.ssh.paramiko_ssh import ParamikoSSHClient
@@ -66,14 +68,18 @@ class ParallelSSHClient(object):
         self._pool.waitall()
         return results
 
-    def put(self, path, contents=None, chmod=None, mode='w'):
+    def put(self, local_path, remote_path):
         results = {}
+
+        if not os.path.exists(local_path):
+            raise Exception('Local path %s does not exist.' % local_path)
 
         for host in self._hosts_client.keys():
             while not self._pool.free():
                 eventlet.sleep(self._scan_interval)
-            self._pool.spawn(self._put_files, path=path, host=host,
-                             contents=contents, chmod=chmod, mode=mode,
+            self._pool.spawn(self._put_files, local_path=local_path,
+                             remote_path=remote_path,
+                             host=host,
                              results=results)
         self._pool.waitall()
         return results
@@ -103,13 +109,15 @@ class ParallelSSHClient(object):
             except:
                 LOG.exception('Failed shutting down SSH connection to host: %s', host)
 
-    def _put_files(self, host, path, results, contents=None, chmod=None, mode='w'):
+    def _put_files(self, local_path, remote_path, host, results):
         try:
-            result = self._hosts_client[host].put(path, contents=contents, chmod=chmod,
-                                                  mode=mode)
+            print('Copying file to host: %s' % host)
+            result = self._hosts_client[host].put_file(local_path, remote_path)
+            print('Result of copy: %s' % result)
             results[host] = result
-        except:
-            LOG.exception('Failed sending file(s) in path %s to host %s', path, host)
+        except Exception as e:
+            print('Exception ma %s' % str(e))
+            LOG.exception('Failed sending file(s) in path %s to host %s', local_path, host)
 
     def _delete_files(self, host, path, results):
         try:
