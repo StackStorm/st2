@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import os.path
+
 import six
 from pecan import abort
 from mongoengine import ValidationError
@@ -198,6 +201,12 @@ class ActionsController(resource.ContentPackResourceController):
         """
         Write data file on disk.
         """
+        # Create directory if it doesn't exist
+        directory = os.path.dirname(file_path)
+
+        if not os.path.isdir(directory):
+            os.makedirs(directory)
+
         with open(file_path, 'w') as fp:
             fp.write(content)
 
