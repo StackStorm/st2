@@ -99,13 +99,13 @@ class TestActionExecutionFilters(FunctionalTest):
 
     def test_get_all_exclude_attributes(self):
         # No attributes excluded
-        response = self.app.get('/v1/executions?action=core.local&limit=1')
+        response = self.app.get('/v1/executions?action=executions.local&limit=1')
 
         self.assertEqual(response.status_int, 200)
         self.assertTrue('result' in response.json[0])
 
         # Exclude "result" attribute
-        path = '/v1/executions?action=core.local&limit=1&exclude_attributes=result'
+        path = '/v1/executions?action=executions.local&limit=1&exclude_attributes=result'
         response = self.app.get(path)
 
         self.assertEqual(response.status_int, 200)
@@ -131,7 +131,7 @@ class TestActionExecutionFilters(FunctionalTest):
     def test_limit(self):
         limit = 10
         refs = [k for k, v in six.iteritems(self.refs) if v.action['name'] == 'chain']
-        response = self.app.get('/v1/executions?action=core.chain&limit=%s' %
+        response = self.app.get('/v1/executions?action=executions.chain&limit=%s' %
                                 limit)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
@@ -143,7 +143,7 @@ class TestActionExecutionFilters(FunctionalTest):
 
     def test_query(self):
         refs = [k for k, v in six.iteritems(self.refs) if v.action['name'] == 'chain']
-        response = self.app.get('/v1/executions?action=core.chain')
+        response = self.app.get('/v1/executions?action=executions.chain')
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), len(refs))
