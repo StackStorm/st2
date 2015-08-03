@@ -72,7 +72,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         super(TestActionExecutionHistoryWorker, self).tearDown()
 
     def test_basic_execution(self):
-        liveaction = LiveActionDB(action='core.local', parameters={'cmd': 'uname -a'})
+        liveaction = LiveActionDB(action='executions.local', parameters={'cmd': 'uname -a'})
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
@@ -82,7 +82,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(execution.trigger_type, {})
         self.assertDictEqual(execution.trigger_instance, {})
         self.assertDictEqual(execution.rule, {})
-        action = action_utils.get_action_by_ref('core.local')
+        action = action_utils.get_action_by_ref('executions.local')
         self.assertDictEqual(execution.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
@@ -100,13 +100,13 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.test_basic_execution()
 
     def test_chained_executions(self):
-        liveaction = LiveActionDB(action='core.chain')
+        liveaction = LiveActionDB(action='executions.chain')
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         execution = self._get_action_execution(liveaction__id=str(liveaction.id),
                                                raise_exception=True)
-        action = action_utils.get_action_by_ref('core.chain')
+        action = action_utils.get_action_by_ref('executions.chain')
         self.assertDictEqual(execution.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
