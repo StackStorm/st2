@@ -69,6 +69,7 @@ class PoolPublisher(object):
         with self.pool.acquire(block=True) as connection:
             retry_context = ClusterRetryContext(cluster_size=self.cluster_size)
             should_stop = False
+            channel = None
             while not should_stop:
                 try:
                     # creating a new channel for every producer publish. This could be expensive
@@ -88,22 +89,24 @@ class PoolPublisher(object):
                 except connection.connection_errors + connection.channel_errors as e:
                     LOG.error('Connection or channel error identified.')
                     should_stop, wait = retry_context.test_should_stop()
-
+                    # reset channel to None to avoid any channel closing errors. At this point
+                    # in case of an exception there should be no channel but that is better to
+                    # guarantee.
+                    channel = None
                     # All attempts to re-establish connections have failed. This error needs to
                     # be notified so raise.
                     if should_stop:
                         raise
-
-                    connection.close()
                     # -1, 0 and 1+ are handled properly by eventlet.sleep
                     eventlet.sleep(wait)
+
+                    connection.close()
                     # ensure_connection will automatically switch to an alternate. Other connections
                     # in the pool will be fixed independently. It would be nice to cut-over the
                     # entire ConnectionPool simultaneously but that would require writing our own
                     # ConnectionPool. If a server recovers it could happen that the same process
                     # ends up talking to separate nodes in a cluster.
                     connection.ensure_connection()
-                    channel = connection.channel()
 
                 except Exception as e:
                     LOG.error('Connections to rabbitmq cannot be re-established: %s', e.message)
