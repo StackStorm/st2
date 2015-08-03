@@ -70,14 +70,15 @@ class PoolPublisher(object):
             retry_context = ClusterRetryContext(cluster_size=self.cluster_size)
             should_stop = False
             while not should_stop:
-                # creating a new channel for every producer publish. This could be expensive
-                # and maybe there is a better way to do this by creating a ChannelPool etc.
-                channel = connection.channel()
-                # ProducerPool ends up creating it own ConnectionPool which ends up completely
-                # invalidating this ConnectionPool. Also, a ConnectionPool for producer does not
-                # really solve any problems for us so better to create a Producer for each publish.
-                producer = Producer(channel)
                 try:
+                    # creating a new channel for every producer publish. This could be expensive
+                    # and maybe there is a better way to do this by creating a ChannelPool etc.
+                    channel = connection.channel()
+                    # ProducerPool ends up creating it own ConnectionPool which ends up completely
+                    # invalidating this ConnectionPool. Also, a ConnectionPool for producer does not
+                    # really solve any problems for us so better to create a Producer for each
+                    # publish.
+                    producer = Producer(channel)
                     publish_func = connection.ensure(producer, producer.publish,
                                                      errback=self.errback,
                                                      max_retries=3)
@@ -128,11 +129,12 @@ class SharedPoolPublishers(object):
         # The publisher_key format here only works because we are aware that urls will be a
         # list of strings. Sorting to end up with the same PoolPublisher regardless of
         # ordering in supplied list.
-        urls = copy.copy(urls)
-        urls.sort()
-        publisher_key = ''.join(urls)
+        urls_copy = copy.copy(urls)
+        urls_copy.sort()
+        publisher_key = ''.join(urls_copy)
         publisher = self.shared_publishers.get(publisher_key, None)
         if not publisher:
+            # Use original urls here to preserve order.
             publisher = PoolPublisher(urls=urls)
             self.shared_publishers[publisher_key] = publisher
         return publisher
