@@ -88,7 +88,7 @@ class ActionsController(resource.ContentPackResourceController):
             return
 
         # Write pack data files to disk (if any are provided)
-        data_files = action.data_files
+        data_files = getattr(action, 'data_files', [])
         written_data_files = []
         if data_files:
             written_data_files = self._handle_data_files(pack_name=action.pack,
