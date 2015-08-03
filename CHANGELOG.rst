@@ -7,6 +7,10 @@ in development
 * Add new OpenStack Keystone authentication backend.
   [Itxaka Serrano]
 * Information about parent workflow is now a dict in child's context field. (improvement)
+* Allow user to include files which are written on disk inside the action create API payload.
+  (new feature)
+* Allow user to retrieve content of a file inside a pack by using the new
+  ``/packs/views/files/`` API endpoint. (new feature)
 
 0.12.0 - July 20, 2015
 ----------------------
