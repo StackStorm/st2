@@ -178,15 +178,23 @@ def get_entry_point_abs_path(pack=None, entry_point=None):
 
     :rtype: ``str``
     """
-    if entry_point is not None and len(entry_point) > 0:
-        if os.path.isabs(entry_point):
-            return entry_point
-
-        pack_base_path = get_pack_base_path(pack_name=pack)
-        entry_point_abs_path = os.path.join(pack_base_path, 'actions', quote_unix(entry_point))
-        return entry_point_abs_path
-    else:
+    if not entry_point:
         return None
+
+    if os.path.isabs(entry_point):
+        pack_base_path = get_pack_base_path(pack_name=pack)
+        common_prefix = os.path.commonprefix([pack_base_path, entry_point])
+
+        if common_prefix != packs_base_paths:
+            raise ValueError('Entry point file "%s" is located outsite of the pack directory' %
+                             (entry_point))
+
+        return entry_point
+
+    entry_point_abs_path = get_pack_resource_file_abs_path(pack_name=pack,
+                                                           resource_type='action',
+                                                           file_path=entry_point)
+    return entry_point_abs_path
 
 
 def get_pack_resource_file_abs_path(pack_name, resource_type, file_path):
