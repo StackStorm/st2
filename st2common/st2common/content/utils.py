@@ -186,7 +186,7 @@ def get_entry_point_abs_path(pack=None, entry_point=None):
         common_prefix = os.path.commonprefix([pack_base_path, entry_point])
 
         if common_prefix != pack_base_path:
-            raise ValueError('Entry point file "%s" is located outsite of the pack directory' %
+            raise ValueError('Entry point file "%s" is located outside of the pack directory' %
                              (entry_point))
 
         return entry_point
