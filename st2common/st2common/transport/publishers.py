@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import copy
-import eventlet
 
 from kombu import Connection
 from kombu.messaging import Producer

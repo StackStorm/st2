@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import eventlet
 
 __all__ = ['ConnectionRetryWrapper']
 
@@ -85,7 +86,8 @@ class ConnectionRetryWrapper(object):
                 connection.ensure_connection()
 
             except Exception as e:
-                self._logger.error('Connections to rabbitmq cannot be re-established: %s', e.message)
+                self._logger.error('Connections to rabbitmq cannot be re-established: %s',
+                                   e.message)
                 # Not being able to publish a message could be a significant issue for an app.
                 raise
             finally:
