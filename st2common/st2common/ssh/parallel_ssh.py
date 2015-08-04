@@ -17,13 +17,15 @@ import os
 
 import eventlet
 
-from st2common.ssh.paramiko_ssh import ParamikoSSHClient
 from st2common import log as logging
+from st2common.ssh.paramiko_ssh import ParamikoSSHClient
+import st2common.util.jsonify as jsonify
 
 LOG = logging.getLogger(__name__)
 
 
 class ParallelSSHClient(object):
+    KEYS_TO_TRANSFORM = ['stdout', 'stderr']
 
     def __init__(self, user, pkey, hosts, port=22, concurrency=10,
                  raise_on_error=False, connect=True):
@@ -58,6 +60,12 @@ class ParallelSSHClient(object):
 
     def run(self, cmd, timeout=None):
         results = {}
+        for host in self._bad_hosts:
+            results[host] = {
+                'error': 'Failed connecting to host.',
+                'succeeded': False,
+                'failed': True
+            }
 
         for host in self._hosts_client.keys():
             while not self._pool.free():
@@ -66,7 +74,7 @@ class ParallelSSHClient(object):
                              results=results, timeout=None)
 
         self._pool.waitall()
-        return results
+        return jsonify.json_loads(results, ParallelSSHClient.KEYS_TO_TRANSFORM)
 
     def put(self, local_path, remote_path, mode=None, mirror_local_mode=False):
         results = {}
@@ -86,8 +94,10 @@ class ParallelSSHClient(object):
 
     def _run_command(self, host, cmd, results, timeout=None):
         try:
-            result = self._hosts_client[host].run(cmd, timeout=timeout)
-            results[host] = result
+            (stdout, stderr, exit_code) = self._hosts_client[host].run(cmd, timeout=timeout)
+            is_succeeded = (exit_code == 0)
+            results[host] = {'stdout': stdout, 'stderr': stderr, 'exit_code': exit_code,
+                             'succeeded': is_succeeded, 'failed': not is_succeeded}
         except:
             LOG.exception('Failed executing command %s on host %s', cmd, host)
 
