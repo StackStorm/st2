@@ -43,7 +43,7 @@ class DummyActionExecution(object):
 FIXTURES_PACK = 'generic'
 
 TEST_MODELS = {
-    'actions': ['a1.yaml', 'a2.yaml'],
+    'actions': ['a1.yaml', 'a2.yaml', 'action_4_action_context_param.yaml'],
     'runners': ['testrunner1.yaml']
 }
 
@@ -51,6 +51,7 @@ MODELS = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
                                       fixtures_dict=TEST_MODELS)
 ACTION_1 = MODELS['actions']['a1.yaml']
 ACTION_2 = MODELS['actions']['a2.yaml']
+ACTION_3 = MODELS['actions']['action_4_action_context_param.yaml']
 RUNNER = MODELS['runners']['testrunner1.yaml']
 
 CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
@@ -540,7 +541,7 @@ class TestActionChainRunner(DbTestCase):
                           'doesn\'t exist.')
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertTrue(expected_error in output['error'])
-        self.assertTrue(expected_error in output['traceback'])
+        self.assertTrue('Traceback' in output['traceback'], output['traceback'])
 
     @classmethod
     def tearDownClass(cls):
