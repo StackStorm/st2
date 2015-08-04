@@ -54,7 +54,7 @@ def get_file_list(directory, exclude_patterns=None):
             if fnmatch.fnmatch(file_path, exclude_pattern):
                 return False
 
-            return True
+        return True
 
     for (dirpath, dirnames, filenames) in os.walk(directory):
         base_path = dirpath.replace(directory, '')
