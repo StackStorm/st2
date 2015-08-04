@@ -239,6 +239,9 @@ class SSHCommandAction(ShellCommandAction):
     def get_command(self):
         return self.command
 
+    def get_timeout(self):
+        return self.timeout
+
     def __str__(self):
         str_rep = []
         str_rep.append('%s@%s(name: %s' % (self.__class__.__name__, id(self), self.name))
@@ -277,6 +280,7 @@ class RemoteAction(SSHCommandAction):
         str_rep.append('sudo: %s' % str(self.sudo))
         str_rep.append('parallel: %s' % str(self.parallel))
         str_rep.append('hosts: %s)' % str(self.hosts))
+        str_rep.append('timeout: %s)' % str(self.timeout))
 
         return ', '.join(str_rep)
 
