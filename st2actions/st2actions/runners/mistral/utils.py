@@ -101,13 +101,41 @@ def _eval_inline_params(spec, action_key, input_key):
             _merge_dicts(spec[input_key], inputs)
 
 
+def _validate_action_params(spec, action_key, input_key, action):
+
+    if not action or action_key not in spec or spec.get(action_key) != 'st2.action':
+        return
+
+    action_input = spec.get(input_key)
+    action_params = set(action_input.get('parameters', {}).keys())
+
+    # Check required parameters that have no default defined.
+    required = set([name for name, meta in six.iteritems(action.parameters)
+                    if meta.get('required', False) and 'default' not in meta])
+
+    missing = sorted(required.difference(action_params))
+
+    if missing:
+        raise Exception('Missing required parameters for action %s: %s' %
+                        (action_input.get('ref'), ', '.join(missing)))
+
+    # Check unexpected parameters:
+    unexpected = sorted(action_params.difference(set(action.parameters.keys())))
+
+    if unexpected:
+        raise Exception('Unexpected parameters for action %s: %s' %
+                        (action_input.get('ref'), ', '.join(unexpected)))
+
+
 def _transform_action(spec, action_key, input_key):
 
-    if action_key not in spec or spec.get(action_key) == 'st2.action':
+    if action_key not in spec:
         return
 
     if spec.get(action_key) == 'st2.callback':
         raise Exception('st2.callback is deprecated.')
+
+    transformed = (spec[action_key] == 'st2.action')
 
     # Convert parameters that are inline (i.e. action: some_action var1={$.value1} var2={$.value2})
     # and split it to action name and input dict as illustrated below.
@@ -128,21 +156,24 @@ def _transform_action(spec, action_key, input_key):
     #     var2: <% $.value2 %>
     _eval_inline_params(spec, action_key, input_key)
 
-    action_ref = spec.get(action_key)
+    action_ref = spec[input_key]['ref'] if transformed else spec[action_key]
+
+    action = None
 
     if action_ref and ResourceReference.is_resource_reference(action_ref):
         ref = ResourceReference.from_string_reference(ref=action_ref)
         actions = Action.query(name=ref.name, pack=ref.pack)
         action = actions.first() if actions else None
-    else:
-        action = None
 
     if action:
-        spec[action_key] = 'st2.action'
-        action_input = spec.get(input_key)
-        spec[input_key] = {'ref': action_ref}
-        if action_input:
-            spec[input_key]['parameters'] = action_input
+        if not transformed:
+            spec[action_key] = 'st2.action'
+            action_input = spec.get(input_key)
+            spec[input_key] = {'ref': action_ref}
+            if action_input:
+                spec[input_key]['parameters'] = action_input
+
+        _validate_action_params(spec, action_key, input_key, action)
 
 
 def transform_definition(definition):

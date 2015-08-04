@@ -29,14 +29,24 @@ WB_PRE_XFORM_FILE = 'wb_pre_xform.yaml'
 WB_POST_XFORM_FILE = 'wb_post_xform.yaml'
 WF_PRE_XFORM_FILE = 'wf_pre_xform.yaml'
 WF_POST_XFORM_FILE = 'wf_post_xform.yaml'
+WF_NO_REQ_PARAM_FILE = 'wf_missing_required_param.yaml'
+WF_UNEXP_PARAM_FILE = 'wf_has_unexpected_param.yaml'
+
 TEST_FIXTURES = {
     'workflows': [
         WB_PRE_XFORM_FILE,
         WB_POST_XFORM_FILE,
         WF_PRE_XFORM_FILE,
-        WF_POST_XFORM_FILE
+        WF_POST_XFORM_FILE,
+        WF_NO_REQ_PARAM_FILE,
+        WF_UNEXP_PARAM_FILE
     ],
-    'actions': ['local.yaml']
+    'actions': [
+        'local.yaml',
+        'a1.yaml',
+        'a2.yaml',
+        'action1.yaml'
+    ]
 }
 
 PACK = 'generic'
@@ -50,6 +60,10 @@ WF_PRE_XFORM_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WF_PRE_X
 WF_PRE_XFORM_DEF = FIXTURES['workflows'][WF_PRE_XFORM_FILE]
 WF_POST_XFORM_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WF_POST_XFORM_FILE)
 WF_POST_XFORM_DEF = FIXTURES['workflows'][WF_POST_XFORM_FILE]
+WF_NO_REQ_PARAM_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WF_NO_REQ_PARAM_FILE)
+WF_NO_REQ_PARAM_DEF = FIXTURES['workflows'][WF_NO_REQ_PARAM_FILE]
+WF_UNEXP_PARAM_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WF_UNEXP_PARAM_FILE)
+WF_UNEXP_PARAM_DEF = FIXTURES['workflows'][WF_UNEXP_PARAM_FILE]
 
 
 def _read_file_content(path):
@@ -64,15 +78,9 @@ class DSLTransformTestCase(DbTestCase):
         super(DSLTransformTestCase, cls).setUpClass()
         runners_registrar.register_runner_types()
 
-        action_local = ActionAPI(**copy.deepcopy(FIXTURES['actions']['local.yaml']))
-        Action.add_or_update(ActionAPI.to_model(action_local))
-
-        for action_name in ['action1', 'action2', 'action3']:
-            metadata = copy.deepcopy(FIXTURES['actions']['local.yaml'])
-            metadata['name'] = action_name
-            metadata['pack'] = 'demo'
-            action = ActionAPI(**metadata)
-            Action.add_or_update(ActionAPI.to_model(action))
+        for file_name in ['local.yaml', 'a1.yaml', 'a2.yaml', 'action1.yaml']:
+            a = ActionAPI(**copy.deepcopy(FIXTURES['actions'][file_name]))
+            Action.add_or_update(ActionAPI.to_model(a))
 
     @staticmethod
     def _read_file_content(path):
@@ -120,6 +128,24 @@ class DSLTransformTestCase(DbTestCase):
         actual = utils.transform_definition(def_dict)
         expected = copy.deepcopy(WF_POST_XFORM_DEF)
         self.assertDictEqual(actual, expected)
+
+    def test_required_action_params_failure(self):
+        def_yaml = _read_file_content(WF_NO_REQ_PARAM_PATH)
+        def_dict = yaml.safe_load(def_yaml)
+
+        with self.assertRaises(Exception) as cm:
+            utils.transform_definition(def_dict)
+
+        self.assertIn('Missing required parameters', cm.exception.message)
+
+    def test_unexpected_action_params_failure(self):
+        def_yaml = _read_file_content(WF_UNEXP_PARAM_PATH)
+        def_dict = yaml.safe_load(def_yaml)
+
+        with self.assertRaises(Exception) as cm:
+            utils.transform_definition(def_dict)
+
+        self.assertIn('Unexpected parameters', cm.exception.message)
 
     def test_deprecated_callback_action(self):
         def_yaml = _read_file_content(WB_PRE_XFORM_PATH)
