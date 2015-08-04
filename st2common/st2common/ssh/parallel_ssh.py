@@ -46,6 +46,8 @@ class ParallelSSHClient(object):
 
     def connect(self, raise_on_error=False):
         for host in self._hosts:
+            LOG.debug('Connecting to host: %s as user: %s and key: %s', host, self._ssh_user,
+                      self._ssh_key)
             client = ParamikoSSHClient(host, username=self._ssh_user,
                                        key=self._ssh_key, port=self._ssh_port)
             try:
@@ -94,6 +96,7 @@ class ParallelSSHClient(object):
 
     def _run_command(self, host, cmd, results, timeout=None):
         try:
+            LOG.debug('Running command: %s on host: %s.', cmd, host)
             (stdout, stderr, exit_code) = self._hosts_client[host].run(cmd, timeout=timeout)
             is_succeeded = (exit_code == 0)
             results[host] = {'stdout': stdout, 'stderr': stderr, 'exit_code': exit_code,
@@ -122,17 +125,16 @@ class ParallelSSHClient(object):
     def _put_files(self, local_path, remote_path, host, results, mode=None,
                    mirror_local_mode=False):
         try:
-            print('Copying file to host: %s' % host)
+            LOG.debug('Copying file to host: %s' % host)
             if os.path.isdir(local_path):
                 result = self._hosts_client[host].put_dir(local_path, remote_path)
             else:
                 result = self._hosts_client[host].put(local_path, remote_path,
                                                       mirror_local_mode=mirror_local_mode,
                                                       mode=mode)
-            print('Result of copy: %s' % result)
+            LOG.debug('Result of copy: %s' % result)
             results[host] = result
-        except Exception as e:
-            print('Exception ma %s' % str(e))
+        except:
             LOG.exception('Failed sending file(s) in path %s to host %s', local_path, host)
 
     def _delete_files(self, host, path, results):
