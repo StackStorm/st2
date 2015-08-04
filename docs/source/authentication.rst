@@ -192,6 +192,37 @@ Example ``auth`` section in the |st2| configuration file. ::
     logging = /path/to/st2auth.logging.conf
     api_url = http://myhost.example.com:9101/
 
+LDAP backend
+~~~~~~~~~~~~~~~~
+Backend which reads authentication information from a ldap server.
+The backend tries to bind the ldap user with given username and password.
+If the bind was successful, it tries to find the user in the given group.
+If the user is in the groupi, he will be authenticated.
+
+    **Backend configuration options:**
+
+    * ``ldap_server`` - URL of the LDAP Server.
+    * ``base_dn`` - Base DN on the LDAP Server.
+    * ``group_dn`` - Group DN on the LDAP Server which contains the user as member.
+
+Example ``auth`` section in the |st2| configuration file. ::
+
+    [auth]
+    mode = standalone
+    backend = ldap_backend
+    backend_kwargs = {"ldap_server": "ldap://ds.example.com", "base_dn": "ou=people,dc=example,dc=com", "group_dn": "cn=sysadmins,ou=groups,dc=example,dc=com"}
+    enable = True
+    debug = False
+    use_ssl = True
+    cert = /path/to/mycert.crt
+    key = /path/to/mycert.key
+    logging = /etc/st2auth/logging.conf
+    api_url = http://myhost.example.com:9101/
+    host = 0.0.0.0
+    port = 9100
+
+
+
 Keystone backend
 ~~~~~~~~~~~~~~~~
 
