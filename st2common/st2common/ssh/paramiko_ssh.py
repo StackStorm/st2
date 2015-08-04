@@ -29,10 +29,11 @@ except ImportError:
 # warning on Python 2.6.
 # Ref: https://bugs.launchpad.net/paramiko/+bug/392973
 
-import os
-import time
-import subprocess
 import logging
+import os
+import posixpath
+import subprocess
+import time
 import warnings
 
 import eventlet
@@ -235,6 +236,7 @@ class ParamikoSSHClient(BaseSSHClient):
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.logger = self._get_and_setup_logger()
+        self.sftp = None
 
     def connect(self):
         conninfo = {'hostname': self.hostname,
@@ -264,48 +266,102 @@ class ParamikoSSHClient(BaseSSHClient):
         self.logger.debug('Connecting to server', extra=extra)
 
         self.client.connect(**conninfo)
+        self.sftp = self.client.open_sftp()
         return True
 
-    def put(self, local_path, remote_path):
-        extra = {'_local_path': local_path, '_remote_path': remote_path}
+    def put(self, local_path, remote_path, mode=None, mirror_local_mode=False):
+        extra = {'_local_path': local_path, '_remote_path': remote_path, '_mode': mode,
+                 '_mirror_local_mode': mirror_local_mode}
         self.logger.debug('Uploading file', extra=extra)
-        sftp = self.client.open_sftp()
-        result = sftp.put(local_path, remote_path)
-        sftp.close()
-        return result
+
+        if not os.path.exists(local_path):
+            raise Exception('Path %s does not exist locally.' % local_path)
+
+        rattrs = self.sftp.put(local_path, remote_path)
+
+        local_mode = mode
+        if not mode or mirror_local_mode:
+            local_mode = os.stat(local_path).st_mode
+
+        # Cast to octal integer in case of string
+        if isinstance(local_mode, basestring):
+            local_mode = int(local_mode, 8)
+        local_mode = local_mode & 07777
+        remote_mode = rattrs.st_mode
+        # Only bitshift if we actually got an remote_mode
+        if remote_mode is not None:
+            remote_mode = (remote_mode & 07777)
+        if local_mode != remote_mode:
+            self.sftp.chmod(remote_path, local_mode)
+
+        return rattrs
+
+    def put_dir(self, local_path, remote_path, mode=None, mirror_local_mode=False):
+        extra = {'_local_path': local_path, '_remote_path': remote_path, '_mode': mode,
+                 '_mirror_local_mode': mirror_local_mode}
+        self.logger.debug('Uploading dir', extra=extra)
+
+        if os.path.basename(local_path):
+            strip = os.path.dirname(local_path)
+        else:
+            strip = os.path.dirname(os.path.dirname(local_path))
+
+        remote_paths = []
+
+        for context, dirs, files in os.walk(local_path):
+            rcontext = context.replace(strip, '', 1)
+            # normalize pathname separators with POSIX separator
+            rcontext = rcontext.replace(os.sep, '/')
+            rcontext = rcontext.lstrip('/')
+            rcontext = posixpath.join(remote_path, rcontext)
+
+            if not self.exists(rcontext):
+                self.sftp.mkdir(rcontext)
+
+            for d in dirs:
+                n = posixpath.join(rcontext, d)
+                if not self.exists(n):
+                    self.sftp.mkdir(n)
+
+            for f in files:
+                local_path = os.path.join(context, f)
+                n = posixpath.join(rcontext, f)
+                p = self.put(local_path=local_path, remote_path=n,
+                             mirror_local_mode=mirror_local_mode, mode=mode)
+                remote_paths.append(p)
+
+        return remote_paths
 
     def create_file(self, path, contents=None, chmod=None, mode='w'):
         extra = {'_path': path, '_mode': mode, '_chmod': chmod}
         self.logger.debug('Uploading file', extra=extra)
 
-        sftp = self.client.open_sftp()
         # less than ideal, but we need to mkdir stuff otherwise file() fails
         head, tail = psplit(path)
 
         if path[0] == "/":
-            sftp.chdir("/")
+            self.sftp.chdir("/")
         else:
             # Relative path - start from a home directory (~)
-            sftp.chdir('.')
+            self.sftp.chdir('.')
 
         for part in head.split("/"):
             if part != "":
                 try:
-                    sftp.mkdir(part)
+                    self.sftp.mkdir(part)
                 except IOError:
                     # so, there doesn't seem to be a way to
                     # catch EEXIST consistently *sigh*
                     pass
-                sftp.chdir(part)
+                self.sftp.chdir(part)
 
-        cwd = sftp.getcwd()
+        cwd = self.sftp.getcwd()
 
-        ak = sftp.file(tail, mode=mode)
+        ak = self.sftp.file(tail, mode=mode)
         ak.write(contents)
         if chmod is not None:
             ak.chmod(chmod)
         ak.close()
-        sftp.close()
 
         if path[0] == '/':
             file_path = path
@@ -314,13 +370,22 @@ class ParamikoSSHClient(BaseSSHClient):
 
         return file_path
 
+    def exists(self, remote_path):
+        try:
+            self.sftp.lstat(remote_path).st_mode
+        except IOError:
+            return False
+
+        return True
+
     def delete(self, path):
         extra = {'_path': path}
         self.logger.debug('Deleting file', extra=extra)
 
-        sftp = self.client.open_sftp()
-        sftp.unlink(path)
-        sftp.close()
+        if not self.sftp:
+            self.sftp = self.client.open_sftp()
+
+        self.sftp.unlink(path)
         return True
 
     def run(self, cmd, timeout=None):
@@ -401,6 +466,14 @@ class ParamikoSSHClient(BaseSSHClient):
 
         return [stdout, stderr, status, exit_status_ready]
 
+    def close(self):
+        self.logger.debug('Closing server connection')
+
+        self.client.close()
+        if self.sftp:
+            self.sftp.close()
+        return True
+
     def _consume_stdout(self, chan):
         """
         Try to consume stdout data from chan if it's receive ready.
@@ -440,12 +513,6 @@ class ParamikoSSHClient(BaseSSHClient):
                 data = chan.recv_stderr(self.CHUNK_SIZE)
 
         return stderr
-
-    def close(self):
-        self.logger.debug('Closing server connection')
-
-        self.client.close()
-        return True
 
     def _get_pkey_object(self, key):
         """

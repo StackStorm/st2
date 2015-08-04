@@ -68,7 +68,7 @@ class ParallelSSHClient(object):
         self._pool.waitall()
         return results
 
-    def put(self, local_path, remote_path):
+    def put(self, local_path, remote_path, mode=None, mirror_local_mode=False):
         results = {}
 
         if not os.path.exists(local_path):
@@ -80,7 +80,7 @@ class ParallelSSHClient(object):
             self._pool.spawn(self._put_files, local_path=local_path,
                              remote_path=remote_path,
                              host=host,
-                             results=results)
+                             results=results, mode=mode, mirror_local_mode=mirror_local_mode)
         self._pool.waitall()
         return results
 
@@ -109,10 +109,16 @@ class ParallelSSHClient(object):
             except:
                 LOG.exception('Failed shutting down SSH connection to host: %s', host)
 
-    def _put_files(self, local_path, remote_path, host, results):
+    def _put_files(self, local_path, remote_path, host, results, mode=None,
+                   mirror_local_mode=False):
         try:
             print('Copying file to host: %s' % host)
-            result = self._hosts_client[host].put_file(local_path, remote_path)
+            if os.path.isdir(local_path):
+                result = self._hosts_client[host].put_dir(local_path, remote_path)
+            else:
+                result = self._hosts_client[host].put(local_path, remote_path,
+                                                      mirror_local_mode=mirror_local_mode,
+                                                      mode=mode)
             print('Result of copy: %s' % result)
             results[host] = result
         except Exception as e:
