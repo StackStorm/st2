@@ -24,6 +24,7 @@ from st2common.content.loader import MetaLoader
 from st2common.content.loader import ContentPackLoader
 from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
+from st2common.util.file_system import get_file_list
 
 __all__ = [
     'ResourceRegistrar'
@@ -36,6 +37,10 @@ LOG = logging.getLogger(__name__)
 # This works fine since those classes are only uses from register-content which is a script and not
 # a long running process.
 REGISTERED_PACKS_CACHE = {}
+
+EXCLUDE_FILE_PATTERNS = [
+    '*.pyc'
+]
 
 
 class ResourceRegistrar(object):
@@ -110,6 +115,11 @@ class ResourceRegistrar(object):
             raise ValueError('Pack "%s" metadata file is empty' % (pack_name))
 
         content['ref'] = pack_name
+
+        # Include a list of pack files
+        pack_file_list = get_file_list(directory=pack_dir, exclude_patterns=EXCLUDE_FILE_PATTERNS)
+        content['files'] = pack_file_list
+
         pack_api = PackAPI(**content)
         pack_db = PackAPI.to_model(pack_api)
 
