@@ -92,7 +92,7 @@ class ContentUtilsTestCase(unittest2.TestCase):
         # Invalid paths (directory traversal and absolute paths)
         file_paths = ['/tmp/foo.py', '../foo.py', '/etc/passwd', '../../foo.py']
         for file_path in file_paths:
-            expected_msg = 'Invalid file path: %s' % (file_path)
+            expected_msg = 'Invalid file path: .*%s' % (file_path)
             self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
                                     pack_name='dummy_pack_1',
                                     resource_type='action',

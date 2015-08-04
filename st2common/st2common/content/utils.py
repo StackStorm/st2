@@ -27,6 +27,7 @@ __all__ = [
     'get_packs_base_paths',
     'get_pack_base_path',
     'get_pack_directory',
+    'get_pack_file_abs_path',
     'get_pack_resource_file_abs_path',
     'check_pack_directory_exists',
     'check_pack_content_directory_exists'
@@ -197,6 +198,46 @@ def get_entry_point_abs_path(pack=None, entry_point=None):
     return entry_point_abs_path
 
 
+def get_pack_file_abs_path(pack_name, file_path):
+    """
+    Retrieve full absolute path to the pack file.
+
+    Note: This function also takes care of sanitizing ``file_name`` argument
+          preventing directory traversal and similar attacks.
+
+    :param pack_name: Pack name.
+    :type pack_name: ``str``
+
+    :pack file_path: Resource file path relative to the pack directory (e.g. my_file.py or
+                     actions/directory/my_file.py)
+    :type file_path: ``str``
+
+    :rtype: ``str``
+    """
+    pack_base_path = get_pack_base_path(pack_name=pack_name)
+
+    path_components = []
+    path_components.append(pack_base_path)
+
+    # Normalize the path to prevent directory traversal
+    normalized_file_path = os.path.normpath('/' + file_path).lstrip('/')
+
+    if normalized_file_path != file_path:
+        raise ValueError('Invalid file path: %s' % (file_path))
+
+    path_components.append(normalized_file_path)
+    result = os.path.join(*path_components)
+
+    assert normalized_file_path in result
+
+    # Final safety check for common prefix to avoid traversal attack
+    common_prefix = os.path.commonprefix([pack_base_path, result])
+    if common_prefix != pack_base_path:
+        raise ValueError('Invalid file_path: %s' % (file_path))
+
+    return result
+
+
 def get_pack_resource_file_abs_path(pack_name, resource_type, file_path):
     """
     Retrieve full absolute path to the pack resource file.
@@ -216,11 +257,7 @@ def get_pack_resource_file_abs_path(pack_name, resource_type, file_path):
 
     :rtype: ``str``
     """
-    pack_base_path = get_pack_base_path(pack_name=pack_name)
-
     path_components = []
-    path_components.append(pack_base_path)
-
     if resource_type == 'action':
         path_components.append('actions/')
     elif resource_type == 'sensor':
@@ -230,22 +267,9 @@ def get_pack_resource_file_abs_path(pack_name, resource_type, file_path):
     else:
         raise ValueError('Invalid resource type: %s' % (resource_type))
 
-    # Normalize the path to prevent directory traversal
-    normalized_file_path = os.path.normpath('/' + file_path).lstrip('/')
-
-    if normalized_file_path != file_path:
-        raise ValueError('Invalid file path: %s' % (file_path))
-
-    path_components.append(normalized_file_path)
-    result = os.path.join(*path_components)
-
-    assert normalized_file_path in result
-
-    # Final safety check for common prefix to avoid traversal attack
-    common_prefix = os.path.commonprefix([pack_base_path, result])
-    if common_prefix != pack_base_path:
-        raise ValueError('Invalid file_path: %s' % (file_path))
-
+    path_components.append(file_path)
+    file_path = os.path.join(*path_components)
+    result = get_pack_file_abs_path(pack_name=pack_name, file_path=file_path)
     return result
 
 
