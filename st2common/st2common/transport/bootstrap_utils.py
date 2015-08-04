@@ -16,6 +16,7 @@
 from kombu import Connection
 from st2common import log as logging
 from st2common.transport import utils as transport_utils
+from st2common.transport.connection_retry_wrapper import ConnectionRetryWrapper
 from st2common.transport.execution import EXECUTION_XCHG
 from st2common.transport.liveaction import LIVEACTION_XCHG
 from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG
@@ -31,11 +32,22 @@ EXCHANGES = [EXECUTION_XCHG, LIVEACTION_XCHG, TRIGGER_CUD_XCHG, TRIGGER_INSTANCE
              SENSOR_CUD_XCHG]
 
 
-def _do_register_exchange(exchange, channel):
+def _do_register_exchange(exchange, connection, channel, retry_wrapper):
     try:
-        channel.exchange_declare(exchange=exchange.name, type=exchange.type,
-                                 durable=exchange.durable, auto_delete=exchange.auto_delete,
-                                 arguments=exchange.arguments, nowait=False, passive=None)
+        kwargs = {
+            'exchange': exchange.name,
+            'type': exchange.type,
+            'durable': exchange.durable,
+            'auto_delete': exchange.auto_delete,
+            'arguments': exchange.arguments,
+            'nowait': False,
+            'passive': None
+        }
+        # Use the retry wrapper to increase resiliency in recoverable errors.
+        retry_wrapper.ensured(connection=connection,
+                              obj=channel,
+                              to_ensure_func=channel.exchange_declare,
+                              **kwargs)
         LOG.debug('registered exchange %s.', exchange.name)
     except Exception:
         LOG.exception('Failed to register exchange : %s.', exchange.name)
@@ -43,7 +55,14 @@ def _do_register_exchange(exchange, channel):
 
 def register_exchanges():
     LOG.debug('Registering exchanges...')
-    with Connection(transport_utils.get_messaging_urls()) as conn:
-        channel = conn.default_channel
-        for exchange in EXCHANGES:
-            _do_register_exchange(exchange, channel)
+    connection_urls = transport_utils.get_messaging_urls()
+    with Connection(connection_urls) as conn:
+        # Use ConnectionRetryWrapper to deal with rmq clustering etc.
+        retry_wrapper = ConnectionRetryWrapper(cluster_size=len(connection_urls), logger=LOG)
+
+        def wrapped_register_exchanges(connection, channel):
+            for exchange in EXCHANGES:
+                _do_register_exchange(exchange=exchange, connection=connection, channel=channel,
+                                      retry_wrapper=retry_wrapper)
+
+        retry_wrapper.run(connection=conn, wrapped_callback=wrapped_register_exchanges)
