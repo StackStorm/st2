@@ -45,11 +45,11 @@ class LdapAuthenticationBackend(BaseAuthenticationBackend):
         self._group_dn = group_dn
 
     def authenticate(self, username, password):
-        search_filter = "uniqueMember=uid="+username+","+self._base_dn
+        search_filter = "uniqueMember=uid=" + username + "," + self._base_dn
         try:
             connect = ldap.open(self._ldap_server)
-            bind = connect.bind_s("uid="+username+","+self._base_dn,password)
-            result = connect.search_s(self._group_dn,ldap.SCOPE_SUBTREE,search_filter)
+            connect.bind_s("uid=" + username + "," + self._base_dn, password)
+            result = connect.search_s(self._group_dn, ldap.SCOPE_SUBTREE, search_filter)
             connect.unbind_s()
             if result is None:
                 LOG.debug('User "%s" doesn\'t exist' % (username))
