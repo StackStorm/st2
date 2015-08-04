@@ -47,7 +47,49 @@ class ClusterRetryContext(object):
 
 
 class ConnectionRetryWrapper(object):
+    """
+    Manages retry of connection and also switching to different nodes in a cluster.
 
+    :param cluster_size: Size of the cluster.
+    :param logger: logger to use to log moderately useful information.
+
+    .. code-block:: python
+        # Without ensuring recoverable errors are retried
+        connection_urls = [
+            'amqp://guest:guest@node1:5672',
+            'amqp://guest:guest@node2:5672',
+            'amqp://guest:guest@node3:5672'
+        ]
+        with Connection(connection_urls) as connection:
+            retry_wrapper = ConnectionRetryWrapper(cluster_size=len(connection_urls),
+                                                   logger=my_logger)
+            # wrapped_callback must have signature ``def func(connection, channel)``
+            def wrapped_callback(connection, channel):
+                pass
+
+            retry_wrapper.run(connection=connection, wrapped_callback=wrapped_callback)
+
+        # With ensuring recoverable errors are retried
+        connection_urls = [
+            'amqp://guest:guest@node1:5672',
+            'amqp://guest:guest@node2:5672',
+            'amqp://guest:guest@node3:5672'
+        ]
+        with Connection(connection_urls) as connection:
+            retry_wrapper = ConnectionRetryWrapper(cluster_size=len(connection_urls),
+                                                   logger=my_logger)
+            # wrapped_callback must have signature ``def func(connection, channel)``
+            def wrapped_callback(connection, channel):
+                kwargs = {...}
+                # call ensured to correctly deal with recoverable errors.
+                retry_wrapper.ensured(connection=connection_retry_wrapper,
+                                      obj=my_obj,
+                                      to_ensure_func=my_obj.ensuree,
+                                      **kwargs)
+
+            retry_wrapper.run(connection=connection, wrapped_callback=wrapped_callback)
+
+    """
     def __init__(self, cluster_size, logger):
         self._retry_context = ClusterRetryContext(cluster_size=cluster_size)
         self._logger = logger
@@ -56,6 +98,16 @@ class ConnectionRetryWrapper(object):
         self._logger.error('Rabbitmq connection error: %s', exc.message)
 
     def run(self, connection, wrapped_callback):
+        """
+        Run the wrapped_callback in a protective covering of retries and error handling.
+
+        :param connection: Connection to messaging service
+        :type connection: kombu.connection.Connection
+
+        :param wrapped_callback: Callback that will be wrapped by all the fine handling in this
+                                 method. Expected signature of callback -
+                                 ``def func(connection, channel)``
+        """
         should_stop = False
         channel = None
         while not should_stop:
@@ -98,5 +150,15 @@ class ConnectionRetryWrapper(object):
                         self._logger.warning('Error closing channel.', exc_info=True)
 
     def ensured(self, connection, obj, to_ensure_func, **kwargs):
+        """
+        Ensure that recoverable errors are retried a set number of times before giving up.
+
+        :param connection: Connection to messaging service
+        :type connection: kombu.connection.Connection
+
+        :param obj: Object whose method is to be ensured. Typically, channel, producer etc. from
+                    the kombu library.
+        :type obj: Must support mixin kombu.abstract.MaybeChannelBound
+        """
         ensuring_func = connection.ensure(obj, to_ensure_func, errback=self.errback, max_retries=3)
         ensuring_func(**kwargs)
