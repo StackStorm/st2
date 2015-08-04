@@ -464,7 +464,7 @@ class ParamikoSSHClient(BaseSSHClient):
         extra = {'_status': status, '_stdout': stdout, '_stderr': stderr}
         self.logger.debug('Command finished', extra=extra)
 
-        return [stdout, stderr, status, exit_status_ready]
+        return [stdout, stderr, status]
 
     def close(self):
         self.logger.debug('Closing server connection')
