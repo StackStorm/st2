@@ -34,9 +34,10 @@ Distributed Containers
 
 Each of the components are available via the Docker Hub. Take a look at https://registry.hub.docker.com/repos/stackstorm/
 
-Fetch the following images:
+Fetch the following images: 
 
 ::
+
     docker pull stackstorm/st2actionrunner
     docker pull stackstorm/st2rulesengine
     docker pull stackstorm/st2resultstracker
@@ -48,6 +49,7 @@ Each of the containers will need to be configured to connect to a MongoDB and Ra
 variables for each container instance:
 
 ::
+
     ## File Mounts:
 
     - /opt/stackstorm/packs - Mount a directory of all StackStorm packs exposed to the runner
@@ -83,14 +85,29 @@ the containers in your installation. Best to use service discovery to set this v
 the st2client will use this configuration.
 
 ::
+
     API - TCP 9101
     Auth - TCP 9100
 
 Startup the containers with the command ``/usr/local/bin/tiller``. For example:
 
 ::
+
     docker run -d -i -t stackstorm/st2sensorcontainer /usr/local/bin/tiller
 
 Once done, see the http://docs.stackstorm.com/cli.html to configure your client to connect to API containers
+
+Note
+****
+
+With containers, supervisord_ is often used to manage processes within the container.  Since some Stackstorm components require PATH to be properly set, pay attention to appending path the right way in supervisord configuration files: use %(ENV_PATH)s instead of $PATH.
+
+::
+
+    [program:st2actionrunner]
+    command=python /opt/stackstorm/src/st2/st2actions/bin/st2actionrunner --config-file /etc/st2/st2.conf
+    environment=PATH="/opt/stackstorm/src/st2/st2/virtualenv/bin:%(ENV_PATH)s",PYTHONPATH="/opt/stackstorm/src/st2/virtualenv/lib/python2.7/site-packages:/opt/stackstorm/src/st2/st2common:/opt/stackstorm/src/st2/st2reactor:/opt/stackstorm/src/st2/st2actions:/opt/stackstorm/src/st2/st2api:/opt/stackstorm/src/st2/st2auth"
+
+.. _supervisord: http://supervisord.org/
 
 .. include:: on_complete.rst
