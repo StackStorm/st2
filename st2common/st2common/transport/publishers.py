@@ -20,6 +20,7 @@ from kombu import Connection
 from kombu.messaging import Producer
 
 from st2common import log as logging
+from st2common.transport.connection_retry_wrapper import ConnectionRetryWrapper
 
 ANY_RK = '*'
 CREATE_RK = 'create'
@@ -27,34 +28,6 @@ UPDATE_RK = 'update'
 DELETE_RK = 'delete'
 
 LOG = logging.getLogger(__name__)
-
-
-class ClusterRetryContext(object):
-    """
-    Stores retry context for cluster retries. It makes certain assumptions
-    on how cluster_size and retry should be determined.
-    """
-    def __init__(self, cluster_size):
-        # No of nodes in a cluster
-        self.cluster_size = cluster_size
-        # No of times to retry in a cluster
-        self.cluster_retry = 2
-        # time to wait between retry in a cluster
-        self.wait_between_cluster = 10
-
-        # No of nodes attempted. Starts at 1 since the
-        self._nodes_attempted = 1
-
-    def test_should_stop(self):
-        should_stop = True
-        if self._nodes_attempted > self.cluster_size * self.cluster_retry:
-            return should_stop, -1
-        wait = 0
-        should_stop = False
-        if self._nodes_attempted % self.cluster_size == 0:
-            wait = self.wait_between_cluster
-        self._nodes_attempted += 1
-        return should_stop, wait
 
 
 class PoolPublisher(object):
@@ -66,59 +39,27 @@ class PoolPublisher(object):
         LOG.error('Rabbitmq connection error: %s', exc.message, exc_info=False)
 
     def publish(self, payload, exchange, routing_key=''):
-        # pickling the payload for now. Better serialization mechanism is essential.
         with self.pool.acquire(block=True) as connection:
-            retry_context = ClusterRetryContext(cluster_size=self.cluster_size)
-            should_stop = False
-            channel = None
-            while not should_stop:
-                try:
-                    # creating a new channel for every producer publish. This could be expensive
-                    # and maybe there is a better way to do this by creating a ChannelPool etc.
-                    channel = connection.channel()
-                    # ProducerPool ends up creating it own ConnectionPool which ends up completely
-                    # invalidating this ConnectionPool. Also, a ConnectionPool for producer does not
-                    # really solve any problems for us so better to create a Producer for each
-                    # publish.
-                    producer = Producer(channel)
-                    publish_func = connection.ensure(producer, producer.publish,
-                                                     errback=self.errback,
-                                                     max_retries=3)
-                    publish_func(payload, exchange=exchange, routing_key=routing_key,
-                                 serializer='pickle')
-                    should_stop = True
-                except connection.connection_errors + connection.channel_errors as e:
-                    LOG.error('Connection or channel error identified.')
-                    should_stop, wait = retry_context.test_should_stop()
-                    # reset channel to None to avoid any channel closing errors. At this point
-                    # in case of an exception there should be no channel but that is better to
-                    # guarantee.
-                    channel = None
-                    # All attempts to re-establish connections have failed. This error needs to
-                    # be notified so raise.
-                    if should_stop:
-                        raise
-                    # -1, 0 and 1+ are handled properly by eventlet.sleep
-                    eventlet.sleep(wait)
+            retry_wrapper = ConnectionRetryWrapper(cluster_size=self.cluster_size, logger=LOG)
 
-                    connection.close()
-                    # ensure_connection will automatically switch to an alternate. Other connections
-                    # in the pool will be fixed independently. It would be nice to cut-over the
-                    # entire ConnectionPool simultaneously but that would require writing our own
-                    # ConnectionPool. If a server recovers it could happen that the same process
-                    # ends up talking to separate nodes in a cluster.
-                    connection.ensure_connection()
+            def do_publish(connection, channel):
+                # ProducerPool ends up creating it own ConnectionPool which ends up completely
+                # invalidating this ConnectionPool. Also, a ConnectionPool for producer does not
+                # really solve any problems for us so better to create a Producer for each
+                # publish.
+                producer = Producer(channel)
+                kwargs = {
+                    'body': payload,
+                    'exchange': exchange,
+                    'routing_key': routing_key,
+                    'serializer': 'pickle'
+                }
+                retry_wrapper.ensured(connection=connection,
+                                      obj=producer,
+                                      to_ensure_func=producer.publish,
+                                      **kwargs)
 
-                except Exception as e:
-                    LOG.error('Connections to rabbitmq cannot be re-established: %s', e.message)
-                    # Not being able to publish a message could be a significant issue for an app.
-                    raise
-                finally:
-                    if should_stop and channel:
-                        try:
-                            channel.close()
-                        except Exception:
-                            LOG.warning('Error closing channel.', exc_info=True)
+            retry_wrapper.run(connection=connection, wrapped_callback=do_publish)
 
 
 class SharedPoolPublishers(object):
