@@ -9,6 +9,8 @@ in development
 * Information about parent workflow is now a dict in child's context field. (improvement)
 * Allow user to include files which are written on disk inside the action create API payload.
   (new feature)
+* Correctly return 404 if user requests an invalid path which partially maps to an existing
+  path. (bug-fix)
 * Allow user to retrieve content of a file inside a pack by using the new
   ``/packs/views/files/`` API endpoint. (new feature)
 
