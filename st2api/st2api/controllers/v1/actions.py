@@ -79,16 +79,9 @@ class ActionsController(resource.ContentPackResourceController):
         if not hasattr(action, 'pack'):
             setattr(action, 'pack', DEFAULT_PACK_NAME)
 
-        try:
-            validate_not_part_of_system_pack(action)
-        except ValueValidationException as e:
-            abort(http_client.BAD_REQUEST, str(e))
-
-        try:
-            action_validator.validate_action(action)
-        except ValueValidationException as e:
-            abort(http_client.BAD_REQUEST, str(e))
-            return
+        # Perform validation
+        validate_not_part_of_system_pack(action)
+        action_validator.validate_action(action)
 
         # ActionsController._validate_action_parameters(action, runnertype_db)
         action_model = ActionAPI.to_model(action)
@@ -108,19 +101,13 @@ class ActionsController(resource.ContentPackResourceController):
         action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
         action_id = action_db.id
 
-        try:
-            validate_not_part_of_system_pack(action_db)
-        except ValueValidationException as e:
-            abort(http_client.BAD_REQUEST, str(e))
 
         if not getattr(action, 'pack', None):
             action.pack = action_db.pack
 
-        try:
-            action_validator.validate_action(action)
-        except ValueValidationException as e:
-            abort(http_client.BAD_REQUEST, str(e))
-            return
+        # Perform validation
+        validate_not_part_of_system_pack(action)
+        action_validator.validate_action(action)
 
         try:
             action_db = ActionAPI.to_model(action)
