@@ -7,6 +7,8 @@ in development
 * Add new OpenStack Keystone authentication backend.
   [Itxaka Serrano]
 * Information about parent workflow is now a dict in child's context field. (improvement)
+* Support for RabbitMQ cluster. StackStorm works with a RabbitMQ cluster and switches
+  nodes on failover. (feature)
 
 0.12.0 - July 20, 2015
 ----------------------
