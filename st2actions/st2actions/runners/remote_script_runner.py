@@ -21,10 +21,12 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2actions.runners.fabric_runner import BaseFabricRunner
 from st2actions.runners.fabric_runner import RUNNER_REMOTE_DIR
-from st2common.models.system.action import FabricRemoteScriptAction
+from st2actions.runners.paramiko_ssh_runner import BaseParallelSSHRunner
+from st2common.models.system.action import (FabricRemoteScriptAction, RemoteScriptAction)
 
 __all__ = [
     'get_runner',
+    'ParamikoRemoteScriptRunner',
     'RemoteScriptRunner'
 ]
 
@@ -32,6 +34,8 @@ LOG = logging.getLogger(__name__)
 
 
 def get_runner():
+    if cfg.CONF.ssh_runner.use_paramiko_ssh_runner:
+        return ParamikoRemoteScriptRunner(str(uuid.uuid4()))
     return RemoteScriptRunner(str(uuid.uuid4()))
 
 
@@ -78,3 +82,81 @@ class RemoteScriptRunner(BaseFabricRunner):
                                         sudo=self._sudo,
                                         timeout=self._timeout,
                                         cwd=self._cwd)
+
+
+class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):
+    def run(self, action_parameters):
+        remote_action = self._get_remote_action(action_parameters)
+
+        LOG.debug('Will execute remote_action : %s.', str(remote_action))
+        result = self._run(remote_action)
+        LOG.debug('Executed remote_action: %s. Result is : %s.', remote_action, result)
+        status = self._get_result_status(result, cfg.CONF.ssh_runner.allow_partial_failure)
+
+        return (status, result, None)
+
+    def _run(self, remote_action):
+        try:
+            LOG.info('mkdir: %s', remote_action.get_remote_base_dir())
+            self._parallel_ssh_client.mkdir(path=remote_action.get_remote_base_dir())
+            LOG.info('Copy: %s to %s', remote_action.get_local_script_abs_path(),
+                     remote_action.get_remote_script_abs_path())
+            self._parallel_ssh_client.put(local_path=remote_action.get_local_script_abs_path(),
+                                          remote_path=remote_action.get_remote_script_abs_path(),
+                                          mirror_local_mode=True)
+            if os.path.exists(remote_action.get_local_libs_path_abs()):
+                LOG.info('Copy: %s to %s', remote_action.get_local_libs_path_abs(),
+                         remote_action.get_remote_libs_path_abs())
+                self._parallel_ssh_client.put(local_path=remote_action.get_local_libs_path_abs(),
+                                              remote_path=remote_action.get_remote_libs_path_abs(),
+                                              mirror_local_mode=True)
+        except:
+            LOG.exception('Failed copying content to remote boxes.')
+            return {'error': 'failed to copy contents to remote boxes.'}
+        else:
+            command = remote_action.get_full_command_string()
+            LOG.info('Command to run: %s', command)
+            results = self._parallel_ssh_client.run(command, timeout=remote_action.get_timeout(),
+                                                    cwd=remote_action.get_remote_base_dir())
+            try:
+                remote_dir = remote_action.get_remote_base_dir()
+                LOG.info('Deleting dir %s', remote_dir)
+                # self._parallel_ssh_client.run('rm -rf %s' % remote_dir, timeout=60)
+                self._parallel_ssh_client.delete_dir(path=remote_dir, force=True)
+            except:
+                LOG.exception('Failed deleting remote dir: %s', remote_dir)
+            finally:
+                return results
+
+    def _get_remote_action(self, action_parameters):
+        # remote script actions without entry_point don't make sense, user probably wanted to use
+        # "run-remote" action
+        if not self.entry_point:
+            msg = ('Action "%s" is missing entry_point attribute. Perhaps wanted to use '
+                   '"run-remote" runner?')
+            raise Exception(msg % (self.action_name))
+
+        script_local_path_abs = self.entry_point
+        pos_args, named_args = self._get_script_args(action_parameters)
+        named_args = self._transform_named_args(named_args)
+        env_vars = self._get_env_vars()
+        remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
+                                                cfg.CONF.ssh_runner.remote_dir)
+        remote_dir = os.path.join(remote_dir, self.liveaction_id)
+        return RemoteScriptAction(self.action_name,
+                                  str(self.liveaction_id),
+                                  script_local_path_abs,
+                                  self.libs_dir_path,
+                                  named_args=named_args,
+                                  positional_args=pos_args,
+                                  env_vars=env_vars,
+                                  on_behalf_user=self._on_behalf_user,
+                                  user=self._username,
+                                  password=self._password,
+                                  private_key=self._private_key,
+                                  remote_dir=remote_dir,
+                                  hosts=self._hosts,
+                                  parallel=self._parallel,
+                                  sudo=self._sudo,
+                                  timeout=self._timeout,
+                                  cwd=self._cwd)
