@@ -197,20 +197,22 @@ LDAP backend
 Backend which reads authentication information from a ldap server.
 The backend tries to bind the ldap user with given username and password.
 If the bind was successful, it tries to find the user in the given group.
-If the user is in the groupi, he will be authenticated.
+If the user is in the group, he will be authenticated.
 
     **Backend configuration options:**
 
     * ``ldap_server`` - URL of the LDAP Server.
     * ``base_dn`` - Base DN on the LDAP Server.
     * ``group_dn`` - Group DN on the LDAP Server which contains the user as member.
+    * ``scope`` - Scope search parameter. Can be base, onelevel or subtree (default: subtree)
+    * ``use_tls`` - Boolean parameter to set if tls is required
 
 Example ``auth`` section in the |st2| configuration file. ::
 
     [auth]
     mode = standalone
     backend = ldap_backend
-    backend_kwargs = {"ldap_server": "ldap://ds.example.com", "base_dn": "ou=people,dc=example,dc=com", "group_dn": "cn=sysadmins,ou=groups,dc=example,dc=com"}
+    backend_kwargs = {"ldap_server": "ldap://ds.example.com", "base_dn": "ou=people,dc=example,dc=com", "group_dn": "cn=sysadmins,ou=groups,dc=example,dc=com", "scope": "", "use_tls": "True"}
     enable = True
     debug = False
     use_ssl = True
