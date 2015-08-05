@@ -34,6 +34,7 @@ from st2common.models.api.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.models.api.action import ActionCreateAPI
+from st2common.persistence.pack import Pack
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.content.utils import get_pack_base_path
 from st2common.content.utils import get_pack_resource_file_abs_path
@@ -138,6 +139,12 @@ class ActionsController(resource.ContentPackResourceController):
             abort(http_client.BAD_REQUEST, str(e))
             return
 
+        # Dispatch an internal trigger for each written data file. This way user
+        # automate comitting this files to git using StackStorm rule
+        if written_data_files:
+            self._dispatch_trigger_for_written_data_files(action_db=action_db,
+                                                          written_data_files=written_data_files)
+
         action_api = ActionAPI.from_model(action_db)
         LOG.debug('PUT /actions/ client_result=%s', action_api)
 
@@ -178,9 +185,29 @@ class ActionsController(resource.ContentPackResourceController):
 
     def _handle_data_files(self, pack_name, data_files):
         """
-        Method for handling action data files and writing them on disk.
+        Method for handling action data files.
+
+        This method performs two tasks:
+
+        1. Writes files to disk
+        2. Updates affected PackDB model
+        """
+        # Write files to disk
+        written_file_paths = self._write_data_files_to_disk(pack_name=pack_name,
+                                                            data_files=data_files)
+
+        # Update affected PackDB model (update a list of files)
+        # Update PackDB
+        self._update_pack_model(pack_name=pack_name, data_files=data_files)
+
+        return written_file_paths
+
+    def _write_data_files_to_disk(self, pack_name, data_files):
+        """
+        Write files to disk.
         """
         written_file_paths = []
+
         for data_file in data_files:
             file_path = data_file['file_path']
             content = data_file['content']
@@ -194,6 +221,20 @@ class ActionsController(resource.ContentPackResourceController):
             written_file_paths.append(file_path)
 
         return written_file_paths
+
+    def _update_pack_model(self, pack_name, data_files):
+        """
+        Update PackDB models (update files list).
+        """
+        new_file_paths = [data['file_path'] for data in data_files]
+
+        pack_db = Pack.get_by_ref(pack_name)
+        pack_db.files = set(pack_db.files)
+        pack_db.files.update(set(new_file_paths))
+        pack_db.files = list(pack_db.files)
+        pack_db = Pack.add_or_update(pack_db)
+
+        return pack_db
 
     def _write_data_file(self, pack_name, file_path, content):
         """
