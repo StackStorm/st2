@@ -28,6 +28,7 @@ LOG = logging.getLogger(__name__)
 
 class ParallelSSHClient(object):
     KEYS_TO_TRANSFORM = ['stdout', 'stderr']
+    CONNECT_ERROR = 'Cannot connect to host.'
 
     def __init__(self, hosts, user=None, password=None, pkey=None, port=22, concurrency=10,
                  raise_on_error=False, connect=True):
@@ -42,99 +43,76 @@ class ParallelSSHClient(object):
 
         self._pool = eventlet.GreenPool(concurrency)
         self._hosts_client = {}
-        self._bad_hosts = []
+        self._bad_hosts = {}
         self._scan_interval = 0.1
         if connect:
             self.connect(raise_on_error=raise_on_error)
 
     def connect(self, raise_on_error=False):
         for host in self._hosts:
-            LOG.debug('Connecting to host: %s as user: %s and key: %s', host, self._ssh_user,
-                      self._ssh_key)
+            LOG.info('Connecting to host: %s as user: %s password: %s and key: %s', host,
+                     self._ssh_user, self._ssh_password, self._ssh_key)
             client = ParamikoSSHClient(host, username=self._ssh_user, password=self._ssh_password,
                                        key=self._ssh_key, port=self._ssh_port)
             try:
                 client.connect()
             except:
-                LOG.exception('Failed connecting to host: %s')
+                error = 'Failed connecting to host %s.' % host
+                LOG.exception(error)
+                _, ex, tb = sys.exc_info()
                 if raise_on_error:
                     raise
-                self._bad_hosts.append(host)
+                self._bad_hosts[host] = {
+                    'traceback': tb,
+                    'error': ' '.join([self.CONNECT_ERROR, str(ex)])
+                }
             else:
                 self._hosts_client[host] = client
 
     def run(self, cmd, timeout=None, cwd=None):
-        results = {}
-        for host in self._bad_hosts:
-            results[host] = {
-                'error': 'Failed connecting to host.',
-                'succeeded': False,
-                'failed': True
-            }
-
         # Note that doing a chdir using sftp client in ssh_client doesn't really
         # set the session working directory. So we have to do this hack.
         if cwd:
             cmd = 'cd %s && %s' % (cwd, cmd)
 
-        for host in self._hosts_client.keys():
-            while not self._pool.free():
-                eventlet.sleep(self._scan_interval)
-            self._pool.spawn(self._run_command, cmd=cmd, host=host,
-                             results=results, timeout=timeout)
-
-        self._pool.waitall()
+        options = {
+            'cmd': cmd,
+            'timeout': timeout
+        }
+        results = self._execute_in_pool(self._run_command, **options)
         return jsonify.json_loads(results, ParallelSSHClient.KEYS_TO_TRANSFORM)
 
     def put(self, local_path, remote_path, mode=None, mirror_local_mode=False):
-        results = {}
 
         if not os.path.exists(local_path):
             raise Exception('Local path %s does not exist.' % local_path)
 
-        for host in self._hosts_client.keys():
-            while not self._pool.free():
-                eventlet.sleep(self._scan_interval)
-            self._pool.spawn(self._put_files, local_path=local_path,
-                             remote_path=remote_path,
-                             host=host,
-                             results=results, mode=mode, mirror_local_mode=mirror_local_mode)
-        self._pool.waitall()
-        return results
+        options = {
+            'local_path': local_path,
+            'remote_path': remote_path,
+            'mode': mode,
+            'mirror_local_mode': mirror_local_mode
+        }
+
+        return self._execute_in_pool(self._put_files, **options)
 
     def mkdir(self, path):
-        results = {}
-
-        for host in self._hosts_client.keys():
-            while not self._pool.free():
-                eventlet.sleep(self._scan_interval)
-            self._pool.spawn(self._mkdir, host=host, path=path, results=results)
-
-        self._pool.waitall()
-        return results
+        options = {
+            'path': path
+        }
+        return self._execute_in_pool(self._mkdir, **options)
 
     def delete_file(self, path):
-        results = {}
-
-        for host in self._hosts_client.keys():
-            while not self._pool.free():
-                eventlet.sleep(self._scan_interval)
-            self._pool.spawn(self._delete_file, host=host, path=path, results=results)
-
-        self._pool.waitall()
-        return results
+        options = {
+            'path': path
+        }
+        return self._execute_in_pool(self._delete_file, **options)
 
     def delete_dir(self, path, force=False, timeout=None):
-        results = {}
-
-        for host in self._hosts_client.keys():
-            while not self._pool.free():
-                eventlet.sleep(self._scan_interval)
-            self._pool.spawn(self._delete_dir, host=host, path=path, results=results,
-                             force=force, timeout=timeout)
-
-        self._pool.waitall()
-        return results
+        options = {
+            'path': path
+        }
+        return self._execute_in_pool(self._delete_dir, **options)
 
     def close(self):
         for host in self._hosts_client.keys():
@@ -142,6 +120,22 @@ class ParallelSSHClient(object):
                 self._hosts_client[host].close()
             except:
                 LOG.exception('Failed shutting down SSH connection to host: %s', host)
+
+    def _execute_in_pool(self, execute_method, **kwargs):
+        results = {}
+
+        for host in self._bad_hosts:
+            results[host] = self._generate_error_result(
+                self._bad_hosts[host]['error'], self._bad_hosts[host]['traceback']
+            )
+
+        for host in self._hosts_client.keys():
+            while not self._pool.free():
+                eventlet.sleep(self._scan_interval)
+            self._pool.spawn(execute_method, host=host, results=results, **kwargs)
+
+        self._pool.waitall()
+        return results
 
     def _run_command(self, host, cmd, results, timeout=None):
         try:
@@ -152,7 +146,10 @@ class ParallelSSHClient(object):
             results[host] = {'stdout': stdout, 'stderr': stderr, 'exit_code': exit_code,
                              'succeeded': is_succeeded, 'failed': not is_succeeded}
         except:
-            LOG.exception('Failed executing command %s on host %s', cmd, host)
+            error = 'Failed executing command %s on host %s', cmd, host
+            LOG.exception(error)
+            _, _, tb = sys.exc_info()
+            results[host] = self._generate_error_result(error, tb)
 
     def _put_files(self, local_path, remote_path, host, results, mode=None,
                    mirror_local_mode=False):
@@ -169,13 +166,8 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed sending file(s) in path %s to host %s' % (local_path, host)
             LOG.exception(error)
-            _, ex, tb = sys.exc_info()
-            results[host] = {
-                'error': ' '.join(error, ex),
-                'traceback': ''.join(traceback.format_tb(tb, 20)),
-                'failed': True,
-                'succeeded': False
-            }
+            _, _, tb = sys.exc_info()
+            results[host] = self._generate_error_result(error, tb)
 
     def _mkdir(self, host, path, results):
         try:
@@ -184,13 +176,8 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed "mkdir %s" on host %s.' % (path, host)
             LOG.exception(error)
-            _, ex, tb = sys.exc_info()
-            results[host] = {
-                'error': ' '.join(error, ex),
-                'traceback': ''.join(traceback.format_tb(tb, 20)),
-                'failed': True,
-                'succeeded': False
-            }
+            _, _, tb = sys.exc_info()
+            results[host] = self._generate_error_result(error, tb)
 
     def _delete_file(self, host, path, results):
         try:
@@ -199,13 +186,8 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed deleting file %s on host %s.' % (path, host)
             LOG.exception(error)
-            _, ex, tb = sys.exc_info()
-            results[host] = {
-                'error': ' '.join(error, ex),
-                'traceback': ''.join(traceback.format_tb(tb, 20)),
-                'failed': True,
-                'succeeded': False
-            }
+            _, _, tb = sys.exc_info()
+            results[host] = self._generate_error_result(error, tb)
 
     def _delete_dir(self, host, path, results, force=False, timeout=None):
         try:
@@ -214,10 +196,15 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed deleting dir %s on host %s.' % (path, host)
             LOG.exception(error)
-            _, ex, tb = sys.exc_info()
-            results[host] = {
-                'error': ' '.join(error, ex),
-                'traceback': ''.join(traceback.format_tb(tb, 20)),
-                'failed': True,
-                'succeeded': False
-            }
+            _, _, tb = sys.exc_info()
+            results[host] = self._generate_error_result(error, tb)
+
+    @staticmethod
+    def _generate_error_result(error_msg, tb):
+        error_dict = {
+            'error': error_msg,
+            'traceback': ''.join(traceback.format_tb(tb, 20)) if tb else '',
+            'failed': True,
+            'succeeded': False
+        }
+        return error_dict
