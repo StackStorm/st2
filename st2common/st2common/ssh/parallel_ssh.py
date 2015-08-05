@@ -27,10 +27,11 @@ LOG = logging.getLogger(__name__)
 class ParallelSSHClient(object):
     KEYS_TO_TRANSFORM = ['stdout', 'stderr']
 
-    def __init__(self, user, pkey, hosts, port=22, concurrency=10,
+    def __init__(self, hosts, user=None, password=None, pkey=None, port=22, concurrency=10,
                  raise_on_error=False, connect=True):
         self._ssh_user = user
         self._ssh_key = pkey
+        self._ssh_password = password
         self._hosts = hosts
         self._ssh_port = port
 
@@ -48,7 +49,7 @@ class ParallelSSHClient(object):
         for host in self._hosts:
             LOG.debug('Connecting to host: %s as user: %s and key: %s', host, self._ssh_user,
                       self._ssh_key)
-            client = ParamikoSSHClient(host, username=self._ssh_user,
+            client = ParamikoSSHClient(host, username=self._ssh_user, password=self._ssh_password,
                                        key=self._ssh_key, port=self._ssh_port)
             try:
                 client.connect()

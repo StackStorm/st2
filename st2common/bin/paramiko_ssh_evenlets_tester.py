@@ -17,9 +17,9 @@ eventlet.monkey_patch(
     time=True)
 
 
-def main(user, pkey, hosts_str, cmd, file_path, dir_path):
+def main(user, pkey, password, hosts_str, cmd, file_path, dir_path):
     hosts = hosts_str.split(",")
-    client = ParallelSSHClient(user, pkey, hosts)
+    client = ParallelSSHClient(user=user, pkey=pkey, password=password, hosts=hosts)
     pp = pprint.PrettyPrinter(indent=4)
 
     if file_path:
@@ -47,8 +47,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parallel SSH tester.')
     parser.add_argument('--hosts', required=True,
                         help='List of hosts to connect to')
-    parser.add_argument('--private-key', required=True,
+    parser.add_argument('--private-key', required=False,
                         help='Private key to use.')
+    parser.add_argument('--password', required=False,
+                        help='Password.')
     parser.add_argument('--user', required=True,
                         help='SSH user name.')
     parser.add_argument('--cmd', required=False,
@@ -59,5 +61,6 @@ if __name__ == '__main__':
                         help='Path of dir to copy to remote host.')
     args = parser.parse_args()
 
-    main(user=args.user, pkey=args.private_key, hosts_str=args.hosts, cmd=args.cmd,
+    main(user=args.user, pkey=args.private_key, password=args.password,
+         hosts_str=args.hosts, cmd=args.cmd,
          file_path=args.file, dir_path=args.dir)
