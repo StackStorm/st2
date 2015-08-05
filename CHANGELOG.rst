@@ -7,6 +7,11 @@ in development
 * Add new OpenStack Keystone authentication backend.
   [Itxaka Serrano]
 * Information about parent workflow is now a dict in child's context field. (improvement)
+* Fix a bug when some runner parameter default values where not overridden when a
+  falsey value was used in the action metadata parameter override (e.g. False, 0).
+  [Eugen C.]
+* Correctly return 404 if user requests an invalid path which partially maps to an existing
+  path. (bug-fix)
 * Support for RabbitMQ cluster. StackStorm works with a RabbitMQ cluster and switches
   nodes on failover. (feature)
 
