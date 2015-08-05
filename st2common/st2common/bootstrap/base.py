@@ -46,7 +46,13 @@ EXCLUDE_FILE_PATTERNS = [
 class ResourceRegistrar(object):
     ALLOWED_EXTENSIONS = []
 
-    def __init__(self):
+    def __init__(self, use_pack_cache=True):
+        """
+        :param use_pack_cache: True to cache which packs have been registered in memory and making
+                                sure packs are only registered once.
+        :type use_pack_cache: ``bool``
+        """
+        self._use_pack_cache = use_pack_cache
         self._meta_loader = MetaLoader()
         self._pack_loader = ContentPackLoader()
 
@@ -83,7 +89,7 @@ class ResourceRegistrar(object):
         """
         Register pack in the provided directory.
         """
-        if pack_name in REGISTERED_PACKS_CACHE:
+        if self._use_pack_cache and pack_name in REGISTERED_PACKS_CACHE:
             # This pack has already been registered during this register content run
             return
 

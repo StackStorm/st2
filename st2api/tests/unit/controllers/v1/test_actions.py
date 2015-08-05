@@ -208,7 +208,9 @@ ACTION_12 = {
     ]
 }
 
+
 class TestActionController(FunctionalTest, CleanFilesTestCase):
+    register_packs = True
     to_delete_files = [
         os.path.join(get_fixtures_base_path(), 'dummy_pack_1/actions/filea.txt')
     ]

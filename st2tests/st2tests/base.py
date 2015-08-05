@@ -107,14 +107,6 @@ class BaseDbTestCase(TestCase):
         st2tests.config.parse_args()
 
     @classmethod
-    def _register_packs(self):
-        """
-        Register all the packs inside the fixtures directory.
-        """
-        registrar = ResourceRegistrar()
-        registrar.register_packs(base_dirs=get_packs_base_paths())
-
-    @classmethod
     def _establish_connection_and_re_create_db(cls):
         username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
         password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
@@ -142,6 +134,14 @@ class BaseDbTestCase(TestCase):
         for model in ALL_MODELS:
             model.drop_collection()
 
+    @classmethod
+    def _register_packs(self):
+        """
+        Register all the packs inside the fixtures directory.
+        """
+        registrar = ResourceRegistrar(use_pack_cache=False)
+        registrar.register_packs(base_dirs=get_packs_base_paths())
+
 
 class DbTestCase(BaseDbTestCase):
     """
@@ -153,12 +153,15 @@ class DbTestCase(BaseDbTestCase):
 
     db_connection = None
     current_result = None
+    register_packs = False
 
     @classmethod
     def setUpClass(cls):
         BaseDbTestCase.setUpClass()
         cls._establish_connection_and_re_create_db()
-        cls._register_packs()
+
+        if cls.register_packs:
+            cls._register_packs()
 
     @classmethod
     def tearDownClass(cls):
@@ -273,9 +276,11 @@ class CleanFilesTestCase(TestCase):
     to_delete_directories = []
 
     def setUp(self):
+        super(CleanFilesTestCase, self).setUp()
         self._delete_files()
 
     def tearDown(self):
+        super(CleanFilesTestCase, self).tearDown()
         self._delete_files()
 
     def _delete_files(self):
