@@ -38,6 +38,7 @@ from st2common.persistence.pack import Pack
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.content.utils import get_pack_base_path
 from st2common.content.utils import get_pack_resource_file_abs_path
+from st2common.content.utils import get_relative_path_to_pack
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.system_info import get_host_info
 import st2common.validators.api.action as action_validator
@@ -198,7 +199,8 @@ class ActionsController(resource.ContentPackResourceController):
 
         # Update affected PackDB model (update a list of files)
         # Update PackDB
-        self._update_pack_model(pack_name=pack_name, data_files=data_files)
+        self._update_pack_model(pack_name=pack_name, data_files=data_files,
+                                written_file_paths=written_file_paths)
 
         return written_file_paths
 
@@ -222,15 +224,18 @@ class ActionsController(resource.ContentPackResourceController):
 
         return written_file_paths
 
-    def _update_pack_model(self, pack_name, data_files):
+    def _update_pack_model(self, pack_name, data_files, written_file_paths):
         """
         Update PackDB models (update files list).
         """
-        new_file_paths = [data['file_path'] for data in data_files]
+        file_paths = []  # A list of paths relative to the pack directory for new files
+        for file_path in written_file_paths:
+            file_path = get_relative_path_to_pack(pack_name=pack_name, file_path=file_path)
+            file_paths.append(file_path)
 
         pack_db = Pack.get_by_ref(pack_name)
         pack_db.files = set(pack_db.files)
-        pack_db.files.update(set(new_file_paths))
+        pack_db.files.update(set(file_paths))
         pack_db.files = list(pack_db.files)
         pack_db = Pack.add_or_update(pack_db)
 

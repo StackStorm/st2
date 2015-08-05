@@ -29,6 +29,7 @@ __all__ = [
     'get_pack_directory',
     'get_pack_file_abs_path',
     'get_pack_resource_file_abs_path',
+    'get_relative_path_to_pack',
     'check_pack_directory_exists',
     'check_pack_content_directory_exists'
 ]
@@ -271,6 +272,25 @@ def get_pack_resource_file_abs_path(pack_name, resource_type, file_path):
     file_path = os.path.join(*path_components)
     result = get_pack_file_abs_path(pack_name=pack_name, file_path=file_path)
     return result
+
+
+def get_relative_path_to_pack(pack_name, file_path):
+    """
+    Retrieve a file path which is relative to the provided pack directory.
+
+    :rtype: ``str``
+    """
+    pack_base_path = get_pack_base_path(pack_name=pack_name)
+
+    if not os.path.isabs(file_path):
+        return file_path
+
+    common_prefix = os.path.commonprefix([pack_base_path, file_path])
+    if common_prefix != pack_base_path:
+        raise ValueError('file_path is not located inside the pack directory')
+
+    relative_path = os.path.relpath(file_path, common_prefix)
+    return relative_path
 
 
 def get_action_libs_abs_path(pack=None, entry_point=None):
