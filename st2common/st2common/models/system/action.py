@@ -242,6 +242,9 @@ class SSHCommandAction(ShellCommandAction):
     def get_timeout(self):
         return self.timeout
 
+    def get_cwd(self):
+        return self.cwd
+
     def __str__(self):
         str_rep = []
         str_rep.append('%s@%s(name: %s' % (self.__class__.__name__, id(self), self.name))

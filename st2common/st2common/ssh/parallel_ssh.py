@@ -60,7 +60,7 @@ class ParallelSSHClient(object):
             else:
                 self._hosts_client[host] = client
 
-    def run(self, cmd, timeout=None):
+    def run(self, cmd, timeout=None, cwd=None):
         results = {}
         for host in self._bad_hosts:
             results[host] = {
@@ -69,11 +69,16 @@ class ParallelSSHClient(object):
                 'failed': True
             }
 
+        # Note that doing a chdir using sftp client in ssh_client doesn't really
+        # set the session working directory. So we have to do this hack.
+        if cwd:
+            cmd = 'cd %s && %s' % (cwd, cmd)
+
         for host in self._hosts_client.keys():
             while not self._pool.free():
                 eventlet.sleep(self._scan_interval)
             self._pool.spawn(self._run_command, cmd=cmd, host=host,
-                             results=results, timeout=None)
+                             results=results, timeout=timeout)
 
         self._pool.waitall()
         return jsonify.json_loads(results, ParallelSSHClient.KEYS_TO_TRANSFORM)
@@ -97,7 +102,8 @@ class ParallelSSHClient(object):
     def _run_command(self, host, cmd, results, timeout=None):
         try:
             LOG.debug('Running command: %s on host: %s.', cmd, host)
-            (stdout, stderr, exit_code) = self._hosts_client[host].run(cmd, timeout=timeout)
+            client = self._hosts_client[host]
+            (stdout, stderr, exit_code) = client.run(cmd, timeout=timeout)
             is_succeeded = (exit_code == 0)
             results[host] = {'stdout': stdout, 'stderr': stderr, 'exit_code': exit_code,
                              'succeeded': is_succeeded, 'failed': not is_succeeded}

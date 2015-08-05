@@ -80,7 +80,8 @@ class ParamikoRemoteCommandRunner(BaseParallelSSHRunner):
 
     def _run(self, remote_action):
         command = remote_action.get_full_command_string()
-        return self._parallel_ssh_client.run(command, timeout=remote_action.get_timeout())
+        return self._parallel_ssh_client.run(command, timeout=remote_action.get_timeout(),
+                                             cwd=remote_action.get_cwd())
 
     def _get_remote_action(self, action_paramaters):
         command = self.runner_parameters.get(RUNNER_COMMAND, None)
