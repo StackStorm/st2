@@ -374,6 +374,10 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         ]
         post_resp = self.__do_post(action)
 
+        # Verify file has been written on disk
+        for file_path in self.to_delete_files:
+            self.assertTrue(os.path.exists(file_path))
+
         # Verify PackDB.files has been updated
         pack_db = Pack.get_by_ref(ACTION_12['pack'])
         self.assertTrue('actions/filea.txt' in pack_db.files)
