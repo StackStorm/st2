@@ -80,7 +80,11 @@ class ActionsController(resource.ContentPackResourceController):
         """
         if not hasattr(action, 'pack'):
             setattr(action, 'pack', DEFAULT_PACK_NAME)
-        # TODO: Dont allow manipulating system pack
+
+        try:
+            validate_not_part_of_system_pack(action)
+        except ValueValidationException as e:
+            abort(http_client.BAD_REQUEST, str(e))
 
         try:
             action_validator.validate_action(action)
