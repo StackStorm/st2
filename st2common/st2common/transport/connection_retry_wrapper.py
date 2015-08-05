@@ -15,7 +15,7 @@
 
 import eventlet
 
-__all__ = ['ConnectionRetryWrapper']
+__all__ = ['ConnectionRetryWrapper', 'ClusterRetryContext']
 
 
 class ClusterRetryContext(object):
