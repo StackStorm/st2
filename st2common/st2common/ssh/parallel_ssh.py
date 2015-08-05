@@ -14,6 +14,8 @@
 # limitations under the License.
 
 import os
+import sys
+import traceback
 
 import eventlet
 
@@ -100,24 +102,36 @@ class ParallelSSHClient(object):
         self._pool.waitall()
         return results
 
-    def _run_command(self, host, cmd, results, timeout=None):
-        try:
-            LOG.debug('Running command: %s on host: %s.', cmd, host)
-            client = self._hosts_client[host]
-            (stdout, stderr, exit_code) = client.run(cmd, timeout=timeout)
-            is_succeeded = (exit_code == 0)
-            results[host] = {'stdout': stdout, 'stderr': stderr, 'exit_code': exit_code,
-                             'succeeded': is_succeeded, 'failed': not is_succeeded}
-        except:
-            LOG.exception('Failed executing command %s on host %s', cmd, host)
-
-    def delete(self, path):
+    def mkdir(self, path):
         results = {}
 
         for host in self._hosts_client.keys():
             while not self._pool.free():
                 eventlet.sleep(self._scan_interval)
-            self._pool.spawn(self._delete_files, host=host, path=path, results=results)
+            self._pool.spawn(self._mkdir, host=host, path=path, results=results)
+
+        self._pool.waitall()
+        return results
+
+    def delete_file(self, path):
+        results = {}
+
+        for host in self._hosts_client.keys():
+            while not self._pool.free():
+                eventlet.sleep(self._scan_interval)
+            self._pool.spawn(self._delete_file, host=host, path=path, results=results)
+
+        self._pool.waitall()
+        return results
+
+    def delete_dir(self, path, force=False, timeout=None):
+        results = {}
+
+        for host in self._hosts_client.keys():
+            while not self._pool.free():
+                eventlet.sleep(self._scan_interval)
+            self._pool.spawn(self._delete_dir, host=host, path=path, results=results,
+                             force=force, timeout=timeout)
 
         self._pool.waitall()
         return results
@@ -128,6 +142,17 @@ class ParallelSSHClient(object):
                 self._hosts_client[host].close()
             except:
                 LOG.exception('Failed shutting down SSH connection to host: %s', host)
+
+    def _run_command(self, host, cmd, results, timeout=None):
+        try:
+            LOG.debug('Running command: %s on host: %s.', cmd, host)
+            client = self._hosts_client[host]
+            (stdout, stderr, exit_code) = client.run(cmd, timeout=timeout)
+            is_succeeded = (exit_code == 0)
+            results[host] = {'stdout': stdout, 'stderr': stderr, 'exit_code': exit_code,
+                             'succeeded': is_succeeded, 'failed': not is_succeeded}
+        except:
+            LOG.exception('Failed executing command %s on host %s', cmd, host)
 
     def _put_files(self, local_path, remote_path, host, results, mode=None,
                    mirror_local_mode=False):
@@ -142,11 +167,57 @@ class ParallelSSHClient(object):
             LOG.debug('Result of copy: %s' % result)
             results[host] = result
         except:
-            LOG.exception('Failed sending file(s) in path %s to host %s', local_path, host)
+            error = 'Failed sending file(s) in path %s to host %s' % (local_path, host)
+            LOG.exception(error)
+            _, ex, tb = sys.exc_info()
+            results[host] = {
+                'error': ' '.join(error, ex),
+                'traceback': ''.join(traceback.format_tb(tb, 20)),
+                'failed': True,
+                'succeeded': False
+            }
 
-    def _delete_files(self, host, path, results):
+    def _mkdir(self, host, path, results):
         try:
-            result = self._hosts_client[host].delete(host, path)
+            result = self._hosts_client[host].mkdir(path)
             results[host] = result
         except:
-            LOG.exception('Failed deleting file(s) in path %s on host %s.', path, host)
+            error = 'Failed "mkdir %s" on host %s.' % (path, host)
+            LOG.exception(error)
+            _, ex, tb = sys.exc_info()
+            results[host] = {
+                'error': ' '.join(error, ex),
+                'traceback': ''.join(traceback.format_tb(tb, 20)),
+                'failed': True,
+                'succeeded': False
+            }
+
+    def _delete_file(self, host, path, results):
+        try:
+            result = self._hosts_client[host].delete_file(path)
+            results[host] = result
+        except:
+            error = 'Failed deleting file %s on host %s.' % (path, host)
+            LOG.exception(error)
+            _, ex, tb = sys.exc_info()
+            results[host] = {
+                'error': ' '.join(error, ex),
+                'traceback': ''.join(traceback.format_tb(tb, 20)),
+                'failed': True,
+                'succeeded': False
+            }
+
+    def _delete_dir(self, host, path, results, force=False, timeout=None):
+        try:
+            result = self._hosts_client[host].delete_dir(path, force=force, timeout=timeout)
+            results[host] = result
+        except:
+            error = 'Failed deleting dir %s on host %s.' % (path, host)
+            LOG.exception(error)
+            _, ex, tb = sys.exc_info()
+            results[host] = {
+                'error': ' '.join(error, ex),
+                'traceback': ''.join(traceback.format_tb(tb, 20)),
+                'failed': True,
+                'succeeded': False
+            }
