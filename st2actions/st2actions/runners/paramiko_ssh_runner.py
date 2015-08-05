@@ -97,12 +97,21 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
                  self.runner_id, self.liveaction_id)
 
         concurrency = int(len(self._hosts) / 3) + 1 if self._parallel else 1
-        self._parallel_ssh_client = ParallelSSHClient(
-            hosts=self._hosts,
-            user=self._username, pkey=self._ssh_key_file, password=self._password,
-            port=22, concurrency=concurrency, raise_on_error=False,
-            connect=True
-        )
+
+        if self._password:
+            self._parallel_ssh_client = ParallelSSHClient(
+                hosts=self._hosts,
+                user=self._username, password=self._password,
+                port=22, concurrency=concurrency, raise_on_error=False,
+                connect=True
+            )
+        else:
+            self._parallel_ssh_client = ParallelSSHClient(
+                hosts=self._hosts,
+                user=self._username, pkey=self._ssh_key_file,
+                port=22, concurrency=concurrency, raise_on_error=False,
+                connect=True
+            )
 
     def _get_env_vars(self):
         """
