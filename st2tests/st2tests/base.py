@@ -29,6 +29,8 @@ from unittest2 import TestCase
 
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.db import db_setup, db_teardown
+from st2common.bootstrap.base import ResourceRegistrar
+from st2common.content.utils import get_packs_base_paths
 import st2common.models.db.rule as rule_model
 import st2common.models.db.sensor as sensor_model
 import st2common.models.db.trigger as trigger_model
@@ -104,6 +106,14 @@ class BaseDbTestCase(TestCase):
         st2tests.config.parse_args()
 
     @classmethod
+    def _register_packs(self):
+        """
+        Register all the packs inside the fixtures directory.
+        """
+        registrar = ResourceRegistrar()
+        registrar.register_packs(base_dirs=get_packs_base_paths())
+
+    @classmethod
     def _establish_connection_and_re_create_db(cls):
         username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
         password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
@@ -147,6 +157,7 @@ class DbTestCase(BaseDbTestCase):
     def setUpClass(cls):
         BaseDbTestCase.setUpClass()
         cls._establish_connection_and_re_create_db()
+        cls._register_packs()
 
     @classmethod
     def tearDownClass(cls):
