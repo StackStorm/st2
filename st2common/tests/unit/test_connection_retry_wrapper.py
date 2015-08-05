@@ -49,7 +49,7 @@ class TestClusterRetryContext(unittest.TestCase):
                 self.assertFalse(should_stop, 'Not done trying.')
                 # on cluster boundaries the wait is longer. Short wait when switching
                 # to a different server within a cluster.
-                if (i +1) % cluster_size == 0:
+                if (i + 1) % cluster_size == 0:
                     self.assertEqual(wait, 10)
                 else:
                     self.assertEqual(wait, 0)
