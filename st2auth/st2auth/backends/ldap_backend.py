@@ -36,7 +36,7 @@ class LdapAuthenticationBackend(BaseAuthenticationBackend):
     If the user is in the group, he will be authenticated.
     """
 
-    def __init__(self, ldap_server, base_dn, group_dn, scope, use_tls):
+    def __init__(self, ldap_server, base_dn, group_dn, scope, use_tls, search_filter):
         """
         :param ldap_server: URL of the LDAP Server
         :type ldap_server: ``str``
@@ -48,6 +48,8 @@ class LdapAuthenticationBackend(BaseAuthenticationBackend):
         :type scope: ``str``
         :param use_tls: Boolean parameter to set if tls is required
         :type use_tls: ``bool``
+        :param search_filter: Should contain the placeholder %(username)s for the username
+        :type use_tls: ``str``
         """
         self._ldap_server = ldap_server
         self._base_dn = base_dn
@@ -62,9 +64,13 @@ class LdapAuthenticationBackend(BaseAuthenticationBackend):
             self._use_tls = False
         else:
             self._use_tls = True
+        self._search_filter = search_filter
 
     def authenticate(self, username, password):
-        search_filter = "uniqueMember=uid=" + username + "," + self._base_dn
+        if self._search_filter:
+            search_filter = self._search_filter % { "username": username }
+        else:
+            search_filter = "uniqueMember=uid=" + username + "," + self._base_dn
         try:
             ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
             connect = ldap.initialize(self._ldap_server)
