@@ -378,15 +378,29 @@ class ParamikoSSHClient(BaseSSHClient):
 
         return True
 
-    def delete(self, path):
+    def mkdir(self, dir_path):
+        extra = {'_dir_path': dir_path}
+        self.logger.debug('mkdir', extra=extra)
+        self.sftp.mkdir(dir_path)
+        return True
+
+    def delete_file(self, path):
         extra = {'_path': path}
         self.logger.debug('Deleting file', extra=extra)
-
-        if not self.sftp:
-            self.sftp = self.client.open_sftp()
-
         self.sftp.unlink(path)
         return True
+
+    def delete_dir(self, path, force=False, timeout=None):
+        extra = {'_path': path}
+        if force:
+            command = 'rm -rf %s' % path
+            extra['_command'] = command
+            extra['_force'] = force
+            self.logger.debug('Deleting dir', extra=extra)
+            return self.run(command, timeout=timeout)
+
+        self.logger.debug('Deleting dir', extra=extra)
+        return self.sftp.rmdir(path)
 
     def run(self, cmd, timeout=None):
         """
