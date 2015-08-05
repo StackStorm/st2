@@ -7,6 +7,8 @@ in development
 * Add new OpenStack Keystone authentication backend.
   [Itxaka Serrano]
 * Information about parent workflow is now a dict in child's context field. (improvement)
+* Correctly return 404 if user requests an invalid path which partially maps to an existing
+  path. (bug-fix)
 
 0.12.0 - July 20, 2015
 ----------------------
