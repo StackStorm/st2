@@ -19,6 +19,7 @@ except ImportError:
     import json
 
 import os
+import os.path
 import sys
 import shutil
 
@@ -266,19 +267,31 @@ class CleanDbTestCase(BaseDbTestCase):
 
 class CleanFilesTestCase(TestCase):
     """
-    Base test class which deletes specified files and directories on tearDown.
+    Base test class which deletes specified files and directories on setUp and `tearDown.
     """
     to_delete_files = []
     to_delete_directories = []
 
+    def setUp(self):
+        self._delete_files()
+
     def tearDown(self):
+        self._delete_files()
+
+    def _delete_files(self):
         for file_path in self.to_delete_files:
+            if not os.path.isfile(file_path):
+                continue
+
             try:
                 os.remove(file_path)
             except Exception:
                 pass
 
         for file_path in self.to_delete_directories:
+            if not os.path.isdir(file_path):
+                continue
+
             try:
                 shutil.rmtree(file_path)
             except Exception:

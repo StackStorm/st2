@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import os.path
 import copy
+
 try:
     import simplejson as json
 except ImportError:
@@ -25,6 +28,9 @@ import unittest2
 from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
 from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.persistence.pack import Pack
+from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.base import CleanFilesTestCase
 
 from tests import FunctionalTest
 
@@ -184,8 +190,29 @@ ACTION_11 = {
     }
 }
 
+# Good action inside dummy pack
+ACTION_12 = {
+    'name': 'st2.dummy.action1',
+    'description': 'test description',
+    'enabled': True,
+    'pack': 'dummy_pack_1',
+    'entry_point': '/tmp/test/action1.sh',
+    'runner_type': 'local-shell-script',
+    'parameters': {
+        'a': {'type': 'string', 'default': 'A1'},
+        'b': {'type': 'string', 'default': 'B1'}
+    },
+    'tags': [
+        {'name': 'tag1', 'value': 'dont-care'},
+        {'name': 'tag2', 'value': 'dont-care'}
+    ]
+}
 
-class TestActionController(FunctionalTest):
+class TestActionController(FunctionalTest, CleanFilesTestCase):
+    to_delete_files = [
+        os.path.join(get_fixtures_base_path(), 'dummy_pack_1/actions/filea.txt')
+    ]
+
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_one_using_id(self):
@@ -330,6 +357,27 @@ class TestActionController(FunctionalTest):
 
         for i in action_ids:
             self.__do_delete(i)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_post_include_files(self):
+        # Verify initial state
+        pack_db = Pack.get_by_ref(ACTION_12['pack'])
+        self.assertTrue('actions/filea.txt' not in pack_db.files)
+
+        action = copy.deepcopy(ACTION_12)
+        action['data_files'] = [
+            {
+                'file_path': 'filea.txt',
+                'content': 'test content'
+            }
+        ]
+        post_resp = self.__do_post(action)
+
+        # Verify PackDB.files has been updated
+        pack_db = Pack.get_by_ref(ACTION_12['pack'])
+        self.assertTrue('actions/filea.txt' in pack_db.files)
+        self.__do_delete(self.__get_action_id(post_resp))
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
