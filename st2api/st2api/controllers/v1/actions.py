@@ -80,6 +80,11 @@ class ActionsController(resource.ContentPackResourceController):
             setattr(action, 'pack', DEFAULT_PACK_NAME)
 
         try:
+            validate_not_part_of_system_pack(action)
+        except ValueValidationException as e:
+            abort(http_client.BAD_REQUEST, str(e))
+
+        try:
             action_validator.validate_action(action)
         except ValueValidationException as e:
             abort(http_client.BAD_REQUEST, str(e))
