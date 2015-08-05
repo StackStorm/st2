@@ -179,7 +179,10 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                 # Invalid number of arguments passed to the function meaning invalid path was
                 # requested
                 # Note: The check is hacky, but it works for now.
-                if re.search('takes exactly \d+ arguments \(\d+ given\)', message):
+                func_name = f.__name__
+                pattern = '%s\(\) takes exactly \d+ arguments \(\d+ given\)' % (func_name)
+
+                if re.search(pattern, message):
                     raise exc.HTTPNotFound()
                 else:
                     raise e
