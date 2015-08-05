@@ -113,7 +113,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         return action_api
 
-    @jsexpose(arg_types=[str], body_cls=ActionAPI)
+    @jsexpose(arg_types=[str], body_cls=ActionCreateAPI)
     def put(self, action_ref_or_id, action):
         action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
         action_id = action_db.id
@@ -131,6 +131,13 @@ class ActionsController(resource.ContentPackResourceController):
         except ValueValidationException as e:
             abort(http_client.BAD_REQUEST, str(e))
             return
+
+        # Write pack data files to disk (if any are provided)
+        data_files = getattr(action, 'data_files', [])
+        written_data_files = []
+        if data_files:
+            written_data_files = self._handle_data_files(pack_name=action.pack,
+                                                         data_files=data_files)
 
         try:
             action_db = ActionAPI.to_model(action)
