@@ -90,7 +90,6 @@ class ActionsController(resource.ContentPackResourceController):
         action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
         action_id = action_db.id
 
-
         if not getattr(action, 'pack', None):
             action.pack = action_db.pack
 
