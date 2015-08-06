@@ -53,6 +53,18 @@ Changelog
   respectively. (upgrade)
 * Display friendly message for error in parameters validation on action execution. (improvement)
 
+0.11.6 - July 2, 2015
+---------------------
+
+* Update all the code to handle all the datetime objects internally in UTC. (improvement, bug-fix)
+
+0.11.5 - July 1, 2015
+---------------------
+
+* Fix a bug where ``end_timestamp`` is not captured for Mistral workflow executions (bug-fix)
+* Fix a bug where the CLI failed to display Mistral workflow that errored (bug-fix)
+* Fix a bug where the published variables is not captured in the Mistral workflow result (bug-fix)
+
 0.11.4 - June 30, 2015
 ----------------------
 
