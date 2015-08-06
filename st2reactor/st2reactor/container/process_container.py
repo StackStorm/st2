@@ -173,6 +173,9 @@ class ProcessSensorContainer(object):
     def running(self):
         return len(self._processes)
 
+    def stopped(self):
+        return self._stopped
+
     def shutdown(self):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
         self._stopped = True
