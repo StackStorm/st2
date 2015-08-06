@@ -71,6 +71,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
                 self._ssh_key_file = ssh_key_file
 
         self._parallel_ssh_client = None
+        self._max_concurrency = cfg.CONF.ssh_runner.max_parallel_actions
 
     def pre_run(self):
         LOG.debug('Entering BaseParallelSSHRunner.pre_run() for liveaction_id="%s"',
@@ -99,6 +100,9 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
                  self.runner_id, self.liveaction_id)
 
         concurrency = int(len(self._hosts) / 3) + 1 if self._parallel else 1
+        if concurrency > self._max_concurrency:
+            LOG.debug('Limiting parallel SSH concurrency to %d.', concurrency)
+            concurrency = self._max_concurrency
 
         if self._password:
             self._parallel_ssh_client = ParallelSSHClient(

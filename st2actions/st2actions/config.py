@@ -67,7 +67,10 @@ def _register_action_runner_opts():
         cfg.BoolOpt('use_paramiko_ssh_runner',
                     default=False,
                     help='Use Paramiko based SSH runner as the default remote runner. ' +
-                         'EXPERIMENTAL!!! USE AT YOUR OWN RISK.')
+                         'EXPERIMENTAL!!! USE AT YOUR OWN RISK.'),
+        cfg.IntOpt('max_parallel_actions', default=50,
+                   help='Max number of parallel remote SSH actions that should be run.  ' +
+                        'Works only with Paramiko SSH runner.')
 
     ]
     CONF.register_opts(ssh_runner_opts, group='ssh_runner')
