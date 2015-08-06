@@ -106,6 +106,19 @@ SSH Troubleshooting
 
         sudo ssh -i /home/stanley/.ssh/stanley_rsa -t stanley@host.example.com uname -a
 
+Using SSH config
+~~~~~~~~~~~~~~~~
+
+StackStorm allows loading of the SSH config file local to the system user. This is a configurable option and to
+enable add following to ``/etc/st2/st2.conf``
+
+.. code-block:: bash
+
+    [ssh_runner]
+    use_ssh_config = True
+    ...
+
+
 Configure Logging
 -----------------
 
