@@ -116,15 +116,15 @@ def _validate_action_params(spec, action_key, input_key, action):
     missing = sorted(required.difference(action_params))
 
     if missing:
-        raise Exception('Missing required parameters for action %s: %s' %
-                        (action_input.get('ref'), ', '.join(missing)))
+        raise Exception('Missing required parameters for action "%s": "%s"' %
+                        (action_input.get('ref'), '", "'.join(missing)))
 
     # Check unexpected parameters:
     unexpected = sorted(action_params.difference(set(action.parameters.keys())))
 
     if unexpected:
-        raise Exception('Unexpected parameters for action %s: %s' %
-                        (action_input.get('ref'), ', '.join(unexpected)))
+        raise Exception('Unexpected parameters for action "%s": "%s"' %
+                        (action_input.get('ref'), '", "'.join(unexpected)))
 
 
 def _transform_action(spec, action_key, input_key):
