@@ -50,24 +50,32 @@ class ParallelSSHClient(object):
 
     def connect(self, raise_on_error=False):
         for host in self._hosts:
-            LOG.info('Connecting to host: %s as user: %s password: %s and key: %s', host,
-                     self._ssh_user, self._ssh_password, self._ssh_key)
-            client = ParamikoSSHClient(host, username=self._ssh_user, password=self._ssh_password,
-                                       key=self._ssh_key, port=self._ssh_port)
+            (hostname, port) = self._get_host_port_info(host)
+
+            if not self._ssh_password:
+                LOG.info('Connecting to host: %s port: %s as user: %s key: %s', hostname, port,
+                         self._ssh_user, self._ssh_key)
+            else:
+                LOG.info('Connecting to host: %s port: %s as user: %s password: %s', hostname,
+                         port, self._ssh_user, "<redacted>")
+
+            client = ParamikoSSHClient(hostname, username=self._ssh_user,
+                                       password=self._ssh_password,
+                                       key=self._ssh_key, port=port)
             try:
                 client.connect()
             except:
-                error = 'Failed connecting to host %s.' % host
+                error = 'Failed connecting to host %s.' % hostname
                 LOG.exception(error)
                 _, ex, tb = sys.exc_info()
                 if raise_on_error:
                     raise
-                self._bad_hosts[host] = {
+                self._bad_hosts[hostname] = {
                     'traceback': tb,
                     'error': ' '.join([self.CONNECT_ERROR, str(ex)])
                 }
             else:
-                self._hosts_client[host] = client
+                self._hosts_client[hostname] = client
 
     def run(self, cmd, timeout=None, cwd=None):
         # Note that doing a chdir using sftp client in ssh_client doesn't really
@@ -199,6 +207,18 @@ class ParallelSSHClient(object):
             LOG.exception(error)
             _, _, tb = sys.exc_info()
             results[host] = self._generate_error_result(error, tb)
+
+    def _get_host_port_info(self, host_str):
+        hostname = host_str
+        port = self._ssh_port
+        if ':' in hostname:
+            hostname, port = host_str.split(':', 1)
+
+        try:
+            port = int(port)
+        except:
+            raise Exception('Invalid port %s specified.' % port)
+        return (hostname, port)
 
     @staticmethod
     def _generate_error_result(error_msg, tb):
