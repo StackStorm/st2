@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.12.2 - In progress
+--------------------
+* Support local ssh config file in remote runners. (feature)
+
 0.12.1 - July 31, 2015
 ----------------------
 * Un-registering a pack also removes ``rules`` and ``action aliases`` from the pack. (bug-fix)
