@@ -17,7 +17,7 @@ eventlet.monkey_patch(
     time=True)
 
 
-def main(user, pkey, password, hosts_str, cmd, file_path, dir_path):
+def main(user, pkey, password, hosts_str, cmd, file_path, dir_path, delete_dir):
     hosts = hosts_str.split(",")
     client = ParallelSSHClient(user=user, pkey=pkey, password=password, hosts=hosts)
     pp = pprint.PrettyPrinter(indent=4)
@@ -42,6 +42,10 @@ def main(user, pkey, password, hosts_str, cmd, file_path, dir_path):
         results = client.run(cmd)
         pp.pprint('cmd results: \n%s' % results)
 
+    if delete_dir:
+        results = client.delete_dir(delete_dir, force=True)
+        pp.pprint('Delete results: \n%s' % results)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parallel SSH tester.')
@@ -59,8 +63,10 @@ if __name__ == '__main__':
                         help='Path of file to copy to remote host.')
     parser.add_argument('--dir', required=False,
                         help='Path of dir to copy to remote host.')
+    parser.add_argument('--delete-dir', required=False,
+                        help='Path of dir to delete on remote host.')
     args = parser.parse_args()
 
     main(user=args.user, pkey=args.private_key, password=args.password,
          hosts_str=args.hosts, cmd=args.cmd,
-         file_path=args.file, dir_path=args.dir)
+         file_path=args.file, dir_path=args.dir, delete_dir=args.delete_dir)

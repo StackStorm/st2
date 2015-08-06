@@ -110,7 +110,8 @@ class ParallelSSHClient(object):
 
     def delete_dir(self, path, force=False, timeout=None):
         options = {
-            'path': path
+            'path': path,
+            'force': force
         }
         return self._execute_in_pool(self._delete_dir, **options)
 
@@ -143,7 +144,7 @@ class ParallelSSHClient(object):
             client = self._hosts_client[host]
             (stdout, stderr, exit_code) = client.run(cmd, timeout=timeout)
             is_succeeded = (exit_code == 0)
-            results[host] = {'stdout': stdout, 'stderr': stderr, 'exit_code': exit_code,
+            results[host] = {'stdout': stdout, 'stderr': stderr, 'return_code': exit_code,
                              'succeeded': is_succeeded, 'failed': not is_succeeded}
         except:
             error = 'Failed executing command %s on host %s', cmd, host
@@ -205,6 +206,7 @@ class ParallelSSHClient(object):
             'error': error_msg,
             'traceback': ''.join(traceback.format_tb(tb, 20)) if tb else '',
             'failed': True,
-            'succeeded': False
+            'succeeded': False,
+            'return_code': 255
         }
         return error_dict
