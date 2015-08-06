@@ -46,36 +46,21 @@ class ParallelSSHClient(object):
         self._bad_hosts = {}
         self._scan_interval = 0.1
         if connect:
-            self.connect(raise_on_error=raise_on_error)
+            connect_results = self.connect(raise_on_error=raise_on_error)
+            extra = {'_connect_results': connect_results}
+            LOG.info('Connect to hosts complete.', extra=extra)
 
     def connect(self, raise_on_error=False):
+        results = {}
+
         for host in self._hosts:
-            (hostname, port) = self._get_host_port_info(host)
+            while not self._pool.free():
+                eventlet.sleep(self._scan_interval)
+            self._pool.spawn(self._connect, host=host, results=results,
+                             raise_on_error=raise_on_error)
 
-            if not self._ssh_password:
-                LOG.info('Connecting to host: %s port: %s as user: %s key: %s', hostname, port,
-                         self._ssh_user, self._ssh_key)
-            else:
-                LOG.info('Connecting to host: %s port: %s as user: %s password: %s', hostname,
-                         port, self._ssh_user, "<redacted>")
-
-            client = ParamikoSSHClient(hostname, username=self._ssh_user,
-                                       password=self._ssh_password,
-                                       key=self._ssh_key, port=port)
-            try:
-                client.connect()
-            except:
-                error = 'Failed connecting to host %s.' % hostname
-                LOG.exception(error)
-                _, ex, tb = sys.exc_info()
-                if raise_on_error:
-                    raise
-                self._bad_hosts[hostname] = {
-                    'traceback': tb,
-                    'error': ' '.join([self.CONNECT_ERROR, str(ex)])
-                }
-            else:
-                self._hosts_client[hostname] = client
+        self._pool.waitall()
+        return results
 
     def run(self, cmd, timeout=None, cwd=None):
         # Note that doing a chdir using sftp client in ssh_client doesn't really
@@ -133,10 +118,8 @@ class ParallelSSHClient(object):
     def _execute_in_pool(self, execute_method, **kwargs):
         results = {}
 
-        for host in self._bad_hosts:
-            results[host] = self._generate_error_result(
-                self._bad_hosts[host]['error'], self._bad_hosts[host]['traceback']
-            )
+        for host in self._bad_hosts.keys():
+            results[host] = self._bad_hosts[host]
 
         for host in self._hosts_client.keys():
             while not self._pool.free():
@@ -145,6 +128,35 @@ class ParallelSSHClient(object):
 
         self._pool.waitall()
         return results
+
+    def _connect(self, host, results, raise_on_error=False):
+        (hostname, port) = self._get_host_port_info(host)
+
+        if not self._ssh_password:
+            LOG.info('Connecting to host: %s port: %s as user: %s key: %s', hostname, port,
+                     self._ssh_user, self._ssh_key)
+        else:
+            LOG.info('Connecting to host: %s port: %s as user: %s password: %s', hostname,
+                     port, self._ssh_user, "<redacted>")
+
+        client = ParamikoSSHClient(hostname, username=self._ssh_user,
+                                   password=self._ssh_password,
+                                   key=self._ssh_key, port=port)
+        try:
+            client.connect()
+        except:
+            error = 'Failed connecting to host %s.' % hostname
+            LOG.exception(error)
+            _, ex, tb = sys.exc_info()
+            if raise_on_error:
+                raise
+            error = ' '.join([self.CONNECT_ERROR, str(ex)])
+            error_dict = self._generate_error_result(error, tb)
+            self._bad_hosts[hostname] = error_dict
+            results[hostname] = error_dict
+        else:
+            self._hosts_client[hostname] = client
+            results[hostname] = {'message': 'Connected to host.'}
 
     def _run_command(self, host, cmd, results, timeout=None):
         try:
