@@ -84,6 +84,11 @@ class ShellCommandAction(object):
     def get_timeout(self):
         return self.timeout
 
+    def get_cwd(self):
+        if self.cwd:
+            return quote_unix(self.cwd)
+        return self.cwd
+
     def _get_command_string(self, cmd, args):
         """
         Escape the command arguments and form a command string.
@@ -242,9 +247,6 @@ class SSHCommandAction(ShellCommandAction):
     def get_command(self):
         return self.command
 
-    def get_cwd(self):
-        return self.cwd
-
     def __str__(self):
         str_rep = []
         str_rep.append('%s@%s(name: %s' % (self.__class__.__name__, id(self), self.name))
@@ -313,19 +315,19 @@ class RemoteScriptAction(ShellScriptAction):
         LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
 
     def get_remote_script_abs_path(self):
-        return self.remote_script
+        return quote_unix(self.remote_script)
 
     def get_local_script_abs_path(self):
-        return self.script_local_path_abs
+        return quote_unix(self.script_local_path_abs)
 
     def get_remote_libs_path_abs(self):
-        return self.remote_libs_path_abs
+        return quote_unix(self.remote_libs_path_abs)
 
     def get_local_libs_path_abs(self):
-        return self.script_local_libs_path_abs
+        return quote_unix(self.script_local_libs_path_abs)
 
     def get_remote_base_dir(self):
-        return self.remote_dir
+        return quote_unix(self.remote_dir)
 
     def _format_command(self):
         script_arguments = self._get_script_arguments(named_args=self.named_args,
