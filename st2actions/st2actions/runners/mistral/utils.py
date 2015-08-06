@@ -46,6 +46,17 @@ ALL = (
 
 PARAMS_PTRN = re.compile("([\w]+)=(%s)" % "|".join(ALL))
 
+SPEC_TYPES = {
+    'adhoc': {
+        'action_key': 'base',
+        'input_key': 'base-input'
+    },
+    'task': {
+        'action_key': 'action',
+        'input_key': 'input'
+    }
+}
+
 
 def _parse_cmd_and_input(cmd_str):
     cmd_matcher = CMD_PTRN.search(cmd_str)
@@ -101,41 +112,41 @@ def _eval_inline_params(spec, action_key, input_key):
             _merge_dicts(spec[input_key], inputs)
 
 
-def _validate_action_params(spec, action_key, input_key, action):
-
-    if not action or action_key not in spec or spec.get(action_key) != 'st2.action':
-        return
-
-    action_input = spec.get(input_key, {})
-    action_params = set(action_input.get('parameters', {}).keys())
+def _validate_action_params(name, action, action_params):
 
     # Check required parameters that have no default defined.
-    required = set([name for name, meta in six.iteritems(action.parameters)
+    required = set([param for param, meta in six.iteritems(action.parameters)
                     if meta.get('required', False) and 'default' not in meta])
 
-    missing = sorted(required.difference(action_params))
+    missing = '", "'.join(sorted(required.difference(action_params)))
 
     if missing:
-        raise Exception('Missing required parameters for action "%s": "%s"' %
-                        (action_input.get('ref'), '", "'.join(missing)))
+        raise Exception('Missing required parameters in "%s" for action "%s": '
+                        '"%s"' % (name, action.ref, missing))
 
     # Check unexpected parameters:
-    unexpected = sorted(action_params.difference(set(action.parameters.keys())))
+    unexpected = '", "'.join(sorted(action_params.difference(set(action.parameters.keys()))))
 
     if unexpected:
-        raise Exception('Unexpected parameters for action "%s": "%s"' %
-                        (action_input.get('ref'), '", "'.join(unexpected)))
+        raise Exception('Unexpected parameters in "%s" for action "%s": '
+                        '"%s"' % (name, action.ref, unexpected))
 
 
-def _transform_action(spec, action_key, input_key):
+def _transform_action(name, spec):
 
-    if action_key not in spec:
+    action_key, input_key = None, None
+
+    for spec_type, spec_meta in six.iteritems(SPEC_TYPES):
+        if spec_meta['action_key'] in spec:
+            action_key = spec_meta['action_key']
+            input_key = spec_meta['input_key']
+            break
+
+    if not action_key:
         return
 
     if spec[action_key] == 'st2.callback':
         raise Exception('st2.callback is deprecated.')
-
-    transformed = (spec[action_key] == 'st2.action')
 
     # Convert parameters that are inline (i.e. action: some_action var1={$.value1} var2={$.value2})
     # and split it to action name and input dict as illustrated below.
@@ -156,15 +167,20 @@ def _transform_action(spec, action_key, input_key):
     #     var2: <% $.value2 %>
     _eval_inline_params(spec, action_key, input_key)
 
+    transformed = (spec[action_key] == 'st2.action')
+
     action_ref = spec[input_key]['ref'] if transformed else spec[action_key]
 
     action = None
 
+    # Identify if action is a registered StackStorm action.
     if action_ref and ResourceReference.is_resource_reference(action_ref):
         ref = ResourceReference.from_string_reference(ref=action_ref)
         actions = Action.query(name=ref.name, pack=ref.pack)
         action = actions.first() if actions else None
 
+    # If action is a registered StackStorm action, then wrap the
+    # action with the st2 proxy and validate the action input.
     if action:
         if not transformed:
             spec[action_key] = 'st2.action'
@@ -173,7 +189,9 @@ def _transform_action(spec, action_key, input_key):
             if action_input:
                 spec[input_key]['parameters'] = action_input
 
-        _validate_action_params(spec, action_key, input_key, action)
+        action_input = spec.get(input_key, {})
+        action_params = set(action_input.get('parameters', {}).keys())
+        _validate_action_params(name, action, action_params)
 
 
 def transform_definition(definition):
@@ -190,7 +208,7 @@ def transform_definition(definition):
 
     # Transform adhoc actions
     for action_name, action_spec in six.iteritems(spec.get('actions', {})):
-        _transform_action(action_spec, 'base', 'base-input')
+        _transform_action(action_name, action_spec)
 
     # Determine if definition is a workbook or workflow
     is_workbook = 'workflows' in spec
@@ -199,12 +217,12 @@ def transform_definition(definition):
     if is_workbook:
         for workflow_name, workflow_spec in six.iteritems(spec.get('workflows', {})):
             for task_name, task_spec in six.iteritems(workflow_spec.get('tasks')):
-                _transform_action(task_spec, 'action', 'input')
+                _transform_action(task_name, task_spec)
     else:
         for key, value in six.iteritems(spec):
             if 'tasks' in value:
                 for task_name, task_spec in six.iteritems(value.get('tasks')):
-                    _transform_action(task_spec, 'action', 'input')
+                    _transform_action(task_name, task_spec)
 
     # Return the same type as original input.
     return spec if is_dict else yaml.safe_dump(spec, default_flow_style=False)
