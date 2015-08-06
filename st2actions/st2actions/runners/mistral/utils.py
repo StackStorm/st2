@@ -106,7 +106,7 @@ def _validate_action_params(spec, action_key, input_key, action):
     if not action or action_key not in spec or spec.get(action_key) != 'st2.action':
         return
 
-    action_input = spec.get(input_key)
+    action_input = spec.get(input_key, {})
     action_params = set(action_input.get('parameters', {}).keys())
 
     # Check required parameters that have no default defined.
@@ -132,7 +132,7 @@ def _transform_action(spec, action_key, input_key):
     if action_key not in spec:
         return
 
-    if spec.get(action_key) == 'st2.callback':
+    if spec[action_key] == 'st2.callback':
         raise Exception('st2.callback is deprecated.')
 
     transformed = (spec[action_key] == 'st2.action')
