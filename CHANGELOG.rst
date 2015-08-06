@@ -12,6 +12,9 @@ in development
   [Eugen C.]
 * Correctly return 404 if user requests an invalid path which partially maps to an existing
   path. (bug-fix)
+* Add support for restarting sensors which exit with a non-zero status code to
+  the sensor container. Sensor container will now automatically try to restart
+  (up to 2 times) sensor processes which die with a non-zero status code. (improvement)
 
 0.12.1 - July 31, 2015
 ----------------------
