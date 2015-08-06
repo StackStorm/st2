@@ -13,42 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Wraps multiple ways to communicate over SSH.
-"""
+import os
+import posixpath
+import time
 
-have_paramiko = False
+import eventlet
+from oslo.config import cfg
 
-try:
-    import paramiko
-    have_paramiko = True
-except ImportError:
-    pass
+import paramiko
 
 # Depending on your version of Paramiko, it may cause a deprecation
 # warning on Python 2.6.
 # Ref: https://bugs.launchpad.net/paramiko/+bug/392973
 
-import logging
-import os
-import posixpath
-import subprocess
-import time
-import warnings
-
-import eventlet
-
 from os.path import split as psplit
 from os.path import join as pjoin
 
-from libcloud.utils.logging import ExtraLogFormatter
+from st2common.log import logging
 from libcloud.utils.py3 import StringIO
 from libcloud.utils.py3 import b
 
 __all__ = [
-    'BaseSSHClient',
     'ParamikoSSHClient',
-    'ShellOutSSHClient',
 
     'SSHCommandTimeoutError'
 ]
@@ -72,132 +58,7 @@ class SSHCommandTimeoutError(Exception):
         return self.message
 
 
-class BaseSSHClient(object):
-    """
-    Base class representing a connection over SSH/SCP to a remote node.
-    """
-
-    def __init__(self, hostname, port=22, username='root', password=None,
-                 key=None, key_files=None, timeout=None):
-        """
-        :type hostname: ``str``
-        :keyword hostname: Hostname or IP address to connect to.
-
-        :type port: ``int``
-        :keyword port: TCP port to communicate on, defaults to 22.
-
-        :type username: ``str``
-        :keyword username: Username to use, defaults to root.
-
-        :type password: ``str``
-        :keyword password: Password to authenticate with or a password used
-                           to unlock a private key if a password protected key
-                           is used.
-
-        :param key: Deprecated in favor of ``key_files`` argument.
-
-        :type key_files: ``str`` or ``list``
-        :keyword key_files: A list of paths to the private key files to use.
-        """
-        if key is not None:
-            message = ('You are using deprecated "key" argument which has '
-                       'been replaced with "key_files" argument')
-            warnings.warn(message, DeprecationWarning)
-
-            # key_files has precedent
-            key_files = key if not key_files else key_files
-
-        self.hostname = hostname
-        self.port = port
-        self.username = username
-        self.password = password
-        self.key_files = key_files
-        self.timeout = timeout
-
-    def connect(self):
-        """
-        Connect to the remote node over SSH.
-
-        :return: True if the connection has been successfully established,
-                 False otherwise.
-        :rtype: ``bool``
-        """
-        raise NotImplementedError(
-            'connect not implemented for this ssh client')
-
-    def put(self, path, contents=None, chmod=None, mode='w'):
-        """
-        Upload a file to the remote node.
-
-        :type path: ``str``
-        :keyword path: File path on the remote node.
-
-        :type contents: ``str``
-        :keyword contents: File Contents.
-
-        :type chmod: ``int``
-        :keyword chmod: chmod file to this after creation.
-
-        :type mode: ``str``
-        :keyword mode: Mode in which the file is opened.
-
-        :return: Full path to the location where a file has been saved.
-        :rtype: ``str``
-        """
-        raise NotImplementedError(
-            'put not implemented for this ssh client')
-
-    def delete(self, path):
-        """
-        Delete/Unlink a file on the remote node.
-
-        :type path: ``str``
-        :keyword path: File path on the remote node.
-
-        :return: True if the file has been successfully deleted, False
-                 otherwise.
-        :rtype: ``bool``
-        """
-        raise NotImplementedError(
-            'delete not implemented for this ssh client')
-
-    def run(self, cmd):
-        """
-        Run a command on a remote node.
-
-        :type cmd: ``str``
-        :keyword cmd: Command to run.
-
-        :return ``list`` of [stdout, stderr, exit_status]
-        """
-        raise NotImplementedError(
-            'run not implemented for this ssh client')
-
-    def close(self):
-        """
-        Shutdown connection to the remote node.
-
-        :return: True if the connection has been successfully closed, False
-                 otherwise.
-        :rtype: ``bool``
-        """
-        raise NotImplementedError(
-            'close not implemented for this ssh client')
-
-    def _get_and_setup_logger(self):
-        logger = logging.getLogger('libcloud.compute.ssh')
-        path = os.getenv('LIBCLOUD_DEBUG')
-
-        if path:
-            handler = logging.FileHandler(path)
-            handler.setFormatter(ExtraLogFormatter())
-            logger.addHandler(handler)
-            logger.setLevel(logging.DEBUG)
-
-        return logger
-
-
-class ParamikoSSHClient(BaseSSHClient):
+class ParamikoSSHClient(object):
     """
     A SSH Client powered by Paramiko.
     """
@@ -207,7 +68,7 @@ class ParamikoSSHClient(BaseSSHClient):
     # How long to sleep while waiting for command to finish
     SLEEP_DELAY = 1.5
 
-    def __init__(self, hostname, port=22, username='root', password=None,
+    def __init__(self, hostname, port=22, username=None, password=None,
                  key=None, key_files=None, key_material=None, timeout=None):
         """
         Authentication is always attempted in the following order:
@@ -224,18 +85,17 @@ class ParamikoSSHClient(BaseSSHClient):
             raise ValueError(('key_files and key_material arguments are '
                               'mutually exclusive'))
 
-        super(ParamikoSSHClient, self).__init__(hostname=hostname, port=port,
-                                                username=username,
-                                                password=password,
-                                                key=key,
-                                                key_files=key_files,
-                                                timeout=timeout)
-
+        self.hostname = hostname
+        self.port = port
+        self.username = username if username else cfg.CONF.system_user
+        self.password = password
+        self.key = key if key else cfg.CONF.system_user.ssh_key_file
+        self.key_files = key_files
+        self.timeout = timeout
         self.key_material = key_material
-
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.logger = self._get_and_setup_logger()
+        self.logger = logging.getLogger(__name__)
         self.sftp = None
 
     def connect(self):
@@ -544,104 +404,3 @@ class ParamikoSSHClient(BaseSSHClient):
 
         msg = 'Invalid or unsupported key type'
         raise paramiko.ssh_exception.SSHException(msg)
-
-
-class ShellOutSSHClient(BaseSSHClient):
-    """
-    This client shells out to "ssh" binary to run commands on the remote
-    server.
-
-    Note: This client should not be used in production.
-    """
-
-    def __init__(self, hostname, port=22, username='root', password=None,
-                 key=None, key_files=None, timeout=None):
-        super(ShellOutSSHClient, self).__init__(hostname=hostname,
-                                                port=port, username=username,
-                                                password=password,
-                                                key=key,
-                                                key_files=key_files,
-                                                timeout=timeout)
-        if self.password:
-            raise ValueError('ShellOutSSHClient only supports key auth')
-
-        child = subprocess.Popen(['ssh'], stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-        child.communicate()
-
-        if child.returncode == 127:
-            raise ValueError('ssh client is not available')
-
-        self.logger = self._get_and_setup_logger()
-
-    def connect(self):
-        """
-        This client doesn't support persistent connections establish a new
-        connection every time "run" method is called.
-        """
-        return True
-
-    def run(self, cmd):
-        return self._run_remote_shell_command([cmd])
-
-    def put(self, path, contents=None, chmod=None, mode='w'):
-        if mode == 'w':
-            redirect = '>'
-        elif mode == 'a':
-            redirect = '>>'
-        else:
-            raise ValueError('Invalid mode: ' + mode)
-
-        cmd = ['echo "%s" %s %s' % (contents, redirect, path)]
-        self._run_remote_shell_command(cmd)
-        return path
-
-    def delete(self, path):
-        cmd = ['rm', '-rf', path]
-        self._run_remote_shell_command(cmd)
-        return True
-
-    def close(self):
-        return True
-
-    def _get_base_ssh_command(self):
-        cmd = ['ssh']
-
-        if self.key_files:
-            cmd += ['-i', self.key_files]
-
-        if self.timeout:
-            cmd += ['-oConnectTimeout=%s' % (self.timeout)]
-
-        cmd += ['%s@%s' % (self.username, self.hostname)]
-
-        return cmd
-
-    def _run_remote_shell_command(self, cmd):
-        """
-        Run a command on a remote server.
-
-        :param      cmd: Command to run.
-        :type       cmd: ``list`` of ``str``
-
-        :return: Command stdout, stderr and status code.
-        :rtype: ``tuple``
-        """
-        base_cmd = self._get_base_ssh_command()
-        full_cmd = base_cmd + [' '.join(cmd)]
-
-        self.logger.debug('Executing command: "%s"' % (' '.join(full_cmd)))
-
-        child = subprocess.Popen(full_cmd, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-        stdout, stderr = child.communicate()
-        return (stdout, stderr, child.returncode)
-
-
-class MockSSHClient(BaseSSHClient):
-    pass
-
-
-SSHClient = ParamikoSSHClient
-if not have_paramiko:
-    SSHClient = MockSSHClient
