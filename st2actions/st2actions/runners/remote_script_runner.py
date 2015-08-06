@@ -137,11 +137,13 @@ class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):
         # Copy the script to remote dir in remote host.
         local_script_abs_path = remote_action.get_local_script_abs_path()
         remote_script_abs_path = remote_action.get_remote_script_abs_path()
-        extra = {'_local_script': local_script_abs_path, '_remote_script': remote_script_abs_path}
+        file_mode = 0744
+        extra = {'_local_script': local_script_abs_path, '_remote_script': remote_script_abs_path,
+                 'mode': file_mode}
         LOG.debug('Copying local script to remote box.', extra=extra)
         self._parallel_ssh_client.put(local_path=local_script_abs_path,
                                       remote_path=remote_script_abs_path,
-                                      mirror_local_mode=True)
+                                      mirror_local_mode=False, mode=file_mode)
 
         # If `lib` exist for the script, copy that to remote host.
         local_libs_path = remote_action.get_local_libs_path_abs()
