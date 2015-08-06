@@ -43,6 +43,7 @@ RUNNER_CWD = 'cwd'
 RUNNER_ENV = 'env'
 RUNNER_KWARG_OP = 'kwarg_op'
 RUNNER_TIMEOUT = 'timeout'
+RUNNER_SSH_PORT = 'port'
 
 
 class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
@@ -82,6 +83,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._username = self.runner_parameters.get(RUNNER_USERNAME, cfg.CONF.system_user.user)
         self._username = self._username or cfg.CONF.system_user.user
         self._password = self.runner_parameters.get(RUNNER_PASSWORD, None)
+        self._ssh_port = self.runner_parameters.get(RUNNER_SSH_PORT, 22)
         self._private_key = self.runner_parameters.get(RUNNER_PRIVATE_KEY, self._ssh_key_file)
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
@@ -102,14 +104,14 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
             self._parallel_ssh_client = ParallelSSHClient(
                 hosts=self._hosts,
                 user=self._username, password=self._password,
-                port=22, concurrency=concurrency, raise_on_error=False,
+                port=self._ssh_port, concurrency=concurrency, raise_on_error=False,
                 connect=True
             )
         else:
             self._parallel_ssh_client = ParallelSSHClient(
                 hosts=self._hosts,
                 user=self._username, pkey=self._ssh_key_file,
-                port=22, concurrency=concurrency, raise_on_error=False,
+                port=self._ssh_port, concurrency=concurrency, raise_on_error=False,
                 connect=True
             )
 
