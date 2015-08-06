@@ -90,9 +90,9 @@ class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):
     def run(self, action_parameters):
         remote_action = self._get_remote_action(action_parameters)
 
-        LOG.debug('Will execute remote_action : %s.', str(remote_action))
+        LOG.debug('Executing remote action.', extra={'_action_params': remote_action})
         result = self._run(remote_action)
-        LOG.debug('Executed remote_action: %s. Result is : %s.', remote_action, result)
+        LOG.debug('Executed remote action.', extra={'_result': result})
         status = self._get_result_status(result, cfg.CONF.ssh_runner.allow_partial_failure)
 
         return (status, result, None)
@@ -108,42 +108,48 @@ class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):
             _, ex, tb = sys.exc_info()
             copy_results = self._generate_error_results(' '.join([error, str(ex)]), tb)
             return copy_results
-        else:
+
+        try:
+            exec_results = self._run_script_on_remote_host(remote_action)
             try:
-                exec_results = self._run_script_on_remote_host(remote_action)
-                try:
-                    remote_dir = remote_action.get_remote_base_dir()
-                    LOG.info('Deleting dir %s', remote_dir)
-                    delete_results = self._parallel_ssh_client.delete_dir(path=remote_dir,
-                                                                          force=True)
-                    LOG.info('Delete results: %s', delete_results)
-                except:
-                    LOG.exception('Failed deleting remote dir: %s', remote_dir)
-                finally:
-                    return exec_results
+                remote_dir = remote_action.get_remote_base_dir()
+                LOG.debug('Deleting remote execution dir.', extra={'_remote_dir': remote_dir})
+                delete_results = self._parallel_ssh_client.delete_dir(path=remote_dir,
+                                                                      force=True)
+                LOG.debug('Deleted remote execution dir.', extra={'_result': delete_results})
             except:
-                error = 'Failed executing script on remote boxes.'
-                LOG.exception(error)
-                _, ex, tb = sys.exc_info()
-                exec_results = self._generate_error_results(' '.join([error, str(ex)]), tb)
+                LOG.exception('Failed deleting remote dir.', extra={'_remote_dir': remote_dir})
+            finally:
                 return exec_results
+        except:
+            error = 'Failed executing script on remote boxes.'
+            LOG.exception(error, extra={'_action_params': remote_action})
+            _, ex, tb = sys.exc_info()
+            exec_results = self._generate_error_results(' '.join([error, str(ex)]), tb)
+            return exec_results
 
     def _copy_artifacts(self, remote_action):
         # First create remote execution directory.
-        LOG.info('mkdir: %s', remote_action.get_remote_base_dir())
+        remote_dir = remote_action.get_remote_base_dir()
+        LOG.debug('Creating remote execution dir.', extra={'_path': remote_dir})
         self._parallel_ssh_client.mkdir(path=remote_action.get_remote_base_dir())
+
         # Copy the script to remote dir in remote host.
-        LOG.info('Copy: %s to %s', remote_action.get_local_script_abs_path(),
-                 remote_action.get_remote_script_abs_path())
-        self._parallel_ssh_client.put(local_path=remote_action.get_local_script_abs_path(),
-                                      remote_path=remote_action.get_remote_script_abs_path(),
+        local_script_abs_path = remote_action.get_local_script_abs_path()
+        remote_script_abs_path = remote_action.get_remote_script_abs_path()
+        extra = {'_local_script': local_script_abs_path, '_remote_script': remote_script_abs_path}
+        LOG.debug('Copying local script to remote box.', extra=extra)
+        self._parallel_ssh_client.put(local_path=local_script_abs_path,
+                                      remote_path=remote_script_abs_path,
                                       mirror_local_mode=True)
+
         # If `lib` exist for the script, copy that to remote host.
-        if os.path.exists(remote_action.get_local_libs_path_abs()):
-            LOG.info('Copy: %s to %s', remote_action.get_local_libs_path_abs(),
-                     remote_action.get_remote_libs_path_abs())
-            self._parallel_ssh_client.put(local_path=remote_action.get_local_libs_path_abs(),
-                                          remote_path=remote_action.get_remote_base_dir(),
+        local_libs_path = remote_action.get_local_libs_path_abs()
+        if os.path.exists(local_libs_path):
+            extra = {'_local_libs': local_libs_path, '_remote_path': remote_dir}
+            LOG.debug('Copying libs to remote host.', extra=extra)
+            self._parallel_ssh_client.put(local_path=local_libs_path,
+                                          remote_path=remote_dir,
                                           mirror_local_mode=True)
 
     def _run_script_on_remote_host(self, remote_action):

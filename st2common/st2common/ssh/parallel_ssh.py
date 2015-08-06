@@ -48,7 +48,7 @@ class ParallelSSHClient(object):
         if connect:
             connect_results = self.connect(raise_on_error=raise_on_error)
             extra = {'_connect_results': connect_results}
-            LOG.info('Connect to hosts complete.', extra=extra)
+            LOG.debug('Connect to hosts complete.', extra=extra)
 
     def connect(self, raise_on_error=False):
         results = {}
@@ -132,12 +132,12 @@ class ParallelSSHClient(object):
     def _connect(self, host, results, raise_on_error=False):
         (hostname, port) = self._get_host_port_info(host)
 
+        extra = {'_host': host, '_port': port, '_user': self._ssh_user}
         if not self._ssh_password:
-            LOG.info('Connecting to host: %s port: %s as user: %s key: %s', hostname, port,
-                     self._ssh_user, self._ssh_key)
+            extra['_key'] = self._ssh_key
         else:
-            LOG.info('Connecting to host: %s port: %s as user: %s password: %s', hostname,
-                     port, self._ssh_user, "<redacted>")
+            extra['_password'] = '<redacted>'
+        LOG.debug('Connecting to host.', extra=extra)
 
         client = ParamikoSSHClient(hostname, username=self._ssh_user,
                                    password=self._ssh_password,

@@ -71,9 +71,9 @@ class ParamikoRemoteCommandRunner(BaseParallelSSHRunner):
     def run(self, action_parameters):
         remote_action = self._get_remote_action(action_parameters)
 
-        LOG.debug('Will execute remote_action: %s.', str(remote_action))
+        LOG.debug('Executing remote command action.', extra={'_action_params': remote_action})
         result = self._run(remote_action)
-        LOG.debug('Executed remote_action: %s. Result is: %s.', str(remote_action), result)
+        LOG.debug('Executed remote_action.', extra={'_result': result})
         status = self._get_result_status(result, cfg.CONF.ssh_runner.allow_partial_failure)
 
         return (status, result, None)
