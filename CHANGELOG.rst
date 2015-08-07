@@ -17,6 +17,7 @@ in development
   (up to 2 times) sensor processes which die with a non-zero status code. (improvement)
 * Support for RabbitMQ cluster. StackStorm works with a RabbitMQ cluster and switches
   nodes on failover. (feature)
+* Add more indexes to the ActionExecution model to speed up query. (improvement)
 
 0.12.1 - July 31, 2015
 ----------------------
