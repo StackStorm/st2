@@ -116,7 +116,7 @@ class ProcessSensorContainer(object):
                 sensor_ids = self._sensors.keys()
 
                 if len(sensor_ids) >= 1:
-                    LOG.debug('%d active sensors' % (len(sensor_ids)))
+                    LOG.debug('%d active sensor(s)' % (len(sensor_ids)))
                     self._poll_sensors_for_results(sensor_ids)
                 else:
                     LOG.debug('No active sensors')
@@ -159,7 +159,8 @@ class ProcessSensorContainer(object):
 
                 # Try to respawn a dead process (maybe it was a simple failure which can be
                 # resolved with a restart)
-                self._respawn_sensor(sensor_id=sensor_id, sensor=sensor, exit_code=status)
+                eventlet.spawn_n(self._respawn_sensor, sensor_id=sensor_id, sensor=sensor,
+                                 exit_code=status)
             else:
                 sensor_start_time = self._sensor_start_times[sensor_id]
                 sensor_respawn_count = self._sensor_respawn_counts[sensor_id]
