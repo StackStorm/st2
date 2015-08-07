@@ -57,10 +57,7 @@ SENSOR_MAX_RESPAWN_COUNTS = 2
 SENSOR_SUCCESSFUL_START_THRESHOLD = 10
 
 # How long to wait (in seconds) before respawning a dead process
-SENSOR_RESPAWN_DELAY = 2
-
-# Backoff (in seconds) added to respawn delay before each respawn
-SENSOR_RESPAWN_BACKOFF = 1.5
+SENSOR_RESPAWN_DELAY = 2.5
 
 # TODO: Allow multiple instances of the same sensor with different configuration
 # options - we need to update sensors for that and add "get_id" or similar
@@ -360,7 +357,8 @@ class ProcessSensorContainer(object):
 
         LOG.debug('Respawning dead sensor', extra=extra)
 
-        sleep_delay = SENSOR_RESPAWN_DELAY * SENSOR_RESPAWN_BACKOFF
+        self._sensor_respawn_counts[sensor_id] += 1
+        sleep_delay = (SENSOR_RESPAWN_DELAY * self._sensor_respawn_counts[sensor_id])
         eventlet.sleep(sleep_delay)
 
         try:
@@ -370,8 +368,6 @@ class ProcessSensorContainer(object):
 
             # Disable sensor which we are unable to start
             del self._sensors[sensor_id]
-
-        self._sensor_respawn_counts[sensor_id] += 1
 
     def _should_respawn_sensor(self, sensor_id, sensor, exit_code):
         """
