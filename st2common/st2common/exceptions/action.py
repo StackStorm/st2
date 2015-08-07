@@ -13,4 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = '0.13dev'
+__all__ = [
+    'ParameterRenderingFailedException'
+]
+
+
+class ParameterRenderingFailedException(Exception):
+    pass
+
+
+class InvalidActionReferencedException(Exception):
+    pass

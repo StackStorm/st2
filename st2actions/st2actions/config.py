@@ -70,8 +70,10 @@ def _register_action_runner_opts():
                          'EXPERIMENTAL!!! USE AT YOUR OWN RISK.'),
         cfg.IntOpt('max_parallel_actions', default=50,
                    help='Max number of parallel remote SSH actions that should be run.  ' +
-                        'Works only with Paramiko SSH runner.')
-
+                        'Works only with Paramiko SSH runner.'),
+        cfg.BoolOpt('use_ssh_config',
+                    default=False,
+                    help='Use the .ssh/config file. Useful to override ports etc.')
     ]
     CONF.register_opts(ssh_runner_opts, group='ssh_runner')
 

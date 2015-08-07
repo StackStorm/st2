@@ -98,6 +98,10 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
         LOG.info('Dispatched {~}action_execution: %s / {~}live_action: %s with "%s" status.',
                  action_execution_db.id, liveaction_db.id, liveaction.status)
 
+        return self._run_action(liveaction_db)
+
+    def _run_action(self, liveaction_db):
+        extra = {'liveaction_db': liveaction_db}
         try:
             result = self.container.dispatch(liveaction_db)
             LOG.debug('Runner dispatch produced result: %s', result)

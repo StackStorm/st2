@@ -182,6 +182,51 @@ In the example above, ``to_number`` parameter contains attribute ``secret``
 which value is ``true``. If an attribute is marked as a secret, value of that
 attribute will be masked in the |st2| service logs.
 
+Parameters in actions
+~~~~~~~~~~~~~~~~~~~~~
+
+In the previous example, you probably noticed how you can access parameters from
+from key value store by using the ``system`` prefix in the template. You can also
+get access variables from the context of the execution. For example:
+
+.. code-block:: yaml
+
+    parameters:
+      user:
+        type: "string"
+        description: "User of this action."
+        required: true
+        default: "{{action_context.api_user}}"
+
+
+The prefix ``action_context`` is used to refer to variables in action context. Depending on how
+the execution is executed and nature of action (simple vs workflow), variables in action_context changes.
+
+A simple execution via the API will only contain variable ``user``. An execution triggered via
+chatops will contain variables such as ``api_user``, ``user`` and ``source_channel``. In
+chatops case, ``api_user`` is the user who's kicking off the chatops command from
+client and ``user`` is the |st2| user configured in hubot. ``source_channel`` is the channel
+in which the chatops command was kicked off.
+
+In case of action chains and workflows (see :doc:`Workflow </workflows>`), every task in the workflow could access the parent's ``execution_id``. For example, a task in action chain is
+shown below:
+
+.. code-block:: yaml
+
+    -
+      name: "c2"
+      ref: "core.local"
+      params:
+          cmd: "echo \"c2: parent exec is {{action_context.parent.execution_id}}.\""
+      on-success: "c3"
+      on-failure: "c4"
+
+
+.. note::
+
+  This is still an experimental feature and things are in the flux. You are advised not to
+  depend on them.
+
 Action Registration
 ~~~~~~~~~~~~~~~~~~~
 
