@@ -14,15 +14,16 @@
 # limitations under the License.
 
 import copy
-
+import six
 import yaml
 
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 import st2actions.bootstrap.runnersregistrar as runners_registrar
 from st2actions.runners.mistral import utils
-from st2common.models.api.action import ActionAPI
+from st2common.models.api.action import ActionAPI, RunnerTypeAPI
 from st2common.persistence.action import Action
+from st2common.persistence.runner import RunnerType
 
 
 WB_PRE_XFORM_FILE = 'wb_pre_xform.yaml'
@@ -46,6 +47,10 @@ TEST_FIXTURES = {
         'a1.yaml',
         'a2.yaml',
         'action1.yaml'
+    ],
+    'runners': [
+        'testrunner1.yaml',
+        'testrunner2.yaml'
     ]
 }
 
@@ -77,6 +82,10 @@ class DSLTransformTestCase(DbTestCase):
     def setUpClass(cls):
         super(DSLTransformTestCase, cls).setUpClass()
         runners_registrar.register_runner_types()
+
+        for _, fixture in six.iteritems(FIXTURES['runners']):
+            instance = RunnerTypeAPI(**fixture)
+            RunnerType.add_or_update(RunnerTypeAPI.to_model(instance))
 
         for file_name in ['local.yaml', 'a1.yaml', 'a2.yaml', 'action1.yaml']:
             a = ActionAPI(**copy.deepcopy(FIXTURES['actions'][file_name]))

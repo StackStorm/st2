@@ -22,6 +22,7 @@ import yaml
 
 from st2common import log as logging
 from st2common.models.system.common import ResourceReference
+from st2common.models.utils import action_param_utils
 from st2common.util import action_db as action_utils
 
 
@@ -112,24 +113,16 @@ def _eval_inline_params(spec, action_key, input_key):
             _merge_dicts(spec[input_key], inputs)
 
 
-def _validate_action_params(name, action, action_params):
+def _validate_action_parameters(name, action, action_params):
+    requires, unexpected = action_param_utils.validate_action_parameters(action.ref, action_params)
 
-    # Check required parameters that have no default defined.
-    required = set([param for param, meta in six.iteritems(action.parameters)
-                    if meta.get('required', False) and 'default' not in meta])
-
-    missing = '", "'.join(sorted(required.difference(action_params)))
-
-    if missing:
+    if requires:
         raise Exception('Missing required parameters in "%s" for action "%s": '
-                        '"%s"' % (name, action.ref, missing))
-
-    # Check unexpected parameters:
-    unexpected = '", "'.join(sorted(action_params.difference(set(action.parameters.keys()))))
+                        '"%s"' % (name, action.ref, '", "'.join(requires)))
 
     if unexpected:
         raise Exception('Unexpected parameters in "%s" for action "%s": '
-                        '"%s"' % (name, action.ref, unexpected))
+                        '"%s"' % (name, action.ref, '", "'.join(unexpected)))
 
 
 def _transform_action(name, spec):
@@ -188,8 +181,8 @@ def _transform_action(name, spec):
                 spec[input_key]['parameters'] = action_input
 
         action_input = spec.get(input_key, {})
-        action_params = set(action_input.get('parameters', {}).keys())
-        _validate_action_params(name, action, action_params)
+        action_params = action_input.get('parameters', {})
+        _validate_action_parameters(name, action, action_params)
 
 
 def transform_definition(definition):
