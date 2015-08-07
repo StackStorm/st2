@@ -23,8 +23,8 @@ EXECUTION_XCHG = Exchange('st2.execution', type='topic')
 
 class ActionExecutionPublisher(publishers.CUDPublisher):
 
-    def __init__(self, url):
-        super(ActionExecutionPublisher, self).__init__(url, EXECUTION_XCHG)
+    def __init__(self, urls):
+        super(ActionExecutionPublisher, self).__init__(urls, EXECUTION_XCHG)
 
 
 def get_queue(name=None, routing_key=None, exclusive=False):

@@ -15,6 +15,8 @@ in development
 * Add support for restarting sensors which exit with a non-zero status code to
   the sensor container. Sensor container will now automatically try to restart
   (up to 2 times) sensor processes which die with a non-zero status code. (improvement)
+* Support for RabbitMQ cluster. StackStorm works with a RabbitMQ cluster and switches
+  nodes on failover. (feature)
 
 0.12.1 - July 31, 2015
 ----------------------

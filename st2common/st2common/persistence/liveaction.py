@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
-
 from st2common import transport
 from st2common.models.db.liveaction import liveaction_access
 from st2common.persistence import base as persistence
+from st2common.transport import utils as transport_utils
 
 
 class LiveAction(persistence.StatusBasedResource):
@@ -32,5 +31,5 @@ class LiveAction(persistence.StatusBasedResource):
     def _get_publisher(cls):
         if not cls.publisher:
             cls.publisher = transport.liveaction.LiveActionPublisher(
-                cfg.CONF.messaging.url)
+                urls=transport_utils.get_messaging_urls())
         return cls.publisher

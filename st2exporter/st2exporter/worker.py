@@ -27,6 +27,7 @@ from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.marker import DumperMarker
 from st2common.transport import consumers, execution, publishers
+from st2common.transport import utils as transport_utils
 from st2common.util import isotime
 from st2exporter.exporter.dumper import Dumper
 
@@ -125,5 +126,5 @@ class ExecutionsExporter(consumers.MessageHandler):
 
 
 def get_worker():
-    with Connection(cfg.CONF.messaging.url) as conn:
+    with Connection(transport_utils.get_messaging_urls()) as conn:
         return ExecutionsExporter(conn, [EXPORTER_WORK_Q])
