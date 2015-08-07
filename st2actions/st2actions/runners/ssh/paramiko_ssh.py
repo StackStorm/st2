@@ -27,9 +27,6 @@ import paramiko
 # warning on Python 2.6.
 # Ref: https://bugs.launchpad.net/paramiko/+bug/392973
 
-from os.path import split as psplit
-from os.path import join as pjoin
-
 from st2common.log import logging
 
 
@@ -91,6 +88,8 @@ class ParamikoSSHClient(object):
         self.password = password
         self.key = key if key else cfg.CONF.system_user.ssh_key_file
         self.key_files = key_files
+        if not self.key_files and self.key:
+            self.key_files = key  # `key` arg is deprecated.
         self.timeout = timeout
         self.key_material = key_material
         self.client = paramiko.SSHClient()
@@ -99,6 +98,13 @@ class ParamikoSSHClient(object):
         self.sftp = None
 
     def connect(self):
+        """
+        Connect to the remote node over SSH.
+
+        :return: True if the connection has been successfully established,
+                 False otherwise.
+        :rtype: ``bool``
+        """
         conninfo = {'hostname': self.hostname,
                     'port': self.port,
                     'username': self.username,
@@ -130,6 +136,25 @@ class ParamikoSSHClient(object):
         return True
 
     def put(self, local_path, remote_path, mode=None, mirror_local_mode=False):
+        """
+        Upload a file to the remote node.
+
+        :type local_path: ``st``
+        :param local_path: File path on the local node.
+
+        :type remote_path: ``str``
+        :param remote_path: File path on the remote node.
+
+        :type mode: ``int``
+        :param mode: Permissions mode for the file. E.g. 0744.
+
+        :type mirror_local_mode: ``int``
+        :param mirror_local_mode: Should remote file mirror local mode.
+
+        :return: Attributes of the remote file.
+        :rtype: :class:`posix.stat_result` or ``None``
+        """
+
         extra = {'_local_path': local_path, '_remote_path': remote_path, '_mode': mode,
                  '_mirror_local_mode': mirror_local_mode}
         self.logger.debug('Uploading file', extra=extra)
@@ -139,24 +164,44 @@ class ParamikoSSHClient(object):
 
         rattrs = self.sftp.put(local_path, remote_path)
 
-        local_mode = mode
-        if not mode or mirror_local_mode:
-            local_mode = os.stat(local_path).st_mode
+        if mode or mirror_local_mode:
+            local_mode = mode
+            if not mode or mirror_local_mode:
+                local_mode = os.stat(local_path).st_mode
 
-        # Cast to octal integer in case of string
-        if isinstance(local_mode, basestring):
-            local_mode = int(local_mode, 8)
-        local_mode = local_mode & 07777
-        remote_mode = rattrs.st_mode
-        # Only bitshift if we actually got an remote_mode
-        if remote_mode is not None:
-            remote_mode = (remote_mode & 07777)
-        if local_mode != remote_mode:
-            self.sftp.chmod(remote_path, local_mode)
+            # Cast to octal integer in case of string
+            if isinstance(local_mode, basestring):
+                local_mode = int(local_mode, 8)
+            local_mode = local_mode & 07777
+            remote_mode = rattrs.st_mode
+            # Only bitshift if we actually got an remote_mode
+            if remote_mode is not None:
+                remote_mode = (remote_mode & 07777)
+            if local_mode != remote_mode:
+                self.sftp.chmod(remote_path, local_mode)
 
         return rattrs
 
     def put_dir(self, local_path, remote_path, mode=None, mirror_local_mode=False):
+        """
+        Upload a dir to the remote node.
+
+        :type local_path: ``str``
+        :param local_path: Dir path on the local node.
+
+        :type remote_path: ``str``
+        :param remote_path: Base dir path on the remote node.
+
+        :type mode: ``int``
+        :param mode: Permissions mode for the file. E.g. 0744.
+
+        :type mirror_local_mode: ``int``
+        :param mirror_local_mode: Should remote file mirror local mode.
+
+        :return: List of files created on remote node.
+        :rtype: ``list`` of ``str``
+        """
+
         extra = {'_local_path': local_path, '_remote_path': remote_path, '_mode': mode,
                  '_mirror_local_mode': mirror_local_mode}
         self.logger.debug('Uploading dir', extra=extra)
@@ -192,45 +237,15 @@ class ParamikoSSHClient(object):
 
         return remote_paths
 
-    def create_file(self, path, contents=None, chmod=None, mode='w'):
-        extra = {'_path': path, '_mode': mode, '_chmod': chmod}
-        self.logger.debug('Uploading file', extra=extra)
-
-        # less than ideal, but we need to mkdir stuff otherwise file() fails
-        head, tail = psplit(path)
-
-        if path[0] == "/":
-            self.sftp.chdir("/")
-        else:
-            # Relative path - start from a home directory (~)
-            self.sftp.chdir('.')
-
-        for part in head.split("/"):
-            if part != "":
-                try:
-                    self.sftp.mkdir(part)
-                except IOError:
-                    # so, there doesn't seem to be a way to
-                    # catch EEXIST consistently *sigh*
-                    pass
-                self.sftp.chdir(part)
-
-        cwd = self.sftp.getcwd()
-
-        ak = self.sftp.file(tail, mode=mode)
-        ak.write(contents)
-        if chmod is not None:
-            ak.chmod(chmod)
-        ak.close()
-
-        if path[0] == '/':
-            file_path = path
-        else:
-            file_path = pjoin(cwd, path)
-
-        return file_path
-
     def exists(self, remote_path):
+        """
+        Validate whether a remote file or directory exists.
+
+        :param remote_path: Path to remote file.
+        :type remote_path: ``str``
+
+        :rtype: ``bool``
+        """
         try:
             self.sftp.lstat(remote_path).st_mode
         except IOError:
@@ -239,18 +254,55 @@ class ParamikoSSHClient(object):
         return True
 
     def mkdir(self, dir_path):
+        """
+        Create a directory on remote box.
+
+        :param dir_path: Path to remote directory to be created.
+        :type dir_path: ``str``
+
+        :return: Returns nothing if successful else raises IOError exception.
+
+        :rtype: ``None``
+        """
         extra = {'_dir_path': dir_path}
         self.logger.debug('mkdir', extra=extra)
-        self.sftp.mkdir(dir_path)
-        return True
+        return self.sftp.mkdir(dir_path)
 
     def delete_file(self, path):
+        """
+        Delete a file on remote box.
+
+        :param path: Path to remote file to be deleted.
+        :type path: ``str``
+
+        :return: True if the file has been successfully deleted, False
+                 otherwise.
+        :rtype: ``bool``
+        """
+
         extra = {'_path': path}
         self.logger.debug('Deleting file', extra=extra)
         self.sftp.unlink(path)
         return True
 
     def delete_dir(self, path, force=False, timeout=None):
+        """
+        Delete a dir on remote box.
+
+        :param path: Path to remote dir to be deleted.
+        :type path: ``str``
+
+        :param force: Optional Forcefully remove dir.
+        :type force: ``bool``
+
+        :param timeout: Optional Time to wait for dir to be deleted. Only relevant for force.
+        :type timeout: ``int``
+
+        :return: True if the file has been successfully deleted, False
+                 otherwise.
+        :rtype: ``bool``
+        """
+
         extra = {'_path': path}
         if force:
             command = 'rm -rf %s' % path
