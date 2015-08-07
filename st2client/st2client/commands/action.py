@@ -299,12 +299,14 @@ class ActionRunCommandMixin(object):
                 # Top-level error
                 instance.error = top_level_error
                 instance.traceback = top_level_traceback
+                instance.result = 'See error and traceback.'
                 options['attributes'].insert(status_index + 1, 'error')
                 options['attributes'].insert(status_index + 2, 'traceback')
             elif task_error:
                 # Task error
                 instance.error = task_error
                 instance.traceback = task_traceback
+                instance.result = 'See error and traceback.'
                 instance.failed_on = tasks[-1].get('name', 'unknown')
                 options['attributes'].insert(status_index + 1, 'error')
                 options['attributes'].insert(status_index + 2, 'traceback')
