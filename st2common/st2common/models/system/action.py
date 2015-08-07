@@ -177,6 +177,7 @@ class ShellScriptAction(ShellCommandAction):
                     command = '%s %s' % (script_path, script_arguments)
                 else:
                     command = script_path
+        return command
 
     def _get_script_arguments(self, named_args=None, positional_args=None):
         """
