@@ -1,0 +1,154 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import os
+
+from mock import (patch, Mock, MagicMock)
+import unittest2
+
+from st2actions.runners.ssh.parallel_ssh import ParallelSSHClient
+from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
+import st2tests.config as tests_config
+tests_config.parse_args()
+
+
+class ParallelSSHTests(unittest2.TestCase):
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_connect_with_password(self):
+        hosts = ['localhost', '127.0.0.1']
+        client = ParallelSSHClient(hosts=hosts,
+                                   user='ubuntu',
+                                   password='ubuntu',
+                                   connect=False)
+        client.connect()
+        expected_conn = {
+            'allow_agent': False,
+            'look_for_keys': False,
+            'password': 'ubuntu',
+            'username': 'ubuntu',
+            'port': 22
+        }
+        for host in hosts:
+            expected_conn['hostname'] = host
+            client._hosts_client[host].client.connect.assert_called_once_with(**expected_conn)
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_connect_with_random_ports(self):
+        hosts = ['localhost:22', '127.0.0.1:55', 'st2build001']
+        client = ParallelSSHClient(hosts=hosts,
+                                   user='ubuntu',
+                                   password='ubuntu',
+                                   connect=False)
+        client.connect()
+        expected_conn = {
+            'allow_agent': False,
+            'look_for_keys': False,
+            'password': 'ubuntu',
+            'username': 'ubuntu',
+            'port': 22
+        }
+        for host in hosts:
+            hostname, port = client._get_host_port_info(host)
+            expected_conn['hostname'] = hostname
+            expected_conn['port'] = port
+            client._hosts_client[hostname].client.connect.assert_called_once_with(**expected_conn)
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_connect_with_key(self):
+        hosts = ['localhost', '127.0.0.1', 'st2build001']
+        client = ParallelSSHClient(hosts=hosts,
+                                   user='ubuntu',
+                                   pkey='~/.ssh/id_rsa',
+                                   connect=False)
+        client.connect()
+        expected_conn = {
+            'allow_agent': False,
+            'look_for_keys': False,
+            'key_filename': '~/.ssh/id_rsa',
+            'username': 'ubuntu',
+            'port': 22
+        }
+        for host in hosts:
+            hostname, port = client._get_host_port_info(host)
+            expected_conn['hostname'] = hostname
+            expected_conn['port'] = port
+            client._hosts_client[hostname].client.connect.assert_called_once_with(**expected_conn)
+
+    @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, 'run', MagicMock(return_value=('/home/ubuntu', '', 0)))
+    def test_run_command(self):
+        hosts = ['localhost', '127.0.0.1', 'st2build001']
+        client = ParallelSSHClient(hosts=hosts,
+                                   user='ubuntu',
+                                   pkey='~/.ssh/id_rsa',
+                                   connect=True)
+        client.run('pwd', timeout=60)
+        expected_kwargs = {
+            'timeout': 60
+        }
+        for host in hosts:
+            hostname, _ = client._get_host_port_info(host)
+            client._hosts_client[hostname].run.assert_called_with('pwd', **expected_kwargs)
+
+    @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, 'put', MagicMock(return_value={}))
+    @patch.object(os.path, 'exists', MagicMock(return_value=True))
+    def test_put(self):
+        hosts = ['localhost', '127.0.0.1', 'st2build001']
+        client = ParallelSSHClient(hosts=hosts,
+                                   user='ubuntu',
+                                   pkey='~/.ssh/id_rsa',
+                                   connect=True)
+        client.put('/local/stuff', '/remote/stuff', mode=0744)
+        expected_kwargs = {
+            'mode': 0744,
+            'mirror_local_mode': False
+        }
+        for host in hosts:
+            hostname, _ = client._get_host_port_info(host)
+            client._hosts_client[hostname].put.assert_called_with('/local/stuff', '/remote/stuff',
+                                                                  **expected_kwargs)
+
+    @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, 'delete_file', MagicMock(return_value={}))
+    def test_delete_file(self):
+        hosts = ['localhost', '127.0.0.1', 'st2build001']
+        client = ParallelSSHClient(hosts=hosts,
+                                   user='ubuntu',
+                                   pkey='~/.ssh/id_rsa',
+                                   connect=True)
+        client.delete_file('/remote/stuff')
+        for host in hosts:
+            hostname, _ = client._get_host_port_info(host)
+            client._hosts_client[hostname].delete_file.assert_called_with('/remote/stuff')
+
+    @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, 'delete_dir', MagicMock(return_value={}))
+    def test_delete_dir(self):
+        hosts = ['localhost', '127.0.0.1', 'st2build001']
+        client = ParallelSSHClient(hosts=hosts,
+                                   user='ubuntu',
+                                   pkey='~/.ssh/id_rsa',
+                                   connect=True)
+        client.delete_dir('/remote/stuff/', force=True)
+        expected_kwargs = {
+            'force': True,
+            'timeout': None
+        }
+        for host in hosts:
+            hostname, _ = client._get_host_port_info(host)
+            client._hosts_client[hostname].delete_dir.assert_called_with('/remote/stuff/',
+                                                                         **expected_kwargs)
