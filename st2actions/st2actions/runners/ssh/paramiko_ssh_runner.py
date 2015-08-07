@@ -21,11 +21,11 @@ import six
 
 from st2actions.runners import ShellRunnerMixin
 from st2actions.runners import ActionRunner
+from st2actions.runners.ssh.parallel_ssh import ParallelSSHClient
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
-from st2common.ssh.parallel_ssh import ParallelSSHClient
 
 LOG = logging.getLogger(__name__)
 

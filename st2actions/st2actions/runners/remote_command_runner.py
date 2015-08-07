@@ -18,9 +18,9 @@ import uuid
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2actions.runners.fabric_runner import BaseFabricRunner
-from st2actions.runners.fabric_runner import RUNNER_COMMAND
-from st2actions.runners.paramiko_ssh_runner import BaseParallelSSHRunner
+from st2actions.runners.ssh.fabric_runner import BaseFabricRunner
+from st2actions.runners.ssh.fabric_runner import RUNNER_COMMAND
+from st2actions.runners.ssh.paramiko_ssh_runner import BaseParallelSSHRunner
 from st2common.models.system.action import (FabricRemoteAction, RemoteAction)
 
 __all__ = [
