@@ -12,6 +12,7 @@ in development
   [Eugen C.]
 * Correctly return 404 if user requests an invalid path which partially maps to an existing
   path. (bug-fix)
+* Introduce a Paramiko SSH runner that uses eventlets to run scripts or commands in parallel. (improvement) (experimental)
 
 0.12.1 - July 31, 2015
 ----------------------
