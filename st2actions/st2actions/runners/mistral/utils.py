@@ -22,7 +22,7 @@ import yaml
 
 from st2common import log as logging
 from st2common.models.system.common import ResourceReference
-from st2common.persistence.action import Action
+from st2common.util import action_db as action_utils
 
 
 LOG = logging.getLogger(__name__)
@@ -175,9 +175,7 @@ def _transform_action(name, spec):
 
     # Identify if action is a registered StackStorm action.
     if action_ref and ResourceReference.is_resource_reference(action_ref):
-        ref = ResourceReference.from_string_reference(ref=action_ref)
-        actions = Action.query(name=ref.name, pack=ref.pack)
-        action = actions.first() if actions else None
+        action = action_utils.get_action_by_ref(ref=action_ref)
 
     # If action is a registered StackStorm action, then wrap the
     # action with the st2 proxy and validate the action input.
