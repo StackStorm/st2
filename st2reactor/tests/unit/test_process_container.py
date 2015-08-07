@@ -29,6 +29,6 @@ class ProcessContainerTests(unittest2.TestCase):
         process_container_thread = eventlet.spawn(process_container.run)
         eventlet.sleep(0.5)
         self.assertEqual(process_container.running(), 0)
-        self.assertEqual(process_container.stopped, False)
+        self.assertEqual(process_container.stopped(), False)
         process_container.shutdown()
         process_container_thread.kill()
