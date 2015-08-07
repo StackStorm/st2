@@ -8,6 +8,7 @@
 * ``password`` (string) - Password used to log in. If not provided, private key from the config file is used.
 * ``parallel`` (boolean) - Default to parallel execution.
 * ``cmd`` (string) - Arbitrary Linux command to be executed on the remote host(s).
+* ``port`` (integer) - SSH port. Note: This parameter is used only in ParamikoSSHRunner.
 * ``hosts`` (string) - A comma delimited string of a list of hosts where the remote command will be executed.
 * ``env`` (object) - Environment variables which will be available to the command(e.g. key1=val1,key2=val2)
 * ``cwd`` (string) - Working directory where the script will be executed in
