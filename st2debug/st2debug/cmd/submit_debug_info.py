@@ -426,7 +426,7 @@ def main():
     parser.add_argument('--exclude-system-info', action='store_true', default=False,
                         help='Don\'t include system information in the generated tarball')
     parser.add_argument('--yes', action='store_true', default=False,
-                        help='Run in non-interative mode and answer "yes" to all the questions')
+                        help='Run in non-interactive mode and answer "yes" to all the questions')
     parser.add_argument('--review', action='store_true', default=False,
                         help='Generate the tarball, but don\'t encrypt and upload it')
     parser.add_argument('--debug', action='store_true', default=False,
@@ -465,16 +465,14 @@ def main():
 
     # Prompt user for optional additional context info
     user_info = {}
-
-    print('If you want us to get back to you via email, you can provide additional context '
-          'such as your name, email and an optional comment')
-    value = six.moves.input('Would you like to provide additional context? [y/n] ')
-    if value.strip().lower() in ['y', 'yes']:
-        user_info['name'] = six.moves.input('Name: ')
-        user_info['email'] = six.moves.input('Email: ')
-        user_info['comment'] = six.moves.input('Comment: ')
-    else:
-        user_info = {}
+    if not args.yes:
+        print('If you want us to get back to you via email, you can provide additional context '
+              'such as your name, email and an optional comment')
+        value = six.moves.input('Would you like to provide additional context? [y/n] ')
+        if value.strip().lower() in ['y', 'yes']:
+            user_info['name'] = six.moves.input('Name: ')
+            user_info['email'] = six.moves.input('Email: ')
+            user_info['comment'] = six.moves.input('Comment: ')
 
     setup_logging()
 
