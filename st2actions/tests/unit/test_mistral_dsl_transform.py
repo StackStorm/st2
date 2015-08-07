@@ -87,9 +87,9 @@ class DSLTransformTestCase(DbTestCase):
             instance = RunnerTypeAPI(**fixture)
             RunnerType.add_or_update(RunnerTypeAPI.to_model(instance))
 
-        for file_name in ['local.yaml', 'a1.yaml', 'a2.yaml', 'action1.yaml']:
-            a = ActionAPI(**copy.deepcopy(FIXTURES['actions'][file_name]))
-            Action.add_or_update(ActionAPI.to_model(a))
+        for _, fixture in six.iteritems(FIXTURES['actions']):
+            instance = ActionAPI(**fixture)
+            Action.add_or_update(ActionAPI.to_model(instance))
 
     @staticmethod
     def _read_file_content(path):
