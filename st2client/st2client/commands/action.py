@@ -342,9 +342,6 @@ class ActionRunCommandMixin(object):
             if execution.status == 'LIVEACTION_STATUS_CANCELED':
                 return execution
 
-            if self._is_error_result(result=execution.result):
-                execution.result = self._format_error_result(execution.result)
-
         return execution
 
     def _get_top_level_error(self, live_action):
@@ -384,22 +381,6 @@ class ActionRunCommandMixin(object):
             traceback = None
 
         return error, traceback
-
-    def _is_error_result(self, result):
-        if not isinstance(result, dict):
-            return False
-
-        if 'message' not in result:
-            return False
-
-        if 'traceback' not in result:
-            return False
-
-        return True
-
-    def _format_error_result(self, result):
-        result = 'Message: %s\nTraceback: %s' % (result['message'], result['traceback'])
-        return result
 
     def _get_action_parameters_from_args(self, action, runner, args):
         """
