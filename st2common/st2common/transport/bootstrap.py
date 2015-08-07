@@ -16,7 +16,7 @@
 import logging
 import st2common.config as config
 
-from st2common.transport.utils import register_exchanges
+from st2common.transport.bootstrap_utils import register_exchanges
 
 
 def _setup():

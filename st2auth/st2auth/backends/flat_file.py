@@ -42,10 +42,10 @@ class FlatFileAuthenticationBackend(BaseAuthenticationBackend):
         :type file_path: ``str``
         """
         self._file_path = file_path
-        self._htpasswd_file = HtpasswdFile(path=self._file_path)
 
     def authenticate(self, username, password):
-        result = self._htpasswd_file.check_password(username, password)
+        htpasswd_file = HtpasswdFile(path=self._file_path)
+        result = htpasswd_file.check_password(username, password)
 
         if result is None:
             LOG.debug('User "%s" doesn\'t exist' % (username))

@@ -19,13 +19,13 @@ import six
 
 from collections import defaultdict
 from kombu import Connection
-from oslo_config import cfg
 
 from st2actions.query.base import QueryContext
 from st2common import log as logging
 from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.transport import actionexecutionstate, consumers, publishers
+from st2common.transport import utils as transport_utils
 
 
 LOG = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ class ResultsTracker(consumers.MessageHandler):
         self._print_stats()
 
     def _print_stats(self):
-        for name, querier in six.iteritems(self._queriers):
+        for _, querier in six.iteritems(self._queriers):
             if querier:
                 querier.print_stats()
 
@@ -110,5 +110,5 @@ class ResultsTracker(consumers.MessageHandler):
 
 
 def get_tracker():
-    with Connection(cfg.CONF.messaging.url) as conn:
+    with Connection(transport_utils.get_messaging_urls()) as conn:
         return ResultsTracker(conn, [ACTIONSTATE_WORK_Q])

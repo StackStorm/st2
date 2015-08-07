@@ -16,11 +16,11 @@
 import mock
 
 from kombu import Connection
-from oslo_config import cfg
 
 from st2actions.resultstracker.resultstracker import ACTIONSTATE_WORK_Q, ResultsTracker
 from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.persistence.executionstate import ActionExecutionState
+from st2common.transport import utils as transport_utils
 from st2tests.base import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
 from tests.resources.test_querymodule import TestQuerier
@@ -44,7 +44,7 @@ class ActionStateConsumerTests(EventletTestCase, DbTestCase):
 
     @mock.patch.object(TestQuerier, 'query', mock.MagicMock(return_value=(False, {})))
     def test_process_message(self):
-        with Connection(cfg.CONF.messaging.url) as conn:
+        with Connection(transport_utils.get_messaging_urls()) as conn:
             tracker = ResultsTracker(conn, [ACTIONSTATE_WORK_Q])
             tracker._bootstrap()
             state = ActionStateConsumerTests.get_state(
