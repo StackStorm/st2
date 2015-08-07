@@ -15,6 +15,7 @@
 
 import os
 import posixpath
+from StringIO import StringIO
 import time
 
 import eventlet
@@ -30,8 +31,7 @@ from os.path import split as psplit
 from os.path import join as pjoin
 
 from st2common.log import logging
-from libcloud.utils.py3 import StringIO
-from libcloud.utils.py3 import b
+
 
 __all__ = [
     'ParamikoSSHClient',
@@ -358,7 +358,7 @@ class ParamikoSSHClient(object):
             data = chan.recv(self.CHUNK_SIZE)
 
             while data:
-                stdout.write(b(data).decode('utf-8'))
+                stdout.write(str(data).decode('utf-8'))
                 ready = chan.recv_ready()
 
                 if not ready:
@@ -378,7 +378,7 @@ class ParamikoSSHClient(object):
             data = chan.recv_stderr(self.CHUNK_SIZE)
 
             while data:
-                stderr.write(b(data).decode('utf-8'))
+                stderr.write(str(data).decode('utf-8'))
                 ready = chan.recv_stderr_ready()
 
                 if not ready:
