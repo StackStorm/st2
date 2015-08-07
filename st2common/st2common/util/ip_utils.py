@@ -60,7 +60,7 @@ def is_ipv4(ip_str):
     """
     try:
         addr = ipaddr.IPAddress(ip_str)
-        return addr.version == 6
+        return addr.version == 4
     except:
         return False
 

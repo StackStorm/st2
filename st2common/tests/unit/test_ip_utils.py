@@ -52,13 +52,13 @@ class IPUtilsTests(unittest2.TestCase):
         self.assertEqual(host, 'fec2::10')
         self.assertEqual(port, 55)
 
-        # IPv4 inside bracket.
+        # IPv4 inside bracket
         host_str = '[1.2.3.4]'
         host, port = split_host_port(host_str)
         self.assertEqual(host, '1.2.3.4')
         self.assertEqual(port, None)
 
-        # IPv4 inside bracket
+        # IPv4 inside bracket and port
         host_str = '[1.2.3.4]:55'
         host, port = split_host_port(host_str)
         self.assertEqual(host, '1.2.3.4')
