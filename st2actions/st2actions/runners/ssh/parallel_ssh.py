@@ -19,8 +19,8 @@ import traceback
 
 import eventlet
 
+from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
 from st2common import log as logging
-from st2common.ssh.paramiko_ssh import ParamikoSSHClient
 import st2common.util.jsonify as jsonify
 
 LOG = logging.getLogger(__name__)
