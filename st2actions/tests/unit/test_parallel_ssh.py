@@ -152,3 +152,21 @@ class ParallelSSHTests(unittest2.TestCase):
             hostname, _ = client._get_host_port_info(host)
             client._hosts_client[hostname].delete_dir.assert_called_with('/remote/stuff/',
                                                                          **expected_kwargs)
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_host_port_info(self):
+        client = ParallelSSHClient(hosts=['dummy'],
+                                   user='ubuntu',
+                                   pkey='~/.ssh/id_rsa',
+                                   connect=True)
+        # No port case. Port should be 22.
+        host_str = '1.2.3.4'
+        host, port = client._get_host_port_info(host_str)
+        self.assertEqual(host, host_str)
+        self.assertEqual(port, 22)
+
+        # IPv6 with square brackets with port specified.
+        host_str = '[fec2::10]:55'
+        host, port = client._get_host_port_info(host_str)
+        self.assertEqual(host, 'fec2::10')
+        self.assertEqual(port, 55)

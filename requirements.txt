@@ -5,6 +5,7 @@ flask-jsonschema
 gitpython==0.3.2.1
 jinja2
 jsonschema>=2.3.0
+ipaddr
 kombu
 mongoengine>=0.8.7,<0.9
 oslo.config>=1.12.1,<1.13

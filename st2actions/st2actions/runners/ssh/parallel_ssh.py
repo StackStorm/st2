@@ -22,6 +22,7 @@ import eventlet
 from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
 from st2common import log as logging
 import st2common.util.jsonify as jsonify
+from st2common.util import ip_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ class ParallelSSHClient(object):
         self._hosts_client = {}
         self._bad_hosts = {}
         self._scan_interval = 0.1
+
         if connect:
             connect_results = self.connect(raise_on_error=raise_on_error)
             extra = {'_connect_results': connect_results}
@@ -294,15 +296,10 @@ class ParallelSSHClient(object):
             results[host] = self._generate_error_result(error, tb)
 
     def _get_host_port_info(self, host_str):
-        hostname = host_str
-        port = self._ssh_port
-        if ':' in hostname:
-            hostname, port = host_str.split(':', 1)
+        (hostname, port) = ip_utils.split_host_port(host_str)
+        if not port:
+            port = self._ssh_port
 
-        try:
-            port = int(port)
-        except:
-            raise Exception('Invalid port %s specified.' % port)
         return (hostname, port)
 
     @staticmethod
