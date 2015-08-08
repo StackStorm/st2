@@ -68,7 +68,7 @@ def is_ipv4(ip_str):
 def split_host_port(host_str):
     """
     Split host_str into host and port.
-    Can handle IPv4, IPv6, hostname inside or outside brakcets.
+    Can handle IPv4, IPv6, hostname inside or outside brackets.
 
     Note: If you want to specify a port with IPv6, you definitely
     should enclose IP address within [].
@@ -90,7 +90,7 @@ def split_host_port(host_str):
     # Check if it's square bracket style.
     match = COMPILED_BRACKET_PATTERN.match(host_str)
     if match:
-        LOG.debug('Square brakcet style.')
+        LOG.debug('Square bracket style.')
         # Check if square bracket style no port.
         match = COMPILED_HOST_ONLY_IN_BRACKET_PATTERN.match(host_str)
         if match:
