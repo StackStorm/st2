@@ -28,7 +28,7 @@ import paramiko
 # Ref: https://bugs.launchpad.net/paramiko/+bug/392973
 
 from st2common.log import logging
-
+from st2common.util.shell import quote_unix
 
 __all__ = [
     'ParamikoSSHClient',
@@ -155,6 +155,12 @@ class ParamikoSSHClient(object):
         :rtype: :class:`posix.stat_result` or ``None``
         """
 
+        if not local_path or not remote_path:
+            raise Exception('Need both local_path and remote_path. local: %s, remote: %s' %
+                            local_path, remote_path)
+        local_path = quote_unix(local_path)
+        remote_path = quote_unix(remote_path)
+
         extra = {'_local_path': local_path, '_remote_path': remote_path, '_mode': mode,
                  '_mirror_local_mode': mirror_local_mode}
         self.logger.debug('Uploading file', extra=extra)
@@ -231,6 +237,7 @@ class ParamikoSSHClient(object):
             for f in files:
                 local_path = os.path.join(context, f)
                 n = posixpath.join(rcontext, f)
+                # Note that quote_unix is done by put anyways.
                 p = self.put(local_path=local_path, remote_path=n,
                              mirror_local_mode=mirror_local_mode, mode=mode)
                 remote_paths.append(p)
@@ -264,6 +271,8 @@ class ParamikoSSHClient(object):
 
         :rtype: ``None``
         """
+
+        dir_path = quote_unix(dir_path)
         extra = {'_dir_path': dir_path}
         self.logger.debug('mkdir', extra=extra)
         return self.sftp.mkdir(dir_path)
@@ -280,6 +289,7 @@ class ParamikoSSHClient(object):
         :rtype: ``bool``
         """
 
+        path = quote_unix(path)
         extra = {'_path': path}
         self.logger.debug('Deleting file', extra=extra)
         self.sftp.unlink(path)
@@ -303,6 +313,7 @@ class ParamikoSSHClient(object):
         :rtype: ``bool``
         """
 
+        path = quote_unix(path)
         extra = {'_path': path}
         if force:
             command = 'rm -rf %s' % path
@@ -314,7 +325,7 @@ class ParamikoSSHClient(object):
         self.logger.debug('Deleting dir', extra=extra)
         return self.sftp.rmdir(path)
 
-    def run(self, cmd, timeout=None):
+    def run(self, cmd, timeout=None, quote=False):
         """
         Note: This function is based on paramiko's exec_command()
         method.
@@ -323,6 +334,10 @@ class ParamikoSSHClient(object):
                         finish (optional).
         :type timeout: ``float``
         """
+
+        if quote:
+            cmd = quote_unix(cmd)
+
         extra = {'_cmd': cmd}
         self.logger.debug('Executing command', extra=extra)
 

@@ -85,8 +85,6 @@ class ShellCommandAction(object):
         return self.timeout
 
     def get_cwd(self):
-        if self.cwd:
-            return quote_unix(self.cwd)
         return self.cwd
 
     def _get_command_string(self, cmd, args):
@@ -316,19 +314,19 @@ class RemoteScriptAction(ShellScriptAction):
         LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
 
     def get_remote_script_abs_path(self):
-        return quote_unix(self.remote_script)
+        return self.remote_script
 
     def get_local_script_abs_path(self):
-        return quote_unix(self.script_local_path_abs)
+        return self.script_local_path_abs
 
     def get_remote_libs_path_abs(self):
-        return quote_unix(self.remote_libs_path_abs)
+        return self.remote_libs_path_abs
 
     def get_local_libs_path_abs(self):
-        return quote_unix(self.script_local_libs_path_abs)
+        return self.script_local_libs_path_abs
 
     def get_remote_base_dir(self):
-        return quote_unix(self.remote_dir)
+        return self.remote_dir
 
     def _format_command(self):
         script_arguments = self._get_script_arguments(named_args=self.named_args,
