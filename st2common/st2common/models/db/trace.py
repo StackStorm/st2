@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import uuid
 import mongoengine as me
 
 from st2common.models.db import stormbase
@@ -37,7 +36,9 @@ class TraceComponentDB(me.EmbeddedDocument):
         help_text='The timestamp when the TraceComponent was included.')
 
     def __str__(self):
-        return 'TraceComponentDB@(object_id:{}, updated_at:{})'.format(self.object_id, self.updated_at)
+        return 'TraceComponentDB@(object_id:{}, updated_at:{})'.format(
+            self.object_id, self.updated_at)
+
 
 class TraceDB(stormbase.StormFoundationDB):
     """
@@ -62,14 +63,20 @@ class TraceDB(stormbase.StormFoundationDB):
                                      required=False,
                                      help_text='Associated TriggerInstances.')
     rules = me.ListField(field=me.EmbeddedDocumentField(TraceComponentDB),
-                                     required=False,
-                                     help_text='Associated Rules.')
+                         required=False,
+                         help_text='Associated Rules.')
     action_executions = me.ListField(field=me.EmbeddedDocumentField(TraceComponentDB),
                                      required=False,
                                      help_text='Associated ActionExecutions.')
-    created_at = ComplexDateTimeField(
-        default=date_utils.get_datetime_utc_now,
-        help_text='The timestamp when the Trace was created.')
+    start_timestamp = ComplexDateTimeField(default=date_utils.get_datetime_utc_now,
+                                           help_text='The timestamp when the Trace was created.')
+
+    meta = {
+        'indexes': [
+            {'fields': ['trace_id']},
+            {'fields': ['start_timestamp']}
+        ]
+    }
 
 # specialized access objects
 trace_access = MongoDBAccess(TraceDB)
