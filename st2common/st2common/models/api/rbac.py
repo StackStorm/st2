@@ -15,6 +15,7 @@
 
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
+from st2common.services.rbac import get_all_roles
 from st2common.rbac.types import PermissionType
 
 __all__ = [
@@ -95,14 +96,30 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
         'additionalProperties': False
     }
 
+    def validate(self):
+        # Parent JSON schema validation
+        super(RoleDefinitionFileFormatAPI, self).validate()
+
+        # Custom validation
+
+        # Validate that only the correct permission types are used
+        permission_grants = getattr(self, 'permission_grants', [])
+        for permission_grant in permission_grants:
+            resource_ref = permission_grant.get('resource_ref', None)
+
+            if resource_ref:
+                # TODO: Get resource type
+                # TODO: Get valid permission types
+                pass
+
 
 class UserRoleAssignmentFileFormatAPI(BaseAPI):
     schema = {
         'type': 'object',
         'properties': {
-            'name': {
+            'username': {
                 'type': 'string',
-                'description': 'Role name',
+                'description': 'Username',
                 'required': True,
                 'default': None
             },
@@ -123,3 +140,19 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
         },
         'additionalProperties': False
     }
+
+
+    def validate(self):
+        # Parent JSON schema validation
+        super(UserRoleAssignmentFileFormatAPI, self).validate()
+
+        # Custom validation
+
+        # Validate that the referenced roles exist in the db
+        role_dbs = get_all_roles()
+        role_names = [role_db.name for role_db in role_dbs]
+        roles = self.roles
+
+        for role in roles:
+            if role not in role_names:
+                raise ValueError('Role "%s" doesn\'t exist in the database' % (role))
