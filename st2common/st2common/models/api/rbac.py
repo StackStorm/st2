@@ -85,7 +85,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                                 # Note: We permission aditional validation for based on the
                                 # resource type in other place
                                 'enum': PermissionType.get_valid_values()
-                            }
+                            },
                             'default': None
                         }
                     }
@@ -117,7 +117,7 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
                 'uniqueItems': True,
                 'items': {
                     'type': 'string'
-                }
+                },
                 'required': True
             }
         },
