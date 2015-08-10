@@ -189,6 +189,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
 class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
     @jsexpose(arg_types=[str])
+    @request_user_has_permission(permission_type=PermissionType.EXECUTION_VIEW)
     def get(self, id, **kwargs):
         """
         Retrieve children for the provided action execution.
@@ -200,6 +201,7 @@ class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
 
 class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
     @jsexpose()
+    @request_user_has_permission(permission_type=PermissionType.EXECUTION_VIEW)
     def get(self, id, attribute, **kwargs):
         """
         Retrieve a particular attribute for the provided action execution.
@@ -284,6 +286,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
     }
 
     @jsexpose()
+    @request_user_has_permission(permission_type=PermissionType.EXECUTION_VIEW)
     def get_all(self, exclude_attributes=None, **kw):
         """
         List all actionexecutions.
@@ -328,6 +331,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         return self._handle_schedule_execution(liveaction=liveaction)
 
     @jsexpose(arg_types=[str])
+    @request_user_has_permission(permission_type=PermissionType.EXECUTION_DELETE)
     def delete(self, exec_id):
         """
         Stops a single execution.

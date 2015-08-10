@@ -42,6 +42,12 @@ class PermissionType(Enum):
     ACTION_EXECUTE = 'action_execute'
     ACTION_ALL = 'action_all'
 
+    # Note: Execution create is granted with "action_execute"
+    EXECUTION_VIEW = 'execution_view'
+    EXECUTION_RE_RUN = 'execution_re_run'
+    EXECUTION_DELETE = 'execution_delete'
+    EXECUTION_ALL = 'execution_all'
+
     RULE_VIEW = 'rule_view'
     RULE_CREATE = 'rule_create'
     RULE_MODIFY = 'rule_modify'
@@ -122,4 +128,5 @@ class ResourceType(Enum):
     RULE = SystemResourceType.RULE
     #  TRIGGER_TYPE = SystemResourceType.TRIGGER_TYPE
 
+    EXECUTION = SystemResourceType.EXECUTION
     KEY_VALUE = SystemResourceType.RULE

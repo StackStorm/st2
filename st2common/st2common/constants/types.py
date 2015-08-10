@@ -32,6 +32,7 @@ class ResourceType(Enum):
     TRIGGER_INSTANCE = 'trigger_instance'
     RULE = 'rule'
 
+    EXECUTION = 'execution'
     KEY_VALUE = 'key_value'
 
     UNKNOWN = 'unknown'
