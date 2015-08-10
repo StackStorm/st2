@@ -185,7 +185,7 @@ class UIDFieldMixin(object):
     the system.
     """
 
-    UID_SEPARATOR = ':'
+    UID_SEPARATOR = ':'  # TODO: Move to constants
 
     RESOURCE_TYPE = abc.abstractproperty
     UID_FIELDS = abc.abstractproperty

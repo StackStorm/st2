@@ -17,6 +17,7 @@ from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
 from st2common.services.rbac import get_all_roles
 from st2common.rbac.types import PermissionType
+from st2common.util.uid import parse_uid
 
 __all__ = [
     'RoleAPI',
@@ -105,12 +106,19 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
         # Validate that only the correct permission types are used
         permission_grants = getattr(self, 'permission_grants', [])
         for permission_grant in permission_grants:
-            resource_ref = permission_grant.get('resource_ref', None)
+            resource_uid = permission_grant.get('resource_uid', None)
+            permission_types = permission_grant.get('permission_types', [])
 
-            if resource_ref:
-                # TODO: Get resource type
-                # TODO: Get valid permission types
-                pass
+            if resource_uid:
+                resource_type, _ = parse_uid(uid=resource_uid)
+                valid_permission_types = PermissionType.get_valid_permissions_for_resource_type(
+                    resource_type=resource_type)
+
+                for permission_type in permission_types:
+                    if permission_type not in valid_permission_types:
+                        message = ('Invalid permission type "%s" for resource type "%s"' %
+                                   (permission_type, resource_type))
+                        raise ValueError(message)
 
 
 class UserRoleAssignmentFileFormatAPI(BaseAPI):

@@ -19,8 +19,7 @@ from st2common.constants.types import ResourceType as SystemResourceType
 __all__ = [
     'SystemRole',
     'PermissionType',
-    'ResourceType',
-    'ResourcePermissionType',
+    'ResourceType'
 ]
 
 
@@ -66,9 +65,7 @@ class PermissionType(Enum):
 
         :rtype: ``list``
         """
-        valid_values = cls.get_valid_values()
-        valid_permissions = [value for value in valid_values
-                             if value.lower().startswith(resource_type)]
+        valid_permissions = RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP[resource_type]
         return valid_permissions
 
     @classmethod
