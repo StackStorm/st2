@@ -15,9 +15,13 @@
 
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
+from st2common.rbac.types import PermissionType
 
 __all__ = [
-    'RoleAPI'
+    'RoleAPI',
+
+    'RoleDefinitionFileFormatAPI',
+    'UserRoleAssignmentFileFormatAPI'
 ]
 
 
@@ -36,6 +40,85 @@ class RoleAPI(BaseAPI):
             },
             'description': {
                 'type': 'string'
+            }
+        },
+        'additionalProperties': False
+    }
+
+
+class RoleDefinitionFileFormatAPI(BaseAPI):
+    """
+    JSON schema for the role definition file format.
+    """
+
+    schema = {
+        'type': 'object',
+        'properties': {
+            'name': {
+                'type': 'string',
+                'description': 'Role name',
+                'required': True,
+                'default': None
+            },
+            'description': {
+                'type': 'string',
+                'description': 'Role description',
+                'required': False
+            },
+            'permission_grants': {
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'resource_ref': {
+                            'type': 'string',
+                            'description': 'Resource to which this grant applies to. Can be empty if it\'s a global permission',
+                            'required': False,
+                            'default': None
+                        },
+                        'permission_types': {
+                            'type': 'array',
+                            'description': 'A list of permission types to grant',
+                            'uniqueItems': True,
+                            'items': {
+                                'type': 'string',
+                                # Note: We permission aditional validation for based on the
+                                # resource type in other place
+                                'enum': PermissionType.get_valid_values()
+                            }
+                            'default': None
+                        }
+                    }
+                }
+            }
+        },
+        'additionalProperties': False
+    }
+
+
+class UserRoleAssignmentFileFormatAPI(BaseAPI):
+    schema = {
+        'type': 'object',
+        'properties': {
+            'name': {
+                'type': 'string',
+                'description': 'Role name',
+                'required': True,
+                'default': None
+            },
+            'description': {
+                'type': 'string',
+                'description': 'Assignment description',
+                'required': False
+            },
+            'roles': {
+                'type': 'array',
+                'description': 'Roles assigned to this user',
+                'uniqueItems': True,
+                'items': {
+                    'type': 'string'
+                }
+                'required': True
             }
         },
         'additionalProperties': False
