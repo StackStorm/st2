@@ -53,6 +53,7 @@ and WebUI url:
 .. toctree::
     :maxdepth: 1
 
+    All-in-one Installation <all_in_one>
     Ubuntu / Debian <deb>
     RedHat / Fedora <rpm>
     Vagrant <vagrant>
