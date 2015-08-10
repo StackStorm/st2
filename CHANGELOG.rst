@@ -19,6 +19,8 @@ in development
   nodes on failover. (feature)
 * Add more indexes to the ActionExecution model to speed up query. (improvement)
 * Introduce a Paramiko SSH runner that uses eventlets to run scripts or commands in parallel. (improvement) (experimental)
+* Add action parameters validation to Mistral workflow on invocation. (improvement)
+* Fix key name for error message in liveaction result. (bug-fix)
 
 0.12.1 - July 31, 2015
 ----------------------

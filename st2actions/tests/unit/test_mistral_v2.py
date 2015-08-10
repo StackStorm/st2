@@ -322,7 +322,7 @@ class TestMistralRunner(DbTestCase):
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
-        self.assertIn('Failed to connect to mistral', liveaction.result['message'])
+        self.assertIn('Failed to connect to mistral', liveaction.result['error'])
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -437,7 +437,7 @@ class TestMistralRunner(DbTestCase):
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
-        self.assertIn('Multiple workflows is not supported.', liveaction.result['message'])
+        self.assertIn('Multiple workflows is not supported.', liveaction.result['error'])
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -452,7 +452,7 @@ class TestMistralRunner(DbTestCase):
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
-        self.assertIn('Name of the workflow must be the same', liveaction.result['message'])
+        self.assertIn('Name of the workflow must be the same', liveaction.result['error'])
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -529,7 +529,7 @@ class TestMistralRunner(DbTestCase):
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
-        self.assertIn('Default workflow cannot be determined.', liveaction.result['message'])
+        self.assertIn('Default workflow cannot be determined.', liveaction.result['error'])
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -597,7 +597,7 @@ class TestMistralRunner(DbTestCase):
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
-        self.assertIn('Name of the workbook must be the same', liveaction.result['message'])
+        self.assertIn('Name of the workbook must be the same', liveaction.result['error'])
 
     @mock.patch.object(
         requests, 'request',

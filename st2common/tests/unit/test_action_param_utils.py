@@ -16,8 +16,11 @@
 
 import copy
 
-from unittest2 import TestCase
 from st2common.models.utils import action_param_utils
+from st2common.models.api.action import RunnerTypeAPI, ActionAPI
+from st2common.persistence.action import Action
+from st2common.persistence.runner import RunnerType
+from st2tests.base import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
 
@@ -28,13 +31,19 @@ TEST_MODELS = {
     'runners': ['testrunner1.yaml']
 }
 
-FIXTURES = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
-                                        fixtures_dict=TEST_MODELS)
+FIXTURES = FixturesLoader().load_fixtures(fixtures_pack=FIXTURES_PACK,
+                                          fixtures_dict=TEST_MODELS)
 
 
-class ActionParamsUtilsTest(TestCase):
-    action_db = FIXTURES['actions']['action1.yaml']
-    runnertype_db = FIXTURES['runners']['testrunner1.yaml']
+class ActionParamsUtilsTest(DbTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(ActionParamsUtilsTest, cls).setUpClass()
+        cls.runnertype = RunnerTypeAPI(**FIXTURES['runners']['testrunner1.yaml'])
+        cls.runnertype_db = RunnerType.add_or_update(RunnerTypeAPI.to_model(cls.runnertype))
+        cls.action = ActionAPI(**FIXTURES['actions']['action1.yaml'])
+        cls.action_db = Action.add_or_update(ActionAPI.to_model(cls.action))
 
     def test_merge_action_runner_params_meta(self):
         required, optional, immutable = action_param_utils.get_params_view(
@@ -81,3 +90,10 @@ class ActionParamsUtilsTest(TestCase):
         self.assertEqual(merged_meta['default'], action_meta['default'])
         # Immutability is set in action.
         self.assertEqual(merged_meta['immutable'], action_meta['immutable'])
+
+    def test_validate_action_inputs(self):
+        requires, unexpected = action_param_utils.validate_action_parameters(
+            self.action_db.ref, {'foo': 'bar'})
+
+        self.assertListEqual(requires, ['actionstr'])
+        self.assertListEqual(unexpected, ['foo'])
