@@ -17,6 +17,8 @@
 RBAC related utility functions.
 """
 
+import six
+
 from oslo_config import cfg
 
 from st2common.constants.rbac import SystemRole
@@ -56,6 +58,9 @@ def request_user_has_role(request, role):
     """
     Check if the logged-in request user has the provided role.
 
+    :param role: Name of the role to check for.
+    :type role: ``str``
+
     :rtype: ``bool``
     """
     # TODO: Once RBAC is implemented, we should not support running production (non-dev)
@@ -64,7 +69,7 @@ def request_user_has_role(request, role):
         return True
 
     user_db = _get_user_db_from_request(request=request)
-    return user_has_role(user_db=user_db, role=role)
+    return user_has_role(user_db=user_db, name=role)
 
 
 def request_user_has_permission(request, permission_type):
@@ -143,20 +148,25 @@ def user_is_admin(user_db):
     return user_has_role(user_db=user_db, role=SystemRole.ADMIN)
 
 
-def user_has_role(user_db, name):
+def user_has_role(user_db, role):
     """
     :param user: User object to check for.
     :type user: :class:`UserDB`
 
-    :param name: Role name to check for.
-    :type name: ``str``
+    :param role: Role name to check for.
+    :type role: ``str``
 
     :rtype: ``bool``
     """
+    assert isinstance(role, six.string_types)
+
+    if not cfg.CONF.rbac.enable:
+        return True
+
     user_role_dbs = rbac_services.get_roles_for_user(user_db=user_db)
     user_role_names = [role_db.name for role_db in user_role_dbs]
 
-    return name in user_role_names
+    return role in user_role_names
 
 
 def user_has_permission(user_db, permission_type):

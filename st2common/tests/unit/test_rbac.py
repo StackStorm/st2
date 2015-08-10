@@ -17,6 +17,7 @@ import unittest2
 from oslo_config import cfg
 
 from st2tests import config
+from st2tests.base import CleanDbTestCase
 from st2common.rbac import utils
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
@@ -24,12 +25,14 @@ from st2common.models.db.auth import UserDB
 from st2common.models.db.rule import RuleDB
 
 
-class RBACUtilsTestCase(unittest2.TestCase):
+class RBACUtilsTestCase(CleanDbTestCase):
     @classmethod
     def setUpClass(cls):
+        super(RBACUtilsTestCase, cls).setUpClass()
         config.parse_args()
 
     def setUp(self):
+        super(RBACUtilsTestCase, self).setUp()
         self.mocks = {}
 
         user_db = UserDB(name='test1')
