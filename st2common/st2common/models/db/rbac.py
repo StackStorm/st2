@@ -57,6 +57,7 @@ class UserRoleAssignmentDB(stormbase.StormFoundationDB):
     """
     user = me.StringField(required=True)
     role = me.StringField(required=True, unique_with='user')
+    description = me.StringField()
 
 
 class PermissionGrantDB(stormbase.StormFoundationDB):
