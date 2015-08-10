@@ -18,6 +18,7 @@ in development
 * Support for RabbitMQ cluster. StackStorm works with a RabbitMQ cluster and switches
   nodes on failover. (feature)
 * Add more indexes to the ActionExecution model to speed up query. (improvement)
+* Introduce a Paramiko SSH runner that uses eventlets to run scripts or commands in parallel. (improvement) (experimental)
 
 0.12.1 - July 31, 2015
 ----------------------
