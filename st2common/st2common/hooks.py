@@ -27,6 +27,7 @@ from st2common.persistence.auth import User
 from st2common.exceptions import db as db_exceptions
 from st2common.exceptions import auth as auth_exceptions
 from st2common.exceptions import rbac as rbac_exceptions
+from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.util.jsonify import json_encode
 from st2common.util.auth import validate_token
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
@@ -185,7 +186,7 @@ class JSONErrorResponseHook(PecanHook):
         elif isinstance(e, rbac_exceptions.AccessDeniedError):
             status_code = httplib.FORBIDDEN
             message = str(e)
-        elif isinstance(e, ValueError):
+        elif isinstance(e, (ValueValidationException, ValueError)):
             status_code = httplib.BAD_REQUEST
             message = getattr(e, 'message', str(e))
         else:

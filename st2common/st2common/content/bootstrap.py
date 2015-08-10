@@ -22,7 +22,7 @@ from st2common import config
 from st2common.service_setup import db_setup
 from st2common.service_setup import db_teardown
 from st2common.logging.filters import LogLevelFilter
-from st2common.transport.utils import register_exchanges
+from st2common.transport.bootstrap_utils import register_exchanges
 
 
 LOG = logging.getLogger('st2common.content.bootstrap')

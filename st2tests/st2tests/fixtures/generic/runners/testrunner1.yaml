@@ -19,6 +19,14 @@ runner_parameters:
   runnerint:
     description: Foo int param.
     type: number
+  runnerdefaultint:
+    default: 60
+    description: Default integer param.
+    type: integer
+  defaults_ovverriden_by_execution:
+    default: 90
+    description: Will be overridden by action and then by live execution.
+    type: integer
   runnerstr:
     default: defaultfoo
     description: Foo str param.

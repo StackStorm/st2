@@ -15,10 +15,9 @@
 
 from kombu import Exchange, Queue
 
-from oslo_config import cfg
-
 from st2common import log as logging
 from st2common.transport import publishers
+from st2common.transport import utils as transport_utils
 
 __all__ = [
     'TriggerCUDPublisher',
@@ -48,8 +47,8 @@ class SensorCUDPublisher(publishers.CUDPublisher):
     Publisher responsible for publishing Trigger model CUD events.
     """
 
-    def __init__(self, url):
-        super(SensorCUDPublisher, self).__init__(url, SENSOR_CUD_XCHG)
+    def __init__(self, urls):
+        super(SensorCUDPublisher, self).__init__(urls, SENSOR_CUD_XCHG)
 
 
 class TriggerCUDPublisher(publishers.CUDPublisher):
@@ -57,13 +56,13 @@ class TriggerCUDPublisher(publishers.CUDPublisher):
     Publisher responsible for publishing Trigger model CUD events.
     """
 
-    def __init__(self, url):
-        super(TriggerCUDPublisher, self).__init__(url, TRIGGER_CUD_XCHG)
+    def __init__(self, urls):
+        super(TriggerCUDPublisher, self).__init__(urls, TRIGGER_CUD_XCHG)
 
 
 class TriggerInstancePublisher(object):
-    def __init__(self, url):
-        self._publisher = publishers.PoolPublisher(url=url)
+    def __init__(self, urls):
+        self._publisher = publishers.PoolPublisher(urls=urls)
 
     def publish_trigger(self, payload=None, routing_key=None):
         # TODO: We should use trigger reference as a routing key
@@ -76,7 +75,7 @@ class TriggerDispatcher(object):
     """
 
     def __init__(self, logger=LOG):
-        self._publisher = TriggerInstancePublisher(url=cfg.CONF.messaging.url)
+        self._publisher = TriggerInstancePublisher(urls=transport_utils.get_messaging_urls())
         self._logger = logger
 
     def dispatch(self, trigger, payload=None):

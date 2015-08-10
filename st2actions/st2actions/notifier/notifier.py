@@ -28,6 +28,7 @@ from st2common import policies
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.transport import consumers, liveaction, publishers
+from st2common.transport import utils as transport_utils
 from st2common.transport.reactor import TriggerDispatcher
 
 __all__ = [
@@ -189,5 +190,5 @@ class Notifier(consumers.MessageHandler):
 
 
 def get_notifier():
-    with Connection(cfg.CONF.messaging.url) as conn:
+    with Connection(transport_utils.get_messaging_urls()) as conn:
         return Notifier(conn, [ACTIONUPDATE_WORK_Q], trigger_dispatcher=TriggerDispatcher(LOG))

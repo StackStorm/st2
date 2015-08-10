@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from kombu import Connection
-from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
@@ -25,6 +24,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.policy import Policy
 from st2common import policies
 from st2common.transport import consumers, liveaction
+from st2common.transport import utils as transport_utils
 from st2common.util import action_db as action_utils
 
 __all__ = [
@@ -96,5 +96,5 @@ class ActionExecutionScheduler(consumers.MessageHandler):
 
 
 def get_scheduler():
-    with Connection(cfg.CONF.messaging.url) as conn:
+    with Connection(transport_utils.get_messaging_urls()) as conn:
         return ActionExecutionScheduler(conn, [ACTIONRUNNER_REQUEST_Q])

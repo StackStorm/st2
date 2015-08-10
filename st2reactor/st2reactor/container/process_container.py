@@ -19,6 +19,8 @@ import time
 import json
 import subprocess
 
+from collections import defaultdict
+
 import eventlet
 from eventlet.support import greenlets as greenlet
 
@@ -47,6 +49,16 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WRAPPER_SCRIPT_NAME = 'sensor_wrapper.py'
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 
+# How many times to try to subsequently respawn a sensor after a non-zero exit before giving up
+SENSOR_MAX_RESPAWN_COUNTS = 2
+
+# How many seconds after the sensor has been started we should wait before considering sensor as
+# being started and running successfuly
+SENSOR_SUCCESSFUL_START_THRESHOLD = 10
+
+# How long to wait (in seconds) before respawning a dead process
+SENSOR_RESPAWN_DELAY = 2.5
+
 # TODO: Allow multiple instances of the same sensor with different configuration
 # options - we need to update sensors for that and add "get_id" or similar
 # method to the sensor class
@@ -61,65 +73,110 @@ class ProcessSensorContainer(object):
         """
         :param sensors: A list of sensor dicts.
         :type sensors: ``list`` of ``dict``
+
+        :param poll_interval: How long to sleep between each poll for running / dead sensors.
+        :type poll_interval: ``float``
         """
+        self._poll_interval = poll_interval
+
         self._sensors = {}  # maps sensor_id -> sensor object
         self._processes = {}  # maps sensor_id -> sensor process
+
         self._dispatcher = TriggerDispatcher(LOG)
-        self.poll_interval = poll_interval
-        self.stopped = False
+        self._stopped = False
 
         sensors = sensors or []
-
         for sensor_obj in sensors:
             sensor_id = self._get_sensor_id(sensor=sensor_obj)
             self._sensors[sensor_id] = sensor_obj
+
+        # Stores information needed for respawning dead sensors
+        self._sensor_start_times = {}  # maps sensor_id -> sensor start time
+        self._sensor_respawn_counts = defaultdict(int)  # maps sensor_id -> number of respawns
+
+        # A list of all the instance variables which hold internal state information about a
+        # particular_sensor
+        # Note: We don't clear respawn counts since we want to track this through the whole life
+        # cycle of the container manager
+        self._internal_sensor_state_variables = [
+            self._processes,
+            self._sensors,
+            self._sensor_start_times,
+        ]
 
     def run(self):
         self._run_all_sensors()
 
         try:
-            while not self.stopped:
+            while not self._stopped:
                 # Poll for all running processes
                 sensor_ids = self._sensors.keys()
 
                 if len(sensor_ids) >= 1:
+                    LOG.debug('%d active sensor(s)' % (len(sensor_ids)))
                     self._poll_sensors_for_results(sensor_ids)
+                else:
+                    LOG.debug('No active sensors')
 
-                eventlet.sleep(self.poll_interval)
+                eventlet.sleep(self._poll_interval)
         except greenlet.GreenletExit:
             # This exception is thrown when sensor container manager
             # kills the thread which runs process container. Not sure
             # if this is the best thing to do.
-            self.stopped = True
+            self._stopped = True
             return SUCCESS_EXIT_CODE
         except:
             LOG.exception('Container failed to run sensors.')
-            self.stopped = True
+            self._stopped = True
             return FAILURE_EXIT_CODE
 
-        self.stopped = True
+        self._stopped = True
         LOG.error('Process container quit. It shouldn\'t.')
+        return SUCCESS_EXIT_CODE
 
     def _poll_sensors_for_results(self, sensor_ids):
+        """
+        Main loop which polls sensor for results and detects dead sensors.
+        """
         for sensor_id in sensor_ids:
+            now = int(time.time())
+
             process = self._processes[sensor_id]
             status = process.poll()
 
             if status is not None:
                 # Dead process detected
-                LOG.info('Process for sensor %s has exited with code %s',
-                         self._sensors[sensor_id]['ref'], status)
+                LOG.info('Process for sensor %s has exited with code %s', sensor_id, status)
+
                 sensor = self._sensors[sensor_id]
+                self._delete_sensor(sensor_id)
+
                 self._dispatch_trigger_for_sensor_exit(sensor=sensor,
                                                        exit_code=status)
-                self._delete_sensors(sensor_id)
+
+                # Try to respawn a dead process (maybe it was a simple failure which can be
+                # resolved with a restart)
+                eventlet.spawn_n(self._respawn_sensor, sensor_id=sensor_id, sensor=sensor,
+                                 exit_code=status)
+            else:
+                sensor_start_time = self._sensor_start_times[sensor_id]
+                sensor_respawn_count = self._sensor_respawn_counts[sensor_id]
+                successfuly_started = (now - sensor_start_time) >= SENSOR_SUCCESSFUL_START_THRESHOLD
+
+                if successfuly_started and sensor_respawn_count >= 1:
+                    # Sensor has been successfully running more than threshold seconds, clear the
+                    # respawn counter so we can try to restart the sensor if it dies later on
+                    self._sensor_respawn_counts[sensor_id] = 0
 
     def running(self):
         return len(self._processes)
 
+    def stopped(self):
+        return self._stopped
+
     def shutdown(self):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
-        self.stopped = True
+        self._stopped = True
 
         sensor_ids = self._sensors.keys()
         for sensor_id in sensor_ids:
@@ -241,8 +298,12 @@ class ProcessSensorContainer(object):
                        (sensor_id, cmd, str(e)))
             raise Exception(message)
 
-        self._dispatch_trigger_for_sensor_spawn(sensor=sensor, process=process, cmd=cmd)
         self._processes[sensor_id] = process
+        self._sensors[sensor_id] = sensor
+        self._sensor_start_times[sensor_id] = int(time.time())
+
+        self._dispatch_trigger_for_sensor_spawn(sensor=sensor, process=process, cmd=cmd)
+
         return process
 
     def _stop_sensor_process(self, sensor_id, exit_timeout=5):
@@ -280,7 +341,48 @@ class ProcessSensorContainer(object):
             # Process hasn't exited yet, forcefully kill it
             process.kill()
 
-        self._delete_sensors(sensor_id)
+        self._delete_sensor(sensor_id)
+
+    def _respawn_sensor(self, sensor_id, sensor, exit_code):
+        """
+        Method for respawning a sensor which died with a non-zero exit code.
+        """
+        extra = {'sensor_id': sensor_id, 'sensor': sensor}
+
+        should_respawn = self._should_respawn_sensor(sensor_id=sensor_id, sensor=sensor,
+                                                     exit_code=exit_code)
+        if not should_respawn:
+            LOG.debug('Not respawning a dead sensor', extra=extra)
+            return
+
+        LOG.debug('Respawning dead sensor', extra=extra)
+
+        self._sensor_respawn_counts[sensor_id] += 1
+        sleep_delay = (SENSOR_RESPAWN_DELAY * self._sensor_respawn_counts[sensor_id])
+        eventlet.sleep(sleep_delay)
+
+        try:
+            self._spawn_sensor_process(sensor=sensor)
+        except Exception as e:
+            LOG.warning(e.message, exc_info=True)
+
+            # Disable sensor which we are unable to start
+            del self._sensors[sensor_id]
+
+    def _should_respawn_sensor(self, sensor_id, sensor, exit_code):
+        """
+        Return True if the provided sensor should be respawned, False otherwise.
+        """
+        if exit_code == 0:
+            # We only try to respawn sensors which exited with non-zero status code
+            return False
+
+        respawn_count = self._sensor_respawn_counts[sensor_id]
+        if respawn_count >= SENSOR_MAX_RESPAWN_COUNTS:
+            LOG.debug('Sensor has already been respawned max times, giving up')
+            return False
+
+        return True
 
     def _get_sensor_id(self, sensor):
         """
@@ -312,8 +414,10 @@ class ProcessSensorContainer(object):
         }
         self._dispatcher.dispatch(trigger, payload=payload)
 
-    def _delete_sensors(self, sensor_id):
-        if sensor_id in self._processes:
-            del self._processes[sensor_id]
-        if sensor_id in self._sensors:
-            del self._sensors[sensor_id]
+    def _delete_sensor(self, sensor_id):
+        """
+        Delete / reset all the internal state about a particular sensor.
+        """
+        for var in self._internal_sensor_state_variables:
+            if sensor_id in var:
+                del var[sensor_id]

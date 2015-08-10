@@ -16,12 +16,12 @@
 import kombu
 import mock
 import mongoengine as me
-from oslo_config import cfg
 
 from st2common.models import db
 from st2common.models.db import stormbase
 from st2common.persistence import base as persistence
 from st2common.transport import publishers
+from st2common.transport import utils as transport_utils
 from st2tests import DbTestCase
 
 
@@ -48,7 +48,7 @@ class FakeModel(persistence.Access):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = FakeModelPublisher(cfg.CONF.messaging.url)
+            cls.publisher = FakeModelPublisher(transport_utils.get_messaging_urls())
         return cls.publisher
 
     @classmethod

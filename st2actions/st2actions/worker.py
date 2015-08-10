@@ -17,7 +17,6 @@ import sys
 import traceback
 
 from kombu import Connection
-from oslo_config import cfg
 
 from st2actions.container.base import RunnerContainer
 from st2common import log as logging
@@ -27,6 +26,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.services import executions
 from st2common.transport import consumers, liveaction
+from st2common.transport import utils as transport_utils
 from st2common.util import action_db as action_utils
 from st2common.util import system_info
 
@@ -123,5 +123,5 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
 
 
 def get_worker():
-    with Connection(cfg.CONF.messaging.url) as conn:
+    with Connection(transport_utils.get_messaging_urls()) as conn:
         return ActionExecutionDispatcher(conn, [ACTIONRUNNER_WORK_Q])

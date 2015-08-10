@@ -7,6 +7,26 @@ in development
 * Add new OpenStack Keystone authentication backend.
   [Itxaka Serrano]
 * Information about parent workflow is now a dict in child's context field. (improvement)
+* Fix a bug when some runner parameter default values where not overridden when a
+  falsey value was used in the action metadata parameter override (e.g. False, 0).
+  [Eugen C.]
+* Correctly return 404 if user requests an invalid path which partially maps to an existing
+  path. (bug-fix)
+* Add support for restarting sensors which exit with a non-zero status code to
+  the sensor container. Sensor container will now automatically try to restart
+  (up to 2 times) sensor processes which die with a non-zero status code. (improvement)
+* Support for RabbitMQ cluster. StackStorm works with a RabbitMQ cluster and switches
+  nodes on failover. (feature)
+* Add more indexes to the ActionExecution model to speed up query. (improvement)
+* Introduce a Paramiko SSH runner that uses eventlets to run scripts or commands in parallel. (improvement) (experimental)
+
+0.12.1 - July 31, 2015
+----------------------
+
+* Un-registering a pack also removes ``rules`` and ``action aliases`` from the pack. (bug-fix)
+* Disable parallel SSH in fabric runner which causes issues with eventlets. (bug-fix)
+* Fix executions stuck in ``running`` state if runner container throws exception. (bug-fix)
+* Fix cases where liveaction result in dict are escaped and passed to Mistral. (bug-fix)
 
 0.12.0 - July 20, 2015
 ----------------------
@@ -48,6 +68,18 @@ in development
 * Move /exp/actionalias/ and /exp/aliasexecution to /v1/actionalias/ and /v1/aliasexecution/
   respectively. (upgrade)
 * Display friendly message for error in parameters validation on action execution. (improvement)
+
+0.11.6 - July 2, 2015
+---------------------
+
+* Update all the code to handle all the datetime objects internally in UTC. (improvement, bug-fix)
+
+0.11.5 - July 1, 2015
+---------------------
+
+* Fix a bug where ``end_timestamp`` is not captured for Mistral workflow executions (bug-fix)
+* Fix a bug where the CLI failed to display Mistral workflow that errored (bug-fix)
+* Fix a bug where the published variables is not captured in the Mistral workflow result (bug-fix)
 
 0.11.4 - June 30, 2015
 ----------------------

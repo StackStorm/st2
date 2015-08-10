@@ -15,9 +15,9 @@
 
 import mock
 from kombu import Connection, Exchange, Queue
-from oslo_config import cfg
 
 from st2common.transport import consumers
+from st2common.transport import utils as transport_utils
 from st2tests.base import DbTestCase
 from tests.unit.base import FakeModelDB
 
@@ -34,7 +34,7 @@ class FakeMessageHandler(consumers.MessageHandler):
 
 
 def get_handler():
-    with Connection(cfg.CONF.messaging.url) as conn:
+    with Connection(transport_utils.get_messaging_urls()) as conn:
         return FakeMessageHandler(conn, [FAKE_WORK_Q])
 
 

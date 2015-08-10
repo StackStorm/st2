@@ -83,11 +83,9 @@ class ActionsController(resource.ContentPackResourceController):
         if not hasattr(action, 'pack'):
             setattr(action, 'pack', DEFAULT_PACK_NAME)
 
-        try:
-            action_validator.validate_action(action)
-        except ValueValidationException as e:
-            abort(http_client.BAD_REQUEST, str(e))
-            return
+        # Perform validation
+        validate_not_part_of_system_pack(action)
+        action_validator.validate_action(action)
 
         action_model = ActionAPI.to_model(action)
 
@@ -109,19 +107,12 @@ class ActionsController(resource.ContentPackResourceController):
         # Assert permissions
         action_id = action_db.id
 
-        try:
-            validate_not_part_of_system_pack(action_db)
-        except ValueValidationException as e:
-            abort(http_client.BAD_REQUEST, str(e))
-
         if not getattr(action, 'pack', None):
             action.pack = action_db.pack
 
-        try:
-            action_validator.validate_action(action)
-        except ValueValidationException as e:
-            abort(http_client.BAD_REQUEST, str(e))
-            return
+        # Perform validation
+        validate_not_part_of_system_pack(action)
+        action_validator.validate_action(action)
 
         try:
             action_db = ActionAPI.to_model(action)

@@ -81,6 +81,12 @@ class ShellCommandAction(object):
 
         return command
 
+    def get_timeout(self):
+        return self.timeout
+
+    def get_cwd(self):
+        return self.cwd
+
     def _get_command_string(self, cmd, args):
         """
         Escape the command arguments and form a command string.
@@ -139,9 +145,11 @@ class ShellScriptAction(ShellCommandAction):
         self.positional_args = positional_args
 
     def get_full_command_string(self):
+        return self._format_command()
+
+    def _format_command(self):
         script_arguments = self._get_script_arguments(named_args=self.named_args,
                                                       positional_args=self.positional_args)
-
         if self.sudo:
             if script_arguments:
                 command = quote_unix('%s %s' % (self.script_local_path_abs, script_arguments))
@@ -167,7 +175,6 @@ class ShellScriptAction(ShellCommandAction):
                     command = '%s %s' % (script_path, script_arguments)
                 else:
                     command = script_path
-
         return command
 
     def _get_script_arguments(self, named_args=None, positional_args=None):
@@ -277,6 +284,7 @@ class RemoteAction(SSHCommandAction):
         str_rep.append('sudo: %s' % str(self.sudo))
         str_rep.append('parallel: %s' % str(self.parallel))
         str_rep.append('hosts: %s)' % str(self.hosts))
+        str_rep.append('timeout: %s)' % str(self.timeout))
 
         return ', '.join(str_rep)
 
@@ -304,6 +312,21 @@ class RemoteScriptAction(ShellScriptAction):
         self.parallel = parallel
         self.command = self._format_command()
         LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
+
+    def get_remote_script_abs_path(self):
+        return self.remote_script
+
+    def get_local_script_abs_path(self):
+        return self.script_local_path_abs
+
+    def get_remote_libs_path_abs(self):
+        return self.remote_libs_path_abs
+
+    def get_local_libs_path_abs(self):
+        return self.script_local_libs_path_abs
+
+    def get_remote_base_dir(self):
+        return self.remote_dir
 
     def _format_command(self):
         script_arguments = self._get_script_arguments(named_args=self.named_args,

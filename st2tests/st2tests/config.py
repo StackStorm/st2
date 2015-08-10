@@ -108,7 +108,9 @@ def _register_api_opts():
 
     messaging_opts = [
         cfg.StrOpt('url', default='amqp://guest:guest@localhost:5672//',
-                   help='URL of the messaging server.')
+                   help='URL of the messaging server.'),
+        cfg.ListOpt('cluster_urls', default=[],
+                    help='URL of all the nodes in a messaging service cluster.')
     ]
     _register_opts(messaging_opts, group='messaging')
 
@@ -118,7 +120,10 @@ def _register_api_opts():
                    help='Location of the script on the remote filesystem.'),
         cfg.BoolOpt('allow_partial_failure',
                     default=False,
-                    help='How partial success of actions run on multiple nodes should be treated.')
+                    help='How partial success of actions run on multiple nodes should be treated.'),
+        cfg.BoolOpt('use_ssh_config',
+                    default=False,
+                    help='Use the .ssh/config file. Useful to override ports etc.')
     ]
     _register_opts(ssh_runner_opts, group='ssh_runner')
 
