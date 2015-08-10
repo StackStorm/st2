@@ -20,6 +20,7 @@ __all__ = [
     'SystemRole',
     'PermissionType',
     'ResourceType',
+    'ResourcePermissionType',
 ]
 
 
@@ -32,7 +33,6 @@ class PermissionType(Enum):
     PACK_CREATE = 'pack_create'
     PACK_MODIFY = 'pack_modify'
     PACK_DELETE = 'pack_delete'
-    PACK_EXECUTE = 'pack_execute'
     PACK_ALL = 'pack_all'
 
     ACTION_VIEW = 'action_view'
@@ -109,16 +109,6 @@ class PermissionType(Enum):
         return result
 
 
-class SystemRole(Enum):
-    """
-    Default system roles which can't be manipulated (modified or removed).
-    """
-    SYSTEM_ADMIN = ' system_admin'  # Special role which can't be revoked.
-    ADMIN = 'admin'
-    OPERATOR = 'operator'
-    OBSERVER = 'observer'
-
-
 class ResourceType(Enum):
     """
     Resource types on which permissions can be granted.
@@ -130,3 +120,64 @@ class ResourceType(Enum):
 
     EXECUTION = SystemResourceType.EXECUTION
     KEY_VALUE = SystemResourceType.RULE
+
+
+class SystemRole(Enum):
+    """
+    Default system roles which can't be manipulated (modified or removed).
+    """
+    SYSTEM_ADMIN = ' system_admin'  # Special role which can't be revoked.
+    ADMIN = 'admin'
+    OPERATOR = 'operator'
+    OBSERVER = 'observer'
+
+
+# Maps a list of available permission types for each resource
+RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
+    ResourceType.PACK: [
+        PermissionType.PACK_VIEW,
+        PermissionType.PACK_CREATE,
+        PermissionType.PACK_MODIFY,
+        PermissionType.PACK_DELETE,
+        PermissionType.PACK_ALL,
+
+        PermissionType.ACTION_VIEW,
+        PermissionType.ACTION_CREATE,
+        PermissionType.ACTION_MODIFY,
+        PermissionType.ACTION_DELETE,
+        PermissionType.ACTION_EXECUTE,
+        PermissionType.ACTION_ALL,
+
+        PermissionType.RULE_VIEW,
+        PermissionType.RULE_CREATE,
+        PermissionType.RULE_MODIFY,
+        PermissionType.RULE_DELETE,
+        PermissionType.RULE_ALL
+    ],
+    ResourceType.ACTION: [
+        PermissionType.ACTION_VIEW,
+        PermissionType.ACTION_CREATE,
+        PermissionType.ACTION_MODIFY,
+        PermissionType.ACTION_DELETE,
+        PermissionType.ACTION_EXECUTE,
+        PermissionType.ACTION_ALL
+    ],
+    ResourceType.RULE: [
+        PermissionType.RULE_VIEW,
+        PermissionType.RULE_CREATE,
+        PermissionType.RULE_MODIFY,
+        PermissionType.RULE_DELETE,
+        PermissionType.RULE_ALL
+    ],
+    ResourceType.EXECUTION: [
+        PermissionType.EXECUTION_VIEW,
+        PermissionType.EXECUTION_RE_RUN,
+        PermissionType.EXECUTION_DELETE,
+        PermissionType.EXECUTION_ALL,
+    ],
+    ResourceType.KEY_VALUE: [
+        PermissionType.KEY_VALUE_VIEW,
+        PermissionType.KEY_VALUE_SET,
+        PermissionType.KEY_VALUE_DELETE
+    ]
+}
