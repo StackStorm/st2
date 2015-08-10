@@ -1,7 +1,7 @@
 ---
 action:
-- core.local
-- core.chain
+- executions.local
+- executions.chain
 rule:
 - st2.person.joe
 runner:

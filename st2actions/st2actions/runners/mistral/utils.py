@@ -22,7 +22,8 @@ import yaml
 
 from st2common import log as logging
 from st2common.models.system.common import ResourceReference
-from st2common.persistence.action import Action
+from st2common.models.utils import action_param_utils
+from st2common.util import action_db as action_utils
 
 
 LOG = logging.getLogger(__name__)
@@ -45,6 +46,17 @@ ALL = (
 )
 
 PARAMS_PTRN = re.compile("([\w]+)=(%s)" % "|".join(ALL))
+
+SPEC_TYPES = {
+    'adhoc': {
+        'action_key': 'base',
+        'input_key': 'base-input'
+    },
+    'task': {
+        'action_key': 'action',
+        'input_key': 'input'
+    }
+}
 
 
 def _parse_cmd_and_input(cmd_str):
@@ -101,12 +113,32 @@ def _eval_inline_params(spec, action_key, input_key):
             _merge_dicts(spec[input_key], inputs)
 
 
-def _transform_action(spec, action_key, input_key):
+def _validate_action_parameters(name, action, action_params):
+    requires, unexpected = action_param_utils.validate_action_parameters(action.ref, action_params)
 
-    if action_key not in spec or spec.get(action_key) == 'st2.action':
+    if requires:
+        raise Exception('Missing required parameters in "%s" for action "%s": '
+                        '"%s"' % (name, action.ref, '", "'.join(requires)))
+
+    if unexpected:
+        raise Exception('Unexpected parameters in "%s" for action "%s": '
+                        '"%s"' % (name, action.ref, '", "'.join(unexpected)))
+
+
+def _transform_action(name, spec):
+
+    action_key, input_key = None, None
+
+    for spec_type, spec_meta in six.iteritems(SPEC_TYPES):
+        if spec_meta['action_key'] in spec:
+            action_key = spec_meta['action_key']
+            input_key = spec_meta['input_key']
+            break
+
+    if not action_key:
         return
 
-    if spec.get(action_key) == 'st2.callback':
+    if spec[action_key] == 'st2.callback':
         raise Exception('st2.callback is deprecated.')
 
     # Convert parameters that are inline (i.e. action: some_action var1={$.value1} var2={$.value2})
@@ -128,21 +160,29 @@ def _transform_action(spec, action_key, input_key):
     #     var2: <% $.value2 %>
     _eval_inline_params(spec, action_key, input_key)
 
-    action_ref = spec.get(action_key)
+    transformed = (spec[action_key] == 'st2.action')
 
+    action_ref = spec[input_key]['ref'] if transformed else spec[action_key]
+
+    action = None
+
+    # Identify if action is a registered StackStorm action.
     if action_ref and ResourceReference.is_resource_reference(action_ref):
-        ref = ResourceReference.from_string_reference(ref=action_ref)
-        actions = Action.query(name=ref.name, pack=ref.pack)
-        action = actions.first() if actions else None
-    else:
-        action = None
+        action = action_utils.get_action_by_ref(ref=action_ref)
 
+    # If action is a registered StackStorm action, then wrap the
+    # action with the st2 proxy and validate the action input.
     if action:
-        spec[action_key] = 'st2.action'
-        action_input = spec.get(input_key)
-        spec[input_key] = {'ref': action_ref}
-        if action_input:
-            spec[input_key]['parameters'] = action_input
+        if not transformed:
+            spec[action_key] = 'st2.action'
+            action_input = spec.get(input_key)
+            spec[input_key] = {'ref': action_ref}
+            if action_input:
+                spec[input_key]['parameters'] = action_input
+
+        action_input = spec.get(input_key, {})
+        action_params = action_input.get('parameters', {})
+        _validate_action_parameters(name, action, action_params)
 
 
 def transform_definition(definition):
@@ -159,7 +199,7 @@ def transform_definition(definition):
 
     # Transform adhoc actions
     for action_name, action_spec in six.iteritems(spec.get('actions', {})):
-        _transform_action(action_spec, 'base', 'base-input')
+        _transform_action(action_name, action_spec)
 
     # Determine if definition is a workbook or workflow
     is_workbook = 'workflows' in spec
@@ -168,12 +208,12 @@ def transform_definition(definition):
     if is_workbook:
         for workflow_name, workflow_spec in six.iteritems(spec.get('workflows', {})):
             for task_name, task_spec in six.iteritems(workflow_spec.get('tasks')):
-                _transform_action(task_spec, 'action', 'input')
+                _transform_action(task_name, task_spec)
     else:
         for key, value in six.iteritems(spec):
             if 'tasks' in value:
                 for task_name, task_spec in six.iteritems(value.get('tasks')):
-                    _transform_action(task_spec, 'action', 'input')
+                    _transform_action(task_name, task_spec)
 
     # Return the same type as original input.
     return spec if is_dict else yaml.safe_dump(spec, default_flow_style=False)

@@ -4,9 +4,9 @@ chain:
   on-success: a2
   params:
     cmd: uname -a
-  ref: core.local
+  ref: executions.local
 - name: a2
   params:
     cmd: pwd
-  ref: core.local
+  ref: executions.local
 default: a1
