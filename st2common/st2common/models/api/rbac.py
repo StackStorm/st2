@@ -71,9 +71,9 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                 'items': {
                     'type': 'object',
                     'properties': {
-                        'resource_ref': {
+                        'resource_uid': {
                             'type': 'string',
-                            'description': 'Resource to which this grant applies to. Can be empty if it\'s a global permission',
+                            'description': 'UID of a resource to which this grant applies to. Can be empty if it\'s a global permission',
                             'required': False,
                             'default': None
                         },
@@ -140,7 +140,6 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
         },
         'additionalProperties': False
     }
-
 
     def validate(self):
         # Parent JSON schema validation
