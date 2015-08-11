@@ -43,6 +43,7 @@ from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.util import action_db as action_utils
 from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.utils import assert_request_user_has_resource_permission
 
 __all__ = [
