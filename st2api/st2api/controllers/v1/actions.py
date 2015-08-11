@@ -61,18 +61,18 @@ class ActionsController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @jsexpose()
     @request_user_has_permission(permission_type=PermissionType.ACTION_VIEW)
+    @jsexpose()
     def get_all(self, **kwargs):
-        return super(ActionsController, self).get_all(**kwargs)
+        return super(ActionsController, self)._get_all(**kwargs)
 
-    @jsexpose(arg_types=[str])
     @request_user_has_resource_permission(permission_type=PermissionType.ACTION_VIEW)
+    @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
-        return super(ActionsController, self).get_one(ref_or_id)
+        return super(ActionsController, self)._get_one(ref_or_id)
 
-    @jsexpose(body_cls=ActionAPI, status_code=http_client.CREATED)
     @request_user_has_permission(permission_type=PermissionType.ACTION_CREATE)
+    @jsexpose(body_cls=ActionAPI, status_code=http_client.CREATED)
     def post(self, action):
         """
             Create a new action.
@@ -99,8 +99,8 @@ class ActionsController(resource.ContentPackResourceController):
 
         return action_api
 
-    @jsexpose(arg_types=[str], body_cls=ActionAPI)
     @request_user_has_resource_permission(permission_type=PermissionType.ACTION_MODIFY)
+    @jsexpose(arg_types=[str], body_cls=ActionAPI)
     def put(self, action_ref_or_id, action):
         action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
 
@@ -128,8 +128,8 @@ class ActionsController(resource.ContentPackResourceController):
 
         return action_api
 
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     @request_user_has_resource_permission(permission_type=PermissionType.ACTION_DELETE)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, action_ref_or_id):
         """
             Delete an action.

@@ -38,12 +38,12 @@ class PacksController(ResourceController):
         'sort': ['ref']
     }
 
-    @jsexpose()
     @request_user_has_permission(permission_type=PermissionType.PACK_VIEW)
+    @jsexpose()
     def get_all(self, **kwargs):
-        return super(PacksController, self).get_all(**kwargs)
+        return super(PacksController, self)._get_all(**kwargs)
 
-    @jsexpose(arg_types=[str])
     @request_user_has_resource_permission(permission_type=PermissionType.PACK_VIEW)
+    @jsexpose(arg_types=[str])
     def get_one(self, name_or_id):
         return self._get_one_by_name_or_id(name_or_id=name_or_id)

@@ -54,18 +54,18 @@ class RuleController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @jsexpose()
     @request_user_has_permission(permission_type=PermissionType.RULE_VIEW)
+    @jsexpose()
     def get_all(self, **kwargs):
-        return super(RuleController, self).get_all(**kwargs)
+        return super(RuleController, self)._get_all(**kwargs)
 
-    @jsexpose(arg_types=[str])
     @request_user_has_resource_permission(permission_type=PermissionType.RULE_VIEW)
+    @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
-        return super(RuleController, self).get_one(ref_or_id)
+        return super(RuleController, self)._get_one(ref_or_id)
 
-    @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
     @request_user_has_permission(permission_type=PermissionType.RULE_CREATE)
+    @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
     def post(self, rule):
         """
             Create a new rule.
@@ -99,8 +99,8 @@ class RuleController(resource.ContentPackResourceController):
 
         return rule_api
 
-    @jsexpose(arg_types=[str], body_cls=RuleAPI)
     @request_user_has_resource_permission(permission_type=PermissionType.RULE_MODIFY)
+    @jsexpose(arg_types=[str], body_cls=RuleAPI)
     def put(self, rule_ref_or_id, rule):
         rule_db = self._get_by_ref_or_id(rule_ref_or_id)
         LOG.debug('PUT /rules/ lookup with id=%s found object: %s', rule_ref_or_id, rule_db)
@@ -124,8 +124,8 @@ class RuleController(resource.ContentPackResourceController):
 
         return rule_api
 
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     @request_user_has_resource_permission(permission_type=PermissionType.RULE_DELETE)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, rule_ref_or_id):
         """
             Delete a rule.

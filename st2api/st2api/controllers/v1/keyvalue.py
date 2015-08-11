@@ -47,8 +47,8 @@ class KeyValuePairController(RestController):
         self._coordinator = coordination.get_coordinator()
         self.get_one_db_method = self.__get_by_name
 
-    @jsexpose(arg_types=[str])
     @request_user_has_resource_permission(permission_type=PermissionType.KEY_VALUE_VIEW)
+    @jsexpose(arg_types=[str])
     def get_one(self, name):
         """
             List key by name.
@@ -71,8 +71,8 @@ class KeyValuePairController(RestController):
 
         return kvp_api
 
-    @jsexpose(arg_types=[str])
     @request_user_has_permission(permission_type=PermissionType.KEY_VALUE_VIEW)
+    @jsexpose(arg_types=[str])
     def get_all(self, **kw):
         """
             List all keys.
@@ -125,8 +125,8 @@ class KeyValuePairController(RestController):
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
         return kvp_api
 
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     @request_user_has_resource_permission(permission_type=PermissionType.KEY_VALUE_DELETE)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, name):
         """
             Delete the key value pair.
