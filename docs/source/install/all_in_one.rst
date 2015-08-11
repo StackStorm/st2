@@ -3,7 +3,7 @@ All-in-one Installation
 |st2| provides an all-in-one installer aimed at assisting users with the initial setup and configuration. The installer comes pre-bundled in a number of different provisioning options for convenience, or can also be manually deployed and installed manually on a server.
 
 Pre-Requisites
--------------
+--------------
 Before getting started, it is necessary to do a bit of pre-planning to integrate |st2| into an environment. Below is a checklist of items to prepare before running the installer.
 
 #. A server. See below for the list of pre-bundled options, or bring your own.
