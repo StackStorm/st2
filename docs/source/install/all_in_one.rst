@@ -22,8 +22,8 @@ A standard all-in-one installation has all of the various components of |st2|, a
 Testing
 ~~~~~~~
 * Single or Dual CPU system
-* At least 4GB of RAM
-* Recommended EC2: **m4.large**
+* At least 2GB of RAM
+* Recommended EC2: **m3.medium**
 
 Production
 ~~~~~~~~~~
