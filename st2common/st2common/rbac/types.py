@@ -116,7 +116,7 @@ class ResourceType(Enum):
     #  TRIGGER_TYPE = SystemResourceType.TRIGGER_TYPE
 
     EXECUTION = SystemResourceType.EXECUTION
-    KEY_VALUE = SystemResourceType.RULE
+    KEY_VALUE = SystemResourceType.KEY_VALUE
 
 
 class SystemRole(Enum):
