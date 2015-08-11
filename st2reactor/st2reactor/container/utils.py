@@ -45,7 +45,7 @@ def create_trigger_instance(trigger, payload, occurrence_time):
                                                                          parameters=parameters)
 
     if trigger_db is None:
-        LOG.info('No trigger in db for %s', trigger)
+        LOG.debug('No trigger in db for %s', trigger)
         return None
 
     trigger_ref = trigger_db.get_reference().ref
