@@ -1,6 +1,6 @@
 Puppet Module
 =============
-|st2| provides a supported Puppet module for use when deploying in an existing Puppet infrastructure. This module is designed to allow relative flexibilty with the configuration methods and management techniques of the StackStorm application.
+|st2| provides a supported Puppet module for use when deploying in an existing Puppet infrastructure. This module is designed to allow relative flexibility with the configuration methods and management techniques of the StackStorm application.
 
 This module aims to provide sane default configurations, but also stay out of your way in the event you need something more custom. To accomplish this, this module uses the Roles/Profiles pattern. Included in this module are several modules that come with sane defaults that you can use directly or use to compose your own site-specific profile for StackStorm installation.
 
@@ -56,7 +56,7 @@ This module will install StackStorm and all its dependencies with sane defaults.
 
 Profiles
 ~~~~~~~~
-In addition to providing a full-install profile, each of the separate profiles are broken up to allow flexibily in defining a site-specific StackStorm profile. Within the module exist several default-configured profiles for the components of StackStorm and its dependencies.
+In addition to providing a full-install profile, each of the separate profiles are broken up to allow flexibly in defining a site-specific StackStorm profile. Within the module exist several default-configured profiles for the components of StackStorm and its dependencies.
 
 The full list of profiles are:
 
