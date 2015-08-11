@@ -69,7 +69,7 @@ def request_user_has_role(request, role):
         return True
 
     user_db = _get_user_db_from_request(request=request)
-    return user_has_role(user_db=user_db, name=role)
+    return user_has_role(user_db=user_db, role=role)
 
 
 def request_user_has_permission(request, permission_type):
