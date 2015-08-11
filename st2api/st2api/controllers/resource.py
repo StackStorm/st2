@@ -232,6 +232,7 @@ class ContentPackResourceController(ResourceController):
     include_reference = False
 
     def __init__(self):
+        super(ContentPackResourceController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
 
     @jsexpose(arg_types=[str])
