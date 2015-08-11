@@ -43,8 +43,9 @@ class KeyValuePairController(RestController):
 
     # TODO: Port to use ResourceController
     def __init__(self):
-        self._coordinator = coordination.get_coordinator()
         super(KeyValuePairController, self).__init__()
+        self._coordinator = coordination.get_coordinator()
+        self.get_one_db_method = self.__get_by_name
 
     @jsexpose(arg_types=[str])
     @request_user_has_resource_permission(permission_type=PermissionType.KEY_VALUE_VIEW)
@@ -92,12 +93,13 @@ class KeyValuePairController(RestController):
         return kvps
 
     @jsexpose(arg_types=[str, str], body_cls=KeyValuePairAPI)
-    @request_user_has_resource_permission(permission_type=PermissionType.KEY_VALUE_SET)
     def put(self, name, kvp):
         """
         Create a new entry or update an existing one.
         """
         lock_name = self._get_lock_name_for_key(name=name)
+
+        # TODO: Custom permission check since the key doesn't need to exist here
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
