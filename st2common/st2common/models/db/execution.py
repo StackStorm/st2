@@ -75,9 +75,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
             {'fields': ['end_timestamp']},
             {'fields': ['status']},
             {'fields': ['parent']},
-            {'fields': ['-start_timestamp', 'action']},
-            {'fields': ['-start_timestamp', 'parent']},
-            {'fields': ['-start_timestamp', 'action', 'parent']}
+            {'fields': ['-start_timestamp', 'action.ref', 'status']}
         ]
     }
 

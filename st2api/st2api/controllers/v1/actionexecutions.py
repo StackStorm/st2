@@ -277,7 +277,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
     # ResourceController attributes
     query_options = {
-        'sort': ['-start_timestamp', 'action']
+        'sort': ['-start_timestamp', 'action.ref']
     }
     supported_filters = SUPPORTED_EXECUTIONS_FILTERS
     filter_transform_functions = {

@@ -19,7 +19,7 @@ from StringIO import StringIO
 import time
 
 import eventlet
-from oslo.config import cfg
+from oslo_config import cfg
 
 import paramiko
 
