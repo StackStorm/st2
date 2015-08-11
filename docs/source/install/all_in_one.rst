@@ -2,7 +2,7 @@ All-in-one Installation
 =======================
 |st2| provides an all-in-one installer aimed at assisting users with the initial setup and configuration. The installer comes pre-bundled in a number of different provisioning options for convenience, or can also be manually deployed and installed manually on a server.
 
-Pre-Requsites
+Pre-Requisites
 -------------
 Before getting started, it is necessary to do a bit of pre-planning to integrate |st2| into an environment. Below is a checklist of items to prepare before running the installer.
 
@@ -44,7 +44,7 @@ Amazon Web Services (AWS)
 #. Set up any applicable tags for your instance. Click **Next: Configure Security Group**
 #. Setup a security group. It is recommended that you leave the default settings. Port 443 must be available for the WebUI, port 9100 for |st2| authentication, and port 9101 for the |st2| API
 #. Review your settings, and then click Launch.
-#. In the **Select an existing key pair or create a new key pair** dialog box, select **Choose an existing key pair** to select a new key pair that you already created or create a new key pair. Select the acknowledgement check box, and then click **Launch Instances**. This can take approximately 5-15 minutes to launch. A confirmation page will appear, letting you know that your instance is launching. Click **View Instances** to close the confirmation and return to the AWS Console.
+#. In the **Select an existing key pair or create a new key pair** dialog box, select **Choose an existing key pair** to select a new key pair that you already created or create a new key pair. Select the acknowledgment check box, and then click **Launch Instances**. This can take approximately 5-15 minutes to launch. A confirmation page will appear, letting you know that your instance is launching. Click **View Instances** to close the confirmation and return to the AWS Console.
 #. From **Instances**, make note of the **Public IP** and **Public DNS**
 #. In your web browser, enter the |st2| setup URL. The format will be: https://**Public IP**/setup
 #. Proceed to the section *Running the installer*
@@ -72,7 +72,7 @@ This will boot up a fresh |st2| installation along with the Mistral workflow eng
          |___/\__|____|  \____/|_|\_\
     st2 is installed and ready to use.
     First time starting this machine up?
-    Visit https://172.168.50.11/setup to configure |st2|
+    Visit https://172.168.50.11/setup to configure StackStorm
     Otherwise, head to https://172.168.50.11 to access the WebUI
 
 
@@ -87,7 +87,7 @@ Step 1: Configuring Hostname and SSL
 
 .. figure:: /_static/images/st2installer_step_1.png
 
-In this step, you will be setting up the networking for StackStorm. Here, you will configure the hostname of the new server and optionally upload SSL certificates to be used by the StackStorm WebUI, Auth, and API HTTP endpoints.
+In this step, you will be setting up the networking for |st2|. Here, you will configure the hostname of the new server and optionally upload SSL certificates to be used by the StackStorm WebUI, Auth, and API HTTP endpoints.
 
 #. Enter the FQDN of the |st2| server. This FQDN should be setup in your DNS server
 #. *(Optional)* Choose to send anonymous data to StackStorm.
@@ -100,9 +100,9 @@ Step 2: Setup user accounts
 ---------------------------
 
 .. figure:: /_static/images/st2installer_step_2.png
- 
 
-In this step, you will be setting up the Administrator account for you, and the administrative account for StackStorm. In the upper section, you will be asked to enter a new password. This password will be used with the account **admin**, created on the box with `sudo` privileges. In the lower section, you will setup the account that StackStorm will use to log into remote servers via SSH, and execute commands. Make note of the generated SSH keypair if you choose that option, and distribute this key to your servers.
+
+In this step, you will be setting up the Administrator account for you, and the administrative account for StackStorm. In the upper section, you will be asked to enter a new password. This password will be used with the account **admin**, created on the box with `sudo` privileges. In the lower section, you will setup the account that StackStorm will use to log into remote servers via SSH, and execute commands. Make note of the generated SSH key pair if you choose that option, and distribute this key to your servers.
 
 #. Enter a new password, containing at least 8 characters, with at least one digit and at least one letter.
 #. Confirm the new password in the box below.
@@ -126,9 +126,9 @@ Step 3: Configure ChatOps
 -------------------------
 
 .. figure:: /_static/images/st2installer_step_3.png
- 
 
-In this step, you will setup ChatOps. ChatOps is a core feature of StackStorm, allowing you to collaborate and work more effectively by executing actions inside of a chat room. This step will setup Hubot and pre-configure it to connect to StackStorm as well as to your selected Chat service. While this is an optional feature and can be in the event that you have your own Hubot installation, or do not want to install this feature, we highly recommend experimenting with the feature in your daily operational workflows. 
+
+In this step, you will setup ChatOps. ChatOps is a core feature of StackStorm, allowing you to collaborate and work more effectively by executing actions inside of a chat room. This step will setup Hubot and pre-configure it to connect to StackStorm as well as to your selected Chat service. While this is an optional feature and can be in the event that you have your own Hubot installation, or do not want to install this feature, we highly recommend experimenting with the feature in your daily operational workflows.
 
 #. If you have your own Hubot installation already, click on **configure your existing Hubot instance**.
 #. Select the Chat Service that you wish to connect to
