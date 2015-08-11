@@ -47,6 +47,10 @@ class KeyValuePairDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
         ]
     }
 
+    def __init__(self, *args, **values):
+        super(KeyValuePairDB, self).__init__(*args, **values)
+        self.uid = self.get_uid()
+
 
 # specialized access objects
 keyvaluepair_access = MongoDBAccess(KeyValuePairDB)
