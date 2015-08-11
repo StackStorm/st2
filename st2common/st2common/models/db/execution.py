@@ -33,9 +33,8 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-class ActionExecutionDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
-    RESOURCE_TYPE = ResourceType.ACTION
-    UID_FIELDS = ['id']
+class ActionExecutionDB(stormbase.StormFoundationDB):
+    RESOURCE_TYPE = ResourceType.EXECUTION
 
     trigger = stormbase.EscapedDictField()
     trigger_type = stormbase.EscapedDictField()
