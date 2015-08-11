@@ -17,7 +17,8 @@ in development
   (up to 2 times) sensor processes which die with a non-zero status code. (improvement)
 * Support for RabbitMQ cluster. StackStorm works with a RabbitMQ cluster and switches
   nodes on failover. (feature)
-* Add more indexes to the ActionExecution model to speed up query. (improvement)
+* Add index to the ActionExecution model to speed up query. (improvement)
+* Fix sort key in the ActionExecution API controller. (bug-fix)
 * Introduce a Paramiko SSH runner that uses eventlets to run scripts or commands in parallel. (improvement) (experimental)
 * Add action parameters validation to Mistral workflow on invocation. (improvement)
 * Fix key name for error message in liveaction result. (bug-fix)
