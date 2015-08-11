@@ -16,6 +16,7 @@
 import mock
 import six
 
+from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
@@ -117,6 +118,17 @@ class TestRuleController(FunctionalTest):
         update_input = post_resp.json
         update_input['enabled'] = not update_input['enabled']
         put_resp = self.__do_put(self.__get_rule_id(post_resp), update_input)
+        self.assertEqual(put_resp.status_int, http_client.OK)
+        self.__do_delete(self.__get_rule_id(put_resp))
+
+    def test_put_no_pack_info(self):
+        post_resp = self.__do_post(TestRuleController.RULE_1)
+        test_rule = post_resp.json
+        if 'pack' in test_rule:
+            del test_rule['pack']
+        self.assertTrue('pack' not in test_rule)
+        put_resp = self.__do_put(self.__get_rule_id(post_resp), test_rule)
+        self.assertEqual(put_resp.json['pack'], DEFAULT_PACK_NAME)
         self.assertEqual(put_resp.status_int, http_client.OK)
         self.__do_delete(self.__get_rule_id(put_resp))
 
