@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.12.2 - In progress
---------------------
+0.12.2 - August 11, 2015.
+-------------------------
 * Support local ssh config file in remote runners. (feature)
 * Changes to htpasswd file used in `flat_file` auth backend do not require
   a restart of st2auth and consequently StackStorm. (feature)
