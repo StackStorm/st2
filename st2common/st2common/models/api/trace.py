@@ -83,11 +83,11 @@ class TraceAPI(BaseAPI):
     @classmethod
     def to_component_model(cls, component):
         values = {
-            'object_id': component.object_id
+            'object_id': component['object_id']
         }
-        updated_at = getattr(component, 'updated_at', None)
+        updated_at = component.get('updated_at', None)
         if updated_at:
-            values['updated_at'] = updated_at
+            values['updated_at'] = isotime.parse(updated_at)
         return TraceComponentDB(**values)
 
     @classmethod
@@ -112,5 +112,4 @@ class TraceAPI(BaseAPI):
         start_timestamp = getattr(instance, 'start_timestamp', None)
         if start_timestamp:
             values['start_timestamp'] = isotime.parse(start_timestamp)
-
         return cls.model(**values)
