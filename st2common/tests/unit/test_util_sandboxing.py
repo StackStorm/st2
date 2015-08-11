@@ -3,6 +3,7 @@ import sys
 import unittest
 
 import mock
+from oslo_config import cfg
 
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.util.sandboxing import get_sandbox_python_path
@@ -18,7 +19,8 @@ class SandboxingUtilsTestCase(unittest.TestCase):
     def test_get_sandbox_python_binary_path(self):
         # Non-system content pack, should use pack specific virtualenv binary
         result = get_sandbox_python_binary_path(pack='mapack')
-        self.assertEqual(result, '/opt/stackstorm/virtualenvs/mapack/bin/python')
+        expected = os.path.join(cfg.CONF.system.base_path, 'virtualenvs/mapack/bin/python')
+        self.assertEqual(result, expected)
 
         # System content pack, should use current process (system) python binary
         result = get_sandbox_python_binary_path(pack=SYSTEM_PACK_NAMES[0])
