@@ -47,7 +47,7 @@ class KeyValuePairController(RestController):
         super(KeyValuePairController, self).__init__()
 
     @jsexpose(arg_types=[str])
-    @request_user_has_permission(permission_type=PermissionType.KEY_VALUE_VIEW)
+    @request_user_has_resource_permission(permission_type=PermissionType.KEY_VALUE_VIEW)
     def get_one(self, name):
         """
             List key by name.

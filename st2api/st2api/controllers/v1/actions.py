@@ -61,15 +61,15 @@ class ActionsController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @jsexpose(arg_types=[str])
-    @request_user_has_permission(permission_type=PermissionType.ACTION_VIEW)
-    def get_one(self, ref_or_id):
-        return super(ActionsController, self).get_one(ref_or_id)
-
     @jsexpose()
     @request_user_has_permission(permission_type=PermissionType.ACTION_VIEW)
     def get_all(self, **kwargs):
         return super(ActionsController, self).get_all(**kwargs)
+
+    @jsexpose(arg_types=[str])
+    @request_user_has_resource_permission(permission_type=PermissionType.ACTION_VIEW)
+    def get_one(self, ref_or_id):
+        return super(ActionsController, self).get_one(ref_or_id)
 
     @jsexpose(body_cls=ActionAPI, status_code=http_client.CREATED)
     @request_user_has_permission(permission_type=PermissionType.ACTION_CREATE)

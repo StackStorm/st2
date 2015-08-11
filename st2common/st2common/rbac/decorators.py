@@ -66,7 +66,7 @@ def request_user_has_resource_permission(permission_type):
     """
     def decorate(func):
         function_name = func.__name__
-        if function_name not in ['post', 'put', 'delete']:
+        if function_name not in ['get_one', 'post', 'put', 'delete']:
             raise Exception('This decorator should only be used to wrap post, put and delete '
                             'methods')
 
