@@ -113,4 +113,4 @@ class TraceAPI(BaseAPI):
         if start_timestamp:
             values['start_timestamp'] = isotime.parse(start_timestamp)
 
-        return model(**values)
+        return cls.model(**values)

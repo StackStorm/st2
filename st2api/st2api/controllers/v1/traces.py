@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.trace import TraceAPI
 from st2common.persistence.trace import Trace
