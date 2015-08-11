@@ -35,6 +35,7 @@ LOG = logging.getLogger(__name__)
 # Fabric environment level settings.
 # XXX: Note fabric env is a global singleton.
 env.parallel = True  # By default, execute things in parallel. Uses multiprocessing under the hood.
+env.use_ssh_config = cfg.CONF.ssh_runner.use_ssh_config
 env.user = cfg.CONF.system_user.user
 ssh_key_file = cfg.CONF.system_user.ssh_key_file
 

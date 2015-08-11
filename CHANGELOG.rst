@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.12.2 - August 11, 2015.
+-------------------------
+* Support local ssh config file in remote runners. (feature)
+* Changes to htpasswd file used in `flat_file` auth backend do not require
+  a restart of st2auth and consequently StackStorm. (feature)
+
 0.12.1 - July 31, 2015
 ----------------------
 * Un-registering a pack also removes ``rules`` and ``action aliases`` from the pack. (bug-fix)
@@ -48,6 +54,18 @@ Changelog
 * Move /exp/actionalias/ and /exp/aliasexecution to /v1/actionalias/ and /v1/aliasexecution/
   respectively. (upgrade)
 * Display friendly message for error in parameters validation on action execution. (improvement)
+
+0.11.6 - July 2, 2015
+---------------------
+
+* Update all the code to handle all the datetime objects internally in UTC. (improvement, bug-fix)
+
+0.11.5 - July 1, 2015
+---------------------
+
+* Fix a bug where ``end_timestamp`` is not captured for Mistral workflow executions (bug-fix)
+* Fix a bug where the CLI failed to display Mistral workflow that errored (bug-fix)
+* Fix a bug where the published variables is not captured in the Mistral workflow result (bug-fix)
 
 0.11.4 - June 30, 2015
 ----------------------

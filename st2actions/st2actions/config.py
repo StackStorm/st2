@@ -62,7 +62,10 @@ def _register_action_runner_opts():
                    help='Location of the script on the remote filesystem.'),
         cfg.BoolOpt('allow_partial_failure',
                     default=False,
-                    help='How partial success of actions run on multiple nodes should be treated.')
+                    help='How partial success of actions run on multiple nodes should be treated.'),
+        cfg.BoolOpt('use_ssh_config',
+                    default=False,
+                    help='Use the .ssh/config file. Useful to override ports etc.')
     ]
     CONF.register_opts(ssh_runner_opts, group='ssh_runner')
 
