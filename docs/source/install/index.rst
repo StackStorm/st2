@@ -58,6 +58,7 @@ and WebUI url:
     RedHat / Fedora <rpm>
     Vagrant <vagrant>
     Docker <docker>
+    Puppet <puppet>
     sources
     config
     webui
