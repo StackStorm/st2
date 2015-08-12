@@ -276,7 +276,7 @@ class TestMistralRunner(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_launch_workflow_with_notifications(self):
-        notify_data = {'on_complete': {'channels': ['slack'],
+        notify_data = {'on_complete': {'routes': ['slack'],
                        'message': '"@channel: Action succeeded."', 'data': {}}}
 
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
