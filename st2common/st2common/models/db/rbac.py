@@ -72,8 +72,7 @@ class PermissionGrantDB(stormbase.StormFoundationDB):
     """
     resource_uid = me.StringField(required=False)
     resource_type = me.StringField(required=True)
-    permission_types = me.ListField(field=me.StringField(),
-                                    unique_with='resource_uid')
+    permission_types = me.ListField(field=me.StringField())
 
 # Specialized access objects
 role_access = MongoDBAccess(RoleDB)
