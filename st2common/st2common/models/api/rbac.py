@@ -154,6 +154,8 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
         super(UserRoleAssignmentFileFormatAPI, self).validate()
 
         # Custom validation
+        # TODO: Add an argument for validating role db existance
+        return
 
         # Validate that the referenced roles exist in the db
         role_dbs = get_all_roles()
