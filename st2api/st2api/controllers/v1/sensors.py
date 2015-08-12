@@ -14,10 +14,15 @@
 # limitations under the License.
 
 import six
+
 from st2common import log as logging
+from st2common.models.api.base import jsexpose
 from st2common.persistence.sensor import SensorType
 from st2common.models.api.sensor import SensorTypeAPI
 from st2api.controllers import resource
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_permission
 
 http_client = six.moves.http_client
 
@@ -37,3 +42,13 @@ class SensorTypeController(resource.ContentPackResourceController):
     }
 
     include_reference = True
+
+    @request_user_has_permission(permission_type=PermissionType.SENSOR_TYPE_VIEW)
+    @jsexpose()
+    def get_all(self, **kwargs):
+        return super(SensorTypeController, self)._get_all(**kwargs)
+
+    @request_user_has_resource_permission(permission_type=PermissionType.SENSOR_TYPE_VIEW)
+    @jsexpose(arg_types=[str])
+    def get_one(self, ref_or_id):
+        return super(SensorTypeController, self)._get_one(ref_or_id)

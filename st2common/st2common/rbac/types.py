@@ -47,6 +47,10 @@ class PermissionType(Enum):
     EXECUTION_DELETE = 'execution_delete'
     EXECUTION_ALL = 'execution_all'
 
+    # Note: Right now we only have read endpoints for sensors types
+    SENSOR_TYPE_VIEW = 'sensor_type_view'
+    SENSOR_TYPE_ALL = 'sensor_type_all'
+
     RULE_VIEW = 'rule_view'
     RULE_CREATE = 'rule_create'
     RULE_MODIFY = 'rule_modify'
@@ -112,6 +116,7 @@ class ResourceType(Enum):
     """
     PACK = SystemResourceType.PACK
     ACTION = SystemResourceType.ACTION
+    SENSOR_TYPE = SystemResourceType.SENSOR_TYPE
     RULE = SystemResourceType.RULE
     #  TRIGGER_TYPE = SystemResourceType.TRIGGER_TYPE
 
@@ -158,6 +163,10 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.ACTION_DELETE,
         PermissionType.ACTION_EXECUTE,
         PermissionType.ACTION_ALL
+    ],
+    ResourceType.SENSOR_TYPE: [
+        PermissionType.SENSOR_TYPE_VIEW,
+        PermissionType.SENSOR_TYPE_ALL
     ],
     ResourceType.RULE: [
         PermissionType.RULE_VIEW,
