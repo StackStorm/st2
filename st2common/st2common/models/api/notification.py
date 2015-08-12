@@ -26,7 +26,11 @@ NotificationSubSchemaAPI = {
             "type": "object",
             "description": "Data to be sent as part of notification"
         },
-        "channels": {
+        "routes": {
+            "type": "array",
+            "description": "Channels to post notifications to."
+        },
+        "channels": {  # Deprecated. Only here for backward compatibility.
             "type": "array",
             "description": "Channels to post notifications to."
         },
@@ -63,9 +67,10 @@ class NotificationsHelper(object):
     def _to_model_sub_schema(notification_settings_json):
         message = notification_settings_json.get('message' or None)
         data = notification_settings_json.get('data' or {})
-        channels = notification_settings_json.get('channels' or [])
+        routes = (notification_settings_json.get('routes') or
+                  notification_settings_json.get('channels', []))
 
-        model = NotificationSubSchema(message=message, data=data, channels=channels)
+        model = NotificationSubSchema(message=message, data=data, routes=routes)
         return model
 
     @staticmethod
@@ -90,7 +95,9 @@ class NotificationsHelper(object):
             notify_sub_schema['message'] = notify_sub_schema_model.message
         if getattr(notify_sub_schema_model, 'message', None):
             notify_sub_schema['data'] = notify_sub_schema_model.data
-        if getattr(notify_sub_schema_model, 'channels', None):
-            notify_sub_schema['channels'] = notify_sub_schema_model.channels
+        routes = (getattr(notify_sub_schema_model, 'routes') or
+                  getattr(notify_sub_schema_model, 'channels'))
+        if routes:
+            notify_sub_schema['routes'] = routes
 
         return notify_sub_schema

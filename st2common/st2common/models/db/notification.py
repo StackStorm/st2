@@ -26,9 +26,12 @@ class NotificationSubSchema(me.EmbeddedDocument):
     data = stormbase.EscapedDynamicField(
         default={},
         help_text='Payload to be sent as part of notification.')
-    channels = me.ListField(
+    routes = me.ListField(
         default=['notify.default'],
-        help_text='Channels to post notifications to.')
+        help_text='Routes to post notifications to.')
+    channels = me.ListField(  # Deprecated. Only here for backward compatibility reasons.
+        default=['notify.default'],
+        help_text='Routes to post notifications to.')
 
     def __str__(self):
         result = []
@@ -36,7 +39,8 @@ class NotificationSubSchema(me.EmbeddedDocument):
         result.append(str(id(self)))
         result.append('(message="%s", ' % str(self.message))
         result.append('data="%s", ' % str(self.data))
-        result.append('channels="%s")' % str(self.channels))
+        result.append('routes="%s")' % str(self.channels))
+        result.append('(**deprecated**) channels="%s")' % str(self.channels))
         return ''.join(result)
 
 

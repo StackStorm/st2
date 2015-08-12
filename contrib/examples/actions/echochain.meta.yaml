@@ -17,5 +17,5 @@ parameters:
 notify:
   on-complete:
     message: "\"@channel: Action succeeded.\""
-    channels:
+    routes:
       - "slack"
