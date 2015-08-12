@@ -30,6 +30,10 @@ from st2common.util.misc import compare_path_file_name
 
 LOG = logging.getLogger(__name__)
 
+__all__ = [
+    'RBACDefinitionsLoader'
+]
+
 
 class RBACDefinitionsLoader(object):
     """
