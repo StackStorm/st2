@@ -56,7 +56,7 @@ class RBACDefinitionsLoader(object):
         """
         result = {}
         result['roles'] = self.load_role_definitions()
-        result['role_assiginments'] = self.load_user_role_assignments()
+        result['role_assignments'] = self.load_user_role_assignments()
 
         return result
 
