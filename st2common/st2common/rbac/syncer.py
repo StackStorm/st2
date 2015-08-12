@@ -46,19 +46,25 @@ class RBACDefinitionsDBSyncer(object):
     Note #1: Our current datastore doesn't support transactions or similar which means that with
     the current data model there is a short time frame during sync when the definitions inside the
     DB are out of sync with the ones in the file.
+
+    Note #2: The operation of this class is idempotent meaning that if it's ran multiple time with
+    the same dataset, the end result / outcome will be the same.
     """
 
-    def sync(self):
+    def sync(self, role_definition_apis, role_assignment_apis):
         """
-        from st2common.services import rbac as rbac_services
-        Sync all the role definitions and user role assignments.
+        Synchronize all the role definitions and user role assignments.
         """
-        # TBD
-        pass
+        result = {}
 
-    def sync_roles(self, role_dbs, role_definition_apis):
+        result['roles'] = self.sync_roles(role_definition_apis)
+        result['role_assignments'] = self.sync_users_role_assignments(role_assignment_apis)
+
+        return result
+
+    def sync_roles(self, role_definition_apis):
         """
-        Sync all the role definitions.
+        Synchronize all the role definitions in the database.
 
         :param role_dbs: RoleDB objects for the roles which are currently in the database.
         :type role_dbs: ``list`` of :class:`RoleDB`
@@ -66,8 +72,13 @@ class RBACDefinitionsDBSyncer(object):
         :param role_definition_apis: RoleDefinition API objects for the definitions loaded from
                                      the files.
         :type role_definition_apis: ``list`` of :class:RoleDefinitionFileFormatAPI`
+
+        :rtype: ``tuple``
         """
         LOG.info('Synchronizing roles...')
+
+        # Retrieve all the roles currently in the DB
+        role_dbs = rbac_services.get_all_roles(exclude_system=True)
 
         role_db_names = [role_db.name for role_db in role_dbs]
         role_db_names = set(role_db_names)
@@ -144,44 +155,52 @@ class RBACDefinitionsDBSyncer(object):
 
         return [created_role_dbs, role_dbs_to_delete]
 
-    def sync_users_role_assignments(self, role_assignments):
+    def sync_users_role_assignments(self, role_assignment_apis):
         """
         Synchronize role assignments for all the users in the database.
 
-        :param user_role_assignments: Role assignments API objects for the assignments loaded
+        :param role_assignment_apis: Role assignments API objects for the assignments loaded
                                       from the files.
-        :type user_role_assignments: ``dict``
+        :type role_assignment_apis: ``list`` of :class:`UserRoleAssignmentFileFormatAPI`
 
         :return: Dictionary with created and removed role assignments for each user.
         :rtype: ``dict``
         """
         LOG.info('Synchronizing users role assignments...')
 
+        username_to_role_assignment_map = dict([(api.username, api) for api in
+                                                role_assignment_apis])
         user_dbs = User.get_all()
 
         results = {}
         for user_db in user_dbs:
             username = user_db.name
-            role_assignment_api = role_assignments.get(username, None)
-            user_role_assignments_dbs = rbac_services.get_role_assignments_for_user(user_db=user_db)
+            role_assignment_api = username_to_role_assignment_map.get(username, None)
+            role_assignment_dbs = rbac_services.get_role_assignments_for_user(user_db=user_db)
 
             result = self._sync_user_role_assignments(user_db=user_db,
-                                             user_role_assignments_dbs=user_role_assignments_dbs,
-                                             role_assignment_api=role_assignment_api)
+                                                      role_assignment_dbs=role_assignment_dbs,
+                                                      role_assignment_api=role_assignment_api)
             results[username] = result
 
         return results
 
-    def _sync_user_role_assignments(self, user_db, user_role_assignments_dbs, role_assignment_api):
+    def _sync_user_role_assignments(self, user_db, role_assignment_dbs, role_assignment_api):
         """
         Synchronize role assignments for a particular user.
 
-        :param user_role_assignments_dbs: Existing user role assignments.
+        :param user_db: User to synchronize the assignments for.
+        :type user_db: :class:`UserDB`
+
+        :param role_assignment_dbs: Existing user role assignments.
+        :type role_assignment_dbs: ``list`` of :class:`UserRoleAssignmentDB`
 
         :param role_assignment_api: Role assignment API for a particular user.
+        :param role_assignment_api: :class:`UserRoleAssignmentFileFormatAPI`
+
+        :rtype: ``tuple``
         """
-        db_role_names = [user_role_assignments_db.role for user_role_assignments_db
-                         in user_role_assignments_dbs]
+        db_role_names = [role_assignment_db.role for role_assignment_db in role_assignment_dbs]
         db_role_names = set(db_role_names)
         api_role_names = role_assignment_api.roles if role_assignment_api else []
         api_role_names = set(api_role_names)
@@ -199,17 +218,15 @@ class RBACDefinitionsDBSyncer(object):
         LOG.debug('Updated assignments for user "%s": %r' % (user_db.name, updated_role_names))
         LOG.debug('Removed assignments for user "%s": %r' % (user_db.name, removed_role_names))
 
-        role_assignment_db_to_delete = []
-
         # Build a list of role assignments to delete
         role_names_to_delete = updated_role_names.union(removed_role_names)
-        user_role_assignments_db_to_delete = [user_role_assignments_db for user_role_assignments_db
-                                              in user_role_assignments_dbs if
-                                              user_role_assignments_db.role in role_names_to_delete]
+        role_assignment_dbs_to_delete = [role_assignment_db for role_assignment_db
+                                         in role_assignment_dbs
+                                         if role_assignment_db.role in role_names_to_delete]
 
         UserRoleAssignment.query(user=user_db.name, role__in=role_names_to_delete).delete()
-        LOG.debug('Removed %s assignments for user "%s"' % (len(user_role_assignments_db_to_delete),
-                                                            user_db.name))
+        LOG.debug('Removed %s assignments for user "%s"' %
+                (len(role_assignment_dbs_to_delete), user_db.name))
 
         # Build a list of roles assignments to create
         role_names_to_create = new_role_names.union(updated_role_names)
@@ -222,4 +239,5 @@ class RBACDefinitionsDBSyncer(object):
         LOG.debug('Created %s new assignments for user "%s"' % (len(role_dbs_to_assign),
                                                                 user_db.name))
 
-        return (created_role_assignment_dbs, user_role_assignments_db_to_delete)
+        return (created_role_assignment_dbs, role_assignment_dbs_to_delete)
+
