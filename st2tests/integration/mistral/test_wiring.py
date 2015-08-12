@@ -23,27 +23,27 @@ class WiringTest(base.TestWorkflowExecution):
     def test_basic_workflow(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'date'})
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution)
+        self._assert_success(execution, num_tasks=1)
         self.assertIn('stdout', execution.result)
 
     def test_basic_workbook(self):
         execution = self._execute_workflow('examples.mistral-workbook-basic', {'cmd': 'date'})
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution)
+        self._assert_success(execution, num_tasks=1)
         self.assertIn('stdout', execution.result)
 
     def test_complex_workbook(self):
         execution = self._execute_workflow(
             'examples.mistral-workbook-complex', {'vm_name': 'demo1'})
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution)
+        self._assert_success(execution, num_tasks=8)
         self.assertIn('vm_id', execution.result)
 
     def test_complex_workbook_subflow_actions(self):
         execution = self._execute_workflow(
             'examples.mistral-workbook-subflows', {'subject': 'st2', 'adjective': 'cool'})
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution)
+        self._assert_success(execution, num_tasks=2)
         self.assertIn('tagline', execution.result)
         self.assertEqual(execution.result['tagline'], 'st2 is cool!')
 
@@ -51,7 +51,7 @@ class WiringTest(base.TestWorkflowExecution):
         params = {'cmd': 'date', 'count': 8}
         execution = self._execute_workflow('examples.mistral-repeat', params)
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution)
+        self._assert_success(execution, num_tasks=1)
         self.assertEqual(len(execution.result['result']), params['count'])
 
     def test_concurrent_load(self):
@@ -62,7 +62,7 @@ class WiringTest(base.TestWorkflowExecution):
         def assert_successful_completion(execution):
             eventlet.sleep(30)
             execution = self._wait_for_completion(execution)
-            self._assert_success(execution)
+            self._assert_success(execution, num_tasks=8)
             self.assertIn('vm_id', execution.result)
 
         threads = [eventlet.spawn(assert_successful_completion, execution)

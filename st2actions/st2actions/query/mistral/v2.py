@@ -1,6 +1,9 @@
 import traceback
 import uuid
 
+from mistralclient.api import client as mistral
+from mistralclient.api.v2 import tasks
+from mistralclient.api.v2 import executions
 from oslo_config import cfg
 import requests
 
@@ -24,6 +27,7 @@ class MistralResultsQuerier(Querier):
     def __init__(self, id, *args, **kwargs):
         super(MistralResultsQuerier, self).__init__(*args, **kwargs)
         self._base_url = get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
+        self._client = mistral.client(mistral_url=self._base_url)
 
     def query(self, execution_id, query_context):
         """
@@ -84,19 +88,10 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: (``str``, ``dict``)
         """
-        url = self._get_execution_url(exec_id)
-        resp = requests.get(url)
-        execution = resp.json()
+        execution = executions.ExecutionManager(self._client).get(exec_id)
 
-        workflow_state = execution.get('state', None)
-
-        if not workflow_state:
-            raise Exception('Workflow status unknown for mistral execution id %s. %s'
-                            % (exec_id, execution))
-
-        if workflow_state in DONE_STATES:
-            workflow_output = jsonify.try_loads(execution.get('output', {}))
-            return (DONE_STATES[workflow_state], workflow_output)
+        if execution.state in DONE_STATES:
+            return (DONE_STATES[execution.state], jsonify.try_loads(execution.output))
 
         return (LIVEACTION_STATUS_RUNNING, None)
 
@@ -107,19 +102,9 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: ``list``
         """
-        url = self._get_execution_tasks_url(exec_id)
-        resp = requests.get(url)
-        result = resp.json()
-        tasks = result.get('tasks', [])
+        wf_tasks = tasks.TaskManager(self._client).list(workflow_execution_id=exec_id)
 
-        result = []
-
-        for task in tasks:
-            # Format the task output
-            formatted_task = self._format_task_result(task=task)
-            result.append(formatted_task)
-
-        return result
+        return [self._format_task_result(task=wf_task.to_dict()) for wf_task in wf_tasks]
 
     def _format_task_result(self, task):
         """
@@ -134,9 +119,6 @@ class MistralResultsQuerier(Querier):
         result['created_at'] = task.get('created_at', None)
         result['updated_at'] = task.get('updated_at', None)
         result['state'] = task.get('state', None)
-        result['input'] = task.get('input', None)
-        result['result'] = task.get('result', None)
-        result['published'] = task.get('published', None)
 
         for attr in ['result', 'input', 'published']:
             result[attr] = jsonify.try_loads(task.get(attr, None))

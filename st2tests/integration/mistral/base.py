@@ -51,9 +51,12 @@ class TestWorkflowExecution(unittest2.TestCase):
 
         return execution
 
-    def _assert_success(self, execution):
+    def _assert_success(self, execution, num_tasks=0):
         self.assertEqual(execution.status, 'succeeded')
-        tasks = execution.result['tasks']
+
+        tasks = execution.result.get('tasks', [])
+        self.assertEqual(num_tasks, len(tasks))
+
         for task in tasks:
             self.assertIn('state', task)
             self.assertEqual(task['state'], 'SUCCESS')
