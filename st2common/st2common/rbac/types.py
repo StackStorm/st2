@@ -48,8 +48,8 @@ class PermissionType(Enum):
     EXECUTION_ALL = 'execution_all'
 
     # Note: Right now we only have read endpoints for sensors types
-    SENSOR_TYPE_VIEW = 'sensor_type_view'
-    SENSOR_TYPE_ALL = 'sensor_type_all'
+    SENSOR_VIEW = 'sensor_view'
+    SENSOR_ALL = 'sensor_all'
 
     RULE_VIEW = 'rule_view'
     RULE_CREATE = 'rule_create'
@@ -116,9 +116,8 @@ class ResourceType(Enum):
     """
     PACK = SystemResourceType.PACK
     ACTION = SystemResourceType.ACTION
-    SENSOR_TYPE = SystemResourceType.SENSOR_TYPE
+    SENSOR = SystemResourceType.SENSOR_TYPE
     RULE = SystemResourceType.RULE
-    #  TRIGGER_TYPE = SystemResourceType.TRIGGER_TYPE
 
     EXECUTION = SystemResourceType.EXECUTION
     KEY_VALUE = SystemResourceType.KEY_VALUE
@@ -164,9 +163,9 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.ACTION_EXECUTE,
         PermissionType.ACTION_ALL
     ],
-    ResourceType.SENSOR_TYPE: [
-        PermissionType.SENSOR_TYPE_VIEW,
-        PermissionType.SENSOR_TYPE_ALL
+    ResourceType.SENSOR: [
+        PermissionType.SENSOR_VIEW,
+        PermissionType.SENSOR_ALL
     ],
     ResourceType.RULE: [
         PermissionType.RULE_VIEW,
