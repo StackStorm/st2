@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import copy
-import json
 import uuid
 
 import mock
@@ -23,9 +22,10 @@ import six
 import yaml
 
 from mistralclient.api.base import APIException
+from mistralclient.api.v2 import action_executions
+from mistralclient.api.v2 import executions
 from mistralclient.api.v2 import workbooks
 from mistralclient.api.v2 import workflows
-from mistralclient.api.v2 import executions
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
@@ -640,8 +640,8 @@ class TestMistralRunner(DbTestCase):
                                         '["a", "b", "c"]')
 
     @mock.patch.object(
-        requests, 'request',
-        mock.MagicMock(return_value=http.FakeResponse({}, 200, 'OK')))
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
     def test_callback(self):
         liveaction = LiveActionDB(
             action='core.local', parameters={'cmd': 'uname -a'},
@@ -654,10 +654,8 @@ class TestMistralRunner(DbTestCase):
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        requests.request.assert_called_with('PUT', liveaction.callback['url'],
-                                            data=json.dumps({'state': 'SUCCESS',
-                                                             'output': NON_EMPTY_RESULT}),
-                                            headers={'content-type': 'application/json'})
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345', state='SUCCESS', output=NON_EMPTY_RESULT)
 
     def test_build_context(self):
         parent = {

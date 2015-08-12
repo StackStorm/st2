@@ -16,9 +16,12 @@
 import ast
 import eventlet
 import json
+import re
 import requests
 
 from oslo_config import cfg
+from mistralclient.api import client as mistral
+from mistralclient.api.v2 import action_executions
 
 from st2common.constants import action as action_constants
 from st2common import log as logging
@@ -49,30 +52,31 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
             return
 
         try:
-            method = 'PUT'
-            headers = {'content-type': 'application/json'}
-
             if isinstance(result, basestring) and len(result) > 0 and result[0] in ['{', '[']:
                 value = ast.literal_eval(result)
                 if type(value) in [dict, list]:
                     result = value
 
+            match = re.search('(.*)/action_executions/(.*)', url)
+            if not match or len(match.groups()) != 2:
+                raise Exception('Unable to extract the action execution ID '
+                                'from the callback URL (%s).' % url)
+
+            action_execution_id = match.group(2)
             output = json.dumps(result) if type(result) in [dict, list] else str(result)
             data = {'state': STATUS_MAP[status], 'output': output}
+
+            client = mistral.client(mistral_url=cfg.CONF.mistral.v2_base_url)
+            manager = action_executions.ActionExecutionManager(client)
 
             for i in range(cfg.CONF.mistral.max_attempts):
                 try:
                     LOG.info('Sending callback to %s with data %s.', url, data)
-                    response = requests.request(method, url, data=json.dumps(data), headers=headers)
-                    if response.status_code == 200:
-                        break
+                    manager.update(action_execution_id, **data)
+                    break
                 except requests.exceptions.ConnectionError as conn_exc:
                     LOG.exception(conn_exc)
                     if i < cfg.CONF.mistral.max_attempts:
                         eventlet.sleep(cfg.CONF.mistral.retry_wait)
-
-            if response and response.status_code != 200:
-                response.raise_for_status()
-
         except Exception as e:
             LOG.exception(e)
