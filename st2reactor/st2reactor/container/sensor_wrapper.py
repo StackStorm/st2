@@ -72,7 +72,7 @@ class SensorService(object):
         logger.propagate = True
         return logger
 
-    def dispatch(self, trigger, payload=None):
+    def dispatch(self, trigger, payload=None, trace_context=None):
         """
         Method which dispatches the trigger.
 
@@ -81,8 +81,11 @@ class SensorService(object):
 
         :param payload: Trigger payload.
         :type payload: ``dict``
+
+        :param trace_context: Trace context to associate with Trigger.
+        :type trace_context: ``st2common.api.models.api.trace.TraceContext``
         """
-        self._dispatcher.dispatch(trigger, payload=payload)
+        self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
     ##################################
     # Methods for datastore management

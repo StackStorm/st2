@@ -113,3 +113,22 @@ class TraceAPI(BaseAPI):
         if start_timestamp:
             values['start_timestamp'] = isotime.parse(start_timestamp)
         return cls.model(**values)
+
+
+class TraceContext(object):
+    """
+    Context object that either represents an existing Trace in the system or
+    provides sufficient information to start a new Trace. Note that one of id
+    or trace must be provided.
+
+    :param id_: Id of an existing Trace. This is unique and must exist in the system
+                Optional property.
+    :type id_: ``str``
+
+    :param trace_id: User assigned value which may or may not be unique.
+                     Optional property.
+    :type trace_id: ``str``
+    """
+    def __init__(self, id_=None, trace_id=None):
+        self.id_ = id_
+        self.trace_id = trace_id

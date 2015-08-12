@@ -16,6 +16,7 @@
 from kombu import Exchange, Queue
 
 from st2common import log as logging
+from st2common.models.api.trace import TraceContext
 from st2common.transport import publishers
 from st2common.transport import utils as transport_utils
 
@@ -78,7 +79,7 @@ class TriggerDispatcher(object):
         self._publisher = TriggerInstancePublisher(urls=transport_utils.get_messaging_urls())
         self._logger = logger
 
-    def dispatch(self, trigger, payload=None):
+    def dispatch(self, trigger, payload=None, trace_context=None):
         """
         Method which dispatches the trigger.
 
@@ -87,12 +88,17 @@ class TriggerDispatcher(object):
 
         :param payload: Trigger payload.
         :type payload: ``dict``
+
+        :param trace_context: Trace context to associate with Trigger.
+        :type trace_context: ``TraceContext``
         """
         assert isinstance(payload, (type(None), dict))
+        assert isinstance(trace_context, (type(None), TraceContext))
 
         payload = {
             'trigger': trigger,
-            'payload': payload
+            'payload': payload,
+            'trace_context': trace_context
         }
         routing_key = 'trigger_instance'
 
