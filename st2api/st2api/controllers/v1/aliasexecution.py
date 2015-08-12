@@ -101,7 +101,9 @@ class ActionAliasExecutionController(rest.RestController):
 
     def _get_notify_field(self, payload):
         on_complete = NotificationSubSchema()
-        on_complete.routes = [payload.notification_channel]
+        route = (getattr(payload, 'notification_route') or
+                 getattr(payload, 'notification_channel', None))
+        on_complete.routes = [route]
         on_complete.data = {
             'user': payload.user,
             'source_channel': payload.source_channel
