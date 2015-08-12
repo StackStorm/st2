@@ -19,7 +19,11 @@ from tests import FunctionalTest
 FIXTURES_PACK = 'traces'
 
 TEST_MODELS = {
-    'traces': ['trace_empty.yaml', 'trace_one_each.yaml']
+    'traces': [
+        'trace_empty.yaml',
+        'trace_one_each.yaml',
+        'trace_multiple_components.yaml'
+    ]
 }
 
 
@@ -28,6 +32,7 @@ class TestTraces(FunctionalTest):
     models = None
     trace1 = None
     trace2 = None
+    trace3 = None
 
     @classmethod
     def setUpClass(cls):
@@ -36,13 +41,49 @@ class TestTraces(FunctionalTest):
                                                           fixtures_dict=TEST_MODELS)
         cls.trace1 = cls.models['traces']['trace_empty.yaml']
         cls.trace2 = cls.models['traces']['trace_one_each.yaml']
+        cls.trace3 = cls.models['traces']['trace_multiple_components.yaml']
 
     def test_get_all(self):
         resp = self.app.get('/v1/traces')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2, '/v1/traces did not return all traces.')
+        self.assertEqual(len(resp.json), 3, '/v1/traces did not return all traces.')
 
         retrieved_trace_ids = [trace['trace_id'] for trace in resp.json]
 
-        self.assertEqual(retrieved_trace_ids, [self.trace1.trace_id, self.trace2.trace_id],
+        self.assertEqual(retrieved_trace_ids,
+                         [self.trace1.trace_id, self.trace2.trace_id, self.trace3.trace_id],
                          'Incorrect traces retrieved.')
+
+    def test_query_by_trace_id(self):
+        resp = self.app.get('/v1/traces/?trace_id=test-trace-1')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1, '/v1/traces?trace_id=x did not return correct trace.')
+
+        self.assertEqual(resp.json[0]['trace_id'], self.trace1['trace_id'],
+                         'Correct trace not returned.')
+
+    def test_query_by_action_execution(self):
+        resp = self.app.get('/v1/traces/?action_execution=action_execution_2')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1,
+                         '/v1/traces?action_execution=x did not return correct trace.')
+        self.assertEqual(resp.json[0]['trace_id'], self.trace3['trace_id'],
+                         'Correct trace not returned.')
+
+    def test_query_by_rule(self):
+        resp = self.app.get('/v1/traces/?rule=rule_2')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1, '/v1/traces?rule=x did not return correct trace.')
+        self.assertEqual(resp.json[0]['trace_id'], self.trace3['trace_id'],
+                         'Correct trace not returned.')
+
+    def test_query_by_trigger_instance(self):
+        resp = self.app.get('/v1/traces/?trigger_instance=trigger_instance_4')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1,
+                         '/v1/traces?trigger_instance=x did not return correct trace.')
+        self.assertEqual(resp.json[0]['trace_id'], self.trace3['trace_id'],
+                         'Correct trace not returned.')

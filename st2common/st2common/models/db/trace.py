@@ -74,7 +74,10 @@ class TraceDB(stormbase.StormFoundationDB):
     meta = {
         'indexes': [
             {'fields': ['trace_id']},
-            {'fields': ['start_timestamp']}
+            {'fields': ['start_timestamp']},
+            {'fields': ['action_executions.object_id']},
+            {'fields': ['trigger_instances.object_id']},
+            {'fields': ['rules.object_id']}
         ]
     }
 

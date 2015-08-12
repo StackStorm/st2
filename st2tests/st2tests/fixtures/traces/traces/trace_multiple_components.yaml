@@ -1,0 +1,25 @@
+---
+trace_id : test-trace-3
+action_executions :
+    - object_id: 'action_execution_1'
+      updated_at: '2014-09-01T00:00:02.000000Z'
+    - object_id: 'action_execution_2'
+      updated_at: '2014-09-01T00:00:02.000000Z'
+    - object_id: 'action_execution_3'
+      updated_at: '2014-09-01T00:00:02.000000Z'
+rules :
+    - object_id: 'rule_1'
+      updated_at: '2014-09-01T00:00:02.000000Z'
+    - object_id: 'rule_2'
+      updated_at: '2014-09-01T00:00:02.000000Z'
+    - object_id: 'rule_3'
+      updated_at: '2014-09-01T00:00:02.000000Z'
+trigger_instances :
+    - object_id: 'trigger_instance_1'
+      updated_at: '2014-09-01T00:00:02.000000Z'
+    - object_id: 'trigger_instance_2'
+      updated_at: '2014-09-01T00:00:02.000000Z'
+    - object_id: 'trigger_instance_3'
+      updated_at: '2014-09-01T00:00:02.000000Z'
+    - object_id: 'trigger_instance_4'
+      updated_at: '2014-09-01T00:00:02.000000Z'
