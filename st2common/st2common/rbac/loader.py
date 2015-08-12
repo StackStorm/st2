@@ -55,12 +55,12 @@ class RBACDefinitionsLoader(object):
         :rtype: ``dict``
         """
         result = {}
-        result['roles'] = self._load_role_definitions()
-        result['role_assiginments'] = self._load_user_role_assignments()
+        result['roles'] = self.load_role_definitions()
+        result['role_assiginments'] = self.load_user_role_assignments()
 
         return result
 
-    def _load_role_definitions(self):
+    def load_role_definitions(self):
         """
         Load all the role definitions.
 
@@ -72,7 +72,7 @@ class RBACDefinitionsLoader(object):
         result = {}
         for file_path in file_paths:
             LOG.debug('Loading role definition from: %s' % (file_path))
-            role_definition_api = self._load_role_definition_from_file(file_path=file_path)
+            role_definition_api = self.load_role_definition_from_file(file_path=file_path)
             role_name = role_definition_api.name
 
             if role_name in result:
@@ -82,7 +82,7 @@ class RBACDefinitionsLoader(object):
 
         return result
 
-    def _load_user_role_assignments(self):
+    def load_user_role_assignments(self):
         """
         Load all the user role assignments.
 
@@ -94,7 +94,7 @@ class RBACDefinitionsLoader(object):
         result = {}
         for file_path in file_paths:
             LOG.debug('Loading user role assignments from: %s' % (file_path))
-            role_assignment_api = self._load_user_role_assignments_from_file(file_path=file_path)
+            role_assignment_api = self.load_user_role_assignments_from_file(file_path=file_path)
             username = role_assignment_api.username
 
             if username in result:
@@ -104,7 +104,7 @@ class RBACDefinitionsLoader(object):
 
         return result
 
-    def _load_role_definition_from_file(self, file_path):
+    def load_role_definition_from_file(self, file_path):
         """
         Load role definition from file.
 
@@ -121,7 +121,7 @@ class RBACDefinitionsLoader(object):
 
         return role_definition_api
 
-    def _load_user_role_assignments_from_file(self, file_path):
+    def load_user_role_assignments_from_file(self, file_path):
         """
         Load user role assignments from file.
 
