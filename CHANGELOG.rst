@@ -37,6 +37,7 @@ in development
 * Handle sudo in paramiko remote script runner. (bug-fix)
 * Turn on paramiko ssh runner as the default ssh runner in prod configuration.
   To switch to fabric runner, set ``use_paramiko_ssh_runner`` to false in st2.conf. (improvement)
+* Add OpenStack Keystone authentication configuration for Mistral. (improvement)
 
 0.12.2 - August 11, 2015.
 -------------------------
