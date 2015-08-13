@@ -127,3 +127,47 @@ There are more workflow examples under :github_st2:`/usr/share/doc/st2/examples 
 Check out this step-by-step tutorial on building a workflow in |st2| http://stackstorm.com/2015/07/08/automating-with-mistral-workflow/
 
 And more details on Mistral workflow syntax on https://wiki.openstack.org/wiki/Mistral/DSLv2
+
+Configuration Options
++++++++++++++++++++++
+There are a number of configurable options available under the mistral section in the |st2| configuration file. If the mistral section is not provided, default values will be used. By default, all Keystone related options are unset and |st2| will not pass any credential for authentication to Mistral.
+
++-----------------------+--------------------------------------------------------+
+| options               | description                                            |
++=======================+========================================================+
+| v2_base_url           | Mistral API v2 root endpoint                           |
++-----------------------+--------------------------------------------------------+
+| max_attempts          | Max attempts to reconnect on connection error.         |
++-----------------------+--------------------------------------------------------+
+| retry_wait            | Number of seconds to wait inbetween reconnection.      |
++-----------------------+--------------------------------------------------------+
+| keystone_username     | Username for authentication with OpenStack Keystone.   |
++-----------------------+--------------------------------------------------------+
+| keystone_password     | Password for authentication with OpenStack Keystone.   |
++-----------------------+--------------------------------------------------------+
+| keystone_project_name | OpenStack project scope.                               |
++-----------------------+--------------------------------------------------------+
+| keystone_auth_url     | v3 Auth URL for OpenStack Keystone.                    |
++-----------------------+--------------------------------------------------------+
+
+::
+
+    # Example with basic options.
+
+    [mistral]
+    v2_base_url = http://workflow.example.com:8989/v2
+    max_attempts = 180
+    retry_wait = 5
+
+::
+
+    # Example with auth options.
+
+    [mistral]
+    v2_base_url = http://workflow.example.com:8989/v2
+    max_attempts = 180
+    retry_wait = 5
+    keystone_username = mistral
+    keystone_password = pass123
+    keystone_project_name = default
+    keystone_auht_url = http://identity.example.com:5000/v3
