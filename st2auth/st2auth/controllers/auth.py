@@ -23,7 +23,6 @@ from oslo_config import cfg
 from st2common.exceptions.auth import TTLTooLargeException
 from st2common.models.api.base import jsexpose
 from st2common.models.api.auth import TokenAPI
-from st2common.util.jsonify import json_encode
 from st2common.services.access import create_token
 from st2common import log as logging
 from st2auth.backends import get_backend_instance
@@ -115,12 +114,7 @@ class TokenController(rest.RestController):
 
     def _abort_request(self, status_code=http_client.UNAUTHORIZED,
                        message='Invalid or missing credentials'):
-        body = json_encode({
-            'faultstring': message
-        })
-        headers = {}
-        headers['Content-Type'] = 'application/json'
-        pecan.abort(status_code=status_code, detail=body, headers=headers)
+        pecan.abort(status_code, message)
 
     def _process_successful_response(self, token):
         api_url = cfg.CONF.auth.api_url
