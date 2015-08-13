@@ -27,6 +27,9 @@ in development
 * Rename notification "channels" to "routes". (improvement)
 * Make sure auth hook and middleware returns JSON and "Content-Type: application/json" header
   in every response. (improvement, bug-fix)
+* Fix bug in triggers emitted on key value pair changes and sensor spawn/exit. When
+  dispatching those triggers, the reference used didn't contain the pack names
+  which meant it was invalid and lookups in the rules engine would fail. (bug-fix)
 
 0.12.1 - July 31, 2015
 ----------------------
