@@ -23,7 +23,7 @@ from st2common.services import triggers as TriggerService
 LOG = logging.getLogger('st2reactor.sensor.container_utils')
 
 
-def create_trigger_instance(trigger, payload, occurrence_time):
+def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigger=False):
     """
     This creates a trigger instance object given trigger and payload.
     Trigger can be just a string reference (pack.name) or a ``dict``
@@ -46,6 +46,8 @@ def create_trigger_instance(trigger, payload, occurrence_time):
 
     if trigger_db is None:
         LOG.debug('No trigger in db for %s', trigger)
+        if raise_on_no_trigger:
+            raise ValueError('Trigger not found for %s', trigger)
         return None
 
     trigger_ref = trigger_db.get_reference().ref
