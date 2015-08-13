@@ -66,7 +66,13 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
             output = json.dumps(result) if type(result) in [dict, list] else str(result)
             data = {'state': STATUS_MAP[status], 'output': output}
 
-            client = mistral.client(mistral_url=cfg.CONF.mistral.v2_base_url)
+            client = mistral.client(
+                mistral_url=cfg.CONF.mistral.v2_base_url,
+                username=cfg.CONF.mistral.keystone_username,
+                api_key=cfg.CONF.mistral.keystone_password,
+                project_name=cfg.CONF.mistral.keystone_project_name,
+                auth_url=cfg.CONF.mistral.keystone_auth_url)
+
             manager = action_executions.ActionExecutionManager(client)
 
             for i in range(cfg.CONF.mistral.max_attempts):

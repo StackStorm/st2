@@ -27,7 +27,12 @@ class MistralResultsQuerier(Querier):
     def __init__(self, id, *args, **kwargs):
         super(MistralResultsQuerier, self).__init__(*args, **kwargs)
         self._base_url = get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
-        self._client = mistral.client(mistral_url=self._base_url)
+        self._client = mistral.client(
+            mistral_url=self._base_url,
+            username=cfg.CONF.mistral.keystone_username,
+            api_key=cfg.CONF.mistral.keystone_password,
+            project_name=cfg.CONF.mistral.keystone_project_name,
+            auth_url=cfg.CONF.mistral.keystone_auth_url)
 
     def query(self, execution_id, query_context):
         """
