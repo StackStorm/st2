@@ -16,8 +16,9 @@
 import six
 
 from st2common import log as logging
-from st2common.persistence.trigger import TriggerInstance
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.trigger import TriggerInstanceDB
+from st2common.persistence.trigger import TriggerInstance
 from st2common.services import triggers as TriggerService
 
 LOG = logging.getLogger('st2reactor.sensor.container_utils')
@@ -47,7 +48,7 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
     if trigger_db is None:
         LOG.debug('No trigger in db for %s', trigger)
         if raise_on_no_trigger:
-            raise ValueError('Trigger not found for %s', trigger)
+            raise StackStormDBObjectNotFoundError('Trigger not found for %s', trigger)
         return None
 
     trigger_ref = trigger_db.get_reference().ref
