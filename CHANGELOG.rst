@@ -24,6 +24,7 @@ in development
 * Fix key name for error message in liveaction result. (bug-fix)
 * Fix 500 API response when rule with no pack info is supplied. (bug-fix)
 * Fix bug in trigger-instance re-emit (extra kwargs passed to manager is now handled). (bug-fix)
+* Fix bug in triggers emitted on key value pair changes and sensor spawn/exit. (bug-fix)
 
 0.12.1 - July 31, 2015
 ----------------------
